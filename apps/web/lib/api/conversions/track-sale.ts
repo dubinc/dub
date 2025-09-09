@@ -19,7 +19,6 @@ import {
   transformLeadEventData,
   transformSaleEventData,
 } from "@/lib/webhook/transform";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import {
   trackSaleRequestSchema,
   trackSaleResponseSchema,
@@ -31,7 +30,6 @@ import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { createId } from "../create-id";
 import { executeWorkflows } from "../workflows/execute-workflows";
-import { trackLead } from "./track-lead";
 
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   rawBody: any;
@@ -54,8 +52,13 @@ export const trackSale = async ({
   rawBody,
   workspace,
 }: TrackSaleParams) => {
+  let existingCustomer: Customer | null = null;
+  let newCustomer: Customer | null = null;
+  let clickData: ClickEventTB | null = null;
+  let leadEventData: LeadEventTB | null = null;
+
+  // Skip if invoice id is already processed
   if (invoiceId) {
-    // skip if invoice id is already processed
     const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
       ex: 60 * 60 * 24 * 7,
       nx: true,
@@ -70,8 +73,8 @@ export const trackSale = async ({
     }
   }
 
-  // find customer
-  const customer = await prisma.customer.findUnique({
+  // Find existing customer
+  existingCustomer = await prisma.customer.findUnique({
     where: {
       projectId_externalId: {
         projectId: workspace.id,
@@ -80,67 +83,10 @@ export const trackSale = async ({
     },
   });
 
-  if (!customer && !clickId) {
-    waitUntil(
-      logConversionEvent({
-        workspace_id: workspace.id,
-        path: "/track/sale",
-        body: JSON.stringify(rawBody),
-        error: `Customer not found for externalId: ${customerExternalId}`,
-      }),
-    );
-
-    return {
-      eventName,
-      customer: null,
-      sale: null,
-    };
-  }
-
-  // find click event if clickId is provided
-  let clickData: ClickEventTB | null = null;
-
-  if (clickId) {
-    const clickEvent = await getClickEvent({
-      clickId,
-    });
-
-    if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
-      clickData = clickEvent.data[0];
-    }
-
-    // if there is no click data in Tinybird yet, check the clickIdCache
-    if (!clickData) {
-      const cachedClickData = await redis.get<ClickEventTB>(
-        `clickIdCache:${clickId}`,
-      );
-
-      if (cachedClickData) {
-        clickData = {
-          ...cachedClickData,
-          timestamp: cachedClickData.timestamp
-            .replace("T", " ")
-            .replace("Z", ""),
-          qr: cachedClickData.qr ? 1 : 0,
-          bot: cachedClickData.bot ? 1 : 0,
-        };
-      }
-    }
-
-    if (!clickData) {
-      throw new DubApiError({
-        code: "not_found",
-        message: `Click event not found for clickId: ${clickId}`,
-      });
-    }
-  }
-
-  // find lead event if customer exists
-  if (customer) {
-    let leadEventData: LeadEventTB | null = null;
-
+  // Existing customer is found, find the lead event
+  if (existingCustomer) {
     const leadEvent = await getLeadEvent({
-      customerId: customer.id,
+      customerId: existingCustomer.id,
       eventName: leadEventName,
     });
 
@@ -150,7 +96,7 @@ export const trackSale = async ({
       // otherwise, we check for all cached lead events for that customer
 
       const cachedLeadEvent = await redis.get<LeadEventTB>(
-        `leadCache:${customer.id}${leadEventName ? `:${leadEventName.toLowerCase().replaceAll(" ", "-")}` : ""}`,
+        `leadCache:${existingCustomer.id}${leadEventName ? `:${leadEventName.toLowerCase().replaceAll(" ", "-")}` : ""}`,
       );
 
       if (!cachedLeadEvent) {
@@ -175,32 +121,137 @@ export const trackSale = async ({
     } else {
       leadEventData = leadEvent.data[0];
     }
-
-    clickData = clickEventSchemaTB.parse(leadEventData);
   }
 
-  await Promise.all([
-    // _trackLead({
-    //   customerExternalId,
-    //   customerName,
-    //   customerEmail,
-    //   customerAvatar,
-    //   workspace,
-    //   clickData,
-    // }),
+  // No existing customer is found, find the click event and create a new customer
+  else {
+    if (!clickId) {
+      waitUntil(
+        logConversionEvent({
+          workspace_id: workspace.id,
+          path: "/track/sale",
+          body: JSON.stringify(rawBody),
+          error:
+            "The `clickId` property was not provided in the request, and no existing customer with the provided `customerExternalId` was found.",
+        }),
+      );
 
-    // trackLead({
-    //   clickId,
-    //   customerExternalId,
-    //   customerName,
-    //   customerEmail,
-    //   customerAvatar,
-    //   eventName: "Sign Up",
-    //   eventQuantity: 1,
-    //   metadata: null,
-    //   rawBody,
-    //   workspace,
-    // })
+      return {
+        eventName,
+        customer: null,
+        sale: null,
+      };
+    }
+
+    // Find the click event for the given clickId
+    const clickEvent = await getClickEvent({
+      clickId,
+    });
+
+    if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
+      clickData = clickEvent.data[0];
+    }
+
+    // If there is no click data in Tinybird yet, check the clickIdCache
+    if (!clickData) {
+      const cachedClickData = await redis.get<ClickEventTB>(
+        `clickIdCache:${clickId}`,
+      );
+
+      if (cachedClickData) {
+        clickData = {
+          ...cachedClickData,
+          timestamp: cachedClickData.timestamp
+            .replace("T", " ")
+            .replace("Z", ""),
+          qr: cachedClickData.qr ? 1 : 0,
+          bot: cachedClickData.bot ? 1 : 0,
+        };
+      }
+    }
+
+    if (!clickData) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Click event not found for clickId: ${clickId}`,
+      });
+    }
+
+    // Create a new customer
+    const link = await prisma.link.findUnique({
+      where: {
+        id: clickData.link_id,
+      },
+      select: {
+        id: true,
+        projectId: true,
+      },
+    });
+
+    if (!link) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link not found for clickId: ${clickData.click_id}`,
+      });
+    }
+
+    if (link.projectId !== workspace.id) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Link for clickId ${clickData.click_id} does not belong to the workspace`,
+      });
+    }
+
+    const finalCustomerId = createId({ prefix: "cus_" });
+    const finalCustomerName =
+      customerName || customerEmail || generateRandomName();
+    const finalCustomerAvatar =
+      customerAvatar && !isStored(customerAvatar)
+        ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
+        : customerAvatar;
+
+    newCustomer = await prisma.customer.create({
+      data: {
+        id: finalCustomerId,
+        name: finalCustomerName,
+        email: customerEmail,
+        avatar: finalCustomerAvatar,
+        externalId: customerExternalId,
+        linkId: clickData.link_id,
+        clickId: clickData.click_id,
+        country: clickData.country,
+        projectId: workspace.id,
+        projectConnectId: workspace.stripeConnectId,
+        clickedAt: new Date(clickData.timestamp + "Z"),
+      },
+    });
+
+    leadEventData = {
+      ...clickData,
+      event_id: nanoid(16),
+      event_name: "Sign up",
+      customer_id: newCustomer.id,
+      metadata: metadata ? JSON.stringify(metadata) : "",
+    };
+  }
+
+  const customer: Customer = existingCustomer ?? newCustomer!;
+
+  // This should never happen
+  if (!customer) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "Customer not found.",
+    });
+  }
+
+  const [_, trackedSale] = await Promise.all([
+    newCustomer &&
+      _trackLead({
+        workspace,
+        leadEventData,
+        customer: newCustomer,
+      }),
 
     _trackSale({
       amount,
@@ -211,131 +262,65 @@ export const trackSale = async ({
       metadata,
       rawBody,
       workspace,
-      clickData,
+      leadEventData,
       customer,
     }),
   ]);
+
+  return trackedSale;
 };
 
+// Track the lead event
 const _trackLead = async ({
-  customerExternalId,
-  customerName,
-  customerEmail,
-  customerAvatar,
   workspace,
-  clickData,
-}: Pick<
-  TrackSaleParams,
-  | "clickId"
-  | "customerExternalId"
-  | "customerName"
-  | "customerEmail"
-  | "customerAvatar"
-  | "workspace"
-> & {
-  clickData: ClickEventTB | null;
+  leadEventData,
+  customer,
+}: Pick<TrackSaleParams, "workspace"> & {
+  leadEventData: LeadEventTB | null;
+  customer: Customer;
 }) => {
-  if (!clickData) {
-    return;
-  }
-
-  // get the referral link from the from the clickData
-  const linkFound = await prisma.link.findUnique({
-    where: {
-      id: clickData.link_id,
-    },
-    select: {
-      id: true,
-      projectId: true,
-    },
-  });
-
-  if (!linkFound) {
+  if (!leadEventData) {
     throw new DubApiError({
       code: "not_found",
-      message: `Link not found for clickId: ${clickData.click_id}`,
+      message: `Lead event data not found for the customer ${customer.id}`,
     });
   }
-
-  if (linkFound.projectId !== workspace.id) {
-    throw new DubApiError({
-      code: "not_found",
-      message: `Link for clickId ${clickData.click_id} does not belong to the workspace`,
-    });
-  }
-
-  // prepare the customer data
-  const eventQuantity = 1;
-  const finalCustomerId = createId({ prefix: "cus_" });
-  const finalCustomerName =
-    customerName || customerEmail || generateRandomName();
-  const finalCustomerAvatar =
-    customerAvatar && !isStored(customerAvatar)
-      ? `${R2_URL}/customers/${finalCustomerId}/avatar_${nanoid(7)}`
-      : customerAvatar;
-
-  // construct the lead event payload
-  const leadEventId = nanoid(16);
-  const leadEventName = "Sign up";
-
-  // create a new customer
-  const customer = await prisma.customer.create({
-    data: {
-      id: finalCustomerId,
-      name: finalCustomerName,
-      email: customerEmail,
-      avatar: finalCustomerAvatar,
-      externalId: customerExternalId,
-      linkId: clickData.link_id,
-      clickId: clickData.click_id,
-      country: clickData.country,
-      projectId: workspace.id,
-      projectConnectId: workspace.stripeConnectId,
-      clickedAt: new Date(clickData.timestamp + "Z"),
-    },
-  });
 
   const [_leadEvent, link, _workspace] = await Promise.all([
-    // record the lead event for the customer
-    recordLead({
-      ...clickData,
-      event_id: leadEventId,
-      event_name: leadEventName,
-      customer_id: finalCustomerId,
-    }),
+    // Record the lead event for the customer
+    recordLead(leadEventData),
 
-    // update link leads count
+    // Update link leads count
     prisma.link.update({
       where: {
-        id: clickData.link_id,
+        id: leadEventData.link_id,
       },
       data: {
         leads: {
-          increment: eventQuantity,
+          increment: 1,
         },
       },
       include: includeTags,
     }),
 
-    // update workspace events usage
+    // Update workspace events usage
     prisma.project.update({
       where: {
         id: workspace.id,
       },
       data: {
         usage: {
-          increment: eventQuantity,
+          increment: 1,
         },
       },
     }),
 
-    // persist customer avatar to R2
-    customerAvatar &&
-      !isStored(customerAvatar) &&
-      finalCustomerAvatar &&
+    // Persist customer avatar to R2
+    customer.avatar &&
+      !isStored(customer.avatar) &&
       storage.upload(
-        finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-        customerAvatar,
+        customer.avatar.replace(`${R2_URL}/`, ""),
+        customer.avatar,
         {
           width: 128,
           height: 128,
@@ -343,16 +328,16 @@ const _trackLead = async ({
       ),
   ]);
 
-  // create partner commission and execute workflows
+  // Create partner commission and execute workflows
   if (link.programId && link.partnerId && customer) {
     await createPartnerCommission({
       event: "lead",
       programId: link.programId,
       partnerId: link.partnerId,
       linkId: link.id,
-      eventId: leadEventId,
+      eventId: leadEventData.event_id,
       customerId: customer.id,
-      quantity: eventQuantity,
+      quantity: 1,
       context: {
         customer: {
           country: customer.country,
@@ -367,10 +352,9 @@ const _trackLead = async ({
     });
   }
 
-  // send workspace webhook
+  // Send workspace webhook
   const webhookPayload = transformLeadEventData({
-    ...clickData,
-    eventName: leadEventName,
+    ...leadEventData,
     link,
     customer,
   });
@@ -382,6 +366,7 @@ const _trackLead = async ({
   });
 };
 
+// Track the sale event
 const _trackSale = async ({
   amount,
   currency = "usd",
@@ -391,17 +376,17 @@ const _trackSale = async ({
   metadata,
   rawBody,
   workspace,
-  clickData,
+  leadEventData,
   customer,
-}: TrackSaleParams & {
-  clickData: ClickEventTB | null;
-  customer: Pick<
-    Customer,
-    "id" | "sales" | "linkId" | "country" | "clickedAt" | "createdAt"
-  >;
+}: Omit<TrackSaleParams, "customerExternalId"> & {
+  leadEventData: LeadEventTB | null;
+  customer: Customer;
 }) => {
-  if (!clickData) {
-    return;
+  if (!leadEventData) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Lead event data not found for the customer ${customer.id}`,
+    });
   }
 
   // if currency is not USD, convert it to USD  based on the current FX rate
@@ -417,33 +402,34 @@ const _trackSale = async ({
     amount = convertedAmount;
   }
 
+  const saleData = {
+    ...leadEventData,
+    event_id: nanoid(16),
+    event_name: eventName,
+    customer_id: customer.id,
+    payment_processor: paymentProcessor,
+    amount,
+    currency,
+    invoice_id: invoiceId || "",
+    metadata: metadata ? JSON.stringify(metadata) : "",
+    timestamp: undefined,
+  };
+
   waitUntil(
     (async () => {
-      const saleEvent = {
-        ...clickData,
-        event_id: nanoid(16),
-        event_name: eventName,
-        customer_id: customer.id,
-        payment_processor: paymentProcessor,
-        amount,
-        currency,
-        invoice_id: invoiceId || "",
-        metadata: metadata ? JSON.stringify(metadata) : "",
-      };
-
       const [_sale, link] = await Promise.all([
-        // record sale event
-        recordSale(saleEvent),
+        // Record sale event
+        recordSale(saleData),
 
-        // update link conversions, sales, and saleAmount
+        // Update link conversions, sales, and saleAmount
         prisma.link.update({
           where: {
-            id: saleEvent.link_id,
+            id: saleData.link_id,
           },
           data: {
             ...(isFirstConversion({
               customer,
-              linkId: saleEvent.link_id,
+              linkId: saleData.link_id,
             }) && {
               conversions: {
                 increment: 1,
@@ -459,7 +445,7 @@ const _trackSale = async ({
           include: includeTags,
         }),
 
-        // update workspace events usage
+        // Update workspace events usage
         prisma.project.update({
           where: {
             id: workspace.id,
@@ -471,7 +457,7 @@ const _trackSale = async ({
           },
         }),
 
-        // update customer sales count
+        // Update customer sales count
         prisma.customer.update({
           where: {
             id: customer.id,
@@ -486,15 +472,16 @@ const _trackSale = async ({
           },
         }),
 
+        // Log conversion event
         logConversionEvent({
           workspace_id: workspace.id,
-          link_id: saleEvent.link_id,
+          link_id: saleData.link_id,
           path: "/track/sale",
           body: JSON.stringify(rawBody),
         }),
       ]);
 
-      // create partner commission and execute workflows
+      // Create partner commission and execute workflows
       if (link.programId && link.partnerId) {
         await createPartnerCommission({
           event: "sale",
@@ -502,8 +489,8 @@ const _trackSale = async ({
           partnerId: link.partnerId,
           linkId: link.id,
           customerId: customer.id,
-          eventId: saleEvent.event_id,
-          amount: saleEvent.amount,
+          eventId: saleData.event_id,
+          amount: saleData.amount,
           quantity: 1,
           invoiceId,
           currency,
@@ -524,9 +511,9 @@ const _trackSale = async ({
         });
       }
 
-      // send workspace webhook
+      // Send workspace webhook
       const webhookPayload = transformSaleEventData({
-        ...saleEvent,
+        ...saleData,
         clickedAt: customer.clickedAt || customer.createdAt,
         link,
         customer,
