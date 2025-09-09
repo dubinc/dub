@@ -45,14 +45,10 @@ describe("POST /track/lead/client", async () => {
 
     expect(response.status).toEqual(200);
     expect(leadResponse).toStrictEqual({
-      clickId,
-      customerName: customer.name,
-      customerEmail: customer.email,
-      customerAvatar: customer.avatar,
-      customer: customer,
       click: {
         id: clickId,
       },
+      customer: customer,
     });
   });
 });
