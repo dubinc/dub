@@ -225,6 +225,20 @@ export const trackSale = async ({
       },
     });
 
+    if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
+      // persist customer avatar to R2 if it's not already stored
+      waitUntil(
+        storage.upload(
+          finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+          customerAvatar,
+          {
+            width: 128,
+            height: 128,
+          },
+        ),
+      );
+    }
+
     leadEventData = {
       ...clickData,
       event_id: nanoid(16),
@@ -295,84 +309,76 @@ const _trackLead = async ({
     });
   }
 
-  const [_leadEvent, link, _workspace] = await Promise.all([
-    // Record the lead event for the customer
-    recordLead(leadEventData),
+  waitUntil(
+    (async () => {
+      const [_leadEvent, link, _workspace] = await Promise.all([
+        // Record the lead event for the customer
+        recordLead(leadEventData),
 
-    // Update link leads count
-    prisma.link.update({
-      where: {
-        id: leadEventData.link_id,
-      },
-      data: {
-        leads: {
-          increment: 1,
-        },
-      },
-      include: includeTags,
-    }),
+        // Update link leads count
+        prisma.link.update({
+          where: {
+            id: leadEventData.link_id,
+          },
+          data: {
+            leads: {
+              increment: 1,
+            },
+          },
+          include: includeTags,
+        }),
 
-    // Update workspace events usage
-    prisma.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        usage: {
-          increment: 1,
-        },
-      },
-    }),
+        // Update workspace events usage
+        prisma.project.update({
+          where: {
+            id: workspace.id,
+          },
+          data: {
+            usage: {
+              increment: 1,
+            },
+          },
+        }),
+      ]);
 
-    // Persist customer avatar to R2
-    customer.avatar &&
-      !isStored(customer.avatar) &&
-      storage.upload(
-        customer.avatar.replace(`${R2_URL}/`, ""),
-        customer.avatar,
-        {
-          width: 128,
-          height: 128,
-        },
-      ),
-  ]);
+      // Create partner commission and execute workflows
+      if (link.programId && link.partnerId && customer) {
+        await createPartnerCommission({
+          event: "lead",
+          programId: link.programId,
+          partnerId: link.partnerId,
+          linkId: link.id,
+          eventId: leadEventData.event_id,
+          customerId: customer.id,
+          quantity: 1,
+          context: {
+            customer: {
+              country: customer.country,
+            },
+          },
+        });
 
-  // Create partner commission and execute workflows
-  if (link.programId && link.partnerId && customer) {
-    await createPartnerCommission({
-      event: "lead",
-      programId: link.programId,
-      partnerId: link.partnerId,
-      linkId: link.id,
-      eventId: leadEventData.event_id,
-      customerId: customer.id,
-      quantity: 1,
-      context: {
-        customer: {
-          country: customer.country,
-        },
-      },
-    });
+        await executeWorkflows({
+          trigger: WorkflowTrigger.leadRecorded,
+          programId: link.programId,
+          partnerId: link.partnerId,
+        });
+      }
 
-    await executeWorkflows({
-      trigger: WorkflowTrigger.leadRecorded,
-      programId: link.programId,
-      partnerId: link.partnerId,
-    });
-  }
+      // Send workspace webhook
+      const webhookPayload = transformLeadEventData({
+        ...leadEventData,
+        link,
+        customer,
+      });
 
-  // Send workspace webhook
-  const webhookPayload = transformLeadEventData({
-    ...leadEventData,
-    link,
-    customer,
-  });
-
-  await sendWorkspaceWebhook({
-    trigger: "lead.created",
-    data: webhookPayload,
-    workspace,
-  });
+      await sendWorkspaceWebhook({
+        trigger: "lead.created",
+        data: webhookPayload,
+        workspace,
+      });
+    })(),
+  );
 };
 
 // Track the sale event
