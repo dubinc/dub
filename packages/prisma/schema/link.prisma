@@ -90,6 +90,7 @@ model Link {
 
   @@unique([domain, key]) // for getting a link by domain and key
   @@unique([projectId, externalId]) // for getting a link by externalId
+  @@unique([projectId, couponCode])
   @@index([projectId, tenantId]) // for filtering by tenantId
   @@index([projectId, url(length: 500)]) // for upserting a link by URL
   @@index([projectId, folderId, archived, createdAt(sort: Desc)]) // most getLinksForWorkspace queries
