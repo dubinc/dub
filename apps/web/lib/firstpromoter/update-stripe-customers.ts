@@ -52,7 +52,6 @@ export async function updateStripeCustomers(
       },
       select: {
         id: true,
-        name: true,
         email: true,
       },
       orderBy: {
@@ -114,58 +113,62 @@ async function searchStripeAndUpdateCustomer({
     entity_id: customer.id,
   } as const;
 
-  const stripeCustomers = await stripe.customers.search(
-    {
-      query: `email:'${customer.email}'`,
-    },
-    {
-      stripeAccount: workspace.stripeConnectId!,
-    },
-  );
-
-  if (stripeCustomers.data.length === 0) {
-    await logImportError({
-      ...commonImportLogInputs,
-      code: "STRIPE_CUSTOMER_NOT_FOUND",
-      message: `Stripe search returned no customer for ${customer.email}`,
-    });
-
-    return null;
-  }
-
-  let stripeCustomer: Stripe.Customer;
-
-  if (stripeCustomers.data.length > 1) {
-    // look for the one with metadata.fp_uid set
-    const firstPromoterStripeCustomer = stripeCustomers.data.find(
-      ({ metadata }) => metadata.fp_uid,
+  try {
+    const stripeCustomers = await stripe.customers.search(
+      {
+        query: `email:'${customer.email}'`,
+      },
+      {
+        stripeAccount: workspace.stripeConnectId!,
+      },
     );
 
-    if (firstPromoterStripeCustomer) {
-      stripeCustomer = firstPromoterStripeCustomer;
-    } else {
+    if (stripeCustomers.data.length === 0) {
       await logImportError({
         ...commonImportLogInputs,
         code: "STRIPE_CUSTOMER_NOT_FOUND",
-        message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.fp_uid set`,
+        message: `Stripe search returned no customer for ${customer.email}`,
       });
 
       return null;
     }
-  } else {
-    stripeCustomer = stripeCustomers.data[0];
+
+    let stripeCustomer: Stripe.Customer;
+
+    if (stripeCustomers.data.length > 1) {
+      // look for the one with metadata.fp_uid set
+      const firstPromoterStripeCustomer = stripeCustomers.data.find(
+        ({ metadata }) => metadata.fp_uid,
+      );
+
+      if (firstPromoterStripeCustomer) {
+        stripeCustomer = firstPromoterStripeCustomer;
+      } else {
+        await logImportError({
+          ...commonImportLogInputs,
+          code: "STRIPE_CUSTOMER_NOT_FOUND",
+          message: `Stripe search returned multiple customers for ${customer.email} for workspace ${workspace.slug} and none had metadata.fp_uid set`,
+        });
+
+        return null;
+      }
+    } else {
+      stripeCustomer = stripeCustomers.data[0];
+    }
+
+    await prisma.customer.update({
+      where: {
+        id: customer.id,
+      },
+      data: {
+        stripeCustomerId: stripeCustomer.id,
+      },
+    });
+
+    console.log(
+      `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
+    );
+  } catch (error) {
+    console.error(error);
   }
-
-  await prisma.customer.update({
-    where: {
-      id: customer.id,
-    },
-    data: {
-      stripeCustomerId: stripeCustomer.id,
-    },
-  });
-
-  console.log(
-    `Updated customer ${customer.id} with Stripe customer ID ${stripeCustomer.id}`,
-  );
 }
