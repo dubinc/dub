@@ -15,6 +15,10 @@ export const POST = withWorkspace(
       customerExternalId: newExternalId,
       externalId: oldExternalId, // deprecated
       customerId: oldCustomerId, // deprecated
+      customerName,
+      customerEmail,
+      customerAvatar,
+      clickId,
       paymentProcessor,
       invoiceId,
       amount,
@@ -42,6 +46,10 @@ export const POST = withWorkspace(
 
     const response = await trackSale({
       customerExternalId,
+      customerName,
+      customerEmail,
+      customerAvatar,
+      clickId,
       amount,
       currency,
       eventName,
