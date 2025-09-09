@@ -24,5 +24,4 @@ model Message {
   @@index([partnerId, programId])
   @@index(senderPartnerId)
   @@index(senderUserId)
-  @@index(readInEmail)
 }
