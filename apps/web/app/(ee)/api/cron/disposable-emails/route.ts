@@ -24,7 +24,7 @@ export async function GET(req: Request) {
 
     // Use a temporary set to avoid emptying the old set
     await redis.del("disposableEmailDomainsTmp");
-    await redis.sadd("disposableEmailDomainsTmp", ...domains);
+    await redis.sadd("disposableEmailDomainsTmp", undefined, ...domains);
     await redis.rename("disposableEmailDomainsTmp", "disposableEmailDomains");
 
     return NextResponse.json({ status: "OK" });
