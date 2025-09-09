@@ -2,7 +2,6 @@
 
 import { checkFeaturesAccess } from "@/lib/actions/check-features-access.ts";
 import { useGetUserProfileQuery } from "core/api/user/user.hook.tsx";
-import { startSessionRecording } from "core/integration/analytic";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import {
@@ -44,7 +43,6 @@ export function TrialStatusProvider({ children }: { children: ReactNode }) {
 
       if (!res?.data?.featuresAccess) {
         setIsTrialOver(true);
-        startSessionRecording();
       }
     } catch (error) {
       console.error("Error checking trial status:", error);

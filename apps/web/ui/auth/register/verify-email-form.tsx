@@ -15,7 +15,6 @@ import slugify from "@sindresorhus/slugify";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import {
   setPeopleAnalyticOnce,
-  stopSessionRecording,
   trackClientEvents,
 } from "core/integration/analytic/services/analytic.service.ts";
 import { OTPInput } from "input-otp";
@@ -60,7 +59,6 @@ export const VerifyEmailForm = ({
         sessionId,
       });
       setPeopleAnalyticOnce({ signup_method: "email" });
-      stopSessionRecording();
 
       showMessage(
         "Account created! Redirecting to dashboard...",

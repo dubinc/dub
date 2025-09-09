@@ -1,11 +1,7 @@
 "use client";
 
 import { FC, useEffect } from "react";
-import {
-  setPeopleAnalyticOnce,
-  stopSessionRecording,
-  trackClientEvents,
-} from "../index.ts";
+import { setPeopleAnalyticOnce, trackClientEvents } from "../index.ts";
 import { EAnalyticEvents } from "../interfaces/analytic.interface.ts";
 
 interface IOauthTrackerProps {
@@ -30,8 +26,6 @@ export const OauthTrackerComponent: FC<Readonly<IOauthTrackerProps>> = ({
       },
       sessionId: userId,
     });
-
-    stopSessionRecording();
 
     if (flow === "signup") {
       setPeopleAnalyticOnce({ signup_method: provider });
