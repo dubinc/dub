@@ -28,10 +28,27 @@ export const POST = async (req: Request) => {
     return NextResponse.json({ message: "Invalid signature" }, { status: 400 });
   }
 
-  const {
-    data: { email, unsubscribed },
-  } = JSON.parse(rawBody) || {};
+  const { type, data } = JSON.parse(rawBody) || {};
 
+  switch (type) {
+    case "contact.updated":
+      await handleContactUpdated(data);
+      break;
+    case "email.opened":
+      await handleEmailOpened(data);
+      break;
+  }
+
+  return NextResponse.json({ message: "Webhook received" });
+};
+
+async function handleContactUpdated({
+  email,
+  unsubscribed,
+}: {
+  email: string;
+  unsubscribed: boolean;
+}) {
   console.log(
     `${email} ${unsubscribed ? "unsubscribed from" : "subscribed to"} mailing list. Updating user...`,
   );
@@ -46,6 +63,44 @@ export const POST = async (req: Request) => {
       },
     });
   }
+}
 
-  return NextResponse.json({ message: "Webhook received" });
-};
+async function handleEmailOpened({
+  tags,
+  email_id: emailId,
+}: {
+  tags?: Record<string, string>;
+  email_id: string;
+}) {
+  // Ignore if not a message notification
+  if (!tags || tags.type !== "message-notification") return;
+
+  console.log(
+    `Updating notification email read statuses for email ${emailId}...`,
+  );
+
+  await Promise.all([
+    prisma.notificationEmail.updateMany({
+      where: {
+        emailId,
+        openedAt: null,
+      },
+      data: {
+        openedAt: new Date(),
+      },
+    }),
+    prisma.message.updateMany({
+      where: {
+        readInEmail: null,
+        emails: {
+          some: {
+            emailId,
+          },
+        },
+      },
+      data: {
+        readInEmail: new Date(),
+      },
+    }),
+  ]);
+}
