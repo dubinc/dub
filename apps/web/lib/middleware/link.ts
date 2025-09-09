@@ -32,6 +32,7 @@ import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { RedisLinkProps } from "../types";
 import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
 import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
@@ -79,7 +80,21 @@ export default async function LinkMiddleware(
     });
   }
 
-  let cachedLink = await linkCache.get({ domain, key });
+  let cachedLink: RedisLinkProps | null = null;
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 1000);
+
+    cachedLink = await linkCache.get({ domain, key });
+    clearTimeout(timeoutId);
+  } catch (error) {
+    console.error(
+      "[LinkMiddleware] – Timeout getting cached link from Redis:",
+      error,
+    );
+    cachedLink = null;
+  }
+
   let isPartnerLink = Boolean(cachedLink?.programId && cachedLink?.partnerId);
 
   if (!cachedLink) {
