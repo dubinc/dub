@@ -13,33 +13,6 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "The unique ID of the customer in your system. Will be used to identify and attribute all future events to this customer.",
     ),
-  customerName: z
-    .string()
-    .max(100)
-    .nullish()
-    .default(null)
-    .describe(
-      "The name of the customer. If not passed, a random name will be generated (e.g. “Big Red Caribou”).",
-    ),
-  customerEmail: z
-    .string()
-    .email()
-    .max(100)
-    .nullish()
-    .default(null)
-    .describe("The email address of the customer."),
-  customerAvatar: z
-    .string()
-    .nullish()
-    .default(null)
-    .describe("The avatar URL of the customer."),
-  clickId: z
-    .string()
-    .trim()
-    .nullish()
-    .describe(
-      "The unique ID of the click that the sale conversion event is attributed to. You can read this value from `dub_id` cookie. If not provided, Dub will try to find an existing customer with the provided `customerExternalId` and use the `clickId` from the customer if found.",
-    ),
   amount: z
     .number({ required_error: "amount is required" })
     .int()
@@ -91,6 +64,38 @@ export const trackSaleRequestSchema = z.object({
     })
     .describe(
       "Additional metadata to be stored with the sale event. Max 10,000 characters when stringified.",
+    ),
+  // for tracking lead + sale together
+  clickId: z
+    .string()
+    .trim()
+    .nullish()
+    .describe(
+      "[For sale tracking without a pre-existing lead event]: The unique ID of the click that the sale conversion event is attributed to. You can read this value from `dub_id` cookie.",
+    ),
+  customerName: z
+    .string()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe(
+      "[For sale tracking without a pre-existing lead event]: The name of the customer. If not passed, a random name will be generated (e.g. “Big Red Caribou”).",
+    ),
+  customerEmail: z
+    .string()
+    .email()
+    .max(100)
+    .nullish()
+    .default(null)
+    .describe(
+      "[For sale tracking without a pre-existing lead event]: The email address of the customer.",
+    ),
+  customerAvatar: z
+    .string()
+    .nullish()
+    .default(null)
+    .describe(
+      "[For sale tracking without a pre-existing lead event]: The avatar URL of the customer.",
     ),
 });
 
