@@ -93,7 +93,7 @@ function CreateCommissionButton({
         text="Send commission"
         shortcut="C"
         onClick={() => setCreateCommissionSheetOpen(true)}
-        className="h-8 w-fit"
+        className="w-fit"
       />
     </>
   );
@@ -155,9 +155,9 @@ function PageMenu({ partner }: { partner: EnrolledPartnerProps }) {
       >
         <Button
           type="button"
-          className="h-8 whitespace-nowrap px-2"
           variant="secondary"
-          icon={<ThreeDots className="size-4 shrink-0" />}
+          icon={<ThreeDots className="size-5 text-neutral-500" />}
+          className="w-fit px-1.5"
         />
       </Popover>
     </>
