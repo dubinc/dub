@@ -4,7 +4,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { FirstPromoterCredentials, FirstPromoterImportPayload } from "./types";
 
 export const PAGE_LIMIT = 10;
-export const MAX_BATCHES = 1;
+export const MAX_BATCHES = 2;
 export const CACHE_EXPIRY = 60 * 60 * 24;
 export const CACHE_KEY_PREFIX = "firstpromoter:import";
 

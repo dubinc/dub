@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { partnerStackLink } from "../partnerstack/schemas";
 import { PAGE_LIMIT } from "./importer";
 import {
@@ -60,16 +61,13 @@ export class FirstPromoterApi {
     return firstPromoterCampaignSchema.array().parse(campaigns);
   }
 
-  async listPartners({
-    campaignId,
-    page,
-  }: {
-    campaignId: string;
-    page?: number;
-  }) {
+  async listPartners({ page }: { page?: number }) {
     const filters = {
-      campaign_id: campaignId,
       archived: false,
+      state: "accepted",
+      referrals_count: {
+        from: 1,
+      },
     };
 
     const params: Record<string, string> = {
@@ -80,9 +78,15 @@ export class FirstPromoterApi {
 
     const searchParams = new URLSearchParams(params);
 
-    const partners = await this.fetch(`/promoters?${searchParams.toString()}`);
+    const response = await this.fetch(`/promoters?${searchParams.toString()}`);
 
-    return firstPromoterPartnerSchema.array().parse(partners);
+    const { data: partners } = z
+      .object({
+        data: firstPromoterPartnerSchema.array(),
+      })
+      .parse(response);
+
+    return partners;
   }
 
   // TODO:

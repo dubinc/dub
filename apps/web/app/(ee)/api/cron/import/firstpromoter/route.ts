@@ -24,9 +24,9 @@ export async function POST(req: Request) {
       case "import-campaigns":
         await importCampaigns(payload);
         break;
-      // case "import-partners":
-      //   await importPartners(payload);
-      //   break;
+      case "import-partners":
+        await importPartners(payload);
+        break;
       // case "import-customers":
       //   await importCustomers(payload);
       //   break;

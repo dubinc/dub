@@ -29,40 +29,64 @@ export const firstPromoterCampaignSchema = z.object({
 });
 
 export const firstPromoterPartnerSchema = z.object({
-  id: z.string(),
+  id: z.number(),
   email: z.string(),
   name: z.string(),
-  cust_id: z.string().nullable(),
-  state: z.enum([
-    "pending",
-    "accepted",
-    "rejected",
-    "blocked",
-    "inactive",
-    "not_set",
-  ]),
   profile: z.object({
-    id: z.string(),
-    first_name: z.string(),
-    last_name: z.string(),
-    website: z.string().nullable(),
-    company_name: z.string().nullable(),
-    company_number: z.string().nullable(),
-    vat_id: z.string().nullable(),
-    country: z.string().nullable(),
-    address: z.string().nullable(),
-    avatar: z.string().nullable(),
-    description: z.string().nullable(),
-    youtube_url: z.string().nullable(),
-    twitter_url: z.string().nullable(),
-    linkedin_url: z.string().nullable(),
-    instagram_url: z.string().nullable(),
-    tiktok_url: z.string().nullable(),
-    joined_at: z.string(),
+    id: z.number(),
+    website: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    company_name: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    country: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    address: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    avatar: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    description: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    youtube_url: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    twitter_url: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    linkedin_url: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    instagram_url: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
+    tiktok_url: z
+      .string()
+      .nullable()
+      .transform((val) => val || null),
   }),
-  stats: z.object({
-    referrals_count: z.number(),
-  }),
+  promoter_campaigns: z.array(
+    z.object({
+      campaign: z.object({
+        name: z.string(),
+      }),
+      ref_token: z.string().nullable(),
+    }),
+  ),
 });
 
 export const firstPromoterCustomerSchema = z.object({
