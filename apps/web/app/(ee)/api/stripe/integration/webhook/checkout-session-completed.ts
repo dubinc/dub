@@ -24,6 +24,7 @@ import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import {
   getConnectedCustomer,
+  getPromotionCode,
   getSubscriptionProductId,
   updateCustomerWithStripeCustomerId,
 } from "./utils";
@@ -44,6 +45,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   let clickEvent: ClickEventTB | null = null;
   let leadEvent: LeadEventTB;
   let linkId: string;
+  let couponCodeTracking = false;
 
   /*
       for stripe checkout links:
@@ -188,6 +190,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           dubCustomerId,
           stripeCustomerId,
         });
+
         if (!customer) {
           return `dubCustomerId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerId ${dubCustomerId} not found on Dub, skipping...`;
         }
@@ -199,7 +202,40 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       (res) => res.data[0],
     );
 
-    linkId = leadEvent.link_id;
+    if (leadEvent) {
+      linkId = leadEvent.link_id;
+    } else {
+      const promotionCodeId = charge.discounts?.[0]?.promotion_code as string;
+
+      const promotionCode = await getPromotionCode({
+        promotionCodeId,
+        stripeAccountId,
+        livemode: event.livemode,
+      });
+
+      if (!promotionCode) {
+        return `Promotion code ${promotionCodeId} not found in connected account ${stripeAccountId}, skipping...`;
+      }
+
+      const link = await prisma.link.findUnique({
+        where: {
+          projectId_couponCode: {
+            projectId: customer.projectId,
+            couponCode: promotionCode.code,
+          },
+        },
+        select: {
+          id: true,
+        },
+      });
+
+      if (!link) {
+        return `Couldn't find link associated with promotion code ${promotionCode.code}, skipping...`;
+      }
+
+      linkId = link.id;
+      couponCodeTracking = true;
+    }
   } else {
     return "No dubCustomerId or stripeCustomerId found in Stripe checkout session metadata, skipping...";
   }
@@ -248,11 +284,9 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }
   }
 
-  const eventId = nanoid(16);
-
   const saleData = {
     ...leadEvent,
-    event_id: eventId,
+    event_id: nanoid(16),
     // if the charge is a one-time payment, we set the event name to "Purchase"
     event_name:
       charge.mode === "payment" ? "Purchase" : "Subscription creation",
@@ -272,7 +306,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   });
 
   const [_sale, linkUpdated, workspace] = await Promise.all([
-    recordSale(saleData),
+    !couponCodeTracking && recordSale(saleData),
 
     // update link sales count
     link &&
@@ -346,7 +380,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       programId: link.programId,
       partnerId: link.partnerId,
       linkId: link.id,
-      eventId,
+      eventId: couponCodeTracking ? saleData.event_id : undefined,
       customerId: customer.id,
       amount: saleData.amount,
       quantity: 1,
