@@ -31,6 +31,7 @@ import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { createId } from "../create-id";
 import { executeWorkflows } from "../workflows/execute-workflows";
+import { trackLead } from "./track-lead";
 
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   rawBody: any;
@@ -179,14 +180,27 @@ export const trackSale = async ({
   }
 
   await Promise.all([
-    _trackLead({
-      customerExternalId,
-      customerName,
-      customerEmail,
-      customerAvatar,
-      workspace,
-      clickData,
-    }),
+    // _trackLead({
+    //   customerExternalId,
+    //   customerName,
+    //   customerEmail,
+    //   customerAvatar,
+    //   workspace,
+    //   clickData,
+    // }),
+
+    // trackLead({
+    //   clickId,
+    //   customerExternalId,
+    //   customerName,
+    //   customerEmail,
+    //   customerAvatar,
+    //   eventName: "Sign Up",
+    //   eventQuantity: 1,
+    //   metadata: null,
+    //   rawBody,
+    //   workspace,
+    // })
 
     _trackSale({
       amount,
