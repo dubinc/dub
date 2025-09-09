@@ -29,7 +29,6 @@ export class FirstPromoterApi {
       const error = await response.json();
 
       console.error("FirstPromoter API Error:", error);
-
       throw new Error(error.message || "Unknown error from FirstPromoter API.");
     }
 
