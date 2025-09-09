@@ -52,7 +52,7 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
     );
 
     if (affiliates.length > 0) {
-      await Promise.all(
+      await Promise.allSettled(
         affiliates.map((affiliate) => {
           const promoterCampaigns = affiliate.promoter_campaigns;
 
