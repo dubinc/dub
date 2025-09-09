@@ -21,6 +21,7 @@ import { useParams } from "next/navigation";
 import { ReactNode, useState } from "react";
 import { toast } from "sonner";
 import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
+import { PartnerStats } from "./partner-stats";
 
 export default function ProgramPartnerLayout({
   children,
@@ -56,27 +57,17 @@ export default function ProgramPartnerLayout({
           )}
         </div>
       }
-      controls={
-        <>
-          {partner && (
-            <>
-              <CreateCommissionButton partner={partner} />
-              <PageMenu partner={partner} />
-            </>
-          )}
-        </>
-      }
+      controls={<>{partner && <PageControls partner={partner} />}</>}
     >
-      <PageWidthWrapper>{children}</PageWidthWrapper>
+      <PageWidthWrapper>
+        <PartnerStats partner={partner} error={isPartnerLoading} />
+        <div className="mt-6">{children}</div>
+      </PageWidthWrapper>
     </PageContent>
   );
 }
 
-function CreateCommissionButton({
-  partner,
-}: {
-  partner: EnrolledPartnerProps;
-}) {
+function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
   const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
     useCreateCommissionSheet({
       nested: true,
@@ -85,21 +76,6 @@ function CreateCommissionButton({
 
   useKeyboardShortcut("c", () => setCreateCommissionSheetOpen(true));
 
-  return (
-    <>
-      {createCommissionSheet}
-      <Button
-        variant="primary"
-        text="Send commission"
-        shortcut="C"
-        onClick={() => setCreateCommissionSheetOpen(true)}
-        className="w-fit"
-      />
-    </>
-  );
-}
-
-function PageMenu({ partner }: { partner: EnrolledPartnerProps }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
@@ -111,13 +87,33 @@ function PageMenu({ partner }: { partner: EnrolledPartnerProps }) {
 
   return (
     <>
+      {createCommissionSheet}
       <BanPartnerModal />
       <UnbanPartnerModal />
+
+      <Button
+        variant="primary"
+        text="Send commission"
+        shortcut="C"
+        onClick={() => setCreateCommissionSheetOpen(true)}
+        className="hidden w-fit sm:flex"
+      />
+
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <div className="grid w-full grid-cols-1 gap-px p-2 md:w-48">
+            <MenuItem
+              icon={Pen2}
+              onClick={() => {
+                setCreateCommissionSheetOpen(true);
+                setIsOpen(false);
+              }}
+              className="sm:hidden"
+            >
+              Send commission
+            </MenuItem>
             <MenuItem
               icon={Pen2}
               onClick={() => {
