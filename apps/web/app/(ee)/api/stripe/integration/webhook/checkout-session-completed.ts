@@ -8,10 +8,8 @@ import {
   getClickEvent,
   getLeadEvent,
   recordLead,
-  recordLeadWithTimestamp,
   recordSale,
 } from "@/lib/tinybird";
-import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { ClickEventTB, LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -19,15 +17,13 @@ import {
   transformLeadEventData,
   transformSaleEventData,
 } from "@/lib/webhook/transform";
-import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { Customer, Link, WorkflowTrigger } from "@dub/prisma/client";
+import { Customer, WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import {
   getConnectedCustomer,
-  getPromotionCode,
   getSubscriptionProductId,
   updateCustomerWithStripeCustomerId,
 } from "./utils";
@@ -48,7 +44,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   let clickEvent: ClickEventTB | null = null;
   let leadEvent: LeadEventTB;
   let linkId: string;
-  let link: Link | null = null;
 
   /*
       for stripe checkout links:
@@ -73,7 +68,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       },
       select: {
         id: true,
-        defaultProgramId: true,
       },
     });
 
@@ -157,9 +151,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           - the lead event will then be passed to the remaining logic to record a sale
       - if not present, we skip the event
   */
-
-    const promotionCodeId = charge.discounts?.[0]?.promotion_code as string;
-
     if (dubCustomerId) {
       customer = await updateCustomerWithStripeCustomerId({
         stripeAccountId,
@@ -197,7 +188,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           dubCustomerId,
           stripeCustomerId,
         });
-
         if (!customer) {
           return `dubCustomerId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerId ${dubCustomerId} not found on Dub, skipping...`;
         }
@@ -208,101 +198,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     leadEvent = await getLeadEvent({ customerId: customer.id }).then(
       (res) => res.data[0],
     );
-
-    if (!leadEvent) {
-      const workspace = await prisma.project.findUnique({
-        where: {
-          stripeConnectId: stripeAccountId,
-        },
-        select: {
-          id: true,
-          stripeConnectId: true,
-          programs: {
-            select: {
-              id: true,
-              domain: true,
-            },
-          },
-        },
-      });
-
-      if (!workspace) {
-        return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
-      }
-
-      if (workspace.programs.length === 0) {
-        return `Workspace with stripeConnectId ${stripeAccountId} has no programs, skipping...`;
-      }
-
-      const program = workspace.programs[0];
-
-      if (!program.domain) {
-        return `Program ${program.id} has no domain, skipping...`;
-      }
-
-      const promotionCode = await getPromotionCode({
-        promotionCodeId,
-        stripeAccountId,
-        livemode: event.livemode,
-      });
-
-      if (!promotionCode) {
-        return `Promotion code ${promotionCodeId} not found, skipping...`;
-      }
-
-      link = await prisma.link.findUnique({
-        where: {
-          domain_key: {
-            domain: program.domain,
-            key: promotionCode.code,
-          },
-        },
-      });
-
-      if (!link) {
-        return `Couldn't find link associated with promotion code ${promotionCode.code} and program ${program.id}, skipping...`;
-      }
-
-      const stripeCustomerAddress = charge.customer_details?.address;
-
-      const clickEvent = await recordFakeClick({
-        link,
-        customer: {
-          country: stripeCustomerAddress?.country,
-          region: stripeCustomerAddress?.state,
-        },
-      });
-
-      const customerId = createId({ prefix: "cus_" });
-
-      customer = await prisma.customer.create({
-        data: {
-          id: customerId,
-          name: stripeCustomerName || stripeCustomerEmail,
-          email: stripeCustomerEmail,
-          projectId: workspace.id,
-          projectConnectId: workspace.stripeConnectId,
-          clickId: clickEvent.click_id,
-          linkId: link.id,
-          country: clickEvent.country,
-          externalId: stripeCustomerEmail,
-          clickedAt: new Date(),
-          createdAt: new Date(),
-        },
-      });
-
-      const leadData = {
-        ...clickEvent,
-        event_id: nanoid(16),
-        event_name: "Sign up",
-        customer_id: customerId,
-        timestamp: new Date(customer.updatedAt).toISOString(),
-      };
-
-      await recordLeadWithTimestamp(leadData);
-
-      leadEvent = leadEventSchemaTB.parse(leadData);
-    }
 
     linkId = leadEvent.link_id;
   } else {
@@ -370,13 +265,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     }),
   };
 
-  if (!link) {
-    link = await prisma.link.findUnique({
-      where: {
-        id: linkId,
-      },
-    });
-  }
+  const link = await prisma.link.findUnique({
+    where: {
+      id: linkId,
+    },
+  });
 
   const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
