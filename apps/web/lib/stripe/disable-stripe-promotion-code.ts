@@ -19,7 +19,7 @@ export async function disableStripePromotionCode({
 
   if (!workspace.stripeConnectId) {
     console.error(
-      `stripeConnectId not found for the workspace ${workspace.id}. Skipping Stripe coupon creation.`,
+      `stripeConnectId not found for the workspace ${workspace.id}. Skipping...`,
     );
     return;
   }
