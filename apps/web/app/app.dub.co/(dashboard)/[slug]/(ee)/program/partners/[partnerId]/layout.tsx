@@ -8,7 +8,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
 import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, MenuItem, Popover } from "@dub/ui";
+import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
 import {
   ChevronRight,
   Pen2,
@@ -20,6 +20,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode, useState } from "react";
 import { toast } from "sonner";
+import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
 
 export default function ProgramPartnerLayout({
   children,
@@ -55,14 +56,50 @@ export default function ProgramPartnerLayout({
           )}
         </div>
       }
-      controls={<>{partner && <PageMenu partner={partner} />}</>}
+      controls={
+        <>
+          {partner && (
+            <>
+              <CreateCommissionButton partner={partner} />
+              <PageMenu partner={partner} />
+            </>
+          )}
+        </>
+      }
     >
       <PageWidthWrapper>{children}</PageWidthWrapper>
     </PageContent>
   );
 }
 
-export function PageMenu({ partner }: { partner: EnrolledPartnerProps }) {
+function CreateCommissionButton({
+  partner,
+}: {
+  partner: EnrolledPartnerProps;
+}) {
+  const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
+    useCreateCommissionSheet({
+      nested: true,
+      partnerId: partner.id,
+    });
+
+  useKeyboardShortcut("c", () => setCreateCommissionSheetOpen(true));
+
+  return (
+    <>
+      {createCommissionSheet}
+      <Button
+        variant="primary"
+        text="Send commission"
+        shortcut="C"
+        onClick={() => setCreateCommissionSheetOpen(true)}
+        className="h-8 w-fit"
+      />
+    </>
+  );
+}
+
+function PageMenu({ partner }: { partner: EnrolledPartnerProps }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
