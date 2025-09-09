@@ -316,11 +316,10 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       // Cache the externalId:eventName pairs
       redis.sadd(
         CACHE_KEY,
-        undefined,
-        ...dataArray.map(
+        ...(dataArray.map(
           ({ payload: { externalId, eventName } }) =>
             `${externalId}:${eventName}`,
-        ),
+        ) as [string]),
       ),
     ]);
 

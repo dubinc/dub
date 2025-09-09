@@ -352,7 +352,7 @@ const processMappedLinks = async ({
   }
 
   if (selectedDomains.length > 0) {
-    await redis.sadd(`${redisKey}:domains`, undefined, ...selectedDomains);
+    await redis.sadd(`${redisKey}:domains`, ...(selectedDomains as [string]));
   }
 
   // Process the links
