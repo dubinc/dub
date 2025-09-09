@@ -83,7 +83,7 @@ export const trackSale = async ({
     },
   });
 
-  // Existing customer is found, find the lead event
+  // Existing customer is found, find the lead event to associate the sale with
   if (existingCustomer) {
     const leadEvent = await getLeadEvent({
       customerId: existingCustomer.id,
@@ -123,7 +123,7 @@ export const trackSale = async ({
     }
   }
 
-  // No existing customer is found, find the click event and create a new customer
+  // No existing customer is found, find the click event and create a new customer (for sale tracking without a pre-existing lead event)
   else {
     if (!clickId) {
       waitUntil(
@@ -131,8 +131,7 @@ export const trackSale = async ({
           workspace_id: workspace.id,
           path: "/track/sale",
           body: JSON.stringify(rawBody),
-          error:
-            "The `clickId` property was not provided in the request, and no existing customer with the provided `customerExternalId` was found.",
+          error: `No existing customer with the provided customerExternalId (${customerExternalId}) was found, and there was no clickId provided for sale tracking without a pre-existing lead event.`,
         }),
       );
 
@@ -235,14 +234,24 @@ export const trackSale = async ({
     };
   }
 
-  const customer: Customer = existingCustomer ?? newCustomer!;
+  const customer = existingCustomer ?? newCustomer;
 
-  // This should never happen
+  // This should never happen, but just in case
   if (!customer) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "Customer not found.",
-    });
+    waitUntil(
+      logConversionEvent({
+        workspace_id: workspace.id,
+        path: "/track/sale",
+        body: JSON.stringify(rawBody),
+        error: `Customer not found for customerExternalId: ${customerExternalId}`,
+      }),
+    );
+
+    return {
+      eventName,
+      customer: null,
+      sale: null,
+    };
   }
 
   const [_, trackedSale] = await Promise.all([
@@ -389,7 +398,7 @@ const _trackSale = async ({
     });
   }
 
-  // if currency is not USD, convert it to USD  based on the current FX rate
+  // if currency is not USD, convert it to USD based on the current FX rate
   // TODO: allow custom "defaultCurrency" on workspace table in the future
   if (currency !== "usd") {
     const { currency: convertedCurrency, amount: convertedAmount } =
