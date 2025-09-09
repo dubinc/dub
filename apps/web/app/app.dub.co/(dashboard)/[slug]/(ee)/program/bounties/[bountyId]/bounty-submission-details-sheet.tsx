@@ -96,7 +96,7 @@ function BountySubmissionDetailsSheetContent({
         <div className="border-b border-neutral-200 bg-neutral-50 p-6">
           <PartnerInfoSection partner={partner} showPartnerStatus={false}>
             <ButtonLink
-              href={`/${workspaceSlug}/program/partners?partnerId=${partner.id}`}
+              href={`/${workspaceSlug}/program/partners/${partner.id}`}
               variant="secondary"
               className="h-8 w-fit px-3 py-2 text-sm font-medium"
               target="_blank"
