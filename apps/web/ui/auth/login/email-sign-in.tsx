@@ -1,7 +1,8 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { showMessage } from "@/ui/auth/helpers";
 import { MessageType } from "@/ui/modals/auth-modal.tsx";
-import { Button, Input, useMediaQuery } from "@dub/ui";
+import { QRBuilderData } from "@/ui/qr-builder/types/types";
+import { Button, Input, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
@@ -33,6 +34,10 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
   const { isMobile } = useMediaQuery();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [qrDataToCreate] = useLocalStorage<QRBuilderData | null>(
+    "qr-data-to-create",
+    null,
+  );
 
   const {
     showPasswordField,
@@ -74,6 +79,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
               page_name: "landing",
               auth_type: "login",
               auth_method: "email",
+              auth_origin: qrDataToCreate ? "qr" : "none",
               email: email,
               event_category: "nonAuthorized",
             },
@@ -105,6 +111,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
                   page_name: "landing",
                   auth_type: "login",
                   auth_method: "email",
+                  auth_origin: qrDataToCreate ? "qr" : "none",
                   email: email,
                   event_category: "nonAuthorized",
                   error_code: "user-not-found",
@@ -142,6 +149,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
                 page_name: "landing",
                 auth_type: "login",
                 auth_method: "email",
+                auth_origin: qrDataToCreate ? "qr" : "none",
                 email: email,
                 event_category: "nonAuthorized",
                 error_code: "user-not-found",
@@ -195,6 +203,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
                 page_name: "landing",
                 auth_type: "login",
                 auth_method: "email",
+                auth_origin: qrDataToCreate ? "qr" : "none",
                 email: email,
                 event_category: "nonAuthorized",
                 error_code: response.error,

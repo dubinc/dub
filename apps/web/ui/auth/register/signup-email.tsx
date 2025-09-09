@@ -6,7 +6,8 @@ import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { showMessage } from "@/ui/auth/helpers";
 import { ERegistrationStep } from "@/ui/auth/register/constants";
 import { MessageType } from "@/ui/modals/auth-modal.tsx";
-import { Button, Input } from "@dub/ui";
+import { QRBuilderData } from "@/ui/qr-builder/types/types";
+import { Button, Input, useLocalStorage } from "@dub/ui";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { trackClientEvents } from "core/integration/analytic/services/analytic.service.ts";
 import { useAction } from "next-safe-action/hooks";
@@ -25,6 +26,10 @@ export const SignUpEmail = ({
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
 }) => {
   const { setStep, setEmail, setPassword, step } = useRegisterContext();
+  const [qrDataToCreate] = useLocalStorage<QRBuilderData | null>(
+    "qr-data-to-create",
+    null,
+  );
 
   const {
     register,
@@ -65,7 +70,7 @@ export const SignUpEmail = ({
           auth_type: "signup",
           auth_method: "email",
           email: getValues("email"),
-          auth_origin: "qr",
+          auth_origin: qrDataToCreate ? "qr" : "none",
           event_category: "nonAuthorized",
           error_code: errorCode,
           error_message: errorMessage,
@@ -100,7 +105,7 @@ export const SignUpEmail = ({
             auth_type: "signup",
             auth_method: "email",
             email: data.email,
-            auth_origin: "qr",
+            auth_origin: qrDataToCreate ? "qr" : "none",
             event_category: "nonAuthorized",
           },
           sessionId,
