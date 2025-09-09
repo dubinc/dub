@@ -26,11 +26,11 @@ export const POST = withWorkspace(
     } = trackLeadRequestSchema
       .extend({
         // we if clickId is undefined/nullish, we'll coerce into an empty string
-        clickId: z.string().nullish(),
+        clickId: z.string().trim().nullish(),
         // add backwards compatibility
-        customerExternalId: z.string().nullish(),
-        externalId: z.string().nullish(),
-        customerId: z.string().nullish(),
+        customerExternalId: z.string().trim().nullish(),
+        externalId: z.string().trim().nullish(),
+        customerId: z.string().trim().nullish(),
       })
       .parse(body);
 
