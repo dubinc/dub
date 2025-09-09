@@ -98,24 +98,30 @@ export function PartnerMessagesProgramPageClient() {
             >
               <ChevronLeft className="size-3.5" />
             </button>
-            <div className="flex min-w-0 items-center gap-3">
-              {!program ? (
-                <>
-                  <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
-                  <div className="h-8 w-36 animate-pulse rounded-md bg-neutral-200" />
-                </>
-              ) : (
-                <>
-                  <img
-                    src={program?.logo || "https://assets.dub.co/logo.png"}
-                    alt={`${program?.name} logo`}
-                    className="size-8 shrink-0 rounded-full"
-                  />
-                  <h2 className="text-content-emphasis min-w-0 truncate text-lg font-semibold leading-7">
-                    {program?.name ?? "Program"}
-                  </h2>
-                </>
-              )}
+            <div className="min-w-0">
+              <button
+                type="button"
+                onClick={() => setIsRightPanelOpen((o) => !o)}
+                className="-mx-2 -my-1 flex min-w-0 max-w-full items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
+              >
+                {!program ? (
+                  <>
+                    <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
+                    <div className="h-8 w-36 animate-pulse rounded-md bg-neutral-200" />
+                  </>
+                ) : (
+                  <>
+                    <img
+                      src={program?.logo || "https://assets.dub.co/logo.png"}
+                      alt={`${program?.name} logo`}
+                      className="size-8 shrink-0 rounded-full"
+                    />
+                    <h2 className="text-content-emphasis min-w-0 truncate text-lg font-semibold leading-7">
+                      {program?.name ?? "Program"}
+                    </h2>
+                  </>
+                )}
+              </button>
             </div>
           </div>
           <ToggleSidePanelButton
@@ -314,7 +320,7 @@ function ProgramInfoPanel({
             className="size-12 rounded-full"
           />
           <div>
-            <span className="text-content-emphasis block text-lg font-semibold">
+            <span className="text-content-emphasis block truncate text-lg font-semibold">
               {program.name}
             </span>
             <span className="text-content-subtle text-sm font-medium">

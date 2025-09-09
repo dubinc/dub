@@ -48,11 +48,11 @@ export function MessagesList({
                 </div>
                 <div className="min-w-0 grow">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-content-emphasis text-sm font-semibold">
+                    <span className="text-content-emphasis min-w-0 truncate text-sm font-semibold">
                       {group.name}
                     </span>
                     {lastMessage && (
-                      <span className="text-content-subtle text-xs font-medium">
+                      <span className="text-content-subtle whitespace-nowrap text-xs font-medium">
                         {timeAgo(lastMessage.createdAt, { withAgo: true })}
                       </span>
                     )}

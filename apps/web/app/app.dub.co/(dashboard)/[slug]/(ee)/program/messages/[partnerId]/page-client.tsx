@@ -91,7 +91,7 @@ export function ProgramMessagesPartnerPageClient() {
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen((o) => !o)}
-                className="-mx-2 -my-1 flex min-w-0 items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
+                className="-mx-2 -my-1 flex min-w-0 max-w-full items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
               >
                 {!partner ? (
                   <>
