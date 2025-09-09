@@ -128,7 +128,7 @@ function CredentialsForm({ onClose }: { onClose: () => void }) {
         <p className="mt-1.5 text-xs text-neutral-500">
           Find your FirstPromoter API key in{" "}
           <a
-            href="https://app.partnerstack.com/settings/integrations"
+            href="https://app.firstpromoter.com/settings/integrations"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:text-blue-600"
@@ -155,7 +155,7 @@ function CredentialsForm({ onClose }: { onClose: () => void }) {
         <p className="mt-1.5 text-xs text-neutral-500">
           Find your FirstPromoter Account ID in{" "}
           <a
-            href="https://app.partnerstack.com/settings/integrations"
+            href="https://app.firstpromoter.com/settings/integrations"
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-500 hover:text-blue-600"
