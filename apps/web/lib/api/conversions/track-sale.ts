@@ -242,7 +242,8 @@ export const trackSale = async ({
     leadEventData = {
       ...clickData,
       event_id: nanoid(16),
-      event_name: "Sign up",
+      // if leadEventName is provided, use it, otherwise use "Sign up"
+      event_name: leadEventName ?? "Sign up",
       customer_id: newCustomer.id,
       metadata: metadata ? JSON.stringify(metadata) : "",
     };

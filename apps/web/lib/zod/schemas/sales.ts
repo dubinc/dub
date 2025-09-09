@@ -47,14 +47,6 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "The invoice ID of the sale. Can be used as a idempotency key – only one sale event can be recorded for a given invoice ID.",
     ),
-  leadEventName: z
-    .string()
-    .nullish()
-    .default(null)
-    .describe(
-      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event for a link-customer combination, which is the default behavior).",
-    )
-    .openapi({ example: "Cloned template 1481267" }),
   metadata: z
     .record(z.unknown())
     .nullish()
@@ -65,7 +57,15 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "Additional metadata to be stored with the sale event. Max 10,000 characters when stringified.",
     ),
-  // for tracking lead + sale together
+  // advanced fields: leadEventName + fields for sale tracking without a pre-existing lead event
+  leadEventName: z
+    .string()
+    .nullish()
+    .default(null)
+    .describe(
+      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event for a link-customer combination, which is the default behavior). For sale tracking without a pre-existing lead event, this field can also be used to specify the lead event name.",
+    )
+    .openapi({ example: "Cloned template 1481267" }),
   clickId: z
     .string()
     .trim()
