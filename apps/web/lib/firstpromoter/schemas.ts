@@ -18,7 +18,8 @@ export const firstPromoterImportPayloadSchema = z.object({
   importId: z.string(),
   userId: z.string(),
   programId: z.string(),
-  page: z.number().optional(),
+  page: z.number().optional().describe("FP pagination"),
+  startingAfter: z.string().optional().describe("Internal pagination"),
 });
 
 export const firstPromoterCampaignSchema = z.object({
