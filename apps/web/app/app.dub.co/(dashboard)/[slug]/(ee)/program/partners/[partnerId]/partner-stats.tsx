@@ -9,46 +9,46 @@ const stats: {
   {
     label: "Clicks",
     value: (partner) =>
-      Number.isNaN(partner?.clicks)
+      Number.isNaN(partner.clicks)
         ? "-"
-        : nFormatter(partner?.clicks, { full: true }),
+        : nFormatter(partner.clicks, { full: true }),
   },
   {
     label: "Leads",
     value: (partner) =>
-      Number.isNaN(partner?.leads)
+      Number.isNaN(partner.leads)
         ? "-"
-        : nFormatter(partner?.leads, { full: true }),
+        : nFormatter(partner.leads, { full: true }),
   },
   {
     label: "Conversions",
     value: (partner) =>
-      Number.isNaN(partner?.conversions)
+      Number.isNaN(partner.conversions)
         ? "-"
-        : nFormatter(partner?.conversions, { full: true }),
+        : nFormatter(partner.conversions, { full: true }),
   },
   {
     label: "Revenue",
     value: (partner) =>
-      Number.isNaN(partner?.saleAmount)
+      Number.isNaN(partner.saleAmount)
         ? "-"
-        : currencyFormatter((partner?.saleAmount ?? 0) / 100, {
+        : currencyFormatter((partner.saleAmount ?? 0) / 100, {
             trailingZeroDisplay: "stripIfInteger",
           }),
   },
   {
     label: "Commissions",
     value: (partner) =>
-      Number.isNaN(partner?.totalCommissions)
+      Number.isNaN(partner.totalCommissions)
         ? "-"
-        : currencyFormatter((partner?.totalCommissions ?? 0) / 100),
+        : currencyFormatter((partner.totalCommissions ?? 0) / 100),
   },
   {
     label: "Net revenue",
     value: (partner) =>
-      Number.isNaN(partner?.netRevenue)
+      Number.isNaN(partner.netRevenue)
         ? "-"
-        : currencyFormatter((partner?.netRevenue ?? 0) / 100),
+        : currencyFormatter((partner.netRevenue ?? 0) / 100),
   },
 ];
 
@@ -63,7 +63,7 @@ export function PartnerStats({
     <div className="@container/stats">
       <div
         className={cn(
-          "@[695px]/stats:grid-cols-6 @xs/stats:grid-cols-3 grid grid-cols-2",
+          "@[695px]/stats:grid-cols-6 @xs/stats:grid-cols-3 grid grid-cols-2 ring-4 ring-black/5",
           "gap-px overflow-hidden rounded-lg border border-neutral-200 bg-neutral-200",
         )}
       >

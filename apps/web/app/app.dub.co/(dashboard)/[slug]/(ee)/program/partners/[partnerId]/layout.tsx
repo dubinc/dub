@@ -31,7 +31,11 @@ export default function ProgramPartnerLayout({
   const { slug: workspaceSlug } = useWorkspace();
 
   const { partnerId } = useParams() as { partnerId: string };
-  const { partner, loading: isPartnerLoading } = usePartner({
+  const {
+    partner,
+    loading: isPartnerLoading,
+    error: partnerError,
+  } = usePartner({
     partnerId,
   });
 
@@ -60,7 +64,7 @@ export default function ProgramPartnerLayout({
       controls={<>{partner && <PageControls partner={partner} />}</>}
     >
       <PageWidthWrapper>
-        <PartnerStats partner={partner} error={isPartnerLoading} />
+        <PartnerStats partner={partner} error={Boolean(partnerError)} />
         <div className="mt-6">{children}</div>
       </PageWidthWrapper>
     </PageContent>
