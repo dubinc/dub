@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const firstPromoterImportSteps = z.enum([
+  "import-campaigns",
   "import-partners",
   "import-links",
   "import-customers",
@@ -17,15 +18,12 @@ export const firstPromoterImportPayloadSchema = z.object({
   importId: z.string(),
   userId: z.string(),
   programId: z.string(),
-  groupId: z.string().optional(),
-  campaignId: z.string(),
   page: z.number().optional(),
 });
 
 export const firstPromoterCampaignSchema = z.object({
-  id: z.string(),
   campaign: z.object({
-    id: z.string(),
+    id: z.number(),
     name: z.string(),
   }),
 });
@@ -130,9 +128,9 @@ export const firstPromoterCommissionSchema = z.object({
     })
     .nullable(),
   promoter_campaign: z.object({
-    campaign: firstPromoterCampaignSchema.pick({
-      id: true,
-    }),
+    // campaign: firstPromoterCampaignSchema.pick({
+    //   campaign: true,
+    // }),
     promoter: firstPromoterPartnerSchema.pick({
       id: true,
       email: true,

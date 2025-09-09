@@ -1,12 +1,11 @@
 import { partnerStackLink } from "../partnerstack/schemas";
+import { PAGE_LIMIT } from "./importer";
 import {
   firstPromoterCampaignSchema,
   firstPromoterCommissionSchema,
   firstPromoterCustomerSchema,
   firstPromoterPartnerSchema,
 } from "./schemas";
-
-const PAGE_LIMIT = 100;
 
 export class FirstPromoterApi {
   private readonly baseUrl = "https://v2.firstpromoter.com/api/v2/company";
@@ -21,7 +20,7 @@ export class FirstPromoterApi {
   private async fetch<T>(path: string): Promise<T> {
     const response = await fetch(`${this.baseUrl}${path}`, {
       headers: {
-        Authorization: `Basic ${this.apiKey}`,
+        Authorization: `Bearer ${this.apiKey}`,
         "ACCOUNT-ID": this.accountId,
       },
     });
@@ -37,19 +36,26 @@ export class FirstPromoterApi {
     return await response.json();
   }
 
-  // TODO:
-  // Fix this
   async testConnection() {
     try {
-      await this.fetch("/promoters?limit=1");
+      await this.fetch("/promoter_campaigns?page=1&per_page=1");
       return true;
     } catch (error) {
       throw new Error("Invalid FirstPromoter API token.");
     }
   }
 
-  async listCampaigns() {
-    const campaigns = await this.fetch("/promoter_campaigns");
+  async listCampaigns({ page }: { page?: number }) {
+    const params: Record<string, string> = {
+      per_page: PAGE_LIMIT.toString(),
+      ...(page ? { page: page.toString() } : {}),
+    };
+
+    const searchParams = new URLSearchParams(params);
+
+    const campaigns = await this.fetch(
+      `/promoter_campaigns?${searchParams.toString()}`,
+    );
 
     return firstPromoterCampaignSchema.array().parse(campaigns);
   }

@@ -1,19 +1,9 @@
-import { setFirstPromoterTokenAction } from "@/lib/actions/partners/set-firstpromoter-token";
 import { startFirstPromoterImportAction } from "@/lib/actions/partners/start-firstpromoter-import";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  Button,
-  LoadingSpinner,
-  Logo,
-  Modal,
-  useMediaQuery,
-  useRouterStuff,
-} from "@dub/ui";
-import { fetcher } from "@dub/utils";
-import { ArrowRight, ServerOff } from "lucide-react";
+import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
+import { ArrowRight } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -23,9 +13,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import useSWRImmutable from "swr/immutable";
-
-type Campaign = { id: string; name: string };
 
 function ImportFirstPromoterModal({
   showImportFirstPromoterModal,
@@ -34,21 +21,8 @@ function ImportFirstPromoterModal({
   showImportFirstPromoterModal: boolean;
   setShowImportFirstPromoterModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { slug } = useParams() as { slug?: string };
-
-  const router = useRouter();
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
-
-  const { program } = useProgram();
-  const { id: workspaceId } = useWorkspace();
-
-  const [apiKey, setApiKey] = useState("");
-  const [accountId, setAccountId] = useState("");
-  const [step, setStep] = useState<"token" | "campaigns">("token");
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(
-    null,
-  );
 
   useEffect(() => {
     if (searchParams?.get("import") === "firstpromoter") {
@@ -57,56 +31,6 @@ function ImportFirstPromoterModal({
       setShowImportFirstPromoterModal(false);
     }
   }, [searchParams]);
-
-  const { executeAsync: setCredentials, isPending: isSettingToken } = useAction(
-    setFirstPromoterTokenAction,
-    {
-      onError: ({ error }) => toast.error(error.serverError),
-      onSuccess: () => {
-        setStep("campaigns");
-        mutate();
-      },
-    },
-  );
-
-  const { executeAsync: startImport, isPending: isStartingImport } = useAction(
-    startFirstPromoterImportAction,
-    {
-      onError: ({ error }) => toast.error(error.serverError),
-      onSuccess: () => {
-        toast.success(
-          "Successfully added campaign to import queue! We will send you an email when your campaign has been fully imported.",
-        );
-        router.push(`/${slug}/program/partners`);
-      },
-    },
-  );
-
-  const {
-    data: campaigns,
-    isLoading: isLoadingCampaigns,
-    mutate,
-  } = useSWRImmutable<Campaign[]>(
-    showImportFirstPromoterModal &&
-      program?.id &&
-      workspaceId &&
-      step === "campaigns"
-      ? `/api/programs/firstpromoter/campaigns?workspaceId=${workspaceId}`
-      : null,
-    fetcher,
-  );
-
-  const onSubmitToken = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!workspaceId || !apiKey || !accountId) return;
-    await setCredentials({ workspaceId, apiKey, accountId });
-  };
-
-  const onSubmitCampaign = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!workspaceId || !program?.id || !selectedCampaign) return;
-    await startImport({ workspaceId, campaignId: selectedCampaign.id });
-  };
 
   return (
     <Modal
@@ -134,57 +58,55 @@ function ImportFirstPromoterModal({
       </div>
 
       <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
-        {step === "token" ? (
-          <TokenStep
-            apiKey={apiKey}
-            setApiKey={setApiKey}
-            accountId={accountId}
-            setAccountId={setAccountId}
-            submitting={isSettingToken}
-            onSubmit={onSubmitToken}
-          />
-        ) : isLoadingCampaigns || !workspaceId ? (
-          <div className="flex flex-col items-center justify-center space-y-4 bg-none">
-            <LoadingSpinner />
-            <p className="text-sm text-neutral-500">Loading campaigns...</p>
-          </div>
-        ) : campaigns ? (
-          <CampaignStep
-            campaigns={campaigns}
-            selectedCampaign={selectedCampaign}
-            setSelectedCampaign={setSelectedCampaign}
-            importing={isStartingImport}
-            onSubmit={onSubmitCampaign}
-          />
-        ) : (
-          <div className="flex flex-col items-center justify-center gap-2 pb-2">
-            <ServerOff className="h-6 w-6 text-neutral-500" />
-            <p className="text-center text-sm text-neutral-500">
-              Failed to load campaigns. Please try again.
-            </p>
-          </div>
-        )}
+        <CredentialsForm
+          onClose={() => {
+            setShowImportFirstPromoterModal(false);
+            queryParams({
+              del: "import",
+            });
+          }}
+        />
       </div>
     </Modal>
   );
 }
 
-function TokenStep({
-  apiKey,
-  setApiKey,
-  accountId,
-  setAccountId,
-  submitting,
-  onSubmit,
-}: {
-  apiKey: string;
-  setApiKey: (v: string) => void;
-  accountId: string;
-  setAccountId: (v: string) => void;
-  submitting: boolean;
-  onSubmit: (e: React.FormEvent) => Promise<void>;
-}) {
+function CredentialsForm({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
   const { isMobile } = useMediaQuery();
+  const { id: workspaceId, slug } = useWorkspace();
+
+  const [apiKey, setApiKey] = useState("");
+  const [accountId, setAccountId] = useState("");
+
+  const { executeAsync: startImport, isPending: isStartingImport } = useAction(
+    startFirstPromoterImportAction,
+    {
+      onSuccess: () => {
+        onClose();
+        toast.success(
+          "Successfully started FirstPromoter import. We'll email you when it's complete.",
+        );
+        router.push(`/${slug}/program/partners`);
+      },
+      onError: ({ error }) => toast.error(error.serverError),
+    },
+  );
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!workspaceId || !apiKey || !accountId) {
+      return;
+    }
+
+    await startImport({
+      workspaceId,
+      apiKey,
+      accountId,
+    });
+  };
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col space-y-4">
       <div>
@@ -200,7 +122,6 @@ function TokenStep({
           value={apiKey}
           autoFocus={!isMobile}
           onChange={(e) => setApiKey(e.target.value)}
-          placeholder="Enter your FirstPromoter API key"
           className="mt-1 block w-full rounded-md border border-neutral-200 px-3 py-2 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
           required
         />
@@ -228,7 +149,6 @@ function TokenStep({
           id="accountId"
           value={accountId}
           onChange={(e) => setAccountId(e.target.value)}
-          placeholder="Enter your FirstPromoter Account ID"
           className="mt-1 block w-full rounded-md border border-neutral-200 px-3 py-2 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
           required
         />
@@ -245,81 +165,9 @@ function TokenStep({
         </p>
       </div>
       <Button
-        text={submitting ? "Fetching campaigns..." : "Fetch campaigns"}
-        loading={submitting}
-        disabled={!apiKey || !accountId}
-      />
-    </form>
-  );
-}
-
-function CampaignStep({
-  campaigns,
-  selectedCampaign,
-  setSelectedCampaign,
-  importing,
-  onSubmit,
-}: {
-  campaigns: Campaign[];
-  selectedCampaign: Campaign | null;
-  setSelectedCampaign: (c: Campaign | null) => void;
-  importing: boolean;
-  onSubmit: (e: React.FormEvent) => Promise<void>;
-}) {
-  const handleChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const c = campaigns.find((x) => x.id === e.target.value) || null;
-      setSelectedCampaign(c);
-    },
-    [campaigns, setSelectedCampaign],
-  );
-
-  return (
-    <form onSubmit={onSubmit} className="flex flex-col space-y-6">
-      <div>
-        <label
-          htmlFor="campaign"
-          className="block text-sm font-medium text-neutral-700"
-        >
-          Choose the campaign you want to import
-        </label>
-        <select
-          id="campaign"
-          value={selectedCampaign?.id || ""}
-          onChange={handleChange}
-          className="mt-1 block w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-        >
-          <option value="">Select a campaign</option>
-          {campaigns.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {selectedCampaign && (
-        <dl className="grid grid-cols-2 gap-3 rounded-md border border-neutral-200 bg-white p-4 text-xs">
-          <div>
-            <dt className="text-neutral-500">Campaign Name</dt>
-            <dd className="font-medium text-neutral-700">
-              {selectedCampaign.name}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-neutral-500">Campaign ID</dt>
-            <dd className="font-medium text-neutral-700">
-              {selectedCampaign.id}
-            </dd>
-          </div>
-        </dl>
-      )}
-
-      <Button
-        text="Start import"
-        loading={importing}
-        disabled={!selectedCampaign}
-        className="w-full justify-center"
+        text={isStartingImport ? "Starting import..." : "Start Import"}
+        loading={isStartingImport}
+        disabled={!apiKey || !accountId || !workspaceId}
       />
     </form>
   );

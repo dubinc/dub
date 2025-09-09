@@ -3,20 +3,21 @@
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
+import { FirstPromoterApi } from "@/lib/firstpromoter/api";
 import { firstPromoterImporter } from "@/lib/firstpromoter/importer";
+import { firstPromoterCredentialsSchema } from "@/lib/firstpromoter/schemas";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const schema = z.object({
+const schema = firstPromoterCredentialsSchema.extend({
   workspaceId: z.string(),
-  campaignId: z.string().trim().min(1),
 });
 
 export const startFirstPromoterImportAction = authActionClient
   .schema(schema)
-  .action(async ({ parsedInput, ctx }) => {
+  .action(async ({ ctx, parsedInput }) => {
     const { workspace, user } = ctx;
-    const { campaignId } = parsedInput;
+    const { apiKey, accountId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -33,11 +34,27 @@ export const startFirstPromoterImportAction = authActionClient
       throw new Error("Program URL is not set.");
     }
 
+    const firstPromoterApi = new FirstPromoterApi({ apiKey, accountId });
+
+    try {
+      await firstPromoterApi.testConnection();
+    } catch (error) {
+      throw new Error(
+        error instanceof Error
+          ? error.message
+          : "Invalid FirstPromoter credentials.",
+      );
+    }
+
+    await firstPromoterImporter.setCredentials(workspace.id, {
+      apiKey,
+      accountId,
+    });
+
     await firstPromoterImporter.queue({
       importId: createId({ prefix: "import_" }),
-      action: "import-partners",
+      action: "import-campaigns",
       userId: user.id,
       programId,
-      campaignId,
     });
   });
