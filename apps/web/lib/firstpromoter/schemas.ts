@@ -3,7 +3,6 @@ import { z } from "zod";
 export const firstPromoterImportSteps = z.enum([
   "import-campaigns",
   "import-partners",
-  "import-links",
   "import-customers",
   "import-commissions",
 ]);
@@ -90,25 +89,16 @@ export const firstPromoterPartnerSchema = z.object({
 });
 
 export const firstPromoterCustomerSchema = z.object({
-  id: z.string(),
+  id: z.number(),
   email: z.string(),
+  first_name: z.string().nullable(),
+  last_name: z.string().nullable(),
   uid: z.string(),
-  state: z.enum([
-    "subscribed",
-    "signup",
-    "active",
-    "cancelled",
-    "refunded",
-    "denied",
-    "pending",
-    "moved",
-  ]),
-  metadata: z.record(z.any()).nullable(),
   created_at: z.string(),
-  customer_since: z.string(),
+  customer_since: z.string().nullable(),
+  metadata: z.record(z.any()).nullable(),
   promoter_campaign: z.object({
     promoter: firstPromoterPartnerSchema.pick({
-      id: true,
       email: true,
     }),
   }),

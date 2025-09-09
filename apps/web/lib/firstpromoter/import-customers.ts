@@ -45,6 +45,7 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
       break;
     }
 
+    // Find the partners by their email address
     const promoters = customers.map(
       ({ promoter_campaign }) => promoter_campaign.promoter,
     );
@@ -63,6 +64,7 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
     const partnerIds = partners.map(({ id }) => id);
 
     if (partnerIds.length > 0) {
+      // Find the program enrollments by the partner ids
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           partnerId: {
@@ -120,8 +122,8 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
 
   await firstPromoterImporter.queue({
     ...payload,
-    page: hasMore ? currentPage : undefined,
     action: hasMore ? "import-customers" : "import-commissions",
+    page: hasMore ? currentPage : undefined,
   });
 }
 
@@ -148,7 +150,7 @@ async function createCustomer({
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for customer ${customer.uid}.`,
+      message: `Link not found for customer ${customer.id}.`,
     });
 
     return;
@@ -158,7 +160,7 @@ async function createCustomer({
     await logImportError({
       ...commonImportLogInputs,
       code: "CUSTOMER_EMAIL_NOT_FOUND",
-      message: `Email not found for customer ${customer.uid}.`,
+      message: `Email not found for customer ${customer.id}.`,
     });
 
     return;
@@ -208,12 +210,16 @@ async function createCustomer({
   });
 
   const customerId = createId({ prefix: "cus_" });
+  const customerName =
+    (customer.first_name && customer.last_name
+      ? `${customer.first_name} ${customer.last_name}`
+      : customer.first_name || customer.last_name) || customer.email;
 
   try {
     await prisma.customer.create({
       data: {
         id: customerId,
-        name: customer.email,
+        name: customerName,
         email: customer.email,
         projectId: workspace.id,
         projectConnectId: workspace.stripeConnectId,
@@ -226,7 +232,7 @@ async function createCustomer({
       },
     });
 
-    await Promise.all([
+    await Promise.allSettled([
       recordLeadWithTimestamp({
         ...clickEvent,
         event_id: nanoid(16),

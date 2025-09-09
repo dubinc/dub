@@ -27,12 +27,12 @@ export async function POST(req: Request) {
       case "import-partners":
         await importPartners(payload);
         break;
-      // case "import-customers":
-      //   await importCustomers(payload);
-      //   break;
-      // case "import-commissions":
-      //   await importCommissions(payload);
-      //   break;
+      case "import-customers":
+        await importCustomers(payload);
+        break;
+      case "import-commissions":
+        await importCommissions(payload);
+        break;
       // default:
       //   throw new Error(`Unknown action: ${payload.action}`);
     }

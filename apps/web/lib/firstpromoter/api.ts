@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { partnerStackLink } from "../partnerstack/schemas";
 import { PAGE_LIMIT } from "./importer";
 import {
   firstPromoterCampaignSchema,
@@ -47,12 +46,10 @@ export class FirstPromoterApi {
   }
 
   async listCampaigns({ page }: { page?: number }) {
-    const params: Record<string, string> = {
+    const searchParams = new URLSearchParams({
       per_page: PAGE_LIMIT.toString(),
       ...(page ? { page: page.toString() } : {}),
-    };
-
-    const searchParams = new URLSearchParams(params);
+    });
 
     const campaigns = await this.fetch(
       `/promoter_campaigns?${searchParams.toString()}`,
@@ -62,21 +59,17 @@ export class FirstPromoterApi {
   }
 
   async listPartners({ page }: { page?: number }) {
-    const filters = {
-      archived: false,
-      state: "accepted",
-      referrals_count: {
-        from: 1,
-      },
-    };
-
-    const params: Record<string, string> = {
-      filters: JSON.stringify(filters),
+    const searchParams = new URLSearchParams({
+      filters: JSON.stringify({
+        archived: false,
+        state: "accepted",
+        referrals_count: {
+          from: 1,
+        },
+      }),
       per_page: PAGE_LIMIT.toString(),
       ...(page ? { page: page.toString() } : {}),
-    };
-
-    const searchParams = new URLSearchParams(params);
+    });
 
     const response = await this.fetch(`/promoters?${searchParams.toString()}`);
 
@@ -89,21 +82,11 @@ export class FirstPromoterApi {
     return partners;
   }
 
-  // TODO:
-  // Fix this
-  async listLinks({ identifier }: { identifier: string }) {
-    const links = await this.fetch(`/links/partnership/${identifier}`);
-
-    return partnerStackLink.array().parse(links);
-  }
-
   async listCustomers({ page }: { page?: number }) {
-    const params: Record<string, string> = {
+    const searchParams = new URLSearchParams({
       per_page: PAGE_LIMIT.toString(),
       ...(page ? { page: page.toString() } : {}),
-    };
-
-    const searchParams = new URLSearchParams(params);
+    });
 
     const customers = await this.fetch(`/referrals?${searchParams.toString()}`);
 
@@ -111,12 +94,10 @@ export class FirstPromoterApi {
   }
 
   async listCommissions({ page }: { page?: number }) {
-    const params: Record<string, string> = {
+    const searchParams = new URLSearchParams({
       per_page: PAGE_LIMIT.toString(),
       ...(page ? { page: page.toString() } : {}),
-    };
-
-    const searchParams = new URLSearchParams(params);
+    });
 
     const commissions = await this.fetch(
       `/commissions?${searchParams.toString()}`,
