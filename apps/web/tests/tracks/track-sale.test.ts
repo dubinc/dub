@@ -1,10 +1,15 @@
 import { TrackSaleResponse } from "@/lib/types";
-import { randomId, randomSaleAmount } from "tests/utils/helpers";
+import {
+  randomCustomer,
+  randomId,
+  randomSaleAmount,
+} from "tests/utils/helpers";
 import {
   E2E_CUSTOMER_EXTERNAL_ID,
   E2E_CUSTOMER_EXTERNAL_ID_2,
   E2E_CUSTOMER_ID,
   E2E_REWARD,
+  E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
@@ -220,5 +225,54 @@ describe("POST /track/sale", async () => {
     expect(response.data.sale?.currency).toEqual("usd");
     expect(response.data.sale?.amount).toBeGreaterThanOrEqual(900); // 900 cents
     expect(response.data.sale?.amount).toBeLessThanOrEqual(1100); // 1100 cents
+  });
+
+  test("track a sale without a pre-existing lead event", async () => {
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: E2E_TRACK_CLICK_HEADERS,
+      body: {
+        domain: "getacme.link",
+        key: "derek",
+      },
+    });
+    expect(clickResponse.status).toEqual(200);
+    expect(clickResponse.data.clickId).toStrictEqual(expect.any(String));
+    const trackedClickId = clickResponse.data.clickId;
+    const saleCustomer = randomCustomer();
+    const salePayload = {
+      ...sale,
+      eventName: "Purchase (no lead event)",
+      amount: randomSaleAmount(),
+      invoiceId: `INV_${randomId()}`,
+    };
+
+    const response = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...salePayload,
+        clickId: trackedClickId,
+        customerExternalId: saleCustomer.externalId,
+        customerName: saleCustomer.name,
+        customerEmail: saleCustomer.email,
+        customerAvatar: saleCustomer.avatar,
+      },
+    });
+
+    expect(response.status).toEqual(200);
+    expect(response.data).toStrictEqual({
+      eventName: salePayload.eventName,
+      customer: {
+        id: expect.any(String),
+        ...saleCustomer,
+      },
+      sale: {
+        amount: salePayload.amount,
+        currency: salePayload.currency,
+        paymentProcessor: salePayload.paymentProcessor,
+        invoiceId: salePayload.invoiceId,
+        metadata: null,
+      },
+    });
   });
 });
