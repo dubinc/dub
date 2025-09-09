@@ -5,7 +5,6 @@ import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DiscountDeleted from "@dub/email/templates/discount-deleted";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 
@@ -109,6 +108,20 @@ export async function couponDeleted(event: Stripe.Event) {
             },
           }),
         ),
+
+        ...discounts
+          .filter(
+            (discount) =>
+              discount.couponCodeTrackingEnabledAt && discount.partnerGroup?.id,
+          )
+          .map((discount) =>
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-coupon-code-delete-jobs`,
+              body: {
+                groupId: discount.partnerGroup?.id,
+              },
+            }),
+          ),
 
         resend.batch.send(
           users.map((user) => ({
