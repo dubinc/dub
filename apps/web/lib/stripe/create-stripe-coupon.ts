@@ -1,4 +1,4 @@
-import { Discount } from "@prisma/client";
+import { Discount } from "@dub/prisma/client";
 import { stripeAppClient } from ".";
 import { WorkspaceProps } from "../types";
 
