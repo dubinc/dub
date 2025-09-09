@@ -562,7 +562,9 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Complete any outstanding program applications
-      waitUntil(completeProgramApplications(message.user.id));
+      if (message.user.email) {
+        waitUntil(completeProgramApplications(message.user.email));
+      }
     },
   },
 };
