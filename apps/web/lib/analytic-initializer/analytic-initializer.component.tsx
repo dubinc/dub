@@ -22,9 +22,10 @@ export const AnalyticInitializerComponent = ({
   const fromEmailQuery = searchParams.get("marketing");
 
   useEffect(() => {
+    startSessionRecording();
+
     if (!authSession || !authSession?.user) {
       // initPeopleAnalytic(sessionId);
-      startSessionRecording();
 
       if (fromEmailQuery && fromEmailQuery === "true") {
         localStorage.setItem("fromEmailQuery", "true");
