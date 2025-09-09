@@ -60,8 +60,6 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
         })),
         skipDuplicates: true,
       });
-
-      console.log(`Created ${groups.count} partner groups`);
     }
 
     currentPage++;
