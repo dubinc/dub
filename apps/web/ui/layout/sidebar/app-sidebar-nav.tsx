@@ -30,7 +30,6 @@ import {
   Msgs,
   Receipt2,
   ShieldCheck,
-  ShieldKeyhole,
   Sliders,
   Tag,
   UserCheck,
@@ -273,11 +272,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,
           },
-          {
-            name: "Fraud & Risk",
-            icon: ShieldKeyhole,
-            href: `/${slug}/program/fraud`,
-          },
+          // {
+          //   name: "Fraud & Risk",
+          //   icon: ShieldKeyhole,
+          //   href: `/${slug}/program/fraud`,
+          // },
         ],
       },
       {
