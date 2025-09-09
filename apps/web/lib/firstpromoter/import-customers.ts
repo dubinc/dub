@@ -35,7 +35,7 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
   let processedBatches = 0;
   let currentPage = page;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (processedBatches < MAX_BATCHES) {
     const customers = await firstPromoterApi.listCustomers({
       page: currentPage,
     });
@@ -143,7 +143,7 @@ async function createCustomer({
     import_id: importId,
     source: "firstpromoter",
     entity: "customer",
-    entity_id: customer.uid,
+    entity_id: `${customer.id}`,
   } as const;
 
   if (links.length === 0) {
@@ -239,6 +239,7 @@ async function createCustomer({
         event_name: "Sign up",
         customer_id: customerId,
         timestamp: new Date(customer.created_at).toISOString(),
+        metadata: customer.metadata ? JSON.stringify(customer.metadata) : "",
       }),
 
       prisma.link.update({

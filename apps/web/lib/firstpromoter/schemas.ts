@@ -5,6 +5,7 @@ export const firstPromoterImportSteps = z.enum([
   "import-partners",
   "import-customers",
   "import-commissions",
+  "update-stripe-customers",
 ]);
 
 export const firstPromoterCredentialsSchema = z.object({
@@ -93,7 +94,7 @@ export const firstPromoterCustomerSchema = z.object({
   email: z.string(),
   first_name: z.string().nullable(),
   last_name: z.string().nullable(),
-  uid: z.string(),
+  uid: z.string().nullable(),
   created_at: z.string(),
   customer_since: z.string().nullable(),
   metadata: z.record(z.any()).nullable(),
@@ -105,7 +106,7 @@ export const firstPromoterCustomerSchema = z.object({
 });
 
 export const firstPromoterCommissionSchema = z.object({
-  id: z.string(),
+  id: z.number(),
   status: z.enum(["pending", "approved", "denied"]),
   metadata: z.record(z.any()).nullable(),
   is_self_referral: z.boolean(),
@@ -136,18 +137,8 @@ export const firstPromoterCommissionSchema = z.object({
     .nullable(),
   referral: firstPromoterCustomerSchema
     .pick({
-      id: true,
       email: true,
       uid: true,
     })
     .nullable(),
-  promoter_campaign: z.object({
-    // campaign: firstPromoterCampaignSchema.pick({
-    //   campaign: true,
-    // }),
-    promoter: firstPromoterPartnerSchema.pick({
-      id: true,
-      email: true,
-    }),
-  }),
 });

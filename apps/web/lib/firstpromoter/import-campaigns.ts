@@ -33,7 +33,7 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
   let processedBatches = 0;
   let currentPage = page;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (processedBatches < MAX_BATCHES) {
     const campaigns = await firstPromoterApi.listCampaigns({
       page: currentPage,
     });

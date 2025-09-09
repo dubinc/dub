@@ -37,7 +37,7 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
   let processedBatches = 0;
   let currentPage = page;
 
-  while (hasMore && processedBatches < MAX_BATCHES) {
+  while (processedBatches < MAX_BATCHES) {
     const affiliates = await firstPromoterApi.listPartners({
       page: currentPage,
     });

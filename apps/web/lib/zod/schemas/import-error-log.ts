@@ -16,6 +16,8 @@ export const importErrorLogSchema = z.object({
     "CLICK_NOT_FOUND",
     "STRIPE_CUSTOMER_NOT_FOUND",
     "TRANSACTION_NOT_FOUND",
+    "SELF_REFERRAL",
+    "NOT_SUPPORTED_UNIT",
   ]),
   message: z.string(),
 });
