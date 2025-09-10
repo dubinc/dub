@@ -227,7 +227,7 @@ describe("POST /track/sale", async () => {
     expect(response.data.sale?.amount).toBeLessThanOrEqual(1100); // 1100 cents
   });
 
-  test("track a sale without a pre-existing lead event", async () => {
+  test("track a sale with direct sale tracking", async () => {
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",
       headers: E2E_TRACK_CLICK_HEADERS,
