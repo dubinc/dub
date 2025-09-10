@@ -26,6 +26,7 @@ import {
   MoneyBills2,
   Pen2,
   Sheet,
+  Tooltip,
   TooltipContent,
   useRouterStuff,
 } from "@dub/ui";
@@ -394,21 +395,31 @@ function RewardSheetContent({
                       )}
                     </span>
                   </div>
-                  <Button
-                    variant="secondary"
-                    className={cn(
-                      "size-7 p-0",
-                      description !== null && "text-blue-600",
-                    )}
-                    icon={<Pen2 className="size-3.5" />}
-                    onClick={() =>
-                      setValue(
-                        "description",
-                        description === null ? "" : null,
-                        { shouldDirty: true },
-                      )
+                  <Tooltip
+                    content={
+                      description === null
+                        ? "Add a custom reward description"
+                        : "Remove custom reward description"
                     }
-                  />
+                  >
+                    <div className="shrink-0">
+                      <Button
+                        variant="secondary"
+                        className={cn(
+                          "size-7 p-0",
+                          description !== null && "text-blue-600",
+                        )}
+                        icon={<Pen2 className="size-3.5" />}
+                        onClick={() =>
+                          setValue(
+                            "description",
+                            description === null ? "" : null,
+                            { shouldDirty: true },
+                          )
+                        }
+                      />
+                    </div>
+                  </Tooltip>
                 </div>
                 <motion.div
                   initial={false}
