@@ -14,15 +14,23 @@ import {
 } from "../../zod/schemas/messages";
 import { authActionClient } from "../safe-action";
 
+const schema = messagePartnerSchema.extend({
+  workspaceId: z.string(),
+});
+
 // Message a partner
 export const messagePartnerAction = authActionClient
-  .schema(messagePartnerSchema.extend({ workspaceId: z.string() }))
+  .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, text, createdAt } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    await getProgramEnrollmentOrThrow({ programId, partnerId });
+
+    await getProgramEnrollmentOrThrow({
+      programId,
+      partnerId,
+    });
 
     const message = await prisma.message.create({
       data: {
@@ -40,18 +48,18 @@ export const messagePartnerAction = authActionClient
     });
 
     waitUntil(
-      (async () => {
-        await qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-partner`,
-          body: {
-            programId,
-            partnerId,
-            lastMessageId: message.id,
-          },
-          delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
-        });
-      })(),
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-partner`,
+        body: {
+          programId,
+          partnerId,
+          lastMessageId: message.id,
+        },
+        delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
+      }),
     );
 
-    return { message: MessageSchema.parse(message) };
+    return {
+      message: MessageSchema.parse(message),
+    };
   });
