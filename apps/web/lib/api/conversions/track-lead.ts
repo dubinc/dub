@@ -53,10 +53,9 @@ export const trackLead = async ({
   // otherwise, throw an error (this is for mode="deferred" lead tracking)
   if (!clickId) {
     if (!customer || !customer.clickId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "The `clickId` property was not provided in the request, and no existing customer with the provided `customerExternalId` was found.",
+      return trackLeadResponseSchema.parse({
+        click: null,
+        customer: null,
       });
     }
 

@@ -123,7 +123,7 @@ export const trackSale = async ({
     }
   }
 
-  // No existing customer is found, find the click event and create a new customer (for sale tracking without a pre-existing lead event)
+  // No existing customer is found, find the click event and create a new customer (for direct sale tracking)
   else {
     if (!clickId) {
       waitUntil(
@@ -131,7 +131,7 @@ export const trackSale = async ({
           workspace_id: workspace.id,
           path: "/track/sale",
           body: JSON.stringify(rawBody),
-          error: `No existing customer with the provided customerExternalId (${customerExternalId}) was found, and there was no clickId provided for sale tracking without a pre-existing lead event.`,
+          error: `No existing customer with the provided customerExternalId (${customerExternalId}) was found, and there was no clickId provided for direct sale tracking.`,
         }),
       );
 
