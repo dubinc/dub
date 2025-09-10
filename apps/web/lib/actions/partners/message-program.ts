@@ -41,18 +41,18 @@ export const messageProgramAction = authPartnerActionClient
     });
 
     waitUntil(
-      (async () => {
-        await qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-program`,
-          body: {
-            programId: enrollment.programId,
-            partnerId: partner.id,
-            lastMessageId: message.id,
-          },
-          delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
-        });
-      })(),
+      qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/messages/notify-program`,
+        body: {
+          programId: enrollment.programId,
+          partnerId: partner.id,
+          lastMessageId: message.id,
+        },
+        delay: 60 * 3, // 3 minute delay for a chance to read + batching multiple messages
+      }),
     );
 
-    return { message: MessageSchema.parse(message) };
+    return {
+      message: MessageSchema.parse(message),
+    };
   });
