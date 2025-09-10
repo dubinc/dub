@@ -1,6 +1,5 @@
 import { EnrolledPartnerProps } from "@/lib/types";
-import { currencyFormatter, nFormatter } from "@dub/utils";
-import { cn } from "@dub/utils/src";
+import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 
 const stats: {
   label: string;
