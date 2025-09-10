@@ -13,23 +13,25 @@ export async function withPrismaRetry<T>(
 ): Promise<T> {
   let lastError: Error;
 
-  for (let attempt = 0; attempt < config.maxRetries; attempt++) {
+  for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
     try {
       return await operation();
     } catch (error) {
       lastError = error as Error;
 
-      // Don't retry on certain errors (e.g., validation errors, unique constraint violations)
+      // Don't retry unique constraint violations, FK violations, or not-found
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        // Don't retry unique constraint violations or validation errors
-        if (error.code === "P2002" || error.code === "P2003") {
-          throw error;
-        }
+        throw error;
+      }
+
+      // Also avoid retrying on validation errors
+      if (error instanceof Prisma.PrismaClientValidationError) {
+        throw error;
       }
 
       // Don't retry on the last attempt
-      if (attempt === config.maxRetries - 1) {
-        console.error(`Failed after ${config.maxRetries} attempts:`, error);
+      if (attempt === config.maxRetries) {
+        console.error(`Failed after ${config.maxRetries + 1} attempts:`, error);
         throw error;
       }
 
@@ -39,7 +41,7 @@ export async function withPrismaRetry<T>(
         : config.retryDelay;
 
       console.warn(
-        `Failed (attempt ${attempt + 1}/${config.maxRetries}), retrying in ${delay}ms:`,
+        `Failed (attempt ${attempt + 1}/${config.maxRetries + 1}), retrying in ${delay}ms:`,
         error.message,
       );
 
