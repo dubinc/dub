@@ -16,5 +16,6 @@ export const ratelimit = (
     limiter: Ratelimit.slidingWindow(requests, seconds),
     analytics: true,
     prefix: "dub",
+    timeout: 1000,
   });
 };

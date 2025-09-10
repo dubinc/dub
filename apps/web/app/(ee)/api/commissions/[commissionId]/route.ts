@@ -91,7 +91,7 @@ export const PATCH = withWorkspace(
         includeSaleReward: true,
       });
 
-      const reward = await determinePartnerReward({
+      const reward = determinePartnerReward({
         event: "sale",
         programEnrollment,
       });

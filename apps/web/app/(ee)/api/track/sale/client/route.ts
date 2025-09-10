@@ -29,13 +29,17 @@ export const POST = withPublishableKey(
 
     const {
       customerExternalId,
-      paymentProcessor,
-      invoiceId,
+      customerName,
+      customerEmail,
+      customerAvatar,
+      clickId,
       amount,
       currency,
-      metadata,
       eventName,
+      paymentProcessor,
+      invoiceId,
       leadEventName,
+      metadata,
     } = trackSaleRequestSchema.parse(body);
 
     if (!customerExternalId) {
@@ -47,6 +51,10 @@ export const POST = withPublishableKey(
 
     const response = await trackSale({
       customerExternalId,
+      customerName,
+      customerEmail,
+      customerAvatar,
+      clickId,
       amount,
       currency,
       eventName,
