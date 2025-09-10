@@ -52,7 +52,11 @@ export function PageClient() {
 
   const reward = {
     type: (data.type ?? "flat") as RewardStructure,
-    amount: data.amount ?? 0,
+    amount: data.amount
+      ? data.type === "flat"
+        ? data.amount * 100
+        : data.amount
+      : 0,
     maxDuration: data.maxDuration ?? 0,
     event: data.defaultRewardType,
   };
