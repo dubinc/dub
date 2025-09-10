@@ -21,7 +21,7 @@ interface ProgramEnrollmentWithReward {
   links?: Link[] | null;
 }
 
-export const determinePartnerReward = async ({
+export const determinePartnerReward = ({
   event,
   programEnrollment,
   context,
