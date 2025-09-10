@@ -13,6 +13,7 @@ import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   linkEventSchema,
+  LinkSchema,
   updateLinkBodySchemaExtended,
 } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
@@ -62,7 +63,7 @@ export const GET = withWorkspace(
       { skipDecodeKey: true },
     );
 
-    return NextResponse.json(response, { headers });
+    return NextResponse.json(LinkSchema.parse(response), { headers });
   },
   {
     requiredPermissions: ["links.read"],
@@ -191,7 +192,7 @@ export const PATCH = withWorkspace(
         }),
       );
 
-      return NextResponse.json(response, {
+      return NextResponse.json(LinkSchema.parse(response), {
         headers,
       });
     } catch (error) {

@@ -13,7 +13,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema } from "@/lib/zod/schemas/links";
+import { linkEventSchema, LinkSchema } from "@/lib/zod/schemas/links";
 import { upsertPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { deepEqual } from "@dub/utils";
@@ -164,7 +164,7 @@ export const PUT = withWorkspace(
           }),
         );
 
-        return NextResponse.json(response, {
+        return NextResponse.json(LinkSchema.parse(response), {
           headers,
         });
       } catch (error) {
@@ -209,7 +209,7 @@ export const PUT = withWorkspace(
         }),
       );
 
-      return NextResponse.json(partnerLink, {
+      return NextResponse.json(LinkSchema.parse(partnerLink), {
         headers,
       });
     }

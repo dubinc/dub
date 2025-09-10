@@ -13,6 +13,7 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   createLinkBodySchemaAsync,
   linkEventSchema,
+  LinkSchema,
 } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { deepEqual } from "@dub/utils";
@@ -161,7 +162,7 @@ export const PUT = withWorkspace(
           }),
         );
 
-        return NextResponse.json(response, {
+        return NextResponse.json(LinkSchema.parse(response), {
           headers,
         });
       } catch (error) {
@@ -187,7 +188,7 @@ export const PUT = withWorkspace(
 
       try {
         const response = await createLink(link);
-        return NextResponse.json(response, { headers });
+        return NextResponse.json(LinkSchema.parse(response), { headers });
       } catch (error) {
         throw new DubApiError({
           code: "unprocessable_entity",
