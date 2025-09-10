@@ -4,13 +4,13 @@ enum NotificationEmailType {
 
 model NotificationEmail {
   id        String                @id @default(cuid())
-  emailId   String
+  emailId   String // Resend email id
+  messageId String?
   type      NotificationEmailType
   openedAt  DateTime?
   createdAt DateTime              @default(now())
 
-  messageId String?
-  message   Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  message Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
   @@index(emailId)
   @@index(type)
