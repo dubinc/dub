@@ -22,7 +22,6 @@ export function RewardDiscountPartnersCard({ groupId }: { groupId: string }) {
     },
   });
 
-
   return (
     <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
       <button

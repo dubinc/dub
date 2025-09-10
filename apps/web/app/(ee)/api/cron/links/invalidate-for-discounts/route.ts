@@ -61,13 +61,17 @@ export async function POST(req: Request) {
     });
 
     if (programEnrollments.length === 0) {
-      return logAndRespond(`No program enrollments found for group ${groupId}.`);
+      return logAndRespond(
+        `No program enrollments found for group ${groupId}.`,
+      );
     }
 
     const links = programEnrollments.flatMap((enrollment) => enrollment.links);
 
     if (links.length === 0) {
-      return logAndRespond(`No links found for partners in the group ${groupId}.`);
+      return logAndRespond(
+        `No links found for partners in the group ${groupId}.`,
+      );
     }
 
     const linkChunks = chunk(links, 100);
