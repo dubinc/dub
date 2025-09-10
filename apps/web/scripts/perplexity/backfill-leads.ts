@@ -1,10 +1,10 @@
-// @ts-nocheck
+// @ts-nocheck some weird typing issues below
 
 import { createId } from "@/lib/api/create-id";
 import { generateRandomName } from "@/lib/names";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@dub/prisma";
-import { EventType, Prisma } from "@dub/prisma/client";
+import { EventType } from "@dub/prisma/client";
 import { capitalize, nanoid } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src/constants/continents";
 import { geolocation } from "@vercel/functions";
@@ -164,27 +164,26 @@ async function main() {
         }),
       ).then((res) => res.filter((r) => r !== null));
 
-      const customersToCreate: Prisma.CustomerCreateManyInput[] =
-        leadsToBackfill
-          .map((lead, idx) => {
-            const clickData = clicksToCreate[idx];
-            if (!clickData) {
-              return null;
-            }
-            return {
-              id: createId({ prefix: "cus_" }),
-              name: generateRandomName(),
-              externalId: lead.customerExternalId,
-              projectId: workspace.id,
-              projectConnectId: workspace.stripeConnectId,
-              clickId: clickData.click_id,
-              linkId: clickData.link_id,
-              country: clickData.country,
-              clickedAt: new Date(lead.timestamp).toISOString(),
-              createdAt: new Date(lead.timestamp).toISOString(),
-            };
-          })
-          .filter((c) => c !== null);
+      const customersToCreate = leadsToBackfill
+        .map((lead, idx) => {
+          const clickData = clicksToCreate[idx];
+          if (!clickData) {
+            return null;
+          }
+          return {
+            id: createId({ prefix: "cus_" }),
+            name: generateRandomName(),
+            externalId: lead.customerExternalId,
+            projectId: workspace.id,
+            projectConnectId: workspace.stripeConnectId,
+            clickId: clickData.click_id,
+            linkId: clickData.link_id,
+            country: clickData.country,
+            clickedAt: new Date(lead.timestamp).toISOString(),
+            createdAt: new Date(lead.timestamp).toISOString(),
+          };
+        })
+        .filter((c) => c !== null);
 
       const leadsToCreate = clicksToCreate.map((clickData, idx) => ({
         ...clickData,

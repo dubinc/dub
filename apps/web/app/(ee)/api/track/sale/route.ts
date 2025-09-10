@@ -19,13 +19,13 @@ export const POST = withWorkspace(
       customerEmail,
       customerAvatar,
       clickId,
-      paymentProcessor,
-      invoiceId,
       amount,
       currency,
-      metadata,
       eventName,
+      paymentProcessor,
+      invoiceId,
       leadEventName,
+      metadata,
     } = trackSaleRequestSchema
       .extend({
         // add backwards compatibility
