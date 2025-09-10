@@ -1,3 +1,5 @@
+// @ts-nocheck
+
 import { createId } from "@/lib/api/create-id";
 import { generateRandomName } from "@/lib/names";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
