@@ -13,14 +13,11 @@ export const MessageSchema = z.object({
   partnerId: z.string(),
   senderPartnerId: z.string().nullable(),
   senderUserId: z.string(),
-
   text: messageTextSchema,
-
   readInApp: z.date().nullable(),
   readInEmail: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
-
   senderPartner: PartnerSchema.pick({
     id: true,
     name: true,
@@ -68,12 +65,6 @@ export const messagePartnerSchema = z.object({
         message: "Message timestamp must be within the last 60 seconds",
       },
     ),
-});
-
-export const updatePartnerMessageSchema = z.object({
-  messageId: z.string(),
-  readInApp: z.boolean().optional(),
-  readInEmail: z.boolean().optional(),
 });
 
 export const ProgramMessagesSchema = z.array(
