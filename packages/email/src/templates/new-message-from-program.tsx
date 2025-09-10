@@ -62,7 +62,7 @@ export default function NewMessageFromProgram({
   return (
     <Html>
       <Head />
-      <Preview>Bounty completed</Preview>
+      <Preview>New message from {program.name}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">

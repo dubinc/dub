@@ -30,22 +30,6 @@ export default function NewMessageFromPartner({
       text: "Am I eligible for that one bounty?",
       createdAt: new Date(Date.now() - 1000 * 60 * 5),
     },
-    // {
-    //   text: "Pls respond",
-    //   createdAt: new Date(),
-    // },
-    // {
-    //   text: "Pls respond",
-    //   createdAt: new Date(),
-    // },
-    // {
-    //   text: "Pls respond",
-    //   createdAt: new Date(),
-    // },
-    // {
-    //   text: "Pls respond",
-    //   createdAt: new Date(),
-    // },
   ],
   email = "panic@thedis.co",
 }: {
@@ -64,7 +48,7 @@ export default function NewMessageFromPartner({
   return (
     <Html>
       <Head />
-      <Preview>Bounty completed</Preview>
+      <Preview>New message from {partner.name}</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
