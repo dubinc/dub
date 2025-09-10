@@ -5,22 +5,26 @@ import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
+const schema = z.object({
+  programSlug: z.string(),
+});
+
 // Mark program messages as read
 export const markProgramMessagesReadAction = authPartnerActionClient
-  .schema(z.object({ programSlug: z.string() }))
+  .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { partner } = ctx;
     const { programSlug } = parsedInput;
 
-    const enrollment = await getProgramEnrollmentOrThrow({
+    const { partnerId, programId } = await getProgramEnrollmentOrThrow({
       programId: programSlug,
       partnerId: partner.id,
     });
 
     await prisma.message.updateMany({
       where: {
-        partnerId: partner.id,
-        programId: enrollment.programId,
+        partnerId,
+        programId,
         senderPartnerId: null,
       },
       data: {
