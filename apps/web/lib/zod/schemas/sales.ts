@@ -57,13 +57,13 @@ export const trackSaleRequestSchema = z.object({
     .describe(
       "Additional metadata to be stored with the sale event. Max 10,000 characters when stringified.",
     ),
-  // advanced fields: leadEventName + fields for sale tracking without a pre-existing lead event
+  // advanced fields: leadEventName + fields for sale tracking without a  lead event
   leadEventName: z
     .string()
     .nullish()
     .default(null)
     .describe(
-      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event for a link-customer combination, which is the default behavior). For sale tracking without a pre-existing lead event, this field can also be used to specify the lead event name.",
+      "The name of the lead event that occurred before the sale (case-sensitive). This is used to associate the sale event with a particular lead event (instead of the latest lead event for a link-customer combination, which is the default behavior). For direct sale tracking, this field can also be used to specify the lead event name.",
     )
     .openapi({ example: "Cloned template 1481267" }),
   clickId: z
@@ -71,7 +71,7 @@ export const trackSaleRequestSchema = z.object({
     .trim()
     .nullish()
     .describe(
-      "[For sale tracking without a pre-existing lead event]: The unique ID of the click that the sale conversion event is attributed to. You can read this value from `dub_id` cookie.",
+      "[For direct sale tracking]: The unique ID of the click that the sale conversion event is attributed to. You can read this value from `dub_id` cookie.",
     ),
   customerName: z
     .string()
@@ -79,7 +79,7 @@ export const trackSaleRequestSchema = z.object({
     .nullish()
     .default(null)
     .describe(
-      "[For sale tracking without a pre-existing lead event]: The name of the customer. If not passed, a random name will be generated (e.g. “Big Red Caribou”).",
+      "[For direct sale tracking]: The name of the customer. If not passed, a random name will be generated (e.g. “Big Red Caribou”).",
     ),
   customerEmail: z
     .string()
@@ -87,16 +87,12 @@ export const trackSaleRequestSchema = z.object({
     .max(100)
     .nullish()
     .default(null)
-    .describe(
-      "[For sale tracking without a pre-existing lead event]: The email address of the customer.",
-    ),
+    .describe("[For direct sale tracking]: The email address of the customer."),
   customerAvatar: z
     .string()
     .nullish()
     .default(null)
-    .describe(
-      "[For sale tracking without a pre-existing lead event]: The avatar URL of the customer.",
-    ),
+    .describe("[For direct sale tracking]: The avatar URL of the customer."),
 });
 
 export const trackSaleResponseSchema = z.object({

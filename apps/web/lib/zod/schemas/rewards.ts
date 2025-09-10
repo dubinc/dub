@@ -150,6 +150,7 @@ export const createOrUpdateRewardSchema = z.object({
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
+  description: z.string().max(100).nullish(),
   groupId: z.string(),
 });
 
