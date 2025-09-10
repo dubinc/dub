@@ -28,7 +28,7 @@ async function main() {
         includeSaleReward: commission.type === "sale",
       });
 
-      const reward = await determinePartnerReward({
+      const reward = determinePartnerReward({
         event: commission.type as EventType,
         programEnrollment,
       });
