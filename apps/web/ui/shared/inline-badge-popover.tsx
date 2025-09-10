@@ -189,7 +189,7 @@ export const InlineBadgePopoverInput = forwardRef<
       <input
         ref={ref}
         className={cn(
-          "block grow rounded-md border-none px-1.5 py-1 text-neutral-900 placeholder-neutral-400 sm:text-sm",
+          "block min-w-0 grow rounded-md border-none px-1.5 py-1 text-neutral-900 placeholder-neutral-400 sm:text-sm",
           "focus:outline-none focus:ring-0",
           maxLength && "pr-0",
         )}
