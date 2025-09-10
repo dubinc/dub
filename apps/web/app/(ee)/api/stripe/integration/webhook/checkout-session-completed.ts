@@ -3,6 +3,7 @@ import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
+import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
   getClickEvent,
@@ -10,6 +11,7 @@ import {
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
+import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
 import { ClickEventTB, LeadEventTB } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -19,7 +21,7 @@ import {
 } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
 import { Customer, WorkflowTrigger } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import {
@@ -39,13 +41,14 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const stripeCustomerName = charge.customer_details?.name;
   const stripeCustomerEmail = charge.customer_details?.email;
   const invoiceId = charge.invoice as string;
+  const promotionCodeId = charge.discounts?.[0]?.promotion_code as string;
 
   let customer: Customer | null = null;
   let existingCustomer: Customer | null = null;
   let clickEvent: ClickEventTB | null = null;
   let leadEvent: LeadEventTB;
   let linkId: string;
-  let couponCodeTracking = false;
+  let shouldSendLeadWebhook = true;
 
   /*
       for stripe checkout links:
@@ -190,7 +193,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           dubCustomerId,
           stripeCustomerId,
         });
-
         if (!customer) {
           return `dubCustomerId was found on the connected customer ${stripeCustomerId} but customer with dubCustomerId ${dubCustomerId} not found on Dub, skipping...`;
         }
@@ -202,40 +204,102 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       (res) => res.data[0],
     );
 
-    if (leadEvent) {
-      linkId = leadEvent.link_id;
-    } else {
-      const promotionCodeId = charge.discounts?.[0]?.promotion_code as string;
+    linkId = leadEvent.link_id;
+  } else if (promotionCodeId) {
+    // Find the promotion code for the promotion code id
+    const promotionCode = await getPromotionCode({
+      promotionCodeId,
+      stripeAccountId,
+      livemode: event.livemode,
+    });
 
-      const promotionCode = await getPromotionCode({
-        promotionCodeId,
-        stripeAccountId,
-        livemode: event.livemode,
-      });
-
-      if (!promotionCode) {
-        return `Promotion code ${promotionCodeId} not found in connected account ${stripeAccountId}, skipping...`;
-      }
-
-      const link = await prisma.link.findUnique({
-        where: {
-          projectId_couponCode: {
-            projectId: customer.projectId,
-            couponCode: promotionCode.code,
-          },
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (!link) {
-        return `Couldn't find link associated with promotion code ${promotionCode.code}, skipping...`;
-      }
-
-      linkId = link.id;
-      couponCodeTracking = true;
+    if (!promotionCode) {
+      return `Promotion code ${promotionCodeId} not found in connected account ${stripeAccountId}, skipping...`;
     }
+
+    // Find the workspace
+    const workspace = await prisma.project.findUnique({
+      where: {
+        stripeConnectId: stripeAccountId,
+      },
+      select: {
+        id: true,
+        stripeConnectId: true,
+      },
+    });
+
+    if (!workspace) {
+      return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
+    }
+
+    // Identify the link associated with the promotion code
+    const link = await prisma.link.findUnique({
+      where: {
+        projectId_couponCode: {
+          projectId: workspace.id,
+          couponCode: promotionCode.code,
+        },
+      },
+      select: {
+        id: true,
+        url: true,
+        domain: true,
+        key: true,
+        projectId: true,
+      },
+    });
+
+    if (!link) {
+      return `Couldn't find link associated with promotion code ${promotionCode.code}, skipping...`;
+    }
+
+    linkId = link.id;
+
+    // Record a fake click for this event
+    const customerDetails = charge.customer_details;
+    const customerAddress = customerDetails?.address;
+
+    clickEvent = await recordFakeClick({
+      link,
+      customer: {
+        continent: customerAddress?.country
+          ? COUNTRIES_TO_CONTINENTS[customerAddress.country]
+          : "NA",
+        country: customerAddress?.country ?? "US",
+        region: customerAddress?.state ?? "CA",
+      },
+    });
+
+    customer = await prisma.customer.create({
+      data: {
+        id: createId({ prefix: "cus_" }),
+        name:
+          customerDetails?.name ||
+          customerDetails?.email ||
+          generateRandomName(),
+        email: customerDetails?.email,
+        externalId: clickEvent.click_id,
+        linkId: clickEvent.link_id,
+        clickId: clickEvent.click_id,
+        clickedAt: new Date(clickEvent.timestamp + "Z"),
+        country: customerAddress?.country,
+        projectId: workspace.id,
+        projectConnectId: workspace.stripeConnectId,
+      },
+    });
+
+    // Prepare the payload for the lead event
+    const { timestamp, ...rest } = clickEvent;
+
+    leadEvent = {
+      ...rest,
+      event_id: nanoid(16),
+      event_name: "Sign up",
+      customer_id: customer.id,
+      metadata: "",
+    };
+
+    shouldSendLeadWebhook = false;
   } else {
     return "No dubCustomerId or stripeCustomerId found in Stripe checkout session metadata, skipping...";
   }
@@ -306,7 +370,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   });
 
   const [_sale, linkUpdated, workspace] = await Promise.all([
-    !couponCodeTracking && recordSale(saleData),
+    recordSale(saleData),
 
     // update link sales count
     link &&
@@ -380,7 +444,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       programId: link.programId,
       partnerId: link.partnerId,
       linkId: link.id,
-      eventId: couponCodeTracking ? saleData.event_id : undefined,
+      eventId: saleData.event_id,
       customerId: customer.id,
       amount: saleData.amount,
       quantity: 1,
@@ -421,7 +485,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     (async () => {
       // if the clickEvent variable exists and there was no existing customer before,
       // we send a lead.created webhook
-      if (clickEvent && !existingCustomer) {
+      if (clickEvent && !existingCustomer && shouldSendLeadWebhook) {
         await sendWorkspaceWebhook({
           trigger: "lead.created",
           workspace,

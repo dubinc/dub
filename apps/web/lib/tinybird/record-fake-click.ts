@@ -37,13 +37,16 @@ export async function recordFakeClick({
     key: link.key,
     workspaceId: link.projectId!,
     skipRatelimit: true,
-    timestamp: timestamp
-      ? new Date(timestamp).toISOString()
-      : new Date().toISOString(),
+    ...(timestamp && { timestamp: new Date(timestamp).toISOString() }),
   });
+
+  if (!clickData) {
+    throw new Error("Failed to record fake click.");
+  }
 
   return clickEventSchemaTB.parse({
     ...clickData,
+    timestamp: clickData.timestamp.replace("T", " ").replace("Z", ""),
     bot: 0,
     qr: 0,
   });
