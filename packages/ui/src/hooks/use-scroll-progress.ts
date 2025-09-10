@@ -3,17 +3,29 @@
 import { RefObject, useCallback, useEffect, useState } from "react";
 import { useResizeObserver } from "./use-resize-observer";
 
-export function useScrollProgress(ref: RefObject<HTMLElement>) {
+export function useScrollProgress(
+  ref: RefObject<HTMLElement>,
+  { direction = "vertical" }: { direction?: "vertical" | "horizontal" } = {},
+) {
   const [scrollProgress, setScrollProgress] = useState(1);
 
   const updateScrollProgress = useCallback(() => {
     if (!ref.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = ref.current;
+    const scroll =
+      direction === "vertical" ? ref.current.scrollTop : ref.current.scrollLeft;
+    const scrollSize =
+      direction === "vertical"
+        ? ref.current.scrollHeight
+        : ref.current.scrollWidth;
+    const clientSize =
+      direction === "vertical"
+        ? ref.current.clientHeight
+        : ref.current.clientWidth;
 
     setScrollProgress(
-      scrollHeight === clientHeight
+      scrollSize === clientSize
         ? 1
-        : Math.min(scrollTop / (scrollHeight - clientHeight), 1),
+        : Math.min(scroll / (scrollSize - clientSize), 1),
     );
   }, []);
 
