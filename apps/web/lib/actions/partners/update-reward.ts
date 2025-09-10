@@ -15,7 +15,8 @@ export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { rewardId, amount, maxDuration, type, modifiers } = parsedInput;
+    const { rewardId, amount, maxDuration, type, description, modifiers } =
+      parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -40,6 +41,7 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
+        description: description || null,
         modifiers: modifiers === null ? Prisma.DbNull : modifiers,
       },
       include: {
