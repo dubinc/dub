@@ -396,11 +396,8 @@ function RewardSheetContent({
                     </span>
                   </div>
                   <Tooltip
-                    content={
-                      description === null
-                        ? "Add a custom reward description"
-                        : "Remove custom reward description"
-                    }
+                    content={"Add a custom reward description"}
+                    disabled={description !== null}
                   >
                     <div className="shrink-0">
                       <Button
