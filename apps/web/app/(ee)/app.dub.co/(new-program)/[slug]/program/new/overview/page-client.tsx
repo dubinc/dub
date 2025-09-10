@@ -41,9 +41,9 @@ export function PageClient() {
   };
 
   const isValid = useMemo(() => {
-    const { name, url, domain, logo } = data;
+    const { name, url, domain, logo, type, amount } = data;
 
-    if (!name || !url || !domain || !logo) {
+    if (!name || !url || !domain || !logo || !type || !amount) {
       return false;
     }
 
