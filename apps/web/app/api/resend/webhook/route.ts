@@ -22,12 +22,15 @@ export const POST = async (req: Request) => {
   // Need to base64 decode the secret
   const secretBytes = Buffer.from(secret.split("_")[1], "base64");
   const computedSignature = crypto
-    .createHmac("sha256", new Uint8Array(secretBytes))
+    .createHmac("sha256", secretBytes)
     .update(signedContent)
     .digest("base64");
 
   if (computedSignature !== svixSignature) {
-    return NextResponse.json({ message: "Invalid signature." }, { status: 400 });
+    return NextResponse.json(
+      { message: "Invalid signature." },
+      { status: 400 },
+    );
   }
 
   const { type, data } = JSON.parse(rawBody) || {};
