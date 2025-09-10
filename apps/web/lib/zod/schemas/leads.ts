@@ -73,19 +73,15 @@ export const trackLeadRequestSchema = z.object({
 });
 
 export const trackLeadResponseSchema = z.object({
-  click: z
-    .object({
-      id: z.string(),
-    })
-    .nullable(),
-  customer: z
-    .object({
-      name: z.string().nullable(),
-      email: z.string().nullable(),
-      avatar: z.string().nullable(),
-      externalId: z.string().nullable(),
-    })
-    .nullable(),
+  click: z.object({
+    id: z.string(),
+  }),
+  customer: z.object({
+    name: z.string().nullable(),
+    email: z.string().nullable(),
+    avatar: z.string().nullable(),
+    externalId: z.string().nullable(),
+  }),
 });
 
 export const leadEventSchemaTB = clickEventSchemaTB
