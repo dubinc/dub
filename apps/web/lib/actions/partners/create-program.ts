@@ -55,6 +55,9 @@ export const createProgram = async ({
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
     const folderId = createId({ prefix: "fold_" });
+    const programId = createId({ prefix: "prog_" });
+    const defaultGroupId = createId({ prefix: "grp_" });
+
     const programFolder = await tx.folder.upsert({
       where: {
         name_projectId: {
@@ -76,9 +79,6 @@ export const createProgram = async ({
         },
       },
     });
-
-    const programId = createId({ prefix: "prog_" });
-    const defaultGroupId = createId({ prefix: "grp_" });
 
     const logoUrl = uploadedLogo
       ? await storage
