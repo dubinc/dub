@@ -1,4 +1,4 @@
-import { ToltProgramSchema } from "@/lib/tolt/schemas";
+import { PROGRAM_ONBOARDING_PARTNERS_LIMIT } from "@/lib/partners/constants";
 import { PartnerLinkStructure, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
@@ -16,40 +16,12 @@ export const programInfoSchema = z.object({
 });
 
 // Configure rewards
-export const programRewardSchema = z
-  .object({
-    programType: z.enum(["new", "import"]),
-    importSource: z.enum(["rewardful", "tolt", "partnerstack"]).nullish(),
-    rewardful: z
-      .object({
-        maskedToken: z.string().nullish(),
-        id: z.string(),
-        affiliates: z.number(),
-        commission_amount_cents: z.number().nullable(),
-        max_commission_period_months: z.number().nullable(),
-        reward_type: z.enum(["amount", "percent"]),
-        commission_percent: z.number().nullable(),
-      })
-      .nullish(),
-    tolt: ToltProgramSchema.extend({
-      id: z.string(),
-      affiliates: z.number(),
-    }).nullish(),
-    partnerstack: z
-      .object({
-        publicKey: z.string().nullish(),
-        maskedSecretKey: z.string().nullish(),
-      })
-      .nullish(),
-  })
-  .merge(
-    z.object({
-      defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
-      type: z.nativeEnum(RewardStructure).nullish(),
-      amount: z.number().min(0).nullish(),
-      maxDuration: maxDurationSchema,
-    }),
-  );
+export const programRewardSchema = z.object({
+  defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
+  type: z.nativeEnum(RewardStructure).nullish(),
+  amount: z.number().min(0).nullish(),
+  maxDuration: maxDurationSchema,
+});
 
 // Invite partners
 export const programInvitePartnersSchema = z.object({
@@ -59,7 +31,10 @@ export const programInvitePartnersSchema = z.object({
         email: z.string().email("Please enter a valid email"),
       }),
     )
-    .max(10, "You can only invite up to 10 partners.")
+    .max(
+      PROGRAM_ONBOARDING_PARTNERS_LIMIT,
+      `You can only invite up to ${PROGRAM_ONBOARDING_PARTNERS_LIMIT} partners.`,
+    )
     .nullable()
     .transform(
       (partners) => partners?.filter((partner) => partner.email.trim()) || null,
