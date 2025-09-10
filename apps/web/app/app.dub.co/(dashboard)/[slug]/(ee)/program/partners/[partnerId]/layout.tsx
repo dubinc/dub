@@ -6,6 +6,7 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
+import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
 import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
@@ -19,7 +20,6 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode, useState } from "react";
-import { toast } from "sonner";
 import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
 import { PartnerStats } from "./partner-stats";
 
@@ -82,6 +82,10 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
 
   const [isOpen, setIsOpen] = useState(false);
 
+  const { PartnerAdvancedSettingsModal, setShowPartnerAdvancedSettingsModal } =
+    usePartnerAdvancedSettingsModal({
+      partner,
+    });
   const { BanPartnerModal, setShowBanPartnerModal } = useBanPartnerModal({
     partner,
   });
@@ -92,6 +96,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
   return (
     <>
       {createCommissionSheet}
+      <PartnerAdvancedSettingsModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
 
@@ -121,7 +126,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
             <MenuItem
               icon={Pen2}
               onClick={() => {
-                toast.info("WIP");
+                setShowPartnerAdvancedSettingsModal(true);
                 setIsOpen(false);
               }}
             >
