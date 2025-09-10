@@ -1,23 +1,22 @@
-
 model Message {
-  id              String   @id @default(cuid())
-  programId       String
-  partnerId       String
+  id        String @id @default(cuid())
+  programId String
+  partnerId String
 
   senderUserId    String
   senderPartnerId String? // Populated only if the sender is a partner
 
-  text          String @db.Text
+  text String @db.Text
 
-  readInApp     DateTime?
-  readInEmail   DateTime?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  readInApp   DateTime?
+  readInEmail DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  program       Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partner       Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  senderUser    User @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
-  senderPartner Partner? @relation("SenderPartner", fields: [senderPartnerId], references: [id], onDelete: Cascade)
+  program       Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner       Partner             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  senderUser    User                @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
+  senderPartner Partner?            @relation("SenderPartner", fields: [senderPartnerId], references: [id], onDelete: Cascade)
   emails        NotificationEmail[]
 
   @@index([programId, partnerId])
