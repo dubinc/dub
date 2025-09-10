@@ -3,10 +3,7 @@ import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { partnerStackImporter } from "@/lib/partnerstack/importer";
-import { rewardfulImporter } from "@/lib/rewardful/importer";
 import { isStored, storage } from "@/lib/storage";
-import { toltImporter } from "@/lib/tolt/importer";
 import { WorkspaceProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
@@ -46,21 +43,28 @@ export const createProgram = async ({
     amount,
     maxDuration,
     partners,
-    rewardful,
-    tolt,
     linkStructure,
     supportEmail,
     helpUrl,
     termsUrl,
     logo: uploadedLogo,
-    importSource,
   } = programDataSchema.parse(store.programOnboarding);
 
   await getDomainOrThrow({ workspace, domain });
 
+  const programId = createId({ prefix: "prog_" });
+
+  const logoUrl = uploadedLogo
+    ? await storage
+        .upload(`programs/${programId}/logo_${nanoid(7)}`, uploadedLogo)
+        .then(({ url }) => url)
+    : null;
+
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
     const folderId = createId({ prefix: "fold_" });
+    const defaultGroupId = createId({ prefix: "grp_" });
+
     const programFolder = await tx.folder.upsert({
       where: {
         name_projectId: {
@@ -82,15 +86,6 @@ export const createProgram = async ({
         },
       },
     });
-
-    const programId = createId({ prefix: "prog_" });
-    const defaultGroupId = createId({ prefix: "grp_" });
-
-    const logoUrl = uploadedLogo
-      ? await storage
-          .upload(`programs/${programId}/logo_${nanoid(7)}`, uploadedLogo)
-          .then(({ url }) => url)
-      : null;
 
     const programData = await tx.program.create({
       data: {
@@ -174,32 +169,6 @@ export const createProgram = async ({
 
     return programData;
   });
-
-  // Start the import process if the import source is set
-  if (importSource === "rewardful" && rewardful?.id) {
-    await rewardfulImporter.queue({
-      importId: createId({ prefix: "import_" }),
-      userId: user.id,
-      programId: program.id,
-      campaignId: rewardful.id,
-      action: "import-campaign",
-    });
-  } else if (importSource === "tolt" && tolt?.id) {
-    await toltImporter.queue({
-      importId: createId({ prefix: "import_" }),
-      userId: user.id,
-      programId: program.id,
-      toltProgramId: tolt.id,
-      action: "import-partners",
-    });
-  } else if (importSource === "partnerstack") {
-    await partnerStackImporter.queue({
-      importId: createId({ prefix: "import_" }),
-      userId: user.id,
-      programId: program.id,
-      action: "import-groups",
-    });
-  }
 
   waitUntil(
     Promise.allSettled([

@@ -5,7 +5,7 @@ import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-optio
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import { RewardStructure } from "@dub/prisma/client";
 import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -41,53 +41,25 @@ export function PageClient() {
   };
 
   const isValid = useMemo(() => {
-    const {
-      name,
-      url,
-      domain,
-      logo,
-      programType,
-      type,
-      amount,
-      rewardful,
-      tolt,
-      partnerstack,
-    } = data;
+    const { name, url, domain, logo, type, amount } = data;
 
-    if (!name || !url || !domain || !logo) {
-      return false;
-    }
-
-    if (programType === "new" && (!amount || !type)) {
-      return false;
-    }
-
-    if (programType === "import" && !rewardful && !tolt && !partnerstack) {
+    if (!name || !url || !domain || !logo || !type || !amount) {
       return false;
     }
 
     return true;
   }, [data]);
 
-  const reward = data.rewardful
-    ? {
-        type:
-          data.rewardful.reward_type === "amount"
-            ? ("flat" as const)
-            : ("percentage" as const),
-        amount:
-          data.rewardful.reward_type === "amount"
-            ? data.rewardful.commission_amount_cents ?? 0
-            : data.rewardful.commission_percent ?? 0,
-        maxDuration: data.rewardful.max_commission_period_months,
-        event: "sale" as EventType,
-      }
-    : {
-        type: (data.type ?? "flat") as RewardStructure,
-        amount: data.amount ?? 0,
-        maxDuration: data.maxDuration ?? 0,
-        event: data.defaultRewardType,
-      };
+  const reward = {
+    type: (data.type ?? "flat") as RewardStructure,
+    amount: data.amount
+      ? data.type === "flat"
+        ? data.amount * 100
+        : data.amount
+      : 0,
+    maxDuration: data.maxDuration ?? 0,
+    event: data.defaultRewardType,
+  };
 
   const SECTIONS = [
     {

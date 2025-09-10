@@ -15,7 +15,7 @@ async function main() {
     includeClickReward: true,
   });
 
-  const reward = await determinePartnerReward({
+  const reward = determinePartnerReward({
     event: "click",
     programEnrollment,
   });
