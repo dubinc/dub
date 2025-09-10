@@ -28,7 +28,7 @@ export default function PartnerApplicationApproved({
     email: "panic@thedis.co",
     payoutsEnabled: false,
   },
-  rewardDescription = "Earn 30% for each sale and again every month for 12 months.",
+  rewardDescription = "Earn 30% for each sale for 12 months.",
 }: {
   program: {
     name: string;
