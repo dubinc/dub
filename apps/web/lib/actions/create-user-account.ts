@@ -184,6 +184,7 @@ export const createUserAccountAction = actionClient
         redis.set(`onboarding-step:${generatedUserId}`, "completed"),
         CustomerIOClient.identify(generatedUserId, {
           email,
+          environment: process.env.NEXT_PUBLIC_APP_ENV || "dev",
         }),
         sendEmail({
           email: email,
