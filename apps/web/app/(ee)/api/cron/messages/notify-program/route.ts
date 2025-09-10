@@ -108,8 +108,7 @@ export async function POST(req: Request) {
         `No program user emails to notify from partner ${partnerId}. Skipping...`,
       );
 
-    const program = programEnrollment.program;
-    const partner = programEnrollment.partner;
+    const { program, partner } = programEnrollment;
 
     const { data, error } = await resend.batch.send(
       userEmailsToNotify.map((email) => ({
