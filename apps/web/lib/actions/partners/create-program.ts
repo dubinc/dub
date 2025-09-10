@@ -52,10 +52,17 @@ export const createProgram = async ({
 
   await getDomainOrThrow({ workspace, domain });
 
+  const programId = createId({ prefix: "prog_" });
+
+  const logoUrl = uploadedLogo
+    ? await storage
+        .upload(`programs/${programId}/logo_${nanoid(7)}`, uploadedLogo)
+        .then(({ url }) => url)
+    : null;
+
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
     const folderId = createId({ prefix: "fold_" });
-    const programId = createId({ prefix: "prog_" });
     const defaultGroupId = createId({ prefix: "grp_" });
 
     const programFolder = await tx.folder.upsert({
@@ -79,12 +86,6 @@ export const createProgram = async ({
         },
       },
     });
-
-    const logoUrl = uploadedLogo
-      ? await storage
-          .upload(`programs/${programId}/logo_${nanoid(7)}`, uploadedLogo)
-          .then(({ url }) => url)
-      : null;
 
     const programData = await tx.program.create({
       data: {
