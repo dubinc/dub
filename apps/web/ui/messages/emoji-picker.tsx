@@ -1,3 +1,5 @@
+"use client";
+
 import { Button, Popover } from "@dub/ui";
 import { FaceSmile } from "@dub/ui/icons";
 import { EmojiPicker as EmojiPickerBase } from "frimousse";
