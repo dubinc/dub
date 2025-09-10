@@ -422,7 +422,7 @@ function RewardSheetContent({
                   <div className="pt-2.5">
                     <div className="border-border-subtle flex min-w-0 items-center gap-2.5 border-t px-2.5 pt-2.5">
                       <RewardIconSquare icon={Gift} />
-                      <span className="leading-relaxed">
+                      <span className="grow leading-relaxed">
                         Shown as{" "}
                         <InlineBadgePopover
                           text={description || "Reward description"}
@@ -444,6 +444,14 @@ function RewardSheetContent({
                           />
                         </InlineBadgePopover>
                       </span>
+                      <Button
+                        variant="outline"
+                        className="size-6 shrink-0 p-0"
+                        icon={<X className="size-3" strokeWidth={2} />}
+                        onClick={() =>
+                          setValue("description", null, { shouldDirty: true })
+                        }
+                      />
                     </div>
                   </div>
                 </motion.div>
