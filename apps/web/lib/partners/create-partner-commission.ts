@@ -72,7 +72,7 @@ export const createPartnerCommission = async ({
     earnings = amount;
     amount = 0;
   } else {
-    reward = await determinePartnerReward({
+    reward = determinePartnerReward({
       event: event as EventType,
       programEnrollment,
       context,

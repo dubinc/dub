@@ -49,7 +49,7 @@ export const trackLead = async ({
     },
   });
 
-  // if clickId is not provided, use the existing customer's clickId if it exists
+  // if clickId is an empty string, use the existing customer's clickId if it exists
   // otherwise, throw an error (this is for mode="deferred" lead tracking)
   if (!clickId) {
     if (!customer || !customer.clickId) {

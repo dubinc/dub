@@ -29,7 +29,7 @@ export const backfillLinkCommissions = async (link: {
     includeSaleReward: true,
   });
 
-  const reward = await determinePartnerReward({
+  const reward = determinePartnerReward({
     event: "sale",
     programEnrollment,
   });
