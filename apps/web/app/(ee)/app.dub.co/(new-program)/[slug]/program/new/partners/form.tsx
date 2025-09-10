@@ -1,6 +1,7 @@
 "use client";
 
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
+import { PROGRAM_ONBOARDING_PARTNERS_LIMIT } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { Button, Input } from "@dub/ui";
@@ -11,8 +12,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
-
-const MAX_PARTNERS = 5;
 
 export function Form() {
   const router = useRouter();
@@ -98,17 +97,18 @@ export function Form() {
             icon={<Plus className="size-4" />}
             className="w-fit"
             onClick={() => {
-              if (fields.length < MAX_PARTNERS) {
+              if (fields.length < PROGRAM_ONBOARDING_PARTNERS_LIMIT) {
                 append({ email: "" });
               }
             }}
-            disabled={fields.length >= MAX_PARTNERS}
+            disabled={fields.length >= PROGRAM_ONBOARDING_PARTNERS_LIMIT}
           />
         </div>
 
-        {fields.length >= MAX_PARTNERS && (
+        {fields.length >= PROGRAM_ONBOARDING_PARTNERS_LIMIT && (
           <p className="text-sm text-neutral-600">
-            You can add up to {MAX_PARTNERS} partners at a time
+            You can only invite up to {PROGRAM_ONBOARDING_PARTNERS_LIMIT}{" "}
+            partners.
           </p>
         )}
       </div>

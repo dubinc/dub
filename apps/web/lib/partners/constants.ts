@@ -1,6 +1,7 @@
 import Stripe from "stripe";
 import { PaymentMethodOption } from "../types";
 
+export const PROGRAM_ONBOARDING_PARTNERS_LIMIT = 5;
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
 export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
 export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;

@@ -1,3 +1,4 @@
+import { PROGRAM_ONBOARDING_PARTNERS_LIMIT } from "@/lib/partners/constants";
 import { PartnerLinkStructure, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
@@ -30,7 +31,10 @@ export const programInvitePartnersSchema = z.object({
         email: z.string().email("Please enter a valid email"),
       }),
     )
-    .max(10, "You can only invite up to 10 partners.")
+    .max(
+      PROGRAM_ONBOARDING_PARTNERS_LIMIT,
+      `You can only invite up to ${PROGRAM_ONBOARDING_PARTNERS_LIMIT} partners.`,
+    )
     .nullable()
     .transform(
       (partners) => partners?.filter((partner) => partner.email.trim()) || null,
