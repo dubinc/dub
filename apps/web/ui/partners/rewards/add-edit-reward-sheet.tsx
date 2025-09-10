@@ -134,7 +134,7 @@ function RewardSheetContent({
     },
   });
 
-  const { handleSubmit, watch, setValue, register, setError } = form;
+  const { handleSubmit, watch, setValue, setError } = form;
 
   const [selectedEvent, amount, type, maxDuration, description, modifiers] =
     watch([
