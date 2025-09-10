@@ -20,7 +20,7 @@ model Message {
   emails        NotificationEmail[]
 
   @@index([programId, partnerId])
-  @@index([partnerId, programId])
+  @@index(partnerId)
   @@index(senderPartnerId)
   @@index(senderUserId)
 }
