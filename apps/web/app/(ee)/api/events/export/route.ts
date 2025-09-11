@@ -58,7 +58,7 @@ export const GET = withWorkspace(
       .parse(searchParams);
 
     const { event, domain, interval, start, end, columns, key, folderId } =
-      parsedParams;
+      parsedParams as any;  // TODO: xavier find a better fix for types
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
