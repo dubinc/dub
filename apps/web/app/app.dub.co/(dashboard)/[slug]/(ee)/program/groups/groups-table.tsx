@@ -262,6 +262,17 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
               />
 
               <MenuItem
+                icon={Users}
+                label="View analytics"
+                variant="default"
+                onSelect={() =>
+                  router.push(
+                    `/${slug}/program/analytics?groupId=${row.original.id}`,
+                  )
+                }
+              />
+
+              <MenuItem
                 icon={copiedGroupId ? Tick : Copy}
                 label="Copy group ID"
                 variant="default"

@@ -9,6 +9,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
 import useFoldersCount from "@/lib/swr/use-folders-count";
+import useGroups from "@/lib/swr/use-groups";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
@@ -47,6 +48,7 @@ import {
   User,
   UserPlus,
   Users,
+  Users6,
   Window,
 } from "@dub/ui/icons";
 import {
@@ -76,6 +78,7 @@ import { useDebounce } from "use-debounce";
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkIcon } from "../links/link-icon";
 import TagBadge from "../links/tag-badge";
+import { GroupColorCircle } from "../partners/groups/group-color-circle";
 import {
   AnalyticsContext,
   AnalyticsDashboardProps,
@@ -131,6 +134,13 @@ export function useAnalyticsFilters({
       search: tagsAsync && selectedFilter === "tagIds" ? debouncedSearch : "",
     },
   });
+  const { groups, loading: loadingGroups } = useGroups({
+    enabled: programPage,
+    query: {
+      includeExpandedFields: true,
+    },
+  });
+
   const { folders, loading: loadingFolders } = useFolders({
     query: {
       search:
@@ -189,7 +199,7 @@ export function useAnalyticsFilters({
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
   const activeFilters = useMemo(() => {
-    const { domain, key, root, folderId, ...params } = searchParamsObj;
+    const { domain, key, root, folderId, groupId, ...params } = searchParamsObj;
 
     // Handle special cases first
     const filters = [
@@ -211,6 +221,8 @@ export function useAnalyticsFilters({
       ...(root ? [{ key: "root", value: root === "true" }] : []),
       // Handle folderId special case
       ...(folderId ? [{ key: "folderId", value: folderId }] : []),
+      // Handle groupId special case
+      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
       // Handle customerId special case
       ...(selectedCustomer
         ? [
@@ -506,6 +518,21 @@ export function useAnalyticsFilters({
                       right: getFilterOptionTotal(rest),
                     };
                   }) ?? null,
+              },
+              {
+                key: "groupId",
+                icon: Users6,
+                label: "Group",
+                options: loadingGroups
+                  ? null
+                  : groups?.map((group) => ({
+                      value: group.id,
+                      label: group.name,
+                      icon: GroupColorCircle({ group }),
+                      right: nFormatter(group.partners, {
+                        full: true,
+                      }),
+                    })) ?? null,
               },
               SaleTypeFilterItem,
             ]
@@ -847,6 +874,7 @@ export function useAnalyticsFilters({
       links,
       tags,
       folders,
+      groups,
       selectedTags,
       selectedTagIds,
       selectedFolder,
@@ -866,6 +894,7 @@ export function useAnalyticsFilters({
       loadingTags,
       loadingDomains,
       loadingFolders,
+      loadingGroups,
       searchParamsObj.tagIds,
       searchParamsObj.domain,
     ],

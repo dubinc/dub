@@ -17,7 +17,7 @@ export const GET = withWorkspace(
 
     const parsedParams = eventsQuerySchema.parse(searchParams);
 
-    let {
+    const {
       event,
       interval,
       start,
