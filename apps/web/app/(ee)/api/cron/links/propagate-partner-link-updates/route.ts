@@ -1,6 +1,8 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
+import { includeTags } from "@/lib/api/links/include-tags";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import { z } from "zod";
@@ -17,7 +19,6 @@ const schema = z.object({
     ),
 });
 
-// This route is used to invalidate the partnerlink cache when a discount is created/updated/deleted.
 // POST /api/cron/links/propagate-partner-link-updates
 export async function POST(req: Request) {
   try {
@@ -48,11 +49,10 @@ export async function POST(req: Request) {
           },
         }),
       },
-      select: {
+      include: {
         links: {
-          select: {
-            domain: true,
-            key: true,
+          include: {
+            ...includeTags,
           },
         },
       },
@@ -74,12 +74,21 @@ export async function POST(req: Request) {
 
     const linkChunks = chunk(links, 100);
 
-    // Expire the cache for the links
     for (const linkChunk of linkChunks) {
-      const toExpire = linkChunk.map(({ domain, key }) => ({ domain, key }));
-      await linkCache.expireMany(toExpire);
-      console.log(toExpire);
-      console.log(`Expired cache for ${toExpire.length} links.`);
+      await Promise.allSettled([
+        // Expire the cache for the links
+        linkCache.expireMany(
+          linkChunk.map(({ domain, key }) => ({ domain, key })),
+        ),
+
+        // Record the updated links in Tinybird
+        recordLink(
+          linkChunk.map((link) => ({
+            ...link,
+            partnerGroupId: group.id,
+          })),
+        ),
+      ]);
     }
 
     return new Response("OK");
