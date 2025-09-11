@@ -30,6 +30,7 @@ import { linkCache } from "../api/links/cache";
 import { conn, getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
+import { TrialClicks, TrialClicksForTest } from '../constants/trial.ts';
 
 const sendScanLimitReachedEvent = async (linkId: string) => {
   console.log("Sending scan limit reached event for link", linkId);
@@ -52,12 +53,10 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
 
     const featuresAccess = await checkFeaturesAccessAuthLess(link.userId, true);
     
-    const maxClicksForTest = 9;
-    const maxClicksForRealFlow = 29;
     const maxClicks =
       process.env.NEXT_PUBLIC_APP_ENV === "dev"
-        ? maxClicksForTest
-        : maxClicksForRealFlow;
+        ? TrialClicksForTest - 1
+        : TrialClicks - 1;
 
     if (link.totalUserClicks >= maxClicks && !featuresAccess.featuresAccess) {
       // Send Customer.io event
@@ -76,7 +75,7 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
           body: JSON.stringify({
             name: "trial_expired",
             data: {
-              codes: 30,
+              codes: TrialClicks,
               qr_name: link.qrName,
             },
           }),
@@ -89,7 +88,7 @@ const sendScanLimitReachedEvent = async (linkId: string) => {
         email: link.userEmail,
         userId: link.userId,
         params: {
-          codes: 30,
+          codes: TrialClicks,
           timestamp: new Date().toISOString(),
         },
       });

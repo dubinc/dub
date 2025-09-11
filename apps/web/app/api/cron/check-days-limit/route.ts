@@ -7,25 +7,20 @@ import { NextResponse } from "next/server";
 import { EAnalyticEvents } from "../../../../core/integration/analytic/interfaces/analytic.interface.ts";
 import { trackMixpanelApiService } from "../../../../core/integration/analytic/services/track-mixpanel-api.service.ts";
 import { CustomerIOClient } from "../../../../core/lib/customerio/customerio.config.ts";
+import { TrialDays } from '@/lib/constants/trial.ts';
 
-/*
-    This route is used to check users registered between 10 days 1 hour ago and 10 days ago and send customer.io events.
-    Runs every hour (0 * * * *)
-*/
 export const dynamic = "force-dynamic";
 
 async function handler(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    // Calculate the date range for users registered between 10 days 1 hour ago and 10 days ago
     const tenDaysAgo = new Date();
-    tenDaysAgo.setDate(tenDaysAgo.getDate() - 10);
+    tenDaysAgo.setDate(tenDaysAgo.getDate() - TrialDays);
 
     const tenDaysOneHourAgo = new Date(tenDaysAgo);
     tenDaysOneHourAgo.setHours(tenDaysOneHourAgo.getHours() - 1);
 
-    // Find users registered between 10 days 1 hour ago and 10 days ago
     const users = await prisma.user.findMany({
       where: {
         createdAt: {
@@ -44,7 +39,7 @@ async function handler(req: Request) {
     if (users.length === 0) {
       await log({
         message:
-          "No users found registered between 10 days 1 hour ago and 10 days ago",
+          `No users found registered between ${TrialDays} days 1 hour ago and ${TrialDays} days ago`,
         type: "cron",
       });
       return NextResponse.json({
@@ -90,11 +85,10 @@ async function handler(req: Request) {
           console.log("firstQrName", firstQrName);
 
           if (!featuresAccess.featuresAccess && totalClicks < 30) {
-            // Send the 10-day registration event
             await CustomerIOClient.track(user.id, {
               name: "trial_expired",
               data: {
-                days: 10,
+                days: TrialDays,
                 qr_name: firstQrName,
               },
             });
@@ -105,7 +99,7 @@ async function handler(req: Request) {
               email: user!.email!,
               userId: user.id,
               params: {
-                days: 10,
+                days: TrialDays,
                 timestamp: new Date().toISOString(),
               },
             });
@@ -138,7 +132,7 @@ async function handler(req: Request) {
     ).length;
 
     await log({
-      message: `Processed ${users.length} users registered between 10 days 1 hour ago and 10 days ago. Successful: ${successful}, Failed: ${failed}`,
+      message: `Processed ${users.length} users registered between ${TrialDays} days 1 hour ago and ${TrialDays} days ago. Successful: ${successful}, Failed: ${failed}`,
       type: "cron",
     });
 
@@ -150,7 +144,7 @@ async function handler(req: Request) {
     });
   } catch (error) {
     await log({
-      message: `Error checking users registered between 10 days 1 hour ago and 10 days ago: ${error.message}`,
+      message: `Error checking users registered between ${TrialDays} days 1 hour ago and ${TrialDays} days ago: ${error.message}`,
       type: "cron",
     });
 
