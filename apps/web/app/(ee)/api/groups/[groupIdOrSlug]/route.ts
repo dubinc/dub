@@ -212,31 +212,29 @@ export const DELETE = withWorkspace(
     });
 
     waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/propagate-partner-link-updates`,
-            body: {
-              groupId: defaultGroup.id,
-            },
-          }),
+      Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/propagate-partner-link-updates`,
+          body: {
+            groupId: defaultGroup.id,
+          },
+        }),
 
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "group.deleted",
-            description: `Group ${group.name} (${group.id}) deleted`,
-            actor: session.user,
-            targets: [
-              {
-                type: "group",
-                id: group.id,
-                metadata: group,
-              },
-            ],
-          }),
-        ]);
-      })(),
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "group.deleted",
+          description: `Group ${group.name} (${group.id}) deleted`,
+          actor: session.user,
+          targets: [
+            {
+              type: "group",
+              id: group.id,
+              metadata: group,
+            },
+          ],
+        }),
+      ]),
     );
 
     return NextResponse.json({ id: group.id });
