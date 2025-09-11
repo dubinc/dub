@@ -124,17 +124,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/programs/${programSlug}/links`,
             locked: isUnapproved,
           },
-          ...(programBountiesCount // TODO: remove this when we launch Bounties to GA
-            ? [
-                {
-                  name: "Bounties",
-                  icon: Trophy,
-                  href: `/programs/${programSlug}/bounties` as `/${string}`,
-                  badge: programBountiesCount,
-                  locked: isUnapproved,
-                },
-              ]
-            : []),
+          {
+            name: "Bounties",
+            icon: Trophy,
+            href: `/programs/${programSlug}/bounties` as `/${string}`,
+            badge: programBountiesCount,
+            locked: isUnapproved,
+          },
           {
             name: "Resources",
             icon: ColorPalette2,
