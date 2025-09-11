@@ -6,6 +6,14 @@ const DEFAULT_CONFIG = {
   exponentialBackoff: true,
 };
 
+const NON_RETRIABLE_ERROR_CODES = new Set([
+  "P2000", // Value too long for column
+  "P2001", // Record not found for where condition
+  "P2002", // Unique constraint violation
+  "P2003", // Foreign key constraint violation
+  "P2025", // Record not found for operation
+]);
+
 // Helper function for retrying operations
 export async function withPrismaRetry<T>(
   operation: () => Promise<T>,
@@ -19,9 +27,11 @@ export async function withPrismaRetry<T>(
     } catch (error) {
       lastError = error as Error;
 
-      // Don't retry unique constraint violations, FK violations, or not-found
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        throw error;
+        // Only exclude permanent errors, not connection issues
+        if (NON_RETRIABLE_ERROR_CODES.has(error.code)) {
+          throw error;
+        }
       }
 
       // Also avoid retrying on validation errors
