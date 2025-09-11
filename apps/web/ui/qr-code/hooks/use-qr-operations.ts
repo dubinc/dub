@@ -50,7 +50,7 @@ export const useQrOperations = () => {
           await mutatePrefix(["/api/qrs", "/api/links"]);
 
           const responseData = await res.json();
-          const createdQrId = responseData?.id;
+          const createdQrId = responseData?.createdQr?.id;
 
           // Track QR created event
           const trackingParams = createQRTrackingParams(
@@ -63,9 +63,9 @@ export const useQrOperations = () => {
               event_category: "Authorized",
               page_name: "profile",
               email: user?.email,
-              link_url: responseData.link?.shortLink,
-              link_id: responseData.link?.id,
-              target_url: responseData.link?.url,
+              link_url: responseData.createdLink?.shortLink,
+              link_id: responseData.createdLink?.id,
+              target_url: responseData.lcreatedLink?.url,
               ...trackingParams,
             },
             sessionId: user?.id,
