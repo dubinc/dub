@@ -21,6 +21,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode, useState } from "react";
 import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
+import { PartnerInfo } from "./partner-info";
 import { PartnerNav } from "./partner-nav";
 import { PartnerStats } from "./partner-stats";
 
@@ -67,13 +68,15 @@ export default function ProgramPartnerLayout({
       <PageWidthWrapper>
         <PartnerStats partner={partner} error={Boolean(partnerError)} />
         <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] mt-6 grid grid-cols-1 gap-x-6 gap-y-4">
-          <div className="border-border-subtle @3xl/page:order-2 rounded-xl border p-4">
-            WIP
+          <div className="@3xl/page:order-2">
+            <PartnerInfo partner={partner} />
           </div>
-          <div className="border-border-subtle @3xl/page:order-1 overflow-hidden rounded-xl border bg-neutral-100">
-            <PartnerNav />
-            <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
-              {children}
+          <div className="@3xl/page:order-1">
+            <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
+              <PartnerNav />
+              <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
+                {children}
+              </div>
             </div>
           </div>
         </div>
