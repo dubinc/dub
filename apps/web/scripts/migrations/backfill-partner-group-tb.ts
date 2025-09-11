@@ -3,6 +3,8 @@ import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
+const take = 1 // 1000;
+
 async function main() {
   let cursor: string | undefined = undefined;
 
@@ -28,7 +30,7 @@ async function main() {
       orderBy: {
         id: "asc",
       },
-      take: 1,
+      take,
       skip: cursor ? 1 : 0,
       ...(cursor
         ? {
