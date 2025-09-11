@@ -65,7 +65,7 @@ export const useQrOperations = () => {
               email: user?.email,
               link_url: responseData.createdLink?.shortLink,
               link_id: responseData.createdLink?.id,
-              target_url: responseData.lcreatedLink?.url,
+              target_url: responseData.createdLink?.url,
               ...trackingParams,
             },
             sessionId: user?.id,
