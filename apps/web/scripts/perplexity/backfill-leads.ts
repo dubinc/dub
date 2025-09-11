@@ -12,6 +12,7 @@ import "dotenv-flow/config";
 import * as fs from "fs";
 import { userAgent } from "next/server";
 import * as Papa from "papaparse";
+import { recordLeadWithTimestamp } from "../../lib/tinybird/record-lead";
 
 let leadsToBackfill: {
   customerExternalId: string;
@@ -57,35 +58,35 @@ async function main() {
         },
       });
 
-      const statsByLink = leadsToBackfill
-        .filter((lead) =>
-          partnerLinks.some(
-            (link) =>
-              link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
-          ),
-        )
-        .reduce(
-          (acc, lead) => {
-            const link = partnerLinks.find(
-              (link) =>
-                link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
-            )!;
-            acc[link.id] = {
-              clicks: (acc[link.id]?.clicks || 0) + 1,
-              leads: (acc[link.id]?.leads || 0) + 1,
-              conversions: (acc[link.id]?.conversions || 0) + 1,
-            };
-            return acc;
-          },
-          {} as Record<
-            string,
-            {
-              clicks: number;
-              leads: number;
-              conversions: number;
-            }
-          >,
-        );
+      //   const statsByLink = leadsToBackfill
+      //     .filter((lead) =>
+      //       partnerLinks.some(
+      //         (link) =>
+      //           link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
+      //       ),
+      //     )
+      //     .reduce(
+      //       (acc, lead) => {
+      //         const link = partnerLinks.find(
+      //           (link) =>
+      //             link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
+      //         )!;
+      //         acc[link.id] = {
+      //           clicks: (acc[link.id]?.clicks || 0) + 1,
+      //           leads: (acc[link.id]?.leads || 0) + 1,
+      //           conversions: (acc[link.id]?.conversions || 0) + 1,
+      //         };
+      //         return acc;
+      //       },
+      //       {} as Record<
+      //         string,
+      //         {
+      //           clicks: number;
+      //           leads: number;
+      //           conversions: number;
+      //         }
+      //       >,
+      //     );
 
       //   for (const [linkId, stats] of Object.entries(statsByLink)) {
       //     const res = await prisma.link.update({
@@ -96,9 +97,6 @@ async function main() {
       //         },
       //         leads: {
       //           increment: stats.leads,
-      //         },
-      //         conversions: {
-      //           increment: stats.conversions,
       //         },
       //       },
       //     });
@@ -164,6 +162,20 @@ async function main() {
         }),
       ).then((res) => res.filter((r) => r !== null));
 
+      // Record clicks
+      const clickRes = await fetch(
+        `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+            "Content-Type": "application/x-ndjson",
+          },
+          body: clicksToCreate.map((d) => JSON.stringify(d)).join("\n"),
+        },
+      ).then((res) => res.json());
+      console.log("backfilled clicks", JSON.stringify(clickRes, null, 2));
+
       const customersToCreate = leadsToBackfill
         .map((lead, idx) => {
           const clickData = clicksToCreate[idx];
@@ -185,12 +197,21 @@ async function main() {
         })
         .filter((c) => c !== null);
 
+      const customerRes = await prisma.customer.createMany({
+        data: customersToCreate,
+        skipDuplicates: true,
+      });
+      console.log("backfilled customers", JSON.stringify(customerRes, null, 2));
+
       const leadsToCreate = clicksToCreate.map((clickData, idx) => ({
         ...clickData,
         event_id: nanoid(16),
         event_name: "activated",
         customer_id: customersToCreate[idx]!.id,
       }));
+
+      const leadRes = await recordLeadWithTimestamp(leadsToCreate);
+      console.log("backfilled leads", JSON.stringify(leadRes, null, 2));
 
       const leadReward = await prisma.reward.findUniqueOrThrow({
         where: {
@@ -243,13 +264,22 @@ async function main() {
         })
         .filter((c) => c !== null);
 
-      const commissionByPartnerId = commissionsToCreate.reduce(
-        (acc, c) => {
-          acc[c.partnerId] = (acc[c.partnerId] || 0) + c.earnings;
-          return acc;
-        },
-        {} as Record<string, number>,
+      const commissionRes = await prisma.commission.createMany({
+        data: commissionsToCreate,
+        skipDuplicates: true,
+      });
+      console.log(
+        "backfilled commissions",
+        JSON.stringify(commissionRes, null, 2),
       );
+
+      //   const commissionByPartnerId = commissionsToCreate.reduce(
+      //     (acc, c) => {
+      //       acc[c.partnerId] = (acc[c.partnerId] || 0) + c.earnings;
+      //       return acc;
+      //     },
+      //     {} as Record<string, number>,
+      //   );
 
       //   for (const [partnerId, amount] of Object.entries(commissionByPartnerId)) {
       //     const res = await prisma.programEnrollment.update({
