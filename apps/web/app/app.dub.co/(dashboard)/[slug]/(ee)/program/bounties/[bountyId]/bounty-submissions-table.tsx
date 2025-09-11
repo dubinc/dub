@@ -426,7 +426,7 @@ function RowMenuButton({
       onSuccess: async () => {
         toast.success("Bounty submission approved successfully!");
         setIsOpen(false);
-        await mutatePrefix(`/api/bounties/${bountyId}/submissions`);
+        await mutatePrefix("/api/bounties");
       },
       onError({ error }) {
         toast.error(error.serverError);

@@ -31,6 +31,7 @@ export const createCommissionAction = authActionClient
       amount,
       linkId,
       invoiceId,
+      productId,
       customerId,
       saleAmount,
       saleEventDate,
@@ -225,6 +226,7 @@ export const createCommissionAction = authActionClient
           payment_processor: "custom",
           currency: "usd",
           timestamp: saleDate.toISOString(),
+          metadata: productId ? JSON.stringify({ productId }) : undefined,
         }),
 
         createPartnerCommission({
@@ -243,6 +245,9 @@ export const createCommissionAction = authActionClient
           context: {
             customer: {
               country: customer.country,
+            },
+            sale: {
+              productId,
             },
           },
         }),
