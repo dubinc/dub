@@ -15,7 +15,7 @@ import {
   trackLeadResponseSchema,
 } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
-import { WorkflowTrigger } from "@dub/prisma/client";
+import { Link, WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
@@ -48,6 +48,7 @@ export const trackLead = async ({
       },
     },
   });
+  let link: Link | null = null;
 
   // if clickId is an empty string, use the existing customer's clickId if it exists
   // otherwise, throw an error (this is for mode="deferred" lead tracking)
@@ -136,12 +137,9 @@ export const trackLead = async ({
     }
 
     // get the referral link from the from the clickData
-    const link = await prisma.link.findUnique({
+    link = await prisma.link.findUnique({
       where: {
         id: clickData.link_id,
-      },
-      select: {
-        projectId: true,
       },
     });
 
@@ -273,7 +271,7 @@ export const trackLead = async ({
         // - send lead.created webhook
 
         if (mode !== "deferred") {
-          const [link, _project] = await Promise.all([
+          const [updatedLink, _project] = await Promise.all([
             // update link leads count
             prisma.link.update({
               where: {
@@ -299,6 +297,7 @@ export const trackLead = async ({
               },
             }),
           ]);
+          link = updatedLink; // update the link variable to the latest version
 
           if (link.programId && link.partnerId && customer) {
             await createPartnerCommission({
@@ -342,6 +341,7 @@ export const trackLead = async ({
     click: {
       id: clickId,
     },
+    link,
     customer: customer ?? {
       name: finalCustomerName,
       email: customerEmail || null,

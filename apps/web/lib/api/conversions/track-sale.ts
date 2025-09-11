@@ -59,9 +59,10 @@ export const trackSale = async ({
 
   // Return idempotent response if invoiceId is already processed
   if (invoiceId) {
-    const [oldKeyValue, newKeyValue] = await redis.mget([
-      `dub_sale_events:invoiceId:${invoiceId}`,
+    // TODO: remove oldKeyValue stuff after 7 days (on Sep 18)
+    const [newKeyValue, oldKeyValue] = await redis.mget([
       `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
+      `dub_sale_events:invoiceId:${invoiceId}`,
     ]);
 
     if (newKeyValue) {
@@ -562,7 +563,7 @@ const _trackSale = async ({
       `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
       trackSaleResponse,
       {
-        ex: 60 * 60 * 24 * 7,
+        ex: 60 * 60 * 24 * 7, // cache for 1 week
       },
     );
   }

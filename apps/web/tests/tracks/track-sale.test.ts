@@ -91,6 +91,7 @@ describe("POST /track/sale", async () => {
       },
     });
 
+    // should return the same response since it's idempotent
     expectValidSaleResponse(response, sale);
   });
 

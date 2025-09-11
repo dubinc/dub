@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
-import { linkEventSchema } from "./links";
+import { linkEventSchema, LinkSchema } from "./links";
 
 export const trackLeadRequestSchema = z.object({
   clickId: z
@@ -76,6 +76,17 @@ export const trackLeadResponseSchema = z.object({
   click: z.object({
     id: z.string(),
   }),
+  link: LinkSchema.pick({
+    id: true,
+    domain: true,
+    key: true,
+    shortLink: true,
+    url: true,
+    partnerId: true,
+    programId: true,
+    tenantId: true,
+    externalId: true,
+  }).nullish(),
   customer: z.object({
     name: z.string().nullable(),
     email: z.string().nullable(),
