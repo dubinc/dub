@@ -49,7 +49,7 @@ export const POST = withWorkspace(
     if (count > 0) {
       waitUntil(
         qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/propagate-partner-link-updates`,
           body: {
             groupId: group.id,
             partnerIds,
