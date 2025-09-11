@@ -62,7 +62,7 @@ export const createPayout = async ({
 
   const [commissions, clawbacks] = await Promise.all([
     // Find all pending commissions
-    // We only process commissions that are custom or were created before the holding period
+    // We only process commissions that were created before the holding period
     prisma.commission.findMany({
       where: {
         earnings: {
@@ -70,18 +70,9 @@ export const createPayout = async ({
         },
         ...commonWhere,
         ...(holdingPeriodDays > 0 && {
-          OR: [
-            {
-              createdAt: {
-                lt: new Date(
-                  Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000,
-                ),
-              },
-            },
-            {
-              type: "custom", // Custom commissions skip the holding period
-            },
-          ],
+          createdAt: {
+            lt: new Date(Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000),
+          },
         }),
       },
       select: {
