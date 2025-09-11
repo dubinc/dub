@@ -48,7 +48,7 @@ SQL >
                 FROM dub_lead_events_mv
                 WHERE customer_id = {{ String(customerId) }}
             )
-        {% elif not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
+        {% elif not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId) or defined(groupId)) %}
             PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
@@ -94,7 +94,7 @@ SQL >
     SELECT country, COUNT(country) as leads
     FROM
         dub_lead_events_mv
-          {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
+          {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId) or defined(groupId)) %}
             PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
@@ -146,7 +146,7 @@ SQL >
       SELECT country, COUNT(country) as sales, sum(amount) as amount
       FROM
           dub_sale_events_mv
-          {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
+          {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId) or defined(groupId)) %}
               PREWHERE link_id in (SELECT link_id from workspace_links)
           {% end %}
       WHERE
@@ -195,7 +195,7 @@ SQL >
                 SELECT country, customer_id, link_id, timestamp, amount
                 FROM
                     dub_sale_events_mv
-                    {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
+                    {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId) or defined(groupId)) %}
                         PREWHERE link_id in (SELECT link_id from workspace_links)
                     {% end %}
                 WHERE

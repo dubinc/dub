@@ -250,7 +250,7 @@ SQL >
     %
     SELECT link_id, COUNT(*) AS clicks
     FROM dub_click_events_mv
-        {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
+        {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId) or defined(groupId)) %}
             PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
