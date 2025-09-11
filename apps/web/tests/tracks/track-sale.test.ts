@@ -81,7 +81,7 @@ describe("POST /track/sale", async () => {
     expectValidSaleResponse(response, sale);
   });
 
-  test("track a sale with an invoiceId that is already processed (should return null customer and sale) ", async () => {
+  test("track a sale with an invoiceId that is already processed (should return the same response as before) ", async () => {
     const response = await http.post<TrackSaleResponse>({
       path: "/track/sale",
       body: {
@@ -91,12 +91,7 @@ describe("POST /track/sale", async () => {
       },
     });
 
-    expect(response.status).toEqual(200);
-    expect(response.data).toStrictEqual({
-      eventName: "Subscription",
-      customer: null,
-      sale: null,
-    });
+    expectValidSaleResponse(response, sale);
   });
 
   test("track a sale with regular vs premium product ID (should create the right commission)", async () => {

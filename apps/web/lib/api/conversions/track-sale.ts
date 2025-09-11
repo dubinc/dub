@@ -57,14 +57,16 @@ export const trackSale = async ({
   let clickData: ClickEventTB | null = null;
   let leadEventData: LeadEventTB | null = null;
 
-  // Skip if invoice id is already processed
+  // Return idempotent response if invoiceId is already processed
   if (invoiceId) {
-    const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
-      ex: 60 * 60 * 24 * 7,
-      nx: true,
-    });
+    const [oldKeyValue, newKeyValue] = await redis.mget([
+      `dub_sale_events:invoiceId:${invoiceId}`,
+      `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
+    ]);
 
-    if (!ok) {
+    if (newKeyValue) {
+      return newKeyValue;
+    } else if (oldKeyValue) {
       return {
         eventName,
         customer: null,
@@ -543,7 +545,7 @@ const _trackSale = async ({
     })(),
   );
 
-  return trackSaleResponseSchema.parse({
+  const trackSaleResponse = trackSaleResponseSchema.parse({
     eventName,
     customer,
     sale: {
@@ -554,4 +556,16 @@ const _trackSale = async ({
       metadata,
     },
   });
+
+  if (invoiceId) {
+    await redis.set(
+      `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
+      trackSaleResponse,
+      {
+        ex: 60 * 60 * 24 * 7,
+      },
+    );
+  }
+
+  return trackSaleResponse;
 };
