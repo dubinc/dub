@@ -72,7 +72,7 @@ export function PartnerStats({
             <div key={label} className="flex flex-col bg-white p-3">
               <span className="text-xs text-neutral-500">{label}</span>
               {value === undefined ? (
-                <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-200" />
+                <div className="h-5 w-16 animate-pulse rounded-md bg-neutral-200" />
               ) : (
                 <span className="text-content-emphasis text-sm font-medium">
                   {value}
