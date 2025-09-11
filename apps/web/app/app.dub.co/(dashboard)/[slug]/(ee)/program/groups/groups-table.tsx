@@ -20,7 +20,15 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Copy, Dots, PenWriting, Tick, Trash, Users } from "@dub/ui/icons";
+import {
+  Copy,
+  Dots,
+  LinesY,
+  PenWriting,
+  Tick,
+  Trash,
+  Users,
+} from "@dub/ui/icons";
 import { cn, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
@@ -262,7 +270,7 @@ function RowMenuButton({ row }: { row: Row<GroupExtendedProps> }) {
               />
 
               <MenuItem
-                icon={Users}
+                icon={LinesY}
                 label="View analytics"
                 variant="default"
                 onSelect={() =>
