@@ -97,6 +97,9 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
             userId: generatedUserId,
             params: {
               ...trackingParams,
+              link_url: qrCreateResponse.createdLink?.shortLink,
+              link_id: qrCreateResponse.createdLink?.id,
+              target_url: qrCreateResponse.createdLink?.url,
             },
           });
           console.log("createUser: QR successfully created");

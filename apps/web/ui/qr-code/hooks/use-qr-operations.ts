@@ -63,6 +63,9 @@ export const useQrOperations = () => {
               event_category: "Authorized",
               page_name: "profile",
               email: user?.email,
+              link_url: responseData.link?.shortLink,
+              link_id: responseData.link?.id,
+              target_url: responseData.link?.url,
               ...trackingParams,
             },
             sessionId: user?.id,
@@ -125,6 +128,8 @@ export const useQrOperations = () => {
             `/api/workspaces/${slug}`,
           ]);
 
+          const responseData = await res.json();
+
           // Track QR updated event
           const trackingParams = createQRTrackingParams(
             qrBuilderData,
@@ -139,6 +144,9 @@ export const useQrOperations = () => {
               is_activated: false,
               is_deactivated: false,
               is_deleted: false,
+              link_url: responseData.qr.link?.shortLink,
+              link_id: responseData.qr.link?.id,
+              target_url: responseData.qr.link?.url,
               ...trackingParams,
             },
             sessionId: user?.id,
@@ -211,6 +219,9 @@ export const useQrOperations = () => {
               is_activated: !archive,
               is_deactivated: archive,
               is_deleted: false,
+              link_url: responseData.qr.link?.shortLink,
+              link_id: responseData.qr.link?.id,
+              target_url: responseData.qr.link?.url,
             },
             sessionId: user?.id,
           });
@@ -261,6 +272,9 @@ export const useQrOperations = () => {
               is_activated: false,
               is_deactivated: false,
               is_deleted: true,
+              link_url: responseData.qr.link?.shortLink,
+              link_id: responseData.qr.link?.id,
+              target_url: responseData.qr.link?.url,
             },
             sessionId: user?.id,
           });
