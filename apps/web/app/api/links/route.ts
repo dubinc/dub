@@ -12,11 +12,13 @@ import {
   createLinkBodySchemaAsync,
   getLinksQuerySchemaExtended,
   linkEventSchema,
+  LinkSchema,
 } from "@/lib/zod/schemas/links";
 import { Folder } from "@dub/prisma/client";
 import { LOCALHOST_IP } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
@@ -74,7 +76,7 @@ export const GET = withWorkspace(
       searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
     });
 
-    return NextResponse.json(response, {
+    return NextResponse.json(z.array(LinkSchema).parse(response), {
       headers,
     });
   },
@@ -135,7 +137,7 @@ export const POST = withWorkspace(
         );
       }
 
-      return NextResponse.json(response, {
+      return NextResponse.json(LinkSchema.parse(response), {
         headers,
       });
     } catch (error) {

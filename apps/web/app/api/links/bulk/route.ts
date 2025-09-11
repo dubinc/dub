@@ -21,11 +21,13 @@ import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
   bulkCreateLinksBodySchema,
   bulkUpdateLinksBodySchema,
+  LinkSchema,
 } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withWorkspace(
@@ -245,8 +247,10 @@ export const POST = withWorkspace(
       });
     }
 
+    const createdLinks = await bulkCreateLinks({ links: validLinks });
+
     const validLinksResponse =
-      validLinks.length > 0 ? await bulkCreateLinks({ links: validLinks }) : [];
+      validLinks.length > 0 ? z.array(LinkSchema).parse(createdLinks) : [];
 
     return NextResponse.json([...validLinksResponse, ...errorLinks], {
       headers,
@@ -421,18 +425,18 @@ export const PATCH = withWorkspace(
         })),
     );
 
+    const updatedLinks = await bulkUpdateLinks({
+      linkIds: validLinkIds,
+      data: {
+        ...data,
+        tagIds,
+        expiresAt,
+      },
+      workspaceId: workspace.id,
+    });
+
     const response =
-      validLinkIds.length > 0
-        ? await bulkUpdateLinks({
-            linkIds: validLinkIds,
-            data: {
-              ...data,
-              tagIds,
-              expiresAt,
-            },
-            workspaceId: workspace.id,
-          })
-        : [];
+      validLinkIds.length > 0 ? z.array(LinkSchema).parse(updatedLinks) : [];
 
     waitUntil(
       (async () => {

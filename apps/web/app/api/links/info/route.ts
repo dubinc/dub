@@ -3,7 +3,10 @@ import { transformLink } from "@/lib/api/links";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { getLinkInfoQuerySchemaExtended } from "@/lib/zod/schemas/links";
+import {
+  getLinkInfoQuerySchemaExtended,
+  LinkSchema,
+} from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -61,7 +64,7 @@ export const GET = withWorkspace(
       { skipDecodeKey: true },
     );
 
-    return NextResponse.json(response, {
+    return NextResponse.json(LinkSchema.parse(response), {
       headers,
     });
   },

@@ -6,7 +6,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema } from "@/lib/zod/schemas/links";
+import { linkEventSchema, LinkSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerLinkSchema,
   retrievePartnerLinksSchema,
@@ -52,6 +52,9 @@ export const GET = withWorkspace(
     }
 
     const { links } = programEnrollment;
+
+    // TODO:
+    // Can we use LinkSchema here to be consistent with other links endpoints?
 
     return NextResponse.json(z.array(ProgramPartnerLinkSchema).parse(links));
   },
@@ -137,7 +140,9 @@ export const POST = withWorkspace(
       }),
     );
 
-    return NextResponse.json(partnerLink, { status: 201 });
+    return NextResponse.json(LinkSchema.parse(partnerLink), {
+      status: 201,
+    });
   },
   {
     requiredPlan: ["advanced", "enterprise"],
