@@ -59,7 +59,7 @@ export const transformLinkTB = (link: ExpandedLink) => {
     key: link.key,
   });
 
-  const transformedLink = {
+  return {
     link_id: link.id,
     domain: link.domain,
     key,
@@ -73,10 +73,6 @@ export const transformLinkTB = (link: ExpandedLink) => {
     workspace_id: link.projectId,
     created_at: link.createdAt,
   };
-
-  console.debug("transformedLink", transformedLink);
-
-  return transformedLink;
 };
 
 export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {
