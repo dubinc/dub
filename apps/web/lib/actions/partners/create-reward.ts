@@ -18,8 +18,15 @@ export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { event, amount, type, maxDuration, modifiers, groupId } =
-      parsedInput;
+    const {
+      event,
+      amount,
+      type,
+      maxDuration,
+      description,
+      modifiers,
+      groupId,
+    } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
     const { canUseAdvancedRewardLogic } = getPlanCapabilities(workspace.plan);
@@ -52,6 +59,7 @@ export const createRewardAction = authActionClient
           type,
           amount,
           maxDuration,
+          description: description || null,
           modifiers: modifiers || Prisma.DbNull,
         },
       });
