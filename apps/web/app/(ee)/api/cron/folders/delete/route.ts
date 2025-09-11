@@ -31,7 +31,14 @@ export async function POST(req: Request) {
       orderBy: {
         createdAt: "desc", // TODO we need to add [folderId, createdAt] index on Link table
       },
-      include: includeTags,
+      include: {
+        ...includeTags,
+        programEnrollment: {
+          select: {
+            groupId: true,
+          },
+        },
+      },
     });
 
     if (linksToUpdate.length === 0) {
@@ -48,6 +55,7 @@ export async function POST(req: Request) {
       linksToUpdate.map((link) => ({
         ...link,
         folderId: null,
+        partnerGroupId: link.programEnrollment?.groupId,
       })),
     );
 

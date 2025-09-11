@@ -26,6 +26,10 @@ export const dubLinksMetadataSchema = z.object({
     .string()
     .nullish()
     .transform((v) => (v ? v : "")),
+  partner_group_id: z
+    .string()
+    .nullish()
+    .transform((v) => (v ? v : "")),
   workspace_id: z
     .string()
     .nullish()
@@ -55,7 +59,7 @@ export const transformLinkTB = (link: ExpandedLink) => {
     key: link.key,
   });
 
-  return {
+  const transformedLink = {
     link_id: link.id,
     domain: link.domain,
     key,
@@ -65,9 +69,14 @@ export const transformLinkTB = (link: ExpandedLink) => {
     tenant_id: link.tenantId ?? "",
     program_id: link.programId ?? "",
     partner_id: link.partnerId ?? "",
+    partner_group_id: link.partnerGroupId ?? "",
     workspace_id: link.projectId,
     created_at: link.createdAt,
   };
+
+  console.debug("transformedLink", transformedLink);
+
+  return transformedLink;
 };
 
 export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {

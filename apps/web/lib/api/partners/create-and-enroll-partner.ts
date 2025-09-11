@@ -175,7 +175,10 @@ export const createAndEnrollPartner = async ({
               key: link.key,
             }),
 
-            recordLink(link),
+            recordLink({
+              ...link,
+              partnerGroupId: group.id,
+            }),
 
             link.saleAmount > 0 &&
               backfillLinkCommissions({

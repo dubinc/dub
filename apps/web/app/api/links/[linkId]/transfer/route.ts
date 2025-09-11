@@ -93,7 +93,10 @@ export const POST = withWorkspace(
       Promise.all([
         linkCache.set(updatedLink),
 
-        recordLink(updatedLink),
+        recordLink({
+          ...updatedLink,
+          partnerGroupId: null,
+        }),
 
         // increment new workspace usage
         prisma.project.update({

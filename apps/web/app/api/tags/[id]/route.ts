@@ -76,6 +76,11 @@ export const DELETE = withWorkspace(
                       tag: true,
                     },
                   },
+                  programEnrollment: {
+                    select: {
+                      groupId: true,
+                    },
+                  },
                 },
               },
             },
@@ -96,6 +101,7 @@ export const DELETE = withWorkspace(
           response.links.map(({ link }) => ({
             ...link,
             tags: link.tags.filter(({ tag }) => tag.id !== id),
+            partnerGroupId: link.programEnrollment?.groupId,
           })),
         ),
       );

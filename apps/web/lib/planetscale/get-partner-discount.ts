@@ -4,6 +4,7 @@ interface QueryResult {
   id: string;
   name: string;
   image: string | null;
+  groupId: string | null;
   discountId: string;
   amount: number;
   type: "percentage" | "flat";
@@ -32,12 +33,13 @@ export const getPartnerAndDiscount = async ({
       Partner.id,
       Partner.name,
       Partner.image,
+      ProgramEnrollment.groupId,
       Discount.id as discountId,
-      Discount.amount as amount,
-      Discount.type as type,
-      Discount.maxDuration as maxDuration,
-      Discount.couponId as couponId,
-      Discount.couponTestId as couponTestId
+      Discount.amount,
+      Discount.type,
+      Discount.maxDuration,
+      Discount.couponId,
+      Discount.couponTestId
     FROM ProgramEnrollment
     LEFT JOIN Partner ON Partner.id = ProgramEnrollment.partnerId
     LEFT JOIN Discount ON Discount.id = ProgramEnrollment.discountId
@@ -60,6 +62,7 @@ export const getPartnerAndDiscount = async ({
       id: result.id,
       name: result.name,
       image: result.image,
+      groupId: result.groupId,
     },
     discount: result.discountId
       ? {

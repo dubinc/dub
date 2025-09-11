@@ -67,6 +67,11 @@ export async function completeABTests(link: Link) {
     include: {
       ...includeTags,
       project: true,
+      programEnrollment: {
+        select: {
+          groupId: true,
+        },
+      },
     },
   });
 
@@ -75,7 +80,10 @@ export async function completeABTests(link: Link) {
       // update the link cache
       linkCache.set(response),
       // record the link
-      recordLink(response),
+      recordLink({
+        ...response,
+        partnerGroupId: response.programEnrollment?.groupId,
+      }),
       // send a link.updated webhook to the workspace
       response.project &&
         sendWorkspaceWebhook({

@@ -172,7 +172,12 @@ export async function approvePartnerEnrollment({
       ].filter(Boolean) as RewardProps[];
 
       await Promise.allSettled([
-        updatedLink ? recordLink(updatedLink) : Promise.resolve(null),
+        updatedLink
+          ? recordLink({
+              ...updatedLink,
+              partnerGroupId: group.id,
+            })
+          : Promise.resolve(null),
 
         ...(partnerEmailsToNotify.length
           ? [

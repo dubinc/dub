@@ -168,47 +168,54 @@ export async function updateLink({
   });
 
   waitUntil(
-    Promise.allSettled([
-      // record link in Redis
-      linkCache.set({
-        ...response,
-        ...(response.programId &&
-          (await getPartnerAndDiscount({
-            programId: response.programId,
-            partnerId: response.partnerId,
-          }))),
-      }),
+    (async () => {
+      const { partner, discount } = await getPartnerAndDiscount({
+        programId: response.programId,
+        partnerId: response.partnerId,
+      });
 
-      // record link in Tinybird
-      recordLink(response),
-
-      // if key is changed: delete the old key in Redis
-      (changedDomain || changedKey) && linkCache.delete(oldLink),
-
-      // if proxy is true and image is not stored in R2, upload image to R2
-      proxy &&
-        image &&
-        isNotHostedImage(image) &&
-        storage.upload(`images/${id}_${imageUrlNonce}`, image, {
-          width: 1200,
-          height: 630,
-        }),
-      // if there's a valid old image and it starts with the same link ID but is different from the new image, delete it
-      oldLink.image &&
-        oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
-        oldLink.image !== image &&
-        storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
-
-      webhookIds != undefined &&
-        propagateWebhookTriggerChanges({
-          webhookIds,
+      await Promise.allSettled([
+        // cache link in Redis
+        linkCache.set({
+          ...response,
+          ...(partner && { partner }),
+          ...(discount && { discount }),
         }),
 
-      changedTestCompletedAt &&
-        testVariants &&
-        testCompletedAt &&
-        scheduleABTestCompletion(response),
-    ]),
+        // record link in Tinybird
+        recordLink({
+          ...response,
+          partnerGroupId: partner?.groupId,
+        }),
+
+        // if key is changed: delete the old key in Redis
+        (changedDomain || changedKey) && linkCache.delete(oldLink),
+
+        // if proxy is true and image is not stored in R2, upload image to R2
+        proxy &&
+          image &&
+          isNotHostedImage(image) &&
+          storage.upload(`images/${id}_${imageUrlNonce}`, image, {
+            width: 1200,
+            height: 630,
+          }),
+        // if there's a valid old image and it starts with the same link ID but is different from the new image, delete it
+        oldLink.image &&
+          oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
+          oldLink.image !== image &&
+          storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
+
+        webhookIds != undefined &&
+          propagateWebhookTriggerChanges({
+            webhookIds,
+          }),
+
+        changedTestCompletedAt &&
+          testVariants &&
+          testCompletedAt &&
+          scheduleABTestCompletion(response),
+      ]);
+    })(),
   );
 
   return transformLink(response);
