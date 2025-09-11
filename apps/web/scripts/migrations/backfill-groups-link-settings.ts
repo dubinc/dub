@@ -35,7 +35,7 @@ async function main() {
       },
     });
 
-    await prisma.partnerGroupDefaultLink.createMany({
+    const res = await prisma.partnerGroupDefaultLink.createMany({
       data: program.groups.map((group) => ({
         id: createId(),
         programId: program.id,
@@ -43,7 +43,56 @@ async function main() {
         domain: program.domain!,
         url: program.url!,
       })),
+      skipDuplicates: true,
     });
+
+    console.log(`Created ${res.count} partner group default links.`);
+
+    const partnerGroupDefaultLinks =
+      await prisma.partnerGroupDefaultLink.findMany({
+        where: {
+          programId: program.id,
+        },
+      });
+
+    const groupIdToPartnerGroupDefaultLinkId = partnerGroupDefaultLinks.reduce(
+      (acc, link) => {
+        acc[link.groupId] = link.id;
+        return acc;
+      },
+      {} as Record<string, string>,
+    );
+
+    const partnerLinks = await prisma.link.findMany({
+      where: {
+        programId: program.id,
+        url: program.url!,
+      },
+    });
+
+    // get the first created link for each partner
+    const firstPartnerLinks = partnerLinks.filter(
+      (link, index, self) =>
+        index === self.findIndex((t) => t.partnerId === link.partnerId),
+    );
+
+    console.table(firstPartnerLinks, [
+      "id",
+      "shortLink",
+      "partnerId",
+      "createdAt",
+    ]);
+
+    // await prisma.link.updateMany({
+    //   where: {
+    //     id: {
+    //       in: firstPartnerLinks.map(({ id }) => id),
+    //     },
+    //   },
+    //   data: {
+    //     partnerGroupDefaultLinkId: partnerLinks[0].id,
+    //   },
+    // });
   }
 }
 

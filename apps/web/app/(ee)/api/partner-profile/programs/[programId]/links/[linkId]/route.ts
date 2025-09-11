@@ -6,7 +6,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { NewLinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
@@ -37,7 +36,7 @@ export const PATCH = withPartnerProfile(
       throw new DubApiError({
         code: "forbidden",
         message:
-          "You’re not part of any group yet. Please reach out to the program owner to be added.",
+          "You're not part of any group yet. Please reach out to the program owner to be added.",
       });
     }
 
@@ -59,21 +58,13 @@ export const PATCH = withPartnerProfile(
     }
 
     if (link.partnerGroupDefaultLinkId) {
-      const linkChanged = !deepEqual(
-        {
-          url,
-          key,
-        },
-        {
-          url: link.url,
-          key: link.key,
-        },
-      );
+      const linkUrlChanged = link.url !== url;
 
-      if (linkChanged) {
+      if (linkUrlChanged) {
         throw new DubApiError({
           code: "forbidden",
-          message: "This is your default link and cannot be updated.",
+          message:
+            "You cannot update the destination URL of your default link.",
         });
       }
     }

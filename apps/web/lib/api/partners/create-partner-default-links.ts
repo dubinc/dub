@@ -40,7 +40,7 @@ export async function createPartnerDefaultLinks({
     return [];
   }
 
-  const hasMoreThanOneLink = defaultLinks.length > 1;
+  const hasMoreThanOneDefaultLink = defaultLinks.length > 1;
 
   const processedLinks = (
     await Promise.allSettled(
@@ -51,7 +51,9 @@ export async function createPartnerDefaultLinks({
           email: partner.email,
         });
 
-        key = !hasMoreThanOneLink ? key : `${key}-${nanoid(4).toLowerCase()}`;
+        key = hasMoreThanOneDefaultLink
+          ? `${key}-${nanoid(4).toLowerCase()}`
+          : key;
 
         return generatePartnerLink({
           workspace,

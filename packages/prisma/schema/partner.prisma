@@ -143,5 +143,5 @@ model PartnerGroupDefaultLink {
   links        Link[]
 
   @@index(programId)
-  @@index(groupId)
+  @@unique([groupId, url])
 }
