@@ -559,12 +559,14 @@ const _trackSale = async ({
   });
 
   if (invoiceId) {
-    await redis.set(
-      `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
-      trackSaleResponse,
-      {
-        ex: 60 * 60 * 24 * 7, // cache for 1 week
-      },
+    waitUntil(
+      redis.set(
+        `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
+        trackSaleResponse,
+        {
+          ex: 60 * 60 * 24 * 7, // cache for 1 week
+        },
+      ),
     );
   }
 
