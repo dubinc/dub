@@ -23,7 +23,7 @@ describe("POST /track/lead/client", async () => {
   const clickId = clickResponse.data.clickId;
   const customer = randomCustomer();
 
-  test("track a lead (with clickId from a prior /track/lead/client request)", async () => {
+  test("track a lead on the client (with clickId from a prior /track/click request)", async () => {
     const response = await fetch(`${env.E2E_BASE_URL}/api/track/lead/client`, {
       method: "POST",
       headers: {
@@ -48,6 +48,7 @@ describe("POST /track/lead/client", async () => {
       click: {
         id: clickId,
       },
+      link: leadResponse.link,
       customer: customer,
     });
   });

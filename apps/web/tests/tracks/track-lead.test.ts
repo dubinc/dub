@@ -19,6 +19,7 @@ const expectValidLeadResponse = ({
     click: {
       id: clickId,
     },
+    link: response.data.link,
     customer,
   });
 };
@@ -174,33 +175,12 @@ describe("POST /track/lead", async () => {
   });
 
   test("track a lead with `externalId` (backward compatibility)", async () => {
-    const customer4 = randomCustomer();
-    const response = await http.post<TrackLeadResponse>({
-      path: "/track/lead",
-      body: {
-        clickId: trackedClickId,
-        externalId: customer4.externalId,
-        eventName: "Signup",
-        customerName: customer4.name,
-        customerEmail: customer4.email,
-        customerAvatar: customer4.avatar,
-      },
-    });
-
-    expectValidLeadResponse({
-      response,
-      customer: customer4,
-      clickId: trackedClickId,
-    });
-  });
-
-  test("track a lead with `customerId` (backward compatibility)", async () => {
     const customer5 = randomCustomer();
     const response = await http.post<TrackLeadResponse>({
       path: "/track/lead",
       body: {
         clickId: trackedClickId,
-        customerId: customer5.externalId,
+        externalId: customer5.externalId,
         eventName: "Signup",
         customerName: customer5.name,
         customerEmail: customer5.email,
@@ -211,6 +191,27 @@ describe("POST /track/lead", async () => {
     expectValidLeadResponse({
       response,
       customer: customer5,
+      clickId: trackedClickId,
+    });
+  });
+
+  test("track a lead with `customerId` (backward compatibility)", async () => {
+    const customer6 = randomCustomer();
+    const response = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        clickId: trackedClickId,
+        customerId: customer6.externalId,
+        eventName: "Signup",
+        customerName: customer6.name,
+        customerEmail: customer6.email,
+        customerAvatar: customer6.avatar,
+      },
+    });
+
+    expectValidLeadResponse({
+      response,
+      customer: customer6,
       clickId: trackedClickId,
     });
   });
