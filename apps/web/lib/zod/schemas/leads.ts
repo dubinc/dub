@@ -86,7 +86,7 @@ export const trackLeadResponseSchema = z.object({
     programId: true,
     tenantId: true,
     externalId: true,
-  }).nullish(),
+  }).nullable(),
   customer: z.object({
     name: z.string().nullable(),
     email: z.string().nullable(),
