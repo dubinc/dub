@@ -1,4 +1,4 @@
-import { createCommissionAction } from "@/lib/actions/partners/create-commission";
+import { createManualCommissionAction } from "@/lib/actions/partners/create-manual-commission";
 import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useRewards from "@/lib/swr/use-rewards";
@@ -113,7 +113,7 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
     }
   }, [commissionType]);
 
-  const { executeAsync, isPending } = useAction(createCommissionAction, {
+  const { executeAsync, isPending } = useAction(createManualCommissionAction, {
     onSuccess: async () => {
       toast.success("A commission has been created for the partner!");
       setIsOpen(false);
