@@ -242,6 +242,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     endsAt,
     rewardAmount,
     rewardDescription,
+    rewardType,
     type,
     name,
     performanceCondition?.attribute,
