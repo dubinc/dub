@@ -7,6 +7,7 @@ import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Badge, Button, UTMBuilder } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn, deepEqual } from "@dub/utils";
@@ -61,7 +62,21 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
   const { makeRequest: updateGroup, isSubmitting: isUpdatingGroup } =
     useApiMutation();
 
-  const { handleSubmit, watch, setValue, register } = useForm<FormData>({
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Save changes",
+    description:
+      "Are you sure you want to save these link settings changes? This will update all links in this group.",
+    onConfirm: () => handleSubmit(onSubmit)(),
+    confirmText: "Save changes",
+  });
+
+  const {
+    handleSubmit,
+    watch,
+    setValue,
+    register,
+    formState: { isDirty },
+  } = useForm<FormData>({
     mode: "onBlur",
     values: {
       utmTemplateId: group?.utmTemplate?.id || null,
@@ -173,10 +188,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col divide-y divide-neutral-200"
-    >
+    <form className="flex flex-col divide-y divide-neutral-200">
       <SettingsRow
         heading="Link structure"
         description="How your partner links are displayed"
@@ -252,9 +264,11 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
           text="Save changes"
           className="h-8 w-fit"
           loading={isUpdatingGroup || isUpdatingTemplate}
-          // onClick={() => setShowConfirmModal(true)}
+          disabled={!isDirty}
+          onClick={() => setShowConfirmModal(true)}
         />
       </div>
+      {confirmModal}
     </form>
   );
 }
