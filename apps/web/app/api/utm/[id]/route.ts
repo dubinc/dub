@@ -73,6 +73,7 @@ export const PATCH = withWorkspace(
           (async () => {
             const defaultLinks =
               template.partnerGroup?.partnerGroupDefaultLinks;
+
             if (defaultLinks && defaultLinks.length > 0) {
               for (const defaultLink of defaultLinks) {
                 const res = await prisma.partnerGroupDefaultLink.update({

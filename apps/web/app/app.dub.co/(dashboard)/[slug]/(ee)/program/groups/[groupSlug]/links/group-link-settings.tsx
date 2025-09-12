@@ -229,7 +229,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
       </SettingsRow>
 
       <SettingsRow
-        heading="UTM Parameters"
+        heading="UTM parameters"
         description="Configure UTM tracking parameters for all links in this group"
       >
         <UTMBuilder

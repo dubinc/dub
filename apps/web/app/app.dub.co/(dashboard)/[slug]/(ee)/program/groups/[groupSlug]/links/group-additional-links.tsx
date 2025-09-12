@@ -115,7 +115,7 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
 
           <SettingsRow
             heading="Link domains"
-            description="Add additional link domains the partner can select"
+            description="Restrict partner links to specific domains"
           >
             <div>
               <div className="flex flex-col gap-2">
