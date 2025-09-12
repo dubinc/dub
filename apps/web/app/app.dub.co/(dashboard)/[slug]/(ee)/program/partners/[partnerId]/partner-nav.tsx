@@ -98,6 +98,7 @@ export function PartnerNav() {
                     "text-content-emphasis relative z-10 flex items-center gap-2 px-2.5 py-1 text-sm font-medium",
                     !isSelected &&
                       "hover:text-content-subtle z-[11] transition-colors",
+                    badge && "pr-1",
                   )}
                 >
                   <Icon className="size-4" />
@@ -111,7 +112,7 @@ export function PartnerNav() {
                     <motion.div
                       layoutId={layoutGroupId}
                       className={cn(
-                        "border-border-subtle bg-bg-default absolute left-0 top-0 -z-[1] h-full w-full rounded-lg border shadow-sm",
+                        "border-border-subtle bg-bg-default absolute left-0 top-0 -z-[1] size-full rounded-lg border shadow-sm",
                       )}
                       transition={{ duration: 0.25 }}
                     />
