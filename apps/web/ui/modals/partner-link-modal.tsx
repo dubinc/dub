@@ -203,10 +203,14 @@ function PartnerLinkModalContent({
     defaultValues:
       link && destinationDomain
         ? {
-            url: getUrlWithoutUTMParams(link.url).replace(
-              new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
-              "",
-            ),
+            url: isExactMode
+              ? destinationDomain
+              : getUrlWithoutUTMParams(link.url).replace(
+                  new RegExp(
+                    `^https?:\/\/${regexEscape(destinationDomain)}\/?`,
+                  ),
+                  "",
+                ),
             key: link.key,
             comments: link.comments ?? "",
           }
@@ -273,7 +277,7 @@ function PartnerLinkModalContent({
               body: JSON.stringify({
                 ...data,
                 url: isExactMode
-                  ? undefined
+                  ? destinationDomain
                   : linkConstructor({
                       domain: destinationDomain,
                       key: data.url,

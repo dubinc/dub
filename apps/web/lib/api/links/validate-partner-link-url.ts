@@ -39,7 +39,7 @@ export const validatePartnerLinkUrl = ({
 
   // Check the validation mode
   if (additionalLink.validationMode === "exact") {
-    if (url !== additionalLink.domain) {
+    if (getApexDomain(url) !== additionalLink.domain) {
       throw new DubApiError({
         code: "bad_request",
         message: `The provided URL (${url}) does not match the program's URL (${additionalLink.domain}).`,

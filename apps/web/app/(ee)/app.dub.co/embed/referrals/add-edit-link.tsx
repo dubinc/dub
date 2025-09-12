@@ -73,8 +73,6 @@ export function ReferralsEmbedCreateUpdateLink({
     setIsExactMode(additionalLink?.validationMode === "exact");
   }, [destinationDomain, additionalLinks]);
 
-  // console.log(destinationDomain)
-
   const {
     watch,
     setValue,
@@ -84,10 +82,12 @@ export function ReferralsEmbedCreateUpdateLink({
   } = useForm<FormData>({
     defaultValues: link
       ? {
-          url: getUrlWithoutUTMParams(link.url).replace(
-            new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
-            "",
-          ),
+          url: isExactMode
+            ? destinationDomain
+            : getUrlWithoutUTMParams(link.url).replace(
+                new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
+                "",
+              ),
           key: link.key,
         }
       : undefined,
@@ -113,7 +113,7 @@ export function ReferralsEmbedCreateUpdateLink({
         body: JSON.stringify({
           ...data,
           url: isExactMode
-            ? undefined
+            ? destinationDomain
             : linkConstructor({
                 domain: destinationDomain,
                 key: data.url,
