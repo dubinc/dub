@@ -5,8 +5,8 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import { resend, unsubscribe } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
+import { unsubscribe } from "@dub/email/resend";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
 import { log, R2_URL } from "@dub/utils";
@@ -244,10 +244,10 @@ export async function POST(req: Request) {
     // Make sure the cache is cleared
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
-    await resend.batch.send([
+    await sendBatchEmail([
       {
-        from: VARIANT_TO_FROM_MAP.notifications,
-        to: sourceEmail,
+        variant: "notifications",
+        email: sourceEmail,
         subject: "Your Dub partner accounts are now merged",
         react: PartnerAccountMerged({
           email: sourceEmail,
@@ -256,8 +256,8 @@ export async function POST(req: Request) {
         }),
       },
       {
-        from: VARIANT_TO_FROM_MAP.notifications,
-        to: targetEmail,
+        variant: "notifications",
+        email: targetEmail,
         subject: "Your Dub partner accounts are now merged",
         react: PartnerAccountMerged({
           email: targetEmail,

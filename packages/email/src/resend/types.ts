@@ -6,3 +6,5 @@ export interface ResendEmailOptions
   from?: string;
   variant?: "primary" | "notifications" | "marketing";
 }
+
+export type ResendBulkEmailOptions = ResendEmailOptions[];

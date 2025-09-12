@@ -4,13 +4,12 @@ import { generateOTP } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
+import { sendBatchEmail } from "@dub/email";
 
 const CACHE_KEY_PREFIX = "merge-partner-accounts";
 const CACHE_EXPIRY_IN = 10 * 60; // 10 minutes
@@ -171,10 +170,10 @@ const sendTokens = async ({
     ],
   });
 
-  await resend.batch.send([
+  await sendBatchEmail([
     {
-      from: VARIANT_TO_FROM_MAP.notifications,
-      to: sourceEmail,
+      variant: "notifications",
+      email: sourceEmail,
       subject: "Verify your email to merge your Dub Partners accounts",
       react: VerifyEmailForAccountMerge({
         email: sourceEmail,
@@ -183,8 +182,8 @@ const sendTokens = async ({
       }),
     },
     {
-      from: VARIANT_TO_FROM_MAP.notifications,
-      to: targetEmail,
+      variant: "notifications",
+      email: targetEmail,
       subject: "Verify your email to merge your Dub Partners accounts",
       react: VerifyEmailForAccountMerge({
         email: targetEmail,

@@ -5,9 +5,7 @@ import {
   PAYOUT_FAILURE_FEE_CENTS,
 } from "@/lib/partners/constants";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
-import { sendEmail } from "@dub/email";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail, sendEmail } from "@dub/email";
 import DomainExpired from "@dub/email/templates/domain-expired";
 import DomainRenewalFailed from "@dub/email/templates/domain-renewal-failed";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
@@ -245,10 +243,10 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     );
 
     if (workspaceOwners.length > 0) {
-      await resend.batch.send(
+      await sendBatchEmail(
         workspaceOwners.map(({ user }) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: user.email!,
+          variant: "notifications",
+          email: user.email!,
           subject: "Domain expired",
           react: DomainExpired({
             email: user.email!,
@@ -275,10 +273,10 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     });
 
     if (workspaceOwners.length > 0) {
-      await resend.batch.send(
+      await sendBatchEmail(
         workspaceOwners.map(({ user }) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: user.email!,
+          variant: "notifications",
+          email: user.email!,
           subject: "Domain renewal failed",
           react: DomainRenewalFailed({
             email: user.email!,

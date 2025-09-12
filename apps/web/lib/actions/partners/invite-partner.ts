@@ -6,7 +6,6 @@ import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerInvite from "@dub/email/templates/partner-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -100,7 +99,7 @@ export const invitePartnerAction = authActionClient
         await Promise.allSettled([
           sendEmail({
             subject: `${program.name} invited you to join Dub Partners`,
-            from: VARIANT_TO_FROM_MAP.notifications,
+            variant: "notifications",
             email,
             react: PartnerInvite({
               email,

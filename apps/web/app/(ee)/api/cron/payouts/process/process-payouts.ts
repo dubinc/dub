@@ -12,8 +12,7 @@ import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { PlanProps } from "@/lib/types";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { chunk, currencyFormatter, log } from "@dub/utils";
@@ -220,26 +219,16 @@ export async function processPayouts({
     invoice &&
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
   ) {
-    if (!resend) {
-      // this should never happen, but just in case
-      await log({
-        message: "Resend is not configured, skipping email sending.",
-        type: "errors",
-      });
-      console.log("Resend is not configured, skipping email sending.");
-      return;
-    }
-
     const payoutChunks = chunk(
       payouts.filter((payout) => payout.partner.email),
       100,
     );
 
     for (const payoutChunk of payoutChunks) {
-      await resend.batch.send(
+      await sendBatchEmail(
         payoutChunk.map((payout) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: payout.partner.email!,
+          variant: "notifications",
+          email: payout.partner.email!,
           subject: "You've got money coming your way!",
           react: PartnerPayoutConfirmed({
             email: payout.partner.email!,
