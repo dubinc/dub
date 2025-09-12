@@ -90,7 +90,7 @@ export const UTMTags = [
 
 export const constructURLFromUTMParams = (
   url: string,
-  utmParams: Record<string, string>,
+  utmParams: Record<string, string | null>,
 ) => {
   if (!url) return "";
   try {

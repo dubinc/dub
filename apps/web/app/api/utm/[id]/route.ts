@@ -3,7 +3,11 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  constructURLFromUTMParams,
+  deepEqual,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -27,7 +31,11 @@ export const PATCH = withWorkspace(
         projectId: workspace.id,
       },
       include: {
-        partnerGroup: true,
+        partnerGroup: {
+          include: {
+            partnerGroupDefaultLinks: true,
+          },
+        },
       },
     });
 
@@ -62,12 +70,38 @@ export const PATCH = withWorkspace(
 
       if (template.partnerGroup && utmFieldsChanged) {
         waitUntil(
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-            body: {
-              utmTemplateId: template.id,
-            },
-          }),
+          (async () => {
+            const defaultLinks =
+              template.partnerGroup?.partnerGroupDefaultLinks;
+            if (defaultLinks && defaultLinks.length > 0) {
+              for (const defaultLink of defaultLinks) {
+                const res = await prisma.partnerGroupDefaultLink.update({
+                  where: {
+                    id: defaultLink.id,
+                  },
+                  data: {
+                    url: constructURLFromUTMParams(
+                      defaultLink.url,
+                      extractUtmParams(templateUpdated),
+                    ),
+                  },
+                });
+                console.log(
+                  `Updated default link ${defaultLink.id} with URL: ${res.url}`,
+                );
+              }
+            }
+
+            const res = await qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+              body: {
+                utmTemplateId: template.id,
+              },
+            });
+            console.log(
+              `Scheduled sync-utm job for template ${template.id}: ${JSON.stringify(res, null, 2)}`,
+            );
+          })(),
         );
       }
 
