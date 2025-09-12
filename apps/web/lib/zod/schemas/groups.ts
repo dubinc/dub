@@ -3,7 +3,7 @@ import {
   PartnerLinkStructure,
   PartnerUrlValidationMode,
 } from "@dub/prisma/client";
-import { validSlugRegex } from "@dub/utils";
+import { validDomainRegex, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
@@ -25,8 +25,11 @@ export const MAX_ADDITIONAL_PARTNER_LINKS = 10;
 export const GROUPS_MAX_PAGE_SIZE = 100;
 
 export const additionalPartnerLinkSchema = z.object({
-  url: parseUrlSchema,
-  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
+  domain: z
+    .string()
+    .min(1, "domain is required")
+    .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
+  validationMode: z.nativeEnum(PartnerUrlValidationMode),
 });
 
 // This is the standard response we send for all /api/groups/** endpoints

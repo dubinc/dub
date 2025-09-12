@@ -21,8 +21,8 @@ async function main() {
 
     if (program.maxPartnerLinks > 0) {
       additionalLink = {
-        url: program.url!,
-        urlValidationMode: program.urlValidationMode,
+        domain: program.domain!,
+        validationMode: program.urlValidationMode,
       };
     }
 

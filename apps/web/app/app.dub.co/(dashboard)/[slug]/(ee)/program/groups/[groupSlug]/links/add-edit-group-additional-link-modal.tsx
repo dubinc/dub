@@ -7,7 +7,7 @@ import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { Button, Input, Modal } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
-import { cn, getDomainWithoutWWW } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -40,42 +40,38 @@ function AddDestinationUrlModalContent({
   const { register, handleSubmit, watch, setValue } =
     useForm<PartnerGroupAdditionalLink>({
       defaultValues: {
-        url: link?.url || "",
-        urlValidationMode: link?.urlValidationMode || "domain",
+        domain: link?.domain || "",
+        validationMode: link?.validationMode || "domain",
       },
     });
 
-  const [url, urlValidationMode] = watch(["url", "urlValidationMode"]);
+  const [domain, validationMode] = watch(["domain", "validationMode"]);
 
   const onSubmit = async (data: PartnerGroupAdditionalLink) => {
     if (!group) return;
 
     const currentAdditionalLinks = group.additionalLinks || [];
 
-    if (link && !currentAdditionalLinks.find((l) => l.url === link.url)) {
-      toast.error("The destination URL you are trying to edit does not exist.");
+    if (link && !currentAdditionalLinks.find((l) => l.domain === link.domain)) {
+      toast.error("The link domain you are trying to edit does not exist.");
       return;
     }
 
-    const existingApexDomains = currentAdditionalLinks
-      .filter((existingLink) => !link || existingLink.url !== link.url)
-      .map((existingLink) =>
-        getDomainWithoutWWW(existingLink.url)?.toLowerCase(),
-      );
+    const existingDomains = currentAdditionalLinks.map((l) => l.domain);
 
-    if (
-      existingApexDomains.includes(getDomainWithoutWWW(data.url)?.toLowerCase())
-    ) {
-      toast.error("A similar destination URL already exists.");
+    if (existingDomains.includes(data.domain)) {
+      toast.error(
+        `Domain ${data.domain} has already been added as a link domain`,
+      );
       return;
     }
 
     let updatedAdditionalLinks: PartnerGroupAdditionalLink[];
 
     if (link) {
-      // Editing existing link - find and replace the specific link by URL
+      // Editing existing link - find and replace the specific link by domain
       updatedAdditionalLinks = currentAdditionalLinks.map((existingLink) => {
-        if (existingLink.url === link.url) {
+        if (existingLink.domain === link.domain) {
           return {
             ...data,
           };
@@ -87,7 +83,7 @@ function AddDestinationUrlModalContent({
       // Check if we're at the maximum number of additional links
       if (currentAdditionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS) {
         toast.error(
-          `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional destination URLs.`,
+          `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional link domains.`,
         );
         return;
       }
@@ -106,12 +102,12 @@ function AddDestinationUrlModalContent({
         setIsOpen(false);
         toast.success(
           link
-            ? "Destination URL updated successfully!"
-            : "Destination URL added successfully!",
+            ? "Link domain updated successfully!"
+            : "Link domain added successfully!",
         );
       },
       onError: () => {
-        toast.error("Failed to save destination URL. Please try again.");
+        toast.error("Failed to save link domain. Please try again.");
       },
     });
   };
@@ -128,7 +124,7 @@ function AddDestinationUrlModalContent({
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
           <h2 className="text-lg font-semibold">
-            {isEditing ? "Edit destination URL" : "Add destination URL"}
+            {isEditing ? "Edit link domain" : "Add link domain"}
           </h2>
         </div>
       </div>
@@ -137,13 +133,13 @@ function AddDestinationUrlModalContent({
         <div className="space-y-6 p-6">
           <div className="space-y-2">
             <label className="block text-sm font-medium text-neutral-800">
-              Destination URL
+              Link domain
             </label>
             <Input
-              value={watch("url") || ""}
-              onChange={(e) => setValue("url", e.target.value)}
-              type="url"
-              placeholder="https://dub.co"
+              value={watch("domain") || ""}
+              onChange={(e) => setValue("domain", e.target.value)}
+              type="text"
+              placeholder="acme.com"
               className="max-w-full"
             />
           </div>
@@ -154,7 +150,7 @@ function AddDestinationUrlModalContent({
             </label>
             <div className="mt-3 grid grid-cols-1 gap-3">
               {URL_VALIDATION_MODES.map((type) => {
-                const isSelected = type.value === urlValidationMode;
+                const isSelected = type.value === validationMode;
 
                 return (
                   <label
@@ -171,7 +167,7 @@ function AddDestinationUrlModalContent({
                       type="radio"
                       value={type.value}
                       className="hidden"
-                      {...register("urlValidationMode")}
+                      {...register("validationMode")}
                     />
 
                     <div className="flex grow flex-col text-sm">
@@ -234,9 +230,9 @@ function AddDestinationUrlModalContent({
           <Button
             type="submit"
             variant="primary"
-            text={isEditing ? "Update destination URL" : "Add destination URL"}
+            text={isEditing ? "Update link domain" : "Add link domain"}
             className="h-10 w-fit"
-            disabled={!url || !urlValidationMode}
+            disabled={!domain || !validationMode}
             loading={isSubmitting}
           />
         </div>

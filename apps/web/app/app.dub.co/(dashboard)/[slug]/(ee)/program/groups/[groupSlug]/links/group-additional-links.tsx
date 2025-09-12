@@ -114,24 +114,24 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
           </SettingsRow>
 
           <SettingsRow
-            heading="Destinations URLs"
-            description="Add additional destination URLs the partner can select"
+            heading="Link domains"
+            description="Add additional link domains the partner can select"
           >
             <div>
               <div className="flex flex-col gap-2">
                 {additionalLinks.length > 0 ? (
                   additionalLinks.map((link, index) => (
-                    <DestinationUrl key={index} link={link} />
+                    <LinkDomain key={index} link={link} />
                   ))
                 ) : (
                   <div className="border-border-subtle text-content-subtle flex h-16 items-center gap-3 rounded-xl border bg-white p-4 text-sm">
-                    No additional destination URLs
+                    No additional link domains
                   </div>
                 )}
               </div>
 
               <Button
-                text="Add destination URL"
+                text="Add link domain"
                 variant="primary"
                 className="mt-4 h-8 w-fit rounded-lg px-3"
                 onClick={() => setIsOpen(true)}
@@ -140,7 +140,7 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
                 }
                 disabledTooltip={
                   additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
-                    ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional destination URLs.`
+                    ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional link domains.`
                     : undefined
                 }
               />
@@ -207,7 +207,7 @@ function SettingsRow({
   );
 }
 
-function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
+function LinkDomain({ link }: { link: PartnerGroupAdditionalLink }) {
   const { group, mutateGroup } = useGroup();
   const [openPopover, setOpenPopover] = useState(false);
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
@@ -216,8 +216,8 @@ function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
     link,
   });
 
-  // Delete destination URL
-  const deleteDestinationUrl = async () => {
+  // Delete link domain
+  const deleteLinkDomain = async () => {
     if (!group) return;
 
     // Refresh group data first to ensure we have the latest state
@@ -225,7 +225,7 @@ function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
 
     const currentAdditionalLinks = group.additionalLinks || [];
     const updatedAdditionalLinks = currentAdditionalLinks.filter(
-      (existingLink) => existingLink.url !== link.url,
+      (existingLink) => existingLink.domain !== link.domain,
     );
 
     await updateGroup(`/api/groups/${group.id}`, {
@@ -236,19 +236,19 @@ function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
       onSuccess: async () => {
         await mutatePrefix("/api/groups");
         setOpenPopover(false);
-        toast.success("Destination URL deleted successfully!");
+        toast.success("Link domain deleted successfully!");
       },
       onError: () => {
-        toast.error("Failed to delete destination URL. Please try again.");
+        toast.error("Failed to delete link domain. Please try again.");
       },
     });
   };
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Delete destination URL",
-    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This action cannot be undone.`,
+    title: "Delete link domain",
+    description: `Are you sure you want to delete "${getPrettyUrl(link.domain)}"? This action cannot be undone.`,
     confirmText: "Delete",
-    onConfirm: deleteDestinationUrl,
+    onConfirm: deleteLinkDomain,
   });
 
   return (
@@ -264,9 +264,9 @@ function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
             </div>
             <div className="relative z-10 p-2">
-              {link.url ? (
+              {link.domain ? (
                 <LinkLogo
-                  apexDomain={getApexDomain(link.url)}
+                  apexDomain={getApexDomain(link.domain)}
                   className="size-4 sm:size-6"
                   imageProps={{
                     loading: "lazy",
@@ -278,7 +278,7 @@ function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
             </div>
           </div>
           <span className="text-content-default truncate text-sm font-semibold">
-            {getPrettyUrl(link.url)}
+            {getPrettyUrl(link.domain)}
           </span>
         </div>
 
