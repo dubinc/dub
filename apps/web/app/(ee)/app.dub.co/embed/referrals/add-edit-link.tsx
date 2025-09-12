@@ -57,7 +57,7 @@ export function ReferralsEmbedCreateUpdateLink({
     group.additionalLinks ?? [];
 
   const destinationDomains = useMemo(
-    () => additionalLinks.map((link) => getApexDomain(link.url)),
+    () => additionalLinks.map((link) => link.domain),
     [additionalLinks],
   );
 
@@ -67,10 +67,10 @@ export function ReferralsEmbedCreateUpdateLink({
 
   useEffect(() => {
     const additionalLink = additionalLinks.find(
-      (link) => getApexDomain(link.url) === destinationDomain,
+      (link) => link.domain === destinationDomain,
     );
 
-    setIsExactMode(additionalLink?.urlValidationMode === "exact");
+    setIsExactMode(additionalLink?.validationMode === "exact");
   }, [destinationDomain, additionalLinks]);
 
   const {
