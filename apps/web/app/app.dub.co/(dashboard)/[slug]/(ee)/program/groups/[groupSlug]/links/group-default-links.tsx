@@ -137,7 +137,7 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
           />
         </div>
 
-        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">
           <Popover
             content={
               <div className="grid w-48 grid-cols-1 gap-px p-2">
