@@ -10,6 +10,7 @@ export {
   FolderType,
   FolderUserRole,
   InvoiceStatus,
+  NotificationEmailType,
   PartnerBannedReason,
   PartnerLinkStructure,
   PartnerProfileType,

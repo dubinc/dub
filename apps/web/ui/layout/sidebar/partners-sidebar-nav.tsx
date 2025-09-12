@@ -3,6 +3,7 @@
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
+import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -15,6 +16,7 @@ import {
   Globe,
   GridIcon,
   MoneyBills2,
+  Msgs,
   ShieldCheck,
   SquareUserSparkle2,
   Trophy,
@@ -37,9 +39,13 @@ type SidebarNavData = {
   isUnapproved: boolean;
   invitationsCount?: number;
   programBountiesCount?: number;
+  unreadMessagesCount?: number;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
+  pathname,
+  unreadMessagesCount,
+}) => [
   {
     name: "Programs",
     description:
@@ -63,6 +69,14 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
     icon: SquareUserSparkle2,
     href: "/profile",
     active: pathname.startsWith("/profile"),
+  },
+  {
+    name: "Messages",
+    description: "Chat with programs you're enrolled in",
+    icon: Msgs,
+    href: "/messages",
+    active: pathname.startsWith("/messages"),
+    badge: unreadMessagesCount ? Math.min(9, unreadMessagesCount) : undefined,
   },
 ];
 
@@ -282,7 +296,7 @@ export function PartnersSidebarNav({
         ? "partnerSettings"
         : pathname.startsWith("/profile")
           ? "profile"
-          : pathname.startsWith("/payouts")
+          : pathname.startsWith("/payouts") || pathname.startsWith("/messages")
             ? null
             : isEnrolledProgramPage
               ? "program"
@@ -295,6 +309,13 @@ export function PartnersSidebarNav({
 
   const { bounties } = usePartnerProgramBounties({
     enabled: isEnrolledProgramPage,
+  });
+
+  const { count: unreadMessagesCount } = useProgramMessagesCount({
+    enabled: true,
+    query: {
+      unread: true,
+    },
   });
 
   return (
@@ -310,6 +331,7 @@ export function PartnersSidebarNav({
           !!programEnrollment && programEnrollment.status !== "approved",
         invitationsCount,
         programBountiesCount: bounties?.length,
+        unreadMessagesCount,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

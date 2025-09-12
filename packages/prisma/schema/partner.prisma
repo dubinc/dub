@@ -56,6 +56,8 @@ model Partner {
   payouts           Payout[]
   commissions       Commission[]
   bountySubmissions BountySubmission[]
+  messages          Message[]
+  sentMessages      Message[] @relation("SenderPartner")
 }
 
 model PartnerInvite {
@@ -92,8 +94,9 @@ model PartnerNotificationPreferences {
   id            String @id @default(cuid())
   partnerUserId String @unique
 
-  commissionCreated   Boolean @default(true)
-  applicationApproved Boolean @default(true)
+  commissionCreated     Boolean @default(true)
+  applicationApproved   Boolean @default(true)
+  newMessageFromProgram Boolean @default(true)
 
   partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
 }

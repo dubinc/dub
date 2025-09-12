@@ -73,6 +73,7 @@ model Program {
   bounties          Bounty[]
   bountySubmissions BountySubmission[]
   workflows         Workflow[]
+  messages          Message[]
 
   @@index(workspaceId)
   @@index(domain)

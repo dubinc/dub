@@ -11,6 +11,7 @@ export const GET = withWorkspace(async ({ workspace, session }) => {
       newPartnerSale: true,
       newPartnerApplication: true,
       newBountySubmitted: true,
+      newMessageFromPartner: true,
     },
     where: {
       projectUser: {
