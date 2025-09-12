@@ -175,8 +175,12 @@ function PartnerLinkModalContent({
   const [isLoading, setIsLoading] = useState(false);
   const [isExactMode, setIsExactMode] = useState(false);
 
-  const shortLinkDomain = programEnrollment?.program?.domain ?? "dub.sh";
-  const additionalLinks = programEnrollment?.group?.additionalLinks ?? [];
+  const { shortLinkDomain, additionalLinks } = useMemo(() => {
+    return {
+      shortLinkDomain: programEnrollment?.program?.domain ?? "dub.sh",
+      additionalLinks: programEnrollment?.group?.additionalLinks ?? [],
+    };
+  }, [programEnrollment]);
 
   const destinationDomains = useMemo(
     () => additionalLinks.map((link) => getApexDomain(link.url)),
@@ -232,10 +236,14 @@ function PartnerLinkModalContent({
     [isLoading, link, isDirty, destinationDomains],
   );
 
-  // If there is only one destination domain and we are in exact mode, hide the destination URL input
+  // we hide the destination URL input if:
+  // 1. the link is a partner group default link
+  // 2. there is only one destination domain and we are in exact mode
   const hideDestinationUrl = useMemo(
-    () => destinationDomains.length === 1 && isExactMode,
-    [destinationDomains.length, isExactMode],
+    () =>
+      link?.partnerGroupDefaultLinkId ||
+      (destinationDomains.length === 1 && isExactMode),
+    [destinationDomains.length, isExactMode, link?.partnerGroupDefaultLinkId],
   );
 
   const shortLink = useMemo(
