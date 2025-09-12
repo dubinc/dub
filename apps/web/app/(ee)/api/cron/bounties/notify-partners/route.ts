@@ -14,6 +14,10 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   bountyId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .optional()
+    .describe("Only notify the given partner ids."),
   page: z.number().optional().default(0),
 });
 
@@ -30,7 +34,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { bountyId, page } = schema.parse(JSON.parse(rawBody));
+    const { bountyId, partnerIds, page } = schema.parse(JSON.parse(rawBody));
 
     // Find bounty
     const bounty = await prisma.bounty.findUnique({
@@ -68,6 +72,11 @@ export async function POST(req: Request) {
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
         programId: bounty.programId,
+        ...(partnerIds && {
+          partnerId: {
+            in: partnerIds,
+          },
+        }),
         ...(groupIds.length > 0 && {
           groupId: {
             in: groupIds,
@@ -105,6 +114,7 @@ export async function POST(req: Request) {
     console.log(
       `Sending emails to ${programEnrollments.length} partners: ${programEnrollments.map(({ partner }) => partner.email).join(", ")}`,
     );
+
     await resend.batch.send(
       programEnrollments.map(({ partner }) => ({
         from: VARIANT_TO_FROM_MAP.notifications,

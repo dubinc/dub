@@ -3,10 +3,13 @@ import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
+import { getBountiesByGroup } from "../api/bounties/get-bounties-by-group";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { createPartnerLink } from "../api/partners/create-partner-link";
+import { qstash } from "../cron";
 import { recordLink } from "../tinybird/record-link";
 import { ProgramPartnerLinkProps, RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
@@ -171,6 +174,12 @@ export async function approvePartnerEnrollment({
         group?.saleReward,
       ].filter(Boolean) as RewardProps[];
 
+      // Find the bounties that are eligible for the group
+      const bountiesByGroupId = await getBountiesByGroup({
+        programId,
+        groupIds: [group.id],
+      });
+
       await Promise.allSettled([
         updatedLink ? recordLink(updatedLink) : Promise.resolve(null),
 
@@ -223,6 +232,17 @@ export async function approvePartnerEnrollment({
             },
           ],
         }),
+
+        ...(bountiesByGroupId[group.id] || []).map((bountyId) =>
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
+            body: {
+              bountyId,
+              partnerIds: [partner.id],
+            },
+            notBefore: Math.floor(new Date().getTime() / 1000) + 1 * 60 * 60, // 1 hour from now
+          }),
+        ),
       ]);
     })(),
   );
