@@ -90,8 +90,8 @@ export function BountyInfo() {
 
 function BountyInfoSkeleton() {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
-      <div className="relative flex size-20 shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3" />
+    <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start sm:gap-6">
+      <div className="relative flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3" />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         <div className="h-6 w-48 animate-pulse rounded-md bg-neutral-200" />
         <div className="flex items-center space-x-2">
@@ -102,6 +102,13 @@ function BountyInfoSkeleton() {
           <div className="size-4 animate-pulse rounded bg-neutral-200" />
           <div className="h-5 w-48 animate-pulse rounded bg-neutral-200" />
         </div>
+        <div className="flex items-center space-x-2">
+          <div className="size-4 animate-pulse rounded bg-neutral-200" />
+          <div className="h-5 w-40 animate-pulse rounded bg-neutral-200" />
+        </div>
+      </div>
+      <div className="flex items-start">
+        <div className="h-9 w-24 animate-pulse rounded-md bg-neutral-200" />
       </div>
     </div>
   );

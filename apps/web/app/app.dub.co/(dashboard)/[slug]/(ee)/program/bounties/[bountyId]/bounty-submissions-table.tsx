@@ -1,14 +1,11 @@
 "use client";
 
-import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useBounty from "@/lib/swr/use-bounty";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { useRejectBountySubmissionModal } from "@/ui/partners/reject-bounty-submission-modal";
@@ -28,7 +25,7 @@ import {
   useTable,
 } from "@dub/ui";
 import type { Icon } from "@dub/ui/icons";
-import { Check, Dots, MoneyBill2, User } from "@dub/ui/icons";
+import { Dots, MoneyBill2, User } from "@dub/ui/icons";
 import {
   capitalize,
   cn,
@@ -39,10 +36,8 @@ import {
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
@@ -283,9 +278,7 @@ export function BountySubmissionsTable() {
         minSize: 43,
         size: 43,
         maxSize: 43,
-        cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
-        ),
+        cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
     [
@@ -406,81 +399,30 @@ export function BountySubmissionsTable() {
   );
 }
 
-function RowMenuButton({
-  row,
-  workspaceId,
-}: {
-  row: Row<BountySubmissionProps>;
-  workspaceId: string;
-}) {
+function RowMenuButton({ row }: { row: Row<BountySubmissionProps> }) {
   const router = useRouter();
-  const { slug, bountyId } = useParams();
+  const { slug } = useParams();
   const [isOpen, setIsOpen] = useState(false);
 
   const { setShowRejectModal, RejectBountySubmissionModal } =
     useRejectBountySubmissionModal(row.original.submission);
 
-  const { executeAsync: approveBountySubmission } = useAction(
-    approveBountySubmissionAction,
-    {
-      onSuccess: async () => {
-        toast.success("Bounty submission approved successfully!");
-        setIsOpen(false);
-        await mutatePrefix("/api/bounties");
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
-    },
-  );
-
-  const {
-    setShowConfirmModal: setShowApproveBountySubmissionModal,
-    confirmModal: approveBountySubmissionModal,
-  } = useConfirmModal({
-    title: "Approve Bounty Submission",
-    description: "Are you sure you want to approve this bounty submission?",
-    confirmText: "Approve",
-    onConfirm: async () => {
-      if (!workspaceId || !row.original.submission?.id) {
-        return;
-      }
-
-      await approveBountySubmission({
-        workspaceId,
-        submissionId: row.original.submission.id,
-      });
-    },
-  });
-
   const submission = row.original.submission;
   const commission = row.original.commission;
 
-  if (submission?.status !== "pending" || !commission) {
+  if (submission?.status !== "pending" && !commission) {
     return null;
   }
 
   return (
     <>
       <RejectBountySubmissionModal />
-      {approveBountySubmissionModal}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              {submission?.status === "pending" && (
-                <MenuItem
-                  icon={Check}
-                  label="Accept bounty"
-                  onSelect={() => {
-                    setShowApproveBountySubmissionModal(true);
-                    setIsOpen(false);
-                  }}
-                />
-              )}
-
               {submission?.status === "pending" && (
                 <MenuItem
                   icon={X}

@@ -9,6 +9,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { useRejectBountySubmissionModal } from "@/ui/partners/reject-bounty-submission-modal";
 import { ButtonLink } from "@/ui/placeholders/button-link";
+import { AmountInput } from "@/ui/shared/amount-input";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
@@ -19,7 +20,7 @@ import {
 } from "@dub/ui";
 import { currencyFormatter, formatDate } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 
@@ -37,6 +38,8 @@ function BountySubmissionDetailsSheetContent({
 
   const { setShowRejectModal, RejectBountySubmissionModal } =
     useRejectBountySubmissionModal(submission);
+
+  const [rewardAmount, setRewardAmount] = useState<number | null>(null);
 
   const {
     executeAsync: approveBountySubmission,
@@ -67,6 +70,7 @@ function BountySubmissionDetailsSheetContent({
       await approveBountySubmission({
         workspaceId,
         submissionId: submission.id,
+        rewardAmount: rewardAmount ? rewardAmount * 100 : null,
       });
     },
   });
@@ -74,6 +78,18 @@ function BountySubmissionDetailsSheetContent({
   if (!submission || !partner) {
     return null;
   }
+
+  const isValidForm = useMemo(() => {
+    if (bounty?.rewardAmount) {
+      return true;
+    }
+
+    if (!rewardAmount) {
+      return false;
+    }
+
+    return true;
+  }, [bounty, rewardAmount]);
 
   return (
     <div className="flex h-full flex-col">
@@ -244,28 +260,51 @@ function BountySubmissionDetailsSheetContent({
               <Button variant="secondary" text="View commissions" />
             </a>
           ) : (
-            <>
-              <Button
-                type="button"
-                variant="danger"
-                text="Reject"
-                disabledTooltip={
-                  submission.status === "rejected"
-                    ? "Bounty submission already rejected."
-                    : undefined
-                }
-                disabled={isApprovingBountySubmission}
-                onClick={() => setShowRejectModal(true)}
-              />
+            <div className="flex w-full flex-col gap-4">
+              {!bounty?.rewardAmount && (
+                <div>
+                  <label className="text-sm font-medium text-neutral-800">
+                    Reward
+                  </label>
+                  <div className="mt-2">
+                    <AmountInput
+                      required
+                      amountType="flat"
+                      placeholder="0"
+                      value={rewardAmount || ""}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setRewardAmount(val === "" ? null : parseFloat(val));
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
 
-              <Button
-                type="submit"
-                variant="primary"
-                text="Approve"
-                loading={isApprovingBountySubmission}
-                onClick={() => setShowApproveBountySubmissionModal(true)}
-              />
-            </>
+              <div className="flex w-full gap-4">
+                <Button
+                  type="button"
+                  variant="danger"
+                  text="Reject"
+                  disabledTooltip={
+                    submission.status === "rejected"
+                      ? "Bounty submission already rejected."
+                      : undefined
+                  }
+                  disabled={isApprovingBountySubmission}
+                  onClick={() => setShowRejectModal(true)}
+                />
+
+                <Button
+                  type="submit"
+                  variant="primary"
+                  text="Approve"
+                  loading={isApprovingBountySubmission}
+                  onClick={() => setShowApproveBountySubmissionModal(true)}
+                  disabled={!isValidForm}
+                />
+              </div>
+            </div>
           )}
         </div>
       </div>

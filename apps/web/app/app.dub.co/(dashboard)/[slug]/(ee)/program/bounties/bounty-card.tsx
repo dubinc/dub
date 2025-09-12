@@ -72,7 +72,7 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
           </div>
 
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-            <Gift className="size-3.5" />
+            <Gift className="size-3.5 shrink-0" />
             <span className="truncate">
               {getBountyRewardDescription(bounty)}
             </span>
