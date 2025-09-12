@@ -75,10 +75,6 @@ function BountySubmissionDetailsSheetContent({
     },
   });
 
-  if (!submission || !partner) {
-    return null;
-  }
-
   const isValidForm = useMemo(() => {
     if (bounty?.rewardAmount) {
       return true;
@@ -90,6 +86,10 @@ function BountySubmissionDetailsSheetContent({
 
     return true;
   }, [bounty, rewardAmount]);
+
+  if (!submission || !partner) {
+    return null;
+  }
 
   return (
     <div className="flex h-full flex-col">
