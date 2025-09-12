@@ -30,13 +30,6 @@ export const PATCH = withWorkspace(
         id,
         projectId: workspace.id,
       },
-      include: {
-        partnerGroup: {
-          include: {
-            partnerGroupDefaultLinks: true,
-          },
-        },
-      },
     });
 
     if (!template) {
@@ -47,7 +40,7 @@ export const PATCH = withWorkspace(
     }
 
     try {
-      const templateUpdated = await prisma.utmTemplate.update({
+      const updatedTemplate = await prisma.utmTemplate.update({
         where: {
           id,
           projectId: workspace.id,
@@ -61,18 +54,25 @@ export const PATCH = withWorkspace(
           utm_content,
           ref,
         },
+        include: {
+          partnerGroup: {
+            include: {
+              partnerGroupDefaultLinks: true,
+            },
+          },
+        },
       });
 
       const utmFieldsChanged = !deepEqual(
-        extractUtmParams(templateUpdated),
+        extractUtmParams(updatedTemplate),
         extractUtmParams(template),
       );
 
-      if (template.partnerGroup && utmFieldsChanged) {
+      if (utmFieldsChanged && updatedTemplate.partnerGroup) {
         waitUntil(
           (async () => {
             const defaultLinks =
-              template.partnerGroup?.partnerGroupDefaultLinks;
+              updatedTemplate.partnerGroup?.partnerGroupDefaultLinks;
 
             if (defaultLinks && defaultLinks.length > 0) {
               for (const defaultLink of defaultLinks) {
@@ -83,7 +83,7 @@ export const PATCH = withWorkspace(
                   data: {
                     url: constructURLFromUTMParams(
                       defaultLink.url,
-                      extractUtmParams(templateUpdated),
+                      extractUtmParams(updatedTemplate),
                     ),
                   },
                 });
@@ -106,7 +106,7 @@ export const PATCH = withWorkspace(
         );
       }
 
-      return NextResponse.json(templateUpdated);
+      return NextResponse.json(updatedTemplate);
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
