@@ -25,7 +25,6 @@ const resendEmailForOptions = (opts: ResendEmailOptions) => {
     text,
     react,
     scheduledAt,
-    variant,
     ...(variant === "marketing"
       ? {
         headers: {
