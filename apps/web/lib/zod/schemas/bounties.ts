@@ -45,6 +45,7 @@ export const createBountySchema = z.object({
     .string()
     .trim()
     .max(100, "Reward description must be less than 100 characters")
+    .transform((v) => (v === "" ? null : v))
     .nullish(),
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
