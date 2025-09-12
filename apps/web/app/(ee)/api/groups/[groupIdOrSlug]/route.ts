@@ -271,13 +271,6 @@ export const DELETE = withWorkspace(
             userId: session.user.id,
           },
         }),
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          body: {
-            groupId: defaultGroup.id,
-            partnerIds: group.partners.map(({ partnerId }) => partnerId),
-          },
-        }),
 
         recordAuditLog({
           workspaceId: workspace.id,

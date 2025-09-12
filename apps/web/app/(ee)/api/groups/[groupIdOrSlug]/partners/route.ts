@@ -55,24 +55,15 @@ export const POST = withWorkspace(
 
     if (count > 0) {
       waitUntil(
-        Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-            body: {
-              programId,
-              groupId: group.id,
-              partnerIds,
-              userId: session.user.id,
-            },
-          }),
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-            body: {
-              groupId: group.id,
-              partnerIds,
-            },
-          }),
-        ]),
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+          body: {
+            programId,
+            groupId: group.id,
+            partnerIds,
+            userId: session.user.id,
+          },
+        }),
       );
     }
 
