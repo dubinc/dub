@@ -1,0 +1,25 @@
+"use server";
+
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { prisma } from "@dub/prisma";
+import { deleteProgramPartnerCommentSchema } from "../../zod/schemas/programs";
+import { authActionClient } from "../safe-action";
+
+// Delete a partner comment
+export const deletePartnerCommentAction = authActionClient
+  .schema(deleteProgramPartnerCommentSchema)
+  .action(async ({ parsedInput, ctx }) => {
+    const { workspace } = ctx;
+    const { commentId } = parsedInput;
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    await prisma.programPartnerComment.delete({
+      where: {
+        id: commentId,
+        programEnrollment: {
+          programId,
+        },
+      },
+    });
+  });
