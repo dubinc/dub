@@ -13,6 +13,10 @@ export async function getBountiesByGroup({
   const now = new Date();
   const targetGroupIds = [...new Set(groupIds)];
 
+  if (targetGroupIds.length === 0) {
+    return {};
+  }
+
   const bounties = await prisma.bounty.findMany({
     where: {
       programId,
