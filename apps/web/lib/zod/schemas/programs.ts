@@ -5,6 +5,7 @@ import {
 import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
 import {
   PartnerBannedReason,
+  PartnerLinkStructure,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
 import { z } from "zod";
@@ -28,6 +29,7 @@ export const ProgramSchema = z.object({
   cookieLength: z.number(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
+  linkStructure: z.nativeEnum(PartnerLinkStructure),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
