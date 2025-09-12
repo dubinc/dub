@@ -3,11 +3,11 @@ import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { UtmTemplate } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
@@ -68,16 +68,14 @@ export const POST = withPartnerProfile(
 
     validatePartnerLinkUrl({ group, url });
 
-    // Find the UTM template for the group
-    let utmTemplate: UtmTemplate | null = null;
-
-    if (group.utmTemplateId) {
-      utmTemplate = await prisma.utmTemplate.findUnique({
-        where: {
-          id: group.utmTemplateId,
-        },
-      });
-    }
+    // check if the group has a UTM template
+    const groupUtmTemplate = group.utmTemplateId
+      ? await prisma.utmTemplate.findUnique({
+          where: {
+            id: group.utmTemplateId,
+          },
+        })
+      : null;
 
     const { link, error, code } = await processLink({
       payload: {
@@ -90,12 +88,7 @@ export const POST = withPartnerProfile(
         folderId: program.defaultFolderId,
         comments,
         trackConversion: true,
-        utm_source: utmTemplate?.utm_source,
-        utm_medium: utmTemplate?.utm_medium,
-        utm_campaign: utmTemplate?.utm_campaign,
-        utm_term: utmTemplate?.utm_term,
-        utm_content: utmTemplate?.utm_content,
-        ref: utmTemplate?.ref,
+        ...(groupUtmTemplate ? extractUtmParams(groupUtmTemplate) : {}),
       },
       workspace: {
         id: program.workspaceId,

@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
@@ -164,12 +165,3 @@ export const DELETE = withWorkspace(
     requiredPermissions: ["links.write"],
   },
 );
-
-const extractUtmParams = (input: any) => ({
-  utm_source: input.utm_source,
-  utm_medium: input.utm_medium,
-  utm_campaign: input.utm_campaign,
-  utm_term: input.utm_term,
-  utm_content: input.utm_content,
-  ref: input.ref,
-});
