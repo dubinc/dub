@@ -88,8 +88,17 @@ const partnersColumns = {
   ],
 };
 
+const getPartnerUrl = ({
+  workspaceSlug,
+  id,
+}: {
+  workspaceSlug: string;
+  id: string;
+}) => `/${workspaceSlug}/program/partners/${id}`;
+
 export function PartnersTable() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const router = useRouter();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const sortBy = searchParams.get("sortBy") || "saleAmount";
@@ -286,14 +295,27 @@ export function PartnersTable() {
   const { table, ...tableProps } = useTable({
     data: partners || [],
     columns,
-    onRowClick: (row) => {
-      queryParams({
-        set: {
-          partnerId: row.original.id,
-        },
-        scroll: false,
+    onRowClick: (row, e) => {
+      const url = getPartnerUrl({
+        workspaceSlug: workspaceSlug!,
+        id: row.original.id,
       });
+
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
     },
+    onRowAuxClick: (row) =>
+      window.open(
+        getPartnerUrl({ workspaceSlug: workspaceSlug!, id: row.original.id }),
+        "_blank",
+      ),
+    rowProps: (row) => ({
+      onPointerEnter: () => {
+        router.prefetch(
+          getPartnerUrl({ workspaceSlug: workspaceSlug!, id: row.original.id }),
+        );
+      },
+    }),
     pagination,
     onPaginationChange: setPagination,
     columnVisibility,
