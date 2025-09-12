@@ -90,7 +90,7 @@ export const createPartnerCommission = async ({
     if (event === "click") {
       earnings = reward.amount * quantity;
 
-      // for lead and sale events, we need to check the first time this partner-customer combination was recorded (for deduplication)
+      // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
       // for sale rewards specifically, we also need to check:
       // 1. if the partner has reached the max duration for the reward (if applicable)
       // 2. if the previous commission were marked as fraud or canceled
@@ -194,37 +194,6 @@ export const createPartnerCommission = async ({
           sale: { quantity, amount },
         });
       }
-    }
-
-    // handle rewards with max reward amount limit
-    if (reward.maxAmount) {
-      const totalRewards = await prisma.commission.aggregate({
-        where: {
-          earnings: {
-            gt: 0,
-          },
-          programId,
-          partnerId,
-          status: {
-            in: ["pending", "processed", "paid"],
-          },
-          type: event,
-        },
-        _sum: {
-          earnings: true,
-        },
-      });
-
-      const totalEarnings = totalRewards._sum.earnings || 0;
-      if (totalEarnings >= reward.maxAmount) {
-        console.log(
-          `Partner ${partnerId} has reached max reward amount for ${event} event, skipping commission creation...`,
-        );
-        return;
-      }
-
-      const remainingRewardAmount = reward.maxAmount - totalEarnings;
-      earnings = Math.max(0, Math.min(earnings, remainingRewardAmount));
     }
   }
 
