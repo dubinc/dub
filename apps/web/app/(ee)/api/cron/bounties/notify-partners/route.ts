@@ -112,7 +112,7 @@ export async function POST(req: Request) {
     }
 
     console.log(
-      `Sending emails to ${programEnrollments.length} partners: ${programEnrollments.map(({ partner }) => partner.email).join(", ")}`,
+      `Sending emails to ${programEnrollments.length} partners for bounty ${bountyId}.`,
     );
 
     await resend.batch.send(
