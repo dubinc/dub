@@ -17,12 +17,6 @@ enum PartnerBannedReason {
   brand_abuse
 }
 
-enum PartnerLinkStructure {
-  short
-  query
-  path
-}
-
 enum PartnerUrlValidationMode {
   domain // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
   exact // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)

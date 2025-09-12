@@ -1,8 +1,14 @@
 "use client";
 
-import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
+import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
+import useGroup from "@/lib/swr/use-group";
 import { ProgramWithLanderDataProps } from "@/lib/types";
-import { OG_AVATAR_URL, PARTNERS_DOMAIN, truncate } from "@dub/utils";
+import {
+  getPrettyUrl,
+  OG_AVATAR_URL,
+  PARTNERS_DOMAIN,
+  truncate,
+} from "@dub/utils";
 import { CSSProperties, useId } from "react";
 import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
@@ -14,17 +20,23 @@ export function PortalPreview({
   program: ProgramWithLanderDataProps;
 }) {
   const id = useId();
-
   const { getValues } = useBrandingFormContext();
   const { brandColor, logo } = {
     ...useWatch(),
     ...getValues(),
   };
 
-  const partnerLink = getLinkStructureOptions({
-    domain: program.domain,
-    url: program.url,
-  }).find(({ id }) => id === program.linkStructure)?.example;
+  const { group } = useGroup({ slug: "default" });
+  const partnerLink = getPrettyUrl(
+    constructPartnerLink({
+      group,
+      link: {
+        key: "partner",
+        url: program.url ?? "",
+        shortLink: `https://${program.domain}/partner`,
+      },
+    }),
+  );
 
   return (
     <div className="scrollbar-hide -mx-2 h-full w-auto overflow-y-auto px-2 pb-4">
