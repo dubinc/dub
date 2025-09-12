@@ -110,9 +110,8 @@ export function ReferralsEmbedPageClient({
   const partnerLink =
     links.length > 0
       ? constructPartnerLink({
-          program,
           group,
-          linkKey: links[0].key,
+          link: links[0],
         })
       : undefined;
 
@@ -179,11 +178,8 @@ export function ReferralsEmbedPageClient({
             )}
           </div>
 
-          {partnerLink && program.linkStructure === "query" && (
-            <QueryLinkStructureHelpText
-              program={program}
-              linkKey={links[0].key}
-            />
+          {partnerLink && group.linkStructure === "query" && (
+            <QueryLinkStructureHelpText link={links[0]} />
           )}
 
           <div className="mt-12 sm:max-w-[50%]">

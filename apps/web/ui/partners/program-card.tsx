@@ -59,9 +59,8 @@ export function ProgramCard({
             <span className="text-sm font-medium">
               {getPrettyUrl(
                 constructPartnerLink({
-                  program,
                   group,
-                  linkKey: defaultLink?.key,
+                  link: defaultLink,
                 }),
               )}
             </span>
