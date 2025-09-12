@@ -28,7 +28,7 @@ const resendEmailForOptions = (opts: ResendEmailOptions) => {
     ...(variant === "marketing"
       ? {
         headers: {
-          ...headers,
+          ...(headers || {}),
           "List-Unsubscribe": "https://app.dub.co/account/settings",
         },
       }
