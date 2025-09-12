@@ -1,5 +1,6 @@
 "use client";
 
+import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import useBounty from "@/lib/swr/use-bounty";
 import {
   SubmissionsCountByStatus,
@@ -7,7 +8,7 @@ import {
 } from "@/lib/swr/use-bounty-submissions-count";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
-import { CalendarDays, Users } from "lucide-react";
+import { CalendarDays, Gift, Users } from "lucide-react";
 import { useMemo } from "react";
 import { BountyActionButton } from "../bounty-action-button";
 
@@ -33,8 +34,8 @@ export function BountyInfo() {
   }
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:gap-6">
-      <div className="relative flex size-20 shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3">
+    <div className="flex flex-col items-center gap-3 sm:flex-row sm:items-start sm:gap-6">
+      <div className="relative flex h-[100px] w-[100px] shrink-0 items-center justify-center rounded-lg bg-neutral-100 p-3">
         <BountyThumbnailImage bounty={bounty} />
       </div>
 
@@ -51,6 +52,13 @@ export function BountyInfo() {
             {bounty.endsAt
               ? formatDate(bounty.endsAt, { month: "short" })
               : "No end date"}
+          </span>
+        </div>
+
+        <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+          <Gift className="size-4 shrink-0" />
+          <span className="text-ellipsis">
+            {getBountyRewardDescription(bounty)}
           </span>
         </div>
 

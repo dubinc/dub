@@ -29,6 +29,7 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
+  ToggleGroup,
   useRouterStuff,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -64,12 +65,26 @@ const BOUNTY_TYPES: CardSelectorOption[] = [
   },
 ];
 
+// Only valid for submission bounties
+const REWARD_TYPES = [
+  {
+    value: "flat",
+    label: "Flat rate",
+  },
+  {
+    value: "custom",
+    label: "Custom",
+  },
+];
+
 const ACCORDION_ITEMS = [
   "bounty-type",
   "bounty-details",
   "submission-requirements",
   "groups",
 ];
+
+type RewardType = "flat" | "custom";
 
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { id: workspaceId } = useWorkspace();
@@ -84,6 +99,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     bounty?.submissionRequirements?.includes("url") || false,
   );
 
+  const [rewardType, setRewardType] = useState<RewardType>(
+    bounty ? (bounty.rewardAmount ? "flat" : "custom") : "flat",
+  );
+
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
   const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
 
@@ -96,6 +115,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       rewardAmount: bounty?.rewardAmount
         ? bounty.rewardAmount / 100
         : undefined,
+      rewardDescription: bounty?.rewardDescription || undefined,
       type: bounty?.type || "performance",
       submissionRequirements: bounty?.submissionRequirements || null,
       groupIds: bounty?.groups?.map(({ id }) => id) || null,
@@ -125,6 +145,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     startsAt,
     endsAt,
     rewardAmount,
+    rewardDescription,
     type,
     name,
     description,
@@ -133,11 +154,11 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "startsAt",
     "endsAt",
     "rewardAmount",
+    "rewardDescription",
     "type",
     "name",
     "description",
     "performanceCondition",
-    "groupIds",
   ]);
 
   // Make sure endsAt is null if hasEndDate is false
@@ -179,7 +200,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   // Decide if the submit button should be disabled
   const shouldDisableSubmit = useMemo(() => {
-    if (!startsAt || !rewardAmount) {
+    if (!startsAt) {
       return true;
     }
 
@@ -187,17 +208,32 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       return true;
     }
 
-    if (type === "submission" && !name?.trim()) {
-      return true;
+    if (type === "submission") {
+      if (!name?.trim()) {
+        return true;
+      }
+
+      if (rewardType === "flat" && !rewardAmount) {
+        return true;
+      }
+
+      if (rewardType === "custom" && !rewardDescription) {
+        return true;
+      }
     }
 
-    if (
-      type === "performance" &&
-      ["attribute", "operator", "value"].some(
-        (key) => performanceCondition?.[key] === undefined,
-      )
-    ) {
-      return true;
+    if (type === "performance") {
+      if (
+        ["attribute", "operator", "value"].some(
+          (key) => performanceCondition?.[key] === undefined,
+        )
+      ) {
+        return true;
+      }
+
+      if (!rewardAmount) {
+        return true;
+      }
     }
 
     return false;
@@ -205,6 +241,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     startsAt,
     endsAt,
     rewardAmount,
+    rewardDescription,
     type,
     name,
     performanceCondition?.attribute,
@@ -214,10 +251,11 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   // Handle actual form submission (called after confirmation)
   const performSubmit = async () => {
-    const data = form.getValues();
     if (!workspaceId) return;
 
-    data.rewardAmount = data.rewardAmount * 100;
+    const data = form.getValues();
+
+    data.rewardAmount = data.rewardAmount ? data.rewardAmount * 100 : null;
 
     // Parse performance logic
     if (data.type === "performance") {
@@ -233,17 +271,25 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       }
 
       let { data: condition } = result;
-      const isCurrency = isCurrencyAttribute(condition.attribute);
 
       // Format the value to be in cents if it's a currency attribute
       condition = {
         ...condition,
-        value: isCurrency ? condition.value * 100 : condition.value,
+        value: isCurrencyAttribute(condition.attribute)
+          ? condition.value * 100
+          : condition.value,
       };
 
       data.performanceCondition = condition;
+      data.rewardDescription = null;
     } else if (type === "submission") {
       data.performanceCondition = null;
+
+      if (rewardType === "custom") {
+        data.rewardAmount = null;
+      } else if (rewardType === "flat") {
+        data.rewardDescription = null;
+      }
     }
 
     await makeRequest(bounty ? `/api/bounties/${bounty.id}` : "/api/bounties", {
@@ -388,73 +434,119 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       )}
                     </AnimatedSizeContainer>
 
-                    <div>
-                      <label
-                        htmlFor="rewardAmount"
-                        className="text-sm font-medium text-neutral-800"
-                      >
-                        Reward
-                      </label>
-                      <div className="mt-2">
-                        <Controller
-                          name="rewardAmount"
-                          control={control}
-                          rules={{
-                            required: true,
-                            min: 0,
-                          }}
-                          render={({ field }) => (
-                            <AmountInput
-                              {...field}
-                              id="rewardAmount"
-                              amountType="flat"
-                              placeholder="200"
-                              error={errors.rewardAmount?.message}
-                              value={
-                                field.value == null || isNaN(field.value)
-                                  ? ""
-                                  : field.value
-                              }
-                              onChange={(e) => {
-                                const val = e.target.value;
-
-                                field.onChange(
-                                  val === "" ? null : parseFloat(val),
-                                );
-                              }}
-                            />
-                          )}
-                        />
-                      </div>
-                    </div>
-
                     {type === "submission" && (
+                      <>
+                        <div>
+                          <label
+                            htmlFor="name"
+                            className="text-sm font-medium text-neutral-800"
+                          >
+                            Name
+                          </label>
+                          <div className="mt-2">
+                            <input
+                              id="name"
+                              type="text"
+                              maxLength={100}
+                              className={cn(
+                                "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                                errors.name &&
+                                  "border-red-600 focus:border-red-500 focus:ring-red-600",
+                              )}
+                              placeholder={`Create a YouTube video about${program?.name ? ` ${program.name}` : ""}...`}
+                              {...register("name", {
+                                setValueAs: (value) =>
+                                  value === "" ? null : value,
+                              })}
+                            />
+                            <div className="mt-1 text-left">
+                              <span className="text-xs text-neutral-400">
+                                {name?.length || 0}/100
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <ToggleGroup
+                          className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-100 p-1"
+                          optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
+                          indicatorClassName="bg-white border-none rounded-md"
+                          options={REWARD_TYPES}
+                          selected={rewardType}
+                          selectAction={(id: RewardType) => setRewardType(id)}
+                        />
+                      </>
+                    )}
+
+                    {(rewardType === "flat" || type === "performance") && (
                       <div>
                         <label
-                          htmlFor="name"
+                          htmlFor="rewardAmount"
                           className="text-sm font-medium text-neutral-800"
                         >
-                          Name
+                          Reward
+                        </label>
+                        <div className="mt-2">
+                          <Controller
+                            name="rewardAmount"
+                            control={control}
+                            rules={{
+                              required: true,
+                              min: 0,
+                            }}
+                            render={({ field }) => (
+                              <AmountInput
+                                {...field}
+                                id="rewardAmount"
+                                amountType="flat"
+                                placeholder="200"
+                                error={errors.rewardAmount?.message}
+                                value={
+                                  field.value == null || isNaN(field.value)
+                                    ? ""
+                                    : field.value
+                                }
+                                onChange={(e) => {
+                                  const val = e.target.value;
+
+                                  field.onChange(
+                                    val === "" ? null : parseFloat(val),
+                                  );
+                                }}
+                              />
+                            )}
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {rewardType === "custom" && type === "submission" && (
+                      <div>
+                        <label
+                          htmlFor="rewardDescription"
+                          className="text-sm font-medium text-neutral-800"
+                        >
+                          Reward
                         </label>
                         <div className="mt-2">
                           <input
-                            id="name"
+                            id="rewardDescription"
                             type="text"
                             maxLength={100}
                             className={cn(
                               "block w-full rounded-md border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                              errors.name &&
+                              errors.rewardDescription &&
                                 "border-red-600 focus:border-red-500 focus:ring-red-600",
                             )}
-                            placeholder={`Create a YouTube video about${program?.name ? ` ${program.name}` : ""}...`}
-                            {...register("name", {
+                            placeholder="Earn an additional 10% if you hit your revenue goal"
+                            {...register("rewardDescription", {
                               setValueAs: (value) =>
                                 value === "" ? null : value,
                             })}
                           />
                           <div className="mt-1 text-left">
                             <span className="text-xs text-neutral-400">
-                              {name?.length || 0}/100
+                              {rewardDescription?.length || 0}/100
                             </span>
                           </div>
                         </div>
@@ -503,6 +595,15 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         </div>
                       </div>
                     </div>
+
+                    {rewardType === "custom" && (
+                      <div className="gap-4 rounded-lg bg-orange-50 px-4 py-2.5 text-center">
+                        <span className="text-sm font-medium leading-5 text-orange-800">
+                          When reviewing these submissions, a custom reward
+                          amount will be required to approve.
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </ProgramSheetAccordionContent>
               </ProgramSheetAccordionItem>

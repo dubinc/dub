@@ -57,6 +57,7 @@ export const PATCH = withWorkspace(
       startsAt,
       endsAt,
       rewardAmount,
+      rewardDescription,
       submissionRequirements,
       performanceCondition,
       groupIds,
@@ -96,23 +97,27 @@ export const PATCH = withWorkspace(
       });
     }
 
+    // Bounty name
+    let bountyName = name;
+
+    if (bounty.type === "performance" && performanceCondition) {
+      bountyName = generateBountyName({
+        condition: performanceCondition,
+      });
+    }
+
     const data = await prisma.$transaction(async (tx) => {
       const updatedBounty = await tx.bounty.update({
         where: {
           id: bounty.id,
         },
         data: {
-          name:
-            bounty.type === "performance" && rewardAmount
-              ? generateBountyName({
-                  rewardAmount,
-                  condition: performanceCondition,
-                })
-              : name ?? undefined,
+          name: bountyName ?? undefined,
           description,
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
           rewardAmount,
+          rewardDescription,
           ...(bounty.type === "submission" &&
             submissionRequirements !== undefined && {
               submissionRequirements: submissionRequirements ?? Prisma.DbNull,

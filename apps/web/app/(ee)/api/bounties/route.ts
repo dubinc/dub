@@ -79,6 +79,7 @@ export const POST = withWorkspace(
       description,
       type,
       rewardAmount,
+      rewardDescription,
       startsAt,
       endsAt,
       submissionRequirements,
@@ -98,12 +99,21 @@ export const POST = withWorkspace(
       groupIds,
     });
 
-    const bountyName =
-      name ??
-      generateBountyName({
-        rewardAmount,
+    // Bounty name
+    let bountyName = name;
+
+    if (type === "performance" && performanceCondition) {
+      bountyName = generateBountyName({
         condition: performanceCondition,
       });
+    }
+
+    if (!bountyName) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Bounty name is required",
+      });
+    }
 
     const bounty = await prisma.$transaction(async (tx) => {
       let workflow: Workflow | null = null;
@@ -142,6 +152,7 @@ export const POST = withWorkspace(
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
           rewardAmount,
+          rewardDescription,
           ...(submissionRequirements &&
             type === "submission" && {
               submissionRequirements,
