@@ -1,9 +1,10 @@
+import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { PartnerBountyProps } from "@/lib/types";
 import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
 import { StatusBadge } from "@dub/ui";
-import { Calendar6 } from "@dub/ui/icons";
+import { Calendar6, Gift } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 
 export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
@@ -41,6 +42,13 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
               ) : (
                 "No end date"
               )}
+            </span>
+          </div>
+
+          <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+            <Gift className="size-3.5 shrink-0" />
+            <span className="truncate">
+              {getBountyRewardDescription(bounty)}
             </span>
           </div>
         </div>

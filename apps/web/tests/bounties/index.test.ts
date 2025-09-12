@@ -75,6 +75,31 @@ describe.sequential("/bounties/**", async () => {
     bountyId = bounty.id;
   });
 
+  test("POST /bounties - submission based with rewardDescription", async () => {
+    const { status, data: bounty } = await http.post<Bounty>({
+      path: "/bounties",
+      body: {
+        ...submissionBounty,
+        startsAt,
+        groupIds: [BOUNTY_GROUP_ID],
+        rewardAmount: null,
+        rewardDescription: "some reward description",
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(bounty).toMatchObject({
+      id: expect.any(String),
+      ...submissionBounty,
+      rewardAmount: null,
+      rewardDescription: "some reward description",
+    });
+
+    onTestFinished(async () => {
+      await h.deleteBounty(bounty.id);
+    });
+  });
+
   test("POST /bounties - invalid group IDs", async () => {
     const { status, data } = await http.post({
       path: "/bounties",

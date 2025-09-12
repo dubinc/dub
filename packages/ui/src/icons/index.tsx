@@ -30,12 +30,12 @@ export * from "./loading-spinner";
 
 // brand logos
 export * from "./anthropic";
-export * from "./openai";
 export * from "./facebook";
 export * from "./github";
 export * from "./google";
 export * from "./instagram";
 export * from "./linkedin";
+export * from "./openai";
 export * from "./product-hunt";
 export * from "./slack";
 export * from "./tiktok";

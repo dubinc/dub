@@ -1,8 +1,9 @@
+import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyListProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
-import { Calendar6, Users } from "@dub/ui/icons";
+import { Calendar6, Gift, Users } from "@dub/ui/icons";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -67,6 +68,13 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
                   {formatDate(bounty.endsAt, { month: "short" })}
                 </>
               )}
+            </span>
+          </div>
+
+          <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+            <Gift className="size-3.5 shrink-0" />
+            <span className="truncate">
+              {getBountyRewardDescription(bounty)}
             </span>
           </div>
 

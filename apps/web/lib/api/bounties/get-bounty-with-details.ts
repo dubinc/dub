@@ -17,6 +17,7 @@ export const getBountyWithDetails = async ({
       b.startsAt,
       b.endsAt,
       b.rewardAmount,
+      b.rewardDescription,
       b.submissionRequirements,
       wf.triggerConditions,
 
@@ -92,6 +93,7 @@ export const getBountyWithDetails = async ({
     startsAt: bounty.startsAt,
     endsAt: bounty.endsAt,
     rewardAmount: bounty.rewardAmount,
+    rewardDescription: bounty.rewardDescription,
     submissionRequirements: bounty.submissionRequirements,
     performanceCondition,
     groups: bounty.groups.filter((group) => group !== null) ?? [],

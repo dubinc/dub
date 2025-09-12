@@ -37,7 +37,16 @@ export const createBountySchema = z.object({
   type: z.nativeEnum(BountyType),
   startsAt: parseDateSchema,
   endsAt: parseDateSchema.nullish(),
-  rewardAmount: z.number().min(1, "Reward amount must be greater than 1"),
+  rewardAmount: z
+    .number()
+    .min(1, "Reward amount must be greater than 1")
+    .nullable(),
+  rewardDescription: z
+    .string()
+    .trim()
+    .max(100, "Reward description must be less than 100 characters")
+    .transform((v) => (v === "" ? null : v))
+    .nullish(),
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: workflowConditionSchema.nullish(),
@@ -63,7 +72,8 @@ export const BountySchema = z.object({
   type: z.nativeEnum(BountyType),
   startsAt: z.date(),
   endsAt: z.date().nullable(),
-  rewardAmount: z.number(),
+  rewardAmount: z.number().nullable(),
+  rewardDescription: z.string().nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),

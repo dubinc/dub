@@ -40,6 +40,11 @@ export const executeAwardBountyAction = async ({
     return;
   }
 
+  if (!bounty.rewardAmount) {
+    console.error(`Bounty ${bountyId} has no reward amount.`);
+    return;
+  }
+
   const now = new Date();
 
   // Check bounty validity

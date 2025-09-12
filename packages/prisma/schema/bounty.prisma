@@ -26,7 +26,8 @@ model Bounty {
   type                   BountyType
   startsAt               DateTime
   endsAt                 DateTime?
-  rewardAmount           Int        @default(0)
+  rewardAmount           Int?
+  rewardDescription      String?
   submissionRequirements Json?
   archivedAt             DateTime?
   createdAt              DateTime   @default(now())

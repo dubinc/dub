@@ -1,5 +1,6 @@
 import { createBountySubmissionAction } from "@/lib/actions/partners/create-bounty-submission";
 import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-bounty-submission-file";
+import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
@@ -13,6 +14,7 @@ import {
   Button,
   Calendar6,
   FileUpload,
+  Gift,
   LoadingSpinner,
   Modal,
   StatusBadge,
@@ -182,6 +184,13 @@ function ClaimBountyModalContent({
                   ) : (
                     "No end date"
                   )}
+                </span>
+              </div>
+
+              <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+                <Gift className="size-3.5 shrink-0" />
+                <span className="truncate">
+                  {getBountyRewardDescription(bounty)}
                 </span>
               </div>
 
