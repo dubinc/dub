@@ -11,7 +11,7 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 const addPartnersToGroupSchema = z.object({
-  partnerIds: z.array(z.string()).min(1),
+  partnerIds: z.array(z.string()).min(1).max(100), // max move 100 partners at a time
 });
 
 // POST /api/groups/[groupIdOrSlug]/partners - add partners to group

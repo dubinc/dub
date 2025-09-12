@@ -81,13 +81,10 @@ export async function POST(req: Request) {
       `Updating ${programEnrollments.length} partners to be moved to group ${partnerGroup.name} (${partnerGroup.id}) for program ${program.name} (${program.id}).`,
     );
 
-    const remappedLinks = programEnrollments.map(({ partner, links }) =>
+    const remappedLinks = programEnrollments.map(({ links: partnerLinks }) =>
       remapPartnerGroupDefaultLinks({
-        partner,
-        links,
-        newGroup: {
-          defaultLinks: partnerGroup.partnerGroupDefaultLinks,
-        },
+        partnerLinks,
+        newGroupDefaultLinks: partnerGroup.partnerGroupDefaultLinks,
       }),
     );
 
@@ -99,8 +96,13 @@ export async function POST(req: Request) {
       ({ linksToUpdate }) => linksToUpdate,
     );
 
+    const linksToRemoveMapping = remappedLinks.flatMap(
+      ({ linksToRemoveMapping }) => linksToRemoveMapping,
+    );
+
     console.log("linksToUpdate", linksToUpdate);
     console.log("linksToCreate", linksToCreate);
+    console.log("linksToRemoveMapping", linksToRemoveMapping);
 
     // Create the links
     if (linksToCreate.length > 0) {
@@ -180,15 +182,33 @@ export async function POST(req: Request) {
       }
     }
 
-    const res = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-      body: {
-        utmTemplateId: partnerGroup.utmTemplateId,
-      },
-    });
-    console.log(
-      `Scheduled sync-utm job for template ${partnerGroup.utmTemplateId}: ${JSON.stringify(res, null, 2)}`,
-    );
+    if (linksToRemoveMapping.length > 0) {
+      const updatedLinks = await prisma.link.updateMany({
+        where: {
+          id: {
+            in: linksToRemoveMapping,
+          },
+        },
+        data: {
+          partnerGroupDefaultLinkId: null,
+        },
+      });
+      console.log(
+        `Updated ${updatedLinks.count} links with partnerGroupDefaultLinkId: null`,
+      );
+    }
+
+    if (partnerGroup.utmTemplateId) {
+      const res = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+        body: {
+          utmTemplateId: partnerGroup.utmTemplateId,
+        },
+      });
+      console.log(
+        `Scheduled sync-utm job for template ${partnerGroup.utmTemplateId}: ${JSON.stringify(res, null, 2)}`,
+      );
+    }
 
     return logAndRespond(`Finished creating default links for the partners.`);
   } catch (error) {

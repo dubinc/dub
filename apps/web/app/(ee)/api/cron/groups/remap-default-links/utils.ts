@@ -1,42 +1,85 @@
-import { Link, Partner, PartnerGroupDefaultLink } from "@dub/prisma/client";
+import { Link, PartnerGroupDefaultLink } from "@dub/prisma/client";
+
+// Helper function to normalize URL by removing UTM parameters
+function normalizeUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    return `https://${urlObj.host}${urlObj.pathname}`;
+  } catch {
+    return url;
+  }
+}
 
 // Add a new method that update the partner group default links when their group changes
 export function remapPartnerGroupDefaultLinks({
-  partner,
-  links,
-  newGroup,
+  partnerLinks,
+  newGroupDefaultLinks,
 }: {
-  partner: Pick<Partner, "id">;
-  links: Pick<Link, "id" | "url" | "partnerGroupDefaultLinkId">[];
-  newGroup: {
-    defaultLinks: Pick<PartnerGroupDefaultLink, "id" | "domain" | "url">[];
-  };
+  partnerLinks: Pick<
+    Link,
+    "id" | "url" | "partnerId" | "partnerGroupDefaultLinkId"
+  >[];
+  newGroupDefaultLinks: Pick<
+    PartnerGroupDefaultLink,
+    "id" | "domain" | "url"
+  >[];
 }) {
-  // 1. Remap existing links (wrap around if fewer new defaults)
-  const linksToUpdate = links.map((link, index) => {
-    const targetDefault =
-      newGroup.defaultLinks[index % newGroup.defaultLinks.length];
+  const linksToCreate: Array<{
+    domain: string;
+    url: string;
+    partnerId: string;
+    partnerGroupDefaultLinkId: string;
+  }> = [];
 
-    return {
-      id: link.id,
-      partnerGroupDefaultLinkId: targetDefault.id,
-      url: targetDefault.url,
-    };
+  const linksToUpdate: Array<{
+    id: string;
+    partnerGroupDefaultLinkId: string;
+  }> = [];
+
+  const linksToRemoveMapping: string[] = [];
+
+  // Create a map of normalized URLs to new group default links for quick lookup
+  const newDefaultLinksByUrl = new Map<
+    string,
+    Pick<PartnerGroupDefaultLink, "id" | "domain" | "url">
+  >();
+  newGroupDefaultLinks.forEach((defaultLink) => {
+    const normalizedUrl = normalizeUrl(defaultLink.url);
+    newDefaultLinksByUrl.set(normalizedUrl, defaultLink);
   });
 
-  // 2. Create extra links if new group has more defaults
-  const linksToCreate =
-    newGroup.defaultLinks.length > links.length
-      ? newGroup.defaultLinks.slice(links.length).map((targetDefault) => ({
-          partnerId: partner.id,
-          partnerGroupDefaultLinkId: targetDefault.id,
-          domain: targetDefault.domain,
-          url: targetDefault.url,
-        }))
-      : [];
+  // Process existing partner links
+  partnerLinks.forEach((link) => {
+    const normalizedLinkUrl = normalizeUrl(link.url);
+    const matchingNewDefault = newDefaultLinksByUrl.get(normalizedLinkUrl);
+
+    if (matchingNewDefault) {
+      // URL matches (excluding url params) - update the mapping
+      linksToUpdate.push({
+        id: link.id,
+        partnerGroupDefaultLinkId: matchingNewDefault.id,
+      });
+      // Remove from the map so we don't create a duplicate
+      newDefaultLinksByUrl.delete(normalizedLinkUrl);
+    } else {
+      // URL doesn't match - remove the mapping
+      linksToRemoveMapping.push(link.id);
+    }
+  });
+
+  // Create new links for any remaining new default links that didn't match existing ones
+  newDefaultLinksByUrl.forEach((defaultLink) => {
+    linksToCreate.push({
+      domain: defaultLink.domain,
+      url: defaultLink.url,
+      partnerId: partnerLinks[0].partnerId!,
+      partnerGroupDefaultLinkId: defaultLink.id,
+    });
+  });
 
   return {
     linksToCreate,
     linksToUpdate,
+    linksToRemoveMapping,
   };
 }

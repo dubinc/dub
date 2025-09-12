@@ -177,11 +177,35 @@ export const PATCH = withWorkspace(
 export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const { groupIdOrSlug } = params;
 
-    const group = await getGroupOrThrow({
-      programId,
-      groupId: params.groupIdOrSlug,
-    });
+    const [group, defaultGroup] = await Promise.all([
+      prisma.partnerGroup.findUniqueOrThrow({
+        where: {
+          ...(groupIdOrSlug.startsWith("grp_")
+            ? {
+                id: groupIdOrSlug,
+              }
+            : {
+                programId_slug: {
+                  programId,
+                  slug: groupIdOrSlug,
+                },
+              }),
+        },
+        include: {
+          partners: true,
+        },
+      }),
+      prisma.partnerGroup.findUniqueOrThrow({
+        where: {
+          programId_slug: {
+            programId,
+            slug: DEFAULT_PARTNER_GROUP.slug,
+          },
+        },
+      }),
+    ]);
 
     if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
       throw new DubApiError({
@@ -189,24 +213,6 @@ export const DELETE = withWorkspace(
         message: "You cannot delete the default group of your program.",
       });
     }
-
-    const defaultGroup = await prisma.partnerGroup.findUnique({
-      where: {
-        programId_slug: {
-          programId,
-          slug: DEFAULT_PARTNER_GROUP.slug,
-        },
-      },
-    });
-
-    // This should never happen, but just in case
-    if (!defaultGroup) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Default group not found for this program.",
-      });
-    }
-
     await prisma.$transaction(async (tx) => {
       // 1. Update all partners in the group to the default group
       await tx.programEnrollment.updateMany({
@@ -257,9 +263,19 @@ export const DELETE = withWorkspace(
     waitUntil(
       Promise.allSettled([
         qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+          body: {
+            programId,
+            groupId: defaultGroup.id,
+            partnerIds: group.partners.map(({ partnerId }) => partnerId),
+            userId: session.user.id,
+          },
+        }),
+        qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
           body: {
             groupId: defaultGroup.id,
+            partnerIds: group.partners.map(({ partnerId }) => partnerId),
           },
         }),
 
