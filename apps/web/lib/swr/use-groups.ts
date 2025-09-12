@@ -1,13 +1,13 @@
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
-import { GroupProps } from "../types";
+import { GroupExtendedProps, GroupProps } from "../types";
 import { getGroupsQuerySchema } from "../zod/schemas/groups";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getGroupsQuerySchema.partial();
 
-export default function useGroups<T extends GroupProps>({
+export default function useGroups<T extends GroupExtendedProps>({
   query,
   enabled = true,
 }: {

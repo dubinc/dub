@@ -12,6 +12,7 @@ SQL >
         {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
+        {% if defined(groupId) %} AND partner_group_id = {{ groupId }} {% end %}
         {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
         {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
         {% elif defined(folderId) %} AND folder_id = {{ folderId }}
@@ -56,7 +57,7 @@ SQL >
                 WHERE customer_id = {{ String(customerId) }}
             )
         {% elif not defined(linkId) and (
-            defined(workspaceId) or defined(partnerId) or defined(programId)
+            defined(workspaceId) or defined(partnerId) or defined(programId) or defined(groupId)
         ) %} PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
@@ -121,7 +122,7 @@ SQL >
     SELECT utm, count(*) as leads
     FROM
         dub_lead_events_mv
-        {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
+        {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId) or defined(groupId)) %}
             PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
@@ -188,7 +189,7 @@ SQL >
     FROM
         dub_sale_events_mv
         {% if not defined(linkId) and (
-            defined(workspaceId) or defined(partnerId) or defined(programId)
+            defined(workspaceId) or defined(partnerId) or defined(programId) or defined(groupId)
         ) %} PREWHERE link_id in (SELECT link_id from workspace_links) {% end %}
     WHERE
         url != ''
@@ -256,7 +257,7 @@ SQL >
                 FROM
                     dub_sale_events_mv
                     {% if not defined(linkId) and (
-                        defined(workspaceId) or defined(partnerId) or defined(programId)
+                        defined(workspaceId) or defined(partnerId) or defined(programId) or defined(groupId)
                     ) %} PREWHERE link_id in (SELECT link_id from workspace_links) {% end %}
                 WHERE
                     url != ''

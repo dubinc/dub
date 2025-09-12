@@ -136,63 +136,73 @@ export async function createLink(link: ProcessedLinkProps) {
   const uploadedImageUrl = `${R2_URL}/images/${response.id}`;
 
   waitUntil(
-    Promise.allSettled([
-      // cache link in Redis
-      linkCache.set({
-        ...response,
-        ...(response.programId &&
-          (await getPartnerAndDiscount({
-            programId: response.programId,
-            partnerId: response.partnerId,
-          }))),
-      }),
+    (async () => {
+      const { partner, discount } = await getPartnerAndDiscount({
+        programId: response.programId,
+        partnerId: response.partnerId,
+      });
 
-      // record link in Tinybird
-      recordLink(response),
-      // Upload image to R2 and update the link with the uploaded image URL when
-      // proxy is enabled and image is set and is not a hosted image URL
-      ...(proxy && image && isNotHostedImage(image)
-        ? [
-            // upload image to R2
-            storage.upload(`images/${response.id}`, image, {
-              width: 1200,
-              height: 630,
-            }),
-            // update the null image we set earlier to the uploaded image URL
-            prisma.link.update({
-              where: {
-                id: response.id,
-              },
-              data: {
-                image: uploadedImageUrl,
-              },
-            }),
-          ]
-        : []),
-      // delete public links after 30 mins
-      !response.userId &&
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
-          // delete after 30 mins
-          delay: 30 * 60,
-          body: {
-            linkId: response.id,
-          },
-        }),
-      // update links usage for workspace
-      link.projectId &&
-        updateLinksUsage({
-          workspaceId: link.projectId,
-          increment: 1,
+      await Promise.allSettled([
+        // cache link in Redis
+        linkCache.set({
+          ...response,
+          ...(partner && { partner }),
+          ...(discount && { discount }),
         }),
 
-      webhookIds &&
-        propagateWebhookTriggerChanges({
-          webhookIds,
+        // record link in Tinybird
+        recordLink({
+          ...response,
+          partnerGroupId: partner?.groupId,
         }),
 
-      testVariants && testCompletedAt && scheduleABTestCompletion(response),
-    ]),
+        // Upload image to R2 and update the link with the uploaded image URL when
+        // proxy is enabled and image is set and is not a hosted image URL
+        ...(proxy && image && isNotHostedImage(image)
+          ? [
+              // upload image to R2
+              storage.upload(`images/${response.id}`, image, {
+                width: 1200,
+                height: 630,
+              }),
+              // update the null image we set earlier to the uploaded image URL
+              prisma.link.update({
+                where: {
+                  id: response.id,
+                },
+                data: {
+                  image: uploadedImageUrl,
+                },
+              }),
+            ]
+          : []),
+
+        // delete public links after 30 mins
+        !response.userId &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/delete`,
+            // delete after 30 mins
+            delay: 30 * 60,
+            body: {
+              linkId: response.id,
+            },
+          }),
+
+        // update links usage for workspace
+        link.projectId &&
+          updateLinksUsage({
+            workspaceId: link.projectId,
+            increment: 1,
+          }),
+
+        webhookIds &&
+          propagateWebhookTriggerChanges({
+            webhookIds,
+          }),
+
+        testVariants && testCompletedAt && scheduleABTestCompletion(response),
+      ]);
+    })(),
   );
 
   return {

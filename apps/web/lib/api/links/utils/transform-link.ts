@@ -14,6 +14,7 @@ export type ExpandedLink = Link & {
     DiscountProps,
     "id" | "amount" | "type" | "maxDuration" | "couponId" | "couponTestId"
   > | null;
+  partnerGroupId?: string | null;
 };
 
 // Transform link with additional properties

@@ -171,6 +171,7 @@ export async function POST(req: Request) {
         }),
       ]);
 
+      // Fetch the transferred links
       const updatedLinks = await prisma.link.findMany({
         where: {
           programId: {
@@ -178,12 +179,25 @@ export async function POST(req: Request) {
           },
           partnerId: targetPartnerId,
         },
-        include: includeTags,
+        include: {
+          ...includeTags,
+          programEnrollment: {
+            select: {
+              groupId: true,
+            },
+          },
+        },
       });
 
       await Promise.all([
-        // update link metadata in Tinybird
-        recordLink(updatedLinks),
+        // record link in Tinybird
+        recordLink(
+          updatedLinks.map((link) => ({
+            ...link,
+            partnerGroupId: link.programEnrollment?.groupId,
+          })),
+        ),
+
         // expire link cache in Redis
         linkCache.expireMany(updatedLinks),
       ]);

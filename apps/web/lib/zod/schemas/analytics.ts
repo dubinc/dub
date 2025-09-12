@@ -114,6 +114,10 @@ export const analyticsQuerySchema = z
       .string()
       .optional()
       .describe("The ID of the partner to retrieve analytics for."),
+    groupId: z
+      .string()
+      .optional()
+      .describe("The ID of the partner group to retrieve analytics for."),
     customerId: z
       .string()
       .optional()
@@ -312,6 +316,7 @@ export const analyticsFilterTB = z
       utm_content: true,
       programId: true,
       partnerId: true,
+      groupId: true,
       tenantId: true,
       folderId: true,
       sortBy: true,

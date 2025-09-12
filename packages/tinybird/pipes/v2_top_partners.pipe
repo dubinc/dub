@@ -9,6 +9,7 @@ SQL >
             {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
             {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
             {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
+            {% if defined(groupId) %} AND partner_group_id = {{ groupId }} {% end %}
             {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
 
 

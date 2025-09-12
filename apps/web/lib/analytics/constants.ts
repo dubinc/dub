@@ -172,6 +172,7 @@ export const VALID_ANALYTICS_FILTERS = [
   "refererUrl",
   "url",
   "partnerId",
+  "groupId",
   "folderId",
   "tagId",
   "tagIds",
