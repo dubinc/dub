@@ -5,7 +5,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
-import { Button, Input, Modal } from "@dub/ui";
+import { Badge, Button, Input, Modal } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -16,12 +16,13 @@ const URL_VALIDATION_MODES = [
   {
     value: "domain",
     label: "Any page",
-    description: "Allows links to any page under this domain",
+    description: "Allows links to any page on this domain",
+    recommended: true,
   },
   {
     value: "exact",
     label: "Single page",
-    description: "Restricts links to this single destination URL",
+    description: "Restricts links to the homepage only",
   },
 ];
 
@@ -157,8 +158,7 @@ function AddDestinationUrlModalContent({
                     key={type.value}
                     className={cn(
                       "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600",
-                      "hover:bg-neutral-50",
-                      "transition-all duration-150",
+                      "transition-all duration-150 hover:bg-neutral-50",
                       isSelected &&
                         "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                     )}
@@ -170,19 +170,24 @@ function AddDestinationUrlModalContent({
                       {...register("validationMode")}
                     />
 
-                    <div className="flex grow flex-col text-sm">
+                    <div className="flex grow flex-col whitespace-nowrap text-sm">
                       <span className="font-medium">{type.label}</span>
                       <span className="text-neutral-600">
                         {type.description}
                       </span>
                     </div>
 
-                    <CircleCheckFill
-                      className={cn(
-                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                        isSelected && "scale-100 opacity-100",
+                    <div className="flex items-center justify-end gap-1">
+                      {type.recommended && (
+                        <Badge variant="blueGradient">Recommended</Badge>
                       )}
-                    />
+                      <CircleCheckFill
+                        className={cn(
+                          "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                          isSelected && "scale-100 opacity-100",
+                        )}
+                      />
+                    </div>
                   </label>
                 );
               })}

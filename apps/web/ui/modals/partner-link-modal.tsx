@@ -25,7 +25,7 @@ import {
 } from "@dub/ui/icons";
 import {
   cn,
-  getApexDomain,
+  getDomainWithoutWWW,
   getPathnameFromUrl,
   // getPathnameFromUrl,
   linkConstructor,
@@ -192,7 +192,9 @@ function PartnerLinkModalContent({
   );
 
   const [destinationDomain, setDestinationDomain] = useState(
-    link ? getApexDomain(link.url) : destinationDomains?.[0] ?? null,
+    link
+      ? (getDomainWithoutWWW(link.url) as string)
+      : destinationDomains?.[0] ?? null,
   );
 
   useEffect(() => {
