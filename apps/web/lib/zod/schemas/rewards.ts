@@ -139,7 +139,6 @@ export const RewardSchema = z.object({
   type: z.nativeEnum(RewardStructure),
   amount: z.number(),
   maxDuration: z.number().nullish(),
-  maxAmount: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
 });
 
