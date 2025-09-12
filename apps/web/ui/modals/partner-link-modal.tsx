@@ -548,7 +548,7 @@ function DestinationDomainCombobox({
           : null
       }
       setSelected={(option) => {
-        if (!option || disabled) return;
+        if (!option) return;
         setSelectedDomain(option.value);
       }}
       options={options}
