@@ -45,7 +45,7 @@ model PartnerGroupDefaultLink {
   updatedAt DateTime @updatedAt
 
   program      Program      @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id])
+  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   links        Link[]
 
   @@index(programId)

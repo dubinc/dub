@@ -105,10 +105,6 @@ export const PartnerGroupDefaultLinkSchema = z.object({
   url: parseUrlSchema,
 });
 
-export const changeGroupSchema = z.object({
-  partnerIds: z.array(z.string()).min(1),
-});
-
 export const getGroupsQuerySchema = z
   .object({
     search: z.string().optional(),

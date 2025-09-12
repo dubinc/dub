@@ -16,7 +16,8 @@ const PAGE_SIZE = 50;
 
 const schema = z.object({
   utmTemplateId: z.string(),
-  cursor: z.string().optional(),
+  partnerIds: z.array(z.string()).optional(),
+  startAfterProgramEnrollmentId: z.string().optional(),
 });
 
 /**
@@ -30,7 +31,8 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { utmTemplateId, cursor } = schema.parse(JSON.parse(rawBody));
+    const { utmTemplateId, partnerIds, startAfterProgramEnrollmentId } =
+      schema.parse(JSON.parse(rawBody));
 
     // Find the UTM template
     const utmTemplate = await prisma.utmTemplate.findUnique({
@@ -66,17 +68,20 @@ export async function POST(req: Request) {
       );
     }
 
-    let currentCursor = cursor;
-
     // Find partners in the group
     const programEnrollments = await prisma.programEnrollment.findMany({
       where: {
-        ...(currentCursor && {
-          id: {
-            gt: currentCursor,
+        groupId: group.id,
+        ...(partnerIds && {
+          partnerId: {
+            in: partnerIds,
           },
         }),
-        groupId: group.id,
+        ...(startAfterProgramEnrollmentId && {
+          id: {
+            gt: startAfterProgramEnrollmentId,
+          },
+        }),
       },
       take: PAGE_SIZE,
       orderBy: {
@@ -123,36 +128,21 @@ export async function POST(req: Request) {
         ...utmParams,
       };
 
-      if (linkIds.length === 1) {
-        const updatedLink = await prisma.link.update({
-          where: {
-            id: linkIds[0],
+      const updatedLinks = await prisma.link.updateMany({
+        where: {
+          id: {
+            in: linkIds,
           },
-          data: payload,
-        });
-        console.log(
-          `Updated link ${updatedLink.shortLink} (${updatedLink.id}) with URL: ${updatedLink.url}`,
-        );
-      } else {
-        const updatedLinks = await prisma.link.updateMany({
-          where: {
-            id: {
-              in: linkIds,
-            },
-          },
-          data: payload,
-        });
-        console.log(
-          `Updated ${updatedLinks.count} links with URL: ${payload.url}`,
-        );
-      }
+        },
+        data: payload,
+      });
+      console.log(
+        `Updated ${updatedLinks.count} links with URL: ${payload.url}`,
+      );
     }
 
     const redisRes = await linkCache.expireMany(linksToUpdate);
     console.log(`Updated Redis cache: ${JSON.stringify(redisRes, null, 2)}`);
-
-    // Update cursor to the last processed record
-    currentCursor = programEnrollments[programEnrollments.length - 1].id;
 
     if (programEnrollments.length === PAGE_SIZE) {
       await qstash.publishJSON({
@@ -160,7 +150,8 @@ export async function POST(req: Request) {
         method: "POST",
         body: {
           utmTemplateId,
-          cursor: currentCursor,
+          startAfterProgramEnrollmentId:
+            programEnrollments[programEnrollments.length - 1].id,
         },
       });
     }
