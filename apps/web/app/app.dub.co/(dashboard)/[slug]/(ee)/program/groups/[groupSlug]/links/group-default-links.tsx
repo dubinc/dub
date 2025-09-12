@@ -149,7 +149,7 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
                     setIsOpen(true);
                   }}
                   icon={<PenWriting className="size-4" />}
-                  className="h-9 justify-start px-2 font-medium"
+                  className="h-9 justify-start px-2"
                   loading={isSubmitting}
                 />
                 <Button
@@ -160,7 +160,7 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
                     setShowConfirmModal(true);
                   }}
                   icon={<Trash className="size-4" />}
-                  className="h-9 justify-start px-2 font-medium text-red-600 hover:text-red-700"
+                  className="h-9 justify-start px-2"
                   loading={isSubmitting}
                 />
               </div>
