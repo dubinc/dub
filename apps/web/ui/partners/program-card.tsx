@@ -62,7 +62,7 @@ export function ProgramCard({
                   group,
                   link: defaultLink,
                 }),
-              )}
+              ) || program.domain}
             </span>
           </div>
         </div>
