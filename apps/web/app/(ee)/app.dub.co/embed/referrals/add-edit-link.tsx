@@ -73,6 +73,8 @@ export function ReferralsEmbedCreateUpdateLink({
     setIsExactMode(additionalLink?.validationMode === "exact");
   }, [destinationDomain, additionalLinks]);
 
+  // console.log(destinationDomain)
+
   const {
     watch,
     setValue,
@@ -301,7 +303,7 @@ export function ReferralsEmbedCreateUpdateLink({
                         isExactMode,
                     },
                   )}
-                  {...register("url", { required: !isExactMode })}
+                  {...register("url", { required: false })}
                 />
               </div>
             </div>
@@ -363,7 +365,7 @@ function DestinationDomainCombobox({
           : null
       }
       setSelected={(option) => {
-        if (!option || disabled) return;
+        if (!option) return;
         setSelectedDomain(option.value);
       }}
       options={options}
