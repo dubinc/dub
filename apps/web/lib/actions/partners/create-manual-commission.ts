@@ -20,7 +20,7 @@ import { WorkflowTrigger } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
-export const createCommissionAction = authActionClient
+export const createManualCommissionAction = authActionClient
   .schema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
@@ -31,6 +31,7 @@ export const createCommissionAction = authActionClient
       amount,
       linkId,
       invoiceId,
+      productId,
       customerId,
       saleAmount,
       saleEventDate,
@@ -225,6 +226,7 @@ export const createCommissionAction = authActionClient
           payment_processor: "custom",
           currency: "usd",
           timestamp: saleDate.toISOString(),
+          metadata: productId ? JSON.stringify({ productId }) : undefined,
         }),
 
         createPartnerCommission({
@@ -243,6 +245,9 @@ export const createCommissionAction = authActionClient
           context: {
             customer: {
               country: customer.country,
+            },
+            sale: {
+              productId,
             },
           },
         }),

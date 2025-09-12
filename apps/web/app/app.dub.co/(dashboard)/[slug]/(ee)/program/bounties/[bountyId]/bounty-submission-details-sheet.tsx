@@ -45,7 +45,7 @@ function BountySubmissionDetailsSheetContent({
     onSuccess: async () => {
       toast.success("Bounty submission approved successfully!");
       setIsOpen(false);
-      await mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
+      await mutatePrefix("/api/bounties");
     },
     onError({ error }) {
       toast.error(error.serverError);

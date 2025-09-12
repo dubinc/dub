@@ -444,7 +444,12 @@ function ClaimBountyModalContent({
                     variant="primary"
                     text={isFormOpen ? "Submit proof" : "Claim bounty"}
                     className="grow rounded-lg"
-                    onClick={isFormOpen ? undefined : () => setIsFormOpen(true)}
+                    onClick={
+                      isFormOpen
+                        ? undefined
+                        : // Delay open to prevent also submitting the form
+                          () => setTimeout(() => setIsFormOpen(true), 100)
+                    }
                     loading={isPending}
                     disabled={
                       isFormOpen &&

@@ -65,7 +65,7 @@ export function CommissionPopoverButtons() {
         <Button
           onClick={() => setOpenPopover(!openPopover)}
           variant="secondary"
-          className="w-auto px-1.5"
+          className="h-8 w-auto px-1.5 sm:h-9"
           icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
         />
       </Popover>
