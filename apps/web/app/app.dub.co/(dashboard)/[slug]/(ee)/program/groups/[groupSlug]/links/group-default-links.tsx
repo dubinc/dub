@@ -9,7 +9,7 @@ import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Hyperlink, Popover } from "@dub/ui";
-import { Trash } from "@dub/ui/icons";
+import { PenWriting, Trash } from "@dub/ui/icons";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -142,8 +142,19 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
             content={
               <div className="grid w-48 grid-cols-1 gap-px p-2">
                 <Button
-                  text="Delete"
+                  text="Edit"
                   variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setIsOpen(true);
+                  }}
+                  icon={<PenWriting className="size-4" />}
+                  className="h-9 justify-start px-2 font-medium"
+                  loading={isSubmitting}
+                />
+                <Button
+                  text="Delete"
+                  variant="danger-outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowConfirmModal(true);

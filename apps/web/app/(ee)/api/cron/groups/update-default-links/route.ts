@@ -4,7 +4,6 @@ import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -168,10 +167,7 @@ export async function POST(req: Request) {
           .filter(isFulfilled)
           .map(({ value }) => value);
 
-        await Promise.allSettled([
-          recordLink(updatedLinks),
-          linkCache.expireMany(validLinks),
-        ]);
+        await linkCache.expireMany(validLinks);
       }
 
       if (errorLinks.length > 0) {

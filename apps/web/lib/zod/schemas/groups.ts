@@ -17,7 +17,7 @@ export const DEFAULT_PARTNER_GROUP = {
 
 export const MAX_DEFAULT_PARTNER_LINKS = 5;
 
-export const MAX_ADDITIONAL_PARTNER_LINKS = 10;
+export const MAX_ADDITIONAL_PARTNER_LINKS = 5;
 
 export const GROUPS_MAX_PAGE_SIZE = 100;
 
@@ -61,7 +61,6 @@ export const GroupSchemaExtended = GroupSchema.extend({
 });
 
 export const createOrUpdateDefaultLinkSchema = z.object({
-  domain: z.string().trim().toLowerCase(),
   url: parseUrlSchema,
 });
 

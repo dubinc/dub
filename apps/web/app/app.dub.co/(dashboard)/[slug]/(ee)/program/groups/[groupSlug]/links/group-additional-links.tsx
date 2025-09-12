@@ -11,7 +11,7 @@ import {
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, LinkLogo, NumberStepper, Popover, Switch } from "@dub/ui";
-import { Trash } from "@dub/ui/icons";
+import { PenWriting, Trash } from "@dub/ui/icons";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -286,8 +286,19 @@ function LinkDomain({ link }: { link: PartnerGroupAdditionalLink }) {
           content={
             <div className="grid w-48 grid-cols-1 gap-px p-2">
               <Button
-                text="Delete"
+                text="Edit"
                 variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setIsOpen(true);
+                }}
+                icon={<PenWriting className="size-4" />}
+                className="h-9 justify-start px-2 font-medium"
+                loading={isSubmitting}
+              />
+              <Button
+                text="Delete"
+                variant="danger-outline"
                 onClick={() => {
                   setOpenPopover(false);
                   setShowConfirmModal(true);

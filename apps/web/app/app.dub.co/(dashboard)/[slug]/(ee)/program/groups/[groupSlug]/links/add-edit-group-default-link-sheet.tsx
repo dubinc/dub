@@ -3,7 +3,6 @@
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
 import { PartnerGroupDefaultLink } from "@/lib/types";
-import { DomainSelector } from "@/ui/domains/domain-selector";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
 import {
@@ -53,12 +52,11 @@ function DefaultPartnerLinkSheetContent({
 
   const { handleSubmit, watch, setValue } = useForm<FormData>({
     defaultValues: {
-      domain: link?.domain || program?.domain || "",
       url: link?.url || "",
     },
   });
 
-  const [domain, url] = watch(["domain", "url"]);
+  const [url] = watch(["url"]);
 
   // Save the default link
   const onSubmit = async (data: FormData) => {
@@ -66,9 +64,7 @@ function DefaultPartnerLinkSheetContent({
 
     // Check if the link already exists
     const existingLink = defaultLinks.find(
-      (link) =>
-        getPrettyUrl(link.url) === getPrettyUrl(data.url) &&
-        link.domain === data.domain,
+      (link) => getPrettyUrl(link.url) === getPrettyUrl(data.url),
     );
 
     if (existingLink && existingLink.id !== link?.id) {
@@ -85,7 +81,6 @@ function DefaultPartnerLinkSheetContent({
       {
         method: link ? "PATCH" : "POST",
         body: {
-          domain: data.domain,
           url: data.url,
         },
         onSuccess: async () => {
@@ -131,37 +126,6 @@ function DefaultPartnerLinkSheetContent({
               <div className="space-y-2">
                 <div className="flex items-center gap-x-2">
                   <label className="text-content-emphasis block text-sm font-medium">
-                    Domain
-                  </label>
-                  <InfoTooltip
-                    content={
-                      <SimpleTooltipContent
-                        title="Custom domain that will be used for this group's referral links"
-                        cta="Learn more"
-                        href="https://dub.co/help/article/choosing-a-custom-domain"
-                      />
-                    }
-                  />
-                </div>
-                <DomainSelector
-                  selectedDomain={domain}
-                  setSelectedDomain={(domain) =>
-                    setValue("domain", domain, { shouldDirty: true })
-                  }
-                  disabled={true}
-                  disabledTooltip={
-                    "You can't change the program's default domain. Please contact support if you need to change it."
-                  }
-                />
-                <p className="text-xs font-normal text-neutral-500">
-                  Custom domain that will be used for this group's referral
-                  links
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <div className="flex items-center gap-x-2">
-                  <label className="text-content-emphasis block text-sm font-medium">
                     Destination URL
                   </label>
                   <InfoTooltip
@@ -202,7 +166,7 @@ function DefaultPartnerLinkSheetContent({
           content={
             <PartnerLinkPreview
               url={url}
-              domain={domain}
+              domain={program?.domain || ""}
               linkStructure={group?.linkStructure || "query"}
             />
           }
@@ -226,7 +190,7 @@ function DefaultPartnerLinkSheetContent({
             text={isEditing ? "Update link" : "Create link"}
             className="w-fit"
             loading={isSubmitting}
-            disabled={!domain || !url}
+            disabled={!url}
           />
         </div>
       </div>
