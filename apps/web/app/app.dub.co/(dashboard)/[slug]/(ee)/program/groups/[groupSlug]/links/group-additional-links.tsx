@@ -246,7 +246,7 @@ function LinkDomain({ link }: { link: PartnerGroupAdditionalLink }) {
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Delete link domain",
-    description: `Are you sure you want to delete "${getPrettyUrl(link.domain)}"? This action cannot be undone.`,
+    description: `Are you sure you want to delete "${getPrettyUrl(link.domain)}"? This will prevent partners from creating links with this domain.`,
     confirmText: "Delete",
     onConfirm: deleteLinkDomain,
   });

@@ -119,7 +119,7 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Delete default link",
-    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This won't affect any existing partner links that were already created.`,
+    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This won't affect any existing partner links, but if you recreate the link, it could result in duplicate links for partners in this group. If you want to change the default link, try editing it instead.`,
     confirmText: "Delete",
     onConfirm,
   });
