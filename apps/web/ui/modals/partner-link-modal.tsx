@@ -183,7 +183,7 @@ function PartnerLinkModalContent({
   }, [programEnrollment]);
 
   const destinationDomains = useMemo(
-    () => additionalLinks.map((link) => getApexDomain(link.url)),
+    () => additionalLinks.map((link) => link.domain),
     [additionalLinks],
   );
 
@@ -193,10 +193,10 @@ function PartnerLinkModalContent({
 
   useEffect(() => {
     const additionalLink = additionalLinks.find(
-      (link) => getApexDomain(link.url) === destinationDomain,
+      (link) => link.domain === destinationDomain,
     );
 
-    setIsExactMode(additionalLink?.urlValidationMode === "exact");
+    setIsExactMode(additionalLink?.validationMode === "exact");
   }, [destinationDomain, additionalLinks]);
 
   const form = useForm<PartnerLinkFormData>({
