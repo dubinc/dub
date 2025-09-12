@@ -59,7 +59,7 @@ function AddDestinationUrlModalContent({
 
     const existingDomains = currentAdditionalLinks.map((l) => l.domain);
 
-    if (existingDomains.includes(data.domain)) {
+    if (existingDomains.includes(data.domain) && data.domain !== link?.domain) {
       toast.error(
         `Domain ${data.domain} has already been added as a link domain`,
       );

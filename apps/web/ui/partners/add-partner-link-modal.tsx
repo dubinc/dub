@@ -12,7 +12,7 @@ import {
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, linkConstructor, punycode } from "@dub/utils";
+import { cn, getPathnameFromUrl, linkConstructor, punycode } from "@dub/utils";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -27,7 +27,10 @@ interface AddPartnerLinkModalProps {
   partner: Pick<EnrolledPartnerProps, "id" | "email" | "groupId">;
 }
 
-type FormData = Pick<LinkProps, "url" | "key">;
+interface FormData {
+  pathname: string;
+  key: string;
+}
 
 const AddPartnerLinkModal = ({
   showModal,
@@ -46,7 +49,7 @@ const AddPartnerLinkModal = ({
 
   const { register, handleSubmit, watch } = useForm<FormData>({
     defaultValues: {
-      url: "",
+      pathname: "",
       key: "",
     },
   });
@@ -73,7 +76,7 @@ const AddPartnerLinkModal = ({
     setIsExactMode(additionalLink?.validationMode === "exact");
   }, [destinationDomain, additionalLinks]);
 
-  const key = watch("key");
+  const [key, pathname] = watch(["key", "pathname"]);
 
   // If there is only one destination domain and we are in exact mode, hide the destination URL input
   const hideDestinationUrl = useMemo(
@@ -100,12 +103,10 @@ const AddPartnerLinkModal = ({
           partnerId: partner.id,
           programId: program.id,
           domain: program.domain,
-          url: isExactMode
-            ? destinationDomain
-            : linkConstructor({
-                domain: destinationDomain,
-                key: formData.url,
-              }),
+          url: linkConstructor({
+            domain: destinationDomain,
+            key: getPathnameFromUrl(pathname),
+          }),
           trackConversion: true,
           folderId: program.defaultFolderId,
         }),
@@ -227,9 +228,8 @@ const AddPartnerLinkModal = ({
                     />
                   </div>
                   <input
-                    {...register("url", { required: false })}
+                    {...register("pathname", { required: false })}
                     type="text"
-                    id="url"
                     placeholder="(optional)"
                     disabled={isExactMode}
                     onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {

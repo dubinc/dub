@@ -152,3 +152,19 @@ export const createHref = (
   }
   return url.toString();
 };
+
+export const getPathnameFromUrl = (url: string) => {
+  try {
+    const u = new URL(url, "https://dummy-base.local");
+
+    // Keep ?query intact
+    let pathname = u.pathname + u.search;
+
+    // Remove leading slash for relative-style URLs
+    pathname = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+
+    return pathname;
+  } catch (e) {
+    return url;
+  }
+};

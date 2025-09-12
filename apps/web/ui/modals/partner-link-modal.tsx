@@ -26,10 +26,10 @@ import {
 import {
   cn,
   getApexDomain,
-  getUrlWithoutUTMParams,
+  getPathnameFromUrl,
+  // getPathnameFromUrl,
   linkConstructor,
   punycode,
-  regexEscape,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams } from "next/navigation";
@@ -50,8 +50,8 @@ import type { QRCodeDesign } from "./partner-link-qr-modal";
 import { usePartnerLinkQRModal } from "./partner-link-qr-modal";
 
 interface PartnerLinkFormData {
-  url: string;
   key: string;
+  pathname: string;
   comments?: string;
 }
 
@@ -174,6 +174,10 @@ function PartnerLinkModalContent({
   const [lockKey, setLockKey] = useState(Boolean(link));
   const [isLoading, setIsLoading] = useState(false);
   const [isExactMode, setIsExactMode] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
+  const { isMobile } = useMediaQuery();
+  const [, copyToClipboard] = useCopyToClipboard();
 
   const { shortLinkDomain, additionalLinks } = useMemo(() => {
     return {
@@ -199,38 +203,22 @@ function PartnerLinkModalContent({
     setIsExactMode(additionalLink?.validationMode === "exact");
   }, [destinationDomain, additionalLinks]);
 
-  const form = useForm<PartnerLinkFormData>({
-    defaultValues:
-      link && destinationDomain
-        ? {
-            url: isExactMode
-              ? destinationDomain
-              : getUrlWithoutUTMParams(link.url).replace(
-                  new RegExp(
-                    `^https?:\/\/${regexEscape(destinationDomain)}\/?`,
-                  ),
-                  "",
-                ),
-            key: link.key,
-            comments: link.comments ?? "",
-          }
-        : undefined,
-  });
-
-  const formRef = useRef<HTMLFormElement>(null);
-  const { handleKeyDown } = useEnterSubmit(formRef);
-
   const {
     register,
     watch,
     handleSubmit,
     formState: { isDirty },
-  } = form;
+  } = useForm<PartnerLinkFormData>({
+    defaultValues: link
+      ? {
+          pathname: getPathnameFromUrl(link.url),
+          key: link.key,
+          comments: link.comments ?? "",
+        }
+      : undefined,
+  });
 
-  const { isMobile } = useMediaQuery();
-  const [, copyToClipboard] = useCopyToClipboard();
-
-  const [key, _url] = watch("key", "url");
+  const [key, pathname] = watch(["key", "pathname"]);
 
   const saveDisabled = useMemo(
     () =>
@@ -264,6 +252,7 @@ function PartnerLinkModalContent({
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
         setIsLoading(true);
+
         try {
           const response = await fetch(
             `/api/partner-profile/programs/${programEnrollment?.program?.id}/links${
@@ -276,12 +265,10 @@ function PartnerLinkModalContent({
               },
               body: JSON.stringify({
                 ...data,
-                url: isExactMode
-                  ? destinationDomain
-                  : linkConstructor({
-                      domain: destinationDomain,
-                      key: data.url,
-                    }),
+                url: linkConstructor({
+                  domain: destinationDomain,
+                  key: getPathnameFromUrl(pathname),
+                }),
               }),
             },
           );
@@ -413,9 +400,8 @@ function PartnerLinkModalContent({
                   />
                 </div>
                 <input
-                  {...register("url", { required: false })}
+                  {...register("pathname", { required: false })}
                   type="text"
-                  id="url"
                   placeholder="(optional)"
                   disabled={isExactMode}
                   onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {

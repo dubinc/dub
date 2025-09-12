@@ -15,7 +15,6 @@ export function constructPartnerLink({
   const { linkStructure } = group ?? {};
 
   const urlObj = link?.url ? getUrlObjFromString(link.url) : null;
-  console.log("urlObj.hostname", urlObj?.hostname);
 
   if (linkStructure === "query" && urlObj) {
     return `https://${urlObj.hostname}?via=${link.key}`;

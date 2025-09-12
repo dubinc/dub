@@ -12,10 +12,9 @@ import {
 import {
   cn,
   getApexDomain,
-  getUrlWithoutUTMParams,
+  getPathnameFromUrl,
   linkConstructor,
   punycode,
-  regexEscape,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
 import { Program } from "@prisma/client";
@@ -34,7 +33,7 @@ interface Props {
 }
 
 interface FormData {
-  url: string;
+  pathname: string;
   key: string;
 }
 
@@ -82,18 +81,13 @@ export function ReferralsEmbedCreateUpdateLink({
   } = useForm<FormData>({
     defaultValues: link
       ? {
-          url: isExactMode
-            ? destinationDomain
-            : getUrlWithoutUTMParams(link.url).replace(
-                new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
-                "",
-              ),
+          pathname: getPathnameFromUrl(link.url),
           key: link.key,
         }
       : undefined,
   });
 
-  const key = watch("key");
+  const [key, pathname] = watch(["key", "pathname"]);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -112,12 +106,10 @@ export function ReferralsEmbedCreateUpdateLink({
         },
         body: JSON.stringify({
           ...data,
-          url: isExactMode
-            ? destinationDomain
-            : linkConstructor({
-                domain: destinationDomain,
-                key: data.url,
-              }),
+          url: linkConstructor({
+            domain: destinationDomain,
+            key: getPathnameFromUrl(pathname),
+          }),
         }),
       });
 
@@ -292,7 +284,7 @@ export function ReferralsEmbedCreateUpdateLink({
                       e.currentTarget.value = text;
                     }
 
-                    setValue("url", e.currentTarget.value, {
+                    setValue("pathname", e.currentTarget.value, {
                       shouldDirty: true,
                     });
                   }}
@@ -303,7 +295,7 @@ export function ReferralsEmbedCreateUpdateLink({
                         isExactMode,
                     },
                   )}
-                  {...register("url", { required: false })}
+                  {...register("pathname", { required: false })}
                 />
               </div>
             </div>
