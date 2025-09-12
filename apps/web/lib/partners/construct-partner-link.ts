@@ -8,21 +8,22 @@ export function constructPartnerLink({
   group?: Pick<GroupProps, "linkStructure"> | null;
   link?: Pick<PartnerProfileLinkProps, "key" | "url" | "shortLink">;
 }) {
-  if (!group || !link) {
+  if (!link) {
     return "";
   }
 
-  const { linkStructure } = group;
+  const { linkStructure } = group ?? {};
 
   const urlObj = link?.url ? getUrlObjFromString(link.url) : null;
+  console.log("urlObj.hostname", urlObj?.hostname);
 
   if (linkStructure === "query" && urlObj) {
     return `https://${urlObj.hostname}?via=${link.key}`;
   }
 
-  if (linkStructure === "path" && urlObj) {
-    return `https://${urlObj.hostname}/refer/${link.key}`;
-  }
+  // if (linkStructure === "path" && urlObj) {
+  //   return `https://${urlObj.hostname}/refer/${link.key}`;
+  // }
 
   return link.shortLink;
 }
