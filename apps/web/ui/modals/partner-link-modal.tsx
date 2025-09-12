@@ -409,7 +409,7 @@ function PartnerLinkModalContent({
                   />
                 </div>
                 <input
-                  {...register("url", { required: !isExactMode })}
+                  {...register("url", { required: false })}
                   type="text"
                   id="url"
                   placeholder="(optional)"
