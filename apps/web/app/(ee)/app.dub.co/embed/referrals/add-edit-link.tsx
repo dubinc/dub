@@ -270,6 +270,7 @@ export function ReferralsEmbedCreateUpdateLink({
                     selectedDomain={destinationDomain}
                     setSelectedDomain={setDestinationDomain}
                     destinationDomains={destinationDomains}
+                    disabled={Boolean(link)}
                   />
                 </div>
                 <input
@@ -315,10 +316,12 @@ function DestinationDomainCombobox({
   selectedDomain,
   setSelectedDomain,
   destinationDomains,
+  disabled = false,
 }: {
   selectedDomain?: string;
   setSelectedDomain: (domain: string) => void;
   destinationDomains: string[];
+  disabled?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -360,7 +363,7 @@ function DestinationDomainCombobox({
           : null
       }
       setSelected={(option) => {
-        if (!option) return;
+        if (!option || disabled) return;
         setSelectedDomain(option.value);
       }}
       options={options}
@@ -372,13 +375,17 @@ function DestinationDomainCombobox({
           "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
           "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+          {
+            "cursor-not-allowed bg-neutral-100 text-neutral-500": disabled,
+          },
         ),
+        disabled,
       }}
       optionClassName="sm:max-w-[225px]"
       shouldFilter={false}
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      onSearchChange={setSearch}
+      open={disabled ? false : isOpen}
+      onOpenChange={disabled ? undefined : setIsOpen}
+      onSearchChange={disabled ? undefined : setSearch}
     />
   );
 }
