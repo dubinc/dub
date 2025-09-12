@@ -2,36 +2,37 @@ import baseX from "base-x";
 import crypto from "crypto";
 
 const prefixes = [
-  "ws_",
-  "user_",
-  "link_",
-  "tag_",
-  "fold_",
-  "dom_",
-  "po_",
-  "dash_",
-  "int_",
-  "app_",
-  "cus_",
-  "utm_",
-  "wh_",
-  "pn_",
-  "prog_",
-  "pga_",
-  "pgi_",
-  "pge_",
-  "pgr_",
-  "inv_",
-  "cm_",
-  "rw_",
-  "disc_",
-  "dub_embed_",
-  "audit_",
-  "import_",
-  "grp_",
-  "bnty_",
-  "bnty_sub_",
-  "wf_",
+  "ws_", // workspace
+  "user_", // user
+  "link_", // link
+  "tag_", // tag
+  "fold_", // folder
+  "dom_", // domain
+  "po_", // payout
+  "dash_", // dashboard
+  "int_", // integration
+  "app_", // oauth app
+  "cus_", // customer
+  "utm_", // utm template
+  "wh_", // webhook
+  "pn_", // partner
+  "prog_", // program
+  "pga_", // program application
+  "pgi_", // program invitation
+  "pge_", // program enrollment
+  "pgr_", // program resources
+  "pgdl_", // program group default link
+  "inv_", // invoice
+  "cm_", // commission
+  "rw_", // reward
+  "disc_", // discount
+  "dub_embed_", // dub embed
+  "audit_", // audit log
+  "import_", // import log
+  "grp_", // group
+  "bnty_", // bounty
+  "bnty_sub_", // bounty submission
+  "wf_", // workflow
 ] as const;
 
 // ULID uses base32 encoding

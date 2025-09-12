@@ -32,7 +32,7 @@ export function GroupLinkSettings() {
     <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200">
       <div className="px-6 py-6">
         <h3 className="text-content-emphasis text-lg font-semibold leading-7">
-          Links settings
+          Link settings
         </h3>
         <p className="text-content-subtle text-sm font-normal leading-5">
           Configure link structure and UTM parameters
