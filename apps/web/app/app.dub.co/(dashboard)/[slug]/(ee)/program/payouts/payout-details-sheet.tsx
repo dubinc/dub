@@ -61,7 +61,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     return {
       Partner: (
         <ConditionalLink
-          href={`/${slug}/program/partners?partnerId=${payout.partner.id}`}
+          href={`/${slug}/program/partners/${payout.partner.id}`}
           target="_blank"
         >
           <img

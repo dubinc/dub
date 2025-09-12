@@ -64,7 +64,7 @@ export function PageContent({
             <div className="flex min-w-0 items-center gap-4">
               <NavButton />
               {title && (
-                <div className="flex items-center gap-2">
+                <div className="flex min-w-0 items-center gap-2">
                   {titleBackHref && (
                     <Link
                       href={titleBackHref}
@@ -73,7 +73,7 @@ export function PageContent({
                       <ChevronLeft className="size-5" />
                     </Link>
                   )}
-                  <h1 className="text-content-emphasis text-lg font-semibold leading-7">
+                  <h1 className="text-content-emphasis min-w-0 text-lg font-semibold leading-7">
                     {title}
                   </h1>
                   {finalTitleInfo}

@@ -299,6 +299,7 @@ export const PartnerSchema = z
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
+  companyName: true,
   email: true,
   image: true,
   description: true,
@@ -685,6 +686,12 @@ export const bulkArchivePartnersSchema = z.object({
     .max(100)
     .min(1)
     .transform((v) => [...new Set(v)]),
+});
+
+export const updatePartnerEnrollmentSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  tenantId: z.string().nullish(),
 });
 
 export const partnerPayoutSettingsSchema = z.object({

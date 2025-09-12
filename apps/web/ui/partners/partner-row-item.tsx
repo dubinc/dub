@@ -75,7 +75,7 @@ export function PartnerRowItem({
         </div>
       </DynamicTooltipWrapper>
       <As
-        href={`/${slug}/program/partners?partnerId=${partner.id}`}
+        href={`/${slug}/program/partners/${partner.id}`}
         {...(showPermalink && { target: "_blank" })}
         className={cn(
           "min-w-0 truncate",

@@ -88,9 +88,11 @@ const fields: {
 
 export function OnlinePresenceSummary({
   partner,
+  showLabels = true,
   className,
 }: {
   partner: EnrolledPartnerProps;
+  showLabels?: boolean;
   className?: string;
 }) {
   const fieldData = fields
@@ -104,14 +106,17 @@ export function OnlinePresenceSummary({
   return fieldData.length ? (
     <div
       className={cn(
-        "grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-5 text-sm md:gap-x-16",
+        "grid items-center gap-x-4 gap-y-5 text-sm md:gap-x-16",
+        showLabels ? "grid-cols-[max-content_minmax(0,1fr)]" : "grid-cols-1",
         className,
       )}
     >
       {fieldData.map(({ label, icon: Icon, value, verified, href, info }) => {
         return (
           <Fragment key={label}>
-            <span className="text-content-default font-medium">{label}</span>
+            {showLabels && (
+              <span className="text-content-default font-medium">{label}</span>
+            )}
             <div>
               <OnlinePresenceCard
                 icon={Icon}

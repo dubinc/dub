@@ -14,6 +14,7 @@ import { DiscountSchema } from "./discount";
 import { LinkSchema } from "./links";
 import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
+import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 
 export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
@@ -175,4 +176,29 @@ export const createProgramApplicationSchema = z.object({
   website: z.string().trim().max(100).optional(),
   proposal: z.string().trim().min(1).max(5000),
   comments: z.string().trim().max(5000).optional(),
+});
+
+export const ProgramPartnerCommentSchema = z.object({
+  id: z.string(),
+  programEnrollmentId: z.string(),
+  userId: z.string(),
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }),
+  text: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const MAX_PROGRAM_PARTNER_COMMENT_LENGTH = 2000;
+
+export const createProgramPartnerCommentSchema = z.object({
+  partnerId: z.string(),
+  text: z.string().min(1).max(MAX_PROGRAM_PARTNER_COMMENT_LENGTH),
+});
+
+export const deleteProgramPartnerCommentSchema = z.object({
+  commentId: z.string(),
 });

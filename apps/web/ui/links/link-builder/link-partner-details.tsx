@@ -16,7 +16,7 @@ export function LinkPartnerDetails({
   return (
     <div>
       <Link
-        href={`/${slug}/program/partners?partnerId=${link.partnerId}`}
+        href={`/${slug}/program/partners/${link.partnerId}`}
         className="border-border-subtle group flex items-center justify-between overflow-hidden rounded-t-lg border bg-neutral-100 px-4 py-3"
         target="_blank"
       >

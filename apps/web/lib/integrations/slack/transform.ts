@@ -208,7 +208,7 @@ const partnerEnrolledTemplate = ({
   data: PartnerEventWebhookPayload;
 }) => {
   const { name, email, country, partnerId } = data;
-  const linkToPartner = `${APP_DOMAIN}/program/partners?partnerId=${partnerId}`;
+  const linkToPartner = `${APP_DOMAIN}/program/partners/${partnerId}`;
 
   return {
     blocks: [

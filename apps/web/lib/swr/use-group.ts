@@ -4,7 +4,10 @@ import useSWR from "swr";
 import { GroupProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useGroup({ slug: slugProp }: { slug?: string } = {}) {
+export default function useGroup({
+  slug: slugProp,
+  enabled = true,
+}: { slug?: string; enabled?: boolean } = {}) {
   const { id: workspaceId } = useWorkspace();
   const { groupSlug: groupSlugParam } = useParams<{ groupSlug: string }>();
 
@@ -15,7 +18,7 @@ export default function useGroup({ slug: slugProp }: { slug?: string } = {}) {
     error,
     mutate: mutateGroup,
   } = useSWR<GroupProps>(
-    workspaceId && groupSlug
+    workspaceId && groupSlug && enabled
       ? `/api/groups/${groupSlug}?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
