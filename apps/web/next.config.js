@@ -17,7 +17,9 @@ module.exports = withAxiom({
       "@dub/utils",
       "@team-plain/typescript-sdk",
     ],
-    esmExternals: "loose",
+    ...(process.env.NODE_ENV === "production" && {
+      esmExternals: "loose",
+    }),
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
