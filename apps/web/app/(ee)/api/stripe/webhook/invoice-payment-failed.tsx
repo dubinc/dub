@@ -13,8 +13,8 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
   if (!stripeId) {
     console.log(
       "Invoice with Stripe ID *`" +
-        stripeId +
-        "`* not found in invoice.payment_failed event",
+      stripeId +
+      "`* not found in invoice.payment_failed event",
     );
     return;
   }
@@ -48,8 +48,8 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
   if (!workspace) {
     console.log(
       "Workspace with Stripe ID *`" +
-        stripeId +
-        "`* not found in invoice.payment_failed event",
+      stripeId +
+      "`* not found in invoice.payment_failed event",
     );
     return;
   }
@@ -65,14 +65,13 @@ export async function invoicePaymentFailed(event: Stripe.Event) {
     }),
     ...workspace.users.map(({ user }) =>
       sendEmail({
-        email: user.email as string,
-        subject: `${
-          attemptCount == 2
-            ? "2nd notice: "
-            : attemptCount == 3
-              ? "3rd notice: "
-              : ""
-        }Your payment for Dub.co failed`,
+        to: user.email as string,
+        subject: `${attemptCount == 2
+          ? "2nd notice: "
+          : attemptCount == 3
+            ? "3rd notice: "
+            : ""
+          }Your payment for Dub.co failed`,
         react: (
           <FailedPayment
             attemptCount={attemptCount}

@@ -159,7 +159,7 @@ export const bulkBanPartnersAction = authActionClient
           programEnrollments
             .filter(({ partner }) => partner.email)
             .map(({ partner }) => ({
-              email: partner.email!,
+              to: partner.email!,
               subject: `You've been banned from the ${program.name} Partner Program`,
               variant: "notifications",
               react: PartnerBanned({

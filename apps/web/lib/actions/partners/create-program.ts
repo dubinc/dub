@@ -191,7 +191,7 @@ export const createProgram = async ({
       // send email about the new program
       sendEmail({
         subject: `Your program ${program.name} is created and ready to share with your partners.`,
-        email: user.email!,
+        to: user.email!,
         react: ProgramWelcome({
           email: user.email!,
           workspace,
@@ -259,7 +259,7 @@ async function invitePartner({
     sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
       variant: "notifications",
-      email: partner.email,
+      to: partner.email,
       react: PartnerInvite({
         email: partner.email,
         program: {

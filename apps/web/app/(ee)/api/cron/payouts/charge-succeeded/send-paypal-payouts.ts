@@ -52,7 +52,7 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
       .filter((payout) => payout.partner.email)
       .map((payout) => ({
         variant: "notifications",
-        email: payout.partner.email!,
+        to: payout.partner.email!,
         subject: "You've been paid!",
         react: PartnerPayoutProcessed({
           email: payout.partner.email!,

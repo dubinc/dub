@@ -247,7 +247,7 @@ export async function POST(req: Request) {
     await sendBatchEmail([
       {
         variant: "notifications",
-        email: sourceEmail,
+        to: sourceEmail,
         subject: "Your Dub partner accounts are now merged",
         react: PartnerAccountMerged({
           email: sourceEmail,
@@ -257,7 +257,7 @@ export async function POST(req: Request) {
       },
       {
         variant: "notifications",
-        email: targetEmail,
+        to: targetEmail,
         subject: "Your Dub partner accounts are now merged",
         react: PartnerAccountMerged({
           email: targetEmail,

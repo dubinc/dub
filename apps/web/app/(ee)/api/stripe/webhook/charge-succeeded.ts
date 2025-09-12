@@ -154,7 +154,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
   await sendBatchEmail(
     workspaceOwners.map(({ user }) => ({
       variant: "notifications",
-      email: user.email!,
+      to: user.email!,
       subject: `Your ${pluralize("domain", domains.length)} have been renewed`,
       react: DomainRenewed({
         email: user.email!,

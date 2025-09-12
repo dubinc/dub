@@ -9,7 +9,7 @@ export async function submitFeedback(data: FormData) {
 
   return await sendEmail({
     from: "feedback@dub.co",
-    email: "steven@dub.co",
+    to: "steven@dub.co",
     ...(email && { replyTo: email }),
     subject: "🎉 New Feedback Received!",
     react: FeedbackEmail({ email, feedback }),

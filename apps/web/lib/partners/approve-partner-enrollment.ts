@@ -179,7 +179,7 @@ export async function approvePartnerEnrollment({
               partnerEmailsToNotify.map((email) => ({
                 subject: `Your application to join ${program.name} partner program has been approved!`,
                 variant: "notifications",
-                email,
+                to: email,
                 react: PartnerApplicationApproved({
                   program: {
                     name: program.name,

@@ -54,12 +54,12 @@ export const sendOtpAction = actionClient
       const blacklistedEmailDomainTermsRegex =
         emailDomainTerms && Array.isArray(emailDomainTerms)
           ? new RegExp(
-              emailDomainTerms
-                .map((term: string) =>
-                  term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-                ) // replace special characters with escape sequences
-                .join("|"),
-            )
+            emailDomainTerms
+              .map((term: string) =>
+                term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
+              ) // replace special characters with escape sequences
+              .join("|"),
+          )
           : null;
 
       if (
@@ -120,7 +120,7 @@ export const sendOtpAction = actionClient
 
       sendEmail({
         subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
-        email,
+        to: email,
         react: VerifyEmail({
           email,
           code,

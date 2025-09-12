@@ -106,7 +106,7 @@ export async function POST(req: Request) {
     await sendBatchEmail(
       programEnrollments.map(({ partner }) => ({
         variant: "notifications",
-        email: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
+        to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
         subject: `New bounty available for ${bounty.program.name}`,
         react: NewBountyAvailable({
           email: partner.email!,

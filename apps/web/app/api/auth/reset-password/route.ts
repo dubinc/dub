@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
     waitUntil(
       sendEmail({
         subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} account password has been reset`,
-        email: identifier,
+        to: identifier,
         react: PasswordUpdated({
           email: identifier,
           verb: "reset",

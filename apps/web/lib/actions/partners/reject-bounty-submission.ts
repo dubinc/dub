@@ -87,26 +87,26 @@ export const rejectBountySubmissionAction = authActionClient
           ],
         }),
         partner.email &&
-          sendEmail({
-            subject: "Bounty rejected",
+        sendEmail({
+          subject: "Bounty rejected",
+          to: partner.email,
+          variant: "notifications",
+          react: BountyRejected({
             email: partner.email,
-            variant: "notifications",
-            react: BountyRejected({
-              email: partner.email,
-              program: {
-                name: program.name,
-                slug: program.slug,
-                supportEmail: program.supportEmail || "support@dub.co",
-              },
-              bounty: {
-                name: bounty.name,
-              },
-              submission: {
-                rejectionReason:
-                  REJECT_BOUNTY_SUBMISSION_REASONS[rejectionReason],
-              },
-            }),
+            program: {
+              name: program.name,
+              slug: program.slug,
+              supportEmail: program.supportEmail || "support@dub.co",
+            },
+            bounty: {
+              name: bounty.name,
+            },
+            submission: {
+              rejectionReason:
+                REJECT_BOUNTY_SUBMISSION_REASONS[rejectionReason],
+            },
           }),
+        }),
       ]),
     );
   });

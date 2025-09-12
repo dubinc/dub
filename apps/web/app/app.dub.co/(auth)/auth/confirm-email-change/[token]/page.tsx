@@ -145,14 +145,14 @@ const VerifyEmailChange = async ({
 
       ...(user?.subscribed
         ? [
-            unsubscribe({ email: data.email }),
-            subscribe({ email: data.newEmail }),
-          ]
+          unsubscribe({ email: data.email }),
+          subscribe({ email: data.newEmail }),
+        ]
         : []),
 
       sendEmail({
         subject: "Your email address has been changed",
-        email: data.email,
+        to: data.email,
         react: EmailUpdated({
           oldEmail: data.email,
           newEmail: data.newEmail,

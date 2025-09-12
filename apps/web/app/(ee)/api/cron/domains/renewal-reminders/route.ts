@@ -110,7 +110,7 @@ export async function GET(req: Request) {
     for (const reminderDomainsChunk of reminderDomainsChunks) {
       const res = await sendBatchEmail(
         reminderDomainsChunk.map(({ workspace, user, domain }) => ({
-          email: user.email!,
+          to: user.email!,
           subject: "Your domain is expiring soon",
           variant: "notifications",
           react: DomainRenewalReminder({

@@ -142,7 +142,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           await sendBatchEmail(
             users.map((user) => ({
               variant: "notifications",
-              email: user.email,
+              to: user.email,
               subject: "Pending bounty review",
               react: BountyPendingReview({
                 email: user.email,
@@ -170,7 +170,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         if (partner.email && program) {
           await sendEmail({
             subject: "Bounty submitted!",
-            email: partner.email,
+            to: partner.email,
             react: BountySubmitted({
               email: partner.email,
               bounty: {

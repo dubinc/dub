@@ -167,7 +167,7 @@ export const POST = withWorkspace(
 
     waitUntil(
       sendEmail({
-        email: session.user.email,
+        to: session.user.email,
         subject: `A new API key has been created for your workspace ${workspace.name} on Dub`,
         react: APIKeyCreated({
           email: session.user.email,

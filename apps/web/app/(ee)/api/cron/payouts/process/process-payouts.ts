@@ -228,7 +228,7 @@ export async function processPayouts({
       await sendBatchEmail(
         payoutChunk.map((payout) => ({
           variant: "notifications",
-          email: payout.partner.email!,
+          to: payout.partner.email!,
           subject: "You've got money coming your way!",
           react: PartnerPayoutConfirmed({
             email: payout.partner.email!,

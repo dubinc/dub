@@ -44,7 +44,7 @@ export async function notifyPartnerApplication({
   const allEmails: ResendBulkEmailOptions = workspaceUsers.map(({ user, project }) => ({
     subject: `New partner application for ${program.name}`,
     variant: "notifications",
-    email: user.email!,
+    to: user.email!,
     react: PartnerApplicationReceived({
       email: user.email!,
       partner: {

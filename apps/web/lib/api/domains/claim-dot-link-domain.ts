@@ -179,7 +179,7 @@ export const sendDomainClaimedEmails = async ({
     .filter(({ user }) => user.email)
     .map(({ user }) => ({
       variant: "notifications",
-      email: user.email!,
+      to: user.email!,
       subject: "Successfully claimed your .link domain!",
       react: DomainClaimed({
         email: user.email!,

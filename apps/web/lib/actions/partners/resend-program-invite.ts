@@ -53,7 +53,7 @@ export const resendProgramInviteAction = authActionClient
       sendEmail({
         subject: `${program.name} invited you to join Dub Partners`,
         variant: "notifications",
-        email: partner.email!,
+        to: partner.email!,
         react: PartnerInvite({
           email: partner.email!,
           program: {

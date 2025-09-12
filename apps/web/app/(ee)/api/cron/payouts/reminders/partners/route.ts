@@ -118,7 +118,7 @@ export async function GET(req: Request) {
     for (const partnerProgramsChunk of partnerProgramsChunks) {
       await sendBatchEmail(
         partnerProgramsChunk.map(({ partner, programs }) => ({
-          email: partner.email,
+          to: partner.email,
           subject: "Connect your payout details on Dub Partners",
           variant: "notifications",
           react: ConnectPayoutReminder({

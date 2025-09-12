@@ -29,9 +29,9 @@ export const invitePartnerAction = authActionClient
 
       linkId
         ? getLinkOrThrow({
-            workspaceId: workspace.id,
-            linkId,
-          })
+          workspaceId: workspace.id,
+          linkId,
+        })
         : null,
     ]);
 
@@ -100,7 +100,7 @@ export const invitePartnerAction = authActionClient
           sendEmail({
             subject: `${program.name} invited you to join Dub Partners`,
             variant: "notifications",
-            email,
+            to: email,
             react: PartnerInvite({
               email,
               program: {

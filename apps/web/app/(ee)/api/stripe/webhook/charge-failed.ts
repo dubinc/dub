@@ -173,7 +173,7 @@ async function processPayoutInvoice({
         emailData.map((data) => {
           sendEmail({
             subject: "Partner payout failed",
-            email: data.email,
+            to: data.email,
             react: PartnerPayoutFailed(data),
             variant: "notifications",
           });
@@ -246,7 +246,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
       await sendBatchEmail(
         workspaceOwners.map(({ user }) => ({
           variant: "notifications",
-          email: user.email!,
+          to: user.email!,
           subject: "Domain expired",
           react: DomainExpired({
             email: user.email!,
@@ -276,7 +276,7 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
       await sendBatchEmail(
         workspaceOwners.map(({ user }) => ({
           variant: "notifications",
-          email: user.email!,
+          to: user.email!,
           subject: "Domain renewal failed",
           react: DomainRenewalFailed({
             email: user.email!,

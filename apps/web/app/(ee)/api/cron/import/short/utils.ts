@@ -30,8 +30,7 @@ export const importLinksFromShort = async ({
   shortApiKey: string;
 }) => {
   const data = await fetch(
-    `https://api.short.io/api/links?domain_id=${domainId}&limit=50${
-      pageToken ? `&pageToken=${pageToken}` : ""
+    `https://api.short.io/api/links?domain_id=${domainId}&limit=50${pageToken ? `&pageToken=${pageToken}` : ""
     }`,
     {
       headers: {
@@ -147,13 +146,13 @@ export const importLinksFromShort = async ({
         ...(importTags &&
           Array.isArray(tags) &&
           tags.length > 0 && {
-            tagIds: tags
-              .map(
-                (tag: string) =>
-                  allTags.find((t) => t.name === tag)?.id ?? null,
-              )
-              .filter(Boolean),
-          }),
+          tagIds: tags
+            .map(
+              (tag: string) =>
+                allTags.find((t) => t.name === tag)?.id ?? null,
+            )
+            .filter(Boolean),
+        }),
       };
     }),
     skipRedisCache: true,
@@ -216,7 +215,7 @@ export const importLinksFromShort = async ({
       // send email to user
       sendEmail({
         subject: `Your Short.io links have been imported!`,
-        email: ownerEmail,
+        to: ownerEmail,
         react: LinksImported({
           email: ownerEmail,
           provider: "Short.io",

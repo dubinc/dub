@@ -173,7 +173,7 @@ const sendTokens = async ({
   await sendBatchEmail([
     {
       variant: "notifications",
-      email: sourceEmail,
+      to: sourceEmail,
       subject: "Verify your email to merge your Dub Partners accounts",
       react: VerifyEmailForAccountMerge({
         email: sourceEmail,
@@ -183,7 +183,7 @@ const sendTokens = async ({
     },
     {
       variant: "notifications",
-      email: targetEmail,
+      to: targetEmail,
       subject: "Verify your email to merge your Dub Partners accounts",
       react: VerifyEmailForAccountMerge({
         email: targetEmail,

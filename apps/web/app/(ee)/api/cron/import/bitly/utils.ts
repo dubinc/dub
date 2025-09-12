@@ -239,7 +239,7 @@ export const importLinksFromBitly = async ({
       // send email to user
       sendEmail({
         subject: `Your Bitly links have been imported!`,
-        email: ownerEmail,
+        to: ownerEmail,
         react: LinksImported({
           email: ownerEmail,
           provider: "Bitly",

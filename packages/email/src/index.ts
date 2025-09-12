@@ -14,9 +14,9 @@ export const sendEmail = async (opts: ResendEmailOptions) => {
   );
 
   if (smtpConfigured) {
-    const { email, subject, text, react } = opts;
+    const { to, subject, text, react } = opts;
     return await sendViaNodeMailer({
-      email,
+      to,
       subject,
       text,
       react,
@@ -40,7 +40,7 @@ export const sendBatchEmail = async (payload: ResendBulkEmailOptions) => {
 
   if (smtpConfigured) {
     await Promise.all(payload.map((p) => sendViaNodeMailer({
-      email: p.email,
+      to: p.to,
       subject: p.subject,
       text: p.text,
       react: p.react,
@@ -49,7 +49,7 @@ export const sendBatchEmail = async (payload: ResendBulkEmailOptions) => {
     return {
       data: [],
       error: null,
-    }
+    };
   }
 
   console.info(
@@ -59,5 +59,5 @@ export const sendBatchEmail = async (payload: ResendBulkEmailOptions) => {
   return {
     data: [],
     error: null,
-  }
+  };
 };

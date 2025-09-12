@@ -95,23 +95,23 @@ export const approveBountySubmissionAction = authActionClient
         }),
 
         partner.email &&
-          sendEmail({
-            subject: "Bounty approved!",
+        sendEmail({
+          subject: "Bounty approved!",
+          to: partner.email,
+          variant: "notifications",
+          react: BountyApproved({
             email: partner.email,
-            variant: "notifications",
-            react: BountyApproved({
-              email: partner.email,
-              program: {
-                name: program.name,
-                slug: program.slug,
-                supportEmail: program.supportEmail || "support@dub.co",
-              },
-              bounty: {
-                name: bounty.name,
-                type: bounty.type,
-              },
-            }),
+            program: {
+              name: program.name,
+              slug: program.slug,
+              supportEmail: program.supportEmail || "support@dub.co",
+            },
+            bounty: {
+              name: bounty.name,
+              type: bounty.type,
+            },
           }),
+        }),
       ]),
     );
   });

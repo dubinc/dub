@@ -112,7 +112,7 @@ export async function notifyPartnerCommission({
     ...partnerEmailsToNotify.map((email) => ({
       subject: "You just made a commission via Dub Partners!",
       variant: "notifications",
-      email,
+      to: email,
       react: NewCommissionAlertPartner({
         email,
         ...data,
@@ -123,7 +123,7 @@ export async function notifyPartnerCommission({
       ? workspaceUsers.map(({ user }) => ({
         subject: `New commission for ${partner.name}`,
         variant: "notifications",
-        email: user.email!,
+        to: user.email!,
         react: NewSaleAlertProgramOwner({
           ...data,
           user: {

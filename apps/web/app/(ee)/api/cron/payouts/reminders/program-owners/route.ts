@@ -186,7 +186,7 @@ export async function GET(req: Request) {
       const res = await sendBatchEmail(
         programOwnerChunk.map(({ workspace, user, program, payout }) => ({
           variant: "notifications",
-          email: user.email!,
+          to: user.email!,
           subject: `${payout.partnersCount} ${pluralize(
             "partner",
             payout.partnersCount,

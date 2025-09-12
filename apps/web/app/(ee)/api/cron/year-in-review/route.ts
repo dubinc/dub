@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { sendBatchEmail } from "@dub/email";
+import { ResendEmailOptions } from "@dub/email/resend/types";
 import DubWrapped from "@dub/email/templates/dub-wrapped";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -53,7 +54,7 @@ export async function POST() {
       return new Response("No jobs found. Skipping...");
     }
 
-    const emailData = yearInReviews.flatMap(
+    const emailData: { workspaceId: string; email: ResendEmailOptions }[] = yearInReviews.flatMap(
       ({ workspace, totalClicks, totalLinks, topCountries, topLinks }) =>
         workspace.users
           .map(({ user }) => {

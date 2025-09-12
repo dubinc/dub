@@ -4,7 +4,7 @@ import { ResendBulkEmailOptions, ResendEmailOptions } from "./resend/types";
 
 const resendEmailForOptions = (opts: ResendEmailOptions) => {
   const {
-    email,
+    to,
     from,
     variant = "primary",
     bcc,
@@ -17,7 +17,7 @@ const resendEmailForOptions = (opts: ResendEmailOptions) => {
   } = opts;
 
   return {
-    to: email,
+    to,
     from: from || VARIANT_TO_FROM_MAP[variant],
     bcc: bcc,
     replyTo: replyTo || "support@dub.co",
@@ -59,7 +59,7 @@ export const sendBatchEmailViaResend = async (opts: ResendBulkEmailOptions) => {
     return {
       data: [],
       error: null,
-    }
+    };
   }
 
   const payload = opts.map(resendEmailForOptions);

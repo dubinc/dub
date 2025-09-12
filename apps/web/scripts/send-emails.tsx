@@ -15,15 +15,14 @@ const workspace = {
 
 async function main() {
   const res = await sendEmail({
-    email: user.email as string,
+    to: user.email as string,
     from: "steven@dub.co",
-    subject: `${
-      attemptCount == 2
-        ? "2nd notice: "
-        : attemptCount == 3
-          ? "3rd notice: "
-          : ""
-    }Your payment for Dub.co failed`,
+    subject: `${attemptCount == 2
+      ? "2nd notice: "
+      : attemptCount == 3
+        ? "3rd notice: "
+        : ""
+      }Your payment for Dub.co failed`,
     react: (
       <FailedPayment
         attemptCount={attemptCount}

@@ -97,7 +97,7 @@ export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
       .map((p) => {
         return {
           variant: "notifications",
-          email: p.partner.email!,
+          to: p.partner.email!,
           subject: "You've been paid!",
           react: PartnerPayoutProcessed({
             email: p.partner.email!,
