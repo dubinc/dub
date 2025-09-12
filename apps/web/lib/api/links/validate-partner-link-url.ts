@@ -14,13 +14,6 @@ export const validatePartnerLinkUrl = ({
     return;
   }
 
-  if (!group.additionalLinks) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "No additional links are allowed for this program.",
-    });
-  }
-
   const additionalLinks = group.additionalLinks as PartnerGroupAdditionalLink[];
 
   if (!additionalLinks) {
