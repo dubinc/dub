@@ -233,11 +233,11 @@ export async function approvePartnerEnrollment({
           ],
         }),
 
-        ...(bountiesByGroupId[group.id] || []).map((bountyId) =>
+        ...(bountiesByGroupId[group.id] || []).map(({ id }) =>
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
             body: {
-              bountyId,
+              bountyId: id,
               partnerIds: [partner.id],
             },
             notBefore: Math.floor(new Date().getTime() / 1000) + 1 * 60 * 60, // 1 hour from now
