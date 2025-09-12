@@ -163,8 +163,6 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
         const data = await response.json();
         utmTemplateId = data.id;
       }
-
-      await mutatePrefix("/api/utm");
     }
 
     // Update the group with UTM template and link structure
@@ -179,12 +177,11 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
           linkStructure,
           utmTemplateId,
         },
-        onSuccess: async () => {
-          await mutatePrefix(["/api/groups", "/api/utm"]);
-          toast.success("Settings saved successfully!");
-        },
       });
     }
+
+    await mutatePrefix(["/api/groups", "/api/utm"]);
+    toast.success("Successfully updated link settings!");
   };
 
   return (
