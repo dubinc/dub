@@ -62,6 +62,8 @@ export async function GET(req: NextRequest) {
 
   const { rewards } = getGroupRewardsAndDiscount(program.groups[0]);
 
+  const reward = rewards[0];
+
   return new ImageResponse(
     (
       <div
@@ -144,16 +146,35 @@ export async function GET(req: NextRequest) {
                 {/* @ts-ignore */}
                 <InvoiceDollar tw="w-8 h-8 mr-4" />
                 <strong
-                  tw="font-semibold mr-1"
+                  tw="font-semibold mr-1.5"
                   style={{ fontFamily: "Inter Semibold" }}
                 >
-                  {constructRewardAmount(rewards[0])} per {rewards[0].event}
+                  {constructRewardAmount(rewards[0])}
+                  {reward.event === "sale" && reward.maxDuration === 0
+                    ? " for the first sale"
+                    : ` per ${reward.event}`}
                 </strong>
-                {rewards[0].maxDuration === null ? (
-                  "for the customer's lifetime"
-                ) : rewards[0].maxDuration && rewards[0].maxDuration > 1 ? (
+                {reward.maxDuration === null ? (
                   <>
-                    , and again every month for {rewards[0].maxDuration} months
+                    for the
+                    <strong
+                      tw="font-semibold ml-1.5"
+                      style={{ fontFamily: "Inter Semibold" }}
+                    >
+                      customer's lifetime
+                    </strong>
+                  </>
+                ) : reward.maxDuration && reward.maxDuration > 1 ? (
+                  <>
+                    for
+                    <strong
+                      tw="font-semibold ml-1.5"
+                      style={{ fontFamily: "Inter Semibold" }}
+                    >
+                      {reward.maxDuration % 12 === 0
+                        ? `${reward.maxDuration / 12} year${reward.maxDuration / 12 > 1 ? "s" : ""}`
+                        : `${reward.maxDuration} months`}
+                    </strong>
                   </>
                 ) : null}
               </div>
