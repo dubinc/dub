@@ -7,10 +7,11 @@ export const DiscountSchema = z.object({
   amount: z.number(),
   type: z.nativeEnum(RewardStructure),
   maxDuration: z.number().nullable(),
-  description: z.string().nullish(),
   couponId: z.string().nullable(),
   couponTestId: z.string().nullable(),
+  description: z.string().nullish(),
   partnersCount: z.number().nullish(),
+  couponCodeTrackingEnabledAt: z.date().nullish(),
 });
 
 export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
@@ -29,11 +30,14 @@ export const createDiscountSchema = z.object({
   couponId: z.string(),
   couponTestId: z.string().nullish(),
   groupId: z.string(),
+  enableCouponTracking: z.boolean().default(false),
 });
 
 export const updateDiscountSchema = createDiscountSchema
-  .omit({
-    groupId: true,
+  .pick({
+    workspaceId: true,
+    couponTestId: true,
+    enableCouponTracking: true,
   })
   .extend({
     discountId: z.string(),

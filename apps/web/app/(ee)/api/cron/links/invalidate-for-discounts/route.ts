@@ -4,6 +4,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import { z } from "zod";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +35,9 @@ export async function POST(req: Request) {
     });
 
     if (!group) {
-      console.error(`Group ${groupId} not found.`);
-      return new Response("OK");
+      return logAndRespond(`Group ${groupId} not found.`, {
+        logLevel: "error",
+      });
     }
 
     // Find all the links of the partners in the group
@@ -59,18 +61,18 @@ export async function POST(req: Request) {
     });
 
     if (programEnrollments.length === 0) {
-      console.log(`No program enrollments found for group ${groupId}.`);
-      return new Response("OK");
+      return logAndRespond(
+        `No program enrollments found for group ${groupId}.`,
+      );
     }
 
     const links = programEnrollments.flatMap((enrollment) => enrollment.links);
 
     if (links.length === 0) {
-      console.log(`No links found for partners in the group ${groupId}.`);
-      return new Response("OK");
+      return logAndRespond(
+        `No links found for partners in the group ${groupId}.`,
+      );
     }
-
-    console.log(`Found ${links.length} links to invalidate the cache for.`);
 
     const linkChunks = chunk(links, 100);
 
@@ -78,11 +80,9 @@ export async function POST(req: Request) {
     for (const linkChunk of linkChunks) {
       const toExpire = linkChunk.map(({ domain, key }) => ({ domain, key }));
       await linkCache.expireMany(toExpire);
-      console.log(toExpire);
-      console.log(`Expired cache for ${toExpire.length} links.`);
     }
 
-    return new Response("OK");
+    return logAndRespond(`Expired cache for ${links.length} links.`);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
