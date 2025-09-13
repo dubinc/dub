@@ -27,7 +27,30 @@ export const GET = withWorkspace(
       programId,
     });
 
-    return NextResponse.json(z.array(GroupSchemaExtended).parse(groups));
+    // Fetch rewards and discount data for each group
+    const groupsWithRewards = await Promise.all(
+      groups.map(async (group) => {
+        const groupWithRewards = await prisma.partnerGroup.findUnique({
+          where: { id: group.id },
+          include: {
+            clickReward: true,
+            leadReward: true,
+            saleReward: true,
+            discount: true,
+          },
+        });
+
+        return {
+          ...group,
+          clickReward: groupWithRewards?.clickReward,
+          leadReward: groupWithRewards?.leadReward,
+          saleReward: groupWithRewards?.saleReward,
+          discount: groupWithRewards?.discount,
+        };
+      })
+    );
+
+    return NextResponse.json(z.array(GroupSchemaExtended).parse(groupsWithRewards));
   },
   {
     requiredPermissions: ["groups.read"],

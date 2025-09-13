@@ -1,5 +1,6 @@
 "use client";
 
+import useGroups from "@/lib/swr/use-groups";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -52,6 +53,7 @@ const PayoutTableInner = memo(
     setSelectedFilter,
   }: ReturnType<typeof usePayoutFilters>) => {
     const { id: workspaceId, defaultProgramId } = useWorkspace();
+    const { groups } = useGroups();
     const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
     const sortBy = searchParams.get("sortBy") || "periodEnd";
@@ -110,7 +112,17 @@ const PayoutTableInner = memo(
         {
           header: "Partner",
           cell: ({ row }) => {
-            return <PartnerRowItem partner={row.original.partner} />;
+            // Note: groupId not available in payout data, so no group rewards will be shown
+            return (
+              <PartnerRowItem 
+                partner={{
+                  id: row.original.partner.id,
+                  name: row.original.partner.name,
+                  image: row.original.partner.image,
+                }} 
+                group={null} 
+              />
+            );
           },
         },
         {

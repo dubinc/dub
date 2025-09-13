@@ -1,5 +1,6 @@
 import { AnalyticsResponse } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
+import useGroups from "@/lib/swr/use-groups";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { FilterButtonTableRow } from "@/ui/shared/filter-button-table-row";
@@ -17,6 +18,7 @@ import useSWR from "swr";
 
 export function AnalyticsPartnersTable() {
   const { selectedTab, queryString } = useContext(AnalyticsContext);
+  const { groups } = useGroups();
 
   const { pagination, setPagination } = usePagination(10);
 
@@ -52,14 +54,15 @@ export function AnalyticsPartnersTable() {
         minSize: 250,
         cell: ({ row }) => {
           const p = row.original.partner;
+          // Note: groupId not available in analytics data, so no group rewards will be shown
           return (
             <PartnerRowItem
               partner={{
-                ...p,
-                payoutsEnabledAt: p.payoutsEnabledAt
-                  ? new Date(p.payoutsEnabledAt)
-                  : null,
+                id: p.id,
+                name: p.name,
+                image: p.image,
               }}
+              group={null}
             />
           );
         },

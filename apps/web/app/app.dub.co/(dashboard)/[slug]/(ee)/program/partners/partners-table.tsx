@@ -166,8 +166,17 @@ export function PartnersTable() {
           enableHiding: false,
           minSize: 250,
           cell: ({ row }) => {
+            const group = groups?.find((g) => g.id === row.original.groupId);
             return (
-              <PartnerRowItem partner={row.original} showPermalink={false} />
+              <PartnerRowItem 
+                partner={{
+                  id: row.original.id,
+                  name: row.original.name,
+                  image: row.original.image,
+                }} 
+                group={group}
+                showPermalink={false} 
+              />
             );
           },
         },
