@@ -26,12 +26,12 @@ export const GroupSchema = z.object({
 
 export const GroupSchemaExtended = GroupSchema.extend({
   partners: z.number().default(0),
-  clicks: z.number().default(0),
-  leads: z.number().default(0),
-  sales: z.number().default(0),
-  saleAmount: z.number().default(0),
-  conversions: z.number().default(0),
-  commissions: z.number().default(0),
+  totalClicks: z.number().default(0),
+  totalLeads: z.number().default(0),
+  totalSales: z.number().default(0),
+  totalSaleAmount: z.number().default(0),
+  totalConversions: z.number().default(0),
+  totalCommissions: z.number().default(0),
   netRevenue: z.number().default(0),
   partnersCount: z.number().default(0),
 });
@@ -79,15 +79,15 @@ export const getGroupsQuerySchema = z
       .enum([
         "createdAt",
         "partners",
-        "clicks",
-        "leads",
-        "sales",
-        "saleAmount",
-        "conversions",
-        "commissions",
+        "totalClicks",
+        "totalLeads",
+        "totalSales",
+        "totalSaleAmount",
+        "totalConversions",
+        "totalCommissions",
         "netRevenue",
       ])
-      .default("partners"),
+      .default("totalSaleAmount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     includeExpandedFields: booleanQuerySchema.optional(),
   })
