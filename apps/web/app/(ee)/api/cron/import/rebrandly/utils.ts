@@ -18,8 +18,7 @@ export const importTagsFromRebrandly = async ({
   lastTagId?: string | null;
 }) => {
   const tags = (await fetch(
-    `https://api.rebrandly.com/v1/tags?orderBy=name&orderDir=desc&limit=25${
-      lastTagId ? `&last=${lastTagId}` : ""
+    `https://api.rebrandly.com/v1/tags?orderBy=name&orderDir=desc&limit=25${lastTagId ? `&last=${lastTagId}` : ""
     }`,
     {
       headers: {
@@ -160,7 +159,7 @@ export const importLinksFromRebrandly = async ({
       // send email to user
       sendEmail({
         subject: `Your Rebrandly links have been imported!`,
-        email: ownerEmail,
+        to: ownerEmail,
         react: LinksImported({
           email: ownerEmail,
           provider: "Rebrandly",
@@ -186,14 +185,14 @@ export const importLinksFromRebrandly = async ({
           const tagIds =
             tagsToId && tags.length > 0
               ? tags.map(
-                  (tag: {
-                    id: string;
-                    name: string;
-                    color: string;
-                    active: boolean;
-                    clicks: number;
-                  }) => tagsToId[tag.name],
-                )
+                (tag: {
+                  id: string;
+                  name: string;
+                  color: string;
+                  active: boolean;
+                  clicks: number;
+                }) => tagsToId[tag.name],
+              )
               : [];
 
           return {

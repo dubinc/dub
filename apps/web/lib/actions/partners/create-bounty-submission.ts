@@ -9,9 +9,7 @@ import {
   MAX_SUBMISSION_URLS,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
-import { sendEmail } from "@dub/email";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyPendingReview from "@dub/email/templates/bounty-pending-review";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
@@ -141,9 +139,9 @@ export const createBountySubmissionAction = authPartnerActionClient
         });
 
         if (users.length > 0) {
-          await resend.batch.send(
+          await sendBatchEmail(
             users.map((user) => ({
-              from: VARIANT_TO_FROM_MAP.notifications,
+              variant: "notifications",
               to: user.email,
               subject: "Pending bounty review",
               react: BountyPendingReview({
@@ -172,7 +170,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         if (partner.email && program) {
           await sendEmail({
             subject: "Bounty submitted!",
-            email: partner.email,
+            to: partner.email,
             react: BountySubmitted({
               email: partner.email,
               bounty: {

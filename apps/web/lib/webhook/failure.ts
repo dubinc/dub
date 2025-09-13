@@ -108,7 +108,7 @@ const notifyWebhookFailure = async (
 
   sendEmail({
     subject: "Webhook is failing to deliver",
-    email,
+    to: email,
     react: WebhookFailed({
       email,
       workspace: {
@@ -155,7 +155,7 @@ const notifyWebhookDisabled = async (
 
   sendEmail({
     subject: "Webhook has been disabled",
-    email,
+    to: email,
     react: WebhookDisabled({
       email,
       workspace: {

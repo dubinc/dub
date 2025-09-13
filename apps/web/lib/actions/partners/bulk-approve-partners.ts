@@ -11,13 +11,13 @@ import {
   EnrolledPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { chunk, isFulfilled } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { sendBatchEmail } from "@dub/email";
+import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 
 // Approve partners applications in bulk
 export const bulkApprovePartnersAction = authActionClient
@@ -48,9 +48,9 @@ export const bulkApprovePartnersAction = authActionClient
     // Fetch the group if it provided
     const group = groupId
       ? await getGroupOrThrow({
-          programId: program.id,
-          groupId,
-        })
+        programId: program.id,
+        groupId,
+      })
       : null;
 
     // Approve the enrollments and update the group if it provided
@@ -102,7 +102,7 @@ export const bulkApprovePartnersAction = authActionClient
     });
 
     // Create all emails first, then chunk them into batches of 100
-    const allEmails = updatedEnrollments.flatMap(
+    const allEmails: ResendBulkEmailOptions = updatedEnrollments.flatMap(
       ({ partner, clickReward, leadReward, saleReward }) => {
         const partnerEmailsToNotify = partner.users
           .map(({ user }) => user.email)
@@ -110,7 +110,7 @@ export const bulkApprovePartnersAction = authActionClient
 
         return partnerEmailsToNotify.map((email) => ({
           subject: `Your application to join ${program.name} partner program has been approved!`,
-          from: VARIANT_TO_FROM_MAP.notifications,
+          variant: "notifications",
           to: email,
           react: PartnerApplicationApproved({
             program: {
@@ -161,7 +161,7 @@ export const bulkApprovePartnersAction = authActionClient
 
         await Promise.allSettled([
           // Send approval emails
-          ...emailChunks.map((emailChunk) => resend.batch.send(emailChunk)),
+          ...emailChunks.map((emailChunk) => sendBatchEmail(emailChunk)),
 
           // Send enrolled webhooks
           ...updatedEnrollments.map(({ partner, ...enrollment }) =>

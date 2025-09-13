@@ -116,7 +116,7 @@ export const updateUsage = async () => {
       if (
         workspace.usage > 0 &&
         workspace.createdAt.getTime() <
-          new Date().getTime() - 30 * 24 * 60 * 60 * 1000
+        new Date().getTime() - 30 * 24 * 60 * 60 * 1000
       ) {
         const topLinks = await getAnalytics({
           workspaceId: workspace.id,
@@ -164,7 +164,7 @@ export const updateUsage = async () => {
             limiter.schedule(() =>
               sendEmail({
                 subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
-                email,
+                to: email,
                 react: ClicksSummary({
                   email,
                   workspaceName: workspace.name,
@@ -231,7 +231,7 @@ export const updateUsage = async () => {
           const daysSinceFirstEmail = Math.floor(
             (new Date().getTime() -
               new Date(sentEmails[0].createdAt).getTime()) /
-              (1000 * 3600 * 24),
+            (1000 * 3600 * 24),
           );
           if (daysSinceFirstEmail >= 3) {
             sendLimitEmail({

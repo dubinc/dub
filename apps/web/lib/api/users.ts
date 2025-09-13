@@ -61,7 +61,7 @@ export async function inviteUser({
 
   return await sendEmail({
     subject: `You've been invited to join a workspace on ${process.env.NEXT_PUBLIC_APP_NAME}`,
-    email,
+    to: email,
     react: WorkspaceInvite({
       email,
       url,

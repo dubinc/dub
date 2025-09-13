@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions = {
           return;
         } else {
           sendEmail({
-            email: identifier,
+            to: identifier,
             subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
             react: LoginLink({ url, email: identifier }),
           });
@@ -101,9 +101,8 @@ export const authOptions: NextAuthOptions = {
             data: {
               id: createId({ prefix: "user_" }),
               email: profile.email,
-              name: `${profile.firstName || ""} ${
-                profile.lastName || ""
-              }`.trim(),
+              name: `${profile.firstName || ""} ${profile.lastName || ""
+                }`.trim(),
             },
           });
         }
@@ -172,9 +171,8 @@ export const authOptions: NextAuthOptions = {
             data: {
               id: createId({ prefix: "user_" }),
               email: userInfo.email,
-              name: `${userInfo.firstName || ""} ${
-                userInfo.lastName || ""
-              }`.trim(),
+              name: `${userInfo.firstName || ""} ${userInfo.lastName || ""
+                }`.trim(),
             },
           });
         }

@@ -322,7 +322,7 @@ async function handler(req: Request) {
           limiter.schedule(() =>
             sendEmail({
               subject: `Your ${reportingMonth} performance report for ${program.name} program`,
-              email: partner.email!,
+              to: partner.email!,
               react: PartnerProgramSummary({
                 program,
                 partner,

@@ -44,10 +44,10 @@ export async function leadCreated(data: LeadCreatedEvent["data"]) {
         // update the referrer's workspace usage
         ...(referralLink.leads &&
           referralLink.leads < REFERRAL_SIGNUPS_MAX && {
-            usageLimit: {
-              increment: 500,
-            },
-          }),
+          usageLimit: {
+            increment: 500,
+          },
+        }),
       },
     }),
     // send notification email to workspace owners
@@ -55,7 +55,7 @@ export async function leadCreated(data: LeadCreatedEvent["data"]) {
       ({ user: owner }) =>
         owner.email &&
         sendEmail({
-          email: owner.email,
+          to: owner.email,
           subject: "Someone signed up for Dub via your referral link!",
           react: NewReferralSignup({
             email: owner.email,

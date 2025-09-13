@@ -119,7 +119,7 @@ export async function updateStripeCustomers(
 
   if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email: workspaceUser.user.email,
+      to: workspaceUser.user.email,
       subject: "PartnerStack program imported",
       react: ProgramImported({
         email: workspaceUser.user.email,

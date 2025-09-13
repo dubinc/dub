@@ -1,6 +1,4 @@
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -11,6 +9,7 @@ import { recordLink } from "../tinybird/record-link";
 import { ProgramPartnerLinkProps, RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
+import { sendBatchEmail } from "@dub/email";
 
 export async function approvePartnerEnrollment({
   programId,
@@ -39,10 +38,10 @@ export async function approvePartnerEnrollment({
 
     linkId
       ? prisma.link.findUniqueOrThrow({
-          where: {
-            id: linkId,
-          },
-        })
+        where: {
+          id: linkId,
+        },
+      })
       : Promise.resolve(null),
   ]);
 
@@ -104,22 +103,22 @@ export async function approvePartnerEnrollment({
     // Update link to have programId and partnerId
     link
       ? prisma.link.update({
-          where: {
-            id: link.id,
-          },
-          data: {
-            programId,
-            partnerId,
-            folderId: program.defaultFolderId,
-          },
-          include: {
-            tags: {
-              select: {
-                tag: true,
-              },
+        where: {
+          id: link.id,
+        },
+        data: {
+          programId,
+          partnerId,
+          folderId: program.defaultFolderId,
+        },
+        include: {
+          tags: {
+            select: {
+              tag: true,
             },
           },
-        })
+        },
+      })
       : Promise.resolve(null),
   ]);
 
@@ -176,31 +175,31 @@ export async function approvePartnerEnrollment({
 
         ...(partnerEmailsToNotify.length
           ? [
-              resend.batch.send(
-                partnerEmailsToNotify.map((email) => ({
-                  subject: `Your application to join ${program.name} partner program has been approved!`,
-                  from: VARIANT_TO_FROM_MAP.notifications,
-                  to: email,
-                  react: PartnerApplicationApproved({
-                    program: {
-                      name: program.name,
-                      logo: program.logo,
-                      slug: program.slug,
-                      supportEmail: program.supportEmail,
-                    },
-                    partner: {
-                      name: partner.name,
-                      email,
-                      payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-                    },
-                    rewardDescription: ProgramRewardDescription({
-                      reward: rewards.find((r) => r.event === "sale"),
-                      showModifiersTooltip: false,
-                    }),
+            sendBatchEmail(
+              partnerEmailsToNotify.map((email) => ({
+                subject: `Your application to join ${program.name} partner program has been approved!`,
+                variant: "notifications",
+                to: email,
+                react: PartnerApplicationApproved({
+                  program: {
+                    name: program.name,
+                    logo: program.logo,
+                    slug: program.slug,
+                    supportEmail: program.supportEmail,
+                  },
+                  partner: {
+                    name: partner.name,
+                    email,
+                    payoutsEnabled: Boolean(partner.payoutsEnabledAt),
+                  },
+                  rewardDescription: ProgramRewardDescription({
+                    reward: rewards.find((r) => r.event === "sale"),
+                    showModifiersTooltip: false,
                   }),
-                })),
-              ),
-            ]
+                }),
+              })),
+            ),
+          ]
           : []),
 
         sendWorkspaceWebhook({

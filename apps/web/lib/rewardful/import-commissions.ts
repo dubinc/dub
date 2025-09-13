@@ -116,7 +116,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
 
   if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email: workspaceUser.user.email,
+      to: workspaceUser.user.email,
       subject: "Rewardful campaign imported",
       react: ProgramImported({
         email: workspaceUser.user.email,

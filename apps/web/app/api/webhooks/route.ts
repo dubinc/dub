@@ -116,14 +116,14 @@ export const POST = withWorkspace(
 
     const zapierInstallation = isZapierWebhook
       ? await prisma.installedIntegration.findFirst({
-          where: {
-            projectId: workspace.id,
-            integrationId: ZAPIER_INTEGRATION_ID,
-          },
-          select: {
-            id: true,
-          },
-        })
+        where: {
+          projectId: workspace.id,
+          integrationId: ZAPIER_INTEGRATION_ID,
+        },
+        select: {
+          id: true,
+        },
+      })
       : undefined;
 
     const webhook = await createWebhook({
@@ -165,7 +165,7 @@ export const POST = withWorkspace(
             workspaceId: workspace.id,
           }),
           sendEmail({
-            email: session.user.email,
+            to: session.user.email,
             subject: "New webhook added",
             react: WebhookAdded({
               email: session.user.email,

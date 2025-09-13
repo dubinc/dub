@@ -13,10 +13,10 @@ export const sendLimitEmail = async ({
   emails: string[];
   workspace: WorkspaceProps;
   type:
-    | "firstUsageLimitEmail"
-    | "secondUsageLimitEmail"
-    | "firstLinksLimitEmail"
-    | "secondLinksLimitEmail";
+  | "firstUsageLimitEmail"
+  | "secondUsageLimitEmail"
+  | "firstLinksLimitEmail"
+  | "secondLinksLimitEmail";
 }) => {
   const percentage = Math.round(
     (workspace.linksUsage / workspace.linksLimit) * 100,
@@ -29,17 +29,17 @@ export const sendLimitEmail = async ({
           subject: type.endsWith("UsageLimitEmail")
             ? "Dub Alert: Clicks Limit Exceeded"
             : `Dub Alert: ${workspace.name} has used ${percentage.toString()}% of its links limit for the month.`,
-          email,
+          to: email,
           react: type.endsWith("UsageLimitEmail")
             ? ClicksExceeded({
-                email,
-                workspace,
-                type: type as "firstUsageLimitEmail" | "secondUsageLimitEmail",
-              })
+              email,
+              workspace,
+              type: type as "firstUsageLimitEmail" | "secondUsageLimitEmail",
+            })
             : LinksLimitAlert({
-                email,
-                workspace,
-              }),
+              email,
+              workspace,
+            }),
           variant: "notifications",
         }),
       );

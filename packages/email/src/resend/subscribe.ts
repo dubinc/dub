@@ -10,7 +10,7 @@ export async function subscribe({
   name?: string | null;
   audience?: keyof typeof RESEND_AUDIENCES;
 }) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!resend) {
     console.error(
       "No RESEND_API_KEY is set in the environment variables. Skipping.",
     );

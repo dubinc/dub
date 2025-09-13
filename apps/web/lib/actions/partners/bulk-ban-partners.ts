@@ -8,13 +8,12 @@ import {
   BAN_PARTNER_REASONS,
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
+import { sendBatchEmail } from "@dub/email";
 
 export const bulkBanPartnersAction = authActionClient
   .schema(bulkBanPartnersSchema)
@@ -156,16 +155,10 @@ export const bulkBanPartnersAction = authActionClient
           },
         });
 
-        if (!resend) {
-          console.error("Resend is not configured, skipping email sending.");
-          return;
-        }
-
-        await resend.batch.send(
+        await sendBatchEmail(
           programEnrollments
             .filter(({ partner }) => partner.email)
             .map(({ partner }) => ({
-              from: VARIANT_TO_FROM_MAP.notifications,
               to: partner.email!,
               subject: `You've been banned from the ${program.name} Partner Program`,
               variant: "notifications",

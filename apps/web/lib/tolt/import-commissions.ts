@@ -125,7 +125,7 @@ export async function importCommissions(payload: ToltImportPayload) {
 
   if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email: workspaceUser.user.email,
+      to: workspaceUser.user.email,
       subject: "Tolt program imported",
       react: ProgramImported({
         email: workspaceUser.user.email,
@@ -333,18 +333,18 @@ async function createCommission({
     }),
 
     saleAmount > 0 &&
-      recordSaleWithTimestamp({
-        ...clickData,
-        event_id: eventId,
-        event_name: "Invoice paid",
-        amount: saleAmount,
-        customer_id: customerFound.id,
-        payment_processor: "stripe",
-        // TODO: allow custom "defaultCurrency" on workspace table in the future
-        currency: "usd",
-        metadata: JSON.stringify(commission),
-        timestamp: new Date(sale.created_at).toISOString(),
-      }),
+    recordSaleWithTimestamp({
+      ...clickData,
+      event_id: eventId,
+      event_name: "Invoice paid",
+      amount: saleAmount,
+      customer_id: customerFound.id,
+      payment_processor: "stripe",
+      // TODO: allow custom "defaultCurrency" on workspace table in the future
+      currency: "usd",
+      metadata: JSON.stringify(commission),
+      timestamp: new Date(sale.created_at).toISOString(),
+    }),
 
     // update link stats (if sale amount is greater than 0)
     prisma.link.update({
@@ -373,19 +373,19 @@ async function createCommission({
 
     // update customer stats (if sale amount is greater than 0)
     saleAmount > 0 &&
-      prisma.customer.update({
-        where: {
-          id: customerFound.id,
+    prisma.customer.update({
+      where: {
+        id: customerFound.id,
+      },
+      data: {
+        sales: {
+          increment: 1,
         },
-        data: {
-          sales: {
-            increment: 1,
-          },
-          saleAmount: {
-            increment: saleAmount,
-          },
+        saleAmount: {
+          increment: saleAmount,
         },
-      }),
+      },
+    }),
   ]);
 
   await syncTotalCommissions({

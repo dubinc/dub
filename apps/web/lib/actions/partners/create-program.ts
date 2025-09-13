@@ -9,7 +9,6 @@ import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { sendEmail } from "@dub/email";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerInvite from "@dub/email/templates/partner-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
@@ -192,7 +191,7 @@ export const createProgram = async ({
       // send email about the new program
       sendEmail({
         subject: `Your program ${program.name} is created and ready to share with your partners.`,
-        email: user.email!,
+        to: user.email!,
         react: ProgramWelcome({
           email: user.email!,
           workspace,
@@ -259,8 +258,8 @@ async function invitePartner({
   waitUntil(
     sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
-      from: VARIANT_TO_FROM_MAP.notifications,
-      email: partner.email,
+      variant: "notifications",
+      to: partner.email,
       react: PartnerInvite({
         email: partner.email,
         program: {

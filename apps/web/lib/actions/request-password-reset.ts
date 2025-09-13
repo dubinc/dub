@@ -62,7 +62,7 @@ export const requestPasswordResetAction = actionClient
 
     await sendEmail({
       subject: `${process.env.NEXT_PUBLIC_APP_NAME}: Password reset instructions`,
-      email,
+      to: email,
       react: ResetPasswordLink({
         email,
         url: `${process.env.NEXTAUTH_URL}/auth/reset-password/${token}`,

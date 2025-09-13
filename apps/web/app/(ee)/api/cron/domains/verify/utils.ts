@@ -129,7 +129,7 @@ export const handleDomainUpdates = async ({
         limiter.schedule(() =>
           sendEmail({
             subject: `Your domain ${domain} has been deleted`,
-            email,
+            to: email,
             react: DomainDeleted({
               email,
               domain,
@@ -196,7 +196,7 @@ const sendDomainInvalidEmail = async ({
       limiter.schedule(() =>
         sendEmail({
           subject: `Your domain ${domain} needs to be configured`,
-          email,
+          to: email,
           react: InvalidDomain({
             email,
             domain,

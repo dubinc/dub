@@ -48,18 +48,18 @@ export async function POST(req: Request) {
         audience: isPartner ? "partners.dub.co" : "app.dub.co",
       }),
       sendEmail({
-        email: user.email,
+        to: user.email,
         replyTo: "steven.tey@dub.co",
         subject: `Welcome to Dub${isPartner ? " Partners" : ""}!`,
         react: isPartner
           ? WelcomeEmailPartner({
-              email: user.email,
-              name: user.name,
-            })
+            email: user.email,
+            name: user.name,
+          })
           : WelcomeEmail({
-              email: user.email,
-              name: user.name,
-            }),
+            email: user.email,
+            name: user.name,
+          }),
         variant: "marketing",
       }),
     ]);

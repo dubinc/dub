@@ -1,13 +1,13 @@
 "use server";
 
-import { resend } from "@dub/email/resend";
+import { sendEmail } from "@dub/email";
 import FeedbackEmail from "@dub/email/templates/feedback-email";
 
 export async function submitFeedback(data: FormData) {
   const email = data.get("email") as string;
   const feedback = data.get("feedback") as string;
 
-  return await resend.emails.send({
+  return await sendEmail({
     from: "feedback@dub.co",
     to: "steven@dub.co",
     ...(email && { replyTo: email }),
