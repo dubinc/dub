@@ -248,6 +248,7 @@ describe("POST /track/sale", async () => {
       body: {
         ...salePayload,
         clickId: trackedClickId,
+        leadEventName: "Signup (auto lead tracking)",
         customerExternalId: saleCustomer.externalId,
         customerName: saleCustomer.name,
         customerEmail: saleCustomer.email,
