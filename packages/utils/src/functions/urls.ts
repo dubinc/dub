@@ -90,13 +90,13 @@ export const UTMTags = [
 
 export const constructURLFromUTMParams = (
   url: string,
-  utmParams: Record<string, string>,
+  utmParams: Record<string, string | null>,
 ) => {
   if (!url) return "";
   try {
     const newURL = new URL(url);
     for (const [key, value] of Object.entries(utmParams)) {
-      if (value === "") {
+      if (!value) {
         newURL.searchParams.delete(key);
       } else {
         newURL.searchParams.set(key, value.replace("+", " "));
@@ -151,4 +151,20 @@ export const createHref = (
     });
   }
   return url.toString();
+};
+
+export const getPathnameFromUrl = (url: string) => {
+  try {
+    const u = new URL(url, "https://dummy-base.local");
+
+    // Keep ?query intact
+    let pathname = u.pathname + u.search;
+
+    // Remove leading slash for relative-style URLs
+    pathname = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+
+    return pathname;
+  } catch (e) {
+    return url;
+  }
 };

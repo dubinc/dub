@@ -6,19 +6,18 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, useMediaQuery, useRouterStuff } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { Button, Sheet, useRouterStuff } from "@dub/ui";
+import { fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
-import { ChevronLeft } from "lucide-react";
+
 import { useAction } from "next-safe-action/hooks";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { GroupSelector } from "./groups/group-selector";
 import { OnlinePresenceSummary } from "./online-presence-summary";
 import { PartnerInfoSection } from "./partner-info-section";
-import { PartnerLinkSelector } from "./partner-link-selector";
 
 type PartnerApplicationSheetProps = {
   partner: EnrolledPartnerProps;
@@ -175,24 +174,13 @@ function PartnerApproval({
   partner: EnrolledPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
-  const { isMobile } = useMediaQuery();
   const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
-  const [isApproving, setIsApproving] = useState(false);
-
-  const [selectedGroupId, setSelectedGroupId] = useState<string | undefined>(
-    partner.groupId ?? program?.defaultGroupId ?? undefined,
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
+    partner.groupId ?? program?.defaultGroupId ?? null,
   );
-
-  const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
-  const [linkError, setLinkError] = useState(false);
-
-  useEffect(() => {
-    if (selectedLinkId) setLinkError(false);
-  }, [selectedLinkId]);
-
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess: async () => {
       await mutatePrefix("/api/partners");
@@ -205,201 +193,47 @@ function PartnerApproval({
     },
   });
 
-  const createLink = async (search: string) => {
-    if (!search) throw new Error("No link entered");
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Approve Partner",
+    description: "Are you sure you want to approve this partner application?",
+    confirmText: "Approve",
+    onConfirm: async () => {
+      if (!program || !workspaceId || !selectedGroupId) {
+        return;
+      }
 
-    const shortKey = search.startsWith(program?.domain + "/")
-      ? search.substring((program?.domain + "/").length)
-      : search;
-
-    const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        domain: program?.domain,
-        key: shortKey,
-        url: program?.url,
-        trackConversion: true,
-        programId: program?.id,
-        folderId: program?.defaultFolderId,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      const { error } = result;
-      throw new Error(error.message);
-    }
-
-    setSelectedLinkId(result.id);
-
-    return result.id;
-  };
-
-  const handleApproveClick = async () => {
-    if (!program || !workspaceId) {
-      return;
-    }
-
-    if (!isApproving) {
-      setIsApproving(true);
-      setLinkError(false);
-      return;
-    }
-
-    // Approve partner
-    await executeAsync({
-      workspaceId: workspaceId!,
-      partnerId: partner.id,
-      linkId: selectedLinkId,
-      groupId: selectedGroupId!,
-    });
-  };
-
-  const handleBackClick = () => {
-    setIsApproving(false);
-    setSelectedLinkId(null);
-  };
+      await executeAsync({
+        workspaceId: workspaceId,
+        partnerId: partner.id,
+        groupId: selectedGroupId,
+      });
+    },
+  });
 
   return (
-    <div className="flex flex-col gap-3">
-      <GroupSelector
-        selectedGroupId={selectedGroupId ?? null}
-        setSelectedGroupId={setSelectedGroupId}
-      />
-      {isMobile ? (
-        <div className="flex flex-col gap-3">
-          {/* First row - Approve button */}
-          <div className="flex">
-            <div className="flex grow">
-              <Button
-                type="button"
-                variant="primary"
-                text="Approve"
-                loading={isPending}
-                className="w-full"
-                disabled={!selectedGroupId}
-                onClick={handleApproveClick}
-              />
-            </div>
+    <>
+      {confirmModal}
+      <div className="flex flex-col gap-3">
+        <GroupSelector
+          selectedGroupId={selectedGroupId}
+          setSelectedGroupId={setSelectedGroupId}
+        />
+        <div className="flex gap-2">
+          <div className="flex-shrink-0">
+            <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
           </div>
-
-          {/* Second row - Reject button and link selector */}
-          <div className="flex">
-            <div
-              className={cn(
-                "transition-[width] duration-300",
-                isApproving ? "w-10" : "w-full",
-              )}
-            >
-              {isApproving ? (
-                <Button
-                  type="button"
-                  variant="secondary"
-                  icon={<ChevronLeft className="size-4 shrink-0" />}
-                  onClick={handleBackClick}
-                />
-              ) : (
-                <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
-              )}
-            </div>
-
-            <div
-              className={cn(
-                "overflow-hidden transition-[width] duration-300",
-                isApproving ? "w-full pl-2" : "w-0",
-              )}
-            >
-              <div
-                className={cn(
-                  "w-0 transition-[width] duration-300",
-                  isApproving && "w-full",
-                )}
-              >
-                <PartnerLinkSelector
-                  selectedLinkId={selectedLinkId}
-                  setSelectedLinkId={setSelectedLinkId}
-                  showDestinationUrl={false}
-                  onCreate={async (search) => {
-                    try {
-                      await createLink(search);
-                      return true;
-                    } catch (error) {
-                      toast.error(error?.message ?? "Failed to create link");
-                    }
-                    return false;
-                  }}
-                  error={linkError}
-                  optional
-                />
-              </div>
-            </div>
-          </div>
+          <Button
+            type="button"
+            variant="primary"
+            text="Approve"
+            loading={isPending}
+            disabled={!selectedGroupId}
+            onClick={() => setShowConfirmModal(true)}
+            className="flex-1"
+          />
         </div>
-      ) : (
-        <div className="flex">
-          <div
-            className={cn(
-              "transition-[width] duration-300",
-              isApproving ? "w-[52px]" : "w-[83px]",
-            )}
-          >
-            {isApproving ? (
-              <Button
-                type="button"
-                variant="secondary"
-                icon={<ChevronLeft className="size-4 shrink-0" />}
-                onClick={handleBackClick}
-              />
-            ) : (
-              <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
-            )}
-          </div>
-
-          <div className="flex grow pl-2">
-            <div
-              className={cn(
-                "w-0 transition-[width] duration-300",
-                isApproving && "w-full",
-              )}
-            >
-              <div className="w-[calc(100%-8px)]">
-                <PartnerLinkSelector
-                  selectedLinkId={selectedLinkId}
-                  setSelectedLinkId={setSelectedLinkId}
-                  showDestinationUrl={false}
-                  onCreate={async (search) => {
-                    try {
-                      await createLink(search);
-                      return true;
-                    } catch (error) {
-                      toast.error(error?.message ?? "Failed to create link");
-                    }
-                    return false;
-                  }}
-                  error={linkError}
-                  optional
-                />
-              </div>
-            </div>
-
-            <div className="grow">
-              <Button
-                type="button"
-                variant="primary"
-                text="Approve"
-                loading={isPending}
-                disabled={!selectedGroupId}
-                onClick={handleApproveClick}
-              />
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 }
 
@@ -451,6 +285,7 @@ function PartnerRejectButton({
         onClick={() => {
           setShowConfirmModal(true);
         }}
+        className="px-4"
       />
     </>
   );

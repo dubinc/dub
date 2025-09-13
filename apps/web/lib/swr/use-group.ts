@@ -19,6 +19,9 @@ export default function useGroup({ slug: slugProp }: { slug?: string } = {}) {
       ? `/api/groups/${groupSlug}?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {

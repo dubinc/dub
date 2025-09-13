@@ -82,8 +82,8 @@ export default function ProgramPageClient() {
   }
 
   const partnerLink = constructPartnerLink({
-    program,
-    linkKey: defaultProgramLink.key,
+    group: programEnrollment.group,
+    link: defaultProgramLink,
   });
 
   return (
@@ -155,11 +155,8 @@ export default function ProgramPageClient() {
                 />
               </div>
 
-              {program.linkStructure === "query" && (
-                <QueryLinkStructureHelpText
-                  program={program}
-                  linkKey={defaultProgramLink.key}
-                />
+              {programEnrollment.group?.linkStructure === "query" && (
+                <QueryLinkStructureHelpText link={defaultProgramLink} />
               )}
 
               <span className="mt-12 text-base font-semibold text-neutral-800">

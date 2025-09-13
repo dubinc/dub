@@ -1,30 +1,52 @@
-import { ProgramProps } from "@/lib/types";
-import { getApexDomain } from "@dub/utils";
+import { PartnerGroupAdditionalLink } from "@/lib/types";
+import { getUrlObjFromString } from "@dub/utils";
+import { PartnerGroup } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 export const validatePartnerLinkUrl = ({
-  program,
+  group,
   url,
 }: {
-  program: Pick<ProgramProps, "urlValidationMode" | "url">;
+  group: Pick<PartnerGroup, "additionalLinks"> | null;
   url?: string | null;
 }) => {
-  if (!url || !program.url) {
+  if (!url || !group) {
     return;
   }
 
+  const additionalLinks = group.additionalLinks as PartnerGroupAdditionalLink[];
+
+  if (!additionalLinks) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "You cannot create additional links for this program.",
+    });
+  }
+
+  const { hostname: urlHostname, pathname: urlPathname } =
+    getUrlObjFromString(url) ?? {};
+
+  // Find matching additional link based on its domain
+  const additionalLink = additionalLinks.find((additionalLink) => {
+    return additionalLink.domain === urlHostname;
+  });
+
+  if (!additionalLink) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `The provided URL's domain (${urlHostname}) does not match the program's link domains.`,
+    });
+  }
+
+  // Check the validation mode
   if (
-    program.urlValidationMode === "domain" &&
-    getApexDomain(url) !== getApexDomain(program.url)
+    additionalLink.validationMode === "exact" &&
+    urlPathname &&
+    urlPathname.slice(1).length > 0
   ) {
     throw new DubApiError({
       code: "bad_request",
-      message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-    });
-  } else if (program.urlValidationMode === "exact" && url !== program.url) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: `The provided URL (${url}) does not match the program's URL (${program.url}).`,
+      message: `The provided URL is not an exact match for the program's link domain (${additionalLink.domain}).`,
     });
   }
 
