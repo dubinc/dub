@@ -10,7 +10,7 @@ const sortColumnsMap = {
   conversions: "totalConversions",
   sales: "totalSales",
   saleAmount: "totalSaleAmount",
-  commissions: "totalCommissions",
+  totalCommissions: "totalCommissions",
   netRevenue: "netRevenue",
 };
 
@@ -22,7 +22,7 @@ const sortColumnExtraMap = {
   conversions: "totalSaleAmount",
   sales: "totalClicks",
   saleAmount: "totalClicks",
-  commissions: "totalSaleAmount",
+  totalCommissions: "totalSaleAmount",
   netRevenue: "totalSaleAmount",
 };
 

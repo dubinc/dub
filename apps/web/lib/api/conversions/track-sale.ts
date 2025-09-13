@@ -57,14 +57,17 @@ export const trackSale = async ({
   let clickData: ClickEventTB | null = null;
   let leadEventData: LeadEventTB | null = null;
 
-  // Skip if invoice id is already processed
+  // Return idempotent response if invoiceId is already processed
   if (invoiceId) {
-    const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
-      ex: 60 * 60 * 24 * 7,
-      nx: true,
-    });
+    // TODO: remove oldKeyValue stuff after 7 days (on Sep 18)
+    const [newKeyValue, oldKeyValue] = await redis.mget([
+      `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
+      `dub_sale_events:invoiceId:${invoiceId}`,
+    ]);
 
-    if (!ok) {
+    if (newKeyValue) {
+      return newKeyValue;
+    } else if (oldKeyValue) {
       return {
         eventName,
         customer: null,
@@ -123,7 +126,7 @@ export const trackSale = async ({
     }
   }
 
-  // No existing customer is found, find the click event and create a new customer (for sale tracking without a pre-existing lead event)
+  // No existing customer is found, find the click event and create a new customer (for direct sale tracking)
   else {
     if (!clickId) {
       waitUntil(
@@ -131,7 +134,7 @@ export const trackSale = async ({
           workspace_id: workspace.id,
           path: "/track/sale",
           body: JSON.stringify(rawBody),
-          error: `No existing customer with the provided customerExternalId (${customerExternalId}) was found, and there was no clickId provided for sale tracking without a pre-existing lead event.`,
+          error: `No existing customer with the provided customerExternalId (${customerExternalId}) was found, and there was no clickId provided for direct sale tracking.`,
         }),
       );
 
@@ -543,7 +546,7 @@ const _trackSale = async ({
     })(),
   );
 
-  return trackSaleResponseSchema.parse({
+  const trackSaleResponse = trackSaleResponseSchema.parse({
     eventName,
     customer,
     sale: {
@@ -554,4 +557,18 @@ const _trackSale = async ({
       metadata,
     },
   });
+
+  if (invoiceId) {
+    waitUntil(
+      redis.set(
+        `trackSale:${workspace.id}:invoiceId:${invoiceId}`,
+        trackSaleResponse,
+        {
+          ex: 60 * 60 * 24 * 7, // cache for 1 week
+        },
+      ),
+    );
+  }
+
+  return trackSaleResponse;
 };
