@@ -121,7 +121,7 @@ export const getPartnersQuerySchema = z
         "conversions",
         "sales",
         "saleAmount",
-        "commissions",
+        "totalCommissions",
         "netRevenue",
       ])
       .default("saleAmount")
