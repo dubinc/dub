@@ -81,11 +81,13 @@ export async function POST(req: Request) {
       `Updating ${programEnrollments.length} partners to be moved to group ${partnerGroup.name} (${partnerGroup.id}) for program ${program.name} (${program.id}).`,
     );
 
-    const remappedLinks = programEnrollments.map(({ links: partnerLinks }) =>
-      remapPartnerGroupDefaultLinks({
-        partnerLinks,
-        newGroupDefaultLinks: partnerGroup.partnerGroupDefaultLinks,
-      }),
+    const remappedLinks = programEnrollments.map(
+      ({ partnerId, links: partnerLinks }) =>
+        remapPartnerGroupDefaultLinks({
+          partnerId,
+          partnerLinks,
+          newGroupDefaultLinks: partnerGroup.partnerGroupDefaultLinks,
+        }),
     );
 
     const linksToCreate = remappedLinks.flatMap(

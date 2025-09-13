@@ -149,6 +149,7 @@ export const PATCH = withWorkspace(
         }),
 
         utmTemplateDiff &&
+          updatedGroup.utmTemplateId &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
             body: {

@@ -126,6 +126,7 @@ export const POST = withWorkspace(
           partnerGroupDefaultLinks: {
             createMany: {
               data: partnerGroupDefaultLinks.map((link) => ({
+                id: createId({ prefix: "pgdl_" }),
                 programId,
                 domain: link.domain,
                 url: link.url,
