@@ -1,5 +1,4 @@
 import { DubApiError } from "@/lib/api/errors";
-import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
@@ -10,11 +9,7 @@ import {
   PartnerGroupDefaultLinkSchema,
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  constructURLFromUTMParams,
-  deepEqual,
-} from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -27,9 +22,20 @@ export const PATCH = withWorkspace(
       await parseRequestBody(req),
     );
 
+    const { groupIdOrSlug } = params;
+
     const group = await prisma.partnerGroup.findUniqueOrThrow({
       where: {
-        id: params.groupIdOrSlug,
+        ...(groupIdOrSlug.startsWith("grp_")
+          ? {
+              id: groupIdOrSlug,
+            }
+          : {
+              programId_slug: {
+                programId,
+                slug: groupIdOrSlug,
+              },
+            }),
         programId,
       },
       include: {
@@ -60,12 +66,7 @@ export const PATCH = withWorkspace(
       },
     });
 
-    const defaultLinkDiff = !deepEqual(
-      group.partnerGroupDefaultLinks[0],
-      updatedDefaultLink,
-    );
-
-    if (defaultLinkDiff) {
+    if (updatedDefaultLink.url !== group.partnerGroupDefaultLinks[0].url) {
       waitUntil(
         qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/update-default-links`,
@@ -98,20 +99,33 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [group, defaultLink] = await Promise.all([
-      getGroupOrThrow({
+    const { groupIdOrSlug } = params;
+
+    const group = await prisma.partnerGroup.findUniqueOrThrow({
+      where: {
+        ...(groupIdOrSlug.startsWith("grp_")
+          ? {
+              id: groupIdOrSlug,
+            }
+          : {
+              programId_slug: {
+                programId,
+                slug: groupIdOrSlug,
+              },
+            }),
         programId,
-        groupId: params.groupIdOrSlug,
-      }),
-
-      prisma.partnerGroupDefaultLink.findUniqueOrThrow({
-        where: {
-          id: params.defaultLinkId,
+      },
+      include: {
+        utmTemplate: true,
+        partnerGroupDefaultLinks: {
+          where: {
+            id: params.defaultLinkId,
+          },
         },
-      }),
-    ]);
+      },
+    });
 
-    if (defaultLink.groupId !== group.id) {
+    if (group.partnerGroupDefaultLinks.length === 0) {
       throw new DubApiError({
         code: "bad_request",
         message: `Default link ${params.defaultLinkId} not found for this group.`,
@@ -120,12 +134,12 @@ export const DELETE = withWorkspace(
 
     await prisma.partnerGroupDefaultLink.delete({
       where: {
-        id: defaultLink.id,
+        id: group.partnerGroupDefaultLinks[0].id,
       },
     });
 
     return NextResponse.json({
-      id: defaultLink.id,
+      id: group.partnerGroupDefaultLinks[0].id,
     });
   },
   {

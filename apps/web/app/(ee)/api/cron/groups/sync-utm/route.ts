@@ -156,10 +156,12 @@ export async function POST(req: Request) {
       });
     }
 
-    return logAndRespond(`Finished syncing UTM for the partner's links.`);
+    return logAndRespond(
+      `Finished syncing UTM settings for ${programEnrollments.length} partners in the ${group.name} group (${group.id}).`,
+    );
   } catch (error) {
     await log({
-      message: `Error updating UTM for the partner's links: ${error.message}.`,
+      message: `Error syncing UTM settings: ${error.message}.`,
       type: "errors",
     });
 
