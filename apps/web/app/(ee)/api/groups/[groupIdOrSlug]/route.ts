@@ -125,12 +125,6 @@ export const PATCH = withWorkspace(
       },
     });
 
-    // Identify changes in UTM template
-    let utmTemplateDiff = false;
-    if (utmTemplateId) {
-      utmTemplateDiff = group.utmTemplateId !== utmTemplateId;
-    }
-
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -148,12 +142,11 @@ export const PATCH = withWorkspace(
           ],
         }),
 
-        utmTemplateDiff &&
-          updatedGroup.utmTemplateId &&
+        group.utmTemplateId !== utmTemplateId &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
             body: {
-              utmTemplateId: updatedGroup.utmTemplateId,
+              groupId: group.id,
             },
           }),
       ]),

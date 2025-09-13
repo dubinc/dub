@@ -15,14 +15,18 @@ export const dynamic = "force-dynamic";
 const PAGE_SIZE = 50;
 
 const schema = z.object({
-  utmTemplateId: z.string(),
+  groupId: z.string(),
   partnerIds: z.array(z.string()).optional(),
   startAfterProgramEnrollmentId: z.string().optional(),
 });
 
 /**
- * Syncs UTM parameters from a UTM template to all partner links in a group.
- * This job is triggered when a UTM template associated with a partner group is updated.
+    Syncs the UTM parameter settings for a given group (whether there is a UTM template or not)
+
+    This job is triggered when:
+    1. a UTM template is created for a group
+    2. a UTM template is updated
+    3. in groups/remap-default-links cron
  */
 
 // POST /api/cron/groups/sync-utm
@@ -31,42 +35,31 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { utmTemplateId, partnerIds, startAfterProgramEnrollmentId } =
-      schema.parse(JSON.parse(rawBody));
+    const { groupId, partnerIds, startAfterProgramEnrollmentId } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     // Find the UTM template
-    const utmTemplate = await prisma.utmTemplate.findUnique({
+    const group = await prisma.partnerGroup.findUnique({
       where: {
-        id: utmTemplateId,
+        id: groupId,
       },
       include: {
-        partnerGroup: {
-          include: {
-            partnerGroupDefaultLinks: true,
-          },
-        },
+        partnerGroupDefaultLinks: true,
+        utmTemplate: true,
       },
     });
 
-    if (!utmTemplate) {
-      return logAndRespond(
-        `UTM template ${utmTemplateId} not found. Skipping...`,
-        {
-          logLevel: "error",
-        },
-      );
-    }
-
-    const { partnerGroup: group } = utmTemplate;
-
     if (!group) {
       return logAndRespond(
-        `UTM template ${utmTemplateId} doesn't associate with a group. Skipping...`,
+        `Group ${groupId} not found for groups/sync-utm cron. Skipping...`,
         {
           logLevel: "error",
         },
       );
     }
+
+    const { utmTemplate } = group;
 
     // Find partners in the group
     const programEnrollments = await prisma.programEnrollment.findMany({
@@ -111,11 +104,11 @@ export async function POST(req: Request) {
     );
 
     const utmParams = {
-      utm_source: utmTemplate.utm_source || null,
-      utm_medium: utmTemplate.utm_medium || null,
-      utm_campaign: utmTemplate.utm_campaign || null,
-      utm_term: utmTemplate.utm_term || null,
-      utm_content: utmTemplate.utm_content || null,
+      utm_source: utmTemplate?.utm_source || null,
+      utm_medium: utmTemplate?.utm_medium || null,
+      utm_campaign: utmTemplate?.utm_campaign || null,
+      utm_term: utmTemplate?.utm_term || null,
+      utm_content: utmTemplate?.utm_content || null,
     };
 
     // Update the UTM for each partner links in the group
@@ -123,7 +116,7 @@ export async function POST(req: Request) {
       const payload = {
         url: constructURLFromUTMParams(url, {
           ...utmParams,
-          ref: utmTemplate.ref || null,
+          ref: utmTemplate?.ref || null,
         }),
         ...utmParams,
       };
@@ -149,7 +142,8 @@ export async function POST(req: Request) {
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
         method: "POST",
         body: {
-          utmTemplateId,
+          groupId,
+          partnerIds,
           startAfterProgramEnrollmentId:
             programEnrollments[programEnrollments.length - 1].id,
         },
