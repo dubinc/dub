@@ -18,6 +18,15 @@ export const getUrlQuerySchema = z.object({
   url: parseUrlSchema,
 });
 
+export const resolveLinkSchema = z.object({
+  version: z
+  .string()
+  .describe("The link resolution schema version."),
+  link: z
+  .string()
+  .describe("The link the app wants to resolve.")
+})
+
 export const getDomainQuerySchema = z.object({
   domain: z
     .string()
