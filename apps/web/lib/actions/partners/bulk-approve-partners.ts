@@ -1,10 +1,12 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getBountiesByGroup } from "@/lib/api/bounties/get-bounties-by-group";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { qstash } from "@/lib/cron";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   bulkApprovePartnersSchema,
@@ -15,7 +17,7 @@ import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
-import { chunk, isFulfilled } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk, isFulfilled } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -159,7 +161,56 @@ export const bulkApprovePartnersAction = authActionClient
             .map(({ value }) => value),
         });
 
+        // Send bounty notifications
+        const bountiesByGroupId = await getBountiesByGroup({
+          programId: program.id,
+          groupIds: updatedEnrollments
+            .map(({ groupId }) => groupId)
+            .filter((id): id is string => id !== null),
+        });
+
+        const partnersByGroupId = updatedEnrollments.reduce(
+          (acc, { partner, groupId }) => {
+            if (groupId) {
+              acc[groupId] = [...(acc[groupId] || []), partner];
+            }
+
+            return acc;
+          },
+          {} as Record<
+            string,
+            (typeof updatedEnrollments)[number]["partner"][]
+          >,
+        );
+
+        const bountyNotificationPromises: Promise<any>[] = [];
+
+        for (const [groupId, partners] of Object.entries(partnersByGroupId)) {
+          const bounties = bountiesByGroupId[groupId] || [];
+
+          if (bounties.length === 0) {
+            continue;
+          }
+
+          for (const bounty of bounties) {
+            bountyNotificationPromises.push(
+              qstash.publishJSON({
+                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
+                body: {
+                  bountyId: bounty.id,
+                  partnerIds: partners.map((p) => p.id),
+                },
+                notBefore:
+                  Math.floor(new Date().getTime() / 1000) + 1 * 60 * 60, // 1 hour from now
+              }),
+            );
+          }
+        }
+
         await Promise.allSettled([
+          // Send bounty notifications
+          ...bountyNotificationPromises,
+
           // Send approval emails
           ...emailChunks.map((emailChunk) => resend.batch.send(emailChunk)),
 
