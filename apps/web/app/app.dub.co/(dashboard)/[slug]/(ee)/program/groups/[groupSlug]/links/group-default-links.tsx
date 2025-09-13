@@ -10,7 +10,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Hyperlink, Popover } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
-import { cn, getPrettyUrl } from "@dub/utils";
+import { cn, getUrlWithoutUTMParams } from "@dub/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -119,7 +119,19 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Delete default link",
-    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This won't affect any existing partner links, but if you recreate the link, it could result in duplicate links for partners in this group. If you want to change the default link, try editing it instead.`,
+    description: (
+      <>
+        Are you sure you want to delete{" "}
+        <strong>{getUrlWithoutUTMParams(link.url)}</strong>?
+        <br />
+        <br />
+        This won't affect any existing partner links, but if you recreate the
+        link, it could result in duplicate links for partners in this group.
+        <br />
+        <br />
+        If you want to change the default link, try editing it instead.
+      </>
+    ),
     confirmText: "Delete",
     onConfirm,
   });
