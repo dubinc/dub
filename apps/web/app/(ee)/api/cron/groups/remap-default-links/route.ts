@@ -32,7 +32,7 @@ const schema = z.object({
     2. a group is deleted and partners need to be moved to the default group
  */
 
-// POST /api/cron/groups/create-default-links
+// POST /api/cron/groups/remap-default-links
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
