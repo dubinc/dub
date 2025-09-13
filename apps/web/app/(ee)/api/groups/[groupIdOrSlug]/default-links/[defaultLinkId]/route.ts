@@ -116,7 +116,6 @@ export const DELETE = withWorkspace(
         programId,
       },
       include: {
-        utmTemplate: true,
         partnerGroupDefaultLinks: {
           where: {
             id: params.defaultLinkId,
