@@ -21,6 +21,9 @@ const payloadSchema = z.object({
 
 type Payload = z.infer<typeof payloadSchema>;
 
+// TODO:
+// Test each workflow step
+
 // POST /api/workflows/partner-approved
 export const { POST } = serve<Payload>(
   async (context) => {
@@ -28,13 +31,8 @@ export const { POST } = serve<Payload>(
     const { programId, partnerId, userId } = input;
 
     const logger = createWorkflowLogger({
-      workflowId: "partner-approved",
+      workflowId: "partner-approved-1",
       workflowRunId: context.workflowRunId,
-    });
-
-    logger.info({
-      message: "Started executing workflow.",
-      data: input,
     });
 
     const { program, partner, links, ...programEnrollment } =
@@ -48,6 +46,11 @@ export const { POST } = serve<Payload>(
 
     // Step 1: Create partner default links
     await context.run("create-default-links", async () => {
+      logger.info({
+        message: "Started executing workflow step 'create-default-links'.",
+        data: input,
+      });
+
       if (!groupId) {
         logger.error({
           message: `The partner ${partnerId} is not associated with any group.`,
@@ -129,6 +132,11 @@ export const { POST } = serve<Payload>(
 
     // Step 2: Send email to partner application approved
     await context.run("send-email", async () => {
+      logger.info({
+        message: "Started executing workflow step 'send-email'.",
+        data: input,
+      });
+
       if (!groupId) {
         logger.error({
           message: `The partner ${partnerId} is not associated with any group.`,
@@ -189,7 +197,7 @@ export const { POST } = serve<Payload>(
         partnerUsers.map(({ user }) => ({
           subject: `Your application to join ${program.name} partner program has been approved!`,
           from: VARIANT_TO_FROM_MAP.notifications,
-          to: "delivered@resend.dev",
+          to: user.email!,
           react: PartnerApplicationApproved({
             program: {
               name: program.name,
@@ -227,6 +235,11 @@ export const { POST } = serve<Payload>(
 
     // Step 3: Send webhook to workspace
     await context.run("send-webhook", async () => {
+      logger.info({
+        message: "Started executing workflow step 'send-webhook'.",
+        data: input,
+      });
+
       const enrolledPartner = EnrolledPartnerSchema.parse({
         ...programEnrollment,
         ...partner,

@@ -2,7 +2,7 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
-import { triggerWorkflow } from "../cron/qstash-workflow";
+import { triggerWorkflows } from "../cron/qstash-workflow";
 import { WorkspaceProps } from "../types";
 
 export async function approvePartnerEnrollment({
@@ -88,7 +88,7 @@ export async function approvePartnerEnrollment({
           ],
         }),
 
-        triggerWorkflow({
+        triggerWorkflows({
           workflowId: "partner-approved",
           body: {
             programId,

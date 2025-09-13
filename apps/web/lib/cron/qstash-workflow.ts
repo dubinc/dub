@@ -5,34 +5,55 @@ const client = new Client({
   token: process.env.QSTASH_TOKEN || "",
 });
 
+const WORKFLOW_RETRIES = 3;
+const WORKFLOW_PARALLELISM = 20;
+
 type WorkflowIds = "partner-approved";
 
-type TriggerWorkflow = {
-  workflowId: `${WorkflowIds}`;
-  body?: Record<string, any>;
-};
+interface QStashWorkflow {
+  workflowId: WorkflowIds;
+  body?: Record<string, unknown>;
+}
 
-export async function triggerWorkflow(params: TriggerWorkflow) {
+// Run workflows
+export async function triggerWorkflows(
+  input: QStashWorkflow | QStashWorkflow[],
+) {
   try {
-    const { workflowRunId } = await client.trigger({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${params.workflowId}`,
-      body: params.body,
-      retries: 3,
-    });
+    const workflows = Array.isArray(input) ? input : [input];
+
+    const results = await client.trigger(
+      workflows.map((workflow) => ({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/workflows/${workflow.workflowId}`,
+        body: workflow.body,
+        retries: WORKFLOW_RETRIES,
+        flowControl: {
+          key: workflow.workflowId,
+          parallelism: WORKFLOW_PARALLELISM,
+        },
+      })),
+    );
 
     if (process.env.NODE_ENV === "development") {
-      console.log(`[Upstash] Workflow triggered successfully`, {
-        workflowRunId,
-        ...params,
+      console.debug("[Upstash] Workflows triggered", {
+        count: workflows.length,
+        ids: workflows.map((w) => w.workflowId),
+        results,
       });
     }
 
-    return workflowRunId;
+    return results;
   } catch (error) {
-    console.error(`[Upstash] ${error.message}`, params);
+    const message =
+      error instanceof Error ? error.message : JSON.stringify(error);
+
+    console.error("[Upstash] Failed to trigger workflows", {
+      error: message,
+      input,
+    });
 
     await log({
-      message: `[Upstash] failed to trigger the workflow ${params.workflowId}. ${error.message}`,
+      message: `[Upstash] Failed to trigger QStash workflows. ${message}`,
       type: "errors",
     });
 
