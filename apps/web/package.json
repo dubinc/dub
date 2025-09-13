@@ -47,6 +47,7 @@
     "@upstash/qstash": "^2.8.2",
     "@upstash/ratelimit": "^2.0.6",
     "@upstash/redis": "^1.35.3",
+    "@upstash/workflow": "^0.2.19",
     "@vercel/edge-config": "^0.4.1",
     "@vercel/functions": "^1.4.2",
     "@vercel/og": "^0.6.5",
