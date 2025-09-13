@@ -78,10 +78,12 @@ model Link {
 
   dashboard Dashboard?
 
-  programId         String?
-  program           Program?           @relation(fields: [programId], references: [id])
-  partnerId         String?
-  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  programId                 String?
+  program                   Program?                 @relation(fields: [programId], references: [id])
+  partnerId                 String?
+  programEnrollment         ProgramEnrollment?       @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  partnerGroupDefaultLinkId String?
+  partnerGroupDefaultLink   PartnerGroupDefaultLink? @relation(fields: [partnerGroupDefaultLinkId], references: [id], onDelete: SetNull)
 
   customers   Customer[]
   commissions Commission[]
@@ -95,4 +97,5 @@ model Link {
   @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
+  @@index(partnerGroupDefaultLinkId)
 }

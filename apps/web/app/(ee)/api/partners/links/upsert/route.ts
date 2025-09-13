@@ -41,8 +41,6 @@ export const PUT = withWorkspace(
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
-
     if (!partnerId && !tenantId) {
       throw new DubApiError({
         code: "bad_request",
@@ -54,6 +52,13 @@ export const PUT = withWorkspace(
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
+      include: {
+        partnerGroup: {
+          include: {
+            utmTemplate: true,
+          },
+        },
+      },
     });
 
     if (!partner) {
@@ -62,6 +67,11 @@ export const PUT = withWorkspace(
         message: "Partner not found.",
       });
     }
+
+    validatePartnerLinkUrl({
+      group: partner.partnerGroup,
+      url,
+    });
 
     const link = await prisma.link.findFirst({
       where: {
@@ -174,6 +184,8 @@ export const PUT = withWorkspace(
         });
       }
     } else {
+      const utmTemplate = partner.partnerGroup?.utmTemplate;
+
       // proceed with /api/partners/links POST logic
       const { link, error, code } = await processLink({
         payload: {
@@ -186,6 +198,12 @@ export const PUT = withWorkspace(
           partnerId: partner.partnerId,
           folderId: program.defaultFolderId,
           trackConversion: true,
+          utm_source: linkProps?.utm_source || utmTemplate?.utm_source,
+          utm_medium: linkProps?.utm_medium || utmTemplate?.utm_medium,
+          utm_campaign: linkProps?.utm_campaign || utmTemplate?.utm_campaign,
+          utm_term: linkProps?.utm_term || utmTemplate?.utm_term,
+          utm_content: linkProps?.utm_content || utmTemplate?.utm_content,
+          ref: linkProps?.ref || utmTemplate?.ref,
         },
         workspace,
         userId: session.user.id,

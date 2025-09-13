@@ -81,8 +81,6 @@ export const POST = withWorkspace(
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
-
     if (!partnerId && !tenantId) {
       throw new DubApiError({
         code: "bad_request",
@@ -94,6 +92,13 @@ export const POST = withWorkspace(
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
+      include: {
+        partnerGroup: {
+          include: {
+            utmTemplate: true,
+          },
+        },
+      },
     });
 
     if (!partner) {
@@ -102,6 +107,10 @@ export const POST = withWorkspace(
         message: "Partner not found.",
       });
     }
+
+    validatePartnerLinkUrl({ group: partner.partnerGroup, url });
+
+    const utmTemplate = partner.partnerGroup?.utmTemplate;
 
     const { link, error, code } = await processLink({
       payload: {
@@ -114,6 +123,12 @@ export const POST = withWorkspace(
         partnerId: partner.partnerId,
         folderId: program.defaultFolderId,
         trackConversion: true,
+        utm_source: linkProps?.utm_source || utmTemplate?.utm_source,
+        utm_medium: linkProps?.utm_medium || utmTemplate?.utm_medium,
+        utm_campaign: linkProps?.utm_campaign || utmTemplate?.utm_campaign,
+        utm_term: linkProps?.utm_term || utmTemplate?.utm_term,
+        utm_content: linkProps?.utm_content || utmTemplate?.utm_content,
+        ref: linkProps?.ref || utmTemplate?.ref,
       },
       workspace,
       userId: session.user.id,

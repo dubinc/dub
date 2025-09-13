@@ -1,5 +1,4 @@
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getPartners } from "@/lib/api/partners/get-partners";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
@@ -43,49 +42,21 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const {
-      name,
-      email,
-      username,
-      image = null,
-      country = null,
-      description = null,
-      tenantId,
-      linkProps,
-      groupId,
-    } = createPartnerSchema.parse(await parseRequestBody(req));
+    const { linkProps: link, ...partner } = createPartnerSchema.parse(
+      await parseRequestBody(req),
+    );
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    const partnerLink = await createPartnerLink({
-      workspace,
-      program,
-      partner: {
-        name,
-        email,
-        username,
-        tenantId,
-        linkProps,
-      },
-      userId: session.user.id,
-    });
-
     const enrolledPartner = await createAndEnrollPartner({
-      program,
-      link: partnerLink,
       workspace,
-      partner: {
-        name,
-        email,
-        image,
-        country,
-        description,
-      },
-      tenantId,
-      groupId,
+      program,
+      partner,
+      link,
+      userId: session.user.id,
     });
 
     return NextResponse.json(enrolledPartner, {

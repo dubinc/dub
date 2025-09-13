@@ -6,45 +6,32 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
-import { createPartnerLink } from "../api/partners/create-partner-link";
-import { recordLink } from "../tinybird/record-link";
-import { ProgramPartnerLinkProps, RewardProps, WorkspaceProps } from "../types";
+import { createPartnerDefaultLinks } from "../api/partners/create-partner-default-links";
+import { RewardProps, WorkspaceProps } from "../types";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 
 export async function approvePartnerEnrollment({
   programId,
   partnerId,
-  linkId,
   userId,
   groupId,
 }: {
   programId: string;
   partnerId: string;
-  linkId: string | null;
   userId: string;
   groupId?: string | null;
 }) {
-  const [program, link] = await Promise.all([
-    prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      include: {
-        rewards: true,
-        discounts: true,
-        workspace: true,
-      },
-    }),
-
-    linkId
-      ? prisma.link.findUniqueOrThrow({
-          where: {
-            id: linkId,
-          },
-        })
-      : Promise.resolve(null),
-  ]);
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    include: {
+      rewards: true,
+      discounts: true,
+      workspace: true,
+    },
+  });
 
   if (!groupId && !program.defaultGroupId) {
     throw new Error("No group ID provided and no default group ID found.");
@@ -53,94 +40,67 @@ export async function approvePartnerEnrollment({
   const group = await getGroupOrThrow({
     programId,
     groupId: groupId || program.defaultGroupId,
-    includeRewardsAndDiscount: true,
+    includeExpandedFields: true,
   });
 
-  if (link) {
-    if (link.projectId !== program.workspaceId) {
-      throw new Error("This link is not associated with this program.");
-    }
-
-    if (link?.partnerId) {
-      throw new Error("This link is already associated with another partner.");
-    }
-  }
-
-  const [programEnrollment, updatedLink] = await Promise.all([
-    prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
+  const programEnrollment = await prisma.programEnrollment.update({
+    where: {
+      partnerId_programId: {
+        partnerId,
+        programId,
       },
-      data: {
-        status: "approved",
-        createdAt: new Date(),
-        groupId: group.id,
-        clickRewardId: group.clickRewardId,
-        leadRewardId: group.leadRewardId,
-        saleRewardId: group.saleRewardId,
-        discountId: group.discountId,
-      },
-      include: {
-        partner: {
-          include: {
-            users: {
-              where: {
-                notificationPreferences: {
-                  applicationApproved: true,
-                },
+    },
+    data: {
+      status: "approved",
+      createdAt: new Date(),
+      groupId: group.id,
+      clickRewardId: group.clickRewardId,
+      leadRewardId: group.leadRewardId,
+      saleRewardId: group.saleRewardId,
+      discountId: group.discountId,
+    },
+    include: {
+      partner: {
+        include: {
+          users: {
+            where: {
+              notificationPreferences: {
+                applicationApproved: true,
               },
-              include: {
-                user: true,
-              },
+            },
+            include: {
+              user: true,
             },
           },
         },
       },
-    }),
+    },
+  });
 
-    // Update link to have programId and partnerId
-    link
-      ? prisma.link.update({
-          where: {
-            id: link.id,
-          },
-          data: {
-            programId,
-            partnerId,
-            folderId: program.defaultFolderId,
-          },
-          include: {
-            tags: {
-              select: {
-                tag: true,
-              },
-            },
-          },
-        })
-      : Promise.resolve(null),
-  ]);
-
-  let partnerLink: ProgramPartnerLinkProps;
   const { partner, ...enrollment } = programEnrollment;
   const workspace = program.workspace as WorkspaceProps;
 
-  if (updatedLink) {
-    partnerLink = updatedLink;
-  } else {
-    partnerLink = await createPartnerLink({
-      workspace,
-      program,
-      partner: {
-        name: partner.name,
-        email: partner.email!,
-      },
-      userId,
-      partnerId,
-    });
-  }
+  const partnerLinks = await createPartnerDefaultLinks({
+    workspace: {
+      id: workspace.id,
+      plan: workspace.plan,
+    },
+    program: {
+      id: program.id,
+      defaultFolderId: program.defaultFolderId,
+    },
+    partner: {
+      id: partner.id,
+      name: partner.name,
+      email: partner.email!,
+      tenantId: programEnrollment.tenantId ?? undefined,
+    },
+    group: {
+      defaultLinks: group.partnerGroupDefaultLinks,
+      utmTemplate: group.utmTemplate,
+    },
+    userId,
+  });
 
   waitUntil(
     (async () => {
@@ -162,18 +122,16 @@ export async function approvePartnerEnrollment({
         ...partner,
         ...enrollment,
         id: partner.id,
-        links: [partnerLink],
+        links: partnerLinks,
       });
 
       const rewards = [
-        group?.clickReward,
-        group?.leadReward,
-        group?.saleReward,
+        group.clickReward,
+        group.leadReward,
+        group.saleReward,
       ].filter(Boolean) as RewardProps[];
 
       await Promise.allSettled([
-        updatedLink ? recordLink(updatedLink) : Promise.resolve(null),
-
         ...(partnerEmailsToNotify.length
           ? [
               resend.batch.send(

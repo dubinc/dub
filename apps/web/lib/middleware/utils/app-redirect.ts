@@ -17,6 +17,7 @@ const PROGRAM_REDIRECTS = {
   "/program/rewards": "/program/groups/default/rewards",
   "/program/discount": "/program/groups/default/discount",
   "/program/discounts": "/program/groups/default/discount",
+  "/program/link-settings": "/program/groups/default/links",
 };
 
 export const appRedirect = (path: string) => {
