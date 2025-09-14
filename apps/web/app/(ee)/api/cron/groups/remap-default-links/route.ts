@@ -4,6 +4,7 @@ import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
+import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, isFulfilled, log } from "@dub/utils";
 import { z } from "zod";
@@ -16,6 +17,7 @@ const schema = z.object({
   groupId: z.string(),
   partnerIds: z.array(z.string()).min(1),
   userId: z.string(),
+  isGroupDeleted: z.boolean().optional(),
 });
 
 /**
@@ -38,9 +40,8 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { programId, groupId, partnerIds, userId } = schema.parse(
-      JSON.parse(rawBody),
-    );
+    const { programId, groupId, partnerIds, userId, isGroupDeleted } =
+      schema.parse(JSON.parse(rawBody));
 
     const [program, partnerGroup, programEnrollments] = await Promise.all([
       prisma.program.findUniqueOrThrow({
@@ -71,14 +72,21 @@ export async function POST(req: Request) {
           partner: true,
           partnerGroup: true,
           links: {
-            where: {
-              partnerGroupDefaultLinkId: {
-                not: null,
-              },
-            },
+            // if this was invoked from the DELETE /groups/[groupId] route, the partnerGroupDefaultLinkId will be null
+            // due to Prisma cascade SetNull on delete – therefore we should take all links and remap them instead.
+            ...(isGroupDeleted
+              ? {}
+              : {
+                  where: {
+                    partnerGroupDefaultLinkId: {
+                      not: null,
+                    },
+                  },
+                }),
             orderBy: {
               createdAt: "asc",
             },
+            take: MAX_DEFAULT_PARTNER_LINKS, // there can only be up to MAX_DEFAULT_PARTNER_LINKS default links per group
           },
         },
       }),
@@ -213,6 +221,7 @@ export async function POST(req: Request) {
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
       body: {
         groupId,
+        partnerIds,
       },
     });
     console.log(

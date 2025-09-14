@@ -293,6 +293,7 @@ export const DELETE = withWorkspace(
             groupId: defaultGroup.id,
             partnerIds: group.partners.map(({ partnerId }) => partnerId),
             userId: session.user.id,
+            isGroupDeleted: true,
           },
         }),
 

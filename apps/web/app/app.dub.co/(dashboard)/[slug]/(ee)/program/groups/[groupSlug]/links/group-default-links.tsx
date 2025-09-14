@@ -10,7 +10,7 @@ import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Hyperlink, Popover } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
-import { cn, getUrlWithoutUTMParams } from "@dub/utils";
+import { cn, getPrettyUrl, getUrlWithoutUTMParams } from "@dub/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -122,7 +122,7 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
     description: (
       <>
         Are you sure you want to delete{" "}
-        <strong>{getUrlWithoutUTMParams(link.url)}</strong>?
+        <strong>{getPrettyUrl(getUrlWithoutUTMParams(link.url))}</strong>?
         <br />
         <br />
         This won't affect any existing partner links, but if you recreate the
