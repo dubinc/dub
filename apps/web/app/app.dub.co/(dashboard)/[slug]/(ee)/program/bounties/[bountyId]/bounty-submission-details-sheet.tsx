@@ -199,12 +199,16 @@ function BountySubmissionDetailsSheetContent({
                     <div className="mt-2 flex flex-col gap-2">
                       {submission.urls?.map((url) => (
                         <div className="relative">
-                          <input
-                            type="text"
-                            readOnly
-                            className="border-border-subtle block w-full rounded-lg border px-3 py-2 pr-12 text-sm font-normal text-neutral-800 focus:border-neutral-300 focus:ring-0"
-                            defaultValue={url}
-                          />
+                          <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pr-12">
+                            <a
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="cursor-alias text-sm font-normal text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                            >
+                              {url}
+                            </a>
+                          </div>
                           <div className="absolute inset-y-0 right-0 flex items-center pr-2.5">
                             <CopyButton
                               value={url}

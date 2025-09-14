@@ -161,10 +161,10 @@ function ClaimBountyModalContent({
         {success ? (
           <div className="mx-auto flex max-w-sm flex-col items-center gap-1 p-6 text-center max-sm:px-4">
             <span className="text-content-emphasis text-base font-semibold">
-              Congratulations! You've successfully submitted your bounty!
+              Congratulations! You've successfully submitted your bounty.
             </span>
             <p className="text-content-subtle text-sm font-medium">
-              We'll let you know when your bounty has been approved.
+              We'll let you know when your bounty has been reviewed.
             </p>
           </div>
         ) : (
