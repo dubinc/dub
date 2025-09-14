@@ -60,7 +60,7 @@ export default function useQrs(
       dedupingInterval: 20000,
       revalidateOnFocus: false,
       keepPreviousData: true,
-      revalidateOnMount: !listenOnly && !noFirstLoad,
+      revalidateOnMount: !listenOnly,
       revalidateOnReconnect: !listenOnly,
       ...swrOpts,
     },
