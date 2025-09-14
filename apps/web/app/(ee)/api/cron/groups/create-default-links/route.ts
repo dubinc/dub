@@ -1,11 +1,17 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks } from "@/lib/api/links";
 import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, isFulfilled, log } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  constructURLFromUTMParams,
+  isFulfilled,
+  log,
+} from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
@@ -42,6 +48,13 @@ export async function POST(req: Request) {
       where: {
         id: defaultLinkId,
       },
+      include: {
+        partnerGroup: {
+          include: {
+            utmTemplate: true,
+          },
+        },
+      },
     });
 
     if (!defaultLink) {
@@ -53,16 +66,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Find the group
-    const group = await prisma.partnerGroup.findUnique({
-      where: {
-        id: defaultLink.groupId,
-      },
-      include: {
-        utmTemplate: true,
-      },
-    });
-
+    const group = defaultLink.partnerGroup;
     if (!group) {
       return logAndRespond(
         `Group ${defaultLink.groupId} not found. Skipping...`,
@@ -139,15 +143,13 @@ export async function POST(req: Request) {
               },
               link: {
                 domain: defaultLink.domain,
-                url: defaultLink.url,
+                url: constructURLFromUTMParams(
+                  defaultLink.url,
+                  extractUtmParams(group.utmTemplate),
+                ),
+                ...extractUtmParams(group.utmTemplate, { excludeRef: true }),
                 tenantId: programEnrollment.tenantId ?? undefined,
                 partnerGroupDefaultLinkId: defaultLink.id,
-                utm_source: utmTemplate?.utm_source,
-                utm_medium: utmTemplate?.utm_medium,
-                utm_campaign: utmTemplate?.utm_campaign,
-                utm_term: utmTemplate?.utm_term,
-                utm_content: utmTemplate?.utm_content,
-                ref: utmTemplate?.ref,
               },
               userId,
             }),

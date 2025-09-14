@@ -1,6 +1,7 @@
 import { createId } from "@/lib/api/create-id";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { prisma } from "@dub/prisma";
+import { getDomainWithoutWWW } from "@dub/utils";
 import "dotenv-flow/config";
 
 // Step 1 of 2: Backfill partner groups with link settings
@@ -21,7 +22,7 @@ async function main() {
 
     if (program.maxPartnerLinks > 0) {
       additionalLink = {
-        domain: program.domain!,
+        domain: getDomainWithoutWWW(program.url!)!,
         validationMode: program.urlValidationMode,
       };
     }

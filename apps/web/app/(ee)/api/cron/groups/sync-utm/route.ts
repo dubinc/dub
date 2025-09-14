@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
@@ -45,7 +46,6 @@ export async function POST(req: Request) {
         id: groupId,
       },
       include: {
-        partnerGroupDefaultLinks: true,
         utmTemplate: true,
       },
     });
@@ -103,22 +103,11 @@ export async function POST(req: Request) {
       {} as Record<string, string[]>,
     );
 
-    const utmParams = {
-      utm_source: utmTemplate?.utm_source || null,
-      utm_medium: utmTemplate?.utm_medium || null,
-      utm_campaign: utmTemplate?.utm_campaign || null,
-      utm_term: utmTemplate?.utm_term || null,
-      utm_content: utmTemplate?.utm_content || null,
-    };
-
     // Update the UTM for each partner links in the group
     for (const [url, linkIds] of Object.entries(groupedLinksToUpdate)) {
       const payload = {
-        url: constructURLFromUTMParams(url, {
-          ...utmParams,
-          ref: utmTemplate?.ref || null,
-        }),
-        ...utmParams,
+        url: constructURLFromUTMParams(url, extractUtmParams(utmTemplate)),
+        ...extractUtmParams(utmTemplate, { excludeRef: true }),
       };
 
       const updatedLinks = await prisma.link.updateMany({
