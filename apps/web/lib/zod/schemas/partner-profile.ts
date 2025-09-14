@@ -86,6 +86,7 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   comments: true,
 }).extend({
   createdAt: z.string().or(z.date()),
+  partnerGroupDefaultLinkId: z.string().nullish(),
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({

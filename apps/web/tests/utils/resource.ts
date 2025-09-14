@@ -79,10 +79,14 @@ export const E2E_DISCOUNT = {
 export const E2E_PROGRAM = {
   id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
   domain: "getacme.link",
-  url: "https://acme.dub.sh",
 };
 
 export const E2E_PARTNER = {
   id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
   tenantId: "4149092f-7265-4002-98d9-da9f8e67e1fb",
+};
+
+export const E2E_PARTNER_GROUP = {
+  id: "grp_1K2E25381GVMG7HHM057TB92F",
+  url: "https://acme.dub.sh/",
 };

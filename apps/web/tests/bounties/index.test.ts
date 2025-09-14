@@ -1,4 +1,5 @@
 import { Bounty } from "@dub/prisma/client";
+import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -19,8 +20,6 @@ const performanceBounty = {
   rewardAmount: 1000,
 };
 
-const BOUNTY_GROUP_ID = "grp_1K2E25381GVMG7HHM057TB92F";
-
 describe.sequential("/bounties/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
@@ -36,7 +35,7 @@ describe.sequential("/bounties/**", async () => {
       body: {
         ...performanceBounty,
         startsAt,
-        groupIds: [BOUNTY_GROUP_ID],
+        groupIds: [E2E_PARTNER_GROUP.id],
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
@@ -62,7 +61,7 @@ describe.sequential("/bounties/**", async () => {
       body: {
         ...submissionBounty,
         startsAt,
-        groupIds: [BOUNTY_GROUP_ID],
+        groupIds: [E2E_PARTNER_GROUP.id],
       },
     });
 

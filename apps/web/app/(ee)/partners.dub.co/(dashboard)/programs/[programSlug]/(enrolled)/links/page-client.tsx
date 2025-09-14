@@ -13,7 +13,6 @@ import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import { Button, CardList, useKeyboardShortcut, useRouterStuff } from "@dub/ui";
 import { ChartTooltipSync } from "@dub/ui/charts";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
-import { useParams } from "next/navigation";
 import { createContext, useContext } from "react";
 import { PartnerLinkCard } from "./partner-link-card";
 
@@ -34,7 +33,6 @@ export function usePartnerLinksContext() {
 }
 
 export function ProgramLinksPageClient() {
-  const { programSlug } = useParams() as { programSlug: string };
   const { searchParamsObj } = useRouterStuff();
   const { links, error, loading, isValidating } = usePartnerLinks();
   const { programEnrollment } = useProgramEnrollment();
@@ -50,7 +48,22 @@ export function ProgramLinksPageClient() {
     interval?: IntervalOptions;
   };
 
-  useKeyboardShortcut("c", () => setShowPartnerLinkModal(true));
+  const program = programEnrollment?.program;
+  const maxPartnerLinks = programEnrollment?.group?.maxPartnerLinks;
+  const additionalLinks = programEnrollment?.group?.additionalLinks;
+
+  const hasLinksLimitReached =
+    links && maxPartnerLinks && links.length >= maxPartnerLinks;
+  const hasAdditionalLinks = additionalLinks && additionalLinks.length > 0;
+
+  const canCreateNewLink =
+    !hasLinksLimitReached &&
+    hasAdditionalLinks &&
+    programEnrollment?.status !== "banned";
+
+  useKeyboardShortcut("c", () => setShowPartnerLinkModal(true), {
+    enabled: canCreateNewLink ?? false,
+  });
 
   return (
     <div className="flex flex-col gap-5">
@@ -61,22 +74,22 @@ export function ProgramLinksPageClient() {
           align="start"
           defaultInterval={DUB_PARTNERS_ANALYTICS_INTERVAL}
         />
-        {links &&
-          links.length <
-            (programEnrollment?.program?.maxPartnerLinks ?? 10) && (
-            <Button
-              text="Create Link"
-              className="w-fit"
-              shortcut="C"
-              onClick={() => setShowPartnerLinkModal(true)}
-              disabled={programEnrollment?.status === "banned"}
-              disabledTooltip={
-                programEnrollment?.status === "banned"
-                  ? "You are banned from this program."
+        <Button
+          text="Create Link"
+          className="w-fit"
+          shortcut="C"
+          onClick={() => setShowPartnerLinkModal(true)}
+          disabled={!canCreateNewLink}
+          disabledTooltip={
+            programEnrollment?.status === "banned"
+              ? "You are banned from this program."
+              : hasLinksLimitReached
+                ? `You have reached the limit of ${maxPartnerLinks} referral links.`
+                : !hasAdditionalLinks
+                  ? `${program?.name ?? "This"} program does not allow partners to create new links.`
                   : undefined
-              }
-            />
-          )}
+          }
+        />
       </div>
       <PartnerLinksContext.Provider
         value={{
