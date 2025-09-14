@@ -6,7 +6,7 @@ import {
   WorkspaceProps,
 } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema } from "@/lib/zod/schemas/links";
+import { LinkSchema } from "@/lib/zod/schemas/links";
 import { nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { waitUntil } from "@vercel/functions";
@@ -40,7 +40,7 @@ export const createPartnerLink = async (args: PartnerLinkArgs) => {
     sendWorkspaceWebhook({
       trigger: "link.created",
       workspace,
-      data: linkEventSchema.parse(partnerLink),
+      data: LinkSchema.parse(partnerLink),
     }),
   );
 

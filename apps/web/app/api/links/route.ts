@@ -11,7 +11,6 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   createLinkBodySchemaAsync,
   getLinksQuerySchemaExtended,
-  linkEventSchema,
   LinkSchema,
 } from "@/lib/zod/schemas/links";
 import { Folder } from "@dub/prisma/client";
@@ -132,21 +131,23 @@ export const POST = withWorkspace(
     try {
       const response = await createLink(link);
 
-      if (response.projectId && response.userId) {
-        waitUntil(
-          sendWorkspaceWebhook({
-            trigger: "link.created",
-            workspace,
-            data: linkEventSchema.parse(response),
-          }),
-        );
-      }
-
       const responseSchema = response.projectId
         ? LinkSchema
         : AnonymousLinkSchema;
 
-      return NextResponse.json(responseSchema.parse(response), {
+      const createdLink = responseSchema.parse(response);
+
+      if (createdLink.projectId && createdLink.userId) {
+        waitUntil(
+          sendWorkspaceWebhook({
+            trigger: "link.created",
+            workspace,
+            data: createdLink,
+          }),
+        );
+      }
+
+      return NextResponse.json(createdLink, {
         headers,
       });
     } catch (error) {

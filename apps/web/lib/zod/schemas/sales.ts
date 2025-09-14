@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { clickEventSchema, clickEventSchemaTB } from "./clicks";
 import { CustomerSchema } from "./customers";
 import { commonDeprecatedEventFields } from "./deprecated";
-import { linkEventSchema } from "./links";
+import { LinkSchema } from "./links";
 
 export const trackSaleRequestSchema = z.object({
   customerExternalId: z
@@ -181,7 +181,7 @@ export const saleEventResponseSchema = z
     }),
     metadata: z.any().nullish(),
     // nested objects
-    link: linkEventSchema,
+    link: LinkSchema,
     click: clickEventSchema,
     customer: CustomerSchema,
     // deprecated fields

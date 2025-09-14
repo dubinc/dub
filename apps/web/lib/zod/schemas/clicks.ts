@@ -1,6 +1,6 @@
 import z from "@/lib/zod";
 import { commonDeprecatedEventFields } from "./deprecated";
-import { linkEventSchema } from "./links";
+import { LinkSchema } from "./links";
 
 export const clickEventSchemaTB = z.object({
   timestamp: z.string(),
@@ -77,7 +77,7 @@ export const clickEventResponseSchema = z
     event: z.literal("click"),
     timestamp: z.coerce.string(),
     click: clickEventSchema,
-    link: linkEventSchema,
+    link: LinkSchema,
   })
   .merge(commonDeprecatedEventFields)
   .openapi({ ref: "ClickEvent", title: "ClickEvent" });

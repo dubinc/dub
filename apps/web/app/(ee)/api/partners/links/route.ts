@@ -6,7 +6,7 @@ import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema, LinkSchema } from "@/lib/zod/schemas/links";
+import { LinkSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerLinkSchema,
   retrievePartnerLinksSchema,
@@ -130,17 +130,18 @@ export const POST = withWorkspace(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const response = await createLink(link);
+    const createdLink = LinkSchema.parse(response);
 
     waitUntil(
       sendWorkspaceWebhook({
         trigger: "link.created",
         workspace,
-        data: linkEventSchema.parse(partnerLink),
+        data: createdLink,
       }),
     );
 
-    return NextResponse.json(LinkSchema.parse(partnerLink), {
+    return NextResponse.json(createdLink, {
       status: 201,
     });
   },

@@ -1,10 +1,11 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { recordLink } from "@/lib/tinybird";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { ABTestVariantsSchema, linkEventSchema } from "@/lib/zod/schemas/links";
+import { ABTestVariantsSchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { LinkSchema } from "tests/utils/schema";
 import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 
@@ -81,7 +82,7 @@ export async function completeABTests(link: Link) {
         sendWorkspaceWebhook({
           trigger: "link.updated",
           workspace: response.project,
-          data: linkEventSchema.parse(response),
+          data: LinkSchema.parse(response),
         }),
     ]),
   );

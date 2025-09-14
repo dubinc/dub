@@ -521,7 +521,7 @@ export const LinkSchema = z
         "The short link slug. If not provided, a random 7-character slug will be generated.",
       ),
     url: z.string().url().describe("The destination URL of the short link."),
-    trackConversion: z
+    trackConversion: z.coerce
       .boolean()
       .default(false)
       .describe("Whether to track conversions for the short link."),
@@ -545,7 +545,7 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The ID of the partner the short link is associated with."),
-    archived: z
+    archived: z.coerce
       .boolean()
       .default(false)
       .describe("Whether the short link is archived."),
@@ -566,7 +566,7 @@ export const LinkSchema = z
       .describe(
         "The password required to access the destination URL of the short link.",
       ),
-    proxy: z
+    proxy: z.coerce
       .boolean()
       .default(false)
       .describe("Whether the short link uses Custom Link Previews feature."),
@@ -594,11 +594,11 @@ export const LinkSchema = z
       .describe(
         "The custom link preview video (og:video). Will be used for Custom Link Previews if `proxy` is true. Learn more: https://d.to/og",
       ),
-    rewrite: z
+    rewrite: z.coerce
       .boolean()
       .default(false)
       .describe("Whether the short link uses link cloaking."),
-    doIndex: z
+    doIndex: z.coerce
       .boolean()
       .default(false)
       .describe("Whether to allow search engines to index the short link."),
@@ -620,7 +620,7 @@ export const LinkSchema = z
       .describe(
         "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
       ),
-    publicStats: z
+    publicStats: z.coerce
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
@@ -669,14 +669,14 @@ export const LinkSchema = z
       .string()
       .nullable()
       .describe("The UTM content of the short link."),
-    testVariants: ABTestVariantsSchema.nullish(),
+    testVariants: ABTestVariantsSchema.nullable(),
     testStartedAt: z.coerce
       .date()
-      .nullish()
+      .nullable()
       .describe("The date and time when the tests started."),
     testCompletedAt: z.coerce
       .date()
-      .nullish()
+      .nullable()
       .describe("The date and time when the tests were or will be completed."),
     userId: z
       .string()
@@ -790,25 +790,3 @@ export const getLinkInfoQuerySchemaExtended = getLinkInfoQuerySchema.merge(
     includeWebhooks: booleanQuerySchema.default("false"),
   }),
 );
-
-export const linkEventSchema = LinkSchema.extend({
-  // here we use string because url can be empty
-  url: z.string(),
-  expiredUrl: z.string().nullable(),
-  // coerce boolean fields
-  archived: z.coerce.boolean(),
-  doIndex: z.coerce.boolean(),
-  proxy: z.coerce.boolean(),
-  publicStats: z.coerce.boolean(),
-  rewrite: z.coerce.boolean(),
-  trackConversion: z.coerce.boolean(),
-  // coerce date fields
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
-  lastClicked: z.coerce.date(),
-  expiresAt: z.coerce.date(),
-  testCompletedAt: z.coerce.date().nullable(),
-  testStartedAt: z.coerce.date().nullable(),
-  // userId can be null
-  userId: z.string().nullable(),
-});
