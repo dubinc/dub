@@ -76,6 +76,9 @@ export async function POST(req: Request) {
                 not: null,
               },
             },
+            orderBy: {
+              createdAt: "asc",
+            },
           },
         },
       }),
