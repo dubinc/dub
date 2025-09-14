@@ -142,7 +142,7 @@ export const POST = withWorkspace(
           sendWorkspaceWebhook({
             trigger: "link.created",
             workspace,
-            data: createdLink,
+            data: createdLink as z.infer<typeof LinkSchema>,
           }),
         );
       }
