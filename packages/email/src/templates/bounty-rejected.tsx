@@ -25,6 +25,7 @@ export default function BountyRejected({
   },
   submission = {
     rejectionReason: "Not a valid URL",
+    rejectionNote: "The URL is not a valid URL. Please provide a valid URL.",
   },
   email = "panic@thedis.co",
 }: {
@@ -38,6 +39,7 @@ export default function BountyRejected({
   };
   submission: {
     rejectionReason: string;
+    rejectionNote?: string;
   };
   email: string;
 }) {
@@ -61,10 +63,20 @@ export default function BountyRejected({
               bounty has been rejected for the reason:
             </Text>
 
-            <Section className="flex h-[52px] items-center rounded-lg border border-solid border-neutral-200 bg-neutral-100 p-4">
-              <span className="text-sm font-normal">
+            <Section className="flex items-center rounded-lg border border-solid border-neutral-200 bg-neutral-100 p-4">
+              <span className="text-sm font-semibold">
                 {submission.rejectionReason}
               </span>
+
+              {submission.rejectionNote && (
+                <>
+                  <br />
+                  <br />
+                  <span className="text-sm leading-5 text-neutral-600">
+                    {submission.rejectionNote}
+                  </span>
+                </>
+              )}
             </Section>
 
             <Text className="text-sm leading-5 text-neutral-600">

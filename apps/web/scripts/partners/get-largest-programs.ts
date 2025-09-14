@@ -16,7 +16,7 @@ async function main() {
   });
 
   const filteredProgramsByEnrollmentCount = programsByEnrollmentCount.filter(
-    (program) => program._count.programId > 1000,
+    (program) => program._count.programId > 500,
   );
 
   console.table(filteredProgramsByEnrollmentCount);

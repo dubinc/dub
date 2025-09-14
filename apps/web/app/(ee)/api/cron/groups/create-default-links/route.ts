@@ -90,8 +90,6 @@ export async function POST(req: Request) {
       },
     });
 
-    const { utmTemplate } = group;
-
     let hasMore = true;
     let currentCursor = cursor;
     let processedBatches = 0;
