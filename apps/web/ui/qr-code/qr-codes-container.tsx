@@ -48,6 +48,7 @@ export default function QrCodesContainer({
   >(undefined);
 
   useEffect(() => {
+    console.log("qrs", qrs);
     if (!qrs) return;
 
     setQrsWithPreviews(qrs);
