@@ -20,6 +20,11 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+const AnonymousLinkSchema = LinkSchema.extend({
+  workspaceId: z.string().nullable(),
+  projectId: z.string().nullable(),
+});
+
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
@@ -137,7 +142,11 @@ export const POST = withWorkspace(
         );
       }
 
-      return NextResponse.json(LinkSchema.parse(response), {
+      const responseSchema = response.projectId
+        ? LinkSchema
+        : AnonymousLinkSchema;
+
+      return NextResponse.json(responseSchema.parse(response), {
         headers,
       });
     } catch (error) {
