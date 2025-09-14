@@ -7,9 +7,6 @@ import "dotenv-flow/config";
 // Step 1 of 2: Backfill partner groups with link settings
 async function main() {
   const programs = await prisma.program.findMany({
-    where: {
-      slug: "acme",
-    },
     include: {
       groups: true,
     },
