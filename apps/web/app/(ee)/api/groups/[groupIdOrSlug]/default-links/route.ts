@@ -99,7 +99,7 @@ export const POST = withWorkspace(
 
         return await tx.partnerGroupDefaultLink.create({
           data: {
-            id: createId(),
+            id: createId({ prefix: "pgdl_" }),
             programId: group.programId,
             groupId: group.id,
             domain: group.program.domain!,

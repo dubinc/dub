@@ -58,13 +58,9 @@ function createULIDBuffer(): Uint8Array {
 }
 
 // Creates a unique, time-sortable ID with an optional prefix
-export const createId = ({
-  prefix,
-}: {
-  prefix?: (typeof prefixes)[number];
-} = {}) => {
+export const createId = ({ prefix }: { prefix: (typeof prefixes)[number] }) => {
   const buf = createULIDBuffer();
   const id = base32.encode(buf);
 
-  return `${prefix || ""}${id}`;
+  return `${prefix}${id}`;
 };

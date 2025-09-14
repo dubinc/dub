@@ -137,7 +137,7 @@ export const createProgram = async ({
         }),
         partnerGroupDefaultLinks: {
           create: {
-            id: createId(),
+            id: createId({ prefix: "pgdl_" }),
             programId,
             domain: programData.domain!,
             url: programData.url!,
