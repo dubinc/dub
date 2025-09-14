@@ -47,8 +47,8 @@ async function main() {
       take: 100,
     });
 
-    const firstPartnerLinks = programEnrollments.map(
-      async (programEnrollment) => {
+    const firstPartnerLinkIds = programEnrollments
+      .map((programEnrollment) => {
         const { links } = programEnrollment;
         const firstPartnerLink = links.find(
           (link) => normalizeUrl(link.url) === normalizeUrl(defaultLink.url),
@@ -61,14 +61,26 @@ async function main() {
           return null;
         }
 
-        return {
-          id: firstPartnerLink.id,
-          partnerGroupDefaultLinkId: defaultLink.id,
-        };
-      },
-    );
+        return firstPartnerLink.id;
+      })
+      .filter((id) => id !== null);
 
-    console.table(firstPartnerLinks);
+    console.table(firstPartnerLinkIds);
+
+    const res = await prisma.link.updateMany({
+      where: {
+        id: {
+          in: firstPartnerLinkIds,
+        },
+      },
+      data: {
+        partnerGroupDefaultLinkId: defaultLink.id,
+      },
+    });
+
+    console.log(
+      `Updated ${res.count} links with default link ${defaultLink.id}`,
+    );
   }
 }
 
