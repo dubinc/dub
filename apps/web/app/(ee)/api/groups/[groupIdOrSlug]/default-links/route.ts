@@ -82,49 +82,66 @@ export const POST = withWorkspace(
       });
     }
 
-    const defaultLink = await prisma.$transaction(async (tx) => {
-      const count = await tx.partnerGroupDefaultLink.count({
-        where: {
-          groupId: group.id,
-        },
+    try {
+      const defaultLink = await prisma.$transaction(async (tx) => {
+        const count = await tx.partnerGroupDefaultLink.count({
+          where: {
+            groupId: group.id,
+          },
+        });
+
+        if (count >= MAX_DEFAULT_PARTNER_LINKS) {
+          throw new DubApiError({
+            code: "bad_request",
+            message: `You can't create more than ${MAX_DEFAULT_PARTNER_LINKS} default links for a group.`,
+          });
+        }
+
+        return await tx.partnerGroupDefaultLink.create({
+          data: {
+            id: createId(),
+            programId: group.programId,
+            groupId: group.id,
+            domain: group.program.domain!,
+            url: group.utmTemplate
+              ? constructURLFromUTMParams(
+                  url,
+                  extractUtmParams(group.utmTemplate),
+                )
+              : url,
+          },
+        });
       });
 
-      if (count >= MAX_DEFAULT_PARTNER_LINKS) {
+      waitUntil(
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/create-default-links`,
+          body: {
+            defaultLinkId: defaultLink.id,
+            userId: session.user.id,
+          },
+        }),
+      );
+
+      return NextResponse.json(
+        PartnerGroupDefaultLinkSchema.parse(defaultLink),
+        {
+          status: 201,
+        },
+      );
+    } catch (error) {
+      if (error.code === "P2002") {
         throw new DubApiError({
-          code: "bad_request",
-          message: `You can't create more than ${MAX_DEFAULT_PARTNER_LINKS} default links for a group.`,
+          code: "conflict",
+          message: "A default link with this URL already exists.",
         });
       }
 
-      return await tx.partnerGroupDefaultLink.create({
-        data: {
-          id: createId(),
-          programId: group.programId,
-          groupId: group.id,
-          domain: group.program.domain!,
-          url: group.utmTemplate
-            ? constructURLFromUTMParams(
-                url,
-                extractUtmParams(group.utmTemplate),
-              )
-            : url,
-        },
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: error.message,
       });
-    });
-
-    waitUntil(
-      qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/create-default-links`,
-        body: {
-          defaultLinkId: defaultLink.id,
-          userId: session.user.id,
-        },
-      }),
-    );
-
-    return NextResponse.json(PartnerGroupDefaultLinkSchema.parse(defaultLink), {
-      status: 201,
-    });
+    }
   },
   {
     requiredPermissions: ["groups.write"],

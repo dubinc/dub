@@ -55,31 +55,48 @@ export const PATCH = withWorkspace(
       });
     }
 
-    const updatedDefaultLink = await prisma.partnerGroupDefaultLink.update({
-      where: {
-        id: group.partnerGroupDefaultLinks[0].id,
-      },
-      data: {
-        url: group.utmTemplate
-          ? constructURLFromUTMParams(url, extractUtmParams(group.utmTemplate))
-          : url,
-      },
-    });
+    try {
+      const updatedDefaultLink = await prisma.partnerGroupDefaultLink.update({
+        where: {
+          id: group.partnerGroupDefaultLinks[0].id,
+        },
+        data: {
+          url: group.utmTemplate
+            ? constructURLFromUTMParams(
+                url,
+                extractUtmParams(group.utmTemplate),
+              )
+            : url,
+        },
+      });
 
-    if (updatedDefaultLink.url !== group.partnerGroupDefaultLinks[0].url) {
-      waitUntil(
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/update-default-links`,
-          body: {
-            defaultLinkId: group.partnerGroupDefaultLinks[0].id,
-          },
-        }),
+      if (updatedDefaultLink.url !== group.partnerGroupDefaultLinks[0].url) {
+        waitUntil(
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/update-default-links`,
+            body: {
+              defaultLinkId: group.partnerGroupDefaultLinks[0].id,
+            },
+          }),
+        );
+      }
+
+      return NextResponse.json(
+        PartnerGroupDefaultLinkSchema.parse(updatedDefaultLink),
       );
-    }
+    } catch (error) {
+      if (error.code === "P2002") {
+        throw new DubApiError({
+          code: "conflict",
+          message: "A default link with this URL already exists.",
+        });
+      }
 
-    return NextResponse.json(
-      PartnerGroupDefaultLinkSchema.parse(updatedDefaultLink),
-    );
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: error.message,
+      });
+    }
   },
   {
     requiredPermissions: ["groups.write"],

@@ -168,3 +168,13 @@ export const getPathnameFromUrl = (url: string) => {
     return url;
   }
 };
+
+// Helper function to normalize URL by removing query params
+export const normalizeUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    return `https://${urlObj.hostname}${urlObj.pathname}`;
+  } catch {
+    return url;
+  }
+};
