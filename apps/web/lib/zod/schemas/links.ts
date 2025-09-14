@@ -717,8 +717,15 @@ export const LinkSchema = z
     updatedAt: z
       .date()
       .describe("The date and time when the short link was last updated."),
+    linkRetentionCleanupDisabledAt: z
+      .date()
+      .nullable()
+      .describe(
+        "The date and time when the link retention cleanup was disabled.",
+      ),
 
     // deprecated fields
+    identifier: z.string().nullable().openapi({ deprecated: true }),
     tagId: z
       .string()
       .nullable()
