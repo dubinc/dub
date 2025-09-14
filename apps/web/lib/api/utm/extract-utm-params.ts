@@ -4,7 +4,16 @@ export const extractUtmParams = (
   utmTemplate: UtmTemplate | null,
   { excludeRef = false }: { excludeRef?: boolean } = {},
 ) => {
-  if (!utmTemplate) return {};
+  // if there is no utm template, return null for all utm params
+  if (!utmTemplate)
+    return {
+      utm_source: null,
+      utm_medium: null,
+      utm_campaign: null,
+      utm_term: null,
+      utm_content: null,
+      ...(excludeRef ? {} : { ref: null }),
+    };
   return {
     utm_source: utmTemplate.utm_source,
     utm_medium: utmTemplate.utm_medium,
