@@ -76,7 +76,7 @@ async function main() {
       const res = await prisma.link.updateMany({
         where: {
           id: {
-            in: firstPartnerLinkIds.filter((id) => id !== null),
+            in: firstPartnerLinkIds.filter((id): id is string => id !== null),
           },
         },
         data: {
