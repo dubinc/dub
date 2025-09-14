@@ -563,12 +563,3 @@ export interface WorkflowContext {
 export type BountySubmissionsQueryFilters = z.infer<
   typeof getBountySubmissionsQuerySchema
 >;
-
-// export type BountySubmissionsCount = Record<
-//   BountySubmissionStatus,
-//   {
-//     count: number;
-//     amount: number;
-//     earnings: number;
-//   }
-// >;
