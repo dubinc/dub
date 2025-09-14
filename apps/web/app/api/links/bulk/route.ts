@@ -247,14 +247,15 @@ export const POST = withWorkspace(
       });
     }
 
-    const createdLinks = await bulkCreateLinks({ links: validLinks });
-
     const validLinksResponse =
-      validLinks.length > 0 ? z.array(LinkSchema).parse(createdLinks) : [];
+      validLinks.length > 0 ? await bulkCreateLinks({ links: validLinks }) : [];
 
-    return NextResponse.json([...validLinksResponse, ...errorLinks], {
-      headers,
-    });
+    return NextResponse.json(
+      [...z.array(LinkSchema).parse(validLinksResponse), ...errorLinks],
+      {
+        headers,
+      },
+    );
   },
   {
     requiredPermissions: ["links.write"],
@@ -425,18 +426,18 @@ export const PATCH = withWorkspace(
         })),
     );
 
-    const updatedLinks = await bulkUpdateLinks({
-      linkIds: validLinkIds,
-      data: {
-        ...data,
-        tagIds,
-        expiresAt,
-      },
-      workspaceId: workspace.id,
-    });
-
-    const response =
-      validLinkIds.length > 0 ? z.array(LinkSchema).parse(updatedLinks) : [];
+    const validLinksResponse =
+      validLinkIds.length > 0
+        ? await bulkUpdateLinks({
+            linkIds: validLinkIds,
+            data: {
+              ...data,
+              tagIds,
+              expiresAt,
+            },
+            workspaceId: workspace.id,
+          })
+        : [];
 
     waitUntil(
       (async () => {
@@ -457,7 +458,10 @@ export const PATCH = withWorkspace(
       })(),
     );
 
-    return NextResponse.json([...response, ...errorLinks], { headers });
+    return NextResponse.json(
+      [...z.array(LinkSchema).parse(validLinksResponse), ...errorLinks],
+      { headers },
+    );
   },
   {
     requiredPermissions: ["links.write"],
