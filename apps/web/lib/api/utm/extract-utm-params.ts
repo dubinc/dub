@@ -1,7 +1,15 @@
 import { UtmTemplate } from "@dub/prisma/client";
 
 export const extractUtmParams = (
-  utmTemplate: UtmTemplate | null,
+  utmTemplate?: Pick<
+    UtmTemplate,
+    | "utm_source"
+    | "utm_medium"
+    | "utm_campaign"
+    | "utm_term"
+    | "utm_content"
+    | "ref"
+  > | null,
   { excludeRef = false }: { excludeRef?: boolean } = {},
 ) => {
   // if there is no utm template, return null for all utm params
