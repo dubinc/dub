@@ -312,7 +312,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Discounts",
             icon: Discount,
-            href: `/${slug}/program/groups/default/discount`,
+            href: `/${slug}/program/groups/default/discounts`,
             arrow: true,
             isActive: () => false,
           },
