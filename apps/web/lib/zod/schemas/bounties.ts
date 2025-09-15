@@ -73,7 +73,10 @@ export const BountySchema = z.object({
   startsAt: z.date(),
   endsAt: z.date().nullable(),
   rewardAmount: z.number().nullable(),
-  rewardDescription: z.string().nullable(),
+  rewardDescription: z
+    .string()
+    .max(140, "Reward description must be less than 140 characters")
+    .nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
