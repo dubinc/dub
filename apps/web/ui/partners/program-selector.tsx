@@ -8,6 +8,7 @@ import { z } from "zod";
 type ProgramSelectorProps = {
   selectedProgramSlug: string | null;
   setSelectedProgramSlug: (programSlug: string) => void;
+  showMessagingEnabledOnly: boolean;
   disabled?: boolean;
   query?: Partial<z.infer<typeof partnerProfileProgramsQuerySchema>>;
 } & Partial<ComboboxProps<false, any>>;
@@ -15,29 +16,32 @@ type ProgramSelectorProps = {
 export function ProgramSelector({
   selectedProgramSlug,
   setSelectedProgramSlug,
+  showMessagingEnabledOnly = false,
   disabled,
-  query,
   ...rest
 }: ProgramSelectorProps) {
   const [openPopover, setOpenPopover] = useState(false);
 
   const { programEnrollments, isLoading } = useProgramEnrollments({
     status: "approved",
-    ...query,
   });
 
   const programOptions = useMemo(() => {
-    return programEnrollments?.map(({ program }) => ({
-      value: program.slug,
-      label: program.name,
-      icon: (
-        <img
-          src={program.logo || `${OG_AVATAR_URL}${program.name}`}
-          className="size-4 rounded-full"
-        />
-      ),
-    }));
-  }, [programEnrollments]);
+    return programEnrollments
+      ?.filter(({ messagingEnabled }) =>
+        showMessagingEnabledOnly ? messagingEnabled : true,
+      )
+      .map(({ program }) => ({
+        value: program.slug,
+        label: program.name,
+        icon: (
+          <img
+            src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+            className="size-4 rounded-full"
+          />
+        ),
+      }));
+  }, [programEnrollments, showMessagingEnabledOnly]);
 
   const selectedOption = useMemo(() => {
     if (!selectedProgramSlug) return null;

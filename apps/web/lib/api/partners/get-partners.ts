@@ -35,6 +35,7 @@ export async function getPartners(filters: PartnerFilters) {
     status,
     country,
     search,
+    email,
     tenantId,
     partnerIds,
     page,
@@ -133,7 +134,7 @@ export async function getPartners(filters: PartnerFilters) {
     WHERE 
       pe.programId = ${programId}
       ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status IN ('approved', 'invited')`}
-      ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
+      ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : email ? Prisma.sql`AND p.email = ${email}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
       ${
         search

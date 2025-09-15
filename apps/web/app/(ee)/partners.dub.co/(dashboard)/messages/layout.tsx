@@ -51,9 +51,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                 setSelectedProgramSlug={(slug) =>
                   router.push(`/messages/${slug}`)
                 }
-                query={{
-                  messagingEnabled: true,
-                }}
+                showMessagingEnabledOnly={true}
                 trigger={
                   <Button
                     type="button"
