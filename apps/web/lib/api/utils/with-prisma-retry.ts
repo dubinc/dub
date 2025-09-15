@@ -21,8 +21,12 @@ const RETRIABLE_ERROR_CODES = new Set([
 // Helper function for retrying operations
 export async function withPrismaRetry<T>(
   operation: () => Promise<T>,
-  config = DEFAULT_CONFIG,
+  configOverride?: typeof DEFAULT_CONFIG,
 ): Promise<T> {
+  const config = {
+    ...DEFAULT_CONFIG,
+    ...configOverride,
+  };
   let lastError: Error;
 
   for (let attempt = 0; attempt <= config.maxRetries; attempt++) {
