@@ -2,7 +2,7 @@ import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import useSWR from "swr";
 import { z } from "zod";
-import { ProgramEnrollmentProps } from "../types";
+import { PartnerProgramEnrollmentProps } from "../types";
 import { partnerProfileProgramsQuerySchema } from "../zod/schemas/partner-profile";
 
 export default function useProgramEnrollments(
@@ -12,7 +12,7 @@ export default function useProgramEnrollments(
   const partnerId = session?.user?.["defaultPartnerId"];
 
   const { data: programEnrollments, isLoading } = useSWR<
-    ProgramEnrollmentProps[]
+    PartnerProgramEnrollmentProps[]
   >(
     partnerId &&
       `/api/partner-profile/programs?${new URLSearchParams(

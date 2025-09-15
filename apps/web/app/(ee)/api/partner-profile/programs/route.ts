@@ -1,8 +1,10 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
+import {
+  partnerProfileProgramsQuerySchema,
+  PartnerProgramEnrollmentSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
@@ -10,7 +12,7 @@ import { z } from "zod";
 
 // GET /api/partner-profile/programs - get all program enrollments for a given partnerId
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { includeRewardsDiscounts, status, messagingEnabled } =
+  const { includeRewardsDiscounts, status } =
     partnerProfileProgramsQuerySchema.parse(searchParams);
 
   let programEnrollments = await prisma.programEnrollment.findMany({
@@ -27,7 +29,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       },
       program: {
         include: {
-          workspace: true,
+          workspace: {
+            select: {
+              plan: true,
+            },
+          },
         },
       },
       ...(includeRewardsDiscounts && {
@@ -47,18 +53,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     ],
   });
 
-  if (messagingEnabled !== undefined) {
-    programEnrollments = programEnrollments.filter((enrollment) => {
-      return (
-        getPlanCapabilities(enrollment.program.workspace.plan)
-          .canMessagePartners === messagingEnabled
-      );
-    });
-  }
-
   const response = programEnrollments.map((enrollment) => {
     return {
       ...enrollment,
+      messagingEnabled: getPlanCapabilities(enrollment.program.workspace.plan)
+        .canMessagePartners,
       rewards: includeRewardsDiscounts
         ? sortRewardsByEventOrder(
             [
@@ -71,5 +70,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     };
   });
 
-  return NextResponse.json(z.array(ProgramEnrollmentSchema).parse(response));
+  return NextResponse.json(
+    z.array(PartnerProgramEnrollmentSchema).parse(response),
+  );
 });

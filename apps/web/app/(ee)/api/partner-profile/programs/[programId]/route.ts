@@ -1,7 +1,8 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
-import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import { PartnerProgramEnrollmentSchema } from "@/lib/zod/schemas/partner-profile";
 import { Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -15,6 +16,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     includeSaleReward: true,
     includeDiscount: true,
     includeGroup: true,
+    includeWorkspace: true,
   });
 
   const rewards = sortRewardsByEventOrder(
@@ -26,9 +28,12 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   );
 
   return NextResponse.json(
-    ProgramEnrollmentSchema.parse({
+    PartnerProgramEnrollmentSchema.parse({
       ...programEnrollment,
       rewards,
+      messagingEnabled: getPlanCapabilities(
+        programEnrollment.program["workspace"].plan,
+      ).canMessagePartners,
     }),
   );
 });
