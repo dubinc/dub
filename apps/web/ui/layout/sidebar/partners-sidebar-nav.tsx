@@ -140,17 +140,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/programs/${programSlug}/links`,
             locked: isUnapproved,
           },
-          ...(messagingEnabled
-            ? [
-                {
-                  name: "Messages",
-                  icon: Msgs,
-                  href: `/messages/${programSlug}` as `/${string}`,
-                  locked: isUnapproved,
-                  arrow: true,
-                },
-              ]
-            : []),
+          {
+            name: "Messages",
+            icon: Msgs,
+            href: `/messages/${programSlug}` as `/${string}`,
+            locked: isUnapproved || !messagingEnabled,
+            arrow: messagingEnabled ? true : undefined,
+          },
         ],
       },
       {
