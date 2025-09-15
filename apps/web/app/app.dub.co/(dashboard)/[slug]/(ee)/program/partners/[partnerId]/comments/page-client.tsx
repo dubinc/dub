@@ -20,7 +20,7 @@ import { v4 as uuid } from "uuid";
 export function ProgramPartnerCommentsPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId: programId } = useWorkspace();
   const { comments, loading, mutate } = usePartnerComments(
     { partnerId },
     { keepPreviousData: true },
@@ -44,7 +44,8 @@ export function ProgramPartnerCommentsPageClient() {
             id: `tmp_${uuid()}`,
             createdAt,
             updatedAt: createdAt,
-            programEnrollmentId: "pge_d21G4zVfQuuLElDdTHL7BNLA", // TODO
+            programId: programId!,
+            partnerId,
             userId: user.id,
             user: {
               id: user.id,
@@ -92,13 +93,19 @@ export function ProgramPartnerCommentsPageClient() {
 
       <div className="mt-4 flex flex-col gap-4">
         {comments ? (
-          comments?.map((comment) => (
-            <CommentCard key={comment.id} comment={comment} />
-          ))
+          comments.length > 0 ? (
+            comments.map((comment) => (
+              <CommentCard key={comment.id} comment={comment} />
+            ))
+          ) : (
+            <div className="text-content-muted py-2 text-center text-xs">
+              No comments yet
+            </div>
+          )
         ) : loading ? (
           <CommentCard className="opacity-50" />
         ) : (
-          <div className="text-content-subtle py-12 text-center text-sm">
+          <div className="text-content-muted py-4 text-center text-xs">
             Failed to load comments
           </div>
         )}

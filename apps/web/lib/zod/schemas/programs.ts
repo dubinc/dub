@@ -177,7 +177,8 @@ export const createProgramApplicationSchema = z.object({
 
 export const ProgramPartnerCommentSchema = z.object({
   id: z.string(),
-  programEnrollmentId: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
   userId: z.string(),
   user: UserSchema.pick({
     id: true,

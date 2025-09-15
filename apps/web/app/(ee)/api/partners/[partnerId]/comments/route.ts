@@ -11,24 +11,17 @@ export const GET = withWorkspace(
     const { partnerId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+    const comments = await prisma.programPartnerComment.findMany({
       where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
+        programId,
+        partnerId,
       },
       include: {
-        comments: {
-          include: {
-            user: true,
-          },
-        },
+        user: true,
       },
-    });
-
-    const comments = programEnrollment.comments.sort((a, b) => {
-      return b.createdAt.getTime() - a.createdAt.getTime();
+      orderBy: {
+        createdAt: "desc",
+      },
     });
 
     return NextResponse.json(

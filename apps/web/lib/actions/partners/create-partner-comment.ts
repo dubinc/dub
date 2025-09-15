@@ -18,15 +18,15 @@ export const createPartnerCommentAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const programEnrollment = await getProgramEnrollmentOrThrow({
+    await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
-      includePartner: true,
     });
 
     const comment = await prisma.programPartnerComment.create({
       data: {
-        programEnrollmentId: programEnrollment.id,
+        programId,
+        partnerId,
         userId: user.id,
         text,
         createdAt,

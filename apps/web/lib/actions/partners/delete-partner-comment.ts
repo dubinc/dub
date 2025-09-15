@@ -17,9 +17,7 @@ export const deletePartnerCommentAction = authActionClient
     await prisma.programPartnerComment.delete({
       where: {
         id: commentId,
-        programEnrollment: {
-          programId,
-        },
+        programId,
       },
     });
   });

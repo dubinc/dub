@@ -69,6 +69,7 @@ model Program {
   bountySubmissions BountySubmission[]
   workflows         Workflow[]
   messages          Message[]
+  comments          ProgramPartnerComment[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -102,7 +103,6 @@ model ProgramEnrollment {
   saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
   discount          Discount?           @relation(fields: [discountId], references: [id])
   bountySubmissions BountySubmission[]
-  comments          ProgramPartnerComment[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
@@ -133,18 +133,4 @@ model ProgramApplication {
   @@index(programId)
   @@index(groupId)
   @@index(email)
-}
-
-model ProgramPartnerComment {
-  id                  String   @id @default(cuid())
-  programEnrollmentId String
-  userId              String
-  text                String   @db.Text
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  programEnrollment ProgramEnrollment @relation(fields: [programEnrollmentId], references: [id], onDelete: Cascade)
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index(programEnrollmentId)
 }
