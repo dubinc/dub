@@ -108,18 +108,18 @@ const RejectBountySubmissionModal = ({
                 </span>
               </label>
               <span className="text-xs text-neutral-400">
-                {watch("rejectionNote")?.length || 0}/500
+                {watch("rejectionNote")?.length || 0}/5,000
               </span>
             </div>
             <div className="mt-2">
               <textarea
                 id="rejectionNote"
                 {...register("rejectionNote", {
-                  maxLength: 500,
+                  maxLength: 5000,
                   setValueAs: (value) => (value === "" ? undefined : value),
                 })}
                 rows={3}
-                maxLength={500}
+                maxLength={5000}
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.rejectionNote &&

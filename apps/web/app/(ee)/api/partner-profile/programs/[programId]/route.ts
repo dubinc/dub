@@ -14,6 +14,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     includeLeadReward: true,
     includeSaleReward: true,
     includeDiscount: true,
+    includeGroup: true,
   });
 
   const rewards = sortRewardsByEventOrder(
