@@ -1,6 +1,7 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
-import { EnrolledPartnerProps } from "../types";
+import { z } from "zod";
+import { ProgramPartnerCommentSchema } from "../zod/schemas/programs";
 import useWorkspace from "./use-workspace";
 
 export function usePartnerComments(
@@ -13,7 +14,9 @@ export function usePartnerComments(
 ) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, isLoading, error } = useSWR<EnrolledPartnerProps>(
+  const { data, isLoading, error } = useSWR<
+    z.infer<typeof ProgramPartnerCommentSchema>[]
+  >(
     workspaceId
       ? `/api/partners/${partnerId}/comments?${new URLSearchParams({
           workspaceId,

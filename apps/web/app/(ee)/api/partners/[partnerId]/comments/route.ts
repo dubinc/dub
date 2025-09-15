@@ -1,4 +1,3 @@
-import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { ProgramPartnerCommentSchema } from "@/lib/zod/schemas/programs";
@@ -27,12 +26,6 @@ export const GET = withWorkspace(
         },
       },
     });
-
-    if (!programEnrollment)
-      throw new DubApiError({
-        code: "not_found",
-        message: "Program enrollment not found.",
-      });
 
     return NextResponse.json(
       z.array(ProgramPartnerCommentSchema).parse(programEnrollment.comments),

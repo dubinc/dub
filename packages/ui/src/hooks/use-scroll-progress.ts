@@ -27,7 +27,7 @@ export function useScrollProgress(
         ? 1
         : Math.min(scroll / (scrollSize - clientSize), 1),
     );
-  }, []);
+  }, [direction]);
 
   const resizeObserverEntry = useResizeObserver(ref);
 
