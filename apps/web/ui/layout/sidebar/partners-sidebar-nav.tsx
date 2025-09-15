@@ -17,6 +17,7 @@ import {
   GridIcon,
   MoneyBills2,
   Msgs,
+  PaperPlane,
   ShieldCheck,
   SquareUserSparkle2,
   Trophy,
@@ -139,21 +140,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             locked: isUnapproved,
           },
           {
-            name: "Bounties",
-            icon: Trophy,
-            href: `/programs/${programSlug}/bounties` as `/${string}`,
-            badge: programBountiesCount
-              ? programBountiesCount > 99
-                ? "99+"
-                : programBountiesCount
-              : "New",
+            name: "Messages",
+            icon: PaperPlane,
+            href: `/messages/${programSlug}`,
             locked: isUnapproved,
-          },
-          {
-            name: "Resources",
-            icon: ColorPalette2,
-            href: `/programs/${programSlug}/resources`,
-            locked: isUnapproved,
+            arrow: true,
           },
         ],
       },
@@ -176,6 +167,28 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Events",
             icon: CursorRays,
             href: `/programs/${programSlug}/events`,
+            locked: isUnapproved,
+          },
+        ],
+      },
+      {
+        name: "Engage",
+        items: [
+          {
+            name: "Bounties",
+            icon: Trophy,
+            href: `/programs/${programSlug}/bounties` as `/${string}`,
+            badge: programBountiesCount
+              ? programBountiesCount > 99
+                ? "99+"
+                : programBountiesCount
+              : "New",
+            locked: isUnapproved,
+          },
+          {
+            name: "Resources",
+            icon: ColorPalette2,
+            href: `/programs/${programSlug}/resources`,
             locked: isUnapproved,
           },
         ],

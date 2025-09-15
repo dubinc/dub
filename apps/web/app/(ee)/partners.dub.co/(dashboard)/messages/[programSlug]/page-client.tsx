@@ -102,7 +102,7 @@ export function PartnerMessagesProgramPageClient() {
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen((o) => !o)}
-                className="-mx-2 -my-1 flex min-w-0 max-w-full items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
+                className="-mx-2 -my-1 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
               >
                 {!program ? (
                   <>
@@ -116,7 +116,7 @@ export function PartnerMessagesProgramPageClient() {
                       alt={`${program?.name} logo`}
                       className="size-8 shrink-0 rounded-full"
                     />
-                    <h2 className="text-content-emphasis min-w-0 truncate text-lg font-semibold leading-7">
+                    <h2 className="text-content-emphasis text-lg font-semibold leading-7">
                       {program?.name ?? "Program"}
                     </h2>
                   </>
@@ -230,14 +230,13 @@ export function PartnerMessagesProgramPageClient() {
               Program
             </h2>
             <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                text="View program"
-                className="h-8 rounded-lg px-3"
-                onClick={() =>
-                  window.open(`/programs/${programSlug}`, "_blank")
-                }
-              />
+              <Link href={`/programs/${programSlug}`} target="_blank">
+                <Button
+                  variant="secondary"
+                  text="View program"
+                  className="h-8 rounded-lg px-3"
+                />
+              </Link>
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen(false)}
