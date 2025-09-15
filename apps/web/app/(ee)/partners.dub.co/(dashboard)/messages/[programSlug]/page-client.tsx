@@ -269,8 +269,8 @@ function ProgramInfoPanel({
 }) {
   const program = programEnrollment.program;
   const partnerLink = constructPartnerLink({
-    program,
-    linkKey: programEnrollment.links?.[0]?.key,
+    group: programEnrollment.group,
+    link: programEnrollment.links?.[0],
   });
 
   const { data: statsTotals } = usePartnerAnalytics({
