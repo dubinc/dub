@@ -89,6 +89,7 @@ export * from "./envelope-arrow-right";
 export * from "./envelope-fill";
 export * from "./eye";
 export * from "./eye-slash";
+export * from "./face-smile";
 export * from "./feather-fill";
 export * from "./file-content";
 export * from "./file-zip2";

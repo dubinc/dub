@@ -44,6 +44,7 @@ model User {
   utmTemplates           UtmTemplate[]
   payouts                Payout[]
   bountySubmissions      BountySubmission[]
+  sentMessages           Message[]
   programPartnerComments ProgramPartnerComment[]
 
   @@index(source)

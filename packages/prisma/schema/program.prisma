@@ -64,10 +64,11 @@ model Program {
   rewards           Reward[]
   discounts         Discount[]           @relation("ProgramDiscounts")
   groups            PartnerGroup[]
+  partnerGroupDefaultLinks PartnerGroupDefaultLink[]
   bounties          Bounty[]
   bountySubmissions BountySubmission[]
   workflows         Workflow[]
-  partnerGroupDefaultLinks PartnerGroupDefaultLink[]
+  messages          Message[]
 
   @@index(workspaceId)
   @@index(domain)

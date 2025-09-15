@@ -39,7 +39,6 @@ model Bounty {
   workflow    Workflow?          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@index(programId)
-  @@index(workflowId)
 }
 
 model BountyGroup {
@@ -80,7 +79,6 @@ model BountySubmission {
 
   @@unique([bountyId, partnerId])
   @@index([programId, partnerId])
-  @@index(programId)
   @@index(partnerId)
   @@index(userId)
   @@index(status)
