@@ -5,20 +5,17 @@ import { messageProgramAction } from "@/lib/actions/partners/message-program";
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
-import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-timeseries";
-import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { useProgramMessages } from "@/lib/swr/use-program-messages";
 import useUser from "@/lib/swr/use-user";
-import { PayoutsCount, ProgramEnrollmentProps } from "@/lib/types";
+import { ProgramEnrollmentProps } from "@/lib/types";
 import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { X } from "@/ui/shared/icons";
-import { PayoutStatus } from "@dub/prisma/client";
 import { Button, Grid, useCopyToClipboard } from "@dub/ui";
 import { Check, ChevronLeft, Copy, LoadingSpinner } from "@dub/ui/icons";
 import {
@@ -28,11 +25,12 @@ import {
   currencyFormatter,
   formatDate,
   getPrettyUrl,
+  nFormatter,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
@@ -276,32 +274,7 @@ function ProgramInfoPanel({
     event: "composite",
     interval: "all",
   });
-
-  const { data: earningsTimeseries } = usePartnerEarningsTimeseries({
-    interval: "all",
-  });
-
-  const totalEarnings = useMemo(
-    () => earningsTimeseries?.reduce((acc, { earnings }) => acc + earnings, 0),
-    [earningsTimeseries],
-  );
-
-  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
-    groupBy: "status",
-  });
-
-  const totalPayouts = useMemo(
-    () =>
-      payoutsCount
-        ?.filter(
-          (payout) =>
-            payout.status === PayoutStatus.processed ||
-            payout.status === PayoutStatus.sent ||
-            payout.status === PayoutStatus.completed,
-        )
-        ?.reduce((acc, p) => acc + p.amount, 0) ?? 0,
-    [payoutsCount],
-  );
+  console.log("statsTotals", statsTotals);
 
   const [copied, copyToClipboard] = useCopyToClipboard();
 
@@ -400,7 +373,7 @@ function ProgramInfoPanel({
                 </span>
                 {statsTotals ? (
                   <span className="text-content-emphasis text-sm font-medium">
-                    {statsTotals?.[event]}
+                    {nFormatter(statsTotals?.[event], { full: true })}
                   </span>
                 ) : (
                   <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
@@ -410,8 +383,8 @@ function ProgramInfoPanel({
           </div>
           <div className="divide-border-subtle grid grid-cols-2 divide-x">
             {[
-              { label: "Earnings", value: totalEarnings },
-              { label: "Payouts", value: totalPayouts },
+              { label: "Revenue", value: statsTotals?.saleAmount },
+              { label: "Earnings", value: programEnrollment.totalCommissions },
             ].map(({ label, value }) => (
               <div key={label} className="flex flex-col gap-1 p-3">
                 <span className="text-content-subtle text-xs font-medium">

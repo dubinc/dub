@@ -14,6 +14,7 @@ import {
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
+import { ProgramEnrollmentSchema } from "./programs";
 import { workflowConditionSchema } from "./workflows";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
@@ -125,7 +126,10 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: z.coerce.boolean().optional(),
   status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
-  messagingEnabled: z.coerce.boolean().optional(),
+});
+
+export const PartnerProgramEnrollmentSchema = ProgramEnrollmentSchema.extend({
+  messagingEnabled: z.boolean(),
 });
 
 export const partnerProfileProgramsCountQuerySchema =
