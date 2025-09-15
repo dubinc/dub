@@ -1,0 +1,42 @@
+{
+  "uid": "webhooks-DubAnalytics",
+  "type": "webhooks",
+  "config": {
+    "settings": {
+      "targetUrl": "https://example.com/webhook",
+      "maxConcurrentRequests": 10
+    },
+    "subscriptions": {
+      "crmObjects": [
+        {
+          "subscriptionType": "object.creation",
+          "objectType": "contact",
+          "active": true
+        },
+        {
+          "subscriptionType": "object.propertyChange",
+          "objectType": "contact",
+          "propertyName": "firstname",
+          "active": true
+        }
+      ],
+      "legacyCrmObjects": [
+        {
+          "subscriptionType": "contact.propertyChange",
+          "propertyName": "lastname",
+          "active": true
+        },
+        {
+          "subscriptionType": "contact.deletion",
+          "active": true
+        }
+      ],
+      "hubEvents": [
+        {
+          "subscriptionType": "contact.privacyDeletion",
+          "active": true
+        }
+      ]
+    }
+  }
+}
