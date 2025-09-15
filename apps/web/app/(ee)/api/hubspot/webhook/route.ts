@@ -32,9 +32,6 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       .update(sourceString)
       .digest("hex");
 
-    console.log("Expected hash:", expectedHash);
-    console.log("Signature:", signature);
-
     // Compare with provided signature
     if (signature !== expectedHash) {
       throw new DubApiError({
