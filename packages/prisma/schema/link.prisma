@@ -94,6 +94,7 @@ model Link {
   @@index([projectId, url(length: 500)]) // for upserting a link by URL
   @@index([projectId, folderId, archived, createdAt(sort: Desc)]) // most getLinksForWorkspace queries
   @@index([programId, partnerId]) // for getting a referral link (programId + partnerId)
+  @@index(partnerId) // for getting links by partnerId
   @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too

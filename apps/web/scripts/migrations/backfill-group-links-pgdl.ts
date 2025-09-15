@@ -25,58 +25,67 @@ async function main() {
       }
 
       const defaultLink = group.partnerGroupDefaultLinks[0];
+      const linksToUpdate: { id: string; shortLink: string }[] = [];
+
+      const alreadyUpdatedLinks = await prisma.link.findMany({
+        where: {
+          partnerGroupDefaultLinkId: defaultLink.id,
+        },
+      });
 
       const programEnrollments = await prisma.programEnrollment.findMany({
         where: {
           groupId: group.id,
+          status: {
+            notIn: ["pending", "rejected", "banned"],
+          },
           // filter out enrollments that already have a default link
-          links: {
-            every: {
-              partnerGroupDefaultLinkId: null,
-            },
+          partnerId: {
+            notIn: alreadyUpdatedLinks.map((link) => link.partnerId!),
           },
         },
         include: {
+          partner: true,
           links: {
             orderBy: {
               createdAt: "asc",
             },
           },
         },
-        take: 500,
+        take: 1000,
       });
 
       if (programEnrollments.length === 0) {
         console.log(
-          `No program enrollments needfound for group ${group.id}. Skipping...`,
+          `No more program enrollments found for group ${group.id}. Skipping...`,
         );
         continue;
       }
 
-      const firstPartnerLinkIds = programEnrollments.map(
-        (programEnrollment) => {
-          const { links } = programEnrollment;
-          const firstPartnerLink = links.find(
-            (link) => normalizeUrl(link.url) === normalizeUrl(defaultLink.url),
+      for (const programEnrollment of programEnrollments) {
+        const { partner, links } = programEnrollment;
+        const firstPartnerLink = links.find(
+          (link) => normalizeUrl(link.url) === normalizeUrl(defaultLink.url),
+        );
+
+        if (!firstPartnerLink) {
+          const firstLink = links.length > 0 ? links[0] : null;
+          console.log(
+            `Didn't find a matching link for partner ${partner.email} (${partner.id}). ${firstLink ? `Their first link is ${firstLink.url} while the default link is ${defaultLink.url}` : "They have no links"}`,
           );
+          continue;
+        }
 
-          if (!firstPartnerLink) {
-            console.log(
-              `WARNING: No matching partner link found for partner ${programEnrollment.partnerId} in group ${group.id}. Skipping...`,
-            );
-            return null;
-          }
+        linksToUpdate.push({
+          id: firstPartnerLink.id,
+          shortLink: firstPartnerLink.shortLink,
+        });
+      }
 
-          return firstPartnerLink.id;
-        },
-      );
-
-      console.table(firstPartnerLinkIds);
-
-      const res = await prisma.link.updateMany({
+      const updateRes = await prisma.link.updateMany({
         where: {
           id: {
-            in: firstPartnerLinkIds.filter((id): id is string => id !== null),
+            in: linksToUpdate.map((link) => link.id),
           },
         },
         data: {
@@ -85,8 +94,9 @@ async function main() {
       });
 
       console.log(
-        `Updated ${res.count} links with default link ${defaultLink.id}`,
+        `Updated ${updateRes.count} links with default link ${defaultLink.id}`,
       );
+      console.table(linksToUpdate.slice(0, 10), ["id", "shortLink"]);
     }
   }
 }
