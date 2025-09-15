@@ -2,7 +2,7 @@ import { Prisma } from "@dub/prisma/client";
 
 const DEFAULT_CONFIG = {
   maxRetries: 3,
-  retryDelay: 1000, // 1 second
+  retryDelay: 500, // 500ms
   exponentialBackoff: true,
 };
 
