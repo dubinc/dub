@@ -26,6 +26,8 @@ export enum EAnalyticEvents {
   EXPERIMENT_VIEWED = "experimentViewed",
 
   IDENTIFY_EVENT = "identifyEvent",
+
+  THRESHOLD_PASSED = "thresholdPassed",
 }
 
 // purchase related events

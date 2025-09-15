@@ -2,6 +2,7 @@
 
 import { conn } from "@/lib/planetscale/connection";
 import { checkSubscriptionStatusAuthLess } from "./check-subscription-status-auth-less";
+import { TrialClicks, TrialClicksForTest, TrialDays } from '../constants/trial';
 
 export type FeaturesAccess = {
   featuresAccess: boolean;
@@ -43,14 +44,14 @@ export const checkFeaturesAccessAuthLess = async (
       )
     : 0;
 
-  const maxClicksForTest = beforeRecord ? 9 : 10;
-  const maxClicksForRealFlow = beforeRecord ? 29 : 30;
+  const maxClicksForTest = beforeRecord ? TrialClicksForTest - 1 : TrialClicksForTest;
+  const maxClicksForRealFlow = beforeRecord ? TrialClicks - 1 : TrialClicks;
   const maxClicks =
     process.env.NEXT_PUBLIC_APP_ENV === "dev"
       ? maxClicksForTest
       : maxClicksForRealFlow;
 
-  const isTrialOver = totalClicks >= maxClicks || daysSinceRegistration >= 10;
+  const isTrialOver = totalClicks >= maxClicks || daysSinceRegistration >= TrialDays;
 
   return {
     featuresAccess: isSubscribed || !isTrialOver,
