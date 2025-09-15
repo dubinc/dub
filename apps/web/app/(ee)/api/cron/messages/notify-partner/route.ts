@@ -8,6 +8,7 @@ import { NotificationEmailType } from "@dub/prisma/client";
 import { log } from "@dub/utils";
 import { subDays } from "date-fns";
 import { z } from "zod";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -81,12 +82,12 @@ export async function POST(req: Request) {
     );
 
     if (unreadMessages.length === 0)
-      return new Response(
+      return logAndRespond(
         `No unread messages found for partner ${partnerId} in program ${programId}. Skipping...`,
       );
 
     if (unreadMessages[unreadMessages.length - 1].id !== lastMessageId)
-      return new Response(
+      return logAndRespond(
         `There is a more recent unread message than ${lastMessageId}. Skipping...`,
       );
 
@@ -95,7 +96,7 @@ export async function POST(req: Request) {
       .filter(Boolean) as string[];
 
     if (partnerEmailsToNotify.length === 0)
-      return new Response(
+      return logAndRespond(
         `No partner emails to notify for partner ${partnerId}. Skipping...`,
       );
 
@@ -151,7 +152,7 @@ export async function POST(req: Request) {
       ),
     });
 
-    return new Response(
+    return logAndRespond(
       `Emails sent for messages from program ${programId} to partner ${partnerId}.`,
     );
   } catch (error) {
