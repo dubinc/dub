@@ -104,6 +104,7 @@ export const rejectBountySubmissionAction = authActionClient
               submission: {
                 rejectionReason:
                   REJECT_BOUNTY_SUBMISSION_REASONS[rejectionReason],
+                rejectionNote,
               },
             }),
           }),

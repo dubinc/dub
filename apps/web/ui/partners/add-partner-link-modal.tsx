@@ -1,30 +1,45 @@
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { LinkProps, PartnerProps } from "@/lib/types";
+import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   ArrowTurnLeft,
   Button,
+  Combobox,
   InfoTooltip,
   Modal,
   SimpleTooltipContent,
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { getDomainWithoutWWW, linkConstructor } from "@dub/utils";
-import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  cn,
+  constructURLFromUTMParams,
+  getPathnameFromUrl,
+  linkConstructor,
+  punycode,
+} from "@dub/utils";
+import { UtmTemplate } from "@prisma/client";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
+import { useDebounce } from "use-debounce";
 import { X } from "../shared/icons";
 
 interface AddPartnerLinkModalProps {
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onSuccess?: (link: LinkProps) => void;
-  partner: Pick<PartnerProps, "id" | "email">;
+  partner: Pick<EnrolledPartnerProps, "id" | "email" | "groupId">;
 }
 
-type FormData = Pick<LinkProps, "url" | "key">;
+interface FormData {
+  pathname: string;
+  key: string;
+}
 
 const AddPartnerLinkModal = ({
   showModal,
@@ -42,14 +57,42 @@ const AddPartnerLinkModal = ({
 
   const { register, handleSubmit, watch } = useForm<FormData>({
     defaultValues: {
-      url: "",
+      pathname: "",
       key: "",
     },
   });
-  const isExactMode = program?.urlValidationMode === "exact";
 
-  const key = watch("key");
-  const destinationDomain = getDomainWithoutWWW(program?.url || "");
+  const { group: partnerGroup } = useGroup({
+    groupIdOrSlug: partner.groupId ?? DEFAULT_PARTNER_GROUP.slug,
+  });
+  const additionalLinks = partnerGroup?.additionalLinks ?? [];
+
+  const destinationDomains = useMemo(
+    () => additionalLinks.map((link) => link.domain),
+    [additionalLinks],
+  );
+
+  const [destinationDomain, setDestinationDomain] = useState(
+    destinationDomains?.[0] ?? null,
+  );
+
+  const [isExactMode, setIsExactMode] = useState(false);
+
+  useEffect(() => {
+    const additionalLink = additionalLinks.find(
+      (link) => link.domain === destinationDomain,
+    );
+
+    setIsExactMode(additionalLink?.validationMode === "exact");
+  }, [destinationDomain, additionalLinks]);
+
+  const [key, pathname] = watch(["key", "pathname"]);
+
+  // If there is only one destination domain and we are in exact mode, hide the destination URL input
+  const hideDestinationUrl = useMemo(
+    () => destinationDomains.length === 1 && isExactMode,
+    [destinationDomains.length, isExactMode],
+  );
 
   const onSubmit = async (formData: FormData) => {
     if (!destinationDomain || !program?.id || !partner.id) {
@@ -58,6 +101,11 @@ const AddPartnerLinkModal = ({
 
     setIsSubmitting(true);
     setErrorMessage(null);
+
+    const url = linkConstructor({
+      domain: destinationDomain,
+      key: getPathnameFromUrl(pathname),
+    });
 
     try {
       const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
@@ -70,12 +118,13 @@ const AddPartnerLinkModal = ({
           partnerId: partner.id,
           programId: program.id,
           domain: program.domain,
-          url: isExactMode
-            ? program.url
-            : linkConstructor({
-                domain: destinationDomain,
-                key: formData.url,
-              }),
+          url: constructURLFromUTMParams(
+            url,
+            extractUtmParams(partnerGroup?.utmTemplate as UtmTemplate),
+          ),
+          ...extractUtmParams(partnerGroup?.utmTemplate as UtmTemplate, {
+            excludeRef: true,
+          }),
           trackConversion: true,
           folderId: program.defaultFolderId,
         }),
@@ -87,7 +136,7 @@ const AddPartnerLinkModal = ({
         throw new Error(data.error.message);
       }
 
-      await mutate(`/api/partners?workspaceId=${workspaceId}`);
+      await mutate(`/api/partners/${partner.id}?workspaceId=${workspaceId}`);
       toast.success("Link created successfully!");
       onSuccess?.(data);
       setShowModal(false);
@@ -167,7 +216,7 @@ const AddPartnerLinkModal = ({
               )}
             </div>
 
-            {!isExactMode && (
+            {!hideDestinationUrl && (
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <label
@@ -188,18 +237,22 @@ const AddPartnerLinkModal = ({
                   />
                 </div>
 
-                <div className="flex">
-                  <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
-                    {destinationDomain}
-                  </span>
-
+                <div className="relative flex rounded-md shadow-sm">
+                  <div className="z-[1]">
+                    <DestinationDomainCombobox
+                      selectedDomain={destinationDomain}
+                      setSelectedDomain={setDestinationDomain}
+                      destinationDomains={destinationDomains}
+                    />
+                  </div>
                   <input
-                    {...register("url", { required: false })}
+                    {...register("pathname", { required: false })}
                     type="text"
-                    id="url"
                     placeholder="(optional)"
-                    className="block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                    disabled={isExactMode}
                     onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+                      if (isExactMode) return;
+
                       e.preventDefault();
 
                       const text = e.clipboardData.getData("text/plain");
@@ -211,6 +264,13 @@ const AddPartnerLinkModal = ({
                         e.currentTarget.value = text;
                       }
                     }}
+                    className={cn(
+                      "z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                      {
+                        "cursor-not-allowed border bg-neutral-100 text-neutral-500":
+                          isExactMode,
+                      },
+                    )}
                   />
                 </div>
               </div>
@@ -239,12 +299,90 @@ const AddPartnerLinkModal = ({
   );
 };
 
+function DestinationDomainCombobox({
+  selectedDomain,
+  setSelectedDomain,
+  destinationDomains,
+  disabled = false,
+}: {
+  selectedDomain?: string;
+  setSelectedDomain: (domain: string) => void;
+  destinationDomains: string[];
+  disabled?: boolean;
+}) {
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+  const [isOpen, setIsOpen] = useState(false);
+
+  const options = useMemo(() => {
+    const allDomains = selectedDomain
+      ? [
+          selectedDomain,
+          ...destinationDomains.filter((d) => d !== selectedDomain),
+        ]
+      : destinationDomains;
+
+    if (!debouncedSearch) {
+      return allDomains.map((domain) => ({
+        value: domain,
+        label: punycode(domain),
+      }));
+    }
+
+    return allDomains
+      .filter((domain) =>
+        punycode(domain).toLowerCase().includes(debouncedSearch.toLowerCase()),
+      )
+      .map((domain) => ({
+        value: domain,
+        label: punycode(domain),
+      }));
+  }, [selectedDomain, destinationDomains, debouncedSearch]);
+
+  return (
+    <Combobox
+      selected={
+        selectedDomain
+          ? {
+              value: selectedDomain,
+              label: punycode(selectedDomain),
+            }
+          : null
+      }
+      setSelected={(option) => {
+        if (!option || disabled) return;
+        setSelectedDomain(option.value);
+      }}
+      options={options}
+      caret={true}
+      placeholder="Select domain..."
+      searchPlaceholder="Search domains..."
+      buttonProps={{
+        className: cn(
+          "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
+          "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+          "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+          {
+            "cursor-not-allowed bg-neutral-100 text-neutral-500": disabled,
+          },
+        ),
+        disabled,
+      }}
+      optionClassName="sm:max-w-[225px]"
+      shouldFilter={false}
+      open={disabled ? false : isOpen}
+      onOpenChange={disabled ? undefined : setIsOpen}
+      onSearchChange={disabled ? undefined : setSearch}
+    />
+  );
+}
+
 export function useAddPartnerLinkModal({
   onSuccess,
   partner,
 }: {
   onSuccess?: (link: LinkProps) => void;
-  partner: Pick<PartnerProps, "id" | "email">;
+  partner: Pick<EnrolledPartnerProps, "id" | "email" | "groupId">;
 }) {
   const [showAddPartnerLinkModal, setShowAddPartnerLinkModal] = useState(false);
 

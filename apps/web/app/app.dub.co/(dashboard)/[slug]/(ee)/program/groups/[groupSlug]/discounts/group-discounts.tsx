@@ -17,7 +17,7 @@ import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "framer-motion";
 import { BadgePercent } from "lucide-react";
 
-export const GroupDiscount = () => {
+export const GroupDiscounts = () => {
   const { group, loading } = useGroup();
 
   return (
@@ -96,7 +96,7 @@ const DiscountItem = ({
 
 const CopyDefaultDiscountButton = () => {
   const { group: defaultGroup } = useGroup({
-    slug: DEFAULT_PARTNER_GROUP.slug,
+    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
   });
 
   const { DiscountSheet, setIsOpen } = useDiscountSheet({

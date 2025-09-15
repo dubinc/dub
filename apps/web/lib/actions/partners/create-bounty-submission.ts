@@ -104,7 +104,7 @@ export const createBountySubmissionAction = authPartnerActionClient
 
     // Validate the submission requirements
     const submissionRequirements = submissionRequirementsSchema.parse(
-      bounty.submissionRequirements,
+      bounty.submissionRequirements || [],
     );
 
     const requireImage = submissionRequirements.includes("image");

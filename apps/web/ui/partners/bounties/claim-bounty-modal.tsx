@@ -1,11 +1,13 @@
 import { createBountySubmissionAction } from "@/lib/actions/partners/create-bounty-submission";
 import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-bounty-submission-file";
+import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
 import {
   MAX_SUBMISSION_FILES,
   MAX_SUBMISSION_URLS,
+  REJECT_BOUNTY_SUBMISSION_REASONS,
 } from "@/lib/zod/schemas/bounties";
 import { X } from "@/ui/shared/icons";
 import {
@@ -13,6 +15,7 @@ import {
   Button,
   Calendar6,
   FileUpload,
+  Gift,
   LoadingSpinner,
   Modal,
   StatusBadge,
@@ -21,8 +24,9 @@ import {
   useEnterSubmit,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, formatDate } from "@dub/utils";
+import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { motion } from "framer-motion";
+import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -161,10 +165,10 @@ function ClaimBountyModalContent({
         {success ? (
           <div className="mx-auto flex max-w-sm flex-col items-center gap-1 p-6 text-center max-sm:px-4">
             <span className="text-content-emphasis text-base font-semibold">
-              Congratulations! You've successfully submitted your bounty!
+              Congratulations! You've successfully submitted your bounty.
             </span>
-            <p className="text-content-subtle text-sm font-medium">
-              We'll let you know when your bounty has been approved.
+            <p className="text-content-subtle text-balance text-sm font-medium">
+              We'll let you know when your bounty has been reviewed.
             </p>
           </div>
         ) : (
@@ -185,52 +189,100 @@ function ClaimBountyModalContent({
                 </span>
               </div>
 
+              <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+                <Gift className="size-3.5 shrink-0" />
+                <span className="truncate">
+                  {getBountyRewardDescription(bounty)}
+                </span>
+              </div>
+
               {submission ? (
-                <div className="mt-3 flex items-center gap-2">
-                  {submission.status === "approved" && (
-                    <Link
-                      href={`/programs/${programEnrollment?.program.slug}/earnings?type=custom`}
-                      target="_blank"
-                      className={cn(
-                        buttonVariants({ variant: "primary" }),
-                        "flex h-7 w-fit items-center whitespace-nowrap rounded-lg border px-2.5 text-sm",
-                      )}
+                <div className="mt-3 grid gap-2">
+                  <div className="flex items-center gap-2">
+                    {submission.status === "approved" && (
+                      <Link
+                        href={`/programs/${programEnrollment?.program.slug}/earnings?type=custom`}
+                        target="_blank"
+                        className={cn(
+                          buttonVariants({ variant: "primary" }),
+                          "flex h-7 w-fit items-center whitespace-nowrap rounded-lg border px-2.5 text-sm",
+                        )}
+                      >
+                        View earnings
+                      </Link>
+                    )}
+                    <StatusBadge
+                      className="rounded-lg py-1.5"
+                      variant={
+                        submission.status === "pending"
+                          ? "pending"
+                          : submission.status === "approved"
+                            ? "success"
+                            : "error"
+                      }
+                      icon={submission.status === "approved" ? undefined : null}
                     >
-                      View earnings
-                    </Link>
-                  )}
-                  <StatusBadge
-                    className="rounded-lg py-1.5"
-                    variant={
-                      submission.status === "pending"
-                        ? "pending"
-                        : submission.status === "approved"
-                          ? "success"
-                          : "error"
-                    }
-                    icon={submission.status === "approved" ? undefined : null}
-                  >
-                    {submission.status === "pending" ? (
-                      `Submitted ${formatDate(submission.createdAt, { month: "short" })}`
-                    ) : submission.status === "approved" ? (
-                      bounty.type === "performance" ? (
-                        <>
-                          Completed{" "}
-                          {formatDate(submission.createdAt, { month: "short" })}
-                        </>
-                      ) : (
-                        <>
-                          Confirmed{" "}
-                          {submission.reviewedAt &&
-                            formatDate(submission.reviewedAt, {
+                      {submission.status === "pending" ? (
+                        `Submitted ${formatDate(submission.createdAt, { month: "short" })}`
+                      ) : submission.status === "approved" ? (
+                        bounty.type === "performance" ? (
+                          <>
+                            Completed{" "}
+                            {formatDate(submission.createdAt, {
                               month: "short",
                             })}
-                        </>
-                      )
-                    ) : (
-                      "Rejected"
-                    )}
-                  </StatusBadge>
+                          </>
+                        ) : (
+                          <>
+                            Confirmed{" "}
+                            {submission.reviewedAt &&
+                              formatDate(submission.reviewedAt, {
+                                month: "short",
+                              })}
+                          </>
+                        )
+                      ) : (
+                        "Rejected"
+                      )}
+                    </StatusBadge>
+                  </div>
+
+                  {/* Rejection details for rejected submissions */}
+                  {submission.status === "rejected" && (
+                    <div className="mt-3 flex flex-col gap-2 rounded-lg border border-red-200 bg-red-50 p-4">
+                      <div className="flex gap-1">
+                        <span className="text-sm font-medium text-red-900">
+                          Rejection reason:
+                        </span>
+                        <span className="text-sm text-red-800">
+                          {submission.rejectionReason &&
+                            REJECT_BOUNTY_SUBMISSION_REASONS[
+                              submission.rejectionReason as keyof typeof REJECT_BOUNTY_SUBMISSION_REASONS
+                            ]}
+                        </span>
+                      </div>
+                      {submission.rejectionNote && (
+                        <div className="mt-1">
+                          <span className="text-sm font-medium text-red-900">
+                            Note:
+                          </span>
+                          <Linkify
+                            as="p"
+                            options={{
+                              target: "_blank",
+                              rel: "noopener noreferrer nofollow",
+                              format: (href) => getPrettyUrl(href),
+                              className:
+                                "underline underline-offset-4 text-red-400 hover:text-red-700",
+                            }}
+                            className="mt-1 whitespace-pre-wrap text-sm text-red-800"
+                          >
+                            {submission.rejectionNote}
+                          </Linkify>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               ) : (
                 bounty.type === "performance" && (
@@ -444,7 +496,12 @@ function ClaimBountyModalContent({
                     variant="primary"
                     text={isFormOpen ? "Submit proof" : "Claim bounty"}
                     className="grow rounded-lg"
-                    onClick={isFormOpen ? undefined : () => setIsFormOpen(true)}
+                    onClick={
+                      isFormOpen
+                        ? undefined
+                        : // Delay open to prevent also submitting the form
+                          () => setTimeout(() => setIsFormOpen(true), 100)
+                    }
                     loading={isPending}
                     disabled={
                       isFormOpen &&
