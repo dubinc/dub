@@ -17,7 +17,6 @@ import {
   GridIcon,
   MoneyBills2,
   Msgs,
-  PaperPlane,
   ShieldCheck,
   SquareUserSparkle2,
   Trophy,
@@ -141,7 +140,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           },
           {
             name: "Messages",
-            icon: PaperPlane,
+            icon: Msgs,
             href: `/messages/${programSlug}`,
             locked: isUnapproved,
             arrow: true,
