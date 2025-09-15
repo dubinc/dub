@@ -1,6 +1,10 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
-import { hubSpotEnv } from "@/lib/integrations/hubspot/env";
+import {
+  HUBSPOT_CLIENT_ID,
+  HUBSPOT_CLIENT_SECRET,
+  HUBSPOT_REDIRECT_URI,
+} from "@/lib/integrations/hubspot/constants";
 import { installIntegration } from "@/lib/integrations/install";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
@@ -70,9 +74,9 @@ export const GET = async (req: Request) => {
     const body = new URLSearchParams({
       code,
       grant_type: "authorization_code",
-      redirect_uri: hubSpotEnv.HUBSPOT_REDIRECT_URI,
-      client_id: hubSpotEnv.HUBSPOT_CLIENT_ID,
-      client_secret: hubSpotEnv.HUBSPOT_CLIENT_SECRET,
+      redirect_uri: HUBSPOT_REDIRECT_URI,
+      client_id: HUBSPOT_CLIENT_ID,
+      client_secret: HUBSPOT_CLIENT_SECRET,
     });
 
     // Exchange authorization code for access token
