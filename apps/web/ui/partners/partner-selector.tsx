@@ -1,20 +1,21 @@
 import usePartners from "@/lib/swr/use-partners";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
-import { Combobox } from "@dub/ui";
+import { Combobox, ComboboxProps } from "@dub/ui";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
-interface PartnerSelectorProps {
+type PartnerSelectorProps = {
   selectedPartnerId: string | null;
   setSelectedPartnerId: (partnerId: string) => void;
   disabled?: boolean;
-}
+} & Partial<ComboboxProps<false, any>>;
 
 export function PartnerSelector({
   selectedPartnerId,
   setSelectedPartnerId,
   disabled,
+  ...rest
 }: PartnerSelectorProps) {
   const [search, setSearch] = useState("");
   const [useAsync, setUseAsync] = useState(false);
@@ -76,6 +77,7 @@ export function PartnerSelector({
     <Combobox
       options={loading ? undefined : partnerOptions}
       setSelected={(option) => {
+        if (!option) return;
         setSelectedPartnerId(option.value);
       }}
       selected={selectedOption}
@@ -96,6 +98,7 @@ export function PartnerSelector({
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
         ),
       }}
+      {...rest}
     >
       {selectedPartnersLoading ? (
         <div className="my-0.5 h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
