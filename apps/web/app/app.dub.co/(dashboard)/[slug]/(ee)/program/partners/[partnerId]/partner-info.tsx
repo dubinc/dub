@@ -3,7 +3,11 @@
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
+import {
+  BountyListProps,
+  EnrolledPartnerProps,
+  RewardProps,
+} from "@/lib/types";
 import { EventDatum } from "@/ui/analytics/events/events-table";
 import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
@@ -11,8 +15,10 @@ import {
   CalendarIcon,
   ChartActivity2,
   CopyButton,
+  Heart,
   OfficeBuilding,
   Tooltip,
+  Trophy,
 } from "@dub/ui";
 import {
   COUNTRIES,
@@ -21,11 +27,16 @@ import {
   formatDate,
   timeAgo,
 } from "@dub/utils";
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import useSWR from "swr";
 
 export function PartnerInfo({ partner }: { partner?: EnrolledPartnerProps }) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    defaultProgramId,
+  } = useWorkspace();
   const { partnerId } = useParams() as { partnerId: string };
 
   const { data: eventsData, isLoading: isLoadingEvents } = useSWR<EventDatum[]>(
@@ -38,6 +49,17 @@ export function PartnerInfo({ partner }: { partner?: EnrolledPartnerProps }) {
   const { group } = useGroup({
     groupIdOrSlug: partner?.groupId ?? undefined,
   });
+
+  const {
+    data: bounties,
+    isLoading: isLoadingBounties,
+    error: errorBounties,
+  } = useSWR<BountyListProps[]>(
+    workspaceId
+      ? `/api/bounties?workspaceId=${workspaceId}&partnerId=${partnerId}`
+      : null,
+    fetcher,
+  );
 
   const basicFields = [
     {
@@ -178,6 +200,43 @@ export function PartnerInfo({ partner }: { partner?: EnrolledPartnerProps }) {
             </>
           ) : (
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+          )}
+        </div>
+
+        {/* Eligible bounties */}
+        <div className="flex flex-col gap-2">
+          <h3 className="text-content-emphasis text-xs font-semibold">
+            Eligible Bounties
+          </h3>
+          {bounties ? (
+            bounties.length ? (
+              <div className="flex flex-col gap-2">
+                {bounties.map((bounty) => {
+                  const Icon = bounty.type === "performance" ? Trophy : Heart;
+                  return (
+                    <Link
+                      key={bounty.id}
+                      target="_blank"
+                      href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
+                      className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
+                    >
+                      <Icon className="size-3.5 shrink-0" />
+                      <span className="text-xs font-medium">{bounty.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-content-subtle text-xs">
+                No eligible bounties
+              </p>
+            )
+          ) : errorBounties ? (
+            <p className="text-content-subtle text-xs">
+              Failed to load bounties
+            </p>
+          ) : (
+            <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
           )}
         </div>
       </div>
