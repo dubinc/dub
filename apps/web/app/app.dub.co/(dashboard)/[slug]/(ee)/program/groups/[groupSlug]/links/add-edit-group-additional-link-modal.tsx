@@ -1,8 +1,5 @@
 "use client";
 
-import { mutatePrefix } from "@/lib/swr/mutate";
-import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import useGroup from "@/lib/swr/use-group";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { Badge, Button, Input, Modal } from "@dub/ui";
@@ -29,15 +26,16 @@ const URL_VALIDATION_MODES = [
 interface AddDestinationUrlModalProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   link?: PartnerGroupAdditionalLink;
+  additionalLinks: PartnerGroupAdditionalLink[];
+  onUpdateAdditionalLinks: (links: PartnerGroupAdditionalLink[]) => void;
 }
 
 function AddDestinationUrlModalContent({
   setIsOpen,
   link,
+  additionalLinks,
+  onUpdateAdditionalLinks,
 }: AddDestinationUrlModalProps) {
-  const { group } = useGroup();
-  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
-
   const { register, handleSubmit, watch, setValue } =
     useForm<PartnerGroupAdditionalLink>({
       defaultValues: {
@@ -49,16 +47,7 @@ function AddDestinationUrlModalContent({
   const [domain, validationMode] = watch(["domain", "validationMode"]);
 
   const onSubmit = async (data: PartnerGroupAdditionalLink) => {
-    if (!group) return;
-
-    const currentAdditionalLinks = group.additionalLinks || [];
-
-    if (link && !currentAdditionalLinks.find((l) => l.domain === link.domain)) {
-      toast.error("The link domain you are trying to edit does not exist.");
-      return;
-    }
-
-    const existingDomains = currentAdditionalLinks.map((l) => l.domain);
+    const existingDomains = additionalLinks.map((l) => l.domain);
 
     if (existingDomains.includes(data.domain) && data.domain !== link?.domain) {
       toast.error(
@@ -71,7 +60,7 @@ function AddDestinationUrlModalContent({
 
     if (link) {
       // Editing existing link - find and replace the specific link by domain
-      updatedAdditionalLinks = currentAdditionalLinks.map((existingLink) => {
+      updatedAdditionalLinks = additionalLinks.map((existingLink) => {
         if (existingLink.domain === link.domain) {
           return {
             ...data,
@@ -82,7 +71,7 @@ function AddDestinationUrlModalContent({
       });
     } else {
       // Check if we're at the maximum number of additional links
-      if (currentAdditionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS) {
+      if (additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS) {
         toast.error(
           `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional link domains.`,
         );
@@ -90,27 +79,11 @@ function AddDestinationUrlModalContent({
       }
 
       // Creating new link
-      updatedAdditionalLinks = [...currentAdditionalLinks, data];
+      updatedAdditionalLinks = [...additionalLinks, data];
     }
-
-    await updateGroup(`/api/groups/${group.id}`, {
-      method: "PATCH",
-      body: {
-        additionalLinks: updatedAdditionalLinks,
-      },
-      onSuccess: async () => {
-        await mutatePrefix("/api/groups");
-        setIsOpen(false);
-        toast.success(
-          link
-            ? "Link domain updated successfully!"
-            : "Link domain added successfully!",
-        );
-      },
-      onError: () => {
-        toast.error("Failed to save link domain. Please try again.");
-      },
-    });
+    // Update the parent form state instead of calling API directly
+    onUpdateAdditionalLinks(updatedAdditionalLinks);
+    setIsOpen(false);
   };
 
   const isEditing = !!link;
@@ -206,7 +179,8 @@ function AddDestinationUrlModalContent({
                 htmlFor="conversionTracking"
                 className="text-sm text-neutral-600"
               >
-                I confirm that conversion tracking has been set up on this URL.{" "}
+                I confirm that conversion tracking has been set up on this
+                domain.{" "}
                 <a
                   href="https://dub.co/docs/partners/quickstart"
                   target="_blank"
@@ -229,7 +203,6 @@ function AddDestinationUrlModalContent({
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="h-10 w-fit"
-            disabled={isSubmitting}
           />
 
           <Button
@@ -238,7 +211,6 @@ function AddDestinationUrlModalContent({
             text={isEditing ? "Update link domain" : "Add link domain"}
             className="h-10 w-fit"
             disabled={!domain || !validationMode}
-            loading={isSubmitting}
           />
         </div>
       </div>
@@ -250,12 +222,19 @@ export function AddDestinationUrlModal({
   isOpen,
   setIsOpen,
   link,
+  additionalLinks,
+  onUpdateAdditionalLinks,
 }: AddDestinationUrlModalProps & {
   isOpen: boolean;
 }) {
   return (
     <Modal showModal={isOpen} setShowModal={setIsOpen}>
-      <AddDestinationUrlModalContent setIsOpen={setIsOpen} link={link} />
+      <AddDestinationUrlModalContent
+        setIsOpen={setIsOpen}
+        link={link}
+        additionalLinks={additionalLinks}
+        onUpdateAdditionalLinks={onUpdateAdditionalLinks}
+      />
     </Modal>
   );
 }

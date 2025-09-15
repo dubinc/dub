@@ -22,6 +22,7 @@ export async function getPartnerForProgram({
       pe.bannedReason,
       COALESCE(metrics.totalClicks, 0) as totalClicks,
       COALESCE(metrics.totalLeads, 0) as totalLeads,
+      COALESCE(metrics.totalConversions, 0) as totalConversions,
       COALESCE(metrics.totalSales, 0) as totalSales,
       COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
       COALESCE(pe.totalCommissions, 0) as totalCommissions,
@@ -56,6 +57,7 @@ export async function getPartnerForProgram({
         partnerId,
         SUM(clicks) as totalClicks,
         SUM(leads) as totalLeads,
+        SUM(conversions) as totalConversions,
         SUM(sales) as totalSales,
         SUM(saleAmount) as totalSaleAmount
       FROM Link
@@ -67,7 +69,7 @@ export async function getPartnerForProgram({
       pe.partnerId = ${partnerId}
       AND pe.programId = ${programId}
     GROUP BY 
-      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions
+      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalConversions, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions
   `;
 
   if (!partner?.[0]) return null;
@@ -78,6 +80,7 @@ export async function getPartnerForProgram({
     createdAt: new Date(partner[0].enrollmentCreatedAt),
     clicks: Number(partner[0].totalClicks),
     leads: Number(partner[0].totalLeads),
+    conversions: Number(partner[0].totalConversions),
     sales: Number(partner[0].totalSales),
     saleAmount: Number(partner[0].totalSaleAmount),
     totalCommissions: Number(partner[0].totalCommissions),
