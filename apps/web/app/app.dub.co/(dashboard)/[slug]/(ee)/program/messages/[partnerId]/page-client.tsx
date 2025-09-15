@@ -66,7 +66,7 @@ export function ProgramMessagesPartnerPageClient() {
   const { executeAsync: sendMessage } = useAction(messagePartnerAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
   if (errorPartner) redirect(`/${workspaceSlug}/program/messages`);
 
