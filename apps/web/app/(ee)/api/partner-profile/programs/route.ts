@@ -1,5 +1,6 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
@@ -9,10 +10,10 @@ import { z } from "zod";
 
 // GET /api/partner-profile/programs - get all program enrollments for a given partnerId
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { includeRewardsDiscounts, status } =
+  const { includeRewardsDiscounts, status, messagingEnabled } =
     partnerProfileProgramsQuerySchema.parse(searchParams);
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
+  let programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
       ...(status && { status }),
@@ -24,7 +25,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           createdAt: "asc",
         },
       },
-      program: true,
+      program: {
+        include: {
+          workspace: true,
+        },
+      },
       ...(includeRewardsDiscounts && {
         clickReward: true,
         leadReward: true,
@@ -41,6 +46,15 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       },
     ],
   });
+
+  if (messagingEnabled !== undefined) {
+    programEnrollments = programEnrollments.filter((enrollment) => {
+      return (
+        getPlanCapabilities(enrollment.program.workspace.plan)
+          .canMessagePartners === messagingEnabled
+      );
+    });
+  }
 
   const response = programEnrollments.map((enrollment) => {
     return {

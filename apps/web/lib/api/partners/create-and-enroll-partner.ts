@@ -11,7 +11,6 @@ import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
-import { backfillLinkCommissions } from "./backfill-link-commissions";
 import { createPartnerDefaultLinks } from "./create-partner-default-links";
 
 interface CreateAndEnrollPartnerInput {
@@ -165,14 +164,6 @@ export const createAndEnrollPartner = async ({
 
   waitUntil(
     Promise.all([
-      ...links.map((link) =>
-        backfillLinkCommissions({
-          id: link.id,
-          partnerId: upsertedPartner.id,
-          programId: program.id,
-        }),
-      ),
-
       // upload partner image to R2
       partner.image &&
         !isStored(partner.image) &&
