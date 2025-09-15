@@ -163,7 +163,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             <PartnerSocialColumn
               value={getDomainWithoutWWW(row.original.website) ?? "-"}
               verified={!!row.original.websiteVerifiedAt}
-              href={row.original.website}
             />
           );
         },
@@ -178,7 +177,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               at
               value={row.original.youtube}
               verified={!!row.original.youtubeVerifiedAt}
-              href={`https://youtube.com/@${row.original.youtube}`}
             />
           );
         },
@@ -193,7 +191,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               at
               value={row.original.twitter}
               verified={!!row.original.twitterVerifiedAt}
-              href={`https://x.com/${row.original.twitter}`}
             />
           );
         },
@@ -207,7 +204,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             <PartnerSocialColumn
               value={row.original.linkedin}
               verified={!!row.original.linkedinVerifiedAt}
-              href={`https://linkedin.com/in/${row.original.linkedin}`}
             />
           );
         },
@@ -222,7 +218,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               at
               value={row.original.instagram}
               verified={!!row.original.instagramVerifiedAt}
-              href={`https://instagram.com/${row.original.instagram}`}
             />
           );
         },
@@ -237,7 +232,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               at
               value={row.original.tiktok}
               verified={!!row.original.tiktokVerifiedAt}
-              href={`https://tiktok.com/@${row.original.tiktok}`}
             />
           );
         },
