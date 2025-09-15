@@ -7,7 +7,10 @@
     "distribution": "marketplace",
     "auth": {
       "type": "oauth",
-      "redirectUrls": ["http://localhost:3000/oauth-callback"],
+      "redirectUrls": [
+        "https://accurate-caribou-strictly.ngrok-free.app/api/hubspot/callback",
+        "https://dub.co/api/hubspot/callback"
+      ],
       "requiredScopes": [
         "oauth",
         "crm.objects.contacts.read",
