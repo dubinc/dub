@@ -34,7 +34,7 @@ export function ImportExportButtons() {
       <ExportPartnersModal />
       <Popover
         content={
-          <div className="w-full md:w-56">
+          <div className="w-full md:w-[16rem]">
             <div className="grid gap-px p-2">
               <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Import Partners
