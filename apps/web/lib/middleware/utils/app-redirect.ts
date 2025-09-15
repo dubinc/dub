@@ -15,8 +15,7 @@ const PROGRAM_REDIRECTS = {
   "/program/communication": "/program/resources",
   "/program/branding/resources": "/program/resources",
   "/program/rewards": "/program/groups/default/rewards",
-  "/program/discount": "/program/groups/default/discount",
-  "/program/discounts": "/program/groups/default/discount",
+  "/program/discounts": "/program/groups/default/discounts",
   "/program/link-settings": "/program/groups/default/links",
 };
 

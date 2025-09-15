@@ -17,7 +17,7 @@ import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "framer-motion";
 import { BadgePercent } from "lucide-react";
 
-export const GroupDiscount = () => {
+export const GroupDiscounts = () => {
   const { group, loading } = useGroup();
 
   return (

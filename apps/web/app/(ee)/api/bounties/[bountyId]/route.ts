@@ -81,7 +81,7 @@ export const PATCH = withWorkspace(
       },
     });
 
-    if (!rewardAmount) {
+    if (rewardAmount === null || rewardAmount === 0) {
       if (bounty.type === "performance") {
         throw new DubApiError({
           code: "bad_request",
