@@ -12,8 +12,7 @@ model NotificationEmail {
 
   message Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
 
-  @@index(emailId)
+  @@index([emailId, openedAt])
   @@index(type)
   @@index(messageId)
-  @@index([emailId, openedAt])
 }
