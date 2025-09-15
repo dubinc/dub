@@ -7,20 +7,18 @@
     "distribution": "marketplace",
     "auth": {
       "type": "oauth",
-      "redirectUrls": [
-        "http://localhost:3000"
-      ],
+      "redirectUrls": ["http://localhost:3000/oauth-callback"],
       "requiredScopes": [
+        "oauth",
         "crm.objects.contacts.read",
-        "crm.objects.contacts.write"
+        "crm.objects.contacts.write",
+        "crm.objects.leads.read"
       ],
       "optionalScopes": [],
       "conditionallyRequiredScopes": []
     },
     "permittedUrls": {
-      "fetch": [
-        "https://api.hubapi.com"
-      ],
+      "fetch": ["https://api.hubapi.com"],
       "iframe": [],
       "img": []
     },

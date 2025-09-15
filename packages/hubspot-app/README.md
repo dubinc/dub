@@ -22,4 +22,7 @@ pnpm hs project dev
 
 # Install all project dependencies
 pnpm hs project install-deps
+
+# Add new feature to app
+pnpm hs project add
 ```
