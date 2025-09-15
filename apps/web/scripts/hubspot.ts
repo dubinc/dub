@@ -8,6 +8,7 @@ async function main() {
     "crm.objects.contacts.read",
     "crm.objects.contacts.write",
     "crm.objects.leads.read",
+    "crm.objects.deals.read",
   ];
 
   const REDIRECT_URI =

@@ -15,7 +15,13 @@
         },
         {
           "subscriptionType": "object.creation",
-          "objectType": "lead",
+          "objectType": "deal",
+          "active": true
+        },
+        {
+          "subscriptionType": "object.propertyChange",
+          "propertyName": "amount",
+          "objectType": "deal",
           "active": true
         }
       ]
