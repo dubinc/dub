@@ -276,18 +276,19 @@ function StatusIndicator({
       content={
         message.delivered === false
           ? "Sending"
-          : message.readInEmail
-            ? "Read in email"
-            : message.readInApp
-              ? "Read in app"
+          : message.readInApp
+            ? "Read in app"
+            : message.readInEmail
+              ? "Read in email"
               : "Delivered"
       }
     >
       <div
         className={cn(
           "text-content-subtle flex items-center",
-          message.readInEmail && "text-violet-500",
-          message.readInApp && "text-blue-500",
+          message.readInApp 
+            ? "text-blue-500"
+            : (message.readInEmail && "text-violet-500"),
         )}
       >
         {message.delivered === false ? (
