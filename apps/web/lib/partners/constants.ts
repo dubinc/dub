@@ -85,6 +85,12 @@ export const PROGRAM_IMPORT_SOURCES = [
     image: "https://assets.dub.co/misc/icons/partnerstack.svg",
     helpUrl: "https://dub.co/help/article/migrating-from-partnerstack",
   },
+  {
+    id: "firstpromoter",
+    value: "FirstPromoter",
+    image: "https://assets.dub.co/misc/icons/firstpromoter.svg",
+    helpUrl: "https://dub.co/help/article/migrating-from-firstpromoter",
+  },
 ] as const;
 
 export const INVOICE_AVAILABLE_PAYOUT_STATUSES = [

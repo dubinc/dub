@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Discount,
   Gift,
+  Hyperlink,
   Post,
   Sliders,
   Users,
@@ -69,20 +70,20 @@ export function GroupHeaderTabs() {
         `/${slug}/program/groups/${group.slug}/rewards`,
     },
     {
-      id: "discount",
-      label: "Discount",
+      id: "discounts",
+      label: "Discounts",
       icon: Discount,
       external: false,
       getHref: (group: GroupProps) =>
-        `/${slug}/program/groups/${group.slug}/discount`,
+        `/${slug}/program/groups/${group.slug}/discounts`,
     },
     {
-      id: "settings",
-      label: "Settings",
-      icon: Sliders,
+      id: "links",
+      label: "Links",
+      icon: Hyperlink,
       external: false,
       getHref: (group: GroupProps) =>
-        `/${slug}/program/groups/${group.slug}/settings`,
+        `/${slug}/program/groups/${group.slug}/links`,
     },
     {
       id: "partners",
@@ -103,6 +104,14 @@ export function GroupHeaderTabs() {
             ? ""
             : `/${group.slug}/apply`
         }`,
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      icon: Sliders,
+      external: false,
+      getHref: (group: GroupProps) =>
+        `/${slug}/program/groups/${group.slug}/settings`,
     },
   ];
 

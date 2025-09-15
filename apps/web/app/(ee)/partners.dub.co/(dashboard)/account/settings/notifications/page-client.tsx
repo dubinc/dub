@@ -5,6 +5,7 @@ import { partnerNotificationTypes } from "@/lib/zod/schemas/partner-profile";
 import {
   CircleCheck,
   InvoiceDollar,
+  Msgs,
   Switch,
   useOptimisticUpdate,
 } from "@dub/ui";
@@ -26,6 +27,12 @@ const notifications = [
     icon: CircleCheck,
     title: "Application approval",
     description: "Alert when an application to a program is approved.",
+  },
+  {
+    type: "newMessageFromProgram",
+    icon: Msgs,
+    title: "New message from program",
+    description: "Alert when a new message is received from a program.",
   },
 ] as const;
 

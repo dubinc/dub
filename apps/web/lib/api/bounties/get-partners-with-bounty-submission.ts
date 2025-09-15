@@ -61,7 +61,7 @@ export async function getPartnersWithBountySubmission({
     WHERE 
       pe.programId = ${programId}
       ${groupIds && groupIds.length > 0 ? Prisma.sql`AND pe.groupId IN (${Prisma.join(groupIds)})` : Prisma.sql``}
-      ${status ? (status === "approved" ? Prisma.sql`AND bs.status = ${status}` : Prisma.sql`AND bs.status IS NULL`) : Prisma.sql``}
+      ${status ? Prisma.sql`AND bs.status = ${status}` : Prisma.sql`AND bs.status != 'rejected'`}
     GROUP BY 
       p.id, pe.partnerId, pe.groupId, pe.totalCommissions, pe.status, bountySubmissionId, bountySubmissionStatus, bountySubmissionCreatedAt, bountySubmissionUpdatedAt, metrics.totalLeads, metrics.totalConversions, metrics.totalSaleAmount
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)}

@@ -86,6 +86,7 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   comments: true,
 }).extend({
   createdAt: z.string().or(z.date()),
+  partnerGroupDefaultLinkId: z.string().nullish(),
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
@@ -124,6 +125,7 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: z.coerce.boolean().optional(),
   status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
+  messagingEnabled: z.coerce.boolean().optional(),
 });
 
 export const partnerProfileProgramsCountQuerySchema =
@@ -132,6 +134,7 @@ export const partnerProfileProgramsCountQuerySchema =
 export const partnerNotificationTypes = z.enum([
   "commissionCreated",
   "applicationApproved",
+  "newMessageFromProgram",
 ]);
 
 export const PartnerBountySchema = BountySchema.omit({

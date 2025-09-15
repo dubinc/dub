@@ -60,17 +60,19 @@ export async function POST(req: Request) {
       );
     }
 
-    if (program.partners[0].status !== "pending") {
+    const partner = program.partners[0];
+
+    if (partner.status !== "pending") {
       return new Response(
-        `${partnerId} is ${program.partners[0].status}. Skipping auto-approval.`,
+        `${partnerId} is ${partner.status}. Skipping auto-approval.`,
       );
     }
 
     await approvePartnerEnrollment({
       programId,
       partnerId,
-      linkId: null,
       userId: program.workspace.users[0].userId,
+      groupId: partner.groupId,
     });
 
     return new Response("Partner is auto-approved.");

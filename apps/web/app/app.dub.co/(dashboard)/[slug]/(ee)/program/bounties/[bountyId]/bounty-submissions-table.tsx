@@ -1,25 +1,18 @@
 "use client";
 
-import { approveBountySubmissionAction } from "@/lib/actions/partners/approve-bounty-submission";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
-import { mutatePrefix } from "@/lib/swr/mutate";
 import useBounty from "@/lib/swr/use-bounty";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
 import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
-import { useRejectBountySubmissionModal } from "@/ui/partners/reject-bounty-submission-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { X } from "@/ui/shared/icons";
 import { UserRowItem } from "@/ui/users/user-row-item";
 import {
   AnimatedSizeContainer,
-  Button,
   Filter,
-  Popover,
   ProgressCircle,
   StatusBadge,
   Table,
@@ -27,22 +20,17 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import type { Icon } from "@dub/ui/icons";
-import { Check, Dots, MoneyBill2, User } from "@dub/ui/icons";
+import { MoneyBill2, User } from "@dub/ui/icons";
 import {
   capitalize,
-  cn,
   currencyFormatter,
   fetcher,
   formatDate,
   nFormatter,
 } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
-import { Command } from "cmdk";
-import { useAction } from "next-safe-action/hooks";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
@@ -277,16 +265,6 @@ export function BountySubmissionsTable() {
             },
           ]
         : []),
-      {
-        id: "menu",
-        enableHiding: false,
-        minSize: 43,
-        size: 43,
-        maxSize: 43,
-        cell: ({ row }) => (
-          <RowMenuButton row={row} workspaceId={workspaceId!} />
-        ),
-      },
     ],
     [
       groups,
@@ -403,159 +381,5 @@ export function BountySubmissionsTable() {
         )}
       </div>
     </>
-  );
-}
-
-function RowMenuButton({
-  row,
-  workspaceId,
-}: {
-  row: Row<BountySubmissionProps>;
-  workspaceId: string;
-}) {
-  const router = useRouter();
-  const { slug, bountyId } = useParams();
-  const [isOpen, setIsOpen] = useState(false);
-
-  const { setShowRejectModal, RejectBountySubmissionModal } =
-    useRejectBountySubmissionModal(row.original.submission);
-
-  const { executeAsync: approveBountySubmission } = useAction(
-    approveBountySubmissionAction,
-    {
-      onSuccess: async () => {
-        toast.success("Bounty submission approved successfully!");
-        setIsOpen(false);
-        await mutatePrefix("/api/bounties");
-      },
-      onError({ error }) {
-        toast.error(error.serverError);
-      },
-    },
-  );
-
-  const {
-    setShowConfirmModal: setShowApproveBountySubmissionModal,
-    confirmModal: approveBountySubmissionModal,
-  } = useConfirmModal({
-    title: "Approve Bounty Submission",
-    description: "Are you sure you want to approve this bounty submission?",
-    confirmText: "Approve",
-    onConfirm: async () => {
-      if (!workspaceId || !row.original.submission?.id) {
-        return;
-      }
-
-      await approveBountySubmission({
-        workspaceId,
-        submissionId: row.original.submission.id,
-      });
-    },
-  });
-
-  const submission = row.original.submission;
-  const commission = row.original.commission;
-
-  if (submission?.status !== "pending" || !commission) {
-    return null;
-  }
-
-  return (
-    <>
-      <RejectBountySubmissionModal />
-      {approveBountySubmissionModal}
-      <Popover
-        openPopover={isOpen}
-        setOpenPopover={setIsOpen}
-        content={
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
-              {submission?.status === "pending" && (
-                <MenuItem
-                  icon={Check}
-                  label="Accept bounty"
-                  onSelect={() => {
-                    setShowApproveBountySubmissionModal(true);
-                    setIsOpen(false);
-                  }}
-                />
-              )}
-
-              {submission?.status === "pending" && (
-                <MenuItem
-                  icon={X}
-                  label="Reject bounty"
-                  variant="danger"
-                  onSelect={() => {
-                    setShowRejectModal(true);
-                    setIsOpen(false);
-                  }}
-                />
-              )}
-
-              {commission && (
-                <MenuItem
-                  icon={MoneyBill2}
-                  label="View commission"
-                  onSelect={() => {
-                    router.push(
-                      `/${slug}/program/commissions?commissionId=${commission.id}&interval=all`,
-                    );
-                    setIsOpen(false);
-                  }}
-                />
-              )}
-            </Command.List>
-          </Command>
-        }
-        align="end"
-      >
-        <Button
-          type="button"
-          className="h-8 whitespace-nowrap px-2"
-          variant="outline"
-          icon={<Dots className="h-4 w-4 shrink-0" />}
-        />
-      </Popover>
-    </>
-  );
-}
-
-function MenuItem({
-  icon: IconComp,
-  label,
-  onSelect,
-  variant = "default",
-}: {
-  icon: Icon;
-  label: string;
-  onSelect: () => void;
-  variant?: "default" | "danger";
-}) {
-  const variantStyles = {
-    default: {
-      text: "text-neutral-600",
-      icon: "text-neutral-500",
-    },
-    danger: {
-      text: "text-red-600",
-      icon: "text-red-600",
-    },
-  };
-
-  const { text, icon } = variantStyles[variant];
-
-  return (
-    <Command.Item
-      className={cn(
-        "flex cursor-pointer select-none items-center gap-2 whitespace-nowrap rounded-md p-2 text-sm",
-        "data-[selected=true]:bg-neutral-100",
-        text,
-      )}
-      onSelect={onSelect}
-    >
-      <IconComp className={cn("size-4 shrink-0", icon)} />
-      {label}
-    </Command.Item>
   );
 }
