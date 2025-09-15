@@ -3,6 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import {
@@ -11,7 +12,8 @@ import {
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -23,7 +25,7 @@ export const GET = withWorkspace(
     const group = await getGroupOrThrow({
       programId,
       groupId: params.groupIdOrSlug,
-      includeRewardsAndDiscount: true,
+      includeExpandedFields: true,
     });
 
     return NextResponse.json(GroupSchema.parse(group));
@@ -51,9 +53,15 @@ export const PATCH = withWorkspace(
       groupId: params.groupIdOrSlug,
     });
 
-    const { name, slug, color } = updateGroupSchema.parse(
-      await parseRequestBody(req),
-    );
+    const {
+      name,
+      slug,
+      color,
+      maxPartnerLinks,
+      additionalLinks,
+      utmTemplateId,
+      linkStructure,
+    } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
     if (slug && slug.toLowerCase() !== group.slug.toLowerCase()) {
@@ -81,6 +89,22 @@ export const PATCH = withWorkspace(
       }
     }
 
+    // Find the UTM template
+    const utmTemplate = utmTemplateId
+      ? await prisma.utmTemplate.findUniqueOrThrow({
+          where: {
+            id: utmTemplateId,
+            projectId: workspace.id,
+          },
+        })
+      : null;
+
+    const additionalLinksInput = additionalLinks
+      ? additionalLinks.length > 0
+        ? additionalLinks
+        : Prisma.DbNull
+      : undefined;
+
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: group.id,
@@ -89,6 +113,10 @@ export const PATCH = withWorkspace(
         name,
         slug,
         color,
+        ...(additionalLinksInput && { additionalLinks: additionalLinksInput }),
+        maxPartnerLinks,
+        utmTemplateId,
+        linkStructure,
       },
       include: {
         clickReward: true,
@@ -99,20 +127,59 @@ export const PATCH = withWorkspace(
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "group.updated",
-        description: `Group ${updatedGroup.name} (${group.id}) updated`,
-        actor: session.user,
-        targets: [
-          {
-            type: "group",
-            id: group.id,
-            metadata: updatedGroup,
-          },
-        ],
-      }),
+      (async () => {
+        const isTemplateAdded = group.utmTemplateId !== utmTemplateId;
+
+        // If the UTM template is added, update the default links with the UTM parameters
+        if (isTemplateAdded && utmTemplate) {
+          const defaultLinks = await prisma.partnerGroupDefaultLink.findMany({
+            where: {
+              groupId: group.id,
+            },
+          });
+
+          if (defaultLinks.length > 0) {
+            for (const defaultLink of defaultLinks) {
+              await prisma.partnerGroupDefaultLink.update({
+                where: {
+                  id: defaultLink.id,
+                },
+                data: {
+                  url: constructURLFromUTMParams(
+                    defaultLink.url,
+                    extractUtmParams(utmTemplate),
+                  ),
+                },
+              });
+            }
+          }
+        }
+
+        await Promise.allSettled([
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "group.updated",
+            description: `Group ${updatedGroup.name} (${group.id}) updated`,
+            actor: session.user,
+            targets: [
+              {
+                type: "group",
+                id: group.id,
+                metadata: updatedGroup,
+              },
+            ],
+          }),
+
+          group.utmTemplateId !== utmTemplateId &&
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+              body: {
+                groupId: group.id,
+              },
+            }),
+        ]);
+      })(),
     );
 
     return NextResponse.json(GroupSchema.parse(updatedGroup));
@@ -134,11 +201,35 @@ export const PATCH = withWorkspace(
 export const DELETE = withWorkspace(
   async ({ params, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const { groupIdOrSlug } = params;
 
-    const group = await getGroupOrThrow({
-      programId,
-      groupId: params.groupIdOrSlug,
-    });
+    const [group, defaultGroup] = await Promise.all([
+      prisma.partnerGroup.findUniqueOrThrow({
+        where: {
+          ...(groupIdOrSlug.startsWith("grp_")
+            ? {
+                id: groupIdOrSlug,
+              }
+            : {
+                programId_slug: {
+                  programId,
+                  slug: groupIdOrSlug,
+                },
+              }),
+        },
+        include: {
+          partners: true,
+        },
+      }),
+      prisma.partnerGroup.findUniqueOrThrow({
+        where: {
+          programId_slug: {
+            programId,
+            slug: DEFAULT_PARTNER_GROUP.slug,
+          },
+        },
+      }),
+    ]);
 
     if (group.slug === DEFAULT_PARTNER_GROUP.slug) {
       throw new DubApiError({
@@ -146,24 +237,6 @@ export const DELETE = withWorkspace(
         message: "You cannot delete the default group of your program.",
       });
     }
-
-    const defaultGroup = await prisma.partnerGroup.findUnique({
-      where: {
-        programId_slug: {
-          programId,
-          slug: DEFAULT_PARTNER_GROUP.slug,
-        },
-      },
-    });
-
-    // This should never happen, but just in case
-    if (!defaultGroup) {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Default group not found for this program.",
-      });
-    }
-
     await prisma.$transaction(async (tx) => {
       // 1. Update all partners in the group to the default group
       await tx.programEnrollment.updateMany({
@@ -212,31 +285,33 @@ export const DELETE = withWorkspace(
     });
 
     waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-            body: {
-              groupId: defaultGroup.id,
-            },
-          }),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
+      Promise.allSettled([
+        qstash.publishJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+          body: {
             programId,
-            action: "group.deleted",
-            description: `Group ${group.name} (${group.id}) deleted`,
-            actor: session.user,
-            targets: [
-              {
-                type: "group",
-                id: group.id,
-                metadata: group,
-              },
-            ],
-          }),
-        ]);
-      })(),
+            groupId: defaultGroup.id,
+            partnerIds: group.partners.map(({ partnerId }) => partnerId),
+            userId: session.user.id,
+            isGroupDeleted: true,
+          },
+        }),
+
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "group.deleted",
+          description: `Group ${group.name} (${group.id}) deleted`,
+          actor: session.user,
+          targets: [
+            {
+              type: "group",
+              id: group.id,
+              metadata: group,
+            },
+          ],
+        }),
+      ]),
     );
 
     return NextResponse.json({ id: group.id });

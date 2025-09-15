@@ -35,7 +35,6 @@ async function main() {
       partnerId: newPartnerId,
     },
   });
-  console.log("commissions", commissions);
 
   // update payouts
 
@@ -48,7 +47,6 @@ async function main() {
       partnerId: newPartnerId,
     },
   });
-  console.log("payouts", payouts);
 
   // update links + recordLink in TB
   await prisma.link.updateMany({

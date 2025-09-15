@@ -5,7 +5,7 @@ import { R2_URL } from "@dub/utils";
 import { describe, expect, test } from "vitest";
 import { randomEmail, randomId } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PROGRAM } from "../utils/resource";
+import { E2E_PARTNER_GROUP, E2E_PROGRAM } from "../utils/resource";
 import { normalizedPartnerDateFields } from "./resource";
 
 const EnrolledPartnerSchema = EnrolledPartnerSchemaDate.merge(
@@ -20,6 +20,7 @@ describe.sequential("POST /partners", async () => {
     const partner = {
       name: generateRandomName(),
       email: randomEmail(),
+      groupId: E2E_PARTNER_GROUP.id,
     };
 
     const { data, status } = await http.post<Link>({
@@ -38,6 +39,7 @@ describe.sequential("POST /partners", async () => {
       name: generateRandomName(),
       email: randomEmail(),
       tenantId: randomId(),
+      groupId: E2E_PARTNER_GROUP.id,
       description: "A description of the partner",
       country: "US",
     };
@@ -76,6 +78,7 @@ describe.sequential("POST /partners", async () => {
     const partner = {
       name: generateRandomName(),
       email: randomEmail(),
+      groupId: E2E_PARTNER_GROUP.id,
     };
 
     const { data, status } = await http.post<Link>({
@@ -93,9 +96,8 @@ describe.sequential("POST /partners", async () => {
     expect(parsed.links).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          id: expect.any(String),
           domain: E2E_PROGRAM.domain,
-          url: E2E_PROGRAM.url,
+          url: E2E_PARTNER_GROUP.url,
           key: username,
           shortLink: `https://${E2E_PROGRAM.domain}/${username}`,
           clicks: 0,

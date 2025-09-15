@@ -5,11 +5,12 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
+import { deepEqual } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/embed/referrals/links/[linkId] - update a link for a partner
 export const PATCH = withReferralsEmbedToken(
-  async ({ req, params, programEnrollment, program, links }) => {
+  async ({ req, params, programEnrollment, program, links, group }) => {
     const { url, key } = createPartnerLinkSchema
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
@@ -38,7 +39,27 @@ export const PATCH = withReferralsEmbedToken(
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    if (link.partnerGroupDefaultLinkId) {
+      const linkChanged = !deepEqual(
+        {
+          url,
+          key,
+        },
+        {
+          url: link.url,
+          key: link.key,
+        },
+      );
+
+      if (linkChanged) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "This is your default link and cannot be updated.",
+        });
+      }
+    }
+
+    validatePartnerLinkUrl({ group, url });
 
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();

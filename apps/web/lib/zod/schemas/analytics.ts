@@ -17,7 +17,7 @@ import {
 } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
-import { utmTagsSchema } from "./utm";
+import { UTMTemplateSchema } from "./utm";
 
 const analyticsEvents = z
   .enum([...EVENT_TYPES, "composite"], {
@@ -251,7 +251,7 @@ export const analyticsQuerySchema = z
       )
       .openapi({ deprecated: true }),
   })
-  .merge(utmTagsSchema);
+  .merge(UTMTemplateSchema.omit({ id: true, name: true }));
 
 // Analytics filter params for Tinybird endpoints
 export const analyticsFilterTB = z
