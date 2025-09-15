@@ -1,63 +1,62 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { WorkspaceProps } from "@/lib/types";
-import { trackLeadRequestSchema } from "@/lib/zod/schemas/leads";
 import { z } from "zod";
+import { HUBSPOT_OBJECT_TYPE_IDS } from "./constants";
+import { getContact } from "./get-contact";
+import { HubSpotAuthToken } from "./types";
 
-const singularLeadEventSchema = z.object({
-  dub_id: z.string().min(1),
-  event_name: z.string().min(1),
-  event_attributes: z
-    .string()
-    .transform((val) => {
-      try {
-        return JSON.parse(val);
-      } catch {
-        throw new Error("Invalid JSON in event_attributes");
-      }
-    })
-    .pipe(
-      z.object({
-        customer_external_id: trackLeadRequestSchema.shape.customerExternalId,
-        customer_name: trackLeadRequestSchema.shape.customerName,
-        customer_email: trackLeadRequestSchema.shape.customerEmail,
-        customer_avatar: trackLeadRequestSchema.shape.customerAvatar,
-        event_quantity: trackLeadRequestSchema.shape.eventQuantity,
-        mode: trackLeadRequestSchema.shape.mode,
-      }),
-    ),
+const hubSpotLeadEventSchema = z.object({
+  objectId: z.number(),
+  subscriptionType: z.enum(["object.creation"]),
+  objectTypeId: z.enum(HUBSPOT_OBJECT_TYPE_IDS as [string, ...string[]]),
 });
 
-export const trackSingularLeadEvent = async ({
-  queryParams,
+export const trackHubSpotLeadEvent = async ({
+  payload,
   workspace,
+  authToken,
+  mode,
 }: {
-  queryParams: Record<string, string>;
+  payload: Record<string, any>;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
+  authToken: HubSpotAuthToken;
+  mode: "async" | "deferred";
 }) => {
-  const {
-    dub_id: clickId,
-    event_name: eventName,
-    event_attributes: {
-      customer_external_id: customerExternalId,
-      customer_name: customerName,
-      customer_email: customerEmail,
-      customer_avatar: customerAvatar,
-      event_quantity: eventQuantity,
-      mode,
-    },
-  } = singularLeadEventSchema.parse(queryParams);
+  const { objectId, objectTypeId, subscriptionType } =
+    hubSpotLeadEventSchema.parse(payload);
+
+  if (subscriptionType !== "object.creation" || objectTypeId !== "0-1") {
+    console.log(
+      `Unsupported subscriptionType or objectTypeId: ${subscriptionType} ${objectTypeId}`,
+    );
+    return;
+  }
+
+  // Get the contact from HubSpot
+  const contact = await getContact({
+    contactId: objectId,
+    accessToken: authToken.access_token,
+  });
+
+  if (!contact) {
+    console.error(`Contact not found for objectId: ${objectId}`);
+    return;
+  }
+
+  const { properties } = contact;
+
+  const customerName =
+    [properties.firstname, properties.lastname].filter(Boolean).join(" ") ||
+    null;
 
   return await trackLead({
-    clickId,
-    eventName,
-    customerEmail,
-    customerAvatar,
-    customerExternalId,
+    clickId: properties.dub_id || "",
+    eventName: "Sign up",
+    customerEmail: properties.email,
+    customerExternalId: contact.id,
     customerName,
-    eventQuantity,
     mode,
-    metadata: null,
     workspace,
-    rawBody: queryParams,
+    rawBody: payload,
   });
 };
