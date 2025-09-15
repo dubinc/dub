@@ -36,8 +36,7 @@ export function PartnerInfo({ partner }: { partner?: EnrolledPartnerProps }) {
   );
 
   const { group } = useGroup({
-    enabled: Boolean(partner),
-    slug: partner?.groupId ?? undefined,
+    groupIdOrSlug: partner?.groupId ?? undefined,
   });
 
   const basicFields = [
