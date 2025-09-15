@@ -15,6 +15,11 @@ pnpm build
 pnpm dev
 
 # Upload the project to HubSpot account
-
 pnpm hs project upload
+
+# Set up a test environment and start local development
+pnpm hs project dev
+
+# Install all project dependencies
+pnpm hs project install-deps
 ```
