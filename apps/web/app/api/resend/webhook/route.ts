@@ -22,7 +22,7 @@ export const POST = async (req: Request) => {
   // Need to base64 decode the secret
   const secretBytes = Buffer.from(secret.split("_")[1], "base64");
   const computedSignature = crypto
-    .createHmac("sha256", secretBytes)
+    .createHmac("sha256", secretBytes.toString())
     .update(signedContent)
     .digest("base64");
 

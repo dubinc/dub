@@ -79,7 +79,7 @@ export function ProgramMessagesPartnerPageClient() {
     >
       <div className="flex h-full min-h-0 flex-col">
         <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
-          <div className="flex min-w-0 items-center gap-2">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setCurrentPanel("index")}
@@ -87,31 +87,29 @@ export function ProgramMessagesPartnerPageClient() {
             >
               <ChevronLeft className="size-3.5" />
             </button>
-            <div className="min-w-0">
-              <button
-                type="button"
-                onClick={() => setIsRightPanelOpen((o) => !o)}
-                className="-mx-2 -my-1 flex min-w-0 max-w-full items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
-              >
-                {!partner ? (
-                  <>
-                    <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
-                    <div className="h-8 w-36 animate-pulse rounded-md bg-neutral-200" />
-                  </>
-                ) : (
-                  <>
-                    <img
-                      src={partner?.image || `${OG_AVATAR_URL}${partner?.name}`}
-                      alt={`${partner?.name} avatar`}
-                      className="size-8 shrink-0 rounded-full"
-                    />
-                    <h2 className="text-content-emphasis min-w-0 truncate text-lg font-semibold leading-7">
-                      {partner?.name ?? "Partner"}
-                    </h2>
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={() => setIsRightPanelOpen((o) => !o)}
+              className="-mx-2 -my-1 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
+            >
+              {!partner ? (
+                <>
+                  <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
+                  <div className="h-8 w-36 animate-pulse rounded-md bg-neutral-200" />
+                </>
+              ) : (
+                <>
+                  <img
+                    src={partner?.image || `${OG_AVATAR_URL}${partner?.name}`}
+                    alt={`${partner?.name} avatar`}
+                    className="size-8 shrink-0 rounded-full"
+                  />
+                  <h2 className="text-content-emphasis text-lg font-semibold leading-7">
+                    {partner?.name ?? "Partner"}
+                  </h2>
+                </>
+              )}
+            </button>
           </div>
           <ToggleSidePanelButton
             isOpen={isRightPanelOpen}

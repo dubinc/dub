@@ -28,7 +28,7 @@ function CapableLayout({ children }: { children: ReactNode }) {
   const { partnerId } = useParams() as { partnerId?: string };
 
   const router = useRouter();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { searchParams } = useRouterStuff();
 
   const { partnerMessages, isLoading, error } = usePartnerMessages({
     query: { messagesLimit: 1 },
