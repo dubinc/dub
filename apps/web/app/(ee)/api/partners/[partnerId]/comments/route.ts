@@ -27,8 +27,12 @@ export const GET = withWorkspace(
       },
     });
 
+    const comments = programEnrollment.comments.sort((a, b) => {
+      return b.createdAt.getTime() - a.createdAt.getTime();
+    });
+
     return NextResponse.json(
-      z.array(ProgramPartnerCommentSchema).parse(programEnrollment.comments),
+      z.array(ProgramPartnerCommentSchema).parse(comments),
     );
   },
   {

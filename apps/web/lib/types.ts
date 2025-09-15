@@ -82,6 +82,7 @@ import {
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
   ProgramMetricsSchema,
+  ProgramPartnerCommentSchema,
   ProgramPartnerLinkSchema,
   ProgramSchema,
   ProgramWithLanderDataSchema,
@@ -548,6 +549,10 @@ export type PartnerGroupAdditionalLink = z.infer<
 export type PartnerGroupProps = PartnerGroup & {
   additionalLinks: PartnerGroupAdditionalLink[];
 };
+
+export type ProgramPartnerCommentProps = z.infer<
+  typeof ProgramPartnerCommentSchema
+>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
