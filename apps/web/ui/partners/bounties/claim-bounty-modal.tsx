@@ -167,7 +167,7 @@ function ClaimBountyModalContent({
             <span className="text-content-emphasis text-base font-semibold">
               Congratulations! You've successfully submitted your bounty.
             </span>
-            <p className="text-content-subtle text-sm font-medium">
+            <p className="text-content-subtle text-balance text-sm font-medium">
               We'll let you know when your bounty has been reviewed.
             </p>
           </div>

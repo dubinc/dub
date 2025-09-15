@@ -200,6 +200,8 @@ function RewardSheetContent({
       !getPlanCapabilities(plan).canUseAdvancedRewardLogic
     ) {
       setShowAdvancedUpsell(true);
+    } else {
+      setShowAdvancedUpsell(false);
     }
   }, [modifiers, plan]);
 

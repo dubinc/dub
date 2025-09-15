@@ -81,11 +81,19 @@ export const PATCH = withWorkspace(
       },
     });
 
-    if (bounty.type === "performance" && !rewardAmount) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Reward amount is required for performance bounties",
-      });
+    if (!rewardAmount) {
+      if (bounty.type === "performance") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Reward amount is required for performance bounties",
+        });
+      } else if (!rewardDescription) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "For submission bounties, either reward amount or reward description is required",
+        });
+      }
     }
 
     // TODO:

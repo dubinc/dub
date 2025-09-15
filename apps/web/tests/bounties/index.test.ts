@@ -80,7 +80,7 @@ describe.sequential("/bounties/**", async () => {
       body: {
         ...submissionBounty,
         startsAt,
-        groupIds: [BOUNTY_GROUP_ID],
+        groupIds: [E2E_PARTNER_GROUP.id],
         rewardAmount: null,
         rewardDescription: "some reward description",
       },
