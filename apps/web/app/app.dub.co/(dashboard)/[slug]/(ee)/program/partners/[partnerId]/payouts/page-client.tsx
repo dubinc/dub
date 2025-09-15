@@ -107,7 +107,13 @@ function PartnerPayouts({ partner }: { partner: EnrolledPartnerProps }) {
         )}
       </div>
       <div className="mt-4">
-        <Table {...table} />
+        {payouts || payoutsError ? (
+          <Table {...table} />
+        ) : (
+          <div className="flex justify-center py-16">
+            <LoadingSpinner />
+          </div>
+        )}
       </div>
     </>
   );
