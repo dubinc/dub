@@ -65,10 +65,12 @@ export const PATCH = withWorkspace(
 
     if (startsAt && endsAt && endsAt < startsAt) {
       throw new DubApiError({
-        message: "endsAt must be on or after startsAt.",
+        message:
+          "Bounty end date (endsAt) must be on or after start date (startsAt).",
         code: "bad_request",
       });
     }
+
     const bounty = await prisma.bounty.findUniqueOrThrow({
       where: {
         id: bountyId,
@@ -78,6 +80,13 @@ export const PATCH = withWorkspace(
         groups: true,
       },
     });
+
+    if (bounty.type === "performance" && !rewardAmount) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Reward amount is required for performance bounties",
+      });
+    }
 
     // TODO:
     // When we do archive, make sure it disables the workflow

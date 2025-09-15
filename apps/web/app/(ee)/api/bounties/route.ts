@@ -89,8 +89,16 @@ export const POST = withWorkspace(
 
     if (startsAt && endsAt && endsAt < startsAt) {
       throw new DubApiError({
-        message: "endsAt must be on or after startsAt.",
+        message:
+          "Bounty end date (endsAt) must be on or after start date (startsAt).",
         code: "bad_request",
+      });
+    }
+
+    if (type === "performance" && !rewardAmount) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Reward amount is required for performance bounties",
       });
     }
 
