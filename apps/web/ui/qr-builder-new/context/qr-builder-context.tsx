@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useState } from "react";
+import { createContext, ReactNode, useContext, useState, useCallback, useMemo } from "react";
+import { EQRType } from "../constants/get-qr-config.ts";
 import {
   QrBuilderContextType,
   QrType,
@@ -25,6 +26,48 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
   const [destinationData, setDestinationData] =
     useState<TDestinationData>(null);
   const [selectedQrType, setSelectedQrType] = useState<QrType>(null);
+  const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
+  const [typeSelectionError, setTypeSelectionError] = useState<string>("");
+
+  // Computed states
+  const isTypeStep = builderStep === 1;
+  const isContentStep = builderStep === 2;
+  const isCustomizationStep = builderStep === 3;
+
+  const currentQRType = useMemo(() => {
+    return isTypeStep
+      ? hoveredQRType !== null
+        ? hoveredQRType
+        : selectedQrType
+      : selectedQrType;
+  }, [isTypeStep, hoveredQRType, selectedQrType]);
+
+  // Step management methods
+  const handleNextStep = useCallback(() => { // @ts-ignore
+    setBuilderStep((prev ) => Math.min(prev + 1, 3));
+  }, []);
+
+  const handleChangeStep = useCallback(
+    (newStep: number) => {
+      if (newStep === 2 && !selectedQrType) {
+        setTypeSelectionError("Please select a QR code type to continue");
+        return;
+      }
+
+      setTypeSelectionError("");
+      setBuilderStep(newStep as TStepState);
+    },
+    [selectedQrType],
+  );
+
+  const handleSelectQRType = useCallback((type: EQRType) => {
+    setSelectedQrType(type);
+    handleNextStep();
+  }, [handleNextStep]);
+
+  const handleHoverQRType = useCallback((type: EQRType | null) => {
+    setHoveredQRType(type);
+  }, []);
 
   // Methods
   const onSave = () => {
@@ -41,9 +84,21 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     builderStep,
     destinationData,
     selectedQrType,
+    hoveredQRType,
+    currentQRType,
+    typeSelectionError,
+
+    // Computed states
+    isTypeStep,
+    isContentStep,
+    isCustomizationStep,
 
     // Methods
     onSave,
+    handleNextStep,
+    handleChangeStep,
+    handleSelectQRType,
+    handleHoverQRType,
 
     // State setters
     setBuilderStep,
