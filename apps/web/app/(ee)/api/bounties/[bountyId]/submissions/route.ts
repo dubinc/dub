@@ -79,7 +79,7 @@ async function getSubmissions({
   const submissions = await prisma.bountySubmission.findMany({
     where: {
       bountyId,
-      ...(status && { status }),
+      ...(status ? { status } : { status: { not: "rejected" } }),
       ...(groupId && {
         programEnrollment: {
           groupId,

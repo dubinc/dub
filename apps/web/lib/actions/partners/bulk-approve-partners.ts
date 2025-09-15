@@ -2,9 +2,9 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
-import { bulkCreateLinks } from "@/lib/api/links";
-import { generatePartnerLink } from "@/lib/api/partners/create-partner-link";
+import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { PlanProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   bulkApprovePartnersSchema,
@@ -16,6 +16,7 @@ import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { chunk, isFulfilled } from "@dub/utils";
+import { Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -84,6 +85,12 @@ export const bulkApprovePartnersAction = authActionClient
         clickReward: true,
         leadReward: true,
         saleReward: true,
+        partnerGroup: {
+          include: {
+            partnerGroupDefaultLinks: true,
+            utmTemplate: true,
+          },
+        },
         partner: {
           include: {
             users: {
@@ -138,26 +145,50 @@ export const bulkApprovePartnersAction = authActionClient
     waitUntil(
       (async () => {
         // Create partner links
-        const partnerLinks = await bulkCreateLinks({
-          links: (
-            await Promise.allSettled(
-              updatedEnrollments.map(({ partner }) =>
-                generatePartnerLink({
-                  workspace,
-                  program,
-                  partner: {
-                    name: partner.name,
-                    email: partner.email!,
-                  },
-                  userId: user.id,
-                  partnerId: partner.id,
-                }),
-              ),
-            )
-          )
-            .filter(isFulfilled)
-            .map(({ value }) => value),
-        });
+        const partnerLinksPromises = await Promise.allSettled(
+          updatedEnrollments.map(({ partner, tenantId, partnerGroup }) =>
+            createPartnerDefaultLinks({
+              workspace: {
+                id: workspace.id,
+                plan: workspace.plan as PlanProps,
+              },
+              program: {
+                id: program.id,
+                defaultFolderId: program.defaultFolderId,
+              },
+              partner: {
+                id: partner.id,
+                name: partner.name,
+                email: partner.email!,
+                tenantId: tenantId ?? undefined,
+              },
+              group: {
+                defaultLinks: partnerGroup?.partnerGroupDefaultLinks ?? [],
+                utmTemplate: partnerGroup?.utmTemplate ?? null,
+              },
+              userId: user.id,
+            }),
+          ),
+        );
+
+        // A partner can have multiple links, so we need to filter them by partnerId
+        const partnerLinks = partnerLinksPromises
+          .filter(isFulfilled)
+          .map(({ value }) => value)
+          .flat();
+
+        // A map of partnerId to links
+        const partnerLinksMap = partnerLinks.reduce((acc, link) => {
+          if (!link.partnerId) return acc;
+
+          if (!acc.has(link.partnerId)) {
+            acc.set(link.partnerId, []);
+          }
+
+          acc.get(link.partnerId)!.push(link);
+
+          return acc;
+        }, new Map<string, Omit<Link, "partnerGroupDefaultLinkId">[]>());
 
         await Promise.allSettled([
           // Send approval emails
@@ -172,9 +203,7 @@ export const bulkApprovePartnersAction = authActionClient
                 ...partner,
                 ...enrollment,
                 id: partner.id,
-                links: partnerLinks.filter(
-                  ({ partnerId }) => partnerId === partner.id,
-                ),
+                links: partnerLinksMap.get(partner.id) ?? [],
               }),
             }),
           ),

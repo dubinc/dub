@@ -304,7 +304,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Discounts",
             icon: Discount,
-            href: `/${slug}/program/groups/default/discount`,
+            href: `/${slug}/program/groups/default/discounts`,
+            arrow: true,
+            isActive: () => false,
+          },
+          {
+            name: "Link Settings",
+            icon: Sliders,
+            href: `/${slug}/program/groups/default/links`,
             arrow: true,
             isActive: () => false,
           },
@@ -312,11 +319,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Branding",
             icon: Brush,
             href: `/${slug}/program/branding`,
-          },
-          {
-            name: "Link Settings",
-            icon: Sliders,
-            href: `/${slug}/program/link-settings`,
           },
         ],
       },

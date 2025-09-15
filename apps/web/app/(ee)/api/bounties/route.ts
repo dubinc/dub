@@ -1,5 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { generateBountyName } from "@/lib/api/bounties/generate-bounty-name";
+import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -79,6 +79,7 @@ export const POST = withWorkspace(
       description,
       type,
       rewardAmount,
+      rewardDescription,
       startsAt,
       endsAt,
       submissionRequirements,
@@ -88,9 +89,25 @@ export const POST = withWorkspace(
 
     if (startsAt && endsAt && endsAt < startsAt) {
       throw new DubApiError({
-        message: "endsAt must be on or after startsAt.",
+        message:
+          "Bounty end date (endsAt) must be on or after start date (startsAt).",
         code: "bad_request",
       });
+    }
+
+    if (!rewardAmount) {
+      if (type === "performance") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Reward amount is required for performance bounties",
+        });
+      } else if (!rewardDescription) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "For submission bounties, either reward amount or reward description is required",
+        });
+      }
     }
 
     const partnerGroups = await throwIfInvalidGroupIds({
@@ -98,12 +115,22 @@ export const POST = withWorkspace(
       groupIds,
     });
 
-    const bountyName =
-      name ??
-      generateBountyName({
-        rewardAmount,
+    // Bounty name
+    let bountyName = name;
+
+    if (type === "performance" && performanceCondition) {
+      bountyName = generatePerformanceBountyName({
+        rewardAmount: rewardAmount ?? 0, // this shouldn't happen since we return early if rewardAmount is null
         condition: performanceCondition,
       });
+    }
+
+    if (!bountyName) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Bounty name is required",
+      });
+    }
 
     const bounty = await prisma.$transaction(async (tx) => {
       let workflow: Workflow | null = null;
@@ -142,6 +169,7 @@ export const POST = withWorkspace(
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
           rewardAmount,
+          rewardDescription,
           ...(submissionRequirements &&
             type === "submission" && {
               submissionRequirements,

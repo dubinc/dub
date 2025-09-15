@@ -327,7 +327,7 @@ export function PartnersTable() {
       "conversions",
       "sales",
       "saleAmount",
-      "commissions",
+      "totalCommissions",
       "netRevenue",
     ],
     sortBy,

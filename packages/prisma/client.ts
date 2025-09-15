@@ -15,7 +15,6 @@ export {
   PartnerProfileType,
   PartnerRole,
   PartnerStatus,
-  PartnerUrlValidationMode,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,

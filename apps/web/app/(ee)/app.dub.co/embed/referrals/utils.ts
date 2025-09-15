@@ -23,9 +23,10 @@ export const getReferralsEmbedData = async (token: string) => {
     includeLeadReward: true,
     includeSaleReward: true,
     includeDiscount: true,
+    includeGroup: true,
   });
 
-  if (!programEnrollment) {
+  if (!programEnrollment || !programEnrollment.partnerGroup) {
     notFound();
   }
 
@@ -51,6 +52,7 @@ export const getReferralsEmbedData = async (token: string) => {
     clickReward,
     leadReward,
     saleReward,
+    group,
   } = programEnrollment;
 
   const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
@@ -84,6 +86,12 @@ export const getReferralsEmbedData = async (token: string) => {
       leads: totalLeads,
       sales: totalSales,
       saleAmount: totalSaleAmount,
+    },
+    group: {
+      id: group.id,
+      additionalLinks: group.additionalLinks,
+      maxPartnerLinks: group.maxPartnerLinks,
+      linkStructure: group.linkStructure,
     },
   };
 };
