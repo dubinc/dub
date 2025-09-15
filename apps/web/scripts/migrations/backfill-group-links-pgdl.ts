@@ -1,6 +1,9 @@
+import { ProcessedLinkProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { normalizeUrl } from "@dub/utils";
 import "dotenv-flow/config";
+import { bulkCreateLinks } from "../../lib/api/links";
+import { derivePartnerLinkKey } from "../../lib/api/partners/generate-partner-link";
 
 // Step 2 of 2: Backfill partner links with partnerGroupDefaultLinkId
 async function main() {
@@ -25,6 +28,7 @@ async function main() {
       }
 
       const defaultLink = group.partnerGroupDefaultLinks[0];
+      const linksToCreate: ProcessedLinkProps[] = [];
       const linksToUpdate: { id: string; shortLink: string }[] = [];
 
       const alreadyUpdatedLinks = await prisma.link.findMany({
@@ -45,6 +49,19 @@ async function main() {
           },
         },
         include: {
+          program: {
+            include: {
+              workspace: {
+                include: {
+                  users: {
+                    select: {
+                      userId: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
           partner: true,
           links: {
             orderBy: {
@@ -63,7 +80,7 @@ async function main() {
       }
 
       for (const programEnrollment of programEnrollments) {
-        const { partner, links } = programEnrollment;
+        const { program, partner, links } = programEnrollment;
         const firstPartnerLink = links.find(
           (link) => normalizeUrl(link.url) === normalizeUrl(defaultLink.url),
         );
@@ -73,6 +90,24 @@ async function main() {
           console.log(
             `Didn't find a matching link for partner ${partner.email} (${partner.id}). ${firstLink ? `Their first link is ${firstLink.url} while the default link is ${defaultLink.url}` : "They have no links"}`,
           );
+          if (!firstLink) {
+            linksToCreate.push({
+              domain: defaultLink.domain,
+              url: defaultLink.url,
+              key: `${derivePartnerLinkKey({
+                name: partner?.name,
+                email: partner?.email!,
+              })}`,
+              trackConversion: true,
+              projectId: program.workspace.id,
+              programId: program.id,
+              folderId: program.defaultFolderId,
+              partnerId: partner?.id,
+              tenantId: programEnrollment.tenantId,
+              partnerGroupDefaultLinkId: defaultLink.id,
+              userId: program.workspace.users[0].userId,
+            });
+          }
           continue;
         }
 
@@ -97,6 +132,22 @@ async function main() {
         `Updated ${updateRes.count} links with default link ${defaultLink.id}`,
       );
       console.table(linksToUpdate.slice(0, 10), ["id", "shortLink"]);
+
+      console.log(`Found ${linksToCreate.length} links to create`);
+      console.table(linksToCreate);
+
+      const createRes = await bulkCreateLinks({
+        links: linksToCreate,
+      });
+      console.log(`Created ${createRes.length} links`);
+      console.table(createRes, [
+        "domain",
+        "key",
+        "url",
+        "folderId",
+        "partnerId",
+        "programId",
+      ]);
     }
   }
 }
