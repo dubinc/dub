@@ -18,7 +18,7 @@ export const getHubSpotInstallationUrl = async (workspaceId: string) => {
     state,
   });
 
-  await redis.set(`${HUBSPOT_STATE_CACHE_PREFIX}${state}`, workspaceId, {
+  await redis.set(`${HUBSPOT_STATE_CACHE_PREFIX}:${state}`, workspaceId, {
     ex: 30 * 60,
   });
 

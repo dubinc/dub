@@ -4,8 +4,10 @@ import {
   HUBSPOT_CLIENT_ID,
   HUBSPOT_CLIENT_SECRET,
   HUBSPOT_REDIRECT_URI,
+  HUBSPOT_STATE_CACHE_PREFIX,
 } from "@/lib/integrations/hubspot/constants";
 import { installIntegration } from "@/lib/integrations/install";
+import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { Project } from "@dub/prisma/client";
@@ -46,19 +48,17 @@ export const GET = async (req: Request) => {
 
     const { code, state } = oAuthCallbackSchema.parse(getSearchParams(req.url));
 
-    // // Find workspace that initiated the Stripe app install
-    // const workspaceId = await redis.get<string>(
-    //   `hubspot:install:state:${state}`,
-    // );
+    // Find workspace that initiated the install
+    const workspaceId = await redis.get<string>(
+      `${HUBSPOT_STATE_CACHE_PREFIX}:${state}`,
+    );
 
-    // if (!workspaceId) {
-    //   throw new DubApiError({
-    //     code: "bad_request",
-    //     message: "Unknown state. Please try again.",
-    //   });
-    // }
-
-    const workspaceId = "clrei1gld0002vs9mzn93p8ik";
+    if (!workspaceId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Unknown state. Please try again.",
+      });
+    }
 
     workspace = await prisma.project.findUniqueOrThrow({
       where: {
@@ -96,8 +96,6 @@ export const GET = async (req: Request) => {
         slug: "hubspot",
       },
     });
-
-    console.log(credentials);
 
     // Install the integration
     await installIntegration({
