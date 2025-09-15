@@ -49,6 +49,7 @@ export type ComboboxProps<
     : (option: ComboboxOption<TMeta> | null) => void;
   onSelect?: (option: ComboboxOption<TMeta>) => void;
   options?: ComboboxOption<TMeta>[];
+  trigger?: ReactNode;
   icon?: Icon | ReactNode;
   placeholder?: ReactNode;
   searchPlaceholder?: string;
@@ -84,6 +85,7 @@ export function Combobox({
   setSelected,
   onSelect,
   options,
+  trigger,
   icon: Icon,
   placeholder = "Select...",
   searchPlaceholder = "Search...",
@@ -311,41 +313,43 @@ export function Combobox({
         </AnimatedSizeContainer>
       }
     >
-      <Button
-        variant="secondary"
-        {...buttonProps}
-        className={cn(buttonProps?.className, "flex gap-2")}
-        textWrapperClassName={cn(
-          buttonProps?.textWrapperClassName,
-          "w-full flex items-center justify-start",
-        )}
-        text={
-          <>
-            <div className="min-w-0 grow truncate text-left">
-              {children ||
-                selected.map((option) => option.label).join(", ") ||
-                placeholder}
-            </div>
-            {caret &&
-              (caret === true ? (
-                <ChevronDown
-                  className={`ml-1 size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
-                />
+      {trigger ?? (
+        <Button
+          variant="secondary"
+          {...buttonProps}
+          className={cn(buttonProps?.className, "flex gap-2")}
+          textWrapperClassName={cn(
+            buttonProps?.textWrapperClassName,
+            "w-full flex items-center justify-start",
+          )}
+          text={
+            <>
+              <div className="min-w-0 grow truncate text-left">
+                {children ||
+                  selected.map((option) => option.label).join(", ") ||
+                  placeholder}
+              </div>
+              {caret &&
+                (caret === true ? (
+                  <ChevronDown
+                    className={`ml-1 size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
+                  />
+                ) : (
+                  caret
+                ))}
+            </>
+          }
+          icon={
+            Icon ? (
+              isReactNode(Icon) ? (
+                Icon
               ) : (
-                caret
-              ))}
-          </>
-        }
-        icon={
-          Icon ? (
-            isReactNode(Icon) ? (
-              Icon
-            ) : (
-              <Icon className="size-4 shrink-0" />
-            )
-          ) : undefined
-        }
-      />
+                <Icon className="size-4 shrink-0" />
+              )
+            ) : undefined
+          }
+        />
+      )}
     </Popover>
   );
 }

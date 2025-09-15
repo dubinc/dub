@@ -127,6 +127,7 @@ model NotificationPreference {
   newPartnerSale             Boolean @default(true)
   newPartnerApplication      Boolean @default(true)
   newBountySubmitted         Boolean @default(true)
+  newMessageFromPartner      Boolean @default(true)
 
   projectUser ProjectUsers @relation(fields: [projectUserId], references: [id], onDelete: Cascade)
 }
