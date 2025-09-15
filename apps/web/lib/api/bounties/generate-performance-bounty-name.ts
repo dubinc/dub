@@ -3,9 +3,11 @@ import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 import { isCurrencyAttribute } from "../workflows/utils";
 
-export const generateBountyName = ({
+export const generatePerformanceBountyName = ({
+  rewardAmount,
   condition,
 }: {
+  rewardAmount: number;
   condition: WorkflowCondition;
 }) => {
   const isCurrency = isCurrencyAttribute(condition.attribute);
@@ -14,5 +16,5 @@ export const generateBountyName = ({
     ? `${currencyFormatter(condition.value / 100, { trailingZeroDisplay: "stripIfInteger" })} in`
     : `${nFormatter(condition.value, { full: true })}`;
 
-  return `Generate ${valueFormatted} ${attributeLabel.toLowerCase()}`;
+  return `Earn ${currencyFormatter(rewardAmount / 100, { trailingZeroDisplay: "stripIfInteger" })} after generating ${valueFormatted} ${attributeLabel.toLowerCase()}`;
 };

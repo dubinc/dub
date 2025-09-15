@@ -1,5 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { generateBountyName } from "@/lib/api/bounties/generate-bounty-name";
+import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -118,7 +118,8 @@ export const PATCH = withWorkspace(
     let bountyName = name;
 
     if (bounty.type === "performance" && performanceCondition) {
-      bountyName = generateBountyName({
+      bountyName = generatePerformanceBountyName({
+        rewardAmount: rewardAmount ?? 0, // this shouldn't happen since we return early if rewardAmount is null
         condition: performanceCondition,
       });
     }
