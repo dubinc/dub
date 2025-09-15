@@ -14,6 +14,7 @@ import { authActionClient } from "../safe-action";
 const schema = z.object({
   workspaceId: z.string(),
   submissionId: z.string(),
+  rewardAmount: z.number().nullable(),
 });
 
 // Approve a submission for a bounty
@@ -21,7 +22,7 @@ export const approveBountySubmissionAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { submissionId } = parsedInput;
+    const { submissionId, rewardAmount } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -49,11 +50,20 @@ export const approveBountySubmissionAction = authActionClient
       throw new Error("Performance based bounties cannot be approved.");
     }
 
+    // Find the reward amount
+    const finalRewardAmount = bounty.rewardAmount ?? rewardAmount;
+
+    if (!finalRewardAmount) {
+      throw new Error(
+        "Reward amount is required to approve the bounty submission.",
+      );
+    }
+
     const commission = await createPartnerCommission({
       event: "custom",
       partnerId: bountySubmission.partnerId,
       programId: bountySubmission.programId,
-      amount: bounty.rewardAmount,
+      amount: finalRewardAmount,
       quantity: 1,
       user,
       description: `Commission for successfully completed "${bounty.name}" bounty.`,

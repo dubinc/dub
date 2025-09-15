@@ -317,14 +317,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             isActive: () => false,
           },
           {
+            name: "Link Settings",
+            icon: Sliders,
+            href: `/${slug}/program/groups/default/links`,
+            arrow: true,
+            isActive: () => false,
+          },
+          {
             name: "Branding",
             icon: Brush,
             href: `/${slug}/program/branding`,
-          },
-          {
-            name: "Link Settings",
-            icon: Sliders,
-            href: `/${slug}/program/link-settings`,
           },
         ],
       },

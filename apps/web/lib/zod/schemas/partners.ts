@@ -121,7 +121,7 @@ export const getPartnersQuerySchema = z
         "conversions",
         "sales",
         "saleAmount",
-        "commissions",
+        "totalCommissions",
         "netRevenue",
       ])
       .default("saleAmount")
@@ -312,6 +312,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
       program: true,
       rewards: true,
       discount: true,
+      group: true,
     }),
   )
   .extend({
@@ -605,7 +606,6 @@ export const invitePartnerSchema = z.object({
 export const approvePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  linkId: z.string().nullable(),
   groupId: z.string().nullish(),
 });
 

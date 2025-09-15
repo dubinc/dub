@@ -1,5 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { generateBountyName } from "@/lib/api/bounties/generate-bounty-name";
+import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -57,6 +57,7 @@ export const PATCH = withWorkspace(
       startsAt,
       endsAt,
       rewardAmount,
+      rewardDescription,
       submissionRequirements,
       performanceCondition,
       groupIds,
@@ -64,10 +65,12 @@ export const PATCH = withWorkspace(
 
     if (startsAt && endsAt && endsAt < startsAt) {
       throw new DubApiError({
-        message: "endsAt must be on or after startsAt.",
+        message:
+          "Bounty end date (endsAt) must be on or after start date (startsAt).",
         code: "bad_request",
       });
     }
+
     const bounty = await prisma.bounty.findUniqueOrThrow({
       where: {
         id: bountyId,
@@ -77,6 +80,21 @@ export const PATCH = withWorkspace(
         groups: true,
       },
     });
+
+    if (rewardAmount === null || rewardAmount === 0) {
+      if (bounty.type === "performance") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Reward amount is required for performance bounties",
+        });
+      } else if (!rewardDescription) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "For submission bounties, either reward amount or reward description is required",
+        });
+      }
+    }
 
     // TODO:
     // When we do archive, make sure it disables the workflow
@@ -96,23 +114,28 @@ export const PATCH = withWorkspace(
       });
     }
 
+    // Bounty name
+    let bountyName = name;
+
+    if (bounty.type === "performance" && performanceCondition) {
+      bountyName = generatePerformanceBountyName({
+        rewardAmount: rewardAmount ?? 0, // this shouldn't happen since we return early if rewardAmount is null
+        condition: performanceCondition,
+      });
+    }
+
     const data = await prisma.$transaction(async (tx) => {
       const updatedBounty = await tx.bounty.update({
         where: {
           id: bounty.id,
         },
         data: {
-          name:
-            bounty.type === "performance" && rewardAmount
-              ? generateBountyName({
-                  rewardAmount,
-                  condition: performanceCondition,
-                })
-              : name ?? undefined,
+          name: bountyName ?? undefined,
           description,
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
           rewardAmount,
+          rewardDescription,
           ...(bounty.type === "submission" &&
             submissionRequirements !== undefined && {
               submissionRequirements: submissionRequirements ?? Prisma.DbNull,
@@ -171,6 +194,7 @@ export const PATCH = withWorkspace(
             },
           ],
         }),
+
         sendWorkspaceWebhook({
           workspace,
           trigger: "bounty.updated",

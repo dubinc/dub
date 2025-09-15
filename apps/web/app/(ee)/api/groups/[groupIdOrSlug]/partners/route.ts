@@ -4,23 +4,30 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { changeGroupSchema } from "@/lib/zod/schemas/groups";
+import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
+const addPartnersToGroupSchema = z.object({
+  partnerIds: z.array(z.string()).min(1).max(100), // max move 100 partners at a time
+});
+
 // POST /api/groups/[groupIdOrSlug]/partners - add partners to group
 export const POST = withWorkspace(
-  async ({ req, params, workspace }) => {
+  async ({ req, params, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const group = await getGroupOrThrow({
       programId,
       groupId: params.groupIdOrSlug,
+      includeExpandedFields: true,
     });
 
-    let { partnerIds } = changeGroupSchema.parse(await parseRequestBody(req));
+    let { partnerIds } = addPartnersToGroupSchema.parse(
+      await parseRequestBody(req),
+    );
     partnerIds = [...new Set(partnerIds)];
 
     if (partnerIds.length === 0) {
@@ -49,10 +56,12 @@ export const POST = withWorkspace(
     if (count > 0) {
       waitUntil(
         qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
           body: {
+            programId,
             groupId: group.id,
             partnerIds,
+            userId: session.user.id,
           },
         }),
       );
