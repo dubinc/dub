@@ -12,7 +12,6 @@ import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { Project } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
-import { refreshAccessToken } from "app/api/oauth/token/refresh-access-token";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
