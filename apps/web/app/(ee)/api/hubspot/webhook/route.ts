@@ -45,81 +45,83 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       });
     }
 
-    const payload = JSON.parse(rawPayload);
+    const payload = JSON.parse(rawPayload) as any[];
 
     // HS send multiple events in the same request
     // so we need to process each event individually
-    for (const event of payload) {
-      const { objectTypeId, portalId, subscriptionType } =
-        hubSpotWebhookSchema.parse(event);
-
-      // Find the installation
-      const installation = await prisma.installedIntegration.findFirst({
-        where: {
-          integration: {
-            slug: "hubspot",
-          },
-          credentials: {
-            path: "$.hub_id",
-            equals: portalId,
-          },
-        },
-        include: {
-          project: true,
-        },
-      });
-
-      if (!installation) {
-        console.error(
-          `[HubSpot] Installation is not found for portalId ${portalId}.`,
-        );
-        continue;
-      }
-
-      const workspace = installation.project;
-
-      // Refresh the access token if needed
-      const authToken = await refreshAccessToken({
-        installationId: installation.id,
-        authToken: installation.credentials as HubSpotAuthToken,
-      });
-
-      if (!authToken) {
-        console.error(
-          `[HubSpot] Authentication token is not found or valid for portalId ${portalId}.`,
-        );
-        continue;
-      }
-
-      // Track a deferred lead event
-      if (objectTypeId === "0-1") {
-        await trackHubSpotLeadEvent({
-          payload: event,
-          workspace,
-          authToken,
-        });
-      }
-
-      if (objectTypeId === "0-3") {
-        // Track the final lead event
-        if (subscriptionType === "object.creation") {
-          await trackHubSpotLeadEvent({
-            payload: event,
-            workspace,
-            authToken,
-          });
-        }
-
-        // Track the sale event
-        if (subscriptionType === "object.propertyChange") {
-          // TODO:
-          // Track sale
-        }
-      }
-    }
+    await Promise.allSettled(payload.map(processEvent));
 
     return NextResponse.json({ message: "Webhook received." });
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
 });
+
+async function processEvent(event: any) {
+  const { objectTypeId, portalId, subscriptionType } =
+    hubSpotWebhookSchema.parse(event);
+
+  // Find the installation
+  const installation = await prisma.installedIntegration.findFirst({
+    where: {
+      integration: {
+        slug: "hubspot",
+      },
+      credentials: {
+        path: "$.hub_id",
+        equals: portalId,
+      },
+    },
+    include: {
+      project: true,
+    },
+  });
+
+  if (!installation) {
+    console.error(
+      `[HubSpot] Installation is not found for portalId ${portalId}.`,
+    );
+    return;
+  }
+
+  const workspace = installation.project;
+
+  // Refresh the access token if needed
+  const authToken = await refreshAccessToken({
+    installationId: installation.id,
+    authToken: installation.credentials as HubSpotAuthToken,
+  });
+
+  if (!authToken) {
+    console.error(
+      `[HubSpot] Authentication token is not found or valid for portalId ${portalId}.`,
+    );
+    return;
+  }
+
+  // Track a deferred lead event
+  if (objectTypeId === "0-1") {
+    await trackHubSpotLeadEvent({
+      payload: event,
+      workspace,
+      authToken,
+    });
+  }
+
+  if (objectTypeId === "0-3") {
+    // Track the final lead event
+    if (subscriptionType === "object.creation") {
+      await trackHubSpotLeadEvent({
+        payload: event,
+        workspace,
+        authToken,
+      });
+    }
+
+    // Track the sale event
+    if (subscriptionType === "object.propertyChange") {
+      // TODO:
+      // Track sale
+    }
+  }
+}
