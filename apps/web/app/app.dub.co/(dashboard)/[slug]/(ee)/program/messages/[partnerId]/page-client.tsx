@@ -15,7 +15,7 @@ import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { PartnerInfoStats } from "@/ui/partners/partner-info-stats";
 import { X } from "@/ui/shared/icons";
-import { Button } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
 export function ProgramMessagesPartnerPageClient() {
+  const { isMobile } = useMediaQuery();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { partnerId } = useParams() as { partnerId: string };
@@ -66,7 +67,7 @@ export function ProgramMessagesPartnerPageClient() {
   const { executeAsync: sendMessage } = useAction(messagePartnerAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
 
   if (errorPartner) redirect(`/${workspaceSlug}/program/messages`);
 
