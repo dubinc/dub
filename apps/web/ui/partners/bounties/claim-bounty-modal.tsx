@@ -63,6 +63,7 @@ function ClaimBountyModalContent({
   const { handleKeyDown } = useEnterSubmit();
   const [success, setSuccess] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDraft, setIsDraft] = useState<boolean | null>(null);
 
   // Initialize form state with existing draft submission data
   const [description, setDescription] = useState(submission?.description || "");
@@ -150,7 +151,10 @@ function ClaimBountyModalContent({
         // Determine which button was clicked
         const submitter = (e.nativeEvent as SubmitEvent)
           .submitter as HTMLButtonElement;
+
         const isDraft = submitter?.name === "draft";
+
+        setIsDraft(isDraft);
 
         const finalFiles = files
           .filter(({ url }) => url)
@@ -221,12 +225,25 @@ function ClaimBountyModalContent({
       >
         {success ? (
           <div className="mx-auto flex max-w-sm flex-col items-center gap-1 p-6 text-center max-sm:px-4">
-            <span className="text-content-emphasis text-base font-semibold">
-              Congratulations! You've successfully submitted your bounty.
-            </span>
-            <p className="text-content-subtle text-balance text-sm font-medium">
-              We'll let you know when your bounty has been reviewed.
-            </p>
+            {isDraft ? (
+              <>
+                <span className="text-content-emphasis text-base font-semibold">
+                  Progress saved successfully.
+                </span>
+                <p className="text-content-subtle text-balance text-sm font-medium">
+                  You can continue working on your submission later.
+                </p>
+              </>
+            ) : (
+              <>
+                <span className="text-content-emphasis text-base font-semibold">
+                  Congratulations! You've successfully submitted your bounty.
+                </span>
+                <p className="text-content-subtle text-balance text-sm font-medium">
+                  We'll let you know when your bounty has been reviewed.
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <>
@@ -550,8 +567,8 @@ function ClaimBountyModalContent({
                           className="rounded-lg"
                           type="submit"
                           name="draft"
-                          loading={isPending}
-                          disabled={fileUploading}
+                          loading={isDraft === true}
+                          disabled={fileUploading || isDraft === false}
                         />
                         <Button
                           variant="primary"
@@ -559,8 +576,8 @@ function ClaimBountyModalContent({
                           className="rounded-lg"
                           type="submit"
                           name="submit"
-                          loading={isPending}
-                          disabled={fileUploading}
+                          loading={isDraft === false}
+                          disabled={fileUploading || isDraft === true}
                         />
                       </div>
                     </div>
