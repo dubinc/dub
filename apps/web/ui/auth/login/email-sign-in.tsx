@@ -222,7 +222,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
 
           if (provider === "email") {
             showMessage(
-              "Email sent - check your inbox!",
+              `We’ve sent a login link to ${email}. Check your inbox.`,
               "success",
               authModal,
               setAuthModalMessage,
