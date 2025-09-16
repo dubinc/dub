@@ -308,7 +308,6 @@ function ProgramInfoPanel({
     event: "composite",
     interval: "all",
   });
-  console.log("statsTotals", statsTotals);
 
   const [copied, copyToClipboard] = useCopyToClipboard();
 
