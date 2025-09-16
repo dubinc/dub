@@ -134,7 +134,7 @@ function ClaimBountyModalContent({
     );
   };
 
-  const { executeAsync: createSubmission, isPending } = useAction(
+  const { executeAsync: createSubmission } = useAction(
     createBountySubmissionAction,
   );
 
