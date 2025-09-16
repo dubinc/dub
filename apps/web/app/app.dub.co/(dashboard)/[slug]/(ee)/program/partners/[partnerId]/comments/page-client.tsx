@@ -80,7 +80,7 @@ export function ProgramPartnerCommentsPageClient() {
               rollbackOnError: true,
             },
           )
-            .then(() => `/api/partners/${partnerId}/comments`)
+            .then(() => mutatePrefix(`/api/partners/${partnerId}/comments`))
             .catch((e) => {
               console.log("Failed to post comment", e);
               toast.error("Failed to post comment");

@@ -1,5 +1,6 @@
 "use client";
 
+import { usePartnerCommentsCount } from "@/lib/swr/use-partner-comments-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   ArrowUpRight2,
@@ -18,8 +19,12 @@ import { useEffect, useId, useMemo, useRef } from "react";
 
 export function PartnerNav() {
   const pathname = usePathname();
-  const { partnerId } = useParams();
+  const { partnerId } = useParams() as { partnerId: string };
   const { slug: workspaceSlug } = useWorkspace();
+
+  const { count: commentsCount } = usePartnerCommentsCount({
+    partnerId,
+  });
 
   const containerRef = useRef<HTMLDivElement>(null);
   const layoutGroupId = useId();
@@ -68,11 +73,15 @@ export function PartnerNav() {
       {
         id: "comments",
         label: "Comments",
-        badge: 2, // TODO: fetch actual count from API
+        badge: commentsCount
+          ? commentsCount > 99
+            ? "99+"
+            : commentsCount
+          : undefined,
         icon: Msg,
       },
     ],
-    [],
+    [commentsCount],
   );
 
   return (
