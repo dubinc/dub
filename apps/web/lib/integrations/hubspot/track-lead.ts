@@ -34,12 +34,17 @@ export const trackHubSpotLeadEvent = async ({
 
     const { properties } = contact;
 
+    if (!properties.dub_id) {
+      console.error(`[HubSpot] No dub_id found for contact ${objectId}.`);
+      return;
+    }
+
     const customerName =
       [properties.firstname, properties.lastname].filter(Boolean).join(" ") ||
       null;
 
     return await trackLead({
-      clickId: properties.dub_id || "",
+      clickId: properties.dub_id,
       eventName: "Sign up",
       customerEmail: properties.email,
       customerExternalId: properties.email,
