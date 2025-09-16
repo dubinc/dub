@@ -84,5 +84,6 @@
     "https://preview.dub.co/api/stripe/integration/callback"
   ],
   "stripe_api_access_type": "oauth",
-  "distribution_type": "public"
+  "distribution_type": "public",
+  "sandbox_install_compatible": true
 }
