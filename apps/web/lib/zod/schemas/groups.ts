@@ -60,7 +60,7 @@ export const GroupSchemaExtended = GroupSchema.extend({
 });
 
 export const createOrUpdateDefaultLinkSchema = z.object({
-  url: parseUrlSchema,
+  url: parseUrlSchema({ maxLength: 32000 }),
 });
 
 export const createGroupSchema = z.object({
@@ -100,7 +100,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
 export const PartnerGroupDefaultLinkSchema = z.object({
   id: z.string(),
   domain: z.string(),
-  url: parseUrlSchema,
+  url: parseUrlSchema({ maxLength: 32000 }),
 });
 
 export const getGroupsQuerySchema = z

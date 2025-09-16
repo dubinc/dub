@@ -286,9 +286,9 @@ function StatusIndicator({
       <div
         className={cn(
           "text-content-subtle flex items-center",
-          message.readInApp 
+          message.readInApp
             ? "text-blue-500"
-            : (message.readInEmail && "text-violet-500"),
+            : message.readInEmail && "text-violet-500",
         )}
       >
         {message.delivered === false ? (

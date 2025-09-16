@@ -3,7 +3,7 @@ import { z } from "zod";
 
 export const trackOpenRequestSchema = z
   .object({
-    deepLink: parseUrlSchema
+    deepLink: parseUrlSchema()
       .optional()
       .describe(
         "The deep link that brought the user to the app. If left blank, Dub will fallback to probabilistic tracking by using the `dubDomain` parameter to check if there is an associated click event for the user's IP address. Learn more: https://d.to/ddl",

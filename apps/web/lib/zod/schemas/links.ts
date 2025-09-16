@@ -15,7 +15,7 @@ import {
 } from "./utils";
 
 export const getUrlQuerySchema = z.object({
-  url: parseUrlSchema,
+  url: parseUrlSchema(),
 });
 
 export const getDomainQuerySchema = z.object({
@@ -222,7 +222,7 @@ export const domainKeySchema = z.object({
 });
 
 export const createLinkBodySchema = z.object({
-  url: parseUrlSchemaAllowEmpty()
+  url: parseUrlSchemaAllowEmpty({ maxLength: 32000 })
     .describe("The destination URL of the short link.")
     .openapi({
       example: "https://google.com",
@@ -316,7 +316,7 @@ export const createLinkBodySchema = z.object({
     .string()
     .nullish()
     .describe("The date and time when the short link will expire at."),
-  expiredUrl: parseUrlSchema
+  expiredUrl: parseUrlSchema({ maxLength: 32000 })
     .nullish()
     .describe("The URL to redirect to when the short link has expired."),
   password: z
@@ -361,18 +361,18 @@ export const createLinkBodySchema = z.object({
     .describe(
       "Whether the short link uses link cloaking. Defaults to `false` if not provided.",
     ),
-  ios: parseUrlSchema
+  ios: parseUrlSchema({ maxLength: 32000 })
     .nullish()
     .describe(
       "The iOS destination URL for the short link for iOS device targeting.",
     ),
-  android: parseUrlSchema
+  android: parseUrlSchema({ maxLength: 32000 })
     .nullish()
     .describe(
       "The Android destination URL for the short link for Android device targeting.",
     ),
   geo: z
-    .record(z.string(), parseUrlSchema)
+    .record(z.string(), parseUrlSchema({ maxLength: 32000 }))
     .nullish()
     .describe(
       "Geo targeting information for the short link in JSON format `{[COUNTRY]: https://example.com }`. See https://d.to/geo for more information.",
@@ -497,7 +497,7 @@ export const bulkUpdateLinksBodySchema = z.object({
     })
     .merge(
       z.object({
-        url: parseUrlSchema
+        url: parseUrlSchema({ maxLength: 32000 })
           .describe("The destination URL of the short link.")
           .openapi({
             example: "https://google.com",

@@ -529,7 +529,7 @@ export const createPartnerLinkSchema = z
       .describe(
         "The ID of the partner in your system. If both `partnerId` and `tenantId` are not provided, an error will be thrown.",
       ),
-    url: parseUrlSchema
+    url: parseUrlSchema({ maxLength: 32000 })
       .describe(
         "The URL to shorten (if not provided, the program's default URL will be used). Will throw an error if the domain doesn't match the program's default URL domain.",
       )
@@ -551,7 +551,7 @@ export const createPartnerLinkSchema = z
 
 export const upsertPartnerLinkSchema = createPartnerLinkSchema.merge(
   z.object({
-    url: parseUrlSchema.describe(
+    url: parseUrlSchema({ maxLength: 32000 }).describe(
       "The URL to upsert for. Will throw an error if the domain doesn't match the program's default URL domain.",
     ),
   }),

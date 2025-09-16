@@ -10,7 +10,7 @@ export const programInfoSchema = z.object({
   name: z.string().max(100),
   logo: z.string(),
   domain: z.string(),
-  url: parseUrlSchema.nullable(),
+  url: parseUrlSchema({ maxLength: 32000 }).nullable(),
   linkStructure: z.nativeEnum(PartnerLinkStructure).default("short"),
   linkParameter: z.string().nullish(),
 });
