@@ -141,7 +141,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
           <div className="grid w-full grid-cols-1 gap-px p-2 md:w-48">
             <MenuItem
               as={Link}
-              href={`/program/messages?partnerId=${partner.id}`}
+              href={`/program/messages/${partner.id}`}
               target="_blank"
               icon={Msgs}
               onClick={() => setIsOpen(false)}
