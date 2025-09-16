@@ -33,7 +33,7 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
     });
 
     const formDefaults = getDefaultValues({
-      qrName: QR_NAME_PLACEHOLDERS.WEBSITE,
+      qrName: "",
       websiteLink: "",
       ...defaultValues,
     });
@@ -71,13 +71,13 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
 
     return (
       <FormProvider {...form}>
-        <div className="border-border-100 flex h-fit w-full flex-col items-center justify-center gap-6 rounded-lg border p-3 md:max-w-[524px] md:px-6 md:py-4">
           <form className="flex w-full flex-col gap-4">
             <BaseFormField
               name="qrName"
               label="Name your QR Code"
               placeholder={QR_NAME_PLACEHOLDERS.WEBSITE}
               tooltip="Only you can see this. It helps you recognize your QR codes later."
+              initFromPlaceholder
             />
             
             <BaseFormField
@@ -88,7 +88,6 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
               tooltip="This is the link people will open when they scan your QR code."
             />
           </form>
-        </div>
       </FormProvider>
     );
   }

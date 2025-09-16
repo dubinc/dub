@@ -22,6 +22,7 @@ interface BaseFormFieldProps {
   maxLength?: number;
   className?: string;
   required?: boolean;
+  initFromPlaceholder?: boolean;
 }
 
 export const BaseFormField = ({
@@ -33,6 +34,7 @@ export const BaseFormField = ({
   maxLength,
   className,
   required = true,
+  initFromPlaceholder = false,
 }: BaseFormFieldProps) => {
   const { control, register, formState: { errors } } = useFormContext();
   const [defaultCountry, setDefaultCountry] = useState<Country>("US");
@@ -95,22 +97,52 @@ export const BaseFormField = ({
       />
     );
   } else {
-    inputField = (
-      <Input
-        type={type}
-        className={cn(
-          "border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base",
-          {
-            "border-red-500": error,
-          },
-        )}
-        autoComplete={autoCompleteValue}
-        placeholder={placeholder}
-        maxLength={maxLength}
-        required={required}
-        {...register(name)}
-      />
-    );
+    if (initFromPlaceholder) {
+      inputField = (
+        <Controller
+          name={name}
+          control={control}
+          render={({ field }) => (
+            <Input
+              {...field}
+              type={type}
+              className={cn(
+                "border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base",
+                {
+                  "border-red-500": error,
+                },
+              )}
+              autoComplete={autoCompleteValue}
+              placeholder={placeholder}
+              maxLength={maxLength}
+              required={required}
+              onFocus={(e) => {
+                if (!e.target.value && placeholder) {
+                  field.onChange(placeholder);
+                }
+              }}
+            />
+          )}
+        />
+      );
+    } else {
+      inputField = (
+        <Input
+          type={type}
+          className={cn(
+            "border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base",
+            {
+              "border-red-500": error,
+            },
+          )}
+          autoComplete={autoCompleteValue}
+          placeholder={placeholder}
+          maxLength={maxLength}
+          required={required}
+          {...register(name)}
+        />
+      );
+    }
   }
 
   return (

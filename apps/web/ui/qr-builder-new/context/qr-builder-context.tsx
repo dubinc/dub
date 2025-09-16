@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, ReactNode, useContext, useState, useCallback, useMemo } from "react";
+import {createContext, ReactNode, useContext, useState, useCallback, useMemo, useRef} from "react";
 import { EQRType } from "../constants/get-qr-config.ts";
 import {
   QrBuilderContextType,
@@ -9,6 +9,7 @@ import {
   TStepState,
   QRFormData,
 } from "../types/context";
+import {QRContentStepRef} from "@/ui/qr-builder-new/components/qr-content-step.tsx";
 
 // Create context
 const QrBuilderContext = createContext<QrBuilderContextType | undefined>(
@@ -31,9 +32,14 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
   const [formData, setFormData] = useState<QRFormData | null>(null);
   const [currentFormValues, setCurrentFormValues] = useState<Record<string, any>>({});
 
+  const contentStepRef = useRef<QRContentStepRef>(null);
+  const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
+
   const isTypeStep = builderStep === 1;
   const isContentStep = builderStep === 2;
   const isCustomizationStep = builderStep === 3;
+
+
 
   const currentQRType = useMemo(() => {
     return isTypeStep
@@ -75,6 +81,20 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     console.log("Form submitted:", data);
     handleNextStep();
   }, [handleNextStep]);
+
+  const handleBack = () => {
+    const newStep = Math.max((builderStep || 1) - 1, 1);
+    handleChangeStep(newStep);
+  };
+
+  const handleContinue = async () => {
+    if (isContentStep && contentStepRef.current) {
+      const isValid = await contentStepRef.current.validateForm();
+      if (!isValid) {
+        return;
+      }
+    }
+  }
 
   const updateCurrentFormValues = useCallback((values: Record<string, any>) => {
     setCurrentFormValues(values);
@@ -120,6 +140,14 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     setBuilderStep,
     setDestinationData,
     setSelectedQrType,
+
+    //Buttons
+    handleBack,
+    handleContinue,
+
+    // Refs
+    contentStepRef,
+    qrBuilderButtonsWrapperRef
   };
 
   return (

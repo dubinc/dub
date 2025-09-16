@@ -1,18 +1,16 @@
-import { motion } from "framer-motion";
-import { Flex } from "@radix-ui/themes";
-import { cn } from "@dub/utils";
 import { useQrBuilder } from "@/ui/qr-builder-new/context";
-import { QrTypeSelection } from "./qr-type-selection";
+import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder";
+import { useMediaQuery } from "@dub/ui";
+import { cn } from "@dub/utils";
+import { Flex } from "@radix-ui/themes";
+import { motion } from "framer-motion";
+import { useMemo } from "react";
 import { QRCodeDemoMap } from "./qr-code-demos/qr-code-demo-map";
-import { QrContentStep, QRContentStepRef } from "./qr-content-step.tsx";
-import { RefObject, useMemo } from "react";
+import { QrContentStep } from "./qr-content-step.tsx";
+import { QrTypeSelection } from "./qr-type-selection";
 
-interface QRBuilderInnerProps {
-  contentStepRef?: RefObject<QRContentStepRef>;
-}
-
-export const QRBuilderInner = ({ contentStepRef }: QRBuilderInnerProps) => {
+export const QRBuilderInner = () => {
   const {
     isTypeStep,
     isContentStep,
@@ -23,10 +21,17 @@ export const QRBuilderInner = ({ contentStepRef }: QRBuilderInnerProps) => {
     currentFormValues,
     handleSelectQRType,
     handleHoverQRType,
+    builderStep,
+    handleBack,
+    handleContinue,
+    qrBuilderButtonsWrapperRef,
+    contentStepRef,
   } = useQrBuilder();
 
   const qrCodeDemo = currentQRType ? QRCodeDemoMap[currentQRType] : null;
-  
+
+  const { isMobile } = useMediaQuery();
+
   const demoProps = useMemo(() => {
     if (!qrCodeDemo || !currentQRType) return {};
 
@@ -68,15 +73,19 @@ export const QRBuilderInner = ({ contentStepRef }: QRBuilderInnerProps) => {
           )}
 
           {isContentStep && (
-            <Flex
-              gap="4"
-              direction="column"
-              align="start"
-              justify="start"
-              className="w-full md:max-w-[524px]"
-            >
               <QrContentStep ref={contentStepRef} />
-            </Flex>
+          )}
+          {!isMobile && !isTypeStep && (
+              <div className="w-full" ref={qrBuilderButtonsWrapperRef}>
+                <QrBuilderButtons
+                    step={builderStep || 1}
+                    onBack={handleBack}
+                    onContinue={handleContinue}
+                    isEdit={false}
+                    isProcessing={false}
+                    homePageDemo={false}
+                />
+              </div>
           )}
 
           {isCustomizationStep && (
@@ -99,7 +108,7 @@ export const QRBuilderInner = ({ contentStepRef }: QRBuilderInnerProps) => {
           {
             "hidden md:flex": isTypeStep,
             "items-start pb-3": isCustomizationStep,
-          }
+          },
         )}
       >
         {!isCustomizationStep && (
@@ -119,9 +128,7 @@ export const QRBuilderInner = ({ contentStepRef }: QRBuilderInnerProps) => {
                 }}
                 transition={{ duration: 0.3, ease: "easeInOut" }}
               >
-                {qrCodeDemo && (
-                  <qrCodeDemo.Component {...demoProps} />
-                )}
+                {qrCodeDemo && <qrCodeDemo.Component {...demoProps} />}
                 <div className="absolute inset-x-0 bottom-0 h-1/5 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_0%,_rgba(255,255,255,0.1)_30%,_rgba(255,255,255,0.4)_70%,_rgba(255,255,255,0.8)_100%)] backdrop-blur-[1px]"></div>
               </motion.div>
             )}

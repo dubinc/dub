@@ -42,13 +42,11 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
   }
 
   return (
-    <div className="w-full max-w-md">
       <QrFormResolver
         ref={formRef}
         qrType={selectedQrType}
         onSubmit={handleFormSubmit}
         defaultValues={formData || undefined}
       />
-    </div>
   );
 });

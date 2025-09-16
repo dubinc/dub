@@ -33,9 +33,9 @@ export const WhatsAppForm = forwardRef<WhatsAppFormRef, WhatsAppFormProps>(
     });
 
     const formDefaults = getDefaultValues({
-      qrName: QR_NAME_PLACEHOLDERS.WHATSAPP,
+      qrName: "",
       number: "",
-      message: QR_INPUT_PLACEHOLDERS.WHATSAPP_MESSAGE,
+      message: '',
       ...defaultValues,
     });
 
@@ -72,13 +72,13 @@ export const WhatsAppForm = forwardRef<WhatsAppFormRef, WhatsAppFormProps>(
 
     return (
       <FormProvider {...form}>
-        <div className="border-border-100 flex h-fit w-full flex-col items-center justify-center gap-6 rounded-lg border p-3 md:max-w-[524px] md:px-6 md:py-4">
           <form className="flex w-full flex-col gap-4">
             <BaseFormField
               name="qrName"
               label="Name your QR Code"
               placeholder={QR_NAME_PLACEHOLDERS.WHATSAPP}
               tooltip="Only you can see this. It helps you recognize your QR codes later."
+              initFromPlaceholder
             />
             
             <BaseFormField
@@ -99,7 +99,6 @@ export const WhatsAppForm = forwardRef<WhatsAppFormRef, WhatsAppFormProps>(
               required={false}
             />
           </form>
-        </div>
       </FormProvider>
     );
   }

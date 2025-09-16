@@ -9,6 +9,13 @@ import QrWhatsappFull from "@/ui/landing/assets/png/get-qr-whatsapp-full.png";
 import QrWifiFull from "@/ui/landing/assets/png/get-qr-wifi-full.png";
 import { StaticImageData } from "next/image";
 
+
+export const QR_BUILDER_STEP_TITLES = [
+  "Choose QR Code Type",
+  "Complete the content",
+  "Customize your QR",
+];
+
 export enum EQRType {
   WEBSITE = "website",
   PDF = "pdf",

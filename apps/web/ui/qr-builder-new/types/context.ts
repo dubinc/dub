@@ -18,6 +18,8 @@ import {
   AppLinkQRFormData,
   FeedbackQRFormData,
 } from "../validation/schemas";
+import {RefObject} from "react";
+import {QRContentStepRef} from "@/ui/qr-builder-new/components/qr-content-step.tsx";
 
 export type QRFormData =
   | WebsiteQRFormData
@@ -59,4 +61,12 @@ export interface QrBuilderContextType {
   setBuilderStep: (state: TStepState) => void;
   setDestinationData: (data: TDestinationData) => void;
   setSelectedQrType: (type: QrType) => void;
+
+  // Buttons
+  handleContinue: () => void;
+  handleBack: () => void;
+
+  // Refs
+  contentStepRef: RefObject<QRContentStepRef>;
+  qrBuilderButtonsWrapperRef:RefObject<HTMLDivElement>
 }
