@@ -9,13 +9,7 @@ import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
 import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
 import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import {
-  Button,
-  MenuItem,
-  Popover,
-  buttonVariants,
-  useKeyboardShortcut,
-} from "@dub/ui";
+import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
 import {
   ChevronRight,
   InvoiceDollar,
@@ -25,7 +19,6 @@ import {
   UserDelete,
   Users,
 } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode, useState } from "react";
@@ -128,19 +121,17 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
         text="Send commission"
         shortcut="C"
         onClick={() => setCreateCommissionSheetOpen(true)}
-        className="hidden w-fit md:flex"
+        className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
       />
 
-      <Link
-        href={`/program/messages?partnerId=${partner.id}`}
-        target="_blank"
-        className={cn(
-          buttonVariants({ variant: "secondary" }),
-          "hidden h-10 items-center gap-2 rounded-md border px-4 text-sm md:flex",
-        )}
-      >
-        <Msgs className="size-4 shrink-0" />
-        Message
+      <Link href={`/program/messages/${partner.id}`}>
+        <Button
+          variant="secondary"
+          text="Message"
+          icon={<Msgs className="size-4 shrink-0" />}
+          onClick={() => setIsOpen(false)}
+          className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
+        />
       </Link>
 
       <Popover
@@ -206,8 +197,8 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
         <Button
           type="button"
           variant="secondary"
-          icon={<ThreeDots className="size-5 text-neutral-500" />}
-          className="w-fit px-1.5"
+          icon={<ThreeDots className="size-4 text-neutral-500" />}
+          className="h-8 w-auto px-1.5 sm:h-9"
         />
       </Popover>
     </>
