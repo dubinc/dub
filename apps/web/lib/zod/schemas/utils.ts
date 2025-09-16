@@ -30,7 +30,7 @@ export const parseUrlSchemaAllowEmpty = ({
 
   if (maxLength) {
     schema = schema.max(maxLength, {
-      message: `Must be ${maxLength} or fewer characters long`,
+      message: `Must be ${maxLength} or fewer characters long.`,
     });
   }
 
