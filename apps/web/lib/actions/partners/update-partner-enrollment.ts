@@ -47,21 +47,19 @@ export const updatePartnerEnrollmentAction = authActionClient
     ]);
 
     waitUntil(
-      (async () => {
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "partner.enrollment_updated",
-          description: `Partner ${partnerId} enrollment updated`,
-          actor: user,
-          targets: [
-            {
-              type: "partner",
-              id: partnerId,
-              metadata: partner,
-            },
-          ],
-        });
-      })(),
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "partner.enrollment_updated",
+        description: `Partner ${partnerId} enrollment updated`,
+        actor: user,
+        targets: [
+          {
+            type: "partner",
+            id: partnerId,
+            metadata: partner,
+          },
+        ],
+      }),
     );
   });
