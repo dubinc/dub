@@ -1,15 +1,22 @@
 "use client";
 
 import { useSyncedLocalStorage } from "@/lib/hooks/use-synced-local-storage";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { Button, Gift } from "@dub/ui";
 import { useParams } from "next/navigation";
 
 export function HideProgramDetailsButton() {
   const { programSlug } = useParams();
+  const { programEnrollment } = useProgramEnrollment();
+
   const [hideDetails, setHideDetails] = useSyncedLocalStorage(
     `hide-program-details:${programSlug}`,
     false,
   );
+
+  if (!programEnrollment?.links?.[0]) {
+    return null;
+  }
 
   return (
     <Button
