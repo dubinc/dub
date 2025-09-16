@@ -17,8 +17,12 @@ export const trackHubSpotLeadEvent = async ({
   const { objectId, objectTypeId, subscriptionType } =
     hubSpotLeadEventSchema.parse(payload);
 
-  // A new contact is created
-  if (objectTypeId === "0-1" && subscriptionType === "object.creation") {
+  if (subscriptionType !== "object.creation") {
+    return;
+  }
+
+  // A new contact is created (deferred lead tracking)
+  if (objectTypeId === "0-1") {
     const contact = await getHubSpotContact({
       contactId: objectId,
       accessToken: authToken.access_token,
@@ -47,7 +51,7 @@ export const trackHubSpotLeadEvent = async ({
   }
 
   // A deal is created for the contact (Eg: lead is tracked)
-  if (objectTypeId === "0-3" && subscriptionType === "object.creation") {
+  if (objectTypeId === "0-3") {
     const deal = await getHubSpotDeal({
       dealId: objectId,
       accessToken: authToken.access_token,
@@ -66,7 +70,7 @@ export const trackHubSpotLeadEvent = async ({
       return;
     }
 
-    // HubSpot doesn't return the contact properties in the deal associations, 
+    // HubSpot doesn't return the contact properties in the deal associations,
     // so we need to get it separately
     const contactInfo = await getHubSpotContact({
       contactId: contact.id,

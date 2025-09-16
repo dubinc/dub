@@ -20,7 +20,7 @@
         },
         {
           "subscriptionType": "object.propertyChange",
-          "propertyName": "amount",
+          "propertyName": "dealstage",
           "objectType": "deal",
           "active": true
         }

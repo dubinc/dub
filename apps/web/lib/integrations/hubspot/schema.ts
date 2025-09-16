@@ -37,7 +37,7 @@ export const hubSpotDealSchema = z.object({
   properties: z.object({
     dealname: z.string(),
     amount: z.string(),
-    dealstage: z.enum(["appointmentscheduled"]),
+    dealstage: z.string(),
   }),
   associations: z.object({
     contacts: z.object({
@@ -60,6 +60,13 @@ export const hubSpotWebhookSchema = z.object({
 
 export const hubSpotLeadEventSchema = z.object({
   objectId: z.number(),
-  subscriptionType: z.enum(["object.creation"]),
+  subscriptionType: z.literal("object.creation"),
   objectTypeId: z.enum(HUBSPOT_OBJECT_TYPE_IDS),
+});
+
+export const hubSpotSaleEventSchema = z.object({
+  objectId: z.number(),
+  subscriptionType: z.literal("object.propertyChange"),
+  propertyName: z.literal("dealstage"),
+  propertyValue: z.string(), // eg: closedwon
 });

@@ -3,6 +3,7 @@ import { HUBSPOT_CLIENT_SECRET } from "@/lib/integrations/hubspot/constants";
 import { refreshAccessToken } from "@/lib/integrations/hubspot/refresh-token";
 import { hubSpotWebhookSchema } from "@/lib/integrations/hubspot/schema";
 import { trackHubSpotLeadEvent } from "@/lib/integrations/hubspot/track-lead";
+import { trackHubSpotSaleEvent } from "@/lib/integrations/hubspot/track-sale";
 import { HubSpotAuthToken } from "@/lib/integrations/hubspot/types";
 import { prisma } from "@dub/prisma";
 import crypto from "crypto";
@@ -57,6 +58,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
   }
 });
 
+// Process individual event
 async function processEvent(event: any) {
   const { objectTypeId, portalId, subscriptionType } =
     hubSpotWebhookSchema.parse(event);
@@ -118,10 +120,13 @@ async function processEvent(event: any) {
       });
     }
 
-    // Track the sale event
+    // Track the sale event when deal is closed won
     if (subscriptionType === "object.propertyChange") {
-      // TODO:
-      // Track sale
+      await trackHubSpotSaleEvent({
+        payload: event,
+        workspace,
+        authToken,
+      });
     }
   }
 }
