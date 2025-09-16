@@ -307,7 +307,7 @@ function CommentCard({
 
                         if (!result?.data?.comment)
                           throw new Error(
-                            result?.serverError || "Failed to post comment",
+                            result?.serverError || "Failed to update comment",
                           );
 
                         if (!data) return [];
