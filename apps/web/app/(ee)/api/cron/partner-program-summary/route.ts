@@ -1,10 +1,9 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
-import { limiter } from "@/lib/cron/limiter";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail } from "@dub/email";
 import PartnerProgramSummary from "@dub/email/templates/partner-program-summary";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
@@ -317,26 +316,22 @@ async function handler(req: Request) {
 
       const reportingMonth = format(currentMonth, "MMM yyyy");
 
-      await Promise.allSettled(
-        summary.map(({ partner, ...rest }) => {
-          limiter.schedule(() =>
-            sendEmail({
-              subject: `Your ${reportingMonth} performance report for ${program.name} program`,
-              to: partner.email!,
-              react: PartnerProgramSummary({
-                program,
-                partner,
-                ...rest,
-                reportingPeriod: {
-                  month: reportingMonth,
-                  start: currentMonth.toISOString(),
-                  end: endOfMonth(currentMonth).toISOString(),
-                },
-              }),
-              variant: "notifications",
-            }),
-          );
-        }),
+      await sendBatchEmail(
+        summary.map(({ partner, ...rest }) => ({
+          subject: `Your ${reportingMonth} performance report for ${program.name} program`,
+          to: partner.email!,
+          react: PartnerProgramSummary({
+            program,
+            partner,
+            ...rest,
+            reportingPeriod: {
+              month: reportingMonth,
+              start: currentMonth.toISOString(),
+              end: endOfMonth(currentMonth).toISOString(),
+            },
+          }),
+          variant: "notifications",
+        })),
       );
     }
 
