@@ -83,7 +83,7 @@ export const trackHubSpotLeadEvent = async ({
 
     return await trackLead({
       clickId: "",
-      eventName: properties.dealstage,
+      eventName: `Deal ${properties.dealstage}`,
       customerExternalId: contactInfo.properties.email,
       mode: "async",
       workspace,
