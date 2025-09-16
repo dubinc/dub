@@ -50,11 +50,7 @@ export function PartnerInfo({ partner }: { partner?: EnrolledPartnerProps }) {
     groupIdOrSlug: partner?.groupId ?? undefined,
   });
 
-  const {
-    data: bounties,
-    isLoading: isLoadingBounties,
-    error: errorBounties,
-  } = useSWR<BountyListProps[]>(
+  const { data: bounties, error: errorBounties } = useSWR<BountyListProps[]>(
     workspaceId
       ? `/api/bounties?workspaceId=${workspaceId}&partnerId=${partnerId}`
       : null,
