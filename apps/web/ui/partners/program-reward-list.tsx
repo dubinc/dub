@@ -9,7 +9,7 @@ import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-toolti
 export function ProgramRewardList({
   rewards,
   discount,
-  variant,
+  variant = "default",
   className,
   iconClassName,
   showModifiersTooltip = true,
