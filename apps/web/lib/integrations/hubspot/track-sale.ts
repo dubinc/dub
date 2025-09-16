@@ -43,6 +43,11 @@ export const trackHubSpotSaleEvent = async ({
 
   const { id: dealId, properties, associations } = deal;
 
+  if (!properties.amount) {
+    console.error(`[HubSpot] Amount is not set for deal ${dealId}`);
+    return;
+  }
+
   // Find the contact associated with the deal
   const contact = associations.contacts.results[0];
 
