@@ -599,6 +599,7 @@ function ClaimBountyModalContent({
               {isFormOpen ? (
                 <div className="flex items-center justify-between">
                   <Button
+                    type="button"
                     variant="outline"
                     text="Cancel"
                     className="h-9 w-fit rounded-lg px-3"
@@ -610,7 +611,7 @@ function ClaimBountyModalContent({
                       text="Save progress"
                       className="h-9 rounded-lg px-3"
                       type="submit"
-                      name="draft"
+                      name="draft" // for submitter.name detection above
                       loading={isDraft === true}
                       disabled={fileUploading || isDraft === false}
                     />
@@ -619,7 +620,7 @@ function ClaimBountyModalContent({
                       text="Submit"
                       className="h-9 rounded-lg px-3"
                       type="submit"
-                      name="submit"
+                      name="submit" // for submitter.name detection above
                       loading={isDraft === false}
                       disabled={fileUploading || isDraft === true}
                     />

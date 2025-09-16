@@ -158,7 +158,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           description,
           ...(requireImage && { files }),
           ...(requireUrl && { urls }),
-          ...(isDraft && { status: "draft" }),
+          status: isDraft ? "draft" : "submitted",
         },
       });
     }
