@@ -11,7 +11,7 @@ export const GET = withWorkspace(
     const { partnerId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const comments = await prisma.comment.findMany({
+    const comments = await prisma.partnerComment.findMany({
       where: {
         programId,
         partnerId,

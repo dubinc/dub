@@ -58,7 +58,7 @@ model Partner {
   bountySubmissions BountySubmission[]
   messages          Message[]
   sentMessages      Message[] @relation("SenderPartner")
-  comments          Comment[]
+  comments          PartnerComment[]
 }
 
 model PartnerInvite {

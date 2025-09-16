@@ -1,4 +1,4 @@
-model Comment {
+model PartnerComment {
   id                  String   @id @default(cuid())
   programId           String
   partnerId           String

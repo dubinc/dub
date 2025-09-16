@@ -69,7 +69,7 @@ model Program {
   bountySubmissions BountySubmission[]
   workflows         Workflow[]
   messages          Message[]
-  comments          Comment[]
+  comments          PartnerComment[]
 
   @@index(workspaceId)
   @@index(domain)
