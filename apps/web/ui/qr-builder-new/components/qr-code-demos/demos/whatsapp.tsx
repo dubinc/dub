@@ -1,9 +1,7 @@
 import { cn } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
 import { FC, useEffect, useState } from "react";
-import { DEFAULT_WHATSAPP_MESSAGE } from "../../../constants/qr-type-inputs-placeholders";
-
-const DEFAULT_NUMBER = "+1 123 456 789";
+import { QR_DEMO_DEFAULTS } from "../../../constants/qr-type-inputs-placeholders";
 
 interface QRCodeDemoWhatsappProps {
   number?: string;
@@ -17,18 +15,18 @@ export const QRCodeDemoWhatsapp: FC<QRCodeDemoWhatsappProps> = ({
   smallPreview = false,
 }) => {
   const [currentNumber, setCurrentNumber] = useState<string>(
-    number || DEFAULT_NUMBER,
+    number || QR_DEMO_DEFAULTS.WHATSAPP_NUMBER,
   );
   const [currentMessage, setCurrentMessage] = useState<string>(
-    message || DEFAULT_WHATSAPP_MESSAGE,
+    message || QR_DEMO_DEFAULTS.WHATSAPP_MESSAGE,
   );
 
   useEffect(() => {
-    setCurrentNumber(number || DEFAULT_NUMBER);
+    setCurrentNumber(number || QR_DEMO_DEFAULTS.WHATSAPP_NUMBER);
   }, [number]);
 
   useEffect(() => {
-    setCurrentMessage(message || DEFAULT_WHATSAPP_MESSAGE);
+    setCurrentMessage(message || QR_DEMO_DEFAULTS.WHATSAPP_MESSAGE);
   }, [message]);
 
   return (

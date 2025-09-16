@@ -1,5 +1,7 @@
 import { cn } from "@dub/utils";
 import { FC, useEffect, useState } from "react";
+import Image from "next/image";
+import ImageDemoPlaceholder from "./placeholders/image-demo-placeholder.webp";
 
 interface QRCodeDemoImageProps {
   filesImage?: File[] | string;
@@ -28,8 +30,12 @@ export const QRCodeDemoImage: FC<QRCodeDemoImageProps> = ({
     }
   }, [filesImage]);
 
-  const hasContent = typeof filesImage === "string";
-  const displayText = hasContent ? "Your Image" : "Place for Your Image";
+  const displayUrl =
+      typeof filesImage === "string"
+          ? filesImage
+          : imageObjectUrl || ImageDemoPlaceholder;
+  const hasContent = typeof filesImage === "string" || !!imageObjectUrl;
+  const displayText = hasContent ? "Your Image" : "Your Image";
 
   return (
     <svg
@@ -74,20 +80,17 @@ export const QRCodeDemoImage: FC<QRCodeDemoImageProps> = ({
           fill="white"
           shapeRendering="crispEdges"
         />
-        <rect x="29" y="75" width="212" height="263" rx="6" fill="#F3F4F6" />
-        
-        {/* Image placeholder content */}
-        <g transform="translate(100, 150)">
-          {/* Mountains */}
-          <path d="M10 50 L30 20 L50 40 L70 50 Z" fill="#D1D5DB" />
-          <path d="M20 50 L40 25 L60 35 L70 50 Z" fill="#9CA3AF" />
-          
-          {/* Sun */}
-          <circle cx="60" cy="30" r="8" fill="#FCD34D" />
-          
-          {/* Frame */}
-          <rect x="0" y="10" width="70" height="50" rx="3" fill="none" stroke="#6B7280" strokeWidth="2" />
-        </g>
+        <foreignObject x="29" y="75" width="212" height="263">
+          <Image
+              src={displayUrl}
+              alt="QR Code Demo"
+              width={270}
+              height={352}
+              className="object-cover"
+              unoptimized={!!displayUrl}
+              priority
+          />
+        </foreignObject>
       </g>
     </svg>
   );

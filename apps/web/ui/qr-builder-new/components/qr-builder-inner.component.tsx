@@ -5,8 +5,14 @@ import { useQrBuilder } from "@/ui/qr-builder-new/context";
 import { QrTypeSelection } from "./qr-type-selection";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder";
 import { QRCodeDemoMap } from "./qr-code-demos/qr-code-demo-map";
+import { QrContentStep, QRContentStepRef } from "./qr-content-step.tsx";
+import { RefObject, useMemo } from "react";
 
-export const QRBuilderInner = () => {
+interface QRBuilderInnerProps {
+  contentStepRef?: RefObject<QRContentStepRef>;
+}
+
+export const QRBuilderInner = ({ contentStepRef }: QRBuilderInnerProps) => {
   const {
     isTypeStep,
     isContentStep,
@@ -14,13 +20,24 @@ export const QRBuilderInner = () => {
     selectedQrType,
     currentQRType,
     typeSelectionError,
+    currentFormValues,
     handleSelectQRType,
     handleHoverQRType,
   } = useQrBuilder();
 
   const qrCodeDemo = currentQRType ? QRCodeDemoMap[currentQRType] : null;
   
-  const demoProps = {};
+  const demoProps = useMemo(() => {
+    if (!qrCodeDemo || !currentQRType) return {};
+
+    return qrCodeDemo.propsKeys.reduce(
+      (acc: Record<string, any>, key: string) => {
+        acc[key] = currentFormValues[key];
+        return acc;
+      },
+      {},
+    );
+  }, [qrCodeDemo, currentQRType, currentFormValues]);
 
   return (
     <Flex
@@ -58,7 +75,7 @@ export const QRBuilderInner = () => {
               justify="start"
               className="w-full md:max-w-[524px]"
             >
-              <div>Step 2: Content (Not implemented yet)</div>
+              <QrContentStep ref={contentStepRef} />
             </Flex>
           )}
 

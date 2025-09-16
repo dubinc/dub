@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import { FC } from "react";
-import { DEFAULT_WEBSITE } from "../../../constants/qr-type-inputs-placeholders";
+import { QR_DEMO_DEFAULTS } from "../../../constants/qr-type-inputs-placeholders";
 
 interface QRCodeDemoWebsiteProps {
   websiteLink?: string;
@@ -48,7 +48,7 @@ export const QRCodeDemoWebsite: FC<QRCodeDemoWebsiteProps> = ({
           <Icon className="h-5 w-5 text-white" icon="streamline:web" />
           <input
             type="text"
-            value={websiteLink || DEFAULT_WEBSITE}
+            value={websiteLink || QR_DEMO_DEFAULTS.WEBSITE_URL}
             style={{
               height: "auto",
               flex: 1,

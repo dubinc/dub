@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
 import { FC, useEffect, useState } from "react";
-import { DEFAULT_WIFI_NETWORK_NAME } from "../../../constants/qr-type-inputs-placeholders";
+import { QR_DEMO_DEFAULTS } from "../../../constants/qr-type-inputs-placeholders";
 
 interface QRCodeDemoWifiProps {
   networkName?: string;
@@ -12,11 +12,11 @@ export const QRCodeDemoWifi: FC<QRCodeDemoWifiProps> = ({
   smallPreview = false,
 }) => {
   const [currentNetworkName, setCurrentNetworkName] = useState<string>(
-    networkName || DEFAULT_WIFI_NETWORK_NAME,
+    networkName || QR_DEMO_DEFAULTS.WIFI_NETWORK_NAME,
   );
 
   useEffect(() => {
-    setCurrentNetworkName(networkName || DEFAULT_WIFI_NETWORK_NAME);
+    setCurrentNetworkName(networkName || QR_DEMO_DEFAULTS.WIFI_NETWORK_NAME);
   }, [networkName]);
 
   return (

@@ -1,5 +1,23 @@
 import { cn } from "@dub/utils";
 import { FC } from "react";
+import { QR_DEMO_DEFAULTS } from "../../../constants/qr-type-inputs-placeholders";
+import dynamic from "next/dynamic";
+import Image from "next/image";
+import PdfDemoPlaceholder from "./placeholders/pdf-demo-placeholder.webp";
+
+const PdfViewer = dynamic(() => import("../pdf-viewer"), {
+  ssr: false,
+  loading: () => (
+    <Image
+      src={PdfDemoPlaceholder}
+      alt="PDF Preview Placeholder"
+      width={212}
+      height={263}
+      className="object-cover"
+      priority
+    />
+  ),
+});
 
 interface QRCodeDemoPDFProps {
   filesPDF?: File[] | string;
@@ -10,8 +28,10 @@ export const QRCodeDemoPDF: FC<QRCodeDemoPDFProps> = ({
   filesPDF,
   smallPreview = false,
 }) => {
-  const hasContent = typeof filesPDF === "string";
-  const displayText = hasContent ? "Your PDF" : "Place for Your PDF";
+  const file = typeof filesPDF === "string" ? undefined : filesPDF?.[0];
+  const url = typeof filesPDF === "string" ? filesPDF : undefined;
+  const hasContent = typeof filesPDF === "string" || (Array.isArray(filesPDF) && filesPDF.length > 0);
+  const displayText = hasContent ? "Your PDF" : QR_DEMO_DEFAULTS.PDF_PLACEHOLDER;
 
   return (
     <svg
@@ -55,7 +75,9 @@ export const QRCodeDemoPDF: FC<QRCodeDemoPDFProps> = ({
           fill="white"
           shapeRendering="crispEdges"
         />
-        <rect x="29" y="75" width="212" height="263" rx="6" fill="#FEF2F2" />
+        <foreignObject x="29" y="75" width="212" height="263">
+          <PdfViewer file={file} url={url} />
+        </foreignObject>
       </g>
       <defs>
         <filter

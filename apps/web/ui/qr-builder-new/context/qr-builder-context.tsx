@@ -7,6 +7,7 @@ import {
   QrType,
   TDestinationData,
   TStepState,
+  QRFormData,
 } from "../types/context";
 
 // Create context
@@ -21,15 +22,15 @@ interface QrBuilderProviderProps {
 
 // Provider component
 export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
-  // States
   const [builderStep, setBuilderStep] = useState<TStepState>(1);
   const [destinationData, setDestinationData] =
     useState<TDestinationData>(null);
   const [selectedQrType, setSelectedQrType] = useState<QrType>(null);
   const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
   const [typeSelectionError, setTypeSelectionError] = useState<string>("");
+  const [formData, setFormData] = useState<QRFormData | null>(null);
+  const [currentFormValues, setCurrentFormValues] = useState<Record<string, any>>({});
 
-  // Computed states
   const isTypeStep = builderStep === 1;
   const isContentStep = builderStep === 2;
   const isCustomizationStep = builderStep === 3;
@@ -69,6 +70,16 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     setHoveredQRType(type);
   }, []);
 
+  const handleFormSubmit = useCallback((data: QRFormData) => {
+    setFormData(data);
+    console.log("Form submitted:", data);
+    handleNextStep();
+  }, [handleNextStep]);
+
+  const updateCurrentFormValues = useCallback((values: Record<string, any>) => {
+    setCurrentFormValues(values);
+  }, []);
+
   // Methods
   const onSave = () => {
     // TODO: Implement save logic
@@ -76,6 +87,7 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
       builderStep,
       destinationData,
       selectedQrType,
+      formData,
     });
   };
 
@@ -87,6 +99,8 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     hoveredQRType,
     currentQRType,
     typeSelectionError,
+    formData,
+    currentFormValues,
 
     // Computed states
     isTypeStep,
@@ -99,6 +113,8 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     handleChangeStep,
     handleSelectQRType,
     handleHoverQRType,
+    handleFormSubmit,
+    updateCurrentFormValues,
 
     // State setters
     setBuilderStep,
