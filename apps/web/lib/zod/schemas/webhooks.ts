@@ -15,7 +15,7 @@ export const WebhookSchema = z.object({
 
 export const createWebhookSchema = z.object({
   name: z.string().min(1).max(40),
-  url: parseUrlSchema(),
+  url: parseUrlSchema,
   secret: z.string().optional(),
   triggers: z.array(z.enum(WEBHOOK_TRIGGERS)),
   linkIds: z.array(z.string()).optional(),

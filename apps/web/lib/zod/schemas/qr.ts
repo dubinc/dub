@@ -9,7 +9,7 @@ import { booleanQuerySchema } from "./misc";
 import { parseUrlSchema } from "./utils";
 
 export const getQRCodeQuerySchema = z.object({
-  url: parseUrlSchema().describe("The URL to generate a QR code for."),
+  url: parseUrlSchema.describe("The URL to generate a QR code for."),
   logo: z
     .string()
     .optional()

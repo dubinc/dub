@@ -4,7 +4,6 @@ import { validDomainRegex, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
-import { DESTINATION_URL_MAX_LENGTH } from "./links";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { RewardSchema } from "./rewards";
 import { parseUrlSchema } from "./utils";
@@ -61,7 +60,7 @@ export const GroupSchemaExtended = GroupSchema.extend({
 });
 
 export const createOrUpdateDefaultLinkSchema = z.object({
-  url: parseUrlSchema({ maxLength: DESTINATION_URL_MAX_LENGTH }),
+  url: parseUrlSchema,
 });
 
 export const createGroupSchema = z.object({
@@ -101,7 +100,7 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
 export const PartnerGroupDefaultLinkSchema = z.object({
   id: z.string(),
   domain: z.string(),
-  url: parseUrlSchema({ maxLength: DESTINATION_URL_MAX_LENGTH }),
+  url: parseUrlSchema,
 });
 
 export const getGroupsQuerySchema = z

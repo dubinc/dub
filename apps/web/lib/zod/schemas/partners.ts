@@ -13,7 +13,7 @@ import {
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
-import { createLinkBodySchema, DESTINATION_URL_MAX_LENGTH } from "./links";
+import { createLinkBodySchema } from "./links";
 import {
   base64ImageSchema,
   booleanQuerySchema,
@@ -529,7 +529,7 @@ export const createPartnerLinkSchema = z
       .describe(
         "The ID of the partner in your system. If both `partnerId` and `tenantId` are not provided, an error will be thrown.",
       ),
-    url: parseUrlSchema({ maxLength: DESTINATION_URL_MAX_LENGTH })
+    url: parseUrlSchema
       .describe(
         "The URL to shorten (if not provided, the program's default URL will be used). Will throw an error if the domain doesn't match the program's default URL domain.",
       )
@@ -551,7 +551,7 @@ export const createPartnerLinkSchema = z
 
 export const upsertPartnerLinkSchema = createPartnerLinkSchema.merge(
   z.object({
-    url: parseUrlSchema({ maxLength: DESTINATION_URL_MAX_LENGTH }).describe(
+    url: parseUrlSchema.describe(
       "The URL to upsert for. Will throw an error if the domain doesn't match the program's default URL domain.",
     ),
   }),
