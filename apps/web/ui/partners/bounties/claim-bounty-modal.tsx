@@ -62,7 +62,7 @@ function ClaimBountyModalContent({
 
   const { handleKeyDown } = useEnterSubmit();
   const [success, setSuccess] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(submission?.status === "draft");
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   // Initialize form state with existing draft submission data
   const [description, setDescription] = useState(submission?.description || "");
@@ -268,40 +268,44 @@ function ClaimBountyModalContent({
                         View earnings
                       </Link>
                     )}
-                    <StatusBadge
-                      className="rounded-lg py-1.5"
-                      variant={
-                        submission.status === "pending"
-                          ? "pending"
-                          : submission.status === "approved"
-                            ? "success"
-                            : "error"
-                      }
-                      icon={submission.status === "approved" ? undefined : null}
-                    >
-                      {submission.status === "pending" ? (
-                        `Submitted ${formatDate(submission.createdAt, { month: "short" })}`
-                      ) : submission.status === "approved" ? (
-                        bounty.type === "performance" ? (
-                          <>
-                            Completed{" "}
-                            {formatDate(submission.createdAt, {
-                              month: "short",
-                            })}
-                          </>
-                        ) : (
-                          <>
-                            Confirmed{" "}
-                            {submission.reviewedAt &&
-                              formatDate(submission.reviewedAt, {
+                    {submission.status !== "draft" && (
+                      <StatusBadge
+                        className="rounded-lg py-1.5"
+                        variant={
+                          submission.status === "pending"
+                            ? "pending"
+                            : submission.status === "approved"
+                              ? "success"
+                              : "error"
+                        }
+                        icon={
+                          submission.status === "approved" ? undefined : null
+                        }
+                      >
+                        {submission.status === "pending" ? (
+                          `Submitted ${formatDate(submission.createdAt, { month: "short" })}`
+                        ) : submission.status === "approved" ? (
+                          bounty.type === "performance" ? (
+                            <>
+                              Completed{" "}
+                              {formatDate(submission.createdAt, {
                                 month: "short",
                               })}
-                          </>
-                        )
-                      ) : (
-                        "Rejected"
-                      )}
-                    </StatusBadge>
+                            </>
+                          ) : (
+                            <>
+                              Confirmed{" "}
+                              {submission.reviewedAt &&
+                                formatDate(submission.reviewedAt, {
+                                  month: "short",
+                                })}
+                            </>
+                          )
+                        ) : (
+                          "Rejected"
+                        )}
+                      </StatusBadge>
+                    )}
                   </div>
 
                   {/* Rejection details for rejected submissions */}
