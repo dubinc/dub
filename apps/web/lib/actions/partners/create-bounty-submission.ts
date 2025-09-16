@@ -181,7 +181,6 @@ export const createBountySubmissionAction = authPartnerActionClient
               program: {
                 name: program.name,
                 slug: program.slug,
-                supportEmail: program.supportEmail || "support@dub.co",
               },
             }),
           });

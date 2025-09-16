@@ -144,7 +144,6 @@ export async function approvePartnerEnrollment({
                       name: program.name,
                       logo: program.logo,
                       slug: program.slug,
-                      supportEmail: program.supportEmail,
                     },
                     partner: {
                       name: partner.name,
