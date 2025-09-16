@@ -73,6 +73,7 @@ function ClaimBountyModalContent({
         id: uuid(),
         url: file.url,
         uploading: false,
+        file: undefined,
       }));
     }
 
@@ -152,7 +153,7 @@ function ClaimBountyModalContent({
         const isDraft = submitter?.name === "draft";
 
         const finalFiles = files
-          .filter(({ file, url }) => file && url)
+          .filter(({ url }) => url)
           .map(({ file, url }) => ({
             url: url!,
             fileName: file?.name || "File",
