@@ -88,6 +88,8 @@ export default function ProgramPartnerLayout({
 }
 
 function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
+  const { slug: workspaceSlug } = useWorkspace();
+
   const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
     useCreateCommissionSheet({
       nested: true,
@@ -124,7 +126,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
         className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
       />
 
-      <Link href={`/program/messages/${partner.id}`}>
+      <Link href={`/${workspaceSlug}/program/messages/${partner.id}`}>
         <Button
           variant="secondary"
           text="Message"
@@ -141,7 +143,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
           <div className="grid w-full grid-cols-1 gap-px p-2 md:w-48">
             <MenuItem
               as={Link}
-              href={`/program/messages/${partner.id}`}
+              href={`/${workspaceSlug}/program/messages/${partner.id}`}
               target="_blank"
               icon={Msgs}
               onClick={() => setIsOpen(false)}
