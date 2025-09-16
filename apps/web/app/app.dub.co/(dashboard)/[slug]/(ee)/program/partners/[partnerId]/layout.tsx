@@ -14,7 +14,7 @@ import {
   ChevronRight,
   InvoiceDollar,
   Msgs,
-  Pen2,
+  PenWriting,
   UserCheck,
   UserDelete,
   Users,
@@ -162,7 +162,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
               Send commission
             </MenuItem>
             <MenuItem
-              icon={Pen2}
+              icon={PenWriting}
               onClick={() => {
                 setShowPartnerAdvancedSettingsModal(true);
                 setIsOpen(false);

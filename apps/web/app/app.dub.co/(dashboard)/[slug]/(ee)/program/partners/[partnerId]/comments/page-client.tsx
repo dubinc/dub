@@ -2,6 +2,7 @@
 
 import { createPartnerCommentAction } from "@/lib/actions/partners/create-partner-comment";
 import { deletePartnerCommentAction } from "@/lib/actions/partners/delete-partner-comment";
+import { updatePartnerCommentAction } from "@/lib/actions/partners/update-partner-comment";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { usePartnerComments } from "@/lib/swr/use-partner-comments";
 import useUser from "@/lib/swr/use-user";
@@ -9,12 +10,20 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerCommentProps } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
 import { MessageInput } from "@/ui/shared/message-input";
-import { Button, LoadingSpinner, Popover, Trash } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Button,
+  LoadingSpinner,
+  PenWriting,
+  Popover,
+  Trash,
+} from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { KeyedMutator } from "swr";
 import { v4 as uuid } from "uuid";
 
 export function ProgramPartnerCommentsPageClient() {
@@ -95,7 +104,7 @@ export function ProgramPartnerCommentsPageClient() {
         {comments ? (
           comments.length > 0 ? (
             comments.map((comment) => (
-              <CommentCard key={comment.id} comment={comment} />
+              <CommentCard key={comment.id} comment={comment} mutate={mutate} />
             ))
           ) : (
             <div className="text-content-muted py-2 text-center text-xs">
@@ -116,13 +125,28 @@ export function ProgramPartnerCommentsPageClient() {
 
 function CommentCard({
   comment,
+  mutate,
   className,
 }: {
   comment?: PartnerCommentProps & { delivered?: false };
+  mutate?: KeyedMutator<(PartnerCommentProps & { delivered?: false })[]>;
   className?: string;
 }) {
   const { partnerId } = useParams() as { partnerId: string };
+  const { user } = useUser();
   const { id: workspaceId } = useWorkspace();
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const { executeAsync: updateComment, isExecuting: isUpdating } = useAction(
+    updatePartnerCommentAction,
+    {
+      onSuccess: () => {
+        toast.success("Comment edited successfully");
+        mutatePrefix(`/api/partners/${partnerId}/comments`);
+      },
+    },
+  );
 
   const { executeAsync: deleteComment, isExecuting: isDeleting } = useAction(
     deletePartnerCommentAction,
@@ -188,10 +212,24 @@ function CommentCard({
             <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
           )}
         </div>
-        {comment ? (
+        {comment && !isEditing ? (
           <Popover
             content={
               <div className="grid w-full grid-cols-1 gap-px p-2 sm:w-48">
+                {comment.userId === user?.id && (
+                  <Button
+                    text="Edit comment"
+                    variant="outline"
+                    loading={isUpdating}
+                    disabled={comment.delivered === false}
+                    onClick={async () => {
+                      setOpenPopover(false);
+                      setIsEditing(true);
+                    }}
+                    icon={<PenWriting className="size-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
                 <Button
                   text="Delete comment"
                   variant="danger-outline"
@@ -208,6 +246,8 @@ function CommentCard({
                       commentId: comment.id,
                     });
                   }}
+                  loading={isDeleting}
+                  disabled={comment.delivered === false}
                   icon={<Trash className="size-4" />}
                   className="h-9 justify-start px-2 font-medium"
                 />
@@ -242,9 +282,90 @@ function CommentCard({
 
       <div className="mt-2">
         {comment ? (
-          <p className="text-content-subtle text-sm font-medium">
-            {comment?.text}
-          </p>
+          <AnimatedSizeContainer
+            height
+            transition={{ duration: 0.2, ease: "easeOut" }}
+            className="-m-0.5 overflow-clip"
+          >
+            <div className="p-0.5">
+              {isEditing ? (
+                <MessageInput
+                  defaultValue={comment.text}
+                  onCancel={() => setIsEditing(false)}
+                  onSendMessage={(text) => {
+                    if (!user) return false;
+
+                    setIsEditing(false);
+
+                    mutate?.(
+                      async (data) => {
+                        const result = await updateComment({
+                          workspaceId: workspaceId!,
+                          id: comment.id,
+                          text,
+                        });
+
+                        if (!result?.data?.comment)
+                          throw new Error(
+                            result?.serverError || "Failed to update comment",
+                          );
+
+                        if (!data) return [];
+                        const idx = data.findIndex(
+                          (c) => c.id === result.data?.comment.id,
+                        );
+                        if (idx === -1) return data;
+
+                        return data
+                          ? data.toSpliced(idx, 1, result.data.comment)
+                          : [];
+                      },
+                      {
+                        optimisticData: (data) => {
+                          if (!data) return [];
+                          const idx = data.findIndex(
+                            (c) => c.id === comment.id,
+                          );
+                          if (idx === -1) return data;
+
+                          return data.toSpliced(idx, 1, {
+                            ...data[idx],
+                            text,
+                            delivered: false,
+                          });
+                        },
+                        rollbackOnError: true,
+                      },
+                    )
+                      .then(() =>
+                        mutatePrefix(`/api/partners/${partnerId}/comments`),
+                      )
+                      .catch((e) => {
+                        console.log("Failed to update comment", e);
+                        toast.error("Failed to update comment");
+                      });
+                  }}
+                  onMount={({ textarea }) => {
+                    if (!textarea) return;
+
+                    // Programmatically focus and move cursor to the end, since React's autoFocus is putting the cursor at the start
+                    textarea.focus();
+                    textarea.setSelectionRange(
+                      textarea.value.length,
+                      textarea.value.length,
+                    );
+                  }}
+                  className="animate-fade-in"
+                  placeholder="Edit comment"
+                  sendButtonText="Save"
+                />
+              ) : (
+                <p className="text-content-subtle text-sm font-medium">
+                  {comment?.text}
+                </p>
+              )}
+            </div>
+          </AnimatedSizeContainer>
         ) : (
           <div className="h-5 w-48 animate-pulse rounded bg-neutral-200" />
         )}

@@ -1,26 +1,32 @@
 import { MAX_MESSAGE_LENGTH } from "@/lib/zod/schemas/messages";
 import { ArrowTurnLeft, Button } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { EmojiPicker } from "../shared/emoji-picker";
 
 export function MessageInput({
   onSendMessage,
+  defaultValue = "",
+  onCancel,
   autoFocus,
   placeholder = "Type a message...",
   sendButtonText = "Send",
   className,
+  onMount,
 }: {
   onSendMessage: (message: string) => void | false;
+  defaultValue?: string;
+  onCancel?: () => void;
   autoFocus?: boolean;
   placeholder?: string;
   sendButtonText?: string;
   className?: string;
+  onMount?: (props: { textarea: HTMLTextAreaElement | null }) => void;
 }) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const selectionStartRef = useRef<number | null>(null);
-  const [typedMessage, setTypedMessage] = useState("");
+  const [typedMessage, setTypedMessage] = useState(defaultValue);
 
   const sendMessage = () => {
     const message = typedMessage.trim();
@@ -28,6 +34,8 @@ export function MessageInput({
 
     if (onSendMessage(message) !== false) setTypedMessage("");
   };
+
+  useEffect(() => onMount?.({ textarea: textAreaRef.current }), [onMount]);
 
   return (
     <div
@@ -67,24 +75,34 @@ export function MessageInput({
             }}
           />
         </div>
-        <Button
-          variant="primary"
-          text={
-            <span className="flex items-center gap-2">
-              {sendButtonText}
-              <span className="hidden items-center gap-1 sm:flex">
-                <span className="flex size-4 items-center justify-center rounded border border-neutral-700 text-[0.625rem]">
-                  {navigator.platform.startsWith("Mac") ? "⌘" : "^"}
-                </span>
-                <span className="flex size-4 items-center justify-center rounded border border-neutral-700">
-                  <ArrowTurnLeft className="text-content-inverted size-2.5" />
+        <div className="flex items-center justify-between gap-2">
+          {onCancel && (
+            <Button
+              variant="secondary"
+              text="Cancel"
+              onClick={onCancel}
+              className="h-8 w-fit rounded-lg px-4"
+            />
+          )}
+          <Button
+            variant="primary"
+            text={
+              <span className="flex items-center gap-2">
+                {sendButtonText}
+                <span className="hidden items-center gap-1 sm:flex">
+                  <span className="flex size-4 items-center justify-center rounded border border-neutral-700 text-[0.625rem]">
+                    {navigator.platform.startsWith("Mac") ? "⌘" : "^"}
+                  </span>
+                  <span className="flex size-4 items-center justify-center rounded border border-neutral-700">
+                    <ArrowTurnLeft className="text-content-inverted size-2.5" />
+                  </span>
                 </span>
               </span>
-            </span>
-          }
-          onClick={sendMessage}
-          className="h-8 w-fit rounded-lg px-4"
-        />
+            }
+            onClick={sendMessage}
+            className="h-8 w-fit rounded-lg px-4"
+          />
+        </div>
       </div>
     </div>
   );
