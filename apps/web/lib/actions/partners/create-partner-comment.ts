@@ -23,7 +23,7 @@ export const createPartnerCommentAction = authActionClient
       programId,
     });
 
-    const comment = await prisma.programPartnerComment.create({
+    const comment = await prisma.comment.create({
       data: {
         programId,
         partnerId,

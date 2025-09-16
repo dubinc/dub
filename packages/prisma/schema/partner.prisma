@@ -58,7 +58,7 @@ model Partner {
   bountySubmissions BountySubmission[]
   messages          Message[]
   sentMessages      Message[] @relation("SenderPartner")
-  comments          ProgramPartnerComment[]
+  comments          Comment[]
 }
 
 model PartnerInvite {
@@ -100,21 +100,4 @@ model PartnerNotificationPreferences {
   newMessageFromProgram Boolean @default(true)
 
   partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
-}
-
-model ProgramPartnerComment {
-  id                  String   @id @default(cuid())
-  programId           String
-  partnerId           String
-  userId              String
-  text                String   @db.Text
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-
-  program           Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partner           Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([programId, partnerId])
-  @@index(createdAt)
 }

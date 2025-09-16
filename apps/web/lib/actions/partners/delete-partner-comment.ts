@@ -14,7 +14,7 @@ export const deletePartnerCommentAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await prisma.programPartnerComment.delete({
+    await prisma.comment.delete({
       where: {
         id: commentId,
         programId,
