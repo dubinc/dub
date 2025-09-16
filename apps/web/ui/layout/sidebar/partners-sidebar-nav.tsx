@@ -38,8 +38,9 @@ type SidebarNavData = {
   programSlug?: string;
   isUnapproved: boolean;
   invitationsCount?: number;
-  programBountiesCount?: number;
   unreadMessagesCount?: number;
+  messagingEnabled?: boolean;
+  programBountiesCount?: number;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
@@ -116,6 +117,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     programSlug,
     isUnapproved,
     queryString,
+    messagingEnabled,
     programBountiesCount,
   }) => ({
     title: (
@@ -141,9 +143,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Messages",
             icon: Msgs,
-            href: `/messages/${programSlug}`,
-            locked: isUnapproved,
-            arrow: true,
+            href: `/messages/${programSlug}` as `/${string}`,
+            locked: isUnapproved || !messagingEnabled,
+            arrow: messagingEnabled ? true : undefined,
           },
         ],
       },
@@ -342,8 +344,9 @@ export function PartnersSidebarNav({
         isUnapproved:
           !!programEnrollment && programEnrollment.status !== "approved",
         invitationsCount,
-        programBountiesCount: bounties?.length,
         unreadMessagesCount,
+        messagingEnabled: programEnrollment?.messagingEnabled,
+        programBountiesCount: bounties?.length,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

@@ -99,9 +99,17 @@ export const PATCH = withWorkspace(
         })
       : null;
 
-    const additionalLinksInput = additionalLinks
-      ? additionalLinks.length > 0
-        ? additionalLinks
+    // Deduplicate additionalLinks by domain, keeping the first occurrence
+    const deduplicatedAdditionalLinks = additionalLinks
+      ? additionalLinks.filter(
+          (link, index, array) =>
+            array.findIndex((l) => l.domain === link.domain) === index,
+        )
+      : additionalLinks;
+
+    const additionalLinksInput = deduplicatedAdditionalLinks
+      ? deduplicatedAdditionalLinks.length > 0
+        ? deduplicatedAdditionalLinks
         : Prisma.DbNull
       : undefined;
 
@@ -171,7 +179,7 @@ export const PATCH = withWorkspace(
             ],
           }),
 
-          group.utmTemplateId !== utmTemplateId &&
+          group.utmTemplateId !== updatedGroup.utmTemplateId &&
             qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
               body: {

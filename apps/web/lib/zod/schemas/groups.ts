@@ -16,7 +16,7 @@ export const DEFAULT_PARTNER_GROUP = {
 } as const;
 
 export const MAX_DEFAULT_PARTNER_LINKS = 5;
-export const MAX_ADDITIONAL_PARTNER_LINKS = 10;
+export const MAX_ADDITIONAL_PARTNER_LINKS = 20;
 
 export const GROUPS_MAX_PAGE_SIZE = 100;
 

@@ -380,16 +380,16 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
       <Link
         href={locked ? "#" : href}
         data-active={isActive}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => setHovered(false)}
+        onPointerEnter={() => !locked && setHovered(true)}
+        onPointerLeave={() => !locked && setHovered(false)}
         className={cn(
           "text-content-default group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive && !items
             ? "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100"
-            : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
-
-          locked && "pointer-events-none",
+            : locked
+              ? "cursor-not-allowed opacity-75"
+              : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
         )}
         aria-disabled={locked}
       >

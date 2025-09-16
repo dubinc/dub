@@ -7,6 +7,7 @@ export const RESOURCE_KEYS = [
   "folders",
   "tokens",
   "webhooks",
+  "groups",
 ] as const;
 
 export type ResourceKey = (typeof RESOURCE_KEYS)[number];

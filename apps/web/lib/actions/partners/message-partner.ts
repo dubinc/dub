@@ -1,9 +1,11 @@
 "use server";
 
 import { createId } from "@/lib/api/create-id";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { qstash } from "@/lib/cron";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -26,6 +28,13 @@ export const messagePartnerAction = authActionClient
     const { partnerId, text, createdAt } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
+    if (!getPlanCapabilities(workspace.plan).canMessagePartners) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "Messaging is only available on Advanced and Enterprise plans. Upgrade to get access.",
+      });
+    }
 
     await getProgramEnrollmentOrThrow({
       programId,
