@@ -38,6 +38,12 @@ export const rejectBountySubmissionAction = authActionClient
       throw new Error("Bounty submission does not belong to this program.");
     }
 
+    if (bountySubmission.status === "draft") {
+      throw new Error(
+        "Bounty submission is in progress and cannot be rejected.",
+      );
+    }
+
     if (bountySubmission.status === "rejected") {
       throw new Error("Bounty submission already rejected.");
     }

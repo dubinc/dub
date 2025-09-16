@@ -84,7 +84,7 @@ function PartnerAdvancedSettingsModal({
               <span className="text-sm font-medium text-neutral-800">
                 Partner{" "}
                 <span className="rounded-md bg-neutral-200 px-1 py-0.5">
-                  tenantID
+                  tenantId
                 </span>
               </span>
               <input
@@ -103,7 +103,7 @@ function PartnerAdvancedSettingsModal({
               <CircleInfo className="mr-1 inline-block size-3 -translate-y-px" />
               This will also update the{" "}
               <span className="rounded-md bg-orange-100 px-1 py-px">
-                tenantID
+                tenantId
               </span>{" "}
               field for the partner's links
             </p>
