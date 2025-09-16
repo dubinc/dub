@@ -152,7 +152,7 @@ export const bulkBanPartnersAction = authActionClient
           },
           select: {
             name: true,
-            supportEmail: true,
+            slug: true,
           },
         });
 
@@ -176,7 +176,7 @@ export const bulkBanPartnersAction = authActionClient
                 },
                 program: {
                   name: program.name,
-                  supportEmail: program.supportEmail || "support@dub.co",
+                  slug: program.slug,
                 },
                 bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
               }),

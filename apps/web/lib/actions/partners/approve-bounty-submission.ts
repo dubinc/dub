@@ -114,7 +114,6 @@ export const approveBountySubmissionAction = authActionClient
               program: {
                 name: program.name,
                 slug: program.slug,
-                supportEmail: program.supportEmail || "support@dub.co",
               },
               bounty: {
                 name: bounty.name,
