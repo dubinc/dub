@@ -224,9 +224,7 @@ function PartnerLinkModalContent({
 
   const saveDisabled = useMemo(
     () =>
-      Boolean(
-        isLoading || (link && !isDirty) || destinationDomains.length === 0,
-      ),
+      Boolean(isLoading || (link ? !isDirty : destinationDomains.length === 0)),
     [isLoading, link, isDirty, destinationDomains],
   );
 
