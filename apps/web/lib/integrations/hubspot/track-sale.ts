@@ -64,7 +64,7 @@ export const trackHubSpotSaleEvent = async ({
   return await trackSale({
     customerExternalId: contactInfo.properties.email,
     amount: Number(properties.amount) * 100,
-    eventName: properties.dealstage,
+    eventName: `Deal ${properties.dealstage}`,
     paymentProcessor: "custom",
     invoiceId: dealId,
     workspace,
