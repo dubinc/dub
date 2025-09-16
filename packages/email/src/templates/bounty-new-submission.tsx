@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function BountyPendingReview({
+export default function NewBountySubmission({
   workspace = {
     slug: "acme",
   },
@@ -53,7 +53,7 @@ export default function BountyPendingReview({
   return (
     <Html>
       <Head />
-      <Preview>Pending bounty</Preview>
+      <Preview>New bounty submission</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
@@ -62,11 +62,11 @@ export default function BountyPendingReview({
             </Section>
 
             <Heading className="mx-0 mb-5 mt-10 p-0 text-lg font-medium text-black">
-              Pending bounty
+              New bounty submission
             </Heading>
 
             <Text className="text-sm leading-5 text-neutral-600">
-              A bounty has been completed for <strong>{bounty.name}</strong> and
+              A bounty has been submitted for <strong>{bounty.name}</strong> and
               requires approval.
             </Text>
 

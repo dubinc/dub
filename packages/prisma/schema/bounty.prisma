@@ -5,7 +5,7 @@ enum BountyType {
 
 enum BountySubmissionStatus {
   draft
-  pending
+  submitted
   approved
   rejected
 }
@@ -62,7 +62,7 @@ model BountySubmission {
   commissionId    String?                          @unique
   userId          String?
   description     String?                          @db.Text
-  status          BountySubmissionStatus           @default(pending)
+  status          BountySubmissionStatus           @default(draft)
   rejectionReason BountySubmissionRejectionReason?
   rejectionNote   String?                          @db.Text
   files           Json?

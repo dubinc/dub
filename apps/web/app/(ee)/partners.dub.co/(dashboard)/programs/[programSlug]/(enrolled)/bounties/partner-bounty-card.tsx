@@ -117,9 +117,9 @@ function renderSubmissionStatus({
         </div>
       );
 
-    case "pending":
+    case "submitted":
       return (
-        <StatusBadge variant="pending" icon={null}>
+        <StatusBadge variant="new" icon={null}>
           Submitted{" "}
           {submission.createdAt &&
             formatDate(submission.createdAt, { month: "short" })}

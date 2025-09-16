@@ -12,7 +12,7 @@ import {
 import { sendEmail } from "@dub/email";
 import { resend } from "@dub/email/resend";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
-import BountyPendingReview from "@dub/email/templates/bounty-pending-review";
+import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
 import { BountySubmission, Role } from "@prisma/client";
@@ -143,7 +143,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           description,
           ...(requireImage && { files }),
           ...(requireUrl && { urls }),
-          status: isDraft ? "draft" : "pending",
+          status: isDraft ? "draft" : "submitted",
         },
       });
     }
@@ -181,8 +181,8 @@ export const createBountySubmissionAction = authPartnerActionClient
             users.map((user) => ({
               from: VARIANT_TO_FROM_MAP.notifications,
               to: user.email,
-              subject: "Pending bounty review",
-              react: BountyPendingReview({
+              subject: "New bounty submission",
+              react: NewBountySubmission({
                 email: user.email,
                 workspace: {
                   slug: workspace.slug,
