@@ -61,9 +61,10 @@ export const appRedirect = (path: string) => {
     return path.replace(groupRegex, "/$1/program/groups/$2/rewards");
 
   // Redirect "/[slug]/program/partners/:partnerId" to "/[slug]/program/partners/:partnerId/links"
-  const partnerRegex = /^\/([^\/]+)\/program\/partners\/([^\/]+)$/;
-  if (partnerRegex.test(path))
-    return path.replace(partnerRegex, "/$1/program/partners/$2/links");
+  // Only applies when partnerId starts with "pn_" (exclude /applications, /directory)
+  const partnerPageRegex = /^\/([^\/]+)\/program\/partners\/(pn_[^\/]+)$/;
+  if (partnerPageRegex.test(path))
+    return path.replace(partnerPageRegex, "/$1/program/partners/$2/links");
 
   // Handle additional simpler program redirects
   const programRedirect = Object.keys(PROGRAM_REDIRECTS).find((redirect) =>
