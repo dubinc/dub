@@ -132,7 +132,7 @@ export function PartnerNav() {
           </motion.div>
         </LayoutGroup>
         <Link
-          href={`/${workspaceSlug}/program/partners/commissions?partnerId=${partnerId}`}
+          href={`/${workspaceSlug}/program/commissions?partnerId=${partnerId}`}
           target="_blank"
           className={cn(
             "text-content-emphasis relative z-10 flex items-center px-2.5 py-1 text-sm font-medium",
