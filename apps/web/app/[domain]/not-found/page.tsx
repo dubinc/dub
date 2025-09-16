@@ -6,7 +6,7 @@ import { Hero } from "@/ui/placeholders/hero";
 import { GlobeSearch } from "@dub/ui";
 import { cn, constructMetadata, createHref } from "@dub/utils";
 
-export const runtime = "edge";
+export const revalidate = false; // cache indefinitely
 
 export const metadata = constructMetadata({
   title: "Link Not Found",

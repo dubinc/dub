@@ -695,12 +695,6 @@ export const bulkArchivePartnersSchema = z.object({
     .transform((v) => [...new Set(v)]),
 });
 
-export const updatePartnerEnrollmentSchema = z.object({
-  workspaceId: z.string(),
-  partnerId: z.string(),
-  tenantId: z.string().nullish(),
-});
-
 export const partnerPayoutSettingsSchema = z.object({
   companyName: z.string().max(190).trim().nullish(),
   address: z.string().max(500).trim().nullish(),
