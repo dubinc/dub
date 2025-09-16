@@ -1,18 +1,9 @@
 import { Message } from "@/lib/types";
-import { MAX_MESSAGE_LENGTH } from "@/lib/zod/schemas/messages";
-import {
-  ArrowTurnLeft,
-  Button,
-  Check2,
-  LoadingSpinner,
-  Tooltip,
-  useMediaQuery,
-} from "@dub/ui";
+import { Check2, LoadingSpinner, Tooltip, useMediaQuery } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import Linkify from "linkify-react";
-import { Fragment, useRef, useState } from "react";
-import ReactTextareaAutosize from "react-textarea-autosize";
-import { EmojiPicker } from "./emoji-picker";
+import { Fragment, useRef } from "react";
+import { MessageInput } from "../shared/message-input";
 
 export function MessagesPanel({
   messages,
@@ -32,17 +23,12 @@ export function MessagesPanel({
   error?: any;
 }) {
   const { isMobile } = useMediaQuery();
-
   const scrollRef = useRef<HTMLDivElement>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const selectionStartRef = useRef<number | null>(null);
-  const [typedMessage, setTypedMessage] = useState("");
 
-  const sendMessage = () => {
-    if (!messages || !typedMessage.trim()) return;
+  const sendMessage = (message: string) => {
+    if (!messages) return false;
 
-    onSendMessage(typedMessage.trim());
-    setTypedMessage("");
+    onSendMessage(message);
     scrollRef.current?.scrollTo({ top: 0 });
   };
 
@@ -207,60 +193,11 @@ export function MessagesPanel({
         </div>
       )}
       <div className="border-border-subtle border-t p-3 sm:p-6">
-        <div className="border-border-subtle overflow-hidden rounded-xl border has-[textarea:focus]:border-neutral-500 has-[textarea:focus]:ring-1 has-[textarea:focus]:ring-neutral-500">
-          <ReactTextareaAutosize
-            ref={textAreaRef}
-            autoFocus={!isMobile}
-            className="placeholder:text-content-subtle block max-h-24 w-full resize-none border-none p-3 text-base focus:ring-0 sm:text-sm"
-            placeholder={placeholder}
-            value={typedMessage}
-            maxLength={MAX_MESSAGE_LENGTH}
-            onChange={(e) => setTypedMessage(e.currentTarget.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-            onBlur={(e) =>
-              (selectionStartRef.current = e.target.selectionStart)
-            }
-          />
-
-          <div className="flex items-center justify-between gap-4 px-3 pb-3">
-            <div className="flex items-center gap-2">
-              <EmojiPicker
-                onSelect={(emoji) => {
-                  const pos = selectionStartRef.current;
-                  setTypedMessage((prev) =>
-                    pos !== null
-                      ? prev.slice(0, pos) + emoji + prev.slice(pos)
-                      : prev + emoji,
-                  );
-                  textAreaRef.current?.focus();
-                }}
-              />
-            </div>
-            <Button
-              variant="primary"
-              text={
-                <span className="flex items-center gap-2">
-                  Send
-                  <span className="hidden items-center gap-1 sm:flex">
-                    <span className="flex size-4 items-center justify-center rounded border border-neutral-700 text-[0.625rem]">
-                      {navigator.platform.startsWith("Mac") ? "⌘" : "^"}
-                    </span>
-                    <span className="flex size-4 items-center justify-center rounded border border-neutral-700">
-                      <ArrowTurnLeft className="text-content-inverted size-2.5" />
-                    </span>
-                  </span>
-                </span>
-              }
-              onClick={sendMessage}
-              className="h-8 w-fit rounded-lg px-4"
-            />
-          </div>
-        </div>
+        <MessageInput
+          placeholder={placeholder}
+          onSendMessage={sendMessage}
+          autoFocus={!isMobile}
+        />
       </div>
     </div>
   );

@@ -240,7 +240,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "All Partners",
             icon: Users,
             href: `/${slug}/program/partners`,
-            exact: true,
+            isActive: (pathname: string, href: string) =>
+              pathname.startsWith(href) &&
+              ["applications"].every(
+                (p) => !pathname.startsWith(`${href}/${p}`),
+              ),
           },
           {
             name: "Applications",
