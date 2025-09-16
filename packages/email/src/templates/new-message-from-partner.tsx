@@ -65,7 +65,7 @@ export default function NewMessageFromPartner({
               </Heading>
               <Link
                 className="text-[13px] font-medium text-neutral-500 underline"
-                href={`https://app.dub.co/${workspaceSlug}/program/partners?partnerId=${partner.id}`}
+                href={`https://app.dub.co/${workspaceSlug}/program/partners/${partner.id}`}
               >
                 View profile in Dub
               </Link>
