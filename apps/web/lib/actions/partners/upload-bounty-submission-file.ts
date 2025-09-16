@@ -66,7 +66,13 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
 
     // Validate the partner has not already created a submission for this bounty
     if (bounty.submissions.length > 0) {
-      throw new Error("You have already created a submission for this bounty.");
+      const submission = bounty.submissions[0];
+
+      if (submission.status !== "draft") {
+        throw new Error(
+          "You have already created a submission for this bounty.",
+        );
+      }
     }
 
     if (bounty.groups.length > 0) {

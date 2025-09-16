@@ -42,6 +42,12 @@ export const approveBountySubmissionAction = authActionClient
       throw new Error("Bounty submission does not belong to this program.");
     }
 
+    if (bountySubmission.status === "draft") {
+      throw new Error(
+        "Bounty submission is in progress and cannot be approved.",
+      );
+    }
+
     if (bountySubmission.status === "approved") {
       throw new Error("Bounty submission already approved.");
     }

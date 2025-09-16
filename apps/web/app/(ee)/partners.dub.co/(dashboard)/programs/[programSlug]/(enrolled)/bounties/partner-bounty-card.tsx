@@ -54,43 +54,11 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
         </div>
 
         <div className="flex grow flex-col justify-end">
-          {submission ? (
-            submission.status === "pending" ? (
-              <StatusBadge variant="pending" icon={null}>
-                Submitted{" "}
-                {submission.createdAt &&
-                  formatDate(submission.createdAt, { month: "short" })}
-              </StatusBadge>
-            ) : submission.status === "rejected" ? (
-              <StatusBadge variant="error" icon={null}>
-                Rejected
-              </StatusBadge>
-            ) : (
-              <StatusBadge variant="success">
-                {bounty.type === "performance" ? (
-                  <>
-                    Completed{" "}
-                    {formatDate(submission.createdAt, { month: "short" })}
-                  </>
-                ) : (
-                  <>
-                    Confirmed{" "}
-                    {submission.reviewedAt &&
-                      formatDate(submission.reviewedAt, { month: "short" })}
-                  </>
-                )}
-              </StatusBadge>
-            )
-          ) : bounty.type === "performance" ? (
-            <BountyPerformance bounty={bounty} />
-          ) : (
-            <div
-              className="group-hover:ring-border-subtle flex h-7 w-fit items-center rounded-lg bg-black px-2.5 text-sm text-white transition-all group-hover:ring-2"
-              onClick={() => setShowClaimBountyModal(true)}
-            >
-              Claim bounty
-            </div>
-          )}
+          {renderSubmissionStatus({
+            bounty,
+            submission,
+            setShowClaimBountyModal,
+          })}
         </div>
       </button>
     </>
@@ -115,3 +83,72 @@ export const PartnerBountyCardSkeleton = () => {
     </div>
   );
 };
+
+function renderSubmissionStatus({
+  bounty,
+  submission,
+  setShowClaimBountyModal,
+}: {
+  bounty: PartnerBountyProps;
+  submission: PartnerBountyProps["submission"];
+  setShowClaimBountyModal: (show: boolean) => void;
+}) {
+  if (!submission) {
+    return bounty.type === "performance" ? (
+      <BountyPerformance bounty={bounty} />
+    ) : (
+      <div
+        className="group-hover:ring-border-subtle flex h-7 w-fit items-center rounded-lg bg-black px-2.5 text-sm text-white transition-all group-hover:ring-2"
+        onClick={() => setShowClaimBountyModal(true)}
+      >
+        Claim bounty
+      </div>
+    );
+  }
+
+  switch (submission.status) {
+    case "draft":
+      return (
+        <div
+          className="group-hover:ring-border-subtle flex h-7 w-fit items-center rounded-lg bg-black px-2.5 text-sm text-white transition-all group-hover:ring-2"
+          onClick={() => setShowClaimBountyModal(true)}
+        >
+          Continue submission
+        </div>
+      );
+
+    case "submitted":
+      return (
+        <StatusBadge variant="new" icon={null}>
+          Submitted{" "}
+          {submission.createdAt &&
+            formatDate(submission.createdAt, { month: "short" })}
+        </StatusBadge>
+      );
+
+    case "rejected":
+      return (
+        <StatusBadge variant="error" icon={null}>
+          Rejected
+        </StatusBadge>
+      );
+
+    case "approved":
+    default:
+      return (
+        <StatusBadge variant="success">
+          {bounty.type === "performance" ? (
+            <>
+              Completed {formatDate(submission.createdAt, { month: "short" })}
+            </>
+          ) : (
+            <>
+              Confirmed{" "}
+              {submission.reviewedAt &&
+                formatDate(submission.reviewedAt, { month: "short" })}
+            </>
+          )}
+        </StatusBadge>
+      );
+  }
+}

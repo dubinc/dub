@@ -326,11 +326,16 @@ function BountySubmissionDetailsSheetContent({
                     variant="danger"
                     text="Reject"
                     disabledTooltip={
-                      submission.status === "rejected"
-                        ? "Bounty submission already rejected."
-                        : undefined
+                      submission.status === "draft"
+                        ? "Bounty submission is in progress."
+                        : submission.status === "rejected"
+                          ? "Bounty submission already rejected."
+                          : undefined
                     }
-                    disabled={isApprovingBountySubmission}
+                    disabled={
+                      isApprovingBountySubmission ||
+                      submission.status === "draft"
+                    }
                     onClick={() => setShowRejectModal(true)}
                   />
 
@@ -340,7 +345,12 @@ function BountySubmissionDetailsSheetContent({
                     text="Approve"
                     loading={isApprovingBountySubmission}
                     onClick={() => setShowApproveBountySubmissionModal(true)}
-                    disabled={!isValidForm}
+                    disabledTooltip={
+                      submission.status === "draft"
+                        ? "Bounty submission is in progress."
+                        : undefined
+                    }
+                    disabled={!isValidForm || submission.status === "draft"}
                   />
                 </div>
               </div>
