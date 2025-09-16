@@ -29,7 +29,7 @@ export const sendLimitEmail = async ({
           subject: type.endsWith("UsageLimitEmail")
             ? "Dub Alert: Clicks Limit Exceeded"
             : `Dub Alert: ${workspace.name} has used ${percentage.toString()}% of its links limit for the month.`,
-          email,
+          to: email,
           react: type.endsWith("UsageLimitEmail")
             ? ClicksExceeded({
                 email,

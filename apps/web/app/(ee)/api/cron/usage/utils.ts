@@ -164,7 +164,7 @@ export const updateUsage = async () => {
             limiter.schedule(() =>
               sendEmail({
                 subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
-                email,
+                to: email,
                 react: ClicksSummary({
                   email,
                   workspaceName: workspace.name,

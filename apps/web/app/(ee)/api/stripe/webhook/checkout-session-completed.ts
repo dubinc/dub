@@ -108,7 +108,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     ...users.map((user) => {
       limiter.schedule(() =>
         sendEmail({
-          email: user.email as string,
+          to: user.email as string,
           replyTo: "steven.tey@dub.co",
           subject: `Thank you for upgrading to Dub ${plan.name}!`,
           react: UpgradeEmail({

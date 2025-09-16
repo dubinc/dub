@@ -80,7 +80,7 @@ export const installIntegration = async ({
 
       if (email && integration) {
         await sendEmail({
-          email: email!,
+          to: email!,
           subject: `The "${integration.name}" integration has been added to your workspace`,
           react: IntegrationInstalled({
             email: email!,
