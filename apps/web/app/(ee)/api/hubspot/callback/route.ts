@@ -12,6 +12,7 @@ import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { Project } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
+import { refreshAccessToken } from "app/api/oauth/token/refresh-access-token";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -88,7 +89,17 @@ export const GET = async (req: Request) => {
       body,
     });
 
-    const credentials = await response.json();
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error(result);
+
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "[HubSpot] Failed to exchange authorization code for access token",
+      });
+    }
 
     // Find the integration
     const integration = await prisma.integration.findUniqueOrThrow({
@@ -102,7 +113,10 @@ export const GET = async (req: Request) => {
       integrationId: integration.id,
       userId: session.user.id,
       workspaceId,
-      credentials,
+      credentials: {
+        ...result,
+        created_at: Date.now(),
+      },
     });
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);

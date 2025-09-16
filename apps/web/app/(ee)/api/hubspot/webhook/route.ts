@@ -1,5 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { HUBSPOT_CLIENT_SECRET } from "@/lib/integrations/hubspot/constants";
+import { refreshAccessToken } from "@/lib/integrations/hubspot/refresh-token";
+import { hubSpotWebhookSchema } from "@/lib/integrations/hubspot/schema";
 import { trackHubSpotLeadEvent } from "@/lib/integrations/hubspot/track-lead";
 import { HubSpotAuthToken } from "@/lib/integrations/hubspot/types";
 import { prisma } from "@dub/prisma";
@@ -45,7 +47,12 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     const payload = JSON.parse(rawPayload);
 
+    // HS send multiple events in the same request
+    // so we need to process each event individually
     for (const event of payload) {
+      const { objectTypeId, portalId, subscriptionType } =
+        hubSpotWebhookSchema.parse(event);
+
       // Find the installation
       const installation = await prisma.installedIntegration.findFirst({
         where: {
@@ -54,7 +61,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
           },
           credentials: {
             path: "$.hub_id",
-            equals: event.portalId,
+            equals: portalId,
           },
         },
         include: {
@@ -64,22 +71,50 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
       if (!installation) {
         console.error(
-          `HubSpot Installation is not found for portalId ${event.portalId}.`,
+          `[HubSpot] Installation is not found for portalId ${portalId}.`,
         );
         continue;
       }
 
       const workspace = installation.project;
 
-      switch (event.objectTypeId) {
-        case "0-1":
+      // Refresh the access token if needed
+      const authToken = await refreshAccessToken({
+        installationId: installation.id,
+        authToken: installation.credentials as HubSpotAuthToken,
+      });
+
+      if (!authToken) {
+        console.error(
+          `[HubSpot] Authentication token is not found or valid for portalId ${portalId}.`,
+        );
+        continue;
+      }
+
+      // Track a deferred lead event
+      if (objectTypeId === "0-1") {
+        await trackHubSpotLeadEvent({
+          payload: event,
+          workspace,
+          authToken,
+        });
+      }
+
+      if (objectTypeId === "0-3") {
+        // Track the final lead event
+        if (subscriptionType === "object.creation") {
           await trackHubSpotLeadEvent({
-            mode: "deferred",
             payload: event,
             workspace,
-            authToken: installation.credentials as HubSpotAuthToken,
+            authToken,
           });
-          break;
+        }
+
+        // Track the sale event
+        if (subscriptionType === "object.propertyChange") {
+          // TODO:
+          // Track sale
+        }
       }
     }
 

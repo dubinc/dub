@@ -1,16 +1,16 @@
 import { HUBSPOT_API_HOST } from "./constants";
-import { hubSpotContactSchema } from "./schema";
+import { hubSpotDealSchema } from "./schema";
 
-export async function getHubSpotContact({
-  contactId,
+export async function getHubSpotDeal({
+  dealId,
   accessToken,
 }: {
-  contactId: number | string;
+  dealId: number;
   accessToken: string;
 }) {
   try {
     const response = await fetch(
-      `${HUBSPOT_API_HOST}/crm/v3/objects/contacts/${contactId}?properties=email,firstname,lastname,phone,dub_id`,
+      `${HUBSPOT_API_HOST}/crm/v3/objects/0-3/${dealId}?associations=contacts`,
       {
         method: "GET",
         headers: {
@@ -25,11 +25,9 @@ export async function getHubSpotContact({
       throw new Error(result.message);
     }
 
-    return hubSpotContactSchema.parse(result);
+    return hubSpotDealSchema.parse(result);
   } catch (error) {
-    console.error(
-      `[HubSpot] Failed to retrieve contact ${contactId}: ${error}`,
-    );
+    console.error(`[HubSpot] Failed to retrieve deal ${dealId}: ${error}`);
     return null;
   }
 }

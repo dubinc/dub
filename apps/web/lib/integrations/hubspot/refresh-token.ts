@@ -1,15 +1,22 @@
+import { prisma } from "@dub/prisma";
 import {
   HUBSPOT_API_HOST,
   HUBSPOT_CLIENT_ID,
   HUBSPOT_CLIENT_SECRET,
-  HUBSPOT_REDIRECT_URI,
 } from "./constants";
-import { hubSpotAuthTokenSchema, hubSpotRefreshTokenSchema } from "./schema";
 import { HubSpotAuthToken } from "./types";
 
-export async function refreshAccessToken(
-  refreshToken: string,
-): Promise<HubSpotAuthToken | null> {
+export async function refreshAccessToken({
+  installationId,
+  authToken,
+}: {
+  installationId: string;
+  authToken: HubSpotAuthToken;
+}) {
+  if (isTokenValid(authToken)) {
+    return authToken;
+  }
+
   try {
     const response = await fetch(`${HUBSPOT_API_HOST}/oauth/v1/token`, {
       method: "POST",
@@ -18,56 +25,47 @@ export async function refreshAccessToken(
       },
       body: new URLSearchParams({
         grant_type: "refresh_token",
-        refresh_token: refreshToken,
+        refresh_token: authToken.refresh_token,
         client_id: HUBSPOT_CLIENT_ID,
         client_secret: HUBSPOT_CLIENT_SECRET,
-        redirect_uri: HUBSPOT_REDIRECT_URI,
       }),
     });
 
-    const result = hubSpotRefreshTokenSchema.parse(await response.json());
+    const result = await response.json();
 
     if (!response.ok) {
-      console.error("Failed to refresh HubSpot access token:", result);
-      return null;
+      console.error(result);
+      throw new Error(result.message);
     }
 
-    console.log(result);
-
-    // Transform the response to match our schema
-    const authToken: HubSpotAuthToken = {
-      access_token: result.access_token,
-      refresh_token: result.refresh_token,
-      scopes: [], // Scopes are not returned in refresh response, will need to be preserved
-      expires_in: result.expires_in,
-      hub_id: 0, // Hub ID is not returned in refresh response, will need to be preserved
+    // Store the new auth token
+    const newAuthToken: HubSpotAuthToken = {
+      ...result,
+      created_at: Date.now(),
     };
 
-    return hubSpotAuthTokenSchema.parse(authToken);
+    await prisma.installedIntegration.update({
+      where: {
+        id: installationId,
+      },
+      data: {
+        credentials: newAuthToken,
+      },
+    });
+
+    return newAuthToken;
   } catch (error) {
-    console.error("Error refreshing HubSpot access token:", error);
+    console.error(
+      "[HubSpot] Error refreshing the access token:",
+      error.message,
+    );
     return null;
   }
 }
 
-/**
- * Refreshes an access token while preserving existing scopes and hub_id
- * @param currentToken - The current HubSpot auth token
- * @returns Updated token with new access_token and refresh_token, or null if refresh failed
- */
-export async function refreshAccessTokenWithContext(
-  currentToken: HubSpotAuthToken,
-): Promise<HubSpotAuthToken | null> {
-  const refreshedToken = await refreshAccessToken(currentToken.refresh_token);
+function isTokenValid(authToken: HubSpotAuthToken) {
+  const buffer = 60 * 1000; // refresh 1 min early
+  const expiresAt = authToken.created_at + authToken.expires_in * 1000;
 
-  if (!refreshedToken) {
-    return null;
-  }
-
-  // Preserve the original scopes and hub_id
-  return {
-    ...refreshedToken,
-    scopes: currentToken.scopes,
-    hub_id: currentToken.hub_id,
-  };
+  return Date.now() < expiresAt - buffer;
 }

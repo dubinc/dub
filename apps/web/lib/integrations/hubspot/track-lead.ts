@@ -1,62 +1,89 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
 import { WorkspaceProps } from "@/lib/types";
-import { z } from "zod";
-import { HUBSPOT_OBJECT_TYPE_IDS } from "./constants";
-import { getContact } from "./get-contact";
+import { getHubSpotContact } from "./get-contact";
+import { getHubSpotDeal } from "./get-deal";
+import { hubSpotLeadEventSchema } from "./schema";
 import { HubSpotAuthToken } from "./types";
-
-const hubSpotLeadEventSchema = z.object({
-  objectId: z.number(),
-  subscriptionType: z.enum(["object.creation"]),
-  objectTypeId: z.enum(HUBSPOT_OBJECT_TYPE_IDS as [string, ...string[]]),
-});
 
 export const trackHubSpotLeadEvent = async ({
   payload,
   workspace,
   authToken,
-  mode,
 }: {
   payload: Record<string, any>;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   authToken: HubSpotAuthToken;
-  mode: "async" | "deferred";
 }) => {
   const { objectId, objectTypeId, subscriptionType } =
     hubSpotLeadEventSchema.parse(payload);
 
-  if (subscriptionType !== "object.creation" || objectTypeId !== "0-1") {
-    console.log(
-      `Unsupported subscriptionType or objectTypeId: ${subscriptionType} ${objectTypeId}`,
-    );
-    return;
+  // A new contact is created
+  if (objectTypeId === "0-1" && subscriptionType === "object.creation") {
+    const contact = await getHubSpotContact({
+      contactId: objectId,
+      accessToken: authToken.access_token,
+    });
+
+    if (!contact) {
+      return;
+    }
+
+    const { properties } = contact;
+
+    const customerName =
+      [properties.firstname, properties.lastname].filter(Boolean).join(" ") ||
+      null;
+
+    return await trackLead({
+      clickId: properties.dub_id || "",
+      eventName: "Sign up",
+      customerEmail: properties.email,
+      customerExternalId: properties.email,
+      customerName,
+      mode: "deferred",
+      workspace,
+      rawBody: payload,
+    });
   }
 
-  // Get the contact from HubSpot
-  const contact = await getContact({
-    contactId: objectId,
-    accessToken: authToken.access_token,
-  });
+  // A deal is created for the contact (Eg: lead is tracked)
+  if (objectTypeId === "0-3" && subscriptionType === "object.creation") {
+    const deal = await getHubSpotDeal({
+      dealId: objectId,
+      accessToken: authToken.access_token,
+    });
 
-  if (!contact) {
-    console.error(`Contact not found for objectId: ${objectId}`);
-    return;
+    if (!deal) {
+      return;
+    }
+
+    const { properties, associations } = deal;
+
+    // Find the contact associated with the deal
+    const contact = associations.contacts.results[0];
+
+    if (!contact) {
+      return;
+    }
+
+    // HubSpot doesn't return the contact properties in the deal associations, 
+    // so we need to get it separately
+    const contactInfo = await getHubSpotContact({
+      contactId: contact.id,
+      accessToken: authToken.access_token,
+    });
+
+    if (!contactInfo) {
+      return;
+    }
+
+    return await trackLead({
+      clickId: "",
+      eventName: properties.dealstage,
+      customerExternalId: contactInfo.properties.email,
+      mode: "async",
+      workspace,
+      rawBody: payload,
+    });
   }
-
-  const { properties } = contact;
-
-  const customerName =
-    [properties.firstname, properties.lastname].filter(Boolean).join(" ") ||
-    null;
-
-  return await trackLead({
-    clickId: properties.dub_id || "",
-    eventName: "Sign up",
-    customerEmail: properties.email,
-    customerExternalId: contact.id,
-    customerName,
-    mode,
-    workspace,
-    rawBody: payload,
-  });
 };
