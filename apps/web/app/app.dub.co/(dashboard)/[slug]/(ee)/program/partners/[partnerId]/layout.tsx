@@ -9,14 +9,23 @@ import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
 import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
 import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
+import {
+  Button,
+  MenuItem,
+  Popover,
+  buttonVariants,
+  useKeyboardShortcut,
+} from "@dub/ui";
 import {
   ChevronRight,
+  InvoiceDollar,
+  Msgs,
   Pen2,
   UserCheck,
   UserDelete,
   Users,
 } from "@dub/ui/icons";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode, useState } from "react";
@@ -119,8 +128,20 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
         text="Send commission"
         shortcut="C"
         onClick={() => setCreateCommissionSheetOpen(true)}
-        className="hidden w-fit sm:flex"
+        className="hidden w-fit md:flex"
       />
+
+      <Link
+        href={`/program/messages?partnerId=${partner.id}`}
+        target="_blank"
+        className={cn(
+          buttonVariants({ variant: "secondary" }),
+          "hidden h-10 items-center gap-2 rounded-md border px-4 text-sm md:flex",
+        )}
+      >
+        <Msgs className="size-4 shrink-0" />
+        Message
+      </Link>
 
       <Popover
         openPopover={isOpen}
@@ -128,12 +149,22 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
         content={
           <div className="grid w-full grid-cols-1 gap-px p-2 md:w-48">
             <MenuItem
-              icon={Pen2}
+              as={Link}
+              href={`/program/messages?partnerId=${partner.id}`}
+              target="_blank"
+              icon={Msgs}
+              onClick={() => setIsOpen(false)}
+              className="md:hidden"
+            >
+              Message
+            </MenuItem>
+            <MenuItem
+              icon={InvoiceDollar}
               onClick={() => {
                 setCreateCommissionSheetOpen(true);
                 setIsOpen(false);
               }}
-              className="sm:hidden"
+              className="md:hidden"
             >
               Send commission
             </MenuItem>
