@@ -7,10 +7,10 @@ import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
-import { Button, useRouterStuff } from "@dub/ui";
+import { Button } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
-import { CSSProperties, ReactNode, useEffect, useState } from "react";
+import { CSSProperties, ReactNode, useState } from "react";
 import { MessagesUpsell } from "./messages-upsell";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
@@ -28,17 +28,14 @@ function CapableLayout({ children }: { children: ReactNode }) {
   const { partnerId } = useParams() as { partnerId?: string };
 
   const router = useRouter();
-  const { searchParams } = useRouterStuff();
 
   const { partnerMessages, isLoading, error } = usePartnerMessages({
     query: { messagesLimit: 1 },
   });
 
-  const [currentPanel, setCurrentPanel] = useState<MessagesPanel>("index");
-
-  useEffect(() => {
-    searchParams.get("new") && setCurrentPanel("main");
-  }, [searchParams.get("new")]);
+  const [currentPanel, setCurrentPanel] = useState<MessagesPanel>(
+    partnerId ? "main" : "index",
+  );
 
   return (
     <MessagesContext.Provider value={{ currentPanel, setCurrentPanel }}>
