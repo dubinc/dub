@@ -19,6 +19,7 @@ import {
   Trash,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
+import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -360,9 +361,18 @@ function CommentCard({
                   sendButtonText="Save"
                 />
               ) : (
-                <p className="text-content-subtle text-sm font-medium">
+                <Linkify
+                  as="p"
+                  className="text-content-subtle whitespace-pre-wrap text-sm font-medium"
+                  options={{
+                    target: "_blank",
+                    rel: "noopener noreferrer nofollow",
+                    className:
+                      "underline underline-offset-4 hover:text-content-default",
+                  }}
+                >
                   {comment?.text}
-                </p>
+                </Linkify>
               )}
             </div>
           </AnimatedSizeContainer>
