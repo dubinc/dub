@@ -4,6 +4,7 @@ enum BountyType {
 }
 
 enum BountySubmissionStatus {
+  draft
   pending
   approved
   rejected

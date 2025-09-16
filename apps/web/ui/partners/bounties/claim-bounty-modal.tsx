@@ -62,11 +62,33 @@ function ClaimBountyModalContent({
 
   const { handleKeyDown } = useEnterSubmit();
   const [success, setSuccess] = useState(false);
-  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(submission?.status === "draft");
 
-  const [description, setDescription] = useState("");
-  const [files, setFiles] = useState<FileInput[]>([]);
-  const [urls, setUrls] = useState<Url[]>([{ id: uuid(), url: "" }]);
+  // Initialize form state with existing draft submission data
+  const [description, setDescription] = useState(submission?.description || "");
+
+  const [files, setFiles] = useState<FileInput[]>(() => {
+    if (submission?.files && submission.files.length > 0) {
+      return submission.files.map((file) => ({
+        id: uuid(),
+        url: file.url,
+        uploading: false,
+      }));
+    }
+
+    return [];
+  });
+
+  const [urls, setUrls] = useState<Url[]>(() => {
+    if (submission?.urls && submission.urls.length > 0) {
+      return submission.urls.map((url) => ({
+        id: uuid(),
+        url: url,
+      }));
+    }
+
+    return [{ id: uuid(), url: "" }];
+  });
 
   const { executeAsync: uploadFile } = useAction(
     uploadBountySubmissionFileAction,
@@ -124,30 +146,64 @@ function ClaimBountyModalContent({
         e.preventDefault();
         if (!programEnrollment) return;
 
+        // Determine which button was clicked
+        const submitter = (e.nativeEvent as SubmitEvent)
+          .submitter as HTMLButtonElement;
+        const isDraft = submitter?.name === "draft";
+
+        const finalFiles = files
+          .filter(({ file, url }) => file && url)
+          .map(({ file, url }) => ({
+            url: url!,
+            fileName: file?.name || "File",
+            size: file?.size || 0,
+          }));
+
+        const finalUrls = urls.map(({ url }) => url).filter(Boolean);
+
         try {
+          // Check the submission requirements are met for non-draft submissions
+          if (!isDraft) {
+            if (imageRequired && finalFiles.length === 0) {
+              throw new Error("You must upload at least one image.");
+            }
+
+            if (urlRequired && finalUrls.length === 0) {
+              throw new Error("You must provide at least one URL.");
+            }
+          }
+
           const result = await createSubmission({
             programId: programEnrollment.programId,
             bountyId: bounty.id,
-            files: files
-              .filter(({ file, url }) => file && url)
-              .map(({ file, url }) => ({
-                url: url!,
-                fileName: file?.name || "File",
-                size: file?.size || 0,
-              })),
-            urls: urls.map(({ url }) => url).filter(Boolean),
+            files: finalFiles,
+            urls: finalUrls,
             description,
+            ...(isDraft && { isDraft }),
           });
 
-          if (!result?.data?.success)
-            throw new Error("Failed to create submission");
+          if (!result?.data?.success) {
+            throw new Error(
+              isDraft
+                ? "Failed to save progress."
+                : "Failed to create submission.",
+            );
+          }
 
-          mutatePrefix(
+          toast.success(
+            isDraft ? "Bounty progress saved." : "Bounty submitted.",
+          );
+
+          setSuccess(true);
+          await mutatePrefix(
             `/api/partner-profile/programs/${programEnrollment.program.slug}/bounties`,
           );
-          setSuccess(true);
-        } catch (e) {
-          toast.error("Failed to create submission. Please try again.");
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to create submission. Please try again.",
+          );
         }
       }}
       className="scrollbar-hide max-h-[calc(100dvh-50px)] overflow-y-auto"
@@ -471,49 +527,48 @@ function ClaimBountyModalContent({
             </motion.div>
 
             {/* Action buttons */}
-            {bounty.type !== "performance" && !submission && (
-              <div className="border-border-subtle border-t p-5">
-                <div
-                  className={cn(
-                    "flex items-center transition-all",
-                    isFormOpen ? "gap-4" : "gap-0",
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "shrink-0 overflow-hidden transition-[width]",
-                      isFormOpen ? "w-[calc(50%-1rem)]" : "w-0",
-                    )}
-                  >
+            {bounty.type !== "performance" &&
+              (!submission || submission.status === "draft") && (
+                <div className="border-border-subtle border-t p-5">
+                  {isFormOpen ? (
+                    <div className="flex items-center justify-between">
+                      <Button
+                        variant="outline"
+                        text="Cancel"
+                        className="w-fit rounded-lg"
+                        onClick={() => setIsFormOpen(false)}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          variant="secondary"
+                          text="Save progress"
+                          className="rounded-lg"
+                          type="submit"
+                          name="draft"
+                          loading={isPending}
+                          disabled={fileUploading}
+                        />
+                        <Button
+                          variant="primary"
+                          text="Submit"
+                          className="rounded-lg"
+                          type="submit"
+                          name="submit"
+                          loading={isPending}
+                          disabled={fileUploading}
+                        />
+                      </div>
+                    </div>
+                  ) : (
                     <Button
-                      variant="secondary"
-                      text="Cancel"
-                      className="rounded-lg"
-                      onClick={() => setIsFormOpen(false)}
+                      variant="primary"
+                      text={submission ? "Continue submission" : "Claim bounty"}
+                      className="w-full rounded-lg"
+                      onClick={() => setIsFormOpen(true)}
                     />
-                  </div>
-                  <Button
-                    variant="primary"
-                    text={isFormOpen ? "Submit proof" : "Claim bounty"}
-                    className="grow rounded-lg"
-                    onClick={
-                      isFormOpen
-                        ? undefined
-                        : // Delay open to prevent also submitting the form
-                          () => setTimeout(() => setIsFormOpen(true), 100)
-                    }
-                    loading={isPending}
-                    disabled={
-                      isFormOpen &&
-                      ((imageRequired && !files.length) ||
-                        (urlRequired &&
-                          !urls.filter(({ url }) => url).length) ||
-                        fileUploading)
-                    }
-                  />
+                  )}
                 </div>
-              </div>
-            )}
+              )}
           </>
         )}
       </AnimatedSizeContainer>

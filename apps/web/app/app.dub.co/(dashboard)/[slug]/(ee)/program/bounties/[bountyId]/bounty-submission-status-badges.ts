@@ -1,6 +1,12 @@
 import { CircleCheck, CircleHalfDottedCheck, CircleXmark } from "@dub/ui/icons";
 
 export const BOUNTY_SUBMISSION_STATUS_BADGES = {
+  draft: {
+    label: "In progress",
+    variant: "new",
+    icon: CircleHalfDottedCheck,
+    iconClassName: "text-blue-600",
+  },
   pending: {
     label: "Pending",
     variant: "pending",
