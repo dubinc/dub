@@ -36,7 +36,7 @@ export const hubSpotDealSchema = z.object({
   id: z.string(),
   properties: z.object({
     dealname: z.string(),
-    amount: z.string(),
+    amount: z.string().nullable(),
     dealstage: z.string(),
   }),
   associations: z.object({
