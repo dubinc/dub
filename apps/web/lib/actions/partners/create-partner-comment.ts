@@ -4,14 +4,14 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { prisma } from "@dub/prisma";
 import {
-  ProgramPartnerCommentSchema,
-  createProgramPartnerCommentSchema,
+  PartnerCommentSchema,
+  createPartnerCommentSchema,
 } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
 
 // Create a partner comment
 export const createPartnerCommentAction = authActionClient
-  .schema(createProgramPartnerCommentSchema)
+  .schema(createPartnerCommentSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
     const { partnerId, text, createdAt } = parsedInput;
@@ -37,6 +37,6 @@ export const createPartnerCommentAction = authActionClient
     });
 
     return {
-      comment: ProgramPartnerCommentSchema.parse(comment),
+      comment: PartnerCommentSchema.parse(comment),
     };
   });

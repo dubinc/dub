@@ -6,7 +6,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { usePartnerComments } from "@/lib/swr/use-partner-comments";
 import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramPartnerCommentProps } from "@/lib/types";
+import { PartnerCommentProps } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
 import { MessageInput } from "@/ui/shared/message-input";
 import { Button, LoadingSpinner, Popover, Trash } from "@dub/ui";
@@ -38,7 +38,7 @@ export function ProgramPartnerCommentsPageClient() {
 
           const createdAt = new Date();
 
-          const optimisticComment: ProgramPartnerCommentProps & {
+          const optimisticComment: PartnerCommentProps & {
             delivered?: false;
           } = {
             id: `tmp_${uuid()}`,
@@ -118,7 +118,7 @@ function CommentCard({
   comment,
   className,
 }: {
-  comment?: ProgramPartnerCommentProps & { delivered?: false };
+  comment?: PartnerCommentProps & { delivered?: false };
   className?: string;
 }) {
   const { partnerId } = useParams() as { partnerId: string };

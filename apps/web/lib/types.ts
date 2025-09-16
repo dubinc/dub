@@ -79,11 +79,11 @@ import {
 import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
+  PartnerCommentSchema,
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
   ProgramMetricsSchema,
-  ProgramPartnerCommentSchema,
   ProgramPartnerLinkSchema,
   ProgramSchema,
   ProgramWithLanderDataSchema,
@@ -555,9 +555,7 @@ export type PartnerGroupProps = PartnerGroup & {
   additionalLinks: PartnerGroupAdditionalLink[];
 };
 
-export type ProgramPartnerCommentProps = z.infer<
-  typeof ProgramPartnerCommentSchema
->;
+export type PartnerCommentProps = z.infer<typeof PartnerCommentSchema>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
