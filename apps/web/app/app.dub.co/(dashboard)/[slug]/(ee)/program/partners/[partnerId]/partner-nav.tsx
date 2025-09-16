@@ -22,9 +22,14 @@ export function PartnerNav() {
   const { partnerId } = useParams() as { partnerId: string };
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { count: commentsCount } = usePartnerCommentsCount({
-    partnerId,
-  });
+  const { count: commentsCount } = usePartnerCommentsCount(
+    {
+      partnerId,
+    },
+    {
+      keepPreviousData: true,
+    },
+  );
 
   const containerRef = useRef<HTMLDivElement>(null);
   const layoutGroupId = useId();
