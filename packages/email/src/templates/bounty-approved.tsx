@@ -19,7 +19,6 @@ export default function BountyApproved({
   program = {
     name: "Acme",
     slug: "acme",
-    supportEmail: "support@example.com",
   },
   bounty = {
     name: "Promote Acme at your campus and earn $500 ",
@@ -30,7 +29,6 @@ export default function BountyApproved({
   program: {
     slug: string;
     name: string;
-    supportEmail: string;
   };
   bounty: {
     name: string;
@@ -70,10 +68,14 @@ export default function BountyApproved({
 
             <Text className="text-sm leading-5 text-neutral-600">
               If you have any questions about the program please don’t hesitate
-              to reach out to the <strong>{program.name}</strong> team{" "}
-              <span className="font-semibold text-blue-600">
-                ({program.supportEmail})
-              </span>
+              to{" "}
+              <Link
+                href={`https://partners.dub.co/messages/${program.slug}`}
+                className="font-semibold text-neutral-700 underline underline-offset-2"
+              >
+                reach out to the {program.name} team ↗
+              </Link>
+              .
             </Text>
 
             <Section className="mb-10 mt-6">

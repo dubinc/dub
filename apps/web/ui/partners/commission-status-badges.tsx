@@ -1,4 +1,4 @@
-import { LinkifyTooltipContent, SimpleTooltipContent } from "@dub/ui";
+import { SimpleTooltipContent } from "@dub/ui";
 import {
   CircleCheck,
   CircleHalfDottedClock,
@@ -6,12 +6,13 @@ import {
   Duplicate,
   ShieldAlert,
 } from "@dub/ui/icons";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, PARTNERS_DOMAIN } from "@dub/utils";
 
 interface CommissionTooltipDataProps {
+  name: string;
+  slug: string;
   holdingPeriodDays: number;
   minPayoutAmount: number;
-  supportEmail: string;
 }
 
 export const CommissionStatusBadges = {
@@ -54,10 +55,11 @@ export const CommissionStatusBadges = {
     className: "text-red-600 bg-red-100",
     icon: ShieldAlert,
     tooltip: (data: CommissionTooltipDataProps) => (
-      <LinkifyTooltipContent>
-        This commission was flagged as fraudulent. Reach out to{" "}
-        {data.supportEmail} if you believe this is incorrect.
-      </LinkifyTooltipContent>
+      <SimpleTooltipContent
+        title={`This commission was flagged as fraudulent. If you believe this is incorrect, `}
+        cta={`reach out to the ${data.name} team`}
+        href={`${PARTNERS_DOMAIN}/messages/${data.slug}`}
+      />
     ),
   },
   duplicate: {
@@ -66,10 +68,11 @@ export const CommissionStatusBadges = {
     className: "text-red-600 bg-red-100",
     icon: Duplicate,
     tooltip: (data: CommissionTooltipDataProps) => (
-      <LinkifyTooltipContent>
-        This commission was flagged as duplicate. Reach out to{" "}
-        {data.supportEmail} if you believe this is incorrect.
-      </LinkifyTooltipContent>
+      <SimpleTooltipContent
+        title={`This commission was flagged as duplicate. If you believe this is incorrect, `}
+        cta={`reach out to the ${data.name} team`}
+        href={`${PARTNERS_DOMAIN}/messages/${data.slug}`}
+      />
     ),
   },
   refunded: {
@@ -78,10 +81,11 @@ export const CommissionStatusBadges = {
     className: "text-red-600 bg-red-100",
     icon: CircleXmark,
     tooltip: (data: CommissionTooltipDataProps) => (
-      <LinkifyTooltipContent>
-        This commission was refunded. Reach out to {data.supportEmail} if you
-        believe this is incorrect.
-      </LinkifyTooltipContent>
+      <SimpleTooltipContent
+        title={`This commission was refunded. If you believe this is incorrect, `}
+        cta={`reach out to the ${data.name} team`}
+        href={`${PARTNERS_DOMAIN}/messages/${data.slug}`}
+      />
     ),
   },
   canceled: {
@@ -90,10 +94,11 @@ export const CommissionStatusBadges = {
     className: "text-gray-600 bg-gray-100",
     icon: CircleXmark,
     tooltip: (data: CommissionTooltipDataProps) => (
-      <LinkifyTooltipContent>
-        This commission was canceled. Reach out to {data.supportEmail} if you
-        believe this is incorrect.
-      </LinkifyTooltipContent>
+      <SimpleTooltipContent
+        title={`This commission was canceled. If you believe this is incorrect, `}
+        cta={`reach out to the ${data.name} team`}
+        href={`${PARTNERS_DOMAIN}/messages/${data.slug}`}
+      />
     ),
   },
 };

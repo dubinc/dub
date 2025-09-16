@@ -122,7 +122,7 @@ export const banPartnerAction = authActionClient
               },
               program: {
                 name: program.name,
-                supportEmail,
+                slug: program.slug,
               },
               bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
             }),

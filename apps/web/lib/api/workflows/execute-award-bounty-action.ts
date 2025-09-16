@@ -132,7 +132,6 @@ export const executeAwardBountyAction = async ({
         program: {
           name: bounty.program.name,
           slug: bounty.program.slug,
-          supportEmail: bounty.program.supportEmail || "support@dub.co",
         },
       }),
     });

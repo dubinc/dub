@@ -17,7 +17,14 @@ import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { X } from "@/ui/shared/icons";
 import { Button, Grid, useCopyToClipboard } from "@dub/ui";
-import { Check, ChevronLeft, Copy, LoadingSpinner } from "@dub/ui/icons";
+import {
+  Check,
+  ChevronLeft,
+  Copy,
+  EnvelopeArrowRight,
+  LoadingSpinner,
+  MsgsDotted,
+} from "@dub/ui/icons";
 import {
   OG_AVATAR_URL,
   capitalize,
@@ -53,6 +60,7 @@ export function PartnerMessagesProgramPageClient() {
     mutate: mutateProgramMessages,
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
+    enabled: programEnrollment?.messagingEnabled ?? false,
     swrOpts: {
       onSuccess: async (data) => {
         // Mark unread messages from the program as read
@@ -127,91 +135,115 @@ export function PartnerMessagesProgramPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        <div className="min-h-0 grow">
-          <MessagesPanel
-            messages={messages && partner && user ? messages : undefined}
-            error={errorMessages}
-            currentUserType="partner"
-            currentUserId={partner?.id || ""}
-            programImage={program?.logo}
-            onSendMessage={async (message) => {
-              const createdAt = new Date();
+        {programEnrollment?.messagingEnabled === false ? (
+          <div className="flex size-full flex-col items-center justify-center px-4">
+            <MsgsDotted className="size-10 text-neutral-700" />
+            <div className="mt-6 max-w-md text-center">
+              <span className="text-content-emphasis text-base font-semibold">
+                This program uses external support
+              </span>
+              <p className="text-content-subtle text-sm font-medium">
+                You can contact them directly via email.
+              </p>
+            </div>
+            {program?.supportEmail && (
+              <Link href={`mailto:${program.supportEmail}`} target="_blank">
+                <Button
+                  className="mt-4 h-9 rounded-lg px-3"
+                  variant="secondary"
+                  text="Email support"
+                  icon={<EnvelopeArrowRight className="size-4" />}
+                />
+              </Link>
+            )}
+          </div>
+        ) : (
+          <div className="min-h-0 grow">
+            <MessagesPanel
+              messages={messages && partner && user ? messages : undefined}
+              error={errorMessages}
+              currentUserType="partner"
+              currentUserId={partner?.id || ""}
+              programImage={program?.logo}
+              onSendMessage={async (message) => {
+                const createdAt = new Date();
 
-              try {
-                await mutateProgramMessages(
-                  async (data) => {
-                    const result = await sendMessage({
-                      programSlug,
-                      text: message,
-                      createdAt,
-                    });
+                try {
+                  await mutateProgramMessages(
+                    async (data) => {
+                      const result = await sendMessage({
+                        programSlug,
+                        text: message,
+                        createdAt,
+                      });
 
-                    if (!result?.data?.message)
-                      throw new Error(
-                        result?.serverError || "Failed to send message",
-                      );
+                      if (!result?.data?.message)
+                        throw new Error(
+                          result?.serverError || "Failed to send message",
+                        );
 
-                    return data
-                      ? [
-                          {
-                            ...data[0],
-                            messages: [
-                              ...data[0].messages,
-                              result.data.message,
-                            ],
-                          },
-                        ]
-                      : [];
-                  },
-                  {
-                    optimisticData: (data) =>
-                      data
+                      return data
                         ? [
                             {
                               ...data[0],
                               messages: [
                                 ...data[0].messages,
-                                {
-                                  delivered: false,
-                                  id: `tmp_${uuid()}`,
-                                  programId: program!.id,
-                                  partnerId: partner!.id,
-                                  text: message,
-
-                                  readInApp: null,
-                                  readInEmail: null,
-                                  createdAt,
-                                  updatedAt: createdAt,
-
-                                  senderUserId: user!.id,
-                                  senderUser: {
-                                    id: user!.id,
-                                    name: user!.name,
-                                    image: user!.image || null,
-                                  },
-                                  senderPartnerId: partner!.id,
-                                  senderPartner: {
-                                    id: partner!.id,
-                                    name: partner!.name,
-                                    image: partner!.image || null,
-                                  },
-                                },
+                                result.data.message,
                               ],
                             },
                           ]
-                        : [],
-                    rollbackOnError: true,
-                  },
-                );
+                        : [];
+                    },
+                    {
+                      optimisticData: (data) =>
+                        data
+                          ? [
+                              {
+                                ...data[0],
+                                messages: [
+                                  ...data[0].messages,
+                                  {
+                                    delivered: false,
+                                    id: `tmp_${uuid()}`,
+                                    programId: program!.id,
+                                    partnerId: partner!.id,
+                                    text: message,
 
-                mutatePrefix("/api/partner-profile/messages");
-              } catch (e) {
-                console.log("Failed to send message", e);
-                toast.error("Failed to send message");
-              }
-            }}
-          />
-        </div>
+                                    readInApp: null,
+                                    readInEmail: null,
+                                    createdAt,
+                                    updatedAt: createdAt,
+
+                                    senderUserId: user!.id,
+                                    senderUser: {
+                                      id: user!.id,
+                                      name: user!.name,
+                                      image: user!.image || null,
+                                    },
+                                    senderPartnerId: partner!.id,
+                                    senderPartner: {
+                                      id: partner!.id,
+                                      name: partner!.name,
+                                      image: partner!.image || null,
+                                    },
+                                  },
+                                ],
+                              },
+                            ]
+                          : [],
+                      rollbackOnError: true,
+                    },
+                  );
+
+                  mutatePrefix("/api/partner-profile/messages");
+                } catch (e) {
+                  console.log("Failed to send message", e);
+                  toast.error("Failed to send message");
+                }
+              }}
+            />
+          </div>
+        )}
       </div>
 
       {/* Right panel - Profile */}

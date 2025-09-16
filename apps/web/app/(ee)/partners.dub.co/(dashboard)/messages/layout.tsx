@@ -14,7 +14,7 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
   const { programSlug } = useParams() as { programSlug?: string };
 
   const router = useRouter();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { searchParams } = useRouterStuff();
 
   const { programMessages, isLoading, error } = useProgramMessages({
     query: { messagesLimit: 1 },
@@ -51,7 +51,6 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                 setSelectedProgramSlug={(slug) =>
                   router.push(`/messages/${slug}`)
                 }
-                showMessagingEnabledOnly={true}
                 trigger={
                   <Button
                     type="button"

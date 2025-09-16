@@ -124,7 +124,6 @@ export const bulkApprovePartnersAction = authActionClient
               name: program.name,
               logo: program.logo,
               slug: program.slug,
-              supportEmail: program.supportEmail,
             },
             partner: {
               name: partner.name,
