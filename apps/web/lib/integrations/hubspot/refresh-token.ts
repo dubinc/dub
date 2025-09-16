@@ -57,7 +57,7 @@ export async function refreshAccessToken({
   } catch (error) {
     console.error(
       "[HubSpot] Error refreshing the access token:",
-      error.message,
+      error instanceof Error ? error.message : String(error),
     );
     return null;
   }
