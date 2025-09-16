@@ -214,13 +214,16 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   if (invoiceId) {
     // Skip if invoice id is already processed
-    // TODO: remove oldKeyValue stuff after 7 days (on Sep 23)
-    const [newKeyValue, oldKeyValue] = await redis.mget([
+    const ok = await redis.set(
       `trackSale:stripe:invoiceId:${invoiceId}`, // here we assume that Stripe's invoice ID is unique across all customers
-      `dub_sale_events:invoiceId:${invoiceId}`,
-    ]);
+      charge,
+      {
+        ex: 60 * 60 * 24 * 7,
+        nx: true,
+      },
+    );
 
-    if (newKeyValue || oldKeyValue) {
+    if (!ok) {
       console.info(
         "[Stripe Webhook] Skipping already processed invoice.",
         invoiceId,
