@@ -18,6 +18,7 @@ import useSWRImmutable from "swr/immutable";
 import { PartnerAbout } from "./partner-about";
 import { PartnerApplicationTabs } from "./partner-application-tabs";
 import { PartnerComments } from "./partner-comments";
+import { PartnerInfoCards } from "./partner-info-cards";
 
 type PartnerApplicationSheetProps = {
   partner: EnrolledPartnerProps;
@@ -48,7 +49,9 @@ function PartnerApplicationSheetContent({
       </div>
 
       <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-6">
-        <div className="@3xl/sheet:order-2">Partner info</div>
+        <div className="@3xl/sheet:order-2">
+          <PartnerInfoCards partner={partner} />
+        </div>
         <div className="@3xl/sheet:order-1">
           <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
             <PartnerApplicationTabs
@@ -196,9 +199,6 @@ function PartnerApproval({
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
-    partner.groupId ?? program?.defaultGroupId ?? null,
-  );
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess: async () => {
       await mutatePrefix("/api/partners");
@@ -216,14 +216,11 @@ function PartnerApproval({
     description: "Are you sure you want to approve this partner application?",
     confirmText: "Approve",
     onConfirm: async () => {
-      if (!program || !workspaceId || !selectedGroupId) {
-        return;
-      }
+      if (!program || !workspaceId) return;
 
       await executeAsync({
         workspaceId: workspaceId,
         partnerId: partner.id,
-        groupId: selectedGroupId,
       });
     },
   });
@@ -231,7 +228,7 @@ function PartnerApproval({
   return (
     <>
       {confirmModal}
-      <div className="flex gap-2">
+      <div className="flex justify-end gap-2">
         <div className="flex-shrink-0">
           <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
         </div>
@@ -240,9 +237,9 @@ function PartnerApproval({
           variant="primary"
           text="Approve"
           loading={isPending}
-          disabled={!selectedGroupId}
+          disabled={!partner.groupId}
           onClick={() => setShowConfirmModal(true)}
-          className="flex-1"
+          className="w-fit shrink-0"
         />
       </div>
     </>

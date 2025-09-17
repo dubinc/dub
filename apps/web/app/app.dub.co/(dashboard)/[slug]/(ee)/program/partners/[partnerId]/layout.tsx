@@ -7,6 +7,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
 import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
+import { PartnerInfo } from "@/ui/partners/partner-info";
 import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
@@ -23,7 +24,6 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode, useState } from "react";
 import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
-import { PartnerInfo } from "./partner-info";
 import { PartnerNav } from "./partner-nav";
 import { PartnerStats } from "./partner-stats";
 
