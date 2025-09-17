@@ -79,6 +79,10 @@ export const BountySchema = z.object({
   groups: z.array(GroupSchema.pick({ id: true })),
 });
 
+export const getBountiesQuerySchema = z.object({
+  partnerId: z.string().optional(),
+});
+
 // used in GET /bounties
 export const BountyListSchema = BountySchema.extend({
   submissionsCount: z.number().default(0),

@@ -12,8 +12,8 @@ import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { PlanProps } from "@/lib/types";
+import { sendBatchEmail } from "@dub/email";
 import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { chunk, currencyFormatter, log } from "@dub/utils";
@@ -236,9 +236,9 @@ export async function processPayouts({
     );
 
     for (const payoutChunk of payoutChunks) {
-      await resend.batch.send(
+      await sendBatchEmail(
         payoutChunk.map((payout) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
+          variant: "notifications",
           to: payout.partner.email!,
           subject: "You've got money coming your way!",
           react: PartnerPayoutConfirmed({

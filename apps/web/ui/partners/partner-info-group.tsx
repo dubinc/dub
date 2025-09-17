@@ -2,14 +2,19 @@ import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { Button } from "@dub/ui";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useChangeGroupModal } from "./change-group-modal";
 import { GroupColorCircle } from "./groups/group-color-circle";
 
 export function PartnerInfoGroup({
   partner,
+  changeButtonText = "Change group",
+  className,
 }: {
   partner: EnrolledPartnerProps;
+  changeButtonText?: string;
+  className?: string;
 }) {
   const { slug } = useWorkspace();
 
@@ -22,7 +27,12 @@ export function PartnerInfoGroup({
   });
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-100 p-2 pl-3">
+    <div
+      className={cn(
+        "flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-100 p-2 pl-3",
+        className,
+      )}
+    >
       <ChangeGroupModal />
       <div className="flex min-w-0 items-center gap-2">
         {group ? (
@@ -46,7 +56,7 @@ export function PartnerInfoGroup({
       {group ? (
         <Button
           variant="secondary"
-          text="Change group"
+          text={changeButtonText}
           className="h-7 w-fit rounded-lg px-2.5"
           onClick={() => setShowChangeGroupModal(true)}
         />

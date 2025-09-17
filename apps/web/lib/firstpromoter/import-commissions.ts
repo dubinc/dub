@@ -118,7 +118,7 @@ export async function importCommissions(payload: FirstPromoterImportPayload) {
 
     if (workspaceUser && workspaceUser.user.email) {
       await sendEmail({
-        email: workspaceUser.user.email,
+        to: workspaceUser.user.email,
         subject: "FirstPromoter campaign imported",
         react: ProgramImported({
           email: workspaceUser.user.email,
