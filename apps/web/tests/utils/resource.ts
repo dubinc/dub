@@ -83,6 +83,7 @@ export const E2E_PROGRAM = {
 
 export const E2E_PARTNER = {
   id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
+  email: "steven@dub.co",
   tenantId: "4149092f-7265-4002-98d9-da9f8e67e1fb",
 };
 

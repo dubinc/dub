@@ -9,13 +9,11 @@ import {
   MAX_SUBMISSION_URLS,
   submissionRequirementsSchema,
 } from "@/lib/zod/schemas/bounties";
-import { sendEmail } from "@dub/email";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
-import BountyPendingReview from "@dub/email/templates/bounty-pending-review";
+import { sendBatchEmail, sendEmail } from "@dub/email";
+import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
-import { Role } from "@prisma/client";
+import { BountySubmission, Role } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
@@ -29,13 +27,18 @@ const schema = z.object({
     .default([]),
   urls: z.array(z.string().url()).max(MAX_SUBMISSION_URLS).default([]),
   description: z.string().trim().max(1000).optional(),
+  isDraft: z
+    .boolean()
+    .default(false)
+    .describe("Whether to create a draft submission or a final submission."),
 });
 
 export const createBountySubmissionAction = authPartnerActionClient
   .schema(schema)
   .action(async ({ ctx, parsedInput }) => {
     const { partner } = ctx;
-    const { programId, bountyId, files, urls, description } = parsedInput;
+    const { programId, bountyId, files, urls, description, isDraft } =
+      parsedInput;
 
     const [programEnrollment, bounty] = await Promise.all([
       getProgramEnrollmentOrThrow({
@@ -68,9 +71,17 @@ export const createBountySubmissionAction = authPartnerActionClient
       throw new Error("This bounty is not for this program.");
     }
 
+    let submission: BountySubmission | null = null;
+
     // Validate the partner has not already created a submission for this bounty
     if (bounty.submissions.length > 0) {
-      throw new Error("You have already created a submission for this bounty.");
+      submission = bounty.submissions[0];
+
+      if (submission.status !== "draft") {
+        throw new Error(
+          `You already have a ${submission.status} submission for this bounty.`,
+        );
+      }
     }
 
     if (bounty.groups.length > 0) {
@@ -110,29 +121,52 @@ export const createBountySubmissionAction = authPartnerActionClient
     const requireImage = submissionRequirements.includes("image");
     const requireUrl = submissionRequirements.includes("url");
 
-    if (requireImage && files.length === 0) {
-      throw new Error("You must submit an image.");
+    if (!isDraft) {
+      if (requireImage && files.length === 0) {
+        throw new Error("You must submit an image.");
+      }
+
+      if (requireUrl && urls.length === 0) {
+        throw new Error("You must submit a URL.");
+      }
     }
 
-    if (requireUrl && urls.length === 0) {
-      throw new Error("You must submit a URL.");
+    // If there is an existing submission, update it
+    if (submission) {
+      submission = await prisma.bountySubmission.update({
+        where: {
+          id: submission.id,
+        },
+        data: {
+          description,
+          ...(requireImage && { files }),
+          ...(requireUrl && { urls }),
+          status: isDraft ? "draft" : "submitted",
+        },
+      });
     }
-
-    // Create the submission
-    const submission = await prisma.bountySubmission.create({
-      data: {
-        id: createId({ prefix: "bnty_sub_" }),
-        programId: bounty.programId,
-        bountyId: bounty.id,
-        partnerId: partner.id,
-        description,
-        ...(requireImage && { files }),
-        ...(requireUrl && { urls }),
-      },
-    });
+    // If there is no existing submission, create a new one
+    else {
+      submission = await prisma.bountySubmission.create({
+        data: {
+          id: createId({ prefix: "bnty_sub_" }),
+          programId: bounty.programId,
+          bountyId: bounty.id,
+          partnerId: partner.id,
+          description,
+          ...(requireImage && { files }),
+          ...(requireUrl && { urls }),
+          status: isDraft ? "draft" : "submitted",
+        },
+      });
+    }
 
     waitUntil(
       (async () => {
+        if (submission.status === "draft") {
+          return;
+        }
+
         // Send email to the program owners
         const { users, program, ...workspace } = await getWorkspaceUsers({
           programId,
@@ -141,12 +175,12 @@ export const createBountySubmissionAction = authPartnerActionClient
         });
 
         if (users.length > 0) {
-          await resend.batch.send(
+          await sendBatchEmail(
             users.map((user) => ({
-              from: VARIANT_TO_FROM_MAP.notifications,
+              variant: "notifications",
               to: user.email,
-              subject: "Pending bounty review",
-              react: BountyPendingReview({
+              subject: "New bounty submission",
+              react: NewBountySubmission({
                 email: user.email,
                 workspace: {
                   slug: workspace.slug,
@@ -172,7 +206,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         if (partner.email && program) {
           await sendEmail({
             subject: "Bounty submitted!",
-            email: partner.email,
+            to: partner.email,
             react: BountySubmitted({
               email: partner.email,
               bounty: {
@@ -181,7 +215,6 @@ export const createBountySubmissionAction = authPartnerActionClient
               program: {
                 name: program.name,
                 slug: program.slug,
-                supportEmail: program.supportEmail || "support@dub.co",
               },
             }),
           });

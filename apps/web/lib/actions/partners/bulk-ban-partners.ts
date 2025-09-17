@@ -8,8 +8,8 @@ import {
   BAN_PARTNER_REASONS,
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
+import { sendBatchEmail } from "@dub/email";
 import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
@@ -152,7 +152,7 @@ export const bulkBanPartnersAction = authActionClient
           },
           select: {
             name: true,
-            supportEmail: true,
+            slug: true,
           },
         });
 
@@ -161,11 +161,10 @@ export const bulkBanPartnersAction = authActionClient
           return;
         }
 
-        await resend.batch.send(
+        await sendBatchEmail(
           programEnrollments
             .filter(({ partner }) => partner.email)
             .map(({ partner }) => ({
-              from: VARIANT_TO_FROM_MAP.notifications,
               to: partner.email!,
               subject: `You've been banned from the ${program.name} Partner Program`,
               variant: "notifications",
@@ -176,7 +175,7 @@ export const bulkBanPartnersAction = authActionClient
                 },
                 program: {
                   name: program.name,
-                  supportEmail: program.supportEmail || "support@dub.co",
+                  slug: program.slug,
                 },
                 bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
               }),

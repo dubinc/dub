@@ -14,13 +14,15 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
   const { programSlug } = useParams() as { programSlug?: string };
 
   const router = useRouter();
-  const { queryParams, searchParams } = useRouterStuff();
+  const { searchParams } = useRouterStuff();
 
   const { programMessages, isLoading, error } = useProgramMessages({
     query: { messagesLimit: 1 },
   });
 
-  const [currentPanel, setCurrentPanel] = useState<MessagesPanel>("index");
+  const [currentPanel, setCurrentPanel] = useState<MessagesPanel>(
+    programSlug ? "main" : "index",
+  );
 
   useEffect(() => {
     searchParams.get("new") && setCurrentPanel("main");
@@ -51,9 +53,6 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
                 setSelectedProgramSlug={(slug) =>
                   router.push(`/messages/${slug}`)
                 }
-                query={{
-                  messagingEnabled: true,
-                }}
                 trigger={
                   <Button
                     type="button"

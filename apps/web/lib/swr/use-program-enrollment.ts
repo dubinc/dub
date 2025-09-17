@@ -2,7 +2,7 @@ import { fetcher } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
-import { ProgramEnrollmentProps } from "../types";
+import { PartnerProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollment({
   swrOpts,
@@ -18,7 +18,7 @@ export default function useProgramEnrollment({
     data: programEnrollment,
     error,
     isLoading,
-  } = useSWR<ProgramEnrollmentProps>(
+  } = useSWR<PartnerProgramEnrollmentProps>(
     partnerId && programSlug
       ? `/api/partner-profile/programs/${programSlug}`
       : undefined,

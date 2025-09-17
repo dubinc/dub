@@ -1,5 +1,8 @@
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
+import {
+  ResendBulkEmailOptions,
+  ResendEmailOptions,
+} from "@dub/email/resend/types";
 import NewCommissionAlertPartner from "@dub/email/templates/new-commission-alert-partner";
 import NewSaleAlertProgramOwner from "@dub/email/templates/new-sale-alert-program-owner";
 import { prisma } from "@dub/prisma";
@@ -107,32 +110,38 @@ export async function notifyPartnerCommission({
     .filter(Boolean) as string[];
 
   // Create all emails first, then chunk them into batches of 100
-  const allEmails = [
+  const allEmails: ResendBulkEmailOptions = [
     // Partner emails (for all commission types)
-    ...partnerEmailsToNotify.map((email) => ({
-      subject: "You just made a commission via Dub Partners!",
-      from: VARIANT_TO_FROM_MAP.notifications,
-      to: email,
-      react: NewCommissionAlertPartner({
-        email,
-        ...data,
-      }),
-    })),
+    ...partnerEmailsToNotify.map(
+      (email) =>
+        ({
+          subject: "You just made a commission via Dub Partners!",
+          variant: "notifications",
+          to: email,
+          react: NewCommissionAlertPartner({
+            email,
+            ...data,
+          }),
+        }) as ResendEmailOptions,
+    ),
     // Workspace owner emails (only for sale commissions)
     ...(commission.type === "sale"
-      ? workspaceUsers.map(({ user }) => ({
-          subject: `New commission for ${partner.name}`,
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: user.email!,
-          react: NewSaleAlertProgramOwner({
-            ...data,
-            user: {
-              name: user.name,
-              email: user.email!,
-            },
-            workspace,
-          }),
-        }))
+      ? workspaceUsers.map(
+          ({ user }) =>
+            ({
+              subject: `New commission for ${partner.name}`,
+              variant: "notifications",
+              to: user.email!,
+              react: NewSaleAlertProgramOwner({
+                ...data,
+                user: {
+                  name: user.name,
+                  email: user.email!,
+                },
+                workspace,
+              }),
+            }) as ResendEmailOptions,
+        )
       : []),
   ];
 
@@ -140,6 +149,6 @@ export async function notifyPartnerCommission({
 
   // Send all emails in batches
   await Promise.all(
-    emailChunks.map((emailChunk) => resend.batch.send(emailChunk)),
+    emailChunks.map((emailChunk) => sendBatchEmail(emailChunk)),
   );
 }

@@ -16,14 +16,12 @@ export function ProgramSelector({
   selectedProgramSlug,
   setSelectedProgramSlug,
   disabled,
-  query,
   ...rest
 }: ProgramSelectorProps) {
   const [openPopover, setOpenPopover] = useState(false);
 
   const { programEnrollments, isLoading } = useProgramEnrollments({
     status: "approved",
-    ...query,
   });
 
   const programOptions = useMemo(() => {

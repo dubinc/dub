@@ -35,7 +35,7 @@ export async function sendCancellationFeedback({
       (owner) =>
         owner.email &&
         sendEmail({
-          email: owner.email,
+          to: owner.email,
           from: "Steven Tey <steven@dub.co>",
           replyTo: "steven.tey@dub.co",
           subject: "Feedback for Dub.co?",

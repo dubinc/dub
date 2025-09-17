@@ -120,7 +120,7 @@ export const sendOtpAction = actionClient
 
       sendEmail({
         subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
-        email,
+        to: email,
         react: VerifyEmail({
           email,
           code,

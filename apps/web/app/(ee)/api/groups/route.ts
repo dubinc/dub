@@ -6,6 +6,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
+  additionalPartnerLinkSchema,
   createGroupSchema,
   getGroupsQuerySchema,
   GroupSchema,
@@ -105,13 +106,24 @@ export const POST = withWorkspace(
         });
       }
 
-      // Copy over the default group’s link settings when creating a new group
+      // Copy over the default group's link settings when creating a new group
       const {
         additionalLinks,
         maxPartnerLinks,
         linkStructure,
         partnerGroupDefaultLinks,
       } = defaultGroup;
+
+      // Deduplicate additionalLinks by domain, keeping the first occurrence
+      const deduplicatedAdditionalLinks =
+        additionalLinks && Array.isArray(additionalLinks)
+          ? (
+              additionalLinks as z.infer<typeof additionalPartnerLinkSchema>[]
+            ).filter(
+              (link, index, array) =>
+                array.findIndex((l) => l.domain === link.domain) === index,
+            )
+          : additionalLinks;
 
       return await tx.partnerGroup.create({
         data: {
@@ -120,7 +132,9 @@ export const POST = withWorkspace(
           name,
           slug,
           color,
-          ...(additionalLinks && { additionalLinks }),
+          ...(deduplicatedAdditionalLinks && {
+            additionalLinks: deduplicatedAdditionalLinks,
+          }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
           partnerGroupDefaultLinks: {

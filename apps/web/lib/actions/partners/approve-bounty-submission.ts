@@ -42,6 +42,12 @@ export const approveBountySubmissionAction = authActionClient
       throw new Error("Bounty submission does not belong to this program.");
     }
 
+    if (bountySubmission.status === "draft") {
+      throw new Error(
+        "Bounty submission is in progress and cannot be approved.",
+      );
+    }
+
     if (bountySubmission.status === "approved") {
       throw new Error("Bounty submission already approved.");
     }
@@ -107,14 +113,13 @@ export const approveBountySubmissionAction = authActionClient
         partner.email &&
           sendEmail({
             subject: "Bounty approved!",
-            email: partner.email,
+            to: partner.email,
             variant: "notifications",
             react: BountyApproved({
               email: partner.email,
               program: {
                 name: program.name,
                 slug: program.slug,
-                supportEmail: program.supportEmail || "support@dub.co",
               },
               bounty: {
                 name: bounty.name,
