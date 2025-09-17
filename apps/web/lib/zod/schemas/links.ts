@@ -9,6 +9,7 @@ import {
 } from "./misc";
 import { TagSchema } from "./tags";
 import {
+  DESTINATION_URL_MAX_LENGTH,
   parseDateSchema,
   parseUrlSchema,
   parseUrlSchemaAllowEmpty,
@@ -226,6 +227,7 @@ export const createLinkBodySchema = z.object({
     .describe("The destination URL of the short link.")
     .openapi({
       example: "https://google.com",
+      maxLength: DESTINATION_URL_MAX_LENGTH,
     }),
   domain: z
     .string()
@@ -318,7 +320,10 @@ export const createLinkBodySchema = z.object({
     .describe("The date and time when the short link will expire at."),
   expiredUrl: parseUrlSchema
     .nullish()
-    .describe("The URL to redirect to when the short link has expired."),
+    .describe("The URL to redirect to when the short link has expired.")
+    .openapi({
+      maxLength: DESTINATION_URL_MAX_LENGTH,
+    }),
   password: z
     .string()
     .nullish()
