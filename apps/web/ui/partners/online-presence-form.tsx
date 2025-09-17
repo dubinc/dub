@@ -236,6 +236,7 @@ export const OnlinePresenceForm = forwardRef<
                 onVerifyClick={() =>
                   startVerification("youtube", getValues("youtube"))
                 }
+                verifyDisabledTooltip="YouTube verification is coming soon."
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
