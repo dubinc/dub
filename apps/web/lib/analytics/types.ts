@@ -52,7 +52,6 @@ export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   customerId?: string;
   folderIds?: string[];
   isMegaFolder?: boolean;
-  eventIds?: string[];
 };
 
 const partnerAnalyticsSchema = analyticsQuerySchema
