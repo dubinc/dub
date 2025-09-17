@@ -588,21 +588,6 @@ export interface WorkflowContext {
   totalConversions?: number;
   totalSaleAmount?: number;
   totalCommissions?: number;
-
-  // // All time metrics
-  // historical: {
-  //   leads?: number;
-  //   conversions?: number;
-  //   saleAmount?: number;
-  //   commissions?: number;
-  // };
-  // // Recent metrics
-  // recent: {
-  //   leads?: number;
-  //   conversions?: number;
-  //   saleAmount?: number;
-  //   commissions?: number;
-  // };
 }
 
 export type BountySubmissionsQueryFilters = z.infer<
