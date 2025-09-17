@@ -50,22 +50,17 @@ export default function QrCodesContainer({
   useEffect(() => {
     if (!qrs) return;
 
-    setQrsWithPreviews(qrs);
-
-    const timeoutId = setTimeout(async () => {
-      const updatedQrs = await compressImagesInBackground(qrs);
+    compressImagesInBackground(qrs).then((updatedQrs) => {
       setQrsWithPreviews(updatedQrs);
-    }, 100);
-
-    return () => clearTimeout(timeoutId);
+    });
   }, [qrs]);
 
   return (
     <MaxWidthWrapper className="grid gap-y-2">
       <QrCodesList
         CreateQrCodeButton={CreateQrCodeButton}
-        qrCodes={qrsWithPreviews}
-        loading={isValidating || (qrs && !qrsWithPreviews)}
+        qrCodes={qrsWithPreviews || qrs}
+        loading={isValidating}
         compact={viewMode === "rows"}
         featuresAccess={featuresAccess}
       />
