@@ -1,6 +1,7 @@
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { inviteUser } from "@/lib/api/users";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -72,6 +73,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       paymentFailedAt: null,
     },
     select: {
+      plan: true,
+      defaultProgramId: true,
       users: {
         select: {
           user: {
@@ -139,6 +142,21 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
+
+    // enable program messaging if available
+    ...(workspace.defaultProgramId &&
+    getPlanCapabilities(workspace.plan).canMessagePartners
+      ? [
+          prisma.program.update({
+            where: {
+              id: workspace.defaultProgramId,
+            },
+            data: {
+              messagingEnabledAt: new Date(),
+            },
+          }),
+        ]
+      : []),
   ]);
 }
 
