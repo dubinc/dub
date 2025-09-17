@@ -72,8 +72,6 @@ export async function executeWorkflows({
     ...context,
   };
 
-  console.log("Workflow context", workflowContext);
-
   // Execute each workflow for the program
   for (const workflow of workflows) {
     const conditions = z
