@@ -1,7 +1,4 @@
-"use client";
-
 import { usePartnerCommentsCount } from "@/lib/swr/use-partner-comments-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { Msg, User } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { LayoutGroup, motion } from "framer-motion";
@@ -16,7 +13,6 @@ export function PartnerApplicationTabs({
   setCurrentTabId: Dispatch<SetStateAction<string>>;
 }) {
   const { partnerId } = useParams() as { partnerId: string };
-  const { slug: workspaceSlug } = useWorkspace();
 
   const { count: commentsCount } = usePartnerCommentsCount(
     {
