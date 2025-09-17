@@ -24,10 +24,6 @@ import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-// TODO: if eventIds is provided + existing customer partnerId is different from provided partnerId
-// create a new customer
-// duplicate the event IDs
-
 export const createManualCommissionAction = authActionClient
   .schema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
@@ -46,7 +42,7 @@ export const createManualCommissionAction = authActionClient
       leadEventDate,
       leadEventName,
       description,
-      eventIds,
+      includedEventIds,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -302,7 +298,9 @@ export const createManualCommissionAction = authActionClient
 
     // Duplicate the customer events
     const shouldDuplicateEvents =
-      eventIds && eventIds.length > 0 && shouldCreateNewCustomer;
+      includedEventIds &&
+      includedEventIds.length > 0 &&
+      shouldCreateNewCustomer;
 
     if (shouldDuplicateEvents) {
       const eventType = !saleAmount ? "leads" : "sales";
@@ -326,7 +324,7 @@ export const createManualCommissionAction = authActionClient
         limit: 100,
         start: startDate.toISOString().replace("T", " ").replace("Z", ""),
         end: endDate.toISOString().replace("T", " ").replace("Z", ""),
-        eventIds,
+        eventIds: includedEventIds,
       });
 
       const events = response.data;

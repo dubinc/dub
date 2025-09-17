@@ -191,7 +191,7 @@ function CreateCommissionSheetContent({
       saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
       saleEventDate,
       leadEventDate,
-      eventIds: selectedEventIds,
+      includedEventIds: selectedEventIds,
     });
   };
 
