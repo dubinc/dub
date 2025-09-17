@@ -49,10 +49,14 @@ export default function QrCodesContainer({
 
   useEffect(() => {
     if (!qrs) return;
+    setQrsWithPreviews(qrs);
 
-    compressImagesInBackground(qrs).then((updatedQrs) => {
+    const timeoutId = setTimeout(async () => {
+      const updatedQrs = await compressImagesInBackground(qrs);
       setQrsWithPreviews(updatedQrs);
-    });
+    }, 100);
+
+    return () => clearTimeout(timeoutId);
   }, [qrs]);
 
   return (
@@ -60,7 +64,7 @@ export default function QrCodesContainer({
       <QrCodesList
         CreateQrCodeButton={CreateQrCodeButton}
         qrCodes={qrsWithPreviews || qrs}
-        loading={isValidating}
+        loading={isValidating || (qrs && !qrsWithPreviews)}
         compact={viewMode === "rows"}
         featuresAccess={featuresAccess}
       />
