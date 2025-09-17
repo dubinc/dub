@@ -25,6 +25,7 @@ model Bounty {
   name                   String
   description            String?    @db.Text
   type                   BountyType
+  currentStatsOnly       Boolean    @default(false)
   startsAt               DateTime
   endsAt                 DateTime?
   rewardAmount           Int?
@@ -59,6 +60,7 @@ model BountySubmission {
   programId       String
   partnerId       String
   bountyId        String
+  count           Int?
   commissionId    String?                          @unique
   userId          String?
   description     String?                          @db.Text

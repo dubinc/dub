@@ -382,6 +382,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           trigger: WorkflowTrigger.saleRecorded,
           programId: link.programId,
           partnerId: link.partnerId,
+          context: {
+            recent: {
+              saleAmount: saleData.amount,
+            }
+          }
         }),
         // same logic as lead.created webhook below:
         // if the clickEvent variable exists and there was no existing customer before,
@@ -392,6 +397,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             trigger: WorkflowTrigger.leadRecorded,
             programId: link.programId,
             partnerId: link.partnerId,
+            context: {
+              recent: {
+                leads: 1,
+              },
+            },
           }),
       ]),
     );

@@ -366,6 +366,11 @@ const _trackLead = async ({
           trigger: WorkflowTrigger.leadRecorded,
           programId: link.programId,
           partnerId: link.partnerId,
+          context: {
+            recent: {
+              leads: 1,
+            },
+          },
         });
       }
 

@@ -1,7 +1,6 @@
-import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import {
-  WorkflowAction,
   WorkflowCondition,
+  WorkflowConditionAttribute,
   WorkflowContext,
 } from "@/lib/types";
 import {
@@ -18,10 +17,12 @@ export async function executeWorkflows({
   programId,
   partnerId,
   trigger,
+  context,
 }: {
   programId: string;
   partnerId: string;
   trigger: WorkflowTrigger;
+  context?: Pick<WorkflowContext, "recent">;
 }) {
   const workflows = await prisma.workflow.findMany({
     where: {
@@ -42,17 +43,8 @@ export async function executeWorkflows({
       },
     },
     select: {
+      partnerId: true,
       groupId: true,
-      totalCommissions: true,
-      links: {
-        select: {
-          clicks: true,
-          sales: true,
-          leads: true,
-          conversions: true,
-          saleAmount: true,
-        },
-      },
     },
   });
 
@@ -70,17 +62,14 @@ export async function executeWorkflows({
     return;
   }
 
-  const { totalLeads, totalConversions, totalSaleAmount } =
-    aggregatePartnerLinksStats(programEnrollment.links);
-
+  // Final context for the workflow
   const workflowContext: WorkflowContext = {
-    partnerId,
+    partnerId: programEnrollment.partnerId,
     groupId: programEnrollment.groupId,
-    totalLeads,
-    totalConversions,
-    totalSaleAmount,
-    totalCommissions: programEnrollment.totalCommissions,
+    recent: context?.recent ?? {},
   };
+
+  console.log("Workflow context", workflowContext);
 
   // Execute each workflow for the program
   for (const workflow of workflows) {
@@ -102,31 +91,34 @@ export async function executeWorkflows({
     const condition = conditions[0];
     const action = actions[0];
 
-    const shouldExecute = evaluateWorkflowCondition({
-      condition,
-      context: workflowContext,
-    });
+    // const shouldExecute = evaluateWorkflowCondition({
+    //   condition,
+    //   context: workflowContext,
+    // });
 
-    if (!shouldExecute) {
-      console.log(
-        `Workflow ${workflow.id} does not meet the trigger condition.`,
-      );
-      continue;
+    // if (!shouldExecute) {
+    //   console.log(
+    //     `Workflow ${workflow.id} does not meet the trigger condition.`,
+    //   );
+    //   continue;
+    // }
+
+    if (action.type === "awardBounty") {
+      await executeAwardBountyAction({
+        condition,
+        context: workflowContext,
+        action,
+      });
     }
-
-    await executeWorkflowAction({
-      action,
-      context: workflowContext,
-    });
   }
 }
 
-function evaluateWorkflowCondition({
+export function evaluateWorkflowCondition({
   condition,
   context,
 }: {
   condition: WorkflowCondition;
-  context: WorkflowContext;
+  context: Record<WorkflowConditionAttribute, number>;
 }) {
   console.log("Evaluating workflow condition", condition, context);
 
@@ -139,21 +131,4 @@ function evaluateWorkflowCondition({
   }
 
   return operatorFn(context[condition.attribute], condition.value);
-}
-
-async function executeWorkflowAction({
-  action,
-  context,
-}: {
-  action: WorkflowAction;
-  context: WorkflowContext;
-}) {
-  switch (action.type) {
-    case "awardBounty":
-      await executeAwardBountyAction({
-        action,
-        context,
-      });
-      break;
-  }
 }
