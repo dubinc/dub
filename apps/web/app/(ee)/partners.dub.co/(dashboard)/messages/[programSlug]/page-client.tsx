@@ -137,7 +137,7 @@ export function PartnerMessagesProgramPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        {programEnrollment?.program?.messagingEnabledAt === null ? ( // TODO: this is a temp fix, we should remove once we add it to the program level
+        {programEnrollment?.program?.messagingEnabledAt === null ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />
             <div className="mt-6 max-w-md text-center">
