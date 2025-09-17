@@ -48,8 +48,6 @@ export const createManualCommissionAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    console.log({partnerId})
-
     let [{ partner, links }, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
@@ -215,7 +213,7 @@ export const createManualCommissionAction = authActionClient
         ...clickEvent,
         event_id: leadEventId,
         event_name: leadEventName || "Sign up",
-        customer_id: customerId,
+        customer_id: customer.id,
       });
 
       shouldUpdateCustomer = !customer.linkId && clickData ? true : false;
@@ -232,7 +230,7 @@ export const createManualCommissionAction = authActionClient
           partnerId,
           linkId,
           eventId: leadEventId,
-          customerId,
+          customerId: customer.id,
           amount: 0,
           quantity: 1,
           createdAt: finalLeadEventDate,
@@ -262,7 +260,7 @@ export const createManualCommissionAction = authActionClient
           event_id: saleEventId,
           event_name: "Purchase",
           amount: saleAmount,
-          customer_id: customerId,
+          customer_id: customer.id,
           payment_processor: "custom",
           currency: "usd",
           timestamp: saleDate.toISOString(),
@@ -275,7 +273,7 @@ export const createManualCommissionAction = authActionClient
           partnerId,
           linkId,
           eventId: saleEventId,
-          customerId,
+          customerId: customer.id,
           amount: saleAmount,
           quantity: 1,
           invoiceId,
@@ -401,7 +399,7 @@ export const createManualCommissionAction = authActionClient
           (shouldUpdateCustomer || saleAmount) &&
             prisma.customer.update({
               where: {
-                id: customerId,
+                id: customer.id,
               },
               data: {
                 ...(shouldUpdateCustomer && {
