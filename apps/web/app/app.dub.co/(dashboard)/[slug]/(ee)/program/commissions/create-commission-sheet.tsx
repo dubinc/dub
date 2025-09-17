@@ -174,12 +174,14 @@ function CreateCommissionSheetContent({
       ? new Date(data.leadEventDate).toISOString()
       : null;
 
-    // Get selected event IDs (exclude the excluded ones)
-    const selectedEventIds = existingEvents
-      .filter(
-        (event) => event.eventId && !excludedEventIds.includes(event.eventId),
-      )
-      .map((event) => event.eventId!);
+    // Get selected event IDs only if using existing events
+    const selectedEventIds = useExistingEvents
+      ? existingEvents
+          .filter(
+            (event) => event.eventId && !excludedEventIds.includes(event.eventId),
+          )
+          .map((event) => event.eventId!)
+      : [];
 
     await executeAsync({
       ...data,
@@ -221,6 +223,11 @@ function CreateCommissionSheetContent({
   useEffect(() => {
     setExcludedEventIds([]);
   }, [customerId]);
+
+  // Reset excluded events when switching between existing events and create from scratch
+  useEffect(() => {
+    setExcludedEventIds([]);
+  }, [useExistingEvents]);
 
   // fetch existing events for given customer (filtered by commissionType)
   useEffect(() => {
