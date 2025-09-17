@@ -1,6 +1,7 @@
 "use server";
 
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { EventType } from "@/lib/analytics/types";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -42,7 +43,7 @@ export const createManualCommissionAction = authActionClient
       leadEventDate,
       leadEventName,
       description,
-      includedEventIds,
+      useExistingEvents,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -296,111 +297,76 @@ export const createManualCommissionAction = authActionClient
       ]);
     }
 
-    // Duplicate the customer events
-    const shouldDuplicateEvents =
-      includedEventIds &&
-      includedEventIds.length > 0 &&
-      shouldCreateNewCustomer;
-
-    if (shouldDuplicateEvents) {
-      const eventType = !saleAmount ? "leads" : "sales";
-
-      // Find the events by the eventIds
-      const { startDate, endDate } = getStartEndDates({
-        interval: "all",
-      });
-
-      const pipe = tb.buildPipe({
-        pipe: "v2_events",
-        parameters: eventsFilterTB,
-        data: z.any(),
-      });
-
-      const response = await pipe({
-        workspaceId: workspace.id,
-        eventType,
-        sortBy: "timestamp",
-        offset: 0,
-        limit: 100,
-        start: startDate.toISOString().replace("T", " ").replace("Z", ""),
-        end: endDate.toISOString().replace("T", " ").replace("Z", ""),
-        eventIds: includedEventIds,
-      });
-
-      const events = response.data;
-
-      if (events.length === 0) {
-        throw new Error("Selected events not found.");
-      }
-
-      console.log(events);
-
-      // Duplicate the events for the new customer
-      if (eventType === "leads") {
-        await Promise.all(
-          events.map((event) =>
-            recordLeadWithTimestamp({
-              ...event,
-              customer_id: customer.id,
-              link_id: link.id,
-            }),
-          ),
-        );
-      } else if (eventType === "sales") {
-        await Promise.all(
-          events.map((event) =>
-            recordSaleWithTimestamp({
-              ...event,
-              customer_id: customer.id,
-              link_id: link.id,
-            }),
-          ),
-        );
-      }
-    }
-
-    // link & customer updates
     waitUntil(
-      Promise.allSettled([
-        // Update link stats
-        prisma.link.update({
-          where: {
-            id: linkId,
-          },
-          data: {
-            ...(isFirstConversion({
-              customer,
-              linkId,
-            }) && {
-              leads: {
-                increment: 1,
-              },
-              conversions: {
-                increment: 1,
-              },
-            }),
-            ...(saleAmount && {
-              sales: {
-                increment: 1,
-              },
-              saleAmount: {
-                increment: saleAmount,
-              },
-            }),
-          },
-        }),
+      (async () => {
+        // Duplicate the customer events
+        // Because we're moving the customer to a new partner, we need to duplicate the events
+        if (useExistingEvents && shouldCreateNewCustomer) {
+          for (const eventType of ["leads", "sales"]) {
+            const { startDate, endDate } = getStartEndDates({
+              interval: "all",
+            });
 
-        // Update customer details / stats
-        (shouldUpdateCustomer || saleAmount) &&
-          prisma.customer.update({
+            const pipe = tb.buildPipe({
+              pipe: "v2_events",
+              parameters: eventsFilterTB,
+              data: z.any(),
+            });
+
+            const response = await pipe({
+              workspaceId: workspace.id,
+              eventType: eventType as EventType,
+              sortBy: "timestamp",
+              offset: 0,
+              limit: 100,
+              start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+              end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+            });
+
+            const events = response.data;
+            console.log(events);
+
+            if (eventType === "leads") {
+              await Promise.all(
+                events.map((event) =>
+                  recordLeadWithTimestamp({
+                    ...event,
+                    customer_id: customer.id,
+                    link_id: link.id,
+                  }),
+                ),
+              );
+            } else if (eventType === "sales") {
+              await Promise.all(
+                events.map((event) =>
+                  recordSaleWithTimestamp({
+                    ...event,
+                    customer_id: customer.id,
+                    link_id: link.id,
+                  }),
+                ),
+              );
+            }
+          }
+        }
+
+        Promise.allSettled([
+          // Update link stats
+          prisma.link.update({
             where: {
-              id: customerId,
+              id: linkId,
             },
             data: {
-              ...(shouldUpdateCustomer && {
+              ...(isFirstConversion({
+                customer,
                 linkId,
-                clickId: clickEvent?.click_id,
-                clickedAt: clickEvent?.timestamp,
+              }) && {
+                leads: {
+                  increment: 1,
+                },
+                conversions: {
+                  increment: 1,
+                },
               }),
               ...(saleAmount && {
                 sales: {
@@ -412,6 +378,30 @@ export const createManualCommissionAction = authActionClient
               }),
             },
           }),
-      ]),
+
+          // Update customer details / stats
+          (shouldUpdateCustomer || saleAmount) &&
+            prisma.customer.update({
+              where: {
+                id: customerId,
+              },
+              data: {
+                ...(shouldUpdateCustomer && {
+                  linkId,
+                  clickId: clickEvent?.click_id,
+                  clickedAt: clickEvent?.timestamp,
+                }),
+                ...(saleAmount && {
+                  sales: {
+                    increment: 1,
+                  },
+                  saleAmount: {
+                    increment: saleAmount,
+                  },
+                }),
+              },
+            }),
+        ]);
+      })(),
     );
   });
