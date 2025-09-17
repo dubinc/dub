@@ -88,6 +88,25 @@ export function ProgramHelpAndSupportContent({
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="divide-y divide-neutral-200 border-t border-neutral-200 px-6">
         <SettingsRow
+          heading="Support Email"
+          description="For partner support requests"
+          required
+        >
+          <div className="flex items-center justify-end">
+            <div className="w-full max-w-md">
+              <input
+                type="email"
+                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                placeholder="support@dub.co"
+                {...register("supportEmail", {
+                  required: true,
+                })}
+              />
+            </div>
+          </div>
+        </SettingsRow>
+
+        <SettingsRow
           heading="Messaging center"
           description="Communicate with your partners directly inside Dub"
         >
@@ -127,25 +146,6 @@ export function ProgramHelpAndSupportContent({
                   Enable partner messaging
                 </span>
               </label>
-            </div>
-          </div>
-        </SettingsRow>
-
-        <SettingsRow
-          heading="Support Email"
-          description="For partner support requests"
-          required
-        >
-          <div className="flex items-center justify-end">
-            <div className="w-full max-w-md">
-              <input
-                type="email"
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                placeholder="support@dub.co"
-                {...register("supportEmail", {
-                  required: true,
-                })}
-              />
             </div>
           </div>
         </SettingsRow>
