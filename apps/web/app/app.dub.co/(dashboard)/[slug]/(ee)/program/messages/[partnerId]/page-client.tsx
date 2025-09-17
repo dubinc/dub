@@ -15,16 +15,18 @@ import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
 import { PartnerInfoSection } from "@/ui/partners/partner-info-section";
 import { PartnerInfoStats } from "@/ui/partners/partner-info-stats";
 import { X } from "@/ui/shared/icons";
-import { Button } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { v4 as uuid } from "uuid";
 
 export function ProgramMessagesPartnerPageClient() {
+  const { isMobile } = useMediaQuery();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { partnerId } = useParams() as { partnerId: string };
@@ -66,7 +68,7 @@ export function ProgramMessagesPartnerPageClient() {
   const { executeAsync: sendMessage } = useAction(messagePartnerAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
 
   if (errorPartner) redirect(`/${workspaceSlug}/program/messages`);
 
@@ -214,17 +216,13 @@ export function ProgramMessagesPartnerPageClient() {
               Profile
             </h2>
             <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                text="View profile"
-                className="h-8 rounded-lg px-3"
-                onClick={() =>
-                  window.open(
-                    `/${workspaceSlug}/program/partners?partnerId=${partnerId}`,
-                    "_blank",
-                  )
-                }
-              />
+              <Link href={`/program/partners/${partnerId}`} target="_blank">
+                <Button
+                  variant="secondary"
+                  text="View profile"
+                  className="h-8 rounded-lg px-3"
+                />
+              </Link>
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen(false)}

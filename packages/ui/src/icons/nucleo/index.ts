@@ -158,6 +158,7 @@ export * from "./mobile-phone";
 export * from "./money-bill";
 export * from "./money-bill2";
 export * from "./money-bills2";
+export * from "./msg";
 export * from "./msgs";
 export * from "./msgs-dotted";
 export * from "./note";

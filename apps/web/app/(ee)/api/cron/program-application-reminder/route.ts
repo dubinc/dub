@@ -73,7 +73,7 @@ export async function POST(req: Request) {
 
     await sendEmail({
       subject: `Complete your application for ${application.program.name}`,
-      email: application.email,
+      to: application.email,
       react: ProgramApplicationReminder({
         email: application.email,
         program: {

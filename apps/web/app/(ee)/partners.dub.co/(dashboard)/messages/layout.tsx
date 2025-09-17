@@ -20,7 +20,9 @@ export default function MessagesLayout({ children }: { children: ReactNode }) {
     query: { messagesLimit: 1 },
   });
 
-  const [currentPanel, setCurrentPanel] = useState<MessagesPanel>("index");
+  const [currentPanel, setCurrentPanel] = useState<MessagesPanel>(
+    programSlug ? "main" : "index",
+  );
 
   useEffect(() => {
     searchParams.get("new") && setCurrentPanel("main");

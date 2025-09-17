@@ -1,6 +1,5 @@
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
-import { limiter } from "@/lib/cron/limiter";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail } from "@dub/email";
 import DomainDeleted from "@dub/email/templates/domain-deleted";
 import InvalidDomain from "@dub/email/templates/invalid-domain";
 import { prisma } from "@dub/prisma";
@@ -125,19 +124,17 @@ export const handleDomainUpdates = async ({
         message: `Domain *${domain}* has been invalid for > 30 days andhas links but no link clicks, deleting.`,
         type: "cron",
       }),
-      emails.map((email) =>
-        limiter.schedule(() =>
-          sendEmail({
-            subject: `Your domain ${domain} has been deleted`,
+      sendBatchEmail(
+        emails.map((email) => ({
+          subject: `Your domain ${domain} has been deleted`,
+          to: email,
+          react: DomainDeleted({
             email,
-            react: DomainDeleted({
-              email,
-              domain,
-              workspaceSlug,
-            }),
-            variant: "notifications",
+            domain,
+            workspaceSlug,
           }),
-        ),
+          variant: "notifications",
+        })),
       ),
     ]);
   }
@@ -192,20 +189,18 @@ const sendDomainInvalidEmail = async ({
       message: `Domain *${domain}* is invalid for ${invalidDays} days, email sent.`,
       type: "cron",
     }),
-    emails.map((email) =>
-      limiter.schedule(() =>
-        sendEmail({
-          subject: `Your domain ${domain} needs to be configured`,
+    sendBatchEmail(
+      emails.map((email) => ({
+        subject: `Your domain ${domain} needs to be configured`,
+        to: email,
+        react: InvalidDomain({
           email,
-          react: InvalidDomain({
-            email,
-            domain,
-            workspaceSlug,
-            invalidDays,
-          }),
-          variant: "notifications",
+          domain,
+          workspaceSlug,
+          invalidDays,
         }),
-      ),
+        variant: "notifications",
+      })),
     ),
     prisma.sentEmail.create({
       data: {

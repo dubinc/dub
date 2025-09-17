@@ -1,8 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
@@ -105,9 +104,9 @@ export async function POST(req: Request) {
     console.log(
       `Sending emails to ${programEnrollments.length} partners: ${programEnrollments.map(({ partner }) => partner.email).join(", ")}`,
     );
-    await resend.batch.send(
+    await sendBatchEmail(
       programEnrollments.map(({ partner }) => ({
-        from: VARIANT_TO_FROM_MAP.notifications,
+        variant: "notifications",
         to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
         subject: `New bounty available for ${bounty.program.name}`,
         react: NewBountyAvailable({

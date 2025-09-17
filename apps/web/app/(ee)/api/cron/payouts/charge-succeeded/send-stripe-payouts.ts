@@ -1,6 +1,5 @@
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
@@ -92,12 +91,12 @@ export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
 
-  const resendBatch = await resend.batch.send(
+  const resendBatch = await sendBatchEmail(
     currentInvoicePayouts
       .filter((p) => p.partner.email)
       .map((p) => {
         return {
-          from: VARIANT_TO_FROM_MAP.notifications,
+          variant: "notifications",
           to: p.partner.email!,
           subject: "You've been paid!",
           react: PartnerPayoutProcessed({

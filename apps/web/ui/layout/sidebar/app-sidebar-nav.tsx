@@ -63,7 +63,7 @@ type SidebarNavData = {
   showNews?: boolean;
   pendingPayoutsCount?: number;
   applicationsCount?: number;
-  pendingBountySubmissionsCount?: number;
+  submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   showConversionGuides?: boolean;
 };
@@ -196,7 +196,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     showNews,
     pendingPayoutsCount,
     applicationsCount,
-    pendingBountySubmissionsCount,
+    submittedBountiesCount,
     unreadMessagesCount,
   }) => ({
     title: "Partner Program",
@@ -240,7 +240,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "All Partners",
             icon: Users,
             href: `/${slug}/program/partners`,
-            exact: true,
+            isActive: (pathname: string, href: string) =>
+              pathname.startsWith(href) &&
+              ["applications"].every(
+                (p) => !pathname.startsWith(`${href}/${p}`),
+              ),
           },
           {
             name: "Applications",
@@ -286,10 +290,10 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Bounties",
             icon: Trophy,
             href: `/${slug}/program/bounties`,
-            badge: pendingBountySubmissionsCount
-              ? pendingBountySubmissionsCount > 99
+            badge: submittedBountiesCount
+              ? submittedBountiesCount > 99
                 ? "99+"
-                : pendingBountySubmissionsCount
+                : submittedBountiesCount
               : "New",
           },
           {
@@ -492,8 +496,8 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const pendingBountySubmissionsCount =
-    submissionsCount?.find(({ status }) => status === "pending")?.count || 0;
+  const submittedBountiesCount =
+    submissionsCount?.find(({ status }) => status === "submitted")?.count || 0;
 
   const { count: unreadMessagesCount } = usePartnerMessagesCount({
     enabled: Boolean(
@@ -527,7 +531,7 @@ export function AppSidebarNav({
         defaultProgramId: defaultProgramId || undefined,
         pendingPayoutsCount,
         applicationsCount,
-        pendingBountySubmissionsCount,
+        submittedBountiesCount,
         unreadMessagesCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
       }}

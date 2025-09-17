@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
-import { resend } from "@dub/email/resend";
+import { sendBatchEmail } from "@dub/email";
 import DubWrapped from "@dub/email/templates/dub-wrapped";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -14,10 +14,6 @@ export async function POST() {
   try {
     if (process.env.VERCEL === "1") {
       return new Response("Not available in production.");
-    }
-
-    if (!resend) {
-      return new Response("Resend not initialized. Skipping...");
     }
 
     const yearInReviews = await prisma.yearInReview.findMany({
@@ -116,7 +112,7 @@ export async function POST() {
         continue;
       }
 
-      const { data, error } = await resend.batch.send(
+      const { data, error } = await sendBatchEmail(
         // @ts-ignore
         batch.map((b) => b.email),
       );

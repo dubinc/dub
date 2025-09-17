@@ -56,6 +56,7 @@ const actionSchema = z.enum([
   "partner.approved",
   "partner.invite_deleted",
   "partner.invite_resent",
+  "partner.enrollment_updated",
 
   // Auto approve partners
   "auto_approve_partner.enabled",
