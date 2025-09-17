@@ -1,7 +1,6 @@
 import { createManualCommissionAction } from "@/lib/actions/partners/create-manual-commission";
 import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
@@ -18,15 +17,12 @@ import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
-  LoadingSpinner,
   Sheet,
   SmartDateTimePicker,
   Switch,
-  Table,
   ToggleGroup,
-  useTable,
 } from "@dub/ui";
-import { cn, currencyFormatter, formatDateTimeSmart } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -41,25 +37,10 @@ interface CreateCommissionSheetProps {
 
 type FormData = z.infer<typeof createCommissionSchema>;
 
-interface CustomerEvent {
-  eventId: string;
-  timestamp: string;
-  saleAmount?: number;
-}
-
-interface EventsSelectionTableProps {
-  events: CustomerEvent[];
-  excludedEventIds: string[];
-  onToggleExclude: (eventId: string) => void;
-  loading?: boolean;
-  error?: string;
-}
-
 function CreateCommissionSheetContent({
   setIsOpen,
   partnerId: initialPartnerId,
 }: CreateCommissionSheetProps) {
-  const { program } = useProgram();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [hasProductId, setHasProductId] = useState(false);
@@ -68,10 +49,6 @@ function CreateCommissionSheetContent({
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
   const [useExistingEvents, setUseExistingEvents] = useState(true);
-
-  const [existingEvents, setExistingEvents] = useState<CustomerEvent[]>([]);
-  const [existingEventsLoading, setExistingEventsLoading] = useState(false);
-  const [excludedEventIds, setExcludedEventIds] = useState<string[]>([]);
 
   const [commissionType, setCommissionType] =
     useState<CommissionType>("custom");
@@ -127,14 +104,6 @@ function CreateCommissionSheetContent({
     }
   }, [hasCustomLeadEventDate, setValue]);
 
-  const handleToggleExcludeEvent = (eventId: string) => {
-    setExcludedEventIds((ids) =>
-      ids.includes(eventId)
-        ? ids.filter((id) => id !== eventId)
-        : [...ids, eventId],
-    );
-  };
-
   useEffect(() => {
     const baseValues = ["partner-and-type"];
 
@@ -174,15 +143,6 @@ function CreateCommissionSheetContent({
       ? new Date(data.leadEventDate).toISOString()
       : null;
 
-    // Get selected event IDs only if using existing events
-    const selectedEventIds = useExistingEvents
-      ? existingEvents
-          .filter(
-            (event) => event.eventId && !excludedEventIds.includes(event.eventId),
-          )
-          .map((event) => event.eventId!)
-      : [];
-
     await executeAsync({
       ...data,
       workspaceId,
@@ -191,7 +151,7 @@ function CreateCommissionSheetContent({
       saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
       saleEventDate,
       leadEventDate,
-      includedEventIds: selectedEventIds,
+      useExistingEvents,
     });
   };
 
@@ -218,55 +178,6 @@ function CreateCommissionSheetContent({
 
     return false;
   }, [commissionType, partnerId, linkId, customerId, saleAmount, amount]);
-
-  // Reset excluded events when customer changes
-  useEffect(() => {
-    setExcludedEventIds([]);
-  }, [customerId]);
-
-  // Reset excluded events when switching between existing events and create from scratch
-  useEffect(() => {
-    setExcludedEventIds([]);
-  }, [useExistingEvents]);
-
-  // fetch existing events for given customer (filtered by commissionType)
-  useEffect(() => {
-    if (
-      !customerId ||
-      !commissionType ||
-      !workspaceId ||
-      commissionType === "custom"
-    ) {
-      setExistingEvents([]);
-      setExistingEventsLoading(false);
-      return;
-    }
-
-    const fetchEvents = async () => {
-      setExistingEventsLoading(true);
-
-      try {
-        const searchParams = new URLSearchParams({
-          workspaceId,
-          customerId,
-          folderId: program?.defaultFolderId!,
-          event: `${commissionType}s`,
-        });
-
-        const response = await fetch(`/api/events?${searchParams.toString()}`, {
-          method: "GET",
-        });
-
-        setExistingEvents(await response.json());
-      } catch (error) {
-        setExistingEvents([]);
-      } finally {
-        setExistingEventsLoading(false);
-      }
-    };
-
-    fetchEvents();
-  }, [customerId, commissionType]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -527,51 +438,34 @@ function CreateCommissionSheetContent({
                       </div>
                     </div>
 
-                    {customerId &&
-                      (existingEventsLoading ? (
-                        <div className="flex items-center justify-center py-12">
-                          <LoadingSpinner className="h-6 w-6" />
-                        </div>
-                      ) : existingEvents && existingEvents.length > 0 ? (
-                        <div className="space-y-6">
-                          <div>
-                            <label htmlFor="eventSource">
-                              <h2 className="text-sm font-medium text-neutral-900">
-                                Event source
-                              </h2>
-                            </label>
-                            <ToggleGroup
-                              className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
-                              optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm normal-case"
-                              indicatorClassName="bg-white"
-                              options={[
-                                {
-                                  value: "existing",
-                                  label: "Use existing events",
-                                },
-                                { value: "new", label: "Create from scratch" },
-                              ]}
-                              selected={useExistingEvents ? "existing" : "new"}
-                              selectAction={(value: string) =>
-                                setUseExistingEvents(value === "existing")
-                              }
-                            />
-                          </div>
-
-                          {useExistingEvents ? (
-                            <EventsSelectionTable
-                              events={existingEvents}
-                              excludedEventIds={excludedEventIds}
-                              onToggleExclude={handleToggleExcludeEvent}
-                              loading={existingEventsLoading}
-                            />
-                          ) : null}
-                        </div>
-                      ) : null)}
+                    {customerId && (
+                      <div>
+                        <label htmlFor="eventSource">
+                          <h2 className="text-sm font-medium text-neutral-900">
+                            Event source
+                          </h2>
+                        </label>
+                        <ToggleGroup
+                          className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
+                          optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm normal-case"
+                          indicatorClassName="bg-white"
+                          options={[
+                            {
+                              value: "existing",
+                              label: "Use existing events",
+                            },
+                            { value: "new", label: "Create from scratch" },
+                          ]}
+                          selected={useExistingEvents ? "existing" : "new"}
+                          selectAction={(value: string) =>
+                            setUseExistingEvents(value === "existing")
+                          }
+                        />
+                      </div>
+                    )}
 
                     {customerId &&
-                      !existingEventsLoading &&
-                      (!existingEvents?.length || !useExistingEvents) &&
+                      !useExistingEvents &&
                       (commissionType === "lead" ? (
                         <>
                           <AnimatedSizeContainer
@@ -869,85 +763,6 @@ function CreateCommissionSheetContent({
       </div>
     </form>
   );
-}
-
-function EventsSelectionTable({
-  events,
-  excludedEventIds,
-  onToggleExclude,
-  loading = false,
-  error,
-}: EventsSelectionTableProps) {
-  const table = useTable({
-    data: events || [],
-    columns: [
-      {
-        id: "date",
-        header: "Date",
-        cell: ({ row }) => (
-          <span className="text-sm text-neutral-700">
-            {row.original.timestamp
-              ? formatDateTimeSmart(new Date(row.original.timestamp))
-              : "—"}
-          </span>
-        ),
-      },
-      {
-        id: "amount",
-        header: "Amount",
-        cell: ({ row }) => (
-          <div className="relative">
-            <span
-              className={cn(
-                "text-sm text-neutral-700",
-                excludedEventIds.includes(row.original.eventId || "") &&
-                  "line-through",
-              )}
-            >
-              {row.original.saleAmount
-                ? `${currencyFormatter(row.original.saleAmount / 100, {
-                    trailingZeroDisplay: "stripIfInteger",
-                  })} USD`
-                : "—"}
-            </span>
-            <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
-              <Button
-                variant="secondary"
-                text={
-                  excludedEventIds.includes(row.original.eventId || "")
-                    ? "Include"
-                    : "Exclude"
-                }
-                className="h-6 w-fit px-2"
-                onClick={() =>
-                  row.original.eventId && onToggleExclude(row.original.eventId)
-                }
-              />
-            </div>
-          </div>
-        ),
-      },
-    ],
-    thClassName: (id) =>
-      cn(id === "amount" && "[&>div]:justify-end", "border-l-0"),
-    tdClassName: (id, row) =>
-      cn(
-        "transition-opacity",
-        excludedEventIds.includes(row.original.eventId || "") && [
-          "[&>div]:opacity-50",
-          id === "amount" && "group-hover/row:[&>div]:opacity-100",
-        ],
-        id === "amount" && "text-right",
-        "border-l-0",
-      ),
-    className: "[&_tr:last-child>td]:border-b-transparent",
-    scrollWrapperClassName: "min-h-[40px]",
-    resourceName: (p) => `event${p ? "s" : ""}`,
-    loading,
-    error,
-  });
-
-  return <Table {...table} />;
 }
 
 export function CreateCommissionSheet({
