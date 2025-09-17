@@ -302,7 +302,7 @@ export const createManualCommissionAction = authActionClient
 
     // Duplicate the customer events
     const shouldDuplicateEvents =
-      eventIds && eventIds.length > 0 && customer.linkId !== linkId;
+      eventIds && eventIds.length > 0 && shouldCreateNewCustomer;
 
     if (shouldDuplicateEvents) {
       const eventType = !saleAmount ? "leads" : "sales";
@@ -334,6 +334,8 @@ export const createManualCommissionAction = authActionClient
       if (events.length === 0) {
         throw new Error("Selected events not found.");
       }
+
+      console.log(events);
 
       // Duplicate the events for the new customer
       if (eventType === "leads") {
