@@ -104,6 +104,7 @@ export async function POST() {
 
       console.log(
         `📨 Recipients:`,
+        // @ts-ignore
         batch.map((b) => b.email.to),
       );
 
@@ -111,7 +112,10 @@ export async function POST() {
         continue;
       }
 
-      const { data, error } = await sendBatchEmail(batch.map((b) => b.email));
+      const { data, error } = await sendBatchEmail(
+        // @ts-ignore
+        batch.map((b) => b.email),
+      );
 
       console.log("🚀 ~ data:", data);
       if (error) {
