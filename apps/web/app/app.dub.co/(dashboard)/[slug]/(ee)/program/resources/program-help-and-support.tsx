@@ -88,8 +88,8 @@ export function ProgramHelpAndSupportContent({
     <form onSubmit={handleSubmit(onSubmit)}>
       <div className="divide-y divide-neutral-200 border-t border-neutral-200 px-6">
         <SettingsRow
-          heading="Platform messages"
-          description="Communicate with your partners in Dub"
+          heading="Messaging center"
+          description="Communicate with your partners directly inside Dub"
         >
           <div className="flex items-center justify-end">
             <div className="w-full max-w-md">

@@ -13,7 +13,7 @@ export function MessagesDisabled() {
     <PageContent title="Messages">
       <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
         <MsgsDotted className="text-content-subtle size-10" />
-        <div className="max-w-80 text-pretty text-center">
+        <div className="max-w-sm text-pretty text-center">
           <span className="text-base font-medium text-neutral-900">
             Messaging disabled
           </span>
@@ -23,9 +23,9 @@ export function MessagesDisabled() {
               href={`/${slug}/program/resources`}
               className="hover:text-content-default underline underline-offset-2"
             >
-              Resources
+              Resources tab
             </Link>{" "}
-            to message your partners.
+            to communicate with your partners directly inside Dub.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -36,7 +36,7 @@ export function MessagesDisabled() {
               "flex h-9 items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm font-medium",
             )}
           >
-            View resources
+            Go to resources tab
           </Link>
         </div>
       </div>
