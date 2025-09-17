@@ -120,7 +120,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
 
       <Button
         variant="primary"
-        text="Send commission"
+        text="Create commission"
         shortcut="C"
         onClick={() => setCreateCommissionSheetOpen(true)}
         className="hidden h-8 w-fit px-3 sm:h-9 md:flex"
@@ -159,7 +159,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
               }}
               className="md:hidden"
             >
-              Send commission
+              Create commission
             </MenuItem>
             <MenuItem
               icon={PenWriting}
