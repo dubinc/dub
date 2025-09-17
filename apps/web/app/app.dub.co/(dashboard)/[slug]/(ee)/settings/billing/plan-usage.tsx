@@ -204,7 +204,7 @@ export default function PlanUsage() {
           <UsageCategory
             title="Partners"
             icon={Users6}
-            usage={partnersCount}
+            usage={partnersCount ?? 0}
             usageLimit={INFINITY_NUMBER}
             href={`/${slug}/program/partners`}
           />

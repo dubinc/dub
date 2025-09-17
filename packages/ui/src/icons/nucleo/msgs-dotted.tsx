@@ -25,7 +25,8 @@ export function MsgsDotted(props: SVGProps<SVGSVGElement>) {
           strokeLinecap="round"
           strokeLinejoin="round"
           strokeWidth="1.5"
-          strokeDasharray="1.5 3"
+          strokeDasharray="1.2 2.5"
+          strokeDashoffset="-0.2"
           opacity="0.6"
         />
       </g>

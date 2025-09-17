@@ -21,6 +21,7 @@ export function PartnerPayoutSettingsButton() {
         type="button"
         text="Payout settings"
         variant="secondary"
+        className="h-9 px-3"
         onClick={() => setShowPartnerPayoutSettingsSheet(true)}
       />
     </>
