@@ -584,20 +584,25 @@ export type OperatorFn = (a: number, b: number) => boolean;
 export interface WorkflowContext {
   partnerId: string;
   groupId: string;
-  // All time metrics
+  totalLeads?: number;
+  totalConversions?: number;
+  totalSaleAmount?: number;
+  totalCommissions?: number;
+
+  // // All time metrics
   // historical: {
-  //   leads: number;
-  //   conversions: number;
-  //   saleAmount: number;
-  //   commissions: number;
+  //   leads?: number;
+  //   conversions?: number;
+  //   saleAmount?: number;
+  //   commissions?: number;
   // };
-  // Recent metrics
-  recent: {
-    leads?: number;
-    conversions?: number;
-    saleAmount?: number;
-    commissions?: number;
-  };
+  // // Recent metrics
+  // recent: {
+  //   leads?: number;
+  //   conversions?: number;
+  //   saleAmount?: number;
+  //   commissions?: number;
+  // };
 }
 
 export type BountySubmissionsQueryFilters = z.infer<

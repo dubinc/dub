@@ -146,6 +146,11 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
+  const firstConversionFlag = isFirstConversion({
+    customer,
+    linkId,
+  });
+
   const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
@@ -155,10 +160,7 @@ export async function invoicePaid(event: Stripe.Event) {
         id: linkId,
       },
       data: {
-        ...(isFirstConversion({
-          customer,
-          linkId,
-        }) && {
+        ...(firstConversionFlag && {
           conversions: {
             increment: 1,
           },
@@ -202,7 +204,7 @@ export async function invoicePaid(event: Stripe.Event) {
 
   // for program links
   if (link.programId && link.partnerId) {
-    const commission = await createPartnerCommission({
+    await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -228,6 +230,10 @@ export async function invoicePaid(event: Stripe.Event) {
         trigger: WorkflowTrigger.saleRecorded,
         programId: link.programId,
         partnerId: link.partnerId,
+        context: {
+          totalSaleAmount: saleData.amount,
+          totalConversions: firstConversionFlag ? 1 : 0,
+        },
       }),
     );
   }

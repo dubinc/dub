@@ -99,18 +99,7 @@ export const executeAwardBountyAction = async ({
     }
   }
 
-  // Find the count to increment
-  let count = 0;
-
-  if (condition.attribute === "totalLeads") {
-    count = context.recent.leads ?? 0;
-  } else if (condition.attribute === "totalConversions") {
-    count = context.recent.conversions ?? 0;
-  } else if (condition.attribute === "totalSaleAmount") {
-    count = context.recent.saleAmount ?? 0;
-  } else if (condition.attribute === "totalCommissions") {
-    count = context.recent.commissions ?? 0;
-  }
+  const count = context[condition.attribute] ?? 0;
 
   // Create or update the submission
   const bountySubmission = await prisma.bountySubmission.upsert({

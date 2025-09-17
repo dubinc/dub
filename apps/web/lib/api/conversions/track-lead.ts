@@ -320,9 +320,7 @@ export const trackLead = async ({
               programId: link.programId,
               partnerId: link.partnerId,
               context: {
-                recent: {
-                  leads: 1,
-                },
+                totalLeads: 1,
               },
             });
           }

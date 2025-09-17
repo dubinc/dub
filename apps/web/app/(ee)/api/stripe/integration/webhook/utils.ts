@@ -137,9 +137,7 @@ export async function createNewCustomer(event: Stripe.Event) {
           programId: link.programId,
           partnerId: link.partnerId,
           context: {
-            recent: {
-              leads: 1,
-            },
+            totalLeads: 1,
           },
         }),
     ]),

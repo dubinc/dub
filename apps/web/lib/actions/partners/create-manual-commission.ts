@@ -208,9 +208,17 @@ export const createManualCommissionAction = authActionClient
           trigger: WorkflowTrigger.leadRecorded,
           programId,
           partnerId,
+          context: {
+            totalLeads: 1,
+          },
         }),
       ]);
     }
+
+    const firstConversionFlag = isFirstConversion({
+      customer,
+      linkId,
+    });
 
     if (saleAmount && leadEvent) {
       const saleEventId = nanoid(16);
@@ -256,6 +264,10 @@ export const createManualCommissionAction = authActionClient
           trigger: WorkflowTrigger.saleRecorded,
           programId,
           partnerId,
+          context: {
+            totalSaleAmount: saleAmount,
+            totalConversions: firstConversionFlag ? 1 : 0,
+          },
         }),
       ]);
     }
@@ -269,10 +281,7 @@ export const createManualCommissionAction = authActionClient
             id: linkId,
           },
           data: {
-            ...(isFirstConversion({
-              customer,
-              linkId,
-            }) && {
+            ...(firstConversionFlag && {
               leads: {
                 increment: 1,
               },

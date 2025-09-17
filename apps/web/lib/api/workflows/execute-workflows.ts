@@ -22,7 +22,10 @@ export async function executeWorkflows({
   programId: string;
   partnerId: string;
   trigger: WorkflowTrigger;
-  context?: Pick<WorkflowContext, "recent">;
+  context?: Pick<
+    WorkflowContext,
+    "totalLeads" | "totalConversions" | "totalSaleAmount" | "totalCommissions"
+  >;
 }) {
   const workflows = await prisma.workflow.findMany({
     where: {
@@ -66,7 +69,7 @@ export async function executeWorkflows({
   const workflowContext: WorkflowContext = {
     partnerId: programEnrollment.partnerId,
     groupId: programEnrollment.groupId,
-    recent: context?.recent ?? {},
+    ...context,
   };
 
   console.log("Workflow context", workflowContext);
@@ -91,18 +94,6 @@ export async function executeWorkflows({
     const condition = conditions[0];
     const action = actions[0];
 
-    // const shouldExecute = evaluateWorkflowCondition({
-    //   condition,
-    //   context: workflowContext,
-    // });
-
-    // if (!shouldExecute) {
-    //   console.log(
-    //     `Workflow ${workflow.id} does not meet the trigger condition.`,
-    //   );
-    //   continue;
-    // }
-
     if (action.type === "awardBounty") {
       await executeAwardBountyAction({
         condition,
@@ -122,7 +113,7 @@ export function evaluateWorkflowCondition({
 }) {
   console.log("Evaluating the workflow condition:", {
     condition,
-    context
+    context,
   });
 
   const operatorFn = OPERATOR_FUNCTIONS[condition.operator];
@@ -139,6 +130,6 @@ export function evaluateWorkflowCondition({
   if (!attributeValue) {
     return false;
   }
-  
+
   return operatorFn(attributeValue, condition.value);
 }
