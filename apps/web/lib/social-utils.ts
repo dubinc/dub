@@ -29,7 +29,7 @@ const PLATFORM_CONFIGS: Record<SocialPlatform, SocialPlatformConfig> = {
     maxLength: 15,
   },
   linkedin: {
-    patterns: [/^(?:.*\.)?linkedin\.com\/(?:in\/)?([^\/\?]+)/i],
+    patterns: [/^(?:.*\.)?linkedin\.com\/(?:in\/|company\/)?([^\/\?]+)/i],
     allowedChars: /[^\w-]/g,
     maxLength: 30,
   },
