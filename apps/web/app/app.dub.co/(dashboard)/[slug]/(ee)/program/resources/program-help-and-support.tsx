@@ -91,38 +91,44 @@ export function ProgramHelpAndSupportContent({
           heading="Platform messages"
           description="Communicate with your partners in Dub"
         >
-          <label className="flex items-center gap-3">
-            <Controller
-              control={control}
-              name="messagingEnabledAt"
-              render={({ field }) => (
-                <Switch
-                  checked={Boolean(field.value)}
-                  fn={(checked) => field.onChange(checked ? new Date() : null)}
-                  trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
-                  disabledTooltip={
-                    !field.value &&
-                    !getPlanCapabilities(plan).canMessagePartners ? (
-                      <TooltipContent
-                        title="Messaging is only available on Advanced plans and above."
-                        cta="Upgrade to Advanced"
-                        href={`/${workspaceSlug}/upgrade`}
-                        target="_blank"
-                      />
-                    ) : undefined
-                  }
-                  thumbIcon={
-                    !getPlanCapabilities(plan).canMessagePartners ? (
-                      <CrownSmall className="size-full text-neutral-500" />
-                    ) : undefined
-                  }
+          <div className="flex items-center justify-end">
+            <div className="w-full max-w-md">
+              <label className="flex items-center gap-3">
+                <Controller
+                  control={control}
+                  name="messagingEnabledAt"
+                  render={({ field }) => (
+                    <Switch
+                      checked={Boolean(field.value)}
+                      fn={(checked) =>
+                        field.onChange(checked ? new Date() : null)
+                      }
+                      trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
+                      disabledTooltip={
+                        !field.value &&
+                        !getPlanCapabilities(plan).canMessagePartners ? (
+                          <TooltipContent
+                            title="Messaging is only available on Advanced plans and above."
+                            cta="Upgrade to Advanced"
+                            href={`/${workspaceSlug}/upgrade`}
+                            target="_blank"
+                          />
+                        ) : undefined
+                      }
+                      thumbIcon={
+                        !getPlanCapabilities(plan).canMessagePartners ? (
+                          <CrownSmall className="size-full text-neutral-500" />
+                        ) : undefined
+                      }
+                    />
+                  )}
                 />
-              )}
-            />
-            <span className="text-content-default text-sm font-medium">
-              Enable partner messaging
-            </span>
-          </label>
+                <span className="text-content-default text-sm font-medium">
+                  Enable partner messaging
+                </span>
+              </label>
+            </div>
+          </div>
         </SettingsRow>
 
         <SettingsRow
