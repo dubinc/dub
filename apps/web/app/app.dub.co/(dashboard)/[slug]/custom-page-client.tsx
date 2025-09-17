@@ -14,28 +14,22 @@ import { ShieldAlert } from "@dub/ui/icons";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { Session } from '@/lib/auth/utils';
-import { UserProvider } from '@/ui/contexts/user';
 
 interface WorkspaceQRsClientProps {
   initialQrs: QrStorageData[];
   featuresAccess: boolean;
-  user: Session["user"];
 }
 
 export default function WorkspaceQRsClient({
   initialQrs,
   featuresAccess,
-  user,
 }: WorkspaceQRsClientProps) {
   return (
-    <UserProvider user={user}>
-      <QrCodesDisplayProvider>
-        <WorkspaceQRs initialQrs={initialQrs} featuresAccess={featuresAccess} />
+    <QrCodesDisplayProvider>
+      <WorkspaceQRs initialQrs={initialQrs} featuresAccess={featuresAccess} />
 
-        <QRPreviewModalWrapper initialQrs={initialQrs} />
-      </QrCodesDisplayProvider>
-    </UserProvider>
+      <QRPreviewModalWrapper initialQrs={initialQrs} />
+    </QrCodesDisplayProvider>
   );
 }
 
@@ -44,7 +38,7 @@ function WorkspaceQRs({ initialQrs, featuresAccess }: { initialQrs: QrStorageDat
   const { isValidating } = useQrs({}, {}, true); // listenOnly mode
 
   const { CreateQRButton, QRBuilderModal } = useQRBuilder();
-  
+
   return (
     <>
       <QRBuilderModal />

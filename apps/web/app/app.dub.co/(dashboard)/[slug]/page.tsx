@@ -30,7 +30,7 @@ const WorkspaceQRsPage = async () => {
   return (
     <>
       <PageContent title={<LinksTitle />}>
-        <WorkspaceQRsClient initialQrs={qrs as any} featuresAccess={featuresAccess.featuresAccess} user={authUser} />
+        <WorkspaceQRsClient initialQrs={qrs as any} featuresAccess={featuresAccess.featuresAccess} />
       </PageContent>
 
       <PageViewedTrackerComponent
