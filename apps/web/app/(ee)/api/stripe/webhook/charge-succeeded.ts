@@ -1,7 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { setRenewOption } from "@/lib/dynadot/set-renew-option";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import DomainRenewed from "@dub/email/templates/domain-renewed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
@@ -152,9 +151,9 @@ async function processDomainRenewalInvoice({ invoice }: { invoice: Invoice }) {
     return;
   }
 
-  await resend.batch.send(
+  await sendBatchEmail(
     workspaceOwners.map(({ user }) => ({
-      from: VARIANT_TO_FROM_MAP.notifications,
+      variant: "notifications",
       to: user.email!,
       subject: `Your ${pluralize("domain", domains.length)} have been renewed`,
       react: DomainRenewed({

@@ -6,9 +6,18 @@ import { Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
+  : null;
 
 async function main() {
+  if (!resend) {
+    console.error(
+      "No RESEND_API_KEY is set in the environment variables. Skipping.",
+    );
+    return;
+  }
+
   const where: Prisma.UserWhereInput = {
     email: {
       not: null,

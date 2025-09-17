@@ -1,6 +1,5 @@
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -134,10 +133,10 @@ export async function approvePartnerEnrollment({
       await Promise.allSettled([
         ...(partnerEmailsToNotify.length
           ? [
-              resend.batch.send(
+              sendBatchEmail(
                 partnerEmailsToNotify.map((email) => ({
                   subject: `Your application to join ${program.name} partner program has been approved!`,
-                  from: VARIANT_TO_FROM_MAP.notifications,
+                  variant: "notifications",
                   to: email,
                   react: PartnerApplicationApproved({
                     program: {

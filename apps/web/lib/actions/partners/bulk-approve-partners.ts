@@ -11,8 +11,8 @@ import {
   EnrolledPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
+import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { chunk, isFulfilled } from "@dub/utils";
@@ -109,7 +109,7 @@ export const bulkApprovePartnersAction = authActionClient
     });
 
     // Create all emails first, then chunk them into batches of 100
-    const allEmails = updatedEnrollments.flatMap(
+    const allEmails: ResendBulkEmailOptions = updatedEnrollments.flatMap(
       ({ partner, clickReward, leadReward, saleReward }) => {
         const partnerEmailsToNotify = partner.users
           .map(({ user }) => user.email)
@@ -117,7 +117,7 @@ export const bulkApprovePartnersAction = authActionClient
 
         return partnerEmailsToNotify.map((email) => ({
           subject: `Your application to join ${program.name} partner program has been approved!`,
-          from: VARIANT_TO_FROM_MAP.notifications,
+          variant: "notifications",
           to: email,
           react: PartnerApplicationApproved({
             program: {
@@ -191,7 +191,7 @@ export const bulkApprovePartnersAction = authActionClient
 
         await Promise.allSettled([
           // Send approval emails
-          ...emailChunks.map((emailChunk) => resend.batch.send(emailChunk)),
+          ...emailChunks.map((emailChunk) => sendBatchEmail(emailChunk)),
 
           // Send enrolled webhooks
           ...updatedEnrollments.map(({ partner, ...enrollment }) =>
