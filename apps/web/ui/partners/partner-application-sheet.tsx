@@ -15,7 +15,6 @@ import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
-import { GroupSelector } from "./groups/group-selector";
 import { PartnerAbout } from "./partner-about";
 import { PartnerApplicationTabs } from "./partner-application-tabs";
 import { PartnerComments } from "./partner-comments";
@@ -32,8 +31,8 @@ function PartnerApplicationSheetContent({
   const [currentTabId, setCurrentTabId] = useState<string>("about");
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+    <div className="flex size-full flex-col">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
           Partner application
         </Sheet.Title>
@@ -48,16 +47,7 @@ function PartnerApplicationSheetContent({
         </div>
       </div>
 
-      {/* <div className="flex-1 overflow-y-auto">
-        <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          <PartnerInfoSection partner={partner} />
-        </div>
-        <div className="p-6 text-sm text-neutral-600">
-          <PendingPartnerSummary partner={partner} />
-        </div>
-      </div> */}
-
-      <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] grid grow grid-cols-1 gap-x-6 gap-y-4 p-6">
+      <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-6">
         <div className="@3xl/sheet:order-2">Partner info</div>
         <div className="@3xl/sheet:order-1">
           <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
@@ -78,7 +68,7 @@ function PartnerApplicationSheetContent({
       </div>
 
       {partner.status === "pending" && (
-        <div className="border-t border-neutral-200 p-5">
+        <div className="shrink-0 border-t border-neutral-200 p-5">
           <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
         </div>
       )}
@@ -241,25 +231,19 @@ function PartnerApproval({
   return (
     <>
       {confirmModal}
-      <div className="flex flex-col gap-3">
-        <GroupSelector
-          selectedGroupId={selectedGroupId}
-          setSelectedGroupId={setSelectedGroupId}
-        />
-        <div className="flex gap-2">
-          <div className="flex-shrink-0">
-            <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
-          </div>
-          <Button
-            type="button"
-            variant="primary"
-            text="Approve"
-            loading={isPending}
-            disabled={!selectedGroupId}
-            onClick={() => setShowConfirmModal(true)}
-            className="flex-1"
-          />
+      <div className="flex gap-2">
+        <div className="flex-shrink-0">
+          <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
         </div>
+        <Button
+          type="button"
+          variant="primary"
+          text="Approve"
+          loading={isPending}
+          disabled={!selectedGroupId}
+          onClick={() => setShowConfirmModal(true)}
+          className="flex-1"
+        />
       </div>
     </>
   );
