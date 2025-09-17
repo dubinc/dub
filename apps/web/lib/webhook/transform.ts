@@ -103,6 +103,7 @@ export const transformSaleEventData = (data: any) => {
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
     link: transformLink(sale.link as ExpandedLink),
+    metadata: sale.metadata ?? null,
   });
 };
 
