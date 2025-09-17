@@ -1,6 +1,7 @@
 import { createManualCommissionAction } from "@/lib/actions/partners/create-manual-commission";
 import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useProgram from "@/lib/swr/use-program";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
@@ -21,9 +22,11 @@ import {
   Sheet,
   SmartDateTimePicker,
   Switch,
+  Table,
   ToggleGroup,
+  useTable,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, currencyFormatter, formatDateTimeSmart } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
@@ -39,15 +42,24 @@ interface CreateCommissionSheetProps {
 type FormData = z.infer<typeof createCommissionSchema>;
 
 interface CustomerEvent {
-  type: string;
-  date?: string;
-  amount?: number;
+  eventId: string;
+  timestamp: string;
+  saleAmount?: number;
+}
+
+interface EventsSelectionTableProps {
+  events: CustomerEvent[];
+  excludedEventIds: string[];
+  onToggleExclude: (eventId: string) => void;
+  loading?: boolean;
+  error?: string;
 }
 
 function CreateCommissionSheetContent({
   setIsOpen,
   partnerId: initialPartnerId,
 }: CreateCommissionSheetProps) {
+  const { program } = useProgram();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [hasProductId, setHasProductId] = useState(false);
@@ -59,6 +71,7 @@ function CreateCommissionSheetContent({
 
   const [existingEvents, setExistingEvents] = useState<CustomerEvent[]>([]);
   const [existingEventsLoading, setExistingEventsLoading] = useState(false);
+  const [excludedEventIds, setExcludedEventIds] = useState<string[]>([]);
 
   const [commissionType, setCommissionType] =
     useState<CommissionType>("custom");
@@ -114,6 +127,14 @@ function CreateCommissionSheetContent({
     }
   }, [hasCustomLeadEventDate, setValue]);
 
+  const handleToggleExcludeEvent = (eventId: string) => {
+    setExcludedEventIds((ids) =>
+      ids.includes(eventId)
+        ? ids.filter((id) => id !== eventId)
+        : [...ids, eventId],
+    );
+  };
+
   useEffect(() => {
     const baseValues = ["partner-and-type"];
 
@@ -153,6 +174,13 @@ function CreateCommissionSheetContent({
       ? new Date(data.leadEventDate).toISOString()
       : null;
 
+    // Get selected event IDs (exclude the excluded ones)
+    const selectedEventIds = existingEvents
+      .filter(
+        (event) => event.eventId && !excludedEventIds.includes(event.eventId),
+      )
+      .map((event) => event.eventId!);
+
     await executeAsync({
       ...data,
       workspaceId,
@@ -161,6 +189,7 @@ function CreateCommissionSheetContent({
       saleAmount: data.saleAmount ? data.saleAmount * 100 : null,
       saleEventDate,
       leadEventDate,
+      eventIds: selectedEventIds,
     });
   };
 
@@ -188,6 +217,11 @@ function CreateCommissionSheetContent({
     return false;
   }, [commissionType, partnerId, linkId, customerId, saleAmount, amount]);
 
+  // Reset excluded events when customer changes
+  useEffect(() => {
+    setExcludedEventIds([]);
+  }, [customerId]);
+
   // fetch existing events for given customer (filtered by commissionType)
   useEffect(() => {
     if (
@@ -208,6 +242,7 @@ function CreateCommissionSheetContent({
         const searchParams = new URLSearchParams({
           workspaceId,
           customerId,
+          folderId: program?.defaultFolderId!,
           event: `${commissionType}s`,
         });
 
@@ -225,8 +260,6 @@ function CreateCommissionSheetContent({
 
     fetchEvents();
   }, [customerId, commissionType]);
-
-  console.log({ existingEvents });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -519,38 +552,12 @@ function CreateCommissionSheetContent({
                           </div>
 
                           {useExistingEvents ? (
-                            <div className="rounded-md border border-neutral-200 bg-neutral-50 p-4">
-                              <h3 className="mb-3 text-sm font-medium text-neutral-900">
-                                Select an existing events
-                              </h3>
-                              <div className="space-y-2">
-                                {existingEvents.map((event, index) => (
-                                  <button
-                                    key={index}
-                                    type="button"
-                                    className="flex w-full items-center justify-between rounded-md bg-white p-3 text-sm hover:bg-neutral-50 focus:bg-neutral-100 focus:outline-none"
-                                  >
-                                    <div>
-                                      <span className="font-medium">
-                                        {event.type}
-                                      </span>
-                                      {event.date && (
-                                        <span className="ml-2 text-neutral-500">
-                                          {new Date(
-                                            event.date,
-                                          ).toLocaleDateString()}
-                                        </span>
-                                      )}
-                                    </div>
-                                    {event.amount && (
-                                      <span className="text-neutral-700">
-                                        ${event.amount}
-                                      </span>
-                                    )}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
+                            <EventsSelectionTable
+                              events={existingEvents}
+                              excludedEventIds={excludedEventIds}
+                              onToggleExclude={handleToggleExcludeEvent}
+                              loading={existingEventsLoading}
+                            />
                           ) : null}
                         </div>
                       ) : null)}
@@ -855,6 +862,85 @@ function CreateCommissionSheetContent({
       </div>
     </form>
   );
+}
+
+function EventsSelectionTable({
+  events,
+  excludedEventIds,
+  onToggleExclude,
+  loading = false,
+  error,
+}: EventsSelectionTableProps) {
+  const table = useTable({
+    data: events || [],
+    columns: [
+      {
+        id: "date",
+        header: "Date",
+        cell: ({ row }) => (
+          <span className="text-sm text-neutral-700">
+            {row.original.timestamp
+              ? formatDateTimeSmart(new Date(row.original.timestamp))
+              : "—"}
+          </span>
+        ),
+      },
+      {
+        id: "amount",
+        header: "Amount",
+        cell: ({ row }) => (
+          <div className="relative">
+            <span
+              className={cn(
+                "text-sm text-neutral-700",
+                excludedEventIds.includes(row.original.eventId || "") &&
+                  "line-through",
+              )}
+            >
+              {row.original.saleAmount
+                ? `${currencyFormatter(row.original.saleAmount / 100, {
+                    trailingZeroDisplay: "stripIfInteger",
+                  })} USD`
+                : "—"}
+            </span>
+            <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
+              <Button
+                variant="secondary"
+                text={
+                  excludedEventIds.includes(row.original.eventId || "")
+                    ? "Include"
+                    : "Exclude"
+                }
+                className="h-6 w-fit px-2"
+                onClick={() =>
+                  row.original.eventId && onToggleExclude(row.original.eventId)
+                }
+              />
+            </div>
+          </div>
+        ),
+      },
+    ],
+    thClassName: (id) =>
+      cn(id === "amount" && "[&>div]:justify-end", "border-l-0"),
+    tdClassName: (id, row) =>
+      cn(
+        "transition-opacity",
+        excludedEventIds.includes(row.original.eventId || "") && [
+          "[&>div]:opacity-50",
+          id === "amount" && "group-hover/row:[&>div]:opacity-100",
+        ],
+        id === "amount" && "text-right",
+        "border-l-0",
+      ),
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
+    resourceName: (p) => `event${p ? "s" : ""}`,
+    loading,
+    error,
+  });
+
+  return <Table {...table} />;
 }
 
 export function CreateCommissionSheet({
