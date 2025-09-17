@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 import { Drawer } from "vaul";
 
+import useUser from "@/lib/swr/use-user.ts";
 import { UserProps } from "@/lib/types.ts";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
@@ -23,10 +24,10 @@ import { Modal } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { LoaderCircle } from "lucide-react";
-import { useUser } from '@/ui/contexts/user';
 
 type QRBuilderModalProps = {
   props?: QrStorageData;
+  user: UserProps;
   showQRBuilderModal: boolean;
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
   initialStep?: number;
@@ -34,6 +35,7 @@ type QRBuilderModalProps = {
 
 export function QRBuilderModal({
   props,
+  user,
   showQRBuilderModal,
   setShowQRBuilderModal,
   initialStep,
@@ -95,8 +97,10 @@ export function QRBuilderModal({
       </div>
       <Theme>
         <QrBuilder
+          sessionId={user?.id}
           isEdit={!!props}
           props={props}
+          user={user}
           handleSaveQR={handleSaveQR}
           isProcessing={isProcessing}
           initialStep={initialStep}
@@ -144,11 +148,12 @@ export function QRBuilderModal({
 }
 
 function CreateQRButton({
+  user,
   setShowQRBuilderModal,
 }: {
+  user: UserProps;
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const user = useUser();
   useKeyboardShortcut("c", () => setShowQRBuilderModal(true));
 
   return (
@@ -175,6 +180,7 @@ export function useQRBuilder(data?: {
   props?: QrStorageData;
   initialStep?: number;
 }) {
+  const { user } = useUser();
   const { props, initialStep } = data ?? {};
 
   const [showQRBuilderModal, setShowQRBuilderModal] = useState(false);
@@ -183,20 +189,22 @@ export function useQRBuilder(data?: {
     return (
       <QRBuilderModal
         props={props}
+        user={user!}
         showQRBuilderModal={showQRBuilderModal}
         setShowQRBuilderModal={setShowQRBuilderModal}
         initialStep={initialStep}
       />
     );
-  }, [props, showQRBuilderModal, initialStep]);
+  }, [props, showQRBuilderModal, setShowQRBuilderModal, initialStep, user]);
 
   const CreateQRButtonCallback = useCallback(() => {
     return (
       <CreateQRButton
+        user={user!}
         setShowQRBuilderModal={setShowQRBuilderModal}
       />
     );
-  }, []);
+  }, [user, setShowQRBuilderModal]);
 
   return useMemo(
     () => ({

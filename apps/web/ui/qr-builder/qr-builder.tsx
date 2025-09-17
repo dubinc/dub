@@ -1,3 +1,4 @@
+import { UserProps } from "@/lib/types.ts";
 import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder.tsx";
 import Stepper from "@/ui/qr-builder/components/stepper.tsx";
@@ -27,10 +28,11 @@ import {
   QR_TYPES,
 } from "./constants/get-qr-config.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
-import { useUser } from '../contexts/user';
 
 interface IQRBuilderProps {
+  sessionId: string;
   props?: QrStorageData;
+  user?: UserProps;
   homepageDemo?: boolean;
   handleSaveQR?: (data: QRBuilderData) => Promise<void>;
   isProcessing?: boolean;
@@ -50,7 +52,9 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
   forwardRef(
     (
       {
+        sessionId,
         props,
+        user,
         homepageDemo,
         handleSaveQR,
         isProcessing,
@@ -63,7 +67,6 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
     ) => {
       // ===== PROPS & CONSTANTS =====
       const { isMobile } = useMediaQuery();
-      const user = useUser();
 
       const filteredQrTypes = QR_TYPES.filter(
         (qrType) =>
@@ -214,7 +217,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               ? { email: user?.email, event_category: "Authorized" }
               : {}),
           },
-          sessionId: user?.id as string,
+          sessionId,
         });
 
         setSelectedQRType(type);
@@ -252,7 +255,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 ? { email: user?.email, event_category: "Authorized" }
                 : {}),
             },
-            sessionId: user?.id as string,
+            sessionId,
           });
 
           onSaveClick();
@@ -272,7 +275,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 ? { email: user?.email, event_category: "Authorized" }
                 : {}),
             },
-            sessionId: user?.id as string,
+            sessionId,
           });
 
           handleNextStep();
@@ -477,7 +480,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                         !isMobile &&
                         !navigationButtonsInViewport && (
                           <QrTabsDownloadButton
-                            sessionId={user?.id as string}
+                            sessionId={sessionId!}
                             onRegistrationClick={onSaveClick}
                             isQrDisabled={isQrDisabled}
                           />
