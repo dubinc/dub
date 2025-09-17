@@ -48,6 +48,8 @@ export const createManualCommissionAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    console.log({partnerId})
+
     let [{ partner, links }, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
@@ -134,7 +136,7 @@ export const createManualCommissionAction = authActionClient
           },
           data: {
             name: `${customer!.name} (old)`,
-            externalId: null,
+            externalId: customer!.id, // TODO: We need to make this null
             stripeCustomerId: null,
             linkId: null,
             clickId: null,
@@ -326,7 +328,7 @@ export const createManualCommissionAction = authActionClient
 
             const events = response.data;
 
-            console.log(events);
+            console.log(`Found ${events.length} events for ${eventType}`);
 
             if (eventType === "leads") {
               await Promise.all(
@@ -335,6 +337,13 @@ export const createManualCommissionAction = authActionClient
                     ...event,
                     customer_id: customer.id,
                     link_id: link.id,
+                    device_model: "Unknown",
+                    device_vendor: "Unknown",
+                    browser_version: "Unknown",
+                    os_version: "Unknown",
+                    engine_version: "Unknown",
+                    cpu_architecture: "Unknown",
+                    bot: 0,
                   }),
                 ),
               );
@@ -345,6 +354,13 @@ export const createManualCommissionAction = authActionClient
                     ...event,
                     customer_id: customer.id,
                     link_id: link.id,
+                    device_model: "Unknown",
+                    device_vendor: "Unknown",
+                    browser_version: "Unknown",
+                    os_version: "Unknown",
+                    engine_version: "Unknown",
+                    cpu_architecture: "Unknown",
+                    bot: 0,
                   }),
                 ),
               );
