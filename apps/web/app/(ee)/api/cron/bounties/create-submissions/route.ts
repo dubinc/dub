@@ -1,0 +1,163 @@
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
+import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { differenceInMinutes } from "date-fns";
+import { z } from "zod";
+import { logAndRespond } from "../../utils";
+
+export const dynamic = "force-dynamic";
+
+const schema = z.object({
+  bountyId: z.string(),
+  page: z.number().optional().default(0),
+});
+
+const MAX_PAGE_SIZE = 100;
+
+// POST /api/cron/bounties/create-submissions
+export async function POST(req: Request) {
+  try {
+    const rawBody = await req.text();
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
+
+    const { bountyId, page } = schema.parse(JSON.parse(rawBody));
+
+    // Find bounty
+    const bounty = await prisma.bounty.findUnique({
+      where: {
+        id: bountyId,
+      },
+      include: {
+        groups: true,
+        program: true,
+        workflow: true,
+      },
+    });
+
+    if (!bounty) {
+      return logAndRespond(`Bounty ${bountyId} not found.`, {
+        logLevel: "error",
+      });
+    }
+
+    let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+
+    if (diffMinutes >= 10) {
+      return logAndRespond(
+        `Bounty ${bountyId} not started yet, it will start at ${bounty.startsAt.toISOString()}`,
+      );
+    }
+
+    if (bounty.type !== "performance") {
+      return logAndRespond(`Bounty ${bountyId} is not a performance bounty.`);
+    }
+
+    if (!bounty.workflow) {
+      return logAndRespond(`Bounty ${bountyId} has no workflow.`);
+    }
+
+    // Find groupIds
+    const groupIds = bounty.groups.map(({ groupId }) => groupId);
+
+    // Find program enrollments
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        programId: bounty.programId,
+        ...(groupIds.length > 0 && {
+          groupId: {
+            in: groupIds,
+          },
+        }),
+        status: {
+          in: ["approved", "invited"],
+        },
+      },
+      select: {
+        partnerId: true,
+        totalCommissions: true,
+        links: {
+          select: {
+            clicks: true,
+            sales: true,
+            leads: true,
+            conversions: true,
+            saleAmount: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "asc",
+      },
+      skip: page * MAX_PAGE_SIZE,
+      take: MAX_PAGE_SIZE,
+    });
+
+    if (programEnrollments.length === 0) {
+      return logAndRespond(
+        `No more program enrollments found for bounty ${bountyId}.`,
+      );
+    }
+
+    // Find the workflow condition
+    const conditions = z
+      .array(workflowConditionSchema)
+      .parse(bounty.workflow.triggerConditions);
+    const condition = conditions[0];
+
+    // Find the partnres with their link metrics
+    const partners = programEnrollments
+      .map((partner) => {
+        return {
+          id: partner.partnerId,
+          ...aggregatePartnerLinksStats(partner.links),
+          totalCommissions: partner.totalCommissions,
+        };
+      })
+      // only create submissions for partners with a count > 0
+      .filter((partner) => partner[condition.attribute] > 0);
+
+    // Create bounty submissions
+    await prisma.bountySubmission.createMany({
+      data: partners.map((partner) => ({
+        programId: bounty.programId,
+        partnerId: partner.id,
+        bountyId: bounty.id,
+        count: partner[condition.attribute] ?? 0,
+      })),
+      skipDuplicates: true,
+    });
+
+    if (programEnrollments.length === MAX_PAGE_SIZE) {
+      const response = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-submissions`,
+        body: {
+          bountyId,
+          page: page + 1,
+        },
+      });
+
+      return logAndRespond(
+        `Enqueued next page (${page + 1}) for bounty ${bountyId}. ${JSON.stringify(response, null, 2)}`,
+      );
+    }
+
+    return logAndRespond(
+      `Finished creating submissions for ${programEnrollments.length} partners for bounty ${bountyId}.`,
+    );
+  } catch (error) {
+    await log({
+      message: "New bounties submissions cron failed. Error: " + error.message,
+      type: "errors",
+    });
+
+    return handleAndReturnErrorResponse(error);
+  }
+}

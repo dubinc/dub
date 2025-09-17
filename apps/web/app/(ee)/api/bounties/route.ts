@@ -117,6 +117,7 @@ export const POST = withWorkspace(
       submissionRequirements,
       groupIds,
       performanceCondition,
+      currentStatsOnly,
     } = createBountySchema.parse(await parseRequestBody(req));
 
     if (startsAt && endsAt && endsAt < startsAt) {
@@ -229,6 +230,9 @@ export const POST = withWorkspace(
       performanceCondition: bounty.workflow?.triggerConditions?.[0],
     });
 
+    const shouldCreateSubmissions =
+      bounty.type === "performance" && !currentStatsOnly;
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -259,6 +263,15 @@ export const POST = withWorkspace(
           },
           notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
         }),
+
+        shouldCreateSubmissions &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-submissions`,
+            body: {
+              bountyId: bounty.id,
+            },
+            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+          }),
       ]),
     );
 
