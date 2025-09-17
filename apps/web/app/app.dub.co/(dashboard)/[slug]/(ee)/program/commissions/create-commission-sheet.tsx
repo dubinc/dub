@@ -92,6 +92,8 @@ function CreateCommissionSheetContent({
     "description",
   ]);
 
+  console.log({partnerId})
+
   useEffect(() => {
     if (commissionType === "custom") {
       setValue("linkId", null);
@@ -145,6 +147,7 @@ function CreateCommissionSheetContent({
 
     await executeAsync({
       ...data,
+      partnerId,
       workspaceId,
       date,
       amount: data.amount ? data.amount * 100 : null,
