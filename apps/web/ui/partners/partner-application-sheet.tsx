@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { GroupSelector } from "./groups/group-selector";
 import { OnlinePresenceSummary } from "./online-presence-summary";
-import { PartnerInfoSection } from "./partner-info-section";
 
 type PartnerApplicationSheetProps = {
   partner: EnrolledPartnerProps;
@@ -45,13 +44,24 @@ function PartnerApplicationSheetContent({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      {/* <div className="flex-1 overflow-y-auto">
         <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          {/* Basic info */}
           <PartnerInfoSection partner={partner} />
         </div>
         <div className="p-6 text-sm text-neutral-600">
           <PendingPartnerSummary partner={partner} />
+        </div>
+      </div> */}
+
+      <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] grid grow grid-cols-1 gap-x-6 gap-y-4 p-6">
+        <div className="@3xl/sheet:order-2">Partner info</div>
+        <div className="@3xl/sheet:order-1">
+          <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
+            Partner nav
+            <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
+              Content
+            </div>
+          </div>
         </div>
       </div>
 
@@ -161,6 +171,10 @@ export function PartnerApplicationSheet({
       onOpenChange={rest.setIsOpen}
       onClose={() => queryParams({ del: "partnerId", scroll: false })}
       nested={nested}
+      contentProps={{
+        // 540px - 1170px width based on viewport
+        className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
+      }}
     >
       <PartnerApplicationSheetContent {...rest} />
     </Sheet>
