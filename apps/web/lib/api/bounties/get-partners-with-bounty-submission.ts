@@ -82,7 +82,7 @@ export async function getPartnersWithBountySubmission({
       description: row.description,
       urls: row.urls,
       files: row.files,
-      status: row.status,
+      status: row.bountySubmissionStatus,
       createdAt: row.bountySubmissionCreatedAt,
       updatedAt: row.bountySubmissionUpdatedAt,
       reviewedAt: row.reviewedAt,

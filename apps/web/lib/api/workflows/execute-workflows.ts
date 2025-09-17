@@ -118,9 +118,12 @@ export function evaluateWorkflowCondition({
   context,
 }: {
   condition: WorkflowCondition;
-  context: Record<WorkflowConditionAttribute, number>;
+  context: Partial<Record<WorkflowConditionAttribute, number | null>>;
 }) {
-  console.log("Evaluating workflow condition", condition, context);
+  console.log("Evaluating the workflow condition:", {
+    condition,
+    context
+  });
 
   const operatorFn = OPERATOR_FUNCTIONS[condition.operator];
 
@@ -130,5 +133,12 @@ export function evaluateWorkflowCondition({
     );
   }
 
-  return operatorFn(context[condition.attribute], condition.value);
+  const attributeValue = context[condition.attribute];
+
+  // If the attribute is not provided in context, return false
+  if (!attributeValue) {
+    return false;
+  }
+  
+  return operatorFn(attributeValue, condition.value);
 }

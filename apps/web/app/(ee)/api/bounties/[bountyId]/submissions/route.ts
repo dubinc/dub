@@ -49,6 +49,7 @@ export const GET = withWorkspace(
             groupIds: bounty.groups.map(({ groupId }) => groupId),
           });
 
+    
     return NextResponse.json(
       z.array(BountySubmissionExtendedSchema).parse(results),
     );

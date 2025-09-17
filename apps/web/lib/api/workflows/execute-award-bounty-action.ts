@@ -139,11 +139,7 @@ export const executeAwardBountyAction = async ({
   const shouldExecute = evaluateWorkflowCondition({
     condition,
     context: {
-      totalLeads: 0,
-      totalConversions: 0,
-      totalSaleAmount: 0,
-      totalCommissions: 0,
-      [condition.attribute]: bountySubmission.count, // override the attribute
+      [condition.attribute]: bountySubmission.count,
     },
   });
 
