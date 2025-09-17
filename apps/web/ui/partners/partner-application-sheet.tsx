@@ -16,7 +16,9 @@ import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { GroupSelector } from "./groups/group-selector";
-import { OnlinePresenceSummary } from "./online-presence-summary";
+import { PartnerAbout } from "./partner-about";
+import { PartnerApplicationTabs } from "./partner-application-tabs";
+import { PartnerComments } from "./partner-comments";
 
 type PartnerApplicationSheetProps = {
   partner: EnrolledPartnerProps;
@@ -27,6 +29,8 @@ function PartnerApplicationSheetContent({
   partner,
   setIsOpen,
 }: PartnerApplicationSheetProps) {
+  const [currentTabId, setCurrentTabId] = useState<string>("about");
+
   return (
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
@@ -57,9 +61,17 @@ function PartnerApplicationSheetContent({
         <div className="@3xl/sheet:order-2">Partner info</div>
         <div className="@3xl/sheet:order-1">
           <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
-            Partner nav
+            <PartnerApplicationTabs
+              currentTabId={currentTabId}
+              setCurrentTabId={setCurrentTabId}
+            />
             <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
-              Content
+              {currentTabId === "about" && (
+                <PartnerApplicationAbout partner={partner} />
+              )}
+              {currentTabId === "comments" && (
+                <PartnerApplicationComments partnerId={partner.id} />
+              )}
             </div>
           </div>
         </div>
@@ -74,30 +86,23 @@ function PartnerApplicationSheetContent({
   );
 }
 
-function PendingPartnerSummary({ partner }: { partner: EnrolledPartnerProps }) {
+function PartnerApplicationAbout({
+  partner,
+}: {
+  partner: EnrolledPartnerProps;
+}) {
   return (
-    <div className="grid grid-cols-1 gap-6 text-sm text-neutral-600">
-      <div>
-        <h4 className="text-content-emphasis font-semibold">Description</h4>
-        <p className="mt-1">
-          {partner.description || (
-            <span className="text-content-muted italic">
-              No description provided
-            </span>
-          )}
-        </p>
-      </div>
-      <hr className="border-neutral-200" />
+    <div className="grid grid-cols-1 gap-5 text-sm text-neutral-600">
       {partner.applicationId && (
         <>
+          <h3 className="text-content-emphasis text-lg font-semibold">
+            Application
+          </h3>
           <PartnerApplication applicationId={partner.applicationId} />
           <hr className="border-neutral-200" />
         </>
       )}
-      <div>
-        <h4 className="text-content-emphasis font-semibold">Online presence</h4>
-        <OnlinePresenceSummary partner={partner} className="mt-3" />
-      </div>
+      <PartnerAbout partner={partner} />
     </div>
   );
 }
@@ -125,11 +130,11 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-6 text-sm">
+    <div className="grid grid-cols-1 gap-6 text-xs">
       {fields.map((field) => (
         <div key={field.title}>
           <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
-          <div className="mt-1">
+          <div className="mt-2">
             {field.value || field.value === "" ? (
               <Linkify
                 as="p"
@@ -152,6 +157,15 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
           </div>
         </div>
       ))}
+    </div>
+  );
+}
+
+function PartnerApplicationComments({ partnerId }: { partnerId: string }) {
+  return (
+    <div>
+      <h3 className="text-content-emphasis text-lg font-semibold">Comments</h3>
+      <PartnerComments partnerId={partnerId} />
     </div>
   );
 }
