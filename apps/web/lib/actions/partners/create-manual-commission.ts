@@ -152,19 +152,20 @@ export const createManualCommissionAction = authActionClient
       });
     }
 
-    const existingLeadEvent = await getLeadEvent({
-      customerId,
-    });
-
     // if there is an existing lead event + no custom lead details were provided
     // we can use that leadEvent's existing details
-    if (
-      !leadEventDate &&
-      !leadEventName &&
-      existingLeadEvent &&
-      existingLeadEvent.data.length > 0
-    ) {
-      leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
+    if (useExistingEvents) {
+      const existingLeadEvent = await getLeadEvent({
+        customerId,
+      });
+
+      if (existingLeadEvent && existingLeadEvent.data.length > 0) {
+        leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
+      }
+
+      if (!leadEvent) {
+        throw new Error("Existing lead event for the customer is not found.");
+      }
     } else {
       // else, if there's no existing lead event and there is also no custom leadEventName/Date
       // we need to create a dummy click + lead event (using the customer's country if available)
@@ -324,6 +325,7 @@ export const createManualCommissionAction = authActionClient
             });
 
             const events = response.data;
+
             console.log(events);
 
             if (eventType === "leads") {
