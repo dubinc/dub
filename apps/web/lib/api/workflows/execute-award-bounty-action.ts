@@ -99,6 +99,10 @@ export const executeAwardBountyAction = async ({
     }
   }
 
+  console.log(
+    `Running the workflow ${bounty.workflowId} for bounty ${bounty.id}.`,
+  );
+
   const count = context[condition.attribute] ?? 0;
 
   // Create or update the submission
