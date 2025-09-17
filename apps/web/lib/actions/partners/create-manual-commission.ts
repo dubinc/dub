@@ -20,6 +20,10 @@ import { WorkflowTrigger } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
+// TODO: if eventIds is provided + existing customer partnerId is different from provided partnerId
+// create a new customer
+// duplicate the event IDs
+
 export const createManualCommissionAction = authActionClient
   .schema(createCommissionSchema)
   .action(async ({ parsedInput, ctx }) => {
@@ -38,6 +42,7 @@ export const createManualCommissionAction = authActionClient
       leadEventDate,
       leadEventName,
       description,
+      eventIds,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -128,7 +133,7 @@ export const createManualCommissionAction = authActionClient
       existingLeadEvent.data.length > 0
     ) {
       leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
-    } else {
+    } else if (!eventIds || eventIds.length === 0) {
       // else, if there's no existing lead event and there is also no custom leadEventName/Date
       // we need to create a dummy click + lead event (using the customer's country if available)
       const dummyRequest = new Request(link.url, {
@@ -210,6 +215,14 @@ export const createManualCommissionAction = authActionClient
           partnerId,
         }),
       ]);
+    } else {
+      // if eventIds are provided, we need to duplicate the events
+      const duplicateEvents = eventIds.map((eventId) => {
+        return {
+          ...leadEvent,
+          event_id: eventId,
+        };
+      });
     }
 
     if (saleAmount && leadEvent) {

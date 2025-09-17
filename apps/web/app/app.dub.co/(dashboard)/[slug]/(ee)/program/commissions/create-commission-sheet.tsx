@@ -38,16 +38,27 @@ interface CreateCommissionSheetProps {
 
 type FormData = z.infer<typeof createCommissionSchema>;
 
-function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
-  const { setIsOpen, partnerId: initialPartnerId } = props;
+interface CustomerEvent {
+  type: string;
+  date?: string;
+  amount?: number;
+}
 
+function CreateCommissionSheetContent({
+  setIsOpen,
+  partnerId: initialPartnerId,
+}: CreateCommissionSheetProps) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [hasProductId, setHasProductId] = useState(false);
   const { rewards, loading: rewardsLoading } = useRewards();
+
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
   const [useExistingEvents, setUseExistingEvents] = useState(true);
+
+  const [existingEvents, setExistingEvents] = useState<CustomerEvent[]>([]);
+  const [existingEventsLoading, setExistingEventsLoading] = useState(false);
 
   const [commissionType, setCommissionType] =
     useState<CommissionType>("custom");
@@ -122,7 +133,6 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
       await mutatePrefix(`/api/commissions?workspaceId=${workspaceId}`);
     },
     onError({ error }) {
-      console.log(error);
       toast.error(error.serverError);
     },
   });
@@ -179,41 +189,44 @@ function CreateCommissionSheetContent(props: CreateCommissionSheetProps) {
   }, [commissionType, partnerId, linkId, customerId, saleAmount, amount]);
 
   // fetch existing events for given customer (filtered by commissionType)
-  const [existingEvents, setExistingEventss] = useState<
-    { type: string; date?: string; amount?: number }[]
-  >([]);
-  const [existingEventsLoading, setExistingEventssLoading] = useState(false);
-
   useEffect(() => {
-    if (!customerId || !commissionType) {
-      setExistingEventss([]);
-      setExistingEventssLoading(false);
+    if (
+      !customerId ||
+      !commissionType ||
+      !workspaceId ||
+      commissionType === "custom"
+    ) {
+      setExistingEvents([]);
+      setExistingEventsLoading(false);
       return;
     }
 
-    // Simulate API fetch with delay
-    const fetchData = async () => {
-      setExistingEventssLoading(true);
+    const fetchEvents = async () => {
+      setExistingEventsLoading(true);
+
       try {
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate network delay
+        const searchParams = new URLSearchParams({
+          workspaceId,
+          customerId,
+          event: `${commissionType}s`,
+        });
 
-        // Mock data - replace with actual API call
-        const mockEvents = [
-          { type: "Lead", date: "2024-01-15", amount: 50 },
-          { type: "Sale", date: "2024-01-20", amount: 250 },
-        ];
+        const response = await fetch(`/api/events?${searchParams.toString()}`, {
+          method: "GET",
+        });
 
-        setExistingEventss(mockEvents);
+        setExistingEvents(await response.json());
       } catch (error) {
-        console.error("Failed to fetch existing events:", error);
-        setExistingEventss([]);
+        setExistingEvents([]);
       } finally {
-        setExistingEventssLoading(false);
+        setExistingEventsLoading(false);
       }
     };
 
-    fetchData();
+    fetchEvents();
   }, [customerId, commissionType]);
+
+  console.log({ existingEvents });
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">

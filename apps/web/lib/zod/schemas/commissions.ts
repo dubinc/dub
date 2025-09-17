@@ -148,6 +148,8 @@ export const createCommissionSchema = z.object({
   saleAmount: z.number().min(0).nullish(),
   invoiceId: z.string().nullish(),
   productId: z.string().nullish(),
+
+  eventIds: z.array(z.string()).nullish(),
 });
 
 export const updateCommissionSchema = z.object({
