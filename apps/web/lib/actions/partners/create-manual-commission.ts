@@ -2,6 +2,7 @@
 
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -50,7 +51,7 @@ export const createManualCommissionAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const [{ partner, links }, customer] = await Promise.all([
+    let [{ partner, links }, customer] = await Promise.all([
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
@@ -122,6 +123,37 @@ export const createManualCommissionAction = authActionClient
     let clickEvent: ClickEventTB | null = null;
     let leadEvent: LeadEventTB | null = null;
     let shouldUpdateCustomer = false;
+
+    // Create a new customer if program wants to move the customer to a different partner
+    const shouldCreateNewCustomer = !links.find(
+      (link) => link.id === customer?.linkId,
+    );
+
+    if (shouldCreateNewCustomer) {
+      customer = await prisma.$transaction(async (tx) => {
+        await tx.customer.update({
+          where: {
+            id: customer!.id,
+          },
+          data: {
+            name: `${customer!.name} (old)`,
+            externalId: null,
+            stripeCustomerId: null,
+            linkId: null,
+            clickId: null,
+          },
+        });
+
+        return await tx.customer.create({
+          data: {
+            ...customer,
+            id: createId({ prefix: "cus_" }),
+            linkId: link.id,
+            projectId: workspace.id,
+          },
+        });
+      });
+    }
 
     const existingLeadEvent = await getLeadEvent({
       customerId,
@@ -303,15 +335,13 @@ export const createManualCommissionAction = authActionClient
         throw new Error("Selected events not found.");
       }
 
-      
-
       // Duplicate the events for the new customer
       if (eventType === "leads") {
         await Promise.all(
           events.map((event) =>
             recordLeadWithTimestamp({
               ...event,
-              customer_id: customerId, // TODO: should be new customerId
+              customer_id: customer.id,
               link_id: link.id,
             }),
           ),
@@ -321,14 +351,12 @@ export const createManualCommissionAction = authActionClient
           events.map((event) =>
             recordSaleWithTimestamp({
               ...event,
-              customer_id: customerId, // TODO: should be new customerId
+              customer_id: customer.id,
               link_id: link.id,
             }),
           ),
         );
       }
-
-      console.log(events);
     }
 
     // link & customer updates
