@@ -1,15 +1,17 @@
 "use server";
 
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { getLeadEvent } from "@/lib/tinybird";
+import { getLeadEvent, tb } from "@/lib/tinybird";
 import { recordClick } from "@/lib/tinybird/record-click";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
 import { ClickEventTB, LeadEventTB } from "@/lib/types";
+import { eventsFilterTB } from "@/lib/zod/schemas/analytics";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
@@ -18,6 +20,7 @@ import { nanoid } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { WorkflowTrigger } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
 // TODO: if eventIds is provided + existing customer partnerId is different from provided partnerId
@@ -133,7 +136,7 @@ export const createManualCommissionAction = authActionClient
       existingLeadEvent.data.length > 0
     ) {
       leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
-    } else if (!eventIds || eventIds.length === 0) {
+    } else {
       // else, if there's no existing lead event and there is also no custom leadEventName/Date
       // we need to create a dummy click + lead event (using the customer's country if available)
       const dummyRequest = new Request(link.url, {
@@ -215,14 +218,6 @@ export const createManualCommissionAction = authActionClient
           partnerId,
         }),
       ]);
-    } else {
-      // if eventIds are provided, we need to duplicate the events
-      const duplicateEvents = eventIds.map((eventId) => {
-        return {
-          ...leadEvent,
-          event_id: eventId,
-        };
-      });
     }
 
     if (saleAmount && leadEvent) {
@@ -271,6 +266,69 @@ export const createManualCommissionAction = authActionClient
           partnerId,
         }),
       ]);
+    }
+
+    // Duplicate the customer events
+    const shouldDuplicateEvents =
+      eventIds && eventIds.length > 0 && customer.linkId !== linkId;
+
+    if (shouldDuplicateEvents) {
+      const eventType = !saleAmount ? "leads" : "sales";
+
+      // Find the events by the eventIds
+      const { startDate, endDate } = getStartEndDates({
+        interval: "all",
+      });
+
+      const pipe = tb.buildPipe({
+        pipe: "v2_events",
+        parameters: eventsFilterTB,
+        data: z.any(),
+      });
+
+      const response = await pipe({
+        workspaceId: workspace.id,
+        eventType,
+        sortBy: "timestamp",
+        offset: 0,
+        limit: 100,
+        start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+        end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+        eventIds,
+      });
+
+      const events = response.data;
+
+      if (events.length === 0) {
+        throw new Error("Selected events not found.");
+      }
+
+      
+
+      // Duplicate the events for the new customer
+      if (eventType === "leads") {
+        await Promise.all(
+          events.map((event) =>
+            recordLeadWithTimestamp({
+              ...event,
+              customer_id: customerId, // TODO: should be new customerId
+              link_id: link.id,
+            }),
+          ),
+        );
+      } else if (eventType === "sales") {
+        await Promise.all(
+          events.map((event) =>
+            recordSaleWithTimestamp({
+              ...event,
+              customer_id: customerId, // TODO: should be new customerId
+              link_id: link.id,
+            }),
+          ),
+        );
+      }
+
+      console.log(events);
     }
 
     // link & customer updates

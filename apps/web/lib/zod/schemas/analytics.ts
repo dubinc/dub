@@ -319,13 +319,14 @@ export const analyticsFilterTB = z
   );
 
 export const eventsFilterTB = analyticsFilterTB
-  .omit({ granularity: true, timezone: true, page: true, sortBy: true })
+  .omit({ granularity: true, timezone: true, page: true, sortBy: true,  })
   .and(
     z.object({
       offset: z.coerce.number().default(0),
       limit: z.coerce.number().default(PAGINATION_LIMIT),
       order: z.enum(["asc", "desc"]).default("desc"),
       sortBy: z.enum(["timestamp"]).default("timestamp"),
+      eventIds: z.array(z.string()).optional(),
     }),
   );
 
