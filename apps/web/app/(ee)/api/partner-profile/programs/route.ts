@@ -1,10 +1,7 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import {
-  partnerProfileProgramsQuerySchema,
-  PartnerProgramEnrollmentSchema,
-} from "@/lib/zod/schemas/partner-profile";
+import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
+import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
@@ -56,8 +53,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const response = programEnrollments.map((enrollment) => {
     return {
       ...enrollment,
-      messagingEnabled: getPlanCapabilities(enrollment.program.workspace.plan)
-        .canMessagePartners,
       rewards: includeRewardsDiscounts
         ? sortRewardsByEventOrder(
             [
@@ -70,7 +65,5 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     };
   });
 
-  return NextResponse.json(
-    z.array(PartnerProgramEnrollmentSchema).parse(response),
-  );
+  return NextResponse.json(z.array(ProgramEnrollmentSchema).parse(response));
 });

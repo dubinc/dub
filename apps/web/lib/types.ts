@@ -4,7 +4,6 @@ import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
-  PartnerProgramEnrollmentSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
@@ -451,10 +450,6 @@ export type PartnerProgramInviteProps = z.infer<
 >;
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
-
-export type PartnerProgramEnrollmentProps = z.infer<
-  typeof PartnerProgramEnrollmentSchema
->;
 
 export type PayoutsCount = {
   status: PayoutStatus;

@@ -29,6 +29,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
       paymentFailedAt: true,
       payoutsLimit: true,
       foldersUsage: true,
+      defaultProgramId: true,
       users: {
         select: {
           user: {

@@ -31,6 +31,7 @@ export const ProgramSchema = z.object({
   minPayoutAmount: z.number(),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
+  messagingEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string(),
@@ -67,6 +68,7 @@ export const updateProgramSchema = z.object({
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
+  messagingEnabledAt: z.coerce.date().nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
