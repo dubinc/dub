@@ -50,6 +50,7 @@ model Program {
   supportEmail                 String?
   ageVerification              Int?
   autoApprovePartnersEnabledAt DateTime?
+  messagingEnabledAt           DateTime?
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
 

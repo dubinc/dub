@@ -141,6 +141,7 @@ export * from "./key";
 export * from "./layout-sidebar";
 export * from "./license";
 export * from "./life-ring";
+export * from "./life-ring-fill";
 export * from "./lines-y";
 export * from "./link-broken";
 export * from "./link4";
