@@ -188,7 +188,7 @@ function PartnerApplication({ applicationId }: { applicationId: string }) {
                 )}
               </Linkify>
             ) : (
-              <div className="h-5 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-4 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
             )}
           </div>
         </div>
