@@ -5,7 +5,10 @@ import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
+import {
+  createPartnerCommission,
+  CreatePartnerCommissionProps,
+} from "@/lib/partners/create-partner-commission";
 import { getCustomerEventsTB } from "@/lib/tinybird/get-customer-events-tb";
 import {
   recordClickZod,
@@ -131,7 +134,7 @@ export const createManualCommissionAction = authActionClient
 
     const tbEventsToRecord: Promise<any>[] = []; // a list of promises of events to record in Tinybird
     const commissionsToTransferEventIds: string[] = []; // eventIds for the commissions to transfer to the new customer-partner pair – we need to nullify them later
-    const commissionToCreate: (() => Promise<any>)[] = []; // a list of functions that return promises of commissions to create
+    const commissionsToCreate: CreatePartnerCommissionProps[] = [];
 
     // If we're using existing events, we need to duplicate them under the new customer.id
     if (useExistingEvents) {
@@ -206,22 +209,20 @@ export const createManualCommissionAction = authActionClient
 
         if (commissionType === "lead") {
           // add the new lead event to the list of commissions to create
-          commissionToCreate.push(() =>
-            createPartnerCommission({
-              event: "lead",
-              programId,
-              partnerId,
-              linkId: link.id,
-              customerId: duplicateCustomerId,
-              eventId: leadEventData.event_id,
-              quantity: 1,
-              createdAt: new Date(leadEventData.timestamp),
-              user,
-              context: {
-                customer: { country: customer.country },
-              },
-            }),
-          );
+          commissionsToCreate.push({
+            event: "lead" as const,
+            programId,
+            partnerId,
+            linkId: link.id,
+            customerId: duplicateCustomerId,
+            eventId: leadEventData.event_id,
+            quantity: 1,
+            createdAt: new Date(leadEventData.timestamp),
+            user,
+            context: {
+              customer: { country: customer.country },
+            },
+          });
         }
       }
 
@@ -259,28 +260,25 @@ export const createManualCommissionAction = authActionClient
 
         if (commissionType === "sale") {
           // add the new sale events to the list of commissions to create
-          commissionToCreate.push(
-            ...saleEventsData.map(
-              (saleEventData) => () =>
-                createPartnerCommission({
-                  event: "sale",
-                  programId,
-                  partnerId,
-                  linkId: link.id,
-                  customerId: duplicateCustomerId,
-                  eventId: saleEventData.event_id,
-                  quantity: 1,
-                  amount: saleEventData.amount,
-                  currency: saleEventData.currency,
-                  invoiceId: saleEventData.invoice_id,
-                  createdAt: new Date(saleEventData.timestamp),
-                  user,
-                  context: {
-                    customer: { country: customer.country },
-                    sale: { productId },
-                  },
-                }),
-            ),
+          commissionsToCreate.push(
+            ...saleEventsData.map((saleEventData) => ({
+              event: "sale" as const,
+              programId,
+              partnerId,
+              linkId: link.id,
+              customerId: duplicateCustomerId,
+              eventId: saleEventData.event_id,
+              quantity: 1,
+              amount: saleEventData.amount,
+              currency: saleEventData.currency,
+              invoiceId: saleEventData.invoice_id,
+              createdAt: new Date(saleEventData.timestamp),
+              user,
+              context: {
+                customer: { country: customer.country },
+                sale: { productId },
+              },
+            })),
           );
         }
         totalSales = existingSaleEvents.length;
@@ -360,22 +358,20 @@ export const createManualCommissionAction = authActionClient
       tbEventsToRecord.push(recordLeadWithTimestamp(leadEventData));
 
       if (commissionType === "lead") {
-        commissionToCreate.push(() =>
-          createPartnerCommission({
-            event: "lead",
-            programId,
-            partnerId,
-            linkId: link.id,
-            customerId: customer.id,
-            eventId: leadEventData.event_id,
-            quantity: 1,
-            createdAt: new Date(leadEventData.timestamp),
-            user,
-            context: {
-              customer: { country: customer.country },
-            },
-          }),
-        );
+        commissionsToCreate.push({
+          event: "lead" as const,
+          programId,
+          partnerId,
+          linkId: link.id,
+          customerId: customer.id,
+          eventId: leadEventData.event_id,
+          quantity: 1,
+          createdAt: new Date(leadEventData.timestamp),
+          user,
+          context: {
+            customer: { country: customer.country },
+          },
+        });
       }
 
       // Prepare sale event if requested
@@ -396,26 +392,24 @@ export const createManualCommissionAction = authActionClient
         tbEventsToRecord.push(recordSaleWithTimestamp(saleEventData));
 
         if (commissionType === "sale") {
-          commissionToCreate.push(() =>
-            createPartnerCommission({
-              event: "sale",
-              programId,
-              partnerId,
-              linkId: link.id,
-              customerId: customer.id,
-              eventId: saleEventData.event_id,
-              quantity: 1,
-              amount: saleEventData.amount,
-              currency: saleEventData.currency,
-              invoiceId: saleEventData.invoice_id,
-              createdAt: new Date(saleEventData.timestamp),
-              user,
-              context: {
-                customer: { country: customer.country },
-                sale: { productId },
-              },
-            }),
-          );
+          commissionsToCreate.push({
+            event: "sale" as const,
+            programId,
+            partnerId,
+            linkId: link.id,
+            customerId: customer.id,
+            eventId: saleEventData.event_id,
+            quantity: 1,
+            amount: saleEventData.amount,
+            currency: saleEventData.currency,
+            invoiceId: saleEventData.invoice_id,
+            createdAt: new Date(saleEventData.timestamp),
+            user,
+            context: {
+              customer: { country: customer.country },
+              sale: { productId },
+            },
+          });
         }
       }
     }
@@ -482,8 +476,14 @@ export const createManualCommissionAction = authActionClient
           updatedRes,
         );
 
+        console.log("Commissions to create: ", commissionsToCreate);
+
         // create partner commissions
-        await Promise.allSettled(commissionToCreate.map((fn) => fn()));
+        await Promise.allSettled(
+          commissionsToCreate.map((commission) =>
+            createPartnerCommission(commission),
+          ),
+        );
 
         // execute workflows
         if (["lead", "sale"].includes(commissionType)) {

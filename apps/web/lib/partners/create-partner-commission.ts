@@ -22,6 +22,24 @@ import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { determinePartnerReward } from "./determine-partner-reward";
 
+export type CreatePartnerCommissionProps = {
+  event: CommissionType;
+  partnerId: string;
+  programId: string;
+  linkId?: string;
+  customerId?: string;
+  eventId?: string;
+  invoiceId?: string | null;
+  amount?: number;
+  quantity: number;
+  currency?: string;
+  description?: string | null;
+  createdAt?: Date;
+  user?: Session["user"]; // user who created the manual commission
+  context?: RewardContext;
+  skipWorkflow?: boolean;
+};
+
 export const createPartnerCommission = async ({
   event,
   partnerId,
@@ -38,23 +56,7 @@ export const createPartnerCommission = async ({
   user,
   context,
   skipWorkflow = false,
-}: {
-  event: CommissionType;
-  partnerId: string;
-  programId: string;
-  linkId?: string;
-  customerId?: string;
-  eventId?: string;
-  invoiceId?: string | null;
-  amount?: number;
-  quantity: number;
-  currency?: string;
-  description?: string | null;
-  createdAt?: Date;
-  user?: Session["user"]; // user who created the manual commission
-  context?: RewardContext;
-  skipWorkflow?: boolean;
-}) => {
+}: CreatePartnerCommissionProps) => {
   let earnings = 0;
   let reward: RewardProps | null = null;
   let status: CommissionStatus = "pending";
