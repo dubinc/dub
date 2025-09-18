@@ -477,6 +477,11 @@ export const createManualCommissionAction = authActionClient
             }),
         ]);
 
+        console.log(
+          `Updated link${finalCommissionsToTransferEventIds.length > 0 ? " and nullified old commissions" : ""}:`,
+          updatedRes,
+        );
+
         // create partner commissions
         await Promise.allSettled(commissionToCreate.map((fn) => fn()));
 
