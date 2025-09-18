@@ -126,8 +126,11 @@ export function PartnerRowItem({
         </div>
       </DynamicTooltipWrapper>
       <As
-        href={`/${slug}/program/partners?partnerId=${partner.id}`}
-        {...(showPermalink && { target: "_blank" })}
+        {...(showPermalink && {
+          href: `/${slug}/program/partners?partnerId=${partner.id}`,
+          target: "_blank",
+          rel: "noopener noreferrer",
+        })}
         className={cn(
           "min-w-0 truncate",
           showPermalink && "cursor-alias decoration-dotted hover:underline",
