@@ -2,6 +2,7 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import {
   WorkflowAction,
   WorkflowCondition,
+  WorkflowConditionAttribute,
   WorkflowContext,
 } from "@/lib/types";
 import { sendEmail } from "@dub/email";
@@ -25,6 +26,11 @@ export const executeAwardBountyAction = async ({
 
   const { bountyId } = action.data;
   const { partnerId, groupId } = context;
+
+  if (!groupId) {
+    console.error(`Partner groupId not set in the context.`);
+    return;
+  }
 
   // Find the bounty
   const bounty = await prisma.bounty.findUnique({
@@ -61,15 +67,11 @@ export const executeAwardBountyAction = async ({
   const now = new Date();
 
   // Check bounty validity
-  if (bounty.startsAt && bounty.startsAt > now) {
-    return;
-  }
-
-  if (bounty.endsAt && bounty.endsAt < now) {
-    return;
-  }
-
-  if (bounty.archivedAt) {
+  if (
+    (bounty.startsAt && bounty.startsAt > now) ||
+    (bounty.endsAt && bounty.endsAt < now) ||
+    bounty.archivedAt
+  ) {
     return;
   }
 
@@ -103,7 +105,26 @@ export const executeAwardBountyAction = async ({
     `Running the workflow ${bounty.workflowId} for bounty ${bounty.id}.`,
   );
 
-  const count = context[condition.attribute] ?? 0;
+  const finalContext: Partial<
+    Record<WorkflowConditionAttribute, number | null>
+  > = {
+    ...(condition.attribute === "totalLeads" && {
+      totalLeads: context.current?.leads ?? 0,
+    }),
+    ...(condition.attribute === "totalConversions" && {
+      totalConversions: context.current?.conversions ?? 0,
+    }),
+    ...(condition.attribute === "totalSaleAmount" && {
+      totalSaleAmount: context.current?.saleAmount ?? 0,
+    }),
+    ...(condition.attribute === "totalCommissions" && {
+      totalCommissions: context.current?.commissions ?? 0,
+    }),
+  };
+
+  console.log(finalContext)
+
+  const count = finalContext[condition.attribute] ?? 0;
 
   // Create or update the submission
   const bountySubmission = await prisma.bountySubmission.upsert({
@@ -131,7 +152,7 @@ export const executeAwardBountyAction = async ({
   // Check if the bounty submission meet the reward criteria
   const shouldExecute = evaluateWorkflowCondition({
     condition,
-    context: {
+    attributes: {
       [condition.attribute]: bountySubmission.count,
     },
   });

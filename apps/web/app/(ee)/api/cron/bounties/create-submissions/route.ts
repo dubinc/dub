@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -107,31 +108,30 @@ export async function POST(req: Request) {
     }
 
     // Find the workflow condition
-    const conditions = z
+    const condition = z
       .array(workflowConditionSchema)
-      .parse(bounty.workflow.triggerConditions);
-    const condition = conditions[0];
+      .parse(bounty.workflow.triggerConditions)[0];
 
-    // Find the partnres with their link metrics
-    const partners = programEnrollments
-      .map((partner) => {
-        return {
-          id: partner.partnerId,
-          ...aggregatePartnerLinksStats(partner.links),
-          totalCommissions: partner.totalCommissions,
-        };
-      })
-      // only create submissions for partners with a count > 0
-      .filter((partner) => partner[condition.attribute] > 0);
+    // Partners with their link metrics
+    const partners = programEnrollments.map((partner) => {
+      return {
+        id: partner.partnerId,
+        ...aggregatePartnerLinksStats(partner.links),
+        totalCommissions: partner.totalCommissions,
+      };
+    });
+
+    const bountySubmissions = partners.map((partner) => ({
+      id: createId({ prefix: "bnty_sub_" }),
+      programId: bounty.programId,
+      partnerId: partner.id,
+      bountyId: bounty.id,
+      count: partner[condition.attribute] ?? 0,
+    }));
 
     // Create bounty submissions
     await prisma.bountySubmission.createMany({
-      data: partners.map((partner) => ({
-        programId: bounty.programId,
-        partnerId: partner.id,
-        bountyId: bounty.id,
-        count: partner[condition.attribute] ?? 0,
-      })),
+      data: bountySubmissions,
       skipDuplicates: true,
     });
 

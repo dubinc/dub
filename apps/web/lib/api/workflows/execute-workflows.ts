@@ -100,25 +100,25 @@ export async function executeWorkflows({
 
 export function evaluateWorkflowCondition({
   condition,
-  context,
+  attributes,
 }: {
   condition: WorkflowCondition;
-  context: Partial<Record<WorkflowConditionAttribute, number | null>>;
+  attributes: Partial<Record<WorkflowConditionAttribute, number | null>>;
 }) {
   console.log("Evaluating the workflow condition:", {
     condition,
-    context,
+    attributes,
   });
 
   const operatorFn = OPERATOR_FUNCTIONS[condition.operator];
-
+  
   if (!operatorFn) {
     throw new Error(
       `Operator ${condition.operator} is not supported in the workflow trigger condition.`,
     );
   }
 
-  const attributeValue = context[condition.attribute];
+  const attributeValue = attributes[condition.attribute];
 
   // If the attribute is not provided in context, return false
   if (!attributeValue) {
