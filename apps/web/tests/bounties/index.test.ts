@@ -3,10 +3,14 @@ import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
+// start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
+const startsAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+
 const submissionBounty = {
   name: "Submission Bounty",
   description: "some description about the bounty",
   type: "submission",
+  startsAt,
   endsAt: null,
   rewardAmount: 1000,
   submissionRequirements: ["image", "url"],
@@ -16,16 +20,15 @@ const performanceBounty = {
   name: "Earn $10 after generating 100 leads",
   description: "some description about the bounty",
   type: "performance",
+  startsAt,
   endsAt: null,
   rewardAmount: 1000,
+  currentStatsOnly: false,
 };
 
 describe.sequential("/bounties/**", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
-
-  // start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
-  const startsAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
   let submissionBountyId = "";
 
@@ -34,7 +37,6 @@ describe.sequential("/bounties/**", async () => {
       path: "/bounties",
       body: {
         ...performanceBounty,
-        startsAt,
         groupIds: [E2E_PARTNER_GROUP.id],
         performanceCondition: {
           attribute: "totalLeads",
@@ -60,7 +62,6 @@ describe.sequential("/bounties/**", async () => {
       path: "/bounties",
       body: {
         ...submissionBounty,
-        startsAt,
         groupIds: [E2E_PARTNER_GROUP.id],
       },
     });
@@ -79,7 +80,6 @@ describe.sequential("/bounties/**", async () => {
       path: "/bounties",
       body: {
         ...submissionBounty,
-        startsAt,
         groupIds: [E2E_PARTNER_GROUP.id],
         rewardAmount: null,
         rewardDescription: "some reward description",
@@ -99,12 +99,33 @@ describe.sequential("/bounties/**", async () => {
     });
   });
 
+  test("POST /bounties - performance based with currentStatsOnly set to true", async () => {
+    const { status, data: bounty } = await http.post<Bounty>({
+      path: "/bounties",
+      body: {
+        ...performanceBounty,
+        groupIds: [E2E_PARTNER_GROUP.id],
+        currentStatsOnly: true,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(bounty).toMatchObject({
+      id: expect.any(String),
+      ...performanceBounty,
+      currentStatsOnly: true,
+    });
+
+    onTestFinished(async () => {
+      await h.deleteBounty(bounty.id);
+    });
+  });
+
   test("POST /bounties - invalid group IDs", async () => {
     const { status, data } = await http.post({
       path: "/bounties",
       body: {
         ...submissionBounty,
-        startsAt,
         groupIds: ["invalid-group-id"],
       },
     });
