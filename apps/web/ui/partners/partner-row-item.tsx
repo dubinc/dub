@@ -31,14 +31,17 @@ export function PartnerRowItem({
     return `$${(reward.amount / 100).toFixed(2)}`;
   };
 
+  // Helper function to get duration text
+  const getDurationText = (maxDuration?: number | null) => {
+    if (!maxDuration) return "for the customer's lifetime";
+    if (maxDuration === 0) return "one-time";
+    return `for ${maxDuration} month${maxDuration > 1 ? 's' : ''}`;
+  };
+
   // Helper function to get reward description
   const getRewardDescription = (reward: RewardProps) => {
     const amount = formatRewardAmount(reward);
-    const duration = reward.maxDuration 
-      ? reward.maxDuration === 0 
-        ? "one-time" 
-        : `for ${reward.maxDuration} month${reward.maxDuration > 1 ? 's' : ''}`
-      : "lifetime";
+    const duration = getDurationText(reward.maxDuration);
     
     switch (reward.event) {
       case "sale":
@@ -55,18 +58,37 @@ export function PartnerRowItem({
   // Get group rewards and discount
   const { rewards, discount } = group ? getGroupRewardsAndDiscount(group) : { rewards: [], discount: null };
 
+  // Sort rewards in the specified order: sale, lead, click
+  const sortedRewards = rewards.sort((a, b) => {
+    const order = { sale: 0, lead: 1, click: 2 } as const;
+    return (order[a.event as keyof typeof order] ?? 999) - (order[b.event as keyof typeof order] ?? 999);
+  });
+
+  // Icon mapping for rewards
+  const getRewardIcon = (event: string) => {
+    switch (event) {
+      case "sale":
+        return InvoiceDollar;
+      case "lead":
+        return UserPlus;
+      case "click":
+        return CursorRays;
+      default:
+        return CursorRays;
+    }
+  };
+
   return (
     <div className="flex items-center gap-2">
       <DynamicTooltipWrapper
         tooltipProps={
           group && (rewards.length > 0 || discount)
             ? {
+                delayDuration: 300,
                 content: (
                   <div className="grid max-w-xs gap-1 p-2">
-                    {rewards.map((reward) => {
-                      const Icon = reward.event === "sale" ? InvoiceDollar 
-                                  : reward.event === "lead" ? UserPlus 
-                                  : CursorRays;
+                    {sortedRewards.map((reward) => {
+                      const Icon = getRewardIcon(reward.event);
                       
                       return (
                         <div key={reward.id} className="flex items-start gap-2">
@@ -85,7 +107,7 @@ export function PartnerRowItem({
                           <Gift className="size-4" />
                         </div>
                         <span className="text-xs font-medium text-neutral-700 mt-1">
-                          New users get {discount.type === "percentage" ? `${discount.amount}%` : `$${(discount.amount / 100).toFixed(0)}`} off {discount.maxDuration ? `for ${discount.maxDuration} month${discount.maxDuration > 1 ? 's' : ''}` : 'lifetime'}
+                          New users get {discount.type === "percentage" ? `${discount.amount}%` : `$${(discount.amount / 100).toFixed(0)}`} off {getDurationText(discount.maxDuration)}
                         </span>
                       </div>
                     )}
