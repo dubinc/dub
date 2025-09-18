@@ -431,6 +431,7 @@ export function ProgramPartnersApplicationsPageClient() {
     const currentIndex = partners.findIndex(
       ({ id }) => id === detailsSheetState.partnerId,
     );
+    if (currentIndex === -1) return [null, null];
 
     return [
       currentIndex > 0 ? partners[currentIndex - 1].id : null,
@@ -449,12 +450,20 @@ export function ProgramPartnersApplicationsPageClient() {
           partner={currentPartner}
           onPrevious={
             previousPartnerId
-              ? () => queryParams({ set: { partnerId: previousPartnerId } })
+              ? () =>
+                  queryParams({
+                    set: { partnerId: previousPartnerId },
+                    scroll: false,
+                  })
               : undefined
           }
           onNext={
             nextPartnerId
-              ? () => queryParams({ set: { partnerId: nextPartnerId } })
+              ? () =>
+                  queryParams({
+                    set: { partnerId: nextPartnerId },
+                    scroll: false,
+                  })
               : undefined
           }
         />

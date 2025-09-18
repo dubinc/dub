@@ -21,7 +21,6 @@ import {
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { KeyedMutator } from "swr";
@@ -104,7 +103,12 @@ export function PartnerComments({ partnerId }: { partnerId: string }) {
         {comments ? (
           comments.length > 0 ? (
             comments.map((comment) => (
-              <CommentCard key={comment.id} comment={comment} mutate={mutate} />
+              <CommentCard
+                key={comment.id}
+                partnerId={partnerId}
+                comment={comment}
+                mutate={mutate}
+              />
             ))
           ) : (
             <div className="text-content-muted py-2 text-center text-xs">
@@ -112,7 +116,7 @@ export function PartnerComments({ partnerId }: { partnerId: string }) {
             </div>
           )
         ) : loading ? (
-          <CommentCard className="opacity-50" />
+          <CommentCard partnerId={partnerId} className="opacity-50" />
         ) : (
           <div className="text-content-muted py-4 text-center text-xs">
             Failed to load comments
@@ -124,15 +128,16 @@ export function PartnerComments({ partnerId }: { partnerId: string }) {
 }
 
 function CommentCard({
+  partnerId,
   comment,
   mutate,
   className,
 }: {
+  partnerId: string;
   comment?: PartnerCommentProps & { delivered?: false };
   mutate?: KeyedMutator<(PartnerCommentProps & { delivered?: false })[]>;
   className?: string;
 }) {
-  const { partnerId } = useParams() as { partnerId: string };
   const { user } = useUser();
   const { id: workspaceId } = useWorkspace();
 
