@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Msgs,
   Sheet,
+  useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
 import { fetcher } from "@dub/utils";
@@ -258,6 +259,8 @@ function PartnerApproval({
     title: "Approve Partner",
     description: "Are you sure you want to approve this partner application?",
     confirmText: "Approve",
+    confirmShortcut: "a",
+    confirmShortcutOptions: { sheet: true, modal: true },
     onConfirm: async () => {
       if (!program || !workspaceId) return;
 
@@ -267,6 +270,8 @@ function PartnerApproval({
       });
     },
   });
+
+  useKeyboardShortcut("a", () => setShowConfirmModal(true), { sheet: true });
 
   return (
     <>
@@ -279,6 +284,7 @@ function PartnerApproval({
           type="button"
           variant="primary"
           text="Approve"
+          shortcut="A"
           loading={isPending}
           disabled={!partner.groupId}
           onClick={() => setShowConfirmModal(true)}
@@ -318,6 +324,8 @@ function PartnerRejectButton({
     title: "Reject Application",
     description: "Are you sure you want to reject this partner application?",
     confirmText: "Reject",
+    confirmShortcut: "r",
+    confirmShortcutOptions: { sheet: true, modal: true },
     onConfirm: async () => {
       await rejectPartner({
         workspaceId: workspaceId!,
@@ -325,6 +333,8 @@ function PartnerRejectButton({
       });
     },
   });
+
+  useKeyboardShortcut("r", () => setShowConfirmModal(true), { sheet: true });
 
   return (
     <>
@@ -334,6 +344,7 @@ function PartnerRejectButton({
         variant="secondary"
         text={isPending ? "" : "Reject"}
         loading={isPending}
+        shortcut="R"
         onClick={() => {
           setShowConfirmModal(true);
         }}
