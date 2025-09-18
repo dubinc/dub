@@ -420,10 +420,12 @@ export const createManualCommissionAction = authActionClient
           commissionsToTransferEventIds.filter(
             (eventId) => typeof eventId === "string",
           );
+
         console.log(
           "Final commissions to transfer event ids: ",
           finalCommissionsToTransferEventIds,
         );
+
         const updatedRes = await Promise.all([
           // update link stats
           prisma.link.update({
@@ -450,6 +452,8 @@ export const createManualCommissionAction = authActionClient
               },
             },
           }),
+
+          // update the commissions
           finalCommissionsToTransferEventIds.length > 0 &&
             prisma.commission.updateMany({
               where: {
@@ -463,8 +467,6 @@ export const createManualCommissionAction = authActionClient
               },
             }),
         ]);
-
-        console.log({ commissionsToTransferEventIds, updatedRes });
 
         // create partner commissions
         await Promise.allSettled(commissionToCreate);
