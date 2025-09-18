@@ -4,6 +4,7 @@ import {
   HUBSPOT_CLIENT_ID,
   HUBSPOT_CLIENT_SECRET,
 } from "./constants";
+import { hubSpotAuthTokenSchema } from "./schema";
 import { HubSpotAuthToken } from "./types";
 
 export async function refreshAccessToken({
@@ -39,10 +40,10 @@ export async function refreshAccessToken({
     }
 
     // Store the new auth token
-    const newAuthToken: HubSpotAuthToken = {
+    const newAuthToken = hubSpotAuthTokenSchema.parse({
       ...result,
       created_at: Date.now(),
-    };
+    });
 
     await prisma.installedIntegration.update({
       where: {
