@@ -40,14 +40,17 @@ function ConfirmModal({
 
   const handleConfirm = async () => {
     setIsLoading(true);
-    await onConfirm();
-    setIsLoading(false);
-    setShowConfirmModal(false);
+    try {
+      await onConfirm();
+      setShowConfirmModal(false);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <Modal showModal={showConfirmModal} setShowModal={setShowConfirmModal}>
-      {confirmShortcut && (
+      {showConfirmModal && confirmShortcut && (
         <KeyboardShortcut
           confirmShortcut={confirmShortcut}
           onConfirm={handleConfirm}
