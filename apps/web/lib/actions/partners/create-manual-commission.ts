@@ -324,6 +324,7 @@ export const createManualCommissionAction = authActionClient
         finalLeadEventDate.getTime() - 5 * 60 * 1000,
       );
 
+      // Record click event
       const generatedClickEvent = recordClickZodSchema.parse({
         timestamp: clickTimestamp.toISOString(),
         identity_hash: customer.externalId || customer.id,
@@ -336,9 +337,9 @@ export const createManualCommissionAction = authActionClient
           : "NA",
       });
 
-      // Record click event
       tbEventsToRecord.push(recordClickZod(generatedClickEvent));
 
+      // Record lead event
       const leadEventData = leadEventSchemaTBWithTimestamp.parse({
         ...generatedClickEvent,
         event_id: nanoid(16),
@@ -346,6 +347,7 @@ export const createManualCommissionAction = authActionClient
         customer_id: customer.id,
         timestamp: finalLeadEventDate.toISOString(),
       });
+
       tbEventsToRecord.push(recordLeadWithTimestamp(leadEventData));
 
       if (commissionType === "lead") {
@@ -372,6 +374,7 @@ export const createManualCommissionAction = authActionClient
         const saleEventData = saleEventSchemaTBWithTimestamp.parse({
           ...generatedClickEvent,
           event_id: nanoid(16),
+          invoice_id: invoiceId ?? "",
           event_name: "Purchase",
           amount: saleAmount,
           customer_id: customer.id,
@@ -382,6 +385,7 @@ export const createManualCommissionAction = authActionClient
         });
 
         tbEventsToRecord.push(recordSaleWithTimestamp(saleEventData));
+
         if (commissionType === "sale") {
           commissionToCreate.push(
             createPartnerCommission({
@@ -459,6 +463,7 @@ export const createManualCommissionAction = authActionClient
               },
             }),
         ]);
+
         console.log({ commissionsToTransferEventIds, updatedRes });
 
         // create partner commissions
