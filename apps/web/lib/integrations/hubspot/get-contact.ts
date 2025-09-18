@@ -21,6 +21,10 @@ export async function getHubSpotContact({
 
     const result = await response.json();
 
+    if (process.env.NODE_ENV === "development") {
+      console.log("HubSpot contact", result);
+    }
+
     if (!response.ok) {
       throw new Error(result.message);
     }
