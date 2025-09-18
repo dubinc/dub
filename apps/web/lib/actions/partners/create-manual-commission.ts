@@ -222,13 +222,13 @@ export const createManualCommissionAction = authActionClient
       const recordSaleEvents =
         commissionType === "sale" && existingSaleEvents.length > 0;
 
-      if (existingSaleEvents.length > 5) {
-        throw new Error(
-          `You can only backfill up to 5 sale events. Found ${existingSaleEvents.length} existing sale events.`,
-        );
-      }
-
       if (recordSaleEvents) {
+        if (existingSaleEvents.length > 5) {
+          throw new Error(
+            `You can only backfill up to 5 sale events. Found ${existingSaleEvents.length} existing sale events.`,
+          );
+        }
+
         const saleEventsData = existingSaleEvents.map((existingSaleEvent) =>
           saleEventSchemaTBWithTimestamp.parse({
             ...clickEventData,
