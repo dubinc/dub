@@ -49,9 +49,10 @@ export const trackHubSpotSaleEvent = async ({
   }
 
   // Find the contact associated with the deal
-  const contact = associations.contacts.results[0];
+  const contact = associations?.contacts?.results?.[0];
 
   if (!contact) {
+    console.error(`[HubSpot] No contact associated with deal ${dealId}`);
     return;
   }
 

@@ -8,12 +8,6 @@ This package contains the HubSpot app integration for Dub.
 # Install dependencies
 pnpm install
 
-# Build the package
-pnpm build
-
-# Run in development mode
-pnpm dev
-
 # Upload the project to HubSpot account
 pnpm hs project upload
 

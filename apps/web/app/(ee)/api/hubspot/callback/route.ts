@@ -6,6 +6,7 @@ import {
   HUBSPOT_REDIRECT_URI,
   HUBSPOT_STATE_CACHE_PREFIX,
 } from "@/lib/integrations/hubspot/constants";
+import { hubSpotAuthTokenSchema } from "@/lib/integrations/hubspot/schema";
 import { installIntegration } from "@/lib/integrations/install";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
@@ -48,10 +49,10 @@ export const GET = async (req: Request) => {
 
     const { code, state } = oAuthCallbackSchema.parse(getSearchParams(req.url));
 
+    const stateKey = `${HUBSPOT_STATE_CACHE_PREFIX}:${state}`;
+
     // Find workspace that initiated the install
-    const workspaceId = await redis.get<string>(
-      `${HUBSPOT_STATE_CACHE_PREFIX}:${state}`,
-    );
+    const workspaceId = await redis.get<string>(stateKey);
 
     if (!workspaceId) {
       throw new DubApiError({
@@ -107,16 +108,21 @@ export const GET = async (req: Request) => {
       },
     });
 
+    const credentials = hubSpotAuthTokenSchema.parse({
+      ...result,
+      created_at: Date.now(),
+    });
+
     // Install the integration
     await installIntegration({
       integrationId: integration.id,
       userId: session.user.id,
       workspaceId,
-      credentials: {
-        ...result,
-        created_at: Date.now(),
-      },
+      credentials,
     });
+
+    // Delete the state key from Redis
+    await redis.del(stateKey);
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);
   }
