@@ -62,7 +62,7 @@ export function PartnerMessagesProgramPageClient() {
     mutate: mutateProgramMessages,
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
-    enabled: programEnrollment?.messagingEnabled ?? false,
+    enabled: Boolean(programEnrollment?.program?.messagingEnabledAt),
     swrOpts: {
       onSuccess: async (data) => {
         // Mark unread messages from the program as read
@@ -137,7 +137,7 @@ export function PartnerMessagesProgramPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        {programEnrollment?.messagingEnabled === false ? (
+        {programEnrollment?.program?.messagingEnabledAt === null ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />
             <div className="mt-6 max-w-md text-center">

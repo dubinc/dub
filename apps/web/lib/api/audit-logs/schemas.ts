@@ -101,6 +101,7 @@ export const auditLogTarget = z.union([
       holdingPeriodDays: true,
       minPayoutAmount: true,
       autoApprovePartnersEnabledAt: true,
+      messagingEnabledAt: true,
     }).optional(),
   }),
 

@@ -2,7 +2,9 @@
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { usePartnerMessages } from "@/lib/swr/use-partner-messages";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import LayoutLoader from "@/ui/layout/layout-loader";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
@@ -11,14 +13,19 @@ import { Button } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useState } from "react";
+import { MessagesDisabled } from "./messages-disabled";
 import { MessagesUpsell } from "./messages-upsell";
 
 export default function MessagesLayout({ children }: { children: ReactNode }) {
   const { plan } = useWorkspace();
+  const { program, loading } = useProgram();
+
+  if (loading) return <LayoutLoader />;
 
   const { canMessagePartners } = getPlanCapabilities(plan);
-
   if (!canMessagePartners) return <MessagesUpsell />;
+
+  if (program?.messagingEnabledAt === null) return <MessagesDisabled />;
 
   return <CapableLayout>{children}</CapableLayout>;
 }

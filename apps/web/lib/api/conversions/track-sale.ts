@@ -545,6 +545,7 @@ const _trackSale = async ({
         clickedAt: customer.clickedAt || customer.createdAt,
         link,
         customer,
+        metadata,
       });
 
       await sendWorkspaceWebhook({
