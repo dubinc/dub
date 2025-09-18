@@ -237,7 +237,7 @@ export const POST = withWorkspace(
       performanceCondition: bounty.workflow?.triggerConditions?.[0],
     });
 
-    const shouldCreateSubmissions =
+    const shouldScheduleDraftSubmissions =
       bounty.type === "performance" && !currentStatsOnly;
 
     waitUntil(
@@ -271,7 +271,7 @@ export const POST = withWorkspace(
           notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
         }),
 
-        shouldCreateSubmissions &&
+        shouldScheduleDraftSubmissions &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-draft-submissions`,
             body: {
