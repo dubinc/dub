@@ -111,7 +111,7 @@ export function evaluateWorkflowCondition({
   });
 
   const operatorFn = OPERATOR_FUNCTIONS[condition.operator];
-  
+
   if (!operatorFn) {
     throw new Error(
       `Operator ${condition.operator} is not supported in the workflow trigger condition.`,

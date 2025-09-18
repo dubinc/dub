@@ -122,8 +122,6 @@ export const executeAwardBountyAction = async ({
     }),
   };
 
-  console.log(finalContext)
-
   const count = finalContext[condition.attribute] ?? 0;
 
   // Create or update the submission
