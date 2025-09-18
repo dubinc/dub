@@ -216,7 +216,7 @@ export const createManualCommissionAction = authActionClient
             customerId: duplicateCustomerId,
             eventId: leadEventData.event_id,
             quantity: 1,
-            createdAt: new Date(leadEventData.timestamp + "Z"),
+            createdAt: new Date(leadEventData.timestamp), // we don't add the "Z" to the timestamp because it's already in UTC
             user,
             context: {
               customer: { country: customer.country },
@@ -270,7 +270,7 @@ export const createManualCommissionAction = authActionClient
               amount: saleEventData.amount,
               currency: saleEventData.currency,
               invoiceId: saleEventData.invoice_id,
-              createdAt: new Date(saleEventData.timestamp + "Z"),
+              createdAt: new Date(saleEventData.timestamp), // we don't add the "Z" to the timestamp because it's already in UTC
               user,
               context: {
                 customer: { country: customer.country },
@@ -353,6 +353,8 @@ export const createManualCommissionAction = authActionClient
         timestamp: finalLeadEventDate.toISOString(),
       });
 
+      console.log("New lead event to record: ", leadEventData);
+
       tbEventsToRecord.push(recordLeadWithTimestamp(leadEventData));
 
       if (commissionType === "lead") {
@@ -386,6 +388,8 @@ export const createManualCommissionAction = authActionClient
           timestamp: new Date(saleEventDate ?? Date.now()).toISOString(),
           metadata: productId ? JSON.stringify({ productId }) : undefined,
         });
+
+        console.log("New sale event to record: ", saleEventData);
 
         tbEventsToRecord.push(recordSaleWithTimestamp(saleEventData));
 
