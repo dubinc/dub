@@ -286,7 +286,6 @@ function PartnerApproval({
           text="Approve"
           shortcut="A"
           loading={isPending}
-          disabled={!partner.groupId}
           onClick={() => setShowConfirmModal(true)}
           className="w-fit shrink-0"
         />
