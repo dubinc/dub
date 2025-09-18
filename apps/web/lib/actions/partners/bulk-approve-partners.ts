@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -189,6 +190,8 @@ export const bulkApprovePartnersAction = authActionClient
           return acc;
         }, new Map<string, Omit<Link, "partnerGroupDefaultLinkId">[]>());
 
+        const partnerIds = updatedEnrollments.map(({ partner }) => partner.id);
+
         await Promise.allSettled([
           // Send approval emails
           ...emailChunks.map((emailChunk) => sendBatchEmail(emailChunk)),
@@ -223,6 +226,11 @@ export const bulkApprovePartnersAction = authActionClient
               ],
             })),
           ),
+
+          triggerDraftBountySubmissionCreation({
+            programId,
+            partnerIds,
+          }),
         ]);
       })(),
     );

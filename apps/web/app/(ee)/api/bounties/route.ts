@@ -266,7 +266,7 @@ export const POST = withWorkspace(
 
         shouldCreateSubmissions &&
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-submissions`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-draft-submissions`,
             body: {
               bountyId: bounty.id,
             },

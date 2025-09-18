@@ -14,12 +14,14 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   bountyId: z.string(),
+  partnerIds: z.array(z.string()).optional(),
   page: z.number().optional().default(0),
 });
 
 const MAX_PAGE_SIZE = 100;
 
 // POST /api/cron/bounties/create-submissions
+// Create draft bounty submissions for performance bounties for partners
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -29,7 +31,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { bountyId, page } = schema.parse(JSON.parse(rawBody));
+    const { bountyId, partnerIds, page } = schema.parse(JSON.parse(rawBody));
 
     // Find bounty
     const bounty = await prisma.bounty.findUnique({
@@ -61,6 +63,12 @@ export async function POST(req: Request) {
       return logAndRespond(`Bounty ${bountyId} is not a performance bounty.`);
     }
 
+    if (bounty.currentStatsOnly) {
+      return logAndRespond(
+        `Bounty ${bountyId} is limited to current stats; submission creation skipped.`,
+      );
+    }
+
     if (!bounty.workflow) {
       return logAndRespond(`Bounty ${bountyId} has no workflow.`);
     }
@@ -75,6 +83,11 @@ export async function POST(req: Request) {
         ...(groupIds.length > 0 && {
           groupId: {
             in: groupIds,
+          },
+        }),
+        ...(partnerIds && {
+          partnerId: {
+            in: partnerIds,
           },
         }),
         status: {
@@ -93,6 +106,11 @@ export async function POST(req: Request) {
             saleAmount: true,
           },
         },
+        partner: {
+          select: {
+            name: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "asc",
@@ -106,6 +124,8 @@ export async function POST(req: Request) {
         `No more program enrollments found for bounty ${bountyId}.`,
       );
     }
+
+    console.log("programEnrollments", programEnrollments);
 
     // Find the workflow condition
     const condition = z
@@ -140,6 +160,7 @@ export async function POST(req: Request) {
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-submissions`,
         body: {
           bountyId,
+          partnerIds,
           page: page + 1,
         },
       });
