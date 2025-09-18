@@ -8,10 +8,10 @@ import {
 } from "@/lib/integrations/hubspot/constants";
 import { hubSpotAuthTokenSchema } from "@/lib/integrations/hubspot/schema";
 import { installIntegration } from "@/lib/integrations/install";
+import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
-import { Project } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { redirect } from "next/navigation";
 
@@ -25,7 +25,7 @@ const oAuthCallbackSchema = z.object({
 // GET /api/hubspot/callback - OAuth callback from HubSpot
 export const GET = async (req: Request) => {
   const { searchParams } = new URL(req.url);
-  let workspace: Pick<Project, "id" | "slug" | "plan"> | null = null;
+  let workspace: Pick<WorkspaceProps, "id" | "slug" | "users"> | null = null;
 
   // Local development redirect since the callback might be coming through ngrok
   if (
@@ -68,9 +68,36 @@ export const GET = async (req: Request) => {
       select: {
         id: true,
         slug: true,
-        plan: true,
+        users: {
+          where: {
+            userId: session.user.id,
+          },
+          select: {
+            role: true,
+            defaultFolderId: true,
+          },
+        },
       },
     });
+
+    // Check if the user is a member of the workspace
+    if (workspace.users.length === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "You are not a member of this workspace. ",
+      });
+    }
+
+    // Check if the user is an owner of the workspace
+    if (workspace.users[0].role !== "owner") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Only workspace owners can install integrations. ",
+      });
+    }
+
+    // Delete the state key from Redis
+    await redis.del(stateKey);
 
     const body = new URLSearchParams({
       code,
@@ -120,9 +147,6 @@ export const GET = async (req: Request) => {
       workspaceId,
       credentials,
     });
-
-    // Delete the state key from Redis
-    await redis.del(stateKey);
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);
   }
