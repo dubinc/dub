@@ -1,6 +1,7 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
 import {
+  HUBSPOT_API_HOST,
   HUBSPOT_CLIENT_ID,
   HUBSPOT_CLIENT_SECRET,
   HUBSPOT_REDIRECT_URI,
@@ -38,6 +39,13 @@ export const GET = async (req: Request) => {
   }
 
   try {
+    if (!HUBSPOT_CLIENT_ID || !HUBSPOT_CLIENT_SECRET) {
+      throw new DubApiError({
+        code: "internal_server_error",
+        message: "Missing HubSpot OAuth credentials (client id/secret).",
+      });
+    }
+
     const session = await getSession();
 
     if (!session?.user.id) {
@@ -52,7 +60,7 @@ export const GET = async (req: Request) => {
     const stateKey = `${HUBSPOT_STATE_CACHE_PREFIX}:${state}`;
 
     // Find workspace that initiated the install
-    const workspaceId = await redis.get<string>(stateKey);
+    const workspaceId = await redis.getdel<string>(stateKey);
 
     if (!workspaceId) {
       throw new DubApiError({
@@ -96,9 +104,6 @@ export const GET = async (req: Request) => {
       });
     }
 
-    // Delete the state key from Redis
-    await redis.del(stateKey);
-
     const body = new URLSearchParams({
       code,
       grant_type: "authorization_code",
@@ -108,7 +113,7 @@ export const GET = async (req: Request) => {
     });
 
     // Exchange authorization code for access token
-    const response = await fetch("https://api.hubapi.com/oauth/v1/token", {
+    const response = await fetch(`${HUBSPOT_API_HOST}/oauth/v1/token`, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
