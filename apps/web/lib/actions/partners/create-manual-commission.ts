@@ -172,12 +172,16 @@ export const createManualCommissionAction = authActionClient
       );
       console.log("Found existing sale events: ", existingSaleEvents);
 
-      const clickEventData = recordClickZodSchema.parse({
-        ...existingClickEvent,
+      const newClickAttributes = {
         click_id: nanoid(16), // create new clickId
         link_id: link.id, // set to new link.id,
+      };
+      const clickEventData = recordClickZodSchema.parse({
+        ...existingClickEvent,
+        ...newClickAttributes,
       });
 
+      console.log("Click event to record: ", clickEventData);
       if (existingClickEvent) {
         tbEventsToRecord.push(recordClickZod(clickEventData));
       }
@@ -188,11 +192,13 @@ export const createManualCommissionAction = authActionClient
         const leadEventData = leadEventSchemaTBWithTimestamp.parse({
           ...clickEventData,
           ...existingLeadEvent,
+          ...newClickAttributes, // make sure new click attributes are not overridden by existing click attributes
           event_id: nanoid(16), // create new event_id
           timestamp: new Date(existingLeadEvent.timestamp).toISOString(), // set to existing lead event's timestamp
           link_id: link.id, // set to new link.id
           customer_id: duplicateCustomerId, // set to new duplicateCustomerId
         });
+        console.log("Lead event to record: ", leadEventData);
         tbEventsToRecord.push(recordLeadWithTimestamp(leadEventData));
 
         // Store the original lead eventId for nullification
@@ -233,6 +239,7 @@ export const createManualCommissionAction = authActionClient
           saleEventSchemaTBWithTimestamp.parse({
             ...clickEventData,
             ...existingSaleEvent,
+            ...newClickAttributes, // make sure new click attributes are not overridden
             event_id: nanoid(16), // create new event_id
             timestamp: new Date(existingSaleEvent.timestamp).toISOString(), // set to existing sale event's timestamp
             link_id: link.id, // set to new link.id
@@ -240,6 +247,7 @@ export const createManualCommissionAction = authActionClient
             amount: existingSaleEvent.saleAmount, // change format returned by Tinybird
           }),
         );
+        console.log("Sale events to record: ", saleEventsData);
         tbEventsToRecord.push(recordSaleWithTimestamp(saleEventsData));
 
         // Store the original sale eventIds for nullification
