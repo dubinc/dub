@@ -92,8 +92,6 @@ function CreateCommissionSheetContent({
     "description",
   ]);
 
-  console.log({partnerId})
-
   useEffect(() => {
     if (commissionType === "custom") {
       setValue("linkId", null);
@@ -239,7 +237,7 @@ function CreateCommissionSheetContent({
                     {!rewardsLoading ? (
                       <ToggleGroup
                         className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
-                        optionClassName="h-8 flex items-center justify-center rounded-md flex-1  text-sm"
+                        optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
                         indicatorClassName="bg-white"
                         options={[
                           { value: "custom", label: "One-time" },
@@ -256,7 +254,7 @@ function CreateCommissionSheetContent({
                         }
                       />
                     ) : (
-                      <div className="flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1">
+                      <div className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1">
                         <div className="h-8 flex-1 animate-pulse rounded-md bg-neutral-200" />
                         <div className="h-8 flex-1 animate-pulse rounded-md bg-neutral-200" />
                       </div>
@@ -457,7 +455,7 @@ function CreateCommissionSheetContent({
                               value: "existing",
                               label: "Use existing events",
                             },
-                            { value: "new", label: "Create from scratch" },
+                            { value: "new", label: "Create new events" },
                           ]}
                           selected={useExistingEvents ? "existing" : "new"}
                           selectAction={(value: string) =>
