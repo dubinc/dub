@@ -33,6 +33,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
+import { BountySubmissionRowMenu } from "./bounty-submission-row-menu";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
 
@@ -265,6 +266,16 @@ export function BountySubmissionsTable() {
             },
           ]
         : []),
+
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <BountySubmissionRowMenu row={row} />,
+      },
     ],
     [
       groups,
@@ -280,6 +291,7 @@ export function BountySubmissionsTable() {
   const { table, ...tableProps } = useTable({
     data: submissions || [],
     columns,
+    columnPinning: { right: ["menu"] },
     onRowClick: (row) => {
       if (!row.original.submission) {
         return;
