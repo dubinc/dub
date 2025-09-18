@@ -216,7 +216,7 @@ export const createManualCommissionAction = authActionClient
             customerId: duplicateCustomerId,
             eventId: leadEventData.event_id,
             quantity: 1,
-            createdAt: new Date(leadEventData.timestamp),
+            createdAt: new Date(leadEventData.timestamp + "Z"),
             user,
             context: {
               customer: { country: customer.country },
@@ -270,7 +270,7 @@ export const createManualCommissionAction = authActionClient
               amount: saleEventData.amount,
               currency: saleEventData.currency,
               invoiceId: saleEventData.invoice_id,
-              createdAt: new Date(saleEventData.timestamp),
+              createdAt: new Date(saleEventData.timestamp + "Z"),
               user,
               context: {
                 customer: { country: customer.country },
@@ -364,7 +364,7 @@ export const createManualCommissionAction = authActionClient
           customerId: customer.id,
           eventId: leadEventData.event_id,
           quantity: 1,
-          createdAt: new Date(leadEventData.timestamp),
+          createdAt: new Date(leadEventData.timestamp + "Z"),
           user,
           context: {
             customer: { country: customer.country },
@@ -401,7 +401,7 @@ export const createManualCommissionAction = authActionClient
             amount: saleEventData.amount,
             currency: saleEventData.currency,
             invoiceId: saleEventData.invoice_id,
-            createdAt: new Date(saleEventData.timestamp),
+            createdAt: new Date(saleEventData.timestamp + "Z"),
             user,
             context: {
               customer: { country: customer.country },
