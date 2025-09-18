@@ -59,7 +59,6 @@ function PartnerApplicationSheetContent({
               variant="secondary"
               text="Message"
               icon={<Msgs className="size-4 shrink-0" />}
-              onClick={() => setIsOpen(false)}
               className="hidden h-9 rounded-lg px-4 sm:flex"
             />
           </Link>
@@ -116,7 +115,11 @@ function PartnerApplicationSheetContent({
 
       {partner.status === "pending" && (
         <div className="shrink-0 border-t border-neutral-200 p-5">
-          <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
+          <PartnerApproval
+            partner={partner}
+            setIsOpen={setIsOpen}
+            onNext={onNext}
+          />
         </div>
       )}
     </div>
@@ -235,19 +238,19 @@ export function PartnerApplicationSheet({
 function PartnerApproval({
   partner,
   setIsOpen,
+  onNext,
 }: {
   partner: EnrolledPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  onNext?: () => void;
 }) {
-  const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
     onSuccess: async () => {
       await mutatePrefix("/api/partners");
-      queryParams({ del: "partnerId" });
-      setIsOpen(false);
+      onNext ? onNext() : setIsOpen(false);
       toast.success("Approved the partner successfully.");
     },
     onError({ error }) {
@@ -278,7 +281,11 @@ function PartnerApproval({
       {confirmModal}
       <div className="flex justify-end gap-2">
         <div className="flex-shrink-0">
-          <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
+          <PartnerRejectButton
+            partner={partner}
+            setIsOpen={setIsOpen}
+            onNext={onNext}
+          />
         </div>
         <Button
           type="button"
@@ -297,9 +304,11 @@ function PartnerApproval({
 function PartnerRejectButton({
   partner,
   setIsOpen,
+  onNext,
 }: {
   partner: EnrolledPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  onNext?: () => void;
 }) {
   const { id: workspaceId } = useWorkspace();
 
@@ -308,10 +317,10 @@ function PartnerRejectButton({
     {
       onSuccess: async () => {
         await mutatePrefix("/api/partners");
+        onNext ? onNext() : setIsOpen(false);
         toast.success(
           "Application rejected. No email sent, and they can reapply in 30 days.",
         );
-        setIsOpen(false);
       },
       onError({ error }) {
         toast.error(error.serverError || "Failed to reject partner.");
@@ -351,21 +360,4 @@ function PartnerRejectButton({
       />
     </>
   );
-}
-
-export function usePartnerApplicationSheet(
-  props: { nested?: boolean } & Omit<PartnerApplicationSheetProps, "setIsOpen">,
-) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    partnerApplicationSheet: (
-      <PartnerApplicationSheet
-        setIsOpen={setIsOpen}
-        isOpen={isOpen}
-        {...props}
-      />
-    ),
-    setIsOpen,
-  };
 }
