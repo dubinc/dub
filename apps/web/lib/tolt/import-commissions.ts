@@ -125,7 +125,7 @@ export async function importCommissions(payload: ToltImportPayload) {
 
   if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email: workspaceUser.user.email,
+      to: workspaceUser.user.email,
       subject: "Tolt program imported",
       react: ProgramImported({
         email: workspaceUser.user.email,

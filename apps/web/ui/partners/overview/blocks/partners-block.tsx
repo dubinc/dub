@@ -58,7 +58,7 @@ export function PartnersBlock() {
           data?.slice(0, 6).map((partner) => (
             <Link
               key={partner.partnerId}
-              href={`/${workspaceSlug}/program/partners?partnerId=${partner.partnerId}`}
+              href={`/${workspaceSlug}/program/partners/${partner.partnerId}`}
               target="_blank"
               className="text-content-default group flex h-10 items-center justify-between text-xs font-medium"
             >

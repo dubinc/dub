@@ -1,7 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import NewMessageFromProgram from "@dub/email/templates/new-message-from-program";
 import { prisma } from "@dub/prisma";
 import { NotificationEmailType } from "@dub/prisma/client";
@@ -102,10 +101,10 @@ export async function POST(req: Request) {
 
     const program = programEnrollment.program;
 
-    const { data, error } = await resend.batch.send(
+    const { data, error } = await sendBatchEmail(
       partnerEmailsToNotify.map((email) => ({
         subject: `${program.name} sent ${unreadMessages.length === 1 ? "a message" : `${unreadMessages.length} messages`}`,
-        from: VARIANT_TO_FROM_MAP.notifications,
+        variant: "notifications",
         to: email,
         react: NewMessageFromProgram({
           program: {

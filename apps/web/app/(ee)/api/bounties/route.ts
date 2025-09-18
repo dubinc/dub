@@ -4,6 +4,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
@@ -13,6 +14,7 @@ import {
   BountyListSchema,
   BountySchema,
   createBountySchema,
+  getBountiesQuerySchema,
 } from "@/lib/zod/schemas/bounties";
 import {
   WORKFLOW_ACTION_TYPES,
@@ -26,12 +28,42 @@ import { NextResponse } from "next/server";
 
 // GET /api/bounties - get all bounties for a program
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { partnerId } = getBountiesQuerySchema.parse(searchParams);
+
+    const programEnrollment = partnerId
+      ? await getProgramEnrollmentOrThrow({
+          partnerId,
+          programId,
+          includeProgram: true,
+        })
+      : null;
 
     const bounties = await prisma.bounty.findMany({
       where: {
         programId,
+
+        // Filter only bounties the specified partner is eligible for
+        ...(programEnrollment && {
+          OR: [
+            {
+              groups: {
+                none: {},
+              },
+            },
+            {
+              groups: {
+                some: {
+                  groupId:
+                    programEnrollment.groupId ||
+                    programEnrollment.program.defaultGroupId,
+                },
+              },
+            },
+          ],
+        }),
       },
       include: {
         groups: {

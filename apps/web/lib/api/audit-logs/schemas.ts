@@ -56,6 +56,7 @@ const actionSchema = z.enum([
   "partner.approved",
   "partner.invite_deleted",
   "partner.invite_resent",
+  "partner.enrollment_updated",
 
   // Auto approve partners
   "auto_approve_partner.enabled",
@@ -100,6 +101,7 @@ export const auditLogTarget = z.union([
       holdingPeriodDays: true,
       minPayoutAmount: true,
       autoApprovePartnersEnabledAt: true,
+      messagingEnabledAt: true,
     }).optional(),
   }),
 

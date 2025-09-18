@@ -4,7 +4,6 @@ import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
-  PartnerProgramEnrollmentSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
@@ -79,6 +78,7 @@ import {
 import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
+  PartnerCommentSchema,
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
@@ -451,10 +451,6 @@ export type PartnerProgramInviteProps = z.infer<
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
-export type PartnerProgramEnrollmentProps = z.infer<
-  typeof PartnerProgramEnrollmentSchema
->;
-
 export type PayoutsCount = {
   status: PayoutStatus;
   count: number;
@@ -553,6 +549,8 @@ export type PartnerGroupAdditionalLink = z.infer<
 export type PartnerGroupProps = PartnerGroup & {
   additionalLinks: PartnerGroupAdditionalLink[];
 };
+
+export type PartnerCommentProps = z.infer<typeof PartnerCommentSchema>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;

@@ -8,6 +8,7 @@ import { withPartnerProfile } from "@/lib/auth/partner";
 import { NewLinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { getPrettyUrl } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
@@ -60,7 +61,7 @@ export const PATCH = withPartnerProfile(
     }
 
     if (link.partnerGroupDefaultLinkId) {
-      const linkUrlChanged = link.url !== url;
+      const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
 
       if (linkUrlChanged) {
         throw new DubApiError({
@@ -69,9 +70,9 @@ export const PATCH = withPartnerProfile(
             "You cannot update the destination URL of your default link.",
         });
       }
+    } else {
+      validatePartnerLinkUrl({ group, url });
     }
-
-    validatePartnerLinkUrl({ group, url });
 
     // check if the group has a UTM template
     const groupUtmTemplate = group.utmTemplateId

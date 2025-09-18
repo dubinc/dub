@@ -30,6 +30,8 @@ export const OAUTH_SCOPES = [
   "domains.write",
   "webhooks.read",
   "webhooks.write",
+  "folders.read",
+  "folders.write",
   "user.read", // default scope, no need to request it
 ];
 
@@ -47,4 +49,6 @@ export const OAUTH_SCOPE_DESCRIPTIONS = {
   "user.read": "Read your name, email and profile image",
   "webhooks.read": "Read access to webhooks",
   "webhooks.write": "Read and Write access to webhooks",
+  "folders.read": "Read access to folders",
+  "folders.write": "Read and Write access to folders",
 };

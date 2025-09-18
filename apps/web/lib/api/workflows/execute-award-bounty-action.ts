@@ -121,7 +121,7 @@ export const executeAwardBountyAction = async ({
   if (partner.email) {
     await sendEmail({
       subject: "Bounty completed!",
-      email: partner.email,
+      to: partner.email,
       variant: "notifications",
       react: BountyCompleted({
         email: partner.email,

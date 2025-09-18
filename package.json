@@ -4,6 +4,7 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "turbo build",
+    "build:packages": "pnpm -r --filter \"./packages/**\" build",
     "dev": "turbo dev",
     "lint": "turbo lint",
     "clean": "turbo clean && find . -name '.next' -type d -prune -exec rm -rf {} + 2>/dev/null || true",

@@ -7,6 +7,7 @@ export async function getProgramEnrollmentOrThrow({
   partnerId,
   programId,
   includePartner = false,
+  includeProgram = false,
   includeClickReward = false,
   includeLeadReward = false,
   includeSaleReward = false,
@@ -17,6 +18,7 @@ export async function getProgramEnrollmentOrThrow({
   partnerId: string;
   programId: string;
   includePartner?: boolean;
+  includeProgram?: boolean;
   includeClickReward?: boolean;
   includeLeadReward?: boolean;
   includeSaleReward?: boolean;
@@ -39,6 +41,9 @@ export async function getProgramEnrollmentOrThrow({
     },
     ...(includePartner && {
       partner: true,
+    }),
+    ...(includeProgram && {
+      program: true,
     }),
     ...(includeClickReward && {
       clickReward: true,

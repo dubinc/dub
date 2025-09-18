@@ -16,7 +16,7 @@ export const SUBMISSION_REQUIREMENTS = ["image", "url"] as const;
 
 export const MAX_SUBMISSION_FILES = 4;
 
-export const MAX_SUBMISSION_URLS = 4;
+export const MAX_SUBMISSION_URLS = 20;
 
 export const submissionRequirementsSchema = z
   .array(z.enum(SUBMISSION_REQUIREMENTS))
@@ -77,6 +77,10 @@ export const BountySchema = z.object({
   performanceCondition: workflowConditionSchema.nullable().default(null),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
+});
+
+export const getBountiesQuerySchema = z.object({
+  partnerId: z.string().optional(),
 });
 
 // used in GET /bounties

@@ -50,6 +50,7 @@ model Program {
   supportEmail                 String?
   ageVerification              Int?
   autoApprovePartnersEnabledAt DateTime?
+  messagingEnabledAt           DateTime?
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
 
@@ -69,6 +70,7 @@ model Program {
   bountySubmissions BountySubmission[]
   workflows         Workflow[]
   messages          Message[]
+  comments          PartnerComment[]
 
   @@index(workspaceId)
   @@index(domain)

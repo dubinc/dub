@@ -68,7 +68,7 @@ export const confirmEmailChange = async ({
   waitUntil(
     sendEmail({
       subject: "Confirm your email address change",
-      email: newEmail,
+      to: newEmail,
       react: ConfirmEmailChange({
         email,
         newEmail,

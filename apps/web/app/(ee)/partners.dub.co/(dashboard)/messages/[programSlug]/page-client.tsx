@@ -16,7 +16,7 @@ import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { X } from "@/ui/shared/icons";
-import { Button, Grid, useCopyToClipboard } from "@dub/ui";
+import { Button, Grid, useCopyToClipboard, useMediaQuery } from "@dub/ui";
 import {
   Check,
   ChevronLeft,
@@ -43,6 +43,8 @@ import { v4 as uuid } from "uuid";
 
 export function PartnerMessagesProgramPageClient() {
   const { programSlug } = useParams() as { programSlug: string };
+  const { isMobile } = useMediaQuery();
+
   const { user } = useUser();
   const { partner } = usePartnerProfile();
   const { programEnrollment, error: errorProgramEnrollment } =
@@ -60,7 +62,7 @@ export function PartnerMessagesProgramPageClient() {
     mutate: mutateProgramMessages,
   } = useProgramMessages({
     query: { programSlug, sortOrder: "asc" },
-    enabled: programEnrollment?.messagingEnabled ?? false,
+    enabled: Boolean(programEnrollment?.program?.messagingEnabledAt),
     swrOpts: {
       onSuccess: async (data) => {
         // Mark unread messages from the program as read
@@ -83,7 +85,7 @@ export function PartnerMessagesProgramPageClient() {
   const { executeAsync: sendMessage } = useAction(messageProgramAction);
 
   const { setCurrentPanel } = useMessagesContext();
-  const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
+  const [isRightPanelOpen, setIsRightPanelOpen] = useState(!isMobile);
 
   if (errorProgramEnrollment) redirect(`/messages`);
 
@@ -135,7 +137,7 @@ export function PartnerMessagesProgramPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        {programEnrollment?.messagingEnabled === false ? (
+        {programEnrollment?.program?.messagingEnabledAt === null ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />
             <div className="mt-6 max-w-md text-center">
@@ -306,7 +308,6 @@ function ProgramInfoPanel({
     event: "composite",
     interval: "all",
   });
-  console.log("statsTotals", statsTotals);
 
   const [copied, copyToClipboard] = useCopyToClipboard();
 

@@ -1,5 +1,6 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
 import { tokenCache } from "@/lib/auth/token-cache";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkspaceProps } from "@/lib/types";
 import { webhookCache } from "@/lib/webhook/cache";
 import { sendEmail } from "@dub/email";
@@ -35,7 +36,7 @@ export async function sendCancellationFeedback({
       (owner) =>
         owner.email &&
         sendEmail({
-          email: owner.email,
+          to: owner.email,
           from: "Steven Tey <steven@dub.co>",
           replyTo: "steven.tey@dub.co",
           subject: "Feedback for Dub.co?",
@@ -52,7 +53,11 @@ export async function updateWorkspacePlan({
 }: {
   workspace: Pick<
     WorkspaceProps,
-    "id" | "paymentFailedAt" | "payoutsLimit" | "foldersUsage"
+    | "id"
+    | "paymentFailedAt"
+    | "payoutsLimit"
+    | "foldersUsage"
+    | "defaultProgramId"
   > & {
     plan: string;
     restrictedTokens: {
@@ -115,6 +120,23 @@ export async function updateWorkspacePlan({
           ({ hashedKey }) => hashedKey,
         ),
       }),
+
+      // disable/enable program messaging if workspace has a program
+      ...(workspace.defaultProgramId
+        ? [
+            prisma.program.update({
+              where: {
+                id: workspace.defaultProgramId,
+              },
+              data: {
+                messagingEnabledAt: getPlanCapabilities(workspace.plan)
+                  .canMessagePartners
+                  ? new Date()
+                  : null,
+              },
+            }),
+          ]
+        : []),
     ]);
 
     // Disable the webhooks if the new plan does not support webhooks
