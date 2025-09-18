@@ -59,7 +59,7 @@ function PartnerApplicationSheetContent({
               text="Message"
               icon={<Msgs className="size-4 shrink-0" />}
               onClick={() => setIsOpen(false)}
-              className="h-9 rounded-lg px-4"
+              className="hidden h-9 rounded-lg px-4 sm:flex"
             />
           </Link>
           <div className="flex items-center">
