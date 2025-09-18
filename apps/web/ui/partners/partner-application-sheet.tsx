@@ -90,7 +90,7 @@ function PartnerApplicationSheetContent({
         </div>
       </div>
 
-      <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-6">
+      <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="@3xl/sheet:order-2">
           <PartnerInfoCards partner={partner} />
         </div>
