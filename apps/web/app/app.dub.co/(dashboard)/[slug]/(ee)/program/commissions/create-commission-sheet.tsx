@@ -567,6 +567,12 @@ function CreateCommissionSheetContent({
                             setUseExistingEvents(value === "existing")
                           }
                         />
+                        {useExistingEvents && (
+                          <p className="mt-2 text-xs text-neutral-500">
+                            Existing events will be transferred to the new
+                            partner.
+                          </p>
+                        )}
                       </div>
                     )}
 
