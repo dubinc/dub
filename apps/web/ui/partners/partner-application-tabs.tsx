@@ -2,18 +2,17 @@ import { usePartnerCommentsCount } from "@/lib/swr/use-partner-comments-count";
 import { Msg, User } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { LayoutGroup, motion } from "framer-motion";
-import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useId, useMemo } from "react";
 
 export function PartnerApplicationTabs({
+  partnerId,
   currentTabId,
   setCurrentTabId,
 }: {
+  partnerId: string;
   currentTabId: string;
   setCurrentTabId: Dispatch<SetStateAction<string>>;
 }) {
-  const { partnerId } = useParams() as { partnerId: string };
-
   const { count: commentsCount } = usePartnerCommentsCount(
     {
       partnerId,
@@ -49,10 +48,7 @@ export function PartnerApplicationTabs({
   return (
     <div className="scrollbar-hide relative z-0 flex items-center justify-between gap-1 overflow-x-auto p-2">
       <LayoutGroup id={layoutGroupId}>
-        <motion.div
-          layout
-          className={cn("relative z-0 inline-flex items-center gap-1")}
-        >
+        <div className="relative z-0 inline-flex items-center gap-1">
           {tabs.map(({ id, label, icon: Icon, badge }) => {
             const isSelected = id === currentTabId;
             return (
@@ -87,7 +83,7 @@ export function PartnerApplicationTabs({
               </button>
             );
           })}
-        </motion.div>
+        </div>
       </LayoutGroup>
     </div>
   );

@@ -6,7 +6,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  ChevronLeft,
+  ChevronRight,
+  Sheet,
+  useRouterStuff,
+} from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
@@ -22,11 +28,15 @@ import { PartnerInfoCards } from "./partner-info-cards";
 
 type PartnerApplicationSheetProps = {
   partner: EnrolledPartnerProps;
+  onNext?: () => void;
+  onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 function PartnerApplicationSheetContent({
   partner,
+  onPrevious,
+  onNext,
   setIsOpen,
 }: PartnerApplicationSheetProps) {
   const [currentTabId, setCurrentTabId] = useState<string>("about");
@@ -37,7 +47,25 @@ function PartnerApplicationSheetContent({
         <Sheet.Title className="text-lg font-semibold">
           Partner application
         </Sheet.Title>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <div className="flex items-center">
+            <Button
+              type="button"
+              disabled={!onPrevious}
+              onClick={onPrevious}
+              variant="secondary"
+              className="size-9 rounded-l-lg rounded-r-none p-0"
+              icon={<ChevronLeft className="size-3.5" />}
+            />
+            <Button
+              type="button"
+              disabled={!onNext}
+              onClick={onNext}
+              variant="secondary"
+              className="-ml-px size-9 rounded-l-none rounded-r-lg p-0"
+              icon={<ChevronRight className="size-3.5" />}
+            />
+          </div>
           <Sheet.Close asChild>
             <Button
               variant="outline"
@@ -55,6 +83,7 @@ function PartnerApplicationSheetContent({
         <div className="@3xl/sheet:order-1">
           <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
             <PartnerApplicationTabs
+              partnerId={partner.id}
               currentTabId={currentTabId}
               setCurrentTabId={setCurrentTabId}
             />

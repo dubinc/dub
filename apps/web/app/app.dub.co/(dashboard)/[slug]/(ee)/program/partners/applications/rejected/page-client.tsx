@@ -288,6 +288,19 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
+  const [previousPartnerId, nextPartnerId] = useMemo(() => {
+    if (!partners || !detailsSheetState.partnerId) return [null, null];
+
+    const currentIndex = partners.findIndex(
+      ({ id }) => id === detailsSheetState.partnerId,
+    );
+
+    return [
+      currentIndex > 0 ? partners[currentIndex - 1].id : null,
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+    ];
+  }, [partners, detailsSheetState.partnerId]);
+
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.partnerId && currentPartner && (
@@ -297,6 +310,16 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          onPrevious={
+            previousPartnerId
+              ? () => queryParams({ set: { partnerId: previousPartnerId } })
+              : undefined
+          }
+          onNext={
+            nextPartnerId
+              ? () => queryParams({ set: { partnerId: nextPartnerId } })
+              : undefined
+          }
         />
       )}
       <div className="w-min">
