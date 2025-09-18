@@ -248,10 +248,10 @@ function PartnerApproval({
   const { program } = useProgram();
 
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
-    onSuccess: async () => {
-      await mutatePrefix("/api/partners");
+    onSuccess: () => {
       onNext ? onNext() : setIsOpen(false);
-      toast.success("Approved the partner successfully.");
+      toast.success(`Successfully approved ${partner.email} to your program.`);
+      mutatePrefix("/api/partners");
     },
     onError({ error }) {
       toast.error(error.serverError || "Failed to approve partner.");
@@ -315,12 +315,12 @@ function PartnerRejectButton({
   const { executeAsync: rejectPartner, isPending } = useAction(
     rejectPartnerAction,
     {
-      onSuccess: async () => {
-        await mutatePrefix("/api/partners");
+      onSuccess: () => {
         onNext ? onNext() : setIsOpen(false);
         toast.success(
-          "Application rejected. No email sent, and they can reapply in 30 days.",
+          `Partner ${partner.email} has been rejected from your program.`,
         );
+        mutatePrefix("/api/partners");
       },
       onError({ error }) {
         toast.error(error.serverError || "Failed to reject partner.");
