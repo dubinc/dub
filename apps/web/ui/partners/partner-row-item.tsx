@@ -33,8 +33,8 @@ export function PartnerRowItem({
 
   // Helper function to get duration text
   const getDurationText = (maxDuration?: number | null) => {
-    if (!maxDuration) return "for the customer's lifetime";
     if (maxDuration === 0) return "one-time";
+    if (maxDuration == null) return "for the customer's lifetime";
     return `for ${maxDuration} month${maxDuration > 1 ? 's' : ''}`;
   };
 
