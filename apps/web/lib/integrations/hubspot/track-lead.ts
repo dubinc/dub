@@ -17,10 +17,6 @@ export const trackHubSpotLeadEvent = async ({
   const { objectId, objectTypeId, subscriptionType } =
     hubSpotLeadEventSchema.parse(payload);
 
-  if (subscriptionType !== "object.creation") {
-    return;
-  }
-
   // A new contact is created (deferred lead tracking)
   if (objectTypeId === "0-1") {
     const contact = await getHubSpotContact({
