@@ -47,9 +47,9 @@ export function PartnerRowItem({
       case "sale":
         return `Up to ${amount} per sale ${duration}`;
       case "lead":
-        return `$${(reward.amount / 100).toFixed(0)} per lead`;
+        return `${amount} per lead`;
       case "click":
-        return `$${(reward.amount / 100).toFixed(2)} per click`;
+        return `${amount} per click`;
       default:
         return `${amount} per ${reward.event}`;
     }
