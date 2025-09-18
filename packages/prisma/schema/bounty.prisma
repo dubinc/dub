@@ -25,7 +25,7 @@ model Bounty {
   name                   String
   description            String?    @db.Text
   type                   BountyType
-  currentStatsOnly       Boolean    @default(false)
+  currentStatsOnly       Boolean?   @default(false)
   startsAt               DateTime
   endsAt                 DateTime?
   rewardAmount           Int?
