@@ -202,12 +202,7 @@ export function BountySubmissionsTable() {
                   return "-";
                 }
 
-                const value = row.original.count;
-
-                if (!value) {
-                  return "-";
-                }
-
+                const value = row.original.count ?? 0;
                 const attribute = performanceCondition.attribute;
                 const target = performanceCondition.value;
 
