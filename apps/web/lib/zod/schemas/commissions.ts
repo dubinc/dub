@@ -131,6 +131,8 @@ export const getCommissionsCountQuerySchema = getCommissionsQuerySchema.omit({
 export const createCommissionSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
+  commissionType: z.nativeEnum(CommissionType),
+  useExistingEvents: z.boolean(),
 
   // Custom
   date: parseDateSchema.nullish(),
@@ -148,8 +150,6 @@ export const createCommissionSchema = z.object({
   saleAmount: z.number().min(0).nullish(),
   invoiceId: z.string().nullish(),
   productId: z.string().nullish(),
-
-  useExistingEvents: z.boolean()
 });
 
 export const updateCommissionSchema = z.object({

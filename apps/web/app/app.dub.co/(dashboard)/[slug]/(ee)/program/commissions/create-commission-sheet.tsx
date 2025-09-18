@@ -3,6 +3,7 @@ import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { CustomerActivityResponse } from "@/lib/types";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSelector } from "@/ui/customers/customer-selector";
 import { PartnerLinkSelector } from "@/ui/partners/partner-link-selector";
@@ -17,17 +18,22 @@ import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
+  LoadingSpinner,
   Sheet,
   SmartDateTimePicker,
   Switch,
+  Table,
   ToggleGroup,
+  useTable,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, fetcher, formatDateTime } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import useSWR from "swr";
 import { z } from "zod";
 
 interface CreateCommissionSheetProps {
@@ -41,7 +47,7 @@ function CreateCommissionSheetContent({
   setIsOpen,
   partnerId: initialPartnerId,
 }: CreateCommissionSheetProps) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId, slug } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [hasProductId, setHasProductId] = useState(false);
   const { rewards, loading: rewardsLoading } = useRewards();
@@ -53,7 +59,11 @@ function CreateCommissionSheetContent({
   const [commissionType, setCommissionType] =
     useState<CommissionType>("custom");
 
-  const [openAccordions, setOpenAccordions] = useState<string[]>([
+  type AccordionValue =
+    | "partner-and-type"
+    | "customer-and-commission"
+    | "commission";
+  const [openAccordions, setOpenAccordions] = useState<AccordionValue[]>([
     "partner-and-type",
   ]);
 
@@ -92,6 +102,15 @@ function CreateCommissionSheetContent({
     "description",
   ]);
 
+  // Fetch customer activity data when customer is selected and we're using existing events
+  const { data: customerActivity, isLoading: isCustomerActivityLoading } =
+    useSWR<CustomerActivityResponse>(
+      customerId && useExistingEvents && workspaceId
+        ? `/api/customers/${customerId}/activity?workspaceId=${workspaceId}`
+        : null,
+      fetcher,
+    );
+
   useEffect(() => {
     if (commissionType === "custom") {
       setValue("linkId", null);
@@ -105,14 +124,10 @@ function CreateCommissionSheetContent({
   }, [hasCustomLeadEventDate, setValue]);
 
   useEffect(() => {
-    const baseValues = ["partner-and-type"];
-
     if (commissionType === "custom") {
-      setOpenAccordions([...baseValues, "commission"]);
-    } else if (commissionType === "sale") {
-      setOpenAccordions([...baseValues, "customer", "sale"]);
-    } else if (commissionType === "lead") {
-      setOpenAccordions([...baseValues, "customer"]);
+      setOpenAccordions(["partner-and-type", "commission"]);
+    } else {
+      setOpenAccordions(["partner-and-type", "customer-and-commission"]);
     }
   }, [commissionType]);
 
@@ -145,6 +160,7 @@ function CreateCommissionSheetContent({
 
     await executeAsync({
       ...data,
+      commissionType,
       partnerId,
       workspaceId,
       date,
@@ -160,6 +176,84 @@ function CreateCommissionSheetContent({
     return rewards?.map((reward) => reward.event);
   }, [rewards]);
 
+  // Filter events based on commission type
+  const filteredEvents = useMemo(() => {
+    if (!customerActivity?.events) return [];
+
+    return customerActivity.events.filter((event) => {
+      if (commissionType === "sale") return event.event === "sale";
+      if (commissionType === "lead") return event.event === "lead";
+      return false;
+    });
+  }, [customerActivity?.events, commissionType]);
+
+  // Table configuration for existing events
+  const eventsTable = useTable({
+    data: filteredEvents || [],
+    columns: [
+      {
+        header: "Event",
+        minSize: 160,
+        size: 200,
+        maxSize: 250,
+        cell: ({ row }) => {
+          const eventType = commissionType === "sale" ? "sales" : "leads";
+          const link = row.original.link;
+          const eventUrl =
+            link?.domain && link?.key
+              ? `/${slug}/events?event=${eventType}&interval=all&domain=${link.domain}&key=${link.key}`
+              : null;
+
+          const eventContent = (
+            <div className="flex flex-col">
+              <span className="text-sm font-medium text-neutral-700">
+                {row.original.eventName ||
+                  (row.original.event === "sale" ? "Sale" : "Lead")}
+              </span>
+              <span className="text-xs text-neutral-500">
+                {formatDateTime(row.original.timestamp)}
+              </span>
+            </div>
+          );
+
+          return eventUrl ? (
+            <Link
+              href={eventUrl}
+              target="_blank"
+              className="-mx-2 -my-1 block cursor-pointer rounded-md px-2 py-1 decoration-dotted underline-offset-2 hover:underline"
+            >
+              {eventContent}
+            </Link>
+          ) : (
+            eventContent
+          );
+        },
+      },
+      ...(commissionType === "sale"
+        ? [
+            {
+              header: "Amount",
+              minSize: 100,
+              size: 100,
+              maxSize: 100,
+              cell: ({ row }) => (
+                <span className="text-sm text-neutral-700">
+                  {row.original.sale?.amount
+                    ? `$${(row.original.sale.amount / 100).toFixed(2)}`
+                    : "-"}
+                </span>
+              ),
+            },
+          ]
+        : []),
+    ],
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px] max-h-[200px]",
+    resourceName: (p) => `event${p ? "s" : ""}`,
+    loading: isCustomerActivityLoading,
+    error: undefined,
+  } as any);
+
   const shouldDisableSubmit = useMemo(() => {
     if (!partnerId) {
       return true;
@@ -169,16 +263,25 @@ function CreateCommissionSheetContent({
       return !amount;
     }
 
-    if (commissionType === "sale") {
-      return !linkId || !customerId || !saleAmount;
+    if (!linkId || !customerId) {
+      return true;
     }
 
-    if (commissionType === "lead") {
-      return !linkId || !customerId;
+    if (useExistingEvents && !filteredEvents.length) {
+      return true;
     }
 
     return false;
-  }, [commissionType, partnerId, linkId, customerId, saleAmount, amount]);
+  }, [
+    commissionType,
+    partnerId,
+    linkId,
+    customerId,
+    saleAmount,
+    amount,
+    useExistingEvents,
+    filteredEvents,
+  ]);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
@@ -202,7 +305,9 @@ function CreateCommissionSheetContent({
           <ProgramSheetAccordion
             type="multiple"
             value={openAccordions}
-            onValueChange={setOpenAccordions}
+            onValueChange={(value) =>
+              setOpenAccordions(value as AccordionValue[])
+            }
             className="space-y-6"
           >
             <ProgramSheetAccordionItem value="partner-and-type">
@@ -414,7 +519,7 @@ function CreateCommissionSheetContent({
             )}
 
             {(commissionType === "sale" || commissionType === "lead") && (
-              <ProgramSheetAccordionItem value="customer">
+              <ProgramSheetAccordionItem value="customer-and-commission">
                 <ProgramSheetAccordionTrigger>
                   Customer and commission details
                 </ProgramSheetAccordionTrigger>
@@ -462,6 +567,23 @@ function CreateCommissionSheetContent({
                             setUseExistingEvents(value === "existing")
                           }
                         />
+                      </div>
+                    )}
+
+                    {/* Show existing events table when using existing events */}
+                    {customerId && useExistingEvents && (
+                      <div>
+                        {isCustomerActivityLoading ? (
+                          <div className="flex h-32 items-center justify-center rounded-md border border-neutral-200">
+                            <LoadingSpinner />
+                          </div>
+                        ) : filteredEvents.length > 0 ? (
+                          <Table {...eventsTable} />
+                        ) : (
+                          <div className="flex h-20 items-center justify-center rounded-md border border-neutral-200 text-sm text-neutral-500">
+                            No {commissionType} events found for this customer
+                          </div>
+                        )}
                       </div>
                     )}
 
