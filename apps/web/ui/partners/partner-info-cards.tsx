@@ -9,8 +9,6 @@ import {
   RewardProps,
 } from "@/lib/types";
 import { EventDatum } from "@/ui/analytics/events/events-table";
-import { PartnerInfoGroup } from "@/ui/partners/partner-info-group";
-import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import {
   CalendarIcon,
   ChartActivity2,
@@ -28,21 +26,27 @@ import {
   timeAgo,
 } from "@dub/utils";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import useSWR from "swr";
+import { PartnerInfoGroup } from "./partner-info-group";
+import { ProgramRewardList } from "./program-reward-list";
 
-export function PartnerInfo({ partner }: { partner?: EnrolledPartnerProps }) {
+export function PartnerInfoCards({
+  partner,
+}: {
+  partner?: EnrolledPartnerProps;
+}) {
   const {
     id: workspaceId,
     slug: workspaceSlug,
     defaultProgramId,
   } = useWorkspace();
-  const { partnerId } = useParams() as { partnerId: string };
 
-  const { data: eventsData, isLoading: isLoadingEvents } = useSWR<EventDatum[]>(
+  const { data: eventsData } = useSWR<EventDatum[]>(
     workspaceId &&
       defaultProgramId &&
-      `/api/events?${new URLSearchParams({ workspaceId, programId: defaultProgramId, partnerId, interval: "all", limit: "1" })}`,
+      partner &&
+      partner.status === "approved" &&
+      `/api/events?${new URLSearchParams({ workspaceId, programId: defaultProgramId, partnerId: partner.id, interval: "all", limit: "1" })}`,
     fetcher,
   );
 
@@ -51,22 +55,27 @@ export function PartnerInfo({ partner }: { partner?: EnrolledPartnerProps }) {
   });
 
   const { data: bounties, error: errorBounties } = useSWR<BountyListProps[]>(
-    workspaceId
-      ? `/api/bounties?workspaceId=${workspaceId}&partnerId=${partnerId}`
+    workspaceId && partner
+      ? `/api/bounties?workspaceId=${workspaceId}&partnerId=${partner.id}`
       : null,
     fetcher,
   );
 
   const basicFields = [
-    {
-      id: "event",
-      icon: <ChartActivity2 className="size-3.5" />,
-      text: eventsData
-        ? eventsData.length
-          ? `Last event ${timeAgo(new Date(eventsData[0].timestamp), { withAgo: true })}`
-          : null
-        : undefined,
-    },
+    ...(partner?.status === "approved"
+      ? [
+          {
+            id: "event",
+            icon: <ChartActivity2 className="size-3.5" />,
+            text: eventsData
+              ? eventsData.length
+                ? `Last event ${timeAgo(new Date(eventsData[0].timestamp), { withAgo: true })}`
+                : null
+              : undefined,
+          },
+        ]
+      : []),
+
     {
       id: "companyName",
       icon: <OfficeBuilding className="size-3.5" />,
@@ -76,7 +85,7 @@ export function PartnerInfo({ partner }: { partner?: EnrolledPartnerProps }) {
       id: "createdAt",
       icon: <CalendarIcon className="size-3.5" />,
       text: partner
-        ? `Partner since ${formatDate(partner.createdAt)}`
+        ? `${partner.status === "approved" ? "Partner since" : "Applied"} ${formatDate(partner.createdAt)}`
         : undefined,
     },
   ];
@@ -200,41 +209,45 @@ export function PartnerInfo({ partner }: { partner?: EnrolledPartnerProps }) {
         </div>
 
         {/* Eligible bounties */}
-        <div className="flex flex-col gap-2">
-          <h3 className="text-content-emphasis text-xs font-semibold">
-            Eligible Bounties
-          </h3>
-          {bounties ? (
-            bounties.length ? (
-              <div className="flex flex-col gap-2">
-                {bounties.map((bounty) => {
-                  const Icon = bounty.type === "performance" ? Trophy : Heart;
-                  return (
-                    <Link
-                      key={bounty.id}
-                      target="_blank"
-                      href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
-                      className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
-                    >
-                      <Icon className="size-3.5 shrink-0" />
-                      <span className="text-xs font-medium">{bounty.name}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
+        {partner?.status === "approved" && (
+          <div className="flex flex-col gap-2">
+            <h3 className="text-content-emphasis text-xs font-semibold">
+              Eligible Bounties
+            </h3>
+            {bounties ? (
+              bounties.length ? (
+                <div className="flex flex-col gap-2">
+                  {bounties.map((bounty) => {
+                    const Icon = bounty.type === "performance" ? Trophy : Heart;
+                    return (
+                      <Link
+                        key={bounty.id}
+                        target="_blank"
+                        href={`/${workspaceSlug}/program/bounties/${bounty.id}`}
+                        className="text-content-subtle flex cursor-alias items-center gap-2 decoration-dotted underline-offset-2 hover:underline"
+                      >
+                        <Icon className="size-3.5 shrink-0" />
+                        <span className="text-xs font-medium">
+                          {bounty.name}
+                        </span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-content-subtle text-xs">
+                  No eligible bounties
+                </p>
+              )
+            ) : errorBounties ? (
               <p className="text-content-subtle text-xs">
-                No eligible bounties
+                Failed to load bounties
               </p>
-            )
-          ) : errorBounties ? (
-            <p className="text-content-subtle text-xs">
-              Failed to load bounties
-            </p>
-          ) : (
-            <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-          )}
-        </div>
+            ) : (
+              <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
