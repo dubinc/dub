@@ -1,24 +1,39 @@
 "use server";
 
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { getLeadEvent } from "@/lib/tinybird";
-import { recordClick } from "@/lib/tinybird/record-click";
+import {
+  createPartnerCommission,
+  CreatePartnerCommissionProps,
+} from "@/lib/partners/create-partner-commission";
+import { getCustomerEventsTB } from "@/lib/tinybird/get-customer-events-tb";
+import {
+  recordClickZod,
+  recordClickZodSchema,
+} from "@/lib/tinybird/record-click-zod";
 import { recordLeadWithTimestamp } from "@/lib/tinybird/record-lead";
 import { recordSaleWithTimestamp } from "@/lib/tinybird/record-sale";
-import { ClickEventTB, LeadEventTB } from "@/lib/types";
-import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
 import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
+import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { COUNTRIES_TO_CONTINENTS } from "@dub/utils/src";
 import { WorkflowTrigger } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { z } from "zod";
 import { authActionClient } from "../safe-action";
+
+const leadEventSchemaTBWithTimestamp = leadEventSchemaTB.extend({
+  timestamp: z.string(),
+});
+
+const saleEventSchemaTBWithTimestamp = saleEventSchemaTB.extend({
+  timestamp: z.string(),
+});
 
 export const createManualCommissionAction = authActionClient
   .schema(createCommissionSchema)
@@ -27,18 +42,27 @@ export const createManualCommissionAction = authActionClient
 
     const {
       partnerId,
+      commissionType,
+      useExistingEvents,
+      // custom commission attributes
       date,
       amount,
-      linkId,
-      invoiceId,
-      productId,
+      description,
+      // lead attributes
       customerId,
-      saleAmount,
-      saleEventDate,
+      linkId,
       leadEventDate,
       leadEventName,
-      description,
+      // sale attributes
+      saleEventDate,
+      saleAmount,
+      invoiceId,
+      productId,
     } = parsedInput;
+
+    // for useExistingEvents, we need to keep track of some stats so we can update later
+    let totalSales = 0;
+    let totalSaleAmount = 0;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -74,13 +98,10 @@ export const createManualCommissionAction = authActionClient
       return;
     }
 
-    // Create a lead or sale commission
-    if (!customerId || !customer) {
-      throw new Error("Customer not found.");
-    }
-
-    if (customer.projectId !== workspace.id) {
-      throw new Error(`Customer ${customerId} not found.`);
+    if (!customerId || !customer || customer.projectId !== workspace.id) {
+      throw new Error(
+        `Customer${customerId ? ` with customerId ${customerId}` : ""} not found.`,
+      );
     }
 
     const link = links.find((l) => l.id === linkId);
@@ -111,208 +132,372 @@ export const createManualCommissionAction = authActionClient
       }
     }
 
-    let clickEvent: ClickEventTB | null = null;
-    let leadEvent: LeadEventTB | null = null;
-    let shouldUpdateCustomer = false;
+    const tbEventsToRecord: Promise<any>[] = []; // a list of promises of events to record in Tinybird
+    const commissionsToTransferEventIds: string[] = []; // eventIds for the commissions to transfer to the new customer-partner pair – we need to nullify them later
+    const commissionsToCreate: CreatePartnerCommissionProps[] = [];
 
-    const existingLeadEvent = await getLeadEvent({
-      customerId,
-    });
+    // If we're using existing events, we need to duplicate them under the new customer.id
+    if (useExistingEvents) {
+      if (!customer.linkId) {
+        throw new Error(
+          `No linkId found for existing customer ${customer.id}.`,
+        );
+      }
 
-    // if there is an existing lead event + no custom lead details were provided
-    // we can use that leadEvent's existing details
-    if (
-      !leadEventDate &&
-      !leadEventName &&
-      existingLeadEvent &&
-      existingLeadEvent.data.length > 0
-    ) {
-      leadEvent = leadEventSchemaTB.parse(existingLeadEvent.data[0]);
-    } else {
-      // else, if there's no existing lead event and there is also no custom leadEventName/Date
-      // we need to create a dummy click + lead event (using the customer's country if available)
-      const dummyRequest = new Request(link.url, {
-        headers: new Headers({
-          "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-          "x-forwarded-for": "127.0.0.1",
-          ...(customer.country
-            ? {
-                "x-vercel-ip-country": customer.country.toUpperCase(),
-                "x-vercel-ip-continent":
-                  COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()],
-              }
-            : {
-                "x-vercel-ip-country": "US",
-                "x-vercel-ip-country-region": "CA",
-                "x-vercel-ip-continent": "NA",
-              }),
-        }),
+      if (customer.linkId === link.id) {
+        throw new Error(
+          `Customer ${customer.id} is already attributed to link ${link.id}.`,
+        );
+      }
+
+      // fetch existing customer events and duplicate them under the new customer.id
+      const existingCustomerEvents = await getCustomerEventsTB({
+        customerId: customer.id,
+        linkIds: [customer.linkId],
+      }).then((res) => res.data);
+
+      if (existingCustomerEvents.length === 0) {
+        throw new Error(
+          `No existing events found for customer ${customer.id}.`,
+        );
+      }
+
+      const existingClickEvent = existingCustomerEvents.find(
+        (event) => event.event === "click",
+      );
+      console.log("Found existing click event: ", existingClickEvent);
+      const existingLeadEvent = existingCustomerEvents.find(
+        (event) => event.event === "lead",
+      );
+      console.log("Found existing lead event: ", existingLeadEvent);
+      const existingSaleEvents = existingCustomerEvents.filter(
+        (event) => event.event === "sale",
+      );
+      console.log("Found existing sale events: ", existingSaleEvents);
+
+      const newClickAttributes = {
+        click_id: nanoid(16), // create new clickId
+        link_id: link.id, // set to new link.id,
+      };
+      const clickEventData = recordClickZodSchema.parse({
+        ...existingClickEvent,
+        ...newClickAttributes,
       });
 
-      const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
+      console.log("Click event to record: ", clickEventData);
+      if (existingClickEvent) {
+        tbEventsToRecord.push(recordClickZod(clickEventData));
+      }
 
-      const clickData = await recordClick({
-        req: dummyRequest,
-        linkId,
-        clickId: nanoid(16),
-        url: link.url,
-        domain: link.domain,
-        key: link.key,
-        workspaceId: workspace.id,
-        skipRatelimit: true,
-        timestamp: new Date(
-          new Date(finalLeadEventDate).getTime() - 5 * 60 * 1000,
-        ).toISOString(),
-      });
+      const duplicateCustomerId = createId({ prefix: "cus_" });
 
-      clickEvent = clickEventSchemaTB.parse({
-        ...clickData,
-        bot: 0,
-        qr: 0,
-      });
-      const leadEventId = nanoid(16);
-      leadEvent = leadEventSchemaTB.parse({
-        ...clickEvent,
-        event_id: leadEventId,
-        event_name: leadEventName || "Sign up",
-        customer_id: customerId,
-      });
+      if (existingLeadEvent) {
+        const leadEventData = leadEventSchemaTBWithTimestamp.parse({
+          ...clickEventData,
+          ...existingLeadEvent,
+          ...newClickAttributes, // make sure new click attributes are not overridden by existing click attributes
+          event_id: nanoid(16), // create new event_id
+          link_id: link.id, // set to new link.id
+          customer_id: duplicateCustomerId, // set to new duplicateCustomerId
+        });
+        console.log("Lead event to record: ", leadEventData);
+        tbEventsToRecord.push(recordLeadWithTimestamp(leadEventData));
 
-      shouldUpdateCustomer = !customer.linkId && clickData ? true : false;
+        // Store the original lead eventId for nullification
+        commissionsToTransferEventIds.push(existingLeadEvent.event_id);
 
-      await Promise.allSettled([
-        recordLeadWithTimestamp({
-          ...leadEvent,
-          timestamp: new Date(finalLeadEventDate).toISOString(),
-        }),
-
-        createPartnerCommission({
-          event: "lead",
-          programId,
-          partnerId,
-          linkId,
-          eventId: leadEventId,
-          customerId,
-          amount: 0,
-          quantity: 1,
-          createdAt: finalLeadEventDate,
-          user,
-          context: {
-            customer: {
-              country: customer.country,
+        if (commissionType === "lead") {
+          // add the new lead event to the list of commissions to create
+          commissionsToCreate.push({
+            event: "lead" as const,
+            programId,
+            partnerId,
+            linkId: link.id,
+            customerId: duplicateCustomerId,
+            eventId: leadEventData.event_id,
+            quantity: 1,
+            createdAt: new Date(leadEventData.timestamp + "Z"), // add the "Z" to the timestamp to make it UTC
+            user,
+            context: {
+              customer: { country: customer.country },
             },
-          },
-        }),
+          });
+        }
+      }
 
-        executeWorkflows({
-          trigger: WorkflowTrigger.leadRecorded,
-          programId,
-          partnerId,
-        }),
-      ]);
-    }
+      const recordSaleEvents =
+        commissionType === "sale" && existingSaleEvents.length > 0;
 
-    if (saleAmount && leadEvent) {
-      const saleEventId = nanoid(16);
-      const saleDate = new Date(saleEventDate ?? Date.now());
+      if (recordSaleEvents) {
+        if (existingSaleEvents.length > 5) {
+          throw new Error(
+            `You can only backfill up to 5 sale events. Found ${existingSaleEvents.length} existing sale events.`,
+          );
+        }
 
-      await Promise.allSettled([
-        recordSaleWithTimestamp({
-          ...leadEvent,
-          event_id: saleEventId,
-          event_name: "Purchase",
-          amount: saleAmount,
-          customer_id: customerId,
-          payment_processor: "custom",
-          currency: "usd",
-          timestamp: saleDate.toISOString(),
-          metadata: productId ? JSON.stringify({ productId }) : undefined,
-        }),
+        const saleEventsData = existingSaleEvents.map((existingSaleEvent) =>
+          saleEventSchemaTBWithTimestamp.parse({
+            ...clickEventData,
+            ...existingSaleEvent,
+            ...newClickAttributes, // make sure new click attributes are not overridden
+            event_id: nanoid(16), // create new event_id
+            link_id: link.id, // set to new link.id
+            customer_id: duplicateCustomerId, // set to new duplicateCustomerId
+            amount: existingSaleEvent.saleAmount, // change format returned by Tinybird
+          }),
+        );
+        console.log("Sale events to record: ", saleEventsData);
+        tbEventsToRecord.push(recordSaleWithTimestamp(saleEventsData));
 
-        createPartnerCommission({
-          event: "sale",
-          programId,
-          partnerId,
-          linkId,
-          eventId: saleEventId,
-          customerId,
-          amount: saleAmount,
-          quantity: 1,
-          invoiceId,
-          currency: "usd",
-          createdAt: saleDate,
-          user,
-          context: {
-            customer: {
-              country: customer.country,
-            },
-            sale: {
-              productId,
-            },
-          },
-        }),
+        // Store the original sale eventIds for nullification
+        commissionsToTransferEventIds.push(
+          ...existingSaleEvents.map(
+            (existingSaleEvent) => existingSaleEvent.event_id,
+          ),
+        );
 
-        executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          programId,
-          partnerId,
-        }),
-      ]);
-    }
+        if (commissionType === "sale") {
+          // add the new sale events to the list of commissions to create
+          commissionsToCreate.push(
+            ...saleEventsData.map((saleEventData) => ({
+              event: "sale" as const,
+              programId,
+              partnerId,
+              linkId: link.id,
+              customerId: duplicateCustomerId,
+              eventId: saleEventData.event_id,
+              quantity: 1,
+              amount: saleEventData.amount,
+              currency: saleEventData.currency,
+              invoiceId: saleEventData.invoice_id,
+              createdAt: new Date(saleEventData.timestamp + "Z"), // add the "Z" to the timestamp to make it UTC
+              user,
+              context: {
+                customer: { country: customer.country },
+                sale: { productId },
+              },
+            })),
+          );
+        }
+        totalSales = existingSaleEvents.length;
+        totalSaleAmount = existingSaleEvents.reduce(
+          (acc, saleEvent) => acc + saleEvent.saleAmount,
+          0,
+        );
+      }
 
-    // link & customer updates
-    waitUntil(
-      Promise.allSettled([
-        // Update link stats
-        prisma.link.update({
+      const duplicatedCustomer = await prisma.$transaction(async (tx) => {
+        await tx.customer.update({
           where: {
-            id: linkId,
+            id: customer.id,
           },
           data: {
-            ...(isFirstConversion({
-              customer,
-              linkId,
-            }) && {
-              leads: {
-                increment: 1,
-              },
-              conversions: {
-                increment: 1,
-              },
-            }),
-            ...(saleAmount && {
-              sales: {
-                increment: 1,
-              },
-              saleAmount: {
-                increment: saleAmount,
-              },
+            name: customer.name ? `${customer.name} (old)` : undefined,
+            externalId: `dummy_${nanoid(32)}`, // generate random externalId
+            stripeCustomerId: null,
+            linkId: null,
+            clickId: null,
+          },
+        });
+
+        return await tx.customer.create({
+          data: {
+            ...customer,
+            id: duplicateCustomerId,
+            linkId: link.id,
+            clickId: clickEventData.click_id,
+            clickedAt: new Date(clickEventData.timestamp),
+            country: clickEventData.country,
+            ...(recordSaleEvents && {
+              sales: totalSales,
+              saleAmount: totalSaleAmount,
             }),
           },
-        }),
+        });
+      });
 
-        // Update customer details / stats
-        (shouldUpdateCustomer || saleAmount) &&
-          prisma.customer.update({
+      console.log(
+        `Duplicated customer ${customer.id} to ${duplicatedCustomer.id}: `,
+        duplicatedCustomer,
+      );
+
+      // Else, we create new events
+    } else {
+      const finalLeadEventDate = leadEventDate ?? saleEventDate ?? new Date();
+      const clickId = nanoid(16);
+      const clickTimestamp = new Date(
+        finalLeadEventDate.getTime() - 5 * 60 * 1000,
+      );
+
+      // Record click event
+      const generatedClickEvent = recordClickZodSchema.parse({
+        timestamp: clickTimestamp.toISOString(),
+        identity_hash: customer.externalId || customer.id,
+        click_id: clickId,
+        link_id: link.id,
+        url: link.url,
+        ip: "127.0.0.1",
+        continent: customer.country
+          ? COUNTRIES_TO_CONTINENTS[customer.country.toUpperCase()] || "NA"
+          : "NA",
+      });
+
+      tbEventsToRecord.push(recordClickZod(generatedClickEvent));
+
+      // Record lead event
+      const leadEventData = leadEventSchemaTBWithTimestamp.parse({
+        ...generatedClickEvent,
+        event_id: nanoid(16),
+        event_name: leadEventName || "Sign up",
+        customer_id: customer.id,
+        timestamp: finalLeadEventDate.toISOString(),
+      });
+
+      console.log("New lead event to record: ", leadEventData);
+
+      tbEventsToRecord.push(recordLeadWithTimestamp(leadEventData));
+
+      if (commissionType === "lead") {
+        commissionsToCreate.push({
+          event: "lead" as const,
+          programId,
+          partnerId,
+          linkId: link.id,
+          customerId: customer.id,
+          eventId: leadEventData.event_id,
+          quantity: 1,
+          createdAt: new Date(leadEventData.timestamp), // we don't add the "Z" to the timestamp because it's already in UTC
+          user,
+          context: {
+            customer: { country: customer.country },
+          },
+        });
+      }
+
+      // Prepare sale event if requested
+      if (saleAmount) {
+        const saleEventData = saleEventSchemaTBWithTimestamp.parse({
+          ...generatedClickEvent,
+          event_id: nanoid(16),
+          invoice_id: invoiceId ?? "",
+          event_name: "Purchase",
+          amount: saleAmount,
+          customer_id: customer.id,
+          payment_processor: "custom",
+          currency: "usd",
+          timestamp: new Date(saleEventDate ?? Date.now()).toISOString(),
+          metadata: productId ? JSON.stringify({ productId }) : undefined,
+        });
+
+        console.log("New sale event to record: ", saleEventData);
+
+        tbEventsToRecord.push(recordSaleWithTimestamp(saleEventData));
+
+        if (commissionType === "sale") {
+          commissionsToCreate.push({
+            event: "sale" as const,
+            programId,
+            partnerId,
+            linkId: link.id,
+            customerId: customer.id,
+            eventId: saleEventData.event_id,
+            quantity: 1,
+            amount: saleEventData.amount,
+            currency: saleEventData.currency,
+            invoiceId: saleEventData.invoice_id,
+            createdAt: new Date(saleEventData.timestamp), // we don't add the "Z" to the timestamp because it's already in UTC
+            user,
+            context: {
+              customer: { country: customer.country },
+              sale: { productId },
+            },
+          });
+        }
+      }
+    }
+
+    const res = await Promise.allSettled(tbEventsToRecord);
+    console.log("recorded events in Tinybird: ", res);
+
+    waitUntil(
+      (async () => {
+        const finalCommissionsToTransferEventIds =
+          commissionsToTransferEventIds.filter(
+            (eventId) => typeof eventId === "string",
+          );
+
+        console.log(
+          "Final commissions to transfer event ids: ",
+          finalCommissionsToTransferEventIds,
+        );
+
+        const updatedRes = await Promise.all([
+          // update link stats
+          prisma.link.update({
             where: {
-              id: customerId,
+              id: link.id,
             },
             data: {
-              ...(shouldUpdateCustomer && {
+              ...(isFirstConversion({
+                customer,
                 linkId,
-                clickId: clickEvent?.click_id,
-                clickedAt: clickEvent?.timestamp,
-              }),
-              ...(saleAmount && {
-                sales: {
+              }) && {
+                leads: {
                   increment: 1,
                 },
-                saleAmount: {
-                  increment: saleAmount,
+                conversions: {
+                  increment: 1,
                 },
               }),
+              sales: {
+                increment: saleAmount ? 1 : totalSales,
+              },
+              saleAmount: {
+                increment: saleAmount ?? totalSaleAmount,
+              },
             },
           }),
-      ]),
+
+          // update the commissions
+          finalCommissionsToTransferEventIds.length > 0 &&
+            prisma.commission.updateMany({
+              where: {
+                eventId: {
+                  in: finalCommissionsToTransferEventIds,
+                },
+              },
+              data: {
+                eventId: null,
+                invoiceId: null,
+              },
+            }),
+        ]);
+
+        console.log(
+          `Updated link${finalCommissionsToTransferEventIds.length > 0 ? " and nullified old commissions" : ""}:`,
+          updatedRes,
+        );
+
+        console.log("Commissions to create: ", commissionsToCreate);
+
+        // create partner commissions
+        await Promise.allSettled(
+          commissionsToCreate.map((commission) =>
+            createPartnerCommission(commission),
+          ),
+        );
+
+        // execute workflows
+        if (["lead", "sale"].includes(commissionType)) {
+          await executeWorkflows({
+            trigger:
+              commissionType === "lead"
+                ? WorkflowTrigger.leadRecorded
+                : WorkflowTrigger.saleRecorded,
+            programId,
+            partnerId,
+          });
+        }
+      })(),
     );
   });

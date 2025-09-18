@@ -12,7 +12,6 @@ import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
 import { useChangeGroupModal } from "@/ui/partners/change-group-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
@@ -56,7 +55,7 @@ import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
@@ -132,22 +131,6 @@ export function PartnersTable() {
       keepPreviousData: true,
     },
   );
-
-  const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; partnerId: string | null }
-    | { open: true; partnerId: string }
-  >({ open: false, partnerId: null });
-
-  useEffect(() => {
-    const partnerId = searchParams.get("partnerId");
-    if (partnerId) setDetailsSheetState({ open: true, partnerId });
-  }, [searchParams]);
-
-  const { currentPartner, isLoading: isCurrentPartnerLoading } =
-    useCurrentPartner({
-      partners,
-      partnerId: detailsSheetState.partnerId,
-    });
 
   const { groups } = useGroups();
 
@@ -394,22 +377,13 @@ export function PartnersTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
     rowCount: partnersCount || 0,
-    loading: isLoading || isCurrentPartnerLoading,
+    loading: isLoading,
     error: error || countError ? "Failed to load partners" : undefined,
   });
 
   return (
     <div className="flex flex-col gap-6">
       <ChangeGroupModal />
-      {detailsSheetState.partnerId && currentPartner && (
-        <PartnerDetailsSheet
-          isOpen={detailsSheetState.open}
-          setIsOpen={(open) =>
-            setDetailsSheetState((s) => ({ ...s, open }) as any)
-          }
-          partner={currentPartner}
-        />
-      )}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
