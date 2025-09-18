@@ -65,7 +65,7 @@ export const trackHubSpotLeadEvent = async ({
     const { properties, associations } = deal;
 
     // Find the contact associated with the deal
-    const contact = associations.contacts.results[0];
+    const contact = associations?.contacts?.results?.[0];
 
     if (!contact) {
       return;
