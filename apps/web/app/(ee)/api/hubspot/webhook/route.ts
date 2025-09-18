@@ -50,7 +50,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     // HS send multiple events in the same request
     // so we need to process each event individually
-    await Promise.allSettled(payload.map(processEvent));
+    await Promise.allSettled(payload.map(processWebhookEvent));
 
     return NextResponse.json({ message: "Webhook received." });
   } catch (error) {
@@ -59,7 +59,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 });
 
 // Process individual event
-async function processEvent(event: any) {
+async function processWebhookEvent(event: any) {
   const { objectTypeId, portalId, subscriptionType } =
     hubSpotWebhookSchema.parse(event);
 
