@@ -142,6 +142,13 @@ export const POST = withWorkspace(
       }
     }
 
+    if (typeof currentStatsOnly !== "boolean" && type === "performance") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "currentStatsOnly must be set for performance bounties.",
+      });
+    }
+
     const partnerGroups = await throwIfInvalidGroupIds({
       programId,
       groupIds,

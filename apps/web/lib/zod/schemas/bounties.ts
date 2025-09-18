@@ -58,7 +58,7 @@ export const createBountySchema = z.object({
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: workflowConditionSchema.nullish(),
-  currentStatsOnly: z.boolean().nullable(),
+  currentStatsOnly: z.boolean().nullish(),
 });
 
 export const updateBountySchema = createBountySchema
