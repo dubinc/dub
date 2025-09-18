@@ -8,15 +8,9 @@ export async function getBountiesByGroups({
   programId: string;
   groupIds: string[];
 }) {
-  const now = new Date();
-
   const bounties = await prisma.bounty.findMany({
     where: {
       programId,
-      startsAt: {
-        lte: now,
-      },
-      OR: [{ endsAt: null }, { endsAt: { gt: now } }],
       AND: [
         {
           OR: [

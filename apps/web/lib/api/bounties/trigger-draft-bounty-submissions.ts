@@ -1,6 +1,7 @@
 import { qstash } from "@/lib/cron";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Bounty } from "@prisma/client";
 import { getBountiesByGroups } from "./get-bounties-by-groups";
 
 // TODO:
@@ -57,9 +58,8 @@ export async function triggerDraftBountySubmissionCreation({
   );
 
   for (const groupId in bountiesByGroups) {
-    const eligibleBounties = bountiesByGroups[groupId].filter(
-      (bounty) =>
-        bounty.type === "performance" && bounty.currentStatsOnly === false,
+    const eligibleBounties = bountiesByGroups[groupId].filter((bounty) =>
+      isEligiblePerformanceBounty(bounty),
     );
 
     if (eligibleBounties.length === 0) {
@@ -92,4 +92,15 @@ export async function triggerDraftBountySubmissionCreation({
       ),
     );
   }
+}
+
+function isEligiblePerformanceBounty(bounty: Bounty) {
+  const now = new Date();
+
+  if (bounty.type !== "performance") return false;
+  if (bounty.currentStatsOnly) return false;
+  if (bounty.startsAt > now) return false;
+  if (bounty.endsAt && bounty.endsAt <= now) return false;
+
+  return true;
 }

@@ -17,15 +17,7 @@ export async function getBountySubmissions({
   const submissions = await prisma.bountySubmission.findMany({
     where: {
       bountyId,
-      ...(status
-        ? {
-            status,
-          }
-        : {
-            status: {
-              not: "rejected",
-            },
-          }),
+      ...(status ? { status } : { status: { not: "rejected" } }),
       ...(groupId && {
         programEnrollment: {
           groupId,
