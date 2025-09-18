@@ -58,7 +58,7 @@ export const createBountySchema = z.object({
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: workflowConditionSchema.nullish(),
-  currentStatsOnly: z.boolean().default(false),
+  currentStatsOnly: z.boolean().nullable(),
 });
 
 export const updateBountySchema = createBountySchema
@@ -86,6 +86,7 @@ export const BountySchema = z.object({
   performanceCondition: workflowConditionSchema.nullable().default(null),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
+  currentStatsOnly: z.boolean().nullable(),
 });
 
 export const getBountiesQuerySchema = z.object({

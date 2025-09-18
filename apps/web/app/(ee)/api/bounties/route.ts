@@ -44,7 +44,6 @@ export const GET = withWorkspace(
     const bounties = await prisma.bounty.findMany({
       where: {
         programId,
-
         // Filter only bounties the specified partner is eligible for
         ...(programEnrollment && {
           OR: [
@@ -132,13 +131,13 @@ export const POST = withWorkspace(
       if (type === "performance") {
         throw new DubApiError({
           code: "bad_request",
-          message: "Reward amount is required for performance bounties",
+          message: "Reward amount is required for performance bounties.",
         });
       } else if (!rewardDescription) {
         throw new DubApiError({
           code: "bad_request",
           message:
-            "For submission bounties, either reward amount or reward description is required",
+            "For submission bounties, either reward amount or reward description is required.",
         });
       }
     }
@@ -161,7 +160,7 @@ export const POST = withWorkspace(
     if (!bountyName) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Bounty name is required",
+        message: "Bounty name is required.",
       });
     }
 
@@ -203,6 +202,7 @@ export const POST = withWorkspace(
           endsAt,
           rewardAmount,
           rewardDescription,
+          currentStatsOnly: type === "performance" ? currentStatsOnly : null,
           ...(submissionRequirements &&
             type === "submission" && {
               submissionRequirements,

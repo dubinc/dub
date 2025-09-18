@@ -129,6 +129,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         : {
             operator: "gte",
           },
+      ...(bounty && {
+        currentStatsOnly: bounty.currentStatsOnly,
+      }),
     },
   });
 

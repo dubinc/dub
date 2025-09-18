@@ -23,9 +23,10 @@ const WORKFLOW_ATTRIBUTE_LABELS: Record<WorkflowConditionAttribute, string> = {
 export function BountyLogic({ className }: { className?: string }) {
   const { control, watch } = useAddEditBountyForm();
 
-  const [attribute, value] = watch([
+  const [attribute, value, currentStatsOnly] = watch([
     "performanceCondition.attribute",
     "performanceCondition.value",
+    "currentStatsOnly",
   ]);
 
   return (
@@ -40,29 +41,56 @@ export function BountyLogic({ className }: { className?: string }) {
       </div>
       <span className="text-content-emphasis text-sm font-medium leading-relaxed">
         When partner{" "}
-        <Controller
-          control={control}
-          name="performanceCondition.attribute"
-          render={({ field }) => (
-            <InlineBadgePopover
-              text={
-                field.value
-                  ? WORKFLOW_ATTRIBUTE_LABELS[field.value]
-                  : "activity"
-              }
-              invalid={!field.value}
-            >
-              <InlineBadgePopoverMenu
-                selectedValue={field.value}
-                onSelect={field.onChange}
-                items={WORKFLOW_ATTRIBUTES.map((attribute) => ({
-                  text: WORKFLOW_ATTRIBUTE_LABELS[attribute],
-                  value: attribute,
-                }))}
-              />
-            </InlineBadgePopover>
-          )}
-        />
+        <div className="inline-flex items-center gap-1">
+          <Controller
+            control={control}
+            name="currentStatsOnly"
+            render={({ field }) => (
+              <InlineBadgePopover
+                text={
+                  field.value === true
+                    ? "new"
+                    : field.value === false
+                      ? "all-time"
+                      : "type"
+                }
+                invalid={field.value === undefined || field.value === null}
+              >
+                <InlineBadgePopoverMenu
+                  selectedValue={field.value}
+                  onSelect={field.onChange}
+                  items={[
+                    { text: "new", value: true },
+                    { text: "all-time", value: false },
+                  ]}
+                />
+              </InlineBadgePopover>
+            )}
+          />
+          <Controller
+            control={control}
+            name="performanceCondition.attribute"
+            render={({ field }) => (
+              <InlineBadgePopover
+                text={
+                  field.value
+                    ? WORKFLOW_ATTRIBUTE_LABELS[field.value]
+                    : "activity"
+                }
+                invalid={!field.value}
+              >
+                <InlineBadgePopoverMenu
+                  selectedValue={field.value}
+                  onSelect={field.onChange}
+                  items={WORKFLOW_ATTRIBUTES.map((attribute) => ({
+                    text: WORKFLOW_ATTRIBUTE_LABELS[attribute],
+                    value: attribute,
+                  }))}
+                />
+              </InlineBadgePopover>
+            )}
+          />
+        </div>
         {attribute && (
           <>
             {" "}
