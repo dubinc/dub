@@ -197,7 +197,6 @@ export const createManualCommissionAction = authActionClient
           ...existingLeadEvent,
           ...newClickAttributes, // make sure new click attributes are not overridden by existing click attributes
           event_id: nanoid(16), // create new event_id
-          timestamp: new Date(existingLeadEvent.timestamp).toISOString(), // set to existing lead event's timestamp
           link_id: link.id, // set to new link.id
           customer_id: duplicateCustomerId, // set to new duplicateCustomerId
         });
@@ -242,7 +241,6 @@ export const createManualCommissionAction = authActionClient
             ...existingSaleEvent,
             ...newClickAttributes, // make sure new click attributes are not overridden
             event_id: nanoid(16), // create new event_id
-            timestamp: new Date(existingSaleEvent.timestamp).toISOString(), // set to existing sale event's timestamp
             link_id: link.id, // set to new link.id
             customer_id: duplicateCustomerId, // set to new duplicateCustomerId
             amount: existingSaleEvent.saleAmount, // change format returned by Tinybird

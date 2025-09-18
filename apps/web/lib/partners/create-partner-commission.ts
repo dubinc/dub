@@ -208,8 +208,8 @@ export const createPartnerCommission = async ({
         rewardId: reward?.id,
         customerId,
         linkId,
-        eventId,
-        invoiceId,
+        eventId: eventId || null, // empty string should convert to null
+        invoiceId: invoiceId || null, // empty string should convert to null
         userId: user?.id,
         quantity,
         amount,
