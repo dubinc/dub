@@ -206,10 +206,12 @@ export const createManualCommissionAction = authActionClient
 
         executeWorkflows({
           trigger: WorkflowTrigger.leadRecorded,
-          programId,
-          partnerId,
           context: {
-            totalLeads: 1,
+            programId,
+            partnerId,
+            current: {
+              leads: 1,
+            },
           },
         }),
       ]);
@@ -262,11 +264,13 @@ export const createManualCommissionAction = authActionClient
 
         executeWorkflows({
           trigger: WorkflowTrigger.saleRecorded,
-          programId,
-          partnerId,
           context: {
-            totalSaleAmount: saleAmount,
-            totalConversions: firstConversionFlag ? 1 : 0,
+            programId,
+            partnerId,
+            current: {
+              saleAmount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
           },
         }),
       ]);

@@ -382,11 +382,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       Promise.allSettled([
         executeWorkflows({
           trigger: WorkflowTrigger.saleRecorded,
-          programId: link.programId,
-          partnerId: link.partnerId,
           context: {
-            totalSaleAmount: saleData.amount,
-            totalConversions: firstConversionFlag ? 1 : 0,
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
           },
         }),
         // same logic as lead.created webhook below:
@@ -396,10 +398,12 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           !existingCustomer &&
           executeWorkflows({
             trigger: WorkflowTrigger.leadRecorded,
-            programId: link.programId,
-            partnerId: link.partnerId,
             context: {
-              totalLeads: 1,
+              programId: link.programId,
+              partnerId: link.partnerId,
+              current: {
+                leads: 1,
+              },
             },
           }),
       ]),

@@ -228,11 +228,13 @@ export async function invoicePaid(event: Stripe.Event) {
     waitUntil(
       executeWorkflows({
         trigger: WorkflowTrigger.saleRecorded,
-        programId: link.programId,
-        partnerId: link.partnerId,
         context: {
-          totalSaleAmount: saleData.amount,
-          totalConversions: firstConversionFlag ? 1 : 0,
+          programId: link.programId,
+          partnerId: link.partnerId,
+          current: {
+            saleAmount: saleData.amount,
+            conversions: firstConversionFlag ? 1 : 0,
+          },
         },
       }),
     );

@@ -14,19 +14,15 @@ import { z } from "zod";
 import { executeAwardBountyAction } from "./execute-award-bounty-action";
 
 export async function executeWorkflows({
-  programId,
-  partnerId,
   trigger,
   context,
 }: {
-  programId: string;
-  partnerId: string;
   trigger: WorkflowTrigger;
-  context?: Pick<
-    WorkflowContext,
-    "totalLeads" | "totalConversions" | "totalSaleAmount" | "totalCommissions"
-  >;
+  context: WorkflowContext;
 }) {
+  const { programId, partnerId } = context;
+
+  // Find the workflows for the program
   const workflows = await prisma.workflow.findMany({
     where: {
       programId,
@@ -38,6 +34,7 @@ export async function executeWorkflows({
     return;
   }
 
+  // Find the program enrollment for the partner
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
@@ -67,9 +64,8 @@ export async function executeWorkflows({
 
   // Final context for the workflow
   const workflowContext: WorkflowContext = {
-    partnerId: programEnrollment.partnerId,
-    groupId: programEnrollment.groupId,
     ...context,
+    groupId: programEnrollment.groupId,
   };
 
   // Execute each workflow for the program

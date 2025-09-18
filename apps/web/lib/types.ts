@@ -577,12 +577,26 @@ export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 export type OperatorFn = (a: number, b: number) => boolean;
 
 export interface WorkflowContext {
+  programId: string;
   partnerId: string;
-  groupId: string;
-  totalLeads?: number;
-  totalConversions?: number;
-  totalSaleAmount?: number;
-  totalCommissions?: number;
+  groupId?: string;
+  current?: {
+    leads?: number;
+    conversions?: number;
+    saleAmount?: number;
+    commissions?: number;
+  };
+  historical?: {
+    leads?: number;
+    conversions?: number;
+    saleAmount?: number;
+    commissions?: number;
+  };
+
+  // totalLeads?: number;
+  // totalConversions?: number;
+  // totalSaleAmount?: number;
+  // totalCommissions?: number;
 }
 
 export type BountySubmissionsQueryFilters = z.infer<

@@ -364,10 +364,12 @@ const _trackLead = async ({
 
         await executeWorkflows({
           trigger: WorkflowTrigger.leadRecorded,
-          programId: link.programId,
-          partnerId: link.partnerId,
           context: {
-            totalLeads: 1,
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              leads: 1,
+            },
           },
         });
       }
@@ -530,11 +532,13 @@ const _trackSale = async ({
 
         await executeWorkflows({
           trigger: WorkflowTrigger.saleRecorded,
-          programId: link.programId,
-          partnerId: link.partnerId,
           context: {
-            totalSaleAmount: saleData.amount,
-            totalConversions: firstConversionFlag ? 1 : 0,
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
           },
         });
       }
