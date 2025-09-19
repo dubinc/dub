@@ -135,6 +135,7 @@ export async function createShopifySale({
         link,
         clickedAt: customer.clickedAt || customer.createdAt,
         customer,
+        metadata: null,
       }),
     }),
   );

@@ -423,6 +423,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             eventName: "Checkout session completed",
             link: linkUpdated,
             customer,
+            metadata: null,
           }),
         });
       }
@@ -436,6 +437,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customer,
+          metadata: null,
         }),
       });
     })(),

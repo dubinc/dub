@@ -102,6 +102,7 @@ export async function createShopifyLead({
         eventName,
         link,
         customer,
+        metadata: null,
       }),
     }),
   );
