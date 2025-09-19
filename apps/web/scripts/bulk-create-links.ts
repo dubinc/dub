@@ -11,7 +11,7 @@ async function main() {
     header: true,
     skipEmptyLines: true,
     step: (result: { data: any }) => {
-      const urlObj = new URL(result.data["Short Link"]);
+      const urlObj = new URL(result.data["Short link"]);
       links.push({
         domain: urlObj.hostname,
         key: urlObj.pathname.slice(1),
