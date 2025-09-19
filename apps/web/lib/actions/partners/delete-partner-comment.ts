@@ -9,7 +9,7 @@ import { authActionClient } from "../safe-action";
 export const deletePartnerCommentAction = authActionClient
   .schema(deletePartnerCommentSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { commentId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -18,6 +18,7 @@ export const deletePartnerCommentAction = authActionClient
       where: {
         id: commentId,
         programId,
+        userId: user.id,
       },
     });
   });

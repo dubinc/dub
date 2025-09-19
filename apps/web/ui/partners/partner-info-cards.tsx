@@ -8,6 +8,7 @@ import {
   EnrolledPartnerProps,
   RewardProps,
 } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { EventDatum } from "@/ui/analytics/events/events-table";
 import {
   CalendarIcon,
@@ -32,8 +33,15 @@ import { ProgramRewardList } from "./program-reward-list";
 
 export function PartnerInfoCards({
   partner,
+
+  selectedGroupId,
+  setSelectedGroupId,
 }: {
   partner?: EnrolledPartnerProps;
+
+  // Only used for a controlled group selector that doesn't persist the selection itself
+  selectedGroupId?: string | null;
+  setSelectedGroupId?: (groupId: string) => void;
 }) {
   const {
     id: workspaceId,
@@ -50,9 +58,14 @@ export function PartnerInfoCards({
     fetcher,
   );
 
-  const { group } = useGroup({
-    groupIdOrSlug: partner?.groupId ?? undefined,
-  });
+  const { group } = useGroup(
+    {
+      groupIdOrSlug: partner
+        ? selectedGroupId || partner.groupId || DEFAULT_PARTNER_GROUP.slug
+        : undefined,
+    },
+    { keepPreviousData: false },
+  );
 
   const { data: bounties, error: errorBounties } = useSWR<BountyListProps[]>(
     workspaceId && partner
@@ -176,6 +189,8 @@ export function PartnerInfoCards({
               partner={partner}
               changeButtonText="Change"
               className="rounded-lg bg-white shadow-sm"
+              selectedGroupId={selectedGroupId}
+              setSelectedGroupId={setSelectedGroupId}
             />
           ) : (
             <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
@@ -188,7 +203,10 @@ export function PartnerInfoCards({
             Rewards
           </h3>
           {group ? (
-            <>
+            group.clickReward ||
+            group.leadReward ||
+            group.saleReward ||
+            group.discount ? (
               <ProgramRewardList
                 rewards={sortRewardsByEventOrder(
                   [
@@ -202,7 +220,9 @@ export function PartnerInfoCards({
                 className="text-content-subtle gap-2 text-xs leading-4"
                 iconClassName="size-3.5"
               />
-            </>
+            ) : (
+              <span className="text-content-subtle text-xs">No rewards</span>
+            )
           ) : (
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
           )}

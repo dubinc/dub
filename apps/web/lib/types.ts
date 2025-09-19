@@ -367,7 +367,6 @@ export type InstalledIntegrationInfoProps = Pick<
   | "installUrl"
 > & {
   createdAt: Date;
-  installations: number;
   installed: {
     id: string;
     createdAt: Date;
