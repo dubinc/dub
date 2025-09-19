@@ -23,8 +23,8 @@ model Integration {
   oAuthApp      OAuthApp?
   installations InstalledIntegration[]
 
-  @@index([projectId])
-  @@index([userId])
+  @@index(projectId)
+  @@index(userId)
 }
 
 model InstalledIntegration {
@@ -44,6 +44,6 @@ model InstalledIntegration {
   webhooks      Webhook[]
 
   @@unique([userId, integrationId, projectId])
-  @@index([projectId])
-  @@index([integrationId])
+  @@index(projectId)
+  @@index(integrationId)
 }
