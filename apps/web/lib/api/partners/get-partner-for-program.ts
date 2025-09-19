@@ -35,6 +35,7 @@ export async function getPartnerForProgram({
               'domain', l.domain,
               'key', l.\`key\`,
               'shortLink', l.shortLink,
+              'couponCode', l.couponCode,
               'url', l.url,
               'clicks', CAST(l.clicks AS SIGNED),
               'leads', CAST(l.leads AS SIGNED),

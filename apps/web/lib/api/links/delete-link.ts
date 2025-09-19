@@ -3,6 +3,7 @@ import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { enqueueCouponCodeDeleteJobs } from "../discounts/enqueue-coupon-code-delete-jobs";
 import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";
@@ -14,6 +15,12 @@ export async function deleteLink(linkId: string) {
     },
     include: {
       ...includeTags,
+      project: {
+        select: {
+          id: true,
+          stripeConnectId: true,
+        },
+      },
     },
   });
 
@@ -42,6 +49,9 @@ export async function deleteLink(linkId: string) {
             totalLinks: { decrement: 1 },
           },
         }),
+
+      // Delete the coupon code for the link if it exists
+      link.couponCode && enqueueCouponCodeDeleteJobs(link),
     ]),
   );
 

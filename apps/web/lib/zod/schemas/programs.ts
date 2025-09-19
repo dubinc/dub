@@ -81,6 +81,7 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   leads: true,
   sales: true,
   saleAmount: true,
+  couponCode: true,
 });
 
 export const ProgramEnrollmentSchema = z.object({
