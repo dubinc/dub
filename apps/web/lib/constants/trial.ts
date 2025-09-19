@@ -1,6 +1,6 @@
-export const TrialDays = 7;
+export const TrialDays = 10;
 
-export const TrialClicks = 50;
+export const TrialClicks = 30;
 export const TrialClicksForTest = 10;
 
 export const ClicksThresholds = [

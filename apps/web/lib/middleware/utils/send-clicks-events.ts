@@ -89,7 +89,7 @@ export const sendClicksEvents = async (linkId: string) => {
         ? TrialClicksForTest - 1
         : TrialClicks - 1;
 
-    sendThresholdEvents(link, featuresAccess);
+    // sendThresholdEvents(link, featuresAccess);
 
     if (link.totalUserClicks >= maxClicks && !featuresAccess.featuresAccess) {
       const responses = await Promise.all([
