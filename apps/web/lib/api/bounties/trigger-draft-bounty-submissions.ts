@@ -20,6 +20,7 @@ export async function triggerDraftBountySubmissionCreation({
       partnerId: {
         in: partnerIds,
       },
+      programId,
     },
     select: {
       partnerId: true,

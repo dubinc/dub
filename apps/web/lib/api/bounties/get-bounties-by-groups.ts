@@ -27,6 +27,7 @@ export async function getBountiesByGroups({
 
   const bountiesByGroups: Record<string, Bounty[]> = {};
 
+  // Note: global bounties are not included here
   for (const groupId of groupIds) {
     bountiesByGroups[groupId] = bounties.filter((bounty) =>
       bounty.groups.some((g) => g.groupId === groupId),

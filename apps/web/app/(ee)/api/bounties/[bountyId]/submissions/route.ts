@@ -32,8 +32,10 @@ export const GET = withWorkspace(
       });
     }
 
+    const filters = getBountySubmissionsQuerySchema.parse(searchParams);
+
     const bountySubmissions = await getBountySubmissions({
-      ...getBountySubmissionsQuerySchema.parse(searchParams),
+      ...filters,
       bountyId: bounty.id,
     });
 

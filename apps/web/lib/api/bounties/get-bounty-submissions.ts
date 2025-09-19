@@ -31,7 +31,7 @@ export async function getBountySubmissions({
       programEnrollment: true,
     },
     orderBy: {
-      createdAt: sortOrder,
+      createdAt: sortOrder, // TODO: We need to fix the sorting
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
