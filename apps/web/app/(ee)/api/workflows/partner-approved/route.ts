@@ -21,6 +21,22 @@ const payloadSchema = z.object({
 
 type Payload = z.infer<typeof payloadSchema>;
 
+/**
+ * Partner Approved Workflow
+ *
+ * This workflow is triggered when a partner's application to join a program is approved.
+ * It performs three main steps in sequence:
+ *
+ * 1. **Create Default Links**: Creates partner-specific default links based on the group's
+ *    configuration.
+ *
+ * 2. **Send Email Notification**: Sends an approval email to all partner users who have
+ *    opted in to receive application approval notifications.
+ *
+ * 3. **Send Webhook**: Notifies the workspace via webhook that a new partner has been
+ *    enrolled in the program.
+ */
+
 // POST /api/workflows/partner-approved
 export const { POST } = serve<Payload>(
   async (context) => {
