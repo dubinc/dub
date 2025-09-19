@@ -7,6 +7,7 @@ import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { Badge, Button, UTMBuilder } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn, deepEqual } from "@dub/utils";
@@ -32,7 +33,7 @@ export function GroupLinkSettings() {
     <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200">
       <div className="px-6 py-6">
         <h3 className="text-content-emphasis text-lg font-semibold leading-7">
-          Links settings
+          Link settings
         </h3>
         <p className="text-content-subtle text-sm font-normal leading-5">
           Configure link structure and UTM parameters
@@ -61,7 +62,21 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
   const { makeRequest: updateGroup, isSubmitting: isUpdatingGroup } =
     useApiMutation();
 
-  const { handleSubmit, watch, setValue, register } = useForm<FormData>({
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Save changes",
+    description:
+      "Are you sure you want to save these link settings changes? This will update all links in this group.",
+    onConfirm: () => handleSubmit(onSubmit)(),
+    confirmText: "Save changes",
+  });
+
+  const {
+    handleSubmit,
+    watch,
+    setValue,
+    register,
+    formState: { isDirty },
+  } = useForm<FormData>({
     mode: "onBlur",
     values: {
       utmTemplateId: group?.utmTemplate?.id || null,
@@ -148,8 +163,6 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
         const data = await response.json();
         utmTemplateId = data.id;
       }
-
-      await mutatePrefix("/api/utm");
     }
 
     // Update the group with UTM template and link structure
@@ -164,19 +177,15 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
           linkStructure,
           utmTemplateId,
         },
-        onSuccess: async () => {
-          await mutatePrefix(["/api/groups", "/api/utm"]);
-          toast.success("Settings saved successfully!");
-        },
       });
     }
+
+    await mutatePrefix(["/api/groups", "/api/utm"]);
+    toast.success("Successfully updated link settings!");
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex flex-col divide-y divide-neutral-200"
-    >
+    <form className="flex flex-col divide-y divide-neutral-200">
       <SettingsRow
         heading="Link structure"
         description="How your partner links are displayed"
@@ -229,7 +238,7 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
       </SettingsRow>
 
       <SettingsRow
-        heading="UTM Parameters"
+        heading="UTM parameters"
         description="Configure UTM tracking parameters for all links in this group"
       >
         <UTMBuilder
@@ -252,9 +261,11 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
           text="Save changes"
           className="h-8 w-fit"
           loading={isUpdatingGroup || isUpdatingTemplate}
-          // onClick={() => setShowConfirmModal(true)}
+          disabled={!isDirty}
+          onClick={() => setShowConfirmModal(true)}
         />
       </div>
+      {confirmModal}
     </form>
   );
 }

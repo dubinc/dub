@@ -121,7 +121,7 @@ export const getPartnersQuerySchema = z
         "conversions",
         "sales",
         "saleAmount",
-        "commissions",
+        "totalCommissions",
         "netRevenue",
       ])
       .default("saleAmount")
@@ -134,19 +134,20 @@ export const getPartnersQuerySchema = z
       .default("desc")
       .describe("The sort order. The default is `desc`.")
       .openapi({ example: "desc" }),
+    email: z
+      .string()
+      .optional()
+      .describe(
+        "Filter the partner list based on the partner's `email`. The value must be a string. Takes precedence over `search`.",
+      )
+      .openapi({ example: "panic@thedis.co" }),
     tenantId: z
       .string()
       .optional()
       .describe(
-        "A case-sensitive filter on the list based on the partner's `tenantId` field. The value must be a string. Takes precedence over `search`.",
+        "Filter the partner list based on the partner's `tenantId`. The value must be a string. Takes precedence over `email` and `search`.",
       )
       .openapi({ example: "1K0NM7HCN944PEMZ3CQPH43H8" }),
-    includeExpandedFields: booleanQuerySchema
-      .optional()
-      .describe(
-        "Whether to include stats fields on the partner (`clicks`, `leads`, `conversions`, `sales`, `saleAmount`, `commissions`, `netRevenue`). If false, those fields will be returned as 0.",
-      )
-      .openapi({ example: "true" }),
     search: z
       .string()
       .optional()
@@ -154,6 +155,12 @@ export const getPartnersQuerySchema = z
         "A search query to filter partners by name, email, or tenantId.",
       )
       .openapi({ example: "john" }),
+    includeExpandedFields: booleanQuerySchema
+      .optional()
+      .describe(
+        "Whether to include stats fields on the partner (`clicks`, `leads`, `conversions`, `sales`, `saleAmount`, `commissions`, `netRevenue`). If false, those fields will be returned as 0.",
+      )
+      .openapi({ example: "true" }),
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
@@ -299,6 +306,7 @@ export const PartnerSchema = z
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
+  companyName: true,
   email: true,
   image: true,
   description: true,

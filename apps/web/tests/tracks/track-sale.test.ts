@@ -81,7 +81,7 @@ describe("POST /track/sale", async () => {
     expectValidSaleResponse(response, sale);
   });
 
-  test("track a sale with an invoiceId that is already processed (should return null customer and sale) ", async () => {
+  test("track a sale with an invoiceId that is already processed (should return the same response as before) ", async () => {
     const response = await http.post<TrackSaleResponse>({
       path: "/track/sale",
       body: {
@@ -91,12 +91,8 @@ describe("POST /track/sale", async () => {
       },
     });
 
-    expect(response.status).toEqual(200);
-    expect(response.data).toStrictEqual({
-      eventName: "Subscription",
-      customer: null,
-      sale: null,
-    });
+    // should return the same response since it's idempotent
+    expectValidSaleResponse(response, sale);
   });
 
   test("track a sale with regular vs premium product ID (should create the right commission)", async () => {
@@ -227,7 +223,7 @@ describe("POST /track/sale", async () => {
     expect(response.data.sale?.amount).toBeLessThanOrEqual(1100); // 1100 cents
   });
 
-  test("track a sale without a pre-existing lead event", async () => {
+  test("track a sale with direct sale tracking", async () => {
     const clickResponse = await http.post<{ clickId: string }>({
       path: "/track/click",
       headers: E2E_TRACK_CLICK_HEADERS,
@@ -252,6 +248,7 @@ describe("POST /track/sale", async () => {
       body: {
         ...salePayload,
         clickId: trackedClickId,
+        leadEventName: "Signup (auto lead tracking)",
         customerExternalId: saleCustomer.externalId,
         customerName: saleCustomer.name,
         customerEmail: saleCustomer.email,

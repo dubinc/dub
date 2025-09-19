@@ -65,14 +65,14 @@ export function InlineBadgePopover({
         type="button"
         disabled={disabled}
         className={cn(
-          "inline-block rounded px-1.5 text-sm font-semibold transition-colors",
+          "inline-block rounded px-1.5 text-left text-sm font-semibold transition-colors",
           invalid
             ? "bg-orange-50 text-orange-500 hover:bg-orange-100 data-[state=open]:bg-orange-100"
             : "bg-blue-50 text-blue-700 hover:bg-blue-100 data-[state=open]:bg-blue-100",
           buttonClassName,
         )}
       >
-        {text}
+        <span>{text}</span>
       </button>
     </Popover>
   );
@@ -176,30 +176,46 @@ export function InlineBadgePopoverMenu<T extends any>({
   );
 }
 
-export const InlineBadgePopoverInput = forwardRef<HTMLInputElement>(
-  (props: HTMLProps<HTMLInputElement>, ref) => {
-    const { setIsOpen } = useContext(InlineBadgePopoverContext);
+export const InlineBadgePopoverInput = forwardRef<
+  HTMLInputElement,
+  HTMLProps<HTMLInputElement>
+>(({ maxLength, className, ...rest }: HTMLProps<HTMLInputElement>, ref) => {
+  const { setIsOpen } = useContext(InlineBadgePopoverContext);
 
-    return (
-      <div className="relative rounded-md shadow-sm">
-        <input
-          ref={ref}
-          className={cn(
-            "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 sm:w-32 sm:text-sm",
-            "focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
-          )}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              e.preventDefault();
-              setIsOpen(false);
-            }
-          }}
-          {...props}
-        />
-      </div>
-    );
-  },
-);
+  return (
+    <label
+      className={cn(
+        "flex w-full rounded-md border border-neutral-300 shadow-sm focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500 sm:w-32",
+        className,
+      )}
+    >
+      <input
+        ref={ref}
+        className={cn(
+          "block min-w-0 grow rounded-md border-none px-1.5 py-1 text-neutral-900 placeholder-neutral-400 sm:text-sm",
+          "focus:outline-none focus:ring-0",
+          maxLength && "pr-0",
+        )}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            setIsOpen(false);
+          }
+        }}
+        maxLength={maxLength}
+        {...rest}
+      />
+      {maxLength && (
+        <span className="relative -ml-4 flex shrink-0 items-center pl-5 pr-1.5 text-xs text-neutral-500">
+          <span className="absolute inset-y-0 left-0 block w-4 bg-gradient-to-l from-white" />
+          <span>
+            {rest.value?.toString().length || 0}/{maxLength}
+          </span>
+        </span>
+      )}
+    </label>
+  );
+});
 
 export const InlineBadgePopoverInputs = ({
   values: valuesProp,

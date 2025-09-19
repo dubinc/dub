@@ -1,9 +1,6 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
-import {
-  PartnerLinkStructure,
-  PartnerUrlValidationMode,
-} from "@dub/prisma/client";
-import { validSlugRegex } from "@dub/utils";
+import { PartnerLinkStructure } from "@dub/prisma/client";
+import { validDomainRegex, validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
@@ -19,14 +16,19 @@ export const DEFAULT_PARTNER_GROUP = {
 } as const;
 
 export const MAX_DEFAULT_PARTNER_LINKS = 5;
-
-export const MAX_ADDITIONAL_PARTNER_LINKS = 10;
+export const MAX_ADDITIONAL_PARTNER_LINKS = 20;
 
 export const GROUPS_MAX_PAGE_SIZE = 100;
 
 export const additionalPartnerLinkSchema = z.object({
-  url: parseUrlSchema,
-  urlValidationMode: z.nativeEnum(PartnerUrlValidationMode),
+  domain: z
+    .string()
+    .min(1, "domain is required")
+    .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
+  validationMode: z.enum([
+    "domain", // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
+    "exact", // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
+  ]),
 });
 
 // This is the standard response we send for all /api/groups/** endpoints
@@ -47,18 +49,17 @@ export const GroupSchema = z.object({
 
 export const GroupSchemaExtended = GroupSchema.extend({
   partners: z.number().default(0),
-  clicks: z.number().default(0),
-  leads: z.number().default(0),
-  sales: z.number().default(0),
-  saleAmount: z.number().default(0),
-  conversions: z.number().default(0),
-  commissions: z.number().default(0),
+  totalClicks: z.number().default(0),
+  totalLeads: z.number().default(0),
+  totalSales: z.number().default(0),
+  totalSaleAmount: z.number().default(0),
+  totalConversions: z.number().default(0),
+  totalCommissions: z.number().default(0),
   netRevenue: z.number().default(0),
   partnersCount: z.number().default(0),
 });
 
 export const createOrUpdateDefaultLinkSchema = z.object({
-  domain: z.string().trim().toLowerCase(),
   url: parseUrlSchema,
 });
 
@@ -102,10 +103,6 @@ export const PartnerGroupDefaultLinkSchema = z.object({
   url: parseUrlSchema,
 });
 
-export const changeGroupSchema = z.object({
-  partnerIds: z.array(z.string()).min(1),
-});
-
 export const getGroupsQuerySchema = z
   .object({
     search: z.string().optional(),
@@ -117,15 +114,15 @@ export const getGroupsQuerySchema = z
       .enum([
         "createdAt",
         "partners",
-        "clicks",
-        "leads",
-        "sales",
-        "saleAmount",
-        "conversions",
-        "commissions",
+        "totalClicks",
+        "totalLeads",
+        "totalSales",
+        "totalSaleAmount",
+        "totalConversions",
+        "totalCommissions",
         "netRevenue",
       ])
-      .default("partners"),
+      .default("totalSaleAmount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     includeExpandedFields: booleanQuerySchema.optional(),
   })

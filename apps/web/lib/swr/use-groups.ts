@@ -20,7 +20,7 @@ export default function useGroups<T extends GroupProps>({
     enabled && workspaceId && defaultProgramId
       ? `/api/groups?${new URLSearchParams({
           workspaceId,
-          sortBy: "saleAmount",
+          sortBy: "totalSaleAmount",
           ...(query as Record<string, string>),
         }).toString()}`
       : null,

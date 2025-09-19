@@ -9,8 +9,8 @@ import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, Hyperlink, Popover } from "@dub/ui";
-import { Trash } from "@dub/ui/icons";
-import { cn, getPrettyUrl } from "@dub/utils";
+import { PenWriting, Trash } from "@dub/ui/icons";
+import { cn, getPrettyUrl, getUrlWithoutUTMParams } from "@dub/utils";
 import { useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
@@ -119,7 +119,19 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Delete default link",
-    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This won't affect any existing partner links that were already created.`,
+    description: (
+      <>
+        Are you sure you want to delete{" "}
+        <strong>{getPrettyUrl(getUrlWithoutUTMParams(link.url))}</strong>?
+        <br />
+        <br />
+        This won't affect any existing partner links, but if you recreate the
+        link, it could result in duplicate links for partners in this group.
+        <br />
+        <br />
+        If you want to change the default link, try editing it instead.
+      </>
+    ),
     confirmText: "Delete",
     onConfirm,
   });
@@ -137,19 +149,30 @@ function DefaultLinkPreview({ link }: { link: PartnerGroupDefaultLink }) {
           />
         </div>
 
-        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+        <div className="absolute right-4 top-1/2 -translate-y-1/2">
           <Popover
             content={
               <div className="grid w-48 grid-cols-1 gap-px p-2">
                 <Button
-                  text="Delete"
+                  text="Edit"
                   variant="outline"
+                  onClick={() => {
+                    setOpenPopover(false);
+                    setIsOpen(true);
+                  }}
+                  icon={<PenWriting className="size-4" />}
+                  className="h-9 justify-start px-2"
+                  loading={isSubmitting}
+                />
+                <Button
+                  text="Delete"
+                  variant="danger-outline"
                   onClick={() => {
                     setOpenPopover(false);
                     setShowConfirmModal(true);
                   }}
                   icon={<Trash className="size-4" />}
-                  className="h-9 justify-start px-2 font-medium text-red-600 hover:text-red-700"
+                  className="h-9 justify-start px-2"
                   loading={isSubmitting}
                 />
               </div>

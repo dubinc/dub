@@ -87,6 +87,7 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   couponCode: true,
 }).extend({
   createdAt: z.string().or(z.date()),
+  partnerGroupDefaultLinkId: z.string().nullish(),
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
@@ -131,6 +132,7 @@ export const partnerProfileProgramsCountQuerySchema =
 export const partnerNotificationTypes = z.enum([
   "commissionCreated",
   "applicationApproved",
+  "newMessageFromProgram",
 ]);
 
 export const PartnerBountySchema = BountySchema.omit({

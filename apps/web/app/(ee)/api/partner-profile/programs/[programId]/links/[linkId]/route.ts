@@ -3,10 +3,12 @@ import { processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { NewLinkProps } from "@/lib/types";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
-import { deepEqual } from "@dub/utils";
+import { prisma } from "@dub/prisma";
+import { getPrettyUrl } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
@@ -37,7 +39,7 @@ export const PATCH = withPartnerProfile(
       throw new DubApiError({
         code: "forbidden",
         message:
-          "You’re not part of any group yet. Please reach out to the program owner to be added.",
+          "You're not part of any group yet. Please reach out to the program owner to be added.",
       });
     }
 
@@ -59,26 +61,27 @@ export const PATCH = withPartnerProfile(
     }
 
     if (link.partnerGroupDefaultLinkId) {
-      const linkChanged = !deepEqual(
-        {
-          url,
-          key,
-        },
-        {
-          url: link.url,
-          key: link.key,
-        },
-      );
+      const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
 
-      if (linkChanged) {
+      if (linkUrlChanged) {
         throw new DubApiError({
           code: "forbidden",
-          message: "This is your default link and cannot be updated.",
+          message:
+            "You cannot update the destination URL of your default link.",
         });
       }
+    } else {
+      validatePartnerLinkUrl({ group, url });
     }
 
-    validatePartnerLinkUrl({ group, url });
+    // check if the group has a UTM template
+    const groupUtmTemplate = group.utmTemplateId
+      ? await prisma.utmTemplate.findUnique({
+          where: {
+            id: group.utmTemplateId,
+          },
+        })
+      : null;
 
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
@@ -90,6 +93,7 @@ export const PATCH = withPartnerProfile(
     } = await processLink({
       payload: {
         ...link,
+        ...(groupUtmTemplate ? extractUtmParams(groupUtmTemplate) : {}),
         // coerce types
         expiresAt:
           link.expiresAt instanceof Date

@@ -4,9 +4,10 @@ import {
   UtmTemplateProps,
   WorkspaceProps,
 } from "@/lib/types";
-import { isFulfilled, nanoid } from "@dub/utils";
+import { constructURLFromUTMParams, isFulfilled, nanoid } from "@dub/utils";
 import { PartnerGroupDefaultLink } from "@prisma/client";
 import { bulkCreateLinks } from "../links";
+import { extractUtmParams } from "../utm/extract-utm-params";
 import {
   derivePartnerLinkKey,
   generatePartnerLink,
@@ -40,7 +41,7 @@ export async function createPartnerDefaultLinks({
     return [];
   }
 
-  const hasMoreThanOneLink = defaultLinks.length > 1;
+  const hasMoreThanOneDefaultLink = defaultLinks.length > 1;
 
   const processedLinks = (
     await Promise.allSettled(
@@ -51,7 +52,9 @@ export async function createPartnerDefaultLinks({
           email: partner.email,
         });
 
-        key = !hasMoreThanOneLink ? key : `${key}-${nanoid(4).toLowerCase()}`;
+        key = hasMoreThanOneDefaultLink
+          ? `${key}-${nanoid(4).toLowerCase()}`
+          : key;
 
         return generatePartnerLink({
           workspace,
@@ -60,14 +63,13 @@ export async function createPartnerDefaultLinks({
           link: {
             ...link,
             key,
-            partnerGroupDefaultLinkId: defaultLink.id,
             domain: defaultLink.domain,
-            url: defaultLink.url,
-            utm_source: utmTemplate?.utm_source,
-            utm_medium: utmTemplate?.utm_medium,
-            utm_campaign: utmTemplate?.utm_campaign,
-            utm_term: utmTemplate?.utm_term,
-            utm_content: utmTemplate?.utm_content,
+            url: constructURLFromUTMParams(
+              defaultLink.url,
+              extractUtmParams(utmTemplate),
+            ),
+            ...extractUtmParams(utmTemplate, { excludeRef: true }),
+            partnerGroupDefaultLinkId: defaultLink.id,
           },
           userId,
         });

@@ -9,8 +9,7 @@ import {
   BAN_PARTNER_REASONS,
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
@@ -122,7 +121,7 @@ export const bulkBanPartnersAction = authActionClient
           },
           select: {
             name: true,
-            supportEmail: true,
+            slug: true,
           },
         });
 
@@ -135,6 +134,27 @@ export const bulkBanPartnersAction = authActionClient
               partnerId: partner.id,
               programId,
             }),
+          ),
+
+          sendBatchEmail(
+            programEnrollments
+              .filter(({ partner }) => partner.email)
+              .map(({ partner }) => ({
+                to: partner.email!,
+                subject: `You've been banned from the ${program.name} Partner Program`,
+                variant: "notifications",
+                react: PartnerBanned({
+                  partner: {
+                    name: partner.name,
+                    email: partner.email!,
+                  },
+                  program: {
+                    name: program.name,
+                    slug: program.slug,
+                  },
+                  bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+                }),
+              })),
           ),
 
           // Expire links from cache
@@ -159,29 +179,6 @@ export const bulkBanPartnersAction = authActionClient
                 },
               ],
             })),
-          ),
-
-          // Send email to each partner
-          resend.batch.send(
-            programEnrollments
-              .filter(({ partner }) => partner.email)
-              .map(({ partner }) => ({
-                from: VARIANT_TO_FROM_MAP.notifications,
-                to: partner.email!,
-                subject: `You've been banned from the ${program.name} Partner Program`,
-                variant: "notifications",
-                react: PartnerBanned({
-                  partner: {
-                    name: partner.name,
-                    email: partner.email!,
-                  },
-                  program: {
-                    name: program.name,
-                    supportEmail: program.supportEmail || "support@dub.co",
-                  },
-                  bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
-                }),
-              })),
           ),
         ]);
       })(),

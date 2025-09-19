@@ -4,7 +4,6 @@ import { ProgramEnrollmentProps } from "@/lib/types";
 import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
 import { formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import Linkify from "linkify-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -59,11 +58,10 @@ export function ProgramCard({
             <span className="text-sm font-medium">
               {getPrettyUrl(
                 constructPartnerLink({
-                  program,
                   group,
-                  linkKey: defaultLink?.key,
+                  link: defaultLink,
                 }),
-              )}
+              ) || program.domain}
             </span>
           </div>
         </div>
@@ -75,22 +73,19 @@ export function ProgramCard({
           {status === "pending" ? (
             `Applied ${formatDate(createdAt)}`
           ) : status === "banned" || status === "rejected" ? (
-            <Linkify
-              as="p"
-              options={{
-                target: "_blank",
-                rel: "noopener noreferrer nofollow",
-                className:
-                  "underline underline-offset-2 decoration-dotted text-neutral-400 hover:text-neutral-700",
-              }}
-            >
+            <p>
+              {" "}
               {status === "banned"
-                ? "You're banned from this program."
-                : "Your application has been rejected."}
-              {program.supportEmail
-                ? ` Contact ${program.supportEmail} to appeal.`
-                : ""}
-            </Linkify>
+                ? "You're banned from this program. "
+                : "Your application has been rejected. "}
+              <Link
+                href={`/messages/${program.slug}`}
+                className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+              >
+                Reach out to the {program.name} team to appeal
+              </Link>
+              .
+            </p>
           ) : null}
         </div>
       )}

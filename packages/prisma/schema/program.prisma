@@ -17,12 +17,6 @@ enum PartnerBannedReason {
   brand_abuse
 }
 
-enum PartnerLinkStructure {
-  short
-  query
-  path
-}
-
 enum PartnerUrlValidationMode {
   domain // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
   exact // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
@@ -50,12 +44,14 @@ model Program {
   embedData                    Json?                    @db.Json
   landerData                   Json?                    @db.Json
   landerPublishedAt            DateTime?
+  applicationFormData          Json?                    @db.Json
   resources                    Json?                    @db.Json
   termsUrl                     String?                  @db.Text
   helpUrl                      String?                  @db.Text
   supportEmail                 String?
   ageVerification              Int?
   autoApprovePartnersEnabledAt DateTime?
+  messagingEnabledAt           DateTime?
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
 
@@ -70,10 +66,12 @@ model Program {
   rewards           Reward[]
   discounts         Discount[]           @relation("ProgramDiscounts")
   groups            PartnerGroup[]
+  partnerGroupDefaultLinks PartnerGroupDefaultLink[]
   bounties          Bounty[]
   bountySubmissions BountySubmission[]
   workflows         Workflow[]
-  partnerGroupDefaultLinks PartnerGroupDefaultLink[]
+  messages          Message[]
+  comments          PartnerComment[]
 
   @@index(workspaceId)
   @@index(domain)

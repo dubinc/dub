@@ -12,10 +12,9 @@ import {
 import {
   cn,
   getApexDomain,
-  getUrlWithoutUTMParams,
+  getPathnameFromUrl,
   linkConstructor,
   punycode,
-  regexEscape,
   TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
 import { Program } from "@prisma/client";
@@ -34,7 +33,7 @@ interface Props {
 }
 
 interface FormData {
-  url: string;
+  pathname: string;
   key: string;
 }
 
@@ -57,7 +56,7 @@ export function ReferralsEmbedCreateUpdateLink({
     group.additionalLinks ?? [];
 
   const destinationDomains = useMemo(
-    () => additionalLinks.map((link) => getApexDomain(link.url)),
+    () => additionalLinks.map((link) => link.domain),
     [additionalLinks],
   );
 
@@ -67,10 +66,10 @@ export function ReferralsEmbedCreateUpdateLink({
 
   useEffect(() => {
     const additionalLink = additionalLinks.find(
-      (link) => getApexDomain(link.url) === destinationDomain,
+      (link) => link.domain === destinationDomain,
     );
 
-    setIsExactMode(additionalLink?.urlValidationMode === "exact");
+    setIsExactMode(additionalLink?.validationMode === "exact");
   }, [destinationDomain, additionalLinks]);
 
   const {
@@ -82,16 +81,13 @@ export function ReferralsEmbedCreateUpdateLink({
   } = useForm<FormData>({
     defaultValues: link
       ? {
-          url: getUrlWithoutUTMParams(link.url).replace(
-            new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
-            "",
-          ),
+          pathname: getPathnameFromUrl(link.url),
           key: link.key,
         }
       : undefined,
   });
 
-  const key = watch("key");
+  const [key, pathname] = watch(["key", "pathname"]);
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -110,12 +106,10 @@ export function ReferralsEmbedCreateUpdateLink({
         },
         body: JSON.stringify({
           ...data,
-          url: isExactMode
-            ? undefined
-            : linkConstructor({
-                domain: destinationDomain,
-                key: data.url,
-              }),
+          url: linkConstructor({
+            domain: destinationDomain,
+            key: getPathnameFromUrl(pathname),
+          }),
         }),
       });
 
@@ -146,8 +140,10 @@ export function ReferralsEmbedCreateUpdateLink({
 
   // If there is only one destination domain and we are in exact mode, hide the destination URL input
   const hideDestinationUrl = useMemo(
-    () => destinationDomains.length === 1 && isExactMode,
-    [destinationDomains.length, isExactMode],
+    () =>
+      link?.partnerGroupDefaultLinkId ||
+      (destinationDomains.length === 1 && isExactMode),
+    [destinationDomains.length, isExactMode, link?.partnerGroupDefaultLinkId],
   );
 
   return (
@@ -270,6 +266,7 @@ export function ReferralsEmbedCreateUpdateLink({
                     selectedDomain={destinationDomain}
                     setSelectedDomain={setDestinationDomain}
                     destinationDomains={destinationDomains}
+                    disabled={Boolean(link)}
                   />
                 </div>
                 <input
@@ -289,7 +286,7 @@ export function ReferralsEmbedCreateUpdateLink({
                       e.currentTarget.value = text;
                     }
 
-                    setValue("url", e.currentTarget.value, {
+                    setValue("pathname", e.currentTarget.value, {
                       shouldDirty: true,
                     });
                   }}
@@ -300,7 +297,7 @@ export function ReferralsEmbedCreateUpdateLink({
                         isExactMode,
                     },
                   )}
-                  {...register("url", { required: !isExactMode })}
+                  {...register("pathname", { required: false })}
                 />
               </div>
             </div>
@@ -315,10 +312,12 @@ function DestinationDomainCombobox({
   selectedDomain,
   setSelectedDomain,
   destinationDomains,
+  disabled = false,
 }: {
   selectedDomain?: string;
   setSelectedDomain: (domain: string) => void;
   destinationDomains: string[];
+  disabled?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -372,13 +371,17 @@ function DestinationDomainCombobox({
           "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
           "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+          {
+            "cursor-not-allowed bg-neutral-100 text-neutral-500": disabled,
+          },
         ),
+        disabled,
       }}
       optionClassName="sm:max-w-[225px]"
       shouldFilter={false}
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      onSearchChange={setSearch}
+      open={disabled ? false : isOpen}
+      onOpenChange={disabled ? undefined : setIsOpen}
+      onSearchChange={disabled ? undefined : setSearch}
     />
   );
 }

@@ -1,9 +1,10 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { generateBountyName } from "@/lib/api/bounties/generate-bounty-name";
+import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
@@ -13,6 +14,7 @@ import {
   BountyListSchema,
   BountySchema,
   createBountySchema,
+  getBountiesQuerySchema,
 } from "@/lib/zod/schemas/bounties";
 import {
   WORKFLOW_ACTION_TYPES,
@@ -26,12 +28,42 @@ import { NextResponse } from "next/server";
 
 // GET /api/bounties - get all bounties for a program
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { partnerId } = getBountiesQuerySchema.parse(searchParams);
+
+    const programEnrollment = partnerId
+      ? await getProgramEnrollmentOrThrow({
+          partnerId,
+          programId,
+          includeProgram: true,
+        })
+      : null;
 
     const bounties = await prisma.bounty.findMany({
       where: {
         programId,
+
+        // Filter only bounties the specified partner is eligible for
+        ...(programEnrollment && {
+          OR: [
+            {
+              groups: {
+                none: {},
+              },
+            },
+            {
+              groups: {
+                some: {
+                  groupId:
+                    programEnrollment.groupId ||
+                    programEnrollment.program.defaultGroupId,
+                },
+              },
+            },
+          ],
+        }),
       },
       include: {
         groups: {
@@ -79,6 +111,7 @@ export const POST = withWorkspace(
       description,
       type,
       rewardAmount,
+      rewardDescription,
       startsAt,
       endsAt,
       submissionRequirements,
@@ -88,9 +121,25 @@ export const POST = withWorkspace(
 
     if (startsAt && endsAt && endsAt < startsAt) {
       throw new DubApiError({
-        message: "endsAt must be on or after startsAt.",
+        message:
+          "Bounty end date (endsAt) must be on or after start date (startsAt).",
         code: "bad_request",
       });
+    }
+
+    if (!rewardAmount) {
+      if (type === "performance") {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Reward amount is required for performance bounties",
+        });
+      } else if (!rewardDescription) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "For submission bounties, either reward amount or reward description is required",
+        });
+      }
     }
 
     const partnerGroups = await throwIfInvalidGroupIds({
@@ -98,12 +147,22 @@ export const POST = withWorkspace(
       groupIds,
     });
 
-    const bountyName =
-      name ??
-      generateBountyName({
-        rewardAmount,
+    // Bounty name
+    let bountyName = name;
+
+    if (type === "performance" && performanceCondition) {
+      bountyName = generatePerformanceBountyName({
+        rewardAmount: rewardAmount ?? 0, // this shouldn't happen since we return early if rewardAmount is null
         condition: performanceCondition,
       });
+    }
+
+    if (!bountyName) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Bounty name is required",
+      });
+    }
 
     const bounty = await prisma.$transaction(async (tx) => {
       let workflow: Workflow | null = null;
@@ -142,6 +201,7 @@ export const POST = withWorkspace(
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
           rewardAmount,
+          rewardDescription,
           ...(submissionRequirements &&
             type === "submission" && {
               submissionRequirements,

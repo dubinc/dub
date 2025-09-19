@@ -25,11 +25,11 @@ import {
 } from "@dub/ui/icons";
 import {
   cn,
-  getApexDomain,
-  getUrlWithoutUTMParams,
+  getDomainWithoutWWW,
+  getPathnameFromUrl,
+  // getPathnameFromUrl,
   linkConstructor,
   punycode,
-  regexEscape,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { useParams } from "next/navigation";
@@ -50,8 +50,8 @@ import type { QRCodeDesign } from "./partner-link-qr-modal";
 import { usePartnerLinkQRModal } from "./partner-link-qr-modal";
 
 interface PartnerLinkFormData {
-  url: string;
   key: string;
+  pathname: string;
   comments?: string;
 }
 
@@ -174,68 +174,69 @@ function PartnerLinkModalContent({
   const [lockKey, setLockKey] = useState(Boolean(link));
   const [isLoading, setIsLoading] = useState(false);
   const [isExactMode, setIsExactMode] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { handleKeyDown } = useEnterSubmit(formRef);
+  const { isMobile } = useMediaQuery();
+  const [, copyToClipboard] = useCopyToClipboard();
 
-  const shortLinkDomain = programEnrollment?.program?.domain ?? "dub.sh";
-  const additionalLinks = programEnrollment?.group?.additionalLinks ?? [];
+  const { shortLinkDomain, additionalLinks } = useMemo(() => {
+    return {
+      shortLinkDomain: programEnrollment?.program?.domain ?? "dub.sh",
+      additionalLinks: programEnrollment?.group?.additionalLinks ?? [],
+    };
+  }, [programEnrollment]);
 
   const destinationDomains = useMemo(
-    () => additionalLinks.map((link) => getApexDomain(link.url)),
+    () => additionalLinks.map((link) => link.domain),
     [additionalLinks],
   );
 
   const [destinationDomain, setDestinationDomain] = useState(
-    link ? getApexDomain(link.url) : destinationDomains?.[0] ?? null,
+    link
+      ? (getDomainWithoutWWW(link.url) as string)
+      : destinationDomains?.[0] ?? null,
   );
 
   useEffect(() => {
     const additionalLink = additionalLinks.find(
-      (link) => getApexDomain(link.url) === destinationDomain,
+      (link) => link.domain === destinationDomain,
     );
 
-    setIsExactMode(additionalLink?.urlValidationMode === "exact");
+    setIsExactMode(additionalLink?.validationMode === "exact");
   }, [destinationDomain, additionalLinks]);
-
-  const form = useForm<PartnerLinkFormData>({
-    defaultValues:
-      link && destinationDomain
-        ? {
-            url: getUrlWithoutUTMParams(link.url).replace(
-              new RegExp(`^https?:\/\/${regexEscape(destinationDomain)}\/?`),
-              "",
-            ),
-            key: link.key,
-            comments: link.comments ?? "",
-          }
-        : undefined,
-  });
-
-  const formRef = useRef<HTMLFormElement>(null);
-  const { handleKeyDown } = useEnterSubmit(formRef);
 
   const {
     register,
     watch,
     handleSubmit,
+    setValue,
     formState: { isDirty },
-  } = form;
+  } = useForm<PartnerLinkFormData>({
+    defaultValues: link
+      ? {
+          pathname: getPathnameFromUrl(link.url),
+          key: link.key,
+          comments: link.comments ?? "",
+        }
+      : undefined,
+  });
 
-  const { isMobile } = useMediaQuery();
-  const [, copyToClipboard] = useCopyToClipboard();
-
-  const [key, _url] = watch("key", "url");
+  const [key, pathname] = watch(["key", "pathname"]);
 
   const saveDisabled = useMemo(
     () =>
-      Boolean(
-        isLoading || (link && !isDirty) || destinationDomains.length === 0,
-      ),
+      Boolean(isLoading || (link ? !isDirty : destinationDomains.length === 0)),
     [isLoading, link, isDirty, destinationDomains],
   );
 
-  // If there is only one destination domain and we are in exact mode, hide the destination URL input
+  // we hide the destination URL input if:
+  // 1. the link is a partner group default link
+  // 2. there is only one destination domain and we are in exact mode
   const hideDestinationUrl = useMemo(
-    () => destinationDomains.length === 1 && isExactMode,
-    [destinationDomains.length, isExactMode],
+    () =>
+      link?.partnerGroupDefaultLinkId ||
+      (destinationDomains.length === 1 && isExactMode),
+    [destinationDomains.length, isExactMode, link?.partnerGroupDefaultLinkId],
   );
 
   const shortLink = useMemo(
@@ -252,6 +253,7 @@ function PartnerLinkModalContent({
       ref={formRef}
       onSubmit={handleSubmit(async (data) => {
         setIsLoading(true);
+
         try {
           const response = await fetch(
             `/api/partner-profile/programs/${programEnrollment?.program?.id}/links${
@@ -264,12 +266,10 @@ function PartnerLinkModalContent({
               },
               body: JSON.stringify({
                 ...data,
-                url: isExactMode
-                  ? undefined
-                  : linkConstructor({
-                      domain: destinationDomain,
-                      key: data.url,
-                    }),
+                url: linkConstructor({
+                  domain: destinationDomain,
+                  key: getPathnameFromUrl(pathname),
+                }),
               }),
             },
           );
@@ -397,26 +397,30 @@ function PartnerLinkModalContent({
                     selectedDomain={destinationDomain}
                     setSelectedDomain={setDestinationDomain}
                     destinationDomains={destinationDomains}
+                    disabled={Boolean(link)}
                   />
                 </div>
                 <input
-                  {...register("url", { required: false })}
+                  {...register("pathname", { required: false })}
                   type="text"
-                  id="url"
                   placeholder="(optional)"
                   disabled={isExactMode}
                   onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
                     if (isExactMode) return;
 
                     e.preventDefault();
-                    // if pasting in a URL, extract the pathname
+                    // if pasting in a URL, extract the pathname + query params
                     const text = e.clipboardData.getData("text/plain");
+                    let newValue: string;
                     try {
                       const url = new URL(text);
-                      e.currentTarget.value = url.pathname.slice(1);
+                      newValue = url.pathname.slice(1) + url.search;
                     } catch (err) {
-                      e.currentTarget.value = text;
+                      newValue = text;
                     }
+
+                    // Use setValue to properly dirty the form
+                    setValue("pathname", newValue, { shouldDirty: true });
                   }}
                   className={cn(
                     "z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
@@ -492,10 +496,12 @@ function DestinationDomainCombobox({
   selectedDomain,
   setSelectedDomain,
   destinationDomains,
+  disabled = false,
 }: {
   selectedDomain?: string;
   setSelectedDomain: (domain: string) => void;
   destinationDomains: string[];
+  disabled?: boolean;
 }) {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
@@ -549,13 +555,17 @@ function DestinationDomainCombobox({
           "w-32 sm:w-40 h-full rounded-r-none border-r-transparent justify-start px-2.5",
           "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
           "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+          {
+            "cursor-not-allowed bg-neutral-100 text-neutral-500": disabled,
+          },
         ),
+        disabled,
       }}
       optionClassName="sm:max-w-[225px]"
       shouldFilter={false}
-      open={isOpen}
-      onOpenChange={setIsOpen}
-      onSearchChange={setSearch}
+      open={disabled ? false : isOpen}
+      onOpenChange={disabled ? undefined : setIsOpen}
+      onSearchChange={disabled ? undefined : setSearch}
     />
   );
 }

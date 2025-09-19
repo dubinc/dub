@@ -43,7 +43,7 @@ export function GroupsTable() {
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "totalSaleAmount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
@@ -105,29 +105,29 @@ export function GroupsTable() {
         accessorFn: (d) => nFormatter(d.partners, { full: true }),
       },
       {
-        id: "clicks",
+        id: "totalClicks",
         header: "Clicks",
-        accessorFn: (d) => nFormatter(d.clicks),
+        accessorFn: (d) => nFormatter(d.totalClicks),
       },
       {
-        id: "leads",
+        id: "totalLeads",
         header: "Leads",
-        accessorFn: (d) => nFormatter(d.leads),
+        accessorFn: (d) => nFormatter(d.totalLeads),
       },
       {
-        id: "conversions",
+        id: "totalConversions",
         header: "Conversions",
-        accessorFn: (d) => nFormatter(d.conversions),
+        accessorFn: (d) => nFormatter(d.totalConversions),
       },
       {
-        id: "saleAmount",
+        id: "totalSaleAmount",
         header: "Revenue",
-        accessorFn: (d) => currencyFormatter(d.saleAmount / 100),
+        accessorFn: (d) => currencyFormatter(d.totalSaleAmount / 100),
       },
       {
-        id: "commissions",
+        id: "totalCommissions",
         header: "Commissions",
-        accessorFn: (d) => currencyFormatter(d.commissions / 100),
+        accessorFn: (d) => currencyFormatter(d.totalCommissions / 100),
       },
       {
         id: "netRevenue",
@@ -162,11 +162,11 @@ export function GroupsTable() {
     onPaginationChange: setPagination,
     sortableColumns: [
       "partners",
-      "clicks",
-      "leads",
-      "conversions",
-      "saleAmount",
-      "commissions",
+      "totalClicks",
+      "totalLeads",
+      "totalConversions",
+      "totalSaleAmount",
+      "totalCommissions",
       "netRevenue",
     ],
     sortBy,

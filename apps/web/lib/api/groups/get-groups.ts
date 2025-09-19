@@ -10,12 +10,12 @@ type GroupFilters = z.infer<typeof getGroupsQuerySchema> & {
 const sortColumnsMap = {
   createdAt: "pg.createdAt",
   partners: "partners",
-  clicks: "totalClicks",
-  leads: "totalLeads",
-  conversions: "totalConversions",
-  sales: "totalSales",
-  saleAmount: "totalSaleAmount",
-  commissions: "totalCommissions",
+  totalClicks: "totalClicks",
+  totalLeads: "totalLeads",
+  totalConversions: "totalConversions",
+  totalSales: "totalSales",
+  totalSaleAmount: "totalSaleAmount",
+  totalCommissions: "totalCommissions",
   netRevenue: "netRevenue",
 };
 
@@ -101,12 +101,12 @@ export async function getGroups(filters: GroupFilters) {
   return groups.map((group) => ({
     ...group,
     partners: Number(group.partners),
-    clicks: Number(group.totalClicks),
-    leads: Number(group.totalLeads),
-    sales: Number(group.totalSales),
-    saleAmount: Number(group.totalSaleAmount),
-    conversions: Number(group.totalConversions),
-    commissions: Number(group.totalCommissions),
+    totalClicks: Number(group.totalClicks),
+    totalLeads: Number(group.totalLeads),
+    totalSales: Number(group.totalSales),
+    totalSaleAmount: Number(group.totalSaleAmount),
+    totalConversions: Number(group.totalConversions),
+    totalCommissions: Number(group.totalCommissions),
     netRevenue: Number(group.netRevenue),
   }));
 }

@@ -8,7 +8,7 @@ import {
 import { unescape } from "html-escaper";
 import { notFound, redirect } from "next/navigation";
 
-export const runtime = "edge";
+export const revalidate = false; // cache indefinitely
 
 export async function generateMetadata({
   params,

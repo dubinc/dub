@@ -11,7 +11,7 @@ import {
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, LinkLogo, NumberStepper, Popover, Switch } from "@dub/ui";
-import { Trash } from "@dub/ui/icons";
+import { PenWriting, Trash } from "@dub/ui/icons";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -53,7 +53,6 @@ export function GroupAdditionalLinks() {
 
 export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
   const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
-  const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({});
   const [enableAdditionalLinks, setEnableAdditionalLinks] = useState(
     group.maxPartnerLinks > 0 || (group.additionalLinks?.length || 0) > 0,
   );
@@ -62,6 +61,7 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
     handleSubmit,
     watch,
     setValue,
+    reset,
     formState: { isDirty, isValid },
   } = useForm<FormData>({
     mode: "onBlur",
@@ -78,14 +78,26 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
       method: "PATCH",
       body: data,
       onSuccess: async () => {
-        await mutatePrefix("/api/groups");
         toast.success("Saved changes!");
+        // Reset form to clear dirty state after successful save
+        reset(data);
+        await mutatePrefix("/api/groups");
       },
     });
   };
 
-  const additionalLinks = group?.additionalLinks || [];
+  const additionalLinks = watch("additionalLinks") || [];
   const maxPartnerLinks = watch("maxPartnerLinks") || 0;
+
+  const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({
+    additionalLinks,
+    onUpdateAdditionalLinks: (links: PartnerGroupAdditionalLink[]) => {
+      setValue("additionalLinks", links, {
+        shouldDirty: true,
+        shouldValidate: true,
+      });
+    },
+  });
 
   return (
     <form
@@ -114,25 +126,37 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
           </SettingsRow>
 
           <SettingsRow
-            heading="Destinations URLs"
-            description="Add additional destination URLs the partner can select"
+            heading="Link domains"
+            description="Restrict partner links to specific domains"
           >
             <div>
               <div className="flex flex-col gap-2">
                 {additionalLinks.length > 0 ? (
                   additionalLinks.map((link, index) => (
-                    <DestinationUrl key={index} link={link} />
+                    <LinkDomain
+                      key={index}
+                      link={link}
+                      additionalLinks={additionalLinks}
+                      onUpdateAdditionalLinks={(
+                        links: PartnerGroupAdditionalLink[],
+                      ) => {
+                        setValue("additionalLinks", links, {
+                          shouldDirty: true,
+                          shouldValidate: true,
+                        });
+                      }}
+                    />
                   ))
                 ) : (
                   <div className="border-border-subtle text-content-subtle flex h-16 items-center gap-3 rounded-xl border bg-white p-4 text-sm">
-                    No additional destination URLs
+                    No additional link domains
                   </div>
                 )}
               </div>
 
               <Button
-                text="Add destination URL"
-                variant="primary"
+                text="Add link domain"
+                variant="secondary"
                 className="mt-4 h-8 w-fit rounded-lg px-3"
                 onClick={() => setIsOpen(true)}
                 disabled={
@@ -140,7 +164,7 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
                 }
                 disabledTooltip={
                   additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
-                    ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional destination URLs.`
+                    ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional link domains.`
                     : undefined
                 }
               />
@@ -159,10 +183,12 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
               if (!checked) {
                 setValue("additionalLinks", [], {
                   shouldDirty: true,
+                  shouldValidate: true,
                 });
 
                 setValue("maxPartnerLinks", 0, {
                   shouldDirty: true,
+                  shouldValidate: true,
                 });
               }
             }}
@@ -173,6 +199,7 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
         </div>
         <div>
           <Button
+            type="submit"
             text="Save changes"
             className="h-8"
             loading={isSubmitting}
@@ -207,48 +234,39 @@ function SettingsRow({
   );
 }
 
-function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
-  const { group, mutateGroup } = useGroup();
+function LinkDomain({
+  link,
+  additionalLinks,
+  onUpdateAdditionalLinks,
+}: {
+  link: PartnerGroupAdditionalLink;
+  additionalLinks: PartnerGroupAdditionalLink[];
+  onUpdateAdditionalLinks: (links: PartnerGroupAdditionalLink[]) => void;
+}) {
   const [openPopover, setOpenPopover] = useState(false);
-  const { makeRequest: updateGroup, isSubmitting } = useApiMutation();
 
   const { addDestinationUrlModal, setIsOpen } = useAddDestinationUrlModal({
     link,
+    additionalLinks,
+    onUpdateAdditionalLinks,
   });
 
-  // Delete destination URL
-  const deleteDestinationUrl = async () => {
-    if (!group) return;
-
-    // Refresh group data first to ensure we have the latest state
-    await mutateGroup();
-
-    const currentAdditionalLinks = group.additionalLinks || [];
-    const updatedAdditionalLinks = currentAdditionalLinks.filter(
-      (existingLink) => existingLink.url !== link.url,
+  // Delete link domain
+  const deleteLinkDomain = async () => {
+    const updatedAdditionalLinks = additionalLinks.filter(
+      (existingLink) => existingLink.domain !== link.domain,
     );
 
-    await updateGroup(`/api/groups/${group.id}`, {
-      method: "PATCH",
-      body: {
-        additionalLinks: updatedAdditionalLinks,
-      },
-      onSuccess: async () => {
-        await mutatePrefix("/api/groups");
-        setOpenPopover(false);
-        toast.success("Destination URL deleted successfully!");
-      },
-      onError: () => {
-        toast.error("Failed to delete destination URL. Please try again.");
-      },
-    });
+    // Update the parent form state instead of calling API directly
+    onUpdateAdditionalLinks(updatedAdditionalLinks);
+    setOpenPopover(false);
   };
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Delete destination URL",
-    description: `Are you sure you want to delete "${getPrettyUrl(link.url)}"? This action cannot be undone.`,
+    title: "Delete link domain",
+    description: `Are you sure you want to delete "${getPrettyUrl(link.domain)}"? This will prevent partners from creating links with this domain.`,
     confirmText: "Delete",
-    onConfirm: deleteDestinationUrl,
+    onConfirm: deleteLinkDomain,
   });
 
   return (
@@ -264,9 +282,9 @@ function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
             </div>
             <div className="relative z-10 p-2">
-              {link.url ? (
+              {link.domain ? (
                 <LinkLogo
-                  apexDomain={getApexDomain(link.url)}
+                  apexDomain={getApexDomain(link.domain)}
                   className="size-4 sm:size-6"
                   imageProps={{
                     loading: "lazy",
@@ -278,7 +296,7 @@ function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
             </div>
           </div>
           <span className="text-content-default truncate text-sm font-semibold">
-            {getPrettyUrl(link.url)}
+            {getPrettyUrl(link.domain)}
           </span>
         </div>
 
@@ -286,15 +304,24 @@ function DestinationUrl({ link }: { link: PartnerGroupAdditionalLink }) {
           content={
             <div className="grid w-48 grid-cols-1 gap-px p-2">
               <Button
-                text="Delete"
+                text="Edit"
                 variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setIsOpen(true);
+                }}
+                icon={<PenWriting className="size-4" />}
+                className="h-9 justify-start px-2"
+              />
+              <Button
+                text="Delete"
+                variant="danger-outline"
                 onClick={() => {
                   setOpenPopover(false);
                   setShowConfirmModal(true);
                 }}
                 icon={<Trash className="size-4" />}
-                className="h-9 justify-start px-2 font-medium text-red-600 hover:text-red-700"
-                loading={isSubmitting}
+                className="h-9 justify-start px-2"
               />
             </div>
           }

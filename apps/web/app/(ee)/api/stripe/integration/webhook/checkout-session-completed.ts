@@ -314,10 +314,24 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   if (invoiceId) {
     // Skip if invoice id is already processed
-    const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
-      ex: 60 * 60 * 24 * 7,
-      nx: true,
-    });
+    const ok = await redis.set(
+      `trackSale:stripe:invoiceId:${invoiceId}`, // here we assume that Stripe's invoice ID is unique across all customers
+      {
+        timestamp: new Date().toISOString(),
+        dubCustomerId,
+        stripeCustomerId,
+        stripeAccountId,
+        invoiceId,
+        customerId: customer.id,
+        workspaceId: customer.projectId,
+        amount: charge.amount_total,
+        currency: charge.currency,
+      },
+      {
+        ex: 60 * 60 * 24 * 7,
+        nx: true,
+      },
+    );
 
     if (!ok) {
       console.info(

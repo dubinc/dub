@@ -347,8 +347,7 @@ export function Screenshot({
             >
               20%
             </tspan>
-            <tspan> for each conversion, and again </tspan>
-            <tspan fontWeight="600">every month</tspan>
+            <tspan> for each conversion</tspan>
           </text>
           <text
             xmlSpace="preserve"

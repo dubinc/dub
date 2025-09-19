@@ -4,7 +4,8 @@ enum BountyType {
 }
 
 enum BountySubmissionStatus {
-  pending
+  draft
+  submitted
   approved
   rejected
 }
@@ -26,7 +27,8 @@ model Bounty {
   type                   BountyType
   startsAt               DateTime
   endsAt                 DateTime?
-  rewardAmount           Int        @default(0)
+  rewardAmount           Int?
+  rewardDescription      String?
   submissionRequirements Json?
   archivedAt             DateTime?
   createdAt              DateTime   @default(now())
@@ -38,7 +40,6 @@ model Bounty {
   workflow    Workflow?          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
 
   @@index(programId)
-  @@index(workflowId)
 }
 
 model BountyGroup {
@@ -61,7 +62,7 @@ model BountySubmission {
   commissionId    String?                          @unique
   userId          String?
   description     String?                          @db.Text
-  status          BountySubmissionStatus           @default(pending)
+  status          BountySubmissionStatus           @default(draft)
   rejectionReason BountySubmissionRejectionReason?
   rejectionNote   String?                          @db.Text
   files           Json?
@@ -79,7 +80,6 @@ model BountySubmission {
 
   @@unique([bountyId, partnerId])
   @@index([programId, partnerId])
-  @@index(programId)
   @@index(partnerId)
   @@index(userId)
   @@index(status)

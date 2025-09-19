@@ -1,32 +1,33 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
-import { includeTags } from "@/lib/api/links/include-tags";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
-  chunk,
   constructURLFromUTMParams,
-  isFulfilled,
   log,
 } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 export const dynamic = "force-dynamic";
 
-const PAGE_SIZE = 100;
-const MAX_BATCH = 10;
+const PAGE_SIZE = 50;
 
 const schema = z.object({
-  utmTemplateId: z.string(),
-  cursor: z.string().optional(),
+  groupId: z.string(),
+  partnerIds: z.array(z.string()).optional(),
+  startAfterProgramEnrollmentId: z.string().optional(),
 });
 
 /**
- * Syncs UTM parameters from a UTM template to all partner links in a group.
- * This job is triggered when a UTM template associated with a partner group is updated.
+    Syncs the UTM parameter settings for a given group (whether there is a UTM template or not)
+
+    This job is triggered when:
+    1. a UTM template is created for a group
+    2. a UTM template is updated
+    3. in groups/remap-default-links cron
  */
 
 // POST /api/cron/groups/sync-utm
@@ -35,140 +36,115 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { utmTemplateId, cursor } = schema.parse(JSON.parse(rawBody));
+    const { groupId, partnerIds, startAfterProgramEnrollmentId } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     // Find the UTM template
-    const utmTemplate = await prisma.utmTemplate.findUnique({
+    const group = await prisma.partnerGroup.findUnique({
       where: {
-        id: utmTemplateId,
+        id: groupId,
       },
       include: {
-        partnerGroup: true,
+        utmTemplate: true,
       },
     });
 
-    if (!utmTemplate) {
-      return logAndRespond(
-        `UTM template ${utmTemplateId} not found. Skipping...`,
-        {
-          logLevel: "error",
-        },
-      );
-    }
-
-    const { partnerGroup: group } = utmTemplate;
-
     if (!group) {
       return logAndRespond(
-        `UTM template ${utmTemplateId} doesn't associate with a group. Skipping...`,
+        `Group ${groupId} not found for groups/sync-utm cron. Skipping...`,
         {
           logLevel: "error",
         },
       );
     }
 
-    let hasMore = true;
-    let currentCursor = cursor;
-    let processedBatches = 0;
+    const { utmTemplate } = group;
 
-    while (processedBatches < MAX_BATCH) {
-      // Find partners in the group
-      const programEnrollments = await prisma.programEnrollment.findMany({
-        where: {
-          ...(currentCursor && {
-            id: {
-              gt: currentCursor,
-            },
-          }),
-          groupId: group.id,
-        },
-        take: PAGE_SIZE,
-        orderBy: {
-          id: "asc",
-        },
-        include: {
-          links: true,
-        },
-      });
+    // Find partners in the group
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        groupId: group.id,
+        ...(partnerIds && {
+          partnerId: {
+            in: partnerIds,
+          },
+        }),
+        ...(startAfterProgramEnrollmentId && {
+          id: {
+            gt: startAfterProgramEnrollmentId,
+          },
+        }),
+      },
+      take: PAGE_SIZE,
+      orderBy: {
+        id: "asc",
+      },
+      include: {
+        links: true,
+      },
+    });
 
-      if (programEnrollments.length === 0) {
-        hasMore = false;
-        break;
-      }
-
-      // Extract links from the program enrollments
-      const links = programEnrollments.flatMap((enrollment) =>
-        enrollment.links.map((link) => link),
-      );
-
-      const linkChunks = chunk(links, 100);
-
-      const utmParams = {
-        utm_source: utmTemplate.utm_source || "",
-        utm_medium: utmTemplate.utm_medium || "",
-        utm_campaign: utmTemplate.utm_campaign || "",
-        utm_term: utmTemplate.utm_term || "",
-        utm_content: utmTemplate.utm_content || "",
-        ref: utmTemplate.ref || "",
-      };
-
-      // Update the UTM for each partner links in the group
-      for (const linkChunk of linkChunks) {
-        const processedLinks = await Promise.all(
-          linkChunk.map((link) => ({
-            id: link.id,
-            url: constructURLFromUTMParams(link.url, utmParams),
-            utm_source: utmTemplate.utm_source || null,
-            utm_medium: utmTemplate.utm_medium || null,
-            utm_campaign: utmTemplate.utm_campaign || null,
-            utm_term: utmTemplate.utm_term || null,
-            utm_content: utmTemplate.utm_content || null,
-          })),
-        );
-
-        // Bulk update the links
-        const updatedLinkPromises = await Promise.allSettled(
-          processedLinks.map((link) =>
-            prisma.link.update({
-              where: {
-                id: link.id,
-              },
-              data: link,
-              include: includeTags,
-            }),
-          ),
-        );
-
-        const updatedLinks = updatedLinkPromises
-          .filter(isFulfilled)
-          .map(({ value }) => value);
-
-        await Promise.allSettled([
-          recordLink(updatedLinks),
-          linkCache.expireMany(updatedLinks),
-        ]);
-      }
-
-      // Update cursor to the last processed record
-      currentCursor = programEnrollments[programEnrollments.length - 1].id;
-      processedBatches++;
+    if (programEnrollments.length === 0) {
+      return logAndRespond(`No program enrollments found. Skipping...`);
     }
 
-    if (hasMore) {
+    // extract links from program enrollments
+    const linksToUpdate = programEnrollments.flatMap((enrollment) =>
+      enrollment.links.map((link) => link),
+    );
+    // group links by the same url
+    const groupedLinksToUpdate = linksToUpdate.reduce(
+      (acc, link) => {
+        acc[link.url] = acc[link.url] || [];
+        acc[link.url].push(link.id);
+        return acc;
+      },
+      {} as Record<string, string[]>,
+    );
+
+    // Update the UTM for each partner links in the group
+    for (const [url, linkIds] of Object.entries(groupedLinksToUpdate)) {
+      const payload = {
+        url: constructURLFromUTMParams(url, extractUtmParams(utmTemplate)),
+        ...extractUtmParams(utmTemplate, { excludeRef: true }),
+      };
+
+      const updatedLinks = await prisma.link.updateMany({
+        where: {
+          id: {
+            in: linkIds,
+          },
+        },
+        data: payload,
+      });
+      console.log(
+        `Updated ${updatedLinks.count} links with URL: ${payload.url}`,
+      );
+    }
+
+    const redisRes = await linkCache.expireMany(linksToUpdate);
+    console.log(`Updated Redis cache: ${JSON.stringify(redisRes, null, 2)}`);
+
+    if (programEnrollments.length === PAGE_SIZE) {
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
         method: "POST",
         body: {
-          utmTemplateId,
-          cursor: currentCursor,
+          groupId,
+          partnerIds,
+          startAfterProgramEnrollmentId:
+            programEnrollments[programEnrollments.length - 1].id,
         },
       });
     }
 
-    return logAndRespond(`Finished syncing UTM for the partner's links.`);
+    return logAndRespond(
+      `Finished syncing UTM settings for ${programEnrollments.length} partners in the ${group.name} group (${group.id}).`,
+    );
   } catch (error) {
     await log({
-      message: `Error updating UTM for the partner's links: ${error.message}.`,
+      message: `Error syncing UTM settings: ${error.message}.`,
       type: "errors",
     });
 

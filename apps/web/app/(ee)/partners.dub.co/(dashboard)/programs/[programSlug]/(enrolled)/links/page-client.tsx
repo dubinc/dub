@@ -48,8 +48,6 @@ export function ProgramLinksPageClient() {
     interval?: IntervalOptions;
   };
 
-  useKeyboardShortcut("c", () => setShowPartnerLinkModal(true));
-
   const program = programEnrollment?.program;
   const maxPartnerLinks = programEnrollment?.group?.maxPartnerLinks;
   const additionalLinks = programEnrollment?.group?.additionalLinks;
@@ -62,6 +60,10 @@ export function ProgramLinksPageClient() {
     !hasLinksLimitReached &&
     hasAdditionalLinks &&
     programEnrollment?.status !== "banned";
+
+  useKeyboardShortcut("c", () => setShowPartnerLinkModal(true), {
+    enabled: canCreateNewLink ?? false,
+  });
 
   return (
     <div className="flex flex-col gap-5">

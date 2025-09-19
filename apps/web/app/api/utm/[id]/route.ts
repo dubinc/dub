@@ -1,9 +1,14 @@
 import { DubApiError } from "@/lib/api/errors";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { updateUTMTemplateBodySchema } from "@/lib/zod/schemas/utm";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
+import {
+  APP_DOMAIN_WITH_NGROK,
+  constructURLFromUTMParams,
+  deepEqual,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -26,9 +31,6 @@ export const PATCH = withWorkspace(
         id,
         projectId: workspace.id,
       },
-      include: {
-        partnerGroup: true,
-      },
     });
 
     if (!template) {
@@ -39,7 +41,7 @@ export const PATCH = withWorkspace(
     }
 
     try {
-      const templateUpdated = await prisma.utmTemplate.update({
+      const updatedTemplate = await prisma.utmTemplate.update({
         where: {
           id,
           projectId: workspace.id,
@@ -53,25 +55,61 @@ export const PATCH = withWorkspace(
           utm_content,
           ref,
         },
+        include: {
+          partnerGroup: {
+            include: {
+              partnerGroupDefaultLinks: true,
+            },
+          },
+        },
       });
 
       const utmFieldsChanged = !deepEqual(
-        extractUtmParams(templateUpdated),
+        extractUtmParams(updatedTemplate),
         extractUtmParams(template),
       );
 
-      if (template.partnerGroup && utmFieldsChanged) {
+      if (utmFieldsChanged) {
         waitUntil(
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-            body: {
-              utmTemplateId: template.id,
-            },
-          }),
+          (async () => {
+            const partnerGroup = updatedTemplate.partnerGroup;
+            if (!partnerGroup) return;
+
+            const defaultLinks = partnerGroup.partnerGroupDefaultLinks;
+
+            if (defaultLinks && defaultLinks.length > 0) {
+              for (const defaultLink of defaultLinks) {
+                const res = await prisma.partnerGroupDefaultLink.update({
+                  where: {
+                    id: defaultLink.id,
+                  },
+                  data: {
+                    url: constructURLFromUTMParams(
+                      defaultLink.url,
+                      extractUtmParams(updatedTemplate),
+                    ),
+                  },
+                });
+                console.log(
+                  `Updated default link ${defaultLink.id} with URL: ${res.url}`,
+                );
+              }
+            }
+
+            const res = await qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+              body: {
+                groupId: partnerGroup.id,
+              },
+            });
+            console.log(
+              `Scheduled sync-utm job for template ${template.id}: ${JSON.stringify(res, null, 2)}`,
+            );
+          })(),
         );
       }
 
-      return NextResponse.json(templateUpdated);
+      return NextResponse.json(updatedTemplate);
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({
@@ -129,12 +167,3 @@ export const DELETE = withWorkspace(
     requiredPermissions: ["links.write"],
   },
 );
-
-const extractUtmParams = (input: any) => ({
-  utm_source: input.utm_source,
-  utm_medium: input.utm_medium,
-  utm_campaign: input.utm_campaign,
-  utm_term: input.utm_term,
-  utm_content: input.utm_content,
-  ref: input.ref,
-});

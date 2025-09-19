@@ -1,15 +1,12 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { processLink } from "@/lib/api/links";
 import { linkCache } from "@/lib/api/links/cache";
-import { includeTags } from "@/lib/api/links/include-tags";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
-  isFulfilled,
-  linkConstructorSimple,
+  constructURLFromUTMParams,
   log,
 } from "@dub/utils";
 import { z } from "zod";
@@ -47,6 +44,13 @@ export async function POST(req: Request) {
       where: {
         id: defaultLinkId,
       },
+      include: {
+        partnerGroup: {
+          include: {
+            utmTemplate: true,
+          },
+        },
+      },
     });
 
     if (!defaultLink) {
@@ -58,15 +62,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // Find the group
-    const group = await prisma.partnerGroup.findUnique({
-      where: {
-        id: defaultLink.groupId,
-      },
-      include: {
-        program: true,
-      },
-    });
+    const group = defaultLink.partnerGroup;
 
     if (!group) {
       return logAndRespond(
@@ -86,7 +82,7 @@ export async function POST(req: Request) {
     let processedBatches = 0;
 
     while (processedBatches < MAX_BATCH) {
-      const links = await prisma.link.findMany({
+      const linksToUpdate = await prisma.link.findMany({
         where: {
           ...(currentCursor && {
             id: {
@@ -101,86 +97,34 @@ export async function POST(req: Request) {
         },
       });
 
-      if (links.length === 0) {
+      if (linksToUpdate.length === 0) {
         hasMore = false;
         break;
       }
 
-      // Process the links
-      const processedLinks = await Promise.all(
-        links.map((link) => {
-          const skipKeyChecks =
-            link.domain.toLowerCase() === defaultLink.domain.toLowerCase();
+      const updatedLinks = await prisma.link.updateMany({
+        where: {
+          id: {
+            in: linksToUpdate.map((link) => link.id),
+          },
+        },
+        data: {
+          url: constructURLFromUTMParams(
+            defaultLink.url,
+            extractUtmParams(group.utmTemplate),
+          ),
+          ...extractUtmParams(group.utmTemplate, { excludeRef: true }),
+        },
+      });
 
-          return processLink({
-            // @ts-expect-error
-            payload: {
-              ...link,
-              domain: defaultLink.domain,
-              url: defaultLink.url,
-            },
-            workspace: {
-              id: group.program.workspaceId,
-              plan: "business",
-            },
-            skipKeyChecks,
-            skipFolderChecks: true,
-            skipProgramChecks: true,
-            skipExternalIdChecks: true,
-          });
-        }),
+      console.log(
+        `Updated ${updatedLinks.count} links with url=${defaultLink.url} (via defaultLinkId=${defaultLink.id})`,
       );
 
-      const validLinks = processedLinks
-        .filter(({ error }) => error == null)
-        .map(({ link }) => link);
-
-      const errorLinks = processedLinks
-        .filter(({ error }) => error != null)
-        .map(({ link: { domain, key }, error }) => ({
-          domain,
-          key,
-          error,
-        }));
-
-      // Bulk update the links
-      if (validLinks.length > 0) {
-        const updatedLinkPromises = await Promise.allSettled(
-          validLinks.map((link) =>
-            prisma.link.update({
-              where: {
-                id: link.id,
-              },
-              // @ts-expect-error
-              data: {
-                ...link,
-                shortLink: linkConstructorSimple({
-                  domain: defaultLink.domain,
-                  key: link.key,
-                }),
-              },
-              include: includeTags,
-            }),
-          ),
-        );
-
-        const updatedLinks = updatedLinkPromises
-          .filter(isFulfilled)
-          .map(({ value }) => value);
-
-        await Promise.allSettled([
-          recordLink(updatedLinks),
-          linkCache.expireMany(validLinks),
-        ]);
-      }
-
-      if (errorLinks.length > 0) {
-        console.error(errorLinks);
-        console.log(`Failed to update ${errorLinks.length} links.`);
-      }
+      await linkCache.expireMany(linksToUpdate);
 
       // Update cursor to the last processed record
-      currentCursor = links[links.length - 1].id;
+      currentCursor = linksToUpdate[linksToUpdate.length - 1].id;
       processedBatches++;
     }
 

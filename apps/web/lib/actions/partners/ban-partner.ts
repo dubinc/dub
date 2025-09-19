@@ -94,6 +94,26 @@ export const banPartnerAction = authActionClient
         await Promise.allSettled([
           // Sync total commissions
           syncTotalCommissions({ partnerId, programId }),
+          // Notify partner
+
+          partner.email &&
+            sendEmail({
+              subject: `You've been banned from the ${program.name} Partner Program`,
+              to: partner.email,
+              replyTo: supportEmail,
+              react: PartnerBanned({
+                partner: {
+                  name: partner.name,
+                  email: partner.email,
+                },
+                program: {
+                  name: program.name,
+                  slug: program.slug,
+                },
+                bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+              }),
+              variant: "notifications",
+            }),
 
           // Expire links from cache
           linkCache.deleteMany(programEnrollment.links),

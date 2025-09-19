@@ -7,7 +7,7 @@ import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { LoadingSpinner } from "@dub/ui";
 
 export function RewardsDiscountsPreview() {
-  const { group } = useGroup({ slug: DEFAULT_PARTNER_GROUP.slug });
+  const { group } = useGroup({ groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug });
 
   if (!group)
     return (

@@ -1,5 +1,5 @@
 import { PartnerGroupAdditionalLink } from "@/lib/types";
-import { getApexDomain } from "@dub/utils";
+import { getUrlObjFromString } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
 import { DubApiError } from "../errors";
 
@@ -14,32 +14,41 @@ export const validatePartnerLinkUrl = ({
     return;
   }
 
-  if (!group.additionalLinks) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "No additional links are allowed for this program.",
-    });
-  }
-
   const additionalLinks = group.additionalLinks as PartnerGroupAdditionalLink[];
 
-  // Find matching additional link based on its validation mode
-  const matchFound = additionalLinks.find((additionalLink) => {
-    if (additionalLink.urlValidationMode === "exact") {
-      return additionalLink.url === url;
-    } else if (additionalLink.urlValidationMode === "domain") {
-      return getApexDomain(additionalLink.url) === getApexDomain(url);
-    }
-
-    return false;
-  });
-
-  if (!matchFound) {
+  if (!additionalLinks) {
     throw new DubApiError({
       code: "bad_request",
-      message: `The provided URL (${url}) does not match any of the program's additional links.`,
+      message: "You cannot create additional links for this program.",
     });
   }
 
-  return matchFound;
+  const { hostname: urlHostname, pathname: urlPathname } =
+    getUrlObjFromString(url) ?? {};
+
+  // Find matching additional link based on its domain
+  const additionalLink = additionalLinks.find((additionalLink) => {
+    return additionalLink.domain === urlHostname;
+  });
+
+  if (!additionalLink) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `The provided URL's domain (${urlHostname}) does not match the program's link domains.`,
+    });
+  }
+
+  // Check the validation mode
+  if (
+    additionalLink.validationMode === "exact" &&
+    urlPathname &&
+    urlPathname.slice(1).length > 0
+  ) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `The provided URL is not an exact match for the program's link domain (${additionalLink.domain}).`,
+    });
+  }
+
+  return true;
 };

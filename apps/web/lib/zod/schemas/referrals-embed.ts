@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { LinkSchema } from "./links";
 
 export const ReferralsEmbedLinkSchema = LinkSchema.pick({
@@ -10,4 +11,6 @@ export const ReferralsEmbedLinkSchema = LinkSchema.pick({
   leads: true,
   sales: true,
   saleAmount: true,
+}).extend({
+  partnerGroupDefaultLinkId: z.string().nullish(),
 });

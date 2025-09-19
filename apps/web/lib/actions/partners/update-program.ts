@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
 import { ProgramLanderData } from "@/lib/types";
 import {
@@ -41,15 +42,13 @@ export const updateProgramAction = authActionClient
       landerData: landerDataInput,
       domain,
       url,
-      linkStructure,
-      urlValidationMode,
-      maxPartnerLinks,
       supportEmail,
       helpUrl,
       termsUrl,
       holdingPeriodDays,
       minPayoutAmount,
       cookieLength,
+      messagingEnabledAt,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -88,15 +87,15 @@ export const updateProgramAction = authActionClient
         landerPublishedAt: landerData ? new Date() : undefined,
         domain,
         url,
-        linkStructure,
-        urlValidationMode,
-        maxPartnerLinks,
         supportEmail,
         helpUrl,
         termsUrl,
         cookieLength,
         holdingPeriodDays,
         minPayoutAmount,
+        ...(messagingEnabledAt !== undefined &&
+          (getPlanCapabilities(workspace.plan).canMessagePartners ||
+            messagingEnabledAt === null) && { messagingEnabledAt }),
       },
     });
 
