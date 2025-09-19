@@ -1,4 +1,5 @@
 import { prisma } from "@dub/prisma";
+import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src";
 import { redirect } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 
@@ -14,11 +15,6 @@ export default async function IntegrationPage({
       slug: params.integrationSlug,
     },
     include: {
-      _count: {
-        select: {
-          installations: true,
-        },
-      },
       installations: {
         where: {
           project: {
@@ -44,7 +40,10 @@ export default async function IntegrationPage({
     },
   });
 
-  if (!integration || integration.comingSoon) {
+  if (
+    !integration ||
+    (integration.comingSoon && integration.id !== HUBSPOT_INTEGRATION_ID)
+  ) {
     redirect(`/${params.slug}/settings/integrations`);
   }
 
@@ -70,7 +69,6 @@ export default async function IntegrationPage({
         integration={{
           ...integration,
           screenshots: integration.screenshots as string[],
-          installations: integration._count.installations,
           installed: installed
             ? {
                 id: integration.installations[0].id,

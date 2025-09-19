@@ -46,6 +46,7 @@ import {
   SLACK_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
+import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src/constants/integrations";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useState } from "react";
@@ -62,7 +63,7 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug, id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug, plan } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -265,7 +266,19 @@ export default function IntegrationPageClient({
                 loading={isPending}
                 text="Enable"
                 variant="primary"
+                className="h-9 px-3"
                 icon={<ConnectedDots className="size-4" />}
+                disabledTooltip={
+                  integration.id === HUBSPOT_INTEGRATION_ID &&
+                  plan !== "advanced" &&
+                  plan !== "enterprise" ? (
+                    <TooltipContent
+                      title="Hubspot integration is only available on Advanced plans and above. Upgrade to get started."
+                      cta="Upgrade to Advanced"
+                      href={`/${slug}/settings/billing/upgrade`}
+                    />
+                  ) : null
+                }
               />
             )}
         </div>
