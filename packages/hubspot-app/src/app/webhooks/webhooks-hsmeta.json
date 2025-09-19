@@ -1,9 +1,9 @@
 {
-  "uid": "webhooks-DubAnalytics",
+  "uid": "dub-webhooks",
   "type": "webhooks",
   "config": {
     "settings": {
-      "targetUrl": "https://accurate-caribou-strictly.ngrok-free.app/api/hubspot/webhook",
+      "targetUrl": "https://app.dub.co/api/hubspot/webhook",
       "maxConcurrentRequests": 10
     },
     "subscriptions": {

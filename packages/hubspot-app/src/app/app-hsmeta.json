@@ -1,15 +1,15 @@
 {
-  "uid": "app-DubAnalytics",
+  "uid": "dub-app",
   "type": "app",
   "config": {
-    "description": "An example to demonstrate how to build a marketplace app with developer projects.",
-    "name": "Dub Analytics-Application",
+    "description": "Track Hubspot leads/deal changes and auto-generate partner commissions on Dub – the modern affiliate platform & partner network built for SaaS.",
+    "name": "Dub Partners",
     "distribution": "marketplace",
     "auth": {
       "type": "oauth",
       "redirectUrls": [
-        "https://accurate-caribou-strictly.ngrok-free.app/api/hubspot/callback",
-        "https://dub.co/api/hubspot/callback"
+        "https://app.dub.co/api/hubspot/callback",
+        "https://preview.dub.co/api/hubspot/callback"
       ],
       "requiredScopes": [
         "oauth",
@@ -28,7 +28,7 @@
     },
     "support": {
       "supportEmail": "support@dub.co",
-      "documentationUrl": "https://dub.co/docs/conversions/quickstart",
+      "documentationUrl": "https://dub.co/docs/conversions/hubspot",
       "supportUrl": "https://dub.co/contact"
     }
   }
