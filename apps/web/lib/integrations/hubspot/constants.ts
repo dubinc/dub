@@ -12,6 +12,7 @@ export const HUBSPOT_API_HOST = "https://api.hubapi.com";
 
 export const HUBSPOT_APP_SCOPES = [
   "oauth",
+  "crm.objects.contacts.read",
   "crm.objects.contacts.write",
   "crm.objects.deals.read",
 ];
