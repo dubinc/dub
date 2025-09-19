@@ -28,6 +28,10 @@ export async function triggerDraftBountySubmissionCreation({
     },
   });
 
+  if (programEnrollments.length === 0) {
+    return;
+  }
+
   const groupIds = [
     ...new Set(
       programEnrollments
@@ -35,10 +39,6 @@ export async function triggerDraftBountySubmissionCreation({
         .filter((id): id is string => id !== null),
     ),
   ];
-
-  if (groupIds.length === 0) {
-    return;
-  }
 
   const bountiesByGroups = await getBountiesByGroups({
     programId,
