@@ -20,7 +20,7 @@ import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
 import { PartnerAbout } from "./partner-about";
@@ -47,6 +47,11 @@ function PartnerApplicationSheetContent({
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
     partner.groupId ?? null,
   );
+
+  // Reset selection when navigating between partners
+  useEffect(() => {
+    setSelectedGroupId(partner.groupId ?? null);
+  }, [partner.groupId]);
 
   return (
     <div className="flex size-full flex-col">
