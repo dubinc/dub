@@ -21,9 +21,6 @@ const payloadSchema = z.object({
 
 type Payload = z.infer<typeof payloadSchema>;
 
-// TODO:
-// Test each workflow step
-
 // POST /api/workflows/partner-approved
 export const { POST } = serve<Payload>(
   async (context) => {
@@ -31,7 +28,7 @@ export const { POST } = serve<Payload>(
     const { programId, partnerId, userId } = input;
 
     const logger = createWorkflowLogger({
-      workflowId: "partner-approved-1",
+      workflowId: "partner-approved",
       workflowRunId: context.workflowRunId,
     });
 
