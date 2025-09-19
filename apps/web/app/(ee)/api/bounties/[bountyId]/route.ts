@@ -135,7 +135,7 @@ export const PATCH = withWorkspace(
       ) {
         throw new DubApiError({
           code: "bad_request",
-          message: `You cannot change the performance condition from "${WORKFLOW_ATTRIBUTE_LABELS[currentCondition.attribute]}" to "${WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute]}" because the bounty has submissions.`,
+          message: `You cannot change the performance condition from "${WORKFLOW_ATTRIBUTE_LABELS[currentCondition.attribute].toLowerCase()}" to "${WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute].toLowerCase()}" because the bounty has submissions.`,
         });
       }
     }

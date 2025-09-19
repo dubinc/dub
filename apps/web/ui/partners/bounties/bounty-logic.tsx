@@ -1,7 +1,9 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
-import { WorkflowConditionAttribute } from "@/lib/types";
-import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
+import {
+  WORKFLOW_ATTRIBUTE_LABELS,
+  WORKFLOW_ATTRIBUTES,
+} from "@/lib/zod/schemas/workflows";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
@@ -12,13 +14,6 @@ import { cn, currencyFormatter } from "@dub/utils";
 import { useAddEditBountyForm } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/add-edit-bounty-sheet";
 import { useContext } from "react";
 import { Controller } from "react-hook-form";
-
-const WORKFLOW_ATTRIBUTE_LABELS: Record<WorkflowConditionAttribute, string> = {
-  totalLeads: "total leads",
-  totalConversions: "total conversions",
-  totalSaleAmount: "total revenue",
-  totalCommissions: "total commissions",
-} as const;
 
 export function BountyLogic({ className }: { className?: string }) {
   const { control, watch } = useAddEditBountyForm();
@@ -73,7 +68,7 @@ export function BountyLogic({ className }: { className?: string }) {
               <InlineBadgePopover
                 text={
                   field.value
-                    ? WORKFLOW_ATTRIBUTE_LABELS[field.value]
+                    ? WORKFLOW_ATTRIBUTE_LABELS[field.value].toLowerCase()
                     : "activity"
                 }
                 invalid={!field.value}
@@ -82,7 +77,7 @@ export function BountyLogic({ className }: { className?: string }) {
                   selectedValue={field.value}
                   onSelect={field.onChange}
                   items={WORKFLOW_ATTRIBUTES.map((attribute) => ({
-                    text: WORKFLOW_ATTRIBUTE_LABELS[attribute],
+                    text: WORKFLOW_ATTRIBUTE_LABELS[attribute].toLowerCase(),
                     value: attribute,
                   }))}
                 />
