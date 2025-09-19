@@ -72,6 +72,7 @@ export const createBountySchema = z.object({
 export const updateBountySchema = createBountySchema
   .omit({
     type: true,
+    currentStatsOnly: true,
   })
   .partial();
 
