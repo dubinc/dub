@@ -44,6 +44,10 @@ function PartnerApplicationSheetContent({
   const { slug: workspaceSlug } = useWorkspace();
   const [currentTabId, setCurrentTabId] = useState<string>("about");
 
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
+    partner.groupId ?? null,
+  );
+
   return (
     <div className="flex size-full flex-col">
       <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
@@ -92,7 +96,13 @@ function PartnerApplicationSheetContent({
 
       <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="@3xl/sheet:order-2">
-          <PartnerInfoCards partner={partner} />
+          <PartnerInfoCards
+            partner={partner}
+            {...(partner.status === "rejected" && {
+              selectedGroupId,
+              setSelectedGroupId,
+            })}
+          />
         </div>
         <div className="@3xl/sheet:order-1">
           <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
@@ -113,10 +123,13 @@ function PartnerApplicationSheetContent({
         </div>
       </div>
 
-      {partner.status === "pending" && (
+      {["pending", "rejected"].includes(partner.status) && (
         <div className="shrink-0 border-t border-neutral-200 p-5">
           <PartnerApproval
             partner={partner}
+            groupId={
+              partner.status === "rejected" ? selectedGroupId : partner.groupId
+            }
             setIsOpen={setIsOpen}
             onNext={onNext}
           />
@@ -237,10 +250,12 @@ export function PartnerApplicationSheet({
 
 function PartnerApproval({
   partner,
+  groupId,
   setIsOpen,
   onNext,
 }: {
   partner: EnrolledPartnerProps;
+  groupId?: string | null;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
 }) {
@@ -270,6 +285,7 @@ function PartnerApproval({
       await executeAsync({
         workspaceId: workspaceId,
         partnerId: partner.id,
+        groupId,
       });
     },
   });
@@ -280,13 +296,15 @@ function PartnerApproval({
     <>
       {confirmModal}
       <div className="flex justify-end gap-2">
-        <div className="flex-shrink-0">
-          <PartnerRejectButton
-            partner={partner}
-            setIsOpen={setIsOpen}
-            onNext={onNext}
-          />
-        </div>
+        {partner.status !== "rejected" && (
+          <div className="flex-shrink-0">
+            <PartnerRejectButton
+              partner={partner}
+              setIsOpen={setIsOpen}
+              onNext={onNext}
+            />
+          </div>
+        )}
         <Button
           type="button"
           variant="primary"

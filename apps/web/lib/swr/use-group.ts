@@ -1,12 +1,13 @@
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import { GroupProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useGroup({
-  groupIdOrSlug: groupIdOrSlugProp,
-}: { groupIdOrSlug?: string } = {}) {
+export default function useGroup(
+  { groupIdOrSlug: groupIdOrSlugProp }: { groupIdOrSlug?: string } = {},
+  swrOpts?: SWRConfiguration,
+) {
   const { id: workspaceId } = useWorkspace();
   const { groupSlug: groupSlugParam } = useParams<{ groupSlug: string }>();
 
@@ -23,6 +24,7 @@ export default function useGroup({
     fetcher,
     {
       keepPreviousData: true,
+      ...swrOpts,
     },
   );
 

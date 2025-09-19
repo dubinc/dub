@@ -15,15 +15,21 @@ import {
 import { toast } from "sonner";
 import { GroupSelector } from "./groups/group-selector";
 
+type ChangeGroupModalProps = {
+  showChangeGroupModal: boolean;
+  setShowChangeGroupModal: Dispatch<SetStateAction<boolean>>;
+  partners: EnrolledPartnerProps[];
+
+  /** Called when the selection is confirmed. Return false to prevent persisting the group change. */
+  onChangeGroup?: (groupId: string) => void | boolean;
+};
+
 function ChangeGroupModal({
   showChangeGroupModal,
   setShowChangeGroupModal,
   partners,
-}: {
-  showChangeGroupModal: boolean;
-  setShowChangeGroupModal: Dispatch<SetStateAction<boolean>>;
-  partners: EnrolledPartnerProps[];
-}) {
+  onChangeGroup,
+}: ChangeGroupModalProps) {
   const { id: workspaceId } = useWorkspace();
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -122,7 +128,14 @@ function ChangeGroupModal({
           className="h-8 w-fit px-3"
         />
         <Button
-          onClick={handleChangeGroup}
+          onClick={() => {
+            if (onChangeGroup?.(selectedGroupId!) === false) {
+              setShowChangeGroupModal(false);
+              return;
+            }
+            handleChangeGroup();
+          }}
+          disabled={!selectedGroupId}
           autoFocus
           loading={isSubmitting}
           text="Change group"
@@ -135,9 +148,8 @@ function ChangeGroupModal({
 
 export function useChangeGroupModal({
   partners,
-}: {
-  partners: EnrolledPartnerProps[];
-}) {
+  onChangeGroup,
+}: Pick<ChangeGroupModalProps, "partners" | "onChangeGroup">) {
   const [showChangeGroupModal, setShowChangeGroupModal] = useState(false);
 
   const ChangeGroupModalCallback = useCallback(() => {
@@ -146,6 +158,7 @@ export function useChangeGroupModal({
         showChangeGroupModal={showChangeGroupModal}
         setShowChangeGroupModal={setShowChangeGroupModal}
         partners={partners}
+        onChangeGroup={onChangeGroup}
       />
     );
   }, [showChangeGroupModal, setShowChangeGroupModal, partners]);
