@@ -85,6 +85,7 @@ const actionSchema = z.enum([
   "bounty.deleted",
   "bounty_submission.approved",
   "bounty_submission.rejected",
+  "bounty_submission.reopened",
 ]);
 
 export const auditLogTarget = z.union([
@@ -101,6 +102,7 @@ export const auditLogTarget = z.union([
       holdingPeriodDays: true,
       minPayoutAmount: true,
       autoApprovePartnersEnabledAt: true,
+      messagingEnabledAt: true,
     }).optional(),
   }),
 

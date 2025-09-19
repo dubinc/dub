@@ -29,6 +29,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       foldersUsage: true,
       paymentFailedAt: true,
       payoutsLimit: true,
+      defaultProgramId: true,
       links: {
         where: {
           key: "_root",

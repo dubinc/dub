@@ -4,7 +4,6 @@ import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
-  PartnerProgramEnrollmentSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
@@ -97,6 +96,7 @@ import {
 } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
+  saleEventSchemaTB,
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
@@ -452,10 +452,6 @@ export type PartnerProgramInviteProps = z.infer<
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
-export type PartnerProgramEnrollmentProps = z.infer<
-  typeof PartnerProgramEnrollmentSchema
->;
-
 export type PayoutsCount = {
   status: PayoutStatus;
   count: number;
@@ -536,6 +532,8 @@ export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
+
+export type SaleEventTB = z.infer<typeof saleEventSchemaTB>;
 
 export type GroupProps = z.infer<typeof GroupSchema> & {
   additionalLinks: PartnerGroupAdditionalLink[] | null;
