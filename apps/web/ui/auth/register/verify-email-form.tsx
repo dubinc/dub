@@ -47,13 +47,14 @@ export const VerifyEmailForm = ({
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
       trackClientEvents({
-        event: EAnalyticEvents.SIGNUP_SUCCESS,
+        event: EAnalyticEvents.AUTH_SUCCESS,
         params: {
           page_name: "profile",
-          method: "email",
+          auth_type: "signup",
+          auth_method: "email",
+          auth_origin: qrDataToCreate ? "qr" : "none",
           email,
-          signup_origin: "qr",
-          event_category: "nonAuthorized",
+          event_category: "Authorized",
         },
         sessionId,
       });
@@ -85,7 +86,35 @@ export const VerifyEmailForm = ({
       }
     },
     onError({ error }) {
-      showMessage(error.serverError, "error", authModal, setAuthModalMessage);
+      const serverError = error.serverError || "";
+      const validationError = error.validationErrors?.code?.[0] || "";
+      const fullErrorMessage =
+        serverError || validationError || "An error occurred";
+
+      const codeMatch = fullErrorMessage.match(/^\[([^\]]+)\]/);
+      const errorCode = codeMatch ? codeMatch[1] : "unknown-error";
+      const errorMessage = codeMatch
+        ? fullErrorMessage.replace(/^\[[^\]]+\]\s*/, "")
+        : fullErrorMessage;
+
+      trackClientEvents({
+        event: EAnalyticEvents.AUTH_ERROR,
+        params: {
+          page_name: "profile",
+          auth_type: "signup",
+          auth_method: "email",
+          auth_origin: qrDataToCreate ? "qr" : "none",
+          email,
+          event_category: "nonAuthorized",
+          error_code: errorCode,
+          error_message: errorMessage,
+        },
+        sessionId,
+      });
+
+      console.error("Auth error:", { code: errorCode, message: errorMessage });
+
+      showMessage(errorMessage, "error", authModal, setAuthModalMessage);
       setCode("");
       setIsInvalidCode(true);
     },

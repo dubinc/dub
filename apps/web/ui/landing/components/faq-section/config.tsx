@@ -1,3 +1,5 @@
+import { TrialClicks, TrialDays } from '@/lib/constants/trial';
+
 export const FAQ_ITEMS_HOMEPAGE = [
   {
     title: "What is a QR code generator?",
@@ -7,7 +9,7 @@ export const FAQ_ITEMS_HOMEPAGE = [
   {
     title: "Are QR codes free?",
     content:
-      "GetQR offers a 10-day free trial. After that, a Premium plan gives you unlimited QR codes, edits, scans, analytics, and downloads.",
+      `GetQR offers a ${TrialDays}-day free trial or ${TrialClicks} scans. After that, a Premium plan gives you unlimited QR codes, edits, scans, analytics, and downloads.`,
   },
   {
     title: "Can the generated QR codes be used for commercial purposes?",
@@ -30,7 +32,7 @@ export const FAQ_ITEMS_PAYWALL = [
   {
     title: "Why is my QR code deactivated?",
     content:
-      "Your free trial has ended. GetQR offers full Premium access for 10 days or 30 scans — whichever comes first. Once the trial ends, your QR codes are paused until you upgrade to a paid plan.",
+      `Your free trial has ended. GetQR offers full Premium access for ${TrialDays} days or ${TrialClicks} scans — whichever comes first. Once the trial ends, your QR codes are paused until you upgrade to a paid plan.`,
   },
   {
     title: "What happens when I upgrade?",

@@ -1,5 +1,6 @@
 "use client";
 
+import { TrialClicks, TrialDays } from '@/lib/constants/trial';
 import { X } from "@/ui/shared/icons";
 import { Button, Modal } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -94,8 +95,8 @@ export function TrialExpiredModal({
           <div className="w-full space-y-3 sm:space-y-4">
             <div className="text-left">
               <p className="text-medium text-sm leading-relaxed text-neutral-800 sm:text-base">
-                Free access has expired because you’ve either reached the 10-day
-                usage limit or completed 30 scans.
+                Free access has expired because you’ve either reached the {TrialDays}-day
+                usage limit or completed {TrialClicks} scans.
                 <br />
                 <br />
                 <span className="text-neutral">

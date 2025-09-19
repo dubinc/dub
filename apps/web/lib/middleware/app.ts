@@ -36,12 +36,17 @@ export default async function AppMiddleware(
     // !path.startsWith("/auth/reset-password/") &&
     // !path.startsWith("/share/")
   ) {
-    const response = NextResponse.rewrite(
+    let response = NextResponse.rewrite(
       new URL(
         `/${path === "/" ? "" : `?next=${encodeURIComponent(fullPath)}`}`,
         req.url,
       ),
     );
+
+    if (path.startsWith("/account")) {
+      response = NextResponse.redirect(new URL("/?login=true", req.url));
+    }
+
 
     // Set country cookie
     if (country) {

@@ -1,7 +1,8 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { showMessage } from "@/ui/auth/helpers";
 import { MessageType } from "@/ui/modals/auth-modal.tsx";
-import { Button, Input, useMediaQuery } from "@dub/ui";
+import { QRBuilderData } from "@/ui/qr-builder/types/types";
+import { Button, Input, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
@@ -33,6 +34,10 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
   const { isMobile } = useMediaQuery();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [qrDataToCreate] = useLocalStorage<QRBuilderData | null>(
+    "qr-data-to-create",
+    null,
+  );
 
   const {
     showPasswordField,
@@ -69,10 +74,12 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
           });
 
           trackClientEvents({
-            event: EAnalyticEvents.LOGIN_ATTEMPT,
+            event: EAnalyticEvents.AUTH_ATTEMPT,
             params: {
               page_name: "landing",
-              method: "email",
+              auth_type: "login",
+              auth_method: "email",
+              auth_origin: qrDataToCreate ? "qr" : "none",
               email: email,
               event_category: "nonAuthorized",
             },
@@ -97,6 +104,22 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
 
             if (!accountExists) {
               setClickedMethod(undefined);
+
+              trackClientEvents({
+                event: EAnalyticEvents.AUTH_ERROR,
+                params: {
+                  page_name: "landing",
+                  auth_type: "login",
+                  auth_method: "email",
+                  auth_origin: qrDataToCreate ? "qr" : "none",
+                  email: email,
+                  event_category: "nonAuthorized",
+                  error_code: "user-not-found",
+                  error_message: "No account found with that email address.",
+                },
+                sessionId,
+              });
+
               showMessage(
                 "No account found with that email address.",
                 "error",
@@ -119,6 +142,22 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
 
           if (!accountExists) {
             setClickedMethod(undefined);
+
+            trackClientEvents({
+              event: EAnalyticEvents.AUTH_ERROR,
+              params: {
+                page_name: "landing",
+                auth_type: "login",
+                auth_method: "email",
+                auth_origin: qrDataToCreate ? "qr" : "none",
+                email: email,
+                event_category: "nonAuthorized",
+                error_code: "user-not-found",
+                error_message: "No account found with that email address.",
+              },
+              sessionId,
+            });
+
             showMessage(
               "No account found with that email address.",
               "error",
@@ -158,6 +197,23 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
               );
             }
 
+            trackClientEvents({
+              event: EAnalyticEvents.AUTH_ERROR,
+              params: {
+                page_name: "landing",
+                auth_type: "login",
+                auth_method: "email",
+                auth_origin: qrDataToCreate ? "qr" : "none",
+                email: email,
+                event_category: "nonAuthorized",
+                error_code: response.error,
+                error_message: errorCodes[response.error]
+                  ? errorCodes[response.error]
+                  : "Error sending sign-in link.",
+              },
+              sessionId,
+            });
+
             setClickedMethod(undefined);
             return;
           }
@@ -166,7 +222,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
 
           if (provider === "email") {
             showMessage(
-              "Email sent - check your inbox!",
+              `We’ve sent a login link to ${email}. Check your inbox.`,
               "success",
               authModal,
               setAuthModalMessage,

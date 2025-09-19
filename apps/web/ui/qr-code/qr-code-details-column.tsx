@@ -12,7 +12,7 @@ interface QrCodeDetailsColumnProps {
   canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
-  isTrialOver?: boolean;
+  featuresAccess?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
 }
 
@@ -21,7 +21,7 @@ export function QrCodeDetailsColumn({
   canvasRef,
   builtQrCodeObject,
   currentQrTypeInfo,
-  isTrialOver,
+  featuresAccess,
   setShowTrialExpiredModal,
 }: QrCodeDetailsColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -33,7 +33,7 @@ export function QrCodeDetailsColumn({
     >
       <div className="hidden gap-3 lg:flex lg:gap-6">
         <QrCardType currentQrTypeInfo={currentQrTypeInfo} />
-        {qrCode.archived || isTrialOver ? (
+        {qrCode.archived || !featuresAccess ? (
           <QRCardStatus archived />
         ) : (
           <QRCardAnalyticsBadge qrCode={qrCode} />
@@ -44,7 +44,7 @@ export function QrCodeDetailsColumn({
         qrCode={qrCode}
         canvasRef={canvasRef}
         builtQrCodeObject={builtQrCodeObject}
-        isTrialOver={isTrialOver}
+        featuresAccess={featuresAccess}
         setShowTrialExpiredModal={setShowTrialExpiredModal}
       />
     </div>

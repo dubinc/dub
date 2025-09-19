@@ -23,6 +23,16 @@ import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
 
+class AuthError extends Error {
+  constructor(
+    public code: string,
+    message: string,
+  ) {
+    super(`[${code}] ${message}`);
+    this.name = "AuthError";
+  }
+}
+
 const qrDataToCreateSchema = z.object({
   title: z.string(),
   styles: z.object({}).passthrough(),
@@ -64,7 +74,10 @@ export const createUserAccountAction = actionClient
     const { success } = await ratelimit(2, "1 m").limit(`signup:${getIP()}`);
 
     if (!success) {
-      throw new Error("Too many requests. Please try again later.");
+      throw new AuthError(
+        "rate-limit-exceeded",
+        "Too many requests. Please try again later.",
+      );
     }
 
     const { sessionId } = await getUserCookieService();
@@ -81,16 +94,40 @@ export const createUserAccountAction = actionClient
     });
 
     if (!verificationToken) {
-      throw new Error("Invalid verification code entered.");
+      throw new AuthError("invalid-otp", "Invalid verification code entered.");
     }
 
-    const { workspace: workspaceResponse, user: createdUser } =
-      await verifyAndCreateUser({
+    let workspace: any;
+    let createdUser: any;
+
+    try {
+      const response = await verifyAndCreateUser({
         userId: generatedUserId,
         email,
         code,
         password,
       });
+      workspace = response.workspace;
+      createdUser = response.user;
+    } catch (error: any) {
+      console.error("Failed to create user:", error);
+
+      if (error.message?.includes("User with this email already exists")) {
+        throw new AuthError(
+          "email-exists",
+          "User with this email already exists",
+        );
+      }
+
+      if (error.message?.includes("Invalid verification code")) {
+        throw new AuthError("invalid-otp", "Invalid verification code");
+      }
+
+      throw new AuthError(
+        "user-creation-failed",
+        "Failed to create user account. Please try again.",
+      );
+    }
 
     waitUntil(
       Promise.all([
@@ -117,7 +154,7 @@ export const createUserAccountAction = actionClient
                   linkData: {
                     url: linkUrl,
                   },
-                  workspace: workspaceResponse as Pick<
+                  workspace: workspace as Pick<
                     WorkspaceProps,
                     "id" | "plan" | "flags"
                   >,
@@ -137,6 +174,9 @@ export const createUserAccountAction = actionClient
                   userId: generatedUserId,
                   params: {
                     ...trackingParams,
+                    link_url: qrCreateResponse.createdLink?.shortLink,
+                    link_id: qrCreateResponse.createdLink?.id,
+                    target_url: qrCreateResponse.createdLink?.url,
                   },
                 });
               })(),
@@ -147,6 +187,11 @@ export const createUserAccountAction = actionClient
         redis.set(`onboarding-step:${generatedUserId}`, "completed"),
         CustomerIOClient.identify(generatedUserId, {
           email,
+          env:
+            !process.env.NEXT_PUBLIC_APP_ENV ||
+            process.env.NEXT_PUBLIC_APP_ENV === "dev"
+              ? "development"
+              : undefined,
         }),
         sendEmail({
           email: email,
@@ -166,6 +211,6 @@ export const createUserAccountAction = actionClient
 
     return {
       user: createdUser,
-      workspace: workspaceResponse,
+      workspace: workspace,
     };
   });

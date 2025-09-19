@@ -22,14 +22,26 @@ import { NextResponse } from "next/server";
 // GET /api/qrs – get all qrs for a workspace
 export const GET = withWorkspace(
   async ({ headers, searchParams, workspace, session }) => {
+    const startTime = performance.now();
+
     const params = getLinksQuerySchemaBase.parse(searchParams);
 
     const response = await getQrs(params, {
       includeFile: true,
     });
 
+    const endTime = performance.now();
+    const executionTime = Math.round(endTime - startTime);
+
+    console.log(`🚀 QR List API Performance: ${executionTime}ms`);
+    console.log(`📊 Query params:`, params);
+    console.log(`📈 Results count: ${response.length}`);
+
     return NextResponse.json(response, {
-      headers,
+      headers: {
+        ...headers,
+        "X-Execution-Time": `${executionTime}ms`,
+      },
     });
   },
   {
@@ -75,7 +87,7 @@ export const POST = withWorkspace(
       url: body.fileId ? `${R2_URL}/qrs-content/${body.fileId}` : body.link.url,
     };
 
-    const { createdQr } = await createQrWithLinkUniversal({
+    const { createdQr, createdLink } = await createQrWithLinkUniversal({
       qrData: body,
       linkData,
       workspace,
@@ -117,9 +129,12 @@ export const POST = withWorkspace(
       });
     }
 
-    return NextResponse.json(createdQr, {
-      headers,
-    });
+    return NextResponse.json(
+      { createdQr, createdLink },
+      {
+        headers,
+      },
+    );
   },
   {
     requiredPermissions: ["links.write"],

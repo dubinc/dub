@@ -1,7 +1,6 @@
 "use client";
 
-import { FeaturesAccess } from '@/lib/actions/check-features-access-auth-less';
-import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
+import { FeaturesAccess } from "@/lib/actions/check-features-access-auth-less";
 import { FAQ_ITEMS_PAYWALL } from "@/ui/landing/components/faq-section/config.tsx";
 import { FAQSection } from "@/ui/landing/components/faq-section/faq-section.tsx";
 import { PaymentComponent } from "@/ui/plans/components/payment-component.tsx";
@@ -12,11 +11,13 @@ import { ICustomerBody } from "core/integration/payment/config";
 import { FC, useRef } from "react";
 
 interface IPlansContentProps {
+  mostScannedQR: QrStorageData | null;
   user: ICustomerBody;
   featuresAccess: FeaturesAccess;
 }
 
 export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
+  mostScannedQR = null,
   user,
   featuresAccess,
 }) => {
@@ -33,13 +34,11 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
 
   return (
     <div className="flex w-full flex-col items-center justify-center gap-4 lg:gap-8">
-      <PlansHeading
-        featuresAccess={featuresAccess}
-      />
+      <PlansHeading featuresAccess={featuresAccess} />
 
       <div className="flex w-full flex-col gap-4 lg:flex-row lg:items-start lg:gap-8">
         <PopularQrInfo
-          user={user}
+          mostScannedQR={mostScannedQR}
           featuresAccess={featuresAccess}
           handleScroll={handleScrollToPayment}
         />

@@ -38,7 +38,7 @@ export default function QrCodesContainer({
   const { qrs: clientQrs, isValidating } = useQrs({
     sortBy,
     showArchived: true,
-  });
+  }, {}, false, true);
 
   const qrs = clientQrs || initialQrs;
 
@@ -49,7 +49,6 @@ export default function QrCodesContainer({
 
   useEffect(() => {
     if (!qrs) return;
-
     setQrsWithPreviews(qrs);
 
     const timeoutId = setTimeout(async () => {
@@ -64,7 +63,7 @@ export default function QrCodesContainer({
     <MaxWidthWrapper className="grid gap-y-2">
       <QrCodesList
         CreateQrCodeButton={CreateQrCodeButton}
-        qrCodes={qrsWithPreviews}
+        qrCodes={qrsWithPreviews || qrs}
         loading={isValidating || (qrs && !qrsWithPreviews)}
         compact={viewMode === "rows"}
         featuresAccess={featuresAccess}
@@ -122,7 +121,7 @@ function QrCodesList({
             {qrCodes?.length
               ? // Link cards
                 qrCodes.map((qrCode) => (
-                  <QrCodeCard key={qrCode.id} qrCode={qrCode} />
+                  <QrCodeCard key={qrCode.id} qrCode={qrCode} featuresAccess={featuresAccess} />
                 ))
               : // Loading placeholder cards
                 Array.from({ length: 12 }).map((_, idx) => (
