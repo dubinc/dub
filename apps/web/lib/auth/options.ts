@@ -20,6 +20,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { qstash } from "../cron";
+import { isGenericEmail } from "../emails";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
 import {
@@ -221,6 +222,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error("too-many-login-attempts");
         }
 
+        // SSO enforcement check
+        const ssoEnforced = await isSamlEnforcedForDomain(email);
+
+        if (ssoEnforced) {
+          throw new Error("require-saml-sso");
+        }
+
         const user = await prisma.user.findUnique({
           where: { email },
           select: {
@@ -333,6 +341,19 @@ export const authOptions: NextAuthOptions = {
 
       if (user?.lockedAt) {
         return false;
+      }
+
+      // SSO enforcement check
+      if (
+        account?.provider !== "saml" &&
+        account?.provider !== "saml-idp" &&
+        account?.provider !== "credentials" // for credentials, we do the check in the CredentialsProvider
+      ) {
+        const ssoEnforced = await isSamlEnforcedForDomain(user.email);
+
+        if (ssoEnforced) {
+          throw new Error("require-saml-sso");
+        }
       }
 
       if (account?.provider === "google" || account?.provider === "github") {
@@ -567,4 +588,27 @@ export const authOptions: NextAuthOptions = {
       }
     },
   },
+};
+
+// Checks if SAML SSO is enforced for a given email domain
+export const isSamlEnforcedForDomain = async (email: string) => {
+  const emailDomain = email.split("@")[1];
+
+  if (!emailDomain || isGenericEmail(emailDomain)) {
+    return false;
+  }
+
+  // TODO:
+  // Add caching to reduce database hits(?)
+
+  const workspace = await prisma.project.findUnique({
+    where: {
+      ssoEmailDomain: emailDomain,
+    },
+    select: {
+      ssoEnforcedAt: true,
+    },
+  });
+
+  return workspace?.ssoEnforcedAt ?? false;
 };
