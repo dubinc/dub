@@ -26,7 +26,7 @@ import {
   ToggleGroup,
   useTable,
 } from "@dub/ui";
-import { cn, fetcher, formatDateTime } from "@dub/utils";
+import { cn, currencyFormatter, fetcher, formatDateTime } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -239,7 +239,7 @@ function CreateCommissionSheetContent({
               cell: ({ row }) => (
                 <span className="text-sm text-neutral-700">
                   {row.original.sale?.amount
-                    ? `$${(row.original.sale.amount / 100).toFixed(2)}`
+                    ? currencyFormatter(row.original.sale.amount / 100)
                     : "-"}
                 </span>
               ),
