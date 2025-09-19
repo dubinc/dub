@@ -23,10 +23,9 @@ const WORKFLOW_ATTRIBUTE_LABELS: Record<WorkflowConditionAttribute, string> = {
 export function BountyLogic({ className }: { className?: string }) {
   const { control, watch } = useAddEditBountyForm();
 
-  const [attribute, value, currentStatsOnly] = watch([
+  const [attribute, value] = watch([
     "performanceCondition.attribute",
     "performanceCondition.value",
-    "currentStatsOnly",
   ]);
 
   return (
