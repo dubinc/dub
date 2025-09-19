@@ -26,6 +26,14 @@ export const REJECT_BOUNTY_SUBMISSION_REASONS = {
   other: "Other",
 } as const;
 
+export const BOUNTY_SUBMISSIONS_SORT_BY_COLUMNS = [
+  "createdAt",
+  "leads",
+  "conversions",
+  "saleAmount",
+  "commissions",
+] as const;
+
 export const submissionRequirementsSchema = z
   .array(z.enum(SUBMISSION_REQUIREMENTS))
   .min(0)
@@ -151,9 +159,7 @@ export const rejectBountySubmissionSchema = z.object({
 
 export const getBountySubmissionsQuerySchema = z
   .object({
-    sortBy: z
-      .enum(["createdAt", "leads", "conversions", "saleAmount", "commissions"])
-      .default("createdAt"),
+    sortBy: z.enum(BOUNTY_SUBMISSIONS_SORT_BY_COLUMNS).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     status: z.nativeEnum(BountySubmissionStatus).optional(),
     groupId: z.string().optional(),
