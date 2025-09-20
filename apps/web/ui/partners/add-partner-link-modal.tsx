@@ -1,7 +1,9 @@
-import useGroups from "@/lib/swr/use-groups";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
+import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps, LinkProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   ArrowTurnLeft,
   Button,
@@ -12,7 +14,14 @@ import {
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, getPathnameFromUrl, linkConstructor, punycode } from "@dub/utils";
+import {
+  cn,
+  constructURLFromUTMParams,
+  getPathnameFromUrl,
+  linkConstructor,
+  punycode,
+} from "@dub/utils";
+import { UtmTemplate } from "@prisma/client";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,7 +47,6 @@ const AddPartnerLinkModal = ({
   onSuccess,
   partner,
 }: AddPartnerLinkModalProps) => {
-  const { groups } = useGroups();
   const { program } = useProgram();
   const { isMobile } = useMediaQuery();
   const { id: workspaceId } = useWorkspace();
@@ -54,7 +62,9 @@ const AddPartnerLinkModal = ({
     },
   });
 
-  const partnerGroup = groups?.find((group) => group.id === partner.groupId);
+  const { group: partnerGroup } = useGroup({
+    groupIdOrSlug: partner.groupId ?? DEFAULT_PARTNER_GROUP.slug,
+  });
   const additionalLinks = partnerGroup?.additionalLinks ?? [];
 
   const destinationDomains = useMemo(
@@ -92,6 +102,11 @@ const AddPartnerLinkModal = ({
     setIsSubmitting(true);
     setErrorMessage(null);
 
+    const url = linkConstructor({
+      domain: destinationDomain,
+      key: getPathnameFromUrl(pathname),
+    });
+
     try {
       const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
         method: "POST",
@@ -103,9 +118,12 @@ const AddPartnerLinkModal = ({
           partnerId: partner.id,
           programId: program.id,
           domain: program.domain,
-          url: linkConstructor({
-            domain: destinationDomain,
-            key: getPathnameFromUrl(pathname),
+          url: constructURLFromUTMParams(
+            url,
+            extractUtmParams(partnerGroup?.utmTemplate as UtmTemplate),
+          ),
+          ...extractUtmParams(partnerGroup?.utmTemplate as UtmTemplate, {
+            excludeRef: true,
           }),
           trackConversion: true,
           folderId: program.defaultFolderId,
@@ -118,7 +136,7 @@ const AddPartnerLinkModal = ({
         throw new Error(data.error.message);
       }
 
-      await mutate(`/api/partners?workspaceId=${workspaceId}`);
+      await mutate(`/api/partners/${partner.id}?workspaceId=${workspaceId}`);
       toast.success("Link created successfully!");
       onSuccess?.(data);
       setShowModal(false);

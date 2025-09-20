@@ -8,7 +8,7 @@ export function LanderHero({
   preview,
 }: {
   program: Pick<Program, "name">;
-  landerData: Pick<ProgramLanderData, "title" | "description">;
+  landerData: Pick<ProgramLanderData, "label" | "title" | "description">;
   preview?: boolean;
 }) {
   const Heading = preview ? "div" : "h1";
@@ -21,7 +21,7 @@ export function LanderHero({
           "animate-slide-up-fade [--offset:5px] [animation-duration:1s] [animation-fill-mode:both]",
         )}
       >
-        Affiliate Program
+        {landerData.label || "Affiliate Program"}
       </span>
       <Heading
         className={cn(

@@ -4,6 +4,7 @@ import { generatePartnerLink } from "@/lib/api/partners/generate-partner-link";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
+import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, isFulfilled, log } from "@dub/utils";
 import { z } from "zod";
@@ -16,27 +17,31 @@ const schema = z.object({
   groupId: z.string(),
   partnerIds: z.array(z.string()).min(1),
   userId: z.string(),
+  isGroupDeleted: z.boolean().optional(),
 });
 
 /**
- * Cron job to create default partner links for all approved partners in a group.
- *
- * For each approved partner in the group, it creates a link based on
- * the group's default link configuration (domain, URL, etc.).
- *
- * It processes up to MAX_BATCH * PAGE_SIZE partners per execution
- * and schedules additional jobs if needed.
+    Cron job to remap default partner links for all partners in a group.
+    
+    The way it works: for all the partners that are just moved to the group, fetch their links that have partnerGroupDefaultLinkId set and do the following:
+    1. for default links with URLs matching the new group's default links (excluding query params), 
+      update the partnerGroupDefaultLinkId field to the new default link IDs (linksToUpdate)
+    2. for the ones that don't match, set partnerGroupDefaultLinkId to null (linksToRemoveMapping)
+    3. for the new group's default links that don't exist in the old group, create them (linksToCreate)
+
+    This runs when:
+    1. partners are moved to a group
+    2. a group is deleted and partners need to be moved to the default group
  */
 
-// POST /api/cron/groups/create-default-links
+// POST /api/cron/groups/remap-default-links
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const { programId, groupId, partnerIds, userId } = schema.parse(
-      JSON.parse(rawBody),
-    );
+    const { programId, groupId, partnerIds, userId, isGroupDeleted } =
+      schema.parse(JSON.parse(rawBody));
 
     const [program, partnerGroup, programEnrollments] = await Promise.all([
       prisma.program.findUniqueOrThrow({
@@ -67,11 +72,21 @@ export async function POST(req: Request) {
           partner: true,
           partnerGroup: true,
           links: {
-            where: {
-              partnerGroupDefaultLinkId: {
-                not: null,
-              },
+            // if this was invoked from the DELETE /groups/[groupId] route, the partnerGroupDefaultLinkId will be null
+            // due to Prisma cascade SetNull on delete – therefore we should take all links and remap them instead.
+            ...(isGroupDeleted
+              ? {}
+              : {
+                  where: {
+                    partnerGroupDefaultLinkId: {
+                      not: null,
+                    },
+                  },
+                }),
+            orderBy: {
+              createdAt: "asc",
             },
+            take: MAX_DEFAULT_PARTNER_LINKS, // there can only be up to MAX_DEFAULT_PARTNER_LINKS default links per group
           },
         },
       }),
@@ -81,11 +96,13 @@ export async function POST(req: Request) {
       `Updating ${programEnrollments.length} partners to be moved to group ${partnerGroup.name} (${partnerGroup.id}) for program ${program.name} (${program.id}).`,
     );
 
-    const remappedLinks = programEnrollments.map(({ links: partnerLinks }) =>
-      remapPartnerGroupDefaultLinks({
-        partnerLinks,
-        newGroupDefaultLinks: partnerGroup.partnerGroupDefaultLinks,
-      }),
+    const remappedLinks = programEnrollments.map(
+      ({ partnerId, links: partnerLinks }) =>
+        remapPartnerGroupDefaultLinks({
+          partnerId,
+          partnerLinks,
+          newGroupDefaultLinks: partnerGroup.partnerGroupDefaultLinks,
+        }),
     );
 
     const linksToCreate = remappedLinks.flatMap(
@@ -148,7 +165,9 @@ export async function POST(req: Request) {
         links: processedLinks,
       });
 
-      console.log(`Created ${createdLinks.length} links.`);
+      console.log(
+        `Created ${createdLinks.length} links for ${programEnrollments.length} partners that were moved to the group ${partnerGroup.name} (${partnerGroup.id}).`,
+      );
     }
 
     // Update the links
@@ -198,17 +217,16 @@ export async function POST(req: Request) {
       );
     }
 
-    if (partnerGroup.utmTemplateId) {
-      const res = await qstash.publishJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-        body: {
-          utmTemplateId: partnerGroup.utmTemplateId,
-        },
-      });
-      console.log(
-        `Scheduled sync-utm job for template ${partnerGroup.utmTemplateId}: ${JSON.stringify(res, null, 2)}`,
-      );
-    }
+    const res = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+      body: {
+        groupId,
+        partnerIds,
+      },
+    });
+    console.log(
+      `Scheduled sync-utm job for group ${groupId}: ${JSON.stringify(res, null, 2)}`,
+    );
 
     return logAndRespond(`Finished creating default links for the partners.`);
   } catch (error) {

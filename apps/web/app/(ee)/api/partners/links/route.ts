@@ -4,6 +4,7 @@ import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-ur
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
@@ -13,6 +14,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
+import { constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -95,6 +97,7 @@ export const POST = withWorkspace(
       include: {
         partnerGroup: {
           include: {
+            partnerGroupDefaultLinks: true,
             utmTemplate: true,
           },
         },
@@ -108,27 +111,33 @@ export const POST = withWorkspace(
       });
     }
 
-    validatePartnerLinkUrl({ group: partner.partnerGroup, url });
+    const partnerGroup = partner.partnerGroup;
 
-    const utmTemplate = partner.partnerGroup?.utmTemplate;
+    // shouldn't happen but just in case
+    if (!partnerGroup) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "This partner is not part of a partner group.",
+      });
+    }
+
+    validatePartnerLinkUrl({ group: partnerGroup, url });
 
     const { link, error, code } = await processLink({
       payload: {
         ...linkProps,
         domain: program.domain,
         key: key || undefined,
-        url: url || program.url,
+        url: constructURLFromUTMParams(
+          url || partnerGroup.partnerGroupDefaultLinks[0].url,
+          extractUtmParams(partnerGroup.utmTemplate),
+        ),
+        ...extractUtmParams(partnerGroup.utmTemplate, { excludeRef: true }),
         programId: program.id,
         tenantId: partner.tenantId,
         partnerId: partner.partnerId,
         folderId: program.defaultFolderId,
         trackConversion: true,
-        utm_source: linkProps?.utm_source || utmTemplate?.utm_source,
-        utm_medium: linkProps?.utm_medium || utmTemplate?.utm_medium,
-        utm_campaign: linkProps?.utm_campaign || utmTemplate?.utm_campaign,
-        utm_term: linkProps?.utm_term || utmTemplate?.utm_term,
-        utm_content: linkProps?.utm_content || utmTemplate?.utm_content,
-        ref: linkProps?.ref || utmTemplate?.ref,
       },
       workspace,
       userId: session.user.id,

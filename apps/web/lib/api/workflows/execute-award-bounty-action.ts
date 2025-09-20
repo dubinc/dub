@@ -40,6 +40,11 @@ export const executeAwardBountyAction = async ({
     return;
   }
 
+  if (!bounty.rewardAmount) {
+    console.error(`Bounty ${bountyId} has no reward amount.`);
+    return;
+  }
+
   const now = new Date();
 
   // Check bounty validity
@@ -116,7 +121,7 @@ export const executeAwardBountyAction = async ({
   if (partner.email) {
     await sendEmail({
       subject: "Bounty completed!",
-      email: partner.email,
+      to: partner.email,
       variant: "notifications",
       react: BountyCompleted({
         email: partner.email,
@@ -127,7 +132,6 @@ export const executeAwardBountyAction = async ({
         program: {
           name: bounty.program.name,
           slug: bounty.program.slug,
-          supportEmail: bounty.program.supportEmail || "support@dub.co",
         },
       }),
     });

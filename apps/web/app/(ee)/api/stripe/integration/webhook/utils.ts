@@ -127,6 +127,7 @@ export async function createNewCustomer(event: Stripe.Event) {
           eventName,
           link: linkUpdated,
           customer,
+          metadata: null,
         }),
       }),
 

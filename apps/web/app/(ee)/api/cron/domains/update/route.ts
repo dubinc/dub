@@ -1,4 +1,4 @@
-import { queueDomainUpdate } from "@/lib/api/domains/queue";
+import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";

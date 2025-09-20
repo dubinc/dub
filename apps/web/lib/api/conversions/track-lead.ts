@@ -329,6 +329,7 @@ export const trackLead = async ({
               eventName,
               link,
               customer,
+              metadata,
             }),
             workspace,
           });

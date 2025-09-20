@@ -33,6 +33,7 @@ const prefixes = [
   "bnty_", // bounty
   "bnty_sub_", // bounty submission
   "wf_", // workflow
+  "msg_", // message
 ] as const;
 
 // ULID uses base32 encoding
@@ -58,13 +59,9 @@ function createULIDBuffer(): Uint8Array {
 }
 
 // Creates a unique, time-sortable ID with an optional prefix
-export const createId = ({
-  prefix,
-}: {
-  prefix?: (typeof prefixes)[number];
-} = {}) => {
+export const createId = ({ prefix }: { prefix: (typeof prefixes)[number] }) => {
   const buf = createULIDBuffer();
   const id = base32.encode(buf);
 
-  return `${prefix || ""}${id}`;
+  return `${prefix}${id}`;
 };

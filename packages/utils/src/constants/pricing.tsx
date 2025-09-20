@@ -288,6 +288,16 @@ export const PLANS = [
         text: "20 users",
       },
       {
+        id: "flexiblerewards",
+        text: "Advanced reward structures",
+        tooltip: {
+          title:
+            "Create dynamic click, lead, or sale-based rewards with country and product-specific modifiers.",
+          cta: "Learn more.",
+          href: "https://dub.co/help/article/partner-rewards",
+        },
+      },
+      {
         id: "embeddedreferrals",
         text: "Embedded referral dashboard",
         tooltip: {
@@ -295,6 +305,14 @@ export const PLANS = [
             "Create an embedded referral dashboard directly in your app in just a few lines of code.",
           cta: "Learn more.",
           href: "https://dub.co/docs/partners/embedded-referrals",
+        },
+      },
+      {
+        id: "messages",
+        text: "Messaging center",
+        tooltip: {
+          title:
+            "Easily communicate with your partners using our messaging center.",
         },
       },
       {

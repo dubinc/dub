@@ -12,7 +12,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { includeRewardsDiscounts, status } =
     partnerProfileProgramsQuerySchema.parse(searchParams);
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
+  let programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
       ...(status && { status }),
@@ -24,7 +24,15 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           createdAt: "asc",
         },
       },
-      program: true,
+      program: {
+        include: {
+          workspace: {
+            select: {
+              plan: true,
+            },
+          },
+        },
+      },
       ...(includeRewardsDiscounts && {
         clickReward: true,
         leadReward: true,

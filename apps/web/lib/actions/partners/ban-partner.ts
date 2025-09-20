@@ -113,7 +113,7 @@ export const banPartnerAction = authActionClient
         await Promise.allSettled([
           sendEmail({
             subject: `You've been banned from the ${program.name} Partner Program`,
-            email: partner.email,
+            to: partner.email,
             replyTo: supportEmail,
             react: PartnerBanned({
               partner: {
@@ -122,7 +122,7 @@ export const banPartnerAction = authActionClient
               },
               program: {
                 name: program.name,
-                supportEmail,
+                slug: program.slug,
               },
               bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
             }),

@@ -2,10 +2,12 @@ import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
+import { constructURLFromUTMParams } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // GET /api/embed/referrals/links – get links for a partner
@@ -46,7 +48,7 @@ export const POST = withReferralsEmbedToken(
 
     validatePartnerLinkUrl({ group, url });
 
-    const [workspaceOwner, utmTemplate] = await Promise.all([
+    const [workspaceOwner, partnerGroup] = await Promise.all([
       prisma.projectUsers.findFirst({
         where: {
           projectId: program.workspaceId,
@@ -57,31 +59,39 @@ export const POST = withReferralsEmbedToken(
         },
       }),
 
-      group.utmTemplateId
-        ? prisma.utmTemplate.findUnique({
-            where: {
-              id: group.utmTemplateId,
-            },
-          })
-        : Promise.resolve(null),
+      prisma.partnerGroup.findUnique({
+        where: {
+          id: group.id,
+        },
+        include: {
+          partnerGroupDefaultLinks: true,
+          utmTemplate: true,
+        },
+      }),
     ]);
+
+    // shouldn't happen but just in case
+    if (!partnerGroup) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "This partner is not part of a partner group.",
+      });
+    }
 
     const { link, error, code } = await processLink({
       payload: {
         key: key || undefined,
-        url: url || program.url,
+        url: constructURLFromUTMParams(
+          url || partnerGroup.partnerGroupDefaultLinks[0].url,
+          extractUtmParams(partnerGroup.utmTemplate),
+        ),
+        ...extractUtmParams(partnerGroup.utmTemplate, { excludeRef: true }),
         domain: program.domain,
         programId: program.id,
         folderId: program.defaultFolderId,
         tenantId: programEnrollment.tenantId,
         partnerId: programEnrollment.partnerId,
         trackConversion: true,
-        utm_source: utmTemplate?.utm_source,
-        utm_medium: utmTemplate?.utm_medium,
-        utm_campaign: utmTemplate?.utm_campaign,
-        utm_term: utmTemplate?.utm_term,
-        utm_content: utmTemplate?.utm_content,
-        ref: utmTemplate?.ref,
       },
       workspace: {
         id: program.workspaceId,

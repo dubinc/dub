@@ -13,6 +13,7 @@ import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
+import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 
 export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
@@ -30,6 +31,7 @@ export const ProgramSchema = z.object({
   minPayoutAmount: z.number(),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
+  messagingEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string(),
@@ -66,6 +68,7 @@ export const updateProgramSchema = z.object({
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
+  messagingEnabledAt: z.coerce.date().nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
@@ -172,4 +175,48 @@ export const createProgramApplicationSchema = z.object({
   website: z.string().trim().max(100).optional(),
   proposal: z.string().trim().min(1).max(5000),
   comments: z.string().trim().max(5000).optional(),
+});
+
+export const PartnerCommentSchema = z.object({
+  id: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  userId: z.string(),
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }),
+  text: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const MAX_PROGRAM_PARTNER_COMMENT_LENGTH = 2000;
+
+export const createPartnerCommentSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  text: z.string().min(1).max(MAX_PROGRAM_PARTNER_COMMENT_LENGTH),
+  createdAt: z.coerce
+    .date()
+    .refine(
+      (date) =>
+        date.getTime() <= Date.now() &&
+        date.getTime() >= Date.now() - 1000 * 60,
+      {
+        message: "Comment timestamp must be within the last 60 seconds",
+      },
+    ),
+});
+
+export const updatePartnerCommentSchema = z.object({
+  workspaceId: z.string(),
+  id: z.string(),
+  text: z.string().min(1).max(MAX_PROGRAM_PARTNER_COMMENT_LENGTH),
+});
+
+export const deletePartnerCommentSchema = z.object({
+  workspaceId: z.string(),
+  commentId: z.string(),
 });

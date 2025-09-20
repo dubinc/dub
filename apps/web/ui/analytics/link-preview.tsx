@@ -10,17 +10,8 @@ export default function LinkPreviewTooltip({ data }: { data: LinkProps }) {
   const { slug } = useWorkspace();
   const { domain, key, url, comments } = data;
 
-  const As = slug ? Link : "div";
-
   return (
-    <As
-      href={slug ? `/${slug}/links/${domain}/${key}` : "#"}
-      {...(slug && {
-        target: "_blank",
-        onClick: (e) => e.stopPropagation(),
-      })}
-      className="group relative flex w-[28rem] items-center justify-between px-4 py-2"
-    >
+    <div className="group relative flex w-[28rem] items-center justify-between px-4 py-2">
       <div className="flex items-center gap-x-2">
         <div className="relative flex-none rounded-full border border-neutral-200 bg-gradient-to-t from-neutral-100 pr-0.5 sm:p-2">
           <LinkLogo
@@ -72,9 +63,16 @@ export default function LinkPreviewTooltip({ data }: { data: LinkProps }) {
           </div>
         </div>
       </div>
-      <div className="flex size-8 items-center justify-center rounded-full bg-neutral-50 transition-colors group-hover:bg-neutral-100">
-        <ArrowUpRight className="size-3.5 text-neutral-400 transition-all group-hover:scale-110 group-hover:text-neutral-500" />
-      </div>
-    </As>
+      {slug && (
+        <Link
+          href={`/${slug}/links/${domain}/${key}`}
+          target="_blank"
+          onClick={(e) => e.stopPropagation()}
+          className="flex size-8 items-center justify-center rounded-full bg-neutral-50 transition-colors hover:bg-neutral-100"
+        >
+          <ArrowUpRight className="size-3.5 text-neutral-400 transition-all group-hover:scale-110 group-hover:text-neutral-500" />
+        </Link>
+      )}
+    </div>
   );
 }

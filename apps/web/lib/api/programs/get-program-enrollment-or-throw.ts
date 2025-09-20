@@ -7,23 +7,33 @@ export async function getProgramEnrollmentOrThrow({
   partnerId,
   programId,
   includePartner = false,
+  includeProgram = false,
   includeClickReward = false,
   includeLeadReward = false,
   includeSaleReward = false,
   includeDiscount = false,
   includeGroup = false,
+  includeWorkspace = false,
 }: {
   partnerId: string;
   programId: string;
   includePartner?: boolean;
+  includeProgram?: boolean;
   includeClickReward?: boolean;
   includeLeadReward?: boolean;
   includeSaleReward?: boolean;
   includeDiscount?: boolean;
   includeGroup?: boolean;
+  includeWorkspace?: boolean;
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
-    program: true,
+    program: includeWorkspace
+      ? {
+          include: {
+            workspace: true,
+          },
+        }
+      : true,
     links: {
       orderBy: {
         createdAt: "asc",
@@ -31,6 +41,9 @@ export async function getProgramEnrollmentOrThrow({
     },
     ...(includePartner && {
       partner: true,
+    }),
+    ...(includeProgram && {
+      program: true,
     }),
     ...(includeClickReward && {
       clickReward: true,

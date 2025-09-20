@@ -2,7 +2,11 @@
 
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useGroup from "@/lib/swr/use-group";
+import usePartnerGroupDefaultLinks from "@/lib/swr/use-partner-group-default-links";
+import useProgram from "@/lib/swr/use-program";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerGroupDefaultLink } from "@/lib/types";
+import { createOrUpdateDefaultLinkSchema } from "@/lib/zod/schemas/groups";
 import { RewardIconSquare } from "@/ui/partners/rewards/reward-icon-square";
 import { X } from "@/ui/shared/icons";
 import {
@@ -13,12 +17,7 @@ import {
   SimpleTooltipContent,
 } from "@dub/ui";
 import { Eye, Hyperlink } from "@dub/ui/icons";
-
-import usePartnerGroupDefaultLinks from "@/lib/swr/use-partner-group-default-links";
-import useProgram from "@/lib/swr/use-program";
-import useWorkspace from "@/lib/swr/use-workspace";
-import { createOrUpdateDefaultLinkSchema } from "@/lib/zod/schemas/groups";
-import { getPrettyUrl } from "@dub/utils";
+import { normalizeUrl } from "@dub/utils";
 import {
   Dispatch,
   PropsWithChildren,
@@ -64,13 +63,11 @@ function DefaultPartnerLinkSheetContent({
 
     // Check if the link already exists
     const existingLink = defaultLinks.find(
-      (link) => getPrettyUrl(link.url) === getPrettyUrl(data.url),
+      (link) => normalizeUrl(link.url) === normalizeUrl(data.url),
     );
 
     if (existingLink && existingLink.id !== link?.id) {
-      toast.error(
-        `An existing default link already exists for this domain and URL.`,
-      );
+      toast.error("A default link with this URL already exists.");
       return;
     }
 

@@ -2,13 +2,13 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { sendEmail } from "@dub/email";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import PartnerInvite from "@dub/email/templates/partner-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
@@ -99,6 +99,10 @@ export const createProgram = async ({
         supportEmail,
         helpUrl,
         termsUrl,
+        messagingEnabledAt: getPlanCapabilities(workspace.plan)
+          .canMessagePartners
+          ? new Date()
+          : null,
         ...(type &&
           amount && {
             rewards: {
@@ -137,7 +141,7 @@ export const createProgram = async ({
         }),
         partnerGroupDefaultLinks: {
           create: {
-            id: createId(),
+            id: createId({ prefix: "pgdl_" }),
             programId,
             domain: programData.domain!,
             url: programData.url!,
@@ -197,7 +201,7 @@ export const createProgram = async ({
       // send email about the new program
       sendEmail({
         subject: `Your program ${program.name} is created and ready to share with your partners.`,
-        email: user.email!,
+        to: user.email!,
         react: ProgramWelcome({
           email: user.email!,
           workspace,
@@ -258,8 +262,8 @@ async function invitePartner({
   waitUntil(
     sendEmail({
       subject: `${program.name} invited you to join Dub Partners`,
-      from: VARIANT_TO_FROM_MAP.notifications,
-      email: partner.email,
+      variant: "notifications",
+      to: partner.email,
       react: PartnerInvite({
         email: partner.email,
         program: {

@@ -133,6 +133,7 @@ export const partnerProfileProgramsCountQuerySchema =
 export const partnerNotificationTypes = z.enum([
   "commissionCreated",
   "applicationApproved",
+  "newMessageFromProgram",
 ]);
 
 export const PartnerBountySchema = BountySchema.omit({

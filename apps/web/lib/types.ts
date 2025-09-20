@@ -63,6 +63,7 @@ import {
   ABTestVariantsSchema,
   createLinkBodySchema,
 } from "./zod/schemas/links";
+import { MessageSchema } from "./zod/schemas/messages";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   createPartnerSchema,
@@ -77,6 +78,7 @@ import {
 import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
+  PartnerCommentSchema,
   PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
@@ -94,6 +96,7 @@ import {
 } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
+  saleEventSchemaTB,
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
@@ -364,7 +367,6 @@ export type InstalledIntegrationInfoProps = Pick<
   | "installUrl"
 > & {
   createdAt: Date;
-  installations: number;
   installed: {
     id: string;
     createdAt: Date;
@@ -530,6 +532,8 @@ export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
+export type SaleEventTB = z.infer<typeof saleEventSchemaTB>;
+
 export type GroupProps = z.infer<typeof GroupSchema> & {
   additionalLinks: PartnerGroupAdditionalLink[] | null;
 };
@@ -547,6 +551,8 @@ export type PartnerGroupAdditionalLink = z.infer<
 export type PartnerGroupProps = PartnerGroup & {
   additionalLinks: PartnerGroupAdditionalLink[];
 };
+
+export type PartnerCommentProps = z.infer<typeof PartnerCommentSchema>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
@@ -584,3 +590,5 @@ export interface WorkflowContext {
 export type BountySubmissionsQueryFilters = z.infer<
   typeof getBountySubmissionsQuerySchema
 >;
+
+export type Message = z.infer<typeof MessageSchema>;

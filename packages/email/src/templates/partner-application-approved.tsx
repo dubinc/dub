@@ -21,7 +21,6 @@ export default function PartnerApplicationApproved({
     name: "Acme",
     logo: DUB_WORDMARK,
     slug: "acme",
-    supportEmail: "support@acme.com",
   },
   partner = {
     name: "John Doe",
@@ -34,7 +33,6 @@ export default function PartnerApplicationApproved({
     name: string;
     logo: string | null;
     slug: string;
-    supportEmail?: string | null;
   };
   partner: {
     name: string;
@@ -152,15 +150,13 @@ export default function PartnerApplicationApproved({
 
             <Text className="text-sm leading-6 text-neutral-600">
               If you have any questions about the program please don't hesitate
-              to reach out to the <strong>{program.name}</strong> team
-              {program.supportEmail ? (
-                <Link href={`mailto:${program.supportEmail}`}>
-                  {" "}
-                  ({program.supportEmail})
-                </Link>
-              ) : (
-                ""
-              )}
+              to{" "}
+              <Link
+                href={`https://partners.dub.co/messages/${program.slug}`}
+                className="font-semibold text-neutral-700 underline underline-offset-2"
+              >
+                reach out to the {program.name} team ↗
+              </Link>
               .
             </Text>
 

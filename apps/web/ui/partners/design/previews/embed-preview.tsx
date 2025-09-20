@@ -23,7 +23,7 @@ export function EmbedPreview({
     ...getValues(),
   };
 
-  const { group } = useGroup({ slug: "default" });
+  const { group } = useGroup({ groupIdOrSlug: "default" });
   const partnerLink = getPrettyUrl(
     constructPartnerLink({
       group,

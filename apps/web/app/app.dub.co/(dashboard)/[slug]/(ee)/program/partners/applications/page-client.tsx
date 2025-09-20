@@ -265,7 +265,6 @@ export function ProgramPartnersApplicationsPageClient() {
             <PartnerSocialColumn
               value={getDomainWithoutWWW(row.original.website) ?? "-"}
               verified={!!row.original.websiteVerifiedAt}
-              href={row.original.website}
             />
           );
         },
@@ -280,7 +279,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.youtube}
               verified={!!row.original.youtubeVerifiedAt}
-              href={`https://youtube.com/@${row.original.youtube}`}
             />
           );
         },
@@ -295,7 +293,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.twitter}
               verified={!!row.original.twitterVerifiedAt}
-              href={`https://x.com/${row.original.twitter}`}
             />
           );
         },
@@ -309,7 +306,6 @@ export function ProgramPartnersApplicationsPageClient() {
             <PartnerSocialColumn
               value={row.original.linkedin}
               verified={!!row.original.linkedinVerifiedAt}
-              href={`https://linkedin.com/in/${row.original.linkedin}`}
             />
           );
         },
@@ -324,7 +320,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.instagram}
               verified={!!row.original.instagramVerifiedAt}
-              href={`https://instagram.com/${row.original.instagram}`}
             />
           );
         },
@@ -339,7 +334,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.tiktok}
               verified={!!row.original.tiktokVerifiedAt}
-              href={`https://tiktok.com/@${row.original.tiktok}`}
             />
           );
         },
@@ -431,6 +425,20 @@ export function ProgramPartnersApplicationsPageClient() {
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
+  const [previousPartnerId, nextPartnerId] = useMemo(() => {
+    if (!partners || !detailsSheetState.partnerId) return [null, null];
+
+    const currentIndex = partners.findIndex(
+      ({ id }) => id === detailsSheetState.partnerId,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? partners[currentIndex - 1].id : null,
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+    ];
+  }, [partners, detailsSheetState.partnerId]);
+
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.partnerId && currentPartner && (
@@ -440,6 +448,24 @@ export function ProgramPartnersApplicationsPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          onPrevious={
+            previousPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: previousPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+          onNext={
+            nextPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: nextPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
         />
       )}
       <BulkApprovePartnersModal />

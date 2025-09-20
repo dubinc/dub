@@ -1,0 +1,30 @@
+{
+  "uid": "dub-webhooks",
+  "type": "webhooks",
+  "config": {
+    "settings": {
+      "targetUrl": "https://app.dub.co/api/hubspot/webhook",
+      "maxConcurrentRequests": 10
+    },
+    "subscriptions": {
+      "crmObjects": [
+        {
+          "subscriptionType": "object.creation",
+          "objectType": "contact",
+          "active": true
+        },
+        {
+          "subscriptionType": "object.creation",
+          "objectType": "deal",
+          "active": true
+        },
+        {
+          "subscriptionType": "object.propertyChange",
+          "propertyName": "dealstage",
+          "objectType": "deal",
+          "active": true
+        }
+      ]
+    }
+  }
+}

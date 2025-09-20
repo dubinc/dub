@@ -1,4 +1,5 @@
 import { Bounty } from "@dub/prisma/client";
+import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -12,14 +13,12 @@ const submissionBounty = {
 };
 
 const performanceBounty = {
-  name: "Performance Bounty",
+  name: "Earn $10 after generating 100 leads",
   description: "some description about the bounty",
   type: "performance",
   endsAt: null,
   rewardAmount: 1000,
 };
-
-const BOUNTY_GROUP_ID = "grp_1K2E25381GVMG7HHM057TB92F";
 
 describe.sequential("/bounties/**", async () => {
   const h = new IntegrationHarness();
@@ -28,7 +27,7 @@ describe.sequential("/bounties/**", async () => {
   // start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
   const startsAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-  let bountyId = "";
+  let submissionBountyId = "";
 
   test("POST /bounties - performance based", async () => {
     const { status, data: bounty } = await http.post<Bounty>({
@@ -36,7 +35,7 @@ describe.sequential("/bounties/**", async () => {
       body: {
         ...performanceBounty,
         startsAt,
-        groupIds: [BOUNTY_GROUP_ID],
+        groupIds: [E2E_PARTNER_GROUP.id],
         performanceCondition: {
           attribute: "totalLeads",
           operator: "gte",
@@ -62,7 +61,7 @@ describe.sequential("/bounties/**", async () => {
       body: {
         ...submissionBounty,
         startsAt,
-        groupIds: [BOUNTY_GROUP_ID],
+        groupIds: [E2E_PARTNER_GROUP.id],
       },
     });
 
@@ -72,7 +71,32 @@ describe.sequential("/bounties/**", async () => {
       ...submissionBounty,
     });
 
-    bountyId = bounty.id;
+    submissionBountyId = bounty.id;
+  });
+
+  test("POST /bounties - submission based with rewardDescription", async () => {
+    const { status, data: bounty } = await http.post<Bounty>({
+      path: "/bounties",
+      body: {
+        ...submissionBounty,
+        startsAt,
+        groupIds: [E2E_PARTNER_GROUP.id],
+        rewardAmount: null,
+        rewardDescription: "some reward description",
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(bounty).toMatchObject({
+      id: expect.any(String),
+      ...submissionBounty,
+      rewardAmount: null,
+      rewardDescription: "some reward description",
+    });
+
+    onTestFinished(async () => {
+      await h.deleteBounty(bounty.id);
+    });
   });
 
   test("POST /bounties - invalid group IDs", async () => {
@@ -96,7 +120,7 @@ describe.sequential("/bounties/**", async () => {
 
   test("GET /bounties/{bountyId}", async () => {
     const { status, data: bounty } = await http.get<Bounty>({
-      path: `/bounties/${bountyId}`,
+      path: `/bounties/${submissionBountyId}`,
     });
 
     expect(status).toEqual(200);
@@ -124,7 +148,7 @@ describe.sequential("/bounties/**", async () => {
     };
 
     const { status, data: bounty } = await http.patch<Bounty>({
-      path: `/bounties/${bountyId}`,
+      path: `/bounties/${submissionBountyId}`,
       body: {
         ...toUpdate,
         type: "performance", // should skip the type update
@@ -141,12 +165,12 @@ describe.sequential("/bounties/**", async () => {
 
   test("DELETE /bounties/{bountyId}", async () => {
     const { status, data: bounty } = await http.delete<{ id: string }>({
-      path: `/bounties/${bountyId}`,
+      path: `/bounties/${submissionBountyId}`,
     });
 
     expect(status).toEqual(200);
     expect(bounty).toMatchObject({
-      id: bountyId,
+      id: submissionBountyId,
     });
   });
 });

@@ -1,7 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import ProgramPayoutReminder from "@dub/email/templates/program-payout-reminder";
 import { prisma } from "@dub/prisma";
 import { chunk, pluralize } from "@dub/utils";
@@ -184,9 +183,9 @@ export async function GET(req: Request) {
     const programOwnerChunks = chunk(programsWithPendingPayoutsToNotify, 100);
 
     for (const programOwnerChunk of programOwnerChunks) {
-      const res = await resend.batch.send(
+      const res = await sendBatchEmail(
         programOwnerChunk.map(({ workspace, user, program, payout }) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
+          variant: "notifications",
           to: user.email!,
           subject: `${payout.partnersCount} ${pluralize(
             "partner",

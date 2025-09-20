@@ -1,9 +1,8 @@
-import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { transformLink } from "../api/links";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
-import z from "../zod";
+import { getCustomerEventsTB } from "../tinybird/get-customer-events-tb";
 import {
   clickEventResponseSchema,
   clickEventSchema,
@@ -18,15 +17,9 @@ export const getCustomerEvents = async ({
   customerId: string;
   linkIds?: string[];
 }) => {
-  const pipe = tb.buildPipe({
-    pipe: "v2_customer_events",
-    parameters: z.any(), // TODO
-    data: z.any(), // TODO
-  });
-
-  const response = await pipe({
+  const response = await getCustomerEventsTB({
     customerId,
-    ...(linkIds ? { linkIds } : {}),
+    linkIds,
   });
 
   const linksMap = await getLinksMap(response.data.map((d) => d.link_id));

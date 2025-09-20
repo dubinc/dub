@@ -69,11 +69,13 @@ export const PATCH = withWorkspace(
         extractUtmParams(template),
       );
 
-      if (utmFieldsChanged && updatedTemplate.partnerGroup) {
+      if (utmFieldsChanged) {
         waitUntil(
           (async () => {
-            const defaultLinks =
-              updatedTemplate.partnerGroup?.partnerGroupDefaultLinks;
+            const partnerGroup = updatedTemplate.partnerGroup;
+            if (!partnerGroup) return;
+
+            const defaultLinks = partnerGroup.partnerGroupDefaultLinks;
 
             if (defaultLinks && defaultLinks.length > 0) {
               for (const defaultLink of defaultLinks) {
@@ -97,7 +99,7 @@ export const PATCH = withWorkspace(
             const res = await qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
               body: {
-                utmTemplateId: template.id,
+                groupId: partnerGroup.id,
               },
             });
             console.log(

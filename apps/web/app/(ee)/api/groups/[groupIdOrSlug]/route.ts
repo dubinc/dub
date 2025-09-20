@@ -3,6 +3,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import {
@@ -11,7 +12,7 @@ import {
   updateGroupSchema,
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -88,20 +89,28 @@ export const PATCH = withWorkspace(
       }
     }
 
-    // Check if the UTM template exists
-    if (utmTemplateId) {
-      await prisma.utmTemplate.findUniqueOrThrow({
-        where: {
-          id: utmTemplateId,
-          projectId: workspace.id,
-        },
-      });
-    }
+    // Find the UTM template
+    const utmTemplate = utmTemplateId
+      ? await prisma.utmTemplate.findUniqueOrThrow({
+          where: {
+            id: utmTemplateId,
+            projectId: workspace.id,
+          },
+        })
+      : null;
 
-    const additionalLinksInput = additionalLinks
-      ? additionalLinks.length > 0
-        ? additionalLinks
-        : Prisma.JsonNull
+    // Deduplicate additionalLinks by domain, keeping the first occurrence
+    const deduplicatedAdditionalLinks = additionalLinks
+      ? additionalLinks.filter(
+          (link, index, array) =>
+            array.findIndex((l) => l.domain === link.domain) === index,
+        )
+      : additionalLinks;
+
+    const additionalLinksInput = deduplicatedAdditionalLinks
+      ? deduplicatedAdditionalLinks.length > 0
+        ? deduplicatedAdditionalLinks
+        : Prisma.DbNull
       : undefined;
 
     const updatedGroup = await prisma.partnerGroup.update({
@@ -125,37 +134,60 @@ export const PATCH = withWorkspace(
       },
     });
 
-    // Identify changes in UTM template
-    let utmTemplateDiff = false;
-    if (utmTemplateId) {
-      utmTemplateDiff = group.utmTemplateId !== utmTemplateId;
-    }
-
     waitUntil(
-      Promise.allSettled([
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "group.updated",
-          description: `Group ${updatedGroup.name} (${group.id}) updated`,
-          actor: session.user,
-          targets: [
-            {
-              type: "group",
-              id: group.id,
-              metadata: updatedGroup,
-            },
-          ],
-        }),
+      (async () => {
+        const isTemplateAdded = group.utmTemplateId !== utmTemplateId;
 
-        utmTemplateDiff &&
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-            body: {
-              utmTemplateId: updatedGroup.utmTemplateId,
+        // If the UTM template is added, update the default links with the UTM parameters
+        if (isTemplateAdded && utmTemplate) {
+          const defaultLinks = await prisma.partnerGroupDefaultLink.findMany({
+            where: {
+              groupId: group.id,
             },
+          });
+
+          if (defaultLinks.length > 0) {
+            for (const defaultLink of defaultLinks) {
+              await prisma.partnerGroupDefaultLink.update({
+                where: {
+                  id: defaultLink.id,
+                },
+                data: {
+                  url: constructURLFromUTMParams(
+                    defaultLink.url,
+                    extractUtmParams(utmTemplate),
+                  ),
+                },
+              });
+            }
+          }
+        }
+
+        await Promise.allSettled([
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "group.updated",
+            description: `Group ${updatedGroup.name} (${group.id}) updated`,
+            actor: session.user,
+            targets: [
+              {
+                type: "group",
+                id: group.id,
+                metadata: updatedGroup,
+              },
+            ],
           }),
-      ]),
+
+          group.utmTemplateId !== updatedGroup.utmTemplateId &&
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+              body: {
+                groupId: group.id,
+              },
+            }),
+        ]);
+      })(),
     );
 
     return NextResponse.json(GroupSchema.parse(updatedGroup));
@@ -269,6 +301,7 @@ export const DELETE = withWorkspace(
             groupId: defaultGroup.id,
             partnerIds: group.partners.map(({ partnerId }) => partnerId),
             userId: session.user.id,
+            isGroupDeleted: true,
           },
         }),
 

@@ -1,3 +1,4 @@
+import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { APP_DOMAIN, currencyFormatter, truncate } from "@dub/utils";
 import { LinkWebhookEvent } from "dub/models/components";
 import { z } from "zod";
@@ -208,7 +209,7 @@ const partnerEnrolledTemplate = ({
   data: PartnerEventWebhookPayload;
 }) => {
   const { name, email, country, partnerId } = data;
-  const linkToPartner = `${APP_DOMAIN}/program/partners?partnerId=${partnerId}`;
+  const linkToPartner = `${APP_DOMAIN}/program/partners/${partnerId}`;
 
   return {
     blocks: [
@@ -332,14 +333,27 @@ const bountyTemplates = ({
   data: BountyEventWebhookPayload;
   event: WebhookTrigger;
 }) => {
-  const { id, name, description, rewardAmount, type, startsAt, endsAt } = data;
+  const {
+    id,
+    name,
+    description,
+    rewardAmount,
+    rewardDescription,
+    type,
+    startsAt,
+    endsAt,
+  } = data;
 
   const eventMessages = {
     "bounty.created": "*New bounty created* :money_with_wings:",
     "bounty.updated": "*Bounty updated* :memo:",
   };
 
-  const formattedReward = currencyFormatter(rewardAmount / 100);
+  const formattedReward = getBountyRewardDescription({
+    rewardAmount,
+    rewardDescription,
+  });
+
   const linkToBounty = `${APP_DOMAIN}/program/bounties/${id}`;
 
   return {
@@ -360,7 +374,7 @@ const bountyTemplates = ({
           },
           {
             type: "mrkdwn",
-            text: `*Reward Amount*\n${formattedReward}`,
+            text: `*Reward*\n${formattedReward}`,
           },
         ],
       },

@@ -1,20 +1,13 @@
 import { Link, PartnerGroupDefaultLink } from "@dub/prisma/client";
-
-// Helper function to normalize URL by removing UTM parameters
-function normalizeUrl(url: string): string {
-  try {
-    const urlObj = new URL(url);
-    return `https://${urlObj.host}${urlObj.pathname}`;
-  } catch {
-    return url;
-  }
-}
+import { normalizeUrl } from "@dub/utils";
 
 // Add a new method that update the partner group default links when their group changes
 export function remapPartnerGroupDefaultLinks({
+  partnerId,
   partnerLinks,
   newGroupDefaultLinks,
 }: {
+  partnerId: string;
   partnerLinks: Pick<
     Link,
     "id" | "url" | "partnerId" | "partnerGroupDefaultLinkId"
@@ -72,7 +65,7 @@ export function remapPartnerGroupDefaultLinks({
     linksToCreate.push({
       domain: defaultLink.domain,
       url: defaultLink.url,
-      partnerId: partnerLinks[0].partnerId!,
+      partnerId,
       partnerGroupDefaultLinkId: defaultLink.id,
     });
   });

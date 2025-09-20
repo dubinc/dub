@@ -209,6 +209,7 @@ function PartnerLinkModalContent({
     register,
     watch,
     handleSubmit,
+    setValue,
     formState: { isDirty },
   } = useForm<PartnerLinkFormData>({
     defaultValues: link
@@ -224,9 +225,7 @@ function PartnerLinkModalContent({
 
   const saveDisabled = useMemo(
     () =>
-      Boolean(
-        isLoading || (link && !isDirty) || destinationDomains.length === 0,
-      ),
+      Boolean(isLoading || (link ? !isDirty : destinationDomains.length === 0)),
     [isLoading, link, isDirty, destinationDomains],
   );
 
@@ -410,14 +409,18 @@ function PartnerLinkModalContent({
                     if (isExactMode) return;
 
                     e.preventDefault();
-                    // if pasting in a URL, extract the pathname
+                    // if pasting in a URL, extract the pathname + query params
                     const text = e.clipboardData.getData("text/plain");
+                    let newValue: string;
                     try {
                       const url = new URL(text);
-                      e.currentTarget.value = url.pathname.slice(1);
+                      newValue = url.pathname.slice(1) + url.search;
                     } catch (err) {
-                      e.currentTarget.value = text;
+                      newValue = text;
                     }
+
+                    // Use setValue to properly dirty the form
+                    setValue("pathname", newValue, { shouldDirty: true });
                   }}
                   className={cn(
                     "z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",

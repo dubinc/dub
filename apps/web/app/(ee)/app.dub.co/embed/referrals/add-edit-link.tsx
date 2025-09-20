@@ -140,8 +140,10 @@ export function ReferralsEmbedCreateUpdateLink({
 
   // If there is only one destination domain and we are in exact mode, hide the destination URL input
   const hideDestinationUrl = useMemo(
-    () => destinationDomains.length === 1 && isExactMode,
-    [destinationDomains.length, isExactMode],
+    () =>
+      link?.partnerGroupDefaultLinkId ||
+      (destinationDomains.length === 1 && isExactMode),
+    [destinationDomains.length, isExactMode, link?.partnerGroupDefaultLinkId],
   );
 
   return (
