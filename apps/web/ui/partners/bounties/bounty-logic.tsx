@@ -34,22 +34,13 @@ export function BountyLogic({ className }: { className?: string }) {
         <Trophy className="size-4 text-neutral-800" />
       </div>
       <span className="text-content-emphasis text-sm font-medium leading-relaxed">
-        When partner{" "}
+        When partner's{" "}
         <div className="inline-flex items-center gap-1">
           <Controller
             control={control}
             name="performanceScope"
             render={({ field }) => (
-              <InlineBadgePopover
-                text={
-                  field.value === "new"
-                    ? "new"
-                    : field.value === "lifetime"
-                      ? "lifetime"
-                      : "type"
-                }
-                invalid={!field.value}
-              >
+              <InlineBadgePopover text={field.value} invalid={!field.value}>
                 <InlineBadgePopoverMenu
                   selectedValue={field.value}
                   onSelect={field.onChange}
