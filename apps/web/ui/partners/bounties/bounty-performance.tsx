@@ -12,7 +12,7 @@ export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
 
   const attribute = performanceCondition.attribute;
   const target = performanceCondition.value;
-  const value = bounty.submission?.count ?? 0;
+  const value = bounty.submission?.performanceCount ?? 0;
 
   const formattedValue =
     value === undefined

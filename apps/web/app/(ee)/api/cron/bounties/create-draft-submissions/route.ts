@@ -63,9 +63,9 @@ export async function POST(req: Request) {
       return logAndRespond(`Bounty ${bountyId} is not a performance bounty.`);
     }
 
-    if (bounty.currentStatsOnly) {
+    if (bounty.performanceScope === "new") {
       return logAndRespond(
-        `Bounty ${bountyId} is limited to current stats; submission creation skipped.`,
+        `Bounty ${bountyId} is limited to new stats; submission creation skipped.`,
       );
     }
 
@@ -146,7 +146,7 @@ export async function POST(req: Request) {
       programId: bounty.programId,
       partnerId: partner.id,
       bountyId: bounty.id,
-      count: partner[condition.attribute] ?? 0,
+      performanceCount: partner[condition.attribute] ?? 0,
     }));
 
     // Create bounty submissions

@@ -116,7 +116,7 @@ export const POST = withWorkspace(
       submissionRequirements,
       groupIds,
       performanceCondition,
-      currentStatsOnly,
+      performanceScope,
     } = createBountySchema.parse(await parseRequestBody(req));
 
     if (startsAt && endsAt && endsAt < startsAt) {
@@ -142,10 +142,10 @@ export const POST = withWorkspace(
       }
     }
 
-    if (typeof currentStatsOnly !== "boolean" && type === "performance") {
+    if (!performanceScope && type === "performance") {
       throw new DubApiError({
         code: "bad_request",
-        message: "currentStatsOnly must be set for performance bounties.",
+        message: "performanceScope must be set for performance bounties.",
       });
     }
 
@@ -209,7 +209,7 @@ export const POST = withWorkspace(
           endsAt,
           rewardAmount,
           rewardDescription,
-          currentStatsOnly: type === "performance" ? currentStatsOnly : null,
+          performanceScope: type === "performance" ? performanceScope : null,
           ...(submissionRequirements &&
             type === "submission" && {
               submissionRequirements,
@@ -238,7 +238,7 @@ export const POST = withWorkspace(
     });
 
     const shouldScheduleDraftSubmissions =
-      bounty.type === "performance" && !currentStatsOnly;
+      bounty.type === "performance" && bounty.performanceScope === "lifetime";
 
     waitUntil(
       Promise.allSettled([

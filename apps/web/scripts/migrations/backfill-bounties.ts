@@ -4,13 +4,13 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import "dotenv-flow/config";
 
 async function main() {
-  // Step 1: Set all existing performance bounties to all-time stats
+  // Step 1: Set all existing performance bounties to lifetime stats
   await prisma.bounty.updateMany({
     where: {
       type: "performance",
     },
     data: {
-      currentStatsOnly: false,
+      performanceScope: "lifetime",
     },
   });
 

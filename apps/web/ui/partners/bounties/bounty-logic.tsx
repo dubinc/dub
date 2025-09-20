@@ -38,24 +38,24 @@ export function BountyLogic({ className }: { className?: string }) {
         <div className="inline-flex items-center gap-1">
           <Controller
             control={control}
-            name="currentStatsOnly"
+            name="performanceScope"
             render={({ field }) => (
               <InlineBadgePopover
                 text={
-                  field.value === true
+                  field.value === "new"
                     ? "new"
-                    : field.value === false
-                      ? "all-time"
+                    : field.value === "lifetime"
+                      ? "lifetime"
                       : "type"
                 }
-                invalid={field.value === undefined || field.value === null}
+                invalid={!field.value}
               >
                 <InlineBadgePopoverMenu
                   selectedValue={field.value}
                   onSelect={field.onChange}
                   items={[
-                    { text: "new", value: true },
-                    { text: "all-time", value: false },
+                    { text: "new", value: "new" },
+                    { text: "lifetime", value: "lifetime" },
                   ]}
                 />
               </InlineBadgePopover>

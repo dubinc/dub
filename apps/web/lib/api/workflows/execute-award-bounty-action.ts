@@ -138,10 +138,10 @@ export const executeAwardBountyAction = async ({
       partnerId,
       bountyId: bounty.id,
       status: "draft",
-      count,
+      performanceCount: count,
     },
     update: {
-      count: {
+      performanceCount: {
         increment: count,
       },
     },
@@ -151,7 +151,7 @@ export const executeAwardBountyAction = async ({
   const shouldExecute = evaluateWorkflowCondition({
     condition,
     attributes: {
-      [condition.attribute]: bountySubmission.count,
+      [condition.attribute]: bountySubmission.performanceCount,
     },
   });
 

@@ -23,7 +23,7 @@ const performanceBounty = {
   startsAt,
   endsAt: null,
   rewardAmount: 1000,
-  currentStatsOnly: false,
+  performanceScope: "lifetime",
 };
 
 describe.sequential("/bounties/**", async () => {
@@ -99,13 +99,13 @@ describe.sequential("/bounties/**", async () => {
     });
   });
 
-  test("POST /bounties - performance based with currentStatsOnly set to true", async () => {
+  test("POST /bounties - performance based with performanceScope set to new", async () => {
     const { status, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
       body: {
         ...performanceBounty,
         groupIds: [E2E_PARTNER_GROUP.id],
-        currentStatsOnly: true,
+        performanceScope: "new",
       },
     });
 
@@ -113,7 +113,7 @@ describe.sequential("/bounties/**", async () => {
     expect(bounty).toMatchObject({
       id: expect.any(String),
       ...performanceBounty,
-      currentStatsOnly: true,
+      performanceScope: "new",
     });
 
     onTestFinished(async () => {

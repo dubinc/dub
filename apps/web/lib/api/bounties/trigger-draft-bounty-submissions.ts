@@ -7,7 +7,7 @@ import { getBountiesByGroups } from "./get-bounties-by-groups";
 // TODO:
 // Need a better method name
 
-// Trigger the creation of draft submissions for performance bounties that uses all-time stats for the given partners
+// Trigger the creation of draft submissions for performance bounties that uses lifetime stats for the given partners
 export async function triggerDraftBountySubmissionCreation({
   programId,
   partnerIds,
@@ -65,7 +65,7 @@ export async function triggerDraftBountySubmissionCreation({
 
     if (eligibleBounties.length === 0) {
       console.log(
-        `No eligible bounties found for the group ${groupId}. Either there are no performance bounties, or there are no all-time stats.`,
+        `No eligible bounties found for the group ${groupId}. Either there are no performance bounties, or there are no lifetime stats.`,
       );
       continue;
     }
@@ -99,7 +99,7 @@ function isEligiblePerformanceBounty(bounty: Bounty) {
   const now = new Date();
 
   if (bounty.type !== "performance") return false;
-  if (bounty.currentStatsOnly) return false;
+  if (bounty.performanceScope === "new") return false;
   if (bounty.startsAt > now) return false;
   if (bounty.endsAt && bounty.endsAt <= now) return false;
 

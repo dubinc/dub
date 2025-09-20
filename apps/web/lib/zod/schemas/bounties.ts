@@ -1,4 +1,5 @@
 import {
+  BountyPerformanceScope,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
   BountyType,
@@ -66,13 +67,13 @@ export const createBountySchema = z.object({
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: workflowConditionSchema.nullish(),
-  currentStatsOnly: z.boolean().nullish(),
+  performanceScope: z.nativeEnum(BountyPerformanceScope).nullish(),
 });
 
 export const updateBountySchema = createBountySchema
   .omit({
     type: true,
-    currentStatsOnly: true,
+    performanceScope: true,
   })
   .partial();
 
@@ -95,7 +96,7 @@ export const BountySchema = z.object({
   performanceCondition: workflowConditionSchema.nullable().default(null),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
-  currentStatsOnly: z.boolean().nullable(),
+  performanceScope: z.nativeEnum(BountyPerformanceScope).nullable(),
 });
 
 export const getBountiesQuerySchema = z.object({
@@ -117,7 +118,7 @@ export const BountySubmissionSchema = z.object({
   urls: z.array(z.string()).nullable(),
   files: z.array(BountySubmissionFileSchema).nullable(),
   status: z.nativeEnum(BountySubmissionStatus),
-  count: z.number().nullable(),
+  performanceCount: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   reviewedAt: z.date().nullable(),

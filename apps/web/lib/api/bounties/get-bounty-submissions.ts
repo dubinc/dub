@@ -1,21 +1,9 @@
 import { BountySubmissionsQueryFilters } from "@/lib/types";
-import { BOUNTY_SUBMISSIONS_SORT_BY_COLUMNS } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 
 interface GetBountySubmissionsParams extends BountySubmissionsQueryFilters {
   bountyId: string;
 }
-
-const SORT_COLUMNS_MAP: Record<
-  (typeof BOUNTY_SUBMISSIONS_SORT_BY_COLUMNS)[number],
-  string
-> = {
-  createdAt: "createdAt",
-  commissions: "count",
-  leads: "count",
-  conversions: "count",
-  saleAmount: "count",
-};
 
 // Get list of submissions for a given bounty
 export async function getBountySubmissions({
@@ -44,7 +32,7 @@ export async function getBountySubmissions({
       programEnrollment: true,
     },
     orderBy: {
-      [SORT_COLUMNS_MAP[sortBy]]: sortOrder,
+      [sortBy === "createdAt" ? "createdAt" : "performanceCount"]: sortOrder,
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
