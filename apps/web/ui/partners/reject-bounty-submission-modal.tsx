@@ -21,7 +21,7 @@ type FormData = Pick<
 >;
 
 interface RejectBountySubmissionModalProps {
-  submission: BountySubmissionProps["submission"];
+  submission: BountySubmissionProps;
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
 }
@@ -167,7 +167,7 @@ const RejectBountySubmissionModal = ({
 };
 
 export function useRejectBountySubmissionModal(
-  submission: BountySubmissionProps["submission"],
+  submission: BountySubmissionProps,
   onReject?: () => void,
 ) {
   const [showRejectModal, setShowRejectModal] = useState(false);

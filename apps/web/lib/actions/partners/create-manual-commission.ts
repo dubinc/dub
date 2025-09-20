@@ -431,6 +431,11 @@ export const createManualCommissionAction = authActionClient
           finalCommissionsToTransferEventIds,
         );
 
+        const firstConversionFlag = isFirstConversion({
+          customer,
+          linkId,
+        });
+
         const updatedRes = await Promise.all([
           // update link stats
           prisma.link.update({
@@ -438,10 +443,7 @@ export const createManualCommissionAction = authActionClient
               id: link.id,
             },
             data: {
-              ...(isFirstConversion({
-                customer,
-                linkId,
-              }) && {
+              ...(firstConversionFlag && {
                 leads: {
                   increment: 1,
                 },
@@ -494,8 +496,15 @@ export const createManualCommissionAction = authActionClient
               commissionType === "lead"
                 ? WorkflowTrigger.leadRecorded
                 : WorkflowTrigger.saleRecorded,
-            programId,
-            partnerId,
+            context: {
+              programId,
+              partnerId,
+              current: {
+                leads: commissionType === "lead" ? 1 : 0,
+                saleAmount: saleAmount ?? totalSaleAmount,
+                conversions: firstConversionFlag ? 1 : 0,
+              },
+            },
           });
         }
       })(),

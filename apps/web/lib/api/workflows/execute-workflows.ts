@@ -1,7 +1,6 @@
-import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import {
-  WorkflowAction,
   WorkflowCondition,
+  WorkflowConditionAttribute,
   WorkflowContext,
 } from "@/lib/types";
 import {
@@ -15,14 +14,15 @@ import { z } from "zod";
 import { executeAwardBountyAction } from "./execute-award-bounty-action";
 
 export async function executeWorkflows({
-  programId,
-  partnerId,
   trigger,
+  context,
 }: {
-  programId: string;
-  partnerId: string;
   trigger: WorkflowTrigger;
+  context: WorkflowContext;
 }) {
+  const { programId, partnerId } = context;
+
+  // Find the workflows for the program
   const workflows = await prisma.workflow.findMany({
     where: {
       programId,
@@ -34,6 +34,7 @@ export async function executeWorkflows({
     return;
   }
 
+  // Find the program enrollment for the partner
   const programEnrollment = await prisma.programEnrollment.findUnique({
     where: {
       partnerId_programId: {
@@ -42,17 +43,8 @@ export async function executeWorkflows({
       },
     },
     select: {
+      partnerId: true,
       groupId: true,
-      totalCommissions: true,
-      links: {
-        select: {
-          clicks: true,
-          sales: true,
-          leads: true,
-          conversions: true,
-          saleAmount: true,
-        },
-      },
     },
   });
 
@@ -70,16 +62,10 @@ export async function executeWorkflows({
     return;
   }
 
-  const { totalLeads, totalConversions, totalSaleAmount } =
-    aggregatePartnerLinksStats(programEnrollment.links);
-
+  // Final context for the workflow
   const workflowContext: WorkflowContext = {
-    partnerId,
+    ...context,
     groupId: programEnrollment.groupId,
-    totalLeads,
-    totalConversions,
-    totalSaleAmount,
-    totalCommissions: programEnrollment.totalCommissions,
   };
 
   // Execute each workflow for the program
@@ -102,33 +88,27 @@ export async function executeWorkflows({
     const condition = conditions[0];
     const action = actions[0];
 
-    const shouldExecute = evaluateWorkflowCondition({
-      condition,
-      context: workflowContext,
-    });
-
-    if (!shouldExecute) {
-      console.log(
-        `Workflow ${workflow.id} does not meet the trigger condition.`,
-      );
-      continue;
+    if (action.type === "awardBounty") {
+      await executeAwardBountyAction({
+        condition,
+        context: workflowContext,
+        action,
+      });
     }
-
-    await executeWorkflowAction({
-      action,
-      context: workflowContext,
-    });
   }
 }
 
-function evaluateWorkflowCondition({
+export function evaluateWorkflowCondition({
   condition,
-  context,
+  attributes,
 }: {
   condition: WorkflowCondition;
-  context: WorkflowContext;
+  attributes: Partial<Record<WorkflowConditionAttribute, number | null>>;
 }) {
-  console.log("Evaluating workflow condition", condition, context);
+  console.log("Evaluating the workflow condition:", {
+    condition,
+    attributes,
+  });
 
   const operatorFn = OPERATOR_FUNCTIONS[condition.operator];
 
@@ -138,22 +118,12 @@ function evaluateWorkflowCondition({
     );
   }
 
-  return operatorFn(context[condition.attribute], condition.value);
-}
+  const attributeValue = attributes[condition.attribute];
 
-async function executeWorkflowAction({
-  action,
-  context,
-}: {
-  action: WorkflowAction;
-  context: WorkflowContext;
-}) {
-  switch (action.type) {
-    case "awardBounty":
-      await executeAwardBountyAction({
-        action,
-        context,
-      });
-      break;
+  // If the attribute is not provided in context, return false
+  if (!attributeValue) {
+    return false;
   }
+
+  return operatorFn(attributeValue, condition.value);
 }

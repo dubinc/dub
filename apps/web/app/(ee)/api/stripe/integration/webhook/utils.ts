@@ -135,8 +135,13 @@ export async function createNewCustomer(event: Stripe.Event) {
         link.partnerId &&
         executeWorkflows({
           trigger: WorkflowTrigger.leadRecorded,
-          programId: link.programId,
-          partnerId: link.partnerId,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              leads: 1,
+            },
+          },
         }),
     ]),
   );

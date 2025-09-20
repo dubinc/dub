@@ -3,7 +3,7 @@ import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps } from "@/lib/types";
 import {
   MAX_SUBMISSION_FILES,
   MAX_SUBMISSION_URLS,
@@ -39,7 +39,6 @@ import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 type ClaimBountyModalProps = {
   setShowModal: Dispatch<SetStateAction<boolean>>;
   bounty: PartnerBountyProps;
-  submission?: BountySubmissionProps["submission"];
 };
 
 interface FileInput {
@@ -54,10 +53,9 @@ interface Url {
   url: string;
 }
 
-function ClaimBountyModalContent({
-  bounty,
-  submission,
-}: ClaimBountyModalProps) {
+function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
+  const { submission } = bounty;
+
   const { programEnrollment } = useProgramEnrollment();
 
   const [success, setSuccess] = useState(false);

@@ -18,6 +18,22 @@ export const MAX_SUBMISSION_FILES = 4;
 
 export const MAX_SUBMISSION_URLS = 20;
 
+export const REJECT_BOUNTY_SUBMISSION_REASONS = {
+  invalidProof: "Invalid proof",
+  duplicateSubmission: "Duplicate submission",
+  outOfTimeWindow: "Out of time window",
+  didNotMeetCriteria: "Did not meet criteria",
+  other: "Other",
+} as const;
+
+export const BOUNTY_SUBMISSIONS_SORT_BY_COLUMNS = [
+  "createdAt",
+  "leads",
+  "conversions",
+  "saleAmount",
+  "commissions",
+] as const;
+
 export const submissionRequirementsSchema = z
   .array(z.enum(SUBMISSION_REQUIREMENTS))
   .min(0)
@@ -50,11 +66,13 @@ export const createBountySchema = z.object({
   submissionRequirements: submissionRequirementsSchema.nullish(),
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: workflowConditionSchema.nullish(),
+  currentStatsOnly: z.boolean().nullish(),
 });
 
 export const updateBountySchema = createBountySchema
   .omit({
     type: true,
+    currentStatsOnly: true,
   })
   .partial();
 
@@ -77,6 +95,7 @@ export const BountySchema = z.object({
   performanceCondition: workflowConditionSchema.nullable().default(null),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
+  currentStatsOnly: z.boolean().nullable(),
 });
 
 export const getBountiesQuerySchema = z.object({
@@ -98,6 +117,7 @@ export const BountySubmissionSchema = z.object({
   urls: z.array(z.string()).nullable(),
   files: z.array(BountySubmissionFileSchema).nullable(),
   status: z.nativeEnum(BountySubmissionStatus),
+  count: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   reviewedAt: z.date().nullable(),
@@ -105,8 +125,7 @@ export const BountySubmissionSchema = z.object({
   rejectionNote: z.string().nullable(),
 });
 
-export const BountySubmissionExtendedSchema = z.object({
-  submission: BountySubmissionSchema.nullable(),
+export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
   partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,
@@ -118,10 +137,6 @@ export const BountySubmissionExtendedSchema = z.object({
     status: true,
     bannedAt: true,
     bannedReason: true,
-    leads: true,
-    conversions: true,
-    saleAmount: true,
-    totalCommissions: true,
   }),
   commission: CommissionSchema.pick({
     id: true,
@@ -143,19 +158,9 @@ export const rejectBountySubmissionSchema = z.object({
   rejectionNote: z.string().trim().max(500).optional(),
 });
 
-export const REJECT_BOUNTY_SUBMISSION_REASONS = {
-  invalidProof: "Invalid proof",
-  duplicateSubmission: "Duplicate submission",
-  outOfTimeWindow: "Out of time window",
-  didNotMeetCriteria: "Did not meet criteria",
-  other: "Other",
-} as const;
-
 export const getBountySubmissionsQuerySchema = z
   .object({
-    sortBy: z
-      .enum(["createdAt", "leads", "conversions", "saleAmount", "commissions"])
-      .default("createdAt"),
+    sortBy: z.enum(BOUNTY_SUBMISSIONS_SORT_BY_COLUMNS).default("createdAt"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
     status: z.nativeEnum(BountySubmissionStatus).optional(),
     groupId: z.string().optional(),

@@ -1,3 +1,4 @@
+import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -28,6 +29,7 @@ export const POST = withWorkspace(
     let { partnerIds } = addPartnersToGroupSchema.parse(
       await parseRequestBody(req),
     );
+
     partnerIds = [...new Set(partnerIds)];
 
     if (partnerIds.length === 0) {
@@ -55,15 +57,22 @@ export const POST = withWorkspace(
 
     if (count > 0) {
       waitUntil(
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-          body: {
+        Promise.allSettled([
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+            body: {
+              programId,
+              groupId: group.id,
+              partnerIds,
+              userId: session.user.id,
+            },
+          }),
+
+          triggerDraftBountySubmissionCreation({
             programId,
-            groupId: group.id,
             partnerIds,
-            userId: session.user.id,
-          },
-        }),
+          }),
+        ]),
       );
     }
 

@@ -22,7 +22,7 @@ export function BountySubmissionRowMenu({
   const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
 
-  const submission = row.original.submission;
+  const submission = row.original;
 
   // Only show menu if there's a submission
   if (!submission) {

@@ -364,8 +364,13 @@ const _trackLead = async ({
 
         await executeWorkflows({
           trigger: WorkflowTrigger.leadRecorded,
-          programId: link.programId,
-          partnerId: link.partnerId,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              leads: 1,
+            },
+          },
         });
       }
 
@@ -434,6 +439,11 @@ const _trackSale = async ({
     timestamp: undefined,
   };
 
+  const firstConversionFlag = isFirstConversion({
+    customer,
+    linkId: saleData.link_id,
+  });
+
   waitUntil(
     (async () => {
       const [_sale, link] = await Promise.all([
@@ -446,10 +456,7 @@ const _trackSale = async ({
             id: saleData.link_id,
           },
           data: {
-            ...(isFirstConversion({
-              customer,
-              linkId: saleData.link_id,
-            }) && {
+            ...(firstConversionFlag && {
               conversions: {
                 increment: 1,
               },
@@ -525,8 +532,14 @@ const _trackSale = async ({
 
         await executeWorkflows({
           trigger: WorkflowTrigger.saleRecorded,
-          programId: link.programId,
-          partnerId: link.partnerId,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
+          },
         });
       }
 

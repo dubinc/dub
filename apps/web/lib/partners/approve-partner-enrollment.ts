@@ -4,6 +4,7 @@ import PartnerApplicationApproved from "@dub/email/templates/partner-application
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
+import { triggerDraftBountySubmissionCreation } from "../api/bounties/trigger-draft-bounty-submissions";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "../api/partners/create-partner-default-links";
 import { RewardProps, WorkspaceProps } from "../types";
@@ -178,6 +179,11 @@ export async function approvePartnerEnrollment({
               metadata: partner,
             },
           ],
+        }),
+
+        triggerDraftBountySubmissionCreation({
+          programId,
+          partnerIds: [partner.id],
         }),
       ]);
     })(),

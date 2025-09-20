@@ -6,11 +6,13 @@ import { currencyFormatter, nFormatter } from "@dub/utils";
 export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
   const performanceCondition = bounty.performanceCondition;
 
-  if (!performanceCondition) return null;
+  if (!performanceCondition) {
+    return null;
+  }
 
   const attribute = performanceCondition.attribute;
   const target = performanceCondition.value;
-  const value = bounty.partner[attribute];
+  const value = bounty.submission?.count ?? 0;
 
   const formattedValue =
     value === undefined

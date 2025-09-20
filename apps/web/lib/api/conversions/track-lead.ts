@@ -317,8 +317,13 @@ export const trackLead = async ({
 
             await executeWorkflows({
               trigger: WorkflowTrigger.leadRecorded,
-              programId: link.programId,
-              partnerId: link.partnerId,
+              context: {
+                programId: link.programId,
+                partnerId: link.partnerId,
+                current: {
+                  leads: 1,
+                },
+              },
             });
           }
 
