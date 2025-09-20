@@ -205,6 +205,10 @@ export const { POST } = serve<Payload>(
         data: partnerUsers,
       });
 
+      if (!resend) {
+        return;
+      }
+
       // Resend batch email
       const { data, error } = await resend.batch.send(
         partnerUsers.map(({ user }) => ({
@@ -216,7 +220,6 @@ export const { POST } = serve<Payload>(
               name: program.name,
               logo: program.logo,
               slug: program.slug,
-              supportEmail: program.supportEmail,
             },
             partner: {
               name: partner.name,
