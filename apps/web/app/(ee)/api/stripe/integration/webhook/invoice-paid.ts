@@ -242,6 +242,7 @@ export async function invoicePaid(event: Stripe.Event) {
         clickedAt: customer.clickedAt || customer.createdAt,
         link: linkUpdated,
         customer,
+        metadata: null,
       }),
     }),
   );

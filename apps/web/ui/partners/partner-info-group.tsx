@@ -1,6 +1,7 @@
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
@@ -11,19 +12,35 @@ export function PartnerInfoGroup({
   partner,
   changeButtonText = "Change group",
   className,
+
+  selectedGroupId,
+  setSelectedGroupId,
 }: {
   partner: EnrolledPartnerProps;
   changeButtonText?: string;
   className?: string;
+
+  // Only used for a controlled group selector that doesn't persist the selection itself
+  selectedGroupId?: string | null;
+  setSelectedGroupId?: (groupId: string) => void;
 }) {
   const { slug } = useWorkspace();
 
   const { groups } = useGroups();
 
-  const group = groups?.find((g) => g.id === partner.groupId);
+  const group = groups
+    ? groups.find((g) => g.id === (selectedGroupId || partner.groupId)) ||
+      groups.find((g) => g.slug === DEFAULT_PARTNER_GROUP.slug)
+    : undefined;
 
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
-    partners: [partner],
+    partners: [{ ...partner, groupId: selectedGroupId || partner.groupId }],
+    onChangeGroup: setSelectedGroupId
+      ? (groupId) => {
+          setSelectedGroupId(groupId);
+          return false; // Prevent persisting the group change
+        }
+      : undefined,
   });
 
   return (
