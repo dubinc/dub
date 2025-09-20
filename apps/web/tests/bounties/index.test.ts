@@ -6,6 +6,16 @@ import { IntegrationHarness } from "../utils/integration";
 // start 5 mins from now to make sure the bounty is fully deleted so it doesn't trigger email sends
 const startsAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
+const performanceBounty = {
+  name: "Earn $10 after generating 100 leads",
+  description: "some description about the bounty",
+  type: "performance",
+  startsAt,
+  endsAt: null,
+  rewardAmount: 1000,
+  performanceScope: "new",
+};
+
 const submissionBounty = {
   name: "Submission Bounty",
   description: "some description about the bounty",
@@ -14,16 +24,6 @@ const submissionBounty = {
   endsAt: null,
   rewardAmount: 1000,
   submissionRequirements: ["image", "url"],
-};
-
-const performanceBounty = {
-  name: "Earn $10 after generating 100 leads",
-  description: "some description about the bounty",
-  type: "performance",
-  startsAt,
-  endsAt: null,
-  rewardAmount: 1000,
-  performanceScope: "lifetime",
 };
 
 describe.sequential("/bounties/**", async () => {
