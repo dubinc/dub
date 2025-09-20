@@ -1,15 +1,9 @@
-import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { sendBatchEmail } from "@dub/email";
-import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { recordAuditLog } from "../api/audit-logs/record-audit-log";
-import { triggerDraftBountySubmissionCreation } from "../api/bounties/trigger-draft-bounty-submissions";
 import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
-import { createPartnerDefaultLinks } from "../api/partners/create-partner-default-links";
-import { RewardProps, WorkspaceProps } from "../types";
-import { sendWorkspaceWebhook } from "../webhook/publish";
-import { EnrolledPartnerSchema } from "../zod/schemas/partners";
+import { triggerWorkflows } from "../cron/qstash-workflow";
+import { WorkspaceProps } from "../types";
 
 export async function approvePartnerEnrollment({
   programId,
@@ -40,7 +34,6 @@ export async function approvePartnerEnrollment({
   const group = await getGroupOrThrow({
     programId,
     groupId: groupId || program.defaultGroupId,
-    includeExpandedFields: true,
   });
 
   const programEnrollment = await prisma.programEnrollment.update({
@@ -60,53 +53,14 @@ export async function approvePartnerEnrollment({
       discountId: group.discountId,
     },
     include: {
-      partner: {
-        include: {
-          users: {
-            where: {
-              notificationPreferences: {
-                applicationApproved: true,
-              },
-            },
-            include: {
-              user: true,
-            },
-          },
-        },
-      },
+      partner: true,
     },
-  });
-
-  const { partner, ...enrollment } = programEnrollment;
-  const workspace = program.workspace as WorkspaceProps;
-
-  const partnerLinks = await createPartnerDefaultLinks({
-    workspace: {
-      id: workspace.id,
-      plan: workspace.plan,
-    },
-    program: {
-      id: program.id,
-      defaultFolderId: program.defaultFolderId,
-    },
-    partner: {
-      id: partner.id,
-      name: partner.name,
-      email: partner.email!,
-      tenantId: programEnrollment.tenantId ?? undefined,
-    },
-    group: {
-      defaultLinks: group.partnerGroupDefaultLinks,
-      utmTemplate: group.utmTemplate,
-    },
-    userId,
   });
 
   waitUntil(
     (async () => {
-      const partnerEmailsToNotify = partner.users
-        .map(({ user }) => user.email)
-        .filter(Boolean) as string[];
+      const { partner } = programEnrollment;
+      const workspace = program.workspace as WorkspaceProps;
 
       const user = await prisma.user.findUniqueOrThrow({
         where: {
@@ -118,54 +72,7 @@ export async function approvePartnerEnrollment({
         },
       });
 
-      const enrolledPartner = EnrolledPartnerSchema.parse({
-        ...partner,
-        ...enrollment,
-        id: partner.id,
-        links: partnerLinks,
-      });
-
-      const rewards = [
-        group.clickReward,
-        group.leadReward,
-        group.saleReward,
-      ].filter(Boolean) as RewardProps[];
-
       await Promise.allSettled([
-        ...(partnerEmailsToNotify.length
-          ? [
-              sendBatchEmail(
-                partnerEmailsToNotify.map((email) => ({
-                  subject: `Your application to join ${program.name} partner program has been approved!`,
-                  variant: "notifications",
-                  to: email,
-                  react: PartnerApplicationApproved({
-                    program: {
-                      name: program.name,
-                      logo: program.logo,
-                      slug: program.slug,
-                    },
-                    partner: {
-                      name: partner.name,
-                      email,
-                      payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-                    },
-                    rewardDescription: ProgramRewardDescription({
-                      reward: rewards.find((r) => r.event === "sale"),
-                      showModifiersTooltip: false,
-                    }),
-                  }),
-                })),
-              ),
-            ]
-          : []),
-
-        sendWorkspaceWebhook({
-          workspace,
-          trigger: "partner.enrolled",
-          data: enrolledPartner,
-        }),
-
         recordAuditLog({
           workspaceId: workspace.id,
           programId,
@@ -181,9 +88,13 @@ export async function approvePartnerEnrollment({
           ],
         }),
 
-        triggerDraftBountySubmissionCreation({
-          programId,
-          partnerIds: [partner.id],
+        triggerWorkflows({
+          workflowId: "partner-approved",
+          body: {
+            programId,
+            partnerId,
+            userId,
+          },
         }),
       ]);
     })(),
