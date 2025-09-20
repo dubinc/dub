@@ -40,11 +40,6 @@ export const executeAwardBountyAction = async ({
     include: {
       program: true,
       groups: true,
-      submissions: {
-        where: {
-          partnerId,
-        },
-      },
     },
   });
 
@@ -66,28 +61,17 @@ export const executeAwardBountyAction = async ({
 
   const now = new Date();
 
-  // Check bounty validity
+  // Check if bounty is active
   if (
     (bounty.startsAt && bounty.startsAt > now) ||
     (bounty.endsAt && bounty.endsAt < now) ||
     bounty.archivedAt
   ) {
+    console.log(`Bounty ${bounty.id} is no longer active.`);
     return;
   }
 
-  const { groups, submissions } = bounty;
-
-  // Check if the partner has already submitted a submission for this bounty
-  if (submissions.length > 0) {
-    const submission = submissions[0];
-
-    if (submission.status !== "draft") {
-      console.log(
-        `Partner ${partnerId} has an existing submission for bounty ${bounty.id} with status ${submission.status}.`,
-      );
-      return;
-    }
-  }
+  const { groups } = bounty;
 
   // If the bounty is part of a group, check if the partner is in the group
   if (groups.length > 0) {
@@ -95,14 +79,14 @@ export const executeAwardBountyAction = async ({
 
     if (!groupIds.includes(groupId)) {
       console.log(
-        `Partner ${partnerId} is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups.`,
+        `Partner ${partnerId} is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups. Partner's groupId: ${groupId}. Assigned groupIds: ${groupIds.join(", ")}.`,
       );
       return;
     }
   }
 
   console.log(
-    `Running the workflow ${bounty.workflowId} for bounty ${bounty.id}.`,
+    `Partner is eligible for bounty ${bounty.id}, executing workflow ${bounty.workflowId}...`,
   );
 
   const finalContext: Partial<
@@ -122,7 +106,7 @@ export const executeAwardBountyAction = async ({
     }),
   };
 
-  const count = finalContext[condition.attribute] ?? 0;
+  const performanceCount = finalContext[condition.attribute] ?? 0;
 
   // Create or update the submission
   const bountySubmission = await prisma.bountySubmission.upsert({
@@ -138,11 +122,11 @@ export const executeAwardBountyAction = async ({
       partnerId,
       bountyId: bounty.id,
       status: "draft",
-      performanceCount: count,
+      performanceCount,
     },
     update: {
       performanceCount: {
-        increment: count,
+        increment: performanceCount,
       },
     },
   });

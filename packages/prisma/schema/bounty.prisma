@@ -34,7 +34,7 @@ model Bounty {
   endsAt                 DateTime?
   rewardAmount           Int?
   rewardDescription      String?
-  performanceScope       BountyPerformanceScope? @default(new)
+  performanceScope       BountyPerformanceScope?
   submissionRequirements Json?
   archivedAt             DateTime?
   createdAt              DateTime   @default(now())
