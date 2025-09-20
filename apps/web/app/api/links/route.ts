@@ -11,12 +11,18 @@ import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   createLinkBodySchemaAsync,
   getLinksQuerySchemaExtended,
-  linkEventSchema,
+  LinkSchema,
 } from "@/lib/zod/schemas/links";
 import { Folder } from "@dub/prisma/client";
 import { LOCALHOST_IP } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const AnonymousLinkSchema = LinkSchema.extend({
+  workspaceId: z.string().nullable(),
+  projectId: z.string().nullable(),
+});
 
 // GET /api/links – get all links for a workspace
 export const GET = withWorkspace(
@@ -74,7 +80,7 @@ export const GET = withWorkspace(
       searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
     });
 
-    return NextResponse.json(response, {
+    return NextResponse.json(z.array(LinkSchema).parse(response), {
       headers,
     });
   },
@@ -125,17 +131,23 @@ export const POST = withWorkspace(
     try {
       const response = await createLink(link);
 
-      if (response.projectId && response.userId) {
+      const responseSchema = response.projectId
+        ? LinkSchema
+        : AnonymousLinkSchema;
+
+      const createdLink = responseSchema.parse(response);
+
+      if (createdLink.projectId && createdLink.userId) {
         waitUntil(
           sendWorkspaceWebhook({
             trigger: "link.created",
             workspace,
-            data: linkEventSchema.parse(response),
+            data: createdLink as z.infer<typeof LinkSchema>,
           }),
         );
       }
 
-      return NextResponse.json(response, {
+      return NextResponse.json(createdLink, {
         headers,
       });
     } catch (error) {

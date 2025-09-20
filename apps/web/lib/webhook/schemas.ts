@@ -2,7 +2,7 @@ import z from "@/lib/zod";
 import { clickEventSchema } from "../zod/schemas/clicks";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { CustomerSchema } from "../zod/schemas/customers";
-import { linkEventSchema } from "../zod/schemas/links";
+import { LinkSchema } from "../zod/schemas/links";
 import { EnrolledPartnerSchema } from "../zod/schemas/partners";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
@@ -15,14 +15,14 @@ const webhookSaleSchema = z.object({
 
 export const clickWebhookEventSchema = z.object({
   click: clickEventSchema,
-  link: linkEventSchema,
+  link: LinkSchema,
 });
 
 export const leadWebhookEventSchema = z.object({
   eventName: z.string(),
   customer: CustomerSchema,
   click: clickEventSchema,
-  link: linkEventSchema,
+  link: LinkSchema,
   metadata: z.record(z.unknown()).nullable().default(null),
 });
 
@@ -30,7 +30,7 @@ export const saleWebhookEventSchema = z.object({
   eventName: z.string(),
   customer: CustomerSchema,
   click: clickEventSchema,
-  link: linkEventSchema,
+  link: LinkSchema,
   sale: webhookSaleSchema,
   metadata: z.record(z.unknown()).nullable().default(null),
 });
@@ -59,7 +59,7 @@ export const webhookEventSchema = z
           z.literal("link.deleted"),
         ]),
         createdAt: z.string(),
-        data: linkEventSchema,
+        data: LinkSchema,
       })
       .openapi({
         ref: "LinkWebhookEvent",

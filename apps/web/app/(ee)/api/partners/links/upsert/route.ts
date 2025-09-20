@@ -14,7 +14,7 @@ import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema } from "@/lib/zod/schemas/links";
+import { LinkSchema } from "@/lib/zod/schemas/links";
 import { upsertPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { constructURLFromUTMParams, deepEqual } from "@dub/utils";
@@ -178,15 +178,17 @@ export const PUT = withWorkspace(
           updatedLink: processedLink,
         });
 
+        const updatedLink = LinkSchema.parse(response);
+
         waitUntil(
           sendWorkspaceWebhook({
             trigger: "link.updated",
             workspace,
-            data: linkEventSchema.parse(response),
+            data: updatedLink,
           }),
         );
 
-        return NextResponse.json(response, {
+        return NextResponse.json(updatedLink, {
           headers,
         });
       } catch (error) {
@@ -227,17 +229,18 @@ export const PUT = withWorkspace(
         });
       }
 
-      const partnerLink = await createLink(link);
+      const response = await createLink(link);
+      const createdLink = LinkSchema.parse(response);
 
       waitUntil(
         sendWorkspaceWebhook({
           trigger: "link.created",
           workspace,
-          data: linkEventSchema.parse(partnerLink),
+          data: createdLink,
         }),
       );
 
-      return NextResponse.json(partnerLink, {
+      return NextResponse.json(createdLink, {
         headers,
       });
     }

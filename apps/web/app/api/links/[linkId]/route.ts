@@ -12,7 +12,7 @@ import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
-  linkEventSchema,
+  LinkSchema,
   updateLinkBodySchemaExtended,
 } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
@@ -62,7 +62,7 @@ export const GET = withWorkspace(
       { skipDecodeKey: true },
     );
 
-    return NextResponse.json(response, { headers });
+    return NextResponse.json(LinkSchema.parse(response), { headers });
   },
   {
     requiredPermissions: ["links.read"],
@@ -183,15 +183,17 @@ export const PATCH = withWorkspace(
         updatedLink: processedLink,
       });
 
+      const updatedLink = LinkSchema.parse(response);
+
       waitUntil(
         sendWorkspaceWebhook({
           trigger: "link.updated",
           workspace,
-          data: linkEventSchema.parse(response),
+          data: updatedLink,
         }),
       );
 
-      return NextResponse.json(response, {
+      return NextResponse.json(updatedLink, {
         headers,
       });
     } catch (error) {
@@ -227,12 +229,13 @@ export const DELETE = withWorkspace(
     }
 
     const response = await deleteLink(link.id);
+    const deletedLink = LinkSchema.parse(response);
 
     waitUntil(
       sendWorkspaceWebhook({
         trigger: "link.deleted",
         workspace,
-        data: linkEventSchema.parse(response),
+        data: deletedLink,
       }),
     );
 

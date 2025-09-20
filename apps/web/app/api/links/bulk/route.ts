@@ -21,11 +21,13 @@ import { NewLinkProps, ProcessedLinkProps } from "@/lib/types";
 import {
   bulkCreateLinksBodySchema,
   bulkUpdateLinksBodySchema,
+  LinkSchema,
 } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // POST /api/links/bulk – bulk create up to 100 links
 export const POST = withWorkspace(
@@ -248,9 +250,12 @@ export const POST = withWorkspace(
     const validLinksResponse =
       validLinks.length > 0 ? await bulkCreateLinks({ links: validLinks }) : [];
 
-    return NextResponse.json([...validLinksResponse, ...errorLinks], {
-      headers,
-    });
+    return NextResponse.json(
+      [...z.array(LinkSchema).parse(validLinksResponse), ...errorLinks],
+      {
+        headers,
+      },
+    );
   },
   {
     requiredPermissions: ["links.write"],
@@ -421,7 +426,7 @@ export const PATCH = withWorkspace(
         })),
     );
 
-    const response =
+    const validLinksResponse =
       validLinkIds.length > 0
         ? await bulkUpdateLinks({
             linkIds: validLinkIds,
@@ -453,7 +458,10 @@ export const PATCH = withWorkspace(
       })(),
     );
 
-    return NextResponse.json([...response, ...errorLinks], { headers });
+    return NextResponse.json(
+      [...z.array(LinkSchema).parse(validLinksResponse), ...errorLinks],
+      { headers },
+    );
   },
   {
     requiredPermissions: ["links.write"],

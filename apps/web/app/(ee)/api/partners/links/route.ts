@@ -7,7 +7,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema } from "@/lib/zod/schemas/links";
+import { LinkSchema } from "@/lib/zod/schemas/links";
 import {
   createPartnerLinkSchema,
   retrievePartnerLinksSchema,
@@ -54,6 +54,9 @@ export const GET = withWorkspace(
     }
 
     const { links } = programEnrollment;
+
+    // TODO:
+    // Can we use LinkSchema here to be consistent with other links endpoints?
 
     return NextResponse.json(z.array(ProgramPartnerLinkSchema).parse(links));
   },
@@ -151,17 +154,20 @@ export const POST = withWorkspace(
       });
     }
 
-    const partnerLink = await createLink(link);
+    const response = await createLink(link);
+    const createdLink = LinkSchema.parse(response);
 
     waitUntil(
       sendWorkspaceWebhook({
         trigger: "link.created",
         workspace,
-        data: linkEventSchema.parse(partnerLink),
+        data: createdLink,
       }),
     );
 
-    return NextResponse.json(partnerLink, { status: 201 });
+    return NextResponse.json(createdLink, {
+      status: 201,
+    });
   },
   {
     requiredPlan: ["advanced", "enterprise"],

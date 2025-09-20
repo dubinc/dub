@@ -10,10 +10,7 @@ import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import {
-  createLinkBodySchemaAsync,
-  linkEventSchema,
-} from "@/lib/zod/schemas/links";
+import { createLinkBodySchemaAsync, LinkSchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { deepEqual } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -153,15 +150,17 @@ export const PUT = withWorkspace(
           updatedLink: processedLink,
         });
 
+        const updatedLink = LinkSchema.parse(response);
+
         waitUntil(
           sendWorkspaceWebhook({
             trigger: "link.updated",
             workspace,
-            data: linkEventSchema.parse(response),
+            data: updatedLink,
           }),
         );
 
-        return NextResponse.json(response, {
+        return NextResponse.json(updatedLink, {
           headers,
         });
       } catch (error) {
@@ -187,7 +186,17 @@ export const PUT = withWorkspace(
 
       try {
         const response = await createLink(link);
-        return NextResponse.json(response, { headers });
+        const createdLink = LinkSchema.parse(response);
+
+        waitUntil(
+          sendWorkspaceWebhook({
+            trigger: "link.created",
+            workspace,
+            data: createdLink,
+          }),
+        );
+
+        return NextResponse.json(createdLink, { headers });
       } catch (error) {
         throw new DubApiError({
           code: "unprocessable_entity",
