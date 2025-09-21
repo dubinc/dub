@@ -54,14 +54,14 @@ export function BountySubmissionsTable() {
 
   // Decide the columns to show based on the bounty type
   const showColumns = useMemo(() => {
-    const columns = ["partner", "group", "createdAt"];
+    const columns = ["partner", "group", "createdAt", "status"];
 
     if (!bounty) {
       return columns;
     }
 
     if (bounty.type === "submission") {
-      columns.push(...["status", "reviewedAt"]);
+      columns.push(...["reviewedAt"]);
     } else if (bounty.type === "performance") {
       columns.push(...["performanceMetrics"]);
     }
@@ -207,11 +207,15 @@ export function BountySubmissionsTable() {
                 const target = performanceCondition.value;
 
                 const formattedValue = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(value / 100)
+                  ? currencyFormatter(value / 100, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
                   : nFormatter(value, { full: true });
 
                 const formattedTarget = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(target / 100)
+                  ? currencyFormatter(target / 100, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
                   : nFormatter(target, { full: true });
 
                 return (
@@ -307,12 +311,8 @@ export function BountySubmissionsTable() {
     onPaginationChange: setPagination,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) =>
-      `${bounty?.type === "performance" ? "partner" : "submission"}${p ? "s" : ""}`,
-    rowCount:
-      bounty?.type === "performance"
-        ? bounty.partnersCount
-        : submissions?.length || 0,
+    resourceName: (p) => `submission${p ? "s" : ""}`,
+    rowCount: submissions?.length || 0,
     loading: isLoading || isBountyLoading,
     error: error ? "Failed to load bounty submissions" : undefined,
   });
