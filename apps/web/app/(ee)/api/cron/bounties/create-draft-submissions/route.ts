@@ -20,8 +20,8 @@ const schema = z.object({
 
 const MAX_PAGE_SIZE = 100;
 
-// POST /api/cron/bounties/create-submissions
-// Create draft bounty submissions for performance bounties for partners
+// POST /api/cron/bounties/create-draft-submissions
+// Create draft bounty submissions for performance bounties with lifetime performance scope
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();

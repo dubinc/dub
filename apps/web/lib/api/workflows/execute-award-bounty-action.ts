@@ -40,6 +40,11 @@ export const executeAwardBountyAction = async ({
     include: {
       program: true,
       groups: true,
+      submissions: {
+        where: {
+          partnerId,
+        },
+      },
     },
   });
 
@@ -71,7 +76,7 @@ export const executeAwardBountyAction = async ({
     return;
   }
 
-  const { groups } = bounty;
+  const { groups, submissions } = bounty;
 
   // If the bounty is part of a group, check if the partner is in the group
   if (groups.length > 0) {
@@ -83,6 +88,14 @@ export const executeAwardBountyAction = async ({
       );
       return;
     }
+  }
+
+  // Check if the partner's submission has already been approved
+  if (submissions.length > 0 && submissions[0].status === "approved") {
+    console.log(
+      `Partner ${partnerId} has already been awarded this bounty (bountyId: ${bounty.id}, submissionId: ${submissions[0].id}).`,
+    );
+    return;
   }
 
   console.log(
