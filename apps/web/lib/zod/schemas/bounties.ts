@@ -145,6 +145,7 @@ export const BountySubmissionExtendedSchema = BountySubmissionSchema.extend({
     amount: true,
     earnings: true,
     status: true,
+    createdAt: true,
   }).nullable(),
   user: UserSchema.pick({
     id: true,

@@ -10,13 +10,13 @@ export const BOUNTY_SUBMISSION_STATUS_BADGES = {
     label: "In progress",
     variant: "pending",
     icon: CircleHalfDottedCheck,
-    iconClassName: "text-blue-600",
+    iconClassName: "text-orange-600",
   },
   submitted: {
     label: "Submitted",
     variant: "new",
     icon: CircleHalfDottedClock,
-    iconClassName: "text-orange-600",
+    iconClassName: "text-blue-600",
   },
   approved: {
     label: "Approved",

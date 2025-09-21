@@ -94,7 +94,7 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
               <span className="text-content-default">
                 {nFormatter(totalPartnersForBounty, { full: true })}
               </span>{" "}
-              {pluralize("partner", totalPartnersForBounty)} completed
+              {pluralize("partner", totalPartnersForBounty)} submitted
             </div>
           </div>
         </div>

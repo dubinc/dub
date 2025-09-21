@@ -54,16 +54,16 @@ export function BountySubmissionsTable() {
 
   // Decide the columns to show based on the bounty type
   const showColumns = useMemo(() => {
-    const columns = ["partner", "group", "createdAt", "status"];
+    const columns = ["partner", "group", "status"];
 
     if (!bounty) {
       return columns;
     }
 
     if (bounty.type === "submission") {
-      columns.push(...["reviewedAt"]);
+      columns.push(...["createdAt", "reviewedAt"]);
     } else if (bounty.type === "performance") {
-      columns.push(...["performanceMetrics"]);
+      columns.push(...["completedAt", "performanceMetrics"]);
     }
 
     return columns;
@@ -180,17 +180,37 @@ export function BountySubmissionsTable() {
           ]
         : []),
 
-      {
-        id: "createdAt",
-        header: bounty?.type === "submission" ? "Submitted" : "Completed",
-        accessorFn: (d: BountySubmissionProps) => {
-          if (!d.createdAt || d.status === "draft") {
-            return "-";
-          }
+      ...(showColumns.includes("createdAt")
+        ? [
+            {
+              id: "createdAt",
+              header: "Submitted",
+              accessorFn: (d: BountySubmissionProps) => {
+                if (!d.createdAt || d.status === "draft") {
+                  return "-";
+                }
 
-          return formatDate(d.createdAt, { month: "short" });
-        },
-      },
+                return formatDate(d.createdAt, { month: "short" });
+              },
+            },
+          ]
+        : []),
+
+      ...(showColumns.includes("completedAt")
+        ? [
+            {
+              id: "completedAt",
+              header: "Completed",
+              accessorFn: (d: BountySubmissionProps) => {
+                if (!d.commission) {
+                  return "-";
+                }
+
+                return formatDate(d.commission.createdAt, { month: "short" });
+              },
+            },
+          ]
+        : []),
 
       ...(showColumns.includes("performanceMetrics")
         ? [
