@@ -7,12 +7,14 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
   BountySchema,
   BountySchemaExtended,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
+import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
 import { PartnerGroup, Prisma } from "@prisma/client";
@@ -78,6 +80,12 @@ export const PATCH = withWorkspace(
       },
       include: {
         groups: true,
+        workflow: true,
+        _count: {
+          select: {
+            submissions: true,
+          },
+        },
       },
     });
 
@@ -112,6 +120,24 @@ export const PATCH = withWorkspace(
         programId,
         groupIds,
       });
+    }
+
+    // Prevent updates if `performanceCondition.attribute` differs from the current value if there are existing submissions
+    if (performanceCondition && bounty.workflow) {
+      const submissionCount = bounty._count.submissions;
+      const currentCondition = bounty.workflow
+        .triggerConditions?.[0] as WorkflowCondition;
+
+      if (
+        currentCondition &&
+        currentCondition.attribute !== performanceCondition.attribute &&
+        submissionCount > 0
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `You cannot change the performance condition from "${WORKFLOW_ATTRIBUTE_LABELS[currentCondition.attribute].toLowerCase()}" to "${WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute].toLowerCase()}" because the bounty has submissions.`,
+        });
+      }
     }
 
     // Bounty name

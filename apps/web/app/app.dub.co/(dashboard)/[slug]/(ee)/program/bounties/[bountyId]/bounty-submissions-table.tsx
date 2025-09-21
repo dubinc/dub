@@ -120,11 +120,9 @@ export function BountySubmissionsTable() {
       setDetailsSheetState({ open: false, submission: null });
     }
 
-    const submission = submissions?.find(
-      (s) => s.submission?.id === submissionId,
-    );
+    const submission = submissions?.find((s) => s.id === submissionId);
 
-    if (submission?.submission) {
+    if (submission) {
       setDetailsSheetState({ open: true, submission });
     }
   }, [searchParams, submissions]);
@@ -166,10 +164,8 @@ export function BountySubmissionsTable() {
               id: "status",
               header: "Status",
               cell: ({ row }) => {
-                const badge = row.original.submission
-                  ? BOUNTY_SUBMISSION_STATUS_BADGES[
-                      row.original.submission.status
-                    ]
+                const badge = row.original
+                  ? BOUNTY_SUBMISSION_STATUS_BADGES[row.original.status]
                   : null;
 
                 return badge ? (
@@ -187,13 +183,15 @@ export function BountySubmissionsTable() {
       {
         id: "createdAt",
         header: bounty?.type === "submission" ? "Submitted" : "Completed",
-        accessorFn: (d) =>
-          d.submission
-            ? formatDate(d.submission.createdAt, { month: "short" })
-            : "-",
+        accessorFn: (d: BountySubmissionProps) => {
+          if (!d.createdAt || d.status === "draft") {
+            return "-";
+          }
+
+          return formatDate(d.createdAt, { month: "short" });
+        },
       },
 
-      // TODO: fix this
       ...(showColumns.includes("performanceMetrics")
         ? [
             {
@@ -204,23 +202,9 @@ export function BountySubmissionsTable() {
                   return "-";
                 }
 
+                const value = row.original.performanceCount ?? 0;
                 const attribute = performanceCondition.attribute;
                 const target = performanceCondition.value;
-                let value: number | undefined = undefined;
-
-                if (attribute === "totalLeads") {
-                  value = row.original.partner.leads;
-                } else if (attribute === "totalConversions") {
-                  value = row.original.partner.conversions;
-                } else if (attribute === "totalSaleAmount") {
-                  value = row.original.partner.saleAmount;
-                } else if (attribute === "totalCommissions") {
-                  value = row.original.partner.totalCommissions;
-                }
-
-                if (value === undefined) {
-                  return "-";
-                }
 
                 const formattedValue = isCurrencyAttribute(attribute)
                   ? currencyFormatter(value / 100)
@@ -249,12 +233,12 @@ export function BountySubmissionsTable() {
               id: "reviewedAt",
               header: "Reviewed",
               cell: ({ row }) => {
-                return row.original.submission?.reviewedAt ? (
+                return row.original.reviewedAt ? (
                   <UserRowItem
                     user={row.original.user!}
-                    date={row.original.submission?.reviewedAt}
+                    date={row.original.reviewedAt}
                     label={
-                      row.original.submission?.status === "approved"
+                      row.original.status === "approved"
                         ? "Approved at"
                         : "Rejected at"
                     }
@@ -293,13 +277,13 @@ export function BountySubmissionsTable() {
     columns,
     columnPinning: { right: ["menu"] },
     onRowClick: (row) => {
-      if (!row.original.submission) {
+      if (!row.original.id) {
         return;
       }
 
       queryParams({
         set: {
-          submissionId: row.original.submission.id,
+          submissionId: row.original.id,
         },
         scroll: false,
       });

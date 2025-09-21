@@ -69,6 +69,11 @@ export async function createShopifySale({
     },
   });
 
+  const firstConversionFlag = isFirstConversion({
+    customer: existingCustomer,
+    linkId,
+  });
+
   const [_sale, link, workspace, customer] = await Promise.all([
     // record sale
     recordSale(saleData),
@@ -79,10 +84,7 @@ export async function createShopifySale({
         id: linkId,
       },
       data: {
-        ...(isFirstConversion({
-          customer: existingCustomer,
-          linkId,
-        }) && {
+        ...(firstConversionFlag && {
           conversions: {
             increment: 1,
           },
@@ -161,8 +163,14 @@ export async function createShopifySale({
     waitUntil(
       executeWorkflows({
         trigger: WorkflowTrigger.saleRecorded,
-        programId: link.programId,
-        partnerId: link.partnerId,
+        context: {
+          programId: link.programId,
+          partnerId: link.partnerId,
+          current: {
+            saleAmount: saleData.amount,
+            conversions: firstConversionFlag ? 1 : 0,
+          },
+        },
       }),
     );
   }

@@ -129,6 +129,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
         : {
             operator: "gte",
           },
+      performanceScope: bounty?.performanceScope ?? "new",
     },
   });
 

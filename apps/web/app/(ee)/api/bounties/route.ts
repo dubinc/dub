@@ -44,7 +44,6 @@ export const GET = withWorkspace(
     const bounties = await prisma.bounty.findMany({
       where: {
         programId,
-
         // Filter only bounties the specified partner is eligible for
         ...(programEnrollment && {
           OR: [
@@ -117,6 +116,7 @@ export const POST = withWorkspace(
       submissionRequirements,
       groupIds,
       performanceCondition,
+      performanceScope,
     } = createBountySchema.parse(await parseRequestBody(req));
 
     if (startsAt && endsAt && endsAt < startsAt) {
@@ -131,15 +131,22 @@ export const POST = withWorkspace(
       if (type === "performance") {
         throw new DubApiError({
           code: "bad_request",
-          message: "Reward amount is required for performance bounties",
+          message: "Reward amount is required for performance bounties.",
         });
       } else if (!rewardDescription) {
         throw new DubApiError({
           code: "bad_request",
           message:
-            "For submission bounties, either reward amount or reward description is required",
+            "For submission bounties, either reward amount or reward description is required.",
         });
       }
+    }
+
+    if (!performanceScope && type === "performance") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "performanceScope must be set for performance bounties.",
+      });
     }
 
     const partnerGroups = await throwIfInvalidGroupIds({
@@ -160,7 +167,7 @@ export const POST = withWorkspace(
     if (!bountyName) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Bounty name is required",
+        message: "Bounty name is required.",
       });
     }
 
@@ -202,6 +209,7 @@ export const POST = withWorkspace(
           endsAt,
           rewardAmount,
           rewardDescription,
+          performanceScope: type === "performance" ? performanceScope : null,
           ...(submissionRequirements &&
             type === "submission" && {
               submissionRequirements,
@@ -228,6 +236,9 @@ export const POST = withWorkspace(
       groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
       performanceCondition: bounty.workflow?.triggerConditions?.[0],
     });
+
+    const shouldScheduleDraftSubmissions =
+      bounty.type === "performance" && bounty.performanceScope === "lifetime";
 
     waitUntil(
       Promise.allSettled([
@@ -259,6 +270,15 @@ export const POST = withWorkspace(
           },
           notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
         }),
+
+        shouldScheduleDraftSubmissions &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/create-draft-submissions`,
+            body: {
+              bountyId: bounty.id,
+            },
+            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+          }),
       ]),
     );
 

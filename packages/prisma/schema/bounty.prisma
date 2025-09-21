@@ -3,6 +3,11 @@ enum BountyType {
   submission
 }
 
+enum BountyPerformanceScope {
+  new
+  lifetime
+}
+
 enum BountySubmissionStatus {
   draft
   submitted
@@ -29,6 +34,7 @@ model Bounty {
   endsAt                 DateTime?
   rewardAmount           Int?
   rewardDescription      String?
+  performanceScope       BountyPerformanceScope?
   submissionRequirements Json?
   archivedAt             DateTime?
   createdAt              DateTime   @default(now())
@@ -59,6 +65,7 @@ model BountySubmission {
   programId       String
   partnerId       String
   bountyId        String
+  performanceCount Int?
   commissionId    String?                          @unique
   userId          String?
   description     String?                          @db.Text

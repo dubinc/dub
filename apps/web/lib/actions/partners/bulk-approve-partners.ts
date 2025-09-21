@@ -77,6 +77,8 @@ export const bulkApprovePartnersAction = authActionClient
           },
         });
 
+        const partnerIds = updatedEnrollments.map(({ partner }) => partner.id);
+
         await Promise.allSettled([
           recordAuditLog(
             updatedEnrollments.map(({ partner }) => ({

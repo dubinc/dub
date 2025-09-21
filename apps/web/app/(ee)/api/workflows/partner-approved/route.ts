@@ -1,3 +1,4 @@
+import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger-draft-bounty-submissions";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -35,6 +36,9 @@ type Payload = z.infer<typeof payloadSchema>;
  *
  * 3. **Send Webhook**: Notifies the workspace via webhook that a new partner has been
  *    enrolled in the program.
+ *
+ * 4. **Trigger Draft Bounty Submission Creation**: Triggers the creation of
+ *    draft bounty submissions for the partner if they are eligible for performance bounties.
  */
 
 // POST /api/workflows/partner-approved
@@ -282,6 +286,24 @@ export const { POST } = serve<Payload>(
 
       logger.info({
         message: `Sent "partner.enrolled" webhook to workspace ${workspace.id}.`,
+      });
+    });
+
+    // Step 4: Trigger draft bounty submission creation
+    await context.run("trigger-draft-bounty-submission-creation", async () => {
+      logger.info({
+        message:
+          "Started executing workflow step 'trigger-draft-bounty-submission-creation'.",
+        data: input,
+      });
+
+      await triggerDraftBountySubmissionCreation({
+        programId,
+        partnerIds: [partnerId],
+      });
+
+      logger.info({
+        message: `Triggered draft bounty submission creation for partner ${partnerId} in program ${programId}.`,
       });
     });
   },

@@ -19,6 +19,7 @@ export const getBountyWithDetails = async ({
       b.rewardAmount,
       b.rewardDescription,
       b.submissionRequirements,
+      b.performanceScope,
       wf.triggerConditions,
 
       -- Partners count
@@ -84,6 +85,7 @@ export const getBountyWithDetails = async ({
   const bounty = bounties[0];
   const performanceCondition =
     bounty.triggerConditions?.length > 0 ? bounty.triggerConditions[0] : null;
+  const performanceScope = bounty.performanceScope;
 
   return {
     id: bounty.id,
@@ -95,6 +97,7 @@ export const getBountyWithDetails = async ({
     rewardAmount: bounty.rewardAmount,
     rewardDescription: bounty.rewardDescription,
     submissionRequirements: bounty.submissionRequirements,
+    performanceScope,
     performanceCondition,
     groups: bounty.groups.filter((group) => group !== null) ?? [],
     partnersCount: Number(bounty.partners),

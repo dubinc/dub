@@ -1,6 +1,7 @@
 export * from "@prisma/client";
 
 export {
+  BountyPerformanceScope,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
   BountyType,

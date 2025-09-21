@@ -9,6 +9,7 @@
   "rewardDescription": null,
   "submissionRequirements": ["image", "url"],
   "performanceCondition": null,
+  "performanceScope": null,
   "groups": [
     {
       "id": "grp_1K2E25381GVMG7HHM057TB92F"
