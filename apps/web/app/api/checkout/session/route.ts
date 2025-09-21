@@ -10,6 +10,7 @@ import {
   TPaymentPlan,
 } from "core/integration/payment/config";
 import {
+  ICreatePrimerClientSessionBody,
   IUpdatePrimerClientSessionBody,
   PaymentService,
 } from "core/integration/payment/server";
