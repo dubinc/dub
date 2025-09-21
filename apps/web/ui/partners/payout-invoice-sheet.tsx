@@ -500,6 +500,8 @@ function PayoutInvoiceSheetContent() {
                 cta="Upgrade"
                 href={`/${slug}/settings/billing/upgrade`}
               />
+            ) : amount && amount < 1000 ? (
+              "Your payout total is less than the minimum invoice amount of $10."
             ) : (
               permissionsError || undefined
             )

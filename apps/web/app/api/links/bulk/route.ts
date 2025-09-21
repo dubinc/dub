@@ -43,7 +43,7 @@ export const POST = withWorkspace(
     const links = bulkCreateLinksBodySchema.parse(await parseRequestBody(req));
     if (
       workspace.linksUsage + links.length > workspace.linksLimit &&
-      (workspace.plan === "free" || workspace.plan === "pro")
+      workspace.plan !== "enterprise" //  don't throw an error for enterprise plans
     ) {
       throw new DubApiError({
         code: "exceeded_limit",

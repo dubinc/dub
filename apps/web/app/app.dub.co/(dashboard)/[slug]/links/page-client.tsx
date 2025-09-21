@@ -394,9 +394,9 @@ function ImportOption({
   children: ReactNode;
   onClick: () => void;
 }) {
-  const { slug, exceededLinks, nextPlan } = useWorkspace();
+  const { slug, exceededLinks, plan, nextPlan } = useWorkspace();
 
-  return exceededLinks ? (
+  return exceededLinks && plan !== "enterprise" ? (
     <Tooltip
       content={
         <TooltipContent
