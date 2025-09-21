@@ -28,6 +28,26 @@ export function useBountySubmissionFilters({
   const filters = useMemo(
     () => [
       {
+        key: "groupId",
+        icon: Users6,
+        label: "Group",
+        options:
+          groups // only show groups that are associated with the bounty
+            ?.filter((group) =>
+              bounty?.groups && bounty?.groups.length > 0
+                ? bounty?.groups.map((g) => g.id).includes(group.id)
+                : true,
+            )
+            .map((group) => {
+              return {
+                value: group.id,
+                label: group.name,
+                icon: <GroupColorCircle group={group} />,
+                permalink: `/${slug}/program/groups/${group.slug}/rewards`,
+              };
+            }) ?? null,
+      },
+      {
         key: "status",
         icon: CircleDotted,
         label: "Status",
@@ -55,28 +75,8 @@ export function useBountySubmissionFilters({
             })
           : null,
       },
-      {
-        key: "groupId",
-        icon: Users6,
-        label: "Partner Group",
-        options:
-          groups // only show groups that are associated with the bounty
-            ?.filter((group) =>
-              bounty?.groups && bounty?.groups.length > 0
-                ? bounty?.groups.map((g) => g.id).includes(group.id)
-                : true,
-            )
-            .map((group) => {
-              return {
-                value: group.id,
-                label: group.name,
-                icon: <GroupColorCircle group={group} />,
-                permalink: `/${slug}/program/groups/${group.slug}/rewards`,
-              };
-            }) ?? null,
-      },
     ],
-    [bounty, submissionsCount, groups, slug],
+    [groups, bounty, submissionsCount, slug],
   );
 
   const activeFilters = useMemo(() => {
