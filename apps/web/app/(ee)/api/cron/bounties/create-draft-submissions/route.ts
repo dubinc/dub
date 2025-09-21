@@ -125,7 +125,9 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("programEnrollments", programEnrollments);
+    console.log(
+      `Found ${programEnrollments.length} program enrollments eligible for bounty ${bountyId}.`,
+    );
 
     // Find the workflow condition
     const condition = z
@@ -141,19 +143,27 @@ export async function POST(req: Request) {
       };
     });
 
-    const bountySubmissions = partners.map((partner) => ({
-      id: createId({ prefix: "bnty_sub_" }),
-      programId: bounty.programId,
-      partnerId: partner.id,
-      bountyId: bounty.id,
-      performanceCount: partner[condition.attribute] ?? 0,
-    }));
+    const bountySubmissionsToCreate = partners
+      // only create submissions for partners that have at least 1 performanceCount
+      .filter((partner) => partner[condition.attribute] > 0)
+      .map((partner) => ({
+        id: createId({ prefix: "bnty_sub_" }),
+        programId: bounty.programId,
+        partnerId: partner.id,
+        bountyId: bounty.id,
+        performanceCount: partner[condition.attribute],
+      }));
+
+    console.table(bountySubmissionsToCreate);
 
     // Create bounty submissions
-    await prisma.bountySubmission.createMany({
-      data: bountySubmissions,
+    const createdBountySubmissions = await prisma.bountySubmission.createMany({
+      data: bountySubmissionsToCreate,
       skipDuplicates: true,
     });
+    console.log(
+      `Created ${createdBountySubmissions.count} bounty submissions for bounty ${bountyId}.`,
+    );
 
     if (programEnrollments.length === MAX_PAGE_SIZE) {
       const response = await qstash.publishJSON({
@@ -171,7 +181,7 @@ export async function POST(req: Request) {
     }
 
     return logAndRespond(
-      `Finished creating submissions for ${programEnrollments.length} partners for bounty ${bountyId}.`,
+      `Finished creating submissions for ${createdBountySubmissions.count} partners for bounty ${bountyId}.`,
     );
   } catch (error) {
     await log({

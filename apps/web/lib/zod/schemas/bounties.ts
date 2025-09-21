@@ -72,6 +72,7 @@ export const createBountySchema = z.object({
 
 export const updateBountySchema = createBountySchema
   .omit({
+    // omit fields that cannot be updated after creation
     type: true,
     performanceScope: true,
   })
@@ -94,9 +95,9 @@ export const BountySchema = z.object({
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),
+  performanceScope: z.nativeEnum(BountyPerformanceScope).nullable(),
   submissionRequirements: submissionRequirementsSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
-  performanceScope: z.nativeEnum(BountyPerformanceScope).nullable(),
 });
 
 export const getBountiesQuerySchema = z.object({
