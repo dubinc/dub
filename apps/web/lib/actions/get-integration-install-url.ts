@@ -1,5 +1,6 @@
 "use server";
 
+import { getHubSpotInstallationUrl } from "../integrations/hubspot/install";
 import { getSlackInstallationUrl } from "../integrations/slack/install";
 import z from "../zod";
 import { authActionClient } from "./safe-action";
@@ -20,6 +21,8 @@ export const getIntegrationInstallUrl = authActionClient
 
     if (integrationSlug === "slack") {
       url = await getSlackInstallationUrl(workspace.id);
+    } else if (integrationSlug === "hubspot") {
+      url = await getHubSpotInstallationUrl(workspace.id);
     } else {
       throw new Error("Invalid integration slug");
     }

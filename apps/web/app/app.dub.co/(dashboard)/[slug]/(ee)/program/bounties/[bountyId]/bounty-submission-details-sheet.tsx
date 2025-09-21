@@ -32,7 +32,7 @@ type BountySubmissionDetailsSheetProps = {
 };
 
 function BountySubmissionDetailsSheetContent({
-  submission: { submission, partner, commission },
+  submission,
   setIsOpen,
 }: BountySubmissionDetailsSheetProps) {
   const { bounty } = useBounty();
@@ -89,7 +89,7 @@ function BountySubmissionDetailsSheetContent({
     return true;
   }, [bounty, rewardAmount]);
 
-  if (!submission || !partner) {
+  if (!submission || !submission.partner) {
     return null;
   }
 
@@ -112,9 +112,12 @@ function BountySubmissionDetailsSheetContent({
 
       <div className="flex grow flex-col">
         <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          <PartnerInfoSection partner={partner} showPartnerStatus={false}>
+          <PartnerInfoSection
+            partner={submission.partner}
+            showPartnerStatus={false}
+          >
             <ButtonLink
-              href={`/${workspaceSlug}/program/partners/${partner.id}`}
+              href={`/${workspaceSlug}/program/partners/${submission.partner.id}`}
               variant="secondary"
               className="h-8 w-fit px-3 py-2 text-sm font-medium"
               target="_blank"
@@ -171,8 +174,10 @@ function BountySubmissionDetailsSheetContent({
                   : [
                       {
                         label: "Reward",
-                        value: commission?.earnings
-                          ? currencyFormatter(commission.earnings / 100)
+                        value: submission.commission?.earnings
+                          ? currencyFormatter(
+                              submission.commission.earnings / 100,
+                            )
                           : "-",
                       },
                     ]),
@@ -292,7 +297,7 @@ function BountySubmissionDetailsSheetContent({
           <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-5">
             {submission.status === "approved" ? (
               <a
-                href={`/${workspaceSlug}/program/commissions?partnerId=${partner.id}&type=custom`}
+                href={`/${workspaceSlug}/program/commissions?partnerId=${submission.partner.id}&type=custom`}
                 target="_blank"
                 className="w-full"
               >

@@ -217,24 +217,22 @@ function CommentCard({
             <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
           )}
         </div>
-        {comment && !isEditing ? (
+        {comment && !isEditing && comment.userId === user?.id ? (
           <Popover
             content={
               <div className="grid w-full grid-cols-1 gap-px p-2 sm:w-48">
-                {comment.userId === user?.id && (
-                  <Button
-                    text="Edit comment"
-                    variant="outline"
-                    loading={isUpdating}
-                    disabled={comment.delivered === false}
-                    onClick={async () => {
-                      setOpenPopover(false);
-                      setIsEditing(true);
-                    }}
-                    icon={<PenWriting className="size-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                  />
-                )}
+                <Button
+                  text="Edit comment"
+                  variant="outline"
+                  loading={isUpdating}
+                  disabled={comment.delivered === false}
+                  onClick={async () => {
+                    setOpenPopover(false);
+                    setIsEditing(true);
+                  }}
+                  icon={<PenWriting className="size-4" />}
+                  className="h-9 justify-start px-2 font-medium"
+                />
                 <Button
                   text="Delete comment"
                   variant="danger-outline"

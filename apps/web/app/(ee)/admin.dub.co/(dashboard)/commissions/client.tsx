@@ -16,12 +16,6 @@ import NumberFlow from "@number-flow/react";
 import { Fragment, useMemo } from "react";
 import useSWR from "swr";
 
-type Tab = {
-  id: string;
-  label: string;
-  colorClassName: string;
-};
-
 export default function CommissionsPageClient() {
   const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
   const { interval, start, end } = searchParamsObj;
@@ -32,6 +26,7 @@ export default function CommissionsPageClient() {
       name: string;
       logo: string;
       commissions: number;
+      fees: number;
     }[];
     timeseries: {
       start: Date;
@@ -47,11 +42,22 @@ export default function CommissionsPageClient() {
     },
   );
 
-  const tabs: Tab[] = [
+  const tabs: {
+    id: string;
+    label: string;
+    colorClassName: string;
+    disabled?: boolean;
+  }[] = [
     {
       id: "commissions",
       label: "Commissions",
       colorClassName: "text-teal-500 bg-teal-500/50 border-teal-500",
+    },
+    {
+      id: "fees",
+      label: "Fees",
+      colorClassName: "text-red-500 bg-red-500/50 border-red-500",
+      disabled: true,
     },
   ];
 
@@ -73,8 +79,9 @@ export default function CommissionsPageClient() {
           (acc, { commissions }) => acc + (commissions || 0),
           0,
         ) ?? 0,
+      fees: programs?.reduce((acc, { fees }) => acc + (fees || 0), 0) ?? 0,
     };
-  }, [timeseries]);
+  }, [timeseries, programs]);
 
   const { pagination, setPagination } = usePagination();
 
@@ -126,6 +133,12 @@ export default function CommissionsPageClient() {
         accessorKey: "commissions",
         cell: ({ row }) => currencyFormatter(row.original.commissions / 100),
       },
+      {
+        id: "fees",
+        header: "Fees",
+        accessorKey: "fees",
+        cell: ({ row }) => currencyFormatter(row.original.fees / 100),
+      },
     ],
     pagination,
     onPaginationChange: setPagination,
@@ -139,10 +152,11 @@ export default function CommissionsPageClient() {
       <SimpleDateRangePicker defaultInterval="mtd" className="w-fit" />
       <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
         <div className="scrollbar-hide grid w-full grid-cols-2 divide-x overflow-y-hidden sm:grid-cols-3">
-          {tabs.map(({ id, label, colorClassName }) => {
+          {tabs.map(({ id, label, colorClassName, disabled }) => {
             return (
               <button
                 key={id}
+                disabled={disabled}
                 onClick={() => {
                   queryParams({
                     set: { tab: id },
@@ -150,8 +164,10 @@ export default function CommissionsPageClient() {
                 }}
                 className={cn(
                   "border-box relative block h-full w-full flex-none px-4 py-3 sm:px-8 sm:py-6",
-                  "transition-colors hover:bg-neutral-50 focus:outline-none active:bg-neutral-100",
                   "ring-inset ring-neutral-500 focus-visible:ring-1 sm:first:rounded-tl-xl",
+                  disabled
+                    ? "cursor-not-allowed"
+                    : "transition-colors hover:bg-neutral-50 focus:outline-none active:bg-neutral-100",
                 )}
               >
                 {/* Active tab indicator */}

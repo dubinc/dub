@@ -179,15 +179,6 @@ module.exports = withAxiom({
         source: "/_proxy/dub/track/click",
         destination: "https://api.dub.co/track/click",
       },
-      // for posthog proxy
-      {
-        source: "/_proxy/posthog/ingest/static/:path*",
-        destination: "https://us-assets.i.posthog.com/static/:path*",
-      },
-      {
-        source: "/_proxy/posthog/ingest/:path*",
-        destination: "https://us.i.posthog.com/:path*",
-      },
       // for plausible proxy
       {
         source: "/_proxy/plausible/script.js",

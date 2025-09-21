@@ -306,8 +306,13 @@ export const createPartnerCommission = async ({
           shouldTriggerWorkflow &&
             executeWorkflows({
               trigger: WorkflowTrigger.commissionEarned,
-              programId,
-              partnerId,
+              context: {
+                programId,
+                partnerId,
+                current: {
+                  commissions: commission.earnings,
+                },
+              },
             }),
         ]);
       })(),
