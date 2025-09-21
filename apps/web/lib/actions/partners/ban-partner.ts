@@ -65,10 +65,7 @@ export const banPartnerAction = authActionClient
       }),
 
       prisma.commission.updateMany({
-        where: {
-          ...where,
-          status: "pending",
-        },
+        where,
         data: {
           status: "canceled",
         },
