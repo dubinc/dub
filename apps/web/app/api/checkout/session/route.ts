@@ -20,10 +20,11 @@ import {
   updateUserCookieService,
 } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
-import { isBefore } from "date-fns/isBefore";
-import { subHours } from "date-fns/subHours";
 
 const paymentService = new PaymentService();
+
+const trialPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
+const initialSubPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
 
 const getMetadata = ({
   user,
@@ -66,8 +67,6 @@ const getMetadata = ({
 export const POST = withSession(async ({ req, session: authSession }) => {
   const { user } = await getUserCookieService();
 
-  const initialSubPaymentPlan: TPaymentPlan = "PRICE_YEAR_PLAN";
-
   if (!user?.paymentInfo?.customerId || !authSession?.user) {
     return NextResponse.json(
       { success: false, error: "User not found" },
@@ -75,46 +74,46 @@ export const POST = withSession(async ({ req, session: authSession }) => {
     );
   }
 
-  if (user?.paymentInfo?.clientToken) {
-    if (
-      isBefore(
-        subHours(new Date(user.paymentInfo?.clientTokenExpirationDate ?? 0), 3),
-        new Date(),
-      )
-    ) {
-      const { clientToken, clientTokenExpirationDate } =
-        await paymentService.updateClientPaymentSession({
-          clientToken: user.paymentInfo.clientToken,
-          paymentPlan: initialSubPaymentPlan,
-        });
+  // if (user?.paymentInfo?.clientToken) {
+  //   if (
+  //     isBefore(
+  //       subHours(new Date(user.paymentInfo?.clientTokenExpirationDate ?? 0), 3),
+  //       new Date(),
+  //     )
+  //   ) {
+  //     const { clientToken, clientTokenExpirationDate } =
+  //       await paymentService.updateClientPaymentSession({
+  //         clientToken: user.paymentInfo.clientToken,
+  //         paymentPlan: initialSubPaymentPlan,
+  //       });
 
-      await updateUserCookieService({
-        paymentInfo: { clientToken, clientTokenExpirationDate },
-      });
+  //     await updateUserCookieService({
+  //       paymentInfo: { clientToken, clientTokenExpirationDate },
+  //     });
 
-      return NextResponse.json({
-        success: true,
-        data: {
-          clientToken,
-          clientTokenExpirationDate,
-        },
-      });
-    }
+  //     return NextResponse.json({
+  //       success: true,
+  //       data: {
+  //         clientToken,
+  //         clientTokenExpirationDate,
+  //       },
+  //     });
+  //   }
 
-    return NextResponse.json({
-      success: true,
-      data: {
-        clientToken: user.paymentInfo.clientToken,
-        clientTokenExpirationDate: user.paymentInfo.clientTokenExpirationDate,
-      },
-    });
-  }
+  //   return NextResponse.json({
+  //     success: true,
+  //     data: {
+  //       clientToken: user.paymentInfo.clientToken,
+  //       clientTokenExpirationDate: user.paymentInfo.clientTokenExpirationDate,
+  //     },
+  //   });
+  // }
 
   try {
     const body = await req.json();
 
     const { priceForPay } = getPaymentPlanPrice({
-      paymentPlan: initialSubPaymentPlan,
+      paymentPlan: trialPaymentPlan,
       user,
     });
 
@@ -132,44 +131,46 @@ export const POST = withSession(async ({ req, session: authSession }) => {
       Object.entries(metadata).filter(([_, value]) => value !== undefined),
     ) as { [key: string]: string | number | boolean | null };
 
+    const paymentSessionBody: ICreatePrimerClientSessionBody = {
+      orderId: uuidV4().replace(/-/g, "").slice(0, 22),
+      customerId:
+        user.id ||
+        cookieStore.get(ECookieArg.SESSION_ID)?.value ||
+        user.paymentInfo?.customerId ||
+        "",
+      currencyCode: user.currency?.currencyForPay || "",
+      amount: priceForPay,
+      order: {
+        lineItems: [
+          {
+            itemId: uuidV4(),
+            amount: priceForPay,
+            quantity: 1,
+          },
+        ],
+        countryCode: user.currency?.countryCode || "",
+      },
+      paymentMethod: {
+        vaultOnSuccess: true,
+        vaultOn3DS: true,
+        paymentType: "FIRST_PAYMENT",
+        orderedAllowedCardNetworks: [
+          "VISA",
+          "MASTERCARD",
+          "DINERS_CLUB",
+          "UNIONPAY",
+        ],
+      },
+      customer: {
+        emailAddress: user.email,
+        billingAddress: { countryCode: user.currency?.countryCode || "" },
+        shippingAddress: { countryCode: user.currency?.countryCode || "" },
+      },
+      metadata: { ...filteredMetadata },
+    };
+
     const { clientToken, clientTokenExpirationDate } =
-      await paymentService.createClientPaymentSession({
-        orderId: uuidV4().replace(/-/g, "").slice(0, 22),
-        customerId:
-          user.id ||
-          cookieStore.get(ECookieArg.SESSION_ID)?.value ||
-          user.paymentInfo?.customerId ||
-          "",
-        currencyCode: user.currency?.currencyForPay || "",
-        amount: priceForPay,
-        order: {
-          lineItems: [
-            {
-              itemId: uuidV4(),
-              amount: priceForPay,
-              quantity: 1,
-            },
-          ],
-          countryCode: user.currency?.countryCode || "",
-        },
-        paymentMethod: {
-          vaultOnSuccess: true,
-          vaultOn3DS: true,
-          paymentType: "FIRST_PAYMENT",
-          orderedAllowedCardNetworks: [
-            "VISA",
-            "MASTERCARD",
-            "DINERS_CLUB",
-            "UNIONPAY",
-          ],
-        },
-        customer: {
-          emailAddress: user.email,
-          billingAddress: { countryCode: user.currency?.countryCode || "" },
-          shippingAddress: { countryCode: user.currency?.countryCode || "" },
-        },
-        metadata: { ...filteredMetadata },
-      });
+      await paymentService.createClientPaymentSession(paymentSessionBody);
 
     await updateUserCookieService({
       paymentInfo: { clientToken, clientTokenExpirationDate },
@@ -209,7 +210,7 @@ export const PATCH = withSession(
             ...user,
             email: authSession.user.email,
           },
-          paymentPlan: body.paymentPlan,
+          paymentPlan: initialSubPaymentPlan,
         }),
       };
 
@@ -218,7 +219,7 @@ export const PATCH = withSession(
           ...user,
           email: authSession.user.email,
         },
-        paymentPlan: body.paymentPlan,
+        paymentPlan: trialPaymentPlan,
       });
 
       const { paymentPlan, ...cloneBody } = structuredClone(body);

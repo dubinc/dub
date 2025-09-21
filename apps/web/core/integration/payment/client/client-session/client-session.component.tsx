@@ -9,8 +9,15 @@ import { stripeSessions } from "core/constants/stripe.constant.ts";
 import { FC, useEffect, useRef } from "react";
 import { createSessionsForClient } from "../session";
 
+//interface
+interface IClientSessionComponentProps {
+  blockSessionCreation?: boolean;
+}
+
 // component
-export const ClientSessionComponent: FC = () => {
+export const ClientSessionComponent: FC<
+  Readonly<IClientSessionComponentProps>
+> = ({ blockSessionCreation }) => {
   const { data: user, isLoading } = useGetUserProfileQuery();
 
   const triggeredCommonSession = useRef(false);
