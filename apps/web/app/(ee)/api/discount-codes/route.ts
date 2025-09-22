@@ -73,7 +73,7 @@ export const POST = withWorkspace(
       });
     }
 
-    const discount = programEnrollment.discount;
+    const { discount } = programEnrollment;
 
     if (!discount) {
       throw new DubApiError({
