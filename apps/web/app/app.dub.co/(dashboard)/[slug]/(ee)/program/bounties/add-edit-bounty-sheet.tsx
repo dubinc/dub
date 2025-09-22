@@ -263,19 +263,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   // Decide if the submit button should be disabled
   const validationError = useMemo(() => {
-    const effectiveStartDate = startsAt || new Date();
-
-    if (effectiveStartDate < new Date()) {
+    if (startsAt && startsAt < new Date()) {
       return "Please choose a start date that is in the future.";
     }
+
+    const effectiveStartDate = startsAt || new Date();
 
     if (endsAt && endsAt <= effectiveStartDate) {
       return `Please choose an end date that is after the start date (${formatDate(effectiveStartDate)}).`;
     }
 
     if (submissionWindow) {
-      console.log({ startsAt, endsAt, submissionWindow });
-
       if (!endsAt) {
         return "An end date is required to determine when the submission window opens.";
       }
