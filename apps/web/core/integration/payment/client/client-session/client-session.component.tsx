@@ -31,7 +31,8 @@ export const ClientSessionComponent: FC<
       if (
         user?.data?.currency?.currencyForPay &&
         // !user?.data?.paymentInfo?.clientToken &&
-        !triggeredClientSession.current
+        !triggeredClientSession.current &&
+        !blockSessionCreation
       ) {
         triggeredClientSession.current = true;
 

@@ -5,7 +5,6 @@ import { MainNav } from "@/ui/layout/main-nav";
 import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
 import { constructMetadata } from "@dub/utils";
 import { OauthTrackerComponent } from "core/integration/analytic/components/oauth-tracker.component.tsx";
-import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { cookies } from "next/headers";
 import { ReactNode } from "react";
@@ -39,7 +38,7 @@ export default async function Layout({ children }: { children: ReactNode }) {
           {children}
         </MainNav>
       </div>
-      {!featuresAccess.isSubscribed && <ClientSessionComponent />}
+      {/* {!featuresAccess.isSubscribed && <ClientSessionComponent />} */}
       {oauthFlowCookie && (
         <OauthTrackerComponent oauthData={parsedOauthFlowInfo} />
       )}
