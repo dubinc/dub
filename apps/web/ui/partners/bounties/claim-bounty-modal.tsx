@@ -25,7 +25,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
-import { formatDistanceToNow, isBefore } from "date-fns";
+import { isBefore } from "date-fns";
 import { motion } from "framer-motion";
 import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
@@ -626,7 +626,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       disabled={fileUploading || isDraft === true}
                       disabledTooltip={
                         !hasSubmissionsOpen
-                          ? `Submissions are not open yet. They will open in ${formatDistanceToNow(bounty.submissionsOpenAt!, { addSuffix: true })} (on ${formatDate(
+                          ? `Submissions are not open yet. They will open on ${formatDate(
                               bounty.submissionsOpenAt!,
                               {
                                 month: "short",
@@ -634,7 +634,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                                 year: "numeric",
                                 timeZone: "UTC",
                               },
-                            )}).`
+                            )}. In the meantime, you can save your progress as a draft.`
                           : undefined
                       }
                     />

@@ -34,7 +34,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate } from "@dub/utils";
-import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
+import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -99,9 +99,17 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const [hasStartDate, setHasStartDate] = useState(!!bounty?.startsAt);
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
-  const [submissionWindow, setSubmissionWindow] = useState<number | null>(null);
-  const [hasSubmissionWindow, setHasSubmissionWindow] = useState(
-    !!bounty?.submissionsOpenAt,
+  const originalSubmissionWindow = useMemo(() => {
+    return bounty?.submissionsOpenAt && bounty?.endsAt
+      ? Math.ceil(
+          (new Date(bounty.endsAt).getTime() -
+            new Date(bounty.submissionsOpenAt).getTime()) /
+            (1000 * 60 * 60 * 24),
+        )
+      : null;
+  }, [bounty]);
+  const [submissionWindow, setSubmissionWindow] = useState<number | null>(
+    originalSubmissionWindow,
   );
 
   const [requireImage, setRequireImage] = useState(
@@ -150,13 +158,12 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     setValue,
     control,
     register,
-    formState: { errors },
+    formState: { errors, isDirty },
   } = form;
 
   const [
     startsAt,
     endsAt,
-    submissionsOpenAt,
     rewardAmount,
     rewardDescription,
     type,
@@ -166,7 +173,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   ] = watch([
     "startsAt",
     "endsAt",
-    "submissionsOpenAt",
     "rewardAmount",
     "rewardDescription",
     "type",
@@ -175,82 +181,81 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "performanceCondition",
   ]);
 
-  // On bounty edit, set submissionWindow based on submissionsOpenAt
-  useEffect(() => {
-    if (!bounty) {
-      return;
+  // Helper functions to update form values
+  const handleStartDateToggle = (checked: boolean) => {
+    setHasStartDate(checked);
+    if (!checked) {
+      setValue("startsAt", null, { shouldDirty: true, shouldValidate: true });
     }
+  };
 
-    if (!bounty.submissionsOpenAt || !bounty.endsAt) {
+  const handleEndDateToggle = (checked: boolean) => {
+    setHasEndDate(checked);
+    if (!checked) {
+      setValue("endsAt", null, { shouldDirty: true, shouldValidate: true });
       setSubmissionWindow(null);
-      return;
+      setValue("submissionsOpenAt", null, { shouldDirty: true });
     }
+  };
 
-    const submissionsOpenAt = new Date(bounty.submissionsOpenAt);
-    const endsAt = new Date(bounty.endsAt);
-
-    setSubmissionWindow(
-      Math.ceil(
-        (endsAt.getTime() - submissionsOpenAt.getTime()) /
-          (1000 * 60 * 60 * 24),
-      ),
-    );
-  }, [bounty?.submissionsOpenAt]);
-
-  useEffect(() => {
-    if (!hasStartDate) {
-      setValue("startsAt", null);
-    }
-  }, [hasStartDate, setValue]);
-
-  useEffect(() => {
-    if (!hasEndDate) {
-      setValue("endsAt", null);
-    }
-  }, [hasEndDate, setValue]);
-
-  useEffect(() => {
-    if (!hasSubmissionWindow) {
-      setValue("submissionsOpenAt", null);
-      setSubmissionWindow(null);
-    } else if (!submissionWindow) {
-      setSubmissionWindow(2);
-    }
-  }, [hasSubmissionWindow, submissionWindow, setValue]);
-
-  // Calculate the submissionsOpenAt based on the submissionWindow & endsAt
-  useEffect(() => {
-    if (!submissionWindow || !endsAt) {
-      return;
-    }
-
-    const submissionsOpenAt = new Date(endsAt);
-    submissionsOpenAt.setDate(submissionsOpenAt.getDate() - submissionWindow);
-
-    setValue("submissionsOpenAt", submissionsOpenAt, {
+  // Update submissionsOpenAt when endsAt or submissionWindow changes
+  const handleEndDateChange = (date: Date | null) => {
+    setValue("endsAt", date, {
       shouldDirty: true,
       shouldValidate: true,
     });
-  }, [endsAt, submissionWindow]);
-
-  // Set submission requirements
-  useEffect(() => {
-    const requirements: BountySubmissionRequirement[] = [];
-
-    if (requireImage) {
-      requirements.push("image");
+    if (date && submissionWindow) {
+      const submissionsOpenAt = new Date(date);
+      submissionsOpenAt.setDate(submissionsOpenAt.getDate() - submissionWindow);
+      setValue("submissionsOpenAt", submissionsOpenAt, { shouldDirty: true });
     }
+  };
 
-    if (requireUrl) {
-      requirements.push("url");
-    }
-
-    if (requirements.length > 0) {
-      setValue("submissionRequirements", requirements);
+  const handleSubmissionWindowToggle = (checked: boolean) => {
+    if (checked) {
+      setSubmissionWindow(originalSubmissionWindow || 2);
+      if (bounty?.submissionsOpenAt) {
+        setValue("submissionsOpenAt", bounty.submissionsOpenAt);
+      }
     } else {
-      setValue("submissionRequirements", null);
+      setSubmissionWindow(null);
+      setValue("submissionsOpenAt", null, { shouldDirty: true });
     }
-  }, [requireImage, requireUrl, setValue]);
+  };
+
+  const handleSubmissionWindowChange = (value: number) => {
+    setSubmissionWindow(value);
+    if (endsAt) {
+      const submissionsOpenAt = new Date(endsAt);
+      submissionsOpenAt.setDate(submissionsOpenAt.getDate() - value);
+      setValue("submissionsOpenAt", submissionsOpenAt, { shouldDirty: true });
+    }
+  };
+
+  const updateSubmissionRequirements = (
+    imageRequired: boolean,
+    urlRequired: boolean,
+  ) => {
+    const requirements: BountySubmissionRequirement[] = [];
+    if (imageRequired) requirements.push("image");
+    if (urlRequired) requirements.push("url");
+
+    setValue(
+      "submissionRequirements",
+      requirements.length > 0 ? requirements : null,
+      { shouldDirty: true },
+    );
+  };
+
+  const handleRequireImageToggle = (checked: boolean) => {
+    setRequireImage(checked);
+    updateSubmissionRequirements(checked, requireUrl);
+  };
+
+  const handleRequireUrlToggle = (checked: boolean) => {
+    setRequireUrl(checked);
+    updateSubmissionRequirements(requireImage, checked);
+  };
 
   // Confirmation modal for bounty creation only
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
@@ -263,54 +268,129 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     },
   });
 
-  // Decide if the submit button should be disabled
+  // Comprehensive validation logic
   const validationError = useMemo(() => {
-    if (startsAt && startsAt < new Date()) {
-      return "Please choose a start date that is in the future.";
+    const now = new Date();
+
+    // Date validations
+    if (startsAt && startsAt !== bounty?.startsAt) {
+      const startDate = new Date(startsAt);
+      if (startDate < now) {
+        return "Please choose a start date that is in the future.";
+      }
     }
 
-    const effectiveStartDate = startsAt || new Date();
+    const effectiveStartDate = startsAt ? new Date(startsAt) : now;
 
-    if (endsAt && endsAt <= effectiveStartDate) {
-      return `Please choose an end date that is after the start date (${formatDate(effectiveStartDate)}).`;
+    if (endsAt) {
+      const endDate = new Date(endsAt);
+
+      if (endDate <= effectiveStartDate) {
+        return `Please choose an end date that is after the start date (${formatDate(effectiveStartDate)}).`;
+      }
+
+      // Ensure end date is at least 1 hour from start
+      const minEndDate = new Date(
+        effectiveStartDate.getTime() + 60 * 60 * 1000,
+      );
+      if (endDate < minEndDate) {
+        return "End date must be at least 1 hour after the start date.";
+      }
     }
 
-    if (submissionWindow) {
+    // Submission window validations
+    if (submissionWindow !== null) {
       if (!endsAt) {
         return "An end date is required to determine when the submission window opens.";
       }
+
+      if (submissionWindow < 1 || submissionWindow > 30) {
+        return "Submission window must be between 1 and 30 days.";
+      }
+
+      // Check if submission window doesn't push submissionsOpenAt before start date
+      const calculatedSubmissionsOpenAt = new Date(endsAt);
+      calculatedSubmissionsOpenAt.setDate(
+        calculatedSubmissionsOpenAt.getDate() - submissionWindow,
+      );
+
+      if (calculatedSubmissionsOpenAt <= effectiveStartDate) {
+        return "Submission window is too long. It would open before the bounty starts.";
+      }
     }
 
+    // Type-specific validations
     if (type === "submission") {
       if (!name?.trim()) {
-        return "Name is required.";
+        return "Name is required for submission bounties.";
       }
 
-      if (rewardType === "flat" && isEmpty(rewardAmount)) {
-        return "Reward amount is required for flat rate rewards.";
+      if (name && name.length > 100) {
+        return "Name must be 100 characters or less.";
       }
 
-      if (rewardType === "custom" && !rewardDescription?.trim()) {
-        return "Reward description is required for custom rate rewards.";
+      if (rewardType === "flat") {
+        if (isEmpty(rewardAmount)) {
+          return "Reward amount is required for flat rate rewards.";
+        }
+        if (rewardAmount !== null && rewardAmount <= 0) {
+          return "Reward amount must be greater than 0.";
+        }
+        if (rewardAmount !== null && rewardAmount > 1000000) {
+          return "Reward amount cannot exceed $1,000,000.";
+        }
+      }
+
+      if (rewardType === "custom") {
+        if (!rewardDescription?.trim()) {
+          return "Reward description is required for custom rewards.";
+        }
+        if (rewardDescription && rewardDescription.length > 100) {
+          return "Reward description must be 100 characters or less.";
+        }
       }
     }
 
     if (type === "performance") {
-      if (
-        ["attribute", "operator", "value"].some((key) =>
-          isEmpty(performanceCondition?.[key]),
-        )
-      ) {
-        return "Performance condition is incomplete.";
+      const condition = performanceCondition;
+
+      if (!condition?.attribute) {
+        return "Performance attribute is required.";
+      }
+
+      if (!condition?.operator) {
+        return "Performance operator is required.";
+      }
+
+      if (isEmpty(condition?.value)) {
+        return "Performance value is required.";
+      }
+
+      if (condition?.value !== null && condition.value < 0) {
+        return "Performance value must be greater than or equal to 0.";
       }
 
       if (isEmpty(rewardAmount)) {
-        return "Reward amount is required.";
+        return "Reward amount is required for performance bounties.";
       }
+
+      if (rewardAmount !== null && rewardAmount <= 0) {
+        return "Reward amount must be greater than 0.";
+      }
+
+      if (rewardAmount !== null && rewardAmount > 1000000) {
+        return "Reward amount cannot exceed $1,000,000.";
+      }
+    }
+
+    // Description validation
+    if (description && description.length > 500) {
+      return "Description must be 500 characters or less.";
     }
 
     return null;
   }, [
+    bounty,
     startsAt,
     endsAt,
     rewardAmount,
@@ -319,6 +399,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     rewardType,
     type,
     name,
+    description,
     performanceCondition?.attribute,
     performanceCondition?.operator,
     performanceCondition?.value,
@@ -390,8 +471,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     }
   });
 
-  console.log({ submissionWindow, submissionsOpenAt });
-
   return (
     <form onSubmit={onSubmit} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
@@ -461,7 +540,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     >
                       <div className="flex items-center gap-4">
                         <Switch
-                          fn={setHasStartDate}
+                          fn={handleStartDateToggle}
                           checked={hasStartDate}
                           trackDimensions="w-8 h-4"
                           thumbDimensions="w-3 h-3"
@@ -505,7 +584,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     >
                       <div className="flex items-center gap-4">
                         <Switch
-                          fn={setHasEndDate}
+                          fn={handleEndDateToggle}
                           checked={hasEndDate}
                           trackDimensions="w-8 h-4"
                           thumbDimensions="w-3 h-3"
@@ -527,7 +606,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                               <SmartDateTimePicker
                                 value={field.value}
                                 onChange={(date) =>
-                                  field.onChange(date ?? undefined)
+                                  handleEndDateChange(date ?? null)
                                 }
                                 placeholder='E.g. "in 3 months"'
                               />
@@ -543,17 +622,18 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                           height
                           transition={{ ease: "easeInOut", duration: 0.2 }}
                           style={{
-                            height: hasSubmissionWindow ? "auto" : "0px",
+                            height: submissionWindow ? "auto" : "0px",
                             overflow: "hidden",
                           }}
                         >
                           <div className="flex items-center gap-4">
                             <Switch
-                              fn={setHasSubmissionWindow}
-                              checked={hasSubmissionWindow}
+                              fn={handleSubmissionWindowToggle}
+                              checked={submissionWindow !== null}
                               trackDimensions="w-8 h-4"
                               thumbDimensions="w-3 h-3"
                               thumbTranslate="translate-x-4"
+                              disabled={!Boolean(endsAt)}
                             />
                             <div className="flex flex-col gap-1">
                               <h3 className="text-sm font-medium text-neutral-700">
@@ -562,13 +642,13 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                             </div>
                           </div>
 
-                          {hasSubmissionWindow && (
+                          {submissionWindow !== null && (
                             <div className="mt-3 p-px">
                               <NumberStepper
                                 value={submissionWindow ?? 2}
-                                onChange={(v) => setSubmissionWindow(v)}
-                                min={2} // Min 2 days
-                                max={14} // Max 2 weeks
+                                onChange={handleSubmissionWindowChange}
+                                min={1} // Min 1 day
+                                max={30} // Max 30 days
                                 step={1}
                                 className="w-full"
                               />
@@ -767,7 +847,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       <div className="space-y-4">
                         <div className="flex items-center gap-4">
                           <Switch
-                            fn={setRequireImage}
+                            fn={handleRequireImageToggle}
                             checked={requireImage}
                             trackDimensions="w-8 h-4"
                             thumbDimensions="w-3 h-3"
@@ -782,7 +862,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
                         <div className="flex items-center gap-4">
                           <Switch
-                            fn={setRequireUrl}
+                            fn={handleRequireUrlToggle}
                             checked={requireUrl}
                             trackDimensions="w-8 h-4"
                             thumbDimensions="w-3 h-3"
@@ -838,8 +918,11 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               text={bounty ? "Update bounty" : "Create bounty"}
               className="w-fit"
               loading={isSubmitting}
-              disabled={Boolean(validationError)}
-              disabledTooltip={validationError}
+              disabled={Boolean(validationError) || (bounty && !isDirty)}
+              disabledTooltip={
+                validationError ||
+                (bounty && !isDirty ? "No changes to save" : undefined)
+              }
             />
           </div>
         </div>
