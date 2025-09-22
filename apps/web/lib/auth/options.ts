@@ -41,6 +41,7 @@ import {
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
+import { createAutoLoginURL } from './jwt-signin.ts';
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -650,6 +651,7 @@ export const authOptions: NextAuthOptions = {
               },
             );
 
+            const loginUrl = await createAutoLoginURL(user.id);
             waitUntil(
               Promise.all([
                 CustomerIOClient.identify(user.id, {
@@ -666,6 +668,7 @@ export const authOptions: NextAuthOptions = {
                           QR_TYPES.find(
                             (item) => item.id === qrDataToCreate?.qrType,
                           )!.label || "Undefined type",
+                        url: loginUrl,
                       },
                       customerId: user.id,
                     })
@@ -674,7 +677,7 @@ export const authOptions: NextAuthOptions = {
                       subject: "Welcome to GetQR",
                       template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
                       messageData: {
-                        url: HOME_DOMAIN,
+                        url: loginUrl,
                       },
                       customerId: user.id,
                     }),
