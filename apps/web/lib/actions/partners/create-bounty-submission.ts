@@ -114,7 +114,11 @@ export const createBountySubmissionAction = authPartnerActionClient
       throw new Error("You are not allowed to submit a performance bounty.");
     }
 
-    if (bounty.submissionsOpenAt && bounty.submissionsOpenAt > now) {
+    if (
+      !isDraft &&
+      bounty.submissionsOpenAt &&
+      bounty.submissionsOpenAt > now
+    ) {
       const waitTime = formatDistanceToNow(bounty.submissionsOpenAt, {
         addSuffix: true,
       });
