@@ -24,6 +24,14 @@ export function validateBounty({
   }
 
   if (submissionsOpenAt) {
+    if (!endsAt) {
+      throw new DubApiError({
+        message:
+          "An end date is required to determine when the submission window opens.",
+        code: "bad_request",
+      });
+    }
+
     if (submissionsOpenAt < startsAt) {
       throw new DubApiError({
         message:
@@ -32,7 +40,7 @@ export function validateBounty({
       });
     }
 
-    if (endsAt && submissionsOpenAt > endsAt) {
+    if (submissionsOpenAt > endsAt) {
       throw new DubApiError({
         message:
           "Bounty submissions open date (submissionsOpenAt) must be on or before end date (endsAt).",
