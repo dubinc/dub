@@ -119,6 +119,23 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
+        const magicLinkUrl = new URL(url);
+        const callbackUrl = magicLinkUrl.searchParams.get("callbackUrl");
+
+        let template = CUSTOMER_IO_TEMPLATES.MAGIC_LINK;
+        let ctx: Record<string, string> | null = null;
+
+        if (callbackUrl) {
+          const params = new URL(callbackUrl).searchParams;
+          template = params.get("template") as string;
+          const rawParams = params.get("ctx");
+          if (rawParams) {
+            try {
+              ctx = JSON.parse(Buffer.from(rawParams, "base64url").toString("utf8"));
+            } catch {}
+          }
+        }
+
         prisma.user
           .findUnique({
             where: {
@@ -138,9 +155,10 @@ export const authOptions: NextAuthOptions = {
               sendEmail({
                 email: identifier,
                 subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-                template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
+                template: template as string,
                 messageData: {
                   url,
+                  ...ctx,
                 },
                 customerId: user?.id,
               }),
@@ -647,8 +665,7 @@ export const authOptions: NextAuthOptions = {
                         qr_type:
                           QR_TYPES.find(
                             (item) => item.id === qrDataToCreate?.qrType,
-                          )!.label || "Indefined type",
-                        url: HOME_DOMAIN,
+                          )!.label || "Undefined type",
                       },
                       customerId: user.id,
                     })
