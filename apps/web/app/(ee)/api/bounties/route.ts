@@ -105,7 +105,7 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const {
+    let {
       name,
       description,
       type,
@@ -120,7 +120,10 @@ export const POST = withWorkspace(
       performanceScope,
     } = createBountySchema.parse(await parseRequestBody(req));
 
-    if (startsAt && endsAt && endsAt < startsAt) {
+    // Use current date as default if startsAt is not provided
+    startsAt = startsAt || new Date();
+
+    if (endsAt && endsAt < startsAt) {
       throw new DubApiError({
         message:
           "Bounty end date (endsAt) must be on or after start date (startsAt).",
@@ -129,7 +132,7 @@ export const POST = withWorkspace(
     }
 
     if (submissionsOpenAt) {
-      if (startsAt && submissionsOpenAt < startsAt) {
+      if (submissionsOpenAt < startsAt) {
         throw new DubApiError({
           message:
             "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",

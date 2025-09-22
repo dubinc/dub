@@ -52,7 +52,7 @@ export const createBountySchema = z.object({
     .max(500, "Description must be less than 500 characters")
     .nullish(),
   type: z.nativeEnum(BountyType),
-  startsAt: parseDateSchema,
+  startsAt: parseDateSchema.nullish(),
   endsAt: parseDateSchema.nullish(),
   submissionsOpenAt: parseDateSchema.nullish(),
   rewardAmount: z

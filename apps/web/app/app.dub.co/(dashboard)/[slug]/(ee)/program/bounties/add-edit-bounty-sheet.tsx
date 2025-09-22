@@ -92,6 +92,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { id: workspaceId } = useWorkspace();
   const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
 
+  const [hasStartDate, setHasStartDate] = useState(!!bounty?.startsAt);
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
   const [submissionWindow, setSubmissionWindow] = useState<number | null>(null);
@@ -189,6 +190,13 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     );
   }, [bounty?.submissionsOpenAt]);
 
+  // Make sure startsAt is null if hasStartDate is false
+  useEffect(() => {
+    if (!hasStartDate) {
+      setValue("startsAt", null);
+    }
+  }, [hasStartDate, setValue]);
+
   // Make sure endsAt is null if hasEndDate is false
   useEffect(() => {
     if (!hasEndDate) {
@@ -243,11 +251,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
   // Decide if the submit button should be disabled
   const shouldDisableSubmit = useMemo(() => {
-    if (!startsAt) {
-      return true;
-    }
-
-    if (endsAt && endsAt <= startsAt) {
+    if (startsAt && endsAt && endsAt <= startsAt) {
       return true;
     }
 
@@ -420,23 +424,47 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       Set the schedule, reward, and additional details.
                     </p>
 
-                    <div>
-                      <Controller
-                        control={control}
-                        name="startsAt"
-                        render={({ field }) => (
-                          <SmartDateTimePicker
-                            value={field.value}
-                            onChange={(date) =>
-                              field.onChange(date ?? undefined)
-                            }
-                            label="Start date"
-                            placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                    <AnimatedSizeContainer
+                      height
+                      transition={{ ease: "easeInOut", duration: 0.2 }}
+                      className={!hasStartDate ? "hidden" : ""}
+                      style={{ display: !hasStartDate ? "none" : "block" }}
+                    >
+                      <div className="flex items-center gap-4">
+                        <Switch
+                          fn={setHasStartDate}
+                          checked={hasStartDate}
+                          trackDimensions="w-8 h-4"
+                          thumbDimensions="w-3 h-3"
+                          thumbTranslate="translate-x-4"
+                          disabled={Boolean(bounty?.startsAt)}
+                        />
+                        <div className="flex flex-col gap-1">
+                          <h3 className="text-sm font-medium text-neutral-700">
+                            Start date
+                          </h3>
+                        </div>
+                      </div>
+
+                      {hasStartDate && (
+                        <div className="mt-3 p-px">
+                          <Controller
+                            control={control}
+                            name="startsAt"
+                            render={({ field }) => (
+                              <SmartDateTimePicker
+                                value={field.value}
+                                onChange={(date) =>
+                                  field.onChange(date ?? undefined)
+                                }
+                                placeholder='E.g. "2024-03-01", "Last Thursday", "2 hours ago"'
+                              />
+                            )}
                           />
-                        )}
-                      />
-                      {errors.startsAt && "test"}
-                    </div>
+                          {errors.startsAt && "test"}
+                        </div>
+                      )}
+                    </AnimatedSizeContainer>
 
                     <AnimatedSizeContainer
                       height
@@ -460,7 +488,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                       </div>
 
                       {hasEndDate && (
-                        <div className="mt-6 p-px">
+                        <div className="mt-3 p-px">
                           <Controller
                             control={control}
                             name="endsAt"
@@ -470,7 +498,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 onChange={(date) =>
                                   field.onChange(date ?? undefined)
                                 }
-                                label="End date"
                                 placeholder='E.g. "in 3 months"'
                               />
                             )}
@@ -507,7 +534,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                           </div>
 
                           {submissionWindow && (
-                            <div className="mt-6 p-px">
+                            <div className="mt-3 p-px">
                               <NumberStepper
                                 value={submissionWindow}
                                 onChange={(v) => setSubmissionWindow(v)}
