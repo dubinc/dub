@@ -412,7 +412,7 @@ export const authOptions: NextAuthOptions = {
   ],
   // @ts-ignore
   adapter: CustomPrismaAdapter(prisma),
-  session: { strategy: "jwt" },
+  session: { strategy: "database" }, // Use database sessions for server-side auth compatibility
   cookies: {
     sessionToken: {
       name: `${VERCEL_DEPLOYMENT ? "__Secure-" : ""}next-auth.session-token`,
@@ -561,47 +561,17 @@ export const authOptions: NextAuthOptions = {
       }
       return true;
     },
-    jwt: async ({
-      token,
-      user,
-      trigger,
-    }: {
-      token: JWT;
-      user: User | AdapterUser | UserProps;
-      trigger?: "signIn" | "update" | "signUp";
-    }) => {
-      // Handle normal sign-in flow
+    session: async ({ session, user }) => {
+      // With database sessions, we get the user directly from the database
       if (user) {
-        token.user = user;
+        (session.user as any) = {
+          id: user.id,
+          name: user.name || "",
+          email: user.email || "",
+          image: user.image,
+          isMachine: (user as any).isMachine || false,
+        };
       }
-
-      // Handle server-created tokens (they already have user data)
-      // If token.user already exists but no user parameter, it's likely a server-created token
-      if (!user && token.user && token.sub) {
-        // Token already has user data, just return it
-        return token;
-      }
-
-      // refresh the user's data if they update their name / email
-      if (trigger === "update") {
-        const refreshedUser = await prisma.user.findUnique({
-          where: { id: token.sub },
-        });
-        if (refreshedUser) {
-          token.user = refreshedUser;
-        } else {
-          return {};
-        }
-      }
-
-      return token;
-    },
-    session: async ({ session, token }) => {
-      session.user = {
-        id: token.sub,
-        // @ts-ignore
-        ...(token || session).user,
-      };
       return session;
     },
   },
