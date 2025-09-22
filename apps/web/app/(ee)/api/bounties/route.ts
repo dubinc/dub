@@ -192,7 +192,7 @@ export const POST = withWorkspace(
           type,
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
-          submissionsOpenAt,
+          submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
           rewardAmount,
           rewardDescription,
           performanceScope: type === "performance" ? performanceScope : null,
