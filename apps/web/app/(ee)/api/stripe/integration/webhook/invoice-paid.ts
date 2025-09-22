@@ -4,6 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import { WebhookPartner } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
@@ -203,8 +204,9 @@ export async function invoicePaid(event: Stripe.Event) {
   ]);
 
   // for program links
+  let webhookPartner: WebhookPartner | undefined;
   if (link.programId && link.partnerId) {
-    await createPartnerCommission({
+    const createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -224,6 +226,7 @@ export async function invoicePaid(event: Stripe.Event) {
         },
       },
     });
+    webhookPartner = createdCommission?.webhookPartner;
 
     waitUntil(
       executeWorkflows({
@@ -250,6 +253,7 @@ export async function invoicePaid(event: Stripe.Event) {
         clickedAt: customer.clickedAt || customer.createdAt,
         link: linkUpdated,
         customer,
+        partner: webhookPartner,
         metadata: null,
       }),
     }),

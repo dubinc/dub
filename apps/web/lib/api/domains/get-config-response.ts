@@ -1,4 +1,6 @@
-export const getConfigResponse = async (domain: string) => {
+import { getApexDomain } from "@dub/utils";
+
+const getVercelConfigResponse = async (domain: string) => {
   return await fetch(
     `https://api.vercel.com/v6/domains/${domain.toLowerCase()}/config?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
@@ -9,4 +11,16 @@ export const getConfigResponse = async (domain: string) => {
       },
     },
   ).then((res) => res.json());
+};
+
+export const getConfigResponse = async (domain: string) => {
+  const apexDomain = getApexDomain(`https://${domain}`);
+  if (apexDomain !== domain) {
+    const wildcardDomain = `*.${apexDomain}`;
+    const wildcardResponse = await getVercelConfigResponse(wildcardDomain);
+    if (!wildcardResponse.misconfigured) {
+      return wildcardResponse;
+    }
+  }
+  return await getVercelConfigResponse(domain);
 };

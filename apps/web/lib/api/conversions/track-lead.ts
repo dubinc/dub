@@ -6,7 +6,7 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import { ClickEventTB, WorkspaceProps } from "@/lib/types";
+import { ClickEventTB, WebhookPartner, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -299,8 +299,10 @@ export const trackLead = async ({
           ]);
           link = updatedLink; // update the link variable to the latest version
 
+          let webhookPartner: WebhookPartner | undefined;
+
           if (link.programId && link.partnerId && customer) {
-            await createPartnerCommission({
+            const createdCommission = await createPartnerCommission({
               event: "lead",
               programId: link.programId,
               partnerId: link.partnerId,
@@ -314,6 +316,7 @@ export const trackLead = async ({
                 },
               },
             });
+            webhookPartner = createdCommission?.webhookPartner;
 
             await executeWorkflows({
               trigger: WorkflowTrigger.leadRecorded,
@@ -334,6 +337,7 @@ export const trackLead = async ({
               eventName,
               link,
               customer,
+              partner: webhookPartner,
               metadata,
             }),
             workspace,

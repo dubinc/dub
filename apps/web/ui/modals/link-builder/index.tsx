@@ -262,7 +262,7 @@ export function CreateLinkButton({
 }: {
   setShowLinkBuilder: Dispatch<SetStateAction<boolean>>;
 } & CreateLinkButtonProps) {
-  const { slug, nextPlan, exceededLinks } = useWorkspace();
+  const { slug, plan, nextPlan, exceededLinks } = useWorkspace();
 
   useKeyboardShortcut("c", () => setShowLinkBuilder(true));
 
@@ -299,7 +299,7 @@ export function CreateLinkButton({
       text="Create link"
       shortcut="C"
       disabledTooltip={
-        exceededLinks ? (
+        exceededLinks && plan !== "enterprise" ? (
           <TooltipContent
             title="Your workspace has exceeded its monthly links limit. We're still collecting data on your existing links, but you need to upgrade to add more links."
             cta={`Upgrade to ${nextPlan.name}`}

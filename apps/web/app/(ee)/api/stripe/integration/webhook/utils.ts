@@ -5,6 +5,7 @@ import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { stripeAppClient } from "@/lib/stripe";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
+import { WebhookPartner } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
@@ -100,8 +101,9 @@ export async function createNewCustomer(event: Stripe.Event) {
     }),
   ]);
 
+  let webhookPartner: WebhookPartner | undefined;
   if (link.programId && link.partnerId) {
-    await createPartnerCommission({
+    const createdCommission = await createPartnerCommission({
       event: "lead",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -115,6 +117,7 @@ export async function createNewCustomer(event: Stripe.Event) {
         },
       },
     });
+    webhookPartner = createdCommission?.webhookPartner;
   }
 
   waitUntil(
@@ -127,6 +130,7 @@ export async function createNewCustomer(event: Stripe.Event) {
           eventName,
           link: linkUpdated,
           customer,
+          partner: webhookPartner,
           metadata: null,
         }),
       }),

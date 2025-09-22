@@ -1,4 +1,5 @@
-import { getDomainWithoutWWW } from "@dub/utils";
+import { getApexDomain, getDomainWithoutWWW } from "@dub/utils";
+import { getVercelDomainResponse } from "./get-domain-response";
 import { CustomResponse } from "./utils";
 
 export const addDomainToVercel = async (
@@ -9,6 +10,16 @@ export const addDomainToVercel = async (
     redirectToApex?: boolean;
   } = {},
 ): Promise<CustomResponse> => {
+  domain = domain.toLowerCase();
+
+  const apexDomain = getApexDomain(`https://${domain}`);
+  if (apexDomain !== domain) {
+    const wildcardDomain = `*.${apexDomain}`;
+    const wildcardResponse = await getVercelDomainResponse(wildcardDomain);
+    if (wildcardResponse.verified) {
+      return wildcardResponse;
+    }
+  }
   return await fetch(
     `https://api.vercel.com/v10/projects/${process.env.PROJECT_ID_VERCEL}/domains?teamId=${process.env.TEAM_ID_VERCEL}`,
     {
@@ -18,9 +29,9 @@ export const addDomainToVercel = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        name: domain.toLowerCase(),
+        name: domain,
         ...(redirectToApex && {
-          redirect: getDomainWithoutWWW(domain.toLowerCase()),
+          redirect: getDomainWithoutWWW(domain),
         }),
       }),
     },
