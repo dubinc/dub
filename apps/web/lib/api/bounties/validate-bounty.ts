@@ -56,6 +56,13 @@ export async function validateBounty({
     }
   }
 
+  if (rewardAmount && rewardAmount < 0) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "Reward amount cannot be negative.",
+    });
+  }
+
   if (!performanceScope && type === "performance") {
     throw new DubApiError({
       code: "bad_request",
