@@ -1,4 +1,5 @@
 import { Bounty } from "@dub/prisma/client";
+import { addDays, subDays } from "date-fns";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
 import { describe, expect, onTestFinished, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
@@ -58,6 +59,28 @@ describe.sequential("/bounties/**", async () => {
     });
   });
 
+  test("POST /bounties - performance based with performanceScope set to new", async () => {
+    const { status, data: bounty } = await http.post<Bounty>({
+      path: "/bounties",
+      body: {
+        ...performanceBounty,
+        groupIds: [E2E_PARTNER_GROUP.id],
+        performanceScope: "new",
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(bounty).toMatchObject({
+      id: expect.any(String),
+      ...performanceBounty,
+      performanceScope: "new",
+    });
+
+    onTestFinished(async () => {
+      await h.deleteBounty(bounty.id);
+    });
+  });
+
   test("POST /bounties - submission based", async () => {
     const { status, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
@@ -100,21 +123,30 @@ describe.sequential("/bounties/**", async () => {
     });
   });
 
-  test("POST /bounties - performance based with performanceScope set to new", async () => {
+  test("POST /bounties - submission based with submissionsOpenAt", async () => {
+    const now = new Date();
+    const startsAt = addDays(now, 1);
+    const endsAt = addDays(startsAt, 30);
+    const submissionsOpenAt = subDays(endsAt, 2);
+
     const { status, data: bounty } = await http.post<Bounty>({
       path: "/bounties",
       body: {
-        ...performanceBounty,
+        ...submissionBounty,
+        startsAt,
+        endsAt,
+        submissionsOpenAt,
         groupIds: [E2E_PARTNER_GROUP.id],
-        performanceScope: "new",
       },
     });
 
     expect(status).toEqual(200);
     expect(bounty).toMatchObject({
       id: expect.any(String),
-      ...performanceBounty,
-      performanceScope: "new",
+      ...submissionBounty,
+      startsAt: startsAt.toISOString(),
+      endsAt: endsAt.toISOString(),
+      submissionsOpenAt: submissionsOpenAt.toISOString(),
     });
 
     onTestFinished(async () => {
