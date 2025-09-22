@@ -96,6 +96,9 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
   const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
   const [submissionWindow, setSubmissionWindow] = useState<number | null>(null);
+  const [hasSubmissionWindow, setHasSubmissionWindow] = useState(
+    !!bounty?.submissionsOpenAt,
+  );
 
   const [requireImage, setRequireImage] = useState(
     bounty?.submissionRequirements?.includes("image") || false,
@@ -190,19 +193,23 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     );
   }, [bounty?.submissionsOpenAt]);
 
-  // Make sure startsAt is null if hasStartDate is false
   useEffect(() => {
     if (!hasStartDate) {
       setValue("startsAt", null);
     }
   }, [hasStartDate, setValue]);
 
-  // Make sure endsAt is null if hasEndDate is false
   useEffect(() => {
     if (!hasEndDate) {
       setValue("endsAt", null);
     }
   }, [hasEndDate, setValue]);
+
+  useEffect(() => {
+    if (!hasSubmissionWindow) {
+      setValue("submissionsOpenAt", null);
+    }
+  }, [hasSubmissionWindow, setValue]);
 
   // Calculate the submissionsOpenAt based on the submissionWindow & endsAt
   useEffect(() => {
@@ -427,8 +434,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     <AnimatedSizeContainer
                       height
                       transition={{ ease: "easeInOut", duration: 0.2 }}
-                      className={!hasStartDate ? "hidden" : ""}
-                      style={{ display: !hasStartDate ? "none" : "block" }}
+                      style={{
+                        height: hasStartDate ? "auto" : "0px",
+                        overflow: "hidden",
+                      }}
                     >
                       <div className="flex items-center gap-4">
                         <Switch
@@ -469,8 +478,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                     <AnimatedSizeContainer
                       height
                       transition={{ ease: "easeInOut", duration: 0.2 }}
-                      className={!hasEndDate ? "hidden" : ""}
-                      style={{ display: !hasEndDate ? "none" : "block" }}
+                      style={{
+                        height: hasEndDate ? "auto" : "0px",
+                        overflow: "hidden",
+                      }}
                     >
                       <div className="flex items-center gap-4">
                         <Switch
@@ -511,17 +522,15 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         <AnimatedSizeContainer
                           height
                           transition={{ ease: "easeInOut", duration: 0.2 }}
-                          className={submissionWindow ? "" : "hidden"}
                           style={{
-                            display: submissionWindow ? "block" : "none",
+                            height: hasSubmissionWindow ? "auto" : "0px",
+                            overflow: "hidden",
                           }}
                         >
                           <div className="flex items-center gap-4">
                             <Switch
-                              fn={(checked: boolean) =>
-                                setSubmissionWindow(checked ? 2 : null)
-                              }
-                              checked={submissionWindow !== null}
+                              fn={setHasSubmissionWindow}
+                              checked={hasSubmissionWindow}
                               trackDimensions="w-8 h-4"
                               thumbDimensions="w-3 h-3"
                               thumbTranslate="translate-x-4"
@@ -533,10 +542,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                             </div>
                           </div>
 
-                          {submissionWindow && (
+                          {hasSubmissionWindow && (
                             <div className="mt-3 p-px">
                               <NumberStepper
-                                value={submissionWindow}
+                                value={submissionWindow ?? 2}
                                 onChange={(v) => setSubmissionWindow(v)}
                                 min={2} // Min 2 days
                                 max={14} // Max 2 weeks
