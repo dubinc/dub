@@ -516,6 +516,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                                 step={1}
                                 className="w-full"
                               />
+                              <p className="mt-2 text-xs text-neutral-500">
+                                Submissions open {submissionWindow} days before
+                                the end date. Drafts can be saved until then.
+                              </p>
                             </div>
                           )}
                         </AnimatedSizeContainer>

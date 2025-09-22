@@ -25,6 +25,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
+import { formatDistanceToNow, isBefore } from "date-fns";
 import { motion } from "framer-motion";
 import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
@@ -139,6 +140,10 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
   const urlRequired = bounty.submissionRequirements?.includes("url");
   const fileUploading = files.some(({ uploading }) => uploading);
 
+  const hasSubmissionsOpen = bounty.submissionsOpenAt
+    ? isBefore(bounty.submissionsOpenAt, new Date())
+    : true;
+
   // Confirmation modal for final submission
   const { confirmModal, setShowConfirmModal } = useConfirmModal({
     title: "Confirm submission",
@@ -197,9 +202,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
       });
 
       if (!result?.data?.success) {
-        throw new Error(
-          isDraft ? "Failed to save progress." : "Failed to create submission.",
-        );
+        throw new Error(result?.serverError);
       }
 
       toast.success(isDraft ? "Bounty progress saved." : "Bounty submitted.");
@@ -621,6 +624,19 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                       name="submit" // for submitter.name detection above
                       loading={isDraft === false}
                       disabled={fileUploading || isDraft === true}
+                      disabledTooltip={
+                        !hasSubmissionsOpen
+                          ? `Submissions are not open yet. They will open in ${formatDistanceToNow(bounty.submissionsOpenAt!, { addSuffix: true })} (on ${formatDate(
+                              bounty.submissionsOpenAt!,
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                timeZone: "UTC",
+                              },
+                            )}).`
+                          : undefined
+                      }
                     />
                   </div>
                 </div>

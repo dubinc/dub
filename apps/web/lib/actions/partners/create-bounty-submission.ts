@@ -15,6 +15,7 @@ import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
 import { BountySubmission, Role } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { formatDistanceToNow } from "date-fns";
 import { z } from "zod";
 import { authPartnerActionClient } from "../safe-action";
 
@@ -111,6 +112,16 @@ export const createBountySubmissionAction = authPartnerActionClient
 
     if (bounty.type === "performance") {
       throw new Error("You are not allowed to submit a performance bounty.");
+    }
+
+    if (bounty.submissionsOpenAt && bounty.submissionsOpenAt > now) {
+      const waitTime = formatDistanceToNow(bounty.submissionsOpenAt, {
+        addSuffix: true,
+      });
+
+      throw new Error(
+        `Submissions are not open yet. You can submit ${waitTime}.`,
+      );
     }
 
     // Validate the submission requirements
