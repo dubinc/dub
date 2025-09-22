@@ -134,7 +134,12 @@ export const createUserAccountAction = actionClient
       );
     }
 
+    console.log("loginUrl creation started");
+
     const loginUrl = await createAutoLoginURL(generatedUserId);
+
+    console.log("loginUrl", loginUrl);
+    console.log("qrDataToCreate", qrDataToCreate);
 
     waitUntil(
       Promise.all([
