@@ -55,19 +55,26 @@ export async function verifyServerAuthJWT(token: string): Promise<Session | null
   try {
     const { payload } = await jwtVerify(token, secret);
 
-    if (!payload.serverAuth) {
-      return null; // Not a server-authenticated token
+    // Handle both server-auth tokens and NextAuth-compatible tokens
+    if (payload.serverAuth) {
+      // Custom server-auth token format
+      return {
+        user: {
+          id: payload.sub as string,
+          email: payload.email as string,
+          name: payload.name as string,
+          image: payload.image as string,
+          isMachine: false,
+        },
+      };
+    } else if (payload.user) {
+      // NextAuth-compatible token format
+      return {
+        user: payload.user as Session["user"],
+      };
     }
 
-    return {
-      user: {
-        id: payload.sub as string,
-        email: payload.email as string,
-        name: payload.name as string,
-        image: payload.image as string,
-        isMachine: false,
-      },
-    };
+    return null;
   } catch (error) {
     console.error("Verify server auth JWT error:", error);
     return null;
@@ -76,7 +83,7 @@ export async function verifyServerAuthJWT(token: string): Promise<Session | null
 
 /**
  * Set server authentication session using cookies
- * This method directly sets the NextAuth session cookie
+ * This method directly sets the NextAuth session cookie with the proper format
  */
 export async function setServerAuthSession(userId: string): Promise<void> {
   try {
@@ -94,12 +101,17 @@ export async function setServerAuthSession(userId: string): Promise<void> {
       throw new Error("User not found");
     }
 
-    // Create a NextAuth-compatible JWT
+    // Create a NextAuth-compatible JWT token that matches the expected format
+    // This should match what NextAuth's JWT callback expects
     const sessionToken = await new SignJWT({
-      sub: user.id,
-      email: user.email,
-      name: user.name,
-      image: user.image,
+      sub: user.id, // NextAuth uses 'sub' for user ID
+      user: {       // NextAuth stores user data in 'user' field
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        image: user.image,
+        isMachine: false, // Your session type expects this
+      },
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days
     })
