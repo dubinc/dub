@@ -24,7 +24,7 @@ const updatePartnerProfileSchema = z
     name: z.string(),
     email: z.string().email(),
     image: uploadedImageSchema.nullish(),
-    description: z.string().nullable(),
+    description: z.string().nullish(),
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullable(),
     profileType: z.nativeEnum(PartnerProfileType),
     companyName: z.string().nullable(),
