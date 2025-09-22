@@ -610,11 +610,16 @@ export const authOptions: NextAuthOptions = {
       console.log("events signIn message: ", JSON.stringify(message));
       const cookieStore = cookies();
 
+      const { user: userFromCookie } = await getUserCookieService();
+
       const customerUser = convertSessionUserToCustomerBody(
         message.user as Session["user"],
       );
 
-      await applyUserSession(customerUser);
+      await applyUserSession({
+        ...customerUser,
+        currency: { ...customerUser?.currency, ...userFromCookie?.currency },
+      });
 
       if (message.isNewUser) {
         const email = message.user.email as string;

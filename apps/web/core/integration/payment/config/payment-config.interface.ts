@@ -39,6 +39,7 @@ export enum EPaymentMethod {
 
 export type TPaymentPlan =
   | "MIN_PRICE"
+  | "PRICE_TRIAL_MONTH_PLAN"
   | "PRICE_MONTH_PLAN"
   | "PRICE_QUARTER_PLAN"
   | "PRICE_QUARTER_PLAN_PREV"
