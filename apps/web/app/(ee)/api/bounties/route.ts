@@ -113,6 +113,7 @@ export const POST = withWorkspace(
       rewardDescription,
       startsAt,
       endsAt,
+      submissionsOpenAt,
       submissionRequirements,
       groupIds,
       performanceCondition,
@@ -125,6 +126,24 @@ export const POST = withWorkspace(
           "Bounty end date (endsAt) must be on or after start date (startsAt).",
         code: "bad_request",
       });
+    }
+
+    if (submissionsOpenAt) {
+      if (startsAt && submissionsOpenAt < startsAt) {
+        throw new DubApiError({
+          message:
+            "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",
+          code: "bad_request",
+        });
+      }
+
+      if (endsAt && submissionsOpenAt > endsAt) {
+        throw new DubApiError({
+          message:
+            "Bounty submissions open date (submissionsOpenAt) must be on or before end date (endsAt).",
+          code: "bad_request",
+        });
+      }
     }
 
     if (!rewardAmount) {
@@ -207,6 +226,7 @@ export const POST = withWorkspace(
           type,
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
+          submissionsOpenAt,
           rewardAmount,
           rewardDescription,
           performanceScope: type === "performance" ? performanceScope : null,

@@ -58,6 +58,7 @@ export const PATCH = withWorkspace(
       description,
       startsAt,
       endsAt,
+      submissionsOpenAt,
       rewardAmount,
       rewardDescription,
       submissionRequirements,
@@ -71,6 +72,24 @@ export const PATCH = withWorkspace(
           "Bounty end date (endsAt) must be on or after start date (startsAt).",
         code: "bad_request",
       });
+    }
+
+    if (submissionsOpenAt) {
+      if (startsAt && submissionsOpenAt < startsAt) {
+        throw new DubApiError({
+          message:
+            "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",
+          code: "bad_request",
+        });
+      }
+
+      if (endsAt && submissionsOpenAt > endsAt) {
+        throw new DubApiError({
+          message:
+            "Bounty submissions open date (submissionsOpenAt) must be on or before end date (endsAt).",
+          code: "bad_request",
+        });
+      }
     }
 
     const bounty = await prisma.bounty.findUniqueOrThrow({
@@ -160,6 +179,7 @@ export const PATCH = withWorkspace(
           description,
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
+          submissionsOpenAt,
           rewardAmount,
           rewardDescription,
           ...(bounty.type === "submission" &&

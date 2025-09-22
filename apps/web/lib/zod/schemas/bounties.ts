@@ -54,6 +54,7 @@ export const createBountySchema = z.object({
   type: z.nativeEnum(BountyType),
   startsAt: parseDateSchema,
   endsAt: parseDateSchema.nullish(),
+  submissionsOpenAt: parseDateSchema.nullish(),
   rewardAmount: z
     .number()
     .min(1, "Reward amount must be greater than 1")
@@ -92,6 +93,7 @@ export const BountySchema = z.object({
   type: z.nativeEnum(BountyType),
   startsAt: z.date(),
   endsAt: z.date().nullable(),
+  submissionsOpenAt: z.date().nullable(),
   rewardAmount: z.number().nullable(),
   rewardDescription: z.string().nullable(),
   performanceCondition: workflowConditionSchema.nullable().default(null),

@@ -26,6 +26,7 @@ import {
   Button,
   CardSelector,
   CardSelectorOption,
+  NumberStepper,
   Sheet,
   SmartDateTimePicker,
   Switch,
@@ -87,9 +88,13 @@ const ACCORDION_ITEMS = [
 type RewardType = "flat" | "custom";
 
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
-  const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
+  const { id: workspaceId } = useWorkspace();
+  const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
+
   const [hasEndDate, setHasEndDate] = useState(!!bounty?.endsAt);
+  const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
+  const [submissionWindow, setSubmissionWindow] = useState<number | null>(null);
 
   const [requireImage, setRequireImage] = useState(
     bounty?.submissionRequirements?.includes("image") || false,
@@ -103,15 +108,13 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     bounty ? (bounty.rewardAmount ? "flat" : "custom") : "flat",
   );
 
-  const [openAccordions, setOpenAccordions] = useState(ACCORDION_ITEMS);
-  const { makeRequest, isSubmitting } = useApiMutation<BountyProps>();
-
   const form = useForm<FormData>({
     defaultValues: {
       name: bounty?.name || undefined,
       description: bounty?.description || undefined,
       startsAt: bounty?.startsAt || undefined,
       endsAt: bounty?.endsAt || undefined,
+      submissionsOpenAt: bounty?.submissionsOpenAt || undefined,
       rewardAmount: bounty?.rewardAmount
         ? bounty.rewardAmount / 100
         : undefined,
@@ -145,6 +148,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const [
     startsAt,
     endsAt,
+    submissionsOpenAt,
     rewardAmount,
     rewardDescription,
     type,
@@ -154,6 +158,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   ] = watch([
     "startsAt",
     "endsAt",
+    "submissionsOpenAt",
     "rewardAmount",
     "rewardDescription",
     "type",
@@ -162,12 +167,49 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "performanceCondition",
   ]);
 
+  // On bounty edit, set submissionWindow based on submissionsOpenAt
+  useEffect(() => {
+    if (!bounty) {
+      return;
+    }
+
+    if (!bounty.submissionsOpenAt || !bounty.endsAt) {
+      setSubmissionWindow(null);
+      return;
+    }
+
+    const submissionsOpenAt = new Date(bounty.submissionsOpenAt);
+    const endsAt = new Date(bounty.endsAt);
+
+    setSubmissionWindow(
+      Math.ceil(
+        (endsAt.getTime() - submissionsOpenAt.getTime()) /
+          (1000 * 60 * 60 * 24),
+      ),
+    );
+  }, [bounty?.submissionsOpenAt]);
+
   // Make sure endsAt is null if hasEndDate is false
   useEffect(() => {
     if (!hasEndDate) {
       setValue("endsAt", null);
     }
   }, [hasEndDate, setValue]);
+
+  // Calculate the submissionsOpenAt based on the submissionWindow & endsAt
+  useEffect(() => {
+    if (!submissionWindow || !endsAt) {
+      return;
+    }
+
+    const submissionsOpenAt = new Date(endsAt);
+    submissionsOpenAt.setDate(submissionsOpenAt.getDate() - submissionWindow);
+
+    setValue("submissionsOpenAt", submissionsOpenAt, {
+      shouldDirty: true,
+      shouldValidate: true,
+    });
+  }, [endsAt, submissionWindow]);
 
   // Set submission requirements
   useEffect(() => {
@@ -284,6 +326,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
       data.performanceCondition = condition;
       data.rewardDescription = null;
+      data.submissionsOpenAt = null;
     } else if (type === "submission") {
       data.performanceCondition = null;
 
@@ -306,7 +349,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   };
 
   // Handle form submission (shows confirmation modal for creation only)
-  const onSubmit = handleSubmit(async (data: FormData) => {
+  const onSubmit = handleSubmit(async () => {
     if (bounty) {
       // For updates, submit directly without confirmation
       await performSubmit();
@@ -315,6 +358,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       setShowConfirmModal(true);
     }
   });
+
+  console.log({ submissionWindow, submissionsOpenAt });
 
   return (
     <form onSubmit={onSubmit} className="flex h-full flex-col">
@@ -372,9 +417,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                 <ProgramSheetAccordionContent>
                   <div className="space-y-6">
                     <p className="text-content-default text-sm">
-                      Set the schedule, reward, and additional details. Partners
-                      who already met the goal before the start date will
-                      auto-qualify and be rewarded.
+                      Set the schedule, reward, and additional details.
                     </p>
 
                     <div>
@@ -411,7 +454,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         />
                         <div className="flex flex-col gap-1">
                           <h3 className="text-sm font-medium text-neutral-700">
-                            Add end date
+                            End date
                           </h3>
                         </div>
                       </div>
@@ -438,6 +481,45 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
                     {type === "submission" && (
                       <>
+                        <AnimatedSizeContainer
+                          height
+                          transition={{ ease: "easeInOut", duration: 0.2 }}
+                          className={submissionWindow ? "" : "hidden"}
+                          style={{
+                            display: submissionWindow ? "block" : "none",
+                          }}
+                        >
+                          <div className="flex items-center gap-4">
+                            <Switch
+                              fn={(checked: boolean) =>
+                                setSubmissionWindow(checked ? 2 : null)
+                              }
+                              checked={submissionWindow !== null}
+                              trackDimensions="w-8 h-4"
+                              thumbDimensions="w-3 h-3"
+                              thumbTranslate="translate-x-4"
+                            />
+                            <div className="flex flex-col gap-1">
+                              <h3 className="text-sm font-medium text-neutral-700">
+                                Submission window
+                              </h3>
+                            </div>
+                          </div>
+
+                          {submissionWindow && (
+                            <div className="mt-6 p-px">
+                              <NumberStepper
+                                value={submissionWindow}
+                                onChange={(v) => setSubmissionWindow(v)}
+                                min={2} // Min 2 days
+                                max={14} // Max 2 weeks
+                                step={1}
+                                className="w-full"
+                              />
+                            </div>
+                          )}
+                        </AnimatedSizeContainer>
+
                         <div>
                           <label
                             htmlFor="name"
