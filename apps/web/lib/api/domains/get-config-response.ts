@@ -18,7 +18,7 @@ export const getConfigResponse = async (domain: string) => {
   if (apexDomain !== domain) {
     const wildcardDomain = `*.${apexDomain}`;
     const wildcardResponse = await getVercelConfigResponse(wildcardDomain);
-    if (wildcardResponse.misconfigured) {
+    if (!wildcardResponse.misconfigured) {
       return wildcardResponse;
     }
   }
