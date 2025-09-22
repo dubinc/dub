@@ -70,7 +70,6 @@ model Partner {
   comments          PartnerComment[]
 
   industryInterests         PartnerIndustryInterest[]
-  audienceLocations         PartnerAudienceLocation[]
   preferredEarningStructure PartnerPreferredEarningStructure[]
   salesChannels             PartnerSalesChannel[]
 }
@@ -150,25 +149,6 @@ model PartnerIndustryInterest {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, industryInterest])
-  @@index(partnerId)
-}
-
-enum AudienceLocation {
-  North_America
-  South_America
-  Africa
-  Asia
-  Europe
-  Oceania
-}
-
-model PartnerAudienceLocation {
-  partnerId String
-  audienceLocation AudienceLocation
-
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-
-  @@unique([partnerId, audienceLocation])
   @@index(partnerId)
 }
 

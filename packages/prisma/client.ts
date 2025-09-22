@@ -1,7 +1,6 @@
 export * from "@prisma/client";
 
 export {
-  AudienceLocation,
   BountyPerformanceScope,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,

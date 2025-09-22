@@ -1,6 +1,5 @@
 import { ALLOWED_MIN_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
 import {
-  AudienceLocation,
   IndustryInterest,
   MonthlyTraffic,
   PartnerBannedReason,
@@ -248,9 +247,6 @@ export const PartnerProfileSchema = z.object({
   industryInterests: z
     .array(z.nativeEnum(IndustryInterest))
     .describe("The partner's industry interests."),
-  audienceLocations: z
-    .array(z.nativeEnum(AudienceLocation))
-    .describe("The partner's audience locations."),
   preferredEarningStructure: z
     .nativeEnum(PreferredEarningStructure)
     .describe("The partner's preferred earning structure."),
