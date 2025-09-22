@@ -3,6 +3,9 @@ import {
   CommissionStatus,
   CommissionType,
   EventType,
+  Link,
+  Partner,
+  ProgramEnrollment,
   WorkflowTrigger,
 } from "@dub/prisma/client";
 import { currencyFormatter, log } from "@dub/utils";
@@ -38,6 +41,17 @@ export type CreatePartnerCommissionProps = {
   user?: Session["user"]; // user who created the manual commission
   context?: RewardContext;
   skipWorkflow?: boolean;
+};
+
+const constructWebhookPartner = (
+  programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
+  { totalCommissions }: { totalCommissions: number } = { totalCommissions: 0 },
+) => {
+  return {
+    ...programEnrollment.partner,
+    ...aggregatePartnerLinksStats(programEnrollment.links),
+    totalCommissions: totalCommissions || programEnrollment.totalCommissions,
+  };
 };
 
 export const createPartnerCommission = async ({
@@ -85,7 +99,10 @@ export const createPartnerCommission = async ({
       console.log(
         `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
       );
-      return;
+      return {
+        commission: null,
+        webhookPartner: constructWebhookPartner(programEnrollment),
+      };
     }
 
     // for click events, it's super simple – just multiply the reward amount by the quantity
@@ -119,7 +136,10 @@ export const createPartnerCommission = async ({
           console.log(
             `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`,
           );
-          return;
+          return {
+            commission: null,
+            webhookPartner: constructWebhookPartner(programEnrollment),
+          };
 
           // for sale rewards, we need to check if partner's reward was updated and different from the first commission's reward
           // we need to make sure it wasn't changed from one-time to recurring so we don't create a new commission
@@ -145,7 +165,10 @@ export const createPartnerCommission = async ({
               console.log(
                 `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
               );
-              return;
+              return {
+                commission: null,
+                webhookPartner: constructWebhookPartner(programEnrollment),
+              };
             }
           }
 
@@ -157,7 +180,10 @@ export const createPartnerCommission = async ({
               console.log(
                 `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
               );
-              return;
+              return {
+                commission: null,
+                webhookPartner: constructWebhookPartner(programEnrollment),
+              };
             }
 
             // Recurring sale reward (maxDuration > 0)
@@ -171,7 +197,10 @@ export const createPartnerCommission = async ({
                 console.log(
                   `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
                 );
-                return;
+                return {
+                  commission: null,
+                  webhookPartner: constructWebhookPartner(programEnrollment),
+                };
               }
             }
           }
@@ -229,6 +258,16 @@ export const createPartnerCommission = async ({
       `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings / 100, { currency: commission.currency })}) for ${partnerId}: ${JSON.stringify(commission)}`,
     );
 
+    // Make sure totalCommissions is up to date before firing the webhook & executing workflows
+    const { totalCommissions } = await syncTotalCommissions({
+      partnerId,
+      programId,
+    });
+
+    const webhookPartner = constructWebhookPartner(programEnrollment, {
+      totalCommissions,
+    });
+
     waitUntil(
       (async () => {
         const program = await prisma.program.findUniqueOrThrow({
@@ -257,23 +296,13 @@ export const createPartnerCommission = async ({
         const isClawback = earnings < 0;
         const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
 
-        // Make sure totalCommissions is up to date before firing the webhook & executing workflows
-        const { totalCommissions } = await syncTotalCommissions({
-          partnerId,
-          programId,
-        });
-
         await Promise.allSettled([
           sendWorkspaceWebhook({
             workspace,
             trigger: "commission.created",
             data: CommissionWebhookSchema.parse({
               ...commission,
-              partner: {
-                ...programEnrollment.partner,
-                ...aggregatePartnerLinksStats(programEnrollment.links),
-                totalCommissions,
-              },
+              partner: webhookPartner,
             }),
           }),
 
@@ -318,7 +347,10 @@ export const createPartnerCommission = async ({
       })(),
     );
 
-    return commission;
+    return {
+      commission,
+      webhookPartner,
+    };
   } catch (error) {
     console.error("Error creating commission", error);
 
@@ -328,6 +360,9 @@ export const createPartnerCommission = async ({
       mention: true,
     });
 
-    return;
+    return {
+      commission: null,
+      webhookPartner: constructWebhookPartner(programEnrollment),
+    };
   }
 };

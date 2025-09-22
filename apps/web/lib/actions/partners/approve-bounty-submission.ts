@@ -65,7 +65,7 @@ export const approveBountySubmissionAction = authActionClient
       );
     }
 
-    const commission = await createPartnerCommission({
+    const { commission } = await createPartnerCommission({
       event: "custom",
       partnerId: bountySubmission.partnerId,
       programId: bountySubmission.programId,

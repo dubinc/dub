@@ -3,7 +3,7 @@ import { CommissionStatus, CommissionType } from "@dub/prisma/client";
 import { z } from "zod";
 import { CustomerSchema } from "./customers";
 import { getPaginationQuerySchema } from "./misc";
-import { PartnerSchema } from "./partners";
+import { PartnerSchema, WebhookPartnerSchema } from "./partners";
 import { parseDateSchema } from "./utils";
 
 export const CommissionSchema = z.object({
@@ -44,23 +44,7 @@ export const CommissionEnrichedSchema = CommissionSchema.merge(
 // "commission.created" webhook event schema
 export const CommissionWebhookSchema = CommissionSchema.merge(
   z.object({
-    partner: PartnerSchema.pick({
-      id: true,
-      name: true,
-      email: true,
-      image: true,
-      payoutsEnabledAt: true,
-      country: true,
-    }).merge(
-      z.object({
-        totalClicks: z.number(),
-        totalLeads: z.number(),
-        totalConversions: z.number(),
-        totalSales: z.number(),
-        totalSaleAmount: z.number(),
-        totalCommissions: z.number(),
-      }),
-    ),
+    partner: WebhookPartnerSchema,
     customer: CustomerSchema.nullish(), // customer can be null for click-based / custom commissions
   }),
 );

@@ -10,7 +10,7 @@ import {
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
-import { ClickEventTB, LeadEventTB } from "@/lib/types";
+import { ClickEventTB, LeadEventTB, WebhookPartner } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -350,6 +350,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   ]);
 
   // for program links
+  let webhookPartner: WebhookPartner | undefined;
   if (link && link.programId && link.partnerId) {
     const productId = await getSubscriptionProductId({
       stripeSubscriptionId: charge.subscription as string,
@@ -357,7 +358,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       livemode: event.livemode,
     });
 
-    await createPartnerCommission({
+    const createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -377,6 +378,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       },
     });
+    webhookPartner = createdCommission?.webhookPartner;
 
     waitUntil(
       Promise.allSettled([
@@ -423,6 +425,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             eventName: "Checkout session completed",
             link: linkUpdated,
             customer,
+            partner: webhookPartner,
             metadata: null,
           }),
         });
@@ -437,6 +440,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customer,
+          partner: webhookPartner,
           metadata: null,
         }),
       });
