@@ -4,7 +4,7 @@ import { DubApiError } from "../errors";
 
 type CreateBountyInput = Partial<z.infer<typeof createBountySchema>>;
 
-export async function validateBounty({
+export function validateBounty({
   type,
   startsAt,
   endsAt,

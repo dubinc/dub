@@ -194,9 +194,12 @@ describe.sequential("/bounties/**", async () => {
   });
 
   test("PATCH /bounties/{bountyId}", async () => {
+    const now = new Date();
+    const endsAt = addDays(now, 30);
+
     const toUpdate = {
       name: "Submission Bounty Updated",
-      endsAt: new Date().toISOString(),
+      endsAt: endsAt.toISOString(),
       rewardAmount: 2000,
       submissionRequirements: ["image"],
     };
