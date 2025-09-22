@@ -5,6 +5,7 @@ import { createQrWithLinkUniversal } from "@/lib/api/qrs/create-qr-with-link-uni
 import { getQrs } from "@/lib/api/qrs/get-qrs";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { createAutoLoginURL } from '@/lib/auth/jwt-signin';
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -114,6 +115,9 @@ export const POST = withWorkspace(
     if (existingQrCount === 1) {
       // const referer = req.headers.get('referer') || req.headers.get('referrer');
       // const origin = new URL(referer || '').origin;
+
+      const loginUrl = await createAutoLoginURL(session?.user?.id);
+
       await sendEmail({
         email: session?.user?.email,
         subject: "Welcome to GetQR",
@@ -123,7 +127,7 @@ export const POST = withWorkspace(
           qr_type:
             QR_TYPES.find((item) => item.id === createdQr?.qrType)!.label ||
             "Indefined type",
-          url: HOME_DOMAIN,
+          url: loginUrl,
         },
         customerId: session?.user?.id,
       });

@@ -22,6 +22,7 @@ import z from "../zod";
 import { signUpSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
 import { actionClient } from "./safe-action";
+import { createAutoLoginURL } from '@/lib/auth/jwt-signin.ts';
 
 class AuthError extends Error {
   constructor(
@@ -129,6 +130,8 @@ export const createUserAccountAction = actionClient
       );
     }
 
+    const loginUrl = await createAutoLoginURL(generatedUserId);
+
     waitUntil(
       Promise.all([
         ...(qrDataToCreate
@@ -202,7 +205,7 @@ export const createUserAccountAction = actionClient
             qr_type:
               QR_TYPES.find((item) => item.id === qrDataToCreate?.qrType)!
                 .label || "Indefined type",
-            url: HOME_DOMAIN,
+            url: loginUrl,
           },
           customerId: generatedUserId,
         }),
