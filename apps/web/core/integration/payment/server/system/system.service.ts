@@ -130,12 +130,22 @@ export const checkSystemSubscriptionStatus = async (
     if (!subscription) {
       return {
         isSubscribed: false,
+        isCancelled: false,
+        isScheduledForCancellation: false,
+        hasAccessToApp: false,
         subscriptionId: null,
         status: null,
+        nextBillingDate: null,
+        isDunning: false,
       };
     }
 
+    const nextBillingDate = subscription?.nextBillingDate;
     const isSubscribed = activeStatuses.includes(subscription.status);
+    const isCancelled = subscription?.status === "cancelled";
+    const isScheduledForCancellation =
+      subscription?.status === "scheduled_for_cancellation";
+    const hasAccessToApp = isSubscribed || isScheduledForCancellation;
 
     debugUtil({
       text: "checkSystemSubscriptionStatus",
@@ -148,8 +158,13 @@ export const checkSystemSubscriptionStatus = async (
 
     return {
       isSubscribed,
+      isCancelled,
+      isScheduledForCancellation,
+      hasAccessToApp,
       subscriptionId: subscription?.id,
       status: subscription.status,
+      nextBillingDate,
+      isDunning: subscription.status === "dunning",
     };
   } catch (error: any) {
     const errorMsg =

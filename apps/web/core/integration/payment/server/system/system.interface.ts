@@ -167,7 +167,15 @@ export interface IGetSystemUserDataRes {
         delayedCaptureTrialDays: number;
         delayedCaptureDays: number;
       };
-      status: "active" | "inactive" | "trial" | "scheduled_for_cancellation";
+      status:
+        | "active"
+        | "inactive"
+        | "trial"
+        | "dunning"
+        | "pre_active"
+        | "pre_renew"
+        | "scheduled_for_cancellation"
+        | "cancelled";
       nextBillingDate: string;
       createdAt: string;
       updatedAt: string;
