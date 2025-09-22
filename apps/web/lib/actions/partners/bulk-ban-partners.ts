@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { enqueueCouponCodeDeleteJobs } from "@/lib/api/discounts/enqueue-coupon-code-delete-jobs";
+import { enqueueCouponCodeDeleteJobs } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";

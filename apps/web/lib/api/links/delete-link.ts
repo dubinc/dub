@@ -3,7 +3,7 @@ import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { enqueueCouponCodeDeleteJobs } from "../discounts/enqueue-coupon-code-delete-jobs";
+import { enqueueCouponCodeDeleteJobs } from "../discounts/queue-discount-code-deletion";
 import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 import { transformLink } from "./utils";

@@ -1,4 +1,3 @@
-import { Link } from "@prisma/client";
 import { stripeAppClient } from ".";
 import { WorkspaceProps } from "../types";
 
@@ -8,15 +7,11 @@ const stripe = stripeAppClient({
 
 export async function disableStripePromotionCode({
   workspace,
-  link,
+  code,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
-  link: Pick<Link, "couponCode">;
+  code: string;
 }) {
-  if (!link.couponCode) {
-    return;
-  }
-
   if (!workspace.stripeConnectId) {
     console.error(
       `stripeConnectId not found for the workspace ${workspace.id}. Skipping...`,
@@ -26,7 +21,7 @@ export async function disableStripePromotionCode({
 
   const promotionCodes = await stripe.promotionCodes.list(
     {
-      code: link.couponCode,
+      code,
       limit: 1,
     },
     {
@@ -36,7 +31,7 @@ export async function disableStripePromotionCode({
 
   if (promotionCodes.data.length === 0) {
     console.error(
-      `Stripe promotion code ${link.couponCode} not found (stripeConnectId=${workspace.stripeConnectId}).`,
+      `Stripe promotion code ${code} not found (stripeConnectId=${workspace.stripeConnectId}).`,
     );
     return;
   }

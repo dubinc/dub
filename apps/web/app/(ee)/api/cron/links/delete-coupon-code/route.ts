@@ -55,9 +55,7 @@ export async function POST(req: Request) {
         id: workspace.id,
         stripeConnectId: workspace.stripeConnectId,
       },
-      link: {
-        couponCode,
-      },
+      code: couponCode
     });
 
     if (updatedCouponCode) {

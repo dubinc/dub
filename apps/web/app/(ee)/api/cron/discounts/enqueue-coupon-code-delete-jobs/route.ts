@@ -1,4 +1,4 @@
-import { enqueueCouponCodeDeleteJobs } from "@/lib/api/discounts/enqueue-coupon-code-delete-jobs";
+import { enqueueCouponCodeDeleteJobs } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
