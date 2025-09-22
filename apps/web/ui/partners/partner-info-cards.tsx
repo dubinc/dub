@@ -42,7 +42,7 @@ export function PartnerInfoCards({
   partner?: EnrolledPartnerProps;
 
   /** Partner statuses to hide badges for */
-  hideStatuses?: string[];
+  hideStatuses?: EnrolledPartnerProps["status"][];
 
   // Only used for a controlled group selector that doesn't persist the selection itself
   selectedGroupId?: string | null;
