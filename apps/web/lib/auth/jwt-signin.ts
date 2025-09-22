@@ -140,7 +140,7 @@ export async function createAutoLoginURL(
 ): Promise<string> {
   try {
     const token = await createServerAuthJWT(userId);
-    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:8888";
     
     return `${baseUrl}/api/auth/auto-login?token=${encodeURIComponent(token)}&redirect=${encodeURIComponent(redirectUrl)}`;
   } catch (error) {
