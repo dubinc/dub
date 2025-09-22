@@ -3,13 +3,13 @@ import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
 import { Session } from "./utils";
 
-// JWT secret for server-side authentication
+// JWT secret for magic links
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || "fallback-secret";
 const secret = new TextEncoder().encode(JWT_SECRET);
 
 /**
- * Create a server-side authentication JWT for a user
- * This can be used to authenticate API requests without going through the normal OAuth flow
+ * Create a server-side authentication JWT for magic links
+ * This is only used for the auto-login URL functionality
  */
 export async function createServerAuthJWT(userId: string): Promise<string> {
   try {
@@ -33,12 +33,12 @@ export async function createServerAuthJWT(userId: string): Promise<string> {
       name: user.name,
       image: user.image,
       iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days
+      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60), // 24 hours for magic links
       serverAuth: true, // Mark as server-authenticated
     })
       .setProtectedHeader({ alg: "HS256" })
       .setIssuedAt()
-      .setExpirationTime("30d")
+      .setExpirationTime("24h")
       .sign(secret);
 
     return jwt;
@@ -49,32 +49,25 @@ export async function createServerAuthJWT(userId: string): Promise<string> {
 }
 
 /**
- * Verify and decode a server-side authentication JWT
+ * Verify and decode a server-side authentication JWT (for magic links)
  */
 export async function verifyServerAuthJWT(token: string): Promise<Session | null> {
   try {
     const { payload } = await jwtVerify(token, secret);
 
-    // Handle both server-auth tokens and NextAuth-compatible tokens
-    if (payload.serverAuth) {
-      // Custom server-auth token format
-      return {
-        user: {
-          id: payload.sub as string,
-          email: payload.email as string,
-          name: payload.name as string,
-          image: payload.image as string,
-          isMachine: false,
-        },
-      };
-    } else if (payload.user) {
-      // NextAuth-compatible token format
-      return {
-        user: payload.user as Session["user"],
-      };
+    if (!payload.serverAuth) {
+      return null; // Not a server-authenticated token
     }
 
-    return null;
+    return {
+      user: {
+        id: payload.sub as string,
+        email: payload.email as string,
+        name: payload.name as string,
+        image: payload.image as string,
+        isMachine: false,
+      },
+    };
   } catch (error) {
     console.error("Verify server auth JWT error:", error);
     return null;
@@ -82,10 +75,10 @@ export async function verifyServerAuthJWT(token: string): Promise<Session | null
 }
 
 /**
- * Set server authentication session using cookies
- * This method directly sets the NextAuth session cookie with the proper format
+ * Set server authentication session using NextAuth's database session approach
+ * This creates a session record that NextAuth will recognize and convert to JWT
  */
-export async function setServerAuthSession(userId: string): Promise<void> {
+export async function setServerAuthSession(userId: string): Promise<string> {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -101,29 +94,23 @@ export async function setServerAuthSession(userId: string): Promise<void> {
       throw new Error("User not found");
     }
 
-    // Create a NextAuth-compatible JWT token that matches the expected format
-    // This should match what NextAuth's JWT callback expects
-    const sessionToken = await new SignJWT({
-      sub: user.id, // NextAuth uses 'sub' for user ID
-      user: {       // NextAuth stores user data in 'user' field
-        id: user.id,
-        name: user.name,
-        email: user.email,
-        image: user.image,
-        isMachine: false, // Your session type expects this
+    // Generate a session token (this is what NextAuth does internally)
+    const sessionToken = crypto.randomUUID();
+    const sessionExpiry = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+    // Create a session record in the database (NextAuth will recognize this)
+    await prisma.session.create({
+      data: {
+        sessionToken,
+        userId: user.id,
+        expires: sessionExpiry,
       },
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("30d")
-      .sign(secret);
+    });
 
     const cookieStore = cookies();
     const isSecure = process.env.NODE_ENV === "production";
     
-    // Set the NextAuth session token cookie
+    // Set the session token cookie (NextAuth will read this and create the JWT)
     cookieStore.set(
       `${isSecure ? "__Secure-" : ""}next-auth.session-token`,
       sessionToken,
@@ -133,9 +120,11 @@ export async function setServerAuthSession(userId: string): Promise<void> {
         sameSite: "lax",
         path: "/",
         domain: isSecure ? ".getqr.com" : undefined,
-        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        expires: sessionExpiry,
       }
     );
+
+    return sessionToken;
   } catch (error) {
     console.error("Set server auth session error:", error);
     throw error;
