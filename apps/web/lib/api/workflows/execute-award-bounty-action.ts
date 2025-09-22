@@ -160,7 +160,7 @@ export const executeAwardBountyAction = async ({
   }
 
   // Create the commission for the partner
-  const commission = await createPartnerCommission({
+  const { commission } = await createPartnerCommission({
     event: "custom",
     partnerId,
     programId: bounty.programId,

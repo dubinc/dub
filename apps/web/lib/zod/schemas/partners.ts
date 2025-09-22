@@ -369,6 +369,24 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   })
   .merge(PartnerOnlinePresenceSchema);
 
+export const WebhookPartnerSchema = PartnerSchema.pick({
+  id: true,
+  name: true,
+  email: true,
+  image: true,
+  payoutsEnabledAt: true,
+  country: true,
+}).merge(
+  z.object({
+    totalClicks: z.number(),
+    totalLeads: z.number(),
+    totalConversions: z.number(),
+    totalSales: z.number(),
+    totalSaleAmount: z.number(),
+    totalCommissions: z.number(),
+  }),
+);
+
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -376,15 +394,11 @@ export const LeaderboardPartnerSchema = z.object({
   totalCommissions: z.number().default(0),
 });
 
-export const PARTNER_CUSTOMERS_MAX_PAGE_SIZE = 100;
-
 export const getPartnerCustomersQuerySchema = z
   .object({
     search: z.string().optional(),
   })
-  .merge(
-    getPaginationQuerySchema({ pageSize: PARTNER_CUSTOMERS_MAX_PAGE_SIZE }),
-  );
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const createPartnerSchema = z.object({
   name: z
