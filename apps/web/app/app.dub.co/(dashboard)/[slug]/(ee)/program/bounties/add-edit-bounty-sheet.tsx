@@ -33,7 +33,7 @@ import {
   ToggleGroup,
   useRouterStuff,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import {
   Controller,
@@ -86,6 +86,10 @@ const ACCORDION_ITEMS = [
 ];
 
 type RewardType = "flat" | "custom";
+
+// Helper to check required fields
+const isEmpty = (value: any) =>
+  value === undefined || value === null || value === "";
 
 function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   const { program } = useProgram();
@@ -208,6 +212,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   useEffect(() => {
     if (!hasSubmissionWindow) {
       setValue("submissionsOpenAt", null);
+      setSubmissionWindow(null);
     }
   }, [hasSubmissionWindow, setValue]);
 
@@ -257,45 +262,60 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
   });
 
   // Decide if the submit button should be disabled
-  const shouldDisableSubmit = useMemo(() => {
-    if (startsAt && endsAt && endsAt <= startsAt) {
-      return true;
+  const validationError = useMemo(() => {
+    const effectiveStartDate = startsAt || new Date();
+
+    if (effectiveStartDate < new Date()) {
+      return "Please choose a start date that is in the future.";
+    }
+
+    if (endsAt && endsAt <= effectiveStartDate) {
+      return `Please choose an end date that is after the start date (${formatDate(effectiveStartDate)}).`;
+    }
+
+    if (submissionWindow) {
+      console.log({ startsAt, endsAt, submissionWindow });
+
+      if (!endsAt) {
+        return "An end date is required to determine when the submission window opens.";
+      }
     }
 
     if (type === "submission") {
       if (!name?.trim()) {
-        return true;
+        return "Name is required.";
       }
 
-      if (rewardType === "flat" && !rewardAmount) {
-        return true;
+      if (rewardType === "flat" && isEmpty(rewardAmount)) {
+        return "Reward amount is required for flat rate rewards.";
       }
 
-      if (rewardType === "custom" && !rewardDescription) {
-        return true;
+      if (rewardType === "custom" && !rewardDescription?.trim()) {
+        return "Reward description is required for custom rate rewards.";
       }
     }
 
     if (type === "performance") {
       if (
-        ["attribute", "operator", "value"].some(
-          (key) => performanceCondition?.[key] === undefined,
+        ["attribute", "operator", "value"].some((key) =>
+          isEmpty(performanceCondition?.[key]),
         )
       ) {
-        return true;
+        return "Performance condition is incomplete.";
       }
 
-      if (!rewardAmount) {
-        return true;
+      if (isEmpty(rewardAmount)) {
+        return "Reward amount is required.";
       }
     }
 
-    return false;
+    return null;
   }, [
     startsAt,
     endsAt,
     rewardAmount,
     rewardDescription,
+    submissionWindow,
     rewardType,
     type,
     name,
@@ -818,12 +838,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
               text={bounty ? "Update bounty" : "Create bounty"}
               className="w-fit"
               loading={isSubmitting}
-              disabled={shouldDisableSubmit}
-              disabledTooltip={
-                shouldDisableSubmit
-                  ? "Please fill all required fields."
-                  : undefined
-              }
+              disabled={Boolean(validationError)}
+              disabledTooltip={validationError}
             />
           </div>
         </div>
