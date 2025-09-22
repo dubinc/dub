@@ -652,7 +652,7 @@ export const authOptions: NextAuthOptions = {
             );
 
             const loginUrl = await createAutoLoginURL(user.id);
-            console.log("loginUrl", loginUrl);
+
             waitUntil(
               Promise.all([
                 CustomerIOClient.identify(user.id, {
