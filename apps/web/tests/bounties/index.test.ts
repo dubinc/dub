@@ -22,6 +22,7 @@ const submissionBounty = {
   type: "submission",
   startsAt,
   endsAt: null,
+  submissionsOpenAt: null,
   rewardAmount: 1000,
   submissionRequirements: ["image", "url"],
 };
