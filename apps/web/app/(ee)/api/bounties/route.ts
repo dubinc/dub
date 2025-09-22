@@ -1,5 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
+import { validateBounty } from "@/lib/api/bounties/validate-bounty";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -105,7 +106,7 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const {
+    let {
       name,
       description,
       type,
@@ -113,41 +114,25 @@ export const POST = withWorkspace(
       rewardDescription,
       startsAt,
       endsAt,
+      submissionsOpenAt,
       submissionRequirements,
       groupIds,
       performanceCondition,
       performanceScope,
     } = createBountySchema.parse(await parseRequestBody(req));
 
-    if (startsAt && endsAt && endsAt < startsAt) {
-      throw new DubApiError({
-        message:
-          "Bounty end date (endsAt) must be on or after start date (startsAt).",
-        code: "bad_request",
-      });
-    }
+    // Use current date as default if startsAt is not provided
+    startsAt = startsAt || new Date();
 
-    if (!rewardAmount) {
-      if (type === "performance") {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Reward amount is required for performance bounties.",
-        });
-      } else if (!rewardDescription) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "For submission bounties, either reward amount or reward description is required.",
-        });
-      }
-    }
-
-    if (!performanceScope && type === "performance") {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "performanceScope must be set for performance bounties.",
-      });
-    }
+    validateBounty({
+      type,
+      startsAt,
+      endsAt,
+      submissionsOpenAt,
+      rewardAmount,
+      rewardDescription,
+      performanceScope,
+    });
 
     const partnerGroups = await throwIfInvalidGroupIds({
       programId,
@@ -207,6 +192,7 @@ export const POST = withWorkspace(
           type,
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
+          submissionsOpenAt: type === "submission" ? submissionsOpenAt : null,
           rewardAmount,
           rewardDescription,
           performanceScope: type === "performance" ? performanceScope : null,
