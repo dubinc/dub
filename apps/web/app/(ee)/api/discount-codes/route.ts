@@ -110,39 +110,30 @@ export const POST = withWorkspace(
       });
     }
 
-    // Create discount code on Stripe
-    const stripeDiscountCode = await createStripeDiscountCode({
-      workspace: {
-        id: workspace.id,
-        stripeConnectId: workspace.stripeConnectId,
-      },
-      discount: {
-        id: discount.id,
-        couponId: discount.couponId,
-      },
-      code,
-    });
+    try {
+      const stripeDiscountCode = await createStripeDiscountCode({
+        workspace,
+        discount,
+        code,
+      });
 
-    if (!stripeDiscountCode) {
+      const discountCode = await prisma.discountCode.create({
+        data: {
+          code: stripeDiscountCode?.code,
+          programId,
+          partnerId,
+          linkId,
+          discountId: discount.id,
+        },
+      });
+
+      return NextResponse.json(DiscountCodeSchema.parse(discountCode));
+    } catch (error) {
       throw new DubApiError({
         code: "bad_request",
-        message: "Failed to create discount code on Stripe.",
+        message: error.message,
       });
     }
-
-    const discountCode = await prisma.discountCode.create({
-      data: {
-        code,
-        programId,
-        partnerId,
-        linkId,
-        discountId: discount.id,
-      },
-    });
-
-    const response = DiscountCodeSchema.parse(discountCode);
-
-    return NextResponse.json(response);
   },
   {
     requiredPlan: [
