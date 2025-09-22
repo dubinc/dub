@@ -1,5 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
+import { validateBounty } from "@/lib/api/bounties/validate-bounty";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -123,53 +124,15 @@ export const POST = withWorkspace(
     // Use current date as default if startsAt is not provided
     startsAt = startsAt || new Date();
 
-    if (endsAt && endsAt < startsAt) {
-      throw new DubApiError({
-        message:
-          "Bounty end date (endsAt) must be on or after start date (startsAt).",
-        code: "bad_request",
-      });
-    }
-
-    if (submissionsOpenAt) {
-      if (submissionsOpenAt < startsAt) {
-        throw new DubApiError({
-          message:
-            "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",
-          code: "bad_request",
-        });
-      }
-
-      if (endsAt && submissionsOpenAt > endsAt) {
-        throw new DubApiError({
-          message:
-            "Bounty submissions open date (submissionsOpenAt) must be on or before end date (endsAt).",
-          code: "bad_request",
-        });
-      }
-    }
-
-    if (!rewardAmount) {
-      if (type === "performance") {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Reward amount is required for performance bounties.",
-        });
-      } else if (!rewardDescription) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "For submission bounties, either reward amount or reward description is required.",
-        });
-      }
-    }
-
-    if (!performanceScope && type === "performance") {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "performanceScope must be set for performance bounties.",
-      });
-    }
+    validateBounty({
+      type,
+      startsAt,
+      endsAt,
+      submissionsOpenAt,
+      rewardAmount,
+      rewardDescription,
+      performanceScope,
+    });
 
     const partnerGroups = await throwIfInvalidGroupIds({
       programId,

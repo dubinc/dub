@@ -1,6 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
+import { validateBounty } from "@/lib/api/bounties/validate-bounty";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -66,32 +67,6 @@ export const PATCH = withWorkspace(
       groupIds,
     } = updateBountySchema.parse(await parseRequestBody(req));
 
-    if (startsAt && endsAt && endsAt < startsAt) {
-      throw new DubApiError({
-        message:
-          "Bounty end date (endsAt) must be on or after start date (startsAt).",
-        code: "bad_request",
-      });
-    }
-
-    if (submissionsOpenAt) {
-      if (startsAt && submissionsOpenAt < startsAt) {
-        throw new DubApiError({
-          message:
-            "Bounty submissions open date (submissionsOpenAt) must be on or after start date (startsAt).",
-          code: "bad_request",
-        });
-      }
-
-      if (endsAt && submissionsOpenAt > endsAt) {
-        throw new DubApiError({
-          message:
-            "Bounty submissions open date (submissionsOpenAt) must be on or before end date (endsAt).",
-          code: "bad_request",
-        });
-      }
-    }
-
     const bounty = await prisma.bounty.findUniqueOrThrow({
       where: {
         id: bountyId,
@@ -108,20 +83,15 @@ export const PATCH = withWorkspace(
       },
     });
 
-    if (rewardAmount === null || rewardAmount === 0) {
-      if (bounty.type === "performance") {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Reward amount is required for performance bounties",
-        });
-      } else if (!rewardDescription) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "For submission bounties, either reward amount or reward description is required",
-        });
-      }
-    }
+    validateBounty({
+      type: bounty.type,
+      startsAt,
+      endsAt,
+      submissionsOpenAt,
+      rewardAmount,
+      rewardDescription,
+      performanceScope: bounty.performanceScope,
+    });
 
     // TODO:
     // When we do archive, make sure it disables the workflow
