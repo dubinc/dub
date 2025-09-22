@@ -2,13 +2,14 @@
 
 import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
 import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
+import { createAutoLoginURL } from "@/lib/auth/jwt-signin.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit, redis } from "@/lib/upstash";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
-import { HOME_DOMAIN, R2_URL } from "@dub/utils";
+import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
@@ -133,6 +134,8 @@ export const createUserAccountAction = actionClient
       );
     }
 
+    const loginUrl = await createAutoLoginURL(generatedUserId);
+
     waitUntil(
       Promise.all([
         ...(qrDataToCreate
@@ -205,8 +208,8 @@ export const createUserAccountAction = actionClient
             qr_name: qrDataToCreate?.title || "Untitled QR",
             qr_type:
               QR_TYPES.find((item) => item.id === qrDataToCreate?.qrType)!
-                ?.label || "Indefined type",
-            url: HOME_DOMAIN,
+                .label || "Indefined type",
+            url: loginUrl,
           },
           customerId: generatedUserId,
         }),
