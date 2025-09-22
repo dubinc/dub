@@ -41,7 +41,7 @@ import {
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
-import { createAutoLoginURL } from './jwt-signin.ts';
+import { createAutoLoginURL } from './jwt-signin';
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -570,8 +570,16 @@ export const authOptions: NextAuthOptions = {
       user: User | AdapterUser | UserProps;
       trigger?: "signIn" | "update" | "signUp";
     }) => {
+      // Handle normal sign-in flow
       if (user) {
         token.user = user;
+      }
+
+      // Handle server-created tokens (they already have user data)
+      // If token.user already exists but no user parameter, it's likely a server-created token
+      if (!user && token.user && token.sub) {
+        // Token already has user data, just return it
+        return token;
       }
 
       // refresh the user's data if they update their name / email
