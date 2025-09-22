@@ -52,3 +52,24 @@ export const discountPartnersQuerySchema = z
       pageSize: 25,
     }),
   );
+
+// Discount codes
+export const DiscountCodeSchema = z.object({
+  id: z.string(),
+  code: z.string(),
+  discountId: z.string(),
+  partnerId: z.string(),
+  linkId: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const getDiscountCodesQuerySchema = z.object({
+  partnerId: z.string(),
+});
+
+export const createDiscountCodeSchema = z.object({
+  code: z.string().optional(),
+  partnerId: z.string(),
+  linkId: z.string(),
+});

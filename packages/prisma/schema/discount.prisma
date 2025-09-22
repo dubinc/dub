@@ -34,7 +34,8 @@ model PromoCode {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@index(programId)
+  @@unique([programId, code])
+  @@unique([programId, partnerId])
   @@index(discountId)
   @@index(partnerId)
 }
