@@ -213,8 +213,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     if (!hasSubmissionWindow) {
       setValue("submissionsOpenAt", null);
       setSubmissionWindow(null);
+    } else if (!submissionWindow) {
+      setSubmissionWindow(2);
     }
-  }, [hasSubmissionWindow, setValue]);
+  }, [hasSubmissionWindow, submissionWindow, setValue]);
 
   // Calculate the submissionsOpenAt based on the submissionWindow & endsAt
   useEffect(() => {
