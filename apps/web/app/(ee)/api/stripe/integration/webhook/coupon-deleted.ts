@@ -1,6 +1,6 @@
 import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { qstash } from "@/lib/cron";
-import { resend } from "@dub/email/resend";
+import { sendBatchEmail } from "@dub/email";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
 import DiscountDeleted from "@dub/email/templates/discount-deleted";
 import { prisma } from "@dub/prisma";
@@ -82,6 +82,14 @@ export async function couponDeleted(event: Stripe.Event) {
         },
       });
 
+      await tx.discountCode.deleteMany({
+        where: {
+          discountId: {
+            in: discountIds,
+          },
+        },
+      });
+
       await tx.discount.deleteMany({
         where: {
           id: {
@@ -109,21 +117,7 @@ export async function couponDeleted(event: Stripe.Event) {
           }),
         ),
 
-        ...discounts
-          .filter(
-            (discount) =>
-              discount.couponCodeTrackingEnabledAt && discount.partnerGroup?.id,
-          )
-          .map((discount) =>
-            qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-coupon-code-delete-jobs`,
-              body: {
-                groupId: discount.partnerGroup?.id,
-              },
-            }),
-          ),
-
-        resend.batch.send(
+        sendBatchEmail(
           users.map((user) => ({
             from: VARIANT_TO_FROM_MAP.notifications,
             to: user.email,
