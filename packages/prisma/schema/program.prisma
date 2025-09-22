@@ -72,7 +72,7 @@ model Program {
   workflows                Workflow[]
   messages                 Message[]
   comments                 PartnerComment[]
-  promoCodes               PromoCode[]
+  discountCodes            DiscountCode[]
 
   @@index(workspaceId)
   @@index(domain)

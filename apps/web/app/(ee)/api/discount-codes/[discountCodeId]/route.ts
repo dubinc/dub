@@ -10,7 +10,7 @@ export const DELETE = withWorkspace(
     const { discountCodeId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const discountCode = await prisma.promoCode.findUniqueOrThrow({
+    const discountCode = await prisma.discountCode.findUniqueOrThrow({
       where: {
         id: discountCodeId,
       },
@@ -26,7 +26,7 @@ export const DELETE = withWorkspace(
     // TODO:
     // Remove from the Stripe first
 
-    await prisma.promoCode.delete({
+    await prisma.discountCode.delete({
       where: {
         id: discountCodeId,
       },

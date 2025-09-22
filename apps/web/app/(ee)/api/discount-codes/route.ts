@@ -3,6 +3,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { createStripeDiscountCode } from "@/lib/stripe/create-stripe-discount-code";
 import {
   createDiscountCodeSchema,
   DiscountCodeSchema,
@@ -23,7 +24,7 @@ export const GET = withWorkspace(
       programId,
     });
 
-    const discountCodes = await prisma.promoCode.findMany({
+    const discountCodes = await prisma.discountCode.findMany({
       where: {
         programId,
         partnerId,
@@ -91,12 +92,9 @@ export const POST = withWorkspace(
       });
     }
 
-    code = code || "DEMO"; // FIx it
+    code = code || link.key;
 
-    // TODO:
-    // Check if the link has an existing discount
-
-    const existingDiscountCode = await prisma.promoCode.findUnique({
+    const existingDiscountCode = await prisma.discountCode.findUnique({
       where: {
         programId_code: {
           programId,
@@ -112,9 +110,29 @@ export const POST = withWorkspace(
       });
     }
 
-    const discountCode = await prisma.promoCode.create({
+    // Create discount code on Stripe
+    const stripeDiscountCode = await createStripeDiscountCode({
+      workspace: {
+        id: workspace.id,
+        stripeConnectId: workspace.stripeConnectId,
+      },
+      discount: {
+        id: discount.id,
+        couponId: discount.couponId,
+      },
+      code,
+    });
+
+    if (!stripeDiscountCode) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Failed to create discount code on Stripe.",
+      });
+    }
+
+    const discountCode = await prisma.discountCode.create({
       data: {
-        code, // TODO: create a Stripe promotion code
+        code,
         programId,
         partnerId,
         linkId,

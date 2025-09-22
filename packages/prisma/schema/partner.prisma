@@ -59,7 +59,7 @@ model Partner {
   messages          Message[]
   sentMessages      Message[]           @relation("SenderPartner")
   comments          PartnerComment[]
-  promoCodes        PromoCode[]
+  discountCodes     DiscountCode[]
 }
 
 model PartnerInvite {

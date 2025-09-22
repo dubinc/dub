@@ -1,5 +1,5 @@
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { disableStripePromotionCode } from "@/lib/stripe/disable-stripe-promotion-code";
+import { disableStripePromotionCode } from "@/lib/stripe/delete-stripe-discount-code";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";

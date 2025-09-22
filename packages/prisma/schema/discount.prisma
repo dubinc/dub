@@ -14,12 +14,12 @@ model Discount {
   programEnrollments ProgramEnrollment[]
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   partnerGroup       PartnerGroup?
-  promoCodes         PromoCode[]
+  discountCodes      DiscountCode[]
 
   @@index(programId)
 }
 
-model PromoCode {
+model DiscountCode {
   id         String @id @default(cuid())
   code       String
   programId  String
