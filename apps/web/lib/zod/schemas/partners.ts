@@ -1,9 +1,14 @@
 import { ALLOWED_MIN_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
 import {
+  AudienceLocation,
+  IndustryInterest,
+  MonthlyTraffic,
   PartnerBannedReason,
   PartnerProfileType,
   PartnerStatus,
+  PreferredEarningStructure,
   ProgramEnrollmentStatus,
+  SalesChannel,
 } from "@dub/prisma/client";
 import {
   COUNTRY_CODES,
@@ -236,6 +241,24 @@ export const PartnerOnlinePresenceSchema = z.object({
   tiktokVerifiedAt: z.date().nullish(),
 });
 
+export const PartnerProfileSchema = z.object({
+  monthlyTraffic: z
+    .nativeEnum(MonthlyTraffic)
+    .describe("The partner's monthly traffic."),
+  industryInterests: z
+    .array(z.nativeEnum(IndustryInterest))
+    .describe("The partner's industry interests."),
+  audienceLocations: z
+    .array(z.nativeEnum(AudienceLocation))
+    .describe("The partner's audience locations."),
+  preferredEarningStructure: z
+    .nativeEnum(PreferredEarningStructure)
+    .describe("The partner's preferred earning structure."),
+  salesChannels: z
+    .array(z.nativeEnum(SalesChannel))
+    .describe("The partner's sales channels."),
+});
+
 export const PartnerSchema = z
   .object({
     id: z.string().describe("The partner's unique ID on Dub."),
@@ -300,7 +323,11 @@ export const PartnerSchema = z
       .date()
       .describe("The date when the partner was created on Dub."),
   })
-  .merge(PartnerOnlinePresenceSchema);
+  .merge(PartnerOnlinePresenceSchema)
+  .merge(PartnerProfileSchema.partial());
+
+export const PartnerWithProfileSchema =
+  PartnerSchema.merge(PartnerProfileSchema);
 
 // Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({

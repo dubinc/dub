@@ -1,6 +1,7 @@
 export * from "@prisma/client";
 
 export {
+  AudienceLocation,
   BountyPerformanceScope,
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
@@ -10,7 +11,9 @@ export {
   EventType,
   FolderType,
   FolderUserRole,
+  IndustryInterest,
   InvoiceStatus,
+  MonthlyTraffic,
   NotificationEmailType,
   PartnerBannedReason,
   PartnerLinkStructure,
@@ -18,10 +21,12 @@ export {
   PartnerRole,
   PartnerStatus,
   PayoutStatus,
+  PreferredEarningStructure,
   Prisma,
   ProgramEnrollmentStatus,
   RewardStructure,
   Role,
+  SalesChannel,
   WebhookReceiver,
   WorkflowTrigger,
   WorkflowTriggerType,

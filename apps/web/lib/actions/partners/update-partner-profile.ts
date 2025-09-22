@@ -3,6 +3,7 @@
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { qstash } from "@/lib/cron";
 import { storage } from "@/lib/storage";
+import { PartnerProfileSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -28,6 +29,7 @@ const updatePartnerProfileSchema = z
     profileType: z.nativeEnum(PartnerProfileType),
     companyName: z.string().nullable(),
   })
+  .merge(PartnerProfileSchema.partial())
   .refine(
     (data) => {
       if (data.profileType === "company") {
