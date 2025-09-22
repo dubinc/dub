@@ -33,7 +33,7 @@ export const useGetUserProfileQuery = () => {
               currency: {
                 ...currencies,
               },
-              trialPlan: "PRICE_TRIAL_A",
+              trialPlan: "PRICE_TRIAL_MONTH_PLAN",
             } as Partial<ICustomerBody>);
           }
         }

@@ -3,6 +3,7 @@
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
 import { Modal } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
+import { ICustomerBody } from "core/integration/payment/config";
 import { Check, Gift } from "lucide-react";
 import QRCodeStyling from "qr-code-styling";
 import {
@@ -17,6 +18,7 @@ import { EQRType, QR_TYPES } from "../../qr-builder/constants/get-qr-config";
 import { QrCardType } from "../../qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "../../shared/five-stars.component";
 import { AvatarsComponent } from "./avatars.component";
+import { CreateSubscriptionFlow } from "./create-subscription-flow";
 
 interface IQRPreviewModalProps {
   showQRPreviewModal: boolean;
@@ -26,6 +28,7 @@ interface IQRPreviewModalProps {
   qrType: EQRType | null;
   width?: number;
   height?: number;
+  user: ICustomerBody | null;
 }
 
 const FEATURES = [
@@ -44,6 +47,7 @@ function TrialOfferWithQRPreview({
   qrType,
   width = 200,
   height = 200,
+  user,
 }: IQRPreviewModalProps) {
   // const { queryParams } = useRouterStuff();
   const currentQrTypeInfo = QR_TYPES.find((item) => item.id === qrType)!;
@@ -131,6 +135,8 @@ function TrialOfferWithQRPreview({
                 </p>
               </div>
             </div>
+
+            <CreateSubscriptionFlow user={user} />
           </div>
         </div>
       </Theme>
@@ -144,13 +150,15 @@ export function useTrialOfferWithQRPreviewModal(data: {
   qrType: EQRType | null;
   width?: number;
   height?: number;
+  user: ICustomerBody | null;
 }) {
-  const { canvasRef, qrCode, width = 200, height = 200, qrType } = data;
+  const { canvasRef, qrCode, width = 200, height = 200, qrType, user } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
 
   const ModalCallback = useCallback(() => {
     return (
       <TrialOfferWithQRPreview
+        user={user}
         canvasRef={canvasRef}
         qrCode={qrCode}
         qrType={qrType}
