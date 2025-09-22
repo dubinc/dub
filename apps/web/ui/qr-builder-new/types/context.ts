@@ -20,6 +20,7 @@ import {
 } from "../validation/schemas";
 import {RefObject} from "react";
 import {QRContentStepRef} from "@/ui/qr-builder-new/components/qr-content-step.tsx";
+import { QRCustomizationData } from "./customization";
 
 export type QRFormData =
   | WebsiteQRFormData
@@ -43,6 +44,10 @@ export interface QrBuilderContextType {
   formData: QRFormData | null;
   currentFormValues: Record<string, any>;
 
+  // Customization states
+  customizationData: QRCustomizationData;
+  customizationActiveTab: string;
+
   // Computed states
   isTypeStep: boolean;
   isContentStep: boolean;
@@ -56,6 +61,10 @@ export interface QrBuilderContextType {
   handleHoverQRType: (type: EQRType | null) => void;
   handleFormSubmit: (data: QRFormData) => void;
   updateCurrentFormValues: (values: Record<string, any>) => void;
+
+  // Customization methods
+  updateCustomizationData: (data: QRCustomizationData) => void;
+  setCustomizationActiveTab: (tab: string) => void;
 
   // State setters
   setBuilderStep: (state: TStepState) => void;

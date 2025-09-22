@@ -67,15 +67,15 @@ export const qrTypeDataEncoders = {
   
   // For file types, we'll use the file URL if available, otherwise a placeholder
   [EQRType.PDF]: (values: Record<string, any>, fileId?: string) => {
-    return fileId ? `https://qr-content.dub.sh/${fileId}` : "";
+    return fileId ? `https://assets.getqr.com/qrs-content/${fileId}` : "";
   },
   
   [EQRType.IMAGE]: (values: Record<string, any>, fileId?: string) => {
-    return fileId ? `https://qr-content.dub.sh/${fileId}` : "";
+    return fileId ? `https://assets.getqr.com/qrs-content/${fileId}` : "";
   },
   
   [EQRType.VIDEO]: (values: Record<string, any>, fileId?: string) => {
-    return fileId ? `https://qr-content.dub.sh/${fileId}` : "";
+    return fileId ? `https://assets.getqr.com/qrs-content/${fileId}` : "";
   },
 };
 

@@ -5,10 +5,12 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
 import { QRCodeDemoMap } from "./qr-code-demos/qr-code-demo-map";
 import { QrContentStep } from "./qr-content-step.tsx";
 import { QrTypeSelection } from "./qr-type-selection";
+import { QRCustomization } from "./customization";
+import { QRPreview } from "./customization/qr-preview";
 
 export const QRBuilderInner = () => {
   const {
@@ -26,11 +28,20 @@ export const QRBuilderInner = () => {
     handleContinue,
     qrBuilderButtonsWrapperRef,
     contentStepRef,
+    customizationData,
+    customizationActiveTab,
+    updateCustomizationData,
+    setCustomizationActiveTab,
   } = useQrBuilder();
 
   const qrCodeDemo = currentQRType ? QRCodeDemoMap[currentQRType] : null;
 
   const { isMobile } = useMediaQuery();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const demoProps = useMemo(() => {
     if (!qrCodeDemo || !currentQRType) return {};
@@ -75,7 +86,7 @@ export const QRBuilderInner = () => {
           {isContentStep && (
               <QrContentStep ref={contentStepRef} />
           )}
-          {!isMobile && !isTypeStep && (
+          {isClient && !isMobile && !isTypeStep && !isCustomizationStep && (
               <div className="w-full" ref={qrBuilderButtonsWrapperRef}>
                 <QrBuilderButtons
                     step={builderStep || 1}
@@ -89,15 +100,28 @@ export const QRBuilderInner = () => {
           )}
 
           {isCustomizationStep && (
-            <Flex
-              gap="4"
-              direction="column"
-              align="start"
-              justify="between"
-              className="w-full"
-            >
-              <div>Step 3: Customization (Not implemented yet)</div>
-            </Flex>
+            <div className="w-full">
+              <QRCustomization
+                customizationData={customizationData}
+                onCustomizationChange={updateCustomizationData}
+                activeTab={customizationActiveTab}
+                onTabChange={setCustomizationActiveTab}
+                isMobile={isMobile}
+                homepageDemo={true}
+              />
+              {isClient && !isMobile && (
+                <div className="mt-4 w-full">
+                  <QrBuilderButtons
+                    step={builderStep || 1}
+                    onBack={handleBack}
+                    onContinue={handleContinue}
+                    isEdit={false}
+                    isProcessing={false}
+                    homePageDemo={true}
+                  />
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>
@@ -136,8 +160,8 @@ export const QRBuilderInner = () => {
         )}
 
         {isCustomizationStep && (
-          <div className="center sticky top-20 flex flex-col gap-6">
-            <div>Customization Preview (Not implemented yet)</div>
+          <div className="center sticky w-full h-max top-20 flex flex-col gap-6">
+            <QRPreview customizationData={customizationData} />
           </div>
         )}
       </div>
