@@ -34,12 +34,7 @@ export function PartnersBlock() {
   return (
     <ProgramOverviewBlock
       title="Top partners by revenue"
-      viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
-        undefined,
-        {
-          include: ["interval", "start", "end"],
-        },
-      )}`}
+      viewAllHref={`/${workspaceSlug}/program/partners`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
         {isLoading ? (
