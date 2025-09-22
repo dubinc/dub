@@ -57,8 +57,9 @@ model Partner {
   commissions       Commission[]
   bountySubmissions BountySubmission[]
   messages          Message[]
-  sentMessages      Message[] @relation("SenderPartner")
+  sentMessages      Message[]           @relation("SenderPartner")
   comments          PartnerComment[]
+  promoCodes        PromoCode[]
 }
 
 model PartnerInvite {

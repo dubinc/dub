@@ -9,7 +9,6 @@ model Link {
   expiredUrl      String?   @db.Text // URL to redirect the user to when the link is expired
   password        String? // password to access the link
   trackConversion Boolean   @default(false) // whether to track conversions or not
-  couponCode      String?
   proxy           Boolean   @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
   title           String? // OG title for the link (e.g. Dub - open-source link attribution platform)
   description     String?   @db.VarChar(280) // OG description for the link (e.g. The modern link attribution platform for short links, conversion tracking, and affiliate programs.)
@@ -84,13 +83,13 @@ model Link {
   programEnrollment         ProgramEnrollment?       @relation(fields: [programId, partnerId], references: [programId, partnerId])
   partnerGroupDefaultLinkId String?
   partnerGroupDefaultLink   PartnerGroupDefaultLink? @relation(fields: [partnerGroupDefaultLinkId], references: [id])
+  promoCodes                PromoCode[]
 
   customers   Customer[]
   commissions Commission[]
 
   @@unique([domain, key]) // for getting a link by domain and key
   @@unique([projectId, externalId]) // for getting a link by externalId
-  @@unique([projectId, couponCode])
   @@index([projectId, tenantId]) // for filtering by tenantId
   @@index([projectId, url(length: 500)]) // for upserting a link by URL
   @@index([projectId, folderId, archived, createdAt(sort: Desc)]) // most getLinksForWorkspace queries

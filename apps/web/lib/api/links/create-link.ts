@@ -15,7 +15,6 @@ import {
 import { linkConstructorSimple } from "@dub/utils/src/functions/link-constructor";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
-import { enqueueCouponCodeCreateJobs } from "../discounts/enqueue-coupon-code-create-jobs";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { withPrismaRetry } from "../utils/with-prisma-retry";
 import { scheduleABTestCompletion } from "./ab-test-scheduler";
@@ -203,12 +202,6 @@ export async function createLink(link: ProcessedLinkProps) {
           }),
 
         testVariants && testCompletedAt && scheduleABTestCompletion(response),
-
-        partnerAndDiscount.discount?.couponCodeTrackingEnabledAt &&
-          enqueueCouponCodeCreateJobs({
-            id: response.id,
-            key: response.key,
-          }),
       ]);
     })(),
   );

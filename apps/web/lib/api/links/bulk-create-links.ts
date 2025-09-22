@@ -4,7 +4,6 @@ import { getParamsFromURL, linkConstructorSimple, truncate } from "@dub/utils";
 import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { createId } from "../create-id";
-import { enqueueCouponCodeCreateJobs } from "../discounts/enqueue-coupon-code-create-jobs";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { includeTags } from "./include-tags";
@@ -249,9 +248,6 @@ export async function bulkCreateLinks({
           workspaceId: links[0].projectId!, // this will always be present
           increment: links.length,
         }),
-
-        // Enqueue coupon code create jobs for partner links
-        enqueueCouponCodeCreateJobs(partnerLinks),
       ]);
     })(),
   );

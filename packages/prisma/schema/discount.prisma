@@ -14,6 +14,27 @@ model Discount {
   programEnrollments ProgramEnrollment[]
   program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
   partnerGroup       PartnerGroup?
+  promoCodes         PromoCode[]
 
   @@index(programId)
+}
+
+model PromoCode {
+  id         String @id @default(cuid())
+  code       String
+  programId  String
+  discountId String
+  partnerId  String
+  linkId     String @unique
+
+  program   Program  @relation(fields: [programId], references: [id])
+  discount  Discount @relation(fields: [discountId], references: [id])
+  partner   Partner  @relation(fields: [partnerId], references: [id])
+  link      Link     @relation(fields: [linkId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index(programId)
+  @@index(discountId)
+  @@index(partnerId)
 }
