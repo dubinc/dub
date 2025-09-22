@@ -35,7 +35,6 @@ export default function WorkspaceQRsClient({
       <QrCodesDisplayProvider>
         <WorkspaceQRs initialQrs={initialQrs} featuresAccess={featuresAccess} />
 
-        {/* <QRPreviewModalWrapper initialQrs={initialQrs} /> */}
         <TrialOfferWithQRPreviewWrapper
           initialQrs={initialQrs}
           featuresAccess={featuresAccess}
@@ -168,31 +167,3 @@ function TrialOfferWithQRPreviewWrapper({
 
   return firstQr ? <TrialOfferWithQRPreviewModal /> : null;
 }
-
-// function QRPreviewModalWrapper({
-//   initialQrs,
-// }: {
-//   initialQrs: QrStorageData[];
-// }) {
-//   const searchParams = useSearchParams();
-//   const canvasRef = useRef<HTMLCanvasElement>(null);
-//   const firstQr = initialQrs?.[0];
-
-//   const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr);
-//   const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
-//     canvasRef,
-//     qrCode: builtQrCodeObject,
-//     width: 200,
-//     height: 200,
-//   });
-
-//   const shouldShowWelcomeModal = searchParams.has("onboarded");
-
-//   useEffect(() => {
-//     setShowQRPreviewModal(
-//       shouldShowWelcomeModal && !!builtQrCodeObject && !!firstQr,
-//     );
-//   }, [searchParams, shouldShowWelcomeModal, builtQrCodeObject, firstQr]);
-
-//   return firstQr ? <QRPreviewModal /> : null;
-// }

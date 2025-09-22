@@ -19,7 +19,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
     const canvasRef =
       (ref as RefObject<HTMLCanvasElement>) || internalCanvasRef;
 
-    // ResizeObserver для отслеживания изменений размера контейнера
     useEffect(() => {
       if (!containerRef.current) return;
 
@@ -28,7 +27,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
           const containerWidth = entry.contentRect.width;
           let newWidth = containerWidth;
 
-          // Применяем ограничения по размеру
           if (maxWidth && newWidth > maxWidth) {
             newWidth = maxWidth;
           }
@@ -36,7 +34,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
             newWidth = minWidth;
           }
 
-          // Сохраняем пропорции (квадратный QR код)
           const newHeight = newWidth;
 
           setCanvasSize({ width: newWidth, height: newHeight });

@@ -75,41 +75,6 @@ export const POST = withSession(async ({ req, session: authSession }) => {
     );
   }
 
-  // if (user?.paymentInfo?.clientToken) {
-  //   if (
-  //     isBefore(
-  //       subHours(new Date(user.paymentInfo?.clientTokenExpirationDate ?? 0), 3),
-  //       new Date(),
-  //     )
-  //   ) {
-  //     const { clientToken, clientTokenExpirationDate } =
-  //       await paymentService.updateClientPaymentSession({
-  //         clientToken: user.paymentInfo.clientToken,
-  //         paymentPlan: initialSubPaymentPlan,
-  //       });
-
-  //     await updateUserCookieService({
-  //       paymentInfo: { clientToken, clientTokenExpirationDate },
-  //     });
-
-  //     return NextResponse.json({
-  //       success: true,
-  //       data: {
-  //         clientToken,
-  //         clientTokenExpirationDate,
-  //       },
-  //     });
-  //   }
-
-  //   return NextResponse.json({
-  //     success: true,
-  //     data: {
-  //       clientToken: user.paymentInfo.clientToken,
-  //       clientTokenExpirationDate: user.paymentInfo.clientTokenExpirationDate,
-  //     },
-  //   });
-  // }
-
   try {
     const body = await req.json();
 

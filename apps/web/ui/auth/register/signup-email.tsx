@@ -34,7 +34,6 @@ export const SignUpEmail = ({
 
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // const { setStep, setEmail, setPassword, step } = useRegisterContext();
   const [qrDataToCreate, setQrDataToCreate] =
     useLocalStorage<QRBuilderData | null>("qr-data-to-create", null);
 
@@ -109,7 +108,7 @@ export const SignUpEmail = ({
       trackClientEvents({
         event: EAnalyticEvents.AUTH_ERROR,
         params: {
-          page_name: "profile",
+          page_name: "landing",
           auth_type: "signup",
           auth_method: "email",
           auth_origin: qrDataToCreate ? "qr" : "none",
@@ -135,47 +134,6 @@ export const SignUpEmail = ({
       qrDataToCreate,
     });
   };
-  // const { executeAsync, isPending } = useAction(sendOtpAction, {
-  //   onSuccess: () => {
-  //     setEmail(getValues("email"));
-  //     setPassword(getValues("password"));
-  //     setStep(ERegistrationStep.VERIFY);
-  //   },
-  //   onError: ({ error }) => {
-  //     const serverError = error.serverError || "";
-  //     const validationError =
-  //       error.validationErrors?.email?.[0] ||
-  //       error.validationErrors?.password?.[0] ||
-  //       "";
-  //     const fullErrorMessage =
-  //       serverError || validationError || "An error occurred";
-
-  //     const codeMatch = fullErrorMessage.match(/^\[([^\]]+)\]/);
-  //     const errorCode = codeMatch ? codeMatch[1] : "unknown-error";
-  //     const errorMessage = codeMatch
-  //       ? fullErrorMessage.replace(/^\[[^\]]+\]\s*/, "")
-  //       : fullErrorMessage;
-
-  //     trackClientEvents({
-  //       event: EAnalyticEvents.AUTH_ERROR,
-  //       params: {
-  //         page_name: "landing",
-  //         auth_type: "signup",
-  //         auth_method: "email",
-  //         email: getValues("email"),
-  //         auth_origin: qrDataToCreate ? "qr" : "none",
-  //         event_category: "nonAuthorized",
-  //         error_code: errorCode,
-  //         error_message: errorMessage,
-  //       },
-  //       sessionId,
-  //     });
-
-  //     console.error("Auth error:", { code: errorCode, message: errorMessage });
-
-  //     showMessage(errorMessage, "error", authModal, setAuthModalMessage);
-  //   },
-  // });
 
   return (
     <form
