@@ -12,14 +12,12 @@ export const hubSpotAuthTokenSchema = z.object({
 });
 
 // Integration settings
-export const hubSpotSettingsSchema = z
-  .object({
-    closedWonDealStageId: z
-      .string()
-      .nullish()
-      .describe("The ID of the deal stage that represents a closed won deal."),
-  })
-  .nullish();
+export const hubSpotSettingsSchema = z.object({
+  closedWonDealStageId: z
+    .string()
+    .nullish()
+    .describe("The ID of the deal stage that represents a closed won deal."),
+});
 
 export const hubSpotRefreshTokenSchema = z.object({
   access_token: z.string(),

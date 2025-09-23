@@ -1,5 +1,6 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { WorkspaceProps } from "@/lib/types";
+import { DEFAULT_CLOSED_WON_DEAL_STAGE_ID } from "./constants";
 import { getHubSpotContact } from "./get-contact";
 import { getHubSpotDeal } from "./get-deal";
 import { hubSpotSaleEventSchema } from "./schema";
@@ -14,8 +15,11 @@ export const trackHubSpotSaleEvent = async ({
   payload: Record<string, any>;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   authToken: HubSpotAuthToken;
-  closedWonDealStageId: string;
+  closedWonDealStageId?: string | null;
 }) => {
+  closedWonDealStageId =
+    closedWonDealStageId ?? DEFAULT_CLOSED_WON_DEAL_STAGE_ID;
+
   const { objectId, subscriptionType, propertyName, propertyValue } =
     hubSpotSaleEventSchema.parse(payload);
 
@@ -30,7 +34,9 @@ export const trackHubSpotSaleEvent = async ({
   }
 
   if (propertyValue !== closedWonDealStageId) {
-    console.error(`[HubSpot] Unknown propertyValue ${propertyValue}`);
+    console.error(
+      `[HubSpot] Unknown propertyValue ${propertyValue}. Expected ${closedWonDealStageId}`,
+    );
     return;
   }
 
