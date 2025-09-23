@@ -55,7 +55,9 @@ function AddDestinationUrlModalContent({
   const [domain, validationMode] = watch(["domain", "validationMode"]);
 
   const onSubmit = async (data: PartnerGroupAdditionalLink) => {
-    if (!isValidDomainFormat(data.domain)) {
+    const domainNormalized = data.domain.trim().toLowerCase();
+
+    if (!isValidDomainFormat(domainNormalized)) {
       setError("domain", {
         type: "manual",
         message: "Please enter a valid domain (eg: acme.com).",
@@ -63,12 +65,17 @@ function AddDestinationUrlModalContent({
       return;
     }
 
+    setValue("domain", domainNormalized, { shouldDirty: true });
+
     const existingDomains = additionalLinks.map((l) => l.domain);
 
-    if (existingDomains.includes(data.domain) && data.domain !== link?.domain) {
+    if (
+      existingDomains.includes(domainNormalized) &&
+      domainNormalized !== link?.domain
+    ) {
       setError("domain", {
         type: "value",
-        message: `Domain ${data.domain} has already been added as a link domain`,
+        message: `Domain ${domainNormalized} has already been added as a link domain`,
       });
       return;
     }
