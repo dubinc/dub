@@ -5,7 +5,7 @@ import { waitUntil } from "@vercel/functions";
 import { getHubSpotContact } from "./get-contact";
 import { getHubSpotDeal } from "./get-deal";
 import { hubSpotLeadEventSchema } from "./schema";
-import { HubSpotAuthToken } from "./types";
+import { HubSpotAuthToken, HubSpotContact } from "./types";
 import { updateHubSpotContact } from "./update-contact";
 
 export const trackHubSpotLeadEvent = async ({
@@ -21,16 +21,16 @@ export const trackHubSpotLeadEvent = async ({
 
   // A new contact is created (deferred lead tracking)
   if (objectTypeId === "0-1") {
-    const contact = await getHubSpotContact({
+    const contactInfo = await getHubSpotContact({
       contactId: objectId,
       accessToken: authToken.access_token,
     });
 
-    if (!contact) {
+    if (!contactInfo) {
       return;
     }
 
-    const { properties } = contact;
+    const { properties } = contactInfo;
 
     if (!properties.dub_id) {
       console.error(`[HubSpot] No dub_id found for contact ${objectId}.`);
@@ -55,8 +55,8 @@ export const trackHubSpotLeadEvent = async ({
     if (trackLeadResult) {
       waitUntil(
         _updateHubSpotContact({
+          contact: contactInfo,
           trackLeadResult,
-          contactId: contact.id,
           accessToken: authToken.access_token,
         }),
       );
@@ -110,8 +110,8 @@ export const trackHubSpotLeadEvent = async ({
     if (trackLeadResult) {
       waitUntil(
         _updateHubSpotContact({
+          contact: contactInfo,
           trackLeadResult,
-          contactId: contact.id,
           accessToken: authToken.access_token,
         }),
       );
@@ -123,14 +123,21 @@ export const trackHubSpotLeadEvent = async ({
 
 // Update the HubSpot contact with `dub_link` and `dub_partner_email`
 export const _updateHubSpotContact = async ({
-  contactId,
   accessToken,
+  contact,
   trackLeadResult,
 }: {
-  contactId: number | string;
   accessToken: string;
+  contact: HubSpotContact;
   trackLeadResult: TrackLeadResponse;
 }) => {
+  if (contact.properties.dub_link && contact.properties.dub_partner_email) {
+    console.log(
+      `[HubSpot] Contact ${contact.id} already has dub_link and dub_partner_email. Skipping update.`,
+    );
+    return;
+  }
+
   let partnerEmail = "";
   let partnerLink = "";
 
@@ -156,7 +163,7 @@ export const _updateHubSpotContact = async ({
   }
 
   await updateHubSpotContact({
-    contactId,
+    contactId: contact.id,
     accessToken,
     properties: {
       dub_partner_email: partnerEmail,

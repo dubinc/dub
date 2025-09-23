@@ -12,10 +12,6 @@ export async function updateHubSpotContact({
     dub_partner_email?: string;
   };
 }) {
-  if (Object.keys(properties).length === 0) {
-    return null;
-  }
-
   try {
     if (process.env.NODE_ENV === "development") {
       console.log(
