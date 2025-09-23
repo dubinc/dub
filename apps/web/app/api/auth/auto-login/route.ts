@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // Set the session cookie
     await setServerAuthSession(session.user.id);
 
     // Redirect to the specified URL
@@ -104,6 +105,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Set the session cookie
     await setServerAuthSession(session.user.id);
 
     return NextResponse.json({

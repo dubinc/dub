@@ -571,16 +571,16 @@ export const authOptions: NextAuthOptions = {
       user: User | AdapterUser | UserProps;
       trigger?: "signIn" | "update" | "signUp";
     }) => {
-      // Handle normal sign-in flow - store user data directly in token
+      // Handle normal sign-in flow
       if (user) {
-        token.email = user.email;
-        token.name = user.name;
-        token.image = user.image;
-        token.isMachine = (user as any).isMachine || false;
-        token.defaultWorkspace = (user as any).defaultWorkspace;
-        token.defaultPartnerId = (user as any).defaultPartnerId;
-        token.dubPartnerId = (user as any).dubPartnerId;
-        token.paymentData = (user as any).paymentData;
+        token.user = user;
+      }
+
+      // Handle server-created tokens (they already have user data in token.user)
+      // If token.user already exists but no user parameter, preserve it
+      if (!user && token.user && token.sub) {
+        // Token already has user data from our setServerAuthSession, keep it
+        return token;
       }
 
       // refresh the user's data if they update their name / email or session update is triggered
@@ -600,14 +600,7 @@ export const authOptions: NextAuthOptions = {
           },
         });
         if (refreshedUser) {
-          token.email = refreshedUser.email;
-          token.name = refreshedUser.name;
-          token.image = refreshedUser.image;
-          token.isMachine = refreshedUser.isMachine;
-          token.defaultWorkspace = refreshedUser.defaultWorkspace;
-          token.defaultPartnerId = refreshedUser.defaultPartnerId;
-          token.dubPartnerId = refreshedUser.dubPartnerId;
-          token.paymentData = refreshedUser.paymentData;
+          token.user = refreshedUser;
         } else {
           return {};
         }
@@ -616,16 +609,10 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     session: async ({ session, token }) => {
-      (session.user as any) = {
+      session.user = {
         id: token.sub,
-        name: (token.name as string) || "",
-        email: (token.email as string) || "",
-        image: token.image as string,
-        isMachine: (token.isMachine as boolean) || false,
-        defaultWorkspace: token.defaultWorkspace as string,
-        defaultPartnerId: token.defaultPartnerId as string,
-        dubPartnerId: token.dubPartnerId as string,
-        paymentData: token.paymentData as any,
+        // @ts-ignore
+        ...(token || session).user,
       };
       return session;
     },
