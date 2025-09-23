@@ -51,6 +51,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
       country,
       profileType,
       companyName,
+      monthlyTraffic,
+      industryInterests,
+      preferredEarningStructures,
+      salesChannels,
     } = parsedInput;
 
     if (profileType === "company" && !companyName)
@@ -85,6 +89,34 @@ export const updatePartnerProfileAction = authPartnerActionClient
           country,
           profileType,
           companyName,
+          monthlyTraffic,
+
+          ...(industryInterests && {
+            industryInterests: {
+              deleteMany: {},
+              create: industryInterests.map((name) => ({
+                industryInterest: name,
+              })),
+            },
+          }),
+
+          ...(preferredEarningStructures && {
+            preferredEarningStructures: {
+              deleteMany: {},
+              create: preferredEarningStructures.map((name) => ({
+                preferredEarningStructure: name,
+              })),
+            },
+          }),
+
+          ...(salesChannels && {
+            salesChannels: {
+              deleteMany: {},
+              create: salesChannels.map((name) => ({
+                salesChannel: name,
+              })),
+            },
+          }),
         },
       });
 

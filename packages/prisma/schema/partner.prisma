@@ -69,9 +69,9 @@ model Partner {
   sentMessages      Message[] @relation("SenderPartner")
   comments          PartnerComment[]
 
-  industryInterests         PartnerIndustryInterest[]
-  preferredEarningStructure PartnerPreferredEarningStructure[]
-  salesChannels             PartnerSalesChannel[]
+  industryInterests          PartnerIndustryInterest[]
+  preferredEarningStructures PartnerPreferredEarningStructure[]
+  salesChannels              PartnerSalesChannel[]
 }
 
 model PartnerInvite {

@@ -60,7 +60,7 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
             partner: {
               include: {
                 industryInterests: true,
-                preferredEarningStructure: true,
+                preferredEarningStructures: true,
                 salesChannels: true,
               },
             },
@@ -77,7 +77,7 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
 
         const {
           industryInterests,
-          preferredEarningStructure,
+          preferredEarningStructures,
           salesChannels,
           ...partner
         } = partnerUser.partner;
@@ -92,7 +92,7 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
             industryInterests: industryInterests.map(
               ({ industryInterest }) => industryInterest,
             ),
-            preferredEarningStructure: preferredEarningStructure.map(
+            preferredEarningStructures: preferredEarningStructures.map(
               ({ preferredEarningStructure }) => preferredEarningStructure,
             ),
             salesChannels: salesChannels.map(

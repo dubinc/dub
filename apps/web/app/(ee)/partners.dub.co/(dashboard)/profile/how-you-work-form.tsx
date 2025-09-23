@@ -15,7 +15,7 @@ import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
 import { cn } from "@dub/utils";
 
 type HowYouWorkFormData = {
-  preferredEarningStructure: PreferredEarningStructure[];
+  preferredEarningStructures: PreferredEarningStructure[];
   salesChannels: SalesChannel[];
 };
 
@@ -29,7 +29,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
     formState: { isSubmitting, isSubmitSuccessful },
   } = useForm<HowYouWorkFormData>({
     defaultValues: {
-      preferredEarningStructure: partner?.preferredEarningStructure ?? [],
+      preferredEarningStructures: partner?.preferredEarningStructures ?? [],
       salesChannels: partner?.salesChannels ?? [],
     },
   });
@@ -78,7 +78,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
             <div className="@sm/panel:grid-cols-2 grid grid-cols-1 gap-4">
               <Controller
                 control={control}
-                name="preferredEarningStructure"
+                name="preferredEarningStructures"
                 render={({ field }) => (
                   <>
                     {preferredEarningStructures.map((earningStructure) => (
