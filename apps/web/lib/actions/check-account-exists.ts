@@ -35,7 +35,7 @@ export const checkAccountExistsAction = actionClient
     const emailDomain = email.split("@")[1];
     const hostname = headersList.get("host");
     const shouldCheckSAML =
-      hostname && APP_HOSTNAMES.has(hostname) && !isGenericEmail(emailDomain);
+      hostname && APP_HOSTNAMES.has(hostname) && !isGenericEmail(email);
 
     const [user, workspace] = await Promise.all([
       prisma.user.findUnique({

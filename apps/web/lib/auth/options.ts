@@ -600,7 +600,7 @@ export const isSamlEnforcedForDomain = async (email: string) => {
     !hostname ||
     !emailDomain ||
     !APP_HOSTNAMES.has(hostname) ||
-    isGenericEmail(emailDomain)
+    isGenericEmail(email)
   ) {
     return false;
   }
@@ -614,5 +614,9 @@ export const isSamlEnforcedForDomain = async (email: string) => {
     },
   });
 
-  return workspace?.ssoEnforcedAt ?? false;
+  if (workspace?.ssoEnforcedAt) {
+    return true;
+  }
+
+  return false;
 };
