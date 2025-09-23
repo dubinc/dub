@@ -20,7 +20,6 @@ export async function createServerAuthJWT(userId: string): Promise<string> {
         id: true,
         email: true,
         name: true,
-        image: true,
       },
     });
 
@@ -32,7 +31,6 @@ export async function createServerAuthJWT(userId: string): Promise<string> {
       sub: user.id,
       email: user.email,
       name: user.name,
-      image: user.image,
       iat: Math.floor(Date.now() / 1000),
       exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days
       serverAuth: true, // Mark as server-authenticated
@@ -64,7 +62,6 @@ export async function verifyServerAuthJWT(token: string): Promise<Session | null
           id: payload.sub as string,
           email: payload.email as string,
           name: payload.name as string,
-          image: payload.image as string,
           isMachine: false,
         },
       };
@@ -90,17 +87,6 @@ export async function setServerAuthSession(userId: string): Promise<void> {
   try {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        image: true,
-        isMachine: true,
-        defaultWorkspace: true,
-        defaultPartnerId: true,
-        dubPartnerId: true,
-        paymentData: true,
-      },
     });
 
     if (!user) {
@@ -110,17 +96,7 @@ export async function setServerAuthSession(userId: string): Promise<void> {
     const nextAuthToken = await encode({
       token: {
         sub: user.id,
-        user: {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          image: user.image,
-          isMachine: user.isMachine || false,
-          defaultWorkspace: user.defaultWorkspace,
-          defaultPartnerId: user.defaultPartnerId,
-          dubPartnerId: user.dubPartnerId,
-          paymentData: user.paymentData,
-        },
+        user,
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
       },

@@ -571,34 +571,14 @@ export const authOptions: NextAuthOptions = {
       user: User | AdapterUser | UserProps;
       trigger?: "signIn" | "update" | "signUp";
     }) => {
-      console.log("jwt callback", { token, user, trigger });
-      // Handle normal sign-in flow
       if (user) {
         token.user = user;
-      }
-
-      // Handle server-created tokens (they already have user data in token.user)
-      // If token.user already exists but no user parameter, preserve it
-      if (!user && token.user && token.sub) {
-        // Token already has user data from our setServerAuthSession, keep it
-        return token;
       }
 
       // refresh the user's data if they update their name / email or session update is triggered
       if (trigger === "update") {
         const refreshedUser = await prisma.user.findUnique({
           where: { id: token.sub },
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-            isMachine: true,
-            defaultWorkspace: true,
-            defaultPartnerId: true,
-            dubPartnerId: true,
-            paymentData: true,
-          },
         });
         if (refreshedUser) {
           token.user = refreshedUser;
