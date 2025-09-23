@@ -7,7 +7,7 @@ import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, PARTNERS_HOSTNAMES } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, APP_HOSTNAMES } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
@@ -592,7 +592,7 @@ export const authOptions: NextAuthOptions = {
 // Checks if SAML SSO is enforced for a given email domain
 export const isSamlEnforcedForDomain = async (email: string) => {
   const hostname = new URL(process.env.NEXTAUTH_URL as string).hostname;
-  if (PARTNERS_HOSTNAMES.has(hostname)) {
+  if (!APP_HOSTNAMES.has(hostname)) {
     return;
   }
 
