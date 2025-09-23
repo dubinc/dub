@@ -30,13 +30,12 @@ export const checkAccountExistsAction = actionClient
     }
 
     // Check SAML enforcement
-    const hostname = new URL(process.env.NEXTAUTH_URL as string).hostname;
     const emailDomain = email.split("@")[1];
-    const shouldCheckSAML = APP_HOSTNAMES.has(hostname) && !isGenericEmail(emailDomain);
+    const hostname = new URL(process.env.NEXTAUTH_URL as string).hostname;
+    const shouldCheckSAML =
+      APP_HOSTNAMES.has(hostname) && !isGenericEmail(emailDomain);
 
-    // Run both queries in parallel
     const [user, workspace] = await Promise.all([
-      // Find the user
       prisma.user.findUnique({
         where: {
           email,
@@ -45,7 +44,7 @@ export const checkAccountExistsAction = actionClient
           passwordHash: true,
         },
       }),
-      // Check SAML enforcement (only if needed)
+
       shouldCheckSAML
         ? prisma.project.findUnique({
             where: {
@@ -58,17 +57,9 @@ export const checkAccountExistsAction = actionClient
         : Promise.resolve(null),
     ]);
 
-    if (workspace?.ssoEnforcedAt) {
-      return {
-        accountExists: !!user,
-        hasPassword: !!user?.passwordHash,
-        requireSAML: true,
-      };
-    }
-
     return {
       accountExists: !!user,
       hasPassword: !!user?.passwordHash,
-      requireSAML: false,
+      requireSAML: !!workspace?.ssoEnforcedAt,
     };
   });
