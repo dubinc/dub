@@ -66,9 +66,10 @@ function AddDestinationUrlModalContent({
     const existingDomains = additionalLinks.map((l) => l.domain);
 
     if (existingDomains.includes(data.domain) && data.domain !== link?.domain) {
-      toast.error(
-        `Domain ${data.domain} has already been added as a link domain`,
-      );
+      setError("domain", {
+        type: "value",
+        message: `Domain ${data.domain} has already been added as a link domain`,
+      });
       return;
     }
 
@@ -132,6 +133,9 @@ function AddDestinationUrlModalContent({
               placeholder="acme.com"
               className="max-w-full"
             />
+            {errors.domain && (
+              <p className="text-sm text-red-500">{errors.domain.message}</p>
+            )}
           </div>
 
           <div>
