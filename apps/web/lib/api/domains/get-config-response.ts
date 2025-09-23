@@ -1,4 +1,5 @@
 import { getApexDomain } from "@dub/utils";
+import { isProxiedDomain } from "./utils";
 
 const getVercelConfigResponse = async (domain: string) => {
   return await fetch(
@@ -14,6 +15,12 @@ const getVercelConfigResponse = async (domain: string) => {
 };
 
 export const getConfigResponse = async (domain: string) => {
+  if (isProxiedDomain(domain)) {
+    return {
+      misconfigured: false,
+      conflicts: [],
+    };
+  }
   const apexDomain = getApexDomain(`https://${domain}`);
   if (apexDomain !== domain) {
     const wildcardDomain = `*.${apexDomain}`;
