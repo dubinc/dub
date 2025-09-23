@@ -17,6 +17,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
+import { headers } from "next/headers";
 import { createId } from "../api/create-id";
 import { qstash } from "../cron";
 import { isGenericEmail } from "../emails";
@@ -591,13 +592,16 @@ export const authOptions: NextAuthOptions = {
 
 // Checks if SAML SSO is enforced for a given email domain
 export const isSamlEnforcedForDomain = async (email: string) => {
-  const hostname = new URL(process.env.NEXTAUTH_URL as string).hostname;
-  if (!APP_HOSTNAMES.has(hostname)) {
-    return;
-  }
-
+  const headersList = headers();
   const emailDomain = email.split("@")[1];
-  if (!emailDomain || isGenericEmail(emailDomain)) {
+  const hostname = headersList.get("host");
+
+  if (
+    !hostname ||
+    !emailDomain ||
+    !APP_HOSTNAMES.has(hostname) ||
+    isGenericEmail(emailDomain)
+  ) {
     return false;
   }
 
