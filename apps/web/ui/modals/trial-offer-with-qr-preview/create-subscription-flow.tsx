@@ -26,7 +26,7 @@ interface ICreateSubscriptionProps {
   user: ICustomerBody;
 }
 
-const pageName = "account";
+const pageName = "dashboard";
 const trialPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
 const subPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 
@@ -169,7 +169,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     await mutate("/api/user");
 
     router.refresh();
-    router.push("/acoount/plans");
+    router.push("/account/plans");
   };
 
   const handleCheckoutError = ({
