@@ -3,7 +3,10 @@
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { qstash } from "@/lib/cron";
 import { storage } from "@/lib/storage";
-import { PartnerProfileSchema } from "@/lib/zod/schemas/partners";
+import {
+  MAX_PARTNER_DESCRIPTION_LENGTH,
+  PartnerProfileSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -21,28 +24,15 @@ import { authPartnerActionClient } from "../safe-action";
 
 const updatePartnerProfileSchema = z
   .object({
-    name: z.string(),
-    email: z.string().email(),
+    name: z.string().optional(),
+    email: z.string().email().optional(),
     image: uploadedImageSchema.nullish(),
-    description: z.string().nullish(),
-    country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullable(),
-    profileType: z.nativeEnum(PartnerProfileType),
-    companyName: z.string().nullable(),
+    description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
+    country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
+    profileType: z.nativeEnum(PartnerProfileType).optional(),
+    companyName: z.string().nullish(),
   })
   .merge(PartnerProfileSchema.partial())
-  .refine(
-    (data) => {
-      if (data.profileType === "company") {
-        return !!data.companyName;
-      }
-
-      return true;
-    },
-    {
-      message: "Legal company name is required.",
-      path: ["companyName"],
-    },
-  )
   .transform((data) => ({
     ...data,
     companyName: data.profileType === "individual" ? null : data.companyName,
@@ -63,6 +53,9 @@ export const updatePartnerProfileAction = authPartnerActionClient
       companyName,
     } = parsedInput;
 
+    if (profileType === "company" && !companyName)
+      throw new Error("Legal company name is required.");
+
     // Delete the Stripe Express account if needed
     await deleteStripeAccountIfRequired({
       partner,
@@ -71,7 +64,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
     let imageUrl: string | null = null;
     let needsEmailVerification = false;
-    const emailChanged = partner.email !== newEmail;
+    const emailChanged = newEmail !== undefined && partner.email !== newEmail;
 
     // Upload the new image
     if (image) {
@@ -164,9 +157,11 @@ const deleteStripeAccountIfRequired = async ({
   input: z.infer<typeof updatePartnerProfileSchema>;
 }) => {
   const countryChanged =
+    input.country !== undefined &&
     partner.country?.toLowerCase() !== input.country?.toLowerCase();
 
   const profileTypeChanged =
+    input.profileType !== undefined &&
     partner.profileType.toLowerCase() !== input.profileType.toLowerCase();
 
   const companyNameChanged =

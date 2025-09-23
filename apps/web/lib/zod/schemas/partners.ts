@@ -255,6 +255,8 @@ export const PartnerProfileSchema = z.object({
     .describe("The partner's sales channels."),
 });
 
+export const MAX_PARTNER_DESCRIPTION_LENGTH = 500;
+
 export const PartnerSchema = z
   .object({
     id: z.string().describe("The partner's unique ID on Dub."),
@@ -279,7 +281,7 @@ export const PartnerSchema = z
     image: z.string().nullable().describe("The partner's avatar image."),
     description: z
       .string()
-      .max(5000)
+      .max(5000) // Left at 5000 instead of MAX_PARTNER_DESCRIPTION_LENGTH to avoid breaking changes
       .nullish()
       .describe("A brief description of the partner and their background."),
     country: z
