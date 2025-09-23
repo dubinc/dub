@@ -3,6 +3,7 @@
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_HOSTNAMES } from "@dub/utils";
+import { headers } from "next/headers";
 import { getIP } from "../api/utils";
 import { isGenericEmail } from "../emails";
 import z from "../zod";
@@ -30,10 +31,11 @@ export const checkAccountExistsAction = actionClient
     }
 
     // Check SAML enforcement
+    const headersList = headers();
     const emailDomain = email.split("@")[1];
-    const hostname = new URL(process.env.NEXTAUTH_URL as string).hostname;
+    const hostname = headersList.get("host");
     const shouldCheckSAML =
-      APP_HOSTNAMES.has(hostname) && !isGenericEmail(emailDomain);
+      hostname && APP_HOSTNAMES.has(hostname) && !isGenericEmail(emailDomain);
 
     const [user, workspace] = await Promise.all([
       prisma.user.findUnique({
