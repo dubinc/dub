@@ -1,5 +1,4 @@
 import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less";
-import { fetchPrimerToken } from "@/lib/actions/fetch-primer-token";
 import { getQrs } from "@/lib/api/qrs/get-qrs";
 import { getSession } from "@/lib/auth";
 import { PageContent } from "@/ui/layout/page-content";
@@ -30,18 +29,6 @@ const WorkspaceQRsPage = async () => {
 
   const featuresAccess = await checkFeaturesAccessAuthLess(authUser.id);
 
-  let primerClientToken = null;
-  if (!featuresAccess.isSubscribed) {
-    try {
-      const result = await fetchPrimerToken();
-      if (result?.data) {
-        primerClientToken = result.data.clientToken;
-      }
-    } catch (error) {
-      console.error("Failed to fetch primer token:", error);
-    }
-  }
-
   return (
     <>
       <PageContent title={<LinksTitle />}>
@@ -49,19 +36,7 @@ const WorkspaceQRsPage = async () => {
           initialQrs={qrs as any}
           featuresAccess={featuresAccess}
           user={authUser}
-          cookieUser={
-            user
-              ? {
-                  ...user,
-                  paymentInfo: {
-                    ...user?.paymentInfo,
-                    ...(primerClientToken
-                      ? { clientToken: primerClientToken }
-                      : {}),
-                  },
-                }
-              : null
-          }
+          cookieUser={user}
         />
       </PageContent>
 

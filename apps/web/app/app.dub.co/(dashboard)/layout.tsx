@@ -38,7 +38,6 @@ export default async function Layout({ children }: { children: ReactNode }) {
           {children}
         </MainNav>
       </div>
-      {/* {!featuresAccess.isSubscribed && <ClientSessionComponent />} */}
       {oauthFlowCookie && (
         <OauthTrackerComponent oauthData={parsedOauthFlowInfo} />
       )}

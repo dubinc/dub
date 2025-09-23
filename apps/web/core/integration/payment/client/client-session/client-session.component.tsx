@@ -12,12 +12,13 @@ import { createSessionsForClient } from "../session";
 //interface
 interface IClientSessionComponentProps {
   blockSessionCreation?: boolean;
+  onSessionCreated?: (clientToken: string) => void;
 }
 
 // component
 export const ClientSessionComponent: FC<
   Readonly<IClientSessionComponentProps>
-> = ({ blockSessionCreation }) => {
+> = ({ blockSessionCreation, onSessionCreated }) => {
   const { data: user, isLoading } = useGetUserProfileQuery();
 
   const triggeredCommonSession = useRef(false);
@@ -36,7 +37,11 @@ export const ClientSessionComponent: FC<
       ) {
         triggeredClientSession.current = true;
 
-        triggerCreateUserSession({});
+        triggerCreateUserSession({}).then((data) => {
+          if (data?.data?.clientToken) {
+            onSessionCreated?.(data?.data?.clientToken);
+          }
+        });
       }
 
       if (
@@ -50,7 +55,7 @@ export const ClientSessionComponent: FC<
         });
       }
     }
-  }, [user]);
+  }, [user, onSessionCreated]);
 
   // return
   return null;

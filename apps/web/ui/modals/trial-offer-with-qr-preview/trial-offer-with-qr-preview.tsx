@@ -3,6 +3,7 @@
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
 import { Modal } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
+import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ICustomerBody } from "core/integration/payment/config";
 import { Check, Gift } from "lucide-react";
 import QRCodeStyling from "qr-code-styling";
@@ -50,6 +51,7 @@ function TrialOfferWithQRPreview({
   user,
 }: IQRPreviewModalProps) {
   // const { queryParams } = useRouterStuff();
+  const [clientToken, setClientToken] = useState<string | null>(null);
   const currentQrTypeInfo = QR_TYPES.find((item) => item.id === qrType)!;
 
   return (
@@ -66,7 +68,7 @@ function TrialOfferWithQRPreview({
     >
       <Theme>
         <div className="flex">
-          <div className="flex flex-col gap-4 bg-neutral-50 p-6">
+          <div className="flex w-1/2 flex-col gap-4 bg-neutral-50 p-6">
             <div className="flex flex-col gap-2 text-center">
               <h3 className="text-primary !mt-0 truncate text-2xl font-bold">
                 Your QR Code is Ready!
@@ -136,7 +138,15 @@ function TrialOfferWithQRPreview({
               </div>
             </div>
 
-            <CreateSubscriptionFlow user={user} />
+            <ClientSessionComponent onSessionCreated={setClientToken} />
+            {clientToken && (
+              <CreateSubscriptionFlow
+                user={{
+                  ...user!,
+                  paymentInfo: { ...user!.paymentInfo, clientToken },
+                }}
+              />
+            )}
           </div>
         </div>
       </Theme>
