@@ -5,19 +5,36 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
 import { useSAMLModal } from "@/ui/modals/saml-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, IconMenu, Popover, Switch, TooltipContent } from "@dub/ui";
+import {
+  Button,
+  IconMenu,
+  Popover,
+  Switch,
+  TooltipContent,
+  useOptimisticUpdate,
+} from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import { Lock, ShieldOff } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { toast } from "sonner";
 
 export function SAML() {
-  const { plan, id, ssoEnforcedAt, mutate } = useWorkspace();
+  const { plan, id, ssoEnforcedAt } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
   const [openPopover, setOpenPopover] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
+
+  const {
+    data: workspaceData,
+    isLoading,
+    update,
+  } = useOptimisticUpdate<{
+    ssoEnforcedAt: Date | null;
+  }>(`/api/workspaces/${id}`, {
+    loading: "Saving SAML enforcement setting...",
+    success: "SAML enforcement has been updated successfully.",
+    error: "Unable to update SAML enforcement. Please try again.",
+  });
 
   const currentProvider = useMemo(
     () => provider && SAML_PROVIDERS.find((p) => p.name.startsWith(provider)),
@@ -58,32 +75,35 @@ export function SAML() {
   }, [provider, configured, loading]);
 
   const handleSSOEnforcementChange = useCallback(
-    async (data: { enforceSAML: boolean }) => {
-      setIsUpdating(true);
-
-      const response = await fetch(`/api/workspaces/${id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.ok) {
-        await mutate();
-        toast.success(
-          data.enforceSAML
-            ? "SAML SSO enforcement enabled."
-            : "SAML SSO enforcement disabled.",
-        );
-      } else {
-        const { error } = await response.json();
-        toast.error(error.message || "Failed to update workspace.");
+    async (enforceSAML: boolean) => {
+      if (!configured) {
+        return;
       }
 
-      setIsUpdating(false);
+      const updateWorkspace = async () => {
+        const response = await fetch(`/api/workspaces/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ enforceSAML }),
+        });
+
+        if (!response.ok) {
+          const { error } = await response.json();
+          throw new Error(error.message || "Failed to update workspace.");
+        }
+
+        return {
+          ssoEnforcedAt: enforceSAML ? new Date() : null,
+        };
+      };
+
+      await update(updateWorkspace, {
+        ssoEnforcedAt: enforceSAML ? new Date() : null,
+      });
     },
-    [id, mutate],
+    [id, configured, update],
   );
 
   return (
@@ -183,11 +203,10 @@ export function SAML() {
                 workspace.
               </label>
               <Switch
-                checked={!!ssoEnforcedAt}
-                disabled={isUpdating || plan !== "enterprise"}
-                fn={(enforceSAML: boolean) => {
-                  handleSSOEnforcementChange({ enforceSAML });
-                }}
+                checked={!!(workspaceData?.ssoEnforcedAt || ssoEnforcedAt)}
+                loading={isLoading}
+                disabled={plan !== "enterprise"}
+                fn={handleSSOEnforcementChange}
               />
             </div>
           ) : (
