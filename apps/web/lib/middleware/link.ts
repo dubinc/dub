@@ -28,7 +28,7 @@ import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
-import { sendClicksEvents } from './utils/send-clicks-events';
+import { sendClicksEvents } from "./utils/send-clicks-events";
 
 export default async function LinkMiddleware(
   req: NextRequest,

@@ -175,7 +175,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     });
 
     // Force session update with trigger to refresh user data from DB
-    await updateSession({});
+    await updateSession();
     await mutate("/api/user");
 
     router.refresh();

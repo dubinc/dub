@@ -1,7 +1,6 @@
 import { withSession } from "@/lib/auth";
-import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
-import { format } from "date-fns";
 import {
   IUpdateSubscriptionBody,
   IUpdateSubscriptionRes,
@@ -12,13 +11,17 @@ import {
   priceConfig,
   TPaymentPlan,
 } from "core/integration/payment/config";
-import { IGetSystemUserDataRes, PaymentService } from "core/integration/payment/server";
+import {
+  IGetSystemUserDataRes,
+  PaymentService,
+} from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import {
   getUserCookieService,
   updateUserCookieService,
 } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
+import { format } from "date-fns";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -113,14 +116,20 @@ export const POST = withSession(
     console.log("Update subscription");
     console.log("body", body);
 
-    const subData = await paymentService.getClientSubscriptionDataByEmail({ email: user?.email || authUser?.email });
-    const subscription = subData.subscriptions.at(-1) as IGetSystemUserDataRes["subscriptions"][0];
+    const subData = await paymentService.getClientSubscriptionDataByEmail({
+      email: user?.email || authUser?.email,
+    });
+    const subscription = subData.subscriptions.at(
+      -1,
+    ) as IGetSystemUserDataRes["subscriptions"][0];
     console.log("sub data", subscription);
 
     // TODO: better to use plan_name from attributes but attributes doesn't change after subscription update
     // so need to remove getPlanNameByChargePeriodDays method if attributes will be reliable
     // const prevPlan = subData.subscriptions[0].attributes.plan_name;
-    const prevPlan = getPlanNameByChargePeriodDays(subscription.plan.chargePeriodDays);
+    const prevPlan = getPlanNameByChargePeriodDays(
+      subscription.plan.chargePeriodDays,
+    );
 
     try {
       await paymentService.updateClientSubscription(
@@ -165,8 +174,11 @@ export const POST = withSession(
         },
       );
 
-      const subDataAfterUpdate = await paymentService.getClientSubscriptionDataByEmail({ email: email });
-      const newSubData = subDataAfterUpdate.subscriptions.at(-1) as IGetSystemUserDataRes["subscriptions"][0];
+      const subDataAfterUpdate =
+        await paymentService.getClientSubscriptionDataByEmail({ email: email });
+      const newSubData = subDataAfterUpdate.subscriptions.at(
+        -1,
+      ) as IGetSystemUserDataRes["subscriptions"][0];
 
       console.log("sub data after update", newSubData);
 
@@ -196,7 +208,10 @@ export const POST = withSession(
           subject: "Sub upgrade",
           template: getEmailTemplate(prevPlan, body.paymentPlan),
           messageData: {
-            amount: (newSubData.plan.price / 100).toFixed(2) + ' ' + newSubData.plan.currencyCode,
+            amount:
+              (newSubData.plan.price / 100).toFixed(2) +
+              " " +
+              newSubData.plan.currencyCode,
             next_billing_date: format(
               new Date(newSubData.nextBillingDate),
               "yyyy-MM-dd",

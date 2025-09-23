@@ -6,6 +6,7 @@ import {
   ICreatePaymentBody,
   ICreatePaymentRes,
 } from "core/api/user/payment/payment.interface.ts";
+import { getSubscriptionRenewalAction } from "core/constants/subscription-plans-weight.ts";
 import {
   getPaymentPlanPrice,
   TPaymentPlan,
@@ -15,7 +16,6 @@ import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
 import { v4 as uuidV4 } from "uuid";
-import { getSubscriptionRenewalAction } from "../../../../core/constants/subscription-plans-weight.ts";
 
 const paymentService = new PaymentService();
 
