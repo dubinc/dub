@@ -138,8 +138,7 @@ export const _updateHubSpotContact = async ({
     return;
   }
 
-  let partnerEmail = "";
-  let partnerLink = "";
+  const properties: Record<string, string> = {};
 
   if (trackLeadResult.link?.partnerId) {
     const partner = await prisma.partner.findUniqueOrThrow({
@@ -151,23 +150,22 @@ export const _updateHubSpotContact = async ({
       },
     });
 
-    partnerEmail = partner.email ?? "";
+    if (partner.email) {
+      properties["dub_partner_email"] = partner.email;
+    }
   }
 
   if (trackLeadResult.link?.url) {
-    partnerLink = trackLeadResult.link.url;
+    properties["dub_link"] = trackLeadResult.link.url;
   }
 
-  if (!partnerLink && !partnerEmail) {
+  if (Object.keys(properties).length === 0) {
     return;
   }
 
   await updateHubSpotContact({
     contactId: contact.id,
     accessToken,
-    properties: {
-      dub_partner_email: partnerEmail,
-      dub_link: partnerLink,
-    },
+    properties,
   });
 };
