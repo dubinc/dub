@@ -45,7 +45,10 @@ export async function getPartnerForProgram({
           )
         ),
         JSON_ARRAY()
-      ) as links
+      ) as links,
+      industryInterests.industryInterests,
+      preferredEarningStructures.preferredEarningStructures,
+      salesChannels.salesChannels
     FROM 
       ProgramEnrollment pe 
     INNER JOIN 
@@ -65,6 +68,24 @@ export async function getPartnerForProgram({
         AND partnerId = ${partnerId}
       GROUP BY partnerId
     ) metrics ON metrics.partnerId = pe.partnerId
+    LEFT JOIN (
+      SELECT partnerId, group_concat(industryInterest) AS industryInterests
+      FROM PartnerIndustryInterest
+      WHERE partnerId = ${partnerId}
+      GROUP BY partnerId
+    ) industryInterests ON industryInterests.partnerId = pe.partnerId
+    LEFT JOIN (
+      SELECT partnerId, group_concat(preferredEarningStructure) AS preferredEarningStructures
+      FROM PartnerPreferredEarningStructure
+      WHERE partnerId = ${partnerId}
+      GROUP BY partnerId
+    ) preferredEarningStructures ON preferredEarningStructures.partnerId = pe.partnerId
+    LEFT JOIN (
+      SELECT partnerId, group_concat(salesChannel) AS salesChannels
+      FROM PartnerSalesChannel
+      WHERE partnerId = ${partnerId}
+      GROUP BY partnerId
+    ) salesChannels ON salesChannels.partnerId = pe.partnerId
     WHERE 
       pe.partnerId = ${partnerId}
       AND pe.programId = ${programId}
@@ -85,5 +106,9 @@ export async function getPartnerForProgram({
     saleAmount: Number(partner[0].totalSaleAmount),
     totalCommissions: Number(partner[0].totalCommissions),
     netRevenue: Number(partner[0].netRevenue),
+    industryInterests: partner[0].industryInterests.split(","),
+    preferredEarningStructures:
+      partner[0].preferredEarningStructures.split(","),
+    salesChannels: partner[0].salesChannels.split(","),
   };
 }

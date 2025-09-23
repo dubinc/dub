@@ -342,6 +342,10 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
+  monthlyTraffic: true,
+  industryInterests: true,
+  preferredEarningStructures: true,
+  salesChannels: true,
 })
   .merge(
     ProgramEnrollmentSchema.omit({
