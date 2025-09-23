@@ -240,7 +240,7 @@ export default function Toggle({
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
                       <>
-                        {domain && key && <ShareButton />}
+                        <ShareButton />
                         <Link
                           href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`}
                         >
