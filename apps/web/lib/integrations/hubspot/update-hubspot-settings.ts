@@ -22,6 +22,7 @@ export const updateHubSpotSettingsAction = authActionClient
     const installedIntegration = await prisma.installedIntegration.findFirst({
       where: {
         integrationId: HUBSPOT_INTEGRATION_ID,
+        projectId: workspace.id,
       },
     });
 
@@ -31,12 +32,15 @@ export const updateHubSpotSettingsAction = authActionClient
       );
     }
 
+    const current = (installedIntegration.settings as any) ?? {};
+
     await prisma.installedIntegration.update({
       where: {
         id: installedIntegration.id,
       },
       data: {
         settings: {
+          ...current,
           closedWonDealStageId,
         },
       },
