@@ -4,12 +4,7 @@ const { withAxiom } = require("next-axiom");
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
-  transpilePackages: [
-    "shiki",
-    "@dub/prisma",
-    "@dub/email",
-    "@boxyhq/saml-jackson",
-  ],
+  transpilePackages: ["shiki", "@dub/prisma", "@dub/email"],
   experimental: {
     optimizePackageImports: [
       "@dub/email",
