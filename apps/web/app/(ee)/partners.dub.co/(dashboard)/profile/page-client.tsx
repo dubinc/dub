@@ -6,6 +6,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
 import { Button } from "@dub/ui";
 import { AboutYouForm } from "./about-you-form";
+import { HowYouWorkForm } from "./how-you-work-form";
 import { ProfileDetailsForm } from "./profile-details-form";
 
 export function ProfileSettingsPageClient() {
@@ -24,6 +25,7 @@ export function ProfileSettingsPageClient() {
       <PageWidthWrapper className="mb-20 flex flex-col gap-6">
         <ProfileDetailsForm partner={partner} />
         <AboutYouForm partner={partner} />
+        <HowYouWorkForm partner={partner} />
       </PageWidthWrapper>
     </PageContent>
   );

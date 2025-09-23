@@ -1,4 +1,9 @@
-import { IndustryInterest, MonthlyTraffic } from "@dub/prisma/client";
+import {
+  IndustryInterest,
+  MonthlyTraffic,
+  PreferredEarningStructure,
+  SalesChannel,
+} from "@dub/prisma/client";
 import {
   BookOpen,
   BracketsCurly,
@@ -153,7 +158,7 @@ export const industryInterests: {
   },
 ];
 
-export const monthlyTrafficAmounts = [
+export const monthlyTrafficAmounts: { id: MonthlyTraffic; label: string }[] = [
   {
     id: MonthlyTraffic.ZeroToOneThousand,
     label: "0 - 1,000",
@@ -173,5 +178,62 @@ export const monthlyTrafficAmounts = [
   {
     id: MonthlyTraffic.OneHundredThousandPlus,
     label: "100,000+",
+  },
+];
+
+export const preferredEarningStructures: {
+  id: PreferredEarningStructure;
+  label: string;
+}[] = [
+  {
+    id: PreferredEarningStructure.Revenue_Share,
+    label: "Rev-share (% of sale)",
+  },
+  {
+    id: PreferredEarningStructure.Per_Lead,
+    label: "Per lead (CPL)",
+  },
+  {
+    id: PreferredEarningStructure.Per_Sale,
+    label: "Per sale (CPS)",
+  },
+  {
+    id: PreferredEarningStructure.Per_Click,
+    label: "Per click (CPC)",
+  },
+  {
+    id: PreferredEarningStructure.One_Time_Payment,
+    label: "One-time payment",
+  },
+];
+
+export const salesChannels: { id: SalesChannel; label: string }[] = [
+  {
+    id: SalesChannel.Blogs,
+    label: "Blogs",
+  },
+  {
+    id: SalesChannel.Coupons,
+    label: "Coupons",
+  },
+  {
+    id: SalesChannel.Direct_Reselling,
+    label: "Direct reselling",
+  },
+  {
+    id: SalesChannel.Newsletters,
+    label: "Newsletters",
+  },
+  {
+    id: SalesChannel.Social_Media,
+    label: "Social media",
+  },
+  {
+    id: SalesChannel.Events,
+    label: "Events",
+  },
+  {
+    id: SalesChannel.Company_Referrals,
+    label: "Company referrals",
   },
 ];
