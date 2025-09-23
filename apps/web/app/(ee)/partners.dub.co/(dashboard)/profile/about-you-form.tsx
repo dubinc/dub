@@ -1,10 +1,13 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
-import { industryInterests } from "@/lib/partners/partner-profile";
+import {
+  industryInterests,
+  monthlyTrafficAmounts,
+} from "@/lib/partners/partner-profile";
 import { PartnerProps } from "@/lib/types";
 import { MAX_PARTNER_DESCRIPTION_LENGTH } from "@/lib/zod/schemas/partners";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
-import { IndustryInterest } from "@dub/prisma/client";
-import { Button, useEnterSubmit } from "@dub/ui";
+import { IndustryInterest, MonthlyTraffic } from "@dub/prisma/client";
+import { Button, RadioGroup, RadioGroupItem, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
@@ -17,6 +20,7 @@ import { SettingsRow } from "./settings-row";
 type AboutYouFormData = {
   description: string;
   industryInterests: IndustryInterest[];
+  monthlyTraffic: MonthlyTraffic;
 };
 
 export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
@@ -32,6 +36,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
     defaultValues: {
       description: partner?.description ?? undefined,
       industryInterests: partner?.industryInterests ?? [],
+      monthlyTraffic: partner?.monthlyTraffic ?? undefined,
     },
   });
 
@@ -158,7 +163,31 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
         <SettingsRow
           heading="Estimated monthly traffic"
           description="Including websites, newsletters, and social accounts."
-        ></SettingsRow>
+        >
+          <Controller
+            control={control}
+            name="monthlyTraffic"
+            render={({ field }) => (
+              <RadioGroup
+                value={field.value}
+                onValueChange={(value) => field.onChange(value)}
+                className="flex flex-col gap-4"
+              >
+                {monthlyTrafficAmounts.map(({ id, label }) => (
+                  <label key={id} className="flex items-center gap-2.5">
+                    <RadioGroupItem
+                      value={id}
+                      className="text-content-emphasis border-border-default"
+                    />
+                    <span className="text-content-emphasis text-sm font-medium">
+                      {label}
+                    </span>
+                  </label>
+                ))}
+              </RadioGroup>
+            )}
+          />
+        </SettingsRow>
 
         <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-4">
           <Button

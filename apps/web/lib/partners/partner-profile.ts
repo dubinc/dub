@@ -1,4 +1,4 @@
-import { IndustryInterest } from "@dub/prisma/client";
+import { IndustryInterest, MonthlyTraffic } from "@dub/prisma/client";
 import {
   BookOpen,
   BracketsCurly,
@@ -150,5 +150,28 @@ export const industryInterests: {
     id: IndustryInterest.Science_And_Engineering,
     label: "Science & Engineering",
     icon: Flask,
+  },
+];
+
+export const monthlyTrafficAmounts = [
+  {
+    id: MonthlyTraffic.ZeroToOneThousand,
+    label: "0 - 1,000",
+  },
+  {
+    id: MonthlyTraffic.OneThousandToTenThousand,
+    label: "1,000 - 10,000",
+  },
+  {
+    id: MonthlyTraffic.TenThousandToFiftyThousand,
+    label: "10,000 - 50,000",
+  },
+  {
+    id: MonthlyTraffic.FiftyThousandToOneHundredThousand,
+    label: "50,000 - 100,000",
+  },
+  {
+    id: MonthlyTraffic.OneHundredThousandPlus,
+    label: "100,000+",
   },
 ];
