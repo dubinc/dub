@@ -92,9 +92,14 @@ export async function setServerAuthSession(userId: string): Promise<void> {
       where: { id: userId },
       select: {
         id: true,
-        email: true,
         name: true,
+        email: true,
         image: true,
+        isMachine: true,
+        defaultWorkspace: true,
+        defaultPartnerId: true,
+        dubPartnerId: true,
+        paymentData: true,
       },
     });
 
@@ -104,11 +109,18 @@ export async function setServerAuthSession(userId: string): Promise<void> {
 
     const nextAuthToken = await encode({
       token: {
-        sub: user?.id,
-        name: user.name,
-        email: user.email,
-        image: user.image,
-        isMachine: false, // Your session type expects this
+        sub: user.id,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          isMachine: user.isMachine || false,
+          defaultWorkspace: user.defaultWorkspace,
+          defaultPartnerId: user.defaultPartnerId,
+          dubPartnerId: user.dubPartnerId,
+          paymentData: user.paymentData,
+        },
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
       },
@@ -117,9 +129,6 @@ export async function setServerAuthSession(userId: string): Promise<void> {
 
     const cookieStore = cookies();
     const isSecure = !!process.env.VERCEL_URL;
-
-    console.log("nextAuthToken", nextAuthToken);
-    console.log("cookie name", `${isSecure ? "__Secure-" : ""}next-auth.session-token`);
     
     // Set the NextAuth session token cookie
     cookieStore.set(
