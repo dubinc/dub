@@ -245,6 +245,7 @@ export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
 export const PartnerProfileSchema = z.object({
   monthlyTraffic: z
     .nativeEnum(MonthlyTraffic)
+    .nullable()
     .describe("The partner's monthly traffic."),
   industryInterests: z
     .array(z.nativeEnum(IndustryInterest))
