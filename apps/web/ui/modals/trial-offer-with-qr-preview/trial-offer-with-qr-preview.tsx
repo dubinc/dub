@@ -67,15 +67,15 @@ function TrialOfferWithQRPreview({
       className="border-border-500 max-w-4xl"
     >
       <Theme>
-        <div className="flex">
-          <div className="flex flex-col gap-4 bg-neutral-50 p-6">
+        <div className="flex w-full">
+          <div className="flex min-w-[50%] basis-[50%] flex-col gap-4 bg-neutral-50 p-6">
             <div className="flex flex-col gap-2 text-center">
-              <h3 className="text-primary !mt-0 truncate text-2xl font-bold">
+              <h2 className="text-primary !mt-0 truncate text-2xl font-bold">
                 Your QR Code is Ready!
-              </h3>
-              <h2 className="text-center text-lg font-semibold text-neutral-800">
-                Download Now & Unlock Full Access
               </h2>
+              <h3 className="justify-center text-center text-base font-semibold text-neutral-800">
+                Download Now & Unlock Full Access
+              </h3>
             </div>
 
             <div className="relative flex w-full justify-center">
@@ -100,17 +100,17 @@ function TrialOfferWithQRPreview({
             </div>
           </div>
 
-          <div className="basis-50 flex flex-col gap-4 p-6">
+          <div className="flex flex-col gap-4 p-6">
             <div className="flex flex-col gap-2 text-center">
-              <h3 className="text-neutral !mt-0 truncate text-2xl font-bold">
+              <h2 className="text-neutral !mt-0 truncate text-2xl font-bold">
                 Download Now!
-              </h3>
-              <h2 className="flex items-center gap-0.5 text-center text-lg text-neutral-800">
+              </h2>
+              <h3 className="flex items-center justify-center gap-0.5 text-center text-base text-neutral-800">
                 <span className="font-semibold">Excellent</span>{" "}
                 <FiveStarsComponent /> <span className="font-bold">4.81</span>{" "}
                 <span>based on</span> <span className="font-bold">924</span>{" "}
                 <span>reviews</span>
-              </h2>
+              </h3>
             </div>
 
             <ul className="flex flex-col gap-2 text-center">
@@ -120,7 +120,7 @@ function TrialOfferWithQRPreview({
                     <Check className="h-4 w-4 text-green-500" />
                   </div>
 
-                  <span>{item}</span>
+                  <span className="text-left">{item}</span>
                 </li>
               ))}
             </ul>

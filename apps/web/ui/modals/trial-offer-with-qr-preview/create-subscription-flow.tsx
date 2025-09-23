@@ -11,6 +11,7 @@ import {
   IPrimerClientError,
 } from "core/integration/payment/client/checkout-form";
 import {
+  getCalculatePriceForView,
   getPaymentPlanPrice,
   ICustomerBody,
   TPaymentPlan,
@@ -46,6 +47,14 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     paymentPlan: trialPaymentPlan,
     user,
   });
+
+  const { priceForView } = getPaymentPlanPrice({
+    paymentPlan: trialPaymentPlan,
+    user,
+  });
+  const priceForViewText = getCalculatePriceForView(priceForView, user);
+
+  const oldPriceForViewText = getCalculatePriceForView(700, user);
 
   const onPaymentMethodTypeClick = (paymentMethodType: string) => {
     paymentTypeRef.current = paymentMethodType;
@@ -200,21 +209,32 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
   return (
     <>
-      <CheckoutFormComponent
-        locale="en"
-        theme="light"
-        user={user}
-        paymentPlan={trialPaymentPlan}
-        onPaymentAttempt={onPaymentAttempt}
-        handleCheckoutSuccess={handlePaymentSuccess}
-        handleCheckoutError={handleCheckoutError}
-        handleOpenCardDetailsForm={handleOpenCardDetailsForm}
-        onPaymentMethodSelected={onPaymentMethodTypeClick}
-        onBeforePaymentCreate={onPaymentMethodTypeOpen}
-        submitBtn={{
-          text: "Subscribe",
-        }}
-      />
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between rounded-xl bg-white px-0">
+          <p className="text-xl font-bold">Total due:</p>
+          <div className="flex justify-end gap-2">
+            <span className="text-base font-semibold text-slate-400 line-through">
+              {oldPriceForViewText}
+            </span>
+            <span className="text-xl font-bold">{priceForViewText}</span>
+          </div>
+        </div>
+        <CheckoutFormComponent
+          locale="en"
+          theme="light"
+          user={user}
+          paymentPlan={trialPaymentPlan}
+          onPaymentAttempt={onPaymentAttempt}
+          handleCheckoutSuccess={handlePaymentSuccess}
+          handleCheckoutError={handleCheckoutError}
+          handleOpenCardDetailsForm={handleOpenCardDetailsForm}
+          onPaymentMethodSelected={onPaymentMethodTypeClick}
+          onBeforePaymentCreate={onPaymentMethodTypeOpen}
+          submitBtn={{
+            text: "Subscribe",
+          }}
+        />
+      </div>
 
       <Modal
         showModal={isSubscriptionCreation}

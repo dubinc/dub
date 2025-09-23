@@ -22,7 +22,7 @@ export const AvatarsComponent = () => {
   const visibleUsers = usersWithAvatar.slice(0, max);
 
   return (
-    <div className="flex -space-x-3">
+    <div className="flex justify-end -space-x-3">
       {visibleUsers.map((item, index) => (
         <Avatar.Root
           key={index}
