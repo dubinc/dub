@@ -11,7 +11,6 @@ import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-conv
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
-import { HOME_DOMAIN } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client/extension";
 import { waitUntil } from "@vercel/functions";
@@ -36,12 +35,12 @@ import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-univer
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
+import { createAutoLoginURL } from "./jwt-signin";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
-import { createAutoLoginURL } from './jwt-signin';
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -132,7 +131,9 @@ export const authOptions: NextAuthOptions = {
           const rawParams = params.get("ctx");
           if (rawParams) {
             try {
-              ctx = JSON.parse(Buffer.from(rawParams, "base64url").toString("utf8"));
+              ctx = JSON.parse(
+                Buffer.from(rawParams, "base64url").toString("utf8"),
+              );
             } catch {}
           }
         }
@@ -582,10 +583,21 @@ export const authOptions: NextAuthOptions = {
         return token;
       }
 
-      // refresh the user's data if they update their name / email
+      // refresh the user's data if they update their name / email or session update is triggered
       if (trigger === "update") {
         const refreshedUser = await prisma.user.findUnique({
           where: { id: token.sub },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            image: true,
+            isMachine: true,
+            defaultWorkspace: true,
+            defaultPartnerId: true,
+            dubPartnerId: true,
+            paymentData: true,
+          },
         });
         if (refreshedUser) {
           token.user = refreshedUser;

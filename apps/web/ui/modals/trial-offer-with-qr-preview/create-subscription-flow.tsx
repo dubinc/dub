@@ -174,7 +174,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       toxic: res?.data?.toxic,
     });
 
-    await updateSession();
+    // Force session update with trigger to refresh user data from DB
+    await updateSession({});
     await mutate("/api/user");
 
     router.refresh();
@@ -212,7 +213,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       <div className="flex flex-col gap-4">
         <div className="flex items-center justify-between rounded-xl bg-white px-0">
           <p className="text-xl font-bold">Total due:</p>
-          <div className="flex justify-end gap-2">
+          <div className="flex items-center justify-end gap-2">
             <span className="text-base font-semibold text-slate-400 line-through">
               {oldPriceForViewText}
             </span>
