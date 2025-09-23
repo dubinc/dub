@@ -576,6 +576,13 @@ export const authOptions: NextAuthOptions = {
         token.user = user;
       }
 
+      // Handle server-created tokens (they already have user data in token.user)
+      // If token.user already exists but no user parameter, preserve it
+      if (!user && token.user && token.sub) {
+        // Token already has user data from our setServerAuthSession, keep it
+        return token;
+      }
+
       // refresh the user's data if they update their name / email or session update is triggered
       if (trigger === "update") {
         const refreshedUser = await prisma.user.findUnique({
