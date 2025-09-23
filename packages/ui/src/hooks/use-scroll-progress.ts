@@ -10,6 +10,7 @@ export function useScrollProgress(
   const [scrollProgress, setScrollProgress] = useState(1);
 
   const updateScrollProgress = useCallback(() => {
+    console.log("updateScrollProgress", ref.current);
     if (!ref.current) return;
     const scroll =
       direction === "vertical" ? ref.current.scrollTop : ref.current.scrollLeft;

@@ -240,12 +240,15 @@ export const PartnerOnlinePresenceSchema = z.object({
   tiktokVerifiedAt: z.date().nullish(),
 });
 
+export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
+
 export const PartnerProfileSchema = z.object({
   monthlyTraffic: z
     .nativeEnum(MonthlyTraffic)
     .describe("The partner's monthly traffic."),
   industryInterests: z
     .array(z.nativeEnum(IndustryInterest))
+    .max(MAX_PARTNER_INDUSTRY_INTERESTS)
     .describe("The partner's industry interests."),
   preferredEarningStructure: z
     .array(z.nativeEnum(PreferredEarningStructure))

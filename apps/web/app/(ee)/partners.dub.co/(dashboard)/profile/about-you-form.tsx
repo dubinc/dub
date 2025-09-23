@@ -1,4 +1,5 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
+import { industryInterests } from "@/lib/partners/partner-profile";
 import { PartnerProps } from "@/lib/types";
 import { MAX_PARTNER_DESCRIPTION_LENGTH } from "@/lib/zod/schemas/partners";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
@@ -6,10 +7,11 @@ import { IndustryInterest } from "@dub/prisma/client";
 import { Button, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
+import { IndustryInterestsModal } from "./industry-interests-modal";
 import { SettingsRow } from "./settings-row";
 
 type AboutYouFormData = {
@@ -53,6 +55,9 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
       toast.error(error.serverError);
     },
   });
+
+  const [showIndustryInterestsModal, setShowIndustryInterestsModal] =
+    useState(false);
 
   return (
     <div className="border-border-subtle divide-border-subtle flex flex-col divide-y rounded-lg border">
@@ -106,12 +111,46 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
             control={control}
             name="industryInterests"
             render={({ field }) => (
-              <Button
-                text={`${field.value.length ? "Edit" : "Add"} interests`}
-                onClick={() => toast.info("WIP")}
-                variant="secondary"
-                className="h-8 w-fit rounded-lg px-3"
-              />
+              <>
+                <IndustryInterestsModal
+                  show={showIndustryInterestsModal}
+                  setShow={setShowIndustryInterestsModal}
+                  interests={field.value}
+                  onSave={(interests) => field.onChange(interests)}
+                />
+                <div className="mb-4 flex flex-wrap items-center gap-3">
+                  {field.value.length > 0
+                    ? industryInterests
+                        .filter(({ id }) => field.value.includes(id))
+                        .map((interest) => (
+                          <div
+                            key={interest.id}
+                            className={cn(
+                              "ring-border-subtle flex select-none items-center gap-2.5 rounded-full bg-white px-4 py-3 ring-1",
+                            )}
+                          >
+                            <interest.icon className="size-4 text-neutral-600" />
+                            <span className="text-content-emphasis text-sm font-medium">
+                              {interest.label}
+                            </span>
+                          </div>
+                        ))
+                    : [...Array(3)].map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={cn(
+                            "border-border-subtle h-11 w-32 rounded-full border border-dashed bg-white",
+                          )}
+                        />
+                      ))}
+                </div>
+                <Button
+                  text={`${field.value.length ? "Edit" : "Add"} interests`}
+                  onClick={() => setShowIndustryInterestsModal(true)}
+                  variant="secondary"
+                  className="h-8 w-fit rounded-lg px-3"
+                />
+              </>
             )}
           />
         </SettingsRow>
