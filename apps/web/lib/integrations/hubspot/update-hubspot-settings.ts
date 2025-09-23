@@ -1,0 +1,46 @@
+"use server";
+
+import { authActionClient } from "@/lib/actions/safe-action";
+import { prisma } from "@dub/prisma";
+import { HUBSPOT_INTEGRATION_ID } from "@dub/utils";
+import { revalidatePath } from "next/cache";
+import { z } from "zod";
+import { hubSpotSettingsSchema } from "./schema";
+
+const schema = hubSpotSettingsSchema
+  .pick({ closedWonDealStageId: true })
+  .extend({
+    workspaceId: z.string(),
+  });
+
+export const updateHubSpotSettingsAction = authActionClient
+  .schema(schema)
+  .action(async ({ parsedInput, ctx }) => {
+    const { workspace } = ctx;
+    const { closedWonDealStageId } = parsedInput;
+
+    const installedIntegration = await prisma.installedIntegration.findFirst({
+      where: {
+        integrationId: HUBSPOT_INTEGRATION_ID,
+      },
+    });
+
+    if (!installedIntegration) {
+      throw new Error(
+        "HubSpot integration is not installed on your workspace.",
+      );
+    }
+
+    await prisma.installedIntegration.update({
+      where: {
+        id: installedIntegration.id,
+      },
+      data: {
+        settings: {
+          closedWonDealStageId,
+        },
+      },
+    });
+
+    revalidatePath(`/${workspace.slug}/settings/integrations/hubspot`);
+  });

@@ -9,10 +9,12 @@ export const trackHubSpotSaleEvent = async ({
   payload,
   workspace,
   authToken,
+  closedWonDealStageId,
 }: {
   payload: Record<string, any>;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   authToken: HubSpotAuthToken;
+  closedWonDealStageId: string;
 }) => {
   const { objectId, subscriptionType, propertyName, propertyValue } =
     hubSpotSaleEventSchema.parse(payload);
@@ -27,7 +29,7 @@ export const trackHubSpotSaleEvent = async ({
     return;
   }
 
-  if (propertyValue !== "closedwon") {
+  if (propertyValue !== closedWonDealStageId) {
     console.error(`[HubSpot] Unknown propertyValue ${propertyValue}`);
     return;
   }

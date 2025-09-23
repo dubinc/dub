@@ -1,7 +1,13 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { HUBSPOT_CLIENT_SECRET } from "@/lib/integrations/hubspot/constants";
+import {
+  DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
+  HUBSPOT_CLIENT_SECRET,
+} from "@/lib/integrations/hubspot/constants";
 import { refreshAccessToken } from "@/lib/integrations/hubspot/refresh-token";
-import { hubSpotWebhookSchema } from "@/lib/integrations/hubspot/schema";
+import {
+  hubSpotSettingsSchema,
+  hubSpotWebhookSchema,
+} from "@/lib/integrations/hubspot/schema";
 import { trackHubSpotLeadEvent } from "@/lib/integrations/hubspot/track-lead";
 import { trackHubSpotSaleEvent } from "@/lib/integrations/hubspot/track-sale";
 import { HubSpotAuthToken } from "@/lib/integrations/hubspot/types";
@@ -122,10 +128,14 @@ async function processWebhookEvent(event: any) {
 
     // Track the sale event when deal is closed won
     if (subscriptionType === "object.propertyChange") {
+      const settings = hubSpotSettingsSchema.parse(installation.settings);
+
       await trackHubSpotSaleEvent({
         payload: event,
         workspace,
         authToken,
+        closedWonDealStageId:
+          settings?.closedWonDealStageId ?? DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
       });
     }
   }
