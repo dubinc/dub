@@ -43,6 +43,7 @@ function AddDestinationUrlModalContent({
     watch,
     setValue,
     setError,
+    clearErrors,
     formState: { errors },
   } = useForm<PartnerGroupAdditionalLink>({
     defaultValues: {
@@ -56,9 +57,8 @@ function AddDestinationUrlModalContent({
   const onSubmit = async (data: PartnerGroupAdditionalLink) => {
     if (!isValidDomainFormat(data.domain)) {
       setError("domain", {
-        type: "value",
-        message:
-          "Invalid domain format. Please enter a valid domain (eg: acme.com).",
+        type: "manual",
+        message: "Please enter a valid domain (eg: acme.com).",
       });
       return;
     }
@@ -128,14 +128,15 @@ function AddDestinationUrlModalContent({
             </label>
             <Input
               value={watch("domain") || ""}
-              onChange={(e) => setValue("domain", e.target.value)}
+              onChange={(e) => {
+                setValue("domain", e.target.value);
+                clearErrors("domain");
+              }}
               type="text"
               placeholder="acme.com"
               className="max-w-full"
+              error={errors.domain?.message}
             />
-            {errors.domain && (
-              <p className="text-sm text-red-500">{errors.domain.message}</p>
-            )}
           </div>
 
           <div>
