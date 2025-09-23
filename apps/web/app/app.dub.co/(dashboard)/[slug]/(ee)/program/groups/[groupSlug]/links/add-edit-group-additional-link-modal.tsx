@@ -1,5 +1,6 @@
 "use client";
 
+import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { Badge, Button, Input, Modal } from "@dub/ui";
@@ -36,23 +37,46 @@ function AddDestinationUrlModalContent({
   additionalLinks,
   onUpdateAdditionalLinks,
 }: AddDestinationUrlModalProps) {
-  const { register, handleSubmit, watch, setValue } =
-    useForm<PartnerGroupAdditionalLink>({
-      defaultValues: {
-        domain: link?.domain || "",
-        validationMode: link?.validationMode || "domain",
-      },
-    });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    setError,
+    clearErrors,
+    formState: { errors },
+  } = useForm<PartnerGroupAdditionalLink>({
+    defaultValues: {
+      domain: link?.domain || "",
+      validationMode: link?.validationMode || "domain",
+    },
+  });
 
   const [domain, validationMode] = watch(["domain", "validationMode"]);
 
   const onSubmit = async (data: PartnerGroupAdditionalLink) => {
+    const domainNormalized = data.domain.trim().toLowerCase();
+
+    if (!isValidDomainFormat(domainNormalized)) {
+      setError("domain", {
+        type: "manual",
+        message: "Please enter a valid domain (eg: acme.com).",
+      });
+      return;
+    }
+
+    setValue("domain", domainNormalized, { shouldDirty: true });
+
     const existingDomains = additionalLinks.map((l) => l.domain);
 
-    if (existingDomains.includes(data.domain) && data.domain !== link?.domain) {
-      toast.error(
-        `Domain ${data.domain} has already been added as a link domain`,
-      );
+    if (
+      existingDomains.includes(domainNormalized) &&
+      domainNormalized !== link?.domain
+    ) {
+      setError("domain", {
+        type: "value",
+        message: `Domain ${domainNormalized} has already been added as a link domain`,
+      });
       return;
     }
 
@@ -111,10 +135,14 @@ function AddDestinationUrlModalContent({
             </label>
             <Input
               value={watch("domain") || ""}
-              onChange={(e) => setValue("domain", e.target.value)}
+              onChange={(e) => {
+                setValue("domain", e.target.value);
+                clearErrors("domain");
+              }}
               type="text"
               placeholder="acme.com"
               className="max-w-full"
+              error={errors.domain?.message}
             />
           </div>
 
