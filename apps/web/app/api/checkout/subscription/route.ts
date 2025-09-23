@@ -34,7 +34,7 @@ const getPeriod = (paymentPlan: string) => {
 };
 
 const trialPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
-const initialSubPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
+const initialSubPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 
 const paymentService = new PaymentService();
 
@@ -140,32 +140,37 @@ export const POST = withSession(
         user,
       });
 
+      const createSubscriptionBody = {
+        user: {
+          email: user.email || "",
+          country: user.currency?.countryCode || "",
+          externalId: user.paymentInfo?.customerId || "",
+          nationalDocumentId: body?.nationalDocumentId,
+          attributes: { ...metadata },
+        },
+        subscription: {
+          plan: {
+            currencyCode: user.currency?.currencyForPay || "",
+            trialPrice: trialPrice,
+            trialPeriodDays,
+            price,
+            chargePeriodDays: period,
+            secondary: false,
+            twoSteps: false,
+          },
+          attributes: { ...metadata, billing_action: "rebill" },
+        },
+        orderAmount: price,
+        orderCurrencyCode: user.currency?.currencyForPay || "",
+        orderPaymentID: body.payment.id,
+        orderExternalID: body.payment.orderId,
+      };
+
+      console.log("createSubscriptionBody user", user);
+      console.log("createSubscriptionBody", period, createSubscriptionBody);
+
       const { tokenOnboardingData, paymentMethodToken } =
-        await paymentService.createClientSubscription({
-          user: {
-            email: user.email || "",
-            country: user.currency?.countryCode || "",
-            externalId: user.paymentInfo?.customerId || "",
-            nationalDocumentId: body?.nationalDocumentId,
-            attributes: { ...metadata },
-          },
-          subscription: {
-            plan: {
-              currencyCode: user.currency?.currencyForPay || "",
-              trialPrice: trialPrice,
-              trialPeriodDays,
-              price,
-              chargePeriodDays: period,
-              secondary: false,
-              twoSteps: false,
-            },
-            attributes: { ...metadata, billing_action: "rebill" },
-          },
-          orderAmount: price,
-          orderCurrencyCode: user.currency?.currencyForPay || "",
-          orderPaymentID: body.payment.id,
-          orderExternalID: body.payment.orderId,
-        });
+        await paymentService.createClientSubscription(createSubscriptionBody);
 
       if (
         !tokenOnboardingData ||

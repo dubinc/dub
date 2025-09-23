@@ -1,5 +1,3 @@
-import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
-import { getSession } from "@/lib/auth";
 import { TrialStatusProvider } from "@/lib/contexts/trial-status-context";
 import { MainNav } from "@/ui/layout/main-nav";
 import { AppSidebarNav } from "@/ui/layout/sidebar/app-sidebar-nav";
@@ -13,13 +11,10 @@ import { ReactNode } from "react";
 export const metadata = constructMetadata();
 
 export default async function Layout({ children }: { children: ReactNode }) {
-  const { user } = await getSession();
   const cookieStore = cookies();
 
   const oauthFlowCookie = cookieStore.get(ECookieArg.OAUTH_FLOW)?.value;
   const parsedOauthFlowInfo = JSON.parse(oauthFlowCookie ?? "{}");
-
-  const featuresAccess = await checkFeaturesAccessAuthLess(user.id);
 
   return (
     <TrialStatusProvider>
