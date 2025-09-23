@@ -1,5 +1,6 @@
 "use client";
 
+import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { Badge, Button, Input, Modal } from "@dub/ui";
@@ -36,17 +37,32 @@ function AddDestinationUrlModalContent({
   additionalLinks,
   onUpdateAdditionalLinks,
 }: AddDestinationUrlModalProps) {
-  const { register, handleSubmit, watch, setValue } =
-    useForm<PartnerGroupAdditionalLink>({
-      defaultValues: {
-        domain: link?.domain || "",
-        validationMode: link?.validationMode || "domain",
-      },
-    });
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    setError,
+    formState: { errors },
+  } = useForm<PartnerGroupAdditionalLink>({
+    defaultValues: {
+      domain: link?.domain || "",
+      validationMode: link?.validationMode || "domain",
+    },
+  });
 
   const [domain, validationMode] = watch(["domain", "validationMode"]);
 
   const onSubmit = async (data: PartnerGroupAdditionalLink) => {
+    if (!isValidDomainFormat(data.domain)) {
+      setError("domain", {
+        type: "value",
+        message:
+          "Invalid domain format. Please enter a valid domain (eg: acme.com).",
+      });
+      return;
+    }
+
     const existingDomains = additionalLinks.map((l) => l.domain);
 
     if (existingDomains.includes(data.domain) && data.domain !== link?.domain) {
