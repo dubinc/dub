@@ -27,46 +27,10 @@ export function useBountySubmissionFilters({
 
   const filters = useMemo(
     () => [
-      ...(bounty?.type === "submission"
-        ? [
-            {
-              key: "status",
-              icon: CircleDotted,
-              label: "Status",
-              options:
-                bounty?.type === "submission" && submissionsCount
-                  ? submissionsCount.map(({ status, count }) => {
-                      {
-                        const {
-                          label,
-                          icon: Icon,
-                          iconClassName,
-                        } = BOUNTY_SUBMISSION_STATUS_BADGES[status];
-                        return {
-                          value: status,
-                          label,
-                          icon: (
-                            <Icon
-                              className={cn(
-                                "size-4 bg-transparent",
-                                iconClassName,
-                              )}
-                            />
-                          ),
-                          right: nFormatter(count, {
-                            full: true,
-                          }),
-                        };
-                      }
-                    })
-                  : null,
-            },
-          ]
-        : []),
       {
         key: "groupId",
         icon: Users6,
-        label: "Partner Group",
+        label: "Group",
         options:
           groups // only show groups that are associated with the bounty
             ?.filter((group) =>
@@ -83,8 +47,36 @@ export function useBountySubmissionFilters({
               };
             }) ?? null,
       },
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options: submissionsCount
+          ? submissionsCount.map(({ status, count }) => {
+              {
+                const {
+                  label,
+                  icon: Icon,
+                  iconClassName,
+                } = BOUNTY_SUBMISSION_STATUS_BADGES[status];
+                return {
+                  value: status,
+                  label,
+                  icon: (
+                    <Icon
+                      className={cn("size-4 bg-transparent", iconClassName)}
+                    />
+                  ),
+                  right: nFormatter(count, {
+                    full: true,
+                  }),
+                };
+              }
+            })
+          : null,
+      },
     ],
-    [bounty, submissionsCount, groups, slug],
+    [groups, bounty, submissionsCount, slug],
   );
 
   const activeFilters = useMemo(() => {

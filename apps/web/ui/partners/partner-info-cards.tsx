@@ -8,6 +8,7 @@ import {
   EnrolledPartnerProps,
   RewardProps,
 } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { EventDatum } from "@/ui/analytics/events/events-table";
 import {
   CalendarIcon,
@@ -15,6 +16,7 @@ import {
   CopyButton,
   Heart,
   OfficeBuilding,
+  StatusBadge,
   Tooltip,
   Trophy,
 } from "@dub/ui";
@@ -28,12 +30,23 @@ import {
 import Link from "next/link";
 import useSWR from "swr";
 import { PartnerInfoGroup } from "./partner-info-group";
+import { PartnerStatusBadges } from "./partner-status-badges";
 import { ProgramRewardList } from "./program-reward-list";
 
 export function PartnerInfoCards({
   partner,
+  hideStatuses = [],
+  selectedGroupId,
+  setSelectedGroupId,
 }: {
   partner?: EnrolledPartnerProps;
+
+  /** Partner statuses to hide badges for */
+  hideStatuses?: EnrolledPartnerProps["status"][];
+
+  // Only used for a controlled group selector that doesn't persist the selection itself
+  selectedGroupId?: string | null;
+  setSelectedGroupId?: (groupId: string) => void;
 }) {
   const {
     id: workspaceId,
@@ -50,9 +63,14 @@ export function PartnerInfoCards({
     fetcher,
   );
 
-  const { group } = useGroup({
-    groupIdOrSlug: partner?.groupId ?? undefined,
-  });
+  const { group } = useGroup(
+    {
+      groupIdOrSlug: partner
+        ? selectedGroupId || partner.groupId || DEFAULT_PARTNER_GROUP.slug
+        : undefined,
+    },
+    { keepPreviousData: false },
+  );
 
   const { data: bounties, error: errorBounties } = useSWR<BountyListProps[]>(
     workspaceId && partner
@@ -90,29 +108,42 @@ export function PartnerInfoCards({
     },
   ];
 
+  const badge =
+    partner && !hideStatuses.includes(partner.status)
+      ? PartnerStatusBadges[partner.status]
+      : null;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="border-border-subtle flex flex-col rounded-xl border p-4">
-        <div className="relative w-fit">
-          {partner ? (
-            <img
-              src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-              alt={partner.name}
-              className="size-20 rounded-full"
-            />
-          ) : (
-            <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
-          )}
-          {partner?.country && (
-            <Tooltip content={COUNTRIES[partner.country]}>
-              <div className="absolute right-0 top-0 overflow-hidden rounded-full bg-neutral-50 p-0.5 transition-transform duration-100 hover:scale-[1.15]">
-                <img
-                  alt=""
-                  src={`https://flag.vercel.app/m/${partner.country}.svg`}
-                  className="size-4 rounded-full"
-                />
-              </div>
-            </Tooltip>
+        <div className="flex justify-between gap-2">
+          <div className="relative w-fit">
+            {partner ? (
+              <img
+                src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                alt={partner.name}
+                className="size-20 rounded-full"
+              />
+            ) : (
+              <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
+            )}
+            {partner?.country && (
+              <Tooltip content={COUNTRIES[partner.country]}>
+                <div className="absolute right-0 top-0 overflow-hidden rounded-full bg-neutral-50 p-0.5 transition-transform duration-100 hover:scale-[1.15]">
+                  <img
+                    alt=""
+                    src={`https://flag.vercel.app/m/${partner.country}.svg`}
+                    className="size-4 rounded-full"
+                  />
+                </div>
+              </Tooltip>
+            )}
+          </div>
+
+          {badge && (
+            <StatusBadge icon={null} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
           )}
         </div>
         <div className="mt-4">
@@ -176,6 +207,8 @@ export function PartnerInfoCards({
               partner={partner}
               changeButtonText="Change"
               className="rounded-lg bg-white shadow-sm"
+              selectedGroupId={selectedGroupId}
+              setSelectedGroupId={setSelectedGroupId}
             />
           ) : (
             <div className="my-px h-11 w-full animate-pulse rounded-lg bg-neutral-200" />
@@ -188,7 +221,10 @@ export function PartnerInfoCards({
             Rewards
           </h3>
           {group ? (
-            <>
+            group.clickReward ||
+            group.leadReward ||
+            group.saleReward ||
+            group.discount ? (
               <ProgramRewardList
                 rewards={sortRewardsByEventOrder(
                   [
@@ -202,7 +238,9 @@ export function PartnerInfoCards({
                 className="text-content-subtle gap-2 text-xs leading-4"
                 iconClassName="size-3.5"
               />
-            </>
+            ) : (
+              <span className="text-content-subtle text-xs">No rewards</span>
+            )
           ) : (
             <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
           )}

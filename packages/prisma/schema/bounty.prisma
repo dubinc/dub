@@ -3,6 +3,11 @@ enum BountyType {
   submission
 }
 
+enum BountyPerformanceScope {
+  new
+  lifetime
+}
+
 enum BountySubmissionStatus {
   draft
   submitted
@@ -19,20 +24,22 @@ enum BountySubmissionRejectionReason {
 }
 
 model Bounty {
-  id                     String     @id @default(cuid())
+  id                     String                  @id @default(cuid())
   programId              String
-  workflowId             String?    @unique
+  workflowId             String?                 @unique
   name                   String
-  description            String?    @db.Text
+  description            String?                 @db.Text
   type                   BountyType
   startsAt               DateTime
   endsAt                 DateTime?
+  submissionsOpenAt      DateTime?
   rewardAmount           Int?
   rewardDescription      String?
+  performanceScope       BountyPerformanceScope?
   submissionRequirements Json?
   archivedAt             DateTime?
-  createdAt              DateTime   @default(now())
-  updatedAt              DateTime   @updatedAt
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
 
   submissions BountySubmission[]
   groups      BountyGroup[]
@@ -55,21 +62,22 @@ model BountyGroup {
 }
 
 model BountySubmission {
-  id              String                           @id @default(cuid())
-  programId       String
-  partnerId       String
-  bountyId        String
-  commissionId    String?                          @unique
-  userId          String?
-  description     String?                          @db.Text
-  status          BountySubmissionStatus           @default(draft)
-  rejectionReason BountySubmissionRejectionReason?
-  rejectionNote   String?                          @db.Text
-  files           Json?
-  urls            Json?
-  reviewedAt      DateTime?
-  createdAt       DateTime                         @default(now())
-  updatedAt       DateTime                         @updatedAt
+  id               String                           @id @default(cuid())
+  programId        String
+  partnerId        String
+  bountyId         String
+  performanceCount Int?
+  commissionId     String?                          @unique
+  userId           String?
+  description      String?                          @db.Text
+  status           BountySubmissionStatus           @default(draft)
+  rejectionReason  BountySubmissionRejectionReason?
+  rejectionNote    String?                          @db.Text
+  files            Json?
+  urls             Json?
+  reviewedAt       DateTime?
+  createdAt        DateTime                         @default(now())
+  updatedAt        DateTime                         @updatedAt
 
   bounty            Bounty             @relation(fields: [bountyId], references: [id], onDelete: Cascade)
   partner           Partner            @relation(fields: [partnerId], references: [id], onDelete: Cascade)

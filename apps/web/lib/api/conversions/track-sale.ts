@@ -12,7 +12,12 @@ import {
   recordSale,
 } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import { ClickEventTB, LeadEventTB, WorkspaceProps } from "@/lib/types";
+import {
+  ClickEventTB,
+  LeadEventTB,
+  WebhookPartner,
+  WorkspaceProps,
+} from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -30,7 +35,6 @@ import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { createId } from "../create-id";
 import { executeWorkflows } from "../workflows/execute-workflows";
-
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   rawBody: any;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
@@ -364,8 +368,13 @@ const _trackLead = async ({
 
         await executeWorkflows({
           trigger: WorkflowTrigger.leadRecorded,
-          programId: link.programId,
-          partnerId: link.partnerId,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              leads: 1,
+            },
+          },
         });
       }
 
@@ -434,6 +443,11 @@ const _trackSale = async ({
     timestamp: undefined,
   };
 
+  const firstConversionFlag = isFirstConversion({
+    customer,
+    linkId: saleData.link_id,
+  });
+
   waitUntil(
     (async () => {
       const [_sale, link] = await Promise.all([
@@ -446,10 +460,7 @@ const _trackSale = async ({
             id: saleData.link_id,
           },
           data: {
-            ...(isFirstConversion({
-              customer,
-              linkId: saleData.link_id,
-            }) && {
+            ...(firstConversionFlag && {
               conversions: {
                 increment: 1,
               },
@@ -500,9 +511,10 @@ const _trackSale = async ({
         }),
       ]);
 
+      let webhookPartner: WebhookPartner | undefined;
       // Create partner commission and execute workflows
       if (link.programId && link.partnerId) {
-        await createPartnerCommission({
+        const createdCommission = await createPartnerCommission({
           event: "sale",
           programId: link.programId,
           partnerId: link.partnerId,
@@ -523,10 +535,18 @@ const _trackSale = async ({
           },
         });
 
+        webhookPartner = createdCommission?.webhookPartner;
+
         await executeWorkflows({
           trigger: WorkflowTrigger.saleRecorded,
-          programId: link.programId,
-          partnerId: link.partnerId,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
+          },
         });
       }
 
@@ -536,6 +556,7 @@ const _trackSale = async ({
         clickedAt: customer.clickedAt || customer.createdAt,
         link,
         customer,
+        partner: webhookPartner,
         metadata,
       });
 

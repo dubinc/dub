@@ -69,6 +69,7 @@ import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   PartnerSchema,
+  WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
@@ -367,7 +368,6 @@ export type InstalledIntegrationInfoProps = Pick<
   | "installUrl"
 > & {
   createdAt: Date;
-  installations: number;
   installed: {
     id: string;
     createdAt: Date;
@@ -394,6 +394,8 @@ export type WebhookCacheProps = Pick<
   Webhook,
   "id" | "url" | "secret" | "triggers" | "disabledAt"
 >;
+
+export type WebhookPartner = z.infer<typeof WebhookPartnerSchema>;
 
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
@@ -580,12 +582,22 @@ export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 export type OperatorFn = (a: number, b: number) => boolean;
 
 export interface WorkflowContext {
-  totalLeads: number;
-  totalConversions: number;
-  totalSaleAmount: number;
-  totalCommissions: number;
+  programId: string;
   partnerId: string;
-  groupId: string;
+  groupId?: string;
+  current?: {
+    leads?: number;
+    conversions?: number;
+    saleAmount?: number;
+    commissions?: number;
+  };
+  // Not using at the moment
+  historical?: {
+    leads?: number;
+    conversions?: number;
+    saleAmount?: number;
+    commissions?: number;
+  };
 }
 
 export type BountySubmissionsQueryFilters = z.infer<

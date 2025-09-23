@@ -75,7 +75,9 @@ export function MessagesPanel({
                 new Date(message.createdAt).getTime() >
                 new Date().getTime() - 10_000;
 
+              // only show status indicator for program owners
               const showStatusIndicator =
+                currentUserType === "user" &&
                 isMySide &&
                 (idx === messages.length - 1 ||
                   messages.slice(idx + 1).findIndex(isMessageMySide) === -1);

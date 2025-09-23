@@ -15,15 +15,12 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
-import { fetcher } from "@dub/utils";
-import { ProgramApplication } from "@prisma/client";
-import Linkify from "linkify-react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
-import useSWRImmutable from "swr/immutable";
 import { PartnerAbout } from "./partner-about";
+import { PartnerApplicationDetails } from "./partner-application-details";
 import { PartnerApplicationTabs } from "./partner-application-tabs";
 import { PartnerComments } from "./partner-comments";
 import { PartnerInfoCards } from "./partner-info-cards";
@@ -43,6 +40,15 @@ function PartnerApplicationSheetContent({
 }: PartnerApplicationSheetProps) {
   const { slug: workspaceSlug } = useWorkspace();
   const [currentTabId, setCurrentTabId] = useState<string>("about");
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
+    partner.groupId ?? null,
+  );
+
+  // Reset selection when navigating between partners
+  useEffect(() => {
+    setSelectedGroupId(partner.groupId ?? null);
+  }, [partner.groupId]);
 
   return (
     <div className="flex size-full flex-col">
@@ -92,7 +98,14 @@ function PartnerApplicationSheetContent({
 
       <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
         <div className="@3xl/sheet:order-2">
-          <PartnerInfoCards partner={partner} />
+          <PartnerInfoCards
+            partner={partner}
+            hideStatuses={["pending"]}
+            {...(partner.status === "rejected" && {
+              selectedGroupId,
+              setSelectedGroupId,
+            })}
+          />
         </div>
         <div className="@3xl/sheet:order-1">
           <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
@@ -113,10 +126,13 @@ function PartnerApplicationSheetContent({
         </div>
       </div>
 
-      {partner.status === "pending" && (
+      {["pending", "rejected"].includes(partner.status) && (
         <div className="shrink-0 border-t border-neutral-200 p-5">
           <PartnerApproval
             partner={partner}
+            groupId={
+              partner.status === "rejected" ? selectedGroupId : partner.groupId
+            }
             setIsOpen={setIsOpen}
             onNext={onNext}
           />
@@ -138,65 +154,11 @@ function PartnerApplicationAbout({
           <h3 className="text-content-emphasis text-lg font-semibold">
             Application
           </h3>
-          <PartnerApplication applicationId={partner.applicationId} />
+          <PartnerApplicationDetails applicationId={partner.applicationId} />
           <hr className="border-neutral-200" />
         </>
       )}
       <PartnerAbout partner={partner} />
-    </div>
-  );
-}
-
-function PartnerApplication({ applicationId }: { applicationId: string }) {
-  const { id: workspaceId } = useWorkspace();
-  const { program } = useProgram();
-
-  const { data: application } = useSWRImmutable<ProgramApplication>(
-    program &&
-      workspaceId &&
-      `/api/programs/${program.id}/applications/${applicationId}?workspaceId=${workspaceId}`,
-    fetcher,
-  );
-
-  const fields = [
-    {
-      title: `How do you plan to promote ${program?.name}?`,
-      value: application?.proposal,
-    },
-    {
-      title: "Any additional questions or comments?",
-      value: application?.comments,
-    },
-  ];
-
-  return (
-    <div className="grid grid-cols-1 gap-6 text-xs">
-      {fields.map((field) => (
-        <div key={field.title}>
-          <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
-          <div className="mt-2">
-            {field.value || field.value === "" ? (
-              <Linkify
-                as="p"
-                options={{
-                  target: "_blank",
-                  rel: "noopener noreferrer nofollow",
-                  className:
-                    "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
-                }}
-              >
-                {field.value || (
-                  <span className="text-content-muted italic">
-                    No response provided
-                  </span>
-                )}
-              </Linkify>
-            ) : (
-              <div className="h-4 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
-            )}
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
@@ -237,10 +199,12 @@ export function PartnerApplicationSheet({
 
 function PartnerApproval({
   partner,
+  groupId,
   setIsOpen,
   onNext,
 }: {
   partner: EnrolledPartnerProps;
+  groupId?: string | null;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   onNext?: () => void;
 }) {
@@ -270,6 +234,7 @@ function PartnerApproval({
       await executeAsync({
         workspaceId: workspaceId,
         partnerId: partner.id,
+        groupId,
       });
     },
   });
@@ -280,13 +245,15 @@ function PartnerApproval({
     <>
       {confirmModal}
       <div className="flex justify-end gap-2">
-        <div className="flex-shrink-0">
-          <PartnerRejectButton
-            partner={partner}
-            setIsOpen={setIsOpen}
-            onNext={onNext}
-          />
-        </div>
+        {partner.status !== "rejected" && (
+          <div className="flex-shrink-0">
+            <PartnerRejectButton
+              partner={partner}
+              setIsOpen={setIsOpen}
+              onNext={onNext}
+            />
+          </div>
+        )}
         <Button
           type="button"
           variant="primary"

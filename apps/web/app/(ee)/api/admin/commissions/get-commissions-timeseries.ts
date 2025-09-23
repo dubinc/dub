@@ -31,6 +31,7 @@ export async function getCommissionsTimeseries({
           programId != ${ACME_PROGRAM_ID}
           AND createdAt >= ${startDate}
           AND createdAt < ${endDate}
+          AND status IN ("pending", "processed", "paid")
         GROUP BY start
         ORDER BY start ASC;`;
 

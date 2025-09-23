@@ -2,21 +2,10 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
-import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { PlanProps } from "@/lib/types";
-import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import {
-  bulkApprovePartnersSchema,
-  EnrolledPartnerSchema,
-} from "@/lib/zod/schemas/partners";
-import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { sendBatchEmail } from "@dub/email";
-import { ResendBulkEmailOptions } from "@dub/email/resend/types";
-import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
+import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
+import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { chunk, isFulfilled } from "@dub/utils";
-import { Link } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -74,139 +63,23 @@ export const bulkApprovePartnersAction = authActionClient
       },
     });
 
-    // fetch the updated enrollments with the partner and users
-    const updatedEnrollments = await prisma.programEnrollment.findMany({
-      where: {
-        id: {
-          in: programEnrollments.map(({ id }) => id),
-        },
-      },
-      include: {
-        clickReward: true,
-        leadReward: true,
-        saleReward: true,
-        partnerGroup: {
-          include: {
-            partnerGroupDefaultLinks: true,
-            utmTemplate: true,
-          },
-        },
-        partner: {
-          include: {
-            users: {
-              where: {
-                notificationPreferences: {
-                  applicationApproved: true,
-                },
-              },
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
-      },
-    });
-
-    // Create all emails first, then chunk them into batches of 100
-    const allEmails: ResendBulkEmailOptions = updatedEnrollments.flatMap(
-      ({ partner, clickReward, leadReward, saleReward }) => {
-        const partnerEmailsToNotify = partner.users
-          .map(({ user }) => user.email)
-          .filter(Boolean) as string[];
-
-        return partnerEmailsToNotify.map((email) => ({
-          subject: `Your application to join ${program.name} partner program has been approved!`,
-          variant: "notifications",
-          to: email,
-          react: PartnerApplicationApproved({
-            program: {
-              name: program.name,
-              logo: program.logo,
-              slug: program.slug,
-            },
-            partner: {
-              name: partner.name,
-              email,
-              payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-            },
-            rewardDescription: ProgramRewardDescription({
-              reward: saleReward ?? leadReward ?? clickReward,
-              showModifiersTooltip: false,
-            }),
-          }),
-        }));
-      },
-    );
-
-    const emailChunks = chunk(allEmails, 100);
-
     waitUntil(
       (async () => {
-        // Create partner links
-        const partnerLinksPromises = await Promise.allSettled(
-          updatedEnrollments.map(({ partner, tenantId, partnerGroup }) =>
-            createPartnerDefaultLinks({
-              workspace: {
-                id: workspace.id,
-                plan: workspace.plan as PlanProps,
-              },
-              program: {
-                id: program.id,
-                defaultFolderId: program.defaultFolderId,
-              },
-              partner: {
-                id: partner.id,
-                name: partner.name,
-                email: partner.email!,
-                tenantId: tenantId ?? undefined,
-              },
-              group: {
-                defaultLinks: partnerGroup?.partnerGroupDefaultLinks ?? [],
-                utmTemplate: partnerGroup?.utmTemplate ?? null,
-              },
-              userId: user.id,
-            }),
-          ),
-        );
+        // Refetch the updated program enrollments with the partner
+        const updatedEnrollments = await prisma.programEnrollment.findMany({
+          where: {
+            id: {
+              in: programEnrollments.map(({ id }) => id),
+            },
+          },
+          include: {
+            partner: true,
+          },
+        });
 
-        // A partner can have multiple links, so we need to filter them by partnerId
-        const partnerLinks = partnerLinksPromises
-          .filter(isFulfilled)
-          .map(({ value }) => value)
-          .flat();
-
-        // A map of partnerId to links
-        const partnerLinksMap = partnerLinks.reduce((acc, link) => {
-          if (!link.partnerId) return acc;
-
-          if (!acc.has(link.partnerId)) {
-            acc.set(link.partnerId, []);
-          }
-
-          acc.get(link.partnerId)!.push(link);
-
-          return acc;
-        }, new Map<string, Omit<Link, "partnerGroupDefaultLinkId">[]>());
+        const partnerIds = updatedEnrollments.map(({ partner }) => partner.id);
 
         await Promise.allSettled([
-          // Send approval emails
-          ...emailChunks.map((emailChunk) => sendBatchEmail(emailChunk)),
-
-          // Send enrolled webhooks
-          ...updatedEnrollments.map(({ partner, ...enrollment }) =>
-            sendWorkspaceWebhook({
-              workspace,
-              trigger: "partner.enrolled",
-              data: EnrolledPartnerSchema.parse({
-                ...partner,
-                ...enrollment,
-                id: partner.id,
-                links: partnerLinksMap.get(partner.id) ?? [],
-              }),
-            }),
-          ),
-
           recordAuditLog(
             updatedEnrollments.map(({ partner }) => ({
               workspaceId: workspace.id,
@@ -221,6 +94,17 @@ export const bulkApprovePartnersAction = authActionClient
                   metadata: partner,
                 },
               ],
+            })),
+          ),
+
+          triggerWorkflows(
+            updatedEnrollments.map(({ partnerId, programId }) => ({
+              workflowId: "partner-approved",
+              body: {
+                programId,
+                partnerId,
+                userId: user.id,
+              },
             })),
           ),
         ]);

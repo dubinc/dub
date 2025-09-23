@@ -1,7 +1,7 @@
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
-import { queueDomainUpdate } from "@/lib/api/domains/queue";
+import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { validateDomain } from "@/lib/api/domains/utils";

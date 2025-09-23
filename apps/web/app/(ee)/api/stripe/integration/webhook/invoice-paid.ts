@@ -4,6 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import { WebhookPartner } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
@@ -146,6 +147,11 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
+  const firstConversionFlag = isFirstConversion({
+    customer,
+    linkId,
+  });
+
   const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
@@ -155,10 +161,7 @@ export async function invoicePaid(event: Stripe.Event) {
         id: linkId,
       },
       data: {
-        ...(isFirstConversion({
-          customer,
-          linkId,
-        }) && {
+        ...(firstConversionFlag && {
           conversions: {
             increment: 1,
           },
@@ -201,8 +204,9 @@ export async function invoicePaid(event: Stripe.Event) {
   ]);
 
   // for program links
+  let webhookPartner: WebhookPartner | undefined;
   if (link.programId && link.partnerId) {
-    const commission = await createPartnerCommission({
+    const createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -222,12 +226,19 @@ export async function invoicePaid(event: Stripe.Event) {
         },
       },
     });
+    webhookPartner = createdCommission?.webhookPartner;
 
     waitUntil(
       executeWorkflows({
         trigger: WorkflowTrigger.saleRecorded,
-        programId: link.programId,
-        partnerId: link.partnerId,
+        context: {
+          programId: link.programId,
+          partnerId: link.partnerId,
+          current: {
+            saleAmount: saleData.amount,
+            conversions: firstConversionFlag ? 1 : 0,
+          },
+        },
       }),
     );
   }
@@ -242,6 +253,8 @@ export async function invoicePaid(event: Stripe.Event) {
         clickedAt: customer.clickedAt || customer.createdAt,
         link: linkUpdated,
         customer,
+        partner: webhookPartner,
+        metadata: null,
       }),
     }),
   );

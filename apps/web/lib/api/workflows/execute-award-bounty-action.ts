@@ -1,16 +1,24 @@
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import { WorkflowAction, WorkflowContext } from "@/lib/types";
+import {
+  WorkflowAction,
+  WorkflowCondition,
+  WorkflowConditionAttribute,
+  WorkflowContext,
+} from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { prisma } from "@dub/prisma";
 import { createId } from "../create-id";
+import { evaluateWorkflowCondition } from "./execute-workflows";
 
 export const executeAwardBountyAction = async ({
-  action,
+  condition,
   context,
+  action,
 }: {
-  action: WorkflowAction;
+  condition: WorkflowCondition;
   context: WorkflowContext;
+  action: WorkflowAction;
 }) => {
   if (action.type !== "awardBounty") {
     return;
@@ -18,6 +26,11 @@ export const executeAwardBountyAction = async ({
 
   const { bountyId } = action.data;
   const { partnerId, groupId } = context;
+
+  if (!groupId) {
+    console.error(`Partner groupId not set in the context.`);
+    return;
+  }
 
   // Find the bounty
   const bounty = await prisma.bounty.findUnique({
@@ -45,30 +58,25 @@ export const executeAwardBountyAction = async ({
     return;
   }
 
+  // this won't happen as we create workflows for performance based bounties only
+  if (bounty.type !== "performance") {
+    console.error(`Bounty ${bountyId} is not a performance based bounty.`);
+    return;
+  }
+
   const now = new Date();
 
-  // Check bounty validity
-  if (bounty.startsAt && bounty.startsAt > now) {
-    return;
-  }
-
-  if (bounty.endsAt && bounty.endsAt < now) {
-    return;
-  }
-
-  if (bounty.archivedAt) {
+  // Check if bounty is active
+  if (
+    (bounty.startsAt && bounty.startsAt > now) ||
+    (bounty.endsAt && bounty.endsAt < now) ||
+    bounty.archivedAt
+  ) {
+    console.log(`Bounty ${bounty.id} is no longer active.`);
     return;
   }
 
   const { groups, submissions } = bounty;
-
-  // Check if the partner has already submitted a submission for this bounty
-  if (submissions.length > 0) {
-    console.log(
-      `Partner ${partnerId} has an existing submission for bounty ${bounty.id}.`,
-    );
-    return;
-  }
 
   // If the bounty is part of a group, check if the partner is in the group
   if (groups.length > 0) {
@@ -76,13 +84,83 @@ export const executeAwardBountyAction = async ({
 
     if (!groupIds.includes(groupId)) {
       console.log(
-        `Partner ${partnerId} is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups.`,
+        `Partner ${partnerId} is not eligible for bounty ${bounty.id} because they are not in any of the assigned groups. Partner's groupId: ${groupId}. Assigned groupIds: ${groupIds.join(", ")}.`,
       );
       return;
     }
   }
 
-  const commission = await createPartnerCommission({
+  // Check if the partner's submission has already been approved
+  if (submissions.length > 0 && submissions[0].status === "approved") {
+    console.log(
+      `Partner ${partnerId} has already been awarded this bounty (bountyId: ${bounty.id}, submissionId: ${submissions[0].id}).`,
+    );
+    return;
+  }
+
+  console.log(
+    `Partner is eligible for bounty ${bounty.id}, executing workflow ${bounty.workflowId}...`,
+  );
+
+  const finalContext: Partial<
+    Record<WorkflowConditionAttribute, number | null>
+  > = {
+    ...(condition.attribute === "totalLeads" && {
+      totalLeads: context.current?.leads ?? 0,
+    }),
+    ...(condition.attribute === "totalConversions" && {
+      totalConversions: context.current?.conversions ?? 0,
+    }),
+    ...(condition.attribute === "totalSaleAmount" && {
+      totalSaleAmount: context.current?.saleAmount ?? 0,
+    }),
+    ...(condition.attribute === "totalCommissions" && {
+      totalCommissions: context.current?.commissions ?? 0,
+    }),
+  };
+
+  const performanceCount = finalContext[condition.attribute] ?? 0;
+
+  // Create or update the submission
+  const bountySubmission = await prisma.bountySubmission.upsert({
+    where: {
+      bountyId_partnerId: {
+        bountyId,
+        partnerId,
+      },
+    },
+    create: {
+      id: createId({ prefix: "bnty_sub_" }),
+      programId: bounty.programId,
+      partnerId,
+      bountyId: bounty.id,
+      status: "draft",
+      performanceCount,
+    },
+    update: {
+      performanceCount: {
+        increment: performanceCount,
+      },
+    },
+  });
+
+  // Check if the bounty submission meet the reward criteria
+  const shouldExecute = evaluateWorkflowCondition({
+    condition,
+    attributes: {
+      [condition.attribute]: bountySubmission.performanceCount,
+    },
+  });
+
+  if (!shouldExecute) {
+    console.log(
+      `Bounty submission ${bountySubmission.id} does not meet the trigger condition.`,
+    );
+    return;
+  }
+
+  // Create the commission for the partner
+  const { commission } = await createPartnerCommission({
     event: "custom",
     partnerId,
     programId: bounty.programId,
@@ -99,24 +177,19 @@ export const executeAwardBountyAction = async ({
     return;
   }
 
-  const { id: bountySubmissionId, partner } =
-    await prisma.bountySubmission.create({
-      data: {
-        id: createId({ prefix: "bnty_sub_" }),
-        programId: bounty.programId,
-        partnerId,
-        bountyId: bounty.id,
-        commissionId: commission.id,
-        status: "approved",
-      },
-      include: {
-        partner: true,
-      },
-    });
-
-  console.log(
-    `A new bounty submission ${bountySubmissionId} is created for ${partnerId} for the bounty ${bounty.id}.`,
-  );
+  // Update the bounty submission
+  const { partner } = await prisma.bountySubmission.update({
+    where: {
+      id: bountySubmission.id,
+    },
+    data: {
+      commissionId: commission.id,
+      status: "approved",
+    },
+    include: {
+      partner: true,
+    },
+  });
 
   if (partner.email) {
     await sendEmail({
