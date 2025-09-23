@@ -90,10 +90,12 @@ export function OnlinePresenceSummary({
   partner,
   showLabels = true,
   className,
+  emptyClassName,
 }: {
   partner: EnrolledPartnerProps;
   showLabels?: boolean;
   className?: string;
+  emptyClassName?: string;
 }) {
   const fieldData = fields
     .map((field) => ({
@@ -131,7 +133,13 @@ export function OnlinePresenceSummary({
       })}
     </div>
   ) : (
-    <div className={cn("text-sm italic text-neutral-400", className)}>
+    <div
+      className={cn(
+        "text-sm italic text-neutral-400",
+        className,
+        emptyClassName,
+      )}
+    >
       No online presence provided
     </div>
   );
