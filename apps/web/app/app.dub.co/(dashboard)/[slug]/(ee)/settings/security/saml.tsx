@@ -5,16 +5,19 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
 import { useSAMLModal } from "@/ui/modals/saml-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, IconMenu, Popover, TooltipContent } from "@dub/ui";
+import { Button, IconMenu, Popover, Switch, TooltipContent } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import { Lock, ShieldOff } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
 
 export function SAML() {
-  const { plan } = useWorkspace();
+  const { plan, id, name, ssoEnforcedAt, mutate } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
+  const [openPopover, setOpenPopover] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   const currentProvider = useMemo(
     () => provider && SAML_PROVIDERS.find((p) => p.name.startsWith(provider)),
@@ -54,7 +57,58 @@ export function SAML() {
     }
   }, [provider, configured, loading]);
 
-  const [openPopover, setOpenPopover] = useState(false);
+  const updateWorkspace = useCallback(
+    async (data: any) => {
+      setIsUpdating(true);
+
+      try {
+        const response = await fetch(`/api/workspaces/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+          await mutate();
+        } else {
+          const { error } = await response.json();
+          throw new Error(error.message || "Failed to update workspace.");
+        }
+      } catch (error) {
+        throw error;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [id, mutate],
+  );
+
+  const handleSSOEnforcementChange = async (checked: boolean) => {
+    if (!configured) {
+      toast.error("Please configure SAML SSO first before enforcing it.");
+      return;
+    }
+
+    try {
+      await updateWorkspace({
+        enforceSAML: checked,
+      });
+
+      toast.success(
+        checked
+          ? "SAML SSO enforcement enabled."
+          : "SAML SSO enforcement disabled.",
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to update the setting.",
+      );
+    }
+  };
 
   return (
     <>
@@ -145,14 +199,30 @@ export function SAML() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-3 py-5 sm:px-10">
-          <a
-            href="https://dub.co/help/category/saml-sso"
-            target="_blank"
-            className="text-sm text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-700"
-          >
-            Learn more about SAML SSO.
-          </a>
+        <div className="rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-3 py-5 sm:px-10">
+          {configured ? (
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-neutral-700">
+                Require SAML SSO authentication for all members of the
+                workspace.
+              </label>
+              <Switch
+                checked={!!ssoEnforcedAt}
+                disabled={isUpdating || plan !== "enterprise"}
+                fn={handleSSOEnforcementChange}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <a
+                href="https://dub.co/help/category/saml-sso"
+                target="_blank"
+                className="text-sm text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-700"
+              >
+                Learn more about SAML SSO.
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </>

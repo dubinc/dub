@@ -167,6 +167,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
     }),
   ),
   publishableKey: z.string().nullable(),
+  ssoEnforcedAt: z.date().nullable(),
 });
 
 export const OnboardingUsageSchema = z.object({

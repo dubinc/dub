@@ -1,6 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import { jackson, samlAudience } from "@/lib/jackson";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -76,7 +77,7 @@ export const POST = withWorkspace(
 
 // DELETE /api/workspaces/[idOrSlug]/saml – delete all SAML connections
 export const DELETE = withWorkspace(
-  async ({ searchParams }) => {
+  async ({ searchParams, workspace }) => {
     const { clientID, clientSecret } =
       deleteSAMLConnectionSchema.parse(searchParams);
 
@@ -85,6 +86,16 @@ export const DELETE = withWorkspace(
     await apiController.deleteConnections({
       clientID,
       clientSecret,
+    });
+
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        ssoEnforcedAt: null,
+        ssoEmailDomain: null,
+      },
     });
 
     return NextResponse.json({ response: "removed SAML connection" });

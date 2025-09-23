@@ -32,6 +32,7 @@ const updateWorkspaceSchema = createWorkspaceSchema
         z.null(),
       ])
       .optional(),
+    enforceSAML: z.boolean().optional(),
   })
   .partial();
 
@@ -75,7 +76,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     const {
       name,
       slug,
@@ -83,12 +84,20 @@ export const PATCH = withWorkspace(
       conversionEnabled,
       allowedHostnames,
       publishableKey,
+      enforceSAML,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
       throw new DubApiError({
         code: "forbidden",
         message: "Conversion tracking is not available on free or pro plans.",
+      });
+    }
+
+    if (enforceSAML && workspace.plan !== "enterprise") {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "SAML SSO is only available on enterprise plans.",
       });
     }
 
@@ -102,6 +111,26 @@ export const PATCH = withWorkspace(
           logo,
         )
       : null;
+
+    // Handle SAML SSO enforcement
+    let ssoEmailDomain: string | null | undefined = undefined;
+    let ssoEnforcedAt: Date | null | undefined = undefined;
+
+    if (enforceSAML !== undefined) {
+      if (enforceSAML) {
+        ssoEmailDomain = session.user.email.split("@")[1];
+        ssoEnforcedAt = new Date();
+      } else {
+        ssoEnforcedAt = null;
+        ssoEmailDomain = null;
+      }
+
+      // Don't overwrite the SSO enforcement if it's already set
+      if (enforceSAML && workspace.ssoEnforcedAt) {
+        ssoEnforcedAt = undefined;
+        ssoEmailDomain = undefined;
+      }
+    }
 
     try {
       const response = await prisma.project.update({
@@ -117,6 +146,8 @@ export const PATCH = withWorkspace(
             allowedHostnames: validHostnames,
           }),
           ...(publishableKey !== undefined && { publishableKey }),
+          ...(enforceSAML !== undefined && { ssoEnforcedAt }),
+          ...(ssoEmailDomain !== undefined && { ssoEmailDomain }),
         },
         include: {
           domains: {
