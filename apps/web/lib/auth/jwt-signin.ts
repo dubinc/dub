@@ -2,6 +2,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
 import { Session } from "./utils";
+import { encode } from "next-auth/jwt";
 
 // JWT secret for server-side authentication
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || "fallback-secret";
@@ -101,35 +102,31 @@ export async function setServerAuthSession(userId: string): Promise<void> {
       throw new Error("User not found");
     }
 
-    // Create a NextAuth-compatible JWT token that matches the expected format
-    // This should match what NextAuth's JWT callback expects
-    const sessionToken = await new SignJWT({
-      sub: user.id, // NextAuth uses 'sub' for user ID
-      user: {       // NextAuth stores user data in 'user' field
-        id: user.id,
+    const nextAuthToken = await encode({
+      token: {
+        sub: user?.id,
         name: user.name,
         email: user.email,
         image: user.image,
         isMachine: false, // Your session type expects this
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
       },
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days
-    })
-      .setProtectedHeader({ alg: "HS256" })
-      .setIssuedAt()
-      .setExpirationTime("30d")
-      .sign(secret);
+      secret: process.env.NEXTAUTH_SECRET || '',
+    });
 
     const cookieStore = cookies();
-    const isSecure = process.env.NODE_ENV === "production";
+    const isSecure = !!process.env.VERCEL_URL;
+
+    console.log("nextAuthToken", nextAuthToken);
+    console.log("cookie name", `${isSecure ? "__Secure-" : ""}next-auth.session-token`);
     
     // Set the NextAuth session token cookie
     cookieStore.set(
       `${isSecure ? "__Secure-" : ""}next-auth.session-token`,
-      sessionToken,
+      nextAuthToken,
       {
         httpOnly: true,
-        secure: isSecure,
         sameSite: "lax",
         path: "/",
         domain: isSecure ? ".getqr.com" : undefined,
