@@ -158,6 +158,12 @@ export const industryInterests: {
   },
 ];
 
+export const industryInterestsMap: Partial<
+  Record<IndustryInterest, { icon: Icon; label: string }>
+> = Object.fromEntries(
+  industryInterests.map((interest) => [interest.id, interest]),
+);
+
 export const monthlyTrafficAmounts: { id: MonthlyTraffic; label: string }[] = [
   {
     id: MonthlyTraffic.ZeroToOneThousand,
@@ -180,6 +186,12 @@ export const monthlyTrafficAmounts: { id: MonthlyTraffic; label: string }[] = [
     label: "100,000+",
   },
 ];
+
+export const monthlyTrafficAmountsMap: Partial<
+  Record<MonthlyTraffic, { label: string }>
+> = Object.fromEntries(
+  monthlyTrafficAmounts.map((amount) => [amount.id, amount]),
+);
 
 export const preferredEarningStructures: {
   id: PreferredEarningStructure;
@@ -206,6 +218,12 @@ export const preferredEarningStructures: {
     label: "One-time payment",
   },
 ];
+
+export const preferredEarningStructuresMap: Partial<
+  Record<PreferredEarningStructure, { label: string }>
+> = Object.fromEntries(
+  preferredEarningStructures.map((structure) => [structure.id, structure]),
+);
 
 export const salesChannels: { id: SalesChannel; label: string }[] = [
   {
@@ -237,3 +255,7 @@ export const salesChannels: { id: SalesChannel; label: string }[] = [
     label: "Company referrals",
   },
 ];
+
+export const salesChannelsMap: Partial<
+  Record<SalesChannel, { label: string }>
+> = Object.fromEntries(salesChannels.map((channel) => [channel.id, channel]));
