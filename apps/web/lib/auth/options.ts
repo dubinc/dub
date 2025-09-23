@@ -7,6 +7,7 @@ import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK, PARTNERS_HOSTNAMES } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
@@ -16,8 +17,6 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { qstash } from "../cron";
 import { isGenericEmail } from "../emails";
@@ -592,14 +591,15 @@ export const authOptions: NextAuthOptions = {
 
 // Checks if SAML SSO is enforced for a given email domain
 export const isSamlEnforcedForDomain = async (email: string) => {
-  const emailDomain = email.split("@")[1];
+  const hostname = new URL(process.env.NEXTAUTH_URL as string).hostname;
+  if (PARTNERS_HOSTNAMES.has(hostname)) {
+    return;
+  }
 
+  const emailDomain = email.split("@")[1];
   if (!emailDomain || isGenericEmail(emailDomain)) {
     return false;
   }
-
-  // TODO:
-  // Add caching to reduce database hits(?)
 
   const workspace = await prisma.project.findUnique({
     where: {
