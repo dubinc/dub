@@ -105,6 +105,9 @@ export async function setServerAuthSession(userId: string): Promise<void> {
 
     const cookieStore = cookies();
     const isSecure = !!process.env.VERCEL_URL;
+
+    console.log("nextAuthToken", nextAuthToken);
+    console.log("user", user);
     
     // Set the NextAuth session token cookie
     cookieStore.set(
