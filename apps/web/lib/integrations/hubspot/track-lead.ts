@@ -1,9 +1,12 @@
 import { trackLead } from "@/lib/api/conversions/track-lead";
-import { WorkspaceProps } from "@/lib/types";
+import { TrackLeadResponse, WorkspaceProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { getHubSpotContact } from "./get-contact";
 import { getHubSpotDeal } from "./get-deal";
 import { hubSpotLeadEventSchema } from "./schema";
 import { HubSpotAuthToken } from "./types";
+import { updateHubSpotContact } from "./update-contact";
 
 export const trackHubSpotLeadEvent = async ({
   payload,
@@ -38,7 +41,7 @@ export const trackHubSpotLeadEvent = async ({
       [properties.firstname, properties.lastname].filter(Boolean).join(" ") ||
       null;
 
-    return await trackLead({
+    const trackLeadResult = await trackLead({
       clickId: properties.dub_id,
       eventName: "Sign up",
       customerEmail: properties.email,
@@ -48,6 +51,18 @@ export const trackHubSpotLeadEvent = async ({
       workspace,
       rawBody: payload,
     });
+
+    if (trackLeadResult) {
+      waitUntil(
+        _updateHubSpotContact({
+          trackLeadResult,
+          contactId: contact.id,
+          accessToken: authToken.access_token,
+        }),
+      );
+    }
+
+    return trackLeadResult;
   }
 
   // A deal is created for the contact (Eg: lead is tracked)
@@ -81,7 +96,7 @@ export const trackHubSpotLeadEvent = async ({
       return;
     }
 
-    return await trackLead({
+    const trackLeadResult = await trackLead({
       clickId: "",
       eventName: `Deal ${properties.dealstage}`,
       customerExternalId: contactInfo.properties.email,
@@ -91,5 +106,61 @@ export const trackHubSpotLeadEvent = async ({
       workspace,
       rawBody: payload,
     });
+
+    if (trackLeadResult) {
+      waitUntil(
+        _updateHubSpotContact({
+          trackLeadResult,
+          contactId: contact.id,
+          accessToken: authToken.access_token,
+        }),
+      );
+    }
+
+    return trackLeadResult;
   }
+};
+
+// Update the HubSpot contact with `dub_link` and `dub_partner_email`
+export const _updateHubSpotContact = async ({
+  contactId,
+  accessToken,
+  trackLeadResult,
+}: {
+  contactId: number | string;
+  accessToken: string;
+  trackLeadResult: TrackLeadResponse;
+}) => {
+  let partnerEmail = "";
+  let partnerLink = "";
+
+  if (trackLeadResult.link?.partnerId) {
+    const partner = await prisma.partner.findUniqueOrThrow({
+      where: {
+        id: trackLeadResult.link.partnerId,
+      },
+      select: {
+        email: true,
+      },
+    });
+
+    partnerEmail = partner.email ?? "";
+  }
+
+  if (trackLeadResult.link?.url) {
+    partnerLink = trackLeadResult.link.url;
+  }
+
+  if (!partnerLink && !partnerEmail) {
+    return;
+  }
+
+  await updateHubSpotContact({
+    contactId,
+    accessToken,
+    properties: {
+      dub_partner_email: partnerEmail,
+      dub_link: partnerLink,
+    },
+  });
 };

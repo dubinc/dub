@@ -35,6 +35,8 @@ export const hubSpotContactSchema = z.object({
     firstname: z.string().nullable(),
     lastname: z.string().nullable(),
     dub_id: z.string().nullish(),
+    dub_link: z.string().nullish(),
+    dub_partner_email: z.string().nullish(),
   }),
 });
 

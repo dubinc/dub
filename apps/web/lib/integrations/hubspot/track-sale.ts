@@ -24,18 +24,20 @@ export const trackHubSpotSaleEvent = async ({
     hubSpotSaleEventSchema.parse(payload);
 
   if (subscriptionType !== "object.propertyChange") {
-    console.error(`[HubSpot] Unknown subscriptionType ${subscriptionType}`);
+    console.log(`[HubSpot] Unknown subscriptionType ${subscriptionType}`);
     return;
   }
 
   if (propertyName !== "dealstage") {
-    console.error(`[HubSpot] Unknown propertyName ${propertyName}`);
+    console.log(
+      `[HubSpot] Unknown propertyName ${propertyName}. Expected dealstage.`,
+    );
     return;
   }
 
   if (propertyValue !== closedWonDealStageId) {
     console.error(
-      `[HubSpot] Unknown propertyValue ${propertyValue}. Expected ${closedWonDealStageId}`,
+      `[HubSpot] Unknown propertyValue ${propertyValue}. Expected ${closedWonDealStageId}.`,
     );
     return;
   }
