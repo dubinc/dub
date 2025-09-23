@@ -68,7 +68,7 @@ function TrialOfferWithQRPreview({
     >
       <Theme>
         <div className="flex">
-          <div className="flex w-1/2 flex-col gap-4 bg-neutral-50 p-6">
+          <div className="flex flex-col gap-4 bg-neutral-50 p-6">
             <div className="flex flex-col gap-2 text-center">
               <h3 className="text-primary !mt-0 truncate text-2xl font-bold">
                 Your QR Code is Ready!
@@ -100,7 +100,7 @@ function TrialOfferWithQRPreview({
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 p-6">
+          <div className="basis-50 flex flex-col gap-4 p-6">
             <div className="flex flex-col gap-2 text-center">
               <h3 className="text-neutral !mt-0 truncate text-2xl font-bold">
                 Download Now!

@@ -8,7 +8,7 @@ import {
 import { ICustomerBody } from "core/integration/payment/config";
 import { EServerRoutes } from "core/interfaces/routes.interface.ts";
 import { isCookieEnabled } from "core/services/cookie/cookie.service.ts";
-import { getCurrenciesData } from "core/services/currencies.service.ts";
+import { getCurrenciesData } from "core/services/currencies/currencies.service";
 import { toast } from "sonner";
 
 // hook
