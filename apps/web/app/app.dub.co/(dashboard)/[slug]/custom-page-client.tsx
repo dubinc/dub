@@ -172,5 +172,5 @@ function TrialOfferWithQRPreviewWrapper({
     );
   }, [featuresAccess]);
 
-  return firstQr ? <TrialOfferWithQRPreviewModal /> : null;
+  return <TrialOfferWithQRPreviewModal />;
 }

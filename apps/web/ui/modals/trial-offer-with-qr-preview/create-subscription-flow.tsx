@@ -2,6 +2,7 @@
 
 import { LoadingSpinner, Modal } from "@dub/ui";
 import { Payment } from "@primer-io/checkout-web";
+import { Checkbox } from "@radix-ui/themes";
 import { useCreateSubscriptionMutation } from "core/api/user/subscription/subscription.hook";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
@@ -18,6 +19,7 @@ import {
 } from "core/integration/payment/config";
 import { generateCheckoutFormPaymentEvents } from "core/services/events/checkout-form-events.service.ts";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FC, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -37,24 +39,24 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
   const [isSubscriptionCreation, setIsSubscriptionCreation] = useState(false);
+  const [isChecked, setIsChecked] = useState(true);
 
   const { update: updateSession } = useSession();
 
   const { trigger: triggerCreateSubscription } =
     useCreateSubscriptionMutation();
 
-  const { priceForPay } = getPaymentPlanPrice({
-    paymentPlan: trialPaymentPlan,
-    user,
-  });
-
-  const { priceForView } = getPaymentPlanPrice({
+  const { priceForPay, priceForView } = getPaymentPlanPrice({
     paymentPlan: trialPaymentPlan,
     user,
   });
   const priceForViewText = getCalculatePriceForView(priceForView, user);
 
-  const oldPriceForViewText = getCalculatePriceForView(700, user);
+  const { priceForView: oldPriceForView } = getPaymentPlanPrice({
+    paymentPlan: "PRICE_MONTH_PLAN",
+    user,
+  });
+  const oldPriceForViewText = getCalculatePriceForView(oldPriceForView, user);
 
   const onPaymentMethodTypeClick = (paymentMethodType: string) => {
     paymentTypeRef.current = paymentMethodType;
@@ -179,7 +181,10 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     await mutate("/api/user");
 
     router.refresh();
-    router.push("/account/plans");
+
+    setTimeout(() => {
+      router.push("/account/plans");
+    }, 1000);
   };
 
   const handleCheckoutError = ({
@@ -235,6 +240,37 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
             text: "Subscribe",
           }}
         />
+
+        <div className="group flex gap-2">
+          <Checkbox
+            id="terms-and-conditions"
+            checked={isChecked}
+            onCheckedChange={(checked) => setIsChecked(checked as boolean)}
+          />
+          <label
+            htmlFor="terms-and-conditions"
+            className="select-none text-sm text-xs font-medium text-neutral-500"
+          >
+            By continuing, you agree to our{" "}
+            <Link className="font-semibold underline" href="/eula">
+              Terms and Conditions
+            </Link>{" "}
+            and{" "}
+            <Link className="font-semibold underline" href="/privacy-policy">
+              Privacy Policy
+            </Link>
+            . If you don’t cancel at least 24 hours before the end of your 7-day
+            trial, your subscription will automatically renew at{" "}
+            <span className="font-semibold">
+              {oldPriceForViewText} every month until you cancel
+            </span>{" "}
+            through our Help Center. For assistance, please contact our support
+            team at{" "}
+            <Link className="font-semibold" href="mailto:help@getqr.com">
+              help@getqr.com
+            </Link>
+          </label>
+        </div>
       </div>
 
       <Modal

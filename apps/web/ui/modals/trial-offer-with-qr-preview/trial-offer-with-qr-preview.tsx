@@ -120,7 +120,7 @@ function TrialOfferWithQRPreview({
                     <Check className="h-4 w-4 text-green-500" />
                   </div>
 
-                  <span className="text-left">{item}</span>
+                  <span className="text-left text-sm">{item}</span>
                 </li>
               ))}
             </ul>
