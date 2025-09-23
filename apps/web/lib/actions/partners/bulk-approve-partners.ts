@@ -37,7 +37,7 @@ export const bulkApprovePartnersAction = authActionClient
 
     const group = await getGroupOrThrow({
       programId: program.id,
-      groupId,
+      groupId: groupId ?? program.defaultGroupId,
     });
 
     // Approve the enrollments
