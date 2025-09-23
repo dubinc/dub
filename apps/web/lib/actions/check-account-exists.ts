@@ -31,9 +31,8 @@ export const checkAccountExistsAction = actionClient
     }
 
     // Check SAML enforcement
-    const headersList = headers();
+    const hostname = headers().get("host");
     const emailDomain = email.split("@")[1];
-    const hostname = headersList.get("host");
     const shouldCheckSAML =
       hostname && APP_HOSTNAMES.has(hostname) && !isGenericEmail(email);
 

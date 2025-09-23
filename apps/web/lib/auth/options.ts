@@ -592,9 +592,8 @@ export const authOptions: NextAuthOptions = {
 
 // Checks if SAML SSO is enforced for a given email domain
 export const isSamlEnforcedForDomain = async (email: string) => {
-  const headersList = headers();
+  const hostname = headers().get("host");
   const emailDomain = email.split("@")[1];
-  const hostname = headersList.get("host");
 
   if (
     !hostname ||
