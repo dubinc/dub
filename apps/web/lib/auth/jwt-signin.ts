@@ -110,14 +110,17 @@ export async function setServerAuthSession(userId: string): Promise<void> {
     const nextAuthToken = await encode({
       token: {
         sub: user.id,
-        email: user.email,
-        name: user.name,
-        image: user.image,
-        isMachine: user.isMachine || false,
-        defaultWorkspace: user.defaultWorkspace,
-        defaultPartnerId: user.defaultPartnerId,
-        dubPartnerId: user.dubPartnerId,
-        paymentData: user.paymentData,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          image: user.image,
+          isMachine: user.isMachine || false,
+          defaultWorkspace: user.defaultWorkspace,
+          defaultPartnerId: user.defaultPartnerId,
+          dubPartnerId: user.dubPartnerId,
+          paymentData: user.paymentData,
+        },
         iat: Math.floor(Date.now() / 1000),
         exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
       },
@@ -127,16 +130,15 @@ export async function setServerAuthSession(userId: string): Promise<void> {
     const cookieStore = cookies();
     const isSecure = !!process.env.VERCEL_URL;
     
-    // Set the NextAuth session token cookie (must match NextAuth's cookie settings exactly)
+    // Set the NextAuth session token cookie
     cookieStore.set(
       `${isSecure ? "__Secure-" : ""}next-auth.session-token`,
       nextAuthToken,
       {
         httpOnly: true,
-        secure: isSecure,
         sameSite: "lax",
         path: "/",
-        domain: undefined, // Remove domain restriction for testing
+        domain: isSecure ? ".getqr.com" : undefined,
         expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
       }
     );
