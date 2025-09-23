@@ -78,6 +78,7 @@ function IndustryInterestsModalInner({
                 disabled={
                   isMaxSelected && !selectedInterests.includes(interest.id)
                 }
+                checked={selectedInterests.includes(interest.id)}
                 onChange={(e) =>
                   e.target.checked
                     ? setSelectedInterests([...selectedInterests, interest.id])
