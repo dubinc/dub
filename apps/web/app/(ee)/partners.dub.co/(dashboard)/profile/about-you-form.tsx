@@ -2,17 +2,19 @@ import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partne
 import { PartnerProps } from "@/lib/types";
 import { MAX_PARTNER_DESCRIPTION_LENGTH } from "@/lib/zod/schemas/partners";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
+import { IndustryInterest } from "@dub/prisma/client";
 import { Button, useEnterSubmit } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { SettingsRow } from "./settings-row";
 
 type AboutYouFormData = {
   description: string;
+  industryInterests: IndustryInterest[];
 };
 
 export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
@@ -27,6 +29,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
   } = useForm<AboutYouFormData>({
     defaultValues: {
       description: partner?.description ?? undefined,
+      industryInterests: partner?.industryInterests ?? [],
     },
   });
 
@@ -94,6 +97,29 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
             />
           </div>
         </SettingsRow>
+
+        <SettingsRow
+          heading="Industry interests"
+          description="Add the industries you care and post content about. This helps programs in those areas discover you."
+        >
+          <Controller
+            control={control}
+            name="industryInterests"
+            render={({ field }) => (
+              <Button
+                text={`${field.value.length ? "Edit" : "Add"} interests`}
+                onClick={() => toast.info("WIP")}
+                variant="secondary"
+                className="h-8 w-fit rounded-lg px-3"
+              />
+            )}
+          />
+        </SettingsRow>
+
+        <SettingsRow
+          heading="Estimated monthly traffic"
+          description="Including websites, newsletters, and social accounts."
+        ></SettingsRow>
 
         <div className="flex items-center justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-6 py-4">
           <Button

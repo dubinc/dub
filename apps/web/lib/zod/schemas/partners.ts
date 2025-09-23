@@ -248,7 +248,7 @@ export const PartnerProfileSchema = z.object({
     .array(z.nativeEnum(IndustryInterest))
     .describe("The partner's industry interests."),
   preferredEarningStructure: z
-    .nativeEnum(PreferredEarningStructure)
+    .array(z.nativeEnum(PreferredEarningStructure))
     .describe("The partner's preferred earning structure."),
   salesChannels: z
     .array(z.nativeEnum(SalesChannel))

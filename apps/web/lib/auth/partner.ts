@@ -57,7 +57,13 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
             },
           },
           include: {
-            partner: true,
+            partner: {
+              include: {
+                industryInterests: true,
+                preferredEarningStructure: true,
+                salesChannels: true,
+              },
+            },
           },
         });
 
@@ -69,12 +75,30 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
           });
         }
 
+        const {
+          industryInterests,
+          preferredEarningStructure,
+          salesChannels,
+          ...partner
+        } = partnerUser.partner;
+
         return await handler({
           req,
           params,
           searchParams,
           session,
-          partner: partnerUser.partner as PartnerProps,
+          partner: {
+            ...partner,
+            industryInterests: industryInterests.map(
+              ({ industryInterest }) => industryInterest,
+            ),
+            preferredEarningStructure: preferredEarningStructure.map(
+              ({ preferredEarningStructure }) => preferredEarningStructure,
+            ),
+            salesChannels: salesChannels.map(
+              ({ salesChannel }) => salesChannel,
+            ),
+          } as PartnerProps,
         });
       } catch (error) {
         req.log.error(error);
