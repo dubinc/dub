@@ -14,8 +14,7 @@ export const trackHubSpotLeadEvent = async ({
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   authToken: HubSpotAuthToken;
 }) => {
-  const { objectId, objectTypeId, subscriptionType } =
-    hubSpotLeadEventSchema.parse(payload);
+  const { objectId, objectTypeId } = hubSpotLeadEventSchema.parse(payload);
 
   // A new contact is created (deferred lead tracking)
   if (objectTypeId === "0-1") {
