@@ -12,7 +12,7 @@ import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 export function SAML() {
-  const { plan, id, name, ssoEnforcedAt, mutate } = useWorkspace();
+  const { plan, id, ssoEnforcedAt, mutate } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
@@ -57,58 +57,34 @@ export function SAML() {
     }
   }, [provider, configured, loading]);
 
-  const updateWorkspace = useCallback(
-    async (data: any) => {
+  const handleSSOEnforcementChange = useCallback(
+    async (data: { enforceSAML: boolean }) => {
       setIsUpdating(true);
 
-      try {
-        const response = await fetch(`/api/workspaces/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(data),
-        });
+      const response = await fetch(`/api/workspaces/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
 
-        if (response.ok) {
-          await mutate();
-        } else {
-          const { error } = await response.json();
-          throw new Error(error.message || "Failed to update workspace.");
-        }
-      } catch (error) {
-        throw error;
-      } finally {
-        setIsUpdating(false);
+      if (response.ok) {
+        await mutate();
+        toast.success(
+          data.enforceSAML
+            ? "SAML SSO enforcement enabled."
+            : "SAML SSO enforcement disabled.",
+        );
+      } else {
+        const { error } = await response.json();
+        toast.error(error.message || "Failed to update workspace.");
       }
+
+      setIsUpdating(false);
     },
     [id, mutate],
   );
-
-  const handleSSOEnforcementChange = async (checked: boolean) => {
-    if (!configured) {
-      toast.error("Please configure SAML SSO first before enforcing it.");
-      return;
-    }
-
-    try {
-      await updateWorkspace({
-        enforceSAML: checked,
-      });
-
-      toast.success(
-        checked
-          ? "SAML SSO enforcement enabled."
-          : "SAML SSO enforcement disabled.",
-      );
-    } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "Failed to update the setting.",
-      );
-    }
-  };
 
   return (
     <>
@@ -209,7 +185,9 @@ export function SAML() {
               <Switch
                 checked={!!ssoEnforcedAt}
                 disabled={isUpdating || plan !== "enterprise"}
-                fn={handleSSOEnforcementChange}
+                fn={(enforceSAML: boolean) => {
+                  handleSSOEnforcementChange({ enforceSAML });
+                }}
               />
             </div>
           ) : (
