@@ -2,7 +2,6 @@ import { SignJWT, jwtVerify } from "jose";
 import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
 import { Session } from "./utils";
-import { encode } from "next-auth/jwt";
 
 // JWT secret for server-side authentication
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || "fallback-secret";
@@ -102,33 +101,39 @@ export async function setServerAuthSession(userId: string): Promise<void> {
       throw new Error("User not found");
     }
 
-    const nextAuthToken = await encode({
-      token: {
-        sub: user?.id,
+    // Create a NextAuth-compatible JWT token that matches the expected format
+    // This should match what NextAuth's JWT callback expects
+    const sessionToken = await new SignJWT({
+      sub: user.id, // NextAuth uses 'sub' for user ID
+      user: {       // NextAuth stores user data in 'user' field
+        id: user.id,
         name: user.name,
         email: user.email,
         image: user.image,
         isMachine: false, // Your session type expects this
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + 30 * 24 * 60 * 60, // 30 days
       },
-      secret: process.env.NEXTAUTH_SECRET || '',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + (30 * 24 * 60 * 60), // 30 days
     })
+      .setProtectedHeader({ alg: "HS256" })
+      .setIssuedAt()
+      .setExpirationTime("30d")
+      .sign(secret);
 
     const cookieStore = cookies();
-    const isSecure = !!process.env.VERCEL_URL;
+    const isSecure = process.env.NODE_ENV === "production";
     
     // Set the NextAuth session token cookie
     cookieStore.set(
       `${isSecure ? "__Secure-" : ""}next-auth.session-token`,
-      nextAuthToken,
+      sessionToken,
       {
         httpOnly: true,
         secure: isSecure,
         sameSite: "lax",
         path: "/",
         domain: isSecure ? ".getqr.com" : undefined,
-        maxAge: 30 * 24 * 60 * 60,
+        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
       }
     );
   } catch (error) {

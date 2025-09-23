@@ -2,9 +2,10 @@ import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
 import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
 import { convertSessionUserToCustomerBody, Session } from "@/lib/auth/utils.ts";
 import { isBlacklistedEmail } from "@/lib/edge-config";
+import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { NewQrProps, UserProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
@@ -23,6 +24,7 @@ import {
 import { User, type NextAuthOptions } from "next-auth";
 import { AdapterUser } from "next-auth/adapters";
 import { JWT } from "next-auth/jwt";
+import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
@@ -32,7 +34,13 @@ import { trackMixpanelApiService } from "../../core/integration/analytic/service
 import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
+import { FRAMER_API_HOST } from "./constants";
 import { createAutoLoginURL } from "./jwt-signin";
+import {
+  exceededLoginAttemptsThreshold,
+  incrementLoginAttempts,
+} from "./lock-account";
+import { validatePassword } from "./password";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -173,17 +181,14 @@ export const authOptions: NextAuthOptions = {
   ],
   // @ts-ignore
   adapter: CustomPrismaAdapter(prisma),
-  session: {
-    strategy: 'jwt',
-    maxAge: 30 * 24 * 60 * 60,
-  },
+  session: { strategy: "jwt" },
   cookies: {
     sessionToken: {
       name: `${VERCEL_DEPLOYMENT ? "__Secure-" : ""}next-auth.session-token`,
       options: {
         httpOnly: true,
         sameSite: "lax",
-        maxAge: 30 * 24 * 60 * 60,
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
         path: "/",
         // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
         // domain: VERCEL_DEPLOYMENT
