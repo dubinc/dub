@@ -6,6 +6,7 @@ import { prefixWorkspaceId } from "@/lib/api/workspace-id";
 import { deleteWorkspace } from "@/lib/api/workspaces";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
+import { jackson } from "@/lib/jackson";
 import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import {
@@ -120,6 +121,21 @@ export const PATCH = withWorkspace(
       if (enforceSAML) {
         ssoEmailDomain = session.user.email.split("@")[1];
         ssoEnforcedAt = new Date();
+
+        // Check if SAML is configured before enforcing
+        const { apiController } = await jackson();
+
+        const connections = await apiController.getConnections({
+          tenant: workspace.id,
+          product: "Dub",
+        });
+
+        if (connections.length === 0) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: "SAML SSO is not configured for this workspace.",
+          });
+        }
       } else {
         ssoEnforcedAt = null;
         ssoEmailDomain = null;
