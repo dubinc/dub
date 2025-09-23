@@ -104,21 +104,24 @@ export async function setServerAuthSession(userId: string): Promise<void> {
     });
 
     const cookieStore = cookies();
-    const isSecure = !!process.env.VERCEL_URL;
+    // Use the same logic as NextAuth configuration
+    const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
     console.log("nextAuthToken", nextAuthToken);
     console.log("user", user);
+    console.log("VERCEL_DEPLOYMENT", VERCEL_DEPLOYMENT);
     
-    // Set the NextAuth session token cookie
+    // Set the NextAuth session token cookie with EXACT same settings as NextAuth config
     cookieStore.set(
-      `${isSecure ? "__Secure-" : ""}next-auth.session-token`,
+      `${VERCEL_DEPLOYMENT ? "__Secure-" : ""}next-auth.session-token`,
       nextAuthToken,
       {
         httpOnly: true,
         sameSite: "lax",
+        expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // Match NextAuth calculation exactly
         path: "/",
-        domain: isSecure ? ".getqr.com" : undefined,
-        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days
+        domain: VERCEL_DEPLOYMENT ? `.getqr.com` : undefined,
+        secure: VERCEL_DEPLOYMENT, // Add the missing secure flag
       }
     );
   } catch (error) {
