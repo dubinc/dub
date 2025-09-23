@@ -571,6 +571,7 @@ export const authOptions: NextAuthOptions = {
       user: User | AdapterUser | UserProps;
       trigger?: "signIn" | "update" | "signUp";
     }) => {
+      console.log("jwt callback", { token, user, trigger });
       // Handle normal sign-in flow
       if (user) {
         token.user = user;
