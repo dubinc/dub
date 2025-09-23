@@ -86,6 +86,8 @@ export const trackHubSpotLeadEvent = async ({
       clickId: "",
       eventName: `Deal ${properties.dealstage}`,
       customerExternalId: contactInfo.properties.email,
+      customerName: `${contactInfo.properties.firstname} ${contactInfo.properties.lastname}`,
+      customerEmail: contactInfo.properties.email,
       mode: "async",
       workspace,
       rawBody: payload,
