@@ -29,7 +29,7 @@ export const HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID = "closedwon";
 
 export const HUBSPOT_DUB_CONTACT_PROPERTIES = [
   {
-    label: "Dub Id",
+    label: "Dub Click ID",
     name: "dub_id",
     type: "string",
     fieldType: "text",
