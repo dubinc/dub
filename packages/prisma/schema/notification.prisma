@@ -6,9 +6,14 @@ enum NotificationEmailType {
 model NotificationEmail {
   id        String                @id @default(cuid())
   emailId   String // Resend email id
+  type      NotificationEmailType
   messageId String?
   bountyId String?
-  type      NotificationEmailType
+
+  programId String?
+  partnerId String?
+  recipientUserId String?
+  
   openedAt  DateTime?
   createdAt DateTime              @default(now())
 

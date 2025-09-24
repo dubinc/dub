@@ -105,7 +105,13 @@ export async function POST(req: Request) {
         },
       },
       include: {
-        partner: true,
+        partner: {
+          include: {
+            users: {
+              take: 1, // TODO: update this to use partnerUsersToNotify approach
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: "asc",
@@ -148,25 +154,16 @@ export async function POST(req: Request) {
     );
 
     if (data) {
-      await prisma.message.createMany({
-        data: programEnrollments.flatMap(({ partner }, idx) => {
-          const messageId = createId({ prefix: "msg_" });
-          return {
-            id: messageId,
-            programId: bounty.programId,
-            partnerId: partner.id,
-            senderUserId: userId ?? bounty.program.workspace.users[0].userId,
-            text: `New bounty available for ${bounty.program.name}`,
-            emails: {
-              create: {
-                type: NotificationEmailType.Bounty,
-                emailId: data.data[idx].id,
-                messageId,
-                bountyId: bounty.id,
-              },
-            },
-          };
-        }),
+      await prisma.notificationEmail.createMany({
+        data: programEnrollments.map(({ partner }, idx) => ({
+          id: createId({ prefix: "em_" }),
+          type: NotificationEmailType.Bounty,
+          emailId: data.data[idx].id,
+          bountyId: bounty.id,
+          programId: bounty.programId,
+          partnerId: partner.id,
+          recipientUserId: partner.users[0].userId, // TODO: update this to use partnerUsersToNotify approach
+        })),
       });
     }
 
