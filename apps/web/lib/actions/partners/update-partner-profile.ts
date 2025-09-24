@@ -57,7 +57,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
       salesChannels,
     } = parsedInput;
 
-    if (profileType === "company" && !companyName)
+    if (
+      profileType === "company" &&
+      (companyName === undefined ? !partner.companyName : !companyName)
+    )
       throw new Error("Legal company name is required.");
 
     // Delete the Stripe Express account if needed
