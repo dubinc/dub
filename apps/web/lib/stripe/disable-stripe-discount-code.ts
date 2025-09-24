@@ -8,14 +8,13 @@ export async function disableStripeDiscountCode({
   stripeConnectId,
   code,
 }: {
-  stripeConnectId: string;
+  stripeConnectId: string | null;
   code: string;
 }) {
   if (!stripeConnectId) {
-    console.error(
+    throw new Error(
       `stripeConnectId is required to disable a Stripe discount code.`,
     );
-    return;
   }
 
   const promotionCodes = await stripe.promotionCodes.list(

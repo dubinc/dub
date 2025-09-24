@@ -12,6 +12,7 @@ export async function getProgramEnrollmentOrThrow({
   includeLeadReward = false,
   includeSaleReward = false,
   includeDiscount = false,
+  includeDiscountCodes = false,
   includeGroup = false,
   includeWorkspace = false,
 }: {
@@ -23,6 +24,7 @@ export async function getProgramEnrollmentOrThrow({
   includeLeadReward?: boolean;
   includeSaleReward?: boolean;
   includeDiscount?: boolean;
+  includeDiscountCodes?: boolean;
   includeGroup?: boolean;
   includeWorkspace?: boolean;
 }) {
@@ -56,6 +58,9 @@ export async function getProgramEnrollmentOrThrow({
     }),
     ...(includeDiscount && {
       discount: true,
+    }),
+    ...(includeDiscountCodes && {
+      discountCodes: true,
     }),
     ...(includeGroup && {
       partnerGroup: true,

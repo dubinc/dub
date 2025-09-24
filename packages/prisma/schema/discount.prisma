@@ -20,22 +20,23 @@ model Discount {
 }
 
 model DiscountCode {
-  id         String @id @default(cuid())
+  id         String   @id @default(cuid())
   code       String
   programId  String
   discountId String
   partnerId  String
-  linkId     String @unique
+  linkId     String   @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
-  program   Program  @relation(fields: [programId], references: [id])
-  discount  Discount @relation(fields: [discountId], references: [id])
-  partner   Partner  @relation(fields: [partnerId], references: [id])
-  link      Link     @relation(fields: [linkId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  program           Program            @relation(fields: [programId], references: [id])
+  discount          Discount           @relation(fields: [discountId], references: [id])
+  partner           Partner            @relation(fields: [partnerId], references: [id])
+  link              Link               @relation(fields: [linkId], references: [id])
+  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
 
   @@unique([programId, code])
-  @@unique([programId, partnerId])
+  @@index([programId, partnerId])
   @@index(discountId)
   @@index(partnerId)
 }

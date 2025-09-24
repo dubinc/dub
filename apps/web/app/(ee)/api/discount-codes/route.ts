@@ -12,29 +12,22 @@ import {
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/discount-codes - get all discount codes for a program
+// GET /api/discount-codes - get all discount codes for a partner
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const { partnerId } = getDiscountCodesQuerySchema.parse(searchParams);
 
-    await getProgramEnrollmentOrThrow({
+    const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
+      includeDiscountCodes: true,
     });
 
-    const discountCodes = await prisma.discountCode.findMany({
-      where: {
-        programId,
-        partnerId,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    const response = DiscountCodeSchema.array().parse(discountCodes);
+    const response = DiscountCodeSchema.array().parse(
+      programEnrollment.discountCodes,
+    );
 
     return NextResponse.json(response);
   },
@@ -52,17 +45,26 @@ export const GET = withWorkspace(
 
 // POST /api/discount-codes - create a discount code
 export const POST = withWorkspace(
-  async ({ workspace, req, session }) => {
+  async ({ workspace, req }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     let { partnerId, linkId, code } = createDiscountCodeSchema.parse(
       await parseRequestBody(req),
     );
 
+    if (!workspace.stripeConnectId) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Stripe connect ID not found for your workspace. Please install Dub Stripe app.",
+      });
+    }
+
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
       includeDiscount: true,
+      includeDiscountCodes: true,
     });
 
     const link = programEnrollment.links.find((link) => link.id === linkId);
@@ -92,9 +94,11 @@ export const POST = withWorkspace(
       });
     }
 
+    // Use the link.key as the code if no code is provided
     code = code || link.key;
 
-    const existingDiscountCode = await prisma.discountCode.findUnique({
+    // Check for duplicate by code
+    const duplicateByCode = await prisma.discountCode.findUnique({
       where: {
         programId_code: {
           programId,
@@ -103,23 +107,42 @@ export const POST = withWorkspace(
       },
     });
 
-    if (existingDiscountCode) {
+    if (duplicateByCode) {
       throw new DubApiError({
         code: "bad_request",
-        message: `A discount with the code ${code} already exists. Please choose a different code.`,
+        message: `A discount with the code ${code} already exists in the program. Please choose a different code.`,
+      });
+    }
+
+    // A link can have only one discount code
+    const duplicateByLink = programEnrollment.discountCodes.find(
+      (discountCode) => discountCode.linkId === linkId,
+    );
+
+    if (duplicateByLink) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `This link already has a discount code (${duplicateByLink.code}) assigned.`,
       });
     }
 
     try {
       const stripeDiscountCode = await createStripeDiscountCode({
-        workspace,
+        stripeConnectId: workspace.stripeConnectId,
         discount,
         code,
       });
 
+      if (!stripeDiscountCode?.code) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: "Failed to create Stripe discount code. Please try again.",
+        });
+      }
+
       const discountCode = await prisma.discountCode.create({
         data: {
-          code: stripeDiscountCode?.code,
+          code: stripeDiscountCode.code,
           programId,
           partnerId,
           linkId,

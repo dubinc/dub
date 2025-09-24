@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { disableStripeDiscountCode } from "@/lib/stripe/delete-stripe-discount-code";
+import { disableStripeDiscountCode } from "@/lib/stripe/disable-stripe-discount-code";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";

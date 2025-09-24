@@ -106,6 +106,7 @@ model ProgramEnrollment {
   saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
   discount          Discount?           @relation(fields: [discountId], references: [id])
   bountySubmissions BountySubmission[]
+  discountCodes     DiscountCode[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])

@@ -1,36 +1,49 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { disableStripeDiscountCode } from "@/lib/stripe/disable-stripe-discount-code";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // DELETE /api/discount-codes/[discountCodeId] - delete a discount code
 export const DELETE = withWorkspace(
-  async ({ workspace, params, session }) => {
+  async ({ workspace, params }) => {
     const { discountCodeId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const discountCode = await prisma.discountCode.findUniqueOrThrow({
+    const discountCode = await prisma.discountCode.findUnique({
       where: {
         id: discountCodeId,
       },
     });
 
-    if (discountCode.programId !== programId) {
+    if (!discountCode) {
       throw new DubApiError({
-        message: "Discount code not found.",
+        message: `Discount code (${discountCodeId}) not found.`,
         code: "bad_request",
       });
     }
 
-    // TODO:
-    // Remove from the Stripe first
+    if (discountCode.programId !== programId) {
+      throw new DubApiError({
+        message: `Discount code (${discountCodeId}) is not associated with the program.`,
+        code: "bad_request",
+      });
+    }
 
     await prisma.discountCode.delete({
       where: {
         id: discountCodeId,
       },
     });
+
+    waitUntil(
+      disableStripeDiscountCode({
+        stripeConnectId: workspace.stripeConnectId,
+        code: discountCode.code,
+      }),
+    );
 
     return NextResponse.json({ id: discountCode.id });
   },

@@ -1,6 +1,6 @@
 import { nanoid } from "@dub/utils";
 import { stripeAppClient } from ".";
-import { DiscountProps, WorkspaceProps } from "../types";
+import { DiscountProps } from "../types";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
@@ -9,24 +9,22 @@ const stripe = stripeAppClient({
 const MAX_ATTEMPTS = 3;
 
 export async function createStripeDiscountCode({
-  workspace,
+  stripeConnectId,
   discount,
   code,
 }: {
-  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
+  stripeConnectId: string;
   discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
   code: string;
 }) {
-  if (!workspace.stripeConnectId) {
+  if (!stripeConnectId) {
     throw new Error(
-      `stripeConnectId not found for workspace ${workspace.id}. Stripe promotion code creation skipped.`,
+      `stripeConnectId is required to create a Stripe discount code.`,
     );
   }
 
   if (!discount.couponId) {
-    throw new Error(
-      `couponId not found for discount ${discount.id}. Stripe promotion code creation skipped.`,
-    );
+    throw new Error(`couponId not found for discount ${discount.id}.`);
   }
 
   let attempt = 0;
@@ -40,7 +38,7 @@ export async function createStripeDiscountCode({
           code: currentCode.toUpperCase(),
         },
         {
-          stripeAccount: workspace.stripeConnectId,
+          stripeAccount: stripeConnectId,
         },
       );
     } catch (error: any) {
