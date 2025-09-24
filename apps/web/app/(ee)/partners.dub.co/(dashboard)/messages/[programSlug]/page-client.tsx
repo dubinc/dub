@@ -137,7 +137,8 @@ export function PartnerMessagesProgramPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        {programEnrollment?.program?.messagingEnabledAt === null ? (
+        {["rejected", "banned"].includes(programEnrollment?.status ?? "") ||
+        programEnrollment?.program?.messagingEnabledAt === null ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />
             <div className="mt-6 max-w-md text-center">
@@ -336,53 +337,55 @@ function ProgramInfoPanel({
       </div>
 
       {/* Referral link */}
-      <div className="border-border-subtle border-b p-6">
-        <div className="flex items-end justify-between">
-          <h3 className="text-content-emphasis text-sm font-semibold">
-            Referral link
-          </h3>
-          <Link
-            href={`/programs/${program.slug}/links`}
-            target="_blank"
-            className="text-sm font-medium text-neutral-500 hover:text-neutral-700"
-          >
-            View all
-          </Link>
+      {programEnrollment.links && programEnrollment.links.length > 0 && (
+        <div className="border-border-subtle border-b p-6">
+          <div className="flex items-end justify-between">
+            <h3 className="text-content-emphasis text-sm font-semibold">
+              Referral link
+            </h3>
+            <Link
+              href={`/programs/${program.slug}/links`}
+              target="_blank"
+              className="text-sm font-medium text-neutral-500 hover:text-neutral-700"
+            >
+              View all
+            </Link>
+          </div>
+
+          <input
+            type="text"
+            readOnly
+            value={getPrettyUrl(partnerLink)}
+            className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default mt-2 block h-10 w-full rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+          />
+
+          <Button
+            icon={
+              <div className="relative size-4">
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    copied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Copy className="size-4" />
+                </div>
+                <div
+                  className={cn(
+                    "absolute inset-0 transition-[transform,opacity]",
+                    !copied && "translate-y-1 opacity-0",
+                  )}
+                >
+                  <Check className="size-4" />
+                </div>
+              </div>
+            }
+            text={copied ? "Copied link" : "Copy link"}
+            className="mt-3 h-8 rounded-lg"
+            onClick={() => copyToClipboard(partnerLink)}
+          />
         </div>
-
-        <input
-          type="text"
-          readOnly
-          value={getPrettyUrl(partnerLink)}
-          className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default mt-2 block h-10 w-full rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
-        />
-
-        <Button
-          icon={
-            <div className="relative size-4">
-              <div
-                className={cn(
-                  "absolute inset-0 transition-[transform,opacity]",
-                  copied && "translate-y-1 opacity-0",
-                )}
-              >
-                <Copy className="size-4" />
-              </div>
-              <div
-                className={cn(
-                  "absolute inset-0 transition-[transform,opacity]",
-                  !copied && "translate-y-1 opacity-0",
-                )}
-              >
-                <Check className="size-4" />
-              </div>
-            </div>
-          }
-          text={copied ? "Copied link" : "Copy link"}
-          className="mt-3 h-8 rounded-lg"
-          onClick={() => copyToClipboard(partnerLink)}
-        />
-      </div>
+      )}
 
       {/* Rewards */}
       <div className="border-border-subtle border-b p-6">
