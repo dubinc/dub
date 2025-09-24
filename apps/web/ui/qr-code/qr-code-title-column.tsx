@@ -4,9 +4,7 @@ import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
-import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.tsx";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
-import { QRCardStatus } from "@/ui/qr-code/qr-code-card-status.tsx";
 import { QRCardTitle } from "@/ui/qr-code/qr-code-card-title.tsx";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import { Tooltip, useMediaQuery } from "@dub/ui";
@@ -14,6 +12,7 @@ import { cn, formatDateTime, timeAgo } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useRef } from "react";
+import { QRStatusBadge } from './qr-status-badge/qr-status-badge';
 
 interface QrCodeTitleColumnProps {
   qrCode: QrStorageData;
@@ -62,11 +61,7 @@ export function QrCodeTitleColumn({
               height={width! < 1024 ? 90 : 64}
             />
           </div>
-          {qrCode.archived || !featuresAccess ? (
-            <QRCardStatus className="lg:hidden" archived />
-          ) : (
-            <QRCardAnalyticsBadge className="lg:hidden" qrCode={qrCode} />
-          )}
+          <QRStatusBadge qrCode={qrCode} featuresAccess={featuresAccess} className="lg:hidden" />
         </div>
 
         <div className="flex h-full w-full min-w-0 flex-col gap-1.5 lg:flex-row lg:justify-start lg:gap-8 xl:gap-12">

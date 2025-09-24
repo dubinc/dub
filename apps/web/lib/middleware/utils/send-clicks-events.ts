@@ -82,7 +82,7 @@ export const sendClicksEvents = async (linkId: string) => {
 
     console.log("Link", link);
 
-    const featuresAccess = await checkFeaturesAccessAuthLess(link.userId, true);
+    const featuresAccess = await checkFeaturesAccessAuthLess(link.userId);
     
     const maxClicks =
       process.env.NEXT_PUBLIC_APP_ENV === "dev"

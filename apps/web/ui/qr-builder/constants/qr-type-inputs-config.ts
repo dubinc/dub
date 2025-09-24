@@ -91,7 +91,9 @@ export const QR_TYPE_INPUTS_CONFIG: Record<
       type: "text",
       placeholder: "ExtraToppings123",
       tooltip:
-        "People will automatically connect using this password after scanning your QR code. Leave this blank if your network has no password.",
+        "People will automatically connect using this password after scanning your QR code.",
+      // tooltip:
+      //   "People will automatically connect using this password after scanning your QR code. Leave this blank if your network has no password.",
     },
   ],
   [EQRType.IMAGE]: [
