@@ -27,7 +27,8 @@ export const additionalPartnerLinkSchema = z.object({
     .min(1, "domain is required")
     .refine((v) => isValidDomainFormat(v), {
       message: "Please enter a valid domain (eg: acme.com).",
-    }),
+    })
+    .transform((v) => v.toLowerCase()),
   validationMode: z.enum([
     "domain", // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
     "exact", // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)

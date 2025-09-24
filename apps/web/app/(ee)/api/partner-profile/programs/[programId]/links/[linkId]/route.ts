@@ -6,6 +6,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { NewLinkProps } from "@/lib/types";
+import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { getPrettyUrl } from "@dub/utils";
@@ -142,6 +143,6 @@ export const PATCH = withPartnerProfile(
       updatedLink: processedLink,
     });
 
-    return NextResponse.json(partnerLink);
+    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));
   },
 );

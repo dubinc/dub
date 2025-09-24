@@ -26,7 +26,6 @@ import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { ComponentProps, useMemo, useRef } from "react";
-import { toast } from "sonner";
 import { usePartnerLinksContext } from "./page-client";
 
 const CHARTS = [
@@ -158,24 +157,23 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
                   {link.comments && <CommentsBadge comments={link.comments} />}
 
-                  {link.couponCode && (
-                    <button
-                      className="relative flex h-5 w-fit items-center gap-1 rounded-lg bg-green-100 py-0 pl-1 pr-1.5"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toast.promise(copyToClipboard(link.couponCode!), {
-                          success: "Copied to clipboard",
-                        });
-                      }}
-                    >
+                  {link.discountCode && (
+                    <div className="group/discountcode relative flex h-5 w-fit items-center gap-1 rounded-lg bg-green-100 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:bg-green-200">
                       <Tag
                         className="size-3 text-green-700"
                         strokeWidth={1.5}
                       />
                       <div className="text-xs font-medium text-green-700 transition-colors">
-                        {link.couponCode}
+                        {link.discountCode}
                       </div>
-                    </button>
+                      <span className="flex items-center">
+                        <CopyButton
+                          value={link.discountCode}
+                          variant="neutral"
+                          className="p-0.5"
+                        />
+                      </span>
+                    </div>
                   )}
                 </div>
 
