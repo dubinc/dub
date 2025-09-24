@@ -107,9 +107,9 @@ export async function getPartnerForProgram({
     saleAmount: Number(partner[0].totalSaleAmount),
     totalCommissions: Number(partner[0].totalCommissions),
     netRevenue: Number(partner[0].netRevenue),
-    industryInterests: partner[0].industryInterests.split(","),
+    industryInterests: partner[0].industryInterests?.split(",") || undefined,
     preferredEarningStructures:
-      partner[0].preferredEarningStructures.split(","),
-    salesChannels: partner[0].salesChannels.split(","),
+      partner[0].preferredEarningStructures?.split(",") || undefined,
+    salesChannels: partner[0].salesChannels?.split(",") || undefined,
   };
 }
