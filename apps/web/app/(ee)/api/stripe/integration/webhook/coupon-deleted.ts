@@ -39,11 +39,7 @@ export async function couponDeleted(event: Stripe.Event) {
       OR: [{ couponId: coupon.id }, { couponTestId: coupon.id }],
     },
     include: {
-      partnerGroup: {
-        select: {
-          id: true,
-        },
-      },
+      partnerGroup: true,
     },
   });
 
@@ -52,25 +48,20 @@ export async function couponDeleted(event: Stripe.Event) {
   }
 
   const discountIds = discounts.map((d) => d.id);
-  const groupIds = discounts
-    .map((d) => d.partnerGroup?.id)
-    .filter(Boolean) as string[];
 
   await prisma.$transaction(async (tx) => {
-    if (groupIds.length > 0) {
+    if (discountIds.length > 0) {
       await tx.partnerGroup.updateMany({
         where: {
-          id: {
-            in: groupIds,
+          discountId: {
+            in: discountIds,
           },
         },
         data: {
           discountId: null,
         },
       });
-    }
 
-    if (discountIds.length > 0) {
       await tx.programEnrollment.updateMany({
         where: {
           discountId: {
@@ -106,6 +97,10 @@ export async function couponDeleted(event: Stripe.Event) {
         workspaceId: workspace.id,
         role: "owner",
       });
+
+      const groupIds = discounts
+        .map((d) => d.partnerGroup?.id)
+        .filter(Boolean) as string[];
 
       await Promise.allSettled([
         ...groupIds.map((groupId) =>
