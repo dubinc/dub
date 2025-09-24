@@ -61,7 +61,7 @@ export function QrCodeTitleColumn({
               height={width! < 1024 ? 90 : 64}
             />
           </div>
-          <QRStatusBadge qrCode={qrCode} featuresAccess={featuresAccess} />
+          <QRStatusBadge qrCode={qrCode} featuresAccess={featuresAccess} className="lg:hidden" />
         </div>
 
         <div className="flex h-full w-full min-w-0 flex-col gap-1.5 lg:flex-row lg:justify-start lg:gap-8 xl:gap-12">

@@ -5,14 +5,15 @@ import { QRCardAnalyticsBadge } from './qr-code-card-analytics-badge';
 interface IQRStatusBadge {
   qrCode: QrStorageData;
   featuresAccess?: boolean;
+  className?: string;
 }
 
-export function QRStatusBadge({ qrCode, featuresAccess }: IQRStatusBadge) {
+export function QRStatusBadge({ qrCode, featuresAccess, className }: IQRStatusBadge) {
   return qrCode.archived || !featuresAccess ? (
-    <QRCardStatus className="lg:hidden" archived >
+    <QRCardStatus className={className} color={qrCode.archived ? "yellow" : "red"} >
       {qrCode.archived ? "Paused" : "Deactivated"}
     </QRCardStatus>
   ) : (
-    <QRCardAnalyticsBadge className="lg:hidden" qrCode={qrCode} />
+    <QRCardAnalyticsBadge className={className} qrCode={qrCode} />
   );
 }
