@@ -1,8 +1,7 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { WorkspaceProps } from "@/lib/types";
-import { DEFAULT_CLOSED_WON_DEAL_STAGE_ID } from "./constants";
-import { getHubSpotContact } from "./get-contact";
-import { getHubSpotDeal } from "./get-deal";
+import { HubSpotApi } from "./api";
+import { HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID } from "./constants";
 import { hubSpotSaleEventSchema } from "./schema";
 import { HubSpotAuthToken } from "./types";
 
@@ -18,7 +17,7 @@ export const trackHubSpotSaleEvent = async ({
   closedWonDealStageId?: string | null;
 }) => {
   closedWonDealStageId =
-    closedWonDealStageId ?? DEFAULT_CLOSED_WON_DEAL_STAGE_ID;
+    closedWonDealStageId ?? HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID;
 
   const { objectId, subscriptionType, propertyName, propertyValue } =
     hubSpotSaleEventSchema.parse(payload);
@@ -42,10 +41,11 @@ export const trackHubSpotSaleEvent = async ({
     return;
   }
 
-  const deal = await getHubSpotDeal({
-    dealId: objectId,
-    accessToken: authToken.access_token,
+  const hubSpotApi = new HubSpotApi({
+    token: authToken.access_token,
   });
+
+  const deal = await hubSpotApi.getDeal(objectId);
 
   if (!deal) {
     return;
@@ -68,10 +68,7 @@ export const trackHubSpotSaleEvent = async ({
 
   // HubSpot doesn't return the contact properties in the deal associations,
   // so we need to get it separately
-  const contactInfo = await getHubSpotContact({
-    contactId: contact.id,
-    accessToken: authToken.access_token,
-  });
+  const contactInfo = await hubSpotApi.getContact(contact.id);
 
   if (!contactInfo) {
     return;

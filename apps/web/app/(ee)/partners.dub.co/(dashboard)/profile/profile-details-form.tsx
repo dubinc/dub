@@ -21,11 +21,16 @@ import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
 import { useAction } from "next-safe-action/hooks";
 import { RefObject, useEffect, useRef } from "react";
-import { Controller, FormProvider, useForm } from "react-hook-form";
+import {
+  Controller,
+  FormProvider,
+  useForm,
+  useFormContext,
+} from "react-hook-form";
 import { toast } from "sonner";
 import { SettingsRow } from "./settings-row";
 
-type ProfileDetailsFormData = {
+type BasicInfoFormData = {
   name: string;
   email: string;
   image: string | null;
@@ -38,7 +43,16 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
   const basicInfoFormRef = useRef<HTMLFormElement>(null);
   const onlinePresenceFormRef = useRef<HTMLFormElement>(null);
 
-  const basicInfoForm = useForm<ProfileDetailsFormData>();
+  const basicInfoForm = useForm<BasicInfoFormData>({
+    defaultValues: {
+      name: partner?.name,
+      email: partner?.email ?? "",
+      image: partner?.image,
+      country: partner?.country ?? "",
+      profileType: partner?.profileType ?? "individual",
+      companyName: partner?.companyName ?? null,
+    },
+  });
   const onlinePresenceForm = useOnlinePresenceForm({ partner });
 
   const {
@@ -132,16 +146,7 @@ function BasicInfoForm({
     getValues,
     reset,
     formState: { errors, isSubmitSuccessful },
-  } = useForm<ProfileDetailsFormData>({
-    defaultValues: {
-      name: partner?.name,
-      email: partner?.email ?? "",
-      image: partner?.image,
-      country: partner?.country ?? "",
-      profileType: partner?.profileType ?? "individual",
-      companyName: partner?.companyName ?? null,
-    },
-  });
+  } = useFormContext<BasicInfoFormData>();
 
   // Reset form dirty state after submit
   useEffect(() => {
