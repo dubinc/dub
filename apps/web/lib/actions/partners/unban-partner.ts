@@ -109,8 +109,8 @@ export const unbanPartnerAction = authActionClient
         });
 
         await Promise.allSettled([
-          // Delete links from cache
-          linkCache.deleteMany(links),
+          // Expire links from cache
+          linkCache.expireMany(links),
 
           recordAuditLog({
             workspaceId: workspace.id,

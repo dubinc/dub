@@ -1,7 +1,6 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { enqueueCouponCodeDeleteJobs } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -85,40 +84,48 @@ export const banPartnerAction = authActionClient
 
     waitUntil(
       (async () => {
+        // sync total commissions
+        await syncTotalCommissions({ partnerId, programId });
+
         const { program, partner } = programEnrollment;
+
+        if (!partner.email) {
+          console.error("Partner has no email address.");
+          return;
+        }
+
         const supportEmail = program.supportEmail || "support@dub.co";
 
+        // Expire links from cache
+        const links = await prisma.link.findMany({
+          where,
+          select: {
+            domain: true,
+            key: true,
+          },
+        });
+
+        await linkCache.expireMany(links);
+
         await Promise.allSettled([
-          // Sync total commissions
-          syncTotalCommissions({ partnerId, programId }),
-          // Notify partner
-
-          partner.email &&
-            sendEmail({
-              subject: `You've been banned from the ${program.name} Partner Program`,
-              to: partner.email,
-              replyTo: supportEmail,
-              react: PartnerBanned({
-                partner: {
-                  name: partner.name,
-                  email: partner.email,
-                },
-                program: {
-                  name: program.name,
-                  slug: program.slug,
-                },
-                bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
-              }),
-              variant: "notifications",
+          sendEmail({
+            subject: `You've been banned from the ${program.name} Partner Program`,
+            to: partner.email,
+            replyTo: supportEmail,
+            react: PartnerBanned({
+              partner: {
+                name: partner.name,
+                email: partner.email,
+              },
+              program: {
+                name: program.name,
+                slug: program.slug,
+              },
+              bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
             }),
+            variant: "notifications",
+          }),
 
-          // Expire links from cache
-          linkCache.deleteMany(programEnrollment.links),
-
-          // Enqueue coupon code delete jobs
-          enqueueCouponCodeDeleteJobs(programEnrollment.links),
-
-          // Record audit log for each partner
           recordAuditLog({
             workspaceId: workspace.id,
             programId,
@@ -133,26 +140,6 @@ export const banPartnerAction = authActionClient
               },
             ],
           }),
-
-          // Send email to the partner
-          partner.email &&
-            sendEmail({
-              subject: `You've been banned from the ${program.name} Partner Program`,
-              email: partner.email,
-              replyTo: supportEmail,
-              react: PartnerBanned({
-                partner: {
-                  name: partner.name,
-                  email: partner.email,
-                },
-                program: {
-                  name: program.name,
-                  supportEmail,
-                },
-                bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
-              }),
-              variant: "notifications",
-            }),
         ]);
       })(),
     );

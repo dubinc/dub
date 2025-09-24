@@ -57,6 +57,10 @@ export default async function IntegrationPage({
     ? integration.installations[0]?.credentials
     : undefined;
 
+  const settings = installed
+    ? integration.installations[0]?.settings
+    : undefined;
+
   // TODO:
   // Fix this, we only displaying the first webhook only
   const webhookId = installed
@@ -82,6 +86,7 @@ export default async function IntegrationPage({
               }
             : null,
           credentials,
+          settings,
           webhookId,
         }}
       />
