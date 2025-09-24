@@ -139,7 +139,8 @@ export async function getPartners(filters: PartnerFilters) {
       ${
         search
           ? Prisma.sql`AND (
-        LOWER(p.name) LIKE LOWER(${`%${search}%`}) 
+        LOWER(p.id) LIKE LOWER(${`%${search}%`})
+        OR LOWER(p.name) LIKE LOWER(${`%${search}%`}) 
         OR LOWER(p.email) LIKE LOWER(${`%${search}%`})
         OR EXISTS (
           SELECT 1 FROM Link searchLink 
