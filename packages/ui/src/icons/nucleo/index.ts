@@ -1,4 +1,5 @@
 export * from "./android-logo";
+export * from "./apple";
 export * from "./apple-logo";
 export * from "./arrow-bold-up";
 export * from "./arrow-right";
@@ -57,6 +58,7 @@ export * from "./circle-warning";
 export * from "./circle-xmark";
 export * from "./circles";
 export * from "./circles3";
+export * from "./cloud";
 export * from "./cloud-upload";
 export * from "./code";
 export * from "./color-palette2";
