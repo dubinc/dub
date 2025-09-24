@@ -118,7 +118,7 @@ model PartnerNotificationPreferences {
 enum IndustryInterest {
   SaaS
   DevTool
-  AI 
+  AI
   Creative_And_Design
   Productivity_Software
   Marketing

@@ -250,12 +250,21 @@ export const PartnerProfileSchema = z.object({
   industryInterests: z
     .array(z.nativeEnum(IndustryInterest))
     .max(MAX_PARTNER_INDUSTRY_INTERESTS)
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate industry interests are not allowed.",
+    })
     .describe("The partner's industry interests."),
   preferredEarningStructures: z
     .array(z.nativeEnum(PreferredEarningStructure))
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate preferred earning structures are not allowed.",
+    })
     .describe("The partner's preferred earning structures."),
   salesChannels: z
     .array(z.nativeEnum(SalesChannel))
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate sales channels are not allowed.",
+    })
     .describe("The partner's sales channels."),
 });
 
