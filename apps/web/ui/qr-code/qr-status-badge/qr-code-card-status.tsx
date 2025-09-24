@@ -3,9 +3,10 @@ import { cn } from "@dub/utils/src";
 interface IQRCardStatus {
   archived: boolean;
   className?: string;
+  children?: React.ReactNode;
 }
 
-export function QRCardStatus({ archived, className }: IQRCardStatus) {
+export function QRCardStatus({ archived, className, children }: IQRCardStatus) {
   return (
     <div
       className={cn(
@@ -15,7 +16,7 @@ export function QRCardStatus({ archived, className }: IQRCardStatus) {
         className,
       )}
     >
-      {archived ? "Deactivated" : "Active"}
+      {children}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { default as man } from "ui/modals/trial-offer-with-qr-preview/assets/avatars/man.png";
 import { default as woman } from "ui/modals/trial-offer-with-qr-preview/assets/avatars/woman.png";
+import * as Avatar from "@radix-ui/react-avatar";
 
 export const usersWithAvatar = [
   {
@@ -14,8 +15,6 @@ export const usersWithAvatar = [
     avatar: woman,
   },
 ];
-
-import * as Avatar from "@radix-ui/react-avatar";
 
 export const AvatarsComponent = () => {
   const max = 3;
