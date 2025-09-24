@@ -89,7 +89,9 @@ export async function importPartners(payload: RewardfulImportPayload) {
               clickRewardId: defaultGroup.clickRewardId,
               discountId: defaultGroup.discountId,
               partnerGroupDefaultLinkId:
-                defaultGroup.partnerGroupDefaultLinks[0].id,
+                defaultGroup.partnerGroupDefaultLinks.length > 0
+                  ? defaultGroup.partnerGroupDefaultLinks[0].id
+                  : null,
             },
           }),
         ),
