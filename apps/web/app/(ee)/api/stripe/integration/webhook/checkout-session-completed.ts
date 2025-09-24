@@ -225,6 +225,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       select: {
         id: true,
         stripeConnectId: true,
+        defaultProgramId: true,
       },
     });
 
@@ -232,27 +233,27 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       return `Workspace with stripeConnectId ${stripeAccountId} not found, skipping...`;
     }
 
-    // Identify the link associated with the promotion code
-    const link = await prisma.link.findUnique({
+    if (!workspace.defaultProgramId) {
+      return `Workspace with stripeConnectId ${stripeAccountId} has no default program, skipping...`;
+    }
+
+    const discountCode = await prisma.discountCode.findUnique({
       where: {
-        projectId_couponCode: {
-          projectId: workspace.id,
-          couponCode: promotionCode.code,
+        programId_code: {
+          programId: workspace.defaultProgramId,
+          code: promotionCode.code,
         },
       },
       select: {
-        id: true,
-        url: true,
-        domain: true,
-        key: true,
-        projectId: true,
+        link: true,
       },
     });
 
-    if (!link) {
+    if (!discountCode) {
       return `Couldn't find link associated with promotion code ${promotionCode.code}, skipping...`;
     }
 
+    const link = discountCode.link;
     linkId = link.id;
 
     // Record a fake click for this event
