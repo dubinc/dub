@@ -213,43 +213,16 @@ export async function bulkCreateLinks({
   }
 
   waitUntil(
-    (async () => {
-      // Find the links with coupon code tracking enabled
-      const partnerLinks = await prisma.link.findMany({
-        where: {
-          id: {
-            in: createdLinksData.map((link) => link.id),
-          },
-        },
-        select: {
-          id: true,
-          key: true,
-          programEnrollment: {
-            select: {
-              discount: {
-                where: {
-                  couponCodeTrackingEnabledAt: {
-                    not: null,
-                  },
-                },
-              },
-            },
-          },
-        },
-      });
-
-      await Promise.allSettled([
-        propagateBulkLinkChanges({
-          links: createdLinksData,
-          skipRedisCache,
-        }),
-
-        updateLinksUsage({
-          workspaceId: links[0].projectId!, // this will always be present
-          increment: links.length,
-        }),
-      ]);
-    })(),
+    Promise.all([
+      propagateBulkLinkChanges({
+        links: createdLinksData,
+        skipRedisCache,
+      }),
+      updateLinksUsage({
+        workspaceId: links[0].projectId!, // this will always be present
+        increment: links.length,
+      }),
+    ]),
   );
 
   // Simplified sorting using the map
