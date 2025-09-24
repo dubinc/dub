@@ -10,6 +10,7 @@ export async function getUserViaToken(req: NextRequest) {
     email?: string;
     user?: UserProps;
   };
+  console.log("middleware session", session);
 
   return session?.user;
 }

@@ -15,6 +15,7 @@ import { AnalyticInitializerComponent } from "@/lib/analytic-initializer/analyti
 import { DomainClientProviders } from "@/ui/domain-client-providers";
 import { Footer } from "@/ui/landing/components/footer";
 import { Header } from "@/ui/landing/components/header.tsx";
+import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 
 const Layout = async ({ children }) => {
@@ -27,6 +28,7 @@ const Layout = async ({ children }) => {
         {children}
         <Footer sessionId={sessionId!} />
       </div>
+      <ClientSessionComponent blockSessionCreation />
       <AnalyticInitializerComponent sessionId={sessionId!} authSession={null} />
     </DomainClientProviders>
   );

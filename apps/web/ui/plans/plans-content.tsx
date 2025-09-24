@@ -9,17 +9,18 @@ import { PlansHeading } from "@/ui/plans/components/plans-heading.tsx";
 import { PopularQrInfo } from "@/ui/plans/components/popular-qr-info.tsx";
 import { ICustomerBody } from "core/integration/payment/config";
 import { FC, useRef } from "react";
+import { QrStorageData } from "../qr-builder/types/types";
 
 interface IPlansContentProps {
-  mostScannedQR: QrStorageData | null;
   user: ICustomerBody;
   featuresAccess: FeaturesAccess;
+  mostScannedQR: QrStorageData | null;
 }
 
 export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
-  mostScannedQR = null,
   user,
   featuresAccess,
+  mostScannedQR = null,
 }) => {
   const paymentSectionRef = useRef<HTMLDivElement>(null);
 
@@ -44,11 +45,7 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
         />
 
         <div ref={paymentSectionRef}>
-          <PaymentComponent
-            user={user}
-            featuresAccess={featuresAccess}
-            onScrollToPayment={handleScrollToPayment}
-          />
+          <PaymentComponent user={user} featuresAccess={featuresAccess} />
         </div>
 
         <div className="block pb-6 lg:hidden">

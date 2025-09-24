@@ -11,7 +11,6 @@ import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-conv
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
-import { HOME_DOMAIN } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client/extension";
 import { waitUntil } from "@vercel/functions";
@@ -36,6 +35,7 @@ import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-univer
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
+import { createAutoLoginURL } from "./jwt-signin";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -119,6 +119,25 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
+        const magicLinkUrl = new URL(url);
+        const callbackUrl = magicLinkUrl.searchParams.get("callbackUrl");
+
+        let template = CUSTOMER_IO_TEMPLATES.MAGIC_LINK;
+        let ctx: Record<string, string> | null = null;
+
+        if (callbackUrl) {
+          const params = new URL(callbackUrl).searchParams;
+          template = params.get("template") as string;
+          const rawParams = params.get("ctx");
+          if (rawParams) {
+            try {
+              ctx = JSON.parse(
+                Buffer.from(rawParams, "base64url").toString("utf8"),
+              );
+            } catch {}
+          }
+        }
+
         prisma.user
           .findUnique({
             where: {
@@ -138,9 +157,10 @@ export const authOptions: NextAuthOptions = {
               sendEmail({
                 email: identifier,
                 subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-                template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
+                template: template as string,
                 messageData: {
                   url,
+                  ...ctx,
                 },
                 customerId: user?.id,
               }),
@@ -555,7 +575,7 @@ export const authOptions: NextAuthOptions = {
         token.user = user;
       }
 
-      // refresh the user's data if they update their name / email
+      // refresh the user's data if they update their name / email or session update is triggered
       if (trigger === "update") {
         const refreshedUser = await prisma.user.findUnique({
           where: { id: token.sub },
@@ -583,11 +603,16 @@ export const authOptions: NextAuthOptions = {
       console.log("events signIn message: ", JSON.stringify(message));
       const cookieStore = cookies();
 
+      const { user: userFromCookie } = await getUserCookieService();
+
       const customerUser = convertSessionUserToCustomerBody(
         message.user as Session["user"],
       );
 
-      await applyUserSession(customerUser);
+      await applyUserSession({
+        ...customerUser,
+        currency: { ...customerUser?.currency, ...userFromCookie?.currency },
+      });
 
       if (message.isNewUser) {
         const email = message.user.email as string;
@@ -632,6 +657,8 @@ export const authOptions: NextAuthOptions = {
               },
             );
 
+            const loginUrl = await createAutoLoginURL(user.id);
+
             waitUntil(
               Promise.all([
                 CustomerIOClient.identify(user.id, {
@@ -647,8 +674,8 @@ export const authOptions: NextAuthOptions = {
                         qr_type:
                           QR_TYPES.find(
                             (item) => item.id === qrDataToCreate?.qrType,
-                          )!.label || "Indefined type",
-                        url: HOME_DOMAIN,
+                          )!.label || "Undefined type",
+                        url: loginUrl,
                       },
                       customerId: user.id,
                     })
@@ -657,7 +684,7 @@ export const authOptions: NextAuthOptions = {
                       subject: "Welcome to GetQR",
                       template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
                       messageData: {
-                        url: HOME_DOMAIN,
+                        url: loginUrl,
                       },
                       customerId: user.id,
                     }),

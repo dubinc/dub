@@ -4,7 +4,7 @@ import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
 import { Button } from "@dub/ui";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useCallback, useEffect } from "react";
 
 interface IHeaderProps {
@@ -14,13 +14,13 @@ interface IHeaderProps {
 export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
   const { AuthModal, showModal } = useAuthModal({ sessionId });
   const searchParams = useSearchParams();
+  const router = useRouter();
 
   const openLogin = searchParams.get("login");
+  const scrollToBuilder = searchParams.get("start");
 
   useEffect(() => {
-    console.log("openLogin", openLogin);
     if (openLogin) {
-      console.log("here");
       showModal("login");
     }
   }, [openLogin, showModal]);
@@ -29,8 +29,16 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
     const qrGenerationBlock = document.getElementById("qr-generation-block");
     if (qrGenerationBlock) {
       qrGenerationBlock.scrollIntoView({ behavior: "smooth" });
+      return;
     }
-  }, []);
+    router.push("/?start=true");
+  }, [router]);
+
+  useEffect(() => {
+    if (scrollToBuilder) {
+      handleScrollToQRGenerationBlock();
+    }
+  }, [scrollToBuilder, handleScrollToQRGenerationBlock]);
 
   return (
     <>

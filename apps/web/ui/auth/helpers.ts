@@ -15,9 +15,9 @@ export const showMessage = (
     setAuthModalMessage(messageText, type);
   } else {
     if (type === "success") {
-      toast.success(messageText);
+      toast.success(messageText, { duration: 10000 });
     } else {
-      toast.error(messageText);
+      toast.error(messageText, { duration: 10000 });
     }
   }
 };

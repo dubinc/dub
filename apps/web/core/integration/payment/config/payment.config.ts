@@ -8,12 +8,14 @@ const ONE_MONTH_IN_DAYS = 28;
 
 // price config
 export const priceConfig = {
+  TRIAL_PERIOD_DAYS: 7,
   MONTHLY_PLAN_CHARGE_PERIOD_DAYS: ONE_MONTH_IN_DAYS,
   QUARTERLY_PLAN_CHARGE_PERIOD_DAYS: ONE_MONTH_IN_DAYS * 3,
   YEARLY_PLAN_CHARGE_PERIOD_DAYS: 365,
   paymentPlan: {
     DEFAULT: {
       MIN_PRICE: 50,
+      PRICE_TRIAL_MONTH_PLAN: 99,
       PRICE_MONTH_PLAN: 3999,
       PRICE_QUARTER_PLAN: 2999 * 3,
       PRICE_QUARTER_PLAN_PREV: 3999 * 3,
@@ -75,6 +77,7 @@ export const getPaymentPlanPrice = (props: IPaymentPlanPrice) => {
     YEARLY_PLAN_CHARGE_PERIOD_DAYS: priceConfig.YEARLY_PLAN_CHARGE_PERIOD_DAYS,
     priceForPay,
     priceForView,
+    trialPeriodDays: priceConfig.TRIAL_PERIOD_DAYS,
   };
 };
 

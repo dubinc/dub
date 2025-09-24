@@ -1,9 +1,9 @@
-import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less.ts";
 import { qstash } from "@/lib/cron";
 import { isStored, storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { ProcessedLinkProps } from "@/lib/types";
 import { propagateWebhookTriggerChanges } from "@/lib/webhook/update-webhook";
+import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import {
@@ -20,9 +20,11 @@ import { linkCache } from "./cache";
 import { includeTags } from "./include-tags";
 import { updateLinksUsage } from "./update-links-usage";
 import { transformLink } from "./utils";
-import { EQRType } from '@/ui/qr-builder/constants/get-qr-config';
 
-export async function createLink(link: ProcessedLinkProps, qrData?: { id?: string; qrType?: EQRType }) {
+export async function createLink(
+  link: ProcessedLinkProps,
+  qrData?: { id?: string; qrType?: EQRType },
+) {
   let {
     key,
     url,
@@ -33,16 +35,16 @@ export async function createLink(link: ProcessedLinkProps, qrData?: { id?: strin
     proxy,
     geo,
     publicStats,
-    userId,
+    // userId,
   } = link;
 
-  if (userId) {
-    const result = await checkFeaturesAccessAuthLess(userId);
+  // if (userId) {
+  //   const result = await checkFeaturesAccessAuthLess(userId);
 
-    if (result && !result?.featuresAccess) {
-      throw new Error("Access denied: Account have not subscription.");
-    }
-  }
+  //   if (result && !result?.featuresAccess) {
+  //     throw new Error("Access denied: Account have not subscription.");
+  //   }
+  // }
 
   const combinedTagIds = combineTagIds(link);
 
