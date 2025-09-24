@@ -1,3 +1,4 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -10,6 +11,7 @@ import {
   getDiscountCodesQuerySchema,
 } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
 // GET /api/discount-codes - get all discount codes for a partner
@@ -45,7 +47,7 @@ export const GET = withWorkspace(
 
 // POST /api/discount-codes - create a discount code
 export const POST = withWorkspace(
-  async ({ workspace, req }) => {
+  async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     let { partnerId, linkId, code } = createDiscountCodeSchema.parse(
@@ -149,6 +151,23 @@ export const POST = withWorkspace(
           discountId: discount.id,
         },
       });
+
+      waitUntil(
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "discount_code.created",
+          description: `Discount code (${discountCode.code}) created`,
+          actor: session.user,
+          targets: [
+            {
+              type: "discount_code",
+              id: discountCode.id,
+              metadata: discountCode,
+            },
+          ],
+        }),
+      );
 
       return NextResponse.json(DiscountCodeSchema.parse(discountCode));
     } catch (error) {

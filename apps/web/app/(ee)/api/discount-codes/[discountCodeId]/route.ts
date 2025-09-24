@@ -1,3 +1,4 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -8,7 +9,7 @@ import { NextResponse } from "next/server";
 
 // DELETE /api/discount-codes/[discountCodeId] - delete a discount code
 export const DELETE = withWorkspace(
-  async ({ workspace, params }) => {
+  async ({ workspace, params, session }) => {
     const { discountCodeId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -39,10 +40,27 @@ export const DELETE = withWorkspace(
     });
 
     waitUntil(
-      disableStripeDiscountCode({
-        stripeConnectId: workspace.stripeConnectId,
-        code: discountCode.code,
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "discount_code.deleted",
+          description: `Discount code (${discountCode.code}) deleted`,
+          actor: session.user,
+          targets: [
+            {
+              type: "discount_code",
+              id: discountCode.id,
+              metadata: discountCode,
+            },
+          ],
+        }),
+
+        disableStripeDiscountCode({
+          stripeConnectId: workspace.stripeConnectId,
+          code: discountCode.code,
+        }),
+      ]),
     );
 
     return NextResponse.json({ id: discountCode.id });
