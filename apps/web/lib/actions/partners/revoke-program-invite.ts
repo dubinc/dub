@@ -68,8 +68,8 @@ export const revokeProgramInviteAction = authActionClient
 
     waitUntil(
       Promise.all([
-        // Delete the links from Redis
-        linkCache.deleteMany(partnerLinks),
+        // Expire the links from Redis
+        linkCache.expireMany(partnerLinks),
 
         // Record the links deletion in Tinybird
         recordLinkTB(
