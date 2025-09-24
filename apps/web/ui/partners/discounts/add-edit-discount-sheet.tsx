@@ -377,7 +377,7 @@ function DiscountSheetContent({
                       <InfoTooltip
                         content={
                           <SimpleTooltipContent
-                            title="Enabling this will allow the partners to create a promo code for their links."
+                            title="Enabling this will allow you to create discount codes for your partners."
                             href="https://dub.co/help/article/coupon-codes-tracking"
                             cta="Learn more"
                           />
