@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -9,7 +10,6 @@ import {
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
-import { resend } from "@dub/email/resend";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
@@ -47,6 +47,7 @@ export const bulkBanPartnersAction = authActionClient
           select: {
             domain: true,
             key: true,
+            discountCode: true,
           },
         },
       },
@@ -122,28 +123,37 @@ export const bulkBanPartnersAction = authActionClient
           ),
         );
 
-        // Expire links from cache
-        await linkCache.expireMany(
-          programEnrollments.flatMap(({ links }) => links),
-        );
+        const links = programEnrollments.flatMap(({ links }) => links);
 
-        // Record audit log for each partner
-        await recordAuditLog(
-          programEnrollments.map(({ partner }) => ({
-            workspaceId: workspace.id,
-            programId,
-            action: "partner.banned",
-            description: `Partner ${partner.id} banned`,
-            actor: user,
-            targets: [
-              {
-                type: "partner",
-                id: partner.id,
-                metadata: partner,
-              },
-            ],
-          })),
-        );
+        await Promise.allSettled([
+          // Expire links from cache
+          linkCache.expireMany(links),
+
+          // Queue discount code deletions
+          ...links.map((link) =>
+            queueDiscountCodeDeletion({
+              discountCodeId: link.discountCode?.id,
+            }),
+          ),
+
+          // Record audit log for each partner
+          recordAuditLog(
+            programEnrollments.map(({ partner }) => ({
+              workspaceId: workspace.id,
+              programId,
+              action: "partner.banned",
+              description: `Partner ${partner.id} banned`,
+              actor: user,
+              targets: [
+                {
+                  type: "partner",
+                  id: partner.id,
+                  metadata: partner,
+                },
+              ],
+            })),
+          ),
+        ]);
 
         // Send email
         const program = await prisma.program.findUniqueOrThrow({
@@ -155,11 +165,6 @@ export const bulkBanPartnersAction = authActionClient
             slug: true,
           },
         });
-
-        if (!resend) {
-          console.error("Resend is not configured, skipping email sending.");
-          return;
-        }
 
         await sendBatchEmail(
           programEnrollments
