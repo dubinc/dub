@@ -54,9 +54,9 @@ export async function POST(req: Request) {
                 },
                 readInApp: null, // Unread
                 readInEmail: null, // Unread
-                emails: {
-                  none: {}, // No emails sent yet
-                },
+              },
+              orderBy: {
+                createdAt: "desc",
               },
               include: {
                 senderUser: true,
@@ -77,16 +77,16 @@ export async function POST(req: Request) {
       },
     });
 
-    const unreadMessages = programEnrollment.partner.messages.sort(
-      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-    );
+    // unread messages are already sorted by latest message first
+    const unreadMessages = programEnrollment.partner.messages;
 
     if (unreadMessages.length === 0)
       return logAndRespond(
         `No unread messages found for partner ${partnerId} in program ${programId}. Skipping...`,
       );
 
-    if (unreadMessages[unreadMessages.length - 1].id !== lastMessageId)
+    // if the latest unread message is not the last message id, skip
+    if (unreadMessages[0].id !== lastMessageId)
       return logAndRespond(
         `There is a more recent unread message than ${lastMessageId}. Skipping...`,
       );
