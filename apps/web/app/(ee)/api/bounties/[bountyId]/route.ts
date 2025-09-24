@@ -224,6 +224,7 @@ export const PATCH = withWorkspace(
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
             body: {
               bountyId: updatedBounty.id,
+              userId: session?.user.id,
             },
             notBefore: Math.floor(updatedBounty.startsAt.getTime() / 1000),
           }),

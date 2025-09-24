@@ -253,6 +253,7 @@ export const POST = withWorkspace(
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
           body: {
             bountyId: bounty.id,
+            userId: session?.user.id,
           },
           notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
         }),

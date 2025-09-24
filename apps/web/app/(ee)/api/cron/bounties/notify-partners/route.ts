@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -5,6 +6,7 @@ import { sendBatchEmail } from "@dub/email";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
@@ -13,6 +15,7 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   bountyId: z.string(),
+  userId: z.string().nullish(),
   page: z.number().optional().default(0),
 });
 
@@ -29,7 +32,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { bountyId, page } = schema.parse(JSON.parse(rawBody));
+    const { bountyId, userId, page } = schema.parse(JSON.parse(rawBody));
 
     // Find bounty
     const bounty = await prisma.bounty.findUnique({
@@ -38,7 +41,23 @@ export async function POST(req: Request) {
       },
       include: {
         groups: true,
-        program: true,
+        program: {
+          include: {
+            workspace: {
+              select: {
+                users: {
+                  select: {
+                    userId: true,
+                  },
+                  where: {
+                    role: "owner",
+                  },
+                  take: 1,
+                },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -104,7 +123,7 @@ export async function POST(req: Request) {
     console.log(
       `Sending emails to ${programEnrollments.length} partners: ${programEnrollments.map(({ partner }) => partner.email).join(", ")}`,
     );
-    await sendBatchEmail(
+    const { data } = await sendBatchEmail(
       programEnrollments.map(({ partner }) => ({
         variant: "notifications",
         to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
@@ -127,6 +146,29 @@ export async function POST(req: Request) {
         },
       })),
     );
+
+    if (data) {
+      await prisma.message.createMany({
+        data: programEnrollments.flatMap(({ partner }, idx) => {
+          const messageId = createId({ prefix: "msg_" });
+          return {
+            id: messageId,
+            programId: bounty.programId,
+            partnerId: partner.id,
+            senderUserId: userId ?? bounty.program.workspace.users[0].userId,
+            text: `New bounty available for ${bounty.program.name}`,
+            emails: {
+              create: {
+                type: NotificationEmailType.Bounty,
+                emailId: data.data[idx].id,
+                messageId,
+                bountyId: bounty.id,
+              },
+            },
+          };
+        }),
+      });
+    }
 
     if (programEnrollments.length === MAX_PAGE_SIZE) {
       const res = await qstash.publishJSON({

@@ -1,11 +1,13 @@
 enum NotificationEmailType {
   Message
+  Bounty
 }
 
 model NotificationEmail {
   id        String                @id @default(cuid())
   emailId   String // Resend email id
   messageId String?
+  bountyId String?
   type      NotificationEmailType
   openedAt  DateTime?
   createdAt DateTime              @default(now())
