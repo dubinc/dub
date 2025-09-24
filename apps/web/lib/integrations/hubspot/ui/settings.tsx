@@ -6,7 +6,7 @@ import { Button } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
-import { DEFAULT_CLOSED_WON_DEAL_STAGE_ID } from "../constants";
+import { HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID } from "../constants";
 import { updateHubSpotSettingsAction } from "../update-hubspot-settings";
 
 export const HubSpotSettings = ({
@@ -15,7 +15,7 @@ export const HubSpotSettings = ({
 }: InstalledIntegrationInfoProps) => {
   const { id: workspaceId } = useWorkspace();
   const [closedWonDealStageId, setClosedWonDealStageId] = useState(
-    (settings as any)?.closedWonDealStageId || DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
+    (settings as any)?.closedWonDealStageId || HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
   );
 
   const { executeAsync, isPending } = useAction(updateHubSpotSettingsAction, {
@@ -63,7 +63,7 @@ export const HubSpotSettings = ({
           <div className="relative mt-4 rounded-md shadow-sm">
             <input
               className="w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-              placeholder={`Enter deal stage ID (e.g., ${DEFAULT_CLOSED_WON_DEAL_STAGE_ID})`}
+              placeholder={`Enter deal stage ID (e.g., ${HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID})`}
               type="text"
               autoComplete="off"
               name="closedWonDealStageId"
