@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { queueDiscountCodeDeletionJobs } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
@@ -61,14 +62,7 @@ export const updateDiscountAction = authActionClient
             },
           }),
 
-        trackingDisabled &&
-          partnerGroup &&
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/enqueue-coupon-code-delete-jobs`,
-            body: {
-              groupId: partnerGroup.id,
-            },
-          }),
+        trackingDisabled && queueDiscountCodeDeletionJobs(discountId),
 
         recordAuditLog({
           workspaceId: workspace.id,
@@ -107,51 +101,4 @@ function detectDiscountChanges(
     trackingEnabled,
     trackingDisabled,
   };
-}
-
-async function queueDiscountCodeDeletionJobs(discountId: string) {
-  const queue = qstash.queue({
-    queueName: "discount-code-deletion",
-  });
-
-  await queue.upsert({
-    parallelism: 10,
-  });
-
-  // take 100 and do pagination
-  
-  const pageSize = 100
-  let hasMore = true
-  let cursor = null
-
-  while (hasMore) {
-    const discountCode = await prisma.discountCode.findMany({
-      where: {
-        discountId,
-      },
-      select: {
-        id: true,
-      },
-      take: pageSize,
-      orderBy: {
-        createdAt: "asc",
-      },
-      ...(cursor ? {
-        cursor: {
-          id: cursor,
-        },
-      }),
-    });
-  }
-
-
-
-
-  // const response = await queue.enqueueJSON({
-  //   url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/delete-discount-code`,
-  //   method: "POST",
-  //   body: {
-  //     discountCodeId = 
-  //   },
-  // });
 }

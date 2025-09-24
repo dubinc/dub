@@ -1,20 +1,19 @@
 import { stripeAppClient } from ".";
-import { WorkspaceProps } from "../types";
 
 const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
 });
 
-export async function disableStripePromotionCode({
-  workspace,
+export async function disableStripeDiscountCode({
+  stripeConnectId,
   code,
 }: {
-  workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
+  stripeConnectId: string;
   code: string;
 }) {
-  if (!workspace.stripeConnectId) {
+  if (!stripeConnectId) {
     console.error(
-      `stripeConnectId not found for the workspace ${workspace.id}. Skipping...`,
+      `stripeConnectId is required to disable a Stripe discount code.`,
     );
     return;
   }
@@ -25,13 +24,13 @@ export async function disableStripePromotionCode({
       limit: 1,
     },
     {
-      stripeAccount: workspace.stripeConnectId,
+      stripeAccount: stripeConnectId,
     },
   );
 
   if (promotionCodes.data.length === 0) {
     console.error(
-      `Stripe promotion code ${code} not found (stripeConnectId=${workspace.stripeConnectId}).`,
+      `Stripe promotion code ${code} not found (stripeConnectId=${stripeConnectId}).`,
     );
     return;
   }
@@ -44,12 +43,12 @@ export async function disableStripePromotionCode({
       active: false,
     },
     {
-      stripeAccount: workspace.stripeConnectId,
+      stripeAccount: stripeConnectId,
     },
   );
 
   console.info(
-    `Disabled Stripe promotion code ${promotionCode.code} (id=${promotionCode.id}, stripeConnectId=${workspace.stripeConnectId}).`,
+    `Disabled Stripe promotion code ${promotionCode.code} (id=${promotionCode.id}, stripeConnectId=${stripeConnectId}).`,
   );
 
   return promotionCode;
