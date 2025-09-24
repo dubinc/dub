@@ -8,7 +8,7 @@ async function main() {
     url: "https://accurate-caribou-strictly.ngrok-free.app/api/workflows/partner-approved",
   });
 
-  console.log(response)
+  console.log(response);
 }
 
 main();
