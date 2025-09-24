@@ -33,6 +33,7 @@ export function PartnerAbout({
           partner={partner}
           showLabels={false}
           className="gap-y-2"
+          emptyClassName="text-xs"
         />
       </div>
     </>

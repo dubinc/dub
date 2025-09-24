@@ -34,3 +34,8 @@ export interface CustomResponse extends Response {
   json: () => Promise<any>;
   error?: { code: string; projectId: string; message: string };
 }
+
+// special case for domains that use a reverse proxy in front of Dub (not recommended)
+export const isProxiedDomain = (domain: string) => {
+  return ["go.zillow.com"].includes(domain);
+};

@@ -43,7 +43,7 @@ export const GET = withWorkspace(
     /**
      * Domain has DNS conflicts
      */
-    if (configJson?.conflicts.length > 0) {
+    if (configJson?.conflicts && configJson.conflicts.length > 0) {
       status = "Conflicting DNS Records";
       return NextResponse.json({
         status,
