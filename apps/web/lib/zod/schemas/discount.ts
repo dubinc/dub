@@ -54,6 +54,7 @@ export const discountPartnersQuerySchema = z
   );
 
 // Discount codes
+
 export const DiscountCodeSchema = z.object({
   id: z.string(),
   code: z.string(),
@@ -64,12 +65,15 @@ export const DiscountCodeSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const getDiscountCodesQuerySchema = z.object({
-  partnerId: z.string(),
-});
-
 export const createDiscountCodeSchema = z.object({
-  code: z.string().optional(),
+  code: z
+    .string()
+    .max(100, "Code must be less than 100 characters.")
+    .optional(),
   partnerId: z.string(),
   linkId: z.string(),
+});
+
+export const getDiscountCodesQuerySchema = z.object({
+  partnerId: z.string(),
 });

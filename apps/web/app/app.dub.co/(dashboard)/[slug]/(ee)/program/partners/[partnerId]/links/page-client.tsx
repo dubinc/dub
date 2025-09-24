@@ -3,6 +3,7 @@
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useAddDiscountCodeModal } from "@/ui/partners/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/partners/add-partner-link-modal";
 import { Button, CopyButton, LoadingSpinner, Table, useTable } from "@dub/ui";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
@@ -33,6 +34,11 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
 
   const { AddPartnerLinkModal, setShowAddPartnerLinkModal } =
     useAddPartnerLinkModal({
+      partner,
+    });
+
+  const { AddDiscountCodeModal, setShowAddDiscountCodeModal } =
+    useAddDiscountCodeModal({
       partner,
     });
 
@@ -129,14 +135,23 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   return (
     <>
       <AddPartnerLinkModal />
+      <AddDiscountCodeModal />
       <div className="flex items-end justify-between gap-4">
         <h2 className="text-content-emphasis text-lg font-semibold">Links</h2>
-        <Button
-          variant="secondary"
-          text="Create link"
-          className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
-          onClick={() => setShowAddPartnerLinkModal(true)}
-        />
+        <div className="flex gap-2">
+          <Button
+            variant="secondary"
+            text="Create discount code"
+            className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
+            onClick={() => setShowAddDiscountCodeModal(true)}
+          />
+          <Button
+            variant="secondary"
+            text="Create link"
+            className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
+            onClick={() => setShowAddPartnerLinkModal(true)}
+          />
+        </div>
       </div>
       <div className="mt-4">
         <Table {...table} />
