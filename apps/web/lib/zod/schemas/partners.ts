@@ -156,7 +156,7 @@ export const getPartnersQuerySchema = z
       .string()
       .optional()
       .describe(
-        "A search query to filter partners by name, email, or tenantId.",
+        "A search query to filter partners by ID, name, email, or link.",
       )
       .openapi({ example: "john" }),
     includeExpandedFields: booleanQuerySchema

@@ -38,6 +38,7 @@ export async function getPartnerForProgram({
               'url', l.url,
               'clicks', CAST(l.clicks AS SIGNED),
               'leads', CAST(l.leads AS SIGNED),
+              'conversions', CAST(l.conversions AS SIGNED),
               'sales', CAST(l.sales AS SIGNED),
               'saleAmount', CAST(l.saleAmount AS SIGNED)
             ),

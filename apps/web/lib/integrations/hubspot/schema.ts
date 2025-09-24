@@ -11,6 +11,14 @@ export const hubSpotAuthTokenSchema = z.object({
   created_at: z.number(),
 });
 
+// Integration settings
+export const hubSpotSettingsSchema = z.object({
+  closedWonDealStageId: z
+    .string()
+    .nullish()
+    .describe("The ID of the deal stage that represents a closed won deal."),
+});
+
 export const hubSpotRefreshTokenSchema = z.object({
   access_token: z.string(),
   refresh_token: z.string(),
@@ -26,7 +34,9 @@ export const hubSpotContactSchema = z.object({
     email: z.string(),
     firstname: z.string().nullable(),
     lastname: z.string().nullable(),
-    dub_id: z.string().nullable(),
+    dub_id: z.string().nullish(),
+    dub_link: z.string().nullish(),
+    dub_partner_email: z.string().nullish(),
   }),
 });
 
