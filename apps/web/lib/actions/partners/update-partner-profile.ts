@@ -224,7 +224,7 @@ const deleteStripeAccountIfRequired = async ({
 
   if (completedPayoutsCount > 0) {
     throw new Error(
-      "Since you've already received payouts on Dub, you cannot change your email, country or profile type. Please contact support to update those fields.",
+      "Since you've already received payouts on Dub, you cannot change your country or profile type. Please contact support to update those fields.",
     );
   }
 
