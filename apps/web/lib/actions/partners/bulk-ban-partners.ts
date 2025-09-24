@@ -123,7 +123,7 @@ export const bulkBanPartnersAction = authActionClient
         );
 
         // Expire links from cache
-        await linkCache.deleteMany(
+        await linkCache.expireMany(
           programEnrollments.flatMap(({ links }) => links),
         );
 
