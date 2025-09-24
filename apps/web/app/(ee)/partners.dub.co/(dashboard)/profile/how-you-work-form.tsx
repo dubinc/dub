@@ -88,7 +88,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
                       >
                         <input
                           type="checkbox"
-                          className="hidden"
+                          className="sr-only"
                           checked={field.value.includes(earningStructure.id)}
                           onChange={(e) =>
                             e.target.checked
@@ -148,7 +148,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
                       >
                         <input
                           type="checkbox"
-                          className="hidden"
+                          className="sr-only"
                           checked={field.value.includes(salesChannel.id)}
                           onChange={(e) =>
                             e.target.checked

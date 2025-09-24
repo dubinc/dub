@@ -74,7 +74,7 @@ function IndustryInterestsModalInner({
             >
               <input
                 type="checkbox"
-                className="hidden"
+                className="sr-only"
                 disabled={
                   isMaxSelected && !selectedInterests.includes(interest.id)
                 }
