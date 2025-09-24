@@ -39,6 +39,7 @@ model Partner {
   connectPayoutsLastRemindedAt DateTime?
   createdAt                    DateTime           @default(now())
   updatedAt                    DateTime           @updatedAt
+  discoverableAt               DateTime?
   website                      String?
   websiteTxtRecord             String?
   websiteVerifiedAt            DateTime?
