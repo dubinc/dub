@@ -29,6 +29,9 @@ export async function importPartners(payload: RewardfulImportPayload) {
         where: {
           ...(groupId ? { id: groupId } : { slug: DEFAULT_PARTNER_GROUP.slug }),
         },
+        include: {
+          partnerGroupDefaultLinks: true,
+        },
       },
     },
   });
@@ -85,6 +88,8 @@ export async function importPartners(payload: RewardfulImportPayload) {
               leadRewardId: defaultGroup.leadRewardId,
               clickRewardId: defaultGroup.clickRewardId,
               discountId: defaultGroup.discountId,
+              partnerGroupDefaultLinkId:
+                defaultGroup.partnerGroupDefaultLinks[0].id,
             },
           }),
         ),
@@ -132,6 +137,7 @@ async function createPartnerAndLinks({
     leadRewardId: string | null;
     clickRewardId: string | null;
     discountId: string | null;
+    partnerGroupDefaultLinkId: string | null;
   };
 }) {
   const partner = await prisma.partner.upsert({
@@ -179,7 +185,7 @@ async function createPartnerAndLinks({
   }
 
   await bulkCreateLinks({
-    links: affiliate.links.map((link) => ({
+    links: affiliate.links.map((link, idx) => ({
       domain: program.domain!,
       key: link.token || nanoid(),
       url: program.url!,
@@ -189,6 +195,8 @@ async function createPartnerAndLinks({
       folderId: program.defaultFolderId,
       userId,
       projectId: program.workspaceId,
+      partnerGroupDefaultLinkId:
+        idx === 0 ? defaultGroupAttributes.partnerGroupDefaultLinkId : null,
     })),
   });
 }
