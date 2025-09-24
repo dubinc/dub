@@ -175,6 +175,7 @@ export async function POST(req: Request) {
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
         body: {
           bountyId,
+          userId,
           page: page + 1,
         },
       });
