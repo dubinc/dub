@@ -160,8 +160,6 @@ function BasicInfoForm({
       ?.filter((payout) => ["sent", "completed"].includes(payout.status))
       .reduce((acc, payout) => acc + payout.count, 0) ?? 0;
 
-  // const { handleKeyDown } = useEnterSubmit();
-
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onSuccess: async ({ data }) => {
       if (data?.needsEmailVerification) {
@@ -295,27 +293,6 @@ function BasicInfoForm({
             )}
           />
         </label>
-
-        {/* <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-neutral-800">
-              About yourself
-            </span>
-            <div>
-              <ReactTextareaAutosize
-                className={cn(
-                  "block w-full rounded-md focus:outline-none sm:text-sm",
-                  errors.name
-                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                )}
-                placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
-                minRows={3}
-                maxRows={10}
-                onKeyDown={handleKeyDown}
-                {...register("description")}
-              />
-            </div>
-          </label> */}
 
         <label className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-neutral-800">
