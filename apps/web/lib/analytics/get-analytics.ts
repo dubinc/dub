@@ -68,7 +68,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         `SELECT ${columns} FROM Link WHERE id = ?`,
         [linkId],
       );
-      return response.rows[0];
+
+      return analyticsResponse["count"].parse(response.rows[0]);
     }
 
     // Handle multiple linkIds with aggregation
@@ -85,7 +86,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         `SELECT ${aggregateColumns} FROM Link WHERE id IN (${linkIdsToFilter})`,
         linkIds,
       );
-      return response.rows[0];
+
+      return analyticsResponse["count"].parse(response.rows[0]);
     }
   }
 
