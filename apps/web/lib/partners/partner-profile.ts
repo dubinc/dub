@@ -13,6 +13,7 @@ import {
   ChartArea2,
   ChartLine,
   CircleHalfDottedClock,
+  Cloud,
   CreditCard,
   FileContent,
   Flask,
@@ -44,7 +45,7 @@ export const industryInterests: {
   {
     id: IndustryInterest.SaaS,
     label: "SaaS",
-    icon: Sparkle3,
+    icon: Cloud,
   },
   {
     id: IndustryInterest.Sales,
