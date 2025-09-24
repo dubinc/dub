@@ -25,10 +25,8 @@ export const updateDiscountAction = authActionClient
     });
 
     const couponCodeTrackingEnabledAt = enableCouponTracking
-      ? discount.couponCodeTrackingEnabledAt ?? new Date() // enable once
-      : discount.couponCodeTrackingEnabledAt
-        ? null // disable
-        : null; // already disabled, keep null
+      ? discount.couponCodeTrackingEnabledAt ?? new Date()
+      : null;
 
     const { partnerGroup, ...updatedDiscount } = await prisma.discount.update({
       where: {
@@ -47,8 +45,10 @@ export const updateDiscountAction = authActionClient
       },
     });
 
-    const { couponTestIdChanged, trackingEnabled, trackingDisabled } =
-      detectDiscountChanges(discount, updatedDiscount);
+    const { couponTestIdChanged, trackingDisabled } = detectDiscountChanges(
+      discount,
+      updatedDiscount,
+    );
 
     waitUntil(
       Promise.allSettled([
@@ -107,4 +107,51 @@ function detectDiscountChanges(
     trackingEnabled,
     trackingDisabled,
   };
+}
+
+async function queueDiscountCodeDeletionJobs(discountId: string) {
+  const queue = qstash.queue({
+    queueName: "discount-code-deletion",
+  });
+
+  await queue.upsert({
+    parallelism: 10,
+  });
+
+  // take 100 and do pagination
+  
+  const pageSize = 100
+  let hasMore = true
+  let cursor = null
+
+  while (hasMore) {
+    const discountCode = await prisma.discountCode.findMany({
+      where: {
+        discountId,
+      },
+      select: {
+        id: true,
+      },
+      take: pageSize,
+      orderBy: {
+        createdAt: "asc",
+      },
+      ...(cursor ? {
+        cursor: {
+          id: cursor,
+        },
+      }),
+    });
+  }
+
+
+
+
+  // const response = await queue.enqueueJSON({
+  //   url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/delete-discount-code`,
+  //   method: "POST",
+  //   body: {
+  //     discountCodeId = 
+  //   },
+  // });
 }
