@@ -206,6 +206,7 @@ export const DIMENSIONAL_ANALYTICS_FILTERS = [
   "utm_campaign",
   "utm_term",
   "utm_content",
+  "query",
 ];
 
 export const TRIGGER_TYPES = ["qr", "link", "pageview", "deeplink"] as const;

@@ -1,5 +1,9 @@
 import { prisma } from "@dub/prisma";
-import { PartnerGroup, Program } from "@dub/prisma/client";
+import {
+  PartnerGroup,
+  PartnerGroupDefaultLink,
+  Program,
+} from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
@@ -16,7 +20,11 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
       id: programId,
     },
     include: {
-      groups: true,
+      groups: {
+        include: {
+          partnerGroupDefaultLinks: true,
+        },
+      },
     },
   });
 
@@ -91,7 +99,7 @@ async function createPartnerAndLinks({
 }: {
   program: Program;
   affiliate: FirstPromoterPartner;
-  group: PartnerGroup;
+  group: PartnerGroup & { partnerGroupDefaultLinks: PartnerGroupDefaultLink[] };
   userId: string;
 }) {
   const partner = await prisma.partner.upsert({
@@ -157,7 +165,7 @@ async function createPartnerAndLinks({
     return;
   }
 
-  const links = affiliate.promoter_campaigns.map((campaign) => ({
+  const links = affiliate.promoter_campaigns.map((campaign, idx) => ({
     key: campaign.ref_token || nanoid(),
     domain: program.domain!,
     url: program.url!,
@@ -167,6 +175,8 @@ async function createPartnerAndLinks({
     partnerId: partner.id,
     trackConversion: true,
     userId,
+    partnerGroupDefaultLinkId:
+      idx === 0 ? group.partnerGroupDefaultLinks[0].id : null,
   }));
 
   await bulkCreateLinks({
