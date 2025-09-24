@@ -125,35 +125,35 @@ export const bulkBanPartnersAction = authActionClient
 
         const links = programEnrollments.flatMap(({ links }) => links);
 
-        await Promise.allSettled([
-          // Expire links from cache
-          linkCache.expireMany(links),
+        // Expire links from cache
+        await linkCache.expireMany(links);
 
-          // Queue discount code deletions
-          ...links.map((link) =>
+        // Queue discount code deletions
+        await Promise.allSettled(
+          links.map((link) =>
             queueDiscountCodeDeletion({
               discountCodeId: link.discountCode?.id,
             }),
           ),
+        );
 
-          // Record audit log for each partner
-          recordAuditLog(
-            programEnrollments.map(({ partner }) => ({
-              workspaceId: workspace.id,
-              programId,
-              action: "partner.banned",
-              description: `Partner ${partner.id} banned`,
-              actor: user,
-              targets: [
-                {
-                  type: "partner",
-                  id: partner.id,
-                  metadata: partner,
-                },
-              ],
-            })),
-          ),
-        ]);
+        // Record audit log for each partner
+        await recordAuditLog(
+          programEnrollments.map(({ partner }) => ({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner.banned",
+            description: `Partner ${partner.id} banned`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: partner.id,
+                metadata: partner,
+              },
+            ],
+          })),
+        );
 
         // Send email
         const program = await prisma.program.findUniqueOrThrow({
