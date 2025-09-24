@@ -24,7 +24,7 @@ export function DirectoryUpsell() {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="https://dub.co/contact/sales?utm_source="
+            href="https://dub.co/contact/sales?utm_content=Partner+Discovery"
             target="_blank"
             rel="noopener noreferrer"
             className={cn(

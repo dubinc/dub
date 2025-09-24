@@ -4,7 +4,7 @@ import { PartnersGraphic } from "../../partners-graphic";
 
 export default function ProgramPartnersDirectory() {
   return (
-    <PageContent title="Partner Directory">
+    <PageContent title="Partner Discovery">
       <ComingSoonPage
         title="Partner Directory"
         description="Discover top performing partners that have a proven track record of success helping companies grow."
