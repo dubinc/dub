@@ -19,4 +19,7 @@ pnpm hs project install-deps
 
 # Add new feature to app
 pnpm hs project add
+
+# List all accounts connected
+pnpm hs account list
 ```

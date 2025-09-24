@@ -2,11 +2,9 @@ import { trackLead } from "@/lib/api/conversions/track-lead";
 import { TrackLeadResponse, WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { getHubSpotContact } from "./get-contact";
-import { getHubSpotDeal } from "./get-deal";
+import { HubSpotApi } from "./api";
 import { hubSpotLeadEventSchema } from "./schema";
 import { HubSpotAuthToken, HubSpotContact } from "./types";
-import { updateHubSpotContact } from "./update-contact";
 
 export const trackHubSpotLeadEvent = async ({
   payload,
@@ -19,12 +17,13 @@ export const trackHubSpotLeadEvent = async ({
 }) => {
   const { objectId, objectTypeId } = hubSpotLeadEventSchema.parse(payload);
 
+  const hubSpotApi = new HubSpotApi({
+    token: authToken.access_token,
+  });
+
   // A new contact is created (deferred lead tracking)
   if (objectTypeId === "0-1") {
-    const contactInfo = await getHubSpotContact({
-      contactId: objectId,
-      accessToken: authToken.access_token,
-    });
+    const contactInfo = await hubSpotApi.getContact(objectId);
 
     if (!contactInfo) {
       return;
@@ -57,7 +56,7 @@ export const trackHubSpotLeadEvent = async ({
         _updateHubSpotContact({
           contact: contactInfo,
           trackLeadResult,
-          accessToken: authToken.access_token,
+          hubSpotApi,
         }),
       );
     }
@@ -67,10 +66,7 @@ export const trackHubSpotLeadEvent = async ({
 
   // A deal is created for the contact (Eg: lead is tracked)
   if (objectTypeId === "0-3") {
-    const deal = await getHubSpotDeal({
-      dealId: objectId,
-      accessToken: authToken.access_token,
-    });
+    const deal = await hubSpotApi.getDeal(objectId);
 
     if (!deal) {
       return;
@@ -87,10 +83,7 @@ export const trackHubSpotLeadEvent = async ({
 
     // HubSpot doesn't return the contact properties in the deal associations,
     // so we need to get it separately
-    const contactInfo = await getHubSpotContact({
-      contactId: contact.id,
-      accessToken: authToken.access_token,
-    });
+    const contactInfo = await hubSpotApi.getContact(contact.id);
 
     if (!contactInfo) {
       return;
@@ -112,7 +105,7 @@ export const trackHubSpotLeadEvent = async ({
         _updateHubSpotContact({
           contact: contactInfo,
           trackLeadResult,
-          accessToken: authToken.access_token,
+          hubSpotApi,
         }),
       );
     }
@@ -123,11 +116,11 @@ export const trackHubSpotLeadEvent = async ({
 
 // Update the HubSpot contact with `dub_link` and `dub_partner_email`
 export const _updateHubSpotContact = async ({
-  accessToken,
+  hubSpotApi,
   contact,
   trackLeadResult,
 }: {
-  accessToken: string;
+  hubSpotApi: HubSpotApi;
   contact: HubSpotContact;
   trackLeadResult: TrackLeadResponse;
 }) => {
@@ -163,9 +156,8 @@ export const _updateHubSpotContact = async ({
     return;
   }
 
-  await updateHubSpotContact({
+  await hubSpotApi.updateContact({
     contactId: contact.id,
-    accessToken,
     properties,
   });
 };
