@@ -4,21 +4,21 @@ import {
   PreferredEarningStructure,
   SalesChannel,
 } from "@dub/prisma/client";
+import type { Icon } from "@dub/ui/icons";
 import {
+  Apple,
   BookOpen,
   BracketsCurly,
-  BriefcaseFill,
   Brush,
   ChartArea2,
   ChartLine,
+  CircleHalfDottedClock,
   CreditCard,
   FileContent,
   Flask,
   GamingConsole,
-  Gift,
+  Headset,
   Heart,
-  Icon,
-  LifeRing,
   MarketingTarget,
   MobilePhone,
   MoneyBill,
@@ -29,7 +29,7 @@ import {
   Trophy,
   TV,
   UsersSettings,
-} from "@dub/ui";
+} from "@dub/ui/icons";
 
 export const industryInterests: {
   id: IndustryInterest;
@@ -74,7 +74,7 @@ export const industryInterests: {
   {
     id: IndustryInterest.Productivity_Software,
     label: "Productivity Software",
-    icon: BriefcaseFill,
+    icon: CircleHalfDottedClock,
   },
   {
     id: IndustryInterest.Gaming,
@@ -89,7 +89,7 @@ export const industryInterests: {
   {
     id: IndustryInterest.Customer_Service_And_Support,
     label: "Customer Service & Support",
-    icon: LifeRing,
+    icon: Headset,
   },
   {
     id: IndustryInterest.Content_Management,
@@ -139,7 +139,7 @@ export const industryInterests: {
   {
     id: IndustryInterest.Food_And_Beverage,
     label: "Food & Beverage",
-    icon: Gift,
+    icon: Apple,
   },
   {
     id: IndustryInterest.Travel_And_Lifestyle,
