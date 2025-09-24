@@ -23,3 +23,5 @@ export const HUBSPOT_OBJECT_TYPE_IDS = [
   "0-1", // contact
   "0-3", // deal
 ] as const;
+
+export const DEFAULT_CLOSED_WON_DEAL_STAGE_ID = "closedwon";

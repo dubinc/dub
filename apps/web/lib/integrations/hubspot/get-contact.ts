@@ -10,7 +10,7 @@ export async function getHubSpotContact({
 }) {
   try {
     const response = await fetch(
-      `${HUBSPOT_API_HOST}/crm/v3/objects/contacts/${contactId}?properties=email,firstname,lastname,dub_id`,
+      `${HUBSPOT_API_HOST}/crm/v3/objects/contacts/${contactId}?properties=email,firstname,lastname,dub_id,dub_link,dub_partner_email`,
       {
         method: "GET",
         headers: {
