@@ -155,8 +155,8 @@ export const _updateHubSpotContact = async ({
     }
   }
 
-  if (trackLeadResult.link?.url) {
-    properties["dub_link"] = trackLeadResult.link.url;
+  if (trackLeadResult.link?.shortLink) {
+    properties["dub_link"] = trackLeadResult.link.shortLink;
   }
 
   if (Object.keys(properties).length === 0) {
