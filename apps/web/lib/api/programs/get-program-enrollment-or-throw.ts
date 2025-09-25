@@ -62,6 +62,7 @@ export async function getProgramEnrollmentOrThrow({
     ...(includeDiscountCodes && {
       discountCodes: {
         where: {
+          // Omit soft deleted discount codes
           discountId: {
             not: null,
           },
