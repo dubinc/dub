@@ -84,10 +84,7 @@ export const banPartnerAction = authActionClient
       }),
 
       prisma.discountCode.updateMany({
-        where: {
-          programId,
-          partnerId,
-        },
+        where,
         data: {
           discountId: null,
         },
