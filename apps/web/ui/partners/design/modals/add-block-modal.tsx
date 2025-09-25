@@ -152,8 +152,6 @@ function AddBlockModalInner({
               </button>
             </Fragment>
           ))}
-
-          {/* <div className="col-span-2 h-20 rounded-md bg-neutral-100" /> */}
         </div>
       </div>
     </>

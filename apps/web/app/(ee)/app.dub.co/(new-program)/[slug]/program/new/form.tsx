@@ -57,34 +57,38 @@ export function Form() {
     setIsUploading(true);
 
     try {
-      const response = await fetch(
-        `/api/workspaces/${workspaceId}/upload-url`,
-        {
-          method: "POST",
-          body: JSON.stringify({
-            folder: "program-logos",
-          }),
-        },
-      );
+      //   const response = await fetch(
+      //     `/api/workspaces/${workspaceId}/upload-url`,
+      //     {
+      //       method: "POST",
+      //       body: JSON.stringify({
+      //         folder: "program-logos",
+      //       }),
+      //     },
+      //   );
 
-      if (!response.ok) {
-        throw new Error("Failed to get signed URL for upload.");
-      }
+      //   if (!response.ok) {
+      //     throw new Error("Failed to get signed URL for upload.");
+      //   }
 
-      const { signedUrl, destinationUrl } = await response.json();
+      //   const { signedUrl, destinationUrl } = await response.json();
 
-      const uploadResponse = await fetch(signedUrl, {
-        method: "PUT",
-        body: file,
-        headers: {
-          "Content-Type": file.type,
-          "Content-Length": file.size.toString(),
-        },
-      });
+      //   console.log({ signedUrl, destinationUrl });
 
-      if (!uploadResponse.ok) {
-        throw new Error("Failed to upload to signed URL");
-      }
+      //   const uploadResponse = await fetch(signedUrl, {
+      //     method: "PUT",
+      //     body: file,
+      //     headers: {
+      //       "Content-Type": file.type,
+      //       "Content-Length": file.size.toString(),
+      //     },
+      //   });
+
+      //   if (!uploadResponse.ok) {
+      //     throw new Error("Failed to upload to signed URL");
+      //   }
+
+      const destinationUrl = "https://dubassets.com/program-logos/1234567890.png";
 
       setValue("logo", destinationUrl, { shouldDirty: true });
       toast.success(`${file.name} uploaded!`);

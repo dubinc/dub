@@ -1,6 +1,7 @@
 import { ProgramLanderData } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { Program } from "@prisma/client";
+import assert from "assert";
 
 export function LanderHero({
   program,
@@ -11,6 +12,7 @@ export function LanderHero({
   landerData: Pick<ProgramLanderData, "label" | "title" | "description">;
   preview?: boolean;
 }) {
+  // assert(landerData, "Lander data is required");
   const Heading = preview ? "div" : "h1";
 
   return (
@@ -21,7 +23,7 @@ export function LanderHero({
           "animate-slide-up-fade [--offset:5px] [animation-duration:1s] [animation-fill-mode:both]",
         )}
       >
-        {landerData.label || "Affiliate Program"}
+        {landerData?.label || "Affiliate Program"}
       </span>
       <Heading
         className={cn(
@@ -29,7 +31,7 @@ export function LanderHero({
           "animate-slide-up-fade [--offset:5px] [animation-delay:100ms] [animation-duration:1s] [animation-fill-mode:both]",
         )}
       >
-        {landerData.title || `Join the ${program.name} affiliate program`}
+        {landerData?.title || `Join the ${program.name} affiliate program`}
       </Heading>
       <p
         className={cn(
@@ -37,7 +39,7 @@ export function LanderHero({
           "animate-slide-up-fade [--offset:5px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
         )}
       >
-        {landerData.description ||
+        {landerData?.description ||
           `Share ${program.name} with your audience and for each subscription generated through your referral, you'll earn a share of the revenue on any plans they purchase.`}
       </p>
     </div>

@@ -41,11 +41,11 @@ class StorageClient {
     if (opts?.contentType) headers["Content-Type"] = opts.contentType;
 
     try {
-      await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
-        method: "PUT",
-        headers,
-        body: uploadBody,
-      });
+      // await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
+      //   method: "PUT",
+      //   headers,
+      //   body: uploadBody,
+      // });
 
       return {
         url: `${R2_URL}/${key}`,

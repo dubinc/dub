@@ -53,9 +53,7 @@ export const createProgram = async ({
   const programId = createId({ prefix: "prog_" });
 
   const logoUrl = uploadedLogo
-    ? await storage
-        .upload(`programs/${programId}/logo_${nanoid(7)}`, uploadedLogo)
-        .then(({ url }) => url)
+    ? uploadedLogo
     : null;
 
   // create a new program
@@ -105,16 +103,16 @@ export const createProgram = async ({
           : null,
         ...(type &&
           amount && {
-            rewards: {
-              create: {
-                id: createId({ prefix: "rw_" }),
-                type,
-                amount,
-                maxDuration,
-                event: defaultRewardType,
-              },
+          rewards: {
+            create: {
+              id: createId({ prefix: "rw_" }),
+              type,
+              amount,
+              maxDuration,
+              event: defaultRewardType,
             },
-          }),
+          },
+        }),
       },
       include: {
         rewards: true,
@@ -184,19 +182,19 @@ export const createProgram = async ({
       // invite partners
       ...(partners && partners.length > 0
         ? partners.map((partner) =>
-            invitePartner({
-              workspace,
-              program,
-              partner,
-              userId: user.id,
-            }),
-          )
+          invitePartner({
+            workspace,
+            program,
+            partner,
+            userId: user.id,
+          }),
+        )
         : []),
 
       // delete the temporary uploaded logo
       uploadedLogo &&
-        isStored(uploadedLogo) &&
-        storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
+      isStored(uploadedLogo) &&
+      storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
 
       // send email about the new program
       sendEmail({

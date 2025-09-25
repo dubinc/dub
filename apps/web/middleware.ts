@@ -35,20 +35,25 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, path, key, fullKey } = parse(req);
 
+  console.log(req)
+
   AxiomMiddleware(req, ev);
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
+    console.log("A")
     return AppMiddleware(req);
   }
 
   // for API
   if (API_HOSTNAMES.has(domain)) {
+    console.log("B")
     return ApiMiddleware(req);
   }
 
   // for public stats pages (e.g. d.to/stats/try)
   if (path.startsWith("/stats/")) {
+    console.log("C")
     return NextResponse.rewrite(new URL(`/${domain}${path}`, req.url));
   }
 
@@ -64,15 +69,18 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // default redirects for dub.sh
   if (domain === "dub.sh" && DEFAULT_REDIRECTS[key]) {
+    console.log("D")
     return NextResponse.redirect(DEFAULT_REDIRECTS[key]);
   }
 
   // for Admin
   if (ADMIN_HOSTNAMES.has(domain)) {
+    console.log("E")
     return AdminMiddleware(req);
   }
 
   if (PARTNERS_HOSTNAMES.has(domain)) {
+    console.log("F")
     return PartnersMiddleware(req);
   }
 

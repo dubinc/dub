@@ -21,6 +21,8 @@ export default async function ApplyPage({
     groupSlug: partnerGroupSlug,
   });
 
+  console.log("program", JSON.stringify(program, null, 2));
+
   if (!program || !program.landerData || !program.landerPublishedAt) {
     notFound();
   }

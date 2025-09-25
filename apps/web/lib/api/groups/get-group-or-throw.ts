@@ -14,14 +14,14 @@ export const getGroupOrThrow = async ({
     where: {
       ...(groupId.startsWith("grp_")
         ? {
-            id: groupId,
-          }
+          id: groupId,
+        }
         : {
-            programId_slug: {
-              programId,
-              slug: groupId,
-            },
-          }),
+          programId_slug: {
+            programId,
+            slug: groupId,
+          },
+        }),
     },
     include: {
       clickReward: includeExpandedFields,
@@ -30,8 +30,11 @@ export const getGroupOrThrow = async ({
       discount: includeExpandedFields,
       utmTemplate: includeExpandedFields,
       partnerGroupDefaultLinks: includeExpandedFields,
+      program: includeExpandedFields,
     },
   });
+
+  console.log("group", group);
 
   if (!group) {
     throw new DubApiError({

@@ -41,22 +41,22 @@ export const GET = withWorkspace(
 
     const links = includeLink
       ? await prisma.link.findMany({
-          where: {
-            domain: {
-              in: domains.map((domain) => domain.slug),
-            },
-            key: {
-              in: ["_root", "akoJCU0="],
+        where: {
+          domain: {
+            in: domains.map((domain) => domain.slug),
+          },
+          key: {
+            in: ["_root", "akoJCU0="],
+          },
+        },
+        include: {
+          tags: {
+            select: {
+              tag: true,
             },
           },
-          include: {
-            tags: {
-              select: {
-                tag: true,
-              },
-            },
-          },
-        })
+        },
+      })
       : [];
 
     const linkMap = links.reduce(
@@ -71,11 +71,11 @@ export const GET = withWorkspace(
       ...transformDomain(domain),
       ...(includeLink &&
         linkMap[domain.slug] && {
-          link: transformLink({
-            ...linkMap[domain.slug],
-            tags: linkMap[domain.slug]["tags"].map((tag) => tag),
-          }),
+        link: transformLink({
+          ...linkMap[domain.slug],
+          tags: linkMap[domain.slug]["tags"].map((tag) => tag),
         }),
+      }),
     }));
 
     return NextResponse.json(response);
@@ -136,13 +136,15 @@ export const POST = withWorkspace(
       });
     }
 
-    const vercelResponse = await addDomainToVercel(slug);
+    if (process.env.NODE_ENV === "production") {
+      const vercelResponse = await addDomainToVercel(slug);
 
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use" // ignore this error
-    ) {
-      return new Response(vercelResponse.error.message, { status: 422 });
+      if (
+        vercelResponse.error &&
+        vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+      ) {
+        return new Response(vercelResponse.error.message, { status: 422 });
+      }
     }
 
     const domainId = createId({ prefix: "dom_" });
