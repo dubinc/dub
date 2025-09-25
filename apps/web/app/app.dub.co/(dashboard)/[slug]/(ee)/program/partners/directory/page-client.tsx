@@ -183,7 +183,7 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
             : [...Array(6)].map((_, idx) => (
                 <div
                   key={idx}
-                  className="size-6 animate-pulse rounded bg-neutral-200"
+                  className="size-6 animate-pulse rounded-full bg-neutral-200"
                 />
               ))}
         </div>
