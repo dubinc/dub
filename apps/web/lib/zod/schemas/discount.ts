@@ -50,16 +50,12 @@ export const discountPartnersQuerySchema = z
     }),
   );
 
-// Discount codes
-
 export const DiscountCodeSchema = z.object({
   id: z.string(),
   code: z.string(),
   discountId: z.string(),
   partnerId: z.string(),
   linkId: z.string(),
-  createdAt: z.date(),
-  updatedAt: z.date(),
 });
 
 export const createDiscountCodeSchema = z.object({
