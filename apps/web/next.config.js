@@ -20,6 +20,12 @@ module.exports = withAxiom({
     ...(process.env.NODE_ENV === "production" && {
       esmExternals: "loose",
     }),
+    outputFileTracingIncludes: {
+      "/api/auth/saml/token": [
+        "./node_modules/jose/**/*",
+        "./node_modules/openid-client/**/*",
+      ],
+    },
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {

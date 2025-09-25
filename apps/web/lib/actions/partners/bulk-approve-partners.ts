@@ -35,15 +35,12 @@ export const bulkApprovePartnersAction = authActionClient
         },
       });
 
-    // Fetch the group if it provided
-    const group = groupId
-      ? await getGroupOrThrow({
-          programId: program.id,
-          groupId,
-        })
-      : null;
+    const group = await getGroupOrThrow({
+      programId: program.id,
+      groupId: groupId ?? program.defaultGroupId,
+    });
 
-    // Approve the enrollments and update the group if it provided
+    // Approve the enrollments
     await prisma.programEnrollment.updateMany({
       where: {
         id: {
@@ -53,13 +50,11 @@ export const bulkApprovePartnersAction = authActionClient
       data: {
         status: "approved",
         createdAt: new Date(),
-        ...(group && {
-          groupId: group.id,
-          clickRewardId: group.clickRewardId,
-          leadRewardId: group.leadRewardId,
-          saleRewardId: group.saleRewardId,
-          discountId: group.discountId,
-        }),
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
       },
     });
 
@@ -76,8 +71,6 @@ export const bulkApprovePartnersAction = authActionClient
             partner: true,
           },
         });
-
-        const partnerIds = updatedEnrollments.map(({ partner }) => partner.id);
 
         await Promise.allSettled([
           recordAuditLog(

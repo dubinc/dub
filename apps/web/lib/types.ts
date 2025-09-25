@@ -382,6 +382,7 @@ export type InstalledIntegrationInfoProps = Pick<
     };
   } | null;
   credentials?: Prisma.JsonValue;
+  settings?: Prisma.JsonValue;
   webhookId?: string; // Only if the webhook is managed by an integration
 };
 

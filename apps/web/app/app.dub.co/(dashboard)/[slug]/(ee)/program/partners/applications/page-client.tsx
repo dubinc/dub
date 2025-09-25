@@ -8,7 +8,6 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { useBulkApprovePartnersModal } from "@/ui/partners/bulk-approve-partners-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
@@ -218,10 +217,17 @@ export function ProgramPartnersApplicationsPageClient() {
         enableHiding: false,
         minSize: 150,
         cell: ({ row }) => {
-          if (!groups) return "-";
-          const partnerGroup =
-            groups.find((g) => g.id === row.original.groupId) ??
-            DEFAULT_PARTNER_GROUP;
+          if (!groups || !row.original.groupId) {
+            return "-";
+          }
+
+          const partnerGroup = groups.find(
+            (g) => g.id === row.original.groupId,
+          );
+
+          if (!partnerGroup) {
+            return "-";
+          }
 
           return (
             <div className="flex items-center gap-2">

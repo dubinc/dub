@@ -294,7 +294,7 @@ function BountySubmissionDetailsSheetContent({
         </div>
 
         <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
-          <div className="flex items-center justify-between gap-2 border-t border-neutral-200 p-5">
+          <div className="flex items-center justify-between gap-2 p-5">
             {submission.status === "approved" ? (
               <a
                 href={`/${workspaceSlug}/program/commissions?partnerId=${submission.partner.id}&type=custom`}

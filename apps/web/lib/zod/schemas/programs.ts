@@ -81,6 +81,7 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   url: true,
   clicks: true,
   leads: true,
+  conversions: true,
   sales: true,
   saleAmount: true,
 });

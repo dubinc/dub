@@ -4,7 +4,7 @@ import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useAddPartnerLinkModal } from "@/ui/partners/add-partner-link-modal";
-import { Button, LoadingSpinner, Table, useTable } from "@dub/ui";
+import { Button, CopyButton, LoadingSpinner, Table, useTable } from "@dub/ui";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -43,13 +43,16 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         id: "shortLink",
         header: "Link",
         cell: ({ row }) => (
-          <Link
-            href={`/${slug}/links/${row.original.domain}/${row.original.key}`}
-            target="_blank"
-            className="cursor-alias font-medium text-black decoration-dotted hover:underline"
-          >
-            {getPrettyUrl(row.original.shortLink)}
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/${slug}/links/${row.original.domain}/${row.original.key}`}
+              target="_blank"
+              className="cursor-alias font-medium text-black decoration-dotted hover:underline"
+            >
+              {getPrettyUrl(row.original.shortLink)}
+            </Link>
+            <CopyButton value={row.original.shortLink} className="p-0.5" />
+          </div>
         ),
       },
       {
@@ -81,7 +84,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
         ),
       },
       {
-        header: "Sales",
+        header: "Conversions",
         size: 1,
         minSize: 1,
         cell: ({ row }) => (
@@ -90,7 +93,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
             target="_blank"
             className="block w-full cursor-alias decoration-dotted hover:underline"
           >
-            {nFormatter(row.original.sales)}
+            {nFormatter(row.original.conversions)}
           </Link>
         ),
       },

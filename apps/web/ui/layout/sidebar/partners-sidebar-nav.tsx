@@ -9,11 +9,9 @@ import {
   Bell,
   CircleDollar,
   CircleInfo,
-  CircleUser,
   ColorPalette2,
   Gauge6,
   Gear2,
-  Globe,
   GridIcon,
   MoneyBills2,
   Msgs,
@@ -195,45 +193,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
-  // Partner profile
-  profile: () => ({
-    title: "Partner profile",
-    direction: "left",
-    content: [
-      {
-        items: [
-          {
-            name: "Profile info",
-            icon: CircleUser,
-            href: "/profile",
-            exact: true,
-          },
-          {
-            name: "Website and socials",
-            icon: Globe,
-            href: "/profile/sites",
-          },
-        ],
-      },
-    ],
-  }),
-
-  // Payouts
-  payouts: () => ({
-    title: "Payouts",
-    content: [
-      {
-        items: [
-          {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: "/payouts",
-          },
-        ],
-      },
-    ],
-  }),
-
   // Partner settings
   partnerSettings: () => ({
     title: "Settings",
@@ -306,13 +265,13 @@ export function PartnersSidebarNav({
       ? "userSettings"
       : pathname.startsWith("/settings")
         ? "partnerSettings"
-        : pathname.startsWith("/profile")
-          ? "profile"
-          : pathname.startsWith("/payouts") || pathname.startsWith("/messages")
-            ? null
-            : isEnrolledProgramPage
-              ? "program"
-              : "programs";
+        : ["/payouts", "/profile", "/messages"].some((p) =>
+              pathname.startsWith(p),
+            )
+          ? null
+          : isEnrolledProgramPage
+            ? "program"
+            : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
   const { count: invitationsCount } = useProgramEnrollmentsCount({

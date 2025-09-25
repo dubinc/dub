@@ -94,19 +94,17 @@ export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
   const resendBatch = await sendBatchEmail(
     currentInvoicePayouts
       .filter((p) => p.partner.email)
-      .map((p) => {
-        return {
-          variant: "notifications",
-          to: p.partner.email!,
-          subject: "You've been paid!",
-          react: PartnerPayoutProcessed({
-            email: p.partner.email!,
-            program: p.program,
-            payout: p,
-            variant: "stripe",
-          }),
-        };
-      }),
+      .map((p) => ({
+        variant: "notifications",
+        to: p.partner.email!,
+        subject: "You've been paid!",
+        react: PartnerPayoutProcessed({
+          email: p.partner.email!,
+          program: p.program,
+          payout: p,
+          variant: "stripe",
+        }),
+      })),
   );
 
   console.log("Sent Resend batch emails", JSON.stringify(resendBatch, null, 2));

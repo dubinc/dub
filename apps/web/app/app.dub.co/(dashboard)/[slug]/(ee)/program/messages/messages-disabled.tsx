@@ -10,7 +10,14 @@ export function MessagesDisabled() {
   const { slug } = useWorkspace();
 
   return (
-    <PageContent title="Messages">
+    <PageContent
+      title="Messages"
+      titleInfo={{
+        title:
+          "Chat with your partners in real time, with email notifications & read statuses built in.",
+        href: "https://dub.co/help/article/messaging-partners",
+      }}
+    >
       <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
         <MsgsDotted className="text-content-subtle size-10" />
         <div className="max-w-sm text-pretty text-center">
