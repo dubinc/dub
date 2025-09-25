@@ -359,6 +359,9 @@ function DiscountSheetContent({
           <VerticalLine />
 
           <DiscountSheetCard
+            className={cn(
+              discount && "pointer-events-none cursor-not-allowed select-none",
+            )}
             title={
               <>
                 <Stripe className="size-7" />
@@ -489,9 +492,19 @@ function DiscountSheetContent({
 function DiscountSheetCard({
   title,
   content,
-}: PropsWithChildren<{ title: ReactNode; content: ReactNode }>) {
+  className,
+}: PropsWithChildren<{
+  title: ReactNode;
+  content: ReactNode;
+  className?: string;
+}>) {
   return (
-    <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
+    <div
+      className={cn(
+        "border-border-subtle rounded-xl border bg-white text-sm shadow-sm",
+        className,
+      )}
+    >
       <div className="text-content-emphasis flex items-center gap-2.5 p-2.5 font-medium">
         {title}
       </div>
