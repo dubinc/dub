@@ -19,9 +19,9 @@ import {
 import { QR_TYPES } from "../../qr-builder/constants/get-qr-config";
 import { QrCardType } from "../../qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "../../shared/five-stars.component";
-import { AvatarsComponent } from "./avatars.component";
+import { AvatarsComponent } from "./components/avatars.component";
+import { CreateSubscriptionFlow } from "./components/create-subscription-flow.component";
 import { MOCK_QR } from "./constants/mock-qr";
-import { CreateSubscriptionFlow } from "./create-subscription-flow";
 
 interface IQRPreviewModalProps {
   showQRPreviewModal: boolean;
