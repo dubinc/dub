@@ -109,6 +109,15 @@ export const bulkBanPartnersAction = authActionClient
           status: "canceled",
         },
       }),
+
+      prisma.discountCode.updateMany({
+        where: {
+          ...commonWhere,
+        },
+        data: {
+          discountId: null,
+        },
+      }),
     ]);
 
     waitUntil(
@@ -130,9 +139,7 @@ export const bulkBanPartnersAction = authActionClient
 
         // Queue discount code deletions
         await Promise.allSettled(
-          links.map((link) =>
-            queueDiscountCodeDeletion(link.discountCode?.id),
-          ),
+          links.map((link) => queueDiscountCodeDeletion(link.discountCode?.id)),
         );
 
         // Record audit log for each partner
