@@ -1,5 +1,6 @@
 "use client";
 
+import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
@@ -15,7 +16,10 @@ export function ProgramPartnerLinksPageClient() {
   const { partner, error } = usePartner({ partnerId });
 
   return partner ? (
-    <PartnerLinks partner={partner} />
+    <div className="space-y-8">
+      <PartnerLinks partner={partner} />
+      <PartnerDiscountCodes partner={partner} />
+    </div>
   ) : (
     <div className="flex justify-center py-16">
       {error ? (
@@ -34,11 +38,6 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
 
   const { AddPartnerLinkModal, setShowAddPartnerLinkModal } =
     useAddPartnerLinkModal({
-      partner,
-    });
-
-  const { AddDiscountCodeModal, setShowAddDiscountCodeModal } =
-    useAddDiscountCodeModal({
       partner,
     });
 
@@ -134,24 +133,140 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
 
   return (
     <>
-      <AddPartnerLinkModal />
-      <AddDiscountCodeModal />
       <div className="flex items-end justify-between gap-4">
         <h2 className="text-content-emphasis text-lg font-semibold">Links</h2>
-        <div className="flex gap-2">
+        <Button
+          variant="secondary"
+          text="Create link"
+          className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
+          onClick={() => setShowAddPartnerLinkModal(true)}
+        />
+      </div>
+      <div className="mt-4">
+        <Table {...table} />
+      </div>
+      <AddPartnerLinkModal />
+    </>
+  );
+};
+
+const PartnerDiscountCodes = ({
+  partner,
+}: {
+  partner: EnrolledPartnerProps;
+}) => {
+  const { slug } = useWorkspace();
+  const { discountCodes, loading, error } = useDiscountCodes({
+    partnerId: partner.id || null,
+  });
+
+  const { AddDiscountCodeModal, setShowAddDiscountCodeModal } =
+    useAddDiscountCodeModal({
+      partner,
+    });
+
+  const table = useTable({
+    data: discountCodes || [],
+    columns: [
+      {
+        id: "shortLink",
+        header: "Link",
+        cell: ({ row }) => {
+          const link = partner.links?.find((l) => l.id === row.original.linkId);
+          return link ? (
+            <div className="flex items-center gap-3">
+              <Link
+                href={`/${slug}/links/${link.domain}/${link.key}`}
+                target="_blank"
+                className="cursor-alias font-medium text-black decoration-dotted hover:underline"
+              >
+                {getPrettyUrl(link.shortLink)}
+              </Link>
+              <CopyButton value={link.shortLink} className="p-0.5" />
+            </div>
+          ) : (
+            <span className="text-neutral-500">Link not found</span>
+          );
+        },
+      },
+      {
+        id: "code",
+        header: "Discount code",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-3">
+            <span className="font-mono text-sm">{row.original.code}</span>
+            <CopyButton value={row.original.code} className="p-0.5" />
+          </div>
+        ),
+      },
+    ],
+    resourceName: (p) => `discount code${p ? "s" : ""}`,
+    thClassName: (id) =>
+      cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
+    tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
+    className: "[&_tr:last-child>td]:border-b-transparent",
+    scrollWrapperClassName: "min-h-[40px]",
+  } as any);
+
+  if (loading) {
+    return (
+      <>
+        <AddDiscountCodeModal />
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="text-content-emphasis text-lg font-semibold">
+            Discount codes
+          </h2>
           <Button
             variant="secondary"
-            text="Create discount code"
+            text="Create code"
             className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
             onClick={() => setShowAddDiscountCodeModal(true)}
           />
+        </div>
+        <div className="mt-4 flex justify-center py-16">
+          <LoadingSpinner />
+        </div>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <AddDiscountCodeModal />
+        <div className="flex items-end justify-between gap-4">
+          <h2 className="text-content-emphasis text-lg font-semibold">
+            Discount codes
+          </h2>
           <Button
             variant="secondary"
-            text="Create link"
+            text="Create code"
             className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
-            onClick={() => setShowAddPartnerLinkModal(true)}
+            onClick={() => setShowAddDiscountCodeModal(true)}
           />
         </div>
+        <div className="mt-4 flex justify-center py-16">
+          <span className="text-content-subtle text-sm">
+            Failed to load discount codes
+          </span>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <AddDiscountCodeModal />
+      <div className="flex items-end justify-between gap-4">
+        <h2 className="text-content-emphasis text-lg font-semibold">
+          Discount codes
+        </h2>
+        <Button
+          variant="secondary"
+          text="Create code"
+          className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
+          onClick={() => setShowAddDiscountCodeModal(true)}
+        />
       </div>
       <div className="mt-4">
         <Table {...table} />

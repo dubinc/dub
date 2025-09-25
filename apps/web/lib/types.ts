@@ -44,7 +44,7 @@ import {
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
-import { DiscountSchema } from "./zod/schemas/discount";
+import { DiscountSchema, DiscountCodeSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
 import {
   additionalPartnerLinkSchema,
@@ -439,6 +439,8 @@ export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
+
+export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 

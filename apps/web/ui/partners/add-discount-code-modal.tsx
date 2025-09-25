@@ -3,16 +3,16 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { createDiscountCodeSchema } from "@/lib/zod/schemas/discount";
 import {
+  ArrowTurnLeft,
   Button,
   Combobox,
   ComboboxOption,
-  InfoTooltip,
   Modal,
-  SimpleTooltipContent,
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { Tag } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -114,27 +114,26 @@ const AddDiscountCodeModal = ({
                   htmlFor="code"
                   className="block text-sm font-medium text-neutral-700"
                 >
-                  Discount code
+                  Discount code (optional)
                 </label>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Discount codes cannot be edited after creation"
-                      cta="Learn more."
-                      href="https://dub.co/help/article/discount-codes"
-                    />
-                  }
-                />
               </div>
 
-              <input
-                {...register("code")}
-                type="text"
-                id="code"
-                autoFocus={!isMobile}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                placeholder="Enter discount code (optional)"
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Tag className="text-content-default h-4 w-4" />
+                </div>
+                <input
+                  {...register("code")}
+                  type="text"
+                  id="code"
+                  autoFocus={!isMobile}
+                  className="block w-full rounded-md border-[1.5px] border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  placeholder="CODE"
+                />
+              </div>
+              <p className="text-xs text-neutral-500">
+                Discount codes cannot be edited after creation
+              </p>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -145,15 +144,6 @@ const AddDiscountCodeModal = ({
                 >
                   Referral link
                 </label>
-                <InfoTooltip
-                  content={
-                    <SimpleTooltipContent
-                      title="Select the partner link to associate with this discount code."
-                      cta="Learn more."
-                      href="https://dub.co/help/article/discount-codes"
-                    />
-                  }
-                />
               </div>
 
               <Combobox
@@ -174,8 +164,8 @@ const AddDiscountCodeModal = ({
                 }}
                 options={linkOptions}
                 caret={true}
-                placeholder="Select link..."
-                searchPlaceholder="Search links..."
+                placeholder="Select referral link"
+                searchPlaceholder="Search"
                 buttonProps={{
                   className: cn(
                     "w-full h-10 justify-start px-3",
@@ -196,8 +186,15 @@ const AddDiscountCodeModal = ({
         <div className="flex items-center justify-end border-t border-neutral-200 bg-neutral-50 p-4">
           <Button
             type="submit"
-            text="Create discount code"
-            className="h-8 w-fit px-3"
+            text={
+              <span className="flex items-center gap-2">
+                Create discount code
+                <div className="rounded border border-white/20 p-1">
+                  <ArrowTurnLeft className="size-3.5" />
+                </div>
+              </span>
+            }
+            className="h-8 w-fit pl-2.5 pr-1.5"
             loading={isSubmitting}
             disabled={!linkId}
           />
