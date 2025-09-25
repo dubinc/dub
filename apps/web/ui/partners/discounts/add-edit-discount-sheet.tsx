@@ -356,96 +356,92 @@ function DiscountSheetContent({
             }
           />
 
-          {(!useExistingCoupon || discount) && (
-            <>
-              <VerticalLine />
+          <VerticalLine />
 
-              <DiscountSheetCard
-                title={
-                  <>
-                    <Stripe className="size-7" />
-                    <span className="leading-relaxed">
-                      Discount a{" "}
-                      <InlineBadgePopover
-                        text={capitalize(type)}
-                        disabled={!!discount}
-                      >
-                        <InlineBadgePopoverMenu
-                          selectedValue={type}
-                          onSelect={(value) =>
-                            setValue("type", value as "flat" | "percentage", {
-                              shouldDirty: true,
-                            })
-                          }
-                          items={[
-                            {
-                              text: "Flat",
-                              value: "flat",
-                            },
-                            {
-                              text: "Percentage",
-                              value: "percentage",
-                            },
-                          ]}
-                        />
-                      </InlineBadgePopover>{" "}
-                      {type === "percentage" && "of "}
-                      <InlineBadgePopover
-                        text={
-                          amount
-                            ? constructRewardAmount({
-                                amount: type === "flat" ? amount * 100 : amount,
-                                type,
-                              })
-                            : "amount"
-                        }
-                        invalid={!amount}
-                        disabled={!!discount}
-                      >
-                        <AmountInput disabled={!!discount} />
-                      </InlineBadgePopover>{" "}
-                      <InlineBadgePopover
-                        text={
-                          maxDuration === 0
-                            ? "one time"
-                            : maxDuration === Infinity
-                              ? "for the customer's lifetime"
-                              : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
-                        }
-                        disabled={!!discount}
-                      >
-                        <InlineBadgePopoverMenu
-                          selectedValue={maxDuration?.toString()}
-                          onSelect={(value) =>
-                            setValue("maxDuration", Number(value), {
-                              shouldDirty: true,
-                            })
-                          }
-                          items={[
-                            {
-                              text: "one time",
-                              value: "0",
-                            },
-                            ...RECURRING_MAX_DURATIONS.filter(
-                              (v) => v !== 0,
-                            ).map((v) => ({
-                              text: `for ${v} ${pluralize("month", Number(v))}`,
-                              value: v.toString(),
-                            })),
-                            {
-                              text: "for the customer's lifetime",
-                              value: "Infinity",
-                            },
-                          ]}
-                        />
-                      </InlineBadgePopover>
-                    </span>
-                  </>
-                }
-                content={<></>}
-              />
-            </>
-          )}
+          <DiscountSheetCard
+            title={
+              <>
+                <Stripe className="size-7" />
+                <span className="leading-relaxed">
+                  Discount a{" "}
+                  <InlineBadgePopover
+                    text={capitalize(type)}
+                    disabled={!!discount}
+                  >
+                    <InlineBadgePopoverMenu
+                      selectedValue={type}
+                      onSelect={(value) =>
+                        setValue("type", value as "flat" | "percentage", {
+                          shouldDirty: true,
+                        })
+                      }
+                      items={[
+                        {
+                          text: "Flat",
+                          value: "flat",
+                        },
+                        {
+                          text: "Percentage",
+                          value: "percentage",
+                        },
+                      ]}
+                    />
+                  </InlineBadgePopover>{" "}
+                  {type === "percentage" && "of "}
+                  <InlineBadgePopover
+                    text={
+                      amount
+                        ? constructRewardAmount({
+                            amount: type === "flat" ? amount * 100 : amount,
+                            type,
+                          })
+                        : "amount"
+                    }
+                    invalid={!amount}
+                    disabled={!!discount}
+                  >
+                    <AmountInput disabled={!!discount} />
+                  </InlineBadgePopover>{" "}
+                  <InlineBadgePopover
+                    text={
+                      maxDuration === 0
+                        ? "one time"
+                        : maxDuration === Infinity
+                          ? "for the customer's lifetime"
+                          : `for ${maxDuration} ${pluralize("month", Number(maxDuration))}`
+                    }
+                    disabled={!!discount}
+                  >
+                    <InlineBadgePopoverMenu
+                      selectedValue={maxDuration?.toString()}
+                      onSelect={(value) =>
+                        setValue("maxDuration", Number(value), {
+                          shouldDirty: true,
+                        })
+                      }
+                      items={[
+                        {
+                          text: "one time",
+                          value: "0",
+                        },
+                        ...RECURRING_MAX_DURATIONS.filter((v) => v !== 0).map(
+                          (v) => ({
+                            text: `for ${v} ${pluralize("month", Number(v))}`,
+                            value: v.toString(),
+                          }),
+                        ),
+                        {
+                          text: "for the customer's lifetime",
+                          value: "Infinity",
+                        },
+                      ]}
+                    />
+                  </InlineBadgePopover>
+                </span>
+              </>
+            }
+            content={<></>}
+          />
 
           <VerticalLine />
 
