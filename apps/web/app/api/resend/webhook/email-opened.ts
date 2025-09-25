@@ -1,16 +1,46 @@
 import { prisma } from "@dub/prisma";
 
+const NOTIFICATION_EMAIL_SUBJECT_PREFIXES = [
+  "New message from",
+  "New bounty available",
+];
+
 export async function emailOpened({
   email_id: emailId,
-  tags,
+  subject,
 }: {
   email_id: string;
-  tags?: Record<string, string>;
+  subject?: string;
 }) {
-  // Ignore if not a message notification
-  if (!tags || tags.type !== "message-notification") {
+  // TODO: Ignore if not a message notification (when sendBatchEmail supports tags)
+  // if (!tags || tags.type !== "notification-email") {
+  //   console.log(
+  //     `Ignoring email.opened webhook for email ${emailId} because it's not a notification-email...`,
+  //   );
+  //   return;
+  // }
+
+  if (
+    !subject ||
+    !NOTIFICATION_EMAIL_SUBJECT_PREFIXES.some((prefix) =>
+      subject.startsWith(prefix),
+    )
+  ) {
     console.log(
-      `Ignoring email.opened webhook for email ${emailId} because it's not a message-notification...`,
+      `Ignoring email.opened webhook for email ${emailId} because it's not a notification email. Subject: ${subject}`,
+    );
+    return;
+  }
+
+  const notificationEmail = await prisma.notificationEmail.findUnique({
+    where: {
+      emailId,
+    },
+  });
+
+  if (!notificationEmail) {
+    console.log(
+      `Ignoring email.opened webhook for email ${emailId} because it's not a notification email...`,
     );
     return;
   }

@@ -129,7 +129,7 @@ export async function POST(req: Request) {
           })),
           email,
         }),
-        tags: [{ name: "type", value: "message-notification" }],
+        tags: [{ name: "type", value: "notification-email" }],
       })),
     );
 
