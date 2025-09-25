@@ -39,12 +39,12 @@ export const updateDiscountAction = authActionClient
       },
     });
 
-    const couponTestIdChanged =
+    const shouldExpireCache =
       discount.couponTestId !== updatedDiscount.couponTestId;
 
     waitUntil(
       Promise.allSettled([
-        couponTestIdChanged &&
+        shouldExpireCache &&
           partnerGroup &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
