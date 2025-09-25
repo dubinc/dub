@@ -18,7 +18,7 @@ export async function emailOpened({
 
   const res = await prisma.$transaction(async (tx) => {
     // TODO: refactor this to use findUnique once we add `emailId` as a unique index
-    await tx.notificationEmail.updateMany({
+    const notificationEmail = await tx.notificationEmail.update({
       where: {
         emailId,
         openedAt: null,
@@ -27,22 +27,13 @@ export async function emailOpened({
         openedAt: new Date(),
       },
     });
-    const notificationEmail = await tx.notificationEmail.findFirst({
-      where: {
-        emailId,
-      },
-    });
 
     console.log(
-      `Found notification email: ${JSON.stringify(notificationEmail)}`,
+      `Updated notification email ${notificationEmail.id} with Resend email id ${emailId} to opened at ${new Date()}`,
     );
 
-    if (
-      !notificationEmail ||
-      !notificationEmail.programId ||
-      !notificationEmail.partnerId
-    ) {
-      return;
+    if (!notificationEmail.programId || !notificationEmail.partnerId) {
+      return notificationEmail;
     }
 
     return await tx.message.updateMany({
