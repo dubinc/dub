@@ -11,7 +11,7 @@ const schema = z.object({
   discountCodeId: z.string(),
 });
 
-// POST /api/cron/discounts/disable-stripe-code
+// POST /api/cron/discounts/delete-discount-code
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
