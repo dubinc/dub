@@ -3,7 +3,8 @@
 import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
+import { useDeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { useAddDiscountCodeModal } from "@/ui/partners/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/partners/add-partner-link-modal";
 import {
@@ -22,7 +23,6 @@ import { Command } from "cmdk";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { toast } from "sonner";
 
 export function ProgramPartnerLinksPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
@@ -272,42 +272,45 @@ const PartnerDiscountCodes = ({
 function DiscountCodeRowMenuButton({
   discountCode,
 }: {
-  discountCode: any; // TODO: Add proper type for discount code
+  discountCode: DiscountCodeProps;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const handleDelete = () => {
-    // TODO: Implement delete functionality
-    toast.info("Delete functionality coming soon");
-    setIsOpen(false);
-  };
+  const { setShowDeleteDiscountCodeModal, DeleteDiscountCodeModal } =
+    useDeleteDiscountCodeModal(discountCode);
 
   return (
-    <Popover
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-      content={
-        <Command tabIndex={0} loop className="focus:outline-none">
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[120px]">
-            <MenuItem
-              as={Command.Item}
-              icon={Trash}
-              variant="danger"
-              onSelect={handleDelete}
-            >
-              Delete code
-            </MenuItem>
-          </Command.List>
-        </Command>
-      }
-      align="end"
-    >
-      <Button
-        type="button"
-        className="h-8 whitespace-nowrap px-2"
-        variant="outline"
-        icon={<Dots className="h-4 w-4 shrink-0" />}
-      />
-    </Popover>
+    <>
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
+              <MenuItem
+                as={Command.Item}
+                icon={Trash}
+                variant="danger"
+                onSelect={() => {
+                  setShowDeleteDiscountCodeModal(true);
+                  setIsOpen(false);
+                }}
+              >
+                Delete code
+              </MenuItem>
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+      <DeleteDiscountCodeModal />
+    </>
   );
 }
