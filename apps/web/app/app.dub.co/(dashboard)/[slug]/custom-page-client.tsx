@@ -6,8 +6,6 @@ import useQrs from "@/lib/swr/use-qrs.ts";
 import { UserProvider } from "@/ui/contexts/user";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useTrialOfferWithQRPreviewModal } from "@/ui/modals/trial-offer-with-qr-preview";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
-import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
@@ -18,7 +16,7 @@ import { ShieldAlert } from "@dub/ui/icons";
 import { ICustomerBody } from "core/integration/payment/config";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 interface WorkspaceQRsClientProps {
   initialQrs: QrStorageData[];
@@ -152,18 +150,12 @@ function TrialOfferWithQRPreviewWrapper({
   featuresAccess: FeaturesAccess;
   user: ICustomerBody | null;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const firstQr = initialQrs?.[0];
+  const firstQr = initialQrs?.[0] || null;
 
-  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr, true);
   const { TrialOfferWithQRPreviewModal, setShowQRPreviewModal } =
     useTrialOfferWithQRPreviewModal({
-      canvasRef,
-      qrCode: builtQrCodeObject,
-      qrType: firstQr?.qrType as EQRType,
-      width: 200,
-      height: 200,
       user,
+      firstQr,
     });
 
   useEffect(() => {

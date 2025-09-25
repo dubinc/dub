@@ -1,21 +1,22 @@
 "use client";
 
+import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
+import { QrStorageData } from "@/ui/qr-builder/types/types";
 import { Modal } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ICustomerBody } from "core/integration/payment/config";
 import { Check, Gift } from "lucide-react";
-import QRCodeStyling from "qr-code-styling";
 import {
   Dispatch,
-  RefObject,
   SetStateAction,
   useCallback,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { EQRType, QR_TYPES } from "../../qr-builder/constants/get-qr-config";
+import { QR_TYPES } from "../../qr-builder/constants/get-qr-config";
 import { QrCardType } from "../../qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "../../shared/five-stars.component";
 import { AvatarsComponent } from "./avatars.component";
@@ -24,11 +25,7 @@ import { CreateSubscriptionFlow } from "./create-subscription-flow";
 interface IQRPreviewModalProps {
   showQRPreviewModal: boolean;
   setShowQRPreviewModal: Dispatch<SetStateAction<boolean>>;
-  canvasRef: RefObject<HTMLCanvasElement>;
-  qrCode: QRCodeStyling | null;
-  qrType: EQRType | null;
-  width?: number;
-  height?: number;
+  firstQr: QrStorageData | null;
   user: ICustomerBody | null;
 }
 
@@ -43,16 +40,22 @@ const FEATURES = [
 function TrialOfferWithQRPreview({
   showQRPreviewModal,
   setShowQRPreviewModal,
-  canvasRef,
-  qrCode,
-  qrType,
-  width = 200,
-  height = 200,
+  // canvasRef,
+  // qrCode,
+  // qrType,
+  // width = 200,
+  // height = 200,
   user,
+  firstQr,
 }: IQRPreviewModalProps) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr, true);
+
   // const { queryParams } = useRouterStuff();
   const [clientToken, setClientToken] = useState<string | null>(null);
-  const currentQrTypeInfo = QR_TYPES.find((item) => item.id === qrType)!;
+  const currentQrTypeInfo = QR_TYPES.find(
+    (item) => item.id === firstQr?.qrType,
+  )!;
 
   return (
     <Modal
@@ -64,7 +67,7 @@ function TrialOfferWithQRPreview({
       //     del: ["onboarded"],
       //   })
       // }
-      className="border-border-500 max-w-4xl"
+      className="max-w-4xl border-neutral-400"
     >
       <Theme>
         <div className="flex w-full">
@@ -73,24 +76,31 @@ function TrialOfferWithQRPreview({
               <h2 className="text-primary !mt-0 truncate text-2xl font-bold">
                 Your QR Code is Ready!
               </h2>
-              <h3 className="justify-center text-center text-base font-semibold text-neutral-800">
+              {/* <h3 className="justify-center text-center text-base font-semibold text-neutral-800">
                 Download Now & Unlock Full Access
-              </h3>
+              </h3> */}
             </div>
 
-            <div className="relative flex w-full justify-center">
-              <div className="bg-secondary-100 absolute left-0 top-0 z-10 rounded-tl-lg p-1">
-                <QrCardType currentQrTypeInfo={currentQrTypeInfo} />
+            <div className="relative flex w-full flex-col justify-center gap-2">
+              <div className="bg-primary-100 absolute left-0 top-0 z-10 rounded-tl-lg p-1">
+                <QrCardType
+                  className="bg-primary-100"
+                  currentQrTypeInfo={currentQrTypeInfo}
+                />
               </div>
               <QRCanvas
                 ref={canvasRef}
-                qrCode={qrCode}
-                width={width}
-                height={height}
+                qrCode={builtQrCodeObject}
+                width={300}
+                height={300}
               />
+
+              {firstQr?.title && (
+                <span className="text-center text-sm">{firstQr.title}</span>
+              )}
             </div>
 
-            <div className="flex w-full flex-row items-center justify-between gap-4 rounded-lg bg-neutral-200/10 p-3 shadow-none">
+            <div className="bg-primary-100 flex w-full flex-row items-center justify-between gap-4 rounded-lg p-3 shadow-none">
               <p className="text-sm">
                 <span className="font-semibold">52.9K</span> QR codes created
                 today
@@ -100,10 +110,10 @@ function TrialOfferWithQRPreview({
             </div>
           </div>
 
-          <div className="flex flex-col gap-4 p-6">
+          <div className="flex grow flex-col gap-4 p-6">
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-neutral !mt-0 truncate text-2xl font-bold">
-                Download Now!
+                Unlock 7-Day Full Access
               </h2>
               <h3 className="flex items-center justify-center gap-0.5 text-center text-base text-neutral-800">
                 <span className="font-semibold">Excellent</span>{" "}
@@ -116,8 +126,8 @@ function TrialOfferWithQRPreview({
             <ul className="flex flex-col gap-2 text-center">
               {FEATURES.map((item, idx) => (
                 <li key={idx} className="flex items-center gap-2">
-                  <div className="bg-secondary-100/50 rounded-md p-1">
-                    <Check className="h-4 w-4 text-green-500" />
+                  <div className="bg-primary-100 rounded-md p-1">
+                    <Check className="text-primary h-4 w-4" />
                   </div>
 
                   <span className="text-left text-sm">{item}</span>
@@ -125,11 +135,11 @@ function TrialOfferWithQRPreview({
               ))}
             </ul>
 
-            <div className="bg-secondary-100/50 flex items-center gap-2 rounded-lg px-3 py-[14px]">
-              <Gift className="inline h-6 w-6 text-green-500" />
+            <div className="bg-primary-100 flex items-center gap-2 rounded-lg px-3 py-[14px]">
+              <Gift className="text-primary inline h-6 w-6" />
 
               <div>
-                <p className="text-start text-sm font-medium text-violet-900">
+                <p className="text-start text-sm font-medium">
                   Promo Code GETQR-85 Applied
                 </p>
                 <p className="text-start text-sm font-normal text-zinc-500">
@@ -155,30 +165,22 @@ function TrialOfferWithQRPreview({
 }
 
 export function useTrialOfferWithQRPreviewModal(data: {
-  canvasRef: RefObject<HTMLCanvasElement>;
-  qrCode: QRCodeStyling | null;
-  qrType: EQRType | null;
-  width?: number;
-  height?: number;
+  firstQr: QrStorageData | null;
   user: ICustomerBody | null;
 }) {
-  const { canvasRef, qrCode, width = 200, height = 200, qrType, user } = data;
+  const { firstQr, user } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
 
   const ModalCallback = useCallback(() => {
     return (
       <TrialOfferWithQRPreview
         user={user}
-        canvasRef={canvasRef}
-        qrCode={qrCode}
-        qrType={qrType}
-        width={width}
-        height={height}
+        firstQr={firstQr}
         showQRPreviewModal={showQRPreviewModal}
         setShowQRPreviewModal={setShowQRPreviewModal}
       />
     );
-  }, [width, height, showQRPreviewModal]);
+  }, [showQRPreviewModal]);
 
   return useMemo(
     () => ({
