@@ -40,23 +40,7 @@ export async function POST(req: Request) {
       },
       include: {
         groups: true,
-        program: {
-          include: {
-            workspace: {
-              select: {
-                users: {
-                  select: {
-                    userId: true,
-                  },
-                  where: {
-                    role: "owner",
-                  },
-                  take: 1,
-                },
-              },
-            },
-          },
-        },
+        program: true,
       },
     });
 
