@@ -173,7 +173,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
           const response = await signIn(provider, {
             email,
             redirect: false,
-            callbackUrl: next || redirectTo || `/workspaces?template=${CUSTOMER_IO_TEMPLATES.MAGIC_LINK}`,
+            callbackUrl: next || redirectTo || `/workspaces`,
             ...(password && { password }),
           });
 
