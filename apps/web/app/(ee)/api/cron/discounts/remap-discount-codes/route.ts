@@ -89,6 +89,7 @@ export async function POST(req: Request) {
 
     console.log({ discountCodesToUpdate, discountCodesToRemove });
 
+    // Update the discount codes to use the new discount
     if (discountCodesToUpdate.length > 0) {
       await prisma.discountCode.updateMany({
         where: {
@@ -102,6 +103,7 @@ export async function POST(req: Request) {
       });
     }
 
+    // Remove the discount codes from the group
     if (discountCodesToRemove.length > 0) {
       await Promise.allSettled(
         discountCodesToRemove.map((discountCodeId) =>

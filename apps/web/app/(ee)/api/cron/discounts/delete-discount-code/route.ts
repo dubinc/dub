@@ -33,10 +33,6 @@ export async function POST(req: Request) {
       return logAndRespond(`Discount code ${discountCodeId} not found.`);
     }
 
-    if (discountCode.discountId) {
-      return logAndRespond(`Discount code ${discountCodeId} is not deleted.`);
-    }
-
     const workspace = await prisma.project.findUniqueOrThrow({
       where: {
         defaultProgramId: discountCode.programId,
