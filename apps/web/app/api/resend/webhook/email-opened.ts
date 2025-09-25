@@ -1,9 +1,6 @@
 import { prisma } from "@dub/prisma";
 
-const NOTIFICATION_EMAIL_SUBJECT_PREFIXES = [
-  "New message from",
-  "New bounty available",
-];
+const NOTIFICATION_EMAIL_SUBJECT_KEYWORDS = ["bounty", "message"];
 
 export async function emailOpened({
   email_id: emailId,
@@ -22,8 +19,8 @@ export async function emailOpened({
 
   if (
     !subject ||
-    !NOTIFICATION_EMAIL_SUBJECT_PREFIXES.some((prefix) =>
-      subject.startsWith(prefix),
+    !NOTIFICATION_EMAIL_SUBJECT_KEYWORDS.some((keyword) =>
+      subject.includes(keyword),
     )
   ) {
     console.log(
@@ -46,7 +43,7 @@ export async function emailOpened({
   }
 
   console.log(
-    `Updating notification email read statuses for email ${emailId}...`,
+    `Updating notification email read statuses for email ${emailId}. Subject: ${subject}`,
   );
 
   const res = await prisma.$transaction(async (tx) => {
@@ -84,5 +81,7 @@ export async function emailOpened({
     });
   });
 
-  console.log(res);
+  console.log(
+    `Finished processing email.opened webhook for email ${emailId}: ${JSON.stringify(res, null, 2)}`,
+  );
 }
