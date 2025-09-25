@@ -73,6 +73,8 @@ model Partner {
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
+
+  @@index(discoverableAt)
 }
 
 model PartnerInvite {
