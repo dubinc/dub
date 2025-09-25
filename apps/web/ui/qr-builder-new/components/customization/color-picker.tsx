@@ -5,27 +5,24 @@ import { isValidHex, isWhiteHex } from "../../helpers/color-validation";
 
 interface ColorPickerInputProps {
   label: string;
-  color: string;
-  onColorChange: (color: string) => void;
-  isValid: boolean;
-  setIsValid: (isValid: boolean) => void;
+  value: string;
+  onChange: (value: string) => void;
   disabled?: boolean;
 }
 
 export const ColorPickerInput: FC<ColorPickerInputProps> = ({
   label,
-  color,
-  onColorChange,
-  isValid,
-  setIsValid,
+  value,
+  onChange,
   disabled = false,
 }) => {
   const [showBorder, setShowBorder] = useState(false);
+  const [isValid, setIsValid] = useState(true);
 
   useEffect(() => {
-    setShowBorder(isWhiteHex(color));
-    setIsValid(isValidHex(color));
-  }, [color, setIsValid]);
+    setShowBorder(isWhiteHex(value));
+    setIsValid(isValidHex(value));
+  }, [value]);
 
   return (
     <Flex
@@ -52,20 +49,20 @@ export const ColorPickerInput: FC<ColorPickerInputProps> = ({
             "text-neutral-400": disabled,
           })}
         >
-          {color}
+          {value}
         </Text>
         <div className="pointer-events-none h-5 w-5 flex-shrink-0">
           <div
             className={cn("h-full w-full rounded", {
               "border-border-500 border": showBorder,
             })}
-            style={{ backgroundColor: color }}
+            style={{ backgroundColor: value }}
           />
         </div>
         <input
           type="color"
-          value={color}
-          onChange={(e) => onColorChange(e.target.value.toUpperCase())}
+          value={value}
+          onChange={(e) => onChange(e.target.value.toUpperCase())}
           className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
           disabled={disabled}
         />

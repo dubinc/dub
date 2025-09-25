@@ -2,13 +2,13 @@ import { cn } from "@dub/utils";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { StaticImageData } from "next/image";
 import { FC } from "react";
-import { StyleOption } from "../../types/customization";
+import { IStyleOption } from "../../types/customization";
 import { StyleButton } from "./style-button";
 
 interface StylePickerProps {
   label: string;
-  styleOptions: StyleOption[];
-  selectedStyle: string; // This should be the ID, not the type
+  styleOptions: IStyleOption[];
+  value: string; // This should be the ID, not the type
   onSelect: (id: string, icon?: StaticImageData) => void;
   stylePickerWrapperClassName?: string;
   optionsWrapperClassName?: string;
@@ -20,7 +20,7 @@ interface StylePickerProps {
 export const StylePicker: FC<StylePickerProps> = ({
   label,
   styleOptions,
-  selectedStyle,
+  value,
   onSelect,
   stylePickerWrapperClassName,
   optionsWrapperClassName,
@@ -40,7 +40,7 @@ export const StylePicker: FC<StylePickerProps> = ({
               <StyleButton
                 key={styleOption.id}
                 icon={styleOption.icon}
-                selected={selectedStyle === styleOption.id}
+                selected={value === styleOption.id}
                 onClick={() => {
                   if (!disabled) {
                     onSelect(styleOption.id, styleOption.icon);

@@ -3,12 +3,12 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { FC, useCallback } from "react";
 
 import { QR_STYLES_OPTIONS } from "../../constants/customization/qr-styles-options";
-import { 
-  QRCustomizationData, 
-  FrameData, 
-  StyleData, 
-  ShapeData, 
-  LogoData 
+import {
+  IQRCustomizationData,
+  IFrameData,
+  IStyleData,
+  IShapeData,
+  ILogoData
 } from "../../types/customization";
 import { FrameSelector } from "./frame-selector";
 import { StyleSelector } from "./style-selector";
@@ -16,8 +16,8 @@ import { ShapeSelector } from "./shape-selector";
 import { LogoSelector } from "./logo-selector";
 
 interface QRCustomizationProps {
-  customizationData: QRCustomizationData;
-  onCustomizationChange: (data: QRCustomizationData) => void;
+  customizationData: IQRCustomizationData;
+  onCustomizationChange: (data: IQRCustomizationData) => void;
   activeTab: string;
   onTabChange: (tab: string) => void;
   disabled?: boolean;
@@ -36,28 +36,28 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
 }) => {
   const isFrameSelected = customizationData.frame.id !== "frame-none";
 
-  const handleFrameChange = useCallback((frameData: FrameData) => {
+  const handleFrameChange = useCallback((frameData: IFrameData) => {
     onCustomizationChange({
       ...customizationData,
       frame: frameData,
     });
   }, [customizationData, onCustomizationChange]);
 
-  const handleStyleChange = useCallback((styleData: StyleData) => {
+  const handleStyleChange = useCallback((styleData: IStyleData) => {
     onCustomizationChange({
       ...customizationData,
       style: styleData,
     });
   }, [customizationData, onCustomizationChange]);
 
-  const handleShapeChange = useCallback((shapeData: ShapeData) => {
+  const handleShapeChange = useCallback((shapeData: IShapeData) => {
     onCustomizationChange({
       ...customizationData,
       shape: shapeData,
     });
   }, [customizationData, onCustomizationChange]);
 
-  const handleLogoChange = useCallback((logoData: LogoData) => {
+  const handleLogoChange = useCallback((logoData: ILogoData) => {
     onCustomizationChange({
       ...customizationData,
       logo: logoData,

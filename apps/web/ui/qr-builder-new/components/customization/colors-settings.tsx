@@ -7,13 +7,13 @@ import {
   BLACK_COLOR, 
   WHITE_COLOR 
 } from "../../constants/customization/colors";
-import { isValidHex, isWhiteHex } from "../../helpers/color-validation";
-import { StyleData } from "../../types/customization";
+import { isValidHex, isWhiteHex, isBlackHex } from "../../helpers/color-validation";
+import { IStyleData } from "../../types/customization";
 import { ColorPickerInput } from "./color-picker";
 
 interface ColorsSettingsProps {
-  styleData: StyleData;
-  onStyleChange: (styleData: StyleData) => void;
+  styleData: IStyleData;
+  onStyleChange: (styleData: IStyleData) => void;
   frameSelected: boolean;
   disabled?: boolean;
 }
@@ -30,8 +30,6 @@ export const ColorsSettings: FC<ColorsSettingsProps> = ({
   const [backgroundColor, setBackgroundColor] = useState<string>(
     styleData.backgroundColor || WHITE_COLOR,
   );
-  const [foregroundColorValid, setForegroundColorValid] = useState(true);
-  const [backgroundColorValid, setBackgroundColorValid] = useState(true);
 
   useEffect(() => {
     setForegroundColor(styleData.foregroundColor || BLACK_COLOR);
@@ -43,7 +41,6 @@ export const ColorsSettings: FC<ColorsSettingsProps> = ({
       (color: string) => {
         setForegroundColor(color);
         const valid = isValidHex(color);
-        setForegroundColorValid(valid);
 
         if (valid) {
           onStyleChange({
@@ -52,14 +49,13 @@ export const ColorsSettings: FC<ColorsSettingsProps> = ({
           });
         }
       },
-      [setForegroundColor, setForegroundColorValid, onStyleChange, styleData]
+      [setForegroundColor, onStyleChange, styleData]
   );
 
   const handleBackgroundColorChange = useCallback(
       (color: string) => {
         setBackgroundColor(color);
         const valid = isValidHex(color);
-        setBackgroundColorValid(valid);
 
         if (valid) {
           onStyleChange({
@@ -68,11 +64,10 @@ export const ColorsSettings: FC<ColorsSettingsProps> = ({
           });
         }
       },
-      [setBackgroundColor, setBackgroundColorValid, onStyleChange, styleData]
+      [setBackgroundColor, onStyleChange, styleData]
   );
 
 
-  const showError = !foregroundColorValid || (!frameSelected && !backgroundColorValid);
 
   return (
     <div className="flex flex-col gap-1">
@@ -80,13 +75,11 @@ export const ColorsSettings: FC<ColorsSettingsProps> = ({
         <div className="flex w-full flex-row items-end gap-2">
           <ColorPickerInput
             label="QR colour"
-            color={foregroundColor}
-            onColorChange={handleForegroundColorChange}
-            isValid={foregroundColorValid}
-            setIsValid={setForegroundColorValid}
+            value={foregroundColor}
+            onChange={handleForegroundColorChange}
             disabled={disabled}
           />
-          {foregroundColor !== BLACK_COLOR && (
+          {!isBlackHex(foregroundColor) && (
             <motion.div
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -108,10 +101,8 @@ export const ColorsSettings: FC<ColorsSettingsProps> = ({
           <div className="flex w-full flex-row items-end gap-2">
             <ColorPickerInput
               label="Background colour"
-              color={backgroundColor}
-              onColorChange={handleBackgroundColorChange}
-              isValid={backgroundColorValid}
-              setIsValid={setBackgroundColorValid}
+              value={backgroundColor}
+              onChange={handleBackgroundColorChange}
               disabled={disabled}
             />
             {!isWhiteHex(backgroundColor) && (
@@ -134,9 +125,6 @@ export const ColorsSettings: FC<ColorsSettingsProps> = ({
         )}
       </div>
 
-      {showError && (
-        <p className="mt-1 text-sm text-red-500">The color is invalid.</p>
-      )}
     </div>
   );
 };

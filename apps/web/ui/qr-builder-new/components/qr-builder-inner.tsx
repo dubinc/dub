@@ -5,7 +5,7 @@ import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
-import { useMemo, useEffect, useState } from "react";
+import { useMemo } from "react";
 import { QRCodeDemoMap } from "./qr-code-demos/qr-code-demo-map";
 import { QrContentStep } from "./qr-content-step.tsx";
 import { QrTypeSelection } from "./qr-type-selection";
@@ -18,6 +18,7 @@ export const QRBuilderInner = () => {
     isContentStep,
     isCustomizationStep,
     selectedQrType,
+    hoveredQRType,
     currentQRType,
     typeSelectionError,
     currentFormValues,
@@ -37,11 +38,6 @@ export const QRBuilderInner = () => {
   const qrCodeDemo = currentQRType ? QRCodeDemoMap[currentQRType] : null;
 
   const { isMobile } = useMediaQuery();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const demoProps = useMemo(() => {
     if (!qrCodeDemo || !currentQRType) return {};
@@ -71,7 +67,7 @@ export const QRBuilderInner = () => {
               className="w-full"
             >
               <QrTypeSelection
-                selectedQRType={selectedQrType}
+                selectedQRType={isTypeStep ? null : selectedQrType}
                 onSelect={handleSelectQRType}
                 onHover={handleHoverQRType}
               />
@@ -84,19 +80,19 @@ export const QRBuilderInner = () => {
           )}
 
           {isContentStep && (
-              <QrContentStep ref={contentStepRef} />
+            <QrContentStep ref={contentStepRef} />
           )}
-          {isClient && !isMobile && !isTypeStep && !isCustomizationStep && (
-              <div className="w-full" ref={qrBuilderButtonsWrapperRef}>
-                <QrBuilderButtons
-                    step={builderStep || 1}
-                    onBack={handleBack}
-                    onContinue={handleContinue}
-                    isEdit={false}
-                    isProcessing={false}
-                    homePageDemo={false}
-                />
-              </div>
+          {!isMobile && !isTypeStep && !isCustomizationStep && (
+            <div className="w-full" ref={qrBuilderButtonsWrapperRef}>
+              <QrBuilderButtons
+                step={builderStep || 1}
+                onBack={handleBack}
+                onContinue={handleContinue}
+                isEdit={false}
+                isProcessing={false}
+                homePageDemo={false}
+              />
+            </div>
           )}
 
           {isCustomizationStep && (
@@ -109,7 +105,7 @@ export const QRBuilderInner = () => {
                 isMobile={isMobile}
                 homepageDemo={true}
               />
-              {isClient && !isMobile && (
+              {!isMobile && (
                 <div className="mt-4 w-full">
                   <QrBuilderButtons
                     step={builderStep || 1}
@@ -128,34 +124,38 @@ export const QRBuilderInner = () => {
 
       <div
         className={cn(
-          "bg-background relative h-auto shrink-0 basis-2/5 items-start justify-center rounded-lg px-6 pb-0 pt-3 md:flex md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
+          "bg-background relative h-auto shrink-0 basis-2/5 rounded-lg px-6 pb-0 pt-3 md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
           {
             "hidden md:flex": isTypeStep,
-            "items-start pb-3": isCustomizationStep,
+            "flex items-center justify-center": isContentStep,
+            "flex items-start justify-center pb-3": isCustomizationStep,
+            "md:flex md:items-start md:justify-center": !isContentStep,
           },
         )}
       >
         {!isCustomizationStep && (
           <div className="relative inline-block">
-            {!currentQRType ? (
-              <QRCodeDemoPlaceholder />
-            ) : (
-              <motion.div
-                key={currentQRType}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 },
-                  exit: { opacity: 0, y: 20 },
-                }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-              >
-                {qrCodeDemo && <qrCodeDemo.Component {...demoProps} />}
-                <div className="absolute inset-x-0 bottom-0 h-1/5 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_0%,_rgba(255,255,255,0.1)_30%,_rgba(255,255,255,0.4)_70%,_rgba(255,255,255,0.8)_100%)] backdrop-blur-[1px]"></div>
-              </motion.div>
-            )}
+            <motion.div
+              key={currentQRType ? `${currentQRType}-${hoveredQRType !== null ? 'hovered' : 'default'}` : 'placeholder'}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { opacity: 1, y: 0 },
+                exit: { opacity: 0, y: 20 },
+              }}
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              {!currentQRType ? (
+                <QRCodeDemoPlaceholder />
+              ) : (
+                <>
+                  {qrCodeDemo && <qrCodeDemo.Component {...demoProps} />}
+                  <div className="absolute inset-x-0 bottom-0 h-1/5 bg-[linear-gradient(180deg,_rgba(255,255,255,0)_0%,_rgba(255,255,255,0.1)_30%,_rgba(255,255,255,0.4)_70%,_rgba(255,255,255,0.8)_100%)] backdrop-blur-[1px]"></div>
+                </>
+              )}
+            </motion.div>
           </div>
         )}
 

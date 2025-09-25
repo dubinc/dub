@@ -1,69 +1,82 @@
-import { forwardRef, RefObject, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import QRCodeStyling from "qr-code-styling";
 
 interface QRCanvasProps {
   qrCode: QRCodeStyling | null;
   width?: number;
   height?: number;
-  className?: string;
 }
 
-export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
-  ({ qrCode, width = 300, height = 300, className }, ref) => {
-    const internalCanvasRef = useRef<HTMLCanvasElement>(null);
-    const svgContainerRef = useRef<HTMLDivElement>(null);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [containerSize, setContainerSize] = useState({ width, height });
+export const QRCanvas: React.FC<QRCanvasProps> = ({ qrCode, width = 300, height = 300 }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const svgContainerRef = useRef<HTMLDivElement>(null);
+  const [containerSize, setContainerSize] = useState({ width, height });
 
-    const canvasRef = (ref as RefObject<HTMLCanvasElement>) || internalCanvasRef;
-
-    const maxSize = Math.min(containerSize.width, containerSize.width);
+    const maxSize = Math.min(containerSize.width, containerSize.height);
     const actualSize = Math.max(300, Math.min(maxSize - 32, 600));
 
     useEffect(() => {
-      if (!containerRef.current) return;
+      if (!canvasRef.current?.parentElement) return;
 
+      let timeoutId: NodeJS.Timeout;
       const resizeObserver = new ResizeObserver((entries) => {
-        const entry = entries[0];
-        if (entry?.contentRect) {
-          const { width: newWidth, height: newHeight } = entry.contentRect;
-          setContainerSize({ 
-            width: newWidth || width, 
-            height: newHeight || height 
-          });
-        }
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => {
+          const entry = entries[0];
+          if (entry?.contentRect) {
+            const { width: newWidth, height: newHeight } = entry.contentRect;
+            if (newWidth > 0 && newHeight > 0) {
+              setContainerSize({
+                width: newWidth,
+                height: newHeight
+              });
+            }
+          }
+        }, 100);
       });
 
-      resizeObserver.observe(containerRef.current);
+      resizeObserver.observe(canvasRef.current.parentElement);
 
-      // Set initial size based on container
-      const rect = containerRef.current.getBoundingClientRect();
+      // Set initial size
+      const rect = canvasRef.current.parentElement.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0) {
-        setContainerSize({ 
-          width: rect.width, 
-          height: rect.height 
+        setContainerSize({
+          width: rect.width,
+          height: rect.height
         });
       }
 
       return () => {
+        clearTimeout(timeoutId);
         resizeObserver.disconnect();
       };
-    }, [width, height]);
+    }, []);
 
     useEffect(() => {
       if (!qrCode || !svgContainerRef.current || !canvasRef.current) return;
 
+      let renderTimeout: NodeJS.Timeout;
+      let mutationTimeout: NodeJS.Timeout;
+      let isRendering = false;
+
+      // Clear previous content
       svgContainerRef.current.replaceChildren();
       qrCode.append(svgContainerRef.current);
       svgContainerRef.current.style.display = "none";
 
       const renderSVGToCanvas = () => {
+        if (isRendering) return; // Prevent concurrent renders
+
         const svg = svgContainerRef.current?.querySelector("svg");
         if (!svg || !canvasRef.current) return;
 
+        isRendering = true;
         const canvas = canvasRef.current;
         const ctx = canvas.getContext("2d");
-        if (!ctx) return;
+        if (!ctx) {
+          isRendering = false;
+          return;
+        }
 
         const dpr = window.devicePixelRatio || 1;
         canvas.width = actualSize * dpr;
@@ -80,21 +93,34 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
 
           const img = new Image();
           img.onload = () => {
+            if (!canvasRef.current) {
+              isRendering = false;
+              return;
+            }
             ctx.save();
             ctx.scale(dpr, dpr);
             ctx.drawImage(img, 0, 0, actualSize, actualSize);
             ctx.restore();
+            isRendering = false;
+          };
+          img.onerror = () => {
+            console.error("Failed to load SVG image");
+            isRendering = false;
           };
           img.src = svgURL;
         } catch (err) {
           console.error("SVG render failed:", err);
+          isRendering = false;
         }
       };
 
-      const initialRenderTimeout = setTimeout(renderSVGToCanvas, 100);
+      // Initial render with delay to ensure DOM is ready
+      renderTimeout = setTimeout(renderSVGToCanvas, 200);
 
+      // Watch for changes with throttled rendering
       const observer = new MutationObserver(() => {
-        setTimeout(renderSVGToCanvas, 50);
+        clearTimeout(mutationTimeout);
+        mutationTimeout = setTimeout(renderSVGToCanvas, 150);
       });
 
       observer.observe(svgContainerRef.current, {
@@ -104,24 +130,23 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       });
 
       return () => {
-        clearTimeout(initialRenderTimeout);
+        clearTimeout(renderTimeout);
+        clearTimeout(mutationTimeout);
         observer.disconnect();
+        isRendering = false;
         svgContainerRef.current?.replaceChildren();
       };
-    }, [qrCode, canvasRef, actualSize]);
+    }, [qrCode, actualSize]);
 
-    return (
-      <>
-        <canvas
-          ref={canvasRef}
-          width={actualSize}
-          height={actualSize}
-          className="border-border-100 rounded-lg border bg-white max-w-full max-h-full"
-        />
-        <div ref={svgContainerRef} style={{ display: 'none' }} />
-      </>
-    );
-  }
-);
-
-QRCanvas.displayName = "QRCanvas";
+  return (
+    <>
+      <canvas
+        ref={canvasRef}
+        width={actualSize}
+        height={actualSize}
+        className="border-border-100 rounded-lg border bg-white max-w-full max-h-full"
+      />
+      <div ref={svgContainerRef} style={{ display: 'none' }} />
+    </>
+  );
+};

@@ -14,9 +14,9 @@ import DotsExtraRoundedIcon from "@/ui/qr-builder/icons/dots/extra-rounded.svg";
 import DotsRoundedIcon from "@/ui/qr-builder/icons/dots/rounded.svg";
 import DotsSquareIcon from "@/ui/qr-builder/icons/dots/square.svg";
 
-import { StyleOption } from "../../types/customization";
+import { IStyleOption } from "../../types/customization";
 
-export const CORNER_SQUARE_STYLES: StyleOption[] = [
+export const CORNER_SQUARE_STYLES: IStyleOption[] = [
   {
     id: "corner-square-square",
     type: "square",
@@ -39,7 +39,7 @@ export const CORNER_SQUARE_STYLES: StyleOption[] = [
   },
 ];
 
-export const CORNER_DOT_STYLES: StyleOption[] = [
+export const CORNER_DOT_STYLES: IStyleOption[] = [
   {
     id: "corner-dot-square",
     type: "square",
@@ -67,7 +67,7 @@ export const CORNER_DOT_STYLES: StyleOption[] = [
   },
 ];
 
-export const DOT_STYLES: StyleOption[] = [
+export const DOT_STYLES: IStyleOption[] = [
   {
     id: "dots-square",
     type: "square",

@@ -7,7 +7,7 @@ import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Heading } from "@radix-ui/themes";
-import { useEffect, useState } from "react";
+import React from "react";
 
 export const QRBuilderWrapper = () => {
   const {
@@ -22,11 +22,6 @@ export const QRBuilderWrapper = () => {
   } = useQrBuilder();
 
   const { isMobile } = useMediaQuery();
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const navigationButtonsInViewport = useIsInViewport(
     qrBuilderButtonsWrapperRef,
@@ -48,7 +43,7 @@ export const QRBuilderWrapper = () => {
           <QRBuilderInner />
         </div>
       </div>
-      {isClient && !isTypeStep && isMobile && (
+      {!isTypeStep && isMobile && (
         <div className="border-border-500 sticky bottom-0 z-10 mt-auto w-full border-t bg-white px-6 py-3">
           <QrBuilderButtons
             step={builderStep || 1}

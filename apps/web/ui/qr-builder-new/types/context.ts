@@ -4,48 +4,48 @@ export type TStepState = 1 | 2 | 3 | null;
 
 export type TDestinationData = string | null;
 
-export type QrType = EQRType | null;
+export type TQrType = EQRType | null;
 
 // Import form data types
 import {
-  WebsiteQRFormData,
-  WhatsappQRFormData,
-  WifiQRFormData,
-  PdfQRFormData,
-  ImageQRFormData,
-  VideoQRFormData,
-  SocialQRFormData,
-  AppLinkQRFormData,
-  FeedbackQRFormData,
+  TWebsiteQRFormData,
+  TWhatsappQRFormData,
+  TWifiQRFormData,
+  TPdfQRFormData,
+  TImageQRFormData,
+  TVideoQRFormData,
+  TSocialQRFormData,
+  TAppLinkQRFormData,
+  TFeedbackQRFormData,
 } from "../validation/schemas";
 import {RefObject} from "react";
 import {QRContentStepRef} from "@/ui/qr-builder-new/components/qr-content-step.tsx";
-import { QRCustomizationData } from "./customization";
+import { IQRCustomizationData } from "./customization";
 
-export type QRFormData =
-  | WebsiteQRFormData
-  | WhatsappQRFormData
-  | WifiQRFormData
-  | PdfQRFormData
-  | ImageQRFormData
-  | VideoQRFormData
-  | SocialQRFormData
-  | AppLinkQRFormData
-  | FeedbackQRFormData;
+export type TQRFormData =
+  | TWebsiteQRFormData
+  | TWhatsappQRFormData
+  | TWifiQRFormData
+  | TPdfQRFormData
+  | TImageQRFormData
+  | TVideoQRFormData
+  | TSocialQRFormData
+  | TAppLinkQRFormData
+  | TFeedbackQRFormData;
 
-export interface QrBuilderContextType {
+export interface IQrBuilderContextType {
   // States
   builderStep: TStepState;
   destinationData: TDestinationData;
-  selectedQrType: QrType;
+  selectedQrType: TQrType;
   hoveredQRType: EQRType | null;
   currentQRType: EQRType | null;
   typeSelectionError: string;
-  formData: QRFormData | null;
+  formData: TQRFormData | null;
   currentFormValues: Record<string, any>;
 
   // Customization states
-  customizationData: QRCustomizationData;
+  customizationData: IQRCustomizationData;
   customizationActiveTab: string;
 
   // Computed states
@@ -59,17 +59,17 @@ export interface QrBuilderContextType {
   handleChangeStep: (step: number) => void;
   handleSelectQRType: (type: EQRType) => void;
   handleHoverQRType: (type: EQRType | null) => void;
-  handleFormSubmit: (data: QRFormData) => void;
+  handleFormSubmit: (data: TQRFormData) => void;
   updateCurrentFormValues: (values: Record<string, any>) => void;
 
   // Customization methods
-  updateCustomizationData: (data: QRCustomizationData) => void;
+  updateCustomizationData: (data: IQRCustomizationData) => void;
   setCustomizationActiveTab: (tab: string) => void;
 
   // State setters
   setBuilderStep: (state: TStepState) => void;
   setDestinationData: (data: TDestinationData) => void;
-  setSelectedQrType: (type: QrType) => void;
+  setSelectedQrType: (type: TQrType) => void;
 
   // Buttons
   handleContinue: () => void;

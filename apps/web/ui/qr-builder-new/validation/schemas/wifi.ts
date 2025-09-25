@@ -10,4 +10,4 @@ export const wifiQRSchema = qrNameSchema.extend({
   isHiddenNetwork: z.boolean().optional(),
 });
 
-export type WifiQRFormData = z.infer<typeof wifiQRSchema>;
+export type TWifiQRFormData = z.infer<typeof wifiQRSchema>;

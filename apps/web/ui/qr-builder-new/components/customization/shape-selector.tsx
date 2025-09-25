@@ -5,12 +5,12 @@ import {
   CORNER_SQUARE_STYLES,
   CORNER_DOT_STYLES,
 } from "../../constants/customization/styles";
-import { ShapeData } from "../../types/customization";
+import { IShapeData } from "../../types/customization";
 import { StylePicker } from "./style-picker";
 
 interface ShapeSelectorProps {
-  shapeData: ShapeData;
-  onShapeChange: (shapeData: ShapeData) => void;
+  shapeData: IShapeData;
+  onShapeChange: (shapeData: IShapeData) => void;
   disabled?: boolean;
   isMobile?: boolean;
 }
@@ -51,7 +51,7 @@ export const ShapeSelector: FC<ShapeSelectorProps> = ({
         <StylePicker
           label="Corner Square Style"
           styleOptions={CORNER_SQUARE_STYLES}
-          selectedStyle={shapeData.cornerSquareStyle}
+          value={shapeData.cornerSquareStyle}
           onSelect={handleCornerSquareStyleChange}
           optionsWrapperClassName="gap-2 md:flex-nowrap"
           iconSize={30}
@@ -62,7 +62,7 @@ export const ShapeSelector: FC<ShapeSelectorProps> = ({
         <StylePicker
           label="Corner Dot Style"
           styleOptions={CORNER_DOT_STYLES}
-          selectedStyle={shapeData.cornerDotStyle}
+          value={shapeData.cornerDotStyle}
           onSelect={handleCornerDotStyleChange}
           optionsWrapperClassName="gap-2 md:flex-nowrap"
           iconSize={30}

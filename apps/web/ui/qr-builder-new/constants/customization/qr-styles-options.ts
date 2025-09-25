@@ -17,5 +17,5 @@ export const QR_STYLES_OPTIONS = [
   },
 ];
 
-export type QRStyleOptionId = "frame" | "style" | "shape" | "logo";
-export type QRStyleOption = typeof QR_STYLES_OPTIONS[number];
+export type TQRStyleOptionId = "frame" | "style" | "shape" | "logo";
+export type TQRStyleOption = typeof QR_STYLES_OPTIONS[number];

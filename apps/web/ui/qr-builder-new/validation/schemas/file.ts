@@ -46,6 +46,6 @@ export const videoQRSchema = qrNameSchema.extend({
     ),
 });
 
-export type PdfQRFormData = z.infer<typeof pdfQRSchema>;
-export type ImageQRFormData = z.infer<typeof imageQRSchema>;
-export type VideoQRFormData = z.infer<typeof videoQRSchema>;
+export type TPdfQRFormData = z.infer<typeof pdfQRSchema>;
+export type TImageQRFormData = z.infer<typeof imageQRSchema>;
+export type TVideoQRFormData = z.infer<typeof videoQRSchema>;

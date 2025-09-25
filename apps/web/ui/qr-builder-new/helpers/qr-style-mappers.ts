@@ -1,5 +1,6 @@
 import { DOT_STYLES, CORNER_SQUARE_STYLES, CORNER_DOT_STYLES } from "@/ui/qr-builder-new/constants/customization/styles";
 import { SUGGESTED_LOGOS } from "@/ui/qr-builder-new/constants/customization/logos";
+import { BLACK_COLOR, WHITE_COLOR } from "@/ui/qr-builder-new/constants/customization/colors";
 import { DotType, CornerSquareType, CornerDotType } from "qr-code-styling";
 
 /**
@@ -46,7 +47,7 @@ export const convertSvgUrlToBase64 = async (url: string): Promise<string> => {
 /**
  * Converts QR customization data to QRCodeStyling options
  */
-export const mapCustomizationToQROptions = (customizationData: any, defaultData: string, BLACK_COLOR: string, WHITE_COLOR: string) => {
+export const mapCustomizationToQROptions = (customizationData: any, defaultData: string) => {
   return {
     data: defaultData,
     dotsOptions: {

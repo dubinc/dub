@@ -12,19 +12,19 @@ import {
 } from "react";
 import { EQRType } from "../constants/get-qr-config.ts";
 import {
-  QrBuilderContextType,
-  QRFormData,
-  QrType,
+  IQrBuilderContextType,
+  TQRFormData,
+  TQrType,
   TDestinationData,
   TStepState,
 } from "../types/context";
 import {
   DEFAULT_QR_CUSTOMIZATION,
-  QRCustomizationData,
+  IQRCustomizationData,
 } from "../types/customization";
 
 // Create context
-const QrBuilderContext = createContext<QrBuilderContextType | undefined>(
+const QrBuilderContext = createContext<IQrBuilderContextType | undefined>(
   undefined,
 );
 
@@ -38,17 +38,17 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
   const [builderStep, setBuilderStep] = useState<TStepState>(1);
   const [destinationData, setDestinationData] =
     useState<TDestinationData>(null);
-  const [selectedQrType, setSelectedQrType] = useState<QrType>(null);
+  const [selectedQrType, setSelectedQrType] = useState<TQrType>(null);
   const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
   const [typeSelectionError, setTypeSelectionError] = useState<string>("");
-  const [formData, setFormData] = useState<QRFormData | null>(null);
+  const [formData, setFormData] = useState<TQRFormData | null>(null);
   const [currentFormValues, setCurrentFormValues] = useState<
     Record<string, any>
   >({});
 
   // Customization states
   const [customizationData, setCustomizationData] =
-    useState<QRCustomizationData>(DEFAULT_QR_CUSTOMIZATION);
+    useState<IQRCustomizationData>(DEFAULT_QR_CUSTOMIZATION);
   const [customizationActiveTab, setCustomizationActiveTab] =
     useState<string>("Frame");
 
@@ -99,7 +99,7 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
   }, []);
 
   const handleFormSubmit = useCallback(
-    (data: QRFormData) => {
+    (data: TQRFormData) => {
       setFormData(data);
       console.log("Form submitted:", data);
       handleNextStep();
@@ -126,7 +126,7 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
   }, []);
 
   // Customization methods
-  const updateCustomizationData = useCallback((data: QRCustomizationData) => {
+  const updateCustomizationData = useCallback((data: IQRCustomizationData) => {
     setCustomizationData(data);
   }, []);
 
@@ -142,7 +142,7 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     });
   };
   console.log("NEW BUILDER - Customization Data:", customizationData);
-  const contextValue: QrBuilderContextType = {
+  const contextValue: IQrBuilderContextType = {
     // States
     builderStep,
     destinationData,
@@ -197,7 +197,7 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
 }
 
 // Custom hook to use the context
-export function useQrBuilder(): QrBuilderContextType {
+export function useQrBuilder(): IQrBuilderContextType {
   const context = useContext(QrBuilderContext);
 
   if (context === undefined) {

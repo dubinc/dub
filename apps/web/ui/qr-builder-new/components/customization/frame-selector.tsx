@@ -14,8 +14,8 @@ import {
   BLACK_COLOR, 
   WHITE_COLOR 
 } from "../../constants/customization/colors";
-import { FrameData } from "../../types/customization";
-import { isValidHex } from "../../helpers/color-validation";
+import { IFrameData } from "../../types/customization";
+import { isValidHex, isBlackHex } from "../../helpers/color-validation";
 import { ColorPickerInput } from "./color-picker";
 import { StylePicker } from "./style-picker";
 
@@ -41,8 +41,8 @@ const animationVariants = {
 };
 
 interface FrameSelectorProps {
-  frameData: FrameData;
-  onFrameChange: (frameData: FrameData) => void;
+  frameData: IFrameData;
+  onFrameChange: (frameData: IFrameData) => void;
   disabled?: boolean;
   isMobile?: boolean;
 }
@@ -56,11 +56,9 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
   const [frameColor, setFrameColor] = useState<string>(
     frameData.color || BLACK_COLOR,
   );
-  const [frameColorValid, setFrameColorValid] = useState<boolean>(true);
   const [frameTextColor, setFrameTextColor] = useState<string | null>(
     frameData.textColor || null,
   );
-  const [frameTextColorValid, setFrameTextColorValid] = useState<boolean>(true);
   const [frameText, setFrameText] = useState<string>(
     frameData.text ?? FRAME_TEXT
   );
@@ -80,22 +78,25 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
 
   const handleFrameSelect = useCallback(
       (frameId: string) => {
-        const newFrameData: FrameData = {
+        // Always use the new frames default text color when switching
+        const newSelectedFrame = FRAMES.find((f) => f.id === frameId);
+        const newDefaultTextColor = newSelectedFrame?.defaultTextColor || WHITE_COLOR;
+
+        const newFrameData: IFrameData = {
           id: frameId,
           color: frameId === "frame-none" ? undefined : frameColor,
-          textColor: frameId === "frame-none" ? undefined : currentFrameTextColor,
+          textColor: frameId === "frame-none" ? undefined : newDefaultTextColor,
           text: frameId === "frame-none" ? undefined : frameText,
         };
         onFrameChange(newFrameData);
       },
-      [frameColor, currentFrameTextColor, frameText, onFrameChange]
+      [frameColor, frameText, onFrameChange]
   );
 
   const handleFrameColorChange = useCallback(
       (color: string) => {
         setFrameColor(color);
         const valid = isValidHex(color);
-        setFrameColorValid(valid);
 
         if (valid && isFrameSelected) {
           onFrameChange({
@@ -104,14 +105,13 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
           });
         }
       },
-      [setFrameColor, setFrameColorValid, isFrameSelected, onFrameChange, frameData]
+      [setFrameColor, isFrameSelected, onFrameChange, frameData]
   );
 
   const handleFrameTextColorChange = useCallback(
       (color: string) => {
         setFrameTextColor(color);
         const valid = isValidHex(color);
-        setFrameTextColorValid(valid);
 
         if (valid && isFrameSelected) {
           onFrameChange({
@@ -120,7 +120,7 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
           });
         }
       },
-      [setFrameTextColor, setFrameTextColorValid, isFrameSelected, onFrameChange, frameData]
+      [setFrameTextColor, isFrameSelected, onFrameChange, frameData]
   );
 
   const handleFrameTextChange = useCallback(
@@ -149,7 +149,7 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
       <StylePicker
         label="Frame around QR code"
         styleOptions={FRAMES}
-        selectedStyle={frameData.id}
+        value={frameData.id}
         onSelect={handleFrameSelect}
         optionsWrapperClassName={`gap-2 ${
           disabled ? "pointer-events-none cursor-not-allowed" : ""
@@ -192,14 +192,12 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
             <Flex direction="row" gap="2" className="items-end text-sm">
               <ColorPickerInput
                 label="Frame colour"
-                color={frameColor}
-                onColorChange={handleFrameColorChange}
-                isValid={frameColorValid}
-                setIsValid={setFrameColorValid}
+                value={frameColor}
+                onChange={handleFrameColorChange}
                 disabled={disabled}
               />
               <AnimatePresence>
-                {frameColor !== BLACK_COLOR && (
+                {!isBlackHex(frameColor) && (
                   <motion.div
                     initial={{ opacity: 0, scale: 0.8 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -221,10 +219,8 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
             <Flex direction="row" gap="2" className="items-end text-sm">
               <ColorPickerInput
                 label="Text Colour"
-                color={currentFrameTextColor}
-                onColorChange={handleFrameTextColorChange}
-                isValid={frameTextColorValid}
-                setIsValid={setFrameTextColorValid}
+                value={currentFrameTextColor}
+                onChange={handleFrameTextColorChange}
                 disabled={disabled}
               />
               <AnimatePresence>

@@ -20,13 +20,14 @@ import Scooter from "../../icons/frames/scooter.svg";
 import ClipboardFramePreview from "../../icons/frames/clipboard-preview.svg";
 import ClipboardFrame from "../../icons/frames/clipboard.svg";
 
-import { StyleOption } from "../../types/customization";
-import { BLACK_COLOR, WHITE_COLOR } from "./colors";
+import { IStyleOption } from "../../types/customization";
+import { BLACK_COLOR } from "./colors";
+import { isWhiteHex, isBlackHex } from "../../helpers/color-validation";
 import { embedQRIntoFrame } from "../../helpers/frame-helpers";
 
 export const FRAME_TEXT = "Scan Me!";
 
-export const FRAMES: StyleOption[] = [
+export const FRAMES: IStyleOption[] = [
   {
     id: "frame-none",
     type: "none",
@@ -120,5 +121,5 @@ export const FRAMES: StyleOption[] = [
 ];
 
 export const isDefaultTextColor = (color: string): boolean => {
-  return color === WHITE_COLOR || color === BLACK_COLOR;
+  return isWhiteHex(color) || isBlackHex(color);
 };

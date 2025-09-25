@@ -1,9 +1,9 @@
 import { cn } from "@dub/utils";
-import { FC, useEffect, useRef, useCallback } from "react";
+import { FC, useEffect, useRef, useCallback, useMemo } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 
 import { SUGGESTED_LOGOS } from "../../constants/customization/logos";
-import { LogoData } from "../../types/customization";
+import { ILogoData } from "../../types/customization";
 import { StylePicker } from "./style-picker";
 
 const FILE_UPLOAD_FIELD_NAME = "fileUploadLogo";
@@ -13,8 +13,8 @@ interface LogoFormValues {
 }
 
 interface LogoSelectorProps {
-  logoData: LogoData;
-  onLogoChange: (logoData: LogoData) => void;
+  logoData: ILogoData;
+  onLogoChange: (logoData: ILogoData) => void;
   disabled?: boolean;
   isMobile?: boolean;
 }
@@ -49,6 +49,8 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
       } else {
         onLogoChange({
           type: "none",
+          id: undefined,
+          file: undefined,
         });
       }
     }
@@ -60,6 +62,8 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
     if (logoId === "logo-none") {
       onLogoChange({
         type: "none",
+        id: undefined,
+        file: undefined,
       });
     } else {
       onLogoChange({
@@ -73,7 +77,7 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
     methods.trigger(FILE_UPLOAD_FIELD_NAME);
   }, [onLogoChange, methods]);
 
-  const getSelectedStyle = useCallback(() => {
+  const selectedStyle = useMemo(() => {
     if (logoData.type === "suggested" && logoData.id) {
       return logoData.id;
     }
@@ -95,7 +99,7 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
       <StylePicker
         label="Select a logo"
         styleOptions={SUGGESTED_LOGOS}
-        selectedStyle={getSelectedStyle()}
+        value={selectedStyle}
         onSelect={handleSuggestedLogoSelect}
         optionsWrapperClassName={`${
           disabled ? "pointer-events-none cursor-not-allowed" : ""

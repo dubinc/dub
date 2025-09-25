@@ -27,9 +27,9 @@ import WifiLogoIcon from "@/ui/qr-builder/icons/logos/wifi.svg";
 import YoutubeLogoIcon from "@/ui/qr-builder/icons/logos/youtube.svg";
 import NoLogoIcon from "@/ui/qr-builder/icons/no-logo.svg";
 
-import { StyleOption } from "../../types/customization";
+import { IStyleOption } from "../../types/customization";
 
-export const SUGGESTED_LOGOS: StyleOption[] = [
+export const SUGGESTED_LOGOS: IStyleOption[] = [
   {
     id: "logo-none",
     type: "none",

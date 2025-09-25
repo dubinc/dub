@@ -11,12 +11,12 @@ import {
   VideoForm,
 } from "./components";
 import { QRFormRef } from "./types";
-import { QRFormData } from "../types/context";
+import { TQRFormData } from "../types/context";
 
 interface QRFormResolverProps {
   qrType: EQRType;
-  onSubmit: (data: QRFormData) => void;
-  defaultValues?: Partial<QRFormData>;
+  onSubmit: (data: TQRFormData) => void;
+  defaultValues?: Partial<TQRFormData>;
   initialData?: {
     qrType: EQRType;
     data: string;
