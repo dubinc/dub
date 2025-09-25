@@ -15,7 +15,6 @@ export const dynamic = "force-dynamic";
 
 const schema = z.object({
   bountyId: z.string(),
-  userId: z.string().nullish(),
   page: z.number().optional().default(0),
 });
 
@@ -32,7 +31,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { bountyId, userId, page } = schema.parse(JSON.parse(rawBody));
+    const { bountyId, page } = schema.parse(JSON.parse(rawBody));
 
     // Find bounty
     const bounty = await prisma.bounty.findUnique({
@@ -172,7 +171,6 @@ export async function POST(req: Request) {
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
         body: {
           bountyId,
-          userId,
           page: page + 1,
         },
       });
