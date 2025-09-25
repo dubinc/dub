@@ -270,8 +270,6 @@ export const DELETE = withWorkspace(
       });
     }
 
-    console.log({ discountCodesToDelete, keepDiscountCodes });
-
     const deletedGroup = await prisma.$transaction(async (tx) => {
       // 1. Update all partners in the group to the default group
       await tx.programEnrollment.updateMany({
