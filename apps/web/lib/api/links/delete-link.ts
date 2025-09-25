@@ -15,12 +15,6 @@ export async function deleteLink(linkId: string) {
     },
     include: {
       ...includeTags,
-      project: {
-        select: {
-          id: true,
-          stripeConnectId: true,
-        },
-      },
       discountCode: true,
     },
   });
