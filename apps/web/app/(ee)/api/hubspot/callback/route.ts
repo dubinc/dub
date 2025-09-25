@@ -1,9 +1,11 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
+import { HubSpotApi } from "@/lib/integrations/hubspot/api";
 import {
   HUBSPOT_API_HOST,
   HUBSPOT_CLIENT_ID,
   HUBSPOT_CLIENT_SECRET,
+  HUBSPOT_DUB_CONTACT_PROPERTIES,
   HUBSPOT_REDIRECT_URI,
   HUBSPOT_STATE_CACHE_PREFIX,
 } from "@/lib/integrations/hubspot/constants";
@@ -14,6 +16,7 @@ import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
@@ -146,12 +149,27 @@ export const GET = async (req: Request) => {
     });
 
     // Install the integration
-    await installIntegration({
+    const installedIntegration = await installIntegration({
       integrationId: integration.id,
       userId: session.user.id,
       workspaceId,
       credentials,
     });
+
+    waitUntil(
+      (async () => {
+        if (installedIntegration) {
+          const hubSpotApi = new HubSpotApi({
+            token: credentials.access_token,
+          });
+
+          await hubSpotApi.createPropertiesBatch({
+            objectType: "0-1",
+            properties: HUBSPOT_DUB_CONTACT_PROPERTIES,
+          });
+        }
+      })(),
+    );
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);
   }

@@ -1,9 +1,13 @@
 import { ALLOWED_MIN_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
 import {
+  IndustryInterest,
+  MonthlyTraffic,
   PartnerBannedReason,
   PartnerProfileType,
   PartnerStatus,
+  PreferredEarningStructure,
   ProgramEnrollmentStatus,
+  SalesChannel,
 } from "@dub/prisma/client";
 import {
   COUNTRY_CODES,
@@ -236,6 +240,36 @@ export const PartnerOnlinePresenceSchema = z.object({
   tiktokVerifiedAt: z.date().nullish(),
 });
 
+export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
+
+export const PartnerProfileSchema = z.object({
+  monthlyTraffic: z
+    .nativeEnum(MonthlyTraffic)
+    .nullable()
+    .describe("The partner's monthly traffic."),
+  industryInterests: z
+    .array(z.nativeEnum(IndustryInterest))
+    .max(MAX_PARTNER_INDUSTRY_INTERESTS)
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate industry interests are not allowed.",
+    })
+    .describe("The partner's industry interests."),
+  preferredEarningStructures: z
+    .array(z.nativeEnum(PreferredEarningStructure))
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate preferred earning structures are not allowed.",
+    })
+    .describe("The partner's preferred earning structures."),
+  salesChannels: z
+    .array(z.nativeEnum(SalesChannel))
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate sales channels are not allowed.",
+    })
+    .describe("The partner's sales channels."),
+});
+
+export const MAX_PARTNER_DESCRIPTION_LENGTH = 500;
+
 export const PartnerSchema = z
   .object({
     id: z.string().describe("The partner's unique ID on Dub."),
@@ -260,7 +294,7 @@ export const PartnerSchema = z
     image: z.string().nullable().describe("The partner's avatar image."),
     description: z
       .string()
-      .max(5000)
+      .max(5000) // Left at 5000 instead of MAX_PARTNER_DESCRIPTION_LENGTH to avoid breaking changes
       .nullish()
       .describe("A brief description of the partner and their background."),
     country: z
@@ -300,7 +334,11 @@ export const PartnerSchema = z
       .date()
       .describe("The date when the partner was created on Dub."),
   })
-  .merge(PartnerOnlinePresenceSchema);
+  .merge(PartnerOnlinePresenceSchema)
+  .merge(PartnerProfileSchema.partial());
+
+export const PartnerWithProfileSchema =
+  PartnerSchema.merge(PartnerProfileSchema);
 
 // Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
@@ -314,6 +352,10 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
   paypalEmail: true,
   stripeConnectId: true,
   payoutsEnabledAt: true,
+  monthlyTraffic: true,
+  industryInterests: true,
+  preferredEarningStructures: true,
+  salesChannels: true,
 })
   .merge(
     ProgramEnrollmentSchema.omit({

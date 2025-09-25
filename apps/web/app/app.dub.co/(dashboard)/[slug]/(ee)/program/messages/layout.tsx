@@ -9,7 +9,7 @@ import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { MessagesContext, MessagesPanel } from "@/ui/messages/messages-context";
 import { MessagesList } from "@/ui/messages/messages-list";
 import { PartnerSelector } from "@/ui/partners/partner-selector";
-import { Button } from "@dub/ui";
+import { Button, InfoTooltip, SimpleTooltipContent } from "@dub/ui";
 import { Msgs, Pen2 } from "@dub/ui/icons";
 import { useParams, useRouter } from "next/navigation";
 import { CSSProperties, ReactNode, useState } from "react";
@@ -60,9 +60,20 @@ function CapableLayout({ children }: { children: ReactNode }) {
             <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
               <div className="flex min-w-0 items-center gap-4">
                 <NavButton />
-                <h1 className="text-content-emphasis text-lg font-semibold leading-7">
-                  Messages
-                </h1>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-content-emphasis text-lg font-semibold leading-7">
+                    Messages
+                  </h1>
+                  <InfoTooltip
+                    content={
+                      <SimpleTooltipContent
+                        title="Chat with your partners in real time, with email notifications & read statuses built in."
+                        cta="Learn more"
+                        href="https://dub.co/help/article/messaging-partners"
+                      />
+                    }
+                  />
+                </div>
               </div>
               <PartnerSelector
                 selectedPartnerId={partnerId ?? null}

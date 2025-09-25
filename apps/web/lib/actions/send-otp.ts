@@ -9,7 +9,7 @@ import { flattenValidationErrors } from "next-safe-action";
 import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
-import { isGenericEmail } from "../emails";
+import { isGenericEmail } from "../is-generic-email";
 import z from "../zod";
 import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
