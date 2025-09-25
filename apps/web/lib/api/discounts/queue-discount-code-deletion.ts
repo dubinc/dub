@@ -1,15 +1,10 @@
 import { qstash } from "@/lib/cron";
-import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { Discount } from "@prisma/client";
 
 const queue = qstash.queue({
   queueName: "discount-code-deletion",
 });
-
-interface Payload {
-  code: string | null | undefined;
-  stripeConnectId: string | null | undefined;
-}
 
 // Triggered in the following cases:
 // 1. When a discount is deleted
@@ -17,11 +12,10 @@ interface Payload {
 // 3. When a link is deleted that has a discount code associated with it
 // 4. When a partner is banned
 // 5. When a partner is moved to a different group
-export async function queueStripeDiscountCodeDisable({
-  code,
-  stripeConnectId,
-}: Payload) {
-  if (!stripeConnectId) {
+export async function queueStripeDiscountCodeDisable(
+  discountCodeId: string | null | undefined,
+) {
+  if (!discountCodeId) {
     return;
   }
 
@@ -33,63 +27,67 @@ export async function queueStripeDiscountCodeDisable({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/disable-stripe-code`,
     method: "POST",
     body: {
-      code,
-      stripeConnectId,
+      discountCodeId,
     },
   });
 }
 
-// For a given discount, we'll delete the discount codes in batches
-export async function batchQueueStripeDiscountCodeDisable({
-  discountId,
-  stripeConnectId,
+// Determine if we should delete the discount code from Stripe
+// Used in the following cases:
+// 1. When a group is deleted
+// 2. When a partner is moved to a different group
+// export function shouldDeleteStripeDiscountCode({
+//   groupDiscount,
+//   defaultGroupDiscount,
+// }: {
+//   groupDiscount: Discount | null | undefined;
+//   defaultGroupDiscount: Discount | null | undefined;
+// }): boolean {
+//   if (!groupDiscount || !defaultGroupDiscount) {
+//     return true;
+//   }
+
+//   // If both groups use the same Stripe coupon
+//   if (groupDiscount.couponId === defaultGroupDiscount.couponId) {
+//     return false;
+//   }
+
+//   // If both discounts are effectively equivalent
+//   if (
+//     groupDiscount.amount === defaultGroupDiscount.amount &&
+//     groupDiscount.type === defaultGroupDiscount.type &&
+//     groupDiscount.maxDuration === defaultGroupDiscount.maxDuration
+//   ) {
+//     return false;
+//   }
+
+//   return true;
+// }
+
+export function shouldKeepStripeDiscountCode({
+  groupDiscount,
+  defaultGroupDiscount,
 }: {
-  discountId: string;
-  stripeConnectId: string | null | undefined;
-}) {
-  if (!stripeConnectId) {
-    return;
+  groupDiscount: Discount | null | undefined;
+  defaultGroupDiscount: Discount | null | undefined;
+}): boolean {
+  if (!groupDiscount || !defaultGroupDiscount) {
+    return false;
   }
 
-  let cursor: undefined | string = undefined;
-
-  while (true) {
-    const discountCodes = await prisma.discountCode.findMany({
-      where: {
-        discountId,
-      },
-      select: {
-        id: true,
-      },
-      orderBy: {
-        createdAt: "asc",
-      },
-      cursor: {
-        id: cursor,
-      },
-      take: 100,
-    });
-
-    // TODO:
-    // Talk to Upstash to see if there is a way to batch send this
-
-    if (discountCodes.length === 0) {
-      break;
-    }
-
-    await Promise.allSettled(
-      discountCodes.map(({ code }) =>
-        queue.enqueueJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/disable-stripe-code`,
-          method: "POST",
-          body: {
-            code,
-            stripeConnectId,
-          },
-        }),
-      ),
-    );
-
-    cursor = discountCodes[discountCodes.length - 1].id;
+  // If both groups use the same Stripe coupon
+  if (groupDiscount.couponId === defaultGroupDiscount.couponId) {
+    return true;
   }
+
+  // If both discounts are effectively equivalent
+  if (
+    groupDiscount.amount === defaultGroupDiscount.amount &&
+    groupDiscount.type === defaultGroupDiscount.type &&
+    groupDiscount.maxDuration === defaultGroupDiscount.maxDuration
+  ) {
+    return true;
+  }
+
+  return false;
 }

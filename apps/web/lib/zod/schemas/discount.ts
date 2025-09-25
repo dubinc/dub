@@ -53,7 +53,7 @@ export const discountPartnersQuerySchema = z
 export const DiscountCodeSchema = z.object({
   id: z.string(),
   code: z.string(),
-  discountId: z.string(),
+  discountId: z.string().nullable(),
   partnerId: z.string(),
   linkId: z.string(),
 });

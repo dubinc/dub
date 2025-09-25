@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { batchQueueStripeDiscountCodeDisable } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { queueStripeDiscountCodeDisable } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
@@ -29,6 +29,13 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
+    // Cache discount codes to delete them later
+    const discountCodes = await prisma.discountCode.findMany({
+      where: {
+        discountId: discount.id,
+      },
+    });
+
     const group = await prisma.$transaction(async (tx) => {
       const group = await tx.partnerGroup.update({
         where: {
@@ -45,6 +52,16 @@ export const deleteDiscountAction = authActionClient
         },
         data: {
           discountId: null,
+        },
+      });
+
+      await tx.discountCode.updateMany({
+        where: {
+          discountId: discount.id,
+        },
+        data: {
+          discountId: null,
+          deletedAt: new Date(),
         },
       });
 
@@ -66,10 +83,9 @@ export const deleteDiscountAction = authActionClient
           },
         }),
 
-        batchQueueStripeDiscountCodeDisable({
-          discountId,
-          stripeConnectId: workspace.stripeConnectId,
-        }),
+        ...discountCodes.map((discountCode) =>
+          queueStripeDiscountCodeDisable(discountCode.id),
+        ),
 
         recordAuditLog({
           workspaceId: workspace.id,

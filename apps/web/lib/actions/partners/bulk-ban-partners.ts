@@ -131,10 +131,7 @@ export const bulkBanPartnersAction = authActionClient
         // Queue discount code deletions
         await Promise.allSettled(
           links.map((link) =>
-            queueStripeDiscountCodeDisable({
-              code: link.discountCode?.code,
-              stripeConnectId: workspace.stripeConnectId,
-            }),
+            queueStripeDiscountCodeDisable(link.discountCode?.id),
           ),
         );
 

@@ -1,4 +1,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import {
+  queueStripeDiscountCodeDisable,
+  shouldKeepStripeDiscountCode,
+} from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -13,7 +17,7 @@ import {
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { DiscountCode, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -227,14 +231,19 @@ export const DELETE = withWorkspace(
         },
         include: {
           partners: true,
+          discount: true,
         },
       }),
+
       prisma.partnerGroup.findUniqueOrThrow({
         where: {
           programId_slug: {
             programId,
             slug: DEFAULT_PARTNER_GROUP.slug,
           },
+        },
+        include: {
+          discount: true,
         },
       }),
     ]);
@@ -245,6 +254,22 @@ export const DELETE = withWorkspace(
         message: "You cannot delete the default group of your program.",
       });
     }
+
+    const keepDiscountCodes = shouldKeepStripeDiscountCode({
+      groupDiscount: group.discount,
+      defaultGroupDiscount: defaultGroup.discount,
+    });
+
+    // Cache discount codes to delete them later
+    let discountCodes: DiscountCode[] = [];
+    if (group.discountId && !keepDiscountCodes) {
+      discountCodes = await prisma.discountCode.findMany({
+        where: {
+          discountId: group.discountId,
+        },
+      });
+    }
+
     await prisma.$transaction(async (tx) => {
       // 1. Update all partners in the group to the default group
       await tx.programEnrollment.updateMany({
@@ -290,6 +315,18 @@ export const DELETE = withWorkspace(
           id: group.id,
         },
       });
+
+      // 5. Update the discount codes
+      if (keepDiscountCodes) {
+        await tx.discountCode.updateMany({
+          where: {
+            discountId: group.discountId,
+          },
+          data: {
+            discountId: defaultGroup.discountId,
+          },
+        });
+      }
     });
 
     waitUntil(
@@ -304,6 +341,10 @@ export const DELETE = withWorkspace(
             isGroupDeleted: true,
           },
         }),
+
+        ...discountCodes.map((discountCode) =>
+          queueStripeDiscountCodeDisable(discountCode.id),
+        ),
 
         recordAuditLog({
           workspaceId: workspace.id,

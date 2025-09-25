@@ -60,7 +60,13 @@ export async function getProgramEnrollmentOrThrow({
       discount: true,
     }),
     ...(includeDiscountCodes && {
-      discountCodes: true,
+      discountCodes: {
+        where: {
+          discountId: {
+            not: null,
+          },
+        },
+      },
     }),
     ...(includeGroup && {
       partnerGroup: true,

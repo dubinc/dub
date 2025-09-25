@@ -51,11 +51,7 @@ export async function deleteLink(linkId: string) {
           },
         }),
 
-      link.discountCode &&
-        queueStripeDiscountCodeDisable({
-          code: link.discountCode.code,
-          stripeConnectId: link.project?.stripeConnectId,
-        }),
+      link.discountCode && queueStripeDiscountCodeDisable(link.discountCode.id),
     ]),
   );
 

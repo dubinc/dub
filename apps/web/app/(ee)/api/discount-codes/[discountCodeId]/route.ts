@@ -7,7 +7,7 @@ import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
-// DELETE /api/discount-codes/[discountCodeId] - delete a discount code
+// DELETE /api/discount-codes/[discountCodeId] - soft delete a discount code
 export const DELETE = withWorkspace(
   async ({ workspace, params, session }) => {
     const { discountCodeId } = params;
@@ -19,7 +19,7 @@ export const DELETE = withWorkspace(
       },
     });
 
-    if (!discountCode) {
+    if (!discountCode || !discountCode.discountId) {
       throw new DubApiError({
         message: `Discount code (${discountCodeId}) not found.`,
         code: "bad_request",
@@ -33,9 +33,12 @@ export const DELETE = withWorkspace(
       });
     }
 
-    await prisma.discountCode.delete({
+    await prisma.discountCode.update({
       where: {
         id: discountCodeId,
+      },
+      data: {
+        discountId: null,
       },
     });
 

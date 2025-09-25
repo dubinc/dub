@@ -104,10 +104,7 @@ export const banPartnerAction = authActionClient
           linkCache.expireMany(links),
 
           ...links.map((link) =>
-            queueStripeDiscountCodeDisable({
-              code: link.discountCode?.code,
-              stripeConnectId: workspace.stripeConnectId,
-            }),
+            queueStripeDiscountCodeDisable(link.discountCode?.id),
           ),
 
           partner.email &&
