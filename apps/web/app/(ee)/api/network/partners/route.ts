@@ -17,7 +17,7 @@ export const GET = withWorkspace(
 
     const partners = (await prisma.$queryRaw`
       SELECT 
-        p.*,
+        p.*
       FROM 
         Partner p
       WHERE 

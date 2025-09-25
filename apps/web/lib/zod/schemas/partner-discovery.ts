@@ -16,9 +16,11 @@ export const DiscoverablePartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
   companyName: true,
+  country: true,
   profileType: true,
   image: true,
   description: true,
+  discoverableAt: true,
 
   monthlyTraffic: true,
   industryInterests: true,
