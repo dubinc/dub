@@ -6,10 +6,23 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useAddDiscountCodeModal } from "@/ui/partners/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/partners/add-partner-link-modal";
-import { Button, CopyButton, LoadingSpinner, Table, useTable } from "@dub/ui";
+import {
+  Button,
+  CopyButton,
+  LoadingSpinner,
+  MenuItem,
+  Popover,
+  Table,
+  Tag,
+  useTable,
+} from "@dub/ui";
+import { Dots, Trash } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
+import { Command } from "cmdk";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export function ProgramPartnerLinksPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
@@ -193,10 +206,29 @@ const PartnerDiscountCodes = ({
         id: "code",
         header: "Discount code",
         cell: ({ row }) => (
-          <div className="flex items-center gap-3">
-            <span className="font-mono text-sm">{row.original.code}</span>
-            <CopyButton value={row.original.code} className="p-0.5" />
+          <div className="group/discountcode relative flex h-5 w-fit items-center gap-1 rounded-lg bg-green-100 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:bg-green-200">
+            <Tag className="size-3 text-green-700" strokeWidth={1.5} />
+            <div className="text-xs font-medium text-green-700 transition-colors">
+              {row.original.code}
+            </div>
+            <span className="flex items-center">
+              <CopyButton
+                value={row.original.code}
+                variant="neutral"
+                className="p-0.5"
+              />
+            </span>
           </div>
+        ),
+      },
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 25,
+        size: 25,
+        maxSize: 25,
+        cell: ({ row }) => (
+          <DiscountCodeRowMenuButton discountCode={row.original} />
         ),
       },
     ],
@@ -236,3 +268,46 @@ const PartnerDiscountCodes = ({
     </>
   );
 };
+
+function DiscountCodeRowMenuButton({
+  discountCode,
+}: {
+  discountCode: any; // TODO: Add proper type for discount code
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleDelete = () => {
+    // TODO: Implement delete functionality
+    toast.info("Delete functionality coming soon");
+    setIsOpen(false);
+  };
+
+  return (
+    <Popover
+      openPopover={isOpen}
+      setOpenPopover={setIsOpen}
+      content={
+        <Command tabIndex={0} loop className="focus:outline-none">
+          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[120px]">
+            <MenuItem
+              as={Command.Item}
+              icon={Trash}
+              variant="danger"
+              onSelect={handleDelete}
+            >
+              Delete code
+            </MenuItem>
+          </Command.List>
+        </Command>
+      }
+      align="end"
+    >
+      <Button
+        type="button"
+        className="h-8 whitespace-nowrap px-2"
+        variant="outline"
+        icon={<Dots className="h-4 w-4 shrink-0" />}
+      />
+    </Popover>
+  );
+}
