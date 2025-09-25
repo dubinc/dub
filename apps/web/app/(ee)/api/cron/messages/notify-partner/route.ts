@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendBatchEmail } from "@dub/email";
@@ -53,9 +54,9 @@ export async function POST(req: Request) {
                 },
                 readInApp: null, // Unread
                 readInEmail: null, // Unread
-                emails: {
-                  none: {}, // No emails sent yet
-                },
+              },
+              orderBy: {
+                createdAt: "desc",
               },
               include: {
                 senderUser: true,
@@ -76,25 +77,25 @@ export async function POST(req: Request) {
       },
     });
 
-    const unreadMessages = programEnrollment.partner.messages.sort(
-      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-    );
+    // unread messages are already sorted by latest message first
+    const unreadMessages = programEnrollment.partner.messages;
 
     if (unreadMessages.length === 0)
       return logAndRespond(
         `No unread messages found for partner ${partnerId} in program ${programId}. Skipping...`,
       );
 
-    if (unreadMessages[unreadMessages.length - 1].id !== lastMessageId)
+    // if the latest unread message is not the last message id, skip
+    if (unreadMessages[0].id !== lastMessageId)
       return logAndRespond(
         `There is a more recent unread message than ${lastMessageId}. Skipping...`,
       );
 
-    const partnerEmailsToNotify = programEnrollment.partner.users
-      .map(({ user }) => user.email)
-      .filter(Boolean) as string[];
+    const partnerUsersToNotify = programEnrollment.partner.users
+      .map(({ user }) => user)
+      .filter(Boolean) as { email: string; id: string }[];
 
-    if (partnerEmailsToNotify.length === 0)
+    if (partnerUsersToNotify.length === 0)
       return logAndRespond(
         `No partner emails to notify for partner ${partnerId}. Skipping...`,
       );
@@ -102,7 +103,7 @@ export async function POST(req: Request) {
     const program = programEnrollment.program;
 
     const { data, error } = await sendBatchEmail(
-      partnerEmailsToNotify.map((email) => ({
+      partnerUsersToNotify.map(({ email }) => ({
         subject: `${program.name} sent ${unreadMessages.length === 1 ? "a message" : `${unreadMessages.length} messages`}`,
         variant: "notifications",
         to: email,
@@ -142,13 +143,15 @@ export async function POST(req: Request) {
       );
 
     await prisma.notificationEmail.createMany({
-      data: unreadMessages.flatMap((message) =>
-        data.data.map(({ id }) => ({
-          type: NotificationEmailType.Message,
-          emailId: id,
-          messageId: message.id,
-        })),
-      ),
+      data: partnerUsersToNotify.map(({ id: userId }, idx) => ({
+        id: createId({ prefix: "em_" }),
+        type: NotificationEmailType.Message,
+        emailId: data.data[idx].id,
+        messageId: lastMessageId,
+        programId,
+        partnerId,
+        recipientUserId: userId,
+      })),
     });
 
     return logAndRespond(

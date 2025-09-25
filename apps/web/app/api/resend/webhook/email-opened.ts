@@ -16,8 +16,9 @@ export async function emailOpened({
     `Updating notification email read statuses for email ${emailId}...`,
   );
 
-  await prisma.$transaction([
-    prisma.notificationEmail.updateMany({
+  const res = await prisma.$transaction(async (tx) => {
+    // TODO: refactor this to use findUnique once we add `emailId` as a unique index
+    await tx.notificationEmail.updateMany({
       where: {
         emailId,
         openedAt: null,
@@ -25,20 +26,39 @@ export async function emailOpened({
       data: {
         openedAt: new Date(),
       },
-    }),
-
-    prisma.message.updateMany({
+    });
+    const notificationEmail = await tx.notificationEmail.findFirst({
       where: {
+        emailId,
+      },
+    });
+
+    console.log(
+      `Found notification email: ${JSON.stringify(notificationEmail)}`,
+    );
+
+    if (
+      !notificationEmail ||
+      !notificationEmail.programId ||
+      !notificationEmail.partnerId
+    ) {
+      return;
+    }
+
+    return await tx.message.updateMany({
+      where: {
+        programId: notificationEmail.programId,
+        partnerId: notificationEmail.partnerId,
         readInEmail: null,
-        emails: {
-          some: {
-            emailId,
-          },
+        createdAt: {
+          lte: notificationEmail.createdAt,
         },
       },
       data: {
         readInEmail: new Date(),
       },
-    }),
-  ]);
+    });
+  });
+
+  console.log(res);
 }
