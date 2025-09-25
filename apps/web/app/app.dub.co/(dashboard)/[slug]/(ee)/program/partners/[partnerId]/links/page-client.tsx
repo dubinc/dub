@@ -22,7 +22,7 @@ import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import { Command } from "cmdk";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export function ProgramPartnerLinksPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
@@ -169,6 +169,7 @@ const PartnerDiscountCodes = ({
   partner: EnrolledPartnerProps;
 }) => {
   const { slug } = useWorkspace();
+
   const { discountCodes, loading, error } = useDiscountCodes({
     partnerId: partner.id || null,
   });
@@ -242,6 +243,22 @@ const PartnerDiscountCodes = ({
     error: error ? "Failed to load discount codes" : undefined,
   } as any);
 
+  const disabledReason = useMemo(() => {
+    if (!partner.discountId) {
+      return "No discount assigned to this partner group. Please add a discount before you can create a discount code.";
+    }
+
+    if (partner.links?.length === 0) {
+      return "No links assigned to this partner group. Please add a link before you can create a discount code.";
+    }
+
+    if (partner.links?.length === discountCodes?.length) {
+      return "All links have a discount code assigned to them. Please add a new link before you can create a discount code.";
+    }
+
+    return undefined;
+  }, [partner.discountId, partner.links, discountCodes]);
+
   return (
     <>
       <div className="flex items-end justify-between gap-4">
@@ -253,12 +270,8 @@ const PartnerDiscountCodes = ({
           text="Create code"
           className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
           onClick={() => setShowAddDiscountCodeModal(true)}
-          disabled={!partner.discountId}
-          disabledTooltip={
-            !partner.discountId
-              ? "No discount assigned to this partner group. Please add a discount before you can create a discount code."
-              : undefined
-          }
+          disabled={!!disabledReason}
+          disabledTooltip={disabledReason}
         />
       </div>
       <div className="mt-4">
