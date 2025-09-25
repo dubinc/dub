@@ -250,13 +250,14 @@ export const POST = withSession(
               //   addDays(new Date(), period),
               //   "yyyy-MM-dd",
               // ),
-              trial_price: (price / 100).toFixed(2),
+              trial_price: (trialPrice / 100).toFixed(2),
               currency_symbol: user.currency?.currencyForPay as string,
               trial_period: trialPeriodDays.toString(),
               trial_end_date: format(
                 addDays(new Date(), trialPeriodDays),
                 "yyyy-MM-dd",
               ),
+              price: (price / 100).toFixed(2),
               period: period.toString(),
               qr_name: firstQr?.title || "Untitled QR",
               qr_type:
@@ -272,13 +273,14 @@ export const POST = withSession(
             subject: "Welcome to GetQR",
             template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
             messageData: {
-              trial_price: (price / 100).toFixed(2),
+              trial_price: (trialPrice / 100).toFixed(2),
               currency_symbol: user.currency?.currencyForPay as string,
               trial_period: trialPeriodDays.toString(),
               trial_end_date: format(
                 addDays(new Date(), trialPeriodDays),
                 "yyyy-MM-dd",
               ),
+              price: (price / 100).toFixed(2),
               period: period.toString(),
               url: loginUrl,
             },
