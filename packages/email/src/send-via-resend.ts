@@ -15,6 +15,7 @@ const resendEmailForOptions = (opts: ResendEmailOptions) => {
     react,
     scheduledAt,
     headers,
+    tags,
   } = opts;
 
   return {
@@ -26,6 +27,7 @@ const resendEmailForOptions = (opts: ResendEmailOptions) => {
     text,
     react,
     scheduledAt,
+    tags,
     ...(variant === "marketing"
       ? {
           headers: {
