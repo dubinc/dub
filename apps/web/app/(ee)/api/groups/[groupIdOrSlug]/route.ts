@@ -1,6 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import {
-  queueStripeDiscountCodeDisable,
+  queueDiscountCodeDeletion,
   shouldKeepStripeDiscountCode,
 } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
@@ -343,7 +343,7 @@ export const DELETE = withWorkspace(
         }),
 
         ...discountCodes.map((discountCode) =>
-          queueStripeDiscountCodeDisable(discountCode.id),
+          queueDiscountCodeDeletion(discountCode.id),
         ),
 
         recordAuditLog({

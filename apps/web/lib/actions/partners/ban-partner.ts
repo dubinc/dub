@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { queueStripeDiscountCodeDisable } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -30,6 +30,7 @@ export const banPartnerAction = authActionClient
       partnerId,
       programId,
       includePartner: true,
+      includeDiscountCodes: true,
     });
 
     if (programEnrollment.status === "banned") {
@@ -81,6 +82,16 @@ export const banPartnerAction = authActionClient
           status: "canceled",
         },
       }),
+
+      prisma.discountCode.updateMany({
+        where: {
+          programId,
+          partnerId,
+        },
+        data: {
+          discountId: null,
+        },
+      }),
     ]);
 
     waitUntil(
@@ -98,13 +109,13 @@ export const banPartnerAction = authActionClient
           },
         });
 
-        const { program, partner } = programEnrollment;
+        const { program, partner, discountCodes } = programEnrollment;
 
         await Promise.allSettled([
           linkCache.expireMany(links),
 
-          ...links.map((link) =>
-            queueStripeDiscountCodeDisable(link.discountCode?.id),
+          ...discountCodes.map((discountCode) =>
+            queueDiscountCodeDeletion(discountCode.id),
           ),
 
           partner.email &&

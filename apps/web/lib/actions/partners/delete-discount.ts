@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { queueStripeDiscountCodeDisable } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
@@ -61,7 +61,6 @@ export const deleteDiscountAction = authActionClient
         },
         data: {
           discountId: null,
-          deletedAt: new Date(),
         },
       });
 
@@ -84,7 +83,7 @@ export const deleteDiscountAction = authActionClient
         }),
 
         ...discountCodes.map((discountCode) =>
-          queueStripeDiscountCodeDisable(discountCode.id),
+          queueDiscountCodeDeletion(discountCode.id),
         ),
 
         recordAuditLog({

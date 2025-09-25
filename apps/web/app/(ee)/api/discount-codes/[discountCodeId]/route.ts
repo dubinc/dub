@@ -1,8 +1,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { disableStripeDiscountCode } from "@/lib/stripe/disable-stripe-discount-code";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -59,10 +59,7 @@ export const DELETE = withWorkspace(
           ],
         }),
 
-        disableStripeDiscountCode({
-          stripeConnectId: workspace.stripeConnectId,
-          code: discountCode.code,
-        }),
+        queueDiscountCodeDeletion(discountCode.id),
       ]),
     );
 

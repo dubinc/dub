@@ -1,7 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { queueStripeDiscountCodeDisable } from "@/lib/api/discounts/queue-discount-code-deletion";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -131,7 +131,7 @@ export const bulkBanPartnersAction = authActionClient
         // Queue discount code deletions
         await Promise.allSettled(
           links.map((link) =>
-            queueStripeDiscountCodeDisable(link.discountCode?.id),
+            queueDiscountCodeDeletion(link.discountCode?.id),
           ),
         );
 
