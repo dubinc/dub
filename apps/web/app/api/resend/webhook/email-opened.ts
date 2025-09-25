@@ -5,18 +5,13 @@ const NOTIFICATION_EMAIL_SUBJECT_KEYWORDS = ["bounty", "message"];
 export async function emailOpened({
   email_id: emailId,
   subject,
+  tags,
 }: {
   email_id: string;
   subject?: string;
+  tags?: Record<string, string>;
 }) {
-  // TODO: Ignore if not a message notification (when sendBatchEmail supports tags)
-  // if (!tags || tags.type !== "notification-email") {
-  //   console.log(
-  //     `Ignoring email.opened webhook for email ${emailId} because it's not a notification-email...`,
-  //   );
-  //   return;
-  // }
-
+  // TODO: replace this with tags once it's confirmed working
   if (
     !subject ||
     !NOTIFICATION_EMAIL_SUBJECT_KEYWORDS.some((keyword) =>
@@ -28,6 +23,15 @@ export async function emailOpened({
     );
     return;
   }
+
+  console.log(`Found tags: ${JSON.stringify(tags, null, 2)}`);
+
+  // if (!tags || tags.type !== "notification-email") {
+  //   console.log(
+  //     `Ignoring email.opened webhook for email ${emailId} because it doesn't have a notification-email tag...`,
+  //   );
+  //   return;
+  // }
 
   const notificationEmail = await prisma.notificationEmail.findUnique({
     where: {
