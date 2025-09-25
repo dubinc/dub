@@ -1,14 +1,17 @@
 import { prisma } from "@dub/prisma";
 
 export async function emailOpened({
-  tags,
   email_id: emailId,
+  tags,
 }: {
-  tags?: Record<string, string>;
   email_id: string;
+  tags?: Record<string, string>;
 }) {
   // Ignore if not a message notification
   if (!tags || tags.type !== "message-notification") {
+    console.log(
+      `Ignoring email.opened webhook for email ${emailId} because it's not a message-notification...`,
+    );
     return;
   }
 
@@ -17,7 +20,6 @@ export async function emailOpened({
   );
 
   const res = await prisma.$transaction(async (tx) => {
-    // TODO: refactor this to use findUnique once we add `emailId` as a unique index
     const notificationEmail = await tx.notificationEmail.update({
       where: {
         emailId,
@@ -32,6 +34,7 @@ export async function emailOpened({
       `Updated notification email ${notificationEmail.id} with Resend email id ${emailId} to opened at ${new Date()}`,
     );
 
+    // TODO: remove this once we make programId and partnerId required
     if (!notificationEmail.programId || !notificationEmail.partnerId) {
       return notificationEmail;
     }
