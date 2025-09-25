@@ -44,7 +44,7 @@ import {
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
-import { DiscountSchema, DiscountCodeSchema } from "./zod/schemas/discount";
+import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
 import {
   additionalPartnerLinkSchema,

@@ -4,7 +4,6 @@ const stripe = stripeAppClient({
   ...(process.env.VERCEL_ENV && { livemode: true }),
 });
 
-
 export async function disableStripeDiscountCode({
   stripeConnectId,
   code,
