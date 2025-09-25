@@ -1,10 +1,12 @@
 "use client";
 
+import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscoverablePartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { ChartActivity2, Tooltip, UserPlus } from "@dub/ui";
+import { BadgeCheck2Fill, ChartActivity2, Tooltip, UserPlus } from "@dub/ui";
 import { COUNTRIES, OG_AVATAR_URL, fetcher, formatDate } from "@dub/utils";
+import Link from "next/link";
 import { useMemo } from "react";
 import useSWR from "swr";
 
@@ -69,6 +71,18 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
     [partner],
   );
 
+  const onlinePresenceData = useMemo(
+    () =>
+      partner
+        ? ONLINE_PRESENCE_FIELDS.map((field) => ({
+            label: field.label,
+            icon: field.icon,
+            ...field.data(partner),
+          })).filter((field) => field.value && field.href)
+        : null,
+    [partner],
+  );
+
   return (
     <div className="border-border-subtle rounded-xl border p-4">
       <div className="flex justify-between gap-4">
@@ -126,6 +140,52 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
                 )}
               </div>
             ))}
+        </div>
+
+        {/* Online presence */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          {onlinePresenceData
+            ? onlinePresenceData.map(
+                ({ label, icon: Icon, verified, value, href }) => (
+                  <Tooltip
+                    content={
+                      <Link
+                        href={href ?? "#"}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-content-default hover:text-content-emphasis flex items-center gap-1 px-2 py-1 text-xs font-medium"
+                      >
+                        <Icon className="size-3 shrink-0" />
+                        <span>{value}</span>
+                        {verified && (
+                          <BadgeCheck2Fill className="size-3 text-green-600" />
+                        )}
+                      </Link>
+                    }
+                  >
+                    <Link
+                      key={label}
+                      href={href ?? "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="border-border-subtle hover:bg-bg-muted relative flex size-6 shrink-0 items-center justify-center rounded-full border"
+                    >
+                      <Icon className="size-3" />
+                      <span className="sr-only">{label}</span>
+
+                      {verified && (
+                        <BadgeCheck2Fill className="absolute -right-1 -top-1 size-3 text-green-600" />
+                      )}
+                    </Link>
+                  </Tooltip>
+                ),
+              )
+            : [...Array(6)].map((_, idx) => (
+                <div
+                  key={idx}
+                  className="size-6 animate-pulse rounded bg-neutral-200"
+                />
+              ))}
         </div>
       </div>
     </div>
