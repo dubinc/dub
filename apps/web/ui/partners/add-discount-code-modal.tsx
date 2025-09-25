@@ -1,6 +1,6 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
 import { createDiscountCodeSchema } from "@/lib/zod/schemas/discount";
 import {
   ArrowTurnLeft,
@@ -40,7 +40,8 @@ const AddDiscountCodeModal = ({
   const formRef = useRef<HTMLFormElement>(null);
   const [debouncedSearch] = useDebounce(search, 500);
   const [, copyToClipboard] = useCopyToClipboard();
-  const { makeRequest: createDiscountCode, isSubmitting } = useApiMutation();
+  const { makeRequest: createDiscountCode, isSubmitting } =
+    useApiMutation<DiscountCodeProps>();
 
   const { register, handleSubmit, setValue, watch } = useForm<FormData>({
     defaultValues: {
@@ -80,10 +81,11 @@ const AddDiscountCodeModal = ({
         ...formData,
         partnerId: partner.id,
       },
-      onSuccess: async () => {
+      onSuccess: async (data) => {
         setShowModal(false);
-        toast.success("Discount code created successfully.");
         await mutatePrefix("/api/discount-codes");
+        copyToClipboard(data.code);
+        toast.success("Discount code created and copied to clipboard!");
       },
     });
   };
