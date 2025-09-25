@@ -66,6 +66,7 @@ export async function processDomainRenewalFailure({
         autoRenewalDisabledAt: new Date(),
       },
     });
+
     console.log(
       `Updated autoRenewalDisabledAt for ${updateDomains.count} domains.`,
     );
