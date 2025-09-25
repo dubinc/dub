@@ -2,22 +2,20 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
-interface ApiRequestOptions<TBody> {
+interface ApiRequestOptions<TBody, TResponse> {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: TBody;
   headers?: Record<string, string>;
   showToast?: boolean;
-  onSuccess?: () => void;
-  onError?: () => void;
+  onSuccess?: (data: TResponse) => void;
+  onError?: (error: string) => void;
 }
 
 interface ApiResponse<T> {
-  data: T | null;
-  error: string | null;
   isSubmitting: boolean;
   makeRequest: (
     endpoint: string,
-    options?: ApiRequestOptions<any>,
+    options?: ApiRequestOptions<any, T>,
   ) => Promise<void>;
 }
 
@@ -43,7 +41,10 @@ export function useApiMutation<
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const makeRequest = useCallback(
-    async (endpoint: string, options: ApiRequestOptions<TBody> = {}) => {
+    async (
+      endpoint: string,
+      options: ApiRequestOptions<TBody, TResponse> = {},
+    ) => {
       const {
         method = "GET",
         body,
@@ -89,7 +90,7 @@ export function useApiMutation<
         // Handle success
         const data = (await response.json()) as TResponse;
         setData(data);
-        onSuccess?.();
+        onSuccess?.(data);
 
         debug("Response received", data);
       } catch (error) {
@@ -99,7 +100,7 @@ export function useApiMutation<
             : "Something went wrong. Please try again.";
 
         setError(errorMessage);
-        onError?.();
+        onError?.(errorMessage);
 
         if (showToast) {
           toast.error(errorMessage);
@@ -115,8 +116,6 @@ export function useApiMutation<
   );
 
   return {
-    data,
-    error,
     isSubmitting,
     makeRequest,
   };
