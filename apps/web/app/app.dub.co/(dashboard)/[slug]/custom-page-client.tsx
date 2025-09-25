@@ -168,7 +168,9 @@ function TrialOfferWithQRPreviewWrapper({
 
   useEffect(() => {
     setShowQRPreviewModal(
-      !featuresAccess.isSubscribed && !featuresAccess.subscriptionId,
+      !featuresAccess.isSubscribed,
+      // TODO: uncomment this when we will prepare subscription for old users
+      // && !featuresAccess.subscriptionId,
     );
   }, [featuresAccess]);
 
