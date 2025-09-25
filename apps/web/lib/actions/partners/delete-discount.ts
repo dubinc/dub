@@ -66,11 +66,10 @@ export const deleteDiscountAction = authActionClient
           },
         }),
 
-        discount.couponCodeTrackingEnabledAt &&
-          batchQueueStripeDiscountCodeDisable({
-            discountId,
-            stripeConnectId: workspace.stripeConnectId,
-          }),
+        batchQueueStripeDiscountCodeDisable({
+          discountId,
+          stripeConnectId: workspace.stripeConnectId,
+        }),
 
         recordAuditLog({
           workspaceId: workspace.id,

@@ -1,11 +1,9 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { batchQueueStripeDiscountCodeDisable } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
-import { DiscountProps } from "@/lib/types";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -16,7 +14,7 @@ export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { discountId, enableCouponTracking, couponTestId } = parsedInput;
+    const { discountId, couponTestId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -25,17 +23,12 @@ export const updateDiscountAction = authActionClient
       discountId,
     });
 
-    const couponCodeTrackingEnabledAt = enableCouponTracking
-      ? discount.couponCodeTrackingEnabledAt ?? new Date()
-      : null;
-
     const { partnerGroup, ...updatedDiscount } = await prisma.discount.update({
       where: {
         id: discountId,
       },
       data: {
         couponTestId: couponTestId || null,
-        couponCodeTrackingEnabledAt,
       },
       include: {
         partnerGroup: {
@@ -46,10 +39,8 @@ export const updateDiscountAction = authActionClient
       },
     });
 
-    const { couponTestIdChanged, trackingDisabled } = detectDiscountChanges(
-      discount,
-      updatedDiscount,
-    );
+    const couponTestIdChanged =
+      discount.couponTestId !== updatedDiscount.couponTestId;
 
     waitUntil(
       Promise.allSettled([
@@ -60,12 +51,6 @@ export const updateDiscountAction = authActionClient
             body: {
               groupId: partnerGroup.id,
             },
-          }),
-
-        trackingDisabled &&
-          batchQueueStripeDiscountCodeDisable({
-            discountId,
-            stripeConnectId: workspace.stripeConnectId,
           }),
 
         recordAuditLog({
@@ -85,24 +70,3 @@ export const updateDiscountAction = authActionClient
       ]),
     );
   });
-
-function detectDiscountChanges(
-  prev: Pick<DiscountProps, "couponTestId" | "couponCodeTrackingEnabledAt">,
-  next: Pick<DiscountProps, "couponTestId" | "couponCodeTrackingEnabledAt">,
-) {
-  const couponTestIdChanged = prev.couponTestId !== next.couponTestId;
-
-  const trackingEnabled =
-    prev.couponCodeTrackingEnabledAt === null &&
-    next.couponCodeTrackingEnabledAt !== null;
-
-  const trackingDisabled =
-    prev.couponCodeTrackingEnabledAt !== null &&
-    next.couponCodeTrackingEnabledAt === null;
-
-  return {
-    couponTestIdChanged,
-    trackingEnabled,
-    trackingDisabled,
-  };
-}

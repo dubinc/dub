@@ -88,14 +88,6 @@ export const POST = withWorkspace(
       });
     }
 
-    if (!discount.couponCodeTrackingEnabledAt) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Coupon code tracking is not enabled for this discount. Please enable it before creating a discount code.",
-      });
-    }
-
     // Use the link.key as the code if no code is provided
     code = code || link.key;
 

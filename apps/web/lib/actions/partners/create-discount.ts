@@ -16,15 +16,8 @@ export const createDiscountAction = authActionClient
   .schema(createDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let {
-      amount,
-      type,
-      maxDuration,
-      couponId,
-      couponTestId,
-      groupId,
-      enableCouponTracking,
-    } = parsedInput;
+    let { amount, type, maxDuration, couponId, couponTestId, groupId } =
+      parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -81,9 +74,6 @@ export const createDiscountAction = authActionClient
           maxDuration,
           couponId,
           ...(couponTestId && { couponTestId }),
-          ...(enableCouponTracking && {
-            couponCodeTrackingEnabledAt: new Date(),
-          }),
         },
       });
 

@@ -11,7 +11,6 @@ export const DiscountSchema = z.object({
   couponTestId: z.string().nullable(),
   description: z.string().nullish(),
   partnersCount: z.number().nullish(),
-  couponCodeTrackingEnabledAt: z.date().nullish(),
 });
 
 export const DiscountSchemaWithDeprecatedFields = DiscountSchema.extend({
@@ -30,14 +29,12 @@ export const createDiscountSchema = z.object({
   couponId: z.string(),
   couponTestId: z.string().nullish(),
   groupId: z.string(),
-  enableCouponTracking: z.boolean().default(false),
 });
 
 export const updateDiscountSchema = createDiscountSchema
   .pick({
     workspaceId: true,
     couponTestId: true,
-    enableCouponTracking: true,
   })
   .extend({
     discountId: z.string(),
