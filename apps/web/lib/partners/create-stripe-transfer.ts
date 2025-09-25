@@ -17,10 +17,12 @@ export const createStripeTransfer = async ({
   partner,
   previouslyProcessedPayouts,
   currentInvoicePayouts,
+  chargeId,
 }: {
   partner: Pick<Partner, "id" | "minWithdrawalAmount" | "stripeConnectId">;
   previouslyProcessedPayouts: PayoutWithProgramName[];
   currentInvoicePayouts?: PayoutWithProgramName[];
+  chargeId?: string;
 }) => {
   // this should never happen since we guard for it outside, but just in case
   if (!partner.stripeConnectId) {
@@ -103,6 +105,11 @@ export const createStripeTransfer = async ({
       transfer_group: finalPayoutInvoiceId!,
       destination: partner.stripeConnectId,
       description: `Dub Partners payout ${pluralize("transfer", allPayoutsPrograms.length)} (${allPayoutsPrograms.join(", ")})`,
+      // Omit `source_transaction` if prior processed payouts exist to ensure this transfer
+      // never exceeds the original charge amount.
+      ...(previouslyProcessedPayouts.length === 0 && {
+        source_transaction: chargeId,
+      }),
     },
     {
       idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,

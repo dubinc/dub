@@ -12,6 +12,10 @@ const payloadSchema = z.object({
   invoiceId: z.string(),
 });
 
+const stripeChargeMetadataSchema = z.object({
+  id: z.string(), // Stripe charge id
+});
+
 // POST /api/cron/payouts/charge-succeeded
 // This route is used to process the charge-succeeded event from Stripe
 // we're intentionally offloading this to a cron job to avoid blocking the main thread
@@ -54,9 +58,15 @@ export async function POST(req: Request) {
       );
     }
 
+    // Find the id of the charge that was used to fund the transfer
+    const { id: chargeId } = stripeChargeMetadataSchema.parse(
+      invoice.stripeChargeMetadata,
+    );
+
     await Promise.allSettled([
       sendStripePayouts({
         invoiceId,
+        chargeId,
       }),
 
       sendPaypalPayouts({
