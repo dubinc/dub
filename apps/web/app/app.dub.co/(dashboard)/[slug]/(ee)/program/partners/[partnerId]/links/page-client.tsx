@@ -206,57 +206,12 @@ const PartnerDiscountCodes = ({
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
     className: "[&_tr:last-child>td]:border-b-transparent",
     scrollWrapperClassName: "min-h-[40px]",
+    loading,
+    error: error ? "Failed to load discount codes" : undefined,
   } as any);
-
-  if (loading) {
-    return (
-      <>
-        <AddDiscountCodeModal />
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="text-content-emphasis text-lg font-semibold">
-            Discount codes
-          </h2>
-          <Button
-            variant="secondary"
-            text="Create code"
-            className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
-            onClick={() => setShowAddDiscountCodeModal(true)}
-          />
-        </div>
-        <div className="mt-4 flex justify-center py-16">
-          <LoadingSpinner />
-        </div>
-      </>
-    );
-  }
-
-  if (error) {
-    return (
-      <>
-        <AddDiscountCodeModal />
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="text-content-emphasis text-lg font-semibold">
-            Discount codes
-          </h2>
-          <Button
-            variant="secondary"
-            text="Create code"
-            className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
-            onClick={() => setShowAddDiscountCodeModal(true)}
-          />
-        </div>
-        <div className="mt-4 flex justify-center py-16">
-          <span className="text-content-subtle text-sm">
-            Failed to load discount codes
-          </span>
-        </div>
-      </>
-    );
-  }
 
   return (
     <>
-      <AddDiscountCodeModal />
       <div className="flex items-end justify-between gap-4">
         <h2 className="text-content-emphasis text-lg font-semibold">
           Discount codes
@@ -266,11 +221,18 @@ const PartnerDiscountCodes = ({
           text="Create code"
           className="h-8 w-fit rounded-lg px-3 py-2 font-medium"
           onClick={() => setShowAddDiscountCodeModal(true)}
+          disabled={!partner.discountId}
+          disabledTooltip={
+            !partner.discountId
+              ? "No discount assigned to this partner group. Please add a discount before you can create a discount code."
+              : undefined
+          }
         />
       </div>
       <div className="mt-4">
         <Table {...table} />
       </div>
+      <AddDiscountCodeModal />
     </>
   );
 };

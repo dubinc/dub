@@ -19,6 +19,7 @@ export default function useDiscountCodes({
     fetcher,
     {
       dedupingInterval: 60000,
+      keepPreviousData: true,
     },
   );
 

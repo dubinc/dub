@@ -50,7 +50,7 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    let { partnerId, linkId, code } = createDiscountCodeSchema.parse(
+    const { partnerId, linkId, code } = createDiscountCodeSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -88,24 +88,23 @@ export const POST = withWorkspace(
       });
     }
 
-    // Use the link.key as the code if no code is provided
-    code = code || link.key;
-
     // Check for duplicate by code
-    const duplicateByCode = await prisma.discountCode.findUnique({
-      where: {
-        programId_code: {
-          programId,
-          code,
+    if (code) {
+      const duplicateByCode = await prisma.discountCode.findUnique({
+        where: {
+          programId_code: {
+            programId,
+            code,
+          },
         },
-      },
-    });
-
-    if (duplicateByCode) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `A discount with the code ${code} already exists in the program. Please choose a different code.`,
       });
+
+      if (duplicateByCode) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `A discount with the code ${code} already exists in the program. Please choose a different code.`,
+        });
+      }
     }
 
     // A link can have only one discount code
@@ -120,11 +119,15 @@ export const POST = withWorkspace(
       });
     }
 
+    // Use the link.key as the code if no code is provided
+    const finalCode = code || link.key;
+
     try {
       const stripeDiscountCode = await createStripeDiscountCode({
         stripeConnectId: workspace.stripeConnectId,
         discount,
-        code,
+        code: finalCode,
+        shouldRetry: !code,
       });
 
       if (!stripeDiscountCode?.code) {

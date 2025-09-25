@@ -12,10 +12,12 @@ export async function createStripeDiscountCode({
   stripeConnectId,
   discount,
   code,
+  shouldRetry = true,
 }: {
   stripeConnectId: string;
   discount: Pick<DiscountProps, "id" | "couponId" | "amount" | "type">;
   code: string;
+  shouldRetry?: boolean; // we don't retry if the code is provided by the user
 }) {
   if (!stripeConnectId) {
     throw new Error(
@@ -46,6 +48,10 @@ export async function createStripeDiscountCode({
       const isDuplicateError = errorMessage?.includes("already exists");
 
       if (!isDuplicateError) {
+        throw error;
+      }
+
+      if (!shouldRetry) {
         throw error;
       }
 
