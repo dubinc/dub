@@ -9,7 +9,7 @@ const queue = qstash.queue({
 // Triggered in the following cases:
 // 1. When a discount is deleted
 // 2. When a link is deleted that has a discount code associated with it
-// 3. When a partner is banned
+// 3. When partners are banned
 // 4. When a partner is moved to a different group
 export async function queueDiscountCodeDeletion(
   discountCodeId: string | null | undefined,
