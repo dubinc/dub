@@ -105,7 +105,8 @@ export const banPartnerAction = authActionClient
 
           ...links.map((link) =>
             queueDiscountCodeDeletion({
-              discountCodeId: link.discountCode?.id,
+              code: link.discountCode?.code,
+              stripeConnectId: workspace.stripeConnectId,
             }),
           ),
 
