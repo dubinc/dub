@@ -20,6 +20,7 @@ import { QR_TYPES } from "../../qr-builder/constants/get-qr-config";
 import { QrCardType } from "../../qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "../../shared/five-stars.component";
 import { AvatarsComponent } from "./avatars.component";
+import { MOCK_QR } from "./constants/mock-qr";
 import { CreateSubscriptionFlow } from "./create-subscription-flow";
 
 interface IQRPreviewModalProps {
@@ -49,7 +50,10 @@ function TrialOfferWithQRPreview({
   firstQr,
 }: IQRPreviewModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr, true);
+  const { qrCode: builtQrCodeObject } = useQrCustomization(
+    firstQr || MOCK_QR,
+    true,
+  );
 
   // const { queryParams } = useRouterStuff();
   const [clientToken, setClientToken] = useState<string | null>(null);
@@ -71,23 +75,27 @@ function TrialOfferWithQRPreview({
     >
       <Theme>
         <div className="flex w-full">
-          <div className="hidden min-w-[50%] basis-[50%] flex-col gap-4 bg-neutral-50 p-6 md:flex">
+          <div className="hidden grow flex-col gap-4 bg-neutral-50 p-6 md:flex">
             <div className="flex flex-col gap-2 text-center">
-              <h2 className="text-primary !mt-0 truncate text-2xl font-bold">
-                Your QR Code is Ready!
-              </h2>
+              {firstQr && (
+                <h2 className="text-primary !mt-0 truncate text-2xl font-bold">
+                  Your QR Code is Ready!
+                </h2>
+              )}
               {/* <h3 className="justify-center text-center text-base font-semibold text-neutral-800">
                 Download Now & Unlock Full Access
               </h3> */}
             </div>
 
             <div className="relative flex w-full flex-col justify-center gap-2">
-              <div className="bg-primary-100 absolute left-0 top-0 z-10 rounded-tl-lg p-1">
-                <QrCardType
-                  className="bg-primary-100"
-                  currentQrTypeInfo={currentQrTypeInfo}
-                />
-              </div>
+              {firstQr && (
+                <div className="bg-primary-100 absolute left-0 top-0 z-10 rounded-tl-lg p-1">
+                  <QrCardType
+                    className="bg-primary-100"
+                    currentQrTypeInfo={currentQrTypeInfo}
+                  />
+                </div>
+              )}
               <QRCanvas
                 ref={canvasRef}
                 qrCode={builtQrCodeObject}
@@ -95,9 +103,9 @@ function TrialOfferWithQRPreview({
                 height={300}
               />
 
-              {firstQr?.title && (
-                <span className="text-center text-sm">{firstQr.title}</span>
-              )}
+              <span className="text-center text-sm">
+                {firstQr?.title || MOCK_QR.title}
+              </span>
             </div>
 
             <div className="bg-primary-100 flex w-full flex-row items-center justify-between gap-4 rounded-lg p-3 shadow-none">
@@ -110,10 +118,12 @@ function TrialOfferWithQRPreview({
             </div>
           </div>
 
-          <div className="flex grow flex-col gap-4 p-6">
+          <div className="flex min-w-[50%] max-w-[50%] grow basis-[50%] flex-col gap-4 p-6">
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-neutral !mt-0 truncate text-2xl font-bold">
-                Unlock 7-Day Full Access
+                {firstQr
+                  ? "Unlock 7-Day Full Access"
+                  : "Start Now & Unlock 7-Day Full Access"}
               </h2>
               <h3 className="flex items-center justify-center gap-0.5 text-center text-base text-neutral-800">
                 <span className="font-semibold">Excellent</span>{" "}
