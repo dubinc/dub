@@ -1,7 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import {
   queueDiscountCodeDeletion,
-  shouldKeepDiscountCodes,
+  isDiscountEquivalent,
 } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
@@ -255,10 +255,10 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const keepDiscountCodes = shouldKeepDiscountCodes({
-      groupDiscount: group.discount,
-      defaultGroupDiscount: defaultGroup.discount,
-    });
+    const keepDiscountCodes = isDiscountEquivalent(
+      group.discount,
+      defaultGroup.discount,
+    );
 
     // Cache discount codes to delete them later
     let discountCodesToDelete: DiscountCode[] = [];

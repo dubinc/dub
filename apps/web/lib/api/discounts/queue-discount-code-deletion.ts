@@ -31,27 +31,24 @@ export async function queueDiscountCodeDeletion(
   });
 }
 
-export function shouldKeepDiscountCodes({
-  groupDiscount,
-  defaultGroupDiscount,
-}: {
-  groupDiscount: Discount | null | undefined;
-  defaultGroupDiscount: Discount | null | undefined;
-}): boolean {
-  if (!defaultGroupDiscount || !groupDiscount) {
+export function isDiscountEquivalent(
+  firstDiscount: Discount | null | undefined,
+  secondDiscount: Discount | null | undefined,
+): boolean {
+  if (!firstDiscount || !secondDiscount) {
     return false;
   }
 
   // If both groups use the same Stripe coupon
-  if (groupDiscount.couponId === defaultGroupDiscount.couponId) {
+  if (firstDiscount.couponId === secondDiscount.couponId) {
     return true;
   }
 
   // If both discounts are effectively equivalent
   if (
-    groupDiscount.amount === defaultGroupDiscount.amount &&
-    groupDiscount.type === defaultGroupDiscount.type &&
-    groupDiscount.maxDuration === defaultGroupDiscount.maxDuration
+    firstDiscount.amount === secondDiscount.amount &&
+    firstDiscount.type === secondDiscount.type &&
+    firstDiscount.maxDuration === secondDiscount.maxDuration
   ) {
     return true;
   }

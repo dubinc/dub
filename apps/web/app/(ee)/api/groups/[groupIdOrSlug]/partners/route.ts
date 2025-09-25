@@ -68,6 +68,15 @@ export const POST = withWorkspace(
             },
           }),
 
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/remap-discount-codes`,
+            body: {
+              programId,
+              partnerIds,
+              groupId: group.id,
+            },
+          }),
+
           triggerDraftBountySubmissionCreation({
             programId,
             partnerIds,

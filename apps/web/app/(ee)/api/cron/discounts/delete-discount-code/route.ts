@@ -15,7 +15,11 @@ const schema = z.object({
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
-    await verifyQstashSignature({ req, rawBody });
+
+    await verifyQstashSignature({
+      req,
+      rawBody,
+    });
 
     const { discountCodeId } = schema.parse(JSON.parse(rawBody));
 
