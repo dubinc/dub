@@ -1,5 +1,4 @@
 import { PropsWithChildren } from "react";
-import { Badge } from "@dub/ui";
 
 export type FormControlProps = PropsWithChildren<{
   label: string;

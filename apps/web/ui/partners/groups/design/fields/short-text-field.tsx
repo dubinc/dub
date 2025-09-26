@@ -1,4 +1,4 @@
-import { programApplicationFormShortTextFieldSchema, programApplicationFormShortTextFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
+import { programApplicationFormShortTextFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import { cn } from "@dub/utils";
 import { useFormContext } from "react-hook-form";
 import { z } from "zod";

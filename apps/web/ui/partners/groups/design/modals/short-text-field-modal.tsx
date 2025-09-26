@@ -4,9 +4,7 @@ import { programApplicationFormShortTextFieldSchema } from "@/lib/zod/schemas/pr
 import {
   Button,
   Modal,
-  NumberStepper,
   Switch,
-  useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
 import { Dispatch, SetStateAction, useId } from "react";
@@ -57,8 +55,6 @@ function ShortTextFieldModalInner({
     },
   });
 
-  const { handleKeyDown } = useEnterSubmit();
-
   return (
     <>
       <div className="p-4 pt-3">
@@ -91,7 +87,7 @@ function ShortTextFieldModalInner({
                 placeholder=""
                 autoFocus={!isMobile}
                 className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                {...register("label")}
+                {...register("label", { required: true })}
               />
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { programApplicationFormMultipleChoiceFieldSchema, programApplicationFormMultipleChoiceFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
+import { programApplicationFormMultipleChoiceFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import { z } from "zod";
 import { FormControl } from "./form-control";
 import { cn } from "@dub/utils";

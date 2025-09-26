@@ -4,7 +4,6 @@ import { programApplicationFormLongTextFieldSchema } from "@/lib/zod/schemas/pro
 import {
   Button,
   Modal,
-  NumberStepper,
   Switch,
   useEnterSubmit,
   useMediaQuery,
@@ -44,7 +43,6 @@ function LongTextFieldModalInner({
     handleSubmit,
     register,
     formState: { errors },
-    getValues,
   } = useForm<LongTextFieldData>({
     defaultValues: defaultValues ?? {
       id: uuid(),
@@ -92,7 +90,7 @@ function LongTextFieldModalInner({
                 placeholder=""
                 autoFocus={!isMobile}
                 className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 text-sm"
-                {...register("label")}
+                {...register("label", { required: true })}
               />
             </div>
           </div>
