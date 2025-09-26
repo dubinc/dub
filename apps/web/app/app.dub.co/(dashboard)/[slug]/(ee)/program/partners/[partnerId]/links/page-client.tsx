@@ -282,8 +282,23 @@ const PartnerDiscountCodes = ({
           disabledTooltip={disabledReason}
         />
       </div>
+
       <div className="mt-4">
-        <Table {...table} />
+        {!loading &&
+        !error &&
+        (!discountCodes || discountCodes.length === 0) ? (
+          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-6">
+            <Tag className="mb-2 size-6 text-neutral-900" />
+            <h3 className="text-content-emphasis text-sm font-semibold leading-5">
+              No codes created
+            </h3>
+            <p className="text-content-default -mt-1 text-sm font-medium leading-5">
+              Create a discount code for each link
+            </p>
+          </div>
+        ) : (
+          <Table {...table} />
+        )}
       </div>
 
       <AddDiscountCodeModal />
