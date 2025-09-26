@@ -74,7 +74,7 @@ function TrialOfferWithQRPreview({
           showModal={showQRPreviewModal}
           setShowModal={setShowTrialOfferModal}
           preventDefaultClose
-          className="max-w-4xl border-neutral-400"
+          className="max-w-4xl border-gray-300"
         >
           {innerComponent}
         </Modal>
