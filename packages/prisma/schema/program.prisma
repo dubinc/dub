@@ -55,23 +55,23 @@ model Program {
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
 
-  workspace         Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain     Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners          ProgramEnrollment[]
-  payouts           Payout[]
-  invoices          Invoice[]
-  applications      ProgramApplication[]
-  links             Link[]
-  commissions       Commission[]
-  rewards           Reward[]
-  discounts         Discount[]           @relation("ProgramDiscounts")
-  groups            PartnerGroup[]
+  workspace                Project                   @relation(fields: [workspaceId], references: [id])
+  primaryDomain            Domain?                   @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners                 ProgramEnrollment[]
+  payouts                  Payout[]
+  invoices                 Invoice[]
+  applications             ProgramApplication[]
+  links                    Link[]
+  commissions              Commission[]
+  rewards                  Reward[]
+  discounts                Discount[]                @relation("ProgramDiscounts")
+  groups                   PartnerGroup[]
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
-  bounties          Bounty[]
-  bountySubmissions BountySubmission[]
-  workflows         Workflow[]
-  messages          Message[]
-  comments          PartnerComment[]
+  bounties                 Bounty[]
+  bountySubmissions        BountySubmission[]
+  workflows                Workflow[]
+  messages                 Message[]
+  comments                 PartnerComment[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -122,9 +122,16 @@ model ProgramApplication {
   groupId   String?
   name      String
   email     String
+  country   String?
   proposal  String?  @db.Text
   website   String?  @db.Text
+  youtube   String?  @db.Text
+  twitter   String?  @db.Text
+  linkedin  String?  @db.Text
+  instagram String?  @db.Text
+  tiktok    String?  @db.Text
   comments  String?  @db.Text
+  formData  Json?    @db.Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
