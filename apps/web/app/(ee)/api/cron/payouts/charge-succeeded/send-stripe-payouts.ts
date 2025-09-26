@@ -4,7 +4,13 @@ import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processe
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 
-export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
+export async function sendStripePayouts({
+  invoiceId,
+  chargeId,
+}: {
+  invoiceId: string;
+  chargeId?: string;
+}) {
   const commonInclude = Prisma.validator<Prisma.PayoutInclude>()({
     partner: {
       select: {
@@ -85,6 +91,7 @@ export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
       currentInvoicePayouts: partnerPayouts.filter(
         (p) => p.invoiceId === invoiceId,
       ),
+      chargeId,
     });
 
     // sleep for 250ms

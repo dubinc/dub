@@ -46,6 +46,13 @@ export async function emailOpened({
     return;
   }
 
+  if (notificationEmail.openedAt) {
+    console.log(
+      `Ignoring email.opened webhook for email ${emailId} because it already has an openedAt timestamp: ${notificationEmail.openedAt}`,
+    );
+    return;
+  }
+
   console.log(
     `Updating notification email read statuses for email ${emailId}. Subject: ${subject}`,
   );
@@ -54,7 +61,6 @@ export async function emailOpened({
     const notificationEmail = await tx.notificationEmail.update({
       where: {
         emailId,
-        openedAt: null,
       },
       data: {
         openedAt: new Date(),
@@ -65,7 +71,6 @@ export async function emailOpened({
       `Updated notification email ${notificationEmail.id} with Resend email id ${emailId} to opened at ${new Date()}`,
     );
 
-    // TODO: remove this once we make programId and partnerId required
     if (!notificationEmail.programId || !notificationEmail.partnerId) {
       return notificationEmail;
     }
