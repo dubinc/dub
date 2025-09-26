@@ -10,7 +10,15 @@ import {
 } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, LinkLogo, NumberStepper, Popover, Switch } from "@dub/ui";
+import {
+  Button,
+  InfoTooltip,
+  LinkLogo,
+  NumberStepper,
+  Popover,
+  SimpleTooltipContent,
+  Switch,
+} from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
@@ -30,9 +38,20 @@ export function GroupAdditionalLinks() {
   return (
     <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200">
       <div className="px-6 py-6">
-        <h3 className="text-content-emphasis text-lg font-semibold leading-7">
-          Additional partner links
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-content-emphasis text-lg font-semibold leading-7">
+            Additional partner links
+          </h3>
+          <InfoTooltip
+            content={
+              <SimpleTooltipContent
+                title="Allow partners to create additional referral links."
+                cta="Learn more."
+                href="https://dub.co/help/article/partner-link-settings#additional-partner-links"
+              />
+            }
+          />
+        </div>
         <p className="text-content-subtle text-sm font-normal leading-5">
           Allow and configure extra partner links
         </p>

@@ -141,4 +141,4 @@ export async function GET(req: Request) {
 const getRedirectUrl = (source: string) =>
   source === "onboarding"
     ? `${PARTNERS_DOMAIN}/onboarding/online-presence`
-    : `${PARTNERS_DOMAIN}/profile/sites`;
+    : `${PARTNERS_DOMAIN}/profile`;

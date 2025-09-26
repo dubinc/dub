@@ -104,17 +104,6 @@ model PartnerUser {
   @@index([partnerId])
 }
 
-model PartnerNotificationPreferences {
-  id            String @id @default(cuid())
-  partnerUserId String @unique
-
-  commissionCreated     Boolean @default(true)
-  applicationApproved   Boolean @default(true)
-  newMessageFromProgram Boolean @default(true)
-
-  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
-}
-
 enum IndustryInterest {
   SaaS
   DevTool
