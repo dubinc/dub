@@ -11,7 +11,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/client";
 import { z } from "zod";
-import { executeAwardBountyAction } from "./execute-award-bounty-action";
+import { executeAwardBountyWorkflow } from "./execute-award-bounty-workflow";
 
 export async function executeWorkflows({
   trigger,
@@ -89,7 +89,7 @@ export async function executeWorkflows({
     const action = actions[0];
 
     if (action.type === "awardBounty") {
-      await executeAwardBountyAction({
+      await executeAwardBountyWorkflow({
         condition,
         context: workflowContext,
         action,

@@ -1,2 +1,1 @@
-import { z } from "zod";
-
+const CAMPAIGN_DYNAMIC_VARIABLES = ["{{name}}"];

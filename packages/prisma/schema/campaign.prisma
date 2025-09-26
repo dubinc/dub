@@ -14,6 +14,7 @@ model Campaign {
   id         String         @id @default(cuid())
   programId  String
   workflowId String?        @unique
+  userId     String
   type       CampaignType
   status     CampaignStatus @default(draft)
   name       String
@@ -23,9 +24,10 @@ model Campaign {
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 
-  program  Program         @relation(fields: [programId], references: [id])
-  workflow Workflow?       @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  program  Program             @relation(fields: [programId], references: [id])
+  workflow Workflow?           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   groups   CampaignGroup[]
+  emails   NotificationEmail[]
 
   @@index(programId)
 }
