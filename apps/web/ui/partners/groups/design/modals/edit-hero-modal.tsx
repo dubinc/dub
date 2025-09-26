@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
-import { ApplicationFormData, useApplicationFormContext } from "../branding-form";
+import { PageBuilderFormData, usePageBuilderFormContext } from "../page-builder-form";
 
 type EditHeroModalProps = {
   showEditHeroModal: boolean;
@@ -35,13 +35,13 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
   const { program } = useProgram();
 
   const { getValues: getValuesParent, setValue: setValueParent } =
-    useApplicationFormContext();
+    usePageBuilderFormContext();
 
   const {
     register,
     handleSubmit,
     formState: { isDirty },
-  } = useForm<Pick<ApplicationFormData, "applicationFormData">>({
+  } = useForm<Pick<PageBuilderFormData, "applicationFormData">>({
     values: {
       applicationFormData: getValuesParent("applicationFormData"),
     },

@@ -9,26 +9,26 @@ import {
   useState,
 } from "react";
 
-export const BrandingContext = createContext<{
+export const PageBuilderContext = createContext<{
   isGeneratingLander: boolean;
   setIsGeneratingLander: Dispatch<SetStateAction<boolean>>;
   isGenerateBannerHidden: boolean;
   setIsGenerateBannerHidden: Dispatch<SetStateAction<boolean>>;
 }>({
   isGeneratingLander: false,
-  setIsGeneratingLander: () => {},
+  setIsGeneratingLander: () => { },
   isGenerateBannerHidden: false,
-  setIsGenerateBannerHidden: () => {},
+  setIsGenerateBannerHidden: () => { },
 });
 
-export const useBrandingContext = () => useContext(BrandingContext);
+export const usePageBuilderContext = () => useContext(PageBuilderContext);
 
-export function BrandingContextProvider({ children }: PropsWithChildren) {
+export function PageBuilderContextProvider({ children }: PropsWithChildren) {
   const [isGeneratingLander, setIsGeneratingLander] = useState(false);
   const [isGenerateBannerHidden, setIsGenerateBannerHidden] = useState(false);
 
   return (
-    <BrandingContext.Provider
+    <PageBuilderContext.Provider
       value={{
         isGeneratingLander,
         setIsGeneratingLander,
@@ -37,6 +37,6 @@ export function BrandingContextProvider({ children }: PropsWithChildren) {
       }}
     >
       {children}
-    </BrandingContext.Provider>
+    </PageBuilderContext.Provider>
   );
 }

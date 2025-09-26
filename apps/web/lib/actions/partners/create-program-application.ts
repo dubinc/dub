@@ -20,6 +20,7 @@ import { addDays } from "date-fns";
 import { cookies } from "next/headers";
 import z from "../../zod";
 import { actionClient } from "../safe-action";
+import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 
 export type PartnerData = { name: string, country: string }
 
@@ -31,28 +32,7 @@ interface Response {
 
 type ProgramApplicationData = z.infer<typeof createProgramApplicationSchema>
 
-const sanitizeData = (data: ProgramApplicationData) => {
-
-  if (data.formData) {
-    const websitesAndSocials = data.formData.fields.find((field) => field.type === "website-and-socials");
-
-    if (!websitesAndSocials) {
-      return data
-    }
-
-    return {
-      ...data,
-      website: websitesAndSocials.data.find((field) => field.type === "website")?.value,
-      youtube: websitesAndSocials.data.find((field) => field.type === "youtube")?.value,
-      twitter: websitesAndSocials.data.find((field) => field.type === "twitter")?.value,
-      linkedin: websitesAndSocials.data.find((field) => field.type === "linkedin")?.value,
-      instagram: websitesAndSocials.data.find((field) => field.type === "instagram")?.value,
-      tiktok: websitesAndSocials.data.find((field) => field.type === "tiktok")?.value,
-    };
-  }
-
-  return data
-}
+type WebsiteAndSocialsData = z.infer<typeof programApplicationFormWebsiteAndSocialsFieldWithValueSchema>
 
 // Create a program application (or enrollment if a partner is already logged in)
 export const createProgramApplicationAction = actionClient
@@ -92,13 +72,13 @@ export const createProgramApplicationAction = actionClient
     // Get currently logged in partner
     const existingPartner = session?.user.id
       ? await prisma.partner.findFirst({
-          where: {
-            users: { some: { userId: session.user.id } },
-          },
-          include: {
-            programs: true,
-          },
-        })
+        where: {
+          users: { some: { userId: session.user.id } },
+        },
+        include: {
+          programs: true,
+        },
+      })
       : null;
 
     if (existingPartner) {
@@ -149,7 +129,7 @@ async function createApplicationAndEnrollment({
   const [application, _] = await Promise.all([
     prisma.programApplication.create({
       data: {
-        ...sanitizeData(data),
+        ...addWebsiteAndSocialsToData(data),
         id: applicationId,
         programId: program.id,
         groupId: group.id,
@@ -184,13 +164,13 @@ async function createApplicationAndEnrollment({
         // Auto-approve the partner
         program.autoApprovePartnersEnabledAt
           ? qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/auto-approve-partner`,
-              delay: 5 * 60,
-              body: {
-                programId: program.id,
-                partnerId: partner.id,
-              },
-            })
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/auto-approve-partner`,
+            delay: 5 * 60,
+            body: {
+              programId: program.id,
+              partnerId: partner.id,
+            },
+          })
           : Promise.resolve(null),
       ]);
     })(),
@@ -217,7 +197,7 @@ async function createApplication({
 }) {
   const application = await prisma.programApplication.create({
     data: {
-      ...sanitizeData(data),
+      ...addWebsiteAndSocialsToData(data),
       id: createId({ prefix: "pga_" }),
       programId: program.id,
       groupId: group.id,
@@ -246,4 +226,26 @@ async function createApplication({
       country: data.country,
     }
   };
+}
+
+function addWebsiteAndSocialsToData(data: ProgramApplicationData) {
+  if (data.formData) {
+    const websitesAndSocials = data.formData.fields.find((field) => field.type === "website-and-socials") as WebsiteAndSocialsData;
+
+    if (!websitesAndSocials) {
+      return data
+    }
+
+    return {
+      ...data,
+      website: websitesAndSocials.data.find((field) => field.type === "website")?.value,
+      youtube: websitesAndSocials.data.find((field) => field.type === "youtube")?.value,
+      twitter: websitesAndSocials.data.find((field) => field.type === "twitter")?.value,
+      linkedin: websitesAndSocials.data.find((field) => field.type === "linkedin")?.value,
+      instagram: websitesAndSocials.data.find((field) => field.type === "instagram")?.value,
+      tiktok: websitesAndSocials.data.find((field) => field.type === "tiktok")?.value,
+    };
+  }
+
+  return data
 }

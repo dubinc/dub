@@ -116,7 +116,7 @@ import {
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
-import { programApplicationFormDataWithValuesSchema, programApplicationFormSchema } from "./zod/schemas/program-application-form";
+import { programApplicationFormDataWithValuesSchema, programApplicationFormFieldWithValuesSchema, programApplicationFormSchema } from "./zod/schemas/program-application-form";
 
 export type LinkProps = Link;
 
@@ -453,6 +453,8 @@ export type ProgramWithLanderDataProps = z.infer<
 export type ProgramApplicationFormData = z.infer<typeof programApplicationFormSchema>;
 
 export type ProgramApplicationFormDataWithValues = z.infer<typeof programApplicationFormDataWithValuesSchema>;
+
+export type ProgramApplicationFormFieldWithValues = z.infer<typeof programApplicationFormFieldWithValuesSchema>;
 
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 

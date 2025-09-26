@@ -1,6 +1,6 @@
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramApplicationFormDataWithValues } from "@/lib/types";
+import { ProgramApplicationFormDataWithValues, ProgramApplicationFormFieldWithValues } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
@@ -31,7 +31,7 @@ export function PartnerApplicationDetails({
 
   const fields = (formData?.fields ?? [])
     .filter(field => field.type !== "website-and-socials")
-    .map((field) => ({
+    .map((field: any) => ({
       title: field.label,
       value: field.value,
     }));
