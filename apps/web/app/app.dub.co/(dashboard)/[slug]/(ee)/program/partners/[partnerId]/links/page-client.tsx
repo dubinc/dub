@@ -284,9 +284,11 @@ const PartnerDiscountCodes = ({
       </div>
 
       <div className="mt-4">
-        {!loading &&
-        !error &&
-        (!discountCodes || discountCodes.length === 0) ? (
+        {loading ? (
+          <div className="flex justify-center py-16">
+            <LoadingSpinner />
+          </div>
+        ) : !error && (!discountCodes || discountCodes.length === 0) ? (
           <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-6">
             <Tag className="mb-2 size-6 text-neutral-900" />
             <h3 className="text-content-emphasis text-sm font-semibold leading-5">
@@ -295,6 +297,12 @@ const PartnerDiscountCodes = ({
             <p className="text-content-default -mt-1 text-sm font-medium leading-5">
               Create a discount code for each link
             </p>
+          </div>
+        ) : error ? (
+          <div className="flex justify-center py-16">
+            <span className="text-content-subtle text-sm">
+              Failed to load discount codes
+            </span>
           </div>
         ) : (
           <Table {...table} />
