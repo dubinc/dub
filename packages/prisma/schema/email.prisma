@@ -1,0 +1,29 @@
+enum ProgramEmailType {
+  campaign
+  automation
+}
+
+enum ProgramEmailStatus {
+  draft
+  active
+  paused
+  sent
+}
+
+model ProgramEmail {
+  id          String             @id @default(cuid())
+  programId   String
+  type        ProgramEmailType
+  status      ProgramEmailStatus @default(draft)
+  name        String
+  subject     String
+  body        String             @db.Text
+  deliverAt   DateTime?
+  // deliverWhen Json?              @db.Json
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  program Program @relation(fields: [programId], references: [id])
+
+  @@index(programId)
+}
