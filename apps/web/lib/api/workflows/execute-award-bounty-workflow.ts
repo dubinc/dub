@@ -11,7 +11,7 @@ import { prisma } from "@dub/prisma";
 import { createId } from "../create-id";
 import { evaluateWorkflowCondition } from "./execute-workflows";
 
-export const executeAwardBountyAction = async ({
+export const executeAwardBountyWorkflow = async ({
   condition,
   context,
   action,

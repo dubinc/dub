@@ -2,6 +2,7 @@ enum WorkflowTrigger {
   leadRecorded
   saleRecorded
   commissionEarned
+  partnerJoinedDuration
 }
 
 enum WorkflowTriggerType {
@@ -21,8 +22,9 @@ model Workflow {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  bounty  Bounty?
+  program  Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  bounty   Bounty?
+  campaign Campaign?
 
   @@index([programId, trigger])
 }

@@ -11,6 +11,7 @@ export const WORKFLOW_ATTRIBUTES = [
   "totalConversions",
   "totalSaleAmount",
   "totalCommissions",
+  "partnerJoinedDuration",
 ] as const;
 
 export const WORKFLOW_ATTRIBUTE_LABELS: Record<
@@ -21,6 +22,7 @@ export const WORKFLOW_ATTRIBUTE_LABELS: Record<
   totalConversions: "Conversions",
   totalSaleAmount: "Revenue",
   totalCommissions: "Commissions",
+  partnerJoinedDuration: "been in the program for",
 } as const;
 
 export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
@@ -31,6 +33,7 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
   totalConversions: WorkflowTrigger.saleRecorded,
   totalSaleAmount: WorkflowTrigger.saleRecorded,
   totalCommissions: WorkflowTrigger.commissionEarned,
+  partnerJoinedDuration: WorkflowTrigger.partnerJoinedDuration,
 } as const;
 
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
@@ -51,6 +54,7 @@ export const WORKFLOW_COMPARISON_OPERATOR_LABELS: Record<
 
 export enum WORKFLOW_ACTION_TYPES {
   AwardBounty = "awardBounty",
+  SendCampaign = "sendCampaign",
 }
 
 export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
@@ -71,9 +75,16 @@ export const workflowConditionsSchema = z.object({
 // Individual action
 export const workflowActionSchema = z.discriminatedUnion("type", [
   z.object({
-    type: z.literal("awardBounty"),
+    type: z.literal(WORKFLOW_ACTION_TYPES.AwardBounty),
     data: z.object({
       bountyId: z.string(),
+    }),
+  }),
+
+  z.object({
+    type: z.literal(WORKFLOW_ACTION_TYPES.SendCampaign),
+    data: z.object({
+      campaignId: z.string(),
     }),
   }),
 ]);
