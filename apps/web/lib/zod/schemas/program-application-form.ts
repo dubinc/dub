@@ -142,3 +142,7 @@ export const programApplicationFormSchema = z.object({
 export const programApplicationFormDataSchema = programApplicationFormSchema.extend({
   fields: programApplicationFormFieldsWithValuesSchema,
 });
+
+export const programApplicationFormDataWithValuesSchema = programApplicationFormDataSchema.extend({
+  fields: programApplicationFormFieldsWithValuesSchema,
+});

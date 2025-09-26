@@ -18,9 +18,9 @@ export default function useGroup<T = GroupProps>(
 
   const groupIdOrSlug = groupIdOrSlugProp ?? groupSlugParam;
 
-  if (!groupIdOrSlug) {
-    throw new Error("groupIdOrSlug is required");
-  }
+  // if (!groupIdOrSlug) {
+  //   throw new Error("groupIdOrSlug is required");
+  // }
 
   console.log("groupIdOrSlug", groupIdOrSlug);
   console.log("workspaceId", workspaceId);

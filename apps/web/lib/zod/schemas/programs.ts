@@ -16,7 +16,7 @@ import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 import { COUNTRY_CODES } from "@dub/utils";
-import { programApplicationFormDataSchema, programApplicationFormSchema } from "./program-application-form";
+import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
 
 export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 
@@ -176,7 +176,7 @@ export const createProgramApplicationSchema = z.object({
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
   country: z.enum(COUNTRY_CODES),
-  formData: programApplicationFormDataSchema,
+  formData: programApplicationFormDataWithValuesSchema,
 });
 
 export const PartnerCommentSchema = z.object({

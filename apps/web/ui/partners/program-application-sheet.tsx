@@ -68,7 +68,7 @@ function ProgramApplicationSheetContent({
       ...data,
       email: partner.email,
       name: partner.name,
-      website: partner.website ?? undefined,
+      country: partner.country ?? "",
       programId: program.id,
     });
 
@@ -128,40 +128,6 @@ function ProgramApplicationSheetContent({
         </div>
 
         <div className="flex flex-col gap-6 p-5 sm:p-8">
-          <label>
-            <span className="text-sm font-medium text-neutral-800">
-              How do you plan to promote {program.name}?
-            </span>
-            <ReactTextareaAutosize
-              className={cn(
-                "mt-2 block max-h-48 min-h-12 w-full rounded-md focus:outline-none sm:text-sm",
-                errors.proposal
-                  ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
-              )}
-              placeholder=""
-              minRows={3}
-              {...register("proposal", { required: true })}
-            />
-          </label>
-
-          <label>
-            <span className="text-sm font-medium text-neutral-800">
-              Any additional questions or comments?
-              <span className="font-normal text-neutral-500"> (optional)</span>
-            </span>
-            <ReactTextareaAutosize
-              className={cn(
-                "mt-2 block max-h-48 min-h-12 w-full rounded-md focus:outline-none sm:text-sm",
-                errors.comments
-                  ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
-              )}
-              placeholder=""
-              minRows={3}
-              {...register("comments")}
-            />
-          </label>
 
           {program.termsUrl && (
             <div className="flex items-center gap-2">

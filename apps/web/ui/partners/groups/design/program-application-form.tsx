@@ -1,8 +1,8 @@
 "use client";
 
-import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
+import { createProgramApplicationAction, PartnerData } from "@/lib/actions/partners/create-program-application";
 import { GroupWithFormDataProps, ProgramProps } from "@/lib/types";
-import { Button, useMediaQuery } from "@dub/ui";
+import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -10,12 +10,12 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { programApplicationFormFieldSchema, programApplicationFormFieldsWithValuesSchema, programApplicationFormLongTextFieldWithValueSchema, programApplicationFormMultipleChoiceFieldSchema, programApplicationFormMultipleChoiceFieldWithValueSchema, programApplicationFormSelectFieldWithValueSchema, programApplicationFormShortTextFieldWithValueSchema, programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
+import { programApplicationFormDataWithValuesSchema, programApplicationFormFieldSchema, programApplicationFormLongTextFieldWithValueSchema, programApplicationFormMultipleChoiceFieldSchema, programApplicationFormMultipleChoiceFieldWithValueSchema, programApplicationFormSelectFieldWithValueSchema, programApplicationFormShortTextFieldWithValueSchema, programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import z from "@/lib/zod";
 import { CountryCombobox } from "../../country-combobox";
 import { ProgramApplicationFormField } from "./fields";
 
-type Data = { fields: z.infer<typeof programApplicationFormFieldsWithValuesSchema>[] };
+type Data = z.infer<typeof programApplicationFormDataWithValuesSchema>
 
 type FormData = {
   name: string;
@@ -97,11 +97,8 @@ export function ProgramApplicationForm({
     handleSubmit,
     setError,
     setValue,
-    getValues,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = form
-
-  const values = getValues()
 
   useEffect(() => {
     if (preview || !session?.user) return;
@@ -109,6 +106,11 @@ export function ProgramApplicationForm({
     setValue("name", session.user.name ?? "");
     setValue("email", session.user.email ?? "");
   }, [preview, session?.user, setValue]);
+
+  const [_, setSubmissionInfo] = useLocalStorage<PartnerData | null>(
+    `application-form-partner-data`,
+    null,
+  );
 
   const { executeAsync, isPending } = useAction(
     createProgramApplicationAction,
@@ -121,7 +123,9 @@ export function ProgramApplicationForm({
 
         toast.success("Your application submitted successfully.");
 
-        const { programApplicationId, programEnrollmentId } = data;
+        const { programApplicationId, programEnrollmentId, partnerData } = data;
+
+        setSubmissionInfo({ name: partnerData.name, country: partnerData.country });
 
         const searchParams = new URLSearchParams({
           applicationId: programApplicationId,
@@ -149,8 +153,7 @@ export function ProgramApplicationForm({
           const result = await executeAsync({
             ...data,
             programId: program.id,
-            groupId: group.id,
-            formData: { fields: [] },
+            groupId: group.id
           });
 
           if (!result || result.serverError || result.validationErrors) {
@@ -167,13 +170,14 @@ export function ProgramApplicationForm({
           <span className="text-sm font-medium text-neutral-800">Name</span>
           <input
             type="text"
+            autoComplete="name"
             className={cn(
               "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
               errors.name
                 ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
             )}
-            placeholder="Brendon Urie"
+            placeholder=""
             autoFocus={!isMobile}
             {...register("name", {
               required: true,
@@ -185,13 +189,14 @@ export function ProgramApplicationForm({
           <span className="text-sm font-medium text-neutral-800">Email</span>
           <input
             type="email"
+            autoComplete="email"
             className={cn(
               "mt-2 block w-full rounded-md focus:outline-none sm:text-sm",
               errors.email
                 ? "border-red-400 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
             )}
-            placeholder="panic@thedis.co"
+            placeholder=""
             {...register("email", {
               required: true,
             })}
@@ -211,6 +216,7 @@ export function ProgramApplicationForm({
                 value={field.value || ""}
                 onChange={field.onChange}
                 error={errors.country ? true : false}
+                className="focus:border-[var(--brand)] focus:ring-[var(--brand)]"
               />
             )}
           />

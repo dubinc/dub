@@ -65,7 +65,7 @@ const Field = ({
               "block w-full rounded-md focus:outline-none text-sm min-h-10",
               error
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
             )}
             placeholder=""
             onPaste={onPasteWebsite}
@@ -89,7 +89,7 @@ const Field = ({
                 "block w-full rounded-none rounded-r-md focus:outline-none text-sm min-h-10",
                 error
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
               )}
               placeholder="handle"
               onPaste={(e) => onPasteSocial(e, "youtube")}
@@ -114,7 +114,7 @@ const Field = ({
                 "block w-full rounded-none rounded-r-md focus:outline-none text-sm min-h-10",
                 error
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
               )}
               placeholder="handle"
               onPaste={(e) => onPasteSocial(e, "twitter")}
@@ -139,7 +139,7 @@ const Field = ({
                 "block w-full rounded-none rounded-r-md focus:outline-none text-sm min-h-10",
                 error
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
               )}
               placeholder="handle"
               onPaste={(e) => onPasteSocial(e, "linkedin")}
@@ -164,7 +164,7 @@ const Field = ({
                 "block w-full rounded-none rounded-r-md focus:outline-none text-sm min-h-10",
                 error
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
               )}
               placeholder="handle"
               onPaste={(e) => onPasteSocial(e, "instagram")}
@@ -189,7 +189,7 @@ const Field = ({
                 "block w-full rounded-none rounded-r-md focus:outline-none text-sm min-h-10",
                 error
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
+                  : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500 focus:border-[var(--brand)] focus:ring-[var(--brand)]",
               )}
               placeholder="handle"
               onPaste={(e) => onPasteSocial(e, "tiktok")}
