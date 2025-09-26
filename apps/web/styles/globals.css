@@ -41,12 +41,11 @@ code .line::before {
 }
 
 .radix-themes[data-accent-color="indigo"] {
-  --custom-indigo: #F0F2F5;
+  --custom-indigo: #f0f2f5;
 
   --accent-3: var(--custom-indigo);
   --accent-a3: var(--custom-indigo);
 }
-
 
 .radix-themes {
   --blue-1: #fcfdfe;
@@ -106,7 +105,7 @@ code .line::before {
   --gray-a11: #0000009b;
   --gray-a12: #000000df;
 
-  --gray-contrast: #FFFFFF;
+  --gray-contrast: #ffffff;
   --gray-surface: #ffffffcc;
   --gray-indicator: #8d8d8d;
   --gray-track: #8d8d8d;
@@ -121,5 +120,90 @@ textarea:-webkit-autofill:focus,
 select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
-  background-color: #E6F0FF!important;
+  background-color: #e6f0ff !important;
+}
+
+/* Remove ALL focus outlines - more aggressive approach */
+*,
+*:focus,
+*:active,
+*[tabindex],
+*[tabindex="-1"],
+*[role="dialog"],
+*[data-radix-dialog-content],
+*[data-radix-drawer-content] {
+  outline: none !important;
+  -webkit-focus-ring-color: transparent !important;
+}
+
+/* Remove Chrome's default focus ring completely */
+*:focus {
+  outline: 0 !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+}
+
+/* Remove any webkit focus ring */
+*::-webkit-focus-ring {
+  outline: none !important;
+}
+
+/* Chrome/Safari specific: remove blue highlight on tap/click */
+* {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* Override any Tailwind focus styles */
+.focus\:outline-none:focus {
+  outline: none !important;
+}
+
+/* Radix UI specific overrides */
+[data-radix-dialog-content],
+[data-radix-drawer-content],
+[data-state="open"][role="dialog"] {
+  outline: none !important;
+}
+
+/* Modal specific overrides */
+.modal,
+.modal *,
+[class*="modal"] {
+  outline: none !important;
+}
+
+/* Only show focus outline when navigating with keyboard for accessibility */
+*:focus-visible {
+  outline: 2px solid #0066cc !important;
+  outline-offset: 2px !important;
+}
+
+/* Force remove outline even if browser tries to add it */
+html * {
+  outline: none !important;
+}
+
+html *:focus {
+  outline: none !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+}
+
+/* Ultimate nuclear option - highest specificity possible */
+html body *:focus,
+html body *:active,
+html body *[tabindex]:focus,
+html body *[tabindex="-1"]:focus,
+html body [role="dialog"]:focus,
+html body [data-radix-dialog-content]:focus,
+html body [data-radix-drawer-content]:focus {
+  outline: 0px solid transparent !important;
+  outline-width: 0 !important;
+  outline-style: none !important;
+  outline-color: transparent !important;
+  outline-offset: 0 !important;
 }

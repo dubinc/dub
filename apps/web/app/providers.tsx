@@ -28,31 +28,31 @@ export default function RootProviders({ children }: { children: ReactNode }) {
 
   return (
     // <PostHogProvider client={posthog}>
-      <>
-        <PlausibleProvider
-          domain="dub.co"
-          revenue
-          scriptProps={{
-            src: "/_proxy/plausible/script.js",
-            // @ts-ignore
-            "data-api": "/_proxy/plausible/event",
-          }}
-        />
-        <TooltipProvider>
-          <KeyboardShortcutProvider>
-            <ToasterProvider />
-            {/* <PosthogPageview /> */}
-            {children}
-            <DubAnalytics
-              apiHost="/_proxy/dub"
-              shortDomain="refer.dub.co"
-              cookieOptions={{
-                domain: ".dub.co",
-              }}
-            />
-          </KeyboardShortcutProvider>
-        </TooltipProvider>
-      </>
+    <>
+      <PlausibleProvider
+        domain="dub.co"
+        revenue
+        scriptProps={{
+          src: "/_proxy/plausible/script.js",
+          // @ts-ignore
+          "data-api": "/_proxy/plausible/event",
+        }}
+      />
+      <TooltipProvider>
+        <KeyboardShortcutProvider>
+          <ToasterProvider />
+          {/* <PosthogPageview /> */}
+          {children}
+          <DubAnalytics
+            apiHost="/_proxy/dub"
+            shortDomain="refer.dub.co"
+            cookieOptions={{
+              domain: ".dub.co",
+            }}
+          />
+        </KeyboardShortcutProvider>
+      </TooltipProvider>
+    </>
     // </PostHogProvider>
   );
 }

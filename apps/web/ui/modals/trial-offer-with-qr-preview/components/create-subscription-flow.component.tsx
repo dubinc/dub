@@ -2,7 +2,6 @@
 
 import { LoadingSpinner, Modal } from "@dub/ui";
 import { Payment } from "@primer-io/checkout-web";
-import { Checkbox } from "@radix-ui/themes";
 import { useCreateSubscriptionMutation } from "core/api/user/subscription/subscription.hook";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
@@ -27,6 +26,7 @@ import { mutate } from "swr";
 
 interface ICreateSubscriptionProps {
   user: ICustomerBody;
+  onSubcriptionCreated: () => void;
 }
 
 const pageName = "dashboard";
@@ -35,11 +35,11 @@ const subPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 
 export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   user,
+  onSubcriptionCreated,
 }) => {
   const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
   const [isSubscriptionCreation, setIsSubscriptionCreation] = useState(false);
-  const [isChecked, setIsChecked] = useState(true);
 
   const { update: updateSession } = useSession();
 
@@ -182,9 +182,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
     router.refresh();
 
-    setTimeout(() => {
-      router.push("/account/plans");
-    }, 1000);
+    onSubcriptionCreated?.();
   };
 
   const handleCheckoutError = ({
@@ -215,7 +213,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div id="payment-block" className="flex flex-col gap-4">
         <div className="flex items-center justify-between rounded-xl bg-white px-0">
           <p className="text-xl font-bold">Total due:</p>
           <div className="flex items-center justify-end gap-2">
@@ -239,38 +237,29 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           submitBtn={{
             text: "Subscribe",
           }}
+          termsAndConditionsText={
+            <>
+              By continuing, you agree to our{" "}
+              <Link className="font-semibold underline" href="/eula">
+                Terms and Conditions
+              </Link>{" "}
+              and{" "}
+              <Link className="font-semibold underline" href="/privacy-policy">
+                Privacy Policy
+              </Link>
+              . If you don’t cancel at least 24 hours before the end of your
+              7-day trial, your subscription will automatically renew at{" "}
+              <span className="font-semibold">
+                {oldPriceForViewText} every month until you cancel
+              </span>{" "}
+              through our Help Center. For assistance, please contact our
+              support team at{" "}
+              <Link className="font-semibold" href="mailto:help@getqr.com">
+                help@getqr.com
+              </Link>
+            </>
+          }
         />
-
-        <div className="group flex gap-2">
-          <Checkbox
-            id="terms-and-conditions"
-            checked={isChecked}
-            onCheckedChange={(checked) => setIsChecked(checked as boolean)}
-          />
-          <label
-            htmlFor="terms-and-conditions"
-            className="select-none text-sm text-xs font-medium text-neutral-500"
-          >
-            By continuing, you agree to our{" "}
-            <Link className="font-semibold underline" href="/eula">
-              Terms and Conditions
-            </Link>{" "}
-            and{" "}
-            <Link className="font-semibold underline" href="/privacy-policy">
-              Privacy Policy
-            </Link>
-            . If you don’t cancel at least 24 hours before the end of your 7-day
-            trial, your subscription will automatically renew at{" "}
-            <span className="font-semibold">
-              {oldPriceForViewText} every month until you cancel
-            </span>{" "}
-            through our Help Center. For assistance, please contact our support
-            team at{" "}
-            <Link className="font-semibold" href="mailto:help@getqr.com">
-              help@getqr.com
-            </Link>
-          </label>
-        </div>
       </div>
 
       <Modal

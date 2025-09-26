@@ -19,15 +19,23 @@ import { Flex } from "@radix-ui/themes";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { motion } from "framer-motion";
-import { FC, forwardRef, Ref, useCallback, useEffect, useRef, useState } from "react";
+import {
+  FC,
+  forwardRef,
+  Ref,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { FormProvider } from "react-hook-form";
+import { useUser } from "../contexts/user";
 import {
   EQRType,
   LINKED_QR_TYPES,
   QR_TYPES,
 } from "./constants/get-qr-config.ts";
 import { useQrCustomization } from "./hooks/use-qr-customization.ts";
-import { useUser } from '../contexts/user';
 
 interface IQRBuilderProps {
   props?: QrStorageData;

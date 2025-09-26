@@ -6,8 +6,6 @@ import useQrs from "@/lib/swr/use-qrs.ts";
 import { UserProvider } from "@/ui/contexts/user";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useTrialOfferWithQRPreviewModal } from "@/ui/modals/trial-offer-with-qr-preview";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
-import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
@@ -18,7 +16,7 @@ import { ShieldAlert } from "@dub/ui/icons";
 import { ICustomerBody } from "core/integration/payment/config";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 
 interface WorkspaceQRsClientProps {
   initialQrs: QrStorageData[];
@@ -66,7 +64,7 @@ function WorkspaceQRs({
 
       <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
-          {!featuresAccess.isSubscribed && featuresAccess.subscriptionId && (
+          {!featuresAccess.isSubscribed && (
             <div className="w-full rounded-lg border border-red-200 bg-red-100">
               <div className="px-3 py-3 md:px-4">
                 <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -108,7 +106,7 @@ function WorkspaceQRs({
               </div>
             </div>
           )}
-          {featuresAccess && (
+          {featuresAccess.isSubscribed && (
             <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
               <div className="flex w-full grow gap-2 md:w-auto">
                 <div className="grow basis-0 md:grow-0">
@@ -152,25 +150,22 @@ function TrialOfferWithQRPreviewWrapper({
   featuresAccess: FeaturesAccess;
   user: ICustomerBody | null;
 }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const firstQr = initialQrs?.[0];
+  const firstQr = initialQrs?.[0] || null;
+  const { isSubscribed } = featuresAccess;
 
-  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr, true);
-  const { TrialOfferWithQRPreviewModal, setShowQRPreviewModal } =
+  const { TrialOfferWithQRPreviewModal, setShowTrialOfferModal } =
     useTrialOfferWithQRPreviewModal({
-      canvasRef,
-      qrCode: builtQrCodeObject,
-      qrType: firstQr?.qrType as EQRType,
-      width: 200,
-      height: 200,
       user,
+      firstQr,
     });
 
   useEffect(() => {
-    setShowQRPreviewModal(
-      !featuresAccess.isSubscribed && !featuresAccess.subscriptionId,
+    setShowTrialOfferModal(
+      !isSubscribed,
+      // TODO: uncomment this when we will prepare subscription for old users
+      // && !featuresAccess.subscriptionId,
     );
-  }, [featuresAccess]);
+  }, [isSubscribed]);
 
   return <TrialOfferWithQRPreviewModal />;
 }

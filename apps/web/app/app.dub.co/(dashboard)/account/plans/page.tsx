@@ -7,6 +7,7 @@ import { QrStorageData } from "@/ui/qr-builder/types/types";
 import { MaxWidthWrapper } from "@dub/ui";
 import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker/page-viewed-tracker.component";
 import { NextPage } from "next";
+import { redirect } from "next/navigation";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
@@ -17,6 +18,10 @@ const PlansPage: NextPage = async () => {
   const user = convertSessionUserToCustomerBody(sessionUser);
 
   const featuresAccess = await checkFeaturesAccessAuthLess(sessionUser.id);
+
+  if (!featuresAccess.isSubscribed) {
+    redirect("/");
+  }
 
   const mostScannedQR = await getMostScannedQr(sessionUser.id);
 

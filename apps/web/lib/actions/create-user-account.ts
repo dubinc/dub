@@ -205,19 +205,19 @@ export const createUserAccountAction = actionClient
               ? "development"
               : undefined,
         }),
-        sendEmail({
-          email: email,
-          subject: "Welcome to GetQR",
-          template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-          messageData: {
-            qr_name: qrDataToCreate?.title || "Untitled QR",
-            qr_type:
-              QR_TYPES.find((item) => item.id === qrDataToCreate?.qrType)!
-                .label || "Indefined type",
-            url: loginUrl,
-          },
-          customerId: generatedUserId,
-        }),
+        // sendEmail({
+        //   email: email,
+        //   subject: "Welcome to GetQR",
+        //   template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+        //   messageData: {
+        //     qr_name: qrDataToCreate?.title || "Untitled QR",
+        //     qr_type:
+        //       QR_TYPES.find((item) => item.id === qrDataToCreate?.qrType)!
+        //         .label || "Indefined type",
+        //     url: loginUrl,
+        //   },
+        //   customerId: generatedUserId,
+        // }),
       ]),
     );
 

@@ -1,11 +1,10 @@
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
-import { QRCardAnalyticsBadge } from "@/ui/qr-code/qr-code-card-analytics-badge.tsx";
-import { QRCardStatus } from "@/ui/qr-code/qr-code-card-status.tsx";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import { QrCodeControls } from "@/ui/qr-code/qr-code-controls.tsx";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useRef } from "react";
+import { QRStatusBadge } from './qr-status-badge/qr-status-badge';
 
 interface QrCodeDetailsColumnProps {
   qrCode: QrStorageData;
@@ -33,11 +32,7 @@ export function QrCodeDetailsColumn({
     >
       <div className="hidden gap-3 lg:flex lg:gap-6">
         <QrCardType currentQrTypeInfo={currentQrTypeInfo} />
-        {qrCode.archived || !featuresAccess ? (
-          <QRCardStatus archived />
-        ) : (
-          <QRCardAnalyticsBadge qrCode={qrCode} />
-        )}
+        <QRStatusBadge qrCode={qrCode} featuresAccess={featuresAccess} />
       </div>
 
       <QrCodeControls

@@ -112,27 +112,6 @@ export const POST = withWorkspace(
       },
     });
 
-    if (existingQrCount === 1) {
-      // const referer = req.headers.get('referer') || req.headers.get('referrer');
-      // const origin = new URL(referer || '').origin;
-
-      const loginUrl = await createAutoLoginURL(session?.user?.id);
-
-      await sendEmail({
-        email: session?.user?.email,
-        subject: "Welcome to GetQR",
-        template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-        messageData: {
-          qr_name: createdQr.title || "Untitled QR",
-          qr_type:
-            QR_TYPES.find((item) => item.id === createdQr?.qrType)!.label ||
-            "Indefined type",
-          url: loginUrl,
-        },
-        customerId: session?.user?.id,
-      });
-    }
-
     return NextResponse.json(
       { createdQr, createdLink },
       {

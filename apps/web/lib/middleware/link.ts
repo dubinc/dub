@@ -28,7 +28,6 @@ import { linkCache } from "../api/links/cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { hasEmptySearchParams } from "./utils/has-empty-search-params";
-import { sendClicksEvents } from "./utils/send-clicks-events";
 
 export default async function LinkMiddleware(
   req: NextRequest,
@@ -263,8 +262,6 @@ export default async function LinkMiddleware(
 
   // for root domain links, if there's no destination URL, rewrite to placeholder page
   if (!url) {
-    ev.waitUntil(sendClicksEvents(linkId));
-
     ev.waitUntil(
       recordClick({
         req,
@@ -310,8 +307,6 @@ export default async function LinkMiddleware(
 
     // rewrite to deeplink page if the link is a mailto: or tel:
   } else if (isSupportedDeeplinkProtocol(url)) {
-    ev.waitUntil(sendClicksEvents(linkId));
-
     ev.waitUntil(
       recordClick({
         req,
@@ -346,8 +341,6 @@ export default async function LinkMiddleware(
 
     // rewrite to target URL if link cloaking is enabled
   } else if (rewrite) {
-    ev.waitUntil(sendClicksEvents(linkId));
-
     ev.waitUntil(
       recordClick({
         req,
@@ -384,8 +377,6 @@ export default async function LinkMiddleware(
 
     // redirect to iOS link if it is specified and the user is on an iOS device
   } else if (ios && userAgent(req).os?.name === "iOS") {
-    ev.waitUntil(sendClicksEvents(linkId));
-
     ev.waitUntil(
       recordClick({
         req,
@@ -416,8 +407,6 @@ export default async function LinkMiddleware(
 
     // redirect to Android link if it is specified and the user is on an Android device
   } else if (android && userAgent(req).os?.name === "Android") {
-    ev.waitUntil(sendClicksEvents(linkId));
-
     ev.waitUntil(
       recordClick({
         req,
@@ -448,8 +437,6 @@ export default async function LinkMiddleware(
 
     // redirect to geo-specific link if it is specified and the user is in the specified country
   } else if (geo && country && country in geo) {
-    ev.waitUntil(sendClicksEvents(linkId));
-
     ev.waitUntil(
       recordClick({
         req,
@@ -480,8 +467,6 @@ export default async function LinkMiddleware(
 
     // regular redirect
   } else {
-    ev.waitUntil(sendClicksEvents(linkId));
-
     ev.waitUntil(
       recordClick({
         req,

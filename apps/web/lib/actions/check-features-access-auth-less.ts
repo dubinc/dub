@@ -13,11 +13,9 @@ export type FeaturesAccess = {
 
 export const checkFeaturesAccessAuthLess = async (
   userId: string,
-  beforeRecord?: boolean,
 ) => {
   const { rows } = await conn.execute(
-    `SELECT u.createdAt as userCreatedAt, u.email as email,
-      (SELECT SUM(clicks) FROM Link l WHERE l.userId = u.id) as totalUserClicks
+    `SELECT u.createdAt as userCreatedAt, u.email as email
     FROM User u 
     WHERE u.id = ?`,
     [userId],
