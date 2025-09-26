@@ -29,7 +29,7 @@ model PartnerGroup {
   partners                 ProgramEnrollment[]
   applications             ProgramApplication[]
   bounties                 BountyGroup[]
-  emails                   ProgramEmailGroup[]
+  campaigns                CampaignGroup[]
   utmTemplate              UtmTemplate?              @relation(fields: [utmTemplateId], references: [id])
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
 

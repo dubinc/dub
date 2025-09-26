@@ -22,9 +22,9 @@ model Workflow {
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
 
-  program Program       @relation(fields: [programId], references: [id], onDelete: Cascade)
-  bounty  Bounty?
-  email   ProgramEmail?
+  program  Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
+  bounty   Bounty?
+  campaign Campaign?
 
   @@index([programId, trigger])
 }
