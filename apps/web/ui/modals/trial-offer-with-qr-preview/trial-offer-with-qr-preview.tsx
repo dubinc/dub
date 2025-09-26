@@ -8,8 +8,10 @@ import { Theme } from "@radix-ui/themes";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ICustomerBody } from "core/integration/payment/config";
 import { Check, Gift } from "lucide-react";
+import QRCodeStyling from "qr-code-styling";
 import {
   Dispatch,
+  RefObject,
   SetStateAction,
   useCallback,
   useMemo,
@@ -19,12 +21,16 @@ import {
 import { QR_TYPES } from "../../qr-builder/constants/get-qr-config";
 import { QrCardType } from "../../qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "../../shared/five-stars.component";
+import { useQRPreviewModal } from "../qr-preview-modal";
 import { AvatarsComponent } from "./components/avatars.component";
 import { CreateSubscriptionFlow } from "./components/create-subscription-flow.component";
 import { MOCK_QR } from "./constants/mock-qr";
 
 interface IQRPreviewModalProps {
+  canvasRef: RefObject<HTMLCanvasElement>;
+  qrCode: QRCodeStyling | null;
   showQRPreviewModal: boolean;
+  setShowTrialOfferModal: Dispatch<SetStateAction<boolean>>;
   setShowQRPreviewModal: Dispatch<SetStateAction<boolean>>;
   firstQr: QrStorageData | null;
   user: ICustomerBody | null;
@@ -39,38 +45,32 @@ const FEATURES = [
 ];
 
 function TrialOfferWithQRPreview({
+  canvasRef,
+  qrCode,
   showQRPreviewModal,
+  setShowTrialOfferModal,
   setShowQRPreviewModal,
-  // canvasRef,
-  // qrCode,
-  // qrType,
-  // width = 200,
-  // height = 200,
   user,
   firstQr,
 }: IQRPreviewModalProps) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { qrCode: builtQrCodeObject } = useQrCustomization(
-    firstQr || MOCK_QR,
-    true,
-  );
-
-  // const { queryParams } = useRouterStuff();
   const [clientToken, setClientToken] = useState<string | null>(null);
   const currentQrTypeInfo = QR_TYPES.find(
     (item) => item.id === firstQr?.qrType,
   )!;
 
+  const onSubcriptionCreated = () => {
+    if (firstQr) {
+      setShowQRPreviewModal(true);
+    }
+
+    setShowTrialOfferModal(false);
+  };
+
   return (
     <Modal
       showModal={showQRPreviewModal}
-      setShowModal={setShowQRPreviewModal}
+      setShowModal={setShowTrialOfferModal}
       preventDefaultClose
-      // onClose={() =>
-      //   queryParams({
-      //     del: ["onboarded"],
-      //   })
-      // }
       className="max-w-4xl border-neutral-400"
     >
       <Theme>
@@ -98,7 +98,7 @@ function TrialOfferWithQRPreview({
               )}
               <QRCanvas
                 ref={canvasRef}
-                qrCode={builtQrCodeObject}
+                qrCode={qrCode}
                 width={300}
                 height={300}
               />
@@ -165,6 +165,7 @@ function TrialOfferWithQRPreview({
                   ...user!,
                   paymentInfo: { ...user!.paymentInfo, clientToken },
                 }}
+                onSubcriptionCreated={onSubcriptionCreated}
               />
             )}
           </div>
@@ -179,23 +180,44 @@ export function useTrialOfferWithQRPreviewModal(data: {
   user: ICustomerBody | null;
 }) {
   const { firstQr, user } = data;
-  const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
+  const [showTrialOfferModal, setShowTrialOfferModal] = useState(false);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { qrCode: demoBuiltQrCodeObject } = useQrCustomization(
+    firstQr || MOCK_QR,
+    true,
+  );
+  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr || MOCK_QR);
+
+  const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
+    canvasRef,
+    qrCode: builtQrCodeObject,
+    width: 200,
+    height: 200,
+  });
 
   const ModalCallback = useCallback(() => {
     return (
-      <TrialOfferWithQRPreview
-        user={user}
-        firstQr={firstQr}
-        showQRPreviewModal={showQRPreviewModal}
-        setShowQRPreviewModal={setShowQRPreviewModal}
-      />
+      <>
+        <TrialOfferWithQRPreview
+          user={user}
+          firstQr={firstQr}
+          canvasRef={canvasRef}
+          qrCode={demoBuiltQrCodeObject}
+          showQRPreviewModal={showTrialOfferModal}
+          setShowTrialOfferModal={setShowTrialOfferModal}
+          setShowQRPreviewModal={setShowQRPreviewModal}
+        />
+
+        <QRPreviewModal />
+      </>
     );
-  }, [showQRPreviewModal]);
+  }, [showTrialOfferModal, QRPreviewModal]);
 
   return useMemo(
     () => ({
       TrialOfferWithQRPreviewModal: ModalCallback,
-      setShowQRPreviewModal,
+      setShowTrialOfferModal,
     }),
     [ModalCallback],
   );

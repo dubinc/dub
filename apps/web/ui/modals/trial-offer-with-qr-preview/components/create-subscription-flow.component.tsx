@@ -26,6 +26,7 @@ import { mutate } from "swr";
 
 interface ICreateSubscriptionProps {
   user: ICustomerBody;
+  onSubcriptionCreated: () => void;
 }
 
 const pageName = "dashboard";
@@ -34,6 +35,7 @@ const subPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 
 export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   user,
+  onSubcriptionCreated,
 }) => {
   const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
@@ -180,9 +182,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
     router.refresh();
 
-    setTimeout(() => {
-      router.push("/account/plans");
-    }, 1000);
+    onSubcriptionCreated?.();
   };
 
   const handleCheckoutError = ({

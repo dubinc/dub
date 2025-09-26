@@ -64,7 +64,7 @@ function WorkspaceQRs({
 
       <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
-          {!featuresAccess.isSubscribed && featuresAccess.subscriptionId && (
+          {!featuresAccess.isSubscribed && (
             <div className="w-full rounded-lg border border-red-200 bg-red-100">
               <div className="px-3 py-3 md:px-4">
                 <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -106,7 +106,7 @@ function WorkspaceQRs({
               </div>
             </div>
           )}
-          {featuresAccess && (
+          {featuresAccess.isSubscribed && (
             <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
               <div className="flex w-full grow gap-2 md:w-auto">
                 <div className="grow basis-0 md:grow-0">
@@ -152,14 +152,14 @@ function TrialOfferWithQRPreviewWrapper({
 }) {
   const firstQr = initialQrs?.[0] || null;
 
-  const { TrialOfferWithQRPreviewModal, setShowQRPreviewModal } =
+  const { TrialOfferWithQRPreviewModal, setShowTrialOfferModal } =
     useTrialOfferWithQRPreviewModal({
       user,
       firstQr,
     });
 
   useEffect(() => {
-    setShowQRPreviewModal(
+    setShowTrialOfferModal(
       !featuresAccess.isSubscribed,
       // TODO: uncomment this when we will prepare subscription for old users
       // && !featuresAccess.subscriptionId,
