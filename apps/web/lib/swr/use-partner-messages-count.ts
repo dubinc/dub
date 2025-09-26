@@ -18,18 +18,6 @@ export function usePartnerMessagesCount({
 } = {}) {
   const { id: workspaceId, plan, defaultProgramId } = useWorkspace();
 
-  console.log({
-    enabled,
-    workspaceId,
-    defaultProgramId,
-    plan,
-    running:
-      enabled &&
-      workspaceId &&
-      defaultProgramId &&
-      getPlanCapabilities(plan).canMessagePartners,
-  });
-
   const { data, isLoading, error, mutate } = useSWR<number>(
     enabled &&
       workspaceId &&

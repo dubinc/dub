@@ -661,9 +661,9 @@ export const partnerAnalyticsResponseSchema = {
 
 export const invitePartnerSchema = z.object({
   workspaceId: z.string(),
-  name: z.string().trim().min(1).max(100),
+  name: z.string().max(100).optional(),
   email: z.string().trim().email().min(1).max(100),
-  linkId: z.string().optional(),
+  username: z.string().max(100).optional(),
   groupId: z.string().nullish().default(null),
 });
 
