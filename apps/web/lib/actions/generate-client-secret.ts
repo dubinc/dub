@@ -19,6 +19,10 @@ export const generateClientSecret = authActionClient
     const { workspace } = ctx;
     const { appId } = parsedInput;
 
+    if (workspace.role !== "owner") {
+      throw new Error("You don't have permission to generate a client secret.");
+    }
+
     await prisma.integration.findFirstOrThrow({
       where: {
         id: appId,
