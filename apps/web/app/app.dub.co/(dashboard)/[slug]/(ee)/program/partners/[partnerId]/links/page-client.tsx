@@ -13,6 +13,7 @@ import {
   LoadingSpinner,
   Table,
   Tag,
+  TooltipContent,
   useTable,
 } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
@@ -165,7 +166,7 @@ const PartnerDiscountCodes = ({
 }: {
   partner: EnrolledPartnerProps;
 }) => {
-  const { slug } = useWorkspace();
+  const { slug, stripeConnectId } = useWorkspace();
 
   const [selectedDiscountCode, setSelectedDiscountCode] =
     useState<DiscountCodeProps | null>(null);
@@ -252,6 +253,17 @@ const PartnerDiscountCodes = ({
   } as any);
 
   const disabledReason = useMemo(() => {
+    if (!stripeConnectId) {
+      return (
+        <TooltipContent
+          title="Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount codes."
+          cta="Install Stripe app"
+          href="/settings/integrations/stripe"
+          target="_blank"
+        />
+      );
+    }
+
     if (!partner.discountId) {
       return "No discount assigned to this partner group. Please add a discount before you can create a discount code.";
     }
@@ -265,7 +277,7 @@ const PartnerDiscountCodes = ({
     }
 
     return undefined;
-  }, [partner.discountId, partner.links, discountCodes]);
+  }, [partner.discountId, partner.links, discountCodes, stripeConnectId]);
 
   return (
     <>

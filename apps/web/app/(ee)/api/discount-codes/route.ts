@@ -58,7 +58,7 @@ export const POST = withWorkspace(
       throw new DubApiError({
         code: "bad_request",
         message:
-          "Stripe connect ID not found for your workspace. Please install Dub Stripe app.",
+          "Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount codes.",
       });
     }
 

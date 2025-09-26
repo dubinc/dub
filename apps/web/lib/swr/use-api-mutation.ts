@@ -6,7 +6,6 @@ interface ApiRequestOptions<TBody, TResponse> {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: TBody;
   headers?: Record<string, string>;
-  showToast?: boolean;
   onSuccess?: (data: TResponse) => void;
   onError?: (error: string) => void;
 }
@@ -36,8 +35,6 @@ export function useApiMutation<
   TBody = any,
 >(): ApiResponse<TResponse> {
   const { id: workspaceId } = useWorkspace();
-  const [data, setData] = useState<TResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const makeRequest = useCallback(
@@ -45,18 +42,9 @@ export function useApiMutation<
       endpoint: string,
       options: ApiRequestOptions<TBody, TResponse> = {},
     ) => {
-      const {
-        method = "GET",
-        body,
-        headers,
-        showToast = true,
-        onSuccess,
-        onError,
-      } = options;
+      const { method = "GET", body, headers, onSuccess, onError } = options;
 
       setIsSubmitting(true);
-      setError(null);
-      setData(null);
 
       try {
         debug("Starting request", {
@@ -89,7 +77,6 @@ export function useApiMutation<
 
         // Handle success
         const data = (await response.json()) as TResponse;
-        setData(data);
         onSuccess?.(data);
 
         debug("Response received", data);
@@ -99,10 +86,9 @@ export function useApiMutation<
             ? error.message
             : "Something went wrong. Please try again.";
 
-        setError(errorMessage);
-        onError?.(errorMessage);
-
-        if (showToast) {
+        if (onError) {
+          onError?.(errorMessage);
+        } else {
           toast.error(errorMessage);
         }
 
