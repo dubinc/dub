@@ -48,10 +48,10 @@ export function ProgramRewardModifiersTooltip({
 function ProgramRewardModifiersTooltipContent({
   reward,
 }: ProgramRewardModifiersTooltipProps) {
-  if (!reward?.modifiers?.length) return null;
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
+  if (!reward?.modifiers?.length) return null;
 
   const showBaseReward = reward.amount !== 0;
 
