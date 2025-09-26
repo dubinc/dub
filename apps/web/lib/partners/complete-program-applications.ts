@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { Partner, Prisma, ProgramApplication } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { qstash } from "../cron";
@@ -97,6 +97,17 @@ export async function completeProgramApplications(userEmail: string) {
       const program = programApplication.program;
       const application = programApplication;
 
+      const missingSocialFields = {
+        website: application.website && !partner.website ? application.website : undefined,
+        youtube: application.youtube && !partner.youtube ? application.youtube : undefined,
+        twitter: application.twitter && !partner.twitter ? application.twitter : undefined,
+        linkedin: application.linkedin && !partner.linkedin ? application.linkedin : undefined,
+        instagram: application.instagram && !partner.instagram ? application.instagram : undefined,
+        tiktok: application.tiktok && !partner.tiktok ? application.tiktok : undefined,
+      }
+
+      const hasMissingSocialFields = Object.values(missingSocialFields).some((field) => field !== undefined);
+
       await Promise.allSettled([
         notifyPartnerApplication({
           partner,
@@ -104,13 +115,12 @@ export async function completeProgramApplications(userEmail: string) {
           application,
         }),
 
-        // if the application has a website but the partner doesn't have a website (maybe they forgot to add during onboarding)
+        // if the application has any website or social fields but the partner doesn't have the corresponding one (maybe they forgot to add during onboarding)
         // update the partner to use the website they applied with
-        application.website &&
-          !partner.website &&
+        hasMissingSocialFields &&
           prisma.partner.update({
             where: { id: partner.id },
-            data: { website: application.website },
+            data: missingSocialFields,
           }),
 
         // Auto-approve the partner

@@ -22,7 +22,7 @@ const EditListContext = createContext<{
   setExpandedValue: Dispatch<SetStateAction<string | null>>;
 }>({
   expandedValue: null,
-  setExpandedValue: () => {},
+  setExpandedValue: () => { },
 });
 
 export function EditList({
@@ -63,7 +63,6 @@ export function EditList({
           if (result) setExpandedValue(result);
         }}
         variant="secondary"
-        className="mt-2"
         icon={<Plus2 className="size-4" />}
         text={addButtonLabel}
       />
@@ -72,6 +71,59 @@ export function EditList({
 }
 
 export function EditListItem({
+  value,
+  title,
+  onRemove,
+  error,
+}: {
+  value: string;
+  title: ReactNode;
+  error?: boolean
+  onRemove?: () => void;
+}) {
+  const controls = useDragControls();
+
+  return (
+    <Reorder.Item
+      key={value}
+      value={value}
+      dragListener={false}
+      dragControls={controls}
+      className={cn("relative overflow-hidden rounded-md border border-neutral-200 bg-neutral-50", error && "border-red-500")}
+      initial={{ opacity: 0, height: 0 }}
+      animate={{ opacity: 1, height: "auto" }}
+      exit={{ opacity: 0, height: 0 }}
+      transition={{ duration: 0.15 }}
+    >
+      <div className="relative">
+        <div
+          onPointerDown={(e) => controls.start(e)}
+          className="absolute inset-y-0 left-0 flex cursor-grab items-center px-2"
+          data-handle
+        >
+          <GripDotsVertical className="size-4 text-neutral-800" />
+        </div>
+
+        <div className="px-6">
+          {title}
+        </div>
+
+        {onRemove && (
+          <button
+            type="button"
+            className="absolute inset-y-0 right-0 px-2.5 text-neutral-400 transition-colors hover:bg-neutral-100 hover:text-neutral-600"
+            onClick={onRemove}
+            title="Remove item"
+          >
+            <Trash className="size-3.5" />
+          </button>
+        )}
+      </div>
+    </Reorder.Item>
+  );
+}
+
+export function ExpandableEditListItem({
   value,
   title,
   children,
