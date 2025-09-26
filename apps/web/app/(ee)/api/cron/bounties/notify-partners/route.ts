@@ -130,6 +130,7 @@ export async function POST(req: Request) {
             slug: bounty.program.slug,
           },
         }),
+        tags: [{ name: "type", value: "notification-email" }],
         headers: {
           "Idempotency-Key": `${bountyId}-page-${page}`,
         },
