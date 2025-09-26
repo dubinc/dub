@@ -16,7 +16,7 @@ const schema = z.object({
   groupId: z.string(),
 });
 
-// POST /api/cron/discount-codes/remap
+// POST /api/cron/groups/remap-discount-codes
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();

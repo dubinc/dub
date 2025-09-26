@@ -69,7 +69,7 @@ export const POST = withWorkspace(
           }),
 
           qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/remap`,
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-discount-codes`,
             body: {
               programId,
               partnerIds,
