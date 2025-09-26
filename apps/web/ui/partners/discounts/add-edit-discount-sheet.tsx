@@ -40,6 +40,7 @@ import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
+import { STRIPE_ERROR_MAP } from "../constants";
 import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
 
 interface DiscountSheetProps {
@@ -120,29 +121,13 @@ function DiscountSheetContent({
         await mutateGroup();
       },
       onError({ error }) {
-        const stripeErrorMap: Record<
-          string,
-          { title: string; ctaLabel: string; ctaUrl: string }
-        > = {
-          STRIPE_CONNECTION_REQUIRED: {
-            title: "Stripe connection required",
-            ctaLabel: "Install Stripe app",
-            ctaUrl: "https://marketplace.stripe.com/apps/dub-conversions",
-          },
-          STRIPE_APP_UPGRADE_REQUIRED: {
-            title: "Stripe app upgrade required",
-            ctaLabel: "Review permissions",
-            ctaUrl: "https://marketplace.stripe.com/apps/dub-conversions",
-          },
-        };
-
         if (error.serverError) {
-          const code = Object.keys(stripeErrorMap).find((key) =>
+          const code = Object.keys(STRIPE_ERROR_MAP).find((key) =>
             error.serverError!.startsWith(key),
           );
 
           if (code) {
-            const { title, ctaLabel, ctaUrl } = stripeErrorMap[code];
+            const { title, ctaLabel, ctaUrl } = STRIPE_ERROR_MAP[code];
             const message = error.serverError!.replace(`${code}: `, "");
 
             toast.custom(() => (

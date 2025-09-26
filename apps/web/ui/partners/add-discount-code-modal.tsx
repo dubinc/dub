@@ -21,6 +21,7 @@ import { useDebounce } from "use-debounce";
 import { z } from "zod";
 import { X } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+import { STRIPE_ERROR_MAP } from "./constants";
 
 type FormData = z.infer<typeof createDiscountCodeSchema>;
 
@@ -91,24 +92,28 @@ const AddDiscountCodeModal = ({
         toast.success("Discount code created and copied to clipboard!");
       },
       onError: (error) => {
-        // Check if the error is related to Stripe permissions
-        if (
-          error.includes(
-            "Having the 'read_write' scope would allow this request to continue",
-          ) &&
-          stripeConnectId
-        ) {
-          toast.custom(() => (
-            <UpgradeRequiredToast
-              title="Stripe app upgrade required"
-              message="Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe app permissions in the dashboard or reach out to our support team for help."
-              ctaLabel="Review permissions"
-              ctaUrl="https://marketplace.stripe.com/apps/dub-conversions"
-            />
-          ));
-        } else {
-          toast.error(error);
+        if (error) {
+          const code = Object.keys(STRIPE_ERROR_MAP).find((key) =>
+            error.startsWith(key),
+          );
+
+          if (code) {
+            const { title, ctaLabel, ctaUrl } = STRIPE_ERROR_MAP[code];
+            const message = error.replace(`${code}: `, "");
+
+            toast.custom(() => (
+              <UpgradeRequiredToast
+                title={title}
+                message={message}
+                ctaLabel={ctaLabel}
+                ctaUrl={ctaUrl}
+              />
+            ));
+            return;
+          }
         }
+
+        toast.error(error);
       },
     });
   };
