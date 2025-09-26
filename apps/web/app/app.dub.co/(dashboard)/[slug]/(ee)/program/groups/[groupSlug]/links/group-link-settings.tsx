@@ -8,7 +8,13 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { Badge, Button, UTMBuilder } from "@dub/ui";
+import {
+  Badge,
+  Button,
+  InfoTooltip,
+  SimpleTooltipContent,
+  UTMBuilder,
+} from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn, deepEqual } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
@@ -189,6 +195,10 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
       <SettingsRow
         heading="Link structure"
         description="How your partner links are displayed"
+        titleInfo={{
+          title: "Configure the format of your partner referral links.",
+          href: "https://dub.co/help/article/partner-link-settings#link-structure",
+        }}
       >
         <div className="grid grid-cols-1 gap-3">
           {program &&
@@ -240,6 +250,11 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
       <SettingsRow
         heading="UTM parameters"
         description="Configure UTM tracking parameters for all links in this group"
+        titleInfo={{
+          title:
+            "Configure UTM tracking parameters for all links in this group.",
+          href: "https://dub.co/help/article/partner-link-settings#utm-parameters",
+        }}
       >
         <UTMBuilder
           values={{
@@ -273,17 +288,35 @@ function GroupLinkSettingsForm({ group }: { group: GroupProps }) {
 function SettingsRow({
   heading,
   description,
+  titleInfo,
   children,
 }: PropsWithChildren<{
   heading: string;
   description: string;
+  titleInfo?: {
+    title: string;
+    href: string;
+  };
 }>) {
   return (
     <div className="grid grid-cols-1 gap-10 px-6 py-8 sm:grid-cols-2">
       <div className="flex flex-col gap-1">
-        <h3 className="text-content-emphasis text-base font-semibold leading-none">
-          {heading}
-        </h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-content-emphasis text-base font-semibold leading-none">
+            {heading}
+          </h3>
+          {titleInfo && (
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title={titleInfo?.title}
+                  cta="Learn more."
+                  href={titleInfo?.href}
+                />
+              }
+            />
+          )}
+        </div>
         <p className="text-content-subtle text-sm">{description}</p>
       </div>
 

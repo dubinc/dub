@@ -8,7 +8,13 @@ import { PartnerGroupDefaultLink } from "@/lib/types";
 import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, Hyperlink, Popover } from "@dub/ui";
+import {
+  Button,
+  Hyperlink,
+  InfoTooltip,
+  Popover,
+  SimpleTooltipContent,
+} from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
 import { cn, getPrettyUrl, getUrlWithoutUTMParams } from "@dub/utils";
 import { useState } from "react";
@@ -29,9 +35,20 @@ export function GroupDefaultLinks() {
     <div className="flex flex-col gap-6 rounded-lg border border-neutral-200 p-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-content-emphasis text-lg font-semibold leading-7">
-            Default links
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-content-emphasis text-lg font-semibold leading-7">
+              Default links
+            </h3>
+            <InfoTooltip
+              content={
+                <SimpleTooltipContent
+                  title="Default links are links that are automatically created for each partner in this group."
+                  cta="Learn more."
+                  href="https://dub.co/help/article/partner-link-settings#default-referral-links"
+                />
+              }
+            />
+          </div>
           <p className="text-content-subtle text-sm font-normal leading-5">
             Links that are automatically created for each partner in this group
           </p>

@@ -9,7 +9,8 @@ import { prisma } from "@dub/prisma";
 import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendCancellationFeedback, updateWorkspacePlan } from "./utils";
+import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
+import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
 export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const subscriptionDeleted = event.data.object as Stripe.Subscription;
