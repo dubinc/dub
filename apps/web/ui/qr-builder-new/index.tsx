@@ -1,4 +1,4 @@
-import { QRBuilderWrapper } from "./components/qr-builder-wrapper.copm";
+import { QRBuilderWrapper } from "./components/qr-builder-wrapper.tsx";
 import { QrBuilderProvider } from "./context";
 
 export const QRBuilderNew = () => {

@@ -1,0 +1,76 @@
+import { useQrBuilder } from "@/ui/qr-builder-new/context";
+import {cn} from "@dub/utils/src";
+import {QRBuilderSteps} from "@/ui/qr-builder-new/components/qr-builder-steps.tsx";
+import {Heading} from "@radix-ui/themes";
+import {QR_BUILDER_STEP_TITLES} from "@/ui/qr-builder-new/constants/get-qr-config.ts";
+import {QRBuilderInner} from "@/ui/qr-builder-new/components/qr-builder-inner.tsx";
+import { useMediaQuery } from "@dub/ui";
+import {QrBuilderButtons} from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
+
+export const QRBuilderWrapper = () => {
+  const {
+    builderStep,
+    handleBack,
+    handleContinue,
+    isCustomizationStep,
+    handleChangeStep,
+    onSave,
+    qrBuilderButtonsWrapperRef,
+    isTypeStep
+  } = useQrBuilder();
+
+
+  const { isMobile } = useMediaQuery();
+
+  // const navigationButtonsInViewport = useIsInViewport(
+  //   qrBuilderButtonsWrapperRef,
+  //   0.6,
+  // );
+  //   if (isCustomizationStep) {
+  //     onSave();
+  //     return;
+  //   }
+  //
+  //   const newStep = Math.min((builderStep || 1) + 1, 3);
+  //   handleChangeStep(newStep);
+  // };
+
+  return (
+    <div
+      className={cn(
+        "border-border-500 mx-auto flex h-full w-full flex-col justify-between rounded-lg border bg-white",
+      )}
+    >
+      <div>
+        <QRBuilderSteps />
+        <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-4 border-t p-6 md:gap-6">
+          <Heading as="h3" weight="medium" size="5" className="text-neutral">
+            {QR_BUILDER_STEP_TITLES[(builderStep || 1) - 1]}
+          </Heading>
+          <QRBuilderInner />
+        </div>
+      </div>
+      {!isTypeStep && isMobile && (
+        <div className="border-border-500 sticky bottom-0 z-10 mt-auto w-full border-t bg-white px-6 py-3">
+          <QrBuilderButtons
+            step={builderStep || 1}
+            onBack={handleBack}
+            onContinue={handleContinue}
+            isEdit={false}
+            isProcessing={false}
+            homePageDemo={false}
+          />
+        </div>
+      )}
+
+      {/*{!isMobile && !navigationButtonsInViewport && isCustomizationStep && (*/}
+      {/*  <div className="fixed bottom-6 right-6 z-50">*/}
+      {/*    <QrTabsDownloadButton*/}
+      {/*      onRegistrationClick={onSave}*/}
+      {/*      isQrDisabled={false}*/}
+      {/*    />*/}
+      {/*  </div>*/}
+      {/*)}*/}
+    </div>
+  )
+};
