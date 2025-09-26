@@ -1,5 +1,6 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
 import { createDiscountCodeSchema } from "@/lib/zod/schemas/discount";
 import {
@@ -34,6 +35,7 @@ const AddDiscountCodeModal = ({
   setShowModal,
   partner,
 }: AddDiscountCodeModalProps) => {
+  const { stripeConnectId } = useWorkspace();
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
@@ -93,12 +95,15 @@ const AddDiscountCodeModal = ({
         if (
           error.includes(
             "Having the 'read_write' scope would allow this request to continue",
-          )
+          ) &&
+          stripeConnectId
         ) {
           toast.custom(() => (
             <UpgradeRequiredToast
-              title="Stripe permissions required"
-              message="Your connected Stripe account doesn't have the permissions needed to create discount codes. Please update your Stripe app permissions in the dashboard or reach out to our support team for help."
+              title="Stripe app upgrade required"
+              message="Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe app permissions in the dashboard or reach out to our support team for help."
+              ctaLabel="Review permissions"
+              ctaUrl="https://marketplace.stripe.com/apps/dub-conversions"
             />
           ));
         } else {
