@@ -168,7 +168,10 @@ export const POST = withWorkspace(
     } catch (error) {
       throw new DubApiError({
         code: "bad_request",
-        message: error.message,
+        message:
+          error.code === "more_permissions_required_for_application"
+            ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe app permissions in the dashboard or reach out to our support team for help."
+            : error.message,
       });
     }
   },
