@@ -129,6 +129,7 @@ function PartnerApplicationSheetContent({
       {["pending", "rejected"].includes(partner.status) && (
         <div className="shrink-0 border-t border-neutral-200 p-5">
           <PartnerApproval
+            key={partner.id} // Reset when navigating between partners to avoid memoized action callback issues
             partner={partner}
             groupId={
               partner.status === "rejected" ? selectedGroupId : partner.groupId
