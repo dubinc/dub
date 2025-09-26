@@ -151,6 +151,7 @@ function TrialOfferWithQRPreviewWrapper({
   user: ICustomerBody | null;
 }) {
   const firstQr = initialQrs?.[0] || null;
+  const { isSubscribed } = featuresAccess;
 
   const { TrialOfferWithQRPreviewModal, setShowTrialOfferModal } =
     useTrialOfferWithQRPreviewModal({
@@ -160,11 +161,11 @@ function TrialOfferWithQRPreviewWrapper({
 
   useEffect(() => {
     setShowTrialOfferModal(
-      !featuresAccess.isSubscribed,
+      !isSubscribed,
       // TODO: uncomment this when we will prepare subscription for old users
       // && !featuresAccess.subscriptionId,
     );
-  }, [featuresAccess]);
+  }, [isSubscribed]);
 
   return <TrialOfferWithQRPreviewModal />;
 }

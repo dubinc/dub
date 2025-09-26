@@ -72,6 +72,7 @@ function TrialOfferWithQRPreview({
       {!isMobile && (
         <Modal
           showModal={showQRPreviewModal}
+          setShowModal={setShowTrialOfferModal}
           preventDefaultClose
           className="max-w-4xl border-neutral-400"
         >
@@ -81,7 +82,7 @@ function TrialOfferWithQRPreview({
 
       {showQRPreviewModal && isMobile && (
         <div className="fixed left-0 top-0 flex h-full w-full items-center justify-center overflow-y-auto bg-white">
-          <div className="h-full max-w-4xl">{innerComponent}</div>
+          <div className="h-full w-full max-w-4xl">{innerComponent}</div>
         </div>
       )}
     </>
