@@ -21,11 +21,11 @@ export async function queueDiscountCodeDeletion(
   }
 
   await queue.upsert({
-    parallelism: 2,
+    parallelism: 10,
   });
 
   // TODO:
-  // Check if we can use the batchJSON (I tried it didn't work)
+  // Check if we can use the batchJSON (I tried it but didn't work)
 
   await Promise.allSettled(
     discountCodeIds.map((discountCodeId) =>
