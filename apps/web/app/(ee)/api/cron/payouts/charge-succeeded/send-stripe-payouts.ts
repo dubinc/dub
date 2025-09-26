@@ -9,7 +9,7 @@ export async function sendStripePayouts({
   chargeId,
 }: {
   invoiceId: string;
-  chargeId: string;
+  chargeId?: string;
 }) {
   const commonInclude = Prisma.validator<Prisma.PayoutInclude>()({
     partner: {

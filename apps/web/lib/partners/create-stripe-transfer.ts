@@ -107,9 +107,10 @@ export const createStripeTransfer = async ({
       description: `Dub Partners payout ${pluralize("transfer", allPayoutsPrograms.length)} (${allPayoutsPrograms.join(", ")})`,
       // Omit `source_transaction` if prior processed payouts exist to ensure this transfer
       // never exceeds the original charge amount.
-      ...(previouslyProcessedPayouts.length === 0 && {
-        source_transaction: chargeId,
-      }),
+      ...(previouslyProcessedPayouts.length === 0 &&
+        chargeId && {
+          source_transaction: chargeId,
+        }),
     },
     {
       idempotencyKey: `${finalPayoutInvoiceId}-${partner.id}`,

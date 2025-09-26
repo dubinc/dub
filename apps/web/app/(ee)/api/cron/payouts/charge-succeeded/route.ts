@@ -59,9 +59,23 @@ export async function POST(req: Request) {
     }
 
     // Find the id of the charge that was used to fund the transfer
-    const { id: chargeId } = stripeChargeMetadataSchema.parse(
+    const parsedChargeMetadata = stripeChargeMetadataSchema.safeParse(
       invoice.stripeChargeMetadata,
     );
+    const chargeId = parsedChargeMetadata.success
+      ? parsedChargeMetadata.data.id
+      : undefined;
+
+    // this should never happen since all completed invoices should have a charge id, but just in case
+    if (!chargeId) {
+      await log({
+        message:
+          "No charge id found in stripeChargeMetadata for invoice " +
+          invoiceId +
+          ", continuing without source_transaction.",
+        type: "errors",
+      });
+    }
 
     await Promise.allSettled([
       sendStripePayouts({
