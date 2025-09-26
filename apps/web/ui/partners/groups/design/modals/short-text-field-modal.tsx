@@ -43,8 +43,6 @@ function ShortTextFieldModalInner({
     control,
     handleSubmit,
     register,
-    formState: { errors },
-    getValues,
   } = useForm<ShortTextFieldData>({
     defaultValues: defaultValues ?? {
       id: uuid(),

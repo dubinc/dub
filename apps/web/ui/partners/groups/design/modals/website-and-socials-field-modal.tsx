@@ -2,7 +2,7 @@
 
 import { programApplicationFormSiteSchema, programApplicationFormWebsiteAndSocialsFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import { Button, Globe, Instagram, LinkedIn, Modal, Switch, TikTok, Twitter, YouTube } from "@dub/ui";
-import { Dispatch, SetStateAction, useId } from "react";
+import { Dispatch, SetStateAction, useCallback, useId } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { motion } from "framer-motion";
@@ -44,8 +44,7 @@ function WebsiteAndSocialsFieldModalInner({
 
   const {
     handleSubmit,
-    formState: { errors },
-    getValues,
+    watch,
     setValue,
   } = useForm<WebsiteAndSocialsFieldData>({
     defaultValues: defaultValues ?? {
@@ -54,21 +53,21 @@ function WebsiteAndSocialsFieldModalInner({
       data: [],
     },
   });
-  const data = getValues("data")
+  const data = watch("data")
 
-  const addSite = (type: WebsiteAndSocialsFieldDataType) => {
+  const addSite = useCallback((type: WebsiteAndSocialsFieldDataType) => {
     setValue(`data`, [...data, { type, required: false }], { shouldDirty: true });
-  }
+  }, [data, setValue]);
 
-  const removeSite = (type: WebsiteAndSocialsFieldDataType) => {
+  const removeSite = useCallback((type: WebsiteAndSocialsFieldDataType) => {
     setValue(`data`, data.filter((site) => site.type !== type), { shouldDirty: true });
-  }
+  }, [data, setValue]);
 
-  const getSite = (type: WebsiteAndSocialsFieldDataType) => {
+  const getSite = useCallback((type: WebsiteAndSocialsFieldDataType) => {
     return data.find((site) => site.type === type);
-  }
+  }, [data]);
 
-  const updateSite = (type: WebsiteAndSocialsFieldDataType, updatedData: Pick<WebsiteAndSocialsSiteData, "required">) => {
+  const updateSite = useCallback((type: WebsiteAndSocialsFieldDataType, updatedData: Pick<WebsiteAndSocialsSiteData, "required">) => {
     const index = data.findIndex((site) => site.type === type);
 
     if (index === -1) {
@@ -76,7 +75,7 @@ function WebsiteAndSocialsFieldModalInner({
     } else {
       setValue(`data.${index}`, { type, ...updatedData }, { shouldDirty: true });
     }
-  }
+  }, [data, setValue]);
 
   return (
     <>
@@ -84,6 +83,7 @@ function WebsiteAndSocialsFieldModalInner({
         <h3 className="text-base font-semibold leading-6 text-neutral-800">
           {defaultValues ? "Edit" : "Add"} website and socials
         </h3>
+
         <form
           className="mt-4"
           onSubmit={(e) => {

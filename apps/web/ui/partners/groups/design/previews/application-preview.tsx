@@ -101,13 +101,12 @@ export function ApplicationPreview({
     <>
       {editingField && editingFieldMeta && (
         <editingFieldMeta.modal
-          defaultValues={editingField.data}
+          defaultValues={editingField}
           showModal={true}
           setShowModal={(show) => !show && setEditingFieldId(null)}
-          onSubmit={(data) => {
+          onSubmit={(field) => {
             updateFields((fields) => {
-              fields[fields.findIndex((b) => b.id === editingFieldId)].data =
-                data;
+              fields[fields.findIndex((b) => b.id === editingFieldId)] = field;
               return fields;
             });
             setTouchedFieldId(null);

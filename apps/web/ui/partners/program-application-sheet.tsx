@@ -62,13 +62,13 @@ function ProgramApplicationSheetContent({
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!program || !partner?.email) return;
+    if (!program || !partner?.email || !partner.country) return;
 
     const result = await executeAsync({
       ...data,
       email: partner.email,
       name: partner.name,
-      country: partner.country ?? "",
+      country: partner.country,
       programId: program.id,
     });
 
