@@ -41,4 +41,8 @@ export const DiscoverablePartnerSchema = PartnerSchema.pick({
   instagramVerifiedAt: true,
   tiktok: true,
   tiktokVerifiedAt: true,
-});
+}).merge(
+  z.object({
+    lastConversionAt: z.date().nullable(),
+  }),
+);

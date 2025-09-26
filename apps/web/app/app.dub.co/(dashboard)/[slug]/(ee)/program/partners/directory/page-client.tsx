@@ -17,7 +17,14 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import type { Icon } from "@dub/ui/icons";
-import { COUNTRIES, OG_AVATAR_URL, cn, fetcher, formatDate } from "@dub/utils";
+import {
+  COUNTRIES,
+  OG_AVATAR_URL,
+  cn,
+  fetcher,
+  formatDate,
+  timeAgo,
+} from "@dub/utils";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
@@ -123,7 +130,11 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
       {
         id: "lastConversion",
         icon: <ChartActivity2 className="size-3.5 shrink-0" />,
-        text: partner ? `Last conversion XXX ago` : undefined,
+        text: partner
+          ? partner.lastConversionAt
+            ? `Last conversion ${timeAgo(partner.lastConversionAt, { withAgo: true })}`
+            : "No conversions yet"
+          : undefined,
       },
       {
         id: "conversion",
