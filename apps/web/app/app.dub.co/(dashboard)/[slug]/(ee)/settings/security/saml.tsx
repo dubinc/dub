@@ -5,16 +5,36 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
 import { useSAMLModal } from "@/ui/modals/saml-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, IconMenu, Popover, TooltipContent } from "@dub/ui";
+import {
+  Button,
+  IconMenu,
+  Popover,
+  Switch,
+  TooltipContent,
+  useOptimisticUpdate,
+} from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import { Lock, ShieldOff } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export function SAML() {
-  const { plan } = useWorkspace();
+  const { plan, id, ssoEnforcedAt } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
+  const [openPopover, setOpenPopover] = useState(false);
+
+  const {
+    data: workspaceData,
+    isLoading,
+    update,
+  } = useOptimisticUpdate<{
+    ssoEnforcedAt: Date | null;
+  }>(`/api/workspaces/${id}`, {
+    loading: "Saving SAML enforcement setting...",
+    success: "SAML enforcement has been updated successfully.",
+    error: "Unable to update SAML enforcement. Please try again.",
+  });
 
   const currentProvider = useMemo(
     () => provider && SAML_PROVIDERS.find((p) => p.name.startsWith(provider)),
@@ -54,7 +74,37 @@ export function SAML() {
     }
   }, [provider, configured, loading]);
 
-  const [openPopover, setOpenPopover] = useState(false);
+  const handleSSOEnforcementChange = useCallback(
+    async (enforceSAML: boolean) => {
+      if (!configured) {
+        return;
+      }
+
+      const updateWorkspace = async () => {
+        const response = await fetch(`/api/workspaces/${id}`, {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ enforceSAML }),
+        });
+
+        if (!response.ok) {
+          const { error } = await response.json();
+          throw new Error(error.message || "Failed to update workspace.");
+        }
+
+        return {
+          ssoEnforcedAt: enforceSAML ? new Date() : null,
+        };
+      };
+
+      await update(updateWorkspace, {
+        ssoEnforcedAt: enforceSAML ? new Date() : null,
+      });
+    },
+    [id, configured, update],
+  );
 
   return (
     <>
@@ -145,14 +195,31 @@ export function SAML() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-3 py-5 sm:px-10">
-          <a
-            href="https://dub.co/help/category/saml-sso"
-            target="_blank"
-            className="text-sm text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-700"
-          >
-            Learn more about SAML SSO.
-          </a>
+        <div className="rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-3 py-5 sm:px-10">
+          {configured ? (
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium text-neutral-700">
+                Require SAML SSO authentication for all members of the
+                workspace.
+              </label>
+              <Switch
+                checked={!!(workspaceData?.ssoEnforcedAt || ssoEnforcedAt)}
+                loading={isLoading}
+                disabled={plan !== "enterprise"}
+                fn={handleSSOEnforcementChange}
+              />
+            </div>
+          ) : (
+            <div className="flex items-center justify-between">
+              <a
+                href="https://dub.co/help/category/saml-sso"
+                target="_blank"
+                className="text-sm text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-700"
+              >
+                Learn more about SAML SSO.
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </>
