@@ -1,13 +1,24 @@
 "use client";
 
 import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
+import {
+  industryInterestsMap,
+  salesChannelsMap,
+} from "@/lib/partners/partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscoverablePartnerProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
-import { BadgeCheck2Fill, ChartActivity2, Tooltip, UserPlus } from "@dub/ui";
-import { COUNTRIES, OG_AVATAR_URL, fetcher, formatDate } from "@dub/utils";
+import {
+  BadgeCheck2Fill,
+  ChartActivity2,
+  Tooltip,
+  UserPlus,
+  useResizeObserver,
+} from "@dub/ui";
+import type { Icon } from "@dub/ui/icons";
+import { COUNTRIES, OG_AVATAR_URL, cn, fetcher, formatDate } from "@dub/utils";
 import Link from "next/link";
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import useSWR from "swr";
 
 export function ProgramPartnersDirectoryPageClient() {
@@ -50,7 +61,7 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
     () => [
       {
         id: "listedAt",
-        icon: <UserPlus className="size-3.5" />,
+        icon: <UserPlus className="size-3.5 shrink-0" />,
         text: partner
           ? partner.discoverableAt
             ? `Listed ${formatDate(partner.discoverableAt)}`
@@ -59,12 +70,12 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
       },
       {
         id: "lastConversion",
-        icon: <ChartActivity2 className="size-3.5" />,
+        icon: <ChartActivity2 className="size-3.5 shrink-0" />,
         text: partner ? `Last conversion XXX ago` : undefined,
       },
       {
         id: "conversion",
-        icon: <X className="size-3.5" />,
+        icon: <X className="size-3.5 shrink-0" />,
         text: partner ? `XXXX conversion` : undefined,
       },
     ],
@@ -143,8 +154,13 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
         </div>
 
         {/* Online presence */}
-        <div className="flex flex-wrap items-center gap-1.5">
-          {onlinePresenceData
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-1.5",
+            !partner && "animate-pulse",
+          )}
+        >
+          {onlinePresenceData?.length
             ? onlinePresenceData.map(
                 ({ label, icon: Icon, verified, value, href }) => (
                   <Tooltip
@@ -180,14 +196,147 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
                   </Tooltip>
                 ),
               )
-            : [...Array(6)].map((_, idx) => (
-                <div
-                  key={idx}
-                  className="size-6 animate-pulse rounded-full bg-neutral-200"
-                />
+            : [...Array(3)].map((_, idx) => (
+                <div key={idx} className="size-6 rounded-full bg-neutral-100" />
               ))}
         </div>
       </div>
+
+      {/* Partner profile selections */}
+      <div className="mt-5 flex flex-col gap-5">
+        {/* Industry interests */}
+        <div className="flex flex-col gap-2">
+          <h3 className="text-content-emphasis text-xs font-semibold">
+            Industry interests
+          </h3>
+          <ListRow
+            className={cn(!partner && "animate-pulse")}
+            items={partner?.industryInterests
+              ?.map((interest) => industryInterestsMap[interest])
+              .filter(
+                (item): item is { icon: Icon; label: string } =>
+                  item !== undefined,
+              )}
+          />
+        </div>
+
+        {/* Sales channels */}
+        <div className="flex flex-col gap-2">
+          <h3 className="text-content-emphasis text-xs font-semibold">
+            Sales channels
+          </h3>
+          <ListRow
+            className={cn(!partner && "animate-pulse")}
+            items={partner?.salesChannels
+              ?.map((salesChannel) => salesChannelsMap[salesChannel])
+              .filter((item): item is { label: string } => item !== undefined)}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ListRow({
+  items,
+  className,
+}: {
+  items?: { icon?: Icon; label: string }[];
+  className?: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const [isReady, setIsReady] = useState(false);
+
+  const [shownItems, setShownItems] = useState<
+    { icon?: Icon; label: string }[] | undefined
+  >(items);
+
+  useEffect(() => {
+    if (isReady) return;
+
+    setIsReady(false);
+    setShownItems(items);
+  }, [items, isReady]);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    // Determine if we need to show less items
+    if (
+      shownItems?.length &&
+      containerRef.current.scrollWidth > containerRef.current.clientWidth
+    ) {
+      setIsReady(false);
+      setShownItems(shownItems?.slice(0, -1));
+    } else {
+      setIsReady(true);
+    }
+  }, [shownItems]);
+
+  // Show less items if needed after resizing
+  const entry = useResizeObserver(containerRef);
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    if (containerRef.current.scrollWidth > containerRef.current.clientWidth)
+      setIsReady(false);
+  }, [entry]);
+
+  return (
+    <div
+      ref={containerRef}
+      className={cn(
+        "overflow-hidden",
+        items?.length && !isReady && "opacity-0",
+      )}
+    >
+      <div className={cn("flex gap-1", className)}>
+        {items?.length ? (
+          <>
+            {shownItems?.map(({ icon, label }) => (
+              <ListPill key={label} icon={icon} label={label} />
+            ))}
+            {(shownItems?.length ?? 0) < items.length && (
+              <Tooltip
+                content={
+                  <div className="flex max-w-sm flex-wrap gap-1 p-2">
+                    {items
+                      .filter(
+                        ({ label }) =>
+                          !shownItems?.some(
+                            ({ label: shownLabel }) => shownLabel === label,
+                          ),
+                      )
+                      .map(({ icon, label }) => (
+                        <ListPill key={label} icon={icon} label={label} />
+                      ))}
+                  </div>
+                }
+              >
+                <div className="text-content-default flex h-7 select-none items-center rounded-full bg-neutral-100 px-2 text-xs font-medium hover:bg-neutral-200">
+                  +{items.length - (shownItems?.length ?? 0)}
+                </div>
+              </Tooltip>
+            )}
+          </>
+        ) : (
+          [...Array(2)].map((_, idx) => (
+            <div key={idx} className="h-7 w-20 rounded-full bg-neutral-100" />
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ListPill({ icon: Icon, label }: { icon?: Icon; label: string }) {
+  return (
+    <div className="flex h-7 items-center gap-1.5 rounded-full bg-neutral-100 px-2">
+      {Icon && <Icon className="text-content-emphasis size-3 shrink-0" />}
+      <span className="text-content-default whitespace-nowrap text-xs font-medium">
+        {label}
+      </span>
     </div>
   );
 }

@@ -17,17 +17,40 @@ export const GET = withWorkspace(
 
     const partners = (await prisma.$queryRaw`
       SELECT 
-        p.*
+        p.*,
+        industryInterests.industryInterests,
+        preferredEarningStructures.preferredEarningStructures,
+        salesChannels.salesChannels
       FROM 
         Partner p
+      LEFT JOIN (
+        SELECT partnerId, group_concat(industryInterest) AS industryInterests
+        FROM PartnerIndustryInterest
+        GROUP BY partnerId
+      ) industryInterests ON industryInterests.partnerId = p.id
+      LEFT JOIN (
+        SELECT partnerId, group_concat(preferredEarningStructure) AS preferredEarningStructures
+        FROM PartnerPreferredEarningStructure
+        GROUP BY partnerId
+      ) preferredEarningStructures ON preferredEarningStructures.partnerId = p.id
+      LEFT JOIN (
+        SELECT partnerId, group_concat(salesChannel) AS salesChannels
+        FROM PartnerSalesChannel
+        GROUP BY partnerId
+      ) salesChannels ON salesChannels.partnerId = p.id
       WHERE 
         p.discoverableAt IS NOT NULL
+      
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
     return NextResponse.json(
       z.array(DiscoverablePartnerSchema).parse(
         partners.map((partner) => ({
           ...partner,
+          industryInterests: partner.industryInterests?.split(",") || undefined,
+          preferredEarningStructures:
+            partner.preferredEarningStructures?.split(",") || undefined,
+          salesChannels: partner.salesChannels?.split(",") || undefined,
         })),
       ),
     );
