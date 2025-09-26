@@ -3,6 +3,10 @@
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { qstash } from "@/lib/cron";
 import { storage } from "@/lib/storage";
+import {
+  MAX_PARTNER_DESCRIPTION_LENGTH,
+  PartnerProfileSchema,
+} from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
   APP_DOMAIN_WITH_NGROK,
@@ -20,27 +24,15 @@ import { authPartnerActionClient } from "../safe-action";
 
 const updatePartnerProfileSchema = z
   .object({
-    name: z.string(),
-    email: z.string().email(),
+    name: z.string().optional(),
+    email: z.string().email().optional(),
     image: uploadedImageSchema.nullish(),
-    description: z.string().nullable(),
-    country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullable(),
-    profileType: z.nativeEnum(PartnerProfileType),
-    companyName: z.string().nullable(),
+    description: z.string().max(MAX_PARTNER_DESCRIPTION_LENGTH).nullish(),
+    country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
+    profileType: z.nativeEnum(PartnerProfileType).optional(),
+    companyName: z.string().nullish(),
   })
-  .refine(
-    (data) => {
-      if (data.profileType === "company") {
-        return !!data.companyName;
-      }
-
-      return true;
-    },
-    {
-      message: "Legal company name is required.",
-      path: ["companyName"],
-    },
-  )
+  .merge(PartnerProfileSchema.partial())
   .transform((data) => ({
     ...data,
     companyName: data.profileType === "individual" ? null : data.companyName,
@@ -59,7 +51,17 @@ export const updatePartnerProfileAction = authPartnerActionClient
       country,
       profileType,
       companyName,
+      monthlyTraffic,
+      industryInterests,
+      preferredEarningStructures,
+      salesChannels,
     } = parsedInput;
+
+    if (
+      profileType === "company" &&
+      (companyName === undefined ? !partner.companyName : !companyName)
+    )
+      throw new Error("Legal company name is required.");
 
     // Delete the Stripe Express account if needed
     await deleteStripeAccountIfRequired({
@@ -69,7 +71,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
     let imageUrl: string | null = null;
     let needsEmailVerification = false;
-    const emailChanged = partner.email !== newEmail;
+    const emailChanged = newEmail !== undefined && partner.email !== newEmail;
 
     // Upload the new image
     if (image) {
@@ -90,6 +92,34 @@ export const updatePartnerProfileAction = authPartnerActionClient
           country,
           profileType,
           companyName,
+          monthlyTraffic,
+
+          ...(industryInterests && {
+            industryInterests: {
+              deleteMany: {},
+              create: industryInterests.map((name) => ({
+                industryInterest: name,
+              })),
+            },
+          }),
+
+          ...(preferredEarningStructures && {
+            preferredEarningStructures: {
+              deleteMany: {},
+              create: preferredEarningStructures.map((name) => ({
+                preferredEarningStructure: name,
+              })),
+            },
+          }),
+
+          ...(salesChannels && {
+            salesChannels: {
+              deleteMany: {},
+              create: salesChannels.map((name) => ({
+                salesChannel: name,
+              })),
+            },
+          }),
         },
       });
 
@@ -162,9 +192,11 @@ const deleteStripeAccountIfRequired = async ({
   input: z.infer<typeof updatePartnerProfileSchema>;
 }) => {
   const countryChanged =
+    input.country !== undefined &&
     partner.country?.toLowerCase() !== input.country?.toLowerCase();
 
   const profileTypeChanged =
+    input.profileType !== undefined &&
     partner.profileType.toLowerCase() !== input.profileType.toLowerCase();
 
   const companyNameChanged =
@@ -192,7 +224,7 @@ const deleteStripeAccountIfRequired = async ({
 
   if (completedPayoutsCount > 0) {
     throw new Error(
-      "Since you've already received payouts on Dub, you cannot change your email, country or profile type. Please contact support to update those fields.",
+      "Since you've already received payouts on Dub, you cannot change your country or profile type. Please contact support to update those fields.",
     );
   }
 

@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
@@ -5,6 +6,7 @@ import { sendBatchEmail } from "@dub/email";
 import NewBountyAvailable from "@dub/email/templates/new-bounty-available";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { NotificationEmailType } from "@prisma/client";
 import { differenceInMinutes } from "date-fns";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
@@ -86,7 +88,13 @@ export async function POST(req: Request) {
         },
       },
       include: {
-        partner: true,
+        partner: {
+          include: {
+            users: {
+              take: 1, // TODO: update this to use partnerUsersToNotify approach
+            },
+          },
+        },
       },
       orderBy: {
         createdAt: "asc",
@@ -104,7 +112,7 @@ export async function POST(req: Request) {
     console.log(
       `Sending emails to ${programEnrollments.length} partners: ${programEnrollments.map(({ partner }) => partner.email).join(", ")}`,
     );
-    await sendBatchEmail(
+    const { data } = await sendBatchEmail(
       programEnrollments.map(({ partner }) => ({
         variant: "notifications",
         to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
@@ -122,11 +130,26 @@ export async function POST(req: Request) {
             slug: bounty.program.slug,
           },
         }),
+        tags: [{ name: "type", value: "notification-email" }],
         headers: {
           "Idempotency-Key": `${bountyId}-page-${page}`,
         },
       })),
     );
+
+    if (data) {
+      await prisma.notificationEmail.createMany({
+        data: programEnrollments.map(({ partner }, idx) => ({
+          id: createId({ prefix: "em_" }),
+          type: NotificationEmailType.Bounty,
+          emailId: data.data[idx].id,
+          bountyId: bounty.id,
+          programId: bounty.programId,
+          partnerId: partner.id,
+          recipientUserId: partner.users[0].userId, // TODO: update this to use partnerUsersToNotify approach
+        })),
+      });
+    }
 
     if (programEnrollments.length === MAX_PAGE_SIZE) {
       const res = await qstash.publishJSON({

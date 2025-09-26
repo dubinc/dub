@@ -119,13 +119,10 @@ export function PartnersTable() {
     error,
     isLoading,
   } = useSWR<EnrolledPartnerProps[]>(
-    `/api/partners${getQueryString(
-      {
-        workspaceId,
-        includeExpandedFields: true,
-      },
-      { exclude: ["partnerId"] },
-    )}`,
+    `/api/partners${getQueryString({
+      workspaceId,
+      includeExpandedFields: true,
+    })}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -394,8 +391,8 @@ export function PartnersTable() {
             onRemove={onRemove}
           />
           <SearchBoxPersisted
-            placeholder="Search by name, email, or link"
-            inputClassName="md:w-72"
+            placeholder="Search by ID, name, email, or link"
+            inputClassName="md:w-[19rem]"
           />
         </div>
         <AnimatedSizeContainer height>

@@ -35,6 +35,7 @@ model InstalledIntegration {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   credentials   Json?
+  settings      Json?
 
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   integration   Integration         @relation(fields: [integrationId], references: [id], onDelete: Cascade)
