@@ -5,18 +5,13 @@ const NOTIFICATION_EMAIL_SUBJECT_KEYWORDS = ["bounty", "message"];
 export async function emailOpened({
   email_id: emailId,
   subject,
+  tags,
 }: {
   email_id: string;
   subject?: string;
+  tags?: Record<string, string>;
 }) {
-  // TODO: Ignore if not a message notification (when sendBatchEmail supports tags)
-  // if (!tags || tags.type !== "notification-email") {
-  //   console.log(
-  //     `Ignoring email.opened webhook for email ${emailId} because it's not a notification-email...`,
-  //   );
-  //   return;
-  // }
-
+  // TODO: replace this with tags once it's confirmed working
   if (
     !subject ||
     !NOTIFICATION_EMAIL_SUBJECT_KEYWORDS.some((keyword) =>
@@ -28,6 +23,15 @@ export async function emailOpened({
     );
     return;
   }
+
+  console.log(`Found tags: ${JSON.stringify(tags, null, 2)}`);
+
+  // if (!tags || tags.type !== "notification-email") {
+  //   console.log(
+  //     `Ignoring email.opened webhook for email ${emailId} because it doesn't have a notification-email tag...`,
+  //   );
+  //   return;
+  // }
 
   const notificationEmail = await prisma.notificationEmail.findUnique({
     where: {
@@ -42,6 +46,13 @@ export async function emailOpened({
     return;
   }
 
+  if (notificationEmail.openedAt) {
+    console.log(
+      `Ignoring email.opened webhook for email ${emailId} because it already has an openedAt timestamp: ${notificationEmail.openedAt}`,
+    );
+    return;
+  }
+
   console.log(
     `Updating notification email read statuses for email ${emailId}. Subject: ${subject}`,
   );
@@ -50,7 +61,6 @@ export async function emailOpened({
     const notificationEmail = await tx.notificationEmail.update({
       where: {
         emailId,
-        openedAt: null,
       },
       data: {
         openedAt: new Date(),
@@ -61,7 +71,6 @@ export async function emailOpened({
       `Updated notification email ${notificationEmail.id} with Resend email id ${emailId} to opened at ${new Date()}`,
     );
 
-    // TODO: remove this once we make programId and partnerId required
     if (!notificationEmail.programId || !notificationEmail.partnerId) {
       return notificationEmail;
     }
