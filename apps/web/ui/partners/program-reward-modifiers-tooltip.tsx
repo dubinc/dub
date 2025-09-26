@@ -1,3 +1,5 @@
+"use client";
+
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
 import {
@@ -7,13 +9,14 @@ import {
   rewardConditionsArraySchema,
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
-import { InfoTooltip } from "@dub/ui";
+import { InfoTooltip, useScrollProgress } from "@dub/ui";
 import {
   COUNTRIES,
   capitalize,
   currencyFormatter,
   pluralize,
 } from "@dub/utils";
+import { useRef } from "react";
 import { z } from "zod";
 
 const REWARD_MODIFIER_LABELS = {
@@ -21,54 +24,75 @@ const REWARD_MODIFIER_LABELS = {
   productId: "Product",
 };
 
-export function ProgramRewardModifiersTooltip({
-  reward,
-}: {
+type ProgramRewardModifiersTooltipProps = {
   reward?: Pick<
     RewardProps,
     "amount" | "type" | "event" | "maxDuration" | "modifiers"
   > | null;
-}) {
-  if (!reward?.modifiers?.length) {
-    return null;
-  }
+};
 
-  const showBaseReward = reward.amount !== 0;
+export function ProgramRewardModifiersTooltip({
+  reward,
+}: ProgramRewardModifiersTooltipProps) {
+  if (!reward?.modifiers?.length) return null;
 
   return (
     <div className="inline-block align-text-top">
       <InfoTooltip
-        content={
-          <div className="max-w-sm space-y-2 p-3">
-            {showBaseReward && <RewardItem reward={reward} />}
-            {(
-              reward.modifiers as z.infer<typeof rewardConditionsArraySchema>
-            ).map((modifier, idx) => (
-              <div key={idx} className="space-y-2">
-                {(showBaseReward || idx > 0) && (
-                  <span className="flex w-full items-center justify-center rounded bg-neutral-100 px-2 py-1 text-xs font-semibold text-neutral-600">
-                    OR
-                  </span>
-                )}
+        content={<ProgramRewardModifiersTooltipContent reward={reward} />}
+      />
+    </div>
+  );
+}
 
-                <RewardItem
-                  reward={{
-                    event: reward.event,
-                    amount: modifier.amount,
-                    type:
-                      modifier.type === undefined ? reward.type : modifier.type, // fallback to primary
-                    maxDuration:
-                      modifier.maxDuration === undefined
-                        ? reward.maxDuration
-                        : modifier.maxDuration, // fallback to primary
-                  }}
-                  conditions={modifier.conditions}
-                  operator={modifier.operator}
-                />
-              </div>
-            ))}
-          </div>
-        }
+function ProgramRewardModifiersTooltipContent({
+  reward,
+}: ProgramRewardModifiersTooltipProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
+
+  if (!reward?.modifiers?.length) return null;
+
+  const showBaseReward = reward.amount !== 0;
+
+  return (
+    <div className="relative">
+      <div
+        ref={scrollRef}
+        onScroll={updateScrollProgress}
+        className="scrollbar-hide max-h-[calc(var(--radix-popper-available-height,100dvh)-12px)] max-w-sm space-y-2 overflow-y-auto p-3"
+      >
+        {showBaseReward && <RewardItem reward={reward} />}
+        {(reward.modifiers as z.infer<typeof rewardConditionsArraySchema>).map(
+          (modifier, idx) => (
+            <div key={idx} className="space-y-2">
+              {(showBaseReward || idx > 0) && (
+                <span className="flex w-full items-center justify-center rounded bg-neutral-100 px-2 py-1 text-xs font-semibold text-neutral-600">
+                  OR
+                </span>
+              )}
+
+              <RewardItem
+                reward={{
+                  event: reward.event,
+                  amount: modifier.amount,
+                  type:
+                    modifier.type === undefined ? reward.type : modifier.type, // fallback to primary
+                  maxDuration:
+                    modifier.maxDuration === undefined
+                      ? reward.maxDuration
+                      : modifier.maxDuration, // fallback to primary
+                }}
+                conditions={modifier.conditions}
+                operator={modifier.operator}
+              />
+            </div>
+          ),
+        )}
+      </div>
+      <div
+        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
+        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
       />
     </div>
   );
