@@ -29,6 +29,7 @@ export const banPartnerAction = authActionClient
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
+      includeProgram: true,
       includePartner: true,
       includeDiscountCodes: true,
     });
