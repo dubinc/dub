@@ -118,7 +118,7 @@ function TrialOfferWithQRPreview({
             </div>
           </div>
 
-          <div className="flex min-w-[50%] max-w-[50%] grow basis-[50%] flex-col gap-4 p-6">
+          <div className="flex grow flex-col gap-4 p-6 md:min-w-[50%] md:max-w-[50%] md:basis-[50%]">
             <div className="flex flex-col gap-2 text-center">
               <h2 className="text-neutral !mt-0 truncate text-2xl font-bold">
                 {firstQr
