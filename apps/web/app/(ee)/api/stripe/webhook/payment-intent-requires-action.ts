@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
-import { processDomainRenewalFailure } from "./process-domain-renewal-failure";
+import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
 
 export async function paymentIntentRequiresAction(event: Stripe.Event) {
   const { transfer_group: invoiceId } = event.data
