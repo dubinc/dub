@@ -80,6 +80,18 @@ export const banPartnerAction = authActionClient
           status: "canceled",
         },
       }),
+
+      prisma.bountySubmission.updateMany({
+        where: {
+          ...where,
+          status: {
+            not: "approved",
+          },
+        },
+        data: {
+          status: "rejected",
+        },
+      }),
     ]);
 
     waitUntil(
