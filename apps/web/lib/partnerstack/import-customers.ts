@@ -108,6 +108,20 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
         partnerIdToLinks.set(partnerId, [...existing, ...links]);
       }
 
+      const partnerKeysToLatestLeadAt = customers.reduce(
+        (acc, customer) => {
+          if (!customer.partnership_key) {
+            return acc;
+          }
+          const existing = acc[customer.partnership_key] ?? new Date(0);
+          if (new Date(customer.created_at) > existing) {
+            acc[customer.partnership_key] = new Date(customer.created_at);
+          }
+          return acc;
+        },
+        {} as Record<string, Date>,
+      );
+
       await Promise.allSettled(
         customers.map((customer) => {
           const partnerId = partnerKeysToId[customer.partnership_key];
@@ -117,6 +131,7 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
             workspace: program.workspace,
             links,
             customer,
+            latestLeadAt: partnerKeysToLatestLeadAt[customer.partnership_key],
             importId,
           });
         }),
@@ -144,11 +159,13 @@ async function createCustomer({
   workspace,
   links,
   customer,
+  latestLeadAt,
   importId,
 }: {
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url" | "lastLeadAt">[];
   customer: PartnerStackCustomer;
+  latestLeadAt: Date;
   importId: string;
 }) {
   const commonImportLogInputs = {
@@ -264,7 +281,7 @@ async function createCustomer({
           },
           lastLeadAt: updateLinkStatsForImporter({
             currentTimestamp: link.lastLeadAt,
-            newTimestamp: new Date(customer.created_at),
+            newTimestamp: latestLeadAt,
           }),
         },
       }),

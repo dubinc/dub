@@ -90,12 +90,28 @@ export async function importCustomers(payload: ToltImportPayload) {
       partnerEmailToLinks.set(partner.email, links);
     }
 
+    // get the latest lead at for each partner link
+    const partnerEmailToLatestLeadAt = customers.reduce(
+      (acc, customer) => {
+        if (!customer.partner.email) {
+          return acc;
+        }
+        const existing = acc[customer.partner.email] ?? new Date(0);
+        if (new Date(customer.created_at) > existing) {
+          acc[customer.partner.email] = new Date(customer.created_at);
+        }
+        return acc;
+      },
+      {} as Record<string, Date>,
+    );
+
     await Promise.allSettled(
       customers.map(({ partner, ...customer }) =>
         createReferral({
           workspace,
           customer,
           links: partnerEmailToLinks.get(partner.email) ?? [],
+          latestLeadAt: partnerEmailToLatestLeadAt[partner.email],
           importId,
         }),
       ),
@@ -119,11 +135,13 @@ async function createReferral({
   customer,
   workspace,
   links,
+  latestLeadAt,
   importId,
 }: {
   customer: Omit<ToltCustomer, "partner">;
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url" | "lastLeadAt">[];
+  latestLeadAt: Date;
   importId: string;
 }) {
   const commonImportLogInputs = {
@@ -236,7 +254,7 @@ async function createReferral({
           },
           lastLeadAt: updateLinkStatsForImporter({
             currentTimestamp: link.lastLeadAt,
-            newTimestamp: new Date(customer.created_at),
+            newTimestamp: latestLeadAt,
           }),
         },
       }),

@@ -100,6 +100,23 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
         {} as Record<string, (typeof programEnrollments)[number]["links"]>,
       );
 
+      const partnerEmailToLatestLeadAt = customers.reduce(
+        (acc, customer) => {
+          if (!customer.promoter_campaign.promoter.email) {
+            return acc;
+          }
+          const existing =
+            acc[customer.promoter_campaign.promoter.email] ?? new Date(0);
+          if (new Date(customer.created_at) > existing) {
+            acc[customer.promoter_campaign.promoter.email] = new Date(
+              customer.created_at,
+            );
+          }
+          return acc;
+        },
+        {} as Record<string, Date>,
+      );
+
       await Promise.allSettled(
         customers.map((customer) => {
           const links =
@@ -110,6 +127,10 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
             workspace,
             links,
             customer,
+            latestLeadAt:
+              partnerEmailToLatestLeadAt[
+                customer.promoter_campaign.promoter.email
+              ],
             importId,
           });
         }),
@@ -133,11 +154,13 @@ async function createCustomer({
   workspace,
   links,
   customer,
+  latestLeadAt,
   importId,
 }: {
   workspace: Pick<Project, "id" | "stripeConnectId">;
   links: Pick<Link, "id" | "key" | "domain" | "url" | "lastLeadAt">[];
   customer: FirstPromoterCustomer;
+  latestLeadAt: Date;
   importId: string;
 }) {
   const commonImportLogInputs = {
@@ -254,7 +277,7 @@ async function createCustomer({
           },
           lastLeadAt: updateLinkStatsForImporter({
             currentTimestamp: link.lastLeadAt,
-            newTimestamp: new Date(customer.created_at),
+            newTimestamp: latestLeadAt,
           }),
         },
       }),
