@@ -4,7 +4,7 @@ import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
-import { useDeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
+import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
 import { useAddDiscountCodeModal } from "@/ui/partners/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/partners/add-partner-link-modal";
 import {
@@ -19,7 +19,7 @@ import { Trash } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 export function ProgramPartnerLinksPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
@@ -167,6 +167,12 @@ const PartnerDiscountCodes = ({
 }) => {
   const { slug } = useWorkspace();
 
+  const [selectedDiscountCode, setSelectedDiscountCode] =
+    useState<DiscountCodeProps | null>(null);
+
+  const [showDeleteDiscountCodeModal, setShowDeleteDiscountCodeModal] =
+    useState(false);
+
   const { discountCodes, loading, error } = useDiscountCodes({
     partnerId: partner.id || null,
   });
@@ -223,7 +229,15 @@ const PartnerDiscountCodes = ({
         size: 25,
         maxSize: 25,
         cell: ({ row }) => (
-          <DiscountCodeDeleteButton discountCode={row.original} />
+          <Button
+            icon={<Trash className="size-3 text-neutral-600" />}
+            variant="outline"
+            className="h-8 whitespace-nowrap px-2"
+            onClick={() => {
+              setSelectedDiscountCode(row.original);
+              setShowDeleteDiscountCodeModal(true);
+            }}
+          />
         ),
       },
     ],
@@ -271,28 +285,16 @@ const PartnerDiscountCodes = ({
       <div className="mt-4">
         <Table {...table} />
       </div>
+
       <AddDiscountCodeModal />
+
+      {selectedDiscountCode && (
+        <DeleteDiscountCodeModal
+          showModal={showDeleteDiscountCodeModal}
+          setShowModal={setShowDeleteDiscountCodeModal}
+          discountCode={selectedDiscountCode}
+        />
+      )}
     </>
   );
 };
-
-function DiscountCodeDeleteButton({
-  discountCode,
-}: {
-  discountCode: DiscountCodeProps;
-}) {
-  const { setShowDeleteDiscountCodeModal, DeleteDiscountCodeModal } =
-    useDeleteDiscountCodeModal(discountCode);
-
-  return (
-    <>
-      <Button
-        icon={<Trash className="size-3 text-neutral-600" />}
-        variant="outline"
-        className="h-8 whitespace-nowrap px-2"
-        onClick={() => setShowDeleteDiscountCodeModal(true)}
-      />
-      <DeleteDiscountCodeModal />
-    </>
-  );
-}

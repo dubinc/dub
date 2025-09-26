@@ -3,7 +3,7 @@ import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import { DiscountCodeProps } from "@/lib/types";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Tag } from "@dub/ui/icons";
-import { FormEvent, useCallback, useMemo, useState } from "react";
+import { FormEvent } from "react";
 import { toast } from "sonner";
 
 interface DeleteDiscountCodeModalProps {
@@ -12,7 +12,7 @@ interface DeleteDiscountCodeModalProps {
   setShowModal: (showModal: boolean) => void;
 }
 
-const DeleteDiscountCodeModal = ({
+export const DeleteDiscountCodeModal = ({
   discountCode,
   showModal,
   setShowModal,
@@ -104,30 +104,3 @@ const DeleteDiscountCodeModal = ({
     </Modal>
   );
 };
-
-export function useDeleteDiscountCodeModal(discountCode: DiscountCodeProps) {
-  const [showDeleteDiscountCodeModal, setShowDeleteDiscountCodeModal] =
-    useState(false);
-
-  const DeleteDiscountCodeModalCallback = useCallback(() => {
-    return (
-      <DeleteDiscountCodeModal
-        showModal={showDeleteDiscountCodeModal}
-        setShowModal={setShowDeleteDiscountCodeModal}
-        discountCode={discountCode}
-      />
-    );
-  }, [
-    showDeleteDiscountCodeModal,
-    setShowDeleteDiscountCodeModal,
-    discountCode,
-  ]);
-
-  return useMemo(
-    () => ({
-      setShowDeleteDiscountCodeModal,
-      DeleteDiscountCodeModal: DeleteDiscountCodeModalCallback,
-    }),
-    [setShowDeleteDiscountCodeModal, DeleteDiscountCodeModalCallback],
-  );
-}
