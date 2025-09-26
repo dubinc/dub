@@ -2,7 +2,8 @@ import { prisma } from "@dub/prisma";
 import { getPlanFromPriceId } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendCancellationFeedback, updateWorkspacePlan } from "./utils";
+import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
+import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
 export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const subscriptionUpdated = event.data.object as Stripe.Subscription;
