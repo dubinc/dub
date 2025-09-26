@@ -33,6 +33,7 @@ import {
   Sliders,
   Tag,
   UserCheck,
+  UserPlus,
   Users,
   Users6,
   Webhook,
@@ -242,7 +243,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/partners`,
             isActive: (pathname: string, href: string) =>
               pathname.startsWith(href) &&
-              ["applications"].every(
+              ["applications", "directory"].every(
                 (p) => !pathname.startsWith(`${href}/${p}`),
               ),
           },
@@ -260,6 +261,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Groups",
             icon: Users6,
             href: `/${slug}/program/groups`,
+          },
+          {
+            name: "Partner Discovery",
+            icon: UserPlus,
+            href: `/${slug}/program/partners/directory`,
           },
         ],
       },
