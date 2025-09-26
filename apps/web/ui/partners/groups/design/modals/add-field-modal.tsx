@@ -90,6 +90,10 @@ function AddFieldModalInner({
     name: "applicationFormData",
   });
 
+  const hasWebsiteAndSocialsField = applicationFormData.fields.some((field) => field.type === "website-and-socials");
+
+  const fields = DESIGNER_FIELDS.filter((field) => field.id !== "website-and-socials" || !hasWebsiteAndSocialsField);
+
   return (
     <>
       <div className="p-4 pt-3">
@@ -97,7 +101,7 @@ function AddFieldModalInner({
           Insert field
         </h3>
         <div className="mt-4 grid grid-cols-2 gap-4">
-          {DESIGNER_FIELDS.map((field) => (
+          {fields.map((field) => (
             <Fragment key={field.id}>
               <field.modal
                 showModal={modalState === field.id}
