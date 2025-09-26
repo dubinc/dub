@@ -7,11 +7,13 @@ export function CountryCombobox({
   onChange,
   disabledTooltip,
   error,
+  className,
 }: {
   value: string;
   onChange: (value: string) => void;
   disabledTooltip?: string;
   error?: boolean;
+  className?: string;
 }) {
   const options = useMemo(
     () =>
@@ -61,6 +63,7 @@ export function CountryCombobox({
           !value && "text-neutral-400",
           disabledTooltip && "cursor-not-allowed",
           error && "border-red-500 ring-red-500 ring-1",
+          className
         ),
         disabledTooltip,
       }}

@@ -2,7 +2,7 @@ import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
+import { ProgramApplicationForm } from "@/ui/partners/groups/design/program-application-form";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyHeader } from "../header";
@@ -19,12 +19,12 @@ export default async function ApplicationPage({
     groupSlug: partnerGroupSlug,
   });
 
-  if (!program || !program.group) {
+  if (!program || !program.group || !program.group.applicationFormData || !program.group.applicationFormPublishedAt) {
     notFound();
   }
 
   const applicationFormData = programApplicationFormSchema.parse(
-    program.applicationFormData || {},
+    program.group.applicationFormData || program.applicationFormData || {},
   );
 
   return (

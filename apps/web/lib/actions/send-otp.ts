@@ -69,7 +69,7 @@ export const sendOtpAction = actionClient
       ) {
         // edge case: the user already has a partner account on Dub with this email address,
         // or they have an existing application for a program, we can allow them to continue
-        const [isPartnerAccount, hasExistingApplicaitons] = await Promise.all([
+        const [isPartnerAccount, hasExistingApplications] = await Promise.all([
           prisma.partner.findUnique({
             where: {
               email,
@@ -81,7 +81,7 @@ export const sendOtpAction = actionClient
             },
           }),
         ]);
-        if (!isPartnerAccount && !hasExistingApplicaitons) {
+        if (!isPartnerAccount && !hasExistingApplications) {
           throw new Error(
             "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
           );

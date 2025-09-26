@@ -4,7 +4,6 @@ import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   ArrowUpRight2,
@@ -17,7 +16,7 @@ import {
   Sliders,
   Users,
 } from "@dub/ui";
-import { cn, PARTNERS_DOMAIN } from "@dub/utils";
+import { cn } from "@dub/utils";
 import Link from "next/link";
 import { redirect, useParams, usePathname } from "next/navigation";
 
@@ -86,24 +85,20 @@ export function GroupHeaderTabs() {
         `/${slug}/program/groups/${group.slug}/links`,
     },
     {
+      id: "page-builder",
+      label: "Page builder",
+      icon: Post,
+      external: false,
+      getHref: (group: GroupProps) =>
+        `/${slug}/program/groups/${group.slug}/page-builder`,
+    },
+    {
       id: "partners",
       label: "Partners",
       icon: Users,
       external: true,
       getHref: (group: GroupProps) =>
         `/${slug}/program/partners?groupId=${group.id}`,
-    },
-    {
-      id: "landing",
-      label: "Landing page",
-      icon: Post,
-      external: true,
-      getHref: (group: GroupProps) =>
-        `${PARTNERS_DOMAIN}/${program?.slug}${
-          group.slug === DEFAULT_PARTNER_GROUP.slug
-            ? ""
-            : `/${group.slug}/apply`
-        }`,
     },
     {
       id: "settings",
