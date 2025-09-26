@@ -29,6 +29,7 @@ model PartnerGroup {
   partners                 ProgramEnrollment[]
   applications             ProgramApplication[]
   bounties                 BountyGroup[]
+  emails                   ProgramEmailGroup[]
   utmTemplate              UtmTemplate?              @relation(fields: [utmTemplateId], references: [id])
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
 
@@ -48,6 +49,6 @@ model PartnerGroupDefaultLink {
   partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
   links        Link[]
 
-  @@index(programId)
   @@unique([groupId, url])
+  @@index(programId)
 }

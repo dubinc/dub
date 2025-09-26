@@ -11,19 +11,32 @@ enum ProgramEmailStatus {
 }
 
 model ProgramEmail {
-  id          String             @id @default(cuid())
-  programId   String
-  type        ProgramEmailType
-  status      ProgramEmailStatus @default(draft)
-  name        String
-  subject     String
-  body        String             @db.Text
-  deliverAt   DateTime?
+  id        String             @id @default(cuid())
+  programId String
+  type      ProgramEmailType
+  status    ProgramEmailStatus @default(draft)
+  name      String
+  subject   String
+  body      String             @db.Text
+  deliverAt DateTime?
   // deliverWhen Json?              @db.Json
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
 
-  program Program @relation(fields: [programId], references: [id])
+  program Program             @relation(fields: [programId], references: [id])
+  groups  ProgramEmailGroup[]
 
   @@index(programId)
+}
+
+model ProgramEmailGroup {
+  id             String @id @default(cuid())
+  programEmailId String
+  groupId        String
+
+  programEmail ProgramEmail @relation(fields: [programEmailId], references: [id], onDelete: Cascade)
+  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([programEmailId, groupId])
+  @@index(groupId)
 }
