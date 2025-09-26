@@ -8,17 +8,17 @@ model NotificationEmail {
   emailId   String                @unique // Resend email id
   type      NotificationEmailType
   messageId String?
-  bountyId String?
+  bountyId  String?
 
-  programId String?
-  partnerId String?
+  programId       String?
+  partnerId       String?
   recipientUserId String?
-  
+
   openedAt  DateTime?
-  createdAt DateTime              @default(now())
+  createdAt DateTime  @default(now())
 
   message Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  bounty Bounty? @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  bounty  Bounty?  @relation(fields: [bountyId], references: [id], onDelete: Cascade)
 
   @@index(type)
   @@index(messageId)
