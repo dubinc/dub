@@ -23,24 +23,24 @@ import { toast } from "sonner";
 import { KeyedMutator } from "swr";
 import { z } from "zod";
 import {
-  BrandingContextProvider,
-  useBrandingContext,
-} from "./branding-context-provider";
-import { BrandingSettingsForm } from "./branding-settings-form";
+  PageBuilderContextProvider,
+  usePageBuilderContext,
+} from "./page-builder-context-provider";
+import { PageBuilderSettingsForm } from "./page-builder-settings-form";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
 import { ApplicationPreview } from "./previews/application-preview";
 import useGroup from "@/lib/swr/use-group";
 import { updateGroupApplicationFormAction } from "@/lib/actions/partners/update-group-application-form";
 
-export type ApplicationFormData = {
+export type PageBuilderFormData = {
   applicationFormData: z.infer<typeof programApplicationFormSchema>;
 } & Pick<ProgramProps, "logo" | "wordmark" | "brandColor">;
 
-export function useApplicationFormContext() {
-  return useFormContext<ApplicationFormData>();
+export function usePageBuilderFormContext() {
+  return useFormContext<PageBuilderFormData>();
 }
 
-export function ApplicationForm() {
+export function PageBuilderForm() {
   const { defaultProgramId } = useWorkspace();
 
   const {
@@ -57,7 +57,7 @@ export function ApplicationForm() {
     },
   );
 
-  const [draft, setDraft] = useLocalStorage<ApplicationFormData | null>(
+  const [draft, setDraft] = useLocalStorage<PageBuilderFormData | null>(
     `application-form-${defaultProgramId}`,
     null,
   );
@@ -70,14 +70,14 @@ export function ApplicationForm() {
     );
 
   return (
-    <BrandingContextProvider>
-      <ApplicationFormInner
+    <PageBuilderContextProvider>
+      <PageBuilderFormInner
         group={group}
         mutateGroup={mutateGroup}
         draft={draft}
         setDraft={setDraft}
       />
-    </BrandingContextProvider>
+    </PageBuilderContextProvider>
   );
 }
 
@@ -90,7 +90,7 @@ const PREVIEW_TABS = [
   },
 ];
 
-function ApplicationFormInner({
+function PageBuilderFormInner({
   group,
   mutateGroup,
   draft,
@@ -98,8 +98,8 @@ function ApplicationFormInner({
 }: {
   group: GroupWithProgramProps;
   mutateGroup: KeyedMutator<GroupWithProgramProps>;
-  draft: ApplicationFormData | null;
-  setDraft: (draft: ApplicationFormData | null) => void;
+  draft: PageBuilderFormData | null;
+  setDraft: (draft: PageBuilderFormData | null) => void;
 }) {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
@@ -109,7 +109,7 @@ function ApplicationFormInner({
 
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
 
-  const form = useForm<ApplicationFormData>({
+  const form = useForm<PageBuilderFormData>({
     defaultValues: {
       logo: group.program?.logo ?? null,
       wordmark: group.program?.wordmark ?? null,
@@ -160,7 +160,7 @@ function ApplicationFormInner({
 
   const [isTabPopoverOpen, setIsTabPopoverOpen] = useState(false);
 
-  const { isGeneratingLander } = useBrandingContext();
+  const { isGeneratingLander } = usePageBuilderContext();
 
   // Disable publish button when:
   // - the lander is being generated with AI
@@ -278,7 +278,7 @@ function ApplicationFormInner({
                 !isSidePanelOpen && "opacity-0",
               )}
             >
-              <BrandingSettingsForm />
+              <PageBuilderSettingsForm />
             </div>
           </div>
           <div className="relative h-full overflow-hidden px-2 pt-2 sm:px-4 sm:pt-4">
@@ -307,14 +307,14 @@ function Drafts({
   setDraft,
 }: {
   enabled: boolean;
-  draft: ApplicationFormData | null;
-  setDraft: (draft: ApplicationFormData | null) => void;
+  draft: PageBuilderFormData | null;
+  setDraft: (draft: PageBuilderFormData | null) => void;
 }) {
   const {
     setValue,
     getValues,
     formState: { isDirty },
-  } = useApplicationFormContext();
+  } = usePageBuilderFormContext();
 
   // Load draft
   useEffect(() => {

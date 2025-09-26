@@ -5,7 +5,7 @@ import { cn } from "@dub/utils";
 import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { z } from "zod";
-import { useApplicationFormContext } from "../branding-form";
+import { usePageBuilderFormContext } from "../page-builder-form";
 import { SelectFieldModal, SelectFieldThumbnail } from "./select-field-modal";
 import { LongTextFieldModal, LongTextFieldThumbnail } from "./long-text-field-modal";
 import { programApplicationFormFieldSchema } from "@/lib/zod/schemas/program-application-form";
@@ -84,7 +84,7 @@ function AddFieldModalInner({
     null | z.infer<typeof programApplicationFormFieldSchema>["type"]
   >(null);
 
-  const { control, setValue } = useApplicationFormContext();
+  const { control, setValue } = usePageBuilderFormContext();
   const applicationFormData = useWatch({
     control,
     name: "applicationFormData",

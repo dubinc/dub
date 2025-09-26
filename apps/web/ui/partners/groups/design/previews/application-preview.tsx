@@ -29,12 +29,12 @@ import {
   useState,
 } from "react";
 import { useWatch } from "react-hook-form";
-import { useApplicationFormContext } from "../branding-form";
+import { usePageBuilderFormContext } from "../page-builder-form";
 import { AddFieldModal, DESIGNER_FIELDS } from "../modals/add-field-modal";
 import RequiredFieldsPreview from "../required-fields-preview";
 import { GroupWithProgramProps, ProgramApplicationFormData } from "@/lib/types";
 import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
-import { LanderRewards } from "../lander-rewards";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 
 export function ApplicationPreview({
   group,
@@ -52,7 +52,7 @@ export function ApplicationPreview({
   const { discounts } = useDiscounts();
   const program = group.program;
 
-  const { setValue, getValues } = useApplicationFormContext();
+  const { setValue, getValues } = usePageBuilderFormContext();
   const { applicationFormData, brandColor, logo, wordmark } = {
     ...useWatch(),
     ...getValues(),
