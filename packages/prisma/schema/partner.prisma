@@ -22,51 +22,6 @@ enum MonthlyTraffic {
   OneHundredThousandPlus
 }
 
-enum IndustryInterest {
-  SaaS
-  DevTool
-  AI
-  Creative_And_Design
-  Productivity_Software
-  Marketing
-  Gaming
-  Finance
-  Sales
-  Ecommerce
-  Customer_Service_And_Support
-  Content_Management
-  Human_Resources
-  Security
-  Analytics_And_Data
-  Social_Media
-  Consumer_Tech
-  Education_And_Learning
-  Health_And_Fitness
-  Food_And_Beverage
-  Travel_And_Lifestyle
-  Entertainment_And_Media
-  Sports
-  Science_And_Engineering
-}
-
-enum PreferredEarningStructure {
-  Revenue_Share
-  Per_Lead
-  Per_Sale
-  Per_Click
-  One_Time_Payment
-}
-
-enum SalesChannel {
-  Blogs
-  Coupons
-  Direct_Reselling
-  Newsletters
-  Social_Media
-  Events
-  Company_Referrals
-}
-
 model Partner {
   id                           String             @id @default(cuid())
   name                         String
@@ -104,19 +59,20 @@ model Partner {
   invoiceSettings              Json?
   monthlyTraffic               MonthlyTraffic?
 
-  programs                   ProgramEnrollment[]
-  users                      PartnerUser[]
-  invites                    PartnerInvite[]
-  payouts                    Payout[]
-  commissions                Commission[]
-  bountySubmissions          BountySubmission[]
-  messages                   Message[]
-  sentMessages               Message[]                          @relation("SenderPartner")
-  comments                   PartnerComment[]
+  programs          ProgramEnrollment[]
+  users             PartnerUser[]
+  invites           PartnerInvite[]
+  payouts           Payout[]
+  commissions       Commission[]
+  bountySubmissions BountySubmission[]
+  messages          Message[]
+  sentMessages      Message[]           @relation("SenderPartner")
+  comments          PartnerComment[]
+  discountCodes     DiscountCode[]
+
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
-  discountCodes              DiscountCode[]
 }
 
 model PartnerInvite {
@@ -149,15 +105,31 @@ model PartnerUser {
   @@index([partnerId])
 }
 
-model PartnerNotificationPreferences {
-  id            String @id @default(cuid())
-  partnerUserId String @unique
-
-  commissionCreated     Boolean @default(true)
-  applicationApproved   Boolean @default(true)
-  newMessageFromProgram Boolean @default(true)
-
-  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+enum IndustryInterest {
+  SaaS
+  DevTool
+  AI
+  Creative_And_Design
+  Productivity_Software
+  Marketing
+  Gaming
+  Finance
+  Sales
+  Ecommerce
+  Customer_Service_And_Support
+  Content_Management
+  Human_Resources
+  Security
+  Analytics_And_Data
+  Social_Media
+  Consumer_Tech
+  Education_And_Learning
+  Health_And_Fitness
+  Food_And_Beverage
+  Travel_And_Lifestyle
+  Entertainment_And_Media
+  Sports
+  Science_And_Engineering
 }
 
 model PartnerIndustryInterest {
@@ -167,6 +139,15 @@ model PartnerIndustryInterest {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, industryInterest])
+  @@index(partnerId)
+}
+
+enum PreferredEarningStructure {
+  Revenue_Share
+  Per_Lead
+  Per_Sale
+  Per_Click
+  One_Time_Payment
 }
 
 model PartnerPreferredEarningStructure {
@@ -176,6 +157,17 @@ model PartnerPreferredEarningStructure {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, preferredEarningStructure])
+  @@index(partnerId)
+}
+
+enum SalesChannel {
+  Blogs
+  Coupons
+  Direct_Reselling
+  Newsletters
+  Social_Media
+  Events
+  Company_Referrals
 }
 
 model PartnerSalesChannel {
@@ -185,4 +177,5 @@ model PartnerSalesChannel {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, salesChannel])
+  @@index(partnerId)
 }

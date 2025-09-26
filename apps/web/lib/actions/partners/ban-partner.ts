@@ -83,6 +83,18 @@ export const banPartnerAction = authActionClient
         },
       }),
 
+      prisma.bountySubmission.updateMany({
+        where: {
+          ...where,
+          status: {
+            not: "approved",
+          },
+        },
+        data: {
+          status: "rejected",
+        },
+      }),
+
       prisma.discountCode.updateMany({
         where,
         data: {
