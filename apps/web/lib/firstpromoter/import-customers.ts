@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -84,6 +85,7 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
               key: true,
               domain: true,
               url: true,
+              lastLeadAt: true,
             },
           },
         },
@@ -134,7 +136,7 @@ async function createCustomer({
   importId,
 }: {
   workspace: Pick<Project, "id" | "stripeConnectId">;
-  links: Pick<Link, "id" | "key" | "domain" | "url">[];
+  links: Pick<Link, "id" | "key" | "domain" | "url" | "lastLeadAt">[];
   customer: FirstPromoterCustomer;
   importId: string;
 }) {
@@ -250,6 +252,10 @@ async function createCustomer({
           leads: {
             increment: 1,
           },
+          lastLeadAt: updateLinkStatsForImporter({
+            currentTimestamp: link.lastLeadAt,
+            newTimestamp: new Date(customer.created_at),
+          }),
         },
       }),
     ]);

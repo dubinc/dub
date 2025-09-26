@@ -293,7 +293,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
-    // update link sales count
+    // update link stats
     link &&
       prisma.link.update({
         where: {
@@ -305,11 +305,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             leads: {
               increment: 1,
             },
+            lastLeadAt: new Date(),
           }),
           ...(firstConversionFlag && {
             conversions: {
               increment: 1,
             },
+            lastConversionAt: new Date(),
           }),
           sales: {
             increment: 1,

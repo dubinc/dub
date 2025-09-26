@@ -2,6 +2,7 @@
 
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
+import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-for-importer";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -447,9 +448,17 @@ export const createManualCommissionAction = authActionClient
                 leads: {
                   increment: 1,
                 },
+                lastLeadAt: updateLinkStatsForImporter({
+                  currentTimestamp: link.lastLeadAt,
+                  newTimestamp: new Date(),
+                }),
                 conversions: {
                   increment: 1,
                 },
+                lastConversionAt: updateLinkStatsForImporter({
+                  currentTimestamp: link.lastConversionAt,
+                  newTimestamp: new Date(),
+                }),
               }),
               sales: {
                 increment: saleAmount ? 1 : totalSales,
