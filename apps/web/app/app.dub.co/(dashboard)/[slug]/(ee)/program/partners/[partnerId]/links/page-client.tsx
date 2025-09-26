@@ -11,18 +11,15 @@ import {
   Button,
   CopyButton,
   LoadingSpinner,
-  MenuItem,
-  Popover,
   Table,
   Tag,
   useTable,
 } from "@dub/ui";
-import { Dots, Trash } from "@dub/ui/icons";
+import { Trash } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
-import { Command } from "cmdk";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 
 export function ProgramPartnerLinksPageClient() {
   const { partnerId } = useParams() as { partnerId: string };
@@ -183,29 +180,8 @@ const PartnerDiscountCodes = ({
     data: discountCodes || [],
     columns: [
       {
-        id: "shortLink",
-        header: "Link",
-        cell: ({ row }) => {
-          const link = partner.links?.find((l) => l.id === row.original.linkId);
-          return link ? (
-            <div className="flex items-center gap-3">
-              <Link
-                href={`/${slug}/links/${link.domain}/${link.key}`}
-                target="_blank"
-                className="cursor-alias font-medium text-black decoration-dotted hover:underline"
-              >
-                {getPrettyUrl(link.shortLink)}
-              </Link>
-              <CopyButton value={link.shortLink} className="p-0.5" />
-            </div>
-          ) : (
-            <span className="text-neutral-500">Link not found</span>
-          );
-        },
-      },
-      {
         id: "code",
-        header: "Discount code",
+        header: "Code",
         cell: ({ row }) => (
           <div className="group/discountcode relative flex h-5 w-fit items-center gap-1 rounded-lg bg-green-100 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:bg-green-200">
             <Tag className="size-3 text-green-700" strokeWidth={1.5} />
@@ -223,13 +199,31 @@ const PartnerDiscountCodes = ({
         ),
       },
       {
+        id: "shortLink",
+        header: "Link",
+        cell: ({ row }) => {
+          const link = partner.links?.find((l) => l.id === row.original.linkId);
+          return link ? (
+            <Link
+              href={`/${slug}/links/${link.domain}/${link.key}`}
+              target="_blank"
+              className="cursor-alias font-medium text-black decoration-dotted hover:underline"
+            >
+              {getPrettyUrl(link.shortLink)}
+            </Link>
+          ) : (
+            <span className="text-neutral-500">Link not found</span>
+          );
+        },
+      },
+      {
         id: "menu",
         enableHiding: false,
         minSize: 25,
         size: 25,
         maxSize: 25,
         cell: ({ row }) => (
-          <DiscountCodeRowMenuButton discountCode={row.original} />
+          <DiscountCodeDeleteButton discountCode={row.original} />
         ),
       },
     ],
@@ -282,47 +276,22 @@ const PartnerDiscountCodes = ({
   );
 };
 
-function DiscountCodeRowMenuButton({
+function DiscountCodeDeleteButton({
   discountCode,
 }: {
   discountCode: DiscountCodeProps;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
-
   const { setShowDeleteDiscountCodeModal, DeleteDiscountCodeModal } =
     useDeleteDiscountCodeModal(discountCode);
 
   return (
     <>
-      <Popover
-        openPopover={isOpen}
-        setOpenPopover={setIsOpen}
-        content={
-          <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
-              <MenuItem
-                as={Command.Item}
-                icon={Trash}
-                variant="danger"
-                onSelect={() => {
-                  setShowDeleteDiscountCodeModal(true);
-                  setIsOpen(false);
-                }}
-              >
-                Delete code
-              </MenuItem>
-            </Command.List>
-          </Command>
-        }
-        align="end"
-      >
-        <Button
-          type="button"
-          className="h-8 whitespace-nowrap px-2"
-          variant="outline"
-          icon={<Dots className="h-4 w-4 shrink-0" />}
-        />
-      </Popover>
+      <Button
+        icon={<Trash className="size-3 text-neutral-600" />}
+        variant="outline"
+        className="h-8 whitespace-nowrap px-2"
+        onClick={() => setShowDeleteDiscountCodeModal(true)}
+      />
       <DeleteDiscountCodeModal />
     </>
   );
