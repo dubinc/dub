@@ -20,7 +20,7 @@ import GoogleProvider from "next-auth/providers/google";
 import { headers } from "next/headers";
 import { createId } from "../api/create-id";
 import { qstash } from "../cron";
-import { isGenericEmail } from "../emails";
+import { isGenericEmail } from "../is-generic-email";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
 import {
@@ -343,7 +343,7 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
 
-      // SSO enforcement check
+      // If the user is not using SAML, we need to check if SAML is enforced for the email domain
       if (
         account?.provider !== "saml" &&
         account?.provider !== "saml-idp" &&
@@ -409,19 +409,40 @@ export const authOptions: NextAuthOptions = {
         if (!samlProfile?.requested?.tenant) {
           return false;
         }
+
         const workspace = await prisma.project.findUnique({
           where: {
             id: samlProfile.requested.tenant,
           },
+          select: {
+            id: true,
+            ssoEmailDomain: true,
+          },
         });
+
         if (workspace) {
+          const { ssoEmailDomain } = workspace;
+
+          if (!ssoEmailDomain) {
+            return false;
+          }
+
+          const emailDomain = user.email.split("@")[1];
+
+          if (
+            emailDomain.toLocaleLowerCase() !==
+            ssoEmailDomain.toLocaleLowerCase()
+          ) {
+            return false;
+          }
+
           await Promise.allSettled([
             // add user to workspace
             prisma.projectUsers.upsert({
               where: {
                 userId_projectId: {
-                  projectId: workspace.id,
                   userId: user.id,
+                  projectId: workspace.id,
                 },
               },
               update: {},
