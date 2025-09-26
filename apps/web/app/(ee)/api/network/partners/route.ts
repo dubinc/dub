@@ -23,6 +23,8 @@ export const GET = withWorkspace(
         salesChannels.salesChannels
       FROM 
         Partner p
+      LEFT JOIN ProgramEnrollment pe ON pe.partnerId = p.id AND pe.programId = ${programId}
+      -- Profile field lists
       LEFT JOIN (
         SELECT partnerId, group_concat(industryInterest) AS industryInterests
         FROM PartnerIndustryInterest
@@ -40,6 +42,7 @@ export const GET = withWorkspace(
       ) salesChannels ON salesChannels.partnerId = p.id
       WHERE 
         p.discoverableAt IS NOT NULL
+        AND pe.id IS NULL
       
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
