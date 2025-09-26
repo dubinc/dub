@@ -15,6 +15,7 @@ export async function getPartnerForProgram({
       pe.programId,
       pe.partnerId,
       pe.groupId,
+      pe.discountId,
       pe.tenantId,
       pe.applicationId,
       pe.createdAt as enrollmentCreatedAt,

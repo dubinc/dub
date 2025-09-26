@@ -15,6 +15,8 @@ import {
   LinkLogo,
   LoadingSpinner,
   PenWriting,
+  Tag,
+  useCopyToClipboard,
   useInViewport,
   UserCheck,
   useRouterStuff,
@@ -109,6 +111,8 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
     link,
   });
 
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
   return (
     <CardList.Card
       innerClassName="px-0 py-0 hover:cursor-pointer group"
@@ -132,24 +136,47 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
             <div className="flex min-w-0 flex-col">
               <div className="flex flex-col">
-                <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
-                  <a
-                    href={partnerLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
-                  >
-                    {getPrettyUrl(partnerLink)}
-                  </a>
-                  <span className="flex items-center">
-                    <CopyButton
-                      value={partnerLink}
-                      variant="neutral"
-                      className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
-                    />
-                  </span>
+                <div className="flex items-center gap-1">
+                  <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
+                    <a
+                      href={partnerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
+                    >
+                      {getPrettyUrl(partnerLink)}
+                    </a>
+                    <span className="flex items-center">
+                      <CopyButton
+                        value={partnerLink}
+                        variant="neutral"
+                        className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
+                      />
+                    </span>
+                  </div>
+
                   {link.comments && <CommentsBadge comments={link.comments} />}
+
+                  {link.discountCode && (
+                    <div className="group/discountcode relative flex h-5 w-fit items-center gap-1 rounded-lg bg-green-100 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:bg-green-200">
+                      <Tag
+                        className="size-3 text-green-700"
+                        strokeWidth={1.5}
+                      />
+                      <div className="text-xs font-medium text-green-700 transition-colors">
+                        {link.discountCode}
+                      </div>
+                      <span className="flex items-center">
+                        <CopyButton
+                          value={link.discountCode}
+                          variant="neutral"
+                          className="p-0.5"
+                        />
+                      </span>
+                    </div>
+                  )}
                 </div>
+
                 {/* The max width implementation here is a bit hacky, we should improve in the future */}
                 <div className="group/desturl flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100 sm:w-fit sm:max-w-[400px]">
                   <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />

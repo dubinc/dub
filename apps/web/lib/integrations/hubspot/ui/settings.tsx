@@ -15,7 +15,8 @@ export const HubSpotSettings = ({
 }: InstalledIntegrationInfoProps) => {
   const { id: workspaceId } = useWorkspace();
   const [closedWonDealStageId, setClosedWonDealStageId] = useState(
-    (settings as any)?.closedWonDealStageId || HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
+    (settings as any)?.closedWonDealStageId ||
+      HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
   );
 
   const { executeAsync, isPending } = useAction(updateHubSpotSettingsAction, {

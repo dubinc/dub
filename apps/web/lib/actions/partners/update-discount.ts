@@ -6,7 +6,7 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -14,8 +14,7 @@ export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { discountId, amount, type, maxDuration, couponId, couponTestId } =
-      parsedInput;
+    const { discountId, couponTestId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -29,57 +28,45 @@ export const updateDiscountAction = authActionClient
         id: discountId,
       },
       data: {
-        amount,
-        type,
-        maxDuration,
-        couponId,
-        couponTestId,
+        couponTestId: couponTestId || null,
       },
       include: {
-        partnerGroup: true,
+        partnerGroup: {
+          select: {
+            id: true,
+          },
+        },
       },
     });
 
+    const shouldExpireCache =
+      discount.couponTestId !== updatedDiscount.couponTestId;
+
     waitUntil(
-      (async () => {
-        const shouldExpireCache = !deepEqual(
-          {
-            amount: discount.amount,
-            type: discount.type,
-            maxDuration: discount.maxDuration,
-          },
-          {
-            amount: updatedDiscount.amount,
-            type: updatedDiscount.type,
-            maxDuration: updatedDiscount.maxDuration,
-          },
-        );
-
-        await Promise.allSettled([
-          shouldExpireCache
-            ? qstash.publishJSON({
-                url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-                body: {
-                  groupId: partnerGroup?.id,
-                },
-              })
-            : Promise.resolve(),
-
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "discount.updated",
-            description: `Discount ${discount.id} updated`,
-            actor: user,
-            targets: [
-              {
-                type: "discount",
-                id: discount.id,
-                metadata: updatedDiscount,
-              },
-            ],
+      Promise.allSettled([
+        shouldExpireCache &&
+          partnerGroup &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+            body: {
+              groupId: partnerGroup.id,
+            },
           }),
-        ]);
-      })(),
+
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "discount.updated",
+          description: `Discount ${discount.id} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "discount",
+              id: discount.id,
+              metadata: updatedDiscount,
+            },
+          ],
+        }),
+      ]),
     );
   });
