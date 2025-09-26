@@ -146,7 +146,8 @@ function ScrollContainer({ children }: PropsWithChildren) {
       <div
         ref={scrollRef}
         onScroll={updateScrollProgress}
-        className="relative max-h-[min(260px,calc(100vh-300px))] space-y-0.5 overflow-auto rounded-lg bg-white"
+        // clip-path is used to fix a weird bug in WebKit where scrolled-out-of-view content is still interactible
+        className="relative max-h-[min(260px,calc(100vh-300px))] space-y-0.5 overflow-auto rounded-lg bg-white [clip-path:inset(0)]"
       >
         {children}
       </div>
