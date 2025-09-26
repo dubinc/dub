@@ -14,6 +14,7 @@ import {
   Tooltip,
   UserPlus,
   useResizeObserver,
+  useRouterStuff,
 } from "@dub/ui";
 import type { Icon } from "@dub/ui/icons";
 import { COUNTRIES, OG_AVATAR_URL, cn, fetcher, formatDate } from "@dub/utils";
@@ -23,18 +24,69 @@ import useSWR from "swr";
 
 export function ProgramPartnersDirectoryPageClient() {
   const { id: workspaceId } = useWorkspace();
+  const { searchParams, queryParams } = useRouterStuff();
+
+  const tabs = [
+    {
+      label: "Discover",
+      id: "discover",
+    },
+    {
+      label: "Invited",
+      id: "invited",
+    },
+    {
+      label: "Recruited",
+      id: "recruited",
+    },
+  ];
+
+  const currentTabId =
+    tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
 
   const { data: partners, error } = useSWR<DiscoverablePartnerProps[]>(
     workspaceId &&
       `/api/network/partners?${new URLSearchParams({
         workspaceId,
         page: "1",
+        ...(currentTabId !== "discover" && { status: currentTabId }),
       })}`,
     fetcher,
   );
 
   return (
     <div>
+      <div className="mb-6 grid grid-cols-3 gap-2">
+        {tabs.map((tab) => {
+          const isActive = currentTabId === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              className={cn(
+                "border-border-subtle flex flex-col gap-1 rounded-lg border p-4 text-left transition-colors duration-100",
+                isActive
+                  ? "border-black ring-1 ring-black"
+                  : "hover:bg-bg-muted",
+              )}
+              onClick={() => {
+                queryParams({
+                  set: { tab: tab.id },
+                });
+              }}
+            >
+              <span className="text-content-default text-xs font-semibold">
+                {tab.label}
+              </span>
+              <span className="text-content-emphasis text-base font-semibold">
+                N,NNN
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
       {error ? (
         <div className="text-content-subtle py-12 text-sm">
           Failed to load partners
