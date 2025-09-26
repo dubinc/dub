@@ -323,7 +323,7 @@ const _trackLead = async ({
         // Record the lead event for the customer
         recordLead(leadEventData),
 
-        // Update link leads count
+        // Update link leads count + lastLeadAt date
         prisma.link.update({
           where: {
             id: leadEventData.link_id,
@@ -332,6 +332,7 @@ const _trackLead = async ({
             leads: {
               increment: 1,
             },
+            lastLeadAt: new Date(),
           },
           include: includeTags,
         }),
@@ -464,6 +465,7 @@ const _trackSale = async ({
               conversions: {
                 increment: 1,
               },
+              lastConversionAt: new Date(),
             }),
             sales: {
               increment: 1,

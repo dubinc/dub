@@ -67,7 +67,7 @@ export async function createShopifyLead({
     // record lead
     recordLead(leadData),
 
-    // update link leads count
+    // update link leads count + lastLeadAt date
     prisma.link.update({
       where: {
         id: linkId,
@@ -76,6 +76,7 @@ export async function createShopifyLead({
         leads: {
           increment: 1,
         },
+        lastLeadAt: new Date(),
       },
       include: includeTags,
     }),

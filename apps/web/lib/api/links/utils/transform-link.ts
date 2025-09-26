@@ -28,8 +28,17 @@ export const transformLink = (
     link = decodeLinkIfCaseSensitive(link);
   }
 
-  // remove webhooks array, dashboard from link
-  const { webhooks, dashboard, partnerGroupDefaultLinkId, ...rest } = link;
+  const {
+    // remove webhooks array, dashboard, partnerGroupDefaultLinkId
+    webhooks,
+    dashboard,
+    partnerGroupDefaultLinkId,
+    // hide undocumented fields from the API response for now
+    disabledAt,
+    lastLeadAt,
+    lastConversionAt,
+    ...rest
+  } = link;
 
   return {
     ...rest,

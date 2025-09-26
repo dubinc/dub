@@ -155,7 +155,7 @@ export async function invoicePaid(event: Stripe.Event) {
   const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
-    // update link sales count
+    // update link stats
     prisma.link.update({
       where: {
         id: linkId,
@@ -165,6 +165,7 @@ export async function invoicePaid(event: Stripe.Event) {
           conversions: {
             increment: 1,
           },
+          lastConversionAt: new Date(),
         }),
         sales: {
           increment: 1,
