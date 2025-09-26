@@ -59,13 +59,11 @@ export const createDiscountAction = authActionClient
           couponId = stripeCoupon.id;
         }
       } catch (error) {
-        if (error.code === "more_permissions_required_for_application") {
-          throw new Error(
-            "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe app permissions in the dashboard or reach out to our support team for help.",
-          );
-        }
-
-        throw new Error(error.message);
+        throw new Error(
+          error.code === "more_permissions_required_for_application"
+            ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe app permissions in the dashboard or reach out to our support team for help."
+            : error.message,
+        );
       }
     }
 
