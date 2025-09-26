@@ -2,6 +2,7 @@
 
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
+import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-for-importer";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -133,8 +134,12 @@ export const createManualCommissionAction = authActionClient
     }
 
     const tbEventsToRecord: Promise<any>[] = []; // a list of promises of events to record in Tinybird
-    const commissionsToTransferEventIds: string[] = []; // eventIds for the commissions to transfer to the new customer-partner pair – we need to nullify them later
+    const commissionsToTransferEventIds: string[] = []; // eventIds for the commissions to transfer to the new customer-partner pair – we need to nullify them later
     const commissionsToCreate: CreatePartnerCommissionProps[] = [];
+
+    // Track event timestamps for updating link stats
+    let leadEventTimestamp: Date | null = null;
+    let saleEventTimestamp: Date | null = null;
 
     // If we're using existing events, we need to duplicate them under the new customer.id
     if (useExistingEvents) {
@@ -222,6 +227,8 @@ export const createManualCommissionAction = authActionClient
               customer: { country: customer.country },
             },
           });
+          // Track the lead event timestamp for link stats update
+          leadEventTimestamp = new Date(leadEventData.timestamp + "Z");
         }
       }
 
@@ -278,6 +285,13 @@ export const createManualCommissionAction = authActionClient
               },
             })),
           );
+          // Track the latest sale event timestamp for link stats update
+          const latestSaleTimestamp = Math.max(
+            ...saleEventsData.map((data) =>
+              new Date(data.timestamp + "Z").getTime(),
+            ),
+          );
+          saleEventTimestamp = new Date(latestSaleTimestamp);
         }
         totalSales = existingSaleEvents.length;
         totalSaleAmount = existingSaleEvents.reduce(
@@ -372,6 +386,8 @@ export const createManualCommissionAction = authActionClient
             customer: { country: customer.country },
           },
         });
+        // Track the lead event timestamp for link stats update
+        leadEventTimestamp = new Date(leadEventData.timestamp);
       }
 
       // Prepare sale event if requested
@@ -412,6 +428,8 @@ export const createManualCommissionAction = authActionClient
               sale: { productId },
             },
           });
+          // Track the sale event timestamp for link stats update
+          saleEventTimestamp = new Date(saleEventData.timestamp);
         }
       }
     }
@@ -447,9 +465,17 @@ export const createManualCommissionAction = authActionClient
                 leads: {
                   increment: 1,
                 },
+                lastLeadAt: updateLinkStatsForImporter({
+                  currentTimestamp: link.lastLeadAt,
+                  newTimestamp: leadEventTimestamp || new Date(),
+                }),
                 conversions: {
                   increment: 1,
                 },
+                lastConversionAt: updateLinkStatsForImporter({
+                  currentTimestamp: link.lastConversionAt,
+                  newTimestamp: saleEventTimestamp || new Date(),
+                }),
               }),
               sales: {
                 increment: saleAmount ? 1 : totalSales,

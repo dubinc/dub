@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -70,6 +71,7 @@ export async function importCustomers(payload: ToltImportPayload) {
             key: true,
             domain: true,
             url: true,
+            lastLeadAt: true,
           },
         },
       },
@@ -88,12 +90,28 @@ export async function importCustomers(payload: ToltImportPayload) {
       partnerEmailToLinks.set(partner.email, links);
     }
 
+    // get the latest lead at for each partner link
+    const partnerEmailToLatestLeadAt = customers.reduce(
+      (acc, customer) => {
+        if (!customer.partner.email) {
+          return acc;
+        }
+        const existing = acc[customer.partner.email] ?? new Date(0);
+        if (new Date(customer.created_at) > existing) {
+          acc[customer.partner.email] = new Date(customer.created_at);
+        }
+        return acc;
+      },
+      {} as Record<string, Date>,
+    );
+
     await Promise.allSettled(
       customers.map(({ partner, ...customer }) =>
         createReferral({
           workspace,
           customer,
           links: partnerEmailToLinks.get(partner.email) ?? [],
+          latestLeadAt: partnerEmailToLatestLeadAt[partner.email],
           importId,
         }),
       ),
@@ -117,11 +135,13 @@ async function createReferral({
   customer,
   workspace,
   links,
+  latestLeadAt,
   importId,
 }: {
   customer: Omit<ToltCustomer, "partner">;
   workspace: Pick<Project, "id" | "stripeConnectId">;
-  links: Pick<Link, "id" | "key" | "domain" | "url">[];
+  links: Pick<Link, "id" | "key" | "domain" | "url" | "lastLeadAt">[];
+  latestLeadAt: Date;
   importId: string;
 }) {
   const commonImportLogInputs = {
@@ -232,6 +252,10 @@ async function createReferral({
           leads: {
             increment: 1,
           },
+          lastLeadAt: updateLinkStatsForImporter({
+            currentTimestamp: link.lastLeadAt,
+            newTimestamp: latestLeadAt,
+          }),
         },
       }),
     ]);
