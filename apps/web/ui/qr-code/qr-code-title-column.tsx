@@ -12,7 +12,7 @@ import { cn, formatDateTime, timeAgo } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useRef } from "react";
-import { QRStatusBadge } from './qr-status-badge/qr-status-badge';
+import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
 
 interface QrCodeTitleColumnProps {
   qrCode: QrStorageData;
@@ -57,11 +57,15 @@ export function QrCodeTitleColumn({
             <QRCanvas
               ref={canvasRef}
               qrCode={builtQrCodeObject}
-              width={width! < 1024 ? 90 : 64}
-              height={width! < 1024 ? 90 : 64}
+              width={100}
+              height={100}
             />
           </div>
-          <QRStatusBadge qrCode={qrCode} featuresAccess={featuresAccess} className="lg:hidden" />
+          <QRStatusBadge
+            qrCode={qrCode}
+            featuresAccess={featuresAccess}
+            className="lg:hidden"
+          />
         </div>
 
         <div className="flex h-full w-full min-w-0 flex-col gap-1.5 lg:flex-row lg:justify-start lg:gap-8 xl:gap-12">
