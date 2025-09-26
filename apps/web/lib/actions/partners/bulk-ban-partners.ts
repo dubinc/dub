@@ -141,7 +141,7 @@ export const bulkBanPartnersAction = authActionClient
         await queueDiscountCodeDeletion(
           links
             .map((link) => link.discountCode?.id)
-            .filter((id) => id !== undefined),
+            .filter((id): id is string => id !== undefined),
         );
 
         // Record audit log for each partner
