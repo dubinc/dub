@@ -18,7 +18,7 @@ class MixpanelClientService {
         process.env.NEXT_PUBLIC_APP_ENV === "prod" &&
         process.env.NODE_ENV === "production"
           ? 100
-          : 10,
+          : 0,
       // api_host: `${process.env.NEXT_PUBLIC_MIXPANEL_API_HOST}`,
     });
   }

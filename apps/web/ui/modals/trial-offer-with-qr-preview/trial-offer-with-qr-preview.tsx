@@ -32,7 +32,7 @@ interface IQRPreviewModalProps {
 
 const FEATURES = [
   "Unlimited QR code scans & edits",
-  "Full customization (colors, logos, frames",
+  "Full customization (colors, logos, frames)",
   "Dynamic & editable QR codes — update anytime",
   "Advanced analytics (track scans, devices, locations)",
   "High-quality downloads (PNG, JPG, SVG)",

@@ -33,6 +33,7 @@ import {
   getSystemPaymentError,
 } from "../../../payment/server";
 
+import { Checkbox } from "@radix-ui/themes";
 import "./style/form-style.css";
 
 // interface
@@ -56,6 +57,7 @@ interface ICheckoutFormComponentProps {
   onBeforePaymentCreate?: (paymentMethodType: string) => void;
   onPaymentAttempt?: () => void;
   cardPreferredFlow?: CardPreferredFlow;
+  termsAndConditionsText?: ReactNode;
 }
 
 // component
@@ -77,6 +79,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
     onBeforePaymentCreate,
     onPaymentAttempt,
     cardPreferredFlow = "DEDICATED_SCENE",
+    termsAndConditionsText,
   } = props;
 
   const checkoutTriggeredRef = useRef(false);
@@ -86,6 +89,9 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
     useState<PrimerCheckout | null>(null);
   const [nationIdError, setNationIdError] = useState<boolean>(false);
   const [isSubmitButton, setIsSubmitButton] = useState<boolean>(false);
+
+  const [isChecked, setIsChecked] = useState(false);
+  const isCheckedRef = useRef(false);
 
   // error handling for view
   const [error, setError] = useState<ICheckoutFormError>({
@@ -169,6 +175,18 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
           message: "",
           isActive: true,
         };
+
+        if (!isCheckedRef.current) {
+          errorMessage.message = "You must agree to the terms and conditions.";
+          handleError(errorMessage);
+
+          debugUtil({
+            text: "onBeforePaymentCreate error",
+            value: errorMessage,
+          });
+
+          handler?.abortPaymentCreation();
+        }
 
         const userData = {
           ...user!,
@@ -430,69 +448,98 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
     }
   }, [clientToken]);
 
+  useEffect(() => {
+    const utmList = JSON.parse(localStorage.getItem("utmValues") || "{}");
+
+    if (utmList && utmList.utm_source) {
+      setIsChecked(true);
+      isCheckedRef.current = true;
+    }
+  }, []);
+
   // return
   return (
-    <div style={{ display: "grid", gridAutoFlow: "row", zIndex: 0 }}>
-      <div
-        className="w-full text-left"
-        id="checkout-container"
-        style={{ zIndex: 1 }}
-      />
+    <>
+      <div style={{ display: "grid", gridAutoFlow: "row", zIndex: 0 }}>
+        <div
+          className="w-full text-left"
+          id="checkout-container"
+          style={{ zIndex: 1 }}
+        />
 
-      {isSubmitButton && (
-        <div className={"bg-[#ffffff]"} style={{ zIndex: 3 }}>
-          {nationParam && (
-            <div
-              className={"space-y-6"}
-              style={
-                isLoading ? { pointerEvents: "none", opacity: "0.55" } : {}
-              }
-            >
-              <div className="mb-4 flex flex-col">
-                <label htmlFor="nationalID" className="text-[12.8px]">
-                  {nationParam.label}
-                </label>
+        {isSubmitButton && (
+          <div className={"bg-[#ffffff]"} style={{ zIndex: 3 }}>
+            {nationParam && (
+              <div
+                className={"space-y-6"}
+                style={
+                  isLoading ? { pointerEvents: "none", opacity: "0.55" } : {}
+                }
+              >
+                <div className="mb-4 flex flex-col">
+                  <label htmlFor="nationalID" className="text-[12.8px]">
+                    {nationParam.label}
+                  </label>
 
-                <input
-                  id={"nation-id"}
-                  type={"text"}
-                  onChange={(evt) => {
-                    setNationIdError(false);
-                    nationIdRef.current = evt.target.value;
-                  }}
-                  className={`h-[46px] rounded-md border bg-gray-100 p-2 text-[16px]`}
-                  style={{
-                    ...checkoutFormStyles.input.base,
-                    borderColor: nationIdError ? "red" : "",
-                  }}
-                  placeholder={nationParam.placeholder || "12345678901"}
-                  maxLength={11}
-                />
+                  <input
+                    id={"nation-id"}
+                    type={"text"}
+                    onChange={(evt) => {
+                      setNationIdError(false);
+                      nationIdRef.current = evt.target.value;
+                    }}
+                    className={`h-[46px] rounded-md border bg-gray-100 p-2 text-[16px]`}
+                    style={{
+                      ...checkoutFormStyles.input.base,
+                      borderColor: nationIdError ? "red" : "",
+                    }}
+                    placeholder={nationParam.placeholder || "12345678901"}
+                    maxLength={11}
+                  />
 
-                {nationIdError && (
-                  <span className="text-[12px] text-red-500">
-                    {nationParam.error || "Required"}
-                  </span>
-                )}
+                  {nationIdError && (
+                    <span className="text-[12px] text-red-500">
+                      {nationParam.error || "Required"}
+                    </span>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <Button
-            id="primer-checkout-credit-card-button"
-            isDisabled={isLoading && !error?.isActive}
-            onClick={handleSubmit}
-            className="min-h-[48px] w-full text-white"
-            startContent={submitBtn?.icon}
-            text={submitBtn?.text || "Pay"}
+            <Button
+              id="primer-checkout-credit-card-button"
+              disabled={isLoading && !error?.isActive}
+              onClick={handleSubmit}
+              className="min-h-[48px] w-full text-white"
+              text={submitBtn?.text || "Pay"}
+            />
+          </div>
+        )}
+
+        {error?.isActive && (
+          <div className="PrimerCheckout__errorMessage">{error.message}</div>
+        )}
+      </div>
+
+      {checkoutInstance && (
+        <div className="group flex gap-2">
+          <Checkbox
+            id="terms-and-conditions"
+            checked={isChecked}
+            onCheckedChange={(checked: boolean) => {
+              setIsChecked(checked);
+              isCheckedRef.current = checked;
+            }}
           />
+          <label
+            htmlFor="terms-and-conditions"
+            className="select-none text-sm text-xs font-medium text-neutral-500"
+          >
+            {termsAndConditionsText}
+          </label>
         </div>
       )}
-
-      {error?.isActive && (
-        <div className="PrimerCheckout__errorMessage">{error.message}</div>
-      )}
-    </div>
+    </>
   );
 };
 
