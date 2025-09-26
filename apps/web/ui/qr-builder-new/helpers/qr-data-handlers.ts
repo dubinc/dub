@@ -66,16 +66,19 @@ export const qrTypeDataEncoders = {
   },
   
   // For file types, we'll use the file URL if available, otherwise a placeholder
+  // TODO: Replace all hardcoded storage URLs with NEXT_PUBLIC_STORAGE_BASE_URL environment variable
+  // Use process.env.NEXT_PUBLIC_STORAGE_BASE_URL for client-side access to make URLs configurable
+  // This affects PDF, IMAGE, and VIDEO QR types below
   [EQRType.PDF]: (values: Record<string, any>, fileId?: string) => {
-    return fileId ? `https://qr-content.dub.sh/${fileId}` : "";
+    return fileId ? `https://assets.getqr.com/qrs-content/${fileId}` : "";
   },
-  
+
   [EQRType.IMAGE]: (values: Record<string, any>, fileId?: string) => {
-    return fileId ? `https://qr-content.dub.sh/${fileId}` : "";
+    return fileId ? `https://assets.getqr.com/qrs-content/${fileId}` : "";
   },
   
   [EQRType.VIDEO]: (values: Record<string, any>, fileId?: string) => {
-    return fileId ? `https://qr-content.dub.sh/${fileId}` : "";
+    return fileId ? `https://assets.getqr.com/qrs-content/${fileId}` : "";
   },
 };
 

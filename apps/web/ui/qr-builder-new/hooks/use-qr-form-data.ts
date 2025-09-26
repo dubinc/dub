@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { EQRType } from '../constants/get-qr-config';
+import {EQRType, FILE_QR_TYPES, LINKED_QR_TYPES} from '../constants/get-qr-config';
 import { encodeQRData, parseQRData } from '../helpers/qr-data-handlers';
 
 interface InitialData {
@@ -22,37 +22,42 @@ export const useQRFormData = ({ qrType, initialData }: UseQRFormDataOptions) => 
   const parsedInitialData = useMemo(() => {
     if (!initialData) return {};
     
-    try {
-      const parsed = parseQRData(qrType, initialData.data);
-      
-      // For link-based QR types, include URL data
-      if (initialData.link?.url) {
-        switch (qrType) {
-          case EQRType.WEBSITE:
-            parsed.websiteLink = initialData.link.url;
-            break;
-          case EQRType.APP_LINK:
-            parsed.storeLink = initialData.link.url;
-            break;
-          case EQRType.SOCIAL:
-            parsed.socialLink = initialData.link.url;
-            break;
-          case EQRType.FEEDBACK:
-            parsed.link = initialData.link.url;
-            break;
-        }
-      }
-      
-      // Include QR name from link title if available
-      if (initialData.link?.title) {
-        parsed.qrName = initialData.link.title;
-      }
-      
-      return parsed;
-    } catch (error) {
-      console.error('Error parsing initial data:', error);
-      return {};
-    }
+    // TODO QR_BUILDER_NEW: finish handling initialData when we start implementing existing QR editing.
+    // We'll most likely pass initialData.link.url instead of initialData.data to parseQRData
+    
+    // try {
+    //   const parsed = parseQRData(qrType, initialData.data);
+    //   
+    //   // For link-based QR types, include URL data
+    //   if (initialData.link?.url) {
+    //     switch (qrType) {
+    //       case EQRType.WEBSITE:
+    //         parsed.websiteLink = initialData.link.url;
+    //         break;
+    //       case EQRType.APP_LINK:
+    //         parsed.storeLink = initialData.link.url;
+    //         break;
+    //       case EQRType.SOCIAL:
+    //         parsed.socialLink = initialData.link.url;
+    //         break;
+    //       case EQRType.FEEDBACK:
+    //         parsed.link = initialData.link.url;
+    //         break;
+    //     }
+    //   }
+    //   
+    //   // Include QR name from link title if available
+    //   if (initialData.link?.title) {
+    //     parsed.qrName = initialData.link.title;
+    //   }
+    //   
+    //   return parsed;
+    // } catch (error) {
+    //   console.error('Error parsing initial data:', error);
+    //   return {};
+    // }
+    
+    return {};
   }, [qrType, initialData]);
 
   const encodeFormData = useCallback((formData: Record<string, any>, fileId?: string): string => {
@@ -75,11 +80,11 @@ export const useQRFormData = ({ qrType, initialData }: UseQRFormDataOptions) => 
   }, [qrType]);
 
   const isFileType = useMemo(() => {
-    return [EQRType.PDF, EQRType.IMAGE, EQRType.VIDEO].includes(qrType);
+    return FILE_QR_TYPES.includes(qrType);
   }, [qrType]);
 
   const isLinkType = useMemo(() => {
-    return [EQRType.WEBSITE, EQRType.APP_LINK, EQRType.SOCIAL, EQRType.FEEDBACK].includes(qrType);
+    return LINKED_QR_TYPES.includes(qrType);
   }, [qrType]);
 
   // Get default form values for the QR type
@@ -127,44 +132,45 @@ export const useQRFormData = ({ qrType, initialData }: UseQRFormDataOptions) => 
     return defaults;
   }, [qrType, parsedInitialData]);
 
-  const createLinkData = useCallback((formData: Record<string, any>, fileId?: string) => {
-    const linkData: Record<string, any> = {};
+  // TODO QR_BUILDER_NEW: createLinkData method - will be needed later for link creation
+  // const createLinkData = useCallback((formData: Record<string, any>, fileId?: string) => {
+  //   const linkData: Record<string, any> = {};
 
-    if (formData.qrName) {
-      linkData.title = formData.qrName;
-    }
+  //   if (formData.qrName) {
+  //     linkData.title = formData.qrName;
+  //   }
 
-    if (isFileType && fileId) {
-      linkData.url = `https://qr-content.dub.sh/${fileId}`;
-    } else if (isLinkType) {
-      switch (qrType) {
-        case EQRType.WEBSITE:
-          linkData.url = formData.websiteLink || '';
-          break;
-        case EQRType.APP_LINK:
-          linkData.url = formData.storeLink || '';
-          break;
-        case EQRType.SOCIAL:
-          linkData.url = formData.socialLink || '';
-          break;
-        case EQRType.FEEDBACK:
-          linkData.url = formData.link || '';
-          break;
-      }
-    } else {
-      const encodedData = encodeFormData(formData, fileId);
-      linkData.url = encodedData || 'https://dub.co';
-    }
+  //   if (isFileType && fileId) {
+  //     linkData.url = `https://assets.getqr.com/qrs-content/${fileId}`;
+  //   } else if (isLinkType) {
+  //     switch (qrType) {
+  //       case EQRType.WEBSITE:
+  //         linkData.url = formData.websiteLink || '';
+  //         break;
+  //       case EQRType.APP_LINK:
+  //         linkData.url = formData.storeLink || '';
+  //         break;
+  //       case EQRType.SOCIAL:
+  //         linkData.url = formData.socialLink || '';
+  //         break;
+  //       case EQRType.FEEDBACK:
+  //         linkData.url = formData.link || '';
+  //         break;
+  //     }
+  //   } else {
+  //     const encodedData = encodeFormData(formData, fileId);
+  //     linkData.url = encodedData || 'https://dub.co';
+  //   }
 
-    return linkData;
-  }, [qrType, isFileType, isLinkType, encodeFormData]);
+  //   return linkData;
+  // }, [qrType, isFileType, isLinkType, encodeFormData]);
 
   return {
     parsedInitialData,
     encodeFormData,
     parseFormData,
     getDefaultValues,
-    createLinkData,
+    // createLinkData, // TODO QR_BUILDER_NEW: uncomment when needed
     isFileType,
     isLinkType,
   };

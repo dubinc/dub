@@ -1,11 +1,13 @@
+import { QRBuilderInner } from "@/ui/qr-builder-new/components/qr-builder-inner.tsx";
+import { QRBuilderSteps } from "@/ui/qr-builder-new/components/qr-builder-steps.tsx";
+import { QR_BUILDER_STEP_TITLES } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import { useQrBuilder } from "@/ui/qr-builder-new/context";
-import {cn} from "@dub/utils/src";
-import {QRBuilderSteps} from "@/ui/qr-builder-new/components/qr-builder-steps.tsx";
-import {Heading} from "@radix-ui/themes";
-import {QR_BUILDER_STEP_TITLES} from "@/ui/qr-builder-new/constants/get-qr-config.ts";
-import {QRBuilderInner} from "@/ui/qr-builder-new/components/qr-builder-inner.tsx";
+import { useIsInViewport } from "@/ui/qr-builder-new/hooks/use-is-in-viewport";
+import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
 import { useMediaQuery } from "@dub/ui";
-import {QrBuilderButtons} from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
+import { cn } from "@dub/utils/src";
+import { Heading } from "@radix-ui/themes";
+import React from "react";
 
 export const QRBuilderWrapper = () => {
   const {
@@ -16,24 +18,15 @@ export const QRBuilderWrapper = () => {
     handleChangeStep,
     onSave,
     qrBuilderButtonsWrapperRef,
-    isTypeStep
+    isTypeStep,
   } = useQrBuilder();
-
 
   const { isMobile } = useMediaQuery();
 
-  // const navigationButtonsInViewport = useIsInViewport(
-  //   qrBuilderButtonsWrapperRef,
-  //   0.6,
-  // );
-  //   if (isCustomizationStep) {
-  //     onSave();
-  //     return;
-  //   }
-  //
-  //   const newStep = Math.min((builderStep || 1) + 1, 3);
-  //   handleChangeStep(newStep);
-  // };
+  const navigationButtonsInViewport = useIsInViewport(
+    qrBuilderButtonsWrapperRef,
+    0.6,
+  );
 
   return (
     <div
@@ -58,7 +51,7 @@ export const QRBuilderWrapper = () => {
             onContinue={handleContinue}
             isEdit={false}
             isProcessing={false}
-            homePageDemo={false}
+            homePageDemo={isCustomizationStep}
           />
         </div>
       )}
@@ -72,5 +65,5 @@ export const QRBuilderWrapper = () => {
       {/*  </div>*/}
       {/*)}*/}
     </div>
-  )
+  );
 };

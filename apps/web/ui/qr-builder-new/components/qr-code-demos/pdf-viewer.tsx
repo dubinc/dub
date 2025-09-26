@@ -1,6 +1,6 @@
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import PdfDemoPlaceholder from "./demos/placeholders/pdf-demo-placeholder.webp";
+import { usePdfLoader } from "./hooks/use-pdf-loader";
 
 interface PdfViewerProps {
   file?: File;
@@ -8,78 +8,7 @@ interface PdfViewerProps {
 }
 
 export default function PdfViewer({ file, url }: PdfViewerProps) {
-  const [imageDataUrl, setImageDataUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!file && !url) {
-      setImageDataUrl(null);
-      return;
-    }
-
-    const loadPdf = async () => {
-      try {
-        // Dynamically import react-pdf to avoid SSR issues
-        const { pdfjs } = await import("react-pdf");
-        
-        // Set worker source dynamically
-        if (typeof window !== "undefined") {
-          pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-        }
-
-        let loadingTask;
-
-        if (url) {
-          loadingTask = pdfjs.getDocument(url);
-        } else if (file) {
-          const reader = new FileReader();
-
-          reader.onload = async () => {
-            const typedArray = new Uint8Array(reader.result as ArrayBuffer);
-            const loadingTask = pdfjs.getDocument({ data: typedArray });
-
-            await renderPdf(loadingTask);
-          };
-
-          reader.readAsArrayBuffer(file);
-          return;
-        }
-
-        if (loadingTask) {
-          await renderPdf(loadingTask);
-        }
-      } catch (err) {
-        console.error("PDF load error:", err);
-        setImageDataUrl(null);
-      }
-    };
-
-    const renderPdf = async (loadingTask: any) => {
-      try {
-        const pdf = await loadingTask.promise;
-        const page = await pdf.getPage(1);
-
-        const viewport = page.getViewport({ scale: 1.5 });
-
-        const canvas = document.createElement("canvas");
-        const context = canvas.getContext("2d");
-
-        if (!context) return;
-
-        canvas.height = viewport.height;
-        canvas.width = viewport.width;
-
-        await page.render({ canvasContext: context, viewport }).promise;
-
-        const dataUrl = canvas.toDataURL();
-        setImageDataUrl(dataUrl);
-      } catch (err) {
-        console.error("PDF render error:", err);
-        setImageDataUrl(null);
-      }
-    };
-
-    loadPdf();
-  }, [file, url]);
+  const { imageDataUrl } = usePdfLoader({ file, url });
 
   return (
     <>

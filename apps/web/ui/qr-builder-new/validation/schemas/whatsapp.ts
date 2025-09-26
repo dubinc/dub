@@ -9,4 +9,4 @@ export const whatsappQRSchema = qrNameSchema.extend({
     .or(z.literal("")),
 });
 
-export type WhatsappQRFormData = z.infer<typeof whatsappQRSchema>;
+export type TWhatsappQRFormData = z.infer<typeof whatsappQRSchema>;

@@ -1,0 +1,8 @@
+export const BLACK_COLOR = "#000000";
+export const WHITE_COLOR = "#ffffff";
+
+export const DEFAULT_QR_FOREGROUND_COLOR = BLACK_COLOR;
+export const DEFAULT_QR_BACKGROUND_COLOR = WHITE_COLOR;
+
+export const DEFAULT_FRAME_COLOR = BLACK_COLOR;
+export const DEFAULT_FRAME_TEXT_COLOR = WHITE_COLOR;

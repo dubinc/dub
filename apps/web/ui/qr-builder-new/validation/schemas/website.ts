@@ -5,4 +5,4 @@ export const websiteQRSchema = qrNameSchema.extend({
   websiteLink: websiteUrlSchema,
 });
 
-export type WebsiteQRFormData = z.infer<typeof websiteQRSchema>;
+export type TWebsiteQRFormData = z.infer<typeof websiteQRSchema>;

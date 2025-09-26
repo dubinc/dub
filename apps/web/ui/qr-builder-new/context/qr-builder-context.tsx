@@ -1,18 +1,30 @@
 "use client";
 
-import {createContext, ReactNode, useContext, useState, useCallback, useMemo, useRef} from "react";
+import { QRContentStepRef } from "@/ui/qr-builder-new/components/qr-content-step.tsx";
+import {
+  createContext,
+  ReactNode,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { EQRType } from "../constants/get-qr-config.ts";
 import {
-  QrBuilderContextType,
-  QrType,
+  IQrBuilderContextType,
+  TQRFormData,
+  TQrType,
   TDestinationData,
   TStepState,
-  QRFormData,
 } from "../types/context";
-import {QRContentStepRef} from "@/ui/qr-builder-new/components/qr-content-step.tsx";
+import {
+  DEFAULT_QR_CUSTOMIZATION,
+  IQRCustomizationData,
+} from "../types/customization";
 
 // Create context
-const QrBuilderContext = createContext<QrBuilderContextType | undefined>(
+const QrBuilderContext = createContext<IQrBuilderContextType | undefined>(
   undefined,
 );
 
@@ -26,11 +38,19 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
   const [builderStep, setBuilderStep] = useState<TStepState>(1);
   const [destinationData, setDestinationData] =
     useState<TDestinationData>(null);
-  const [selectedQrType, setSelectedQrType] = useState<QrType>(null);
+  const [selectedQrType, setSelectedQrType] = useState<TQrType>(null);
   const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
   const [typeSelectionError, setTypeSelectionError] = useState<string>("");
-  const [formData, setFormData] = useState<QRFormData | null>(null);
-  const [currentFormValues, setCurrentFormValues] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<TQRFormData | null>(null);
+  const [currentFormValues, setCurrentFormValues] = useState<
+    Record<string, any>
+  >({});
+
+  // Customization states
+  const [customizationData, setCustomizationData] =
+    useState<IQRCustomizationData>(DEFAULT_QR_CUSTOMIZATION);
+  const [customizationActiveTab, setCustomizationActiveTab] =
+    useState<string>("Frame");
 
   const contentStepRef = useRef<QRContentStepRef>(null);
   const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
@@ -38,8 +58,6 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
   const isTypeStep = builderStep === 1;
   const isContentStep = builderStep === 2;
   const isCustomizationStep = builderStep === 3;
-
-
 
   const currentQRType = useMemo(() => {
     return isTypeStep
@@ -50,8 +68,9 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
   }, [isTypeStep, hoveredQRType, selectedQrType]);
 
   // Step management methods
-  const handleNextStep = useCallback(() => { // @ts-ignore
-    setBuilderStep((prev ) => Math.min(prev + 1, 3));
+  const handleNextStep = useCallback(() => {
+    // @ts-ignore
+    setBuilderStep((prev) => Math.min(prev + 1, 3));
   }, []);
 
   const handleChangeStep = useCallback(
@@ -67,37 +86,48 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     [selectedQrType],
   );
 
-  const handleSelectQRType = useCallback((type: EQRType) => {
-    setSelectedQrType(type);
-    handleNextStep();
-  }, [handleNextStep]);
+  const handleSelectQRType = useCallback(
+    (type: EQRType) => {
+      setSelectedQrType(type);
+      handleNextStep();
+    },
+    [handleNextStep],
+  );
 
   const handleHoverQRType = useCallback((type: EQRType | null) => {
     setHoveredQRType(type);
   }, []);
 
-  const handleFormSubmit = useCallback((data: QRFormData) => {
-    setFormData(data);
-    console.log("Form submitted:", data);
-    handleNextStep();
-  }, [handleNextStep]);
+  const handleFormSubmit = useCallback(
+    (data: TQRFormData) => {
+      setFormData(data);
+      console.log("Form submitted:", data);
+      handleNextStep();
+    },
+    [handleNextStep],
+  );
 
-  const handleBack = () => {
+  const handleBack = useCallback(() => {
     const newStep = Math.max((builderStep || 1) - 1, 1);
     handleChangeStep(newStep);
-  };
+  }, [builderStep, handleChangeStep]);
 
-  const handleContinue = async () => {
+  const handleContinue = useCallback(async () => {
     if (isContentStep && contentStepRef.current) {
       const isValid = await contentStepRef.current.validateForm();
       if (!isValid) {
         return;
       }
     }
-  }
+  }, [isContentStep]);
 
   const updateCurrentFormValues = useCallback((values: Record<string, any>) => {
     setCurrentFormValues(values);
+  }, []);
+
+  // Customization methods
+  const updateCustomizationData = useCallback((data: IQRCustomizationData) => {
+    setCustomizationData(data);
   }, []);
 
   // Methods
@@ -108,10 +138,11 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
       destinationData,
       selectedQrType,
       formData,
+      customizationData,
     });
   };
-
-  const contextValue: QrBuilderContextType = {
+  console.log("NEW BUILDER - Customization Data:", customizationData);
+  const contextValue: IQrBuilderContextType = {
     // States
     builderStep,
     destinationData,
@@ -121,6 +152,10 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     typeSelectionError,
     formData,
     currentFormValues,
+
+    // Customization states
+    customizationData,
+    customizationActiveTab,
 
     // Computed states
     isTypeStep,
@@ -136,6 +171,10 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
     handleFormSubmit,
     updateCurrentFormValues,
 
+    // Customization methods
+    updateCustomizationData,
+    setCustomizationActiveTab,
+
     // State setters
     setBuilderStep,
     setDestinationData,
@@ -147,7 +186,7 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
 
     // Refs
     contentStepRef,
-    qrBuilderButtonsWrapperRef
+    qrBuilderButtonsWrapperRef,
   };
 
   return (
@@ -158,7 +197,7 @@ export function QrBuilderProvider({ children }: QrBuilderProviderProps) {
 }
 
 // Custom hook to use the context
-export function useQrBuilder(): QrBuilderContextType {
+export function useQrBuilder(): IQrBuilderContextType {
   const context = useContext(QrBuilderContext);
 
   if (context === undefined) {

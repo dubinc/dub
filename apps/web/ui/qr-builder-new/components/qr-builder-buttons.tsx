@@ -2,7 +2,7 @@ import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex, Responsive } from "@radix-ui/themes";
 import { ChevronLeft } from "lucide-react";
-import { FC } from "react";
+import {FC, useCallback} from "react";
 
 interface IQrBuilderButtonsProps {
   step: number;
@@ -37,7 +37,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
 }) => {
   const isLastStep = step === maxStep;
 
-  const getButtonText = () => {
+  const getButtonText = useCallback(() => {
     if (isFileUploading) return "Uploading...";
     if (isFileProcessing) return "Processing...";
     if (isEdit) return "Save changes";
@@ -45,7 +45,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
     if (homePageDemo) return "Download QR Code";
 
     return "Create QR Code";
-  };
+  }, [isFileUploading, isFileProcessing, isEdit, isLastStep, homePageDemo]);
 
   const buttonText = getButtonText();
 
