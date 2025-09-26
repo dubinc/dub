@@ -1,5 +1,5 @@
 import { qstash } from "@/lib/cron";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 import { Discount } from "@prisma/client";
 
 const queue = qstash.queue({
@@ -27,14 +27,18 @@ export async function queueDiscountCodeDeletion(
   // TODO:
   // Check if we can use the batchJSON (I tried it but didn't work)
 
-  await Promise.allSettled(
-    discountCodeIds.map((discountCodeId) =>
-      queue.enqueueJSON({
-        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/${discountCodeId}/delete`,
-        method: "POST",
-      }),
-    ),
-  );
+  const chunks = chunk(discountCodeIds, 100);
+
+  for (const chunkOfIds of chunks) {
+    await Promise.allSettled(
+      chunkOfIds.map((discountCodeId) =>
+        queue.enqueueJSON({
+          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/${discountCodeId}/delete`,
+          method: "POST",
+        }),
+      ),
+    );
+  }
 }
 
 export function isDiscountEquivalent(
