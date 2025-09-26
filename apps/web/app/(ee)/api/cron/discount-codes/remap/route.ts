@@ -16,7 +16,7 @@ const schema = z.object({
   groupId: z.string(),
 });
 
-// POST /api/cron/discounts/remap-discount-codes
+// POST /api/cron/discount-codes/remap
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -105,11 +105,7 @@ export async function POST(req: Request) {
 
     // Remove the discount codes from the group
     if (discountCodesToRemove.length > 0) {
-      await Promise.allSettled(
-        discountCodesToRemove.map((discountCodeId) =>
-          queueDiscountCodeDeletion(discountCodeId),
-        ),
-      );
+      await queueDiscountCodeDeletion(discountCodesToRemove);
     }
 
     return logAndRespond(

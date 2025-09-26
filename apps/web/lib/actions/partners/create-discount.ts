@@ -38,29 +38,35 @@ export const createDiscountAction = authActionClient
     if (shouldCreateCouponOnStripe) {
       if (!workspace.stripeConnectId) {
         throw new Error(
-          "You need to install Dub Stripe app before creating a coupon.",
+          "STRIPE_CONNECTION_REQUIRED: Your workspace isn't connected to Stripe yet. Please install the Dub Stripe app in settings to create discount.",
         );
       }
 
-      const stripeCoupon = await createStripeCoupon({
-        workspace: {
-          id: workspace.id,
-          stripeConnectId: workspace.stripeConnectId,
-        },
-        discount: {
-          amount,
-          type,
-          maxDuration: maxDuration ?? null,
-        },
-      });
+      try {
+        const stripeCoupon = await createStripeCoupon({
+          workspace: {
+            id: workspace.id,
+            stripeConnectId: workspace.stripeConnectId,
+          },
+          discount: {
+            amount,
+            type,
+            maxDuration: maxDuration ?? null,
+          },
+        });
 
-      if (!stripeCoupon) {
-        throw new Error(
-          "Failed to create Stripe coupon. Make sure you installed the latest version of the Dub Stripe app.",
-        );
+        if (stripeCoupon) {
+          couponId = stripeCoupon.id;
+        }
+      } catch (error) {
+        if (error.code === "more_permissions_required_for_application") {
+          throw new Error(
+            "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe app permissions in the dashboard or reach out to our support team for help.",
+          );
+        }
+
+        throw new Error(error.message);
       }
-
-      couponId = stripeCoupon.id;
     }
 
     // Create the discount and update the group and program enrollment

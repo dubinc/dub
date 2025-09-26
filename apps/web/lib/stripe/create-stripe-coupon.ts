@@ -67,6 +67,6 @@ export async function createStripeCoupon({
       },
     );
 
-    return null;
+    throw error;
   }
 }

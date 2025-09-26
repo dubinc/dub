@@ -138,8 +138,10 @@ export const bulkBanPartnersAction = authActionClient
         await linkCache.expireMany(links);
 
         // Queue discount code deletions
-        await Promise.allSettled(
-          links.map((link) => queueDiscountCodeDeletion(link.discountCode?.id)),
+        await queueDiscountCodeDeletion(
+          links
+            .map((link) => link.discountCode?.id)
+            .filter((id) => id !== undefined),
         );
 
         // Record audit log for each partner

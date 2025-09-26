@@ -12,23 +12,29 @@ const queue = qstash.queue({
 // 3. When partners are banned
 // 4. When a partner is moved to a different group
 export async function queueDiscountCodeDeletion(
-  discountCodeId: string | null | undefined,
+  input: string | string[] | undefined,
 ) {
-  if (!discountCodeId) {
+  const discountCodeIds = Array.isArray(input) ? input : [input];
+
+  if (discountCodeIds.length === 0) {
     return;
   }
 
   await queue.upsert({
-    parallelism: 10,
+    parallelism: 2,
   });
 
-  await queue.enqueueJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discounts/delete-discount-code`,
-    method: "POST",
-    body: {
-      discountCodeId,
-    },
-  });
+  // TODO:
+  // Check if we can use the batchJSON (I tried it didn't work)
+
+  await Promise.allSettled(
+    discountCodeIds.map((discountCodeId) =>
+      queue.enqueueJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/discount-codes/${discountCodeId}/delete`,
+        method: "POST",
+      }),
+    ),
+  );
 }
 
 export function isDiscountEquivalent(

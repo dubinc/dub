@@ -17,6 +17,7 @@ import {
   InlineBadgePopover,
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
+import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import {
   Button,
   InfoTooltip,
@@ -73,7 +74,7 @@ function DiscountSheetContent({
 
   const { group, mutateGroup } = useGroup();
   const { mutate: mutateProgram } = useProgram();
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId, stripeConnectId } = useWorkspace();
 
   const [useExistingCoupon, setUseExistingCoupon] = useState(false);
 
@@ -119,6 +120,43 @@ function DiscountSheetContent({
         await mutateGroup();
       },
       onError({ error }) {
+        const stripeErrorMap: Record<
+          string,
+          { title: string; ctaLabel: string; ctaUrl: string }
+        > = {
+          STRIPE_CONNECTION_REQUIRED: {
+            title: "Stripe connection required",
+            ctaLabel: "Install Stripe app",
+            ctaUrl: "https://marketplace.stripe.com/apps/dub-conversions",
+          },
+          STRIPE_APP_UPGRADE_REQUIRED: {
+            title: "Stripe app upgrade required",
+            ctaLabel: "Review permissions",
+            ctaUrl: "https://marketplace.stripe.com/apps/dub-conversions",
+          },
+        };
+
+        if (error.serverError) {
+          const code = Object.keys(stripeErrorMap).find((key) =>
+            error.serverError!.startsWith(key),
+          );
+
+          if (code) {
+            const { title, ctaLabel, ctaUrl } = stripeErrorMap[code];
+            const message = error.serverError!.replace(`${code}: `, "");
+
+            toast.custom(() => (
+              <UpgradeRequiredToast
+                title={title}
+                message={message}
+                ctaLabel={ctaLabel}
+                ctaUrl={ctaUrl}
+              />
+            ));
+            return;
+          }
+        }
+
         toast.error(error.serverError);
       },
     },

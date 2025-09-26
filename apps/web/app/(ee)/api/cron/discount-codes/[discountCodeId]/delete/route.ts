@@ -2,18 +2,21 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { disableStripeDiscountCode } from "@/lib/stripe/disable-stripe-discount-code";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
-import { logAndRespond } from "../../utils";
+import { logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";
 
-const schema = z.object({
-  discountCodeId: z.string(),
-});
+interface RequestParams {
+  params: {
+    discountCodeId: string;
+  };
+}
 
-// POST /api/cron/discounts/delete-discount-code
-export async function POST(req: Request) {
+// POST /api/cron/discount-codes/[discountCodeId]/delete
+export async function POST(req: Request, { params }: RequestParams) {
   try {
+    const { discountCodeId } = params;
+
     const rawBody = await req.text();
 
     await verifyQstashSignature({
@@ -21,13 +24,14 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { discountCodeId } = schema.parse(JSON.parse(rawBody));
-
     const discountCode = await prisma.discountCode.findUnique({
       where: {
         id: discountCodeId,
       },
     });
+
+    // Fake wait 5 seconds
+    await new Promise((resolve) => setTimeout(resolve, 5000));
 
     if (!discountCode) {
       return logAndRespond(`Discount code ${discountCodeId} not found.`);

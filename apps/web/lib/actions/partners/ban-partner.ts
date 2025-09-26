@@ -124,9 +124,7 @@ export const banPartnerAction = authActionClient
         await Promise.allSettled([
           linkCache.expireMany(links),
 
-          ...discountCodes.map((discountCode) =>
-            queueDiscountCodeDeletion(discountCode.id),
-          ),
+          queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
 
           partner.email &&
             sendEmail({

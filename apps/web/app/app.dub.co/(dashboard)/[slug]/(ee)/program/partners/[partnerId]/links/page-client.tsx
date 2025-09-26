@@ -231,9 +231,9 @@ const PartnerDiscountCodes = ({
         maxSize: 25,
         cell: ({ row }) => (
           <Button
-            icon={<Trash className="size-3 text-neutral-600" />}
+            icon={<Trash className="size-3.5 text-neutral-600" />}
             variant="outline"
-            className="h-8 whitespace-nowrap px-2"
+            className="h-8 whitespace-nowrap"
             onClick={() => {
               setSelectedDiscountCode(row.original);
               setShowDeleteDiscountCodeModal(true);
