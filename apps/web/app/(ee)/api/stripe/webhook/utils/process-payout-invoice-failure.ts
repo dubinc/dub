@@ -3,7 +3,7 @@ import {
   PAYOUT_FAILURE_FEE_CENTS,
 } from "@/lib/partners/constants";
 import { createPaymentIntent } from "@/lib/stripe/create-payment-intent";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutFailed from "@dub/email/templates/partner-payout-failed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
@@ -124,15 +124,13 @@ export async function processPayoutInvoiceFailure({
         return;
       }
 
-      await Promise.all(
-        emailData.map((data) => {
-          sendEmail({
-            subject: "Partner payout failed",
-            to: data.email,
-            react: PartnerPayoutFailed(data),
-            variant: "notifications",
-          });
-        }),
+      await sendBatchEmail(
+        emailData.map((data) => ({
+          variant: "notifications",
+          subject: "Partner payout failed",
+          to: data.email,
+          react: PartnerPayoutFailed(data),
+        })),
       );
     })(),
   );
