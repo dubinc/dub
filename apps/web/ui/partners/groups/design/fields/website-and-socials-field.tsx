@@ -1,5 +1,5 @@
 import { sanitizeSocialHandle, sanitizeWebsite, SocialPlatform } from "@/lib/social-utils";
-import { programApplicationFormSiteSchema, programApplicationFormWebsiteAndSocialsFieldSchema, programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
+import { programApplicationFormSiteSchema, programApplicationFormWebsiteAndSocialsFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import { cn } from "@dub/utils";
 import { useCallback } from "react";
 import { useFormContext } from "react-hook-form";
