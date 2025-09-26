@@ -65,7 +65,10 @@ import {
 } from "./zod/schemas/links";
 import { MessageSchema } from "./zod/schemas/messages";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
-import { DiscoverablePartnerSchema } from "./zod/schemas/partner-discovery";
+import {
+  DiscoverablePartnerSchema,
+  PartnerConversionScoreSchema,
+} from "./zod/schemas/partner-discovery";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
@@ -440,6 +443,10 @@ export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
 export type DiscoverablePartnerProps = z.infer<
   typeof DiscoverablePartnerSchema
+>;
+
+export type PartnerConversionScore = z.infer<
+  typeof PartnerConversionScoreSchema
 >;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;

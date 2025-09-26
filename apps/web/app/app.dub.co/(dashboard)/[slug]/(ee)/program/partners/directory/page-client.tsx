@@ -7,10 +7,15 @@ import {
 } from "@/lib/partners/partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscoverablePartnerProps } from "@/lib/types";
-import { X } from "@/ui/shared/icons";
+import {
+  PARTNER_CONVERSION_SCORES,
+  PARTNER_CONVERSION_SCORE_RATES,
+} from "@/lib/zod/schemas/partner-discovery";
+import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
 import {
   BadgeCheck2Fill,
   ChartActivity2,
+  DynamicTooltipWrapper,
   Tooltip,
   UserPlus,
   useResizeObserver,
@@ -20,6 +25,7 @@ import type { Icon } from "@dub/ui/icons";
 import {
   COUNTRIES,
   OG_AVATAR_URL,
+  capitalize,
   cn,
   fetcher,
   formatDate,
@@ -138,8 +144,17 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
       },
       {
         id: "conversion",
-        icon: <X className="size-3.5 shrink-0" />,
-        text: partner ? `XXXX conversion` : undefined,
+        icon: (
+          <ConversionScoreIcon
+            score={partner?.conversionScore || null}
+            className="size-3.5 shrink-0"
+          />
+        ),
+        text: partner
+          ? partner.conversionScore
+            ? `${capitalize(partner.conversionScore)} conversion`
+            : "Unknown conversion"
+          : undefined,
       },
     ],
     [partner],
@@ -196,23 +211,79 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
         )}
 
         {/* Basic details */}
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col items-start gap-1">
           {basicFields
             .filter(({ text }) => text !== null)
             .map(({ id, icon, text }) => (
-              <div
+              <DynamicTooltipWrapper
                 key={id}
-                className="text-content-subtle flex items-center gap-1"
+                tooltipProps={
+                  id === "conversion"
+                    ? {
+                        content: (
+                          <div className="max-w-60 p-2.5 text-xs">
+                            <div className="flex flex-col gap-2.5">
+                              {PARTNER_CONVERSION_SCORES.map((score, idx) => (
+                                <div
+                                  key={score}
+                                  className="flex items-center gap-1.5"
+                                >
+                                  <ConversionScoreIcon
+                                    score={score}
+                                    className="size-3.5 shrink-0"
+                                  />
+                                  <span className="text-content-default font-semibold">
+                                    {capitalize(score)}{" "}
+                                    <span className="text-content-subtle font-medium">
+                                      (
+                                      {idx <
+                                      PARTNER_CONVERSION_SCORES.length - 1 ? (
+                                        <>
+                                          {PARTNER_CONVERSION_SCORE_RATES[
+                                            score
+                                          ] * 100}
+                                          -
+                                          {PARTNER_CONVERSION_SCORE_RATES[
+                                            PARTNER_CONVERSION_SCORES[idx + 1]
+                                          ] * 100}
+                                        </>
+                                      ) : (
+                                        <>
+                                          &gt;
+                                          {PARTNER_CONVERSION_SCORE_RATES[
+                                            score
+                                          ] * 100}
+                                        </>
+                                      )}
+                                      %)
+                                    </span>
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-content-subtle mt-4 font-medium">
+                              This score is an average for all Dub programs the
+                              partner is enrolled in.
+                            </p>
+                          </div>
+                        ),
+                        side: "right",
+                        align: "end",
+                      }
+                    : undefined
+                }
               >
-                {text !== undefined ? (
-                  <>
-                    {icon}
-                    <span className="text-xs font-medium">{text}</span>
-                  </>
-                ) : (
-                  <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-                )}
-              </div>
+                <div className="text-content-subtle flex cursor-default items-center gap-1">
+                  {text !== undefined ? (
+                    <>
+                      {icon}
+                      <span className="text-xs font-medium">{text}</span>
+                    </>
+                  ) : (
+                    <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+                  )}
+                </div>
+              </DynamicTooltipWrapper>
             ))}
         </div>
 

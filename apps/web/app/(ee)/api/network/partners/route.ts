@@ -1,3 +1,4 @@
+import { getConversionScore } from "@/lib/actions/partners/get-conversion-score";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -21,7 +22,8 @@ export const GET = withWorkspace(
         industryInterests.industryInterests,
         preferredEarningStructures.preferredEarningStructures,
         salesChannels.salesChannels,
-        metrics.lastConversionAt as lastConversionAt
+        metrics.lastConversionAt as lastConversionAt,
+        metrics.conversionRate as conversionRate
       FROM 
         Partner p
       -- Any associated program enrollment
@@ -30,8 +32,11 @@ export const GET = withWorkspace(
       LEFT JOIN (
         SELECT 
           partnerId,
-          MAX(lastConversionAt) as lastConversionAt
+          MAX(lastConversionAt) as lastConversionAt,
+          SUM(conversions) / COALESCE(SUM(clicks), 0) as conversionRate
         FROM Link
+        WHERE programId IS NOT NULL
+        AND partnerId IS NOT NULL
         GROUP BY partnerId
       ) metrics ON metrics.partnerId = p.id
       -- Profile field lists
@@ -51,8 +56,7 @@ export const GET = withWorkspace(
         GROUP BY partnerId
       ) salesChannels ON salesChannels.partnerId = p.id
       WHERE 
-        p.discoverableAt IS NOT NULL
-        AND pe.id IS NULL
+        p.discoverableAt IS NOT NULL -- AND pe.id IS NULL
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
     return NextResponse.json(
@@ -63,6 +67,10 @@ export const GET = withWorkspace(
           preferredEarningStructures:
             partner.preferredEarningStructures?.split(",") || undefined,
           salesChannels: partner.salesChannels?.split(",") || undefined,
+          conversionScore:
+            partner.conversionRate === null
+              ? null
+              : getConversionScore(partner.conversionRate),
         })),
       ),
     );
