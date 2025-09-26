@@ -3,6 +3,7 @@ import { tb } from "@/lib/tinybird";
 import { UTM_TAGS_PLURAL_LIST } from "@/lib/zod/schemas/utm";
 import { prismaEdge } from "@dub/prisma/edge";
 import { linkConstructor, punyEncode } from "@dub/utils";
+import { DubApiError } from "../api/errors";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { conn } from "../planetscale";
 import z from "../zod";
@@ -13,6 +14,7 @@ import {
   SINGULAR_ANALYTICS_ENDPOINTS,
 } from "./constants";
 import { queryParser } from "./query-parser";
+import { ParsedQuery } from "./query-parser-utilts";
 import { AnalyticsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -124,7 +126,21 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         : analyticsResponse[groupBy],
   });
 
-  const filters = queryParser(query);
+  let parsedQuery: ParsedQuery | undefined;
+
+  try {
+    parsedQuery = queryParser(query);
+  } catch (error) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        error instanceof Error
+          ? `We were unable to parse your search query. ${error.message}`
+          : `We were unable to parse your search query. Try using the format key:"value" to query for fields.`,
+    });
+  }
+
+  console.log(parsedQuery);
 
   const response = await pipe({
     ...params,
@@ -141,7 +157,10 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     timezone,
     country,
     region,
-    filters: filters ? JSON.stringify(filters) : undefined,
+    ...(parsedQuery && {
+      filters: JSON.stringify(parsedQuery.filters),
+      logicalOperator: parsedQuery.logicalOperator,
+    }),
   });
 
   if (groupBy === "count") {
