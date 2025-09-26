@@ -9,6 +9,7 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { RewardSchema } from "./rewards";
 import { parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
+import { programApplicationFormSchema } from "./program-application-form";
 
 export const DEFAULT_PARTNER_GROUP = {
   name: "Default Group",
@@ -48,6 +49,11 @@ export const GroupSchema = z.object({
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.nativeEnum(PartnerLinkStructure),
+});
+
+export const GroupWithFormDataSchema = GroupSchema.extend({
+  applicationFormData: programApplicationFormSchema.nullable(),
+  applicationFormPublishedAt: z.date().nullable(),
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({
@@ -98,6 +104,8 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   maxPartnerLinks: z.number().optional(),
   utmTemplateId: z.string().optional(),
   linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
+  applicationFormData: programApplicationFormSchema.optional(),
+  applicationFormPublishedAt: z.date().optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({

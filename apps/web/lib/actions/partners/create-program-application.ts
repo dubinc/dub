@@ -21,9 +21,37 @@ import { cookies } from "next/headers";
 import z from "../../zod";
 import { actionClient } from "../safe-action";
 
+export type PartnerData = { name: string, country: string }
+
 interface Response {
   programApplicationId: string;
   programEnrollmentId?: string;
+  partnerData: PartnerData;
+}
+
+type ProgramApplicationData = z.infer<typeof createProgramApplicationSchema>
+
+const sanitizeData = (data: ProgramApplicationData) => {
+
+  if (data.formData) {
+    const websitesAndSocials = data.formData.fields.find((field) => field.type === "website-and-socials");
+
+    if (!websitesAndSocials) {
+      return data
+    }
+
+    return {
+      ...data,
+      website: websitesAndSocials.data.find((field) => field.type === "website")?.value,
+      youtube: websitesAndSocials.data.find((field) => field.type === "youtube")?.value,
+      twitter: websitesAndSocials.data.find((field) => field.type === "twitter")?.value,
+      linkedin: websitesAndSocials.data.find((field) => field.type === "linkedin")?.value,
+      instagram: websitesAndSocials.data.find((field) => field.type === "instagram")?.value,
+      tiktok: websitesAndSocials.data.find((field) => field.type === "tiktok")?.value,
+    };
+  }
+
+  return data
 }
 
 // Create a program application (or enrollment if a partner is already logged in)
@@ -121,7 +149,7 @@ async function createApplicationAndEnrollment({
   const [application, _] = await Promise.all([
     prisma.programApplication.create({
       data: {
-        ...data,
+        ...sanitizeData(data),
         id: applicationId,
         programId: program.id,
         groupId: group.id,
@@ -171,6 +199,10 @@ async function createApplicationAndEnrollment({
   return {
     programApplicationId: applicationId,
     programEnrollmentId: enrollmentId,
+    partnerData: {
+      name: data.name,
+      country: data.country,
+    }
   };
 }
 
@@ -185,7 +217,7 @@ async function createApplication({
 }) {
   const application = await prisma.programApplication.create({
     data: {
-      ...data,
+      ...sanitizeData(data),
       id: createId({ prefix: "pga_" }),
       programId: program.id,
       groupId: group.id,
@@ -209,5 +241,9 @@ async function createApplication({
 
   return {
     programApplicationId: application.id,
+    partnerData: {
+      name: data.name,
+      country: data.country,
+    }
   };
 }

@@ -50,8 +50,10 @@ import {
   additionalPartnerLinkSchema,
   GroupSchema,
   GroupSchemaExtended,
+  GroupWithFormDataSchema,
   PartnerGroupDefaultLinkSchema,
 } from "./zod/schemas/groups";
+import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -115,6 +117,7 @@ import {
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
+import { programApplicationFormDataWithValuesSchema, programApplicationFormSchema } from "./zod/schemas/program-application-form";
 
 export type LinkProps = Link;
 
@@ -452,6 +455,10 @@ export type ProgramWithLanderDataProps = z.infer<
   typeof ProgramWithLanderDataSchema
 >;
 
+export type ProgramApplicationFormData = z.infer<typeof programApplicationFormSchema>;
+
+export type ProgramApplicationFormDataWithValues = z.infer<typeof programApplicationFormDataWithValuesSchema>;
+
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 
 export type PartnerProgramInviteProps = z.infer<
@@ -543,9 +550,11 @@ export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
 export type SaleEventTB = z.infer<typeof saleEventSchemaTB>;
 
-export type GroupProps = z.infer<typeof GroupSchema> & {
-  additionalLinks: PartnerGroupAdditionalLink[] | null;
-};
+export type GroupProps = z.infer<typeof GroupSchema>
+
+export type GroupWithFormDataProps = z.infer<typeof GroupWithFormDataSchema>;
+
+export type GroupWithProgramProps = z.infer<typeof GroupWithProgramSchema>;
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
 

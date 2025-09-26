@@ -55,6 +55,7 @@ export function PartnerInfoCards({
         ? selectedGroupId || partner.groupId || DEFAULT_PARTNER_GROUP.slug
         : undefined,
     },
+    {},
     { keepPreviousData: false },
   );
 
