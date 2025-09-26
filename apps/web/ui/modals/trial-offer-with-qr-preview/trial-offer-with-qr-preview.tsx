@@ -5,7 +5,7 @@ import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
 import { QrStorageData } from "@/ui/qr-builder/types/types";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "@/ui/shared/five-stars.component";
-import { Modal, useMediaQuery } from "@dub/ui";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ICustomerBody } from "core/integration/payment/config";
@@ -97,6 +97,8 @@ function TrialOfferWithQRPreviewInner({
   user,
   firstQr,
 }: Omit<IQRPreviewModalProps, "showQRPreviewModal">) {
+  const { isMobile } = useMediaQuery();
+
   const [clientToken, setClientToken] = useState<string | null>(null);
   const currentQrTypeInfo = QR_TYPES.find(
     (item) => item.id === firstQr?.qrType,
@@ -110,9 +112,16 @@ function TrialOfferWithQRPreviewInner({
     setShowTrialOfferModal(false);
   };
 
+  const onScrollToPaymentBlock = () => {
+    const paymentBlock = document.getElementById("payment-block");
+    if (paymentBlock) {
+      paymentBlock.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
   return (
     <Theme>
-      <div className="flex w-full flex-col md:flex-row">
+      <div className="flex w-full flex-col sm:flex-row">
         <div className="flex grow flex-col gap-4 bg-neutral-50 p-6">
           <div className="flex flex-col gap-2 text-center">
             {firstQr && (
@@ -120,9 +129,6 @@ function TrialOfferWithQRPreviewInner({
                 Your QR Code is Ready!
               </h2>
             )}
-            {/* <h3 className="justify-center text-center text-base font-semibold text-neutral-800">
-                Download Now & Unlock Full Access
-              </h3> */}
           </div>
 
           <div className="relative flex w-full flex-col justify-center gap-2">
@@ -156,18 +162,28 @@ function TrialOfferWithQRPreviewInner({
           </div>
         </div>
 
-        <div className="flex grow flex-col gap-4 p-6 md:min-w-[50%] md:max-w-[50%] md:basis-[50%]">
+        {isMobile ? (
+          <div className="flex justify-center px-6 py-2">
+            <Button
+              onClick={onScrollToPaymentBlock}
+              className="max-w-md"
+              text={firstQr ? "Download Now!" : "Create QR Noew!"}
+            />
+          </div>
+        ) : null}
+
+        <div className="flex grow flex-col gap-4 p-6 sm:min-w-[50%] sm:max-w-[50%] sm:basis-[50%]">
           <div className="flex flex-col gap-2 text-center">
             <h2 className="text-neutral !mt-0 truncate text-2xl font-bold">
               {firstQr
                 ? "Unlock 7-Day Full Access"
                 : "Start Now & Unlock 7-Day Full Access"}
             </h2>
-            <h3 className="flex items-center justify-center gap-0.5 text-center text-base text-neutral-800">
+            <h3 className="flex flex-wrap items-center justify-center gap-0.5 text-center text-base text-neutral-800">
               <span className="font-semibold">Excellent</span>{" "}
               <FiveStarsComponent /> <span className="font-bold">4.81</span>{" "}
-              <span>based on</span> <span className="font-bold">924</span>{" "}
-              <span>reviews</span>
+              <span className="whitespace-nowrap">based on</span>{" "}
+              <span className="font-bold">924</span> <span>reviews</span>
             </h3>
           </div>
 

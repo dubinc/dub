@@ -213,7 +213,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
   return (
     <>
-      <div className="flex flex-col gap-4">
+      <div id="payment-block" className="flex flex-col gap-4">
         <div className="flex items-center justify-between rounded-xl bg-white px-0">
           <p className="text-xl font-bold">Total due:</p>
           <div className="flex items-center justify-end gap-2">
