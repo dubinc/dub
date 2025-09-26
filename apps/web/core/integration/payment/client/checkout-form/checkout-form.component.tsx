@@ -451,7 +451,11 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
   useEffect(() => {
     const utmList = JSON.parse(localStorage.getItem("utmValues") || "{}");
 
-    if (utmList && utmList.utm_source) {
+    if (
+      utmList &&
+      utmList.utm_source &&
+      !utmList.utm_source.includes("email")
+    ) {
       setIsChecked(true);
       isCheckedRef.current = true;
     }
