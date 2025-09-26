@@ -226,12 +226,12 @@ const PartnerDiscountCodes = ({
       {
         id: "menu",
         enableHiding: false,
-        minSize: 25,
-        size: 25,
-        maxSize: 25,
+        minSize: 35,
+        size: 35,
+        maxSize: 35,
         cell: ({ row }) => (
           <Button
-            icon={<Trash className="size-3.5 text-neutral-600" />}
+            icon={<Trash className="size-3.5 shrink-0 text-neutral-600" />}
             variant="outline"
             className="h-8 whitespace-nowrap"
             onClick={() => {
