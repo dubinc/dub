@@ -75,7 +75,7 @@ export async function createNewCustomer(event: Stripe.Event) {
     // Record lead
     recordLead(leadData),
 
-    // update link leads count
+    // update link leads count + lastLeadAt date
     prisma.link.update({
       where: {
         id: linkId,
@@ -84,6 +84,7 @@ export async function createNewCustomer(event: Stripe.Event) {
         leads: {
           increment: 1,
         },
+        lastLeadAt: new Date(),
       },
       include: includeTags,
     }),
