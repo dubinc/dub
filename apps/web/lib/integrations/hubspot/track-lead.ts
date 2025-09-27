@@ -2,9 +2,9 @@ import { trackLead } from "@/lib/api/conversions/track-lead";
 import { TrackLeadResponse, WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
+import { HubSpotAuthToken, HubSpotContact } from "../types";
 import { HubSpotApi } from "./api";
 import { hubSpotLeadEventSchema } from "./schema";
-import { HubSpotAuthToken, HubSpotContact } from "./types";
 
 export const trackHubSpotLeadEvent = async ({
   payload,

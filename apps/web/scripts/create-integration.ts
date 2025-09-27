@@ -7,9 +7,9 @@ async function main() {
   const integration = await prisma.integration.create({
     data: {
       id: createId({ prefix: "int_" }),
-      name: "HubSpot",
-      slug: "hubspot",
-      description: "Track HubSpot events with Dub.",
+      name: "Slack",
+      slug: "slack",
+      description: "Slack",
       developer: "Dub",
       website: "https://dub.co",
       verified: true,
