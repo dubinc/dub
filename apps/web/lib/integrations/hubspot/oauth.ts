@@ -68,5 +68,5 @@ export const hubSpotOAuthProvider = new HubSpotOAuthProvider({
     "crm.schemas.contacts.write",
   ].join(" "),
   tokenSchema: hubSpotAuthTokenSchema,
-  tokenRequestStyle: "form",
+  bodyFormat: "form",
 });

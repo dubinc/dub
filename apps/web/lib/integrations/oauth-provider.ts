@@ -13,7 +13,7 @@ export interface OAuthProviderConfig {
   scopes: string;
   redisStatePrefix: string;
   tokenSchema: z.ZodSchema;
-  tokenRequestStyle: "form" | "formdata" | "json";
+  bodyFormat: "form" | "formdata" | "json";
 }
 
 const codeExchangeSchema = z.object({
@@ -61,7 +61,7 @@ export class OAuthProvider<T extends z.ZodSchema> {
     let body: BodyInit;
     let headers: Record<string, string> = {};
 
-    switch (this.provider.tokenRequestStyle) {
+    switch (this.provider.bodyFormat) {
       case "form":
         headers["Content-Type"] = "application/x-www-form-urlencoded";
         body = new URLSearchParams({
