@@ -23,6 +23,7 @@ const codeExchangeSchema = z.object({
 export class OAuthProvider<T extends z.ZodSchema> {
   constructor(private provider: OAuthProviderConfig) {}
 
+  // Generate the authorization URL for the OAuth provider
   async generateAuthUrl(contextId: string) {
     const state = nanoid(16);
     await redis.set(`${this.provider.redisStatePrefix}:${state}`, contextId, {
@@ -40,6 +41,7 @@ export class OAuthProvider<T extends z.ZodSchema> {
     return `${this.provider.authUrl}?${searchParams.toString()}`;
   }
 
+  // Exchange the authorization code for a token
   async exchangeCodeForToken(request: Request): Promise<{
     contextId: string;
     token: z.infer<T>;
@@ -69,22 +71,50 @@ export class OAuthProvider<T extends z.ZodSchema> {
       }),
     });
 
-    const data = await response.json();
+    const result = await response.json();
 
     if (!response.ok) {
-      console.error(`[${this.provider.name}] exchangeCodeForToken`, data);
+      console.error(`[${this.provider.name}] exchangeCodeForToken`, result);
 
       throw new Error(
         `[${this.provider.name}] Failed to exchange authorization code. Please try again.`,
       );
     }
 
-    const token = this.provider.tokenSchema.parse(data);
+    const token = this.provider.tokenSchema.parse(result);
 
     return {
       token,
       contextId,
     };
+  }
+
+  // Refresh the token
+  async refreshToken(refreshToken: string): Promise<z.infer<T>> {
+    const response = await fetch(this.provider.tokenUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        grant_type: "refresh_token",
+        refresh_token: refreshToken,
+        client_id: this.provider.clientId,
+        client_secret: this.provider.clientSecret,
+      }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error(`[${this.provider.name}] refreshToken`, result);
+
+      throw new Error(
+        `[${this.provider.name}] Failed to refresh the access token. Please try again.`,
+      );
+    }
+
+    return this.provider.tokenSchema.parse(result);
   }
 }
 
