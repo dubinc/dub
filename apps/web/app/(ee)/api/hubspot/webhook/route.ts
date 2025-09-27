@@ -89,7 +89,7 @@ async function processWebhookEvent(event: any) {
     return;
   }
 
-  const workspace = installation.project;
+  const { project: workspace } = installation;
 
   // Refresh the access token if needed
   const authToken =

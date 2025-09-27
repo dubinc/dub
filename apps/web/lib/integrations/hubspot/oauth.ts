@@ -5,7 +5,9 @@ import { OAuthProvider, OAuthProviderConfig } from "../oauth-provider";
 import { hubSpotAuthTokenSchema } from "./schema";
 import { HubSpotAuthToken } from "./types";
 
-class HubSpotOAuthProvider extends OAuthProvider<typeof hubSpotAuthTokenSchema> {
+class HubSpotOAuthProvider extends OAuthProvider<
+  typeof hubSpotAuthTokenSchema
+> {
   constructor(config: OAuthProviderConfig) {
     super(config);
   }
@@ -19,7 +21,7 @@ class HubSpotOAuthProvider extends OAuthProvider<typeof hubSpotAuthTokenSchema> 
       return token;
     }
 
-    const newToken = await this.refreshToken(token.access_token);
+    const newToken = await this.refreshToken(token.refresh_token);
 
     const credentials = {
       ...newToken,

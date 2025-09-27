@@ -117,8 +117,3 @@ export class OAuthProvider<T extends z.ZodSchema> {
     return this.provider.tokenSchema.parse(result);
   }
 }
-
-// TODO:
-// HubSpot
-// Slack
-// PayPal
