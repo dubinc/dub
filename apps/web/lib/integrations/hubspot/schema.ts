@@ -19,14 +19,6 @@ export const hubSpotSettingsSchema = z.object({
     .describe("The ID of the deal stage that represents a closed won deal."),
 });
 
-export const hubSpotRefreshTokenSchema = z.object({
-  access_token: z.string(),
-  refresh_token: z.string(),
-  token_type: z.string(),
-  expires_in: z.number(),
-  id_token: z.string().nullable(),
-});
-
 // CRM
 export const hubSpotContactSchema = z.object({
   id: z.string(),

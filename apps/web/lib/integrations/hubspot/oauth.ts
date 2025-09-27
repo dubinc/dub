@@ -1,20 +1,11 @@
 import { prisma } from "@dub/prisma";
 import { InstalledIntegration } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { z } from "zod";
 import { OAuthProvider, OAuthProviderConfig } from "../oauth-provider";
+import { hubSpotAuthTokenSchema } from "./schema";
 import { HubSpotAuthToken } from "./types";
 
-const hubSpotTokenSchema = z.object({
-  access_token: z.string(),
-  refresh_token: z.string(),
-  scopes: z.array(z.string()),
-  hub_id: z.number(),
-  expires_in: z.number().describe("Expires in seconds."),
-  created_at: z.number().optional(),
-});
-
-class HubSpotOAuthProvider extends OAuthProvider<typeof hubSpotTokenSchema> {
+class HubSpotOAuthProvider extends OAuthProvider<typeof hubSpotAuthTokenSchema> {
   constructor(config: OAuthProviderConfig) {
     super(config);
   }
@@ -22,7 +13,7 @@ class HubSpotOAuthProvider extends OAuthProvider<typeof hubSpotTokenSchema> {
   async refreshTokenForInstallation(
     installation: InstalledIntegration,
   ): Promise<HubSpotAuthToken> {
-    const token = hubSpotTokenSchema.parse(installation.credentials);
+    const token = hubSpotAuthTokenSchema.parse(installation.credentials);
 
     if (this.isTokenValid(token)) {
       return token;
@@ -74,5 +65,5 @@ export const hubSpotOAuthProvider = new HubSpotOAuthProvider({
     "crm.objects.deals.read",
     "crm.schemas.contacts.write",
   ],
-  tokenSchema: hubSpotTokenSchema,
+  tokenSchema: hubSpotAuthTokenSchema,
 });

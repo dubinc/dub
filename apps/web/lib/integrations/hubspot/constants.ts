@@ -1,9 +1,3 @@
-export const HUBSPOT_CLIENT_ID = process.env.HUBSPOT_CLIENT_ID || "";
-
-export const HUBSPOT_CLIENT_SECRET = process.env.HUBSPOT_CLIENT_SECRET || "";
-
-export const HUBSPOT_API_HOST = "https://api.hubapi.com";
-
 export const HUBSPOT_OBJECT_TYPE_IDS = [
   "0-1", // contact
   "0-3", // deal
