@@ -5,11 +5,10 @@ import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyListProps,
-  EnrolledPartnerProps,
+  EnrolledPartnerExtendedProps,
   RewardProps,
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { EventDatum } from "@/ui/analytics/events/events-table";
 import {
   CalendarIcon,
   ChartActivity2,
@@ -39,29 +38,16 @@ export function PartnerInfoCards({
   selectedGroupId,
   setSelectedGroupId,
 }: {
-  partner?: EnrolledPartnerProps;
+  partner?: EnrolledPartnerExtendedProps;
 
   /** Partner statuses to hide badges for */
-  hideStatuses?: EnrolledPartnerProps["status"][];
+  hideStatuses?: EnrolledPartnerExtendedProps["status"][];
 
   // Only used for a controlled group selector that doesn't persist the selection itself
   selectedGroupId?: string | null;
   setSelectedGroupId?: (groupId: string) => void;
 }) {
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    defaultProgramId,
-  } = useWorkspace();
-
-  const { data: eventsData } = useSWR<EventDatum[]>(
-    workspaceId &&
-      defaultProgramId &&
-      partner &&
-      partner.status === "approved" &&
-      `/api/events?${new URLSearchParams({ workspaceId, programId: defaultProgramId, partnerId: partner.id, interval: "all", limit: "1" })}`,
-    fetcher,
-  );
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { group } = useGroup(
     {
@@ -83,13 +69,18 @@ export function PartnerInfoCards({
     ...(partner?.status === "approved"
       ? [
           {
-            id: "event",
+            id: "lastLeadAt",
             icon: <ChartActivity2 className="size-3.5" />,
-            text: eventsData
-              ? eventsData.length
-                ? `Last event ${timeAgo(new Date(eventsData[0].timestamp), { withAgo: true })}`
-                : null
-              : undefined,
+            text: partner.lastLeadAt
+              ? `Last lead event ${timeAgo(new Date(partner.lastLeadAt), { withAgo: true })}`
+              : null,
+          },
+          {
+            id: "lastConversionAt",
+            icon: <ChartActivity2 className="size-3.5" />,
+            text: partner.lastConversionAt
+              ? `Last conversion event ${timeAgo(new Date(partner.lastConversionAt), { withAgo: true })}`
+              : null,
           },
         ]
       : []),

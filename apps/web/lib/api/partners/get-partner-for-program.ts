@@ -27,6 +27,8 @@ export async function getPartnerForProgram({
       COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
       COALESCE(pe.totalCommissions, 0) as totalCommissions,
       COALESCE(metrics.totalSaleAmount, 0) - COALESCE(pe.totalCommissions, 0) as netRevenue,
+      metrics.lastLeadAt,
+      metrics.lastConversionAt,
       COALESCE(
         JSON_ARRAYAGG(
           IF(l.id IS NOT NULL,
@@ -63,7 +65,9 @@ export async function getPartnerForProgram({
         SUM(leads) as totalLeads,
         SUM(conversions) as totalConversions,
         SUM(sales) as totalSales,
-        SUM(saleAmount) as totalSaleAmount
+        SUM(saleAmount) as totalSaleAmount,
+        MAX(lastLeadAt) as lastLeadAt,
+        MAX(lastConversionAt) as lastConversionAt
       FROM Link
       WHERE programId = ${programId}
         AND partnerId = ${partnerId}
@@ -91,7 +95,7 @@ export async function getPartnerForProgram({
       pe.partnerId = ${partnerId}
       AND pe.programId = ${programId}
     GROUP BY 
-      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalConversions, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions
+      p.id, pe.id, metrics.totalClicks, metrics.totalLeads, metrics.totalConversions, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions, metrics.lastLeadAt, metrics.lastConversionAt
   `;
 
   if (!partner?.[0]) return null;
@@ -107,6 +111,10 @@ export async function getPartnerForProgram({
     saleAmount: Number(partner[0].totalSaleAmount),
     totalCommissions: Number(partner[0].totalCommissions),
     netRevenue: Number(partner[0].netRevenue),
+    lastLeadAt: partner[0].lastLeadAt ? new Date(partner[0].lastLeadAt) : null,
+    lastConversionAt: partner[0].lastConversionAt
+      ? new Date(partner[0].lastConversionAt)
+      : null,
     industryInterests: partner[0].industryInterests?.split(",") || undefined,
     preferredEarningStructures:
       partner[0].preferredEarningStructures?.split(",") || undefined,

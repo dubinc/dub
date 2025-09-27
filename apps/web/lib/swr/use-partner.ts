@@ -1,6 +1,6 @@
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
-import { EnrolledPartnerProps } from "../types";
+import { EnrolledPartnerExtendedProps } from "../types";
 import useWorkspace from "./use-workspace";
 
 export default function usePartner(
@@ -13,7 +13,7 @@ export default function usePartner(
 ) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, isLoading, error } = useSWR<EnrolledPartnerProps>(
+  const { data, isLoading, error } = useSWR<EnrolledPartnerExtendedProps>(
     partnerId &&
       workspaceId &&
       `/api/partners/${partnerId}?workspaceId=${workspaceId}`,

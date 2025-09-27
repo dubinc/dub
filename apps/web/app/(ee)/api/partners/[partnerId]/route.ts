@@ -2,7 +2,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getPartnerForProgram } from "@/lib/api/partners/get-partner-for-program";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { EnrolledPartnerSchemaExtended } from "@/lib/zod/schemas/partners";
 import { NextResponse } from "next/server";
 
 // GET /api/partners/:partnerId – Get a partner by ID
@@ -22,7 +22,7 @@ export const GET = withWorkspace(
         message: "Partner not found.",
       });
 
-    return NextResponse.json(EnrolledPartnerSchema.parse(partner));
+    return NextResponse.json(EnrolledPartnerSchemaExtended.parse(partner));
   },
   {
     requiredPlan: [
