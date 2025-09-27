@@ -241,7 +241,7 @@ const createShortLink = async ({
         elements: [
           {
             type: "mrkdwn",
-            text: `*Created by* ${user.name} | ${createdAtDate} | <${APP_DOMAIN}/${workspace.slug}?search=${shortLink} | View on Dub>`,
+            text: `*Created by* ${user.name} | ${createdAtDate} | <${APP_DOMAIN}/${workspace.slug}/links/${link.domain}/${link.key} | View on Dub>`,
           },
         ],
       },
