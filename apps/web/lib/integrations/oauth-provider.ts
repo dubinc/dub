@@ -101,8 +101,6 @@ export class OAuthProvider<T extends z.ZodSchema> {
 
     const result = await response.json();
 
-    console.log("result", result)
-
     if (!response.ok) {
       console.error(`[${this.provider.name}] exchangeCodeForToken`, result);
 
