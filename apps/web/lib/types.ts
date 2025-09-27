@@ -24,10 +24,6 @@ import {
   FOLDER_PERMISSIONS,
   FOLDER_WORKSPACE_ACCESS,
 } from "./folder/constants";
-import {
-  hubSpotAuthTokenSchema,
-  hubSpotContactSchema,
-} from "./integrations/hubspot/schema";
 import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   BountyListSchema,

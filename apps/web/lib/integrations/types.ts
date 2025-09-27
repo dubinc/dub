@@ -21,6 +21,5 @@ export type SlackAuthToken = {
   incomingWebhook: {
     channel: string;
     channelId: string;
-
   };
 };

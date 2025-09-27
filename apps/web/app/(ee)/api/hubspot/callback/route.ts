@@ -80,7 +80,7 @@ export const GET = async (req: Request) => {
       },
       select: {
         id: true,
-      }
+      },
     });
 
     const credentials = {
