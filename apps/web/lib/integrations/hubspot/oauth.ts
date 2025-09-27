@@ -8,10 +8,12 @@ const hubSpotTokenSchema = z.object({
   scopes: z.array(z.string()),
   hub_id: z.number(),
   expires_in: z.number().describe("Expires in seconds."),
-  created_at: z.number(),
+  created_at: z.number().optional(),
 });
 
-export const hubSpotOAuthProvider = new OAuthProvider<typeof hubSpotTokenSchema>({
+export const hubSpotOAuthProvider = new OAuthProvider<
+  typeof hubSpotTokenSchema
+>({
   name: "HubSpot",
   clientId: process.env.HUBSPOT_CLIENT_ID || "",
   clientSecret: process.env.HUBSPOT_CLIENT_SECRET || "",

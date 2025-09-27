@@ -49,7 +49,6 @@ export class OAuthProvider<T extends z.ZodSchema> {
     );
 
     const stateKey = `${this.provider.redisStatePrefix}:${state}`;
-
     const contextId = await redis.getdel<string>(stateKey);
 
     if (!contextId) {
