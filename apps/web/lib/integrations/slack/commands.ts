@@ -5,16 +5,9 @@ import { createLinkBodySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
 import { APP_DOMAIN, SLACK_INTEGRATION_ID } from "@dub/utils";
-import { SlackCredential } from "./type";
+import { SlackAuthToken } from "../types";
+import { slackSlashCommandSchema } from "./schema";
 import { verifySlackSignature } from "./verify-request";
-
-const schema = z.object({
-  api_app_id: z.string(),
-  team_id: z.string(),
-  user_id: z.string(),
-  text: z.string().transform((text) => text.trim().split(" ")),
-  command: z.enum(["/shorten"]),
-});
 
 // Handle slash command from Slack
 export const handleSlashCommand = async (req: Request) => {
@@ -24,7 +17,7 @@ export const handleSlashCommand = async (req: Request) => {
 
   const rawFormData = new URLSearchParams(body);
   const formData = Object.fromEntries(rawFormData.entries());
-  const parsedInput = schema.safeParse(formData);
+  const parsedInput = slackSlashCommandSchema.safeParse(formData);
 
   if (!parsedInput.success) {
     return {
@@ -81,7 +74,7 @@ export const handleSlashCommand = async (req: Request) => {
   }
 
   // Find Dub user matching the Slack user profile
-  const credentials = installation.credentials as SlackCredential;
+  const credentials = installation.credentials as SlackAuthToken;
   const slackUser = await findSlackUser({
     userId: data.user_id,
     credentials,
@@ -150,7 +143,7 @@ const findSlackUser = async ({
   credentials,
 }: {
   userId: string;
-  credentials: SlackCredential;
+  credentials: SlackAuthToken;
 }) => {
   const response = await fetch(
     `https://slack.com/api/users.profile.get?user=${userId}`,
@@ -178,7 +171,7 @@ const createShortLink = async ({
   workspace,
   user,
 }: {
-  data: z.infer<typeof schema>;
+  data: z.infer<typeof slackSlashCommandSchema>;
   workspace: WorkspaceProps;
   user: Pick<User, "id" | "name">;
 }) => {

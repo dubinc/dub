@@ -2,14 +2,14 @@ import { prisma } from "@dub/prisma";
 import { InstalledIntegration } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { OAuthProvider, OAuthProviderConfig } from "../oauth-provider";
+import { HubSpotAuthToken } from "../types";
 import { hubSpotAuthTokenSchema } from "./schema";
-import { HubSpotAuthToken } from "./types";
 
 class HubSpotOAuthProvider extends OAuthProvider<
   typeof hubSpotAuthTokenSchema
 > {
-  constructor(config: OAuthProviderConfig) {
-    super(config);
+  constructor(provider: OAuthProviderConfig) {
+    super(provider);
   }
 
   async refreshTokenForInstallation(
@@ -54,8 +54,8 @@ class HubSpotOAuthProvider extends OAuthProvider<
 
 export const hubSpotOAuthProvider = new HubSpotOAuthProvider({
   name: "HubSpot",
-  clientId: process.env.HUBSPOT_CLIENT_ID || "",
-  clientSecret: process.env.HUBSPOT_CLIENT_SECRET || "",
+  clientId: process.env.HUBSPOT_CLIENT_ID!,
+  clientSecret: process.env.HUBSPOT_CLIENT_SECRET!,
   authUrl: "https://app.hubspot.com/oauth/authorize",
   tokenUrl: "https://api.hubapi.com/oauth/v1/token",
   redirectUri: `${APP_DOMAIN_WITH_NGROK}/api/hubspot/callback`,
@@ -68,4 +68,5 @@ export const hubSpotOAuthProvider = new HubSpotOAuthProvider({
     "crm.schemas.contacts.write",
   ].join(" "),
   tokenSchema: hubSpotAuthTokenSchema,
+  tokenRequestStyle: "form",
 });

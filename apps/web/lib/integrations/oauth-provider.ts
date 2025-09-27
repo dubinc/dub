@@ -13,6 +13,7 @@ export interface OAuthProviderConfig {
   scopes: string;
   redisStatePrefix: string;
   tokenSchema: z.ZodSchema;
+  tokenRequestStyle: "form" | "formdata" | "json";
 }
 
 const codeExchangeSchema = z.object({
@@ -57,21 +58,50 @@ export class OAuthProvider<T extends z.ZodSchema> {
       throw new Error(`[${this.provider.name}] Invalid or expired state.`);
     }
 
+    let body: BodyInit;
+    let headers: Record<string, string> = {};
+
+    switch (this.provider.tokenRequestStyle) {
+      case "form":
+        headers["Content-Type"] = "application/x-www-form-urlencoded";
+        body = new URLSearchParams({
+          code,
+          client_id: this.provider.clientId,
+          client_secret: this.provider.clientSecret,
+          redirect_uri: this.provider.redirectUri,
+          grant_type: "authorization_code",
+        });
+        break;
+
+      case "formdata":
+        const formData = new FormData();
+        formData.append("code", code);
+        formData.append("client_id", this.provider.clientId);
+        formData.append("client_secret", this.provider.clientSecret);
+        formData.append("redirect_uri", this.provider.redirectUri);
+        body = formData;
+        break;
+
+      case "json":
+        headers["Content-Type"] = "application/json";
+        body = JSON.stringify({
+          code,
+          client_id: this.provider.clientId,
+          client_secret: this.provider.clientSecret,
+          redirect_uri: this.provider.redirectUri,
+        });
+        break;
+    }
+
     const response = await fetch(this.provider.tokenUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: new URLSearchParams({
-        code,
-        client_id: this.provider.clientId,
-        client_secret: this.provider.clientSecret,
-        redirect_uri: this.provider.redirectUri,
-        grant_type: "authorization_code",
-      }),
+      headers,
+      body,
     });
 
     const result = await response.json();
+
+    console.log("result", result)
 
     if (!response.ok) {
       console.error(`[${this.provider.name}] exchangeCodeForToken`, result);

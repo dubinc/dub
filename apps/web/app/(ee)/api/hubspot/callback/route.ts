@@ -78,6 +78,9 @@ export const GET = async (req: Request) => {
       where: {
         slug: "hubspot",
       },
+      select: {
+        id: true,
+      }
     });
 
     const credentials = {
