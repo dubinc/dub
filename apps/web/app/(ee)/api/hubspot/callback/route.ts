@@ -1,30 +1,15 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
 import { HubSpotApi } from "@/lib/integrations/hubspot/api";
-import {
-  HUBSPOT_API_HOST,
-  HUBSPOT_CLIENT_ID,
-  HUBSPOT_CLIENT_SECRET,
-  HUBSPOT_DUB_CONTACT_PROPERTIES,
-  HUBSPOT_REDIRECT_URI,
-  HUBSPOT_STATE_CACHE_PREFIX,
-} from "@/lib/integrations/hubspot/constants";
-import { hubSpotAuthTokenSchema } from "@/lib/integrations/hubspot/schema";
+import { HUBSPOT_DUB_CONTACT_PROPERTIES } from "@/lib/integrations/hubspot/constants";
+import { hubSpotOAuthProvider } from "@/lib/integrations/hubspot/oauth";
 import { installIntegration } from "@/lib/integrations/install";
 import { WorkspaceProps } from "@/lib/types";
-import { redis } from "@/lib/upstash";
-import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
-import { getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
-
-const oAuthCallbackSchema = z.object({
-  code: z.string(),
-  state: z.string(),
-});
 
 // GET /api/hubspot/callback - OAuth callback from HubSpot
 export const GET = async (req: Request) => {
@@ -42,13 +27,6 @@ export const GET = async (req: Request) => {
   }
 
   try {
-    if (!HUBSPOT_CLIENT_ID || !HUBSPOT_CLIENT_SECRET) {
-      throw new DubApiError({
-        code: "internal_server_error",
-        message: "Missing HubSpot OAuth credentials (client id/secret).",
-      });
-    }
-
     const session = await getSession();
 
     if (!session?.user.id) {
@@ -58,19 +36,8 @@ export const GET = async (req: Request) => {
       });
     }
 
-    const { code, state } = oAuthCallbackSchema.parse(getSearchParams(req.url));
-
-    const stateKey = `${HUBSPOT_STATE_CACHE_PREFIX}:${state}`;
-
-    // Find workspace that initiated the install
-    const workspaceId = await redis.getdel<string>(stateKey);
-
-    if (!workspaceId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Unknown state. Please try again.",
-      });
-    }
+    const { token, contextId: workspaceId } =
+      await hubSpotOAuthProvider.exchangeCodeForToken(req);
 
     workspace = await prisma.project.findUniqueOrThrow({
       where: {
@@ -107,48 +74,17 @@ export const GET = async (req: Request) => {
       });
     }
 
-    const body = new URLSearchParams({
-      code,
-      grant_type: "authorization_code",
-      redirect_uri: HUBSPOT_REDIRECT_URI,
-      client_id: HUBSPOT_CLIENT_ID,
-      client_secret: HUBSPOT_CLIENT_SECRET,
-    });
-
-    // Exchange authorization code for access token
-    const response = await fetch(`${HUBSPOT_API_HOST}/oauth/v1/token`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body,
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      console.error(result);
-
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "[HubSpot] Failed to exchange authorization code for access token",
-      });
-    }
-
-    // Find the integration
     const integration = await prisma.integration.findUniqueOrThrow({
       where: {
         slug: "hubspot",
       },
     });
 
-    const credentials = hubSpotAuthTokenSchema.parse({
-      ...result,
+    const credentials = {
+      ...token,
       created_at: Date.now(),
-    });
+    };
 
-    // Install the integration
     const installedIntegration = await installIntegration({
       integrationId: integration.id,
       userId: session.user.id,
@@ -156,20 +92,18 @@ export const GET = async (req: Request) => {
       credentials,
     });
 
-    waitUntil(
-      (async () => {
-        if (installedIntegration) {
-          const hubSpotApi = new HubSpotApi({
-            token: credentials.access_token,
-          });
+    if (installedIntegration) {
+      const hubSpotApi = new HubSpotApi({
+        token: credentials.access_token,
+      });
 
-          await hubSpotApi.createPropertiesBatch({
-            objectType: "0-1",
-            properties: HUBSPOT_DUB_CONTACT_PROPERTIES,
-          });
-        }
-      })(),
-    );
+      waitUntil(
+        hubSpotApi.createPropertiesBatch({
+          objectType: "0-1",
+          properties: HUBSPOT_DUB_CONTACT_PROPERTIES,
+        }),
+      );
+    }
   } catch (e: any) {
     return handleAndReturnErrorResponse(e);
   }

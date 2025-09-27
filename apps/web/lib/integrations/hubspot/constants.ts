@@ -4,6 +4,10 @@ export const HUBSPOT_CLIENT_ID = process.env.HUBSPOT_CLIENT_ID || "";
 
 export const HUBSPOT_CLIENT_SECRET = process.env.HUBSPOT_CLIENT_SECRET || "";
 
+export const HUBSPOT_AUTH_URL = "https://app.hubspot.com/oauth/authorize";
+
+export const HUBSPOT_TOKEN_URL = "https://api.hubapi.com/oauth/v1/token";
+
 export const HUBSPOT_REDIRECT_URI =
   process.env.HUBSPOT_REDIRECT_URI ||
   `${APP_DOMAIN_WITH_NGROK}/api/hubspot/callback`;
@@ -51,3 +55,6 @@ export const HUBSPOT_DUB_CONTACT_PROPERTIES = [
     groupName: "contactinformation",
   },
 ];
+
+// TODO:
+// Check if we need all these constants to be exported

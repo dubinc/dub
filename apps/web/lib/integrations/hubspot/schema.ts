@@ -8,7 +8,7 @@ export const hubSpotAuthTokenSchema = z.object({
   scopes: z.array(z.string()),
   hub_id: z.number(),
   expires_in: z.number().describe("Expires in seconds."),
-  created_at: z.number(),
+  created_at: z.number().optional(),
 });
 
 // Integration settings
