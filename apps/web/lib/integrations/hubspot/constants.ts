@@ -29,6 +29,3 @@ export const HUBSPOT_DUB_CONTACT_PROPERTIES = [
     groupName: "contactinformation",
   },
 ];
-
-// TODO:
-// Check if we need all these constants to be exported
