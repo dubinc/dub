@@ -66,6 +66,6 @@ export const hubSpotOAuthProvider = new HubSpotOAuthProvider({
     "crm.objects.contacts.write",
     "crm.objects.deals.read",
     "crm.schemas.contacts.write",
-  ],
+  ].join(" "),
   tokenSchema: hubSpotAuthTokenSchema,
 });

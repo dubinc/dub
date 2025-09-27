@@ -10,7 +10,7 @@ export interface OAuthProviderConfig {
   authUrl: string;
   tokenUrl: string;
   redirectUri: string;
-  scopes: string[];
+  scopes: string;
   redisStatePrefix: string;
   tokenSchema: z.ZodSchema;
 }
@@ -33,7 +33,7 @@ export class OAuthProvider<T extends z.ZodSchema> {
     const searchParams = new URLSearchParams({
       client_id: this.provider.clientId,
       redirect_uri: this.provider.redirectUri,
-      scope: this.provider.scopes.join(" "),
+      scope: this.provider.scopes,
       response_type: "code",
       state,
     });
