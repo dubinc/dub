@@ -1,31 +1,41 @@
-import { EventsFilters } from "./types";
+import {
+  allowedOperands,
+  InternalFilter,
+  LogicalOperator,
+  MAX_FILTERS,
+  ParsedQuery,
+  parseFilter,
+} from "./query-parser-utilts";
 
-interface InternalFilter {
-  operand: string;
-  operator:
-    | "equals"
-    | "notEquals"
-    | "greaterThan"
-    | "lessThan"
-    | "greaterThanOrEqual"
-    | "lessThanOrEqual";
-  value: string;
-}
-
-// Query parser that can parse the query string into a list of filters
 export const queryParser = (
-  query: EventsFilters["query"],
-  allowedOperands = ["metadata"],
-) => {
+  query: string | undefined,
+): ParsedQuery | undefined => {
   if (!query) {
     return undefined;
   }
 
-  const filters: InternalFilter[] = [];
+  // Check for unsupported logical operators
+  const unsupportedOperators = query.match(
+    /\s+(?!(?:AND|and|OR|or)\b)\b[A-Za-z]{2,}\s+/,
+  );
+
+  if (unsupportedOperators) {
+    throw new Error("Query must use either AND or OR.");
+  }
+
+  // Check for mixed AND/OR operators
+  const hasAnd = /\s+(?:AND|and)\s+/.test(query);
+  const hasOr = /\s+(?:OR|or)\s+/.test(query);
+
+  if (hasAnd && hasOr) {
+    throw new Error(
+      "Query must use either AND or OR exclusively. Mixed logic is not allowed.",
+    );
+  }
 
   // Split the query by logical operators (AND/OR) to handle multiple conditions
-  // For now, we'll focus on single conditions, but this structure allows for future expansion
   const conditions = query.split(/\s+(?:AND|and|OR|or)\s+/);
+  const filters: InternalFilter[] = [];
 
   for (const condition of conditions) {
     const trimmedCondition = condition.trim();
@@ -34,93 +44,56 @@ export const queryParser = (
       continue;
     }
 
-    const filter = parseCondition(trimmedCondition);
+    const filter = parseFilter(trimmedCondition);
 
     if (!filter) {
       continue;
     }
 
-    const isAllowed = allowedOperands.some((allowed) => {
-      if (filter.operand === allowed) {
-        return true;
-      }
-
-      if (filter.operand.startsWith(`${allowed}.`)) {
-        return true;
-      }
-
-      return false;
-    });
+    // Check if the operand is allowed
+    const isAllowed = allowedOperands.some(
+      (allowed) =>
+        filter.operand === allowed || filter.operand.startsWith(`${allowed}.`),
+    );
 
     if (!isAllowed) {
-      continue;
+      throw new Error(
+        `Field ${filter.operand} is an unsupported search field.`,
+      );
     }
 
     filters.push(filter);
   }
 
-  return filters.length > 0 ? filters : undefined;
-};
-
-// Parses a single condition in the format: field:value, field>value, or metadata['key']:value
-function parseCondition(condition: string): InternalFilter | null {
-  // This regex captures:
-  // 1. field - either a regular field name OR metadata with bracket notation (supports both single and double quotes)
-  // 2. operator - :, >, <, >=, <=, !=
-  // 3. value - the value after the operator (supports quoted and unquoted values)
-  const unifiedPattern =
-    /^([a-zA-Z_][a-zA-Z0-9_]*|metadata\[['"][^'"]*['"]\](?:\[['"][^'"]*['"]\])*)\s*([:><=!]+)\s*(.+)$/;
-
-  const match = condition.match(unifiedPattern);
-
-  if (!match) {
-    return null;
+  if (filters.length > MAX_FILTERS) {
+    throw new Error(
+      `Maximum number of filters exceeded. (Max: ${MAX_FILTERS})`,
+    );
   }
 
-  // Extract the matched groups
-  const [, fieldOrMetadata, operator, value] = match;
+  // Determine the logical operator used
+  const logicalOperator: LogicalOperator = hasAnd
+    ? "AND"
+    : hasOr
+      ? "OR"
+      : "AND";
 
-  let operand: string;
-
-  // Determine the operand based on whether it's metadata or a regular field
-  if (fieldOrMetadata.startsWith("metadata")) {
-    const keyPath = fieldOrMetadata.replace(/^metadata/, "");
-
-    const extractedKey = keyPath
-      .replace(/^\[['"]|['"]\]$/g, "") // Remove leading [' or [" and trailing '] or "]
-      .replace(/\[['"]/g, ".") // Replace [' or [" with .
-      .replace(/['"]\]/g, ""); // Remove trailing '] or "]
-
-    operand = `metadata.${extractedKey}`;
-  } else {
-    operand = fieldOrMetadata;
+  if (filters.length === 0) {
+    return;
   }
 
-  return {
-    operand,
-    operator: mapOperator(operator),
-    value: value.trim().replace(/^['"`]|['"`]$/g, ""),
+  // Transform the parsed filters to a format that can be used by Tinybird
+  const parsedQuery: ParsedQuery = {
+    filters: {},
+    logicalOperator,
   };
-}
 
-// Maps operator strings to our internal operator types
-function mapOperator(operator: string): InternalFilter["operator"] {
-  switch (operator) {
-    case ":":
-    case "=":
-      return "equals";
-    case ">":
-      return "greaterThan";
-    case "<":
-      return "lessThan";
-    case ">=":
-      return "greaterThanOrEqual";
-    case "<=":
-      return "lessThanOrEqual";
-    case "!=":
-      return "notEquals";
-    default:
-      // For unsupported operators, default to equals
-      return "equals";
+  for (const filter of filters) {
+    parsedQuery.filters[filter.operand] = {
+      operator: filter.operator,
+      value: filter.value,
+    };
   }
-}
+
+  return parsedQuery;
+};
