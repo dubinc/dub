@@ -11,7 +11,11 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export const GET = async (req: Request) => {
-  let workspace: Pick<Project, "id" | "slug" | "plan"> | null = null;
+  let workspace:
+    | (Pick<Project, "id" | "slug" | "plan"> & {
+        users: Array<{ role: string }>;
+      })
+    | null = null;
 
   try {
     const session = await getSession();
@@ -34,8 +38,21 @@ export const GET = async (req: Request) => {
         id: true,
         slug: true,
         plan: true,
+        users: {
+          where: {
+            userId: session.user.id,
+          },
+        },
       },
     });
+
+    // Check if the user is a member of the workspace
+    if (workspace.users.length === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "You are not a member of this workspace. ",
+      });
+    }
 
     const integration = await prisma.integration.findUniqueOrThrow({
       where: {
