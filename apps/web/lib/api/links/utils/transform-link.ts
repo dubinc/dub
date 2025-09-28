@@ -1,6 +1,6 @@
 import { DiscountProps, PartnerProps } from "@/lib/types";
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
-import { prefixWorkspaceId } from "../../workspace-id";
+import { prefixWorkspaceId } from "../../workspaces/workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 
 // used in API (e.g. transformLink)

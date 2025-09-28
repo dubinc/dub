@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
 import { VariantProps, cva } from "class-variance-authority";
-import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { motion } from "motion/react";
 import * as React from "react";
 import { AUTOPLAY_DEFAULT_DELAY, CarouselApi, useCarousel } from "./carousel";
 

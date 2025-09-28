@@ -5,13 +5,15 @@ import { cookies } from "next/headers";
  * @param workspace - The workspace identifier to lookup the product for
  * @returns The product ("links" or "program"), defaults to "links"
  */
-export const getDubProductFromCookie = (
+export const getDubProductFromCookie = async (
   workspace: string,
-): "links" | "program" => {
+): Promise<"links" | "program"> => {
   // Default to links
   let product: "links" | "program" = "links";
 
-  const productCookie = cookies().get(`dub_product:${workspace}`)?.value;
+  const productCookie = (await cookies()).get(
+    `dub_product:${workspace}`,
+  )?.value;
 
   if (productCookie && ["links", "program"].includes(productCookie)) {
     product = productCookie as "links" | "program";

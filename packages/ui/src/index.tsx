@@ -67,6 +67,7 @@ export * from "./icon-menu";
 export * from "./inline-snippet";
 export * from "./link-logo";
 export * from "./link-preview";
+export * from "./motion-constants";
 export * from "./popup";
 export * from "./progress-bar";
 export * from "./tab-select";

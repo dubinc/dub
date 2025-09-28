@@ -1,7 +1,7 @@
 import { usePartnerCommentsCount } from "@/lib/swr/use-partner-comments-count";
 import { Msg, User } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { LayoutGroup, motion } from "framer-motion";
+import { LayoutGroup, motion } from "motion/react";
 import { Dispatch, SetStateAction, useId, useMemo } from "react";
 
 export function PartnerApplicationTabs({

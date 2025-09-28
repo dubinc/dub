@@ -18,7 +18,7 @@ import {
   buttonVariants,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { RefObject, useEffect, useRef } from "react";
 import {
@@ -134,7 +134,7 @@ function BasicInfoForm({
   formRef,
 }: {
   partner?: PartnerProps;
-  formRef: RefObject<HTMLFormElement>;
+  formRef: RefObject<HTMLFormElement | null>;
 }) {
   const {
     register,

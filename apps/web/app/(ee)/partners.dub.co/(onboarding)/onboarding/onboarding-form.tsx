@@ -13,7 +13,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils/src/functions";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";

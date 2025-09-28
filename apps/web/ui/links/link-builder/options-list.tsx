@@ -7,7 +7,7 @@ import { AlertCircleFill, CheckCircleFill, X } from "@/ui/shared/icons";
 import { SimpleTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
 import { fetcher, isValidUrl as isValidUrlFn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { ReactNode, useMemo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import useSWR from "swr";

@@ -5,11 +5,12 @@ import IntegrationPageClient from "./page-client";
 
 export const revalidate = 0;
 
-export default async function IntegrationPage({
-  params,
-}: {
-  params: { slug: string; integrationSlug: string };
-}) {
+export default async function IntegrationPage(
+  props: {
+    params: Promise<{ slug: string; integrationSlug: string }>;
+  }
+) {
+  const params = await props.params;
   const integration = await prisma.integration.findUnique({
     where: {
       slug: params.integrationSlug,

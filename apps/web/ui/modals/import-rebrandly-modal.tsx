@@ -15,8 +15,8 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
-import { motion } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
+import { motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,

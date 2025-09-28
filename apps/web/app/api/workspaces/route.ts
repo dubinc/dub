@@ -1,5 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
-import { createWorkspaceId, prefixWorkspaceId } from "@/lib/api/workspace-id";
+import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { createWorkspaceId } from "@/lib/api/workspaces/create-workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import { storage } from "@/lib/storage";
@@ -10,12 +12,7 @@ import {
 import { subscribe } from "@dub/email/resend/subscribe";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import {
-  FREE_WORKSPACES_LIMIT,
-  generateRandomString,
-  nanoid,
-  R2_URL,
-} from "@dub/utils";
+import { FREE_WORKSPACES_LIMIT, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

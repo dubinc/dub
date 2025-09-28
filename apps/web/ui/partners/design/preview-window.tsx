@@ -16,7 +16,7 @@ export function PreviewWindow({
   children,
 }: PropsWithChildren<{
   url: string;
-  scrollRef?: RefObject<HTMLDivElement>;
+  scrollRef?: RefObject<HTMLDivElement | null>;
   showViewButton?: boolean;
   className?: string;
   contentClassName?: string;

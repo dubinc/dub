@@ -1,14 +1,14 @@
-import { getDomainViaEdge } from "@/lib/planetscale/get-domain-via-edge";
 import { BubbleIcon } from "@/ui/placeholders/bubble-icon";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { CTA } from "@/ui/placeholders/cta";
 import { FeaturesSection } from "@/ui/placeholders/features-section";
 import { Hero } from "@/ui/placeholders/hero";
+import { prisma } from "@dub/prisma";
 import { CircleHalfDottedClock, Footer, Nav, NavMobile } from "@dub/ui";
 import { cn, constructMetadata, createHref } from "@dub/utils";
 import { redirect } from "next/navigation";
 
-export const runtime = "edge";
+export const revalidate = false; // cache indefinitely
 
 export const metadata = constructMetadata({
   title: "Expired Link",
@@ -22,15 +22,18 @@ const UTM_PARAMS = {
   utm_medium: "Expired Link Page",
 };
 
-export default async function ExpiredLinkPage({
-  params,
-}: {
-  params: { domain: string };
+export default async function ExpiredLinkPage(props: {
+  params: Promise<{ domain: string }>;
 }) {
-  const domainEdge = await getDomainViaEdge(params.domain);
+  const { domain } = await props.params;
+  const domainData = await prisma.domain.findUnique({
+    where: {
+      slug: domain,
+    },
+  });
 
-  if (domainEdge?.expiredUrl) {
-    redirect(domainEdge.expiredUrl);
+  if (domainData?.expiredUrl) {
+    redirect(domainData.expiredUrl);
   }
 
   return (
@@ -73,9 +76,9 @@ export default async function ExpiredLinkPage({
             </ButtonLink>
             <ButtonLink
               variant="secondary"
-              href={createHref("/links", params.domain, {
+              href={createHref("/links", domain, {
                 ...UTM_PARAMS,
-                utm_campaign: params.domain,
+                utm_campaign: domain,
                 utm_content: "Learn more",
               })}
             >
@@ -84,10 +87,10 @@ export default async function ExpiredLinkPage({
           </div>
         </Hero>
         <div className="mt-20">
-          <FeaturesSection domain={params.domain} utmParams={UTM_PARAMS} />
+          <FeaturesSection domain={domain} utmParams={UTM_PARAMS} />
         </div>
         <div className="mt-32">
-          <CTA domain={params.domain} utmParams={UTM_PARAMS} />
+          <CTA domain={domain} utmParams={UTM_PARAMS} />
         </div>
       </div>
       <Footer className="max-w-screen-lg border-0 bg-transparent lg:px-4 xl:px-0" />
