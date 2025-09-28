@@ -69,4 +69,5 @@ export const hubSpotOAuthProvider = new HubSpotOAuthProvider({
   ].join(" "),
   tokenSchema: hubSpotAuthTokenSchema,
   bodyFormat: "form",
+  authorizationMethod: "body",
 });
