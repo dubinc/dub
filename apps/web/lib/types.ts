@@ -68,6 +68,7 @@ import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
+  EnrolledPartnerSchemaExtended,
   PartnerSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
@@ -436,6 +437,10 @@ export type PartnerProfileCustomerProps = z.infer<
 export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
+
+export type EnrolledPartnerExtendedProps = z.infer<
+  typeof EnrolledPartnerSchemaExtended
+>;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
 
