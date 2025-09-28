@@ -1,14 +1,17 @@
 import z from "@/lib/zod";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Crown, Table, Tooltip, Users, useTable } from "@dub/ui";
 import {
-  currencyFormatter,
-  fetcher,
+  Crown,
   TAB_ITEM_ANIMATION_SETTINGS,
-} from "@dub/utils";
+  Table,
+  Tooltip,
+  Users,
+  useTable,
+} from "@dub/ui";
+import { currencyFormatter, fetcher } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
 

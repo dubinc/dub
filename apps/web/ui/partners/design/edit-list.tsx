@@ -7,7 +7,7 @@ import {
   motion,
   Reorder,
   useDragControls,
-} from "framer-motion";
+} from "motion/react";
 import {
   createContext,
   Dispatch,

@@ -1,16 +1,22 @@
 import { PartnerGroupProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { Button, CopyButton, Table, Users, useTable } from "@dub/ui";
+import {
+  Button,
+  CopyButton,
+  TAB_ITEM_ANIMATION_SETTINGS,
+  Table,
+  Users,
+  useTable,
+} from "@dub/ui";
 import { Pen2, Plus2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
   fetcher,
   getPrettyUrl,
   nFormatter,
-  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
 import { Program } from "@prisma/client";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
 import { useEmbedToken } from "../use-embed-token";

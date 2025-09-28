@@ -8,7 +8,7 @@ import {
 } from "@dub/utils";
 import { useMemo } from "react";
 import useSWR from "swr";
-import { prefixWorkspaceId } from "../api/workspace-id";
+import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import useDefaultDomains from "./use-default-domains";
 import useWorkspace from "./use-workspace";
 

@@ -57,7 +57,7 @@ export function FilterSelect({
   const listDimensions = useRef<{
     width: number;
     height: number;
-  }>();
+  }>(undefined);
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -255,14 +255,14 @@ export function FilterSelect({
                         );
                       }) ?? (
                       // Filter options loading state
-                      <Command.Loading>
+                      (<Command.Loading>
                         <div
                           className="-m-1 flex items-center justify-center"
                           style={listDimensions.current}
                         >
                           <LoadingSpinner />
                         </div>
-                      </Command.Loading>
+                      </Command.Loading>)
                     )}
 
                 {/* Only render CommandEmpty if not loading */}

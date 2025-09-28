@@ -1,5 +1,5 @@
 import { get } from "@vercel/edge-config";
-import { prefixWorkspaceId } from "../api/workspace-id";
+import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import { BetaFeatures } from "../types";
 
 type BetaFeaturesRecord = Record<BetaFeatures, string[]>;

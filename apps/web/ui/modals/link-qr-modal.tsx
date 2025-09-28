@@ -29,7 +29,7 @@ import {
   Photo,
 } from "@dub/ui/icons";
 import { API_DOMAIN, cn, DUB_QR_LOGO, linkConstructor } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Dispatch,
   PropsWithChildren,

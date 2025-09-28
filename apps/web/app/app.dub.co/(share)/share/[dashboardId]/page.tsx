@@ -9,11 +9,12 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import DashboardPasswordForm from "./form";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { dashboardId: string };
-}) {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ dashboardId: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await getDashboard({ id: params.dashboardId });
 
   // if the dashboard or link doesn't exist
@@ -28,11 +29,12 @@ export async function generateMetadata({
   });
 }
 
-export default async function DashboardPage({
-  params,
-}: {
-  params: { dashboardId: string };
-}) {
+export default async function DashboardPage(
+  props: {
+    params: Promise<{ dashboardId: string }>;
+  }
+) {
+  const params = await props.params;
   const data = await getDashboard({ id: params.dashboardId });
 
   // if the dashboard or link doesn't exist
@@ -42,7 +44,7 @@ export default async function DashboardPage({
 
   if (
     data.password &&
-    cookies().get(`dub_password_${params.dashboardId}`)?.value !== data.password
+    (await cookies()).get(`dub_password_${params.dashboardId}`)?.value !== data.password
   ) {
     return (
       <main className="flex h-screen w-screen items-center justify-center">

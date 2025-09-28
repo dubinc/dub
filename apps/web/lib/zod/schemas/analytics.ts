@@ -6,7 +6,7 @@ import {
   TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
-import { prefixWorkspaceId } from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,

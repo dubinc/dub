@@ -5,7 +5,6 @@ export * from "./countries";
 export * from "./country-phone-codes";
 export * from "./domains";
 export * from "./dub-domains";
-export * from "./framer-motion";
 export * from "./integrations";
 export * from "./layout";
 export * from "./localhost";

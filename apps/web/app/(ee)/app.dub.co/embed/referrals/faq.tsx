@@ -8,9 +8,9 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/ui";
-import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export function ReferralsEmbedFAQ({
   program,

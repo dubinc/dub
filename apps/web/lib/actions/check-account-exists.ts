@@ -1,11 +1,11 @@
 "use server";
 
+import { getIP } from "@/lib/api/utils/get-ip";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { APP_HOSTNAMES } from "@dub/utils";
 import { headers } from "next/headers";
-import { getIP } from "../api/utils";
-import { isGenericEmail } from "../emails";
+import { isGenericEmail } from "../is-generic-email";
 import z from "../zod";
 import { emailSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -23,7 +23,7 @@ export const checkAccountExistsAction = actionClient
     const { email } = parsedInput;
 
     const { success } = await ratelimit(8, "1 m").limit(
-      `account-exists:${getIP()}`,
+      `account-exists:${await getIP()}`,
     );
 
     if (!success) {

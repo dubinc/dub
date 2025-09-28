@@ -4,7 +4,7 @@ import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
 import { Area } from "@visx/shape";
 import { Text } from "@visx/text";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { useMediaQuery } from "../hooks";
 

@@ -2,7 +2,7 @@
 
 import { APP_DOMAIN, cn, createHref, fetcher } from "@dub/utils";
 import * as NavigationMenuPrimitive from "@radix-ui/react-navigation-menu";
-import { LayoutGroup } from "framer-motion";
+import { LayoutGroup } from "motion/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { PropsWithChildren, SVGProps, createContext, useId } from "react";
