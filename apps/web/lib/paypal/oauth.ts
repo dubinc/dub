@@ -40,9 +40,10 @@ export const paypalOAuthProvider = new PayPalOAuthProvider({
   clientSecret: paypalEnv.PAYPAL_CLIENT_SECRET!,
   authUrl: paypalEnv.PAYPAL_AUTHORIZE_URL,
   tokenUrl: `${paypalEnv.PAYPAL_API_HOST}/v1/oauth2/token`,
-  redirectUri: `${APP_DOMAIN_WITH_NGROK}/api/hubspot/callback`,
+  redirectUri: `${APP_DOMAIN_WITH_NGROK}/api/paypal/callback`,
   redisStatePrefix: "paypal:oauth:state",
   scopes: ["email"].join(" "),
   tokenSchema: paypalAuthTokenSchema,
   bodyFormat: "form",
+  authorizationMethod: "header",
 });

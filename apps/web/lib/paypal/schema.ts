@@ -1,9 +1,7 @@
 import { z } from "zod";
 
 export const paypalAuthTokenSchema = z.object({
-  token: z.object({
-    access_token: z.string(),
-  }),
+  access_token: z.string(),
 });
 
 export const paypalUserInfoSchema = z.object({

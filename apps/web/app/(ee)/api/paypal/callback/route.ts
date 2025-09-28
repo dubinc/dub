@@ -32,9 +32,7 @@ export const GET = async (req: Request) => {
       throw new Error("partner_not_found");
     }
 
-    const {
-      token: { token },
-    } = await paypalOAuthProvider.exchangeCodeForToken(req);
+    const { token } = await paypalOAuthProvider.exchangeCodeForToken(req);
 
     const paypalUser = await paypalOAuthProvider.getUserInfo(
       token.access_token,
