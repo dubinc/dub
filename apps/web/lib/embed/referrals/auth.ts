@@ -5,6 +5,7 @@ import { prisma } from "@dub/prisma";
 import { Link, Program, ProgramEnrollment } from "@dub/prisma/client";
 import { getSearchParams } from "@dub/utils";
 import { AxiomRequest, withAxiom } from "next-axiom";
+import { headers } from "next/headers";
 import { referralsEmbedToken } from "./token-class";
 
 interface WithReferralsEmbedTokenHandler {
@@ -35,14 +36,15 @@ export const withReferralsEmbedToken = (
   return withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
-      let headers = {};
+      const params = (await initialParams) || {};
+      const headersList = await headers();
 
       try {
         const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
-        const embedToken = req.headers.get("Authorization")?.split(" ")[1];
+        const embedToken = headersList.get("Authorization")?.split(" ")[1];
 
         if (!embedToken) {
           throw new DubApiError({
@@ -66,12 +68,10 @@ export const withReferralsEmbedToken = (
           "1 m",
         ).limit(embedToken);
 
-        headers = {
-          "Retry-After": reset.toString(),
-          "X-RateLimit-Limit": limit.toString(),
-          "X-RateLimit-Remaining": remaining.toString(),
-          "X-RateLimit-Reset": reset.toString(),
-        };
+        headersList.set("Retry-After", reset.toString());
+        headersList.set("X-RateLimit-Limit", limit.toString());
+        headersList.set("X-RateLimit-Remaining", remaining.toString());
+        headersList.set("X-RateLimit-Reset", reset.toString());
 
         if (!success) {
           throw new DubApiError({
@@ -127,7 +127,7 @@ export const withReferralsEmbedToken = (
         });
       } catch (error) {
         req.log.error(error);
-        return handleAndReturnErrorResponse(error, headers);
+        return handleAndReturnErrorResponse(error, headersList);
       }
     },
   );

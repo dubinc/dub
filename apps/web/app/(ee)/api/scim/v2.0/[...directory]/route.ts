@@ -7,13 +7,16 @@ import type {
 } from "@boxyhq/saml-jackson";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
+import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 const handler = async (
   req: Request,
-  { params }: { params: Record<string, string> },
+  { params: initialParams }: { params: Promise<Record<string, string>> },
 ) => {
-  const authHeader = req.headers.get("Authorization");
+  const params = (await initialParams) || {};
+  const headersList = await headers();
+  const authHeader = headersList.get("Authorization");
   const apiSecret = authHeader ? authHeader.split(" ")[1] : null;
 
   const query = getSearchParams(req.url);
