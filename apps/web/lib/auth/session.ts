@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
+import { headers } from "next/headers";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -25,13 +26,15 @@ export const withSession = (handler: WithSessionHandler) =>
   withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      const params = (await initialParams) || {};
+      let headersList = await headers();
+
       try {
         let session: Session | undefined;
-        let headers = {};
 
-        const authorizationHeader = req.headers.get("Authorization");
+        const authorizationHeader = headersList.get("Authorization");
         if (authorizationHeader) {
           if (!authorizationHeader.includes("Bearer ")) {
             throw new DubApiError({
@@ -71,17 +74,15 @@ export const withSession = (handler: WithSessionHandler) =>
             "1 m",
           ).limit(apiKey);
 
-          headers = {
-            "Retry-After": reset.toString(),
-            "X-RateLimit-Limit": limit.toString(),
-            "X-RateLimit-Remaining": remaining.toString(),
-            "X-RateLimit-Reset": reset.toString(),
-          };
+          headersList.set("Retry-After", reset.toString());
+          headersList.set("X-RateLimit-Limit", limit.toString());
+          headersList.set("X-RateLimit-Remaining", remaining.toString());
+          headersList.set("X-RateLimit-Reset", reset.toString());
 
           if (!success) {
             return new Response("Too many requests.", {
               status: 429,
-              headers,
+              headers: headersList,
             });
           }
           waitUntil(
