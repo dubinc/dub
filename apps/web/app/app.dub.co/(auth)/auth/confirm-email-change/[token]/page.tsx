@@ -20,7 +20,7 @@ interface PageProps {
 
 export default async function ConfirmEmailChangePage(props: PageProps) {
   return (
-    (<div className="flex flex-col items-center justify-center gap-6 text-center">
+    <div className="flex flex-col items-center justify-center gap-6 text-center">
       <Suspense
         fallback={
           <EmptyState
@@ -30,17 +30,15 @@ export default async function ConfirmEmailChangePage(props: PageProps) {
           />
         }
       >
-        <VerifyEmailChange /* @next-codemod-error 'props' is used with spread syntax (...). Any asynchronous properties of 'props' must be awaited when accessed. */
-        {...props} />
+        <VerifyEmailChange {...props} />
       </Suspense>
-    </div>)
+    </div>
   );
 }
 
-const VerifyEmailChange = async ({
-  params: { token },
-  searchParams,
-}: PageProps) => {
+const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
+  const { token } = await params;
+
   const tokenFound = await prisma.verificationToken.findUnique({
     where: {
       token: await hashToken(token, { secret: true }),
@@ -58,7 +56,7 @@ const VerifyEmailChange = async ({
   }
 
   // Cancel the email change request (?cancel=true)
-  const { cancel } = searchParams;
+  const { cancel } = await searchParams;
 
   if (cancel && cancel === "true") {
     await deleteRequest(tokenFound);

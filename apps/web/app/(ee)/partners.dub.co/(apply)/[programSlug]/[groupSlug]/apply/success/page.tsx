@@ -1,2 +1,1 @@
-export { /* @next-codemod-error `default` export is re-exported. Check if this component uses `params` or `searchParams`*/
-default } from "../../../apply/success/page";
+export { default } from "../../../apply/success/page";
