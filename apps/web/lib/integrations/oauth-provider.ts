@@ -13,7 +13,8 @@ export interface OAuthProviderConfig {
   scopes: string;
   redisStatePrefix: string;
   tokenSchema: z.ZodSchema;
-  bodyFormat: "form" | "formdata" | "json";
+  bodyFormat: "form" | "json";
+  authorizationMethod: "header" | "body";
 }
 
 const codeExchangeSchema = z.object({
@@ -51,8 +52,9 @@ export class OAuthProvider<T extends z.ZodSchema> {
       getSearchParams(request.url),
     );
 
-    const stateKey = `${this.provider.redisStatePrefix}:${state}`;
-    const contextId = await redis.getdel<string>(stateKey);
+    const contextId = await redis.getdel<string>(
+      `${this.provider.redisStatePrefix}:${state}`,
+    );
 
     if (!contextId) {
       throw new Error(`[${this.provider.name}] Invalid or expired state.`);
@@ -61,36 +63,54 @@ export class OAuthProvider<T extends z.ZodSchema> {
     let body: BodyInit;
     let headers: Record<string, string> = {};
 
+    if (this.provider.authorizationMethod === "header") {
+      const credentials = Buffer.from(
+        `${this.provider.clientId}:${this.provider.clientSecret}`,
+        "utf8",
+      ).toString("base64");
+
+      headers["Authorization"] = `Basic ${credentials}`;
+    }
+
     switch (this.provider.bodyFormat) {
-      case "form":
+      case "form": {
         headers["Content-Type"] = "application/x-www-form-urlencoded";
-        body = new URLSearchParams({
+
+        const formParams = new URLSearchParams({
           code,
-          client_id: this.provider.clientId,
-          client_secret: this.provider.clientSecret,
           redirect_uri: this.provider.redirectUri,
           grant_type: "authorization_code",
         });
-        break;
 
-      case "formdata":
-        const formData = new FormData();
-        formData.append("code", code);
-        formData.append("client_id", this.provider.clientId);
-        formData.append("client_secret", this.provider.clientSecret);
-        formData.append("redirect_uri", this.provider.redirectUri);
-        body = formData;
-        break;
+        if (this.provider.authorizationMethod === "body") {
+          formParams.append("client_id", this.provider.clientId);
+          formParams.append("client_secret", this.provider.clientSecret);
+        }
 
-      case "json":
+        body = formParams.toString();
+        break;
+      }
+
+      case "json": {
         headers["Content-Type"] = "application/json";
-        body = JSON.stringify({
+
+        const jsonBody: Record<string, string> = {
           code,
-          client_id: this.provider.clientId,
-          client_secret: this.provider.clientSecret,
           redirect_uri: this.provider.redirectUri,
-        });
+          grant_type: "authorization_code",
+        };
+
+        if (this.provider.authorizationMethod === "body") {
+          jsonBody.client_id = this.provider.clientId;
+          jsonBody.client_secret = this.provider.clientSecret;
+        }
+
+        body = JSON.stringify(jsonBody);
         break;
+      }
+
+      default:
+        throw new Error(`Unsupported bodyFormat: ${this.provider.bodyFormat}`);
     }
 
     const response = await fetch(this.provider.tokenUrl, {
@@ -99,17 +119,17 @@ export class OAuthProvider<T extends z.ZodSchema> {
       body,
     });
 
-    const result = await response.json();
+    const data = await response.json();
 
     if (!response.ok) {
-      console.error(`[${this.provider.name}] exchangeCodeForToken`, result);
+      console.error(`[${this.provider.name}] exchangeCodeForToken`, data);
 
       throw new Error(
         `[${this.provider.name}] Failed to exchange authorization code. Please try again.`,
       );
     }
 
-    const token = this.provider.tokenSchema.parse(result);
+    const token = this.provider.tokenSchema.parse(data);
 
     return {
       token,
