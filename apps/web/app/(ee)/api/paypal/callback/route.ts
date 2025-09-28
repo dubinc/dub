@@ -32,7 +32,14 @@ export const GET = async (req: Request) => {
       throw new Error("partner_not_found");
     }
 
-    const { token } = await paypalOAuthProvider.exchangeCodeForToken(req);
+    const { token, contextId } =
+      await paypalOAuthProvider.exchangeCodeForToken(req);
+
+    await prisma.user.findUniqueOrThrow({
+      where: {
+        id: contextId,
+      },
+    });
 
     const paypalUser = await paypalOAuthProvider.getUserInfo(
       token.access_token,
