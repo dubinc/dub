@@ -12,7 +12,7 @@ import { NextResponse } from "next/server";
 
 const handler = async (
   req: Request,
-  { params: initialParams }: { params: Promise<Record<string, string>> },
+  { params: initialParams }: { params: Promise<Record<string, string[]>> },
 ) => {
   const params = (await initialParams) || {};
   const headersList = await headers();
