@@ -59,5 +59,6 @@ export const slackOAuthProvider = new SlackOAuthProvider({
     "incoming-webhook",
   ].join(","),
   tokenSchema: slackAuthTokenSchema,
-  bodyFormat: "formdata",
+  bodyFormat: "form",
+  authorizationMethod: "body",
 });
