@@ -133,38 +133,6 @@ export function ProgramPartnersApplicationsPageClient() {
 
   const [pendingRejectIds, setPendingRejectIds] = useState<string[]>([]);
 
-  // const { executeAsync: approvePartners, isPending: isApprovingPartners } =
-  // useAction(bulkApprovePartnersAction, {
-  //   onError: ({ error }) => {
-  //     toast.error(error.serverError);
-  //   },
-  //   onSuccess: async ({ input }) => {
-  //     await mutatePrefix("/api/partners");
-  //     toast.success(
-  //       `${pluralize("Partner", input.partnerIds.length)} approved`,
-  //     );
-  //   },
-  // });
-
-  // Confirmation modals
-  // const {
-  //   setShowConfirmModal: setShowApproveModal,
-  //   confirmModal: approveModal,
-  // } = useConfirmModal({
-  //   title: "Approve Applications",
-  //   description: "Are you sure you want to approve these applications?",
-  //   confirmText: "Approve",
-  //   onConfirm: async () => {
-  //     if (pendingApproveIds.length > 0) {
-  //       await approvePartners({
-  //         workspaceId: workspaceId!,
-  //         partnerIds: pendingApproveIds,
-  //       });
-  //       setPendingApproveIds([]);
-  //     }
-  //   },
-  // });
-
   const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
     useBulkApprovePartnersModal({
       partners: pendingApprovePartners,
