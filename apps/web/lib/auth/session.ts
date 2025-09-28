@@ -29,12 +29,13 @@ export const withSession = (handler: WithSessionHandler) =>
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
-      let headersList = await headers();
+      let requestHeaders = await headers();
+      let responseHeaders = new Headers();
 
       try {
         let session: Session | undefined;
 
-        const authorizationHeader = headersList.get("Authorization");
+        const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
           if (!authorizationHeader.includes("Bearer ")) {
             throw new DubApiError({
@@ -74,15 +75,15 @@ export const withSession = (handler: WithSessionHandler) =>
             "1 m",
           ).limit(apiKey);
 
-          headersList.set("Retry-After", reset.toString());
-          headersList.set("X-RateLimit-Limit", limit.toString());
-          headersList.set("X-RateLimit-Remaining", remaining.toString());
-          headersList.set("X-RateLimit-Reset", reset.toString());
+          responseHeaders.set("Retry-After", reset.toString());
+          responseHeaders.set("X-RateLimit-Limit", limit.toString());
+          responseHeaders.set("X-RateLimit-Remaining", remaining.toString());
+          responseHeaders.set("X-RateLimit-Reset", reset.toString());
 
           if (!success) {
-            return new Response("Too many requests.", {
-              status: 429,
-              headers: headersList,
+            throw new DubApiError({
+              code: "rate_limit_exceeded",
+              message: "Too many requests.",
             });
           }
           waitUntil(
@@ -130,7 +131,7 @@ export const withSession = (handler: WithSessionHandler) =>
         return await handler({ req, params, searchParams, session });
       } catch (error) {
         req.log.error(error);
-        return handleAndReturnErrorResponse(error);
+        return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
   );

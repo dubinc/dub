@@ -71,11 +71,12 @@ export const withWorkspace = (
       const searchParams = getSearchParams(req.url);
 
       let apiKey: string | undefined = undefined;
-      let headersList = await headers();
+      let requestHeaders = await headers();
+      let responseHeaders = new Headers();
       let workspace: WorkspaceWithUsers | undefined;
 
       try {
-        const authorizationHeader = headersList.get("Authorization");
+        const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
           if (!authorizationHeader.includes("Bearer ")) {
             throw new DubApiError({
@@ -109,7 +110,7 @@ export const withWorkspace = (
         if (!idOrSlug && !isRestrictedToken) {
           // special case for anonymous link creation
           if (
-            headersList.has("dub-anonymous-link-creation") &&
+            requestHeaders.has("dub-anonymous-link-creation") &&
             ["/links", "/api/links"].includes(req.nextUrl.pathname)
           ) {
             // @ts-expect-error
@@ -117,7 +118,7 @@ export const withWorkspace = (
               req,
               params,
               searchParams,
-              headers: headersList,
+              headers: responseHeaders,
             });
             // missing authorization header
           } else if (!authorizationHeader) {
@@ -214,10 +215,10 @@ export const withWorkspace = (
             "1 m",
           ).limit(apiKey);
 
-          headersList.set("Retry-After", reset.toString());
-          headersList.set("X-RateLimit-Limit", limit.toString());
-          headersList.set("X-RateLimit-Remaining", remaining.toString());
-          headersList.set("X-RateLimit-Reset", reset.toString());
+          responseHeaders.set("Retry-After", reset.toString());
+          responseHeaders.set("X-RateLimit-Limit", limit.toString());
+          responseHeaders.set("X-RateLimit-Remaining", remaining.toString());
+          responseHeaders.set("X-RateLimit-Reset", reset.toString());
 
           if (!success) {
             throw new DubApiError({
@@ -405,7 +406,7 @@ export const withWorkspace = (
           req,
           params,
           searchParams,
-          headers: headersList,
+          headers: responseHeaders,
           session,
           workspace,
           permissions,
@@ -428,7 +429,7 @@ export const withWorkspace = (
           })(),
         );
 
-        return handleAndReturnErrorResponse(error, headersList);
+        return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
   );

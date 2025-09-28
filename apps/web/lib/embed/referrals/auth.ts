@@ -39,12 +39,13 @@ export const withReferralsEmbedToken = (
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
-      const headersList = await headers();
+      const requestHeaders = await headers();
+      let responseHeaders = new Headers();
 
       try {
         const rateLimit = 60;
         const searchParams = getSearchParams(req.url);
-        const embedToken = headersList.get("Authorization")?.split(" ")[1];
+        const embedToken = requestHeaders.get("Authorization")?.split(" ")[1];
 
         if (!embedToken) {
           throw new DubApiError({
@@ -68,10 +69,10 @@ export const withReferralsEmbedToken = (
           "1 m",
         ).limit(embedToken);
 
-        headersList.set("Retry-After", reset.toString());
-        headersList.set("X-RateLimit-Limit", limit.toString());
-        headersList.set("X-RateLimit-Remaining", remaining.toString());
-        headersList.set("X-RateLimit-Reset", reset.toString());
+        responseHeaders.set("Retry-After", reset.toString());
+        responseHeaders.set("X-RateLimit-Limit", limit.toString());
+        responseHeaders.set("X-RateLimit-Remaining", remaining.toString());
+        responseHeaders.set("X-RateLimit-Reset", reset.toString());
 
         if (!success) {
           throw new DubApiError({
@@ -127,7 +128,7 @@ export const withReferralsEmbedToken = (
         });
       } catch (error) {
         req.log.error(error);
-        return handleAndReturnErrorResponse(error, headersList);
+        return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
   );

@@ -5,7 +5,6 @@ import { getSearchParams } from "@dub/utils";
 import { Project } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { headers } from "next/headers";
-import { COMMON_CORS_HEADERS } from "../api/cors";
 
 interface WithPublishableKeyHandler {
   ({
@@ -42,10 +41,11 @@ export const withPublishableKey = (
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
-      let headersList = await headers();
+      let requestHeaders = await headers();
+      let responseHeaders = new Headers();
 
       try {
-        const authorizationHeader = headersList.get("Authorization");
+        const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
           if (!authorizationHeader.includes("Bearer ")) {
             throw new DubApiError({
@@ -67,16 +67,15 @@ export const withPublishableKey = (
             "1 m",
           ).limit(publishableKey);
 
-          headersList.set("Retry-After", reset.toString());
-          headersList.set("X-RateLimit-Limit", limit.toString());
-          headersList.set("X-RateLimit-Remaining", remaining.toString());
-          headersList.set("X-RateLimit-Reset", reset.toString());
-          Object.assign(COMMON_CORS_HEADERS, headersList);
+          responseHeaders.set("Retry-After", reset.toString());
+          responseHeaders.set("X-RateLimit-Limit", limit.toString());
+          responseHeaders.set("X-RateLimit-Remaining", remaining.toString());
+          responseHeaders.set("X-RateLimit-Reset", reset.toString());
 
           if (!success) {
-            return new Response("Too many requests.", {
-              status: 429,
-              headers: headersList,
+            throw new DubApiError({
+              code: "rate_limit_exceeded",
+              message: "Too many requests.",
             });
           }
 
@@ -110,7 +109,7 @@ export const withPublishableKey = (
         }
       } catch (error) {
         req.log.error(error);
-        return handleAndReturnErrorResponse(error, headersList);
+        return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
   );
