@@ -38,6 +38,7 @@ export function QrCodeTitleColumn({
   const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
     canvasRef,
     qrCode: builtQrCodeObject,
+    qrCodeId: qrCode.id,
     width: isMobile ? 300 : 200,
     height: isMobile ? 300 : 200,
   });
