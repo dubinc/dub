@@ -12,8 +12,12 @@ interface SlackRequestVerificationOptions {
 
 // Verifies the signature of an incoming request from Slack.
 export const verifySlackSignature = async (req: Request, body: string) => {
+  if (!process.env.SLACK_SIGNING_SECRET) {
+    throw new Error("SLACK_SIGNING_SECRET is not set");
+  }
+
   const options: SlackRequestVerificationOptions = {
-    signingSecret: process.env.SLACK_SIGNING_SECRET!,
+    signingSecret: process.env.SLACK_SIGNING_SECRET,
     body: body,
     headers: {
       "x-slack-signature": req.headers.get("x-slack-signature") ?? "",
