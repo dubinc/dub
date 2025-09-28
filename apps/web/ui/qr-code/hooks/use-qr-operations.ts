@@ -8,7 +8,7 @@ import {
   convertQrStorageDataToBuilder,
 } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
-import { useToastWithUndo } from "@dub/ui";
+import { useRouterStuff, useToastWithUndo } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
@@ -22,7 +22,8 @@ export const useQrOperations = () => {
   const { id: workspaceId } = useWorkspace();
   const { user } = useUserCache();
   const toastWithUndo = useToastWithUndo();
-
+  const { queryParams } = useRouterStuff();
+  
   const createQr = useCallback(
     async (qrBuilderData: QRBuilderData) => {
       console.log("createQr", qrBuilderData);
@@ -51,6 +52,13 @@ export const useQrOperations = () => {
 
           const responseData = await res.json();
           const createdQrId = responseData?.createdQr?.id;
+
+          // Navigate with the new qrId parameter
+          queryParams({
+            set: {
+              qrId: createdQrId,
+            },
+          });
 
           // Track QR created event
           const trackingParams = createQRTrackingParams(
@@ -84,7 +92,7 @@ export const useQrOperations = () => {
         return false;
       }
     },
-    [workspaceId, slug, user],
+    [workspaceId, slug, user, queryParams],
   );
 
   const updateQrWithOriginal = useCallback(

@@ -19,6 +19,7 @@ import {
   RefObject,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -35,6 +36,7 @@ interface IQRPreviewModalProps {
   setShowQRPreviewModal: Dispatch<SetStateAction<boolean>>;
   canvasRef: RefObject<HTMLCanvasElement>;
   qrCode: QRCodeStyling | null;
+  qrCodeId?: string;
   width?: number;
   height?: number;
 }
@@ -44,6 +46,7 @@ function QRPreviewModal({
   setShowQRPreviewModal,
   canvasRef,
   qrCode,
+  qrCodeId,
   width = 200,
   height = 200,
 }: IQRPreviewModalProps) {
@@ -51,17 +54,29 @@ function QRPreviewModal({
   const searchParams = useSearchParams();
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<TDownloadFormat>("svg");
+  const [isWelcomeModal, setIsWelcomeModal] = useState(searchParams.has("onboarded"));
 
   const { downloadQrCode } = useQrDownload(qrCode);
 
-  const isWelcomeModal = searchParams.has("onboarded");
+  const isNewQr = qrCodeId === searchParams.get("qrId");
+
+  useEffect(() => {
+    if (isNewQr) {
+      setShowQRPreviewModal(true);
+      setIsWelcomeModal(true);
+      queryParams({
+        del: ["qrId"],
+      });
+    }
+  }, [isNewQr, queryParams]);
 
   const handleClose = () => {
     if (!isDownloading) {
       setShowQRPreviewModal(false);
+      setIsWelcomeModal(false);
       if (isWelcomeModal) {
         queryParams({
-          del: ["onboarded"],
+          del: ["onboarded", "qrId"],
         });
       }
     }
@@ -219,10 +234,11 @@ function QRPreviewModal({
 export function useQRPreviewModal(data: {
   canvasRef: RefObject<HTMLCanvasElement>;
   qrCode: QRCodeStyling | null;
+  qrCodeId?: string;
   width?: number;
   height?: number;
 }) {
-  const { canvasRef, qrCode, width = 200, height = 200 } = data;
+  const { canvasRef, qrCode, qrCodeId, width = 200, height = 200 } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
 
   // // Use refs to store stable references that don't cause re-renders
@@ -243,13 +259,14 @@ export function useQRPreviewModal(data: {
       <QRPreviewModal
         canvasRef={canvasRef}
         qrCode={qrCode}
+        qrCodeId={qrCodeId}
         width={width}
         height={height}
         showQRPreviewModal={showQRPreviewModal}
         setShowQRPreviewModal={setShowQRPreviewModal}
       />
     );
-  }, [width, height, showQRPreviewModal]);
+  }, [width, height, showQRPreviewModal, qrCodeId]);
 
   return useMemo(
     () => ({
