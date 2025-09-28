@@ -1,18 +1,22 @@
+import { getIP } from "@/lib/api/utils/get-ip";
 import { tb } from "@/lib/tinybird";
 import { log } from "@dub/utils";
 import { ipAddress as getIPAddress } from "@vercel/functions";
-import { headers, type UnsafeUnwrappedHeaders } from "next/headers";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { createId } from "../create-id";
-import { getIP } from "../utils";
 import { prefixWorkspaceId } from "../workspaces/workspace-id";
 import { auditLogSchemaTB, recordAuditLogInputSchema } from "./schemas";
 
 type AuditLogInput = z.infer<typeof recordAuditLogInputSchema>;
 
-const transformAuditLogTB = (data: AuditLogInput) => {
-  const headersList = headers() as unknown as UnsafeUnwrappedHeaders;
-  const ipAddress = data.req ? getIPAddress(data.req) : getIP();
+const transformAuditLogTB = (
+  data: AuditLogInput,
+  {
+    headersList,
+    ipAddress,
+  }: { headersList: Headers; ipAddress: string | undefined },
+) => {
   const userAgent = headersList.get("user-agent");
 
   const auditLogInput = recordAuditLogInputSchema.parse({
@@ -41,9 +45,15 @@ const transformAuditLogTB = (data: AuditLogInput) => {
 };
 
 export const recordAuditLog = async (data: AuditLogInput | AuditLogInput[]) => {
+  const headersList = await headers();
+  const dataReq = Array.isArray(data)
+    ? data.map((d) => d.req).find((d) => d)
+    : data.req;
+  const ipAddress = dataReq ? getIPAddress(dataReq) : await getIP();
+
   const auditLogs = Array.isArray(data)
-    ? data.map(transformAuditLogTB)
-    : [transformAuditLogTB(data)];
+    ? data.map((d) => transformAuditLogTB(d, { headersList, ipAddress }))
+    : [transformAuditLogTB(data, { headersList, ipAddress })];
 
   try {
     await recordAuditLogTB(auditLogs);

@@ -1,11 +1,11 @@
 import { ABTestVariantsSchema, MAX_TEST_COUNT } from "@/lib/zod/schemas/links";
-import { cookies, type UnsafeUnwrappedCookies } from "next/headers";
+import { cookies } from "next/headers";
 import { z } from "zod";
 
 /**
  * Determines the destination URL for a link with A/B testVariants using weighted random selection
  */
-export const resolveABTestURL = ({
+export const resolveABTestURL = async ({
   testVariants,
   testCompletedAt,
 }: {
@@ -26,7 +26,7 @@ export const resolveABTestURL = ({
       return null;
     }
 
-    const cookieStore = (cookies() as unknown as UnsafeUnwrappedCookies);
+    const cookieStore = await cookies();
     const urlFromCookie = cookieStore.get("dub_test_url")?.value;
     if (
       urlFromCookie &&
