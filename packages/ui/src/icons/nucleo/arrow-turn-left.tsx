@@ -1,4 +1,4 @@
-import { SVGProps } from "react";
+import { SVGProps, type JSX } from "react";
 
 export function ArrowTurnLeft(props: SVGProps<SVGSVGElement>): JSX.Element {
   return (

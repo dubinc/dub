@@ -18,6 +18,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type JSX,
 } from "react";
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
