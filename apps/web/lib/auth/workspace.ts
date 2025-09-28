@@ -11,7 +11,7 @@ import {
 } from "../api/rbac/permissions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
-import { normalizeWorkspaceId } from "../api/workspace-id";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";

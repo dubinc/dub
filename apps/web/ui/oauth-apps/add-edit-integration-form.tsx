@@ -2,7 +2,7 @@
 
 import { addEditIntegration } from "@/lib/actions/add-edit-integration";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewOrExistingIntegration } from "@/lib/types";
 import {

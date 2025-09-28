@@ -394,7 +394,7 @@ importers:
         version: 1.0.1
       autoprefixer:
         specifier: ^10.4.16
-        version: 10.4.16(postcss@8.4.31)
+        version: 10.4.21(postcss@8.4.31)
       dotenv-flow:
         specifier: ^4.1.0
         version: 4.1.0
@@ -6366,6 +6366,13 @@ packages:
     peerDependencies:
       postcss: ^8.1.0
 
+  autoprefixer@10.4.21:
+    resolution: {integrity: sha512-O+A6LWV5LDHSJD3LjHYoNi4VLsj/Whi7k6zG12xTYaU4cQ8oxQGckXNX8cRHK5yOZ/ppVHe0ZBXGzSV9jXdVbQ==}
+    engines: {node: ^10 || ^12 || >=14}
+    hasBin: true
+    peerDependencies:
+      postcss: ^8.1.0
+
   available-typed-arrays@1.0.5:
     resolution: {integrity: sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==}
     engines: {node: '>= 0.4'}
@@ -8180,6 +8187,9 @@ packages:
 
   fraction.js@4.3.6:
     resolution: {integrity: sha512-n2aZ9tNfYDwaHhvFTkhFErqOMIb8uyzSQ+vGJBjZyanAKZVbGUQ1sngfk9FdkBw7G26O7AgNjLcecLffD1c7eg==}
+
+  fraction.js@4.3.7:
+    resolution: {integrity: sha512-ZsDfxO51wGAXREY55a7la9LScWpwv9RxIrYABrlvOFBlH/ShPnrtsXeuUIfXKKOVicNxQ+o8JTbJvjS4M89yew==}
 
   framer-motion@10.17.4:
     resolution: {integrity: sha512-CYBSs6cWfzcasAX8aofgKFZootmkQtR4qxbfTOksBLny/lbUfkGbQAFOS3qnl6Uau1N9y8tUpI7mVIrHgkFjLQ==}
@@ -13907,7 +13917,7 @@ snapshots:
     dependencies:
       '@babel/helper-validator-identifier': 7.25.9
       js-tokens: 4.0.0
-      picocolors: 1.0.1
+      picocolors: 1.1.1
 
   '@babel/code-frame@7.27.1':
     dependencies:
@@ -13988,7 +13998,7 @@ snapshots:
     dependencies:
       '@babel/compat-data': 7.25.2
       '@babel/helper-validator-option': 7.24.8
-      browserslist: 4.23.3
+      browserslist: 4.26.0
       lru-cache: 5.1.1
       semver: 6.3.1
 
@@ -20512,11 +20522,11 @@ snapshots:
 
   autoprefixer@10.4.14(postcss@8.4.38):
     dependencies:
-      browserslist: 4.23.3
-      caniuse-lite: 1.0.30001651
+      browserslist: 4.26.0
+      caniuse-lite: 1.0.30001741
       fraction.js: 4.3.6
       normalize-range: 0.1.2
-      picocolors: 1.0.1
+      picocolors: 1.1.1
       postcss: 8.4.38
       postcss-value-parser: 4.2.0
 
@@ -20527,6 +20537,16 @@ snapshots:
       fraction.js: 4.3.6
       normalize-range: 0.1.2
       picocolors: 1.0.1
+      postcss: 8.4.31
+      postcss-value-parser: 4.2.0
+
+  autoprefixer@10.4.21(postcss@8.4.31):
+    dependencies:
+      browserslist: 4.26.0
+      caniuse-lite: 1.0.30001741
+      fraction.js: 4.3.7
+      normalize-range: 0.1.2
+      picocolors: 1.1.1
       postcss: 8.4.31
       postcss-value-parser: 4.2.0
 
@@ -20670,8 +20690,7 @@ snapshots:
 
   base64id@2.0.0: {}
 
-  baseline-browser-mapping@2.8.3:
-    optional: true
+  baseline-browser-mapping@2.8.3: {}
 
   bcrypt-pbkdf@1.0.2:
     dependencies:
@@ -20825,7 +20844,6 @@ snapshots:
       electron-to-chromium: 1.5.218
       node-releases: 2.0.21
       update-browserslist-db: 1.1.3(browserslist@4.26.0)
-    optional: true
 
   bs-logger@0.2.6:
     dependencies:
@@ -21711,8 +21729,7 @@ snapshots:
 
   electron-to-chromium@1.5.11: {}
 
-  electron-to-chromium@1.5.218:
-    optional: true
+  electron-to-chromium@1.5.218: {}
 
   embla-carousel-autoplay@8.1.7(embla-carousel@8.1.7):
     dependencies:
@@ -22196,8 +22213,7 @@ snapshots:
 
   escalade@3.1.2: {}
 
-  escalade@3.2.0:
-    optional: true
+  escalade@3.2.0: {}
 
   escape-goat@4.0.0: {}
 
@@ -22751,6 +22767,8 @@ snapshots:
   forwarded@0.2.0: {}
 
   fraction.js@4.3.6: {}
+
+  fraction.js@4.3.7: {}
 
   framer-motion@10.17.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
@@ -25207,7 +25225,7 @@ snapshots:
       '@next/env': 14.1.4
       '@swc/helpers': 0.5.2
       busboy: 1.6.0
-      caniuse-lite: 1.0.30001651
+      caniuse-lite: 1.0.30001741
       graceful-fs: 4.2.11
       postcss: 8.4.31
       react: 18.3.1
@@ -25300,8 +25318,7 @@ snapshots:
 
   node-releases@2.0.18: {}
 
-  node-releases@2.0.21:
-    optional: true
+  node-releases@2.0.21: {}
 
   nodemailer@6.9.3: {}
 
@@ -27605,7 +27622,7 @@ snapshots:
       micromatch: 4.0.5
       normalize-path: 3.0.0
       object-hash: 3.0.0
-      picocolors: 1.0.1
+      picocolors: 1.1.1
       postcss: 8.4.38
       postcss-import: 15.1.0(postcss@8.4.38)
       postcss-js: 4.0.1(postcss@8.4.38)
@@ -28500,14 +28517,13 @@ snapshots:
     dependencies:
       browserslist: 4.23.3
       escalade: 3.1.2
-      picocolors: 1.0.1
+      picocolors: 1.1.1
 
   update-browserslist-db@1.1.3(browserslist@4.26.0):
     dependencies:
       browserslist: 4.26.0
       escalade: 3.2.0
       picocolors: 1.1.1
-    optional: true
 
   update-notifier@7.3.1:
     dependencies:
@@ -28722,7 +28738,7 @@ snapshots:
       '@octokit/rest': 19.0.13(encoding@0.1.13)
       axios: 1.8.2(debug@4.4.0)
       debug: 4.4.0
-      picocolors: 1.0.1
+      picocolors: 1.1.1
       vite: 5.4.8(@types/node@18.11.9)(terser@5.27.0)
     transitivePeerDependencies:
       - encoding
@@ -28859,7 +28875,7 @@ snapshots:
       '@webassemblyjs/wasm-parser': 1.11.6
       acorn: 8.11.3
       acorn-import-assertions: 1.9.0(acorn@8.11.3)
-      browserslist: 4.23.3
+      browserslist: 4.26.0
       chrome-trace-event: 1.0.3
       enhanced-resolve: 5.15.0
       es-module-lexer: 1.4.1

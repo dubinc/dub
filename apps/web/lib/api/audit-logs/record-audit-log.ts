@@ -5,13 +5,13 @@ import { headers, type UnsafeUnwrappedHeaders } from "next/headers";
 import { z } from "zod";
 import { createId } from "../create-id";
 import { getIP } from "../utils";
-import { prefixWorkspaceId } from "../workspace-id";
+import { prefixWorkspaceId } from "../workspaces/workspace-id";
 import { auditLogSchemaTB, recordAuditLogInputSchema } from "./schemas";
 
 type AuditLogInput = z.infer<typeof recordAuditLogInputSchema>;
 
 const transformAuditLogTB = (data: AuditLogInput) => {
-  const headersList = (headers() as unknown as UnsafeUnwrappedHeaders);
+  const headersList = headers() as unknown as UnsafeUnwrappedHeaders;
   const ipAddress = data.req ? getIPAddress(data.req) : getIP();
   const userAgent = headersList.get("user-agent");
 
