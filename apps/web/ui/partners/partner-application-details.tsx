@@ -32,7 +32,7 @@ export function PartnerApplicationDetails({
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-5 text-xs">
+    <div className="grid grid-cols-1 gap-5 text-sm">
       {fields.map((field) => (
         <div key={field.title}>
           <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
