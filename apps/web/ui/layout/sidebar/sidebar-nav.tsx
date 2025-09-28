@@ -475,7 +475,7 @@ export function Area({
             ),
       )}
       aria-hidden={!visible ? "true" : undefined}
-      {...{ inert: !visible ? "" : undefined }}
+      {...{ inert: !visible ? true : undefined }}
     >
       {children}
     </div>
