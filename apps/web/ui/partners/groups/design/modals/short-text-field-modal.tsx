@@ -50,7 +50,6 @@ function ShortTextFieldModalInner({
       data: {
         placeholder: "",
         maxLength: undefined,
-        acceptOnlyNumbers: false,
       },
     },
   });
@@ -135,29 +134,6 @@ function ShortTextFieldModalInner({
             />
           </div>
 
-          { /* Accept only numbers */}
-          <div>
-            <Controller
-              name="data.acceptOnlyNumbers"
-              control={control}
-              render={({ field }) => (
-                <label className="flex items-center justify-between gap-1.5" htmlFor={`${id}-accept-only-numbers`}>
-                  <span className="text-sm font-medium text-neutral-700">
-                    Accept only numbers
-                  </span>
-                  <Switch
-                    id={`${id}-accept-only-numbers`}
-                    checked={field.value}
-                    fn={field.onChange}
-                    trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20 w-7 h-4"
-                    thumbDimensions="size-3"
-                    thumbTranslate="translate-x-3"
-                  />
-                </label>
-              )}
-            />
-          </div>
-
           { /* Max characters */}
           <div>
             <Controller
@@ -177,7 +153,7 @@ function ShortTextFieldModalInner({
                         checked={field.value !== undefined}
                         fn={(checked) => {
                           if (checked) {
-                            field.onChange(10);
+                            field.onChange(25);
                           } else {
                             field.onChange(undefined);
                           }

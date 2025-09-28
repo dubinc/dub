@@ -2,7 +2,7 @@
 
 import useDiscounts from "@/lib/swr/use-discounts";
 import useRewards from "@/lib/swr/use-rewards";
-import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
+import { useEditHeroModal } from "../modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { ProgramApplicationFormField } from "../fields";
 import {
@@ -35,6 +35,7 @@ import RequiredFieldsPreview from "../required-fields-preview";
 import { GroupWithProgramProps, ProgramApplicationFormData } from "@/lib/types";
 import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
+import { ApplicationFormHero } from "./application-hero-preview";
 
 export function ApplicationPreview({
   group,
@@ -125,7 +126,7 @@ export function ApplicationPreview({
         }}
       />
       <PreviewWindow
-        url={`${PARTNERS_DOMAIN}/${program.slug}`}
+        url={`${PARTNERS_DOMAIN}/${program.slug}/${group.slug}/apply`}
         scrollRef={scrollRef}
         overlay={
           <div
@@ -210,21 +211,21 @@ export function ApplicationPreview({
                 </div>
               </div>
             </header>
-            <div className="mx-auto max-w-screen-sm">
+
+
+            {/* Hero */}
+            <div
+              className="group relative mt-6"
+              data-touched={touchedFieldId === "hero"}
+              onClick={() => isMobile && setTouchedFieldId("hero")}
+            >
+              <EditIndicatorGrid />
+              <EditToolbar onEdit={() => setShowEditHeroModal(true)} />
+              <div className="mx-auto max-w-screen-sm">
               <div className="px-6">
-                <div className="grid grid-cols-1 gap-5 sm:pt-20">
-                  <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
-                    {program.name} Affiliate Program
-                  </p>
-                  <h1 className="text-4xl font-semibold">
-                    Apply to {program.name} Affiliate Program
-                  </h1>
-                  <p className="text-base text-neutral-700">
-                    Submit your application to join the {program.name} affiliate
-                    program and start earning commissions for your referrals.
-                  </p>
-                </div>
+                <ApplicationFormHero program={program} applicationFormData={applicationFormData} preview />
               </div>
+            </div>
             </div>
 
             {/* Program rewards */}

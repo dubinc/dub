@@ -6,6 +6,7 @@ import { ProgramApplicationForm } from "@/ui/partners/groups/design/program-appl
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyHeader } from "../header";
+import { ApplicationFormHero } from "@/ui/partners/groups/design/previews/application-hero-preview";
 
 export default async function ApplicationPage({
   params: { programSlug, groupSlug },
@@ -40,19 +41,7 @@ export default async function ApplicationPage({
       <ApplyHeader program={program} showApply={false} />
       <div className="p-6">
         {/* Hero section */}
-        <div className="grid grid-cols-1 gap-5 sm:pt-20">
-          <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
-            {applicationFormData.label || `${program.name} Affiliate Program`}
-          </p>
-          <h1 className="text-4xl font-semibold">
-            {applicationFormData.title || `Apply to ${program.name}`}
-          </h1>
-          <p className="text-base text-neutral-700">
-            {applicationFormData.description ||
-              `Submit your application to join the ${program.name} affiliate program
-            and start earning commissions for your referrals.`}
-          </p>
-        </div>
+        <ApplicationFormHero program={program} applicationFormData={applicationFormData} />
 
         <LanderRewards
           className="mt-10"

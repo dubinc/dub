@@ -157,7 +157,7 @@ function LongTextFieldModalInner({
                         checked={field.value !== undefined}
                         fn={(checked) => {
                           if (checked) {
-                            field.onChange(10);
+                            field.onChange(500);
                           } else {
                             field.onChange(undefined);
                           }

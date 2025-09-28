@@ -14,7 +14,6 @@ export const programApplicationFormShortTextFieldSchema =
     data: z.object({
       placeholder: z.string().optional(),
       maxLength: z.number().optional(),
-      acceptOnlyNumbers: z.boolean().optional(),
     }),
   });
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { v4 as uuid } from "uuid";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupWithProgramProps, ProgramProps } from "@/lib/types";
 import LayoutLoader from "@/ui/layout/layout-loader";
@@ -21,19 +22,18 @@ import { useEffect, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { KeyedMutator } from "swr";
-import { z } from "zod";
 import {
   PageBuilderContextProvider,
   usePageBuilderContext,
 } from "./page-builder-context-provider";
 import { PageBuilderSettingsForm } from "./page-builder-settings-form";
-import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
 import { ApplicationPreview } from "./previews/application-preview";
 import useGroup from "@/lib/swr/use-group";
 import { updateGroupApplicationFormAction } from "@/lib/actions/partners/update-group-application-form";
+import { ProgramApplicationFormData } from "@/lib/types";
 
 export type PageBuilderFormData = {
-  applicationFormData: z.infer<typeof programApplicationFormSchema>;
+  applicationFormData: ProgramApplicationFormData;
 } & Pick<ProgramProps, "logo" | "wordmark" | "brandColor">;
 
 export function usePageBuilderFormContext() {
@@ -91,6 +91,40 @@ const PREVIEW_TABS = [
   },
 ];
 
+const defaultApplicationFormData = (program: ProgramProps): ProgramApplicationFormData => {
+  return {
+    fields: [
+      {
+        id: uuid(),
+        type: "short-text",
+        label: "Website / Social media channel",
+        required: true,
+        data: {
+          placeholder: "https://example.com",
+        },
+      },
+      {
+        id: uuid(),
+        type: "long-text",
+        label: `How do you plan to promote ${program?.name ?? "us"}?`,
+        required: true,
+        data: {
+          placeholder: "",
+        },
+      },
+      {
+        id: uuid(),
+        type: "long-text",
+        label: "Any additional questions or comments?",
+        required: false,
+        data: {
+          placeholder: "",
+        },
+      },
+    ],
+  };
+};
+
 function PageBuilderFormInner({
   group,
   mutateGroup,
@@ -115,7 +149,7 @@ function PageBuilderFormInner({
       logo: group.program?.logo ?? null,
       wordmark: group.program?.wordmark ?? null,
       brandColor: group.program?.brandColor ?? null,
-      applicationFormData: group.applicationFormData ?? { fields: [] },
+      applicationFormData: group.applicationFormData ?? defaultApplicationFormData(group.program),
     },
   });
 
