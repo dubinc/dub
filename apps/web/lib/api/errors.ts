@@ -172,10 +172,7 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
   };
 }
 
-export function handleAndReturnErrorResponse(
-  err: unknown,
-  headers?: Record<string, string>,
-) {
+export function handleAndReturnErrorResponse(err: unknown, headers?: Headers) {
   const { error, status } = handleApiError(err);
   return NextResponse.json<ErrorResponse>({ error }, { headers, status });
 }
