@@ -48,6 +48,8 @@ export const useQrOperations = () => {
         });
 
         if (res.status === 200) {
+          mutatePrefix(["/api/qrs", "/api/links"]);
+
           const responseData = await res.json();
           const createdQrId = responseData?.createdQr?.id;
 
@@ -57,8 +59,7 @@ export const useQrOperations = () => {
               qrId: createdQrId,
             },
           });
-          
-          await mutatePrefix(["/api/qrs", "/api/links"]);
+
           // Track QR created event
           const trackingParams = createQRTrackingParams(
             qrBuilderData,
