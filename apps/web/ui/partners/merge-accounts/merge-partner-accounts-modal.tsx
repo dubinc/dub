@@ -5,7 +5,7 @@ import { MergeAccountForm } from "@/ui/partners/merge-accounts/merge-account-for
 import { SendVerificationCodeForm } from "@/ui/partners/merge-accounts/send-verification-code-form";
 import { VerifyCodeForm } from "@/ui/partners/merge-accounts/verify-code-form";
 import { InfoTooltip, Modal, SimpleTooltipContent } from "@dub/ui";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Dispatch,
   SetStateAction,

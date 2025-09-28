@@ -1,10 +1,11 @@
 export const runtime = "edge";
 
-export default function CustomURISchemePage({
-  params,
-}: {
-  params: { url: string };
-}) {
+export default async function CustomURISchemePage(
+  props: {
+    params: Promise<{ url: string }>;
+  }
+) {
+  const params = await props.params;
   // First decode the full URL parameter from the route
   const url = decodeURIComponent(params.url);
   // Split into base URL and query string

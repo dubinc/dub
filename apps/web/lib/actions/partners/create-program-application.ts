@@ -193,7 +193,7 @@ async function createApplication({
   });
 
   // Add application ID to cookie
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   const existingApplicationIds =
     cookieStore.get("programApplicationIds")?.value?.split(",") || [];

@@ -22,11 +22,12 @@ const UTM_PARAMS = {
   utm_medium: "Expired Link Page",
 };
 
-export default async function ExpiredLinkPage({
-  params,
-}: {
-  params: { domain: string };
-}) {
+export default async function ExpiredLinkPage(
+  props: {
+    params: Promise<{ domain: string }>;
+  }
+) {
+  const params = await props.params;
   const domainEdge = await getDomainViaEdge(params.domain);
 
   if (domainEdge?.expiredUrl) {

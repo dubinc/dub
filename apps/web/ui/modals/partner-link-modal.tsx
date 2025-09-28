@@ -31,7 +31,7 @@ import {
   linkConstructor,
   punycode,
 } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { useParams } from "next/navigation";
 import {
   Dispatch,

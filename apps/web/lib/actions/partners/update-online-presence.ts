@@ -171,7 +171,7 @@ export const updateOnlinePresenceAction = authPartnerActionClient
                     await generateCodeChallengeHash(codeVerifier);
 
                   // Store code verifier in cookie
-                  cookies().set("online_presence_code_verifier", codeVerifier, {
+                  (await cookies()).set("online_presence_code_verifier", codeVerifier, {
                     httpOnly: true,
                     secure: process.env.NODE_ENV === "production",
                     sameSite: "lax",

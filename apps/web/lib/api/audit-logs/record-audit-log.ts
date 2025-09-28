@@ -1,7 +1,7 @@
 import { tb } from "@/lib/tinybird";
 import { log } from "@dub/utils";
 import { ipAddress as getIPAddress } from "@vercel/functions";
-import { headers } from "next/headers";
+import { headers, type UnsafeUnwrappedHeaders } from "next/headers";
 import { z } from "zod";
 import { createId } from "../create-id";
 import { getIP } from "../utils";
@@ -11,7 +11,7 @@ import { auditLogSchemaTB, recordAuditLogInputSchema } from "./schemas";
 type AuditLogInput = z.infer<typeof recordAuditLogInputSchema>;
 
 const transformAuditLogTB = (data: AuditLogInput) => {
-  const headersList = headers();
+  const headersList = (headers() as unknown as UnsafeUnwrappedHeaders);
   const ipAddress = data.req ? getIPAddress(data.req) : getIP();
   const userAgent = headersList.get("user-agent");
 

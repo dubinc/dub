@@ -20,7 +20,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";

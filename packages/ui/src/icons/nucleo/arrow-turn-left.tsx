@@ -1,6 +1,6 @@
 import { SVGProps } from "react";
 
-export function ArrowTurnLeft(props: SVGProps<SVGSVGElement>) {
+export function ArrowTurnLeft(props: SVGProps<SVGSVGElement>): JSX.Element {
   return (
     <svg
       height="18"

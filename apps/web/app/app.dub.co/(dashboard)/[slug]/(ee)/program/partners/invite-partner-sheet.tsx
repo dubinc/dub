@@ -16,7 +16,7 @@ import {
   useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useForm } from "react-hook-form";

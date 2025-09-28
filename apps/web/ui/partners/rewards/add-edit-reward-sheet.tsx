@@ -31,7 +31,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,

@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, type UnsafeUnwrappedCookies } from "next/headers";
 
 /**
  * Get the Dub product from the workspace cookie with fallback to "links"
@@ -11,7 +11,7 @@ export const getDubProductFromCookie = (
   // Default to links
   let product: "links" | "program" = "links";
 
-  const productCookie = cookies().get(`dub_product:${workspace}`)?.value;
+  const productCookie = (cookies() as unknown as UnsafeUnwrappedCookies).get(`dub_product:${workspace}`)?.value;
 
   if (productCookie && ["links", "program"].includes(productCookie)) {
     product = productCookie as "links" | "program";
