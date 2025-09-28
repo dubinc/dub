@@ -1,4 +1,4 @@
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import {
   Globe,
   Icon,
@@ -15,7 +15,7 @@ import { OnlinePresenceCard } from "./online-presence-card";
 const fields: {
   label: string;
   icon: Icon;
-  data: (partner: EnrolledPartnerProps) => {
+  data: (partner: EnrolledPartnerExtendedProps) => {
     value?: string | null;
     verified: boolean;
     href?: string | null;
@@ -92,7 +92,7 @@ export function OnlinePresenceSummary({
   className,
   emptyClassName,
 }: {
-  partner: EnrolledPartnerProps;
+  partner: EnrolledPartnerExtendedProps;
   showLabels?: boolean;
   className?: string;
   emptyClassName?: string;

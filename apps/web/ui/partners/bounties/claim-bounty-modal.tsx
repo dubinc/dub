@@ -26,8 +26,8 @@ import {
 } from "@dub/ui";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
 import { isBefore } from "date-fns";
-import { motion } from "framer-motion";
 import Linkify from "linkify-react";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";

@@ -1,6 +1,6 @@
 import { cn, truncate } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { ReactNode, isValidElement } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";

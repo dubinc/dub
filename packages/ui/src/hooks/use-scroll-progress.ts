@@ -4,7 +4,7 @@ import { RefObject, useCallback, useEffect, useState } from "react";
 import { useResizeObserver } from "./use-resize-observer";
 
 export function useScrollProgress(
-  ref: RefObject<HTMLElement>,
+  ref: RefObject<HTMLElement | null>,
   { direction = "vertical" }: { direction?: "vertical" | "horizontal" } = {},
 ) {
   const [scrollProgress, setScrollProgress] = useState(1);

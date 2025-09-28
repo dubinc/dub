@@ -6,7 +6,7 @@ import {
   preferredEarningStructuresMap,
   salesChannelsMap,
 } from "@/lib/partners/partner-profile";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { OnlinePresenceSummary } from "@/ui/partners/online-presence-summary";
 import { Icon } from "@dub/ui";
 
@@ -14,7 +14,7 @@ export function PartnerAbout({
   partner,
   error,
 }: {
-  partner?: EnrolledPartnerProps;
+  partner?: EnrolledPartnerExtendedProps;
   error?: any;
 }) {
   return partner ? (

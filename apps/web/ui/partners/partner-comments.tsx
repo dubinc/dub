@@ -98,6 +98,9 @@ export function PartnerComments({ partnerId }: { partnerId: string }) {
         sendButtonText="Post"
         className="shadow-sm"
       />
+      <div className="mt-1.5 flex justify-end pr-1.5 text-xs text-neutral-500">
+        Comments are only visible to your workspace
+      </div>
 
       <div className="mt-4 flex flex-col gap-4">
         {comments ? (
@@ -110,11 +113,7 @@ export function PartnerComments({ partnerId }: { partnerId: string }) {
                 mutate={mutate}
               />
             ))
-          ) : (
-            <div className="text-content-muted py-2 text-center text-xs">
-              No comments yet
-            </div>
-          )
+          ) : null
         ) : loading ? (
           <CommentCard partnerId={partnerId} className="opacity-50" />
         ) : (
