@@ -87,7 +87,7 @@ const navigation = {
     href: `/compare/${slug}`,
     product: "links",
   })).concat(
-    ["Rewardful", "PartnerStack", "Tolt"].map((name) => ({
+    ["Rewardful", "PartnerStack", "FirstPromoter", "Tolt"].map((name) => ({
       name,
       href:
         name === "Rewardful"
