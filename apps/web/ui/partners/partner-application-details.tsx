@@ -44,7 +44,7 @@ export function PartnerApplicationDetails({
                   target: "_blank",
                   rel: "noopener noreferrer nofollow",
                   className:
-                    "underline underline-offset-4 text-sm max-w-prosetext-neutral-400 hover:text-neutral-700",
+                    "underline underline-offset-4 text-sm max-w-prose text-neutral-400 hover:text-neutral-700",
                 }}
               >
                 {field.value || (
