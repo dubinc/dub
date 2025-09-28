@@ -48,7 +48,7 @@ export const useQrOperations = () => {
         });
 
         if (res.status === 200) {
-          mutatePrefix(["/api/qrs", "/api/links"]);
+          await mutatePrefix(["/api/qrs", "/api/links"]);
 
           const responseData = await res.json();
           const createdQrId = responseData?.createdQr?.id;
