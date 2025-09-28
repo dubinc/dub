@@ -1,10 +1,8 @@
-export const runtime = "edge";
+export const revalidate = false; // cache indefinitely
 
-export default async function CustomURISchemePage(
-  props: {
-    params: Promise<{ url: string }>;
-  }
-) {
+export default async function CustomURISchemePage(props: {
+  params: Promise<{ url: string }>;
+}) {
   const params = await props.params;
   // First decode the full URL parameter from the route
   const url = decodeURIComponent(params.url);

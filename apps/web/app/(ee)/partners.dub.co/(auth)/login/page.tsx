@@ -7,16 +7,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PartnerBanner } from "../partner-banner";
 
-export default async function LoginPage(
-  props: {
-    params: Promise<{ programSlug?: string }>;
-  }
-) {
-  const params = await props.params;
-
-  const {
-    programSlug
-  } = params;
+export default async function LoginPage(props: {
+  params: Promise<{ programSlug?: string }>;
+}) {
+  const { programSlug } = await props.params;
 
   if (programSlug === "framer") {
     return (

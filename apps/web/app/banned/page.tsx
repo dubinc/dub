@@ -6,7 +6,7 @@ import { Hero } from "@/ui/placeholders/hero";
 import { Footer, Nav, NavMobile, ShieldSlash } from "@dub/ui";
 import { cn, constructMetadata, createHref } from "@dub/utils";
 
-export const runtime = "edge";
+export const revalidate = false; // cache indefinitely
 
 export const metadata = constructMetadata({
   title: "Banned Link",
@@ -19,12 +19,10 @@ const UTM_PARAMS = {
   utm_medium: "Expired Link Page",
 };
 
-export default async function BannedPage(
-  props: {
-    params: Promise<{ domain: string }>;
-  }
-) {
-  const params = await props.params;
+export default async function BannedPage(props: {
+  params: Promise<{ domain: string }>;
+}) {
+  const { domain } = await props.params;
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <NavMobile />
@@ -64,9 +62,9 @@ export default async function BannedPage(
             </ButtonLink>
             <ButtonLink
               variant="secondary"
-              href={createHref("/links", params.domain, {
+              href={createHref("/links", domain, {
                 ...UTM_PARAMS,
-                utm_campaign: params.domain,
+                utm_campaign: domain,
                 utm_content: "Learn more",
               })}
             >
@@ -75,10 +73,10 @@ export default async function BannedPage(
           </div>
         </Hero>
         <div className="mt-20">
-          <FeaturesSection domain={params.domain} utmParams={UTM_PARAMS} />
+          <FeaturesSection domain={domain} utmParams={UTM_PARAMS} />
         </div>
         <div className="mt-32">
-          <CTA domain={params.domain} utmParams={UTM_PARAMS} />
+          <CTA domain={domain} utmParams={UTM_PARAMS} />
         </div>
       </div>
       <Footer className="max-w-screen-lg border-0 bg-transparent lg:px-4 xl:px-0" />
