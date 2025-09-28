@@ -23,7 +23,7 @@ export function PartnerAbout({
         <h3 className="text-content-emphasis text-xs font-semibold">
           Description
         </h3>
-        <p className="text-content-default text-xs">
+        <p className="text-content-default text-sm max-w-prose">
           {partner.description || (
             <span className="italic text-neutral-400">
               No description provided
