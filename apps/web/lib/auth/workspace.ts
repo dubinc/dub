@@ -67,7 +67,7 @@ export const withWorkspace = (
       req: AxiomRequest,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
-      const params = await initialParams;
+      const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
 
       let apiKey: string | undefined = undefined;
