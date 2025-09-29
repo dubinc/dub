@@ -1,4 +1,4 @@
-import { WorkflowCondition } from "@/lib/types";
+import { WorkflowCondition, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
@@ -10,19 +10,19 @@ import { parseWorkflowConfig } from "./parse-workflow-config";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
+  context
 }: {
   workflow: Workflow;
+  context?: WorkflowContext;
 }) => {
   const workflowConfig = parseWorkflowConfig(workflow);
 
-  // Workflow config is not valid
   if (!workflowConfig) {
     return;
   }
 
   const { condition, action } = workflowConfig;
 
-  // Action is not a send campaign action
   if (action.type !== WORKFLOW_ACTION_TYPES.SendCampaign) {
     return;
   }

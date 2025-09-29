@@ -306,6 +306,23 @@ export const { POST } = serve<Payload>(
         message: `Triggered draft bounty submission creation for partner ${partnerId} in program ${programId}.`,
       });
     });
+
+    // Step 5: Execute Dub workflows using the “partnerEnrolled” trigger.
+    await context.run("execute-workflows", async () => {
+      logger.info({
+        message: "Started executing workflow step 'execute-workflows'.",
+        data: input,
+      });
+
+      // await triggerDraftBountySubmissionCreation({
+      //   programId,
+      //   partnerIds: [partnerId],
+      // });
+
+      // logger.info({
+      //   message: `Triggered draft bounty submission creation for partner ${partnerId} in program ${programId}.`,
+      // });
+    });
   },
   {
     initialPayloadParser: (requestPayload) => {
