@@ -441,7 +441,7 @@ function CampaignMessage({
                 mass: 0.8,
               }}
             >
-              <div className="space-y-3 px-4 py-2.5">
+              <div className="space-y-3 whitespace-pre-wrap px-4 py-2.5">
                 <Linkify
                   as="div"
                   options={{
