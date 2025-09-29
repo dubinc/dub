@@ -109,7 +109,6 @@ model ProgramEnrollment {
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
-  @@unique([programId, partnerId])
   @@index(programId)
   @@index(groupId)
   @@index(clickRewardId)
