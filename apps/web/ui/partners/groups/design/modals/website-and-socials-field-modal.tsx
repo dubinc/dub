@@ -5,7 +5,7 @@ import { Button, Globe, Instagram, LinkedIn, Modal, Switch, TikTok, Twitter, You
 import { Dispatch, SetStateAction, useCallback, useId } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { v4 as uuid } from "uuid";
 
 type WebsiteAndSocialsFieldData = z.infer<

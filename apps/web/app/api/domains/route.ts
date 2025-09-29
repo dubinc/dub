@@ -136,14 +136,14 @@ export const POST = withWorkspace(
       });
     }
 
-    const vercelResponse = await addDomainToVercel(slug);
+    // const vercelResponse = await addDomainToVercel(slug);
 
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use" // ignore this error
-    ) {
-      return new Response(vercelResponse.error.message, { status: 422 });
-    }
+    // if (
+    //   vercelResponse.error &&
+    //   vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+    // ) {
+    //   return new Response(vercelResponse.error.message, { status: 422 });
+    // }
 
     const domainId = createId({ prefix: "dom_" });
 
