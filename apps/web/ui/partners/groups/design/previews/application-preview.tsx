@@ -388,7 +388,7 @@ function EditToolbar({
               <Button
                 type="button"
                 variant="outline"
-                icon={Pen2}
+                icon={<Pen2 className="size-4" />}
                 className="size-7 rounded p-0"
                 onClick={onEdit}
               />
