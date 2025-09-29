@@ -11,4 +11,6 @@ export const CUSTOMER_IO_TEMPLATES = {
   UPGRADE_FROM_MONTHLY: "upgrade_from_monthly",
   UPGRADE_FROM_3_MONTH: "upgrade_from_3_month",
   WELCOME_TRIAL: "welcome_trial",
+  FAILED_TRIAL: "failed_trial",
+  FAILED_PAYMENT: "failed_payment",
 };
