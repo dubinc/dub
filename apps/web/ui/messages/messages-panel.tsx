@@ -431,30 +431,34 @@ function CampaignMessage({
             </div>
           </button>
 
-          {isExpanded && (
-            <AnimatedSizeContainer
-              height
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-                mass: 0.8,
-              }}
+          <AnimatedSizeContainer
+            height
+            transition={{
+              type: "spring",
+              stiffness: 300,
+              damping: 30,
+              mass: 0.8,
+            }}
+          >
+            <div
+              className={cn(
+                "max-w-lg overflow-hidden whitespace-pre-wrap",
+                "transition-[max-height,padding] duration-300 ease-in-out",
+                isExpanded ? "max-h-[1000px] px-4 py-2.5" : "max-h-0 px-4 py-0",
+              )}
             >
-              <div className="space-y-3 whitespace-pre-wrap px-4 py-2.5">
-                <Linkify
-                  as="div"
-                  options={{
-                    target: "_blank",
-                    rel: "noopener noreferrer nofollow",
-                    className: "underline underline-offset-4",
-                  }}
-                >
-                  {message.text}
-                </Linkify>
-              </div>
-            </AnimatedSizeContainer>
-          )}
+              <Linkify
+                as="div"
+                options={{
+                  target: "_blank",
+                  rel: "noopener noreferrer nofollow",
+                  className: "underline underline-offset-4",
+                }}
+              >
+                {message.text}
+              </Linkify>
+            </div>
+          </AnimatedSizeContainer>
         </div>
       </div>
     </div>
