@@ -1,4 +1,4 @@
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
 import {
   OAuthProvider,
   OAuthProviderConfig,
@@ -40,7 +40,7 @@ export const paypalOAuthProvider = new PayPalOAuthProvider({
   clientSecret: paypalEnv.PAYPAL_CLIENT_SECRET!,
   authUrl: paypalEnv.PAYPAL_AUTHORIZE_URL,
   tokenUrl: `${paypalEnv.PAYPAL_API_HOST}/v1/oauth2/token`,
-  redirectUri: `${APP_DOMAIN_WITH_NGROK}/api/paypal/callback`,
+  redirectUri: `${PARTNERS_DOMAIN_WITH_NGROK}/api/paypal/callback`,
   redisStatePrefix: "paypal:oauth:state",
   scopes: ["email"].join(" "),
   tokenSchema: paypalAuthTokenSchema,
