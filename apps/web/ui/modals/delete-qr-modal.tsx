@@ -10,7 +10,6 @@ import {
   useState,
 } from "react";
 import { X } from "@/ui/shared/icons";
-import { Check } from 'lucide-react';
 
 type DeleteQRModalProps = {
   showDeleteQRModal: boolean;
