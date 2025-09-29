@@ -1,5 +1,5 @@
 import { PartnerConversionScore } from "@/lib/types";
-import { PARTNER_CONVERSION_SCORE_RATES } from "@/lib/zod/schemas/partner-discovery";
+import { PARTNER_CONVERSION_SCORE_RATES } from "@/lib/zod/schemas/partner-network";
 
 export function getConversionScore(
   conversionRate: number,

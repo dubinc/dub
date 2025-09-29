@@ -8,10 +8,10 @@ import {
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscoverablePartnerProps } from "@/lib/types";
 import {
-  DISCOVERABLE_PARTNERS_MAX_PAGE_SIZE,
   PARTNER_CONVERSION_SCORES,
   PARTNER_CONVERSION_SCORE_RATES,
-} from "@/lib/zod/schemas/partner-discovery";
+  PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE,
+} from "@/lib/zod/schemas/partner-network";
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
 import {
   BadgeCheck2Fill,
@@ -82,7 +82,7 @@ export function ProgramPartnersDirectoryPageClient() {
   );
 
   const { pagination, setPagination } = usePagination(
-    DISCOVERABLE_PARTNERS_MAX_PAGE_SIZE,
+    PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE,
   );
 
   return (

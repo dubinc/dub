@@ -2,9 +2,9 @@ import { getConversionScore } from "@/lib/actions/partners/get-conversion-score"
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  DiscoverablePartnerSchema,
-  getDiscoverablePartnersQuerySchema,
-} from "@/lib/zod/schemas/partner-discovery";
+  PartnerNetworkPartnerSchema,
+  getPartnerNetworkPartnersQuerySchema,
+} from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -14,7 +14,7 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
     const { page, pageSize } =
-      getDiscoverablePartnersQuerySchema.parse(searchParams);
+      getPartnerNetworkPartnersQuerySchema.parse(searchParams);
 
     const partners = (await prisma.$queryRaw`
       SELECT 
@@ -61,7 +61,7 @@ export const GET = withWorkspace(
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
     return NextResponse.json(
-      z.array(DiscoverablePartnerSchema).parse(
+      z.array(PartnerNetworkPartnerSchema).parse(
         partners.map((partner) => ({
           ...partner,
           industryInterests: partner.industryInterests?.split(",") || undefined,

@@ -1,5 +1,5 @@
 import { PartnerConversionScore } from "@/lib/types";
-import { PARTNER_CONVERSION_SCORES } from "@/lib/zod/schemas/partner-discovery";
+import { PARTNER_CONVERSION_SCORES } from "@/lib/zod/schemas/partner-network";
 import { cn } from "@dub/utils";
 import { SVGProps } from "react";
 

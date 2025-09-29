@@ -23,17 +23,19 @@ export const PARTNER_CONVERSION_SCORE_RATES: Record<
 
 export const PartnerConversionScoreSchema = z.enum(PARTNER_CONVERSION_SCORES);
 
-export const DISCOVERABLE_PARTNERS_MAX_PAGE_SIZE = 50;
+export const PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE = 50;
 
-export const getDiscoverablePartnersQuerySchema = z
+export const getPartnerNetworkPartnersQuerySchema = z
   .object({
     //
   })
   .merge(
-    getPaginationQuerySchema({ pageSize: DISCOVERABLE_PARTNERS_MAX_PAGE_SIZE }),
+    getPaginationQuerySchema({
+      pageSize: PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE,
+    }),
   );
 
-export const DiscoverablePartnerSchema = PartnerSchema.pick({
+export const PartnerNetworkPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
   companyName: true,

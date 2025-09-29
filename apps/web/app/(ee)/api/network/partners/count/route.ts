@@ -1,6 +1,6 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getDiscoverablePartnersQuerySchema } from "@/lib/zod/schemas/partner-discovery";
+import { getPartnerNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -9,7 +9,7 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
     const { page, pageSize } =
-      getDiscoverablePartnersQuerySchema.parse(searchParams);
+      getPartnerNetworkPartnersQuerySchema.parse(searchParams);
 
     const data = (await prisma.$queryRaw`
       SELECT 
