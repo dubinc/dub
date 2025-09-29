@@ -136,7 +136,7 @@ export const POST = withSession(
         paymentData?.paymentInfo?.subscriptionId || "",
         {
           noSubtract: true,
-          resetNextBillingDate: false,
+          resetNextBillingDate: true,
           plan: {
             currencyCode: paymentData?.currency?.currencyForPay || "",
             trialPrice: 0,
