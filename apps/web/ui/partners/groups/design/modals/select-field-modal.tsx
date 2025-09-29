@@ -45,7 +45,7 @@ function SelectFieldModalInner({
       id: uuid(),
       type: "select",
       label: "",
-      required: true,
+      required: false,
       data: {
         options: [
           {

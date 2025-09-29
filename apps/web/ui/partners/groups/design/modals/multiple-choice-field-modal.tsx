@@ -47,7 +47,7 @@ function MultipleChoiceFieldModalInner({
       id: uuid(),
       type: "multiple-choice",
       label: "",
-      required: true,
+      required: false,
       data: {
         multiple: false,
         options: [
