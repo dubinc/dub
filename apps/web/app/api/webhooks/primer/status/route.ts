@@ -84,7 +84,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<IDataRes>> {
         subject: "Failed Trial Payment",
         template: CUSTOMER_IO_TEMPLATES.FAILED_TRIAL,
         messageData: {
-          plan_name: titlesByPlans[body.payment.metadata.plan_name as string],
+          new_plan: titlesByPlans[body.payment.metadata.plan_name as string],
           url: loginUrl,
         },
         customerId: user.id,
@@ -98,7 +98,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<IDataRes>> {
       subject: "Failed Payment",
       template: CUSTOMER_IO_TEMPLATES.FAILED_PAYMENT,
       messageData: {
-        plan_name: titlesByPlans[body.payment.metadata.plan_name as string],
+        new_plan: titlesByPlans[body.payment.metadata.plan_name as string],
         url: loginUrl,
       },
       customerId: user.id,
