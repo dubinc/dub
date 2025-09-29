@@ -13,23 +13,23 @@ import {
 import { useForm } from "react-hook-form";
 import { PageBuilderFormData, usePageBuilderFormContext } from "../page-builder-form";
 
-type EditHeroModalProps = {
-  showEditHeroModal: boolean;
-  setShowEditHeroModal: Dispatch<SetStateAction<boolean>>;
+type EditApplicationHeroModalProps = {
+  showEditApplicationHeroModal: boolean;
+  setShowEditApplicationHeroModal: Dispatch<SetStateAction<boolean>>;
 };
 
-function EditHeroModal(props: EditHeroModalProps) {
+function EditApplicationHeroModal(props: EditApplicationHeroModalProps) {
   return (
     <Modal
-      showModal={props.showEditHeroModal}
-      setShowModal={props.setShowEditHeroModal}
+      showModal={props.showEditApplicationHeroModal}
+      setShowModal={props.setShowEditApplicationHeroModal}
     >
-      <EditHeroModalInner {...props} />
+      <EditApplicationHeroModalInner {...props} />
     </Modal>
   );
 }
 
-function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
+function EditApplicationHeroModalInner({ setShowEditApplicationHeroModal }: EditApplicationHeroModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
   const { program } = useProgram();
@@ -59,7 +59,7 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
             setValueParent("applicationFormData", applicationFormData, {
               shouldDirty: true,
             });
-            setShowEditHeroModal(false);
+            setShowEditApplicationHeroModal(false);
           })(e);
         }}
       >
@@ -80,7 +80,7 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
               <input
                 id={`${id}-label`}
                 type="text"
-                placeholder="Affiliate Program"
+                placeholder={program?.name ? `${program.name} Affiliate Program` : "Affiliate Program"}
                 autoFocus={!isMobile}
                 className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 {...register("applicationFormData.label")}
@@ -100,7 +100,7 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
               <input
                 id={`${id}-title`}
                 type="text"
-                placeholder={`Join the ${program?.name} affiliate program`}
+                placeholder={program ? `Apply to ${program.name}` : "Apply now"}
                 autoFocus={!isMobile}
                 className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 {...register("applicationFormData.title")}
@@ -122,7 +122,7 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
                 rows={3}
                 maxLength={240}
                 onKeyDown={handleKeyDown}
-                placeholder={`Share ${program?.name} with your audience and for each subscription generated through your referral, you'll earn a share of the revenue on any plans they purchase.`}
+                placeholder={`Submit your application to join the ${program?.name} affiliate program and start earning commissions for your referrals.`}
                 className="block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 {...register("applicationFormData.description")}
               />
@@ -136,7 +136,7 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
             variant="secondary"
             text="Cancel"
             className="h-9 w-fit"
-            onClick={() => setShowEditHeroModal(false)}
+            onClick={() => setShowEditApplicationHeroModal(false)}
           />
           <Button
             type="submit"
@@ -151,23 +151,23 @@ function EditHeroModalInner({ setShowEditHeroModal }: EditHeroModalProps) {
   );
 }
 
-export function useEditHeroModal() {
-  const [showEditHeroModal, setShowEditHeroModal] = useState(false);
+export function useEditApplicationHeroModal() {
+  const [showEditApplicationHeroModal, setShowEditApplicationHeroModal] = useState(false);
 
-  const EditHeroModalCallback = useCallback(() => {
+  const EditApplicationHeroModalCallback = useCallback(() => {
     return (
-      <EditHeroModal
-        showEditHeroModal={showEditHeroModal}
-        setShowEditHeroModal={setShowEditHeroModal}
+      <EditApplicationHeroModal
+        showEditApplicationHeroModal={showEditApplicationHeroModal}
+        setShowEditApplicationHeroModal={setShowEditApplicationHeroModal}
       />
     );
-  }, [showEditHeroModal, setShowEditHeroModal]);
+  }, [showEditApplicationHeroModal, setShowEditApplicationHeroModal]);
 
   return useMemo(
     () => ({
-      setShowEditHeroModal,
-      EditHeroModal: EditHeroModalCallback,
+      setShowEditApplicationHeroModal,
+      EditApplicationHeroModal: EditApplicationHeroModalCallback,
     }),
-    [setShowEditHeroModal, EditHeroModalCallback],
+    [setShowEditApplicationHeroModal, EditApplicationHeroModalCallback],
   );
 }

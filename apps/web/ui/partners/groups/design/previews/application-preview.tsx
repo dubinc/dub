@@ -32,7 +32,7 @@ import {
 import { useWatch } from "react-hook-form";
 import { ProgramApplicationFormField } from "../fields";
 import { AddFieldModal, DESIGNER_FIELDS } from "../modals/add-field-modal";
-import { useEditHeroModal } from "../modals/edit-hero-modal";
+import { useEditApplicationHeroModal } from "../modals/edit-application-hero-modal";
 import { usePageBuilderFormContext } from "../page-builder-form";
 import RequiredFieldsPreview from "../required-fields-preview";
 import { ApplicationFormHero } from "./application-hero-preview";
@@ -80,7 +80,7 @@ export function ApplicationPreview({
     [applicationFormData],
   );
 
-  const { setShowEditHeroModal, EditHeroModal } = useEditHeroModal();
+  const { setShowEditApplicationHeroModal, EditApplicationHeroModal } = useEditApplicationHeroModal();
 
   const [addFieldIndex, setAddFieldIndex] = useState<number | null>(null);
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
@@ -117,7 +117,7 @@ export function ApplicationPreview({
           }}
         />
       )}
-      <EditHeroModal />
+      <EditApplicationHeroModal />
       <AddFieldModal
         addIndex={addFieldIndex ?? 0}
         showAddFieldModal={addFieldIndex !== null}
@@ -223,7 +223,7 @@ export function ApplicationPreview({
               onClick={() => isMobile && setTouchedFieldId("hero")}
             >
               <EditIndicatorGrid />
-              <EditToolbar onEdit={() => setShowEditHeroModal(true)} />
+              <EditToolbar onEdit={() => setShowEditApplicationHeroModal(true)} />
               <div className="mx-auto max-w-screen-sm">
                 <div className="px-6">
                   <ApplicationFormHero
