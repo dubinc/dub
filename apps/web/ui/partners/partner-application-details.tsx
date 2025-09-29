@@ -30,12 +30,44 @@ export function PartnerApplicationDetails({
   const formData =
     application?.formData as ProgramApplicationFormDataWithValues;
 
-  const fields = (formData?.fields ?? [])
-    .filter((field) => field.type !== "website-and-socials")
-    .map((field: any) => ({
-      title: field.label,
-      value: field.value,
-    }));
+  const fields: { title: string; value: string }[] = (formData?.fields ?? [])
+    .map((field) => {
+      switch (field.type) {
+        case "short-text":
+          return {
+            title: field.label,
+            value: field.value,
+          };
+        case "long-text":
+          return {
+            title: field.label,
+            value: field.value,
+          };
+        case "select":
+          return {
+            title: field.label,
+            value: field.value,
+          };
+        case "multiple-choice":
+          let value;
+
+          if (field.data.multiple) {
+            value = Array.isArray(field.value)
+              ? field.value.join(", ")
+              : field.value;
+          } else {
+            value = field.value;
+          }
+
+          return {
+            title: field.label,
+            value,
+          };
+        case "website-and-socials":
+          return null;
+      }
+    })
+    .filter((v) => !!v);
 
   content = (
     <>
