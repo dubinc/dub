@@ -11,8 +11,6 @@ export async function emailOpened({
   tags?: Record<string, string>;
   subject?: string;
 }) {
-  console.log({ emailId, tags, subject });
-
   // if none of the following conditions are met, ignore the email
   // 1. the tags include "type" with the value "notification-email"
   // 2. the subject contains one of the keywords (TODO remove this soon)
