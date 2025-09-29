@@ -15,7 +15,9 @@ export function PartnerPayoutSettingsButton() {
     <>
       <PartnerPayoutSettingsSheet />
 
-      {!partner?.payoutsEnabledAt && <ConnectPayoutButton />}
+      {!partner?.payoutsEnabledAt && (
+        <ConnectPayoutButton className="h-9 px-3" />
+      )}
 
       <Button
         type="button"

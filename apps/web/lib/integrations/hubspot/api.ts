@@ -1,4 +1,3 @@
-import { HUBSPOT_API_HOST } from "./constants";
 import { hubSpotContactSchema, hubSpotDealSchema } from "./schema";
 
 type FetchOptions = Omit<RequestInit, "body"> & {
@@ -6,7 +5,7 @@ type FetchOptions = Omit<RequestInit, "body"> & {
 };
 
 export class HubSpotApi {
-  private readonly baseUrl = `${HUBSPOT_API_HOST}/crm/v3`;
+  private readonly baseUrl = "https://api.hubapi.com/crm/v3";
   private readonly token: string;
 
   constructor({ token }: { token: string }) {

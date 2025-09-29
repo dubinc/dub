@@ -1,6 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
-import { uninstallSlackIntegration } from "@/lib/integrations/slack/uninstall";
+import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
 import { webhookCache } from "@/lib/webhook/cache";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
 import { prisma } from "@dub/prisma";
@@ -54,7 +54,7 @@ export const DELETE = withWorkspace(
     waitUntil(
       Promise.all([
         ...(integrationId === SLACK_INTEGRATION_ID
-          ? [uninstallSlackIntegration({ installation })]
+          ? [slackOAuthProvider.uninstall(installation)]
           : []),
 
         ...webhooks.map((webhook) =>

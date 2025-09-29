@@ -8,7 +8,7 @@ export const hubSpotAuthTokenSchema = z.object({
   scopes: z.array(z.string()),
   hub_id: z.number(),
   expires_in: z.number().describe("Expires in seconds."),
-  created_at: z.number(),
+  created_at: z.number().optional(),
 });
 
 // Integration settings
@@ -17,14 +17,6 @@ export const hubSpotSettingsSchema = z.object({
     .string()
     .nullish()
     .describe("The ID of the deal stage that represents a closed won deal."),
-});
-
-export const hubSpotRefreshTokenSchema = z.object({
-  access_token: z.string(),
-  refresh_token: z.string(),
-  token_type: z.string(),
-  expires_in: z.number(),
-  id_token: z.string().nullable(),
 });
 
 // CRM
