@@ -1,10 +1,11 @@
 "use client";
 
+import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
 import useDiscounts from "@/lib/swr/use-discounts";
 import useRewards from "@/lib/swr/use-rewards";
-import { useEditHeroModal } from "../modals/edit-hero-modal";
+import { GroupWithProgramProps, ProgramApplicationFormData } from "@/lib/types";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
-import { ProgramApplicationFormField } from "../fields";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import {
   Button,
   CircleInfo,
@@ -29,12 +30,11 @@ import {
   useState,
 } from "react";
 import { useWatch } from "react-hook-form";
-import { usePageBuilderFormContext } from "../page-builder-form";
+import { ProgramApplicationFormField } from "../fields";
 import { AddFieldModal, DESIGNER_FIELDS } from "../modals/add-field-modal";
+import { useEditHeroModal } from "../modals/edit-hero-modal";
+import { usePageBuilderFormContext } from "../page-builder-form";
 import RequiredFieldsPreview from "../required-fields-preview";
-import { GroupWithProgramProps, ProgramApplicationFormData } from "@/lib/types";
-import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
-import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ApplicationFormHero } from "./application-hero-preview";
 
 export function ApplicationPreview({
@@ -47,7 +47,8 @@ export function ApplicationPreview({
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  const { rewards: groupRewards, discount: groupDiscount } = getGroupRewardsAndDiscount(group);
+  const { rewards: groupRewards, discount: groupDiscount } =
+    getGroupRewardsAndDiscount(group);
 
   const { rewards } = useRewards();
   const { discounts } = useDiscounts();
@@ -61,7 +62,9 @@ export function ApplicationPreview({
 
   const updateFields = useCallback(
     (
-      fn: (fields: ProgramApplicationFormData["fields"]) => ProgramApplicationFormData["fields"],
+      fn: (
+        fields: ProgramApplicationFormData["fields"],
+      ) => ProgramApplicationFormData["fields"],
     ) => {
       return setValue(
         "applicationFormData",
@@ -134,10 +137,11 @@ export function ApplicationPreview({
               "absolute inset-0 flex items-center justify-center bg-white/10",
               "pointer-events-none opacity-0 transition-[backdrop-filter,opacity] duration-500",
             )}
+            inert
           >
             <div
               className={cn(
-                "flex flex-col items-center gap-6 px-4 text-center text-sm translate-y-1 transition-transform duration-500 sm:gap-2",
+                "flex translate-y-1 flex-col items-center gap-6 px-4 text-center text-sm transition-transform duration-500 sm:gap-2",
               )}
             >
               <div className="text-content-default flex items-center">
@@ -169,7 +173,6 @@ export function ApplicationPreview({
         }
       >
         <div className="relative z-0 mx-auto min-h-screen w-full bg-white">
-
           <div
             style={
               {
@@ -178,7 +181,9 @@ export function ApplicationPreview({
               } as CSSProperties
             }
           >
-            <header className={"sticky top-0 z-10 bg-white/90 backdrop-blur-sm"}>
+            <header
+              className={"sticky top-0 z-10 bg-white/90 backdrop-blur-sm"}
+            >
               <div className="mx-auto flex max-w-screen-sm items-center justify-between px-6 py-4">
                 {/* Bottom border when scrolled */}
                 <div
@@ -200,7 +205,7 @@ export function ApplicationPreview({
                   )}
                 </div>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2" inert>
                   <Button
                     type="button"
                     variant="secondary"
@@ -211,7 +216,6 @@ export function ApplicationPreview({
               </div>
             </header>
 
-
             {/* Hero */}
             <div
               className="group relative mt-6"
@@ -221,16 +225,23 @@ export function ApplicationPreview({
               <EditIndicatorGrid />
               <EditToolbar onEdit={() => setShowEditHeroModal(true)} />
               <div className="mx-auto max-w-screen-sm">
-              <div className="px-6">
-                <ApplicationFormHero program={program} applicationFormData={applicationFormData} preview />
+                <div className="px-6">
+                  <ApplicationFormHero
+                    program={program}
+                    applicationFormData={applicationFormData}
+                    preview
+                  />
+                </div>
               </div>
-            </div>
             </div>
 
             {/* Program rewards */}
-            <div className="mx-auto mt-6 mb-1 max-w-screen-sm">
+            <div className="mx-auto mb-1 mt-6 max-w-screen-sm">
               <div className="px-6">
-                <LanderRewards rewards={groupRewards} discount={groupDiscount} />
+                <LanderRewards
+                  rewards={groupRewards}
+                  discount={groupDiscount}
+                />
               </div>
             </div>
 
@@ -259,17 +270,17 @@ export function ApplicationPreview({
                       onMoveUp={
                         idx !== 0
                           ? () =>
-                            updateFields((fields) =>
-                              moveItem(fields, idx, idx - 1),
-                            )
+                              updateFields((fields) =>
+                                moveItem(fields, idx, idx - 1),
+                              )
                           : undefined
                       }
                       onMoveDown={
                         idx !== applicationFormData.fields.length - 1
                           ? () =>
-                            updateFields((fields) =>
-                              moveItem(fields, idx, idx + 1),
-                            )
+                              updateFields((fields) =>
+                                moveItem(fields, idx, idx + 1),
+                              )
                           : undefined
                       }
                       onDelete={() =>
@@ -285,7 +296,7 @@ export function ApplicationPreview({
                         "group-has-[+div:data-touched=true]:opacity-100 group-data-[touched=true]:opacity-100",
                       )}
                     >
-                      <div className="absolute inset-x-0 top-0 z-10 hidden group-first:field">
+                      <div className="group-first:field absolute inset-x-0 top-0 z-10 hidden">
                         <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                           <AddFieldButton
                             onClick={() => setAddFieldIndex(idx)}
@@ -301,7 +312,7 @@ export function ApplicationPreview({
                       </div>
                     </div>
 
-                    <div className="relative mx-auto max-w-screen-sm">
+                    <div className="relative mx-auto max-w-screen-sm" inert>
                       <div className="px-6">
                         <ProgramApplicationFormField field={field} preview />
                       </div>
@@ -317,7 +328,7 @@ export function ApplicationPreview({
               )}
             </div>
 
-            { /* Submit button */}
+            {/* Submit button */}
             <div className="relative mx-auto max-w-screen-sm py-4">
               <div className="px-6">
                 <Button
