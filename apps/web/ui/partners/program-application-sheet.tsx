@@ -4,7 +4,11 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
 import useGroup from "@/lib/swr/use-group";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { GroupWithProgramProps, ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
+import {
+  GroupWithProgramProps,
+  ProgramEnrollmentProps,
+  ProgramProps,
+} from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
@@ -21,7 +25,6 @@ import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
-import ReactTextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
@@ -47,7 +50,10 @@ function ProgramApplicationSheetContent({
   onSuccess,
 }: ProgramApplicationSheetProps) {
   const { partner } = usePartnerProfile();
-  const groupId = programEnrollment?.groupId || programProp?.defaultGroupId || DEFAULT_PARTNER_GROUP.slug;
+  const groupId =
+    programEnrollment?.groupId ||
+    programProp?.defaultGroupId ||
+    DEFAULT_PARTNER_GROUP.slug;
   const { group, loading } = useGroup<GroupWithProgramProps>(
     { groupIdOrSlug: groupId },
     {
@@ -71,7 +77,7 @@ function ProgramApplicationSheetContent({
     handleSubmit,
     setError,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = form
+  } = form;
 
   const { executeAsync } = useAction(createProgramApplicationAction, {
     onSuccess: () => {
@@ -149,9 +155,14 @@ function ProgramApplicationSheetContent({
 
           <div className="flex flex-col gap-6 p-5 sm:p-8">
             {group?.applicationFormData?.fields.map((field, index) => {
-              return <ProgramApplicationFormField key={field.id} field={field} keyPath={`formData.fields.${index}`} />;
+              return (
+                <ProgramApplicationFormField
+                  key={field.id}
+                  field={field}
+                  keyPath={`formData.fields.${index}`}
+                />
+              );
             })}
-
 
             {program.termsUrl && (
               <div className="flex items-center gap-2">
@@ -160,7 +171,8 @@ function ProgramApplicationSheetContent({
                   id="termsAgreement"
                   className={cn(
                     "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
-                    errors.termsAgreement && "border-red-400 focus:ring-red-500",
+                    errors.termsAgreement &&
+                      "border-red-400 focus:ring-red-500",
                   )}
                   {...register("termsAgreement", {
                     required: true,
@@ -218,7 +230,7 @@ function ProgramApplicationSheetContent({
               />
               <img
                 src={partner?.image || `${OG_AVATAR_URL}${partner?.name}`}
-                alt={partner?.name}
+                alt={partner?.name || "Your avatar"}
                 className="-ml-4 size-20 rotate-[15deg] rounded-full drop-shadow-md"
               />
               <div className="absolute -bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white p-0.5">
