@@ -6,16 +6,13 @@ import { logAndRespond } from "../../../utils";
 
 export const dynamic = "force-dynamic";
 
-interface RequestParams {
-  params: {
-    discountCodeId: string;
-  };
-}
-
 // POST /api/cron/discount-codes/[discountCodeId]/delete
-export async function POST(req: Request, { params }: RequestParams) {
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ discountCodeId: string }> },
+) {
   try {
-    const { discountCodeId } = params;
+    const { discountCodeId } = await params;
 
     const rawBody = await req.text();
 
