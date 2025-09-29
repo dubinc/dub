@@ -1,52 +1,35 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { CampaignSchema } from "@/lib/zod/schemas/campaigns";
+import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/campaigns/[campaignId] - get an email campaign
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { campaignId } = params;
-
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    return NextResponse.json({});
+    const campaign = await prisma.campaign.findUniqueOrThrow({
+      where: {
+        id: campaignId,
+        programId,
+      },
+      include: {
+        groups: true,
+        workflow: true,
+      },
+    });
+
+    const fetchtedCampaign = CampaignSchema.parse({
+      ...campaign,
+      groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
+      triggerCondition: campaign.workflow?.triggerConditions?.[0],
+    });
+
+    return NextResponse.json(fetchtedCampaign);
   },
   {
-    requiredPlan: [
-      "advanced",
-      "enterprise",
-    ],
-  },
-);
-
-// PATCH /api/campaigns/[campaignId] - update an email campaign
-export const PATCH = withWorkspace(
-  async ({ workspace, params, req, session }) => {
-    const { campaignId } = params;
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    return NextResponse.json({});
-  },
-  {
-    requiredPlan: [
-      "advanced",
-      "enterprise",
-    ],
-  },
-);
-
-// PATCH /api/campaigns/[campaignId] - delete an email campaign
-export const DELETE = withWorkspace(
-  async ({ workspace, params, session }) => {
-    const { campaignId } = params;
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    return NextResponse.json({ id: campaignId });
-  },
-  {
-    requiredPlan: [
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );
