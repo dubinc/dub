@@ -4,8 +4,11 @@ import { v4 as uuid } from "uuid";
 import "dotenv-flow/config";
 import { ProgramApplication } from "@prisma/client";
 
-const defaultApplicationFormData = (program: ProgramProps) => {
+const defaultApplicationFormData = (program) => {
   return {
+    label: program.applicationFormData?.label || "",
+    title: program.applicationFormData?.title || "",
+    description: program.applicationFormData?.description || "",  
     fields: [
       {
         id: uuid(),
@@ -88,20 +91,7 @@ async function main() {
 
   for (const program of programs) {
     const groupIds = program.groups.map(({ id }) => id);
-    if (program.applicationFormData && (program.applicationFormData as any).fields.length > 0) {
-      // Fill the group applicationFormData with the program applicationFormData
-      await prisma.partnerGroup.updateMany({
-        where: {
-          id: {
-            in: groupIds,
-          },
-        },
-        data: {
-          applicationFormData: program.applicationFormData,
-          applicationFormPublishedAt: now,
-        },
-      });
-    } else {
+
       // Use the default applicationFormData
       const applicationFormData = defaultApplicationFormData(program);
 
@@ -116,7 +106,6 @@ async function main() {
           applicationFormPublishedAt: now,
         },
       });
-    }
 
     // Now that we have applicationFormData we need to migrate all the applications for the program
     // by moving the contents of website, proposal, and comments into the formData field of the application
