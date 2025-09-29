@@ -257,9 +257,9 @@ function MessageAvatar({
   program?: Pick<ProgramProps, "logo" | "name"> | null;
   message: Message;
 }) {
-  const isDirect = message.type === "direct";
-  const avatarName = isDirect ? sender?.name : program?.name;
-  const avatarImage = isDirect ? sender?.image : program?.logo;
+  const isCampaign = message.type === "campaign";
+  const avatarName = !isCampaign ? sender?.name : program?.name;
+  const avatarImage = !isCampaign ? sender?.image : program?.logo;
 
   return (
     <Tooltip content={avatarName}>
@@ -271,7 +271,7 @@ function MessageAvatar({
           draggable={false}
         />
 
-        {isDirect && program?.logo && !message.senderPartnerId && (
+        {!isCampaign && program?.logo && !message.senderPartnerId && (
           <img
             src={program?.logo}
             alt="program logo"
