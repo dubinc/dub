@@ -6,38 +6,38 @@ import { useRemoveSAMLModal } from "@/ui/modals/remove-saml-modal";
 import { useSAMLModal } from "@/ui/modals/saml-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
+  Badge,
   Button,
+  Globe2,
   IconMenu,
-  InfoTooltip,
   Popover,
+  Switch,
   TooltipContent,
+  useOptimisticUpdate,
 } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import { Lock, ShieldOff } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { toast } from "sonner";
-
-type FormData = {
-  ssoEmailDomain: string;
-};
 
 export function SAML() {
-  const { plan, id, ssoEmailDomain, mutate } = useWorkspace();
+  const { data: session } = useSession();
+  const { id: workspaceId, plan } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
   const [openPopover, setOpenPopover] = useState(false);
 
   const {
-    register,
-    handleSubmit,
-    formState: { isDirty, isSubmitting },
-    reset,
-  } = useForm<FormData>({
-    defaultValues: {
-      ssoEmailDomain: ssoEmailDomain || "",
-    },
+    data: workspaceData,
+    isLoading,
+    update,
+  } = useOptimisticUpdate<{
+    ssoEmailDomain: string | null;
+  }>(`/api/workspaces/${workspaceId}`, {
+    loading: "Saving SAML SSO login setting...",
+    success: "SAML SSO login setting has been updated successfully.",
+    error: "Failed to update SAML SSO login settings.",
   });
 
   const currentProvider = useMemo(
@@ -78,43 +78,43 @@ export function SAML() {
     }
   }, [provider, configured, loading]);
 
-  const onSubmit = async (data: FormData) => {
+  const handleSSOEnforcementChange = async (enforceSAML: boolean) => {
     if (!configured) {
       return;
     }
 
-    try {
-      const response = await fetch(`/api/workspaces/${id}`, {
+    const updateWorkspace = async () => {
+      const response = await fetch(`/api/workspaces/${workspaceId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          ssoEmailDomain: data.ssoEmailDomain.trim() || null,
-        }),
+        body: JSON.stringify({ enforceSAML }),
       });
 
       if (!response.ok) {
         const { error } = await response.json();
-        toast.error(error.message);
-        return;
+        throw new Error(error.message || "Failed to update workspace.");
       }
+      const data = await response.json();
 
-      // Reset form to mark as not dirty
-      await mutate();
-      reset(data);
-      toast.success("Email domain updated successfully");
-    } catch (error) {
-      console.error("Error updating email domain:", error);
-      toast.error("Failed to update email domain. Please try again.");
-    }
+      return {
+        ssoEmailDomain: data.ssoEmailDomain,
+      };
+    };
+
+    await update(updateWorkspace, {
+      ssoEmailDomain: workspaceData?.ssoEmailDomain
+        ? null
+        : session?.user?.email?.split("@")[1] || "domain.com", // fallback to dummy domain for optimistic update
+    });
   };
 
   return (
     <>
       {configured ? <RemoveSAMLModal /> : <SAMLModal />}
       <div className="rounded-lg border border-neutral-200 bg-white">
-        <div className="relative flex flex-col space-y-6 p-5 sm:p-10">
+        <div className="relative p-5 sm:p-10">
           <div className="flex flex-col space-y-3">
             <h2 className="text-xl font-medium">SAML Single Sign-On</h2>
             <p className="text-sm text-neutral-500">
@@ -123,7 +123,7 @@ export function SAML() {
             </p>
           </div>
 
-          <div className="mt-2 rounded-md border border-neutral-200 px-4 py-3">
+          <div className="mt-8 rounded-t-md border border-neutral-200 px-4 py-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
                 {data.logo || (
@@ -200,56 +200,41 @@ export function SAML() {
                 )}
               </div>
             </div>
+          </div>
 
-            {configured && (
-              <form
-                onSubmit={handleSubmit(onSubmit)}
-                className="mt-4 border-t border-neutral-100 pt-4"
-              >
-                <div className="flex items-center space-x-2">
-                  <label
-                    htmlFor="ssoEmailDomain"
-                    className="text-sm font-medium text-neutral-700"
-                  >
-                    Email domain enforcement
-                  </label>
-                  <InfoTooltip content="Users with email addresses from this domain will be required to authenticate via SAML SSO. Leave empty to allow all users to choose their authentication method." />
-                </div>
-                <div className="mt-2 flex items-center space-x-3">
-                  <input
-                    {...register("ssoEmailDomain")}
-                    id="ssoEmailDomain"
-                    type="text"
-                    placeholder="example.com"
-                    className="w-full rounded-md border border-neutral-300 px-3 py-1.5 text-sm placeholder-neutral-400 focus:border-black focus:outline-none focus:ring-black"
-                    disabled={plan !== "enterprise"}
-                  />
-                  <Button
-                    type="submit"
-                    text="Save changes"
-                    loading={isSubmitting}
-                    disabled={plan !== "enterprise" || !isDirty}
-                    className="h-9 w-fit px-6"
-                  />
-                </div>
-                <p className="mt-1.5 text-xs text-neutral-500">
-                  Enter your organization's email domain (e.g., company.com)
-                </p>
-              </form>
-            )}
+          <div className="flex items-center justify-between rounded-b-md border border-t-0 border-neutral-200 bg-neutral-50 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-neutral-700">
+                Require workspace members to login with SAML to access this
+                workspace
+              </label>
+              {workspaceData?.ssoEmailDomain && (
+                <Badge
+                  variant="blueGradient"
+                  className="flex items-center gap-1"
+                >
+                  <Globe2 className="size-3" />
+                  {workspaceData.ssoEmailDomain}
+                </Badge>
+              )}
+            </div>
+            <Switch
+              checked={!!workspaceData?.ssoEmailDomain}
+              loading={isLoading}
+              disabled={plan !== "enterprise"}
+              fn={handleSSOEnforcementChange}
+            />
           </div>
         </div>
 
         <div className="rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-3 py-5 sm:px-10">
-          <div className="flex items-center justify-between">
-            <a
-              href="https://dub.co/help/category/saml-sso"
-              target="_blank"
-              className="text-sm text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-700"
-            >
-              Learn more about SAML SSO.
-            </a>
-          </div>
+          <a
+            href="https://dub.co/help/category/saml-sso"
+            target="_blank"
+            className="text-sm text-neutral-400 underline underline-offset-4 transition-colors hover:text-neutral-700"
+          >
+            Learn more about SAML SSO.
+          </a>
         </div>
       </div>
     </>
