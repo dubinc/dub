@@ -121,6 +121,8 @@ export const executeSendCampaignWorkflow = async ({
         programId: programEnrollment.programId,
         partnerId: programEnrollment.partnerId,
         senderUserId: campaign.userId,
+        type: "campaign",
+        subject: campaign.subject,
         text: renderEmailTemplate({
           template: campaign.body,
           variables: {

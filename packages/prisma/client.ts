@@ -12,6 +12,7 @@ export {
   FolderUserRole,
   IndustryInterest,
   InvoiceStatus,
+  MessageType,
   MonthlyTraffic,
   NotificationEmailType,
   PartnerBannedReason,
