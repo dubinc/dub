@@ -1,83 +1,17 @@
-import { PARTNERS_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { AuthorizationCode } from "simple-oauth2";
-import { v4 as uuidv4 } from "uuid";
-import { redis } from "../upstash/redis";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import {
+  OAuthProvider,
+  OAuthProviderConfig,
+} from "../integrations/oauth-provider";
 import { paypalEnv } from "./env";
+import { paypalAuthTokenSchema, paypalUserInfoSchema } from "./schema";
 
-interface AccessToken {
-  token: {
-    access_token: string;
-  };
-}
-
-interface PayPalUserInfo {
-  email: string;
-  email_verified: boolean; // Indicates whether the user's paypal email address is verified.
-}
-
-const REDIRECT_URI = `${PARTNERS_DOMAIN_WITH_NGROK}/api/paypal/callback`;
-const STATE_CACHE_PREFIX = "paypal:oauth:state:";
-
-export class PayPalOAuth {
-  private oauth2: AuthorizationCode;
-
-  constructor() {
-    this.oauth2 = new AuthorizationCode({
-      client: {
-        id: paypalEnv.PAYPAL_CLIENT_ID,
-        secret: paypalEnv.PAYPAL_CLIENT_SECRET,
-      },
-      auth: {
-        tokenHost: paypalEnv.PAYPAL_API_HOST,
-        tokenPath: "/v1/oauth2/token",
-        authorizeHost: paypalEnv.PAYPAL_AUTHORIZE_HOST,
-        authorizePath: "/signin/authorize",
-      },
-      options: {
-        authorizationMethod: "header",
-        bodyFormat: "form",
-      },
-    });
+class PayPalOAuthProvider extends OAuthProvider<typeof paypalAuthTokenSchema> {
+  constructor(provider: OAuthProviderConfig) {
+    super(provider);
   }
 
-  async getAuthorizationUrl({
-    dubUserId,
-  }: {
-    dubUserId: string;
-  }): Promise<string> {
-    const state = uuidv4();
-
-    await redis.set(`${STATE_CACHE_PREFIX}${state}`, dubUserId, {
-      ex: 60 * 5, // 5 minutes
-    });
-
-    return this.oauth2.authorizeURL({
-      state,
-      scope: ["email"],
-      redirect_uri: REDIRECT_URI,
-    });
-  }
-
-  async verifyState({
-    state,
-    dubUserId,
-  }: {
-    state: string;
-    dubUserId: string;
-  }) {
-    return (await redis.get(`${STATE_CACHE_PREFIX}${state}`)) === dubUserId;
-  }
-
-  async exchangeCodeForToken({ code }: { code: string }) {
-    const accessToken: AccessToken = await this.oauth2.getToken({
-      code,
-      redirect_uri: REDIRECT_URI,
-    });
-
-    return accessToken.token.access_token;
-  }
-
-  async getUserInfo({ token }: { token: string }) {
+  async getUserInfo(token: string) {
     const response = await fetch(
       `${paypalEnv.PAYPAL_API_HOST}/v1/identity/openidconnect/userinfo?schema=openid`,
       {
@@ -88,7 +22,7 @@ export class PayPalOAuth {
       },
     );
 
-    const data = (await response.json()) as PayPalUserInfo;
+    const data = await response.json();
 
     if (!response.ok) {
       throw new Error("Failed to fetch user info from PayPal.", {
@@ -96,8 +30,20 @@ export class PayPalOAuth {
       });
     }
 
-    return data;
+    return paypalUserInfoSchema.parse(data);
   }
 }
 
-export const paypalOAuth = new PayPalOAuth();
+export const paypalOAuthProvider = new PayPalOAuthProvider({
+  name: "PayPal",
+  clientId: paypalEnv.PAYPAL_CLIENT_ID!,
+  clientSecret: paypalEnv.PAYPAL_CLIENT_SECRET!,
+  authUrl: paypalEnv.PAYPAL_AUTHORIZE_URL,
+  tokenUrl: `${paypalEnv.PAYPAL_API_HOST}/v1/oauth2/token`,
+  redirectUri: `${APP_DOMAIN_WITH_NGROK}/api/paypal/callback`,
+  redisStatePrefix: "paypal:oauth:state",
+  scopes: ["email"].join(" "),
+  tokenSchema: paypalAuthTokenSchema,
+  bodyFormat: "form",
+  authorizationMethod: "header",
+});
