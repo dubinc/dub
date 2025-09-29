@@ -54,29 +54,17 @@ function QRPreviewModal({
   const searchParams = useSearchParams();
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<TDownloadFormat>("svg");
-  const [isWelcomeModal, setIsWelcomeModal] = useState(searchParams.has("onboarded"));
 
   const { downloadQrCode } = useQrDownload(qrCode);
 
-  const isNewQr = qrCodeId === searchParams.get("qrId");
-
-  useEffect(() => {
-    if (isNewQr) {
-      setShowQRPreviewModal(true);
-      setIsWelcomeModal(true);
-      queryParams({
-        del: ["qrId"],
-      });
-    }
-  }, [isNewQr, queryParams]);
+  const isWelcomeModal = searchParams.has("onboarded");
 
   const handleClose = () => {
     if (!isDownloading) {
       setShowQRPreviewModal(false);
-      setIsWelcomeModal(false);
       if (isWelcomeModal) {
         queryParams({
-          del: ["onboarded", "qrId"],
+          del: ["onboarded"],
         });
       }
     }
