@@ -67,7 +67,7 @@ export function PartnerApplicationDetails({
           return null;
       }
     })
-    .filter((v) => !!v);
+    .filter((v) => !!v) as any;
 
   content = (
     <>
