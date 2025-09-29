@@ -1,14 +1,8 @@
 import { getSession } from "@/lib/auth";
-import { paypalOAuth } from "@/lib/paypal/oauth";
+import { paypalOAuthProvider } from "@/lib/paypal/oauth";
 import { prisma } from "@dub/prisma";
-import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
+import { PARTNERS_DOMAIN } from "@dub/utils";
 import { redirect } from "next/navigation";
-import { z } from "zod";
-
-const oAuthCallbackSchema = z.object({
-  code: z.string(),
-  state: z.string(),
-});
 
 // GET /api/paypal/callback - callback from PayPal
 export const GET = async (req: Request) => {
@@ -38,24 +32,18 @@ export const GET = async (req: Request) => {
       throw new Error("partner_not_found");
     }
 
-    const { code, state } = oAuthCallbackSchema.parse(getSearchParams(req.url));
+    const { token, contextId } =
+      await paypalOAuthProvider.exchangeCodeForToken(req);
 
-    const isStateValid = await paypalOAuth.verifyState({
-      state,
-      dubUserId: session.user.id,
+    await prisma.user.findUniqueOrThrow({
+      where: {
+        id: contextId,
+      },
     });
 
-    if (!isStateValid) {
-      throw new Error("invalid_state");
-    }
-
-    const accessToken = await paypalOAuth.exchangeCodeForToken({
-      code,
-    });
-
-    const paypalUser = await paypalOAuth.getUserInfo({
-      token: accessToken,
-    });
+    const paypalUser = await paypalOAuthProvider.getUserInfo(
+      token.access_token,
+    );
 
     if (!paypalUser.email_verified) {
       throw new Error("paypal_email_not_verified");
