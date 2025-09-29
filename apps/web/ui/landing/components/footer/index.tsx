@@ -25,10 +25,14 @@ export const Footer: FC<Readonly<IFooterProps>> = ({ sessionId }) => (
           <CustomerSupport sessionId={sessionId} />
           <div className="flex flex-col gap-4 max-md:mt-6 md:flex-row md:gap-20">
             <div>
-              <Links title="Legal" links={LEGAL_LINKS} />
+              <Links title="Legal" links={LEGAL_LINKS} sessionId={sessionId} />
             </div>
             <div>
-              <Links title="About Us" links={GENERAL_LINKS} />
+              <Links
+                title="About Us"
+                links={GENERAL_LINKS}
+                sessionId={sessionId}
+              />
             </div>
           </div>
         </div>

@@ -157,6 +157,8 @@ export const POST = withSession(
             mixpanel_user_id:
               user?.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
             plan_name: body.paymentPlan,
+            plan_price: priceForPay,
+            charge_period_days: chargePeriodDays,
             payment_subtype: "SUBSCRIPTION",
             billing_action: "rebill",
             //**** for analytics ****//

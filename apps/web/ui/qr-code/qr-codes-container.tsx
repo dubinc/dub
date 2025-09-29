@@ -1,5 +1,6 @@
 "use client";
 
+import { Session } from "@/lib/auth/utils";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeCardPlaceholder from "@/ui/qr-code/qr-code-card-placeholder.tsx";
@@ -24,10 +25,12 @@ export default function QrCodesContainer({
   CreateQrCodeButton,
   featuresAccess,
   initialQrs,
+  user,
 }: {
   CreateQrCodeButton: () => ReactNode;
   featuresAccess: boolean;
   initialQrs: QrStorageData[];
+  user: Session["user"];
 }) {
   const {
     viewMode,
@@ -35,10 +38,15 @@ export default function QrCodesContainer({
     // showArchived
   } = useContext(QrCodesDisplayContext);
 
-  const { qrs: clientQrs, isValidating } = useQrs({
-    sortBy,
-    showArchived: true,
-  }, {}, false, true);
+  const { qrs: clientQrs, isValidating } = useQrs(
+    {
+      sortBy,
+      showArchived: true,
+    },
+    {},
+    false,
+    true,
+  );
 
   const qrs = clientQrs || initialQrs;
 
@@ -67,6 +75,7 @@ export default function QrCodesContainer({
         loading={isValidating || (qrs && !qrsWithPreviews)}
         compact={viewMode === "rows"}
         featuresAccess={featuresAccess}
+        user={user}
       />
     </MaxWidthWrapper>
   );
@@ -89,6 +98,7 @@ function QrCodesList({
   loading,
   compact,
   featuresAccess,
+  user,
 }: {
   CreateQrCodeButton: () => ReactNode;
   qrCodes?: QrStorageData[];
@@ -96,6 +106,7 @@ function QrCodesList({
   loading?: boolean;
   compact: boolean;
   featuresAccess: boolean;
+  user: Session["user"];
 }) {
   const searchParams = useSearchParams();
 
@@ -121,7 +132,12 @@ function QrCodesList({
             {qrCodes?.length
               ? // Link cards
                 qrCodes.map((qrCode) => (
-                  <QrCodeCard key={qrCode.id} qrCode={qrCode} featuresAccess={featuresAccess} />
+                  <QrCodeCard
+                    key={qrCode.id}
+                    qrCode={qrCode}
+                    featuresAccess={featuresAccess}
+                    user={user}
+                  />
                 ))
               : // Loading placeholder cards
                 Array.from({ length: 12 }).map((_, idx) => (

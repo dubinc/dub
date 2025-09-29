@@ -23,7 +23,7 @@ export const useQrOperations = () => {
   const { user } = useUserCache();
   const toastWithUndo = useToastWithUndo();
   const { queryParams } = useRouterStuff();
-  
+
   const createQr = useCallback(
     async (qrBuilderData: QRBuilderData) => {
       console.log("createQr", qrBuilderData);
@@ -62,7 +62,7 @@ export const useQrOperations = () => {
             event: EAnalyticEvents.QR_CREATED,
             params: {
               event_category: "Authorized",
-              page_name: "profile",
+              page_name: "dashboard",
               email: user?.email,
               link_url: responseData.createdLink?.shortLink,
               link_id: responseData.createdLink?.id,
@@ -140,7 +140,7 @@ export const useQrOperations = () => {
             event: EAnalyticEvents.QR_UPDATED,
             params: {
               event_category: "Authorized",
-              page_name: "profile",
+              page_name: "dashboard",
               email: user?.email,
               is_activated: false,
               is_deactivated: false,
@@ -214,7 +214,7 @@ export const useQrOperations = () => {
             event: EAnalyticEvents.QR_UPDATED,
             params: {
               event_category: "Authorized",
-              page_name: "profile",
+              page_name: "dashboard",
               email: user?.email,
               ...trackingParams,
               is_activated: !archive,
@@ -267,7 +267,7 @@ export const useQrOperations = () => {
             event: EAnalyticEvents.QR_UPDATED,
             params: {
               event_category: "Authorized",
-              page_name: "profile",
+              page_name: "dashboard",
               email: user?.email,
               ...trackingParams,
               is_activated: false,

@@ -1,5 +1,6 @@
 "use client";
 
+import { Session } from "@/lib/auth";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
 import {
   TDownloadFormat,
@@ -12,6 +13,8 @@ import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Theme } from "@radix-ui/themes";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { useSearchParams } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
 import {
@@ -39,6 +42,7 @@ interface IQRPreviewModalProps {
   qrCodeId?: string;
   width?: number;
   height?: number;
+  user: Session["user"];
 }
 
 function QRPreviewModal({
@@ -49,6 +53,7 @@ function QRPreviewModal({
   qrCodeId,
   width = 200,
   height = 200,
+  user,
 }: IQRPreviewModalProps) {
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
@@ -76,6 +81,21 @@ function QRPreviewModal({
       return;
     }
 
+    trackClientEvents({
+      event: EAnalyticEvents.ELEMENT_CLICKED,
+      params: {
+        page_name: "dashboard",
+        element_name: "qr_preview",
+        content_group: "my_qr_codes",
+        content_value: "download_qr",
+        email: user?.email,
+        qrId: qrCodeId,
+        img_format: selectedFormat,
+        event_category: "Authorized",
+      },
+      sessionId: user?.id,
+    });
+
     setIsDownloading(true);
     try {
       await downloadQrCode(selectedFormat);
@@ -86,6 +106,23 @@ function QRPreviewModal({
       setIsDownloading(false);
     }
   };
+
+  useEffect(() => {
+    if (showQRPreviewModal) {
+      trackClientEvents({
+        event: EAnalyticEvents.ELEMENT_OPENED,
+        params: {
+          page_name: "dashboard",
+          element_name: "qr_preview",
+          content_group: "my_qr_codes",
+          email: user?.email,
+          qrId: qrCodeId,
+          event_category: "Authorized",
+        },
+        sessionId: user?.id,
+      });
+    }
+  }, [showQRPreviewModal]);
 
   return (
     <Modal
@@ -225,22 +262,10 @@ export function useQRPreviewModal(data: {
   qrCodeId?: string;
   width?: number;
   height?: number;
+  user: Session["user"];
 }) {
-  const { canvasRef, qrCode, qrCodeId, width = 200, height = 200 } = data;
+  const { canvasRef, qrCode, qrCodeId, width = 200, height = 200, user } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
-
-  // // Use refs to store stable references that don't cause re-renders
-  // const qrCodeRef = useRef<QRCodeStyling | null>(qrCode);
-  // const canvasRefStable = useRef(canvasRef);
-  //
-  // // Update refs when values change, but don't trigger re-renders
-  // useEffect(() => {
-  //   qrCodeRef.current = qrCode;
-  // }, [qrCode]);
-  //
-  // useEffect(() => {
-  //   canvasRefStable.current = canvasRef;
-  // }, [canvasRef]);
 
   const QRPreviewModalCallback = useCallback(() => {
     return (
@@ -252,6 +277,7 @@ export function useQRPreviewModal(data: {
         height={height}
         showQRPreviewModal={showQRPreviewModal}
         setShowQRPreviewModal={setShowQRPreviewModal}
+        user={user}
       />
     );
   }, [width, height, showQRPreviewModal, qrCodeId]);

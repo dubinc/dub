@@ -49,7 +49,7 @@ export const VerifyEmailForm = ({
       trackClientEvents({
         event: EAnalyticEvents.AUTH_SUCCESS,
         params: {
-          page_name: "profile",
+          page_name: "dashboard",
           auth_type: "signup",
           auth_method: "email",
           auth_origin: qrDataToCreate ? "qr" : "none",
@@ -100,7 +100,7 @@ export const VerifyEmailForm = ({
       trackClientEvents({
         event: EAnalyticEvents.AUTH_ERROR,
         params: {
-          page_name: "profile",
+          page_name: "landing",
           auth_type: "signup",
           auth_method: "email",
           auth_origin: qrDataToCreate ? "qr" : "none",

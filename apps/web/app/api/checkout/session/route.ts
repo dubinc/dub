@@ -5,6 +5,7 @@ import { v4 as uuidV4 } from "uuid";
 
 import { withSession } from "@/lib/auth";
 import {
+  getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
   ICustomerBody,
   TPaymentPlan,
@@ -25,7 +26,7 @@ import { getUserIp } from "core/util/user-ip.util.ts";
 const paymentService = new PaymentService();
 
 const trialPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
-const initialSubPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
+const initialSubPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 
 const getMetadata = ({
   user,
@@ -37,17 +38,24 @@ const getMetadata = ({
   const headerStore = headers();
   const cookieStore = cookies();
 
+  const { priceForPay } = getPaymentPlanPrice({
+    paymentPlan,
+    user,
+  });
+
   const metadata: { [key: string]: string | number | null } = {
     //**** antifraud sessions ****//
     ...user.sessions,
 
     //**** for analytics ****//
     email: user!.email!,
-    flow_type: "internal",
+    flow_type: "web_onboarding",
     locale: "en",
     mixpanel_user_id:
       user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
     plan_name: paymentPlan,
+    plan_price: priceForPay,
+    charge_period_days: getChargePeriodDaysIdByPlan({ paymentPlan, user }),
     payment_subtype: "FIRST_PAYMENT",
     billing_action: null,
     //**** for analytics ****//
