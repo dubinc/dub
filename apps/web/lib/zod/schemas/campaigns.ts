@@ -1,5 +1,6 @@
 import { CampaignStatus, CampaignType } from "@dub/prisma/client";
 import { z } from "zod";
+import { GroupSchema } from "./groups";
 import { workflowConditionSchema } from "./workflows";
 
 export const createCampaignSchema = z
@@ -43,6 +44,14 @@ export const CampaignSchema = z.object({
   type: z.nativeEnum(CampaignType),
   status: z.nativeEnum(CampaignStatus),
   triggerCondition: workflowConditionSchema.nullable(),
+  groups: z.array(GroupSchema.pick({ id: true })),
   createdAt: z.date(),
   updatedAt: z.date(),
+});
+
+export const getCampaignsQuerySchema = z.object({
+  status: z.nativeEnum(CampaignStatus).optional(),
+  sortBy: z.enum(["createdAt"]).optional().default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+  search: z.string().optional(),
 });

@@ -7,6 +7,7 @@ import { WorkflowAction } from "@/lib/types";
 import {
   CampaignSchema,
   createCampaignSchema,
+  getCampaignsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
 import {
   WORKFLOW_ACTION_TYPES,
@@ -15,13 +16,54 @@ import {
 import { prisma } from "@dub/prisma";
 import { Workflow } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/campaigns - get all email campaigns for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    return NextResponse.json({});
+    const { sortBy, sortOrder, status, search } =
+      getCampaignsQuerySchema.parse(searchParams);
+
+    const campaigns = await prisma.campaign.findMany({
+      where: {
+        programId,
+        ...(status && { status }),
+        ...(search && {
+          OR: [
+            { name: { contains: search } },
+            { subject: { contains: search } },
+          ],
+        }),
+      },
+      include: {
+        workflow: {
+          select: {
+            id: true,
+            triggerConditions: true,
+          },
+        },
+        groups: {
+          select: {
+            groupId: true,
+          },
+        },
+      },
+      orderBy: {
+        [sortBy]: sortOrder,
+      },
+    });
+
+    const data = campaigns.map((campaign) => {
+      return {
+        ...campaign,
+        groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
+        triggerCondition: campaign.workflow?.triggerConditions?.[0],
+      };
+    });
+
+    return NextResponse.json(z.array(CampaignSchema).parse(data));
   },
   {
     requiredPlan: ["advanced", "enterprise"],
