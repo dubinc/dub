@@ -301,7 +301,7 @@ export function LanderPreview({
                       className={cn(
                         "pointer-events-none absolute inset-0 opacity-0",
                         "transition-opacity duration-150 group-hover:opacity-100 sm:group-has-[+div:hover]:opacity-100",
-                        "group-has-[+div[data-touched='true']]:opacity-100 group-data-[touched=true]:opacity-100",
+                        "group-has-[+div[data-[touched=true]]]:opacity-100 group-data-[touched=true]:opacity-100",
                       )}
                     >
                       <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
