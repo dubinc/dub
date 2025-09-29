@@ -69,6 +69,7 @@ model Partner {
   messages          Message[]
   sentMessages      Message[] @relation("SenderPartner")
   comments          PartnerComment[]
+  discoveredPartners DiscoveredPartner[]
 
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]
@@ -180,4 +181,19 @@ model PartnerSalesChannel {
 
   @@unique([partnerId, salesChannel])
   @@index(partnerId)
+}
+
+model DiscoveredPartner {
+  programId String
+  partnerId String
+
+  starredAt DateTime?
+  ignoredAt DateTime?
+  invitedAt DateTime?
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, partnerId])
+  @@index(programId)
 }

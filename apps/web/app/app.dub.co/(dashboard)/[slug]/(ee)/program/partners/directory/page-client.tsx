@@ -73,7 +73,10 @@ export function ProgramPartnersDirectoryPageClient() {
     : undefined;
 
   const { data: partnersCount, error: countError } = useSWR<{
+    total: number;
     discover: number;
+    invited: number;
+    recruited: number;
   }>(queryString && `/api/network/partners/count${queryString}`, fetcher);
 
   const { data: partners, error } = useSWR<DiscoverablePartnerProps[]>(
@@ -110,9 +113,13 @@ export function ProgramPartnersDirectoryPageClient() {
               <span className="text-content-default text-xs font-semibold">
                 {tab.label}
               </span>
-              <span className="text-content-emphasis text-base font-semibold">
-                N,NNN
-              </span>
+              {partnersCount ? (
+                <span className="text-content-emphasis text-base font-semibold">
+                  {(partnersCount?.[tab.id] || 0).toLocaleString()}
+                </span>
+              ) : (
+                <div className="h-6 w-12 animate-pulse rounded-md bg-neutral-200" />
+              )}
             </button>
           );
         })}
