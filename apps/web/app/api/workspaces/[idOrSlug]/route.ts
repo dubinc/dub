@@ -212,7 +212,7 @@ export const PATCH = withWorkspace(
       if (error.code === "P2002") {
         throw new DubApiError({
           code: "conflict",
-          message: `The slug "${slug}" is already in use.`,
+          message: `The ${ssoEmailDomain ? "email domain" : "slug"} "${ssoEmailDomain || slug}" is already in use.`,
         });
       } else {
         throw new DubApiError({

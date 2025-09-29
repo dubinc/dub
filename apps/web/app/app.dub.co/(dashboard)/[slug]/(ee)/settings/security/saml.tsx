@@ -16,6 +16,7 @@ import { SAML_PROVIDERS } from "@dub/utils";
 import { Lock, ShieldOff } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
+import { toast } from "sonner";
 
 type FormData = {
   ssoEmailDomain: string;
@@ -95,15 +96,17 @@ export function SAML() {
 
       if (!response.ok) {
         const { error } = await response.json();
-        throw new Error(error.message || "Failed to update email domain.");
+        toast.error(error.message);
+        return;
       }
 
       // Reset form to mark as not dirty
       await mutate();
       reset(data);
+      toast.success("Email domain updated successfully");
     } catch (error) {
       console.error("Error updating email domain:", error);
-      alert("Failed to update email domain. Please try again.");
+      toast.error("Failed to update email domain. Please try again.");
     }
   };
 
