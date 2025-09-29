@@ -15,6 +15,7 @@ import { RefObject, useRef } from "react";
 import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
 
 interface QrCodeTitleColumnProps {
+  user: Session["user"];
   qrCode: QrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
@@ -24,6 +25,7 @@ interface QrCodeTitleColumnProps {
 }
 
 export function QrCodeTitleColumn({
+  user,
   qrCode,
   canvasRef,
   builtQrCodeObject,
@@ -41,6 +43,7 @@ export function QrCodeTitleColumn({
     qrCodeId: qrCode.id,
     width: isMobile ? 300 : 200,
     height: isMobile ? 300 : 200,
+    user,
   });
 
   return (

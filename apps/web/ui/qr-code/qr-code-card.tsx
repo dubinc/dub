@@ -37,6 +37,7 @@ export function QrCodeCard({
       >
         <div className="h-full min-w-0 grow">
           <QrCodeTitleColumn
+            user={user}
             qrCode={qrCode}
             canvasRef={canvasRef}
             builtQrCodeObject={builtQrCodeObject}

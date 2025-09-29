@@ -28,7 +28,7 @@ const WorkspaceAnalyticsPage = async () => {
       </PageContent>
       <PageViewedTrackerComponent
         sessionId={authUser.id!}
-        pageName="profile"
+        pageName="dashboard"
         params={{
           event_category: "Authorized",
           email: authUser?.email,

@@ -13,6 +13,8 @@ import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.t
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Button, MaxWidthWrapper } from "@dub/ui";
 import { ShieldAlert } from "@dub/ui/icons";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { ICustomerBody } from "core/integration/payment/config";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -172,6 +174,17 @@ function TrialOfferWithQRPreviewWrapper({
       // && !featuresAccess.subscriptionId,
 
       setShowTrialOfferModal(true);
+    } else {
+      trackClientEvents({
+        event: EAnalyticEvents.PAGE_VIEWED,
+        params: {
+          page_name: "dashboard",
+          content_group: "my_qr_codes",
+          event_category: "Authorized",
+          email: user?.email,
+        },
+        sessionId: user?.id,
+      });
     }
   }, [isSubscribed]);
 
