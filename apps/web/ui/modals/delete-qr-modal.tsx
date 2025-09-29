@@ -1,6 +1,7 @@
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
 import { Button, Modal } from "@dub/ui";
+import { Flex, Text, Theme } from "@radix-ui/themes";
 import {
   Dispatch,
   SetStateAction,
@@ -8,6 +9,8 @@ import {
   useMemo,
   useState,
 } from "react";
+import { X } from "@/ui/shared/icons";
+import { Check } from 'lucide-react';
 
 type DeleteQRModalProps = {
   showDeleteQRModal: boolean;
@@ -15,60 +18,124 @@ type DeleteQRModalProps = {
   props: QrStorageData;
 };
 
-function DeleteQRModal(props: DeleteQRModalProps) {
-  return (
-    <Modal
-      showModal={props.showDeleteQRModal}
-      setShowModal={props.setShowDeleteQRModal}
-      className="border-border-500"
-    >
-      <DeleteQrModalInner {...props} />
-    </Modal>
-  );
-}
-
-function DeleteQrModalInner({
-  setShowDeleteQRModal,
-  props,
-}: DeleteQRModalProps) {
+function DeleteQRModal({ showDeleteQRModal, setShowDeleteQRModal, props }: DeleteQRModalProps) {
   const { deleteQr } = useQrOperations();
   const [deleting, setDeleting] = useState(false);
 
-  // const { isMobile } = useMediaQuery();
+  const handleDelete = useCallback(async () => {
+    setDeleting(true);
+    const success = await deleteQr(props.id);
+    setDeleting(false);
+
+    if (success) {
+      setShowDeleteQRModal(false);
+    }
+  }, [deleteQr, props.id, setShowDeleteQRModal]);
+
+  const handleClose = () => {
+    setShowDeleteQRModal(false);
+  };
 
   return (
-    <>
-      <div className="border-border-500 flex flex-col items-center justify-center space-y-3 border-b px-4 py-4 pt-8 text-center sm:px-16">
-        <h3 className="text-lg font-medium">
-          This QR code will be removed. <br /> Are you sure?
-        </h3>
-        {/*<p className="text-sm text-neutral-500">*/}
-        {/*  Warning: Deleting this QR will remove all of its analytics. This*/}
-        {/*  action cannot be undone – proceed with caution.*/}
-        {/*</p>*/}
-      </div>
+    <Modal
+      showModal={showDeleteQRModal}
+      setShowModal={setShowDeleteQRModal}
+      className="border-border-500 max-w-md"
+      drawerRootProps={{
+        repositionInputs: false,
+      }}
+    >
+      <Theme>
+        <div className="flex flex-col gap-2">
+          <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
+            <div className="flex items-center gap-2">
+              <h3 className="!mt-0 max-w-xs text-lg font-medium">
+                Are you sure you want to delete "{props.title}"?
+              </h3>
+            </div>
+            <button
+              disabled={deleting}
+              type="button"
+              onClick={handleClose}
+              className="active:bg-border-500 group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none md:right-0 md:block"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
 
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setDeleting(true);
-          const success = await deleteQr(props.id);
-          setDeleting(false);
+          <div className="px-6 pb-6">
+            <div className="flex flex-col gap-4">
+              <Flex
+                direction="column"
+                align="center"
+                justify="center"
+                gap={{ initial: "2", lg: "3" }}
+                className="bg-red-100 rounded-lg p-3 lg:p-3.5"
+              >
+                <Flex
+                  direction="row"
+                  align="center"
+                  className="w-full gap-1.5"
+                >
+                  <X className="text-red-800 h-[18px] w-[18px]"/>
+                  <Text
+                    as="span"
+                    size={{ initial: "1", lg: "2" }}
+                    className="text-red-600"
+                  >
+                    This permanently removes the QR code.
+                  </Text>
+                </Flex>
+                <Flex
+                  direction="row"
+                  align="center"
+                  className="w-full gap-1.5"
+                >
+                  <X className="text-red-800 h-[18px] w-[18px]"/>
+                  <Text
+                    as="span"
+                    size={{ initial: "1", lg: "2" }}
+                    className="text-red-600"
+                  >
+                    Future scans will not work.
+                  </Text>
+                </Flex>
+                <Flex
+                  direction="row"
+                  align="center"
+                  className="w-full gap-1.5"
+                >
+                  <X className="text-red-800 h-[18px] w-[18px]"/>
+                  <Text
+                    as="span"
+                    size={{ initial: "1", lg: "2" }}
+                    className="text-red-600"
+                  >
+                    All analytics for this code will be deleted.
+                  </Text>
+                </Flex>
+              </Flex>
 
-          if (success) {
-            setShowDeleteQRModal(false);
-          }
-        }}
-        className="flex flex-col space-y-3 bg-neutral-50 px-4 py-8 text-left sm:px-16"
-      >
-        <Button
-          variant="danger"
-          text="Confirm delete"
-          loading={deleting}
-          className="border-border-500"
-        />
-      </form>
-    </>
+              <div className="flex justify-end gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleClose}
+                  disabled={deleting}
+                  text="Cancel"
+                />
+                <Button
+                  type="button"
+                  onClick={handleDelete}
+                  loading={deleting}
+                  text="Confirm delete"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </Theme>
+    </Modal>
   );
 }
 

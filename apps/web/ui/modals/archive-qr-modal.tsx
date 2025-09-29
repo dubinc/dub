@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { X } from "@/ui/shared/icons";
-import { Check } from 'lucide-react';
+import { CircleAlert } from 'lucide-react';
 
 type ArchiveQRModalProps = {
   showArchiveQRModal: boolean;
@@ -74,18 +74,18 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
                   align="center"
                   justify="center"
                   gap={{ initial: "2", lg: "3" }}
-                  className="bg-primary-200 rounded-lg p-3 lg:p-3.5"
+                  className="bg-amber-50 rounded-lg p-3 lg:p-3.5"
                 >
                   <Flex
                     direction="row"
                     align="center"
                     className="w-full gap-1.5"
                   >
-                    <Check className="text-primary h-[18px] w-[18px]" strokeWidth={2} />
+                    <CircleAlert className="text-amber-800 h-[18px] w-[18px]" strokeWidth={2} />
                     <Text
                       as="span"
                       size={{ initial: "1", lg: "2" }}
-                      className="text-neutral"
+                      className="text-amber-700"
                     >
                       New scans won’t open the destination.
                     </Text>
@@ -95,11 +95,11 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
                     align="center"
                     className="w-full gap-1.5"
                   >
-                    <Check className="text-primary h-[18px] w-[18px]" strokeWidth={2} />
+                    <CircleAlert className="text-amber-800 h-[18px] w-[18px]" strokeWidth={2} />
                     <Text
                       as="span"
                       size={{ initial: "1", lg: "2" }}
-                      className="text-neutral"
+                      className="text-amber-700"
                     >
                       Analytics won’t be recorded while paused.
                     </Text>
@@ -109,11 +109,11 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
                     align="center"
                     className="w-full gap-1.5"
                   >
-                    <Check className="text-primary h-[18px] w-[18px]" strokeWidth={2} />
+                    <CircleAlert className="text-amber-800 h-[18px] w-[18px]" strokeWidth={2} />
                     <Text
                       as="span"
                       size={{ initial: "1", lg: "2" }}
-                      className="text-neutral"
+                      className="text-amber-700"
                     >
                       You can resume at any time.
                     </Text>
