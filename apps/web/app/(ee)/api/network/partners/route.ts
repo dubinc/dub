@@ -56,7 +56,8 @@ export const GET = withWorkspace(
         GROUP BY partnerId
       ) salesChannels ON salesChannels.partnerId = p.id
       WHERE 
-        p.discoverableAt IS NOT NULL -- AND pe.id IS NULL
+        p.discoverableAt IS NOT NULL
+        AND pe.id IS NULL
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
     return NextResponse.json(

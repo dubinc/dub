@@ -8,6 +8,7 @@ import {
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscoverablePartnerProps } from "@/lib/types";
 import {
+  DISCOVERABLE_PARTNERS_MAX_PAGE_SIZE,
   PARTNER_CONVERSION_SCORES,
   PARTNER_CONVERSION_SCORE_RATES,
 } from "@/lib/zod/schemas/partner-discovery";
@@ -16,8 +17,10 @@ import {
   BadgeCheck2Fill,
   ChartActivity2,
   DynamicTooltipWrapper,
+  PaginationControls,
   Tooltip,
   UserPlus,
+  usePagination,
   useResizeObserver,
   useRouterStuff,
 } from "@dub/ui";
@@ -37,7 +40,7 @@ import useSWR from "swr";
 
 export function ProgramPartnersDirectoryPageClient() {
   const { id: workspaceId } = useWorkspace();
-  const { searchParams, queryParams } = useRouterStuff();
+  const { searchParams, getQueryString, queryParams } = useRouterStuff();
 
   const tabs = [
     {
@@ -57,14 +60,29 @@ export function ProgramPartnersDirectoryPageClient() {
   const currentTabId =
     tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
 
+  const queryString = workspaceId
+    ? getQueryString(
+        {
+          workspaceId,
+          ...(currentTabId !== "discover" && { status: currentTabId }),
+        },
+        {
+          include: ["page"],
+        },
+      )
+    : undefined;
+
+  const { data: partnersCount, error: countError } = useSWR<{
+    discover: number;
+  }>(queryString && `/api/network/partners/count${queryString}`, fetcher);
+
   const { data: partners, error } = useSWR<DiscoverablePartnerProps[]>(
-    workspaceId &&
-      `/api/network/partners?${new URLSearchParams({
-        workspaceId,
-        page: "1",
-        ...(currentTabId !== "discover" && { status: currentTabId }),
-      })}`,
+    queryString && `/api/network/partners${queryString}`,
     fetcher,
+  );
+
+  const { pagination, setPagination } = usePagination(
+    DISCOVERABLE_PARTNERS_MAX_PAGE_SIZE,
   );
 
   return (
@@ -100,17 +118,27 @@ export function ProgramPartnersDirectoryPageClient() {
         })}
       </div>
 
-      {error ? (
+      {error || countError ? (
         <div className="text-content-subtle py-12 text-sm">
           Failed to load partners
         </div>
       ) : !partners || partners?.length ? (
-        <div className="@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 lg:gap-6">
-          {partners
-            ? partners?.map((partner) => (
-                <PartnerCard key={partner.id} partner={partner} />
-              ))
-            : [...Array(8)].map((_, idx) => <PartnerCard key={idx} />)}
+        <div>
+          <div className="@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 lg:gap-6">
+            {partners
+              ? partners?.map((partner) => (
+                  <PartnerCard key={partner.id} partner={partner} />
+                ))
+              : [...Array(8)].map((_, idx) => <PartnerCard key={idx} />)}
+          </div>
+          <div className="sticky bottom-0 mt-4 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
+            <PaginationControls
+              pagination={pagination}
+              setPagination={setPagination}
+              totalCount={partnersCount?.[currentTabId] || 0}
+              unit={(p) => `partner${p ? "s" : ""}`}
+            />
+          </div>
         </div>
       ) : (
         <div className="text-content-subtle py-12 text-sm">
@@ -298,6 +326,7 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
             ? onlinePresenceData.map(
                 ({ label, icon: Icon, verified, value, href }) => (
                   <Tooltip
+                    key={label}
                     content={
                       <Link
                         href={href ?? "#"}

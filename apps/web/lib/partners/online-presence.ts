@@ -8,14 +8,14 @@ import {
   YouTube,
 } from "@dub/ui/icons";
 import { getPrettyUrl, nFormatter } from "@dub/utils";
-import { EnrolledPartnerProps } from "../types";
+import { EnrolledPartnerExtendedProps } from "../types";
 
 export const ONLINE_PRESENCE_FIELDS: {
   label: string;
   icon: Icon;
   data: (
     partner: Pick<
-      EnrolledPartnerProps,
+      EnrolledPartnerExtendedProps,
       | "website"
       | "websiteVerifiedAt"
       | "youtube"
