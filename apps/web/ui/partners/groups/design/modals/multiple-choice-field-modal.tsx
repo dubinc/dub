@@ -64,6 +64,8 @@ function MultipleChoiceFieldModalInner({
     register,
     watch,
     setValue,
+    setError,
+    clearErrors,
     formState: { errors },
     control,
   } = form;
@@ -84,6 +86,14 @@ function MultipleChoiceFieldModalInner({
           onSubmit={(e) => {
             e.stopPropagation();
             handleSubmit(async (data) => {
+              if (data.data.options.length < 2) {
+                setError("data.options", {
+                  type: "manual",
+                  message: "Requires minimum of 2 options"
+                })
+                return
+              }
+
               setShowModal(false);
               onSubmit(data);
             })(e);
@@ -103,7 +113,10 @@ function MultipleChoiceFieldModalInner({
                 type="text"
                 placeholder=""
                 autoFocus={!isMobile}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className={cn(
+                  "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  !!errors.label && "border-red-600 focus:border-red-500 focus:ring-red-600",
+                )}
                 {...register("label", { required: true })}
               />
             </div>
@@ -175,17 +188,23 @@ function MultipleChoiceFieldModalInner({
                   onAdd={() => {
                     const id = uuid();
 
+                    const newOptions = [
+                      ...fields,
+                      {
+                        id,
+                        value: "",
+                      },
+                    ]
+
                     setValue(
                       "data.options",
-                      [
-                        ...fields,
-                        {
-                          id,
-                          value: "",
-                        },
-                      ],
+                      newOptions,
                       { shouldDirty: true },
                     );
+
+                    if (newOptions.length >= 2) {
+                      clearErrors("data.options")
+                    }
 
                     return id;
                   }}
@@ -244,19 +263,28 @@ function MultipleChoiceFieldModalInner({
           </div>
 
 
-          <div className="flex items-center justify-end gap-2">
-            <Button
-              onClick={() => setShowModal(false)}
-              variant="secondary"
-              text="Cancel"
-              className="h-8 w-fit px-3"
-            />
-            <Button
-              type="submit"
-              variant="primary"
-              text={defaultValues ? "Update" : "Add"}
-              className="h-8 w-fit px-3"
-            />
+          <div className="flex items-center justify-between gap-2">
+            <div>
+              {errors.data?.options?.message && (
+                <span className="text-xs text-red-600 dark:text-red-400">
+                {errors.data?.options?.message}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => setShowModal(false)}
+                variant="secondary"
+                text="Cancel"
+                className="h-8 w-fit px-3"
+              />
+              <Button
+                type="submit"
+                variant="primary"
+                text={defaultValues ? "Update" : "Add"}
+                className="h-8 w-fit px-3"
+              />
+            </div>
           </div>
         </form>
       </div>

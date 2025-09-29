@@ -59,6 +59,7 @@ export function MultipleChoiceField({ field, keyPath: keyPathProp, preview }: Mu
 
             return (
               <label
+                key={option.id}
                 className="w-full flex items-center gap-2.5 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 <Checkbox
@@ -97,7 +98,7 @@ export function MultipleChoiceField({ field, keyPath: keyPathProp, preview }: Mu
           className="space-y-2"
         >
           {field.data.options.map((option) => (
-            <label className="flex items-center gap-2.5 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            <label key={option.id} className="flex items-center gap-2.5 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               <RadioGroupItem value={option.value} id={option.id} className="focus:border-[var(--brand)] focus:ring-[var(--brand)]" />
 
               <span className="text-sm text-content-emphasis">

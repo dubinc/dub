@@ -5,7 +5,6 @@ import {
   Button,
   Modal,
   Switch,
-  useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
 import { Dispatch, SetStateAction, useId } from "react";
@@ -13,6 +12,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { v4 as uuid } from "uuid";
 import { motion } from "motion/react";
+import { cn } from "@dub/utils";
 
 type LongTextFieldData = z.infer<typeof programApplicationFormLongTextFieldSchema>
 
@@ -56,8 +56,6 @@ function LongTextFieldModalInner({
     },
   });
 
-  const { handleKeyDown } = useEnterSubmit();
-
   return (
     <>
       <div className="p-4 pt-3">
@@ -89,7 +87,10 @@ function LongTextFieldModalInner({
                 type="text"
                 placeholder=""
                 autoFocus={!isMobile}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 text-sm"
+                className={cn(
+                  "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  !!errors.label && "border-red-600 focus:border-red-500 focus:ring-red-600",
+                )}
                 {...register("label", { required: true })}
               />
             </div>
@@ -109,7 +110,10 @@ function LongTextFieldModalInner({
                 type="text"
                 placeholder=""
                 autoFocus={!isMobile}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 text-sm"
+                className={cn(
+                  "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  !!errors.data?.placeholder && "border-red-600 focus:border-red-500 focus:ring-red-600",
+                )}
                 {...register("data.placeholder")}
               />
             </div>

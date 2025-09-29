@@ -12,6 +12,7 @@ import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { v4 as uuid } from "uuid";
 import { motion } from "motion/react";
+import { cn } from "@dub/utils";
 
 type ShortTextFieldData = z.infer<typeof programApplicationFormShortTextFieldSchema>
 
@@ -41,6 +42,7 @@ function ShortTextFieldModalInner({
     control,
     handleSubmit,
     register,
+    formState: { errors }
   } = useForm<ShortTextFieldData>({
     defaultValues: defaultValues ?? {
       id: uuid(),
@@ -85,7 +87,10 @@ function ShortTextFieldModalInner({
                 type="text"
                 placeholder=""
                 autoFocus={!isMobile}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className={cn(
+                  "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  !!errors.label && "border-red-600 focus:border-red-500 focus:ring-red-600",
+                )}
                 {...register("label", { required: true })}
               />
             </div>
@@ -105,7 +110,10 @@ function ShortTextFieldModalInner({
                 type="text"
                 placeholder=""
                 autoFocus={!isMobile}
-                className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                className={cn(
+                  "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                  !!errors.data?.placeholder && "border-red-600 focus:border-red-500 focus:ring-red-600",
+                )}
                 {...register("data.placeholder")}
               />
             </div>
