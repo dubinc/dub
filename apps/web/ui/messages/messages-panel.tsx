@@ -9,7 +9,7 @@ import {
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import Linkify from "linkify-react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { Fragment, useRef, useState } from "react";
 import { MessageInput } from "../shared/message-input";
 
@@ -421,29 +421,21 @@ function CampaignMessage({
               </span>
             </div>
 
-            <div className="flex shrink-0 items-center gap-2 text-xs font-semibold">
-              {isExpanded ? "Hide email" : "Show email"}
-              {isExpanded ? (
-                <ChevronDown className="size-2.5 transition-transform duration-200" />
-              ) : (
-                <ChevronRight className="size-2.5 transition-transform duration-200" />
-              )}
+            <div className="flex shrink-0 items-center gap-1 text-xs font-semibold">
+              <p>{isExpanded ? "Hide" : "Show"} email</p>
+              <ChevronRight
+                className={cn(
+                  "size-3.5 transition-transform duration-200",
+                  isExpanded && "rotate-90",
+                )}
+              />
             </div>
           </button>
 
-          <AnimatedSizeContainer
-            height
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-              mass: 0.8,
-            }}
-          >
+          <AnimatedSizeContainer height>
             <div
               className={cn(
                 "max-w-lg overflow-hidden whitespace-pre-wrap",
-                "transition-[max-height,padding] duration-300 ease-in-out",
                 isExpanded ? "max-h-[1000px] px-4 py-2.5" : "max-h-0 px-4 py-0",
               )}
             >

@@ -24,13 +24,13 @@ export const GET = withWorkspace(
       },
     });
 
-    const fetchtedCampaign = CampaignSchema.parse({
+    const parsedCampaign = CampaignSchema.parse({
       ...campaign,
       groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
       triggerCondition: campaign.workflow?.triggerConditions?.[0],
     });
 
-    return NextResponse.json(fetchtedCampaign);
+    return NextResponse.json(parsedCampaign);
   },
   {
     requiredPlan: ["advanced", "enterprise"],

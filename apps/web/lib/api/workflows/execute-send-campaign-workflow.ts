@@ -120,17 +120,19 @@ export const executeSendCampaignWorkflow = async ({
   for (const programEnrollmentChunk of programEnrollmentsChunks) {
     // Get partner users to notify
     const partnerUsers = programEnrollmentChunk.flatMap((enrollment) =>
-      enrollment.partner.users.map(({ user }) => ({
-        ...user,
-        partner: {
-          ...enrollment.partner,
-          users: undefined,
-        },
-        enrollment: {
-          ...enrollment,
-          partner: undefined,
-        },
-      })),
+      enrollment.partner.users
+        .filter(({ user }) => user.email) // only include users with an email
+        .map(({ user }) => ({
+          ...user,
+          partner: {
+            ...enrollment.partner,
+            users: undefined,
+          },
+          enrollment: {
+            ...enrollment,
+            partner: undefined,
+          },
+        })),
     );
 
     // Create messages
