@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
 import { Link as NavigationMenuLink } from "@radix-ui/react-navigation-menu";
 import Link from "next/link";
-import { ComponentProps, ReactNode, SVGProps } from "react";
+import { ComponentProps, ReactNode, SVGProps, type JSX } from "react";
 import { ExpandingArrow, Icon } from "../../icons";
 
 export const contentHeadingClassName =

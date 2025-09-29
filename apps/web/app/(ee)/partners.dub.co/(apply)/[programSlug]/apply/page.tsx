@@ -8,11 +8,18 @@ import { CSSProperties } from "react";
 import { ApplyHeader } from "../header";
 import { ApplicationFormHero } from "@/ui/partners/groups/design/previews/application-hero-preview";
 
-export default async function ApplicationPage({
-  params: { programSlug, groupSlug },
-}: {
-  params: { programSlug: string; groupSlug?: string };
-}) {
+export default async function ApplicationPage(
+  props: {
+    params: Promise<{ programSlug: string; groupSlug?: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    programSlug,
+    groupSlug
+  } = params;
+
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
   const program = await getProgram({

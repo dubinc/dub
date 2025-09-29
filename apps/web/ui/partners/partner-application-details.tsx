@@ -1,6 +1,6 @@
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramApplicationFormDataWithValues, ProgramApplicationFormFieldWithValues } from "@/lib/types";
+import { ProgramApplicationFormDataWithValues } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
@@ -16,21 +16,22 @@ export function PartnerApplicationDetails({
 
   const { data: application, isLoading } = useSWRImmutable<ProgramApplication>(
     program &&
-    workspaceId &&
-    `/api/programs/${program.id}/applications/${applicationId}?workspaceId=${workspaceId}`,
+      workspaceId &&
+      `/api/programs/${program.id}/applications/${applicationId}?workspaceId=${workspaceId}`,
     fetcher,
   );
 
-  let content
+  let content;
 
   if (isLoading || !application) {
     return <PartnerApplicationDetailsSkeleton />;
   }
 
-  const formData = application?.formData as ProgramApplicationFormDataWithValues;
+  const formData =
+    application?.formData as ProgramApplicationFormDataWithValues;
 
   const fields = (formData?.fields ?? [])
-    .filter(field => field.type !== "website-and-socials")
+    .filter((field) => field.type !== "website-and-socials")
     .map((field: any) => ({
       title: field.label,
       value: field.value,
@@ -49,7 +50,7 @@ export function PartnerApplicationDetails({
                   target: "_blank",
                   rel: "noopener noreferrer nofollow",
                   className:
-                    "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
+                    "underline underline-offset-4 text-sm max-w-prose text-neutral-400 hover:text-neutral-700",
                 }}
               >
                 {field.value || (
@@ -63,16 +64,11 @@ export function PartnerApplicationDetails({
             )}
           </div>
         </div>
-      ))
-      }
+      ))}
     </>
   );
 
-  return (
-    <div className="grid grid-cols-1 gap-5 text-xs">
-      {content}
-    </div>
-  );
+  return <div className="grid grid-cols-1 gap-5 text-xs">{content}</div>;
 }
 
 function PartnerApplicationDetailsSkeleton() {
@@ -88,6 +84,6 @@ function PartnerApplicationDetailsSkeleton() {
           </div>
         </div>
       ))}
-    </div >
+    </div>
   );
 }

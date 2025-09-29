@@ -13,8 +13,8 @@ import {
 } from "@dub/ui";
 import { cn, nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { Reorder } from "framer-motion";
 import { Paperclip, Trash2 } from "lucide-react";
+import { Reorder } from "motion/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";

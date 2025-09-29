@@ -2,7 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-application";
-import { getIP } from "@/lib/api/utils";
+import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { ratelimit } from "@/lib/upstash";
@@ -42,7 +42,7 @@ export const createProgramApplicationAction = actionClient
 
     // Limit to 3 requests per minute per program per IP
     const { success } = await ratelimit(3, "1 m").limit(
-      `create-program-application:${programId}:${getIP()}`,
+      `create-program-application:${programId}:${await getIP()}`,
     );
 
     if (!success) {
@@ -205,7 +205,7 @@ async function createApplication({
   });
 
   // Add application ID to cookie
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
 
   const existingApplicationIds =
     cookieStore.get("programApplicationIds")?.value?.split(",") || [];

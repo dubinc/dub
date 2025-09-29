@@ -1,12 +1,12 @@
 "use server";
 
+import { getIP } from "@/lib/api/utils/get-ip";
 import { ratelimit, redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import VerifyEmail from "@dub/email/templates/verify-email";
 import { prisma } from "@dub/prisma";
 import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
-import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
 import { isGenericEmail } from "../is-generic-email";
@@ -23,14 +23,16 @@ const schema = z.object({
 // Send OTP to email to verify account
 export const sendOtpAction = actionClient
   .schema(schema, {
-    handleValidationErrorsShape: (ve) =>
+    handleValidationErrorsShape: async (ve) =>
       flattenValidationErrors(ve).fieldErrors,
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
     const { email } = parsedInput;
 
-    const { success } = await ratelimit(2, "1 m").limit(`send-otp:${getIP()}`);
+    const { success } = await ratelimit(2, "1 m").limit(
+      `send-otp:${await getIP()}`,
+    );
 
     if (!success) {
       throw new Error("Too many requests. Please try again later.");

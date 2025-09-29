@@ -1,4 +1,4 @@
-import { prefixWorkspaceId } from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { hashToken, withAdmin } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";

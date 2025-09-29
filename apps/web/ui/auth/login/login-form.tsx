@@ -37,6 +37,8 @@ export const errorCodes = {
   "email-not-verified": "Please verify your email address.",
   "framer-account-linking-not-allowed":
     "It looks like you already have an account with us. Please sign in with your Framer account email instead.",
+  "require-saml-sso":
+    "Your organization requires authentication through your company's identity provider.",
   Callback:
     "We encountered an issue processing your request. Please try again or contact support if the problem persists.",
   OAuthSignin:

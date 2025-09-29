@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@dub/utils";
-import { LayoutGroup, motion } from "framer-motion";
+import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useId } from "react";
 
