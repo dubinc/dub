@@ -25,10 +25,10 @@ export const useQRCodeStyling = ({
       defaultData,
     );
 
-    return {
+    const finalOptions: Options = {
       width: 300,
       height: 300,
-      type: "svg",
+      type: "svg" as const,
       margin: 10,
       qrOptions: {
         typeNumber: 0,
@@ -43,6 +43,8 @@ export const useQRCodeStyling = ({
       },
       ...initialMappedOptions,
     };
+
+    return finalOptions;
   });
 
   // Create stable references to track deep changes in customization data
@@ -72,7 +74,7 @@ export const useQRCodeStyling = ({
     const newOptions: Options = {
       width: 300,
       height: 300,
-      type: "svg",
+      type: "svg" as const,
       margin: 10,
       qrOptions: {
         typeNumber: 0,

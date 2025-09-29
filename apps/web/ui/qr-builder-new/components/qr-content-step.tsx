@@ -22,7 +22,6 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
     },
   }));
 
-  // Watch form values and update context for real-time demo updates
   useEffect(() => {
     if (formRef.current?.form) {
       const subscription = formRef.current.form.watch((values) => {

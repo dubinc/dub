@@ -21,6 +21,7 @@ import {
 import {RefObject} from "react";
 import {QRContentStepRef} from "@/ui/qr-builder-new/components/qr-content-step.tsx";
 import { IQRCustomizationData } from "./customization";
+import { TQrServerData } from "../helpers/data-converters";
 
 export type TQRFormData =
   | TWebsiteQRFormData
@@ -44,6 +45,14 @@ export interface IQrBuilderContextType {
   formData: TQRFormData | null;
   currentFormValues: Record<string, any>;
 
+  // QR data for editing
+  originalQrData: TQrServerData | null;
+  qrTitle: string;
+  fileId?: string;
+
+  // Processing states
+  isProcessing: boolean;
+
   // Customization states
   customizationData: IQRCustomizationData;
   customizationActiveTab: string;
@@ -52,15 +61,23 @@ export interface IQrBuilderContextType {
   isTypeStep: boolean;
   isContentStep: boolean;
   isCustomizationStep: boolean;
+  isEditMode: boolean;
+  homepageDemo?: boolean;
 
   // Methods
-  onSave: () => void;
+  onSave: () => Promise<void>;
+  onDownload?: (data: any) => Promise<void>;
   handleNextStep: () => void;
   handleChangeStep: (step: number) => void;
   handleSelectQRType: (type: EQRType) => void;
   handleHoverQRType: (type: EQRType | null) => void;
   handleFormSubmit: (data: TQRFormData) => void;
   updateCurrentFormValues: (values: Record<string, any>) => void;
+
+  // QR data methods
+  setQrTitle: (title: string) => void;
+  setFileId: (fileId: string | undefined) => void;
+  initializeFromServerData: (serverData: TQrServerData) => void;
 
   // Customization methods
   updateCustomizationData: (data: IQRCustomizationData) => void;

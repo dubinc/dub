@@ -3,7 +3,7 @@ import { QRBuilderSteps } from "@/ui/qr-builder-new/components/qr-builder-steps.
 import { QR_BUILDER_STEP_TITLES } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import { useQrBuilder } from "@/ui/qr-builder-new/context";
 import { useIsInViewport } from "@/ui/qr-builder-new/hooks/use-is-in-viewport";
-import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
+import { QrBuilderButtons } from "@/ui/qr-builder-new/components/qr-builder-buttons.tsx";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Heading } from "@radix-ui/themes";
@@ -19,6 +19,7 @@ export const QRBuilderWrapper = () => {
     onSave,
     qrBuilderButtonsWrapperRef,
     isTypeStep,
+    homepageDemo,
   } = useQrBuilder();
 
   const { isMobile } = useMediaQuery();
@@ -51,19 +52,10 @@ export const QRBuilderWrapper = () => {
             onContinue={handleContinue}
             isEdit={false}
             isProcessing={false}
-            homePageDemo={isCustomizationStep}
+            homepageDemo={homepageDemo}
           />
         </div>
       )}
-
-      {/*{!isMobile && !navigationButtonsInViewport && isCustomizationStep && (*/}
-      {/*  <div className="fixed bottom-6 right-6 z-50">*/}
-      {/*    <QrTabsDownloadButton*/}
-      {/*      onRegistrationClick={onSave}*/}
-      {/*      isQrDisabled={false}*/}
-      {/*    />*/}
-      {/*  </div>*/}
-      {/*)}*/}
     </div>
   );
 };

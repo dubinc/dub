@@ -1,5 +1,5 @@
 import { useQrBuilder } from "@/ui/qr-builder-new/context";
-import { QrBuilderButtons } from "@/ui/qr-builder/components/qr-builder-buttons.tsx";
+import { QrBuilderButtons } from "@/ui/qr-builder-new/components/qr-builder-buttons.tsx";
 import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -33,6 +33,7 @@ export const QRBuilderInner = () => {
     customizationActiveTab,
     updateCustomizationData,
     setCustomizationActiveTab,
+    homepageDemo,
   } = useQrBuilder();
 
   const qrCodeDemo = currentQRType ? QRCodeDemoMap[currentQRType] : null;
@@ -90,7 +91,7 @@ export const QRBuilderInner = () => {
                 onContinue={handleContinue}
                 isEdit={false}
                 isProcessing={false}
-                homePageDemo={false}
+                homepageDemo={homepageDemo}
               />
             </div>
           )}
@@ -103,7 +104,7 @@ export const QRBuilderInner = () => {
                 activeTab={customizationActiveTab}
                 onTabChange={setCustomizationActiveTab}
                 isMobile={isMobile}
-                homepageDemo={true}
+                homepageDemo={homepageDemo}
               />
               {!isMobile && (
                 <div className="mt-4 w-full">
@@ -113,7 +114,7 @@ export const QRBuilderInner = () => {
                     onContinue={handleContinue}
                     isEdit={false}
                     isProcessing={false}
-                    homePageDemo={true}
+                    homepageDemo={homepageDemo}
                   />
                 </div>
               )}

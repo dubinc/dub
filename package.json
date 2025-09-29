@@ -35,5 +35,8 @@
   "packageManager": "pnpm@8.6.10",
   "volta": {
     "node": "22.17.1"
+  },
+  "dependencies": {
+    "@radix-ui/react-avatar": "^1.1.10"
   }
 }

@@ -55,6 +55,14 @@ const CustomPrismaAdapter = (p: PrismaClient) => {
         `${ERedisArg.QR_DATA_REG}:${generatedUserId}`,
       );
 
+      console.log("=== AUTH FLOW DEBUG ===");
+      console.log("Retrieved QR data from Redis:", qrDataToCreate);
+      if (qrDataToCreate) {
+        console.log("QR styles:", qrDataToCreate.styles);
+        console.log("QR frameOptions:", qrDataToCreate.frameOptions);
+      }
+      console.log("=== END AUTH DEBUG ===");
+
       const { user, workspace } = await verifyAndCreateUser({
         userId: generatedUserId,
         email: data.email,
