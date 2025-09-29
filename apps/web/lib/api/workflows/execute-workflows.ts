@@ -78,16 +78,20 @@ export async function executeWorkflows({
 
     const { action } = workflowConfig;
 
-    if (action.type === WORKFLOW_ACTION_TYPES.AwardBounty) {
-      await executeAwardBountyWorkflow({
-        workflow,
-        context: workflowContext,
-      });
-    } else if (action.type === WORKFLOW_ACTION_TYPES.SendCampaign) {
-      await executeSendCampaignWorkflow({
-        workflow,
-        context: workflowContext,
-      });
+    switch (action.type) {
+      case WORKFLOW_ACTION_TYPES.AwardBounty:
+        await executeAwardBountyWorkflow({
+          workflow,
+          context: workflowContext,
+        });
+        break;
+
+      case WORKFLOW_ACTION_TYPES.SendCampaign:
+        await executeSendCampaignWorkflow({
+          workflow,
+          context: workflowContext,
+        });
+        break;
     }
   }
 }
