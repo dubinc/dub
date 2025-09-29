@@ -12,7 +12,7 @@ import { Dispatch, SetStateAction, useId } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { v4 as uuid } from "uuid";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 type LongTextFieldData = z.infer<typeof programApplicationFormLongTextFieldSchema>
 
