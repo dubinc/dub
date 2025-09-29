@@ -40,7 +40,7 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
+  let programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
       partnerId,
@@ -69,11 +69,38 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
+  // Fetch already-sent campaign emails for these partners to prevent duplicates
+  const alreadySentEmails = await prisma.notificationEmail.findMany({
+    where: {
+      campaignId: campaign.id,
+      type: "Campaign",
+      partnerId: {
+        in: programEnrollments.map(({ partnerId }) => partnerId),
+      },
+    },
+    select: {
+      partnerId: true,
+    },
+  });
+
+  const alreadySentPartnerIds = new Set(
+    alreadySentEmails.map(({ partnerId }) => partnerId),
+  );
+
+  // Exclude partners who already got the campaign
+  programEnrollments = programEnrollments.filter(
+    ({ partnerId }) => !alreadySentPartnerIds.has(partnerId),
+  );
+
+  if (programEnrollments.length === 0) {
+    return;
+  }
+
   const programEnrollmentsChunks = chunk(programEnrollments, 100);
 
   for (const programEnrollmentChunk of programEnrollmentsChunks) {
     // Get partner users to notify
-    const partnerUsers = programEnrollments.flatMap((enrollment) =>
+    const partnerUsers = programEnrollmentChunk.flatMap((enrollment) =>
       enrollment.partner.users.map(({ user }) => ({
         ...user,
         partner: {
