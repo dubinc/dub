@@ -54,7 +54,7 @@ export const createPaymentIntent = async ({
         statement_descriptor: statementDescriptor,
         description,
       },
-      idempotencyKey ? { idempotencyKey } : {},
+      idempotencyKey ? { idempotencyKey } : undefined,
     );
 
     console.log(
