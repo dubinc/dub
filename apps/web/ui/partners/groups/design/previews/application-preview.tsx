@@ -1,8 +1,6 @@
 "use client";
 
 import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
-import useDiscounts from "@/lib/swr/use-discounts";
-import useRewards from "@/lib/swr/use-rewards";
 import { GroupWithProgramProps, ProgramApplicationFormData } from "@/lib/types";
 import { PreviewWindow } from "@/ui/partners/design/preview-window";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
@@ -47,11 +45,8 @@ export function ApplicationPreview({
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  const { rewards: groupRewards, discount: groupDiscount } =
-    getGroupRewardsAndDiscount(group);
+  const { rewards, discount } = getGroupRewardsAndDiscount(group);
 
-  const { rewards } = useRewards();
-  const { discounts } = useDiscounts();
   const program = group.program;
 
   const { setValue, getValues } = usePageBuilderFormContext();
@@ -80,7 +75,8 @@ export function ApplicationPreview({
     [applicationFormData],
   );
 
-  const { setShowEditApplicationHeroModal, EditApplicationHeroModal } = useEditApplicationHeroModal();
+  const { setShowEditApplicationHeroModal, EditApplicationHeroModal } =
+    useEditApplicationHeroModal();
 
   const [addFieldIndex, setAddFieldIndex] = useState<number | null>(null);
   const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
@@ -223,7 +219,9 @@ export function ApplicationPreview({
               onClick={() => isMobile && setTouchedFieldId("hero")}
             >
               <EditIndicatorGrid />
-              <EditToolbar onEdit={() => setShowEditApplicationHeroModal(true)} />
+              <EditToolbar
+                onEdit={() => setShowEditApplicationHeroModal(true)}
+              />
               <div className="mx-auto max-w-screen-sm">
                 <div className="px-6">
                   <ApplicationFormHero
@@ -238,10 +236,7 @@ export function ApplicationPreview({
             {/* Program rewards */}
             <div className="mx-auto mb-1 mt-6 max-w-screen-sm">
               <div className="px-6">
-                <LanderRewards
-                  rewards={groupRewards}
-                  discount={groupDiscount}
-                />
+                <LanderRewards rewards={rewards} discount={discount} />
               </div>
             </div>
 
