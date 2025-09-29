@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
-import { normalizeWorkspaceId } from "../api/workspace-id";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getSession } from "../auth";
 import { PlanProps } from "../types";
 

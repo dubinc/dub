@@ -12,8 +12,8 @@ import {
   nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronRight } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { CSSProperties, forwardRef, useMemo, useState } from "react";

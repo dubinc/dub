@@ -4,7 +4,7 @@ import { EnrolledPartnerProps } from "@/lib/types";
 import { Button, ChevronRight, Table, useTable } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
 import { cn, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";

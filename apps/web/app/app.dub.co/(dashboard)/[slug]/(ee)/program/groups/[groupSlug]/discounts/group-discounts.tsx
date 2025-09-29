@@ -14,8 +14,8 @@ import {
   useLocalStorage,
 } from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
-import { motion } from "framer-motion";
 import { BadgePercent } from "lucide-react";
+import { motion } from "motion/react";
 
 export const GroupDiscounts = () => {
   const { group, loading } = useGroup();
@@ -147,7 +147,7 @@ const Banner = () => {
       }
       initial={false}
       className="overflow-hidden"
-      {...(dismissedBanner && { inert: "" })}
+      {...(dismissedBanner && { inert: true })}
     >
       <div className="pb-6">
         <div className="relative isolate overflow-hidden rounded-xl bg-neutral-100">

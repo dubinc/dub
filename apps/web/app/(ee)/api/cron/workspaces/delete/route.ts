@@ -1,7 +1,7 @@
 import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
-import { queueWorkspaceDeletion } from "@/lib/api/workspaces";
+import { queueWorkspaceDeletion } from "@/lib/api/workspaces/delete-workspace";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
