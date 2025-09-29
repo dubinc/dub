@@ -396,37 +396,51 @@ function CampaignMessage({
               : "text-content-default rounded-bl bg-neutral-100",
           )}
         >
-          <div className="mb-2 flex items-center justify-between gap-2 border-b border-neutral-200 px-4 py-2.5 pb-2">
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={cn(
+              "flex w-full items-center justify-between gap-2 rounded-t-xl px-4 py-2.5 pb-2",
+              !isExpanded && "rounded-b-xl",
+              isExpanded && "border-b border-neutral-200",
+            )}
+          >
             <div className="flex min-w-0 items-center gap-2">
-              <Envelope className="size-4 shrink-0" />
-              <span className="text-content-default text-sm font-medium truncate">
+              <Envelope
+                className={cn(
+                  "text-content-default size-4 shrink-0",
+                  isMySide && "text-content-inverted",
+                )}
+              />
+              <span
+                className={cn(
+                  "text-content-default truncate text-sm font-medium",
+                  isMySide && "text-content-inverted",
+                )}
+              >
                 {message.subject}
               </span>
             </div>
 
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="flex shrink-0 items-center gap-2 rounded-md px-2 py-1 text-xs font-semibold transition-colors hover:bg-neutral-200/50"
-            >
+            <div className="flex shrink-0 items-center gap-2 text-xs font-semibold">
               {isExpanded ? "Hide email" : "Show email"}
               {isExpanded ? (
                 <ChevronDown className="size-2.5 transition-transform duration-200" />
               ) : (
                 <ChevronRight className="size-2.5 transition-transform duration-200" />
               )}
-            </button>
-          </div>
+            </div>
+          </button>
 
-          <AnimatedSizeContainer
-            height
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-              mass: 0.8,
-            }}
-          >
-            {isExpanded && (
+          {isExpanded && (
+            <AnimatedSizeContainer
+              height
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                mass: 0.8,
+              }}
+            >
               <div className="space-y-3 px-4 py-2.5">
                 <Linkify
                   as="div"
@@ -439,8 +453,8 @@ function CampaignMessage({
                   {message.text}
                 </Linkify>
               </div>
-            )}
-          </AnimatedSizeContainer>
+            </AnimatedSizeContainer>
+          )}
         </div>
       </div>
     </div>
