@@ -15,13 +15,7 @@ export const executeSendCampaignWorkflow = async ({
   workflow: Workflow;
   context?: WorkflowContext;
 }) => {
-  const workflowConfig = parseWorkflowConfig(workflow);
-
-  if (!workflowConfig) {
-    return;
-  }
-
-  const { condition, action } = workflowConfig;
+  const { condition, action } = parseWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.SendCampaign) {
     return;
@@ -37,6 +31,9 @@ export const executeSendCampaignWorkflow = async ({
     where: {
       id: campaignId,
     },
+    include: {
+      groups: true,
+    },
   });
 
   if (!campaign) {
@@ -48,6 +45,11 @@ export const executeSendCampaignWorkflow = async ({
       programId,
       partnerId,
       status: "approved",
+      ...(campaign.groups.length > 0 && {
+        groupId: {
+          in: campaign.groups.map(({ groupId }) => groupId),
+        },
+      }),
       ...buildEnrollmentWhere(condition),
     },
     include: {

@@ -70,13 +70,7 @@ export async function executeWorkflows({
 
   // Execute each workflow for the program
   for (const workflow of workflows) {
-    const workflowConfig = parseWorkflowConfig(workflow);
-
-    if (!workflowConfig) {
-      continue;
-    }
-
-    const { action } = workflowConfig;
+    const { action } = parseWorkflowConfig(workflow);
 
     switch (action.type) {
       case WORKFLOW_ACTION_TYPES.AwardBounty:

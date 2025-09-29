@@ -8,11 +8,7 @@ export async function scheduleWorkflow(workflow: Workflow | null) {
     return;
   }
 
-  const condition = parseWorkflowConfig(workflow)?.condition;
-
-  if (!condition) {
-    return;
-  }
+  const { condition } = parseWorkflowConfig(workflow);
 
   // Skip scheduling if the condition is not based on partnerEnrolledDays,
   // or if the required enrolled days is 0 (immediate execution case)

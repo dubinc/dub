@@ -8,27 +8,18 @@ import { z } from "zod";
 export function parseWorkflowConfig(
   workflow: Pick<Workflow, "id" | "triggerConditions" | "actions">,
 ) {
-  const conditionsResult = z
+  const conditions = z
     .array(workflowConditionSchema)
-    .safeParse(workflow.triggerConditions);
+    .parse(workflow.triggerConditions);
 
-  if (!conditionsResult.success) {
-    return null;
+  const actions = z.array(workflowActionSchema).parse(workflow.actions);
+
+  if (conditions.length === 0) {
+    throw new Error("No conditions found in workflow.");
   }
 
-  const actionsResult = z
-    .array(workflowActionSchema)
-    .safeParse(workflow.actions);
-
-  if (!actionsResult.success) {
-    return null;
-  }
-
-  const conditions = conditionsResult.data;
-  const actions = actionsResult.data;
-
-  if (conditions.length === 0 || actions.length === 0) {
-    return null;
+  if (actions.length === 0) {
+    throw new Error("No actions found in workflow.");
   }
 
   // We only support one trigger and one action for now

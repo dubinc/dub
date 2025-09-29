@@ -40,10 +40,6 @@ export async function POST(
 
     const workflowConfig = parseWorkflowConfig(workflow);
 
-    if (!workflowConfig) {
-      return logAndRespond(`Workflow ${workflowId} is not valid. Skipping...`);
-    }
-
     if (workflowConfig.action.type === WORKFLOW_ACTION_TYPES.SendCampaign) {
       await executeSendCampaignWorkflow({
         workflow,
