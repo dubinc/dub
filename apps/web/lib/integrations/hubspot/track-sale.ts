@@ -1,9 +1,9 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { WorkspaceProps } from "@/lib/types";
+import { HubSpotAuthToken } from "../types";
 import { HubSpotApi } from "./api";
 import { HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID } from "./constants";
 import { hubSpotSaleEventSchema } from "./schema";
-import { HubSpotAuthToken } from "./types";
 
 export const trackHubSpotSaleEvent = async ({
   payload,
