@@ -3,6 +3,7 @@ import { createId } from "@/lib/api/create-id";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { scheduleWorkflow } from "@/lib/api/workflows/schedule-workflow";
 import { withWorkspace } from "@/lib/auth";
 import { WorkflowAction } from "@/lib/types";
 import {
@@ -16,6 +17,7 @@ import {
 } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -149,6 +151,8 @@ export const POST = withWorkspace(
       groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
       triggerCondition: campaign.workflow?.triggerConditions?.[0],
     });
+
+    waitUntil(scheduleWorkflow(campaign.workflow));
 
     return NextResponse.json(createdCampaign);
   },
