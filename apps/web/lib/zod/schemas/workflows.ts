@@ -33,7 +33,7 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
   totalConversions: WorkflowTrigger.saleRecorded,
   totalSaleAmount: WorkflowTrigger.saleRecorded,
   totalCommissions: WorkflowTrigger.commissionEarned,
-  partnerEnrolledDays: WorkflowTrigger.partnerEnrolledDays,
+  partnerEnrolledDays: WorkflowTrigger.partnerEnrolled,
 } as const;
 
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;

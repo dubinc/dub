@@ -28,5 +28,4 @@ export {
   SalesChannel,
   WebhookReceiver,
   WorkflowTrigger,
-  WorkflowTriggerType,
 } from "@prisma/client";

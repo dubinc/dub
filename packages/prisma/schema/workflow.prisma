@@ -2,25 +2,19 @@ enum WorkflowTrigger {
   leadRecorded
   saleRecorded
   commissionEarned
-  partnerEnrolledDays
-}
-
-enum WorkflowTriggerType {
-  event
-  scheduled
+  partnerEnrolled
 }
 
 model Workflow {
-  id                String              @id @default(cuid())
+  id                String          @id @default(cuid())
   programId         String
   name              String?
   trigger           WorkflowTrigger
-  triggerType       WorkflowTriggerType @default(event)
   triggerConditions Json
   actions           Json
   disabledAt        DateTime?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   program  Program   @relation(fields: [programId], references: [id], onDelete: Cascade)
   bounty   Bounty?

@@ -8,7 +8,7 @@ import { subDays } from "date-fns";
 import { createId } from "../create-id";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
-export const executeSendCampaignAction = async ({
+export const executeSendCampaignWorkflow = async ({
   workflow,
 }: {
   workflow: Workflow;

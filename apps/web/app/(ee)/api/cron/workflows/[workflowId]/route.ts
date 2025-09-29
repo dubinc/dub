@@ -1,9 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { executeSendCampaignAction } from "@/lib/api/workflows/execute-send-campaign-workflow";
+import { executeSendCampaignWorkflow } from "@/lib/api/workflows/execute-send-campaign-workflow";
+import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import { WorkflowTrigger } from "@prisma/client";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
@@ -37,14 +38,14 @@ export async function POST(
       return logAndRespond(`Workflow ${workflowId} is disabled. Skipping...`);
     }
 
-    if (workflow.triggerType !== "scheduled") {
-      return logAndRespond(
-        `Workflow ${workflowId} is not scheduled. Skipping...`,
-      );
+    const workflowConfig = parseWorkflowConfig(workflow);
+
+    if (!workflowConfig) {
+      return logAndRespond(`Workflow ${workflowId} is not valid. Skipping...`);
     }
 
-    if (workflow.trigger === WorkflowTrigger.partnerEnrolledDays) {
-      await executeSendCampaignAction({
+    if (workflowConfig.action.type === WORKFLOW_ACTION_TYPES.SendCampaign) {
+      await executeSendCampaignWorkflow({
         workflow,
       });
     }
