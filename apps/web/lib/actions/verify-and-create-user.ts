@@ -8,7 +8,7 @@ import { nanoid } from "nanoid";
 
 export interface CreateWorkspaceParams {
   password?: string;
-  code?: string;
+  // code?: string;
   userId: string;
   email: string;
   name?: string;
@@ -17,21 +17,21 @@ export interface CreateWorkspaceParams {
 
 export async function verifyAndCreateUser({
   password,
-  code,
+  // code,
   userId,
   email,
   name,
   image, // Add image parameter
 }: CreateWorkspaceParams) {
   return prisma.$transaction(async (tx) => {
-    if (code) {
-      await tx.emailVerificationToken.delete({
-        where: {
-          identifier: email,
-          token: code,
-        },
-      });
-    }
+    // if (code) {
+    //   await tx.emailVerificationToken.delete({
+    //     where: {
+    //       identifier: email,
+    //       token: code,
+    //     },
+    //   });
+    // }
 
     let workspaceRes;
     try {

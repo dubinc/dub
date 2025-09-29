@@ -13,19 +13,23 @@ import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.i
 import { LogOut } from "lucide-react";
 import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ComponentPropsWithoutRef, ElementType, useState } from "react";
 
 export default function UserDropdown() {
   const router = useRouter();
   const { user } = useUser();
   const [openPopover, setOpenPopover] = useState(false);
+  const pathname = usePathname();
+
+  const profilePaths = ["/account/settings", "/account/plans"];
+  const pageName = profilePaths.includes(pathname) ? "profile" : "dashboard";
 
   const handleAvatarClick = () => {
     trackClientEvents({
       event: EAnalyticEvents.PAGE_CLICKED,
       params: {
-        page_name: "profile",
+        page_name: pageName,
         content_value: "account_details",
         email: user?.email,
         event_category: "Authorized",
@@ -37,7 +41,7 @@ export default function UserDropdown() {
       trackClientEvents({
         event: EAnalyticEvents.ELEMENT_OPENED,
         params: {
-          page_name: "profile",
+          page_name: pageName,
           element_name: "account_details",
           email: user?.email,
           event_category: "Authorized",
@@ -53,7 +57,7 @@ export default function UserDropdown() {
     trackClientEvents({
       event: EAnalyticEvents.ELEMENT_CLICKED,
       params: {
-        page_name: "profile",
+        page_name: pageName,
         element_name: "account_details",
         email: user?.email,
         content_value: optionType,

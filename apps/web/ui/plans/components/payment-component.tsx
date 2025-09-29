@@ -1,10 +1,10 @@
 "use client";
 
+import { FeaturesAccess } from "@/lib/actions/check-features-access-auth-less.ts";
 import { PricingPlanCard } from "@/ui/plans/components/pricing-plan-card.tsx";
 import { IPricingPlan, PRICING_PLANS } from "@/ui/plans/constants.ts";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Flex, Heading, Text } from "@radix-ui/themes";
-import { useUpdateUserSessionMutation } from "core/api/user/payment/payment.hook.tsx";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import {
@@ -13,14 +13,11 @@ import {
   ICustomerBody,
 } from "core/integration/payment/config";
 import { FC, useState } from "react";
-import { CreateSubscriptionFlow } from "./create-subscription-flow.tsx";
 import { UpdateSubscriptionFlow } from "./update-subscription-flow.tsx";
-import { FeaturesAccess } from '@/lib/actions/check-features-access-auth-less.ts';
 
 interface IPaymentComponentProps {
   user: ICustomerBody;
   featuresAccess: FeaturesAccess;
-  onScrollToPayment?: () => void;
 }
 
 export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
@@ -28,11 +25,8 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
   featuresAccess,
 }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const { trigger: triggerUpdateUserSession } = useUpdateUserSessionMutation();
 
   const currentSubscriptionPlan = user?.paymentInfo?.subscriptionPlanCode;
-
-  const [isUpdatingToken, setIsUpdatingToken] = useState(false);
 
   const [selectedPlan, setSelectedPlan] = useState<IPricingPlan>(
     PRICING_PLANS.find(
@@ -40,46 +34,30 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
     ) || PRICING_PLANS[0],
   );
 
-  const { priceForView: totalPriceForView, priceForPay } = getPaymentPlanPrice({
+  const { priceForView: totalPriceForView } = getPaymentPlanPrice({
     paymentPlan: selectedPlan.paymentPlan,
     user,
   });
 
   const totalChargePrice = getCalculatePriceForView(totalPriceForView, user);
 
-  const updateClientToken = async (newPlan: IPricingPlan) => {
-    setIsUpdatingToken(true);
-
-    try {
-      await triggerUpdateUserSession({
-        paymentPlan: newPlan.paymentPlan,
-      });
-    } finally {
-      setIsUpdatingToken(false);
-    }
-  };
-
   const onChangePlan = (value: string) => {
     const plan = PRICING_PLANS.find((p) => p.id === value);
 
-    if (plan && !isUpdatingToken) {
+    if (plan) {
       trackClientEvents({
         event: EAnalyticEvents.PLAN_PICKER_CLICKED,
         params: {
           event_category: "Authorized",
           email: user.email,
           plan_name: plan.paymentPlan,
-          page_name: "account",
+          page_name: "profile",
           content_group: "plans",
         },
         sessionId: user.id,
       });
 
       setSelectedPlan(plan);
-
-      if (!featuresAccess.isSubscribed) {
-        updateClientToken(plan);
-      }
     }
   };
 
@@ -94,7 +72,9 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
         size="4"
         className="text-neutral"
       >
-        {!featuresAccess.featuresAccess ? "Choose your plan" : "Update your plan"}
+        {!featuresAccess.featuresAccess
+          ? "Choose your plan"
+          : "Update your plan"}
       </Heading>
 
       <div className="border-border-500 hidden h-px w-full border-t lg:block" />
@@ -104,7 +84,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
           value={selectedPlan.id}
           onValueChange={onChangePlan}
           className="flex flex-col gap-2"
-          disabled={isUpdatingToken || isProcessing}
+          disabled={isProcessing}
         >
           {PRICING_PLANS.map((plan) => (
             <PricingPlanCard
@@ -122,23 +102,13 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
         </Text>
 
         <div>
-          {featuresAccess.isSubscribed ? (
-            <UpdateSubscriptionFlow
-              user={user}
-              currentSubscriptionPlan={currentSubscriptionPlan}
-              selectedPlan={selectedPlan}
-              isProcessing={isProcessing}
-              setIsProcessing={setIsProcessing}
-            />
-          ) : (
-            <CreateSubscriptionFlow
-              user={user}
-              amount={priceForPay}
-              selectedPlan={selectedPlan}
-              isUpdatingToken={isUpdatingToken}
-              setIsProcessing={setIsProcessing}
-            />
-          )}
+          <UpdateSubscriptionFlow
+            user={user}
+            currentSubscriptionPlan={currentSubscriptionPlan}
+            selectedPlan={selectedPlan}
+            isProcessing={isProcessing}
+            setIsProcessing={setIsProcessing}
+          />
         </div>
 
         <Text as="p" size="1" className="text-center text-neutral-800">

@@ -6,12 +6,10 @@ import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
 import { NewQrProps, UserProps } from "@/lib/types";
 import { ratelimit, redis } from "@/lib/upstash";
-import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
-import { HOME_DOMAIN } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { PrismaClient } from "@prisma/client/extension";
 import { waitUntil } from "@vercel/functions";
@@ -36,6 +34,7 @@ import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-univer
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
+import { createAutoLoginURL } from "./jwt-signin";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -555,7 +554,7 @@ export const authOptions: NextAuthOptions = {
         token.user = user;
       }
 
-      // refresh the user's data if they update their name / email
+      // refresh the user's data if they update their name / email or session update is triggered
       if (trigger === "update") {
         const refreshedUser = await prisma.user.findUnique({
           where: { id: token.sub },
@@ -583,11 +582,16 @@ export const authOptions: NextAuthOptions = {
       console.log("events signIn message: ", JSON.stringify(message));
       const cookieStore = cookies();
 
+      const { user: userFromCookie } = await getUserCookieService();
+
       const customerUser = convertSessionUserToCustomerBody(
         message.user as Session["user"],
       );
 
-      await applyUserSession(customerUser);
+      await applyUserSession({
+        ...customerUser,
+        currency: { ...customerUser?.currency, ...userFromCookie?.currency },
+      });
 
       if (message.isNewUser) {
         const email = message.user.email as string;
@@ -632,38 +636,47 @@ export const authOptions: NextAuthOptions = {
               },
             );
 
+            // const loginUrl = await createAutoLoginURL(user.id);
+
             waitUntil(
-              Promise.all([
-                CustomerIOClient.identify(user.id, {
-                  email,
-                }),
-                qrDataToCreate
-                  ? sendEmail({
-                      email: email,
-                      subject: "Welcome to GetQR",
-                      template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-                      messageData: {
-                        qr_name: qrDataToCreate?.title || "Untitled QR",
-                        qr_type:
-                          QR_TYPES.find(
-                            (item) => item.id === qrDataToCreate?.qrType,
-                          )!.label || "Indefined type",
-                        url: HOME_DOMAIN,
-                      },
-                      customerId: user.id,
-                    })
-                  : sendEmail({
-                      email: email,
-                      subject: "Welcome to GetQR",
-                      template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
-                      messageData: {
-                        url: HOME_DOMAIN,
-                      },
-                      customerId: user.id,
-                    }),
-              ]),
+              CustomerIOClient.identify(user.id, {
+                email,
+              }),
             );
           }
+
+          //   waitUntil(
+          //     Promise.all([
+          //       CustomerIOClient.identify(user.id, {
+          //         email,
+          //       }),
+          //       qrDataToCreate
+          //         ? sendEmail({
+          //             email: email,
+          //             subject: "Welcome to GetQR",
+          //             template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+          //             messageData: {
+          //               qr_name: qrDataToCreate?.title || "Untitled QR",
+          //               qr_type:
+          //                 QR_TYPES.find(
+          //                   (item) => item.id === qrDataToCreate?.qrType,
+          //                 )!.label || "Undefined type",
+          //               url: loginUrl,
+          //             },
+          //             customerId: user.id,
+          //           })
+          //         : sendEmail({
+          //             email: email,
+          //             subject: "Welcome to GetQR",
+          //             template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
+          //             messageData: {
+          //               url: loginUrl,
+          //             },
+          //             customerId: user.id,
+          //           }),
+          //     ]),
+          //   );
+          // }
         }
       } else {
         const hasOauthFlowCookie = !!cookieStore.get(ECookieArg.OAUTH_FLOW)

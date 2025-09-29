@@ -1,9 +1,11 @@
 "use client";
 
+import { FeaturesAccess } from "@/lib/actions/check-features-access-auth-less";
+import { Session } from "@/lib/auth/utils";
 import useQrs from "@/lib/swr/use-qrs.ts";
+import { UserProvider } from "@/ui/contexts/user";
 import { useQRBuilder } from "@/ui/modals/qr-builder";
-import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
-import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
+import { useTrialOfferWithQRPreviewModal } from "@/ui/modals/trial-offer-with-qr-preview";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
@@ -11,47 +13,66 @@ import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.t
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Button, MaxWidthWrapper } from "@dub/ui";
 import { ShieldAlert } from "@dub/ui/icons";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { ICustomerBody } from "core/integration/payment/config";
 import { motion } from "framer-motion";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef } from "react";
-import { Session } from '@/lib/auth/utils';
-import { UserProvider } from '@/ui/contexts/user';
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface WorkspaceQRsClientProps {
   initialQrs: QrStorageData[];
-  featuresAccess: boolean;
+  featuresAccess: FeaturesAccess;
   user: Session["user"];
+  cookieUser: ICustomerBody | null;
 }
 
 export default function WorkspaceQRsClient({
   initialQrs,
   featuresAccess,
   user,
+  cookieUser,
 }: WorkspaceQRsClientProps) {
   return (
     <UserProvider user={user}>
       <QrCodesDisplayProvider>
-        <WorkspaceQRs initialQrs={initialQrs} featuresAccess={featuresAccess} />
+        <WorkspaceQRs
+          initialQrs={initialQrs}
+          featuresAccess={featuresAccess}
+          user={user}
+        />
 
-        <QRPreviewModalWrapper initialQrs={initialQrs} />
+        <TrialOfferWithQRPreviewWrapper
+          initialQrs={initialQrs}
+          featuresAccess={featuresAccess}
+          user={cookieUser}
+        />
       </QrCodesDisplayProvider>
     </UserProvider>
   );
 }
 
-function WorkspaceQRs({ initialQrs, featuresAccess }: { initialQrs: QrStorageData[], featuresAccess: boolean }) {
+function WorkspaceQRs({
+  initialQrs,
+  featuresAccess,
+  user,
+}: {
+  initialQrs: QrStorageData[];
+  featuresAccess: FeaturesAccess;
+  user: Session["user"];
+}) {
   const router = useRouter();
   const { isValidating } = useQrs({}, {}, true); // listenOnly mode
 
   const { CreateQRButton, QRBuilderModal } = useQRBuilder();
-  
+
   return (
     <>
       <QRBuilderModal />
 
       <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
-          {!featuresAccess && (
+          {!featuresAccess.isSubscribed && (
             <div className="w-full rounded-lg border border-red-200 bg-red-100">
               <div className="px-3 py-3 md:px-4">
                 <div className="flex w-full flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -93,7 +114,7 @@ function WorkspaceQRs({ initialQrs, featuresAccess }: { initialQrs: QrStorageDat
               </div>
             </div>
           )}
-          {featuresAccess && (
+          {featuresAccess.isSubscribed && (
             <div className="flex flex-wrap items-center justify-between gap-2 lg:flex-nowrap">
               <div className="flex w-full grow gap-2 md:w-auto">
                 <div className="grow basis-0 md:grow-0">
@@ -120,38 +141,52 @@ function WorkspaceQRs({ initialQrs, featuresAccess }: { initialQrs: QrStorageDat
       <div className="mt-3">
         <QrCodesContainer
           CreateQrCodeButton={featuresAccess ? CreateQRButton : () => <></>}
-          featuresAccess={featuresAccess}
+          featuresAccess={featuresAccess.featuresAccess}
           initialQrs={initialQrs}
+          user={user}
         />
       </div>
     </>
   );
 }
 
-function QRPreviewModalWrapper({
+function TrialOfferWithQRPreviewWrapper({
   initialQrs,
+  featuresAccess,
+  user,
 }: {
   initialQrs: QrStorageData[];
+  featuresAccess: FeaturesAccess;
+  user: ICustomerBody | null;
 }) {
-  const searchParams = useSearchParams();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const firstQr = initialQrs?.[0];
+  const firstQr = initialQrs?.[0] || null;
+  const { isSubscribed } = featuresAccess;
 
-  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr);
-  const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
-    canvasRef,
-    qrCode: builtQrCodeObject,
-    width: 200,
-    height: 200,
-  });
-
-  const shouldShowWelcomeModal = searchParams.has("onboarded");
+  const { TrialOfferWithQRPreviewModal, setShowTrialOfferModal } =
+    useTrialOfferWithQRPreviewModal({
+      user,
+      firstQr,
+    });
 
   useEffect(() => {
-    setShowQRPreviewModal(
-      shouldShowWelcomeModal && !!builtQrCodeObject && !!firstQr,
-    );
-  }, [searchParams, shouldShowWelcomeModal, builtQrCodeObject, firstQr]);
+    if (!isSubscribed) {
+      // TODO: uncomment this when we will prepare subscription for old users
+      // && !featuresAccess.subscriptionId,
 
-  return firstQr ? <QRPreviewModal /> : null;
+      setShowTrialOfferModal(true);
+    } else {
+      trackClientEvents({
+        event: EAnalyticEvents.PAGE_VIEWED,
+        params: {
+          page_name: "dashboard",
+          content_group: "my_qr_codes",
+          event_category: "Authorized",
+          email: user?.email,
+        },
+        sessionId: user?.id,
+      });
+    }
+  }, [isSubscribed]);
+
+  return <TrialOfferWithQRPreviewModal />;
 }

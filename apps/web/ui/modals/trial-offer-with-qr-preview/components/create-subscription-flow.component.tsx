@@ -1,10 +1,7 @@
 "use client";
 
-import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
-import { IPricingPlan } from "@/ui/plans/constants";
 import { LoadingSpinner, Modal } from "@dub/ui";
 import { Payment } from "@primer-io/checkout-web";
-import { Text } from "@radix-ui/themes";
 import { useCreateSubscriptionMutation } from "core/api/user/subscription/subscription.hook";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
@@ -13,50 +10,64 @@ import {
   ICheckoutFormSuccess,
   IPrimerClientError,
 } from "core/integration/payment/client/checkout-form";
-import { ICustomerBody } from "core/integration/payment/config";
+import {
+  getCalculatePriceForView,
+  getPaymentPlanPrice,
+  ICustomerBody,
+  TPaymentPlan,
+} from "core/integration/payment/config";
 import { generateCheckoutFormPaymentEvents } from "core/services/events/checkout-form-events.service.ts";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Dispatch, FC, SetStateAction, useRef, useState } from "react";
+import { FC, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 interface ICreateSubscriptionProps {
-  amount: number;
   user: ICustomerBody;
-  selectedPlan: IPricingPlan;
-  isUpdatingToken: boolean;
-  setIsProcessing: Dispatch<SetStateAction<boolean>>;
+  onSubcriptionCreated: () => void;
 }
 
-const pageName = "account";
+const pageName = "dashboard";
+const trialPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
+const subPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 
 export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
-  amount,
   user,
-  selectedPlan,
-  isUpdatingToken,
-  setIsProcessing,
+  onSubcriptionCreated,
 }) => {
   const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
   const [isSubscriptionCreation, setIsSubscriptionCreation] = useState(false);
-
-  const { setIsTrialOver } = useTrialStatus();
 
   const { update: updateSession } = useSession();
 
   const { trigger: triggerCreateSubscription } =
     useCreateSubscriptionMutation();
 
+  const { priceForPay, priceForView } = getPaymentPlanPrice({
+    paymentPlan: trialPaymentPlan,
+    user,
+  });
+  const priceForViewText = getCalculatePriceForView(priceForView, user);
+
+  const { priceForView: oldPriceForView } = getPaymentPlanPrice({
+    paymentPlan: subPaymentPlan,
+    user,
+  });
+  const oldPriceForViewText = getCalculatePriceForView(oldPriceForView, user);
+
   const onPaymentMethodTypeClick = (paymentMethodType: string) => {
     paymentTypeRef.current = paymentMethodType;
 
     trackClientEvents({
-      event: EAnalyticEvents.PAGE_CLICKED,
+      event: EAnalyticEvents.ELEMENT_CLICKED,
       params: {
         page_name: pageName,
+        content_group: "my_qr_codes",
         content_value: paymentMethodType,
+        element_name: "payment_modal",
         email: user?.email,
         event_category: "Authorized",
       },
@@ -75,6 +86,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       event: EAnalyticEvents.ELEMENT_OPENED,
       params: {
         page_name: pageName,
+        content_group: "my_qr_codes",
         element_name: paymentMethodType,
         email: user?.email,
         event_category: "Authorized",
@@ -107,13 +119,11 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   };
 
   const onPaymentAttempt = () => {
-    setIsProcessing(true);
-
     generateCheckoutFormPaymentEvents({
       user,
       stage: "attempt",
-      price: amount,
-      planCode: selectedPlan.paymentPlan,
+      amount: priceForPay,
+      planCode: subPaymentPlan,
       paymentType: paymentTypeRef.current!,
       toxic: false,
     });
@@ -138,7 +148,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     });
 
     if (!res?.success) {
-      setIsProcessing(false);
       setIsSubscriptionCreation(false);
       toast.error("Subscription creation failed!");
 
@@ -150,8 +159,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           message: "Subscription creation failed!",
           ...res,
         },
-        planCode: selectedPlan.paymentPlan,
-        price: amount,
+        planCode: subPaymentPlan,
+        amount: priceForPay,
         stage: "error",
         toxic: false,
       });
@@ -162,20 +171,21 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     generateCheckoutFormPaymentEvents({
       user,
       data,
-      planCode: selectedPlan.paymentPlan,
-      price: amount,
+      planCode: subPaymentPlan,
+      amount: priceForPay,
       stage: "success",
       paymentType: data.paymentType,
       subscriptionId: res!.data!.subscriptionId!,
       toxic: res?.data?.toxic,
     });
 
-    setIsTrialOver(false);
+    // Force session update with trigger to refresh user data from DB
     await updateSession();
     await mutate("/api/user");
 
     router.refresh();
-    router.push("/");
+
+    onSubcriptionCreated?.();
   };
 
   const handleCheckoutError = ({
@@ -191,14 +201,13 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       paymentId: data?.payment?.id,
     };
 
-    setIsProcessing(false);
     setIsSubscriptionCreation(false);
 
     generateCheckoutFormPaymentEvents({
       user,
       data: eventData,
-      planCode: selectedPlan.paymentPlan,
-      price: amount,
+      planCode: subPaymentPlan,
+      amount: priceForPay,
       stage: "error",
       toxic: false,
       paymentType: paymentTypeRef.current!,
@@ -207,18 +216,21 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
   return (
     <>
-      {isUpdatingToken ? (
-        <div className="flex items-center justify-center py-4">
-          <Text size="2" className="text-neutral-600">
-            Updating payment information...
-          </Text>
+      <div id="payment-block" className="flex flex-col gap-4">
+        <div className="flex items-center justify-between rounded-xl bg-white px-0">
+          <p className="text-xl font-bold">Total due:</p>
+          <div className="flex items-center justify-end gap-2">
+            <span className="text-base font-semibold text-slate-400 line-through">
+              {oldPriceForViewText}
+            </span>
+            <span className="text-xl font-bold">{priceForViewText}</span>
+          </div>
         </div>
-      ) : (
         <CheckoutFormComponent
           locale="en"
           theme="light"
           user={user}
-          paymentPlan={selectedPlan.paymentPlan}
+          paymentPlan={trialPaymentPlan}
           onPaymentAttempt={onPaymentAttempt}
           handleCheckoutSuccess={handlePaymentSuccess}
           handleCheckoutError={handleCheckoutError}
@@ -228,8 +240,30 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           submitBtn={{
             text: "Subscribe",
           }}
+          termsAndConditionsText={
+            <>
+              By continuing, you agree to our{" "}
+              <Link className="font-semibold underline" href="/eula">
+                Terms and Conditions
+              </Link>{" "}
+              and{" "}
+              <Link className="font-semibold underline" href="/privacy-policy">
+                Privacy Policy
+              </Link>
+              . If you don’t cancel at least 24 hours before the end of your
+              7-day trial, your subscription will automatically renew at{" "}
+              <span className="font-semibold">
+                {oldPriceForViewText} every month until you cancel
+              </span>{" "}
+              through our Help Center. For assistance, please contact our
+              support team at{" "}
+              <Link className="font-semibold" href="mailto:help@getqr.com">
+                help@getqr.com
+              </Link>
+            </>
+          }
         />
-      )}
+      </div>
 
       <Modal
         showModal={isSubscriptionCreation}

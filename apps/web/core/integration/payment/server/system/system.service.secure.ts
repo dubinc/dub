@@ -21,7 +21,7 @@ import { debugUtil } from "core/util";
 import { compareDesc } from "date-fns/compareDesc";
 import { parseISO } from "date-fns/parseISO";
 import { IDataRes } from "../../../../interfaces/common.interface.ts";
-import { secureHttpClient } from "../secure-http-client";
+import { edgeHttpClient } from "../secure-http-client.ts";
 
 const activeStatuses = ["active", "trial", "scheduled_for_cancellation"];
 
@@ -39,8 +39,9 @@ export const createSystemTokenOnboarding = async (
         : "no subscription",
     });
 
-    const data = await secureHttpClient.post<ICreateSystemTokenOnboardingRes>(
+    const data = await edgeHttpClient<ICreateSystemTokenOnboardingRes>(
       `${systemUrl}/tokens/onboarding/successful`,
+      "POST",
       systemHeaders,
       body,
       true, // Enable logging for system API
@@ -84,8 +85,9 @@ export const updateSystemSubscriptionStatus = async (
   body: IUpdateSystemSubscriptionBody,
 ) => {
   try {
-    const data = await secureHttpClient.post<IUpdateSystemSubscriptionRes>(
+    const data = await edgeHttpClient<IUpdateSystemSubscriptionRes>(
       `${systemUrl}/subscriptions/${id}/plan/update`,
+      "POST",
       systemHeaders,
       body,
     );
@@ -109,8 +111,9 @@ export const getSystemUserDataByEmail = async (
   body: IGetSystemUserDataBody,
 ) => {
   try {
-    const data = await secureHttpClient.get<IGetSystemUserDataRes>(
+    const data = await edgeHttpClient<IGetSystemUserDataRes>(
       `${systemUrl}/subscriptions?email=${body.email}`,
+      "GET",
       systemHeaders,
     );
 
@@ -131,7 +134,7 @@ export const getSystemUserDataByEmail = async (
   }
 };
 
-// check system subscription status (secure version)
+// check system subscription status
 export const checkSystemSubscriptionStatus = async (
   body: ICheckSystemSubscriptionStatusBody,
 ) => {
@@ -145,10 +148,28 @@ export const checkSystemSubscriptionStatus = async (
           )[0]
         : data?.subscriptions?.[0];
 
+    if (!subscription) {
+      return {
+        isSubscribed: false,
+        isCancelled: false,
+        isScheduledForCancellation: false,
+        hasAccessToApp: false,
+        subscriptionId: null,
+        status: null,
+        nextBillingDate: null,
+        isDunning: false,
+      };
+    }
+
+    const nextBillingDate = subscription?.nextBillingDate;
     const isSubscribed = activeStatuses.includes(subscription.status);
+    const isCancelled = subscription?.status === "cancelled";
+    const isScheduledForCancellation =
+      subscription?.status === "scheduled_for_cancellation";
+    const hasAccessToApp = isSubscribed || isScheduledForCancellation;
 
     debugUtil({
-      text: "checkSystemSubscriptionStatusSecure",
+      text: "checkSystemSubscriptionStatus",
       value: {
         isSubscribed,
         subscriptionId: subscription?.id,
@@ -158,16 +179,21 @@ export const checkSystemSubscriptionStatus = async (
 
     return {
       isSubscribed,
+      isCancelled,
+      isScheduledForCancellation,
+      hasAccessToApp,
       subscriptionId: subscription?.id,
       status: subscription.status,
+      nextBillingDate,
+      isDunning: subscription.status === "dunning",
     };
   } catch (error: any) {
-    const errorMsg = error?.message || "Something went wrong";
+    const errorMsg =
+      error?.response?.body?.error?.message ||
+      error?.message ||
+      "Something went wrong";
 
-    debugUtil({
-      text: "checkSystemSubscriptionStatusSecure error",
-      value: errorMsg,
-    });
+    debugUtil({ text: "checkSystemSubscriptionStatus error", value: errorMsg });
     throw new Error(errorMsg);
   }
 };
@@ -177,8 +203,9 @@ export const getSystemPaymentError = async (
   body: IGetSystemPaymentErrorBody,
 ) => {
   try {
-    const data = await secureHttpClient.get<IGetSystemPaymentErrorRes>(
+    const data = await edgeHttpClient<IGetSystemPaymentErrorRes>(
       `${systemUrl}/payments/${body.id}/error`,
+      "GET",
       systemHeaders,
     );
 
@@ -198,8 +225,9 @@ export const getSystemSubscriptionUpgradePaymentId = async (
   upgradeId: string,
 ) => {
   try {
-    const data = await secureHttpClient.get<IGetSystemUpgradePaymentIdRes>(
+    const data = await edgeHttpClient<IGetSystemUpgradePaymentIdRes>(
       `${systemUrl}/subscriptions/plan-change/${upgradeId}/payment-id`,
+      "GET",
       systemHeaders,
     );
 
@@ -225,8 +253,9 @@ export const updateSystemSubscriptionPaymentMethod = async (
   body: IUpdateSystemPaymentMethodBody,
 ) => {
   try {
-    const data = await secureHttpClient.post<IDataRes>(
+    const data = await edgeHttpClient<IDataRes>(
       `${systemUrl}/tokens/card-update/successful`,
+      "POST",
       systemHeaders,
       body,
     );
@@ -254,8 +283,9 @@ export const updateUserSystemData = async (
   body: IUpdateUserSystemDataBody,
 ) => {
   try {
-    const data = await secureHttpClient.put<IDataRes>(
+    const data = await edgeHttpClient<IDataRes>(
       `${systemUrl}/users/${id}`,
+      "PUT",
       systemHeaders,
       body,
     );
@@ -278,8 +308,9 @@ export const getSystemUserProcessor = async (
   }
 
   try {
-    const data = await secureHttpClient.get<IGetSystemUserProcessorRes>(
+    const data = await edgeHttpClient<IGetSystemUserProcessorRes>(
       `${systemUrl}/users/${customerId}/metadata`,
+      "GET",
       systemHeaders,
     );
 

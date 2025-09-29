@@ -1,3 +1,4 @@
+import { Session } from "@/lib/auth/utils";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
@@ -14,6 +15,8 @@ import {
 } from "@dub/ui";
 import { BoxArchive, Download } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { Delete, Palette, RefreshCw } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
@@ -26,6 +29,7 @@ interface QrCodeControlsProps {
   builtQrCodeObject: QRCodeStyling | null;
   featuresAccess?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
+  user: Session["user"];
 }
 
 export function QrCodeControls({
@@ -34,6 +38,7 @@ export function QrCodeControls({
   builtQrCodeObject,
   featuresAccess,
   setShowTrialExpiredModal,
+  user,
 }: QrCodeControlsProps) {
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
@@ -58,6 +63,8 @@ export function QrCodeControls({
     qrCode: builtQrCodeObject,
     width: isMobile ? 300 : 200,
     height: isMobile ? 300 : 200,
+    qrCodeId: qrCode.id,
+    user,
   });
 
   const {
@@ -101,6 +108,67 @@ export function QrCodeControls({
     },
   );
 
+  const onDownloadButtonClick = () => {
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_CLICKED,
+      params: {
+        page_name: "dashboard",
+        content_group: "my_qr_codes",
+        content_value: "download_qr",
+        qrId: qrCode.id,
+        event_category: "Authorized",
+      },
+      sessionId: user?.id,
+    });
+
+    setShowQRPreviewModal(true);
+  };
+
+  const onPopoverClick = () => {
+    setOpenPopover(!openPopover);
+
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_CLICKED,
+      params: {
+        page_name: "dashboard",
+        content_group: "my_qr_codes",
+        content_value: "qr_actions",
+        qrId: qrCode.id,
+        event_category: "Authorized",
+      },
+      sessionId: user?.id,
+    });
+
+    if (openPopover) {
+      trackClientEvents({
+        event: EAnalyticEvents.ELEMENT_OPENED,
+        params: {
+          page_name: "dashboard",
+          content_group: "my_qr_codes",
+          element_name: "qr_actions",
+          qrId: qrCode.id,
+          event_category: "Authorized",
+        },
+        sessionId: user?.id,
+      });
+    }
+  };
+
+  const onActionClick = (contentValue: string) => {
+    trackClientEvents({
+      event: EAnalyticEvents.ELEMENT_CLICKED,
+      params: {
+        page_name: "dashboard",
+        content_group: "my_qr_codes",
+        element_name: "qr_actions",
+        content_value: contentValue,
+        qrId: qrCode.id,
+        event_category: "Authorized",
+      },
+      sessionId: user?.id,
+    });
+  };
+
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
       <QRPreviewModal />
@@ -116,7 +184,7 @@ export function QrCodeControls({
         //   setShowTrialExpiredModal={setShowTrialExpiredModal}
         // >
         <Button
-          onClick={() => setShowQRPreviewModal(true)}
+          onClick={onDownloadButtonClick}
           variant="secondary"
           className={cn(
             "h-8 w-8 px-1.5 outline-none transition-all duration-200",
@@ -135,6 +203,8 @@ export function QrCodeControls({
                 text="Change QR Type"
                 variant="outline"
                 onClick={() => {
+                  onActionClick("change_qr_type");
+
                   setOpenPopover(false);
                   if (!featuresAccess) {
                     setShowTrialExpiredModal?.(true);
@@ -154,6 +224,8 @@ export function QrCodeControls({
                 text="Customize QR"
                 variant="outline"
                 onClick={() => {
+                  onActionClick("customize_qr");
+
                   setOpenPopover(false);
 
                   if (!featuresAccess) {
@@ -178,13 +250,16 @@ export function QrCodeControls({
                 text={qrCode.archived ? "Unpause" : "Pause"}
                 variant="outline"
                 onClick={() => {
+                  onActionClick("pause");
+
+                  setOpenPopover(false);
+
                   if (!featuresAccess) {
                     setShowTrialExpiredModal?.(true);
                     setOpenPopover(false);
                     return;
                   }
 
-                  setOpenPopover(false);
                   setShowArchiveQRModal(true);
                 }}
                 icon={<BoxArchive className="size-4" />}
@@ -201,6 +276,8 @@ export function QrCodeControls({
                 text="Delete"
                 variant="danger-outline"
                 onClick={() => {
+                  onActionClick("delete");
+
                   setOpenPopover(false);
 
                   if (!featuresAccess) {
@@ -229,9 +306,7 @@ export function QrCodeControls({
             "border-border-500 border lg:border-none",
           )}
           icon={<ThreeDots className="h-5 w-5 shrink-0" />}
-          onClick={() => {
-            setOpenPopover(!openPopover);
-          }}
+          onClick={onPopoverClick}
         />
       </Popover>
     </div>

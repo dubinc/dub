@@ -10,4 +10,7 @@ export const CUSTOMER_IO_TEMPLATES = {
   DOWNGRADE_TO_3_MONTH: "downgrade_to_3_month",
   UPGRADE_FROM_MONTHLY: "upgrade_from_monthly",
   UPGRADE_FROM_3_MONTH: "upgrade_from_3_month",
+  WELCOME_TRIAL: "welcome_trial",
+  FAILED_TRIAL: "failed_trial",
+  FAILED_PAYMENT: "failed_payment",
 };

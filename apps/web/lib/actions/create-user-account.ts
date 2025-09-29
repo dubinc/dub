@@ -2,14 +2,14 @@
 
 import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
 import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
+import { createAutoLoginURL } from "@/lib/auth/jwt-signin.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit, redis } from "@/lib/upstash";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
-import { prisma } from "@dub/prisma";
-import { HOME_DOMAIN, R2_URL } from "@dub/utils";
+import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
@@ -57,7 +57,7 @@ const qrDataToCreateSchema = z.object({
 });
 
 const schema = signUpSchema.extend({
-  code: z.string().min(6, "OTP must be 6 characters long."),
+  // code: z.string().min(6, "OTP must be 6 characters long."),
   qrDataToCreate: qrDataToCreateSchema.nullish(),
 });
 
@@ -69,7 +69,12 @@ export const createUserAccountAction = actionClient
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
-    const { email, password, code, qrDataToCreate } = parsedInput;
+    const {
+      email,
+      password,
+      // code,
+      qrDataToCreate,
+    } = parsedInput;
 
     const { success } = await ratelimit(2, "1 m").limit(`signup:${getIP()}`);
 
@@ -83,19 +88,19 @@ export const createUserAccountAction = actionClient
     const { sessionId } = await getUserCookieService();
     const generatedUserId = sessionId ?? createId({ prefix: "user_" });
 
-    const verificationToken = await prisma.emailVerificationToken.findUnique({
-      where: {
-        identifier: email,
-        token: code,
-        expires: {
-          gte: new Date(),
-        },
-      },
-    });
+    // const verificationToken = await prisma.emailVerificationToken.findUnique({
+    //   where: {
+    //     identifier: email,
+    //     token: code,
+    //     expires: {
+    //       gte: new Date(),
+    //     },
+    //   },
+    // });
 
-    if (!verificationToken) {
-      throw new AuthError("invalid-otp", "Invalid verification code entered.");
-    }
+    // if (!verificationToken) {
+    //   throw new AuthError("invalid-otp", "Invalid verification code entered.");
+    // }
 
     let workspace: any;
     let createdUser: any;
@@ -104,7 +109,7 @@ export const createUserAccountAction = actionClient
       const response = await verifyAndCreateUser({
         userId: generatedUserId,
         email,
-        code,
+        // code,
         password,
       });
       workspace = response.workspace;
@@ -128,6 +133,13 @@ export const createUserAccountAction = actionClient
         "Failed to create user account. Please try again.",
       );
     }
+
+    console.log("loginUrl creation started");
+
+    const loginUrl = await createAutoLoginURL(generatedUserId);
+
+    console.log("loginUrl", loginUrl);
+    console.log("qrDataToCreate", qrDataToCreate);
 
     waitUntil(
       Promise.all([
@@ -193,19 +205,19 @@ export const createUserAccountAction = actionClient
               ? "development"
               : undefined,
         }),
-        sendEmail({
-          email: email,
-          subject: "Welcome to GetQR",
-          template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-          messageData: {
-            qr_name: qrDataToCreate?.title || "Untitled QR",
-            qr_type:
-              QR_TYPES.find((item) => item.id === qrDataToCreate?.qrType)!
-                .label || "Indefined type",
-            url: HOME_DOMAIN,
-          },
-          customerId: generatedUserId,
-        }),
+        // sendEmail({
+        //   email: email,
+        //   subject: "Welcome to GetQR",
+        //   template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
+        //   messageData: {
+        //     qr_name: qrDataToCreate?.title || "Untitled QR",
+        //     qr_type:
+        //       QR_TYPES.find((item) => item.id === qrDataToCreate?.qrType)!
+        //         .label || "Indefined type",
+        //     url: loginUrl,
+        //   },
+        //   customerId: generatedUserId,
+        // }),
       ]),
     );
 

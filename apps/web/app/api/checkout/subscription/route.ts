@@ -2,6 +2,8 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { withSession } from "@/lib/auth";
+import { createAutoLoginURL } from "@/lib/auth/jwt-signin";
+import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import {
@@ -12,6 +14,7 @@ import {
   getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
   ICustomerBody,
+  TPaymentPlan,
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
@@ -32,6 +35,9 @@ const getPeriod = (paymentPlan: string) => {
   return periodMap[paymentPlan];
 };
 
+const trialPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
+const initialSubPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
+
 const paymentService = new PaymentService();
 
 // create user subscription
@@ -42,10 +48,12 @@ export const POST = withSession(
   }): Promise<NextResponse<ICreateSubscriptionRes>> => {
     const { user: customerUser } = await getUserCookieService();
 
-    const user: ICustomerBody | null = customerUser ? {
-      email: customerUser.email || authSession?.user?.email,
-      ...customerUser,
-    } : null;
+    const user: ICustomerBody | null = customerUser
+      ? {
+          email: customerUser.email || authSession?.user?.email,
+          ...customerUser,
+        }
+      : null;
 
     if (!user || !authSession?.user) {
       return NextResponse.json(
@@ -77,8 +85,8 @@ export const POST = withSession(
       currency: { currencyForPay: body.payment.currencyCode },
     });
 
-    const { priceForPay: price } = getPaymentPlanPrice({
-      paymentPlan: body.paymentPlan,
+    const { priceForPay: trialPrice, trialPeriodDays } = getPaymentPlanPrice({
+      paymentPlan: trialPaymentPlan,
       user: {
         ...user,
         paymentInfo: {
@@ -86,6 +94,22 @@ export const POST = withSession(
           paymentMethodType: body.payment.paymentMethodType,
         },
       },
+    });
+
+    const { priceForPay: price } = getPaymentPlanPrice({
+      paymentPlan: initialSubPaymentPlan,
+      user: {
+        ...user,
+        paymentInfo: {
+          ...user?.paymentInfo,
+          paymentMethodType: body.payment.paymentMethodType,
+        },
+      },
+    });
+
+    const period = getChargePeriodDaysIdByPlan({
+      paymentPlan: initialSubPaymentPlan,
+      user,
     });
 
     const headerStore = headers();
@@ -104,7 +128,9 @@ export const POST = withSession(
       locale: "en",
       mixpanel_user_id:
         user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
-      plan_name: body.paymentPlan,
+      plan_name: initialSubPaymentPlan,
+      plan_price: price,
+      charge_period_days: period,
       payment_subtype: "SUBSCRIPTION",
       //**** for analytics ****//
 
@@ -118,37 +144,37 @@ export const POST = withSession(
     };
 
     try {
-      const period = getChargePeriodDaysIdByPlan({
-        paymentPlan: body.paymentPlan,
-        user,
-      });
+      const createSubscriptionBody = {
+        user: {
+          email: user.email || "",
+          country: user.currency?.countryCode || "",
+          externalId: user.paymentInfo?.customerId || "",
+          nationalDocumentId: body?.nationalDocumentId,
+          attributes: { ...metadata },
+        },
+        subscription: {
+          plan: {
+            currencyCode: user.currency?.currencyForPay || "",
+            trialPrice: trialPrice,
+            trialPeriodDays,
+            price,
+            chargePeriodDays: period,
+            secondary: false,
+            twoSteps: false,
+          },
+          attributes: { ...metadata, billing_action: "rebill" },
+        },
+        orderAmount: price,
+        orderCurrencyCode: user.currency?.currencyForPay || "",
+        orderPaymentID: body.payment.id,
+        orderExternalID: body.payment.orderId,
+      };
+
+      console.log("createSubscriptionBody user", user);
+      console.log("createSubscriptionBody", period, createSubscriptionBody);
 
       const { tokenOnboardingData, paymentMethodToken } =
-        await paymentService.createClientSubscription({
-          user: {
-            email: user.email || "",
-            country: user.currency?.countryCode || "",
-            externalId: user.paymentInfo?.customerId || "",
-            nationalDocumentId: body?.nationalDocumentId,
-            attributes: { ...metadata },
-          },
-          subscription: {
-            plan: {
-              currencyCode: user.currency?.currencyForPay || "",
-              trialPrice: 0,
-              trialPeriodDays: 0,
-              price,
-              chargePeriodDays: period,
-              secondary: false,
-              twoSteps: false,
-            },
-            attributes: { ...metadata, billing_action: "rebill" },
-          },
-          orderAmount: price,
-          orderCurrencyCode: user.currency?.currencyForPay || "",
-          orderPaymentID: body.payment.id,
-          orderExternalID: body.payment.orderId,
-        });
+        await paymentService.createClientSubscription(createSubscriptionBody);
 
       if (
         !tokenOnboardingData ||
@@ -170,7 +196,7 @@ export const POST = withSession(
           ...user.paymentInfo,
           paymentMethodToken,
           subscriptionId: tokenOnboardingData.subscription.id,
-          subscriptionPlanCode: body.paymentPlan,
+          subscriptionPlanCode: initialSubPaymentPlan,
           paymentType: body.payment.paymentType,
           paymentMethodType: body.payment.paymentMethodType,
           paymentProcessor: body.payment.paymentProcessor,
@@ -186,6 +212,19 @@ export const POST = withSession(
       delete clonedUser?.paymentInfo?.clientToken;
       delete clonedUser?.paymentInfo?.clientTokenExpirationDate;
 
+      const firstQr = await prisma.qr.findFirst({
+        where: {
+          userId: user.id,
+        },
+        select: {
+          id: true,
+          title: true,
+          qrType: true,
+        },
+      });
+
+      const loginUrl = await createAutoLoginURL(user.id);
+
       await Promise.all([
         prisma.user.update({
           where: {
@@ -200,21 +239,54 @@ export const POST = withSession(
             },
           },
         }),
-        await sendEmail({
-          email: user!.email!,
-          subject: "Welcome to GetQR",
-          template: CUSTOMER_IO_TEMPLATES.SUBSCRIPTION_ACTIVE,
-          messageData: {
-            period: getPeriod(body.paymentPlan),
-            price: (price / 100).toFixed(2),
-            currency: user.currency?.currencyForPay as string,
-            next_billing_date: format(
-              addDays(new Date(), period),
-              "yyyy-MM-dd",
-            ),
-          },
-          customerId: user.id,
-        }),
+        firstQr
+          ? await sendEmail({
+              email: user!.email!,
+              subject: "Welcome to GetQR",
+              template: CUSTOMER_IO_TEMPLATES.WELCOME_TRIAL,
+              messageData: {
+                // period: getPeriod(initialSubPaymentPlan),
+                // price: (price / 100).toFixed(2),
+                // currency: user.currency?.currencyForPay as string,
+                // next_billing_date: format(
+                //   addDays(new Date(), period),
+                //   "yyyy-MM-dd",
+                // ),
+                trial_price: (trialPrice / 100).toFixed(2),
+                currency_symbol: user.currency?.currencyForPay as string,
+                trial_period: trialPeriodDays.toString(),
+                trial_end_date: format(
+                  addDays(new Date(), trialPeriodDays),
+                  "yyyy-MM-dd",
+                ),
+                price: (price / 100).toFixed(2),
+                period: period.toString(),
+                qr_name: firstQr?.title || "Untitled QR",
+                qr_type:
+                  QR_TYPES.find((item) => item.id === firstQr?.qrType)!.label ||
+                  "Undefined type",
+                url: loginUrl,
+              },
+              customerId: user.id,
+            })
+          : sendEmail({
+              email: user!.email!,
+              subject: "Welcome to GetQR",
+              template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
+              messageData: {
+                trial_price: (trialPrice / 100).toFixed(2),
+                currency_symbol: user.currency?.currencyForPay as string,
+                trial_period: trialPeriodDays.toString(),
+                trial_end_date: format(
+                  addDays(new Date(), trialPeriodDays),
+                  "yyyy-MM-dd",
+                ),
+                price: (price / 100).toFixed(2),
+                period: period.toString(),
+                url: loginUrl,
+              },
+              customerId: user.id,
+            }),
       ]);
 
       return NextResponse.json({

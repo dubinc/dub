@@ -15,6 +15,7 @@ import { cn } from "@dub/utils/src";
 import { Flex, Heading, Text } from "@radix-ui/themes";
 import { Options } from "qr-code-styling/lib/types";
 import { FC, useMemo } from "react";
+import { QrInfoBadge } from './qr-info-badge';
 
 interface IPopularQrInfo {
   mostScannedQR: QrStorageData | null;
@@ -139,22 +140,7 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
             >
               QR Code Status:
             </Text>
-            <div
-              className={cn(
-                "bg-primary-100 border-primary inline-flex w-fit min-w-[64px] items-center justify-center rounded-md border p-0.5 px-1",
-                {
-                  "border-red-600 bg-red-100": !featuresAccess.featuresAccess,
-                },
-              )}
-            >
-              <span
-                className={cn("text-primary text-xs font-medium lg:text-sm", {
-                  "text-red-600": !featuresAccess.featuresAccess,
-                })}
-              >
-                {!featuresAccess.featuresAccess ? "Deactivated" : "Active"}
-              </span>
-            </div>
+            <QrInfoBadge mostScannedQR={mostScannedQR} featuresAccess={featuresAccess} />
           </Flex>
         </Flex>
       </Flex>

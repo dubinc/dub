@@ -9,8 +9,16 @@ import { stripeSessions } from "core/constants/stripe.constant.ts";
 import { FC, useEffect, useRef } from "react";
 import { createSessionsForClient } from "../session";
 
+//interface
+interface IClientSessionComponentProps {
+  blockSessionCreation?: boolean;
+  onSessionCreated?: (clientToken: string) => void;
+}
+
 // component
-export const ClientSessionComponent: FC = () => {
+export const ClientSessionComponent: FC<
+  Readonly<IClientSessionComponentProps>
+> = ({ blockSessionCreation, onSessionCreated }) => {
   const { data: user, isLoading } = useGetUserProfileQuery();
 
   const triggeredCommonSession = useRef(false);
@@ -24,11 +32,16 @@ export const ClientSessionComponent: FC = () => {
       if (
         user?.data?.currency?.currencyForPay &&
         // !user?.data?.paymentInfo?.clientToken &&
-        !triggeredClientSession.current
+        !triggeredClientSession.current &&
+        !blockSessionCreation
       ) {
         triggeredClientSession.current = true;
 
-        triggerCreateUserSession({});
+        triggerCreateUserSession({}).then((data) => {
+          if (data?.data?.clientToken) {
+            onSessionCreated?.(data?.data?.clientToken);
+          }
+        });
       }
 
       if (
@@ -42,7 +55,7 @@ export const ClientSessionComponent: FC = () => {
         });
       }
     }
-  }, [user]);
+  }, [user, onSessionCreated]);
 
   // return
   return null;

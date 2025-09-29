@@ -3,41 +3,47 @@ import { convertSessionUserToCustomerBody, getSession } from "@/lib/auth";
 import { PageContent } from "@/ui/layout/page-content";
 import { getMostScannedQr } from "@/ui/plans/actions/getMostScannedQr";
 import { PlansContent } from "@/ui/plans/plans-content.tsx";
+import { QrStorageData } from "@/ui/qr-builder/types/types";
 import { MaxWidthWrapper } from "@dub/ui";
 import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker/page-viewed-tracker.component";
-import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { NextPage } from "next";
+import { redirect } from "next/navigation";
 
 export const revalidate = 0;
 export const dynamic = "force-dynamic";
 
 const PlansPage: NextPage = async () => {
-  const { user: cookieUser } = await getUserCookieService();
-  const { user: authUser } = await getSession();
+  const { user: sessionUser } = await getSession();
 
-  const user = authUser.paymentData
-    ? convertSessionUserToCustomerBody(authUser)
-    : cookieUser;
+  const user = convertSessionUserToCustomerBody(sessionUser);
 
-  const featuresAccess = await checkFeaturesAccessAuthLess(authUser.id);
+  const featuresAccess = await checkFeaturesAccessAuthLess(sessionUser.id);
 
-  const mostScannedQR = await getMostScannedQr(authUser.id);
+  if (!featuresAccess.isSubscribed) {
+    redirect("/");
+  }
+
+  const mostScannedQR = await getMostScannedQr(sessionUser.id);
 
   return (
     <>
       <PageContent>
         <MaxWidthWrapper>
           <PlansContent
-            mostScannedQR={mostScannedQR}
+            mostScannedQR={mostScannedQR as QrStorageData}
             user={user!}
             featuresAccess={featuresAccess}
           />
         </MaxWidthWrapper>
       </PageContent>
       <PageViewedTrackerComponent
-        sessionId={authUser.id!}
-        pageName="plans"
-        params={{ event_category: "Authorized", email: authUser?.email }}
+        sessionId={sessionUser.id!}
+        pageName="profile"
+        params={{
+          event_category: "Authorized",
+          email: sessionUser?.email,
+          content_group: "plans",
+        }}
       />
     </>
   );

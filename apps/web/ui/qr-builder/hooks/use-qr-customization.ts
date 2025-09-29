@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 import { convertSvgUrlToBase64 } from "../helpers/convert-svg-url-to-base64.ts";
 
 export function useQrCustomization(
-  initialData?: QrStorageData,
+  initialData?: QrStorageData | null,
   homepageDemo?: boolean,
 ) {
   const frameOptions = initialData?.frameOptions as FrameOptions | null;

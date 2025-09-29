@@ -1,17 +1,7 @@
 "use client";
 
-import { checkFeaturesAccess } from "@/lib/actions/check-features-access.ts";
 import { useGetUserProfileQuery } from "core/api/user/user.hook.tsx";
-import { useSession } from "next-auth/react";
-import { usePathname } from "next/navigation";
-import {
-  createContext,
-  ReactNode,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import { createContext, ReactNode, useContext, useState } from "react";
 
 interface TrialStatusContextType {
   isTrialOver: boolean;
@@ -23,37 +13,37 @@ const TrialStatusContext = createContext<TrialStatusContextType | undefined>(
 );
 
 export function TrialStatusProvider({ children }: { children: ReactNode }) {
-  const { data: session, status } = useSession() as
-    | {
-        data: { user: { id: string } };
-        status: "authenticated";
-      }
-    | { data: null; status: "loading" };
+  // const { data: session, status } = useSession() as
+  //   | {
+  //       data: { user: { id: string } };
+  //       status: "authenticated";
+  //     }
+  //   | { data: null; status: "loading" };
 
   const [isTrialOver, setIsTrialOver] = useState<boolean>(false);
-  const pathname = usePathname();
+  // const pathname = usePathname();
 
   useGetUserProfileQuery();
 
-  const checkTrialStatus = useCallback(async () => {
-    if (!session?.user?.id) return;
+  // const checkTrialStatus = useCallback(async () => {
+  //   if (!session?.user?.id) return;
 
-    try {
-      const res = await checkFeaturesAccess();
+  //   try {
+  //     const res = await checkFeaturesAccess();
 
-      if (!res?.data?.featuresAccess) {
-        setIsTrialOver(true);
-      }
-    } catch (error) {
-      console.error("Error checking trial status:", error);
-    }
-  }, [session?.user?.id]);
+  //     if (!res?.data?.featuresAccess) {
+  //       setIsTrialOver(true);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking trial status:", error);
+  //   }
+  // }, [session?.user?.id]);
 
-  useEffect(() => {
-    if (status === "loading") return;
+  // useEffect(() => {
+  //   if (status === "loading") return;
 
-    checkTrialStatus();
-  }, [status, checkTrialStatus, pathname]);
+  //   checkTrialStatus();
+  // }, [status, checkTrialStatus, pathname]);
 
   return (
     <TrialStatusContext.Provider value={{ isTrialOver, setIsTrialOver }}>
