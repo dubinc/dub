@@ -178,7 +178,7 @@ export function useQRBuilder(data?: {
   sessionId?: string;
   initialStep?: number;
 }) {
-  const { props, initialStep } = data ?? {};
+  const { props, initialStep, sessionId } = data ?? {};
 
   const [showQRBuilderModal, setShowQRBuilderModal] = useState(false);
 
