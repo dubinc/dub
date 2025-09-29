@@ -200,6 +200,8 @@ export * from "./square-layout-grid5";
 export * from "./square-layout-grid6";
 export * from "./square-user-sparkle2";
 export * from "./square-xmark";
+export * from "./star";
+export * from "./star-fill";
 export * from "./stars2";
 export * from "./table-icon";
 export * from "./table-rows2";

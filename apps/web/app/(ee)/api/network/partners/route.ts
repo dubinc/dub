@@ -23,11 +23,14 @@ export const GET = withWorkspace(
         preferredEarningStructures.preferredEarningStructures,
         salesChannels.salesChannels,
         metrics.lastConversionAt as lastConversionAt,
-        metrics.conversionRate as conversionRate
+        metrics.conversionRate as conversionRate,
+        dp.starredAt as starredAt
       FROM 
         Partner p
       -- Any associated program enrollment
       LEFT JOIN ProgramEnrollment pe ON pe.partnerId = p.id AND pe.programId = ${programId}
+      -- Any associated discovered partner data
+      LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
       -- Metrics (lastConversionAt)
       LEFT JOIN (
         SELECT 
@@ -72,6 +75,7 @@ export const GET = withWorkspace(
             partner.conversionRate === null
               ? null
               : getConversionScore(partner.conversionRate),
+          starredAt: partner.starredAt ? new Date(partner.starredAt) : null,
         })),
       ),
     );

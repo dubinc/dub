@@ -68,5 +68,12 @@ export const PartnerNetworkPartnerSchema = PartnerSchema.pick({
   z.object({
     lastConversionAt: z.date().nullable(),
     conversionScore: PartnerConversionScoreSchema.nullable(),
+    starredAt: z.date().nullable(),
   }),
 );
+
+export const starPartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  starred: z.boolean().default(true),
+});

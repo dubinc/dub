@@ -1,5 +1,6 @@
 "use client";
 
+import { starPartnerAction } from "@/lib/actions/partners/star-partner";
 import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
 import {
   industryInterestsMap,
@@ -15,6 +16,7 @@ import {
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
 import {
   BadgeCheck2Fill,
+  Button,
   ChartActivity2,
   DynamicTooltipWrapper,
   PaginationControls,
@@ -25,6 +27,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import type { Icon } from "@dub/ui/icons";
+import { Star, StarFill } from "@dub/ui/icons";
 import {
   COUNTRIES,
   OG_AVATAR_URL,
@@ -34,8 +37,10 @@ import {
   formatDate,
   timeAgo,
 } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 
 export function ProgramPartnersDirectoryPageClient() {
@@ -79,10 +84,17 @@ export function ProgramPartnersDirectoryPageClient() {
     recruited: number;
   }>(queryString && `/api/network/partners/count${queryString}`, fetcher);
 
-  const { data: partners, error } = useSWR<DiscoverablePartnerProps[]>(
+  const {
+    data: partners,
+    error,
+    mutate: mutatePartners,
+  } = useSWR<DiscoverablePartnerProps[]>(
     queryString && `/api/network/partners${queryString}`,
     fetcher,
+    { keepPreviousData: true },
   );
+
+  const { executeAsync: starPartner } = useAction(starPartnerAction);
 
   const { pagination, setPagination } = usePagination(
     PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE,
@@ -134,7 +146,50 @@ export function ProgramPartnersDirectoryPageClient() {
           <div className="@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 lg:gap-6">
             {partners
               ? partners?.map((partner) => (
-                  <PartnerCard key={partner.id} partner={partner} />
+                  <PartnerCard
+                    key={partner.id}
+                    partner={partner}
+                    onToggleStarred={(starred) => {
+                      mutatePartners(
+                        // @ts-ignore SWR doesn't seem to have proper typing for partial data results w/ `populateCache`
+                        async () => {
+                          const result = await starPartner({
+                            workspaceId: workspaceId!,
+                            partnerId: partner.id,
+                            starred,
+                          });
+                          if (!result?.data) {
+                            toast.error("Failed to star partner");
+                            throw new Error("Failed to star partner");
+                          }
+
+                          return result.data;
+                        },
+                        {
+                          optimisticData: (data) =>
+                            data!.map((p) =>
+                              p.id === partner.id
+                                ? {
+                                    ...p,
+                                    starredAt: starred ? new Date() : null,
+                                  }
+                                : p,
+                            ),
+                          populateCache: (
+                            result: { starredAt: Date | null },
+                            data,
+                          ) => {
+                            console.log("populateCache", { result, data });
+                            data!.map((p) =>
+                              p.id === partner.id
+                                ? { ...p, starredAt: result.starredAt }
+                                : p,
+                            );
+                          },
+                        },
+                      );
+                    }}
+                  />
                 ))
               : [...Array(8)].map((_, idx) => <PartnerCard key={idx} />)}
           </div>
@@ -156,7 +211,13 @@ export function ProgramPartnersDirectoryPageClient() {
   );
 }
 
-function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
+function PartnerCard({
+  partner,
+  onToggleStarred,
+}: {
+  partner?: DiscoverablePartnerProps;
+  onToggleStarred?: (starred: boolean) => void;
+}) {
   const basicFields = useMemo(
     () => [
       {
@@ -233,6 +294,21 @@ function PartnerCard({ partner }: { partner?: DiscoverablePartnerProps }) {
             </Tooltip>
           )}
         </div>
+
+        {partner && onToggleStarred && (
+          <Button
+            variant="outline"
+            onClick={() => onToggleStarred(partner.starredAt ? false : true)}
+            icon={
+              partner.starredAt ? (
+                <StarFill className="size-3 text-amber-500" />
+              ) : (
+                <Star className="text-content-subtle size-3" />
+              )
+            }
+            className="size-6 rounded-lg p-0"
+          />
+        )}
       </div>
 
       <div className="mt-3.5 flex flex-col gap-3">
