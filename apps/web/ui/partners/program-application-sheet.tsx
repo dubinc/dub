@@ -95,6 +95,7 @@ function ProgramApplicationSheetContent({
       name: partner.name,
       country: partner.country,
       programId: program.id,
+      groupId: group.id,
     });
 
     if (result?.serverError || result?.validationErrors) {

@@ -51,7 +51,7 @@ const sanitizeFormData = (
   const applicationFormData =
     group.applicationFormData as ProgramApplicationFormData;
   const validFieldIds = new Set(
-    ...applicationFormData.fields.map((field) => field.id),
+    applicationFormData.fields.map((field) => field.id),
   );
   const fields = (formData.fields || []).filter((field) =>
     validFieldIds.has(field.id),
@@ -134,6 +134,12 @@ export const createProgramApplicationAction = actionClient
       throw new Error("This program has no groups.");
     }
 
+    const group = program.groups[0];
+
+    if (!group) {
+      throw new Error("Invalid group.");
+    }
+
     const session = await getSession();
 
     // Get currently logged in partner
@@ -153,14 +159,14 @@ export const createProgramApplicationAction = actionClient
         program,
         data: parsedInput,
         partner: existingPartner,
-        group: program.groups[0],
+        group,
       });
     }
 
     const application = await createApplication({
       program,
       data: parsedInput,
-      group: program.groups[0],
+      group,
     });
 
     await qstash.publishJSON({
