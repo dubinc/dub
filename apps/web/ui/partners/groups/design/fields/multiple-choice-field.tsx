@@ -1,124 +1,133 @@
 import { programApplicationFormMultipleChoiceFieldSchema } from "@/lib/zod/schemas/program-application-form";
+import { Checkbox, RadioGroup, RadioGroupItem } from "@dub/ui";
+import { Controller, useFormContext } from "react-hook-form";
 import { z } from "zod";
 import { FormControl } from "./form-control";
-import { cn } from "@dub/utils";
-import { useFormContext } from "react-hook-form";
-import { RadioGroup, RadioGroupItem, Checkbox } from "@dub/ui";
-import { useCallback } from "react";
 
-type MultipleChoiceFieldData = z.infer<typeof programApplicationFormMultipleChoiceFieldSchema>
+type MultipleChoiceFieldData = z.infer<
+  typeof programApplicationFormMultipleChoiceFieldSchema
+>;
 
 type MultipleChoiceFieldProps = {
   field: MultipleChoiceFieldData;
   keyPath?: string;
   preview?: boolean;
-}
+};
 
-export function MultipleChoiceField({ field, keyPath: keyPathProp, preview }: MultipleChoiceFieldProps) {
-  const { getFieldState, watch, setValue } = useFormContext<any>();
+export function MultipleChoiceField({
+  field,
+  keyPath: keyPathProp,
+  preview,
+}: MultipleChoiceFieldProps) {
+  const { getFieldState, watch, setValue, control } = useFormContext<any>();
   const keyPath = keyPathProp ? `${keyPathProp}.value` : "value";
   const state = getFieldState(keyPath);
   const value = watch(keyPath);
-  const error = !!state.error
-
-  const isOptionSelected = useCallback((optionValue: string) => {
-    if (field.data.multiple) {
-      return value?.includes(optionValue);
-    }
-    return value === optionValue;
-  }, [field.data.multiple, value]);
-
-  const selectOption = useCallback((optionValue: string) => {
-    if (field.data.multiple) {
-      setValue(keyPath, [...(value || []), optionValue]);
-    } else {
-      setValue(keyPath, optionValue);
-    }
-  }, [field.data.multiple, setValue, keyPath, value]);
-
-  const deselectOption = useCallback((optionValue: string) => {
-    if (field.data.multiple) {
-      if (Array.isArray(value) && value.includes(optionValue)) {
-        setValue(keyPath, value.filter((v) => v !== optionValue));
-      }
-    } else {
-      if (value === optionValue) {
-        setValue(keyPath, "");
-      }
-    }
-  }, [field.data.multiple, value, setValue, keyPath]);
+  const options = field.data.options;
 
   let content: React.ReactNode;
 
   if (field.data.multiple) {
     content = (
-      <div>
-        <div className="space-y-2">
-          {field.data.options.map((option) => {
-            const isSelected = isOptionSelected(option.value);
+      <Controller
+        control={control}
+        name={keyPath}
+        rules={{
+          validate: (val: any) => {
+            if ((field.required && !Array.isArray(val)) || !val.length) {
+              return "Select all that apply";
+            }
+            return true;
+          },
+        }}
+        render={({ field }) => (
+          <div className="space-y-2">
+            {options.map((option) => {
+              const isSelected = value?.includes(option.value);
 
-            return (
+              return (
+                <label
+                  key={option.id}
+                  className="flex w-full items-center gap-2.5 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                >
+                  <Checkbox
+                    id={option.id}
+                    checked={isSelected}
+                    className="border-border-default size-4 rounded focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)] data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setValue(keyPath, [...(value || []), option.value]);
+                      } else {
+                        if (
+                          Array.isArray(value) &&
+                          value.includes(option.value)
+                        ) {
+                          setValue(
+                            keyPath,
+                            value.filter((v) => v !== option.value),
+                          );
+                        }
+                      }
+                    }}
+                  />
+
+                  <span className="text-content-emphasis text-sm">
+                    {option.value}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+      />
+    );
+  } else {
+    content = (
+      <Controller
+        control={control}
+        name={keyPath}
+        rules={{
+          validate: (val: any) => {
+            if (field.required && (!val || val === "")) {
+              return "Please select an option";
+            }
+            return true;
+          },
+        }}
+        render={({ field }) => (
+          <RadioGroup
+            value={typeof value === "string" ? value : ""}
+            onValueChange={(newValue) => setValue(keyPath, newValue)}
+            className="space-y-2"
+          >
+            {options.map((option) => (
               <label
                 key={option.id}
-                className="w-full flex items-center gap-2.5 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                className="flex items-center gap-2.5 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
-                <Checkbox
+                <RadioGroupItem
+                  value={option.value}
                   id={option.id}
-                  checked={isSelected}
-                  className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)]"
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      selectOption(option.value);
-                    } else {
-                      deselectOption(option.value);
-                    }
-                  }}
+                  className="focus:border-[var(--brand)] focus:ring-[var(--brand)]"
                 />
 
-                <span className="text-sm text-content-emphasis">
+                <span className="text-content-emphasis text-sm">
                   {option.value}
                 </span>
               </label>
-            );
-          })}
-        </div>
-
-        <div className={cn(
-          "transition-colors duration-75 text-xs mt-2",
-          error ? "text-red-500" : "text-neutral-500"
-        )}>Select all that apply</div>
-      </div>
-    )
-  } else {
-    content = (
-      <div>
-        <RadioGroup
-          value={typeof value === "string" ? value : ""}
-          onValueChange={(newValue) => setValue(keyPath, newValue)}
-          className="space-y-2"
-        >
-          {field.data.options.map((option) => (
-            <label key={option.id} className="flex items-center gap-2.5 leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-              <RadioGroupItem value={option.value} id={option.id} className="focus:border-[var(--brand)] focus:ring-[var(--brand)]" />
-
-              <span className="text-sm text-content-emphasis">
-                {option.value}
-              </span>
-            </label>
-          ))}
-        </RadioGroup>
-
-        {error && (
-          <div className="text-red-500 text-xs mt-2">Select an option</div>
+            ))}
+          </RadioGroup>
         )}
-      </div>
-    )
+      />
+    );
   }
 
   return (
     <FormControl
       label={field.label}
       required={field.required}
+      helperText={field.data.multiple ? "Select all that apply" : undefined}
+      error={state.error?.message}
     >
       {content}
     </FormControl>

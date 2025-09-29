@@ -1,7 +1,24 @@
 "use client";
 
-import { createProgramApplicationAction, PartnerData } from "@/lib/actions/partners/create-program-application";
-import { GroupWithFormDataProps, ProgramApplicationFormDataWithValues, ProgramProps } from "@/lib/types";
+import {
+  createProgramApplicationAction,
+  PartnerData,
+} from "@/lib/actions/partners/create-program-application";
+import {
+  GroupWithFormDataProps,
+  ProgramApplicationFormDataWithValues,
+  ProgramProps,
+} from "@/lib/types";
+import z from "@/lib/zod";
+import {
+  programApplicationFormFieldSchema,
+  programApplicationFormLongTextFieldWithValueSchema,
+  programApplicationFormMultipleChoiceFieldSchema,
+  programApplicationFormMultipleChoiceFieldWithValueSchema,
+  programApplicationFormSelectFieldWithValueSchema,
+  programApplicationFormShortTextFieldWithValueSchema,
+  programApplicationFormWebsiteAndSocialsFieldWithValueSchema,
+} from "@/lib/zod/schemas/program-application-form";
 import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -10,11 +27,8 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { programApplicationFormFieldSchema, programApplicationFormLongTextFieldWithValueSchema, programApplicationFormMultipleChoiceFieldSchema, programApplicationFormMultipleChoiceFieldWithValueSchema, programApplicationFormSelectFieldWithValueSchema, programApplicationFormShortTextFieldWithValueSchema, programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
-import z from "@/lib/zod";
 import { CountryCombobox } from "../../country-combobox";
 import { ProgramApplicationFormField } from "./fields";
-
 
 type FormData = {
   name: string;
@@ -22,10 +36,12 @@ type FormData = {
   country: string;
   ageVerification: boolean;
   termsAgreement: boolean;
-  formData: ProgramApplicationFormDataWithValues
+  formData: ProgramApplicationFormDataWithValues;
 };
 
-const formDataForApplicationFormData = (fields: z.infer<typeof programApplicationFormFieldSchema>[]): Data => {
+const formDataForApplicationFormData = (
+  fields: z.infer<typeof programApplicationFormFieldSchema>[],
+): ProgramApplicationFormDataWithValues => {
   return {
     fields: fields.map((field: any) => {
       switch (field.type) {
@@ -33,23 +49,31 @@ const formDataForApplicationFormData = (fields: z.infer<typeof programApplicatio
           return {
             ...field,
             value: "",
-          } as z.infer<typeof programApplicationFormShortTextFieldWithValueSchema>;
+          } as z.infer<
+            typeof programApplicationFormShortTextFieldWithValueSchema
+          >;
         case "long-text":
           return {
             ...field,
             value: "",
-          } as z.infer<typeof programApplicationFormLongTextFieldWithValueSchema>;
+          } as z.infer<
+            typeof programApplicationFormLongTextFieldWithValueSchema
+          >;
         case "select":
           return {
             ...field,
             value: "",
           } as z.infer<typeof programApplicationFormSelectFieldWithValueSchema>;
         case "multiple-choice":
-          const multipleChoiceField = field as z.infer<typeof programApplicationFormMultipleChoiceFieldSchema>;
+          const multipleChoiceField = field as z.infer<
+            typeof programApplicationFormMultipleChoiceFieldSchema
+          >;
           return {
             ...field,
             value: multipleChoiceField.data.multiple ? [] : "",
-          } as z.infer<typeof programApplicationFormMultipleChoiceFieldWithValueSchema>;
+          } as z.infer<
+            typeof programApplicationFormMultipleChoiceFieldWithValueSchema
+          >;
         case "website-and-socials":
           return {
             ...field,
@@ -57,11 +81,13 @@ const formDataForApplicationFormData = (fields: z.infer<typeof programApplicatio
               ...data,
               value: "",
             })),
-          } as z.infer<typeof programApplicationFormWebsiteAndSocialsFieldWithValueSchema>;
+          } as z.infer<
+            typeof programApplicationFormWebsiteAndSocialsFieldWithValueSchema
+          >;
       }
-    })
+    }),
   } as any;
-}
+};
 
 export function ProgramApplicationForm({
   program,
@@ -86,7 +112,9 @@ export function ProgramApplicationForm({
       country: "",
       ageVerification: false,
       termsAgreement: false,
-      formData: formDataForApplicationFormData(group.applicationFormData?.fields ?? []),
+      formData: formDataForApplicationFormData(
+        group.applicationFormData?.fields ?? [],
+      ),
     },
   });
 
@@ -97,7 +125,7 @@ export function ProgramApplicationForm({
     setError,
     setValue,
     formState: { errors, isSubmitting, isSubmitSuccessful },
-  } = form
+  } = form;
 
   useEffect(() => {
     if (preview || !session?.user) return;
@@ -124,7 +152,10 @@ export function ProgramApplicationForm({
 
         const { programApplicationId, programEnrollmentId, partnerData } = data;
 
-        setSubmissionInfo({ name: partnerData.name, country: partnerData.country });
+        setSubmissionInfo({
+          name: partnerData.name,
+          country: partnerData.country,
+        });
 
         const searchParams = new URLSearchParams({
           applicationId: programApplicationId,
@@ -152,7 +183,7 @@ export function ProgramApplicationForm({
           const result = await executeAsync({
             ...data,
             programId: program.id,
-            groupId: group.id
+            groupId: group.id,
           });
 
           if (!result || result.serverError || result.validationErrors) {
@@ -201,9 +232,7 @@ export function ProgramApplicationForm({
         </label>
 
         <label className="flex flex-col">
-          <span className="text-sm font-medium text-neutral-800">
-            Country
-          </span>
+          <span className="text-sm font-medium text-neutral-800">Country</span>
           <Controller
             control={control}
             name="country"
@@ -220,7 +249,13 @@ export function ProgramApplicationForm({
         </label>
 
         {group?.applicationFormData?.fields.map((field, index) => {
-          return <ProgramApplicationFormField key={field.id} field={field} keyPath={`formData.fields.${index}`} />;
+          return (
+            <ProgramApplicationFormField
+              key={field.id}
+              field={field}
+              keyPath={`formData.fields.${index}`}
+            />
+          );
         })}
 
         {program.ageVerification && (
@@ -236,7 +271,10 @@ export function ProgramApplicationForm({
                 required: true,
               })}
             />
-            <label htmlFor="ageVerification" className="text-sm text-neutral-800">
+            <label
+              htmlFor="ageVerification"
+              className="text-sm text-neutral-800"
+            >
               I'm {program.ageVerification} years or older
             </label>
           </div>
@@ -253,7 +291,10 @@ export function ProgramApplicationForm({
               )}
               {...register("termsAgreement", { required: true })}
             />
-            <label htmlFor="termsAgreement" className="text-sm text-neutral-800">
+            <label
+              htmlFor="termsAgreement"
+              className="text-sm text-neutral-800"
+            >
               I agree to the{" "}
               <a
                 href={program.termsUrl}
