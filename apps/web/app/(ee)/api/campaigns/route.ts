@@ -3,8 +3,9 @@ import { createId } from "@/lib/api/create-id";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
-import { scheduleWorkflow } from "@/lib/api/workflows/schedule-workflow";
+import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import { WorkflowAction } from "@/lib/types";
 import {
   CampaignSchema,
@@ -16,6 +17,7 @@ import {
   WORKFLOW_ATTRIBUTE_TRIGGER_MAP,
 } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Workflow } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -152,7 +154,30 @@ export const POST = withWorkspace(
       triggerCondition: campaign.workflow?.triggerConditions?.[0],
     });
 
-    waitUntil(scheduleWorkflow(campaign.workflow));
+    waitUntil(
+      (async () => {
+        if (!campaign.workflow) {
+          return;
+        }
+
+        const { condition } = parseWorkflowConfig(campaign.workflow);
+
+        // Skip scheduling if the condition is not based on partnerEnrolledDays,
+        // or if the required enrolled days is 0 (immediate execution case)
+        if (
+          condition.attribute !== "partnerEnrolledDays" ||
+          condition.value === 0
+        ) {
+          return;
+        }
+
+        await qstash.schedules.create({
+          destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${campaign.workflow.id}`,
+          cron: "0 */12 * * *", // Every 12 hours
+          scheduleId: campaign.workflow.id,
+        });
+      })(),
+    );
 
     return NextResponse.json(createdCampaign);
   },
