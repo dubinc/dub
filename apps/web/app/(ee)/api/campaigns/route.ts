@@ -1,5 +1,19 @@
+import { createId } from "@/lib/api/create-id";
+import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { WorkflowAction } from "@/lib/types";
+import {
+  CampaignSchema,
+  createCampaignSchema,
+} from "@/lib/zod/schemas/campaigns";
+import {
+  WORKFLOW_ACTION_TYPES,
+  WORKFLOW_ATTRIBUTE_TRIGGER_MAP,
+} from "@/lib/zod/schemas/workflows";
+import { prisma } from "@dub/prisma";
+import { Workflow } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/campaigns - get all email campaigns for a program
@@ -10,14 +24,7 @@ export const GET = withWorkspace(
     return NextResponse.json({});
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );
 
@@ -26,16 +33,78 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    return NextResponse.json({});
+    const { name, subject, body, type, groupIds, triggerCondition } =
+      createCampaignSchema.parse(await parseRequestBody(req));
+
+    const partnerGroups = await throwIfInvalidGroupIds({
+      programId,
+      groupIds,
+    });
+
+    const campaign = await prisma.$transaction(async (tx) => {
+      let workflow: Workflow | null = null;
+      const campaignId = createId({ prefix: "cmp_" });
+
+      // Create a workflow for the automation campaigns
+      if (type === "automation" && triggerCondition) {
+        const action: WorkflowAction = {
+          type: WORKFLOW_ACTION_TYPES.SendCampaign,
+          data: {
+            campaignId,
+          },
+        };
+
+        const trigger =
+          WORKFLOW_ATTRIBUTE_TRIGGER_MAP[triggerCondition.attribute];
+
+        workflow = await tx.workflow.create({
+          data: {
+            id: createId({ prefix: "wf_" }),
+            programId,
+            trigger,
+            triggerConditions: [triggerCondition],
+            actions: [action],
+          },
+        });
+      }
+
+      return await tx.campaign.create({
+        data: {
+          id: campaignId,
+          programId,
+          workflowId: workflow?.id,
+          name,
+          subject,
+          body,
+          status: "draft",
+          type,
+          userId: session.user.id,
+          ...(partnerGroups.length && {
+            groups: {
+              createMany: {
+                data: partnerGroups.map(({ id }) => ({
+                  groupId: id,
+                })),
+              },
+            },
+          }),
+        },
+        include: {
+          workflow: true,
+          groups: true,
+        },
+      });
+    });
+
+    const createdCampaign = CampaignSchema.parse({
+      ...campaign,
+      groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
+      triggerCondition: campaign.workflow?.triggerConditions?.[0],
+    });
+
+    return NextResponse.json(createdCampaign);
   },
   {
-    requiredPlan: [
-      "business",
-      "business plus",
-      "business extra",
-      "business max",
-      "advanced",
-      "enterprise",
-    ],
+    requiredPlan: ["advanced", "enterprise"],
   },
 );

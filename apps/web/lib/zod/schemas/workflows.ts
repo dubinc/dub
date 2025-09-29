@@ -11,7 +11,7 @@ export const WORKFLOW_ATTRIBUTES = [
   "totalConversions",
   "totalSaleAmount",
   "totalCommissions",
-  "partnerJoinedDuration",
+  "partnerEnrolledDays",
 ] as const;
 
 export const WORKFLOW_ATTRIBUTE_LABELS: Record<
@@ -22,7 +22,7 @@ export const WORKFLOW_ATTRIBUTE_LABELS: Record<
   totalConversions: "Conversions",
   totalSaleAmount: "Revenue",
   totalCommissions: "Commissions",
-  partnerJoinedDuration: "been in the program for",
+  partnerEnrolledDays: "been in the program for",
 } as const;
 
 export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
@@ -33,7 +33,7 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
   totalConversions: WorkflowTrigger.saleRecorded,
   totalSaleAmount: WorkflowTrigger.saleRecorded,
   totalCommissions: WorkflowTrigger.commissionEarned,
-  partnerJoinedDuration: WorkflowTrigger.partnerJoinedDuration,
+  partnerEnrolledDays: WorkflowTrigger.partnerEnrolledDays,
 } as const;
 
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;

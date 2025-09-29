@@ -43,7 +43,7 @@ export async function POST(
       );
     }
 
-    if (workflow.trigger === WorkflowTrigger.partnerJoinedDuration) {
+    if (workflow.trigger === WorkflowTrigger.partnerEnrolledDays) {
       await executeSendCampaignAction({
         workflow,
       });
