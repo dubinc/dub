@@ -205,9 +205,7 @@ function TrialOfferWithQRPreviewInner({
         <div className="flex grow flex-col gap-4 p-6 sm:min-w-[50%] sm:max-w-[50%] sm:basis-[50%]">
           <div className="flex flex-col gap-2 text-center">
             <h2 className="text-neutral !mt-0 truncate text-2xl font-bold">
-              {firstQr
-                ? "Unlock 7-Day Full Access"
-                : "Start Now & Unlock 7-Day Full Access"}
+              Unlock 7-Day Full Access
             </h2>
             <h3 className="flex flex-wrap items-center justify-center gap-0.5 text-center text-base text-neutral-800">
               <span className="font-semibold">Excellent</span>{" "}
