@@ -107,6 +107,8 @@ function ProgramApplicationSheetContent({
 
   if (!program) return null;
 
+  const fields = group?.applicationFormData?.fields || [];
+
   return (
     <FormProvider {...form}>
       <div className="relative h-full">
@@ -154,7 +156,7 @@ function ProgramApplicationSheetContent({
           </div>
 
           <div className="flex flex-col gap-6 p-5 sm:p-8">
-            {group?.applicationFormData?.fields.map((field, index) => {
+            {fields.map((field, index) => {
               return (
                 <ProgramApplicationFormField
                   key={field.id}

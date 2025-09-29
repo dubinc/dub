@@ -271,7 +271,7 @@ export function ApplicationPreview({
                           : undefined
                       }
                       onMoveDown={
-                        idx !== applicationFormData.fields.length - 1
+                        idx !== fields.length - 1
                           ? () =>
                               updateFields((fields) =>
                                 moveItem(fields, idx, idx + 1),
