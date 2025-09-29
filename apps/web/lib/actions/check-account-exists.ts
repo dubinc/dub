@@ -3,6 +3,7 @@
 import { getIP } from "@/lib/api/utils/get-ip";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import z from "../zod";
 import { emailSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -27,17 +28,22 @@ export const checkAccountExistsAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
-      select: {
-        passwordHash: true,
-      },
-    });
+    const [user, isSamlEnforced] = await Promise.all([
+      prisma.user.findUnique({
+        where: {
+          email,
+        },
+        select: {
+          passwordHash: true,
+        },
+      }),
+
+      isSamlEnforcedForEmailDomain(email),
+    ]);
 
     return {
       accountExists: !!user,
       hasPassword: !!user?.passwordHash,
+      requireSAML: isSamlEnforced,
     };
   });
