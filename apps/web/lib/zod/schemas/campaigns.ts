@@ -3,38 +3,26 @@ import { z } from "zod";
 import { GroupSchema } from "./groups";
 import { workflowConditionSchema } from "./workflows";
 
-export const createCampaignSchema = z
-  .object({
-    groupIds: z.array(z.string()).nullish().default(null),
-    type: z.nativeEnum(CampaignType),
-    name: z
-      .string()
-      .trim()
-      .min(1, "Name is required.")
-      .max(100, "Name must be less than 100 characters."),
-    subject: z
-      .string()
-      .trim()
-      .min(1, "Subject is required.")
-      .max(100, "Subject must be less than 100 characters."),
-    body: z.string().min(1, "Body is required."),
-    triggerCondition: workflowConditionSchema.nullish(),
-  })
-  .refine(
-    (data) => {
-      if (data.type === "automation") {
-        return (
-          data.triggerCondition !== null && data.triggerCondition !== undefined
-        );
-      }
+export const createCampaignSchema = z.object({
+  groupIds: z.array(z.string()).nullish().default(null),
+  type: z.nativeEnum(CampaignType),
+  name: z
+    .string()
+    .trim()
+    .min(1, "Name is required.")
+    .max(100, "Name must be less than 100 characters."),
+  subject: z
+    .string()
+    .trim()
+    .min(1, "Subject is required.")
+    .max(100, "Subject must be less than 100 characters."),
+  body: z.string().min(1, "Body is required."),
+  triggerCondition: workflowConditionSchema.nullish(),
+});
 
-      return true;
-    },
-    {
-      message: "Trigger condition is required for automation campaigns.",
-      path: ["triggerCondition"],
-    },
-  );
+export const updateCampaignSchema = createCampaignSchema
+  .omit({ type: true })
+  .partial();
 
 export const CampaignSchema = z.object({
   id: z.string(),
@@ -43,7 +31,7 @@ export const CampaignSchema = z.object({
   body: z.string(),
   type: z.nativeEnum(CampaignType),
   status: z.nativeEnum(CampaignStatus),
-  triggerCondition: workflowConditionSchema.nullable(),
+  triggerCondition: workflowConditionSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
   createdAt: z.date(),
   updatedAt: z.date(),

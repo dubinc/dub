@@ -1,3 +1,4 @@
+import { validateCampaign } from "@/lib/api/campaigns/validate-campaign";
 import { createId } from "@/lib/api/create-id";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -81,6 +82,11 @@ export const POST = withWorkspace(
     const partnerGroups = await throwIfInvalidGroupIds({
       programId,
       groupIds,
+    });
+
+    validateCampaign({
+      type,
+      triggerCondition,
     });
 
     const campaign = await prisma.$transaction(async (tx) => {
