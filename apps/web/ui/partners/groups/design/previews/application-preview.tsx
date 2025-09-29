@@ -134,7 +134,6 @@ export function ApplicationPreview({
               "absolute inset-0 flex items-center justify-center bg-white/10",
               "pointer-events-none opacity-0 transition-[backdrop-filter,opacity] duration-500",
             )}
-            {...{ inert: "" }}
           >
             <div
               className={cn(
@@ -201,7 +200,7 @@ export function ApplicationPreview({
                   )}
                 </div>
 
-                <div className="flex items-center gap-2" {...{ inert: "" }}>
+                <div className="flex items-center gap-2">
                   <Button
                     type="button"
                     variant="secondary"
@@ -302,10 +301,7 @@ export function ApplicationPreview({
                       </div>
                     </div>
 
-                    <div
-                      className="relative mx-auto max-w-screen-sm"
-                      {...{ inert: "" }}
-                    >
+                    <div className="relative mx-auto max-w-screen-sm">
                       <div className="px-6">
                         <ProgramApplicationFormField field={field} preview />
                       </div>
@@ -392,7 +388,7 @@ function EditToolbar({
               <Button
                 type="button"
                 variant="outline"
-                icon={<Pen2 className="size-4" />}
+                icon={Pen2}
                 className="size-7 rounded p-0"
                 onClick={onEdit}
               />
