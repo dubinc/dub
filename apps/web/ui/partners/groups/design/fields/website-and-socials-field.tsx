@@ -21,7 +21,7 @@ const Field = ({
   field: WebsiteAndSocialsSiteData
   preview?: boolean;
 }) => {
-  const { register, getFieldState, watch, setValue } = useFormContext<any>();
+  const { register, getFieldState, setValue } = useFormContext<any>();
   const keyPath = keyPathProp ? `${keyPathProp}.value` : "value";
   const state = getFieldState(keyPath);
   const error = !!state.error

@@ -142,6 +142,6 @@ export const programApplicationFormDataSchema = programApplicationFormSchema.ext
   fields: programApplicationFormFieldsWithValuesSchema,
 });
 
-export const programApplicationFormDataWithValuesSchema = programApplicationFormDataSchema.extend({
+export const programApplicationFormDataWithValuesSchema = z.object({
   fields: programApplicationFormFieldsWithValuesSchema,
 });

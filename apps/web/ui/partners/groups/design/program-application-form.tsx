@@ -1,7 +1,7 @@
 "use client";
 
 import { createProgramApplicationAction, PartnerData } from "@/lib/actions/partners/create-program-application";
-import { GroupWithFormDataProps, ProgramProps } from "@/lib/types";
+import { GroupWithFormDataProps, ProgramApplicationFormDataWithValues, ProgramProps } from "@/lib/types";
 import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
@@ -10,12 +10,11 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { programApplicationFormDataWithValuesSchema, programApplicationFormFieldSchema, programApplicationFormLongTextFieldWithValueSchema, programApplicationFormMultipleChoiceFieldSchema, programApplicationFormMultipleChoiceFieldWithValueSchema, programApplicationFormSelectFieldWithValueSchema, programApplicationFormShortTextFieldWithValueSchema, programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
+import { programApplicationFormFieldSchema, programApplicationFormLongTextFieldWithValueSchema, programApplicationFormMultipleChoiceFieldSchema, programApplicationFormMultipleChoiceFieldWithValueSchema, programApplicationFormSelectFieldWithValueSchema, programApplicationFormShortTextFieldWithValueSchema, programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import z from "@/lib/zod";
 import { CountryCombobox } from "../../country-combobox";
 import { ProgramApplicationFormField } from "./fields";
 
-type Data = z.infer<typeof programApplicationFormDataWithValuesSchema>
 
 type FormData = {
   name: string;
@@ -23,8 +22,8 @@ type FormData = {
   country: string;
   ageVerification: boolean;
   termsAgreement: boolean;
-  formData: Data
-}
+  formData: ProgramApplicationFormDataWithValues
+};
 
 const formDataForApplicationFormData = (fields: z.infer<typeof programApplicationFormFieldSchema>[]): Data => {
   return {
