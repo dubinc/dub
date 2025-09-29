@@ -422,17 +422,15 @@ export const authOptions: NextAuthOptions = {
         if (workspace) {
           const { ssoEmailDomain } = workspace;
 
-          if (!ssoEmailDomain) {
-            return false;
-          }
+          if (ssoEmailDomain) {
+            const emailDomain = user.email.split("@")[1];
 
-          const emailDomain = user.email.split("@")[1];
-
-          if (
-            emailDomain.toLocaleLowerCase() !==
-            ssoEmailDomain.toLocaleLowerCase()
-          ) {
-            return false;
+            if (
+              emailDomain.toLocaleLowerCase() !==
+              ssoEmailDomain.toLocaleLowerCase()
+            ) {
+              return false;
+            }
           }
 
           await Promise.allSettled([

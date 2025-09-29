@@ -6,6 +6,7 @@ import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
+import { isGenericEmail } from "@/lib/is-generic-email";
 import { jackson } from "@/lib/jackson";
 import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
@@ -33,7 +34,7 @@ const updateWorkspaceSchema = createWorkspaceSchema
         z.null(),
       ])
       .optional(),
-    ssoEmailDomain: z.string().nullish(),
+    enforceSAML: z.boolean().nullish(),
   })
   .partial();
 
@@ -85,7 +86,7 @@ export const PATCH = withWorkspace(
       conversionEnabled,
       allowedHostnames,
       publishableKey,
-      ssoEmailDomain,
+      enforceSAML,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
@@ -106,11 +107,20 @@ export const PATCH = withWorkspace(
         )
       : null;
 
-    if (ssoEmailDomain) {
+    let ssoEmailDomain: string | null | undefined;
+
+    if (enforceSAML) {
       if (workspace.plan !== "enterprise") {
         throw new DubApiError({
           code: "forbidden",
           message: "SAML SSO is only available on enterprise plans.",
+        });
+      }
+      ssoEmailDomain = session.user.email.split("@")[1];
+      if (isGenericEmail(session.user.email)) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "SAML SSO is not available for generic emails.",
         });
       }
 
@@ -128,6 +138,8 @@ export const PATCH = withWorkspace(
           message: "SAML SSO is not configured for this workspace.",
         });
       }
+    } else if (enforceSAML === false) {
+      ssoEmailDomain = null;
     }
 
     try {
