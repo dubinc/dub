@@ -2,7 +2,6 @@ import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access
 import { getQrs } from "@/lib/api/qrs/get-qrs";
 import { getSession } from "@/lib/auth";
 import { PageContent } from "@/ui/layout/page-content";
-import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker";
 import { getUserCookieService } from "core/services/cookie/user-session.service";
 import { Viewport } from "next";
 import WorkspaceQRsClient from "./custom-page-client";
@@ -30,25 +29,14 @@ const WorkspaceQRsPage = async () => {
   const featuresAccess = await checkFeaturesAccessAuthLess(authUser.id);
 
   return (
-    <>
-      <PageContent title={<LinksTitle />}>
-        <WorkspaceQRsClient
-          initialQrs={qrs as any}
-          featuresAccess={featuresAccess}
-          user={authUser}
-          cookieUser={user}
-        />
-      </PageContent>
-
-      <PageViewedTrackerComponent
-        sessionId={authUser.id!}
-        pageName="dashboard"
-        params={{
-          event_category: "Authorized",
-          email: authUser?.email,
-        }}
+    <PageContent title={<LinksTitle />}>
+      <WorkspaceQRsClient
+        initialQrs={qrs as any}
+        featuresAccess={featuresAccess}
+        user={authUser}
+        cookieUser={user}
       />
-    </>
+    </PageContent>
   );
 };
 

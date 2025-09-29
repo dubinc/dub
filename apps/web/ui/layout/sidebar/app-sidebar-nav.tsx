@@ -40,12 +40,14 @@ const NAV_AREAS: SidebarNavAreas<{
         items: [
           {
             name: "My QR Codes",
+            page_name_code: "my_qr_codes",
             icon: () => <Icon icon="mage:qr-code" className="h-5 w-5" />,
             href: `/${slug}`,
             exact: true,
           },
           {
             name: "Statistics",
+            page_name_code: "statistics",
             icon: () => <Icon icon="streamline:graph" className="h-5 w-5" />,
             href: isTrialOver
               ? "#"
@@ -156,12 +158,14 @@ const NAV_AREAS: SidebarNavAreas<{
         items: [
           {
             name: "General",
+            page_name_code: "account",
             icon: Gear2,
             href: "/account/settings",
             exact: true,
           },
           {
             name: "Plans and Payments",
+            page_name_code: "plans",
             icon: ({ className }: { className: string }) => (
               <IconifyIcon
                 className={cn("h-4 w-4 text-neutral-200", className)}
@@ -173,6 +177,7 @@ const NAV_AREAS: SidebarNavAreas<{
           },
           {
             name: "Help Center",
+            page_name_code: "help_center",
             icon: ({ className }: { className: string }) => (
               <IconifyIcon
                 className={cn("h-4 w-4 text-neutral-200", className)}

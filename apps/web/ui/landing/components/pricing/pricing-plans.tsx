@@ -5,7 +5,7 @@ import { PricingPlanCard } from "./components/PricingPlanCard.tsx";
 import { PRICING_PLANS } from "./config.ts";
 
 interface IPricingSectionProps {
-  handleScrollButtonClick: (type: "1" | "2") => void;
+  handleScrollButtonClick: (type: "1" | "2" | "3") => void;
 }
 
 export const PricingSection: FC<IPricingSectionProps> = ({
@@ -28,7 +28,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
                 title={card.title}
                 plan={card.plan}
                 planFeatures={card.planFeatures}
-                handleScrollButtonClick={handleScrollButtonClick}
+                handleScrollButtonClick={() => handleScrollButtonClick("3")}
               />
             ))}
           </div>

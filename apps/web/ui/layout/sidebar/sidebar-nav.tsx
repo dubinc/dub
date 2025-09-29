@@ -21,6 +21,7 @@ import UserDropdown from "./user-dropdown";
 
 export type NavItemCommon = {
   name: string;
+  page_name_code?: string;
   href: string;
   exact?: boolean;
   onClick?: (e: React.MouseEvent) => void;
@@ -169,7 +170,7 @@ export function SidebarNav<T extends Record<any, any>>({
 }
 
 function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
-  const { name, href, exact, onClick } = item;
+  const { name, page_name_code, href, exact, onClick } = item;
   const { user } = useUser();
 
   const Icon = "icon" in item ? item.icon : undefined;
@@ -187,19 +188,21 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
   }, [pathname, href, exact]);
 
   const handleClick = (e: React.MouseEvent) => {
+    const profilePaths = ["/account/settings", "/account/plans"];
+
     // Track menu item click
     setTimeout(() => {
       trackClientEvents({
         event: EAnalyticEvents.PAGE_CLICKED,
         params: {
-          page_name: "profile",
-          content_value: name.toLowerCase().replace(/\s+/g, "_"),
+          page_name: profilePaths.includes(pathname) ? "profile" : "dashboard",
+          content_value: page_name_code,
           email: user?.email,
           event_category: "Authorized",
         },
         sessionId: user?.id,
       });
-    }, 0)
+    }, 0);
 
     // Call original onClick if provided
     if (onClick) {

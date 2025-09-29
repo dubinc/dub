@@ -34,7 +34,11 @@ export default function WorkspaceQRsClient({
   return (
     <UserProvider user={user}>
       <QrCodesDisplayProvider>
-        <WorkspaceQRs initialQrs={initialQrs} featuresAccess={featuresAccess} />
+        <WorkspaceQRs
+          initialQrs={initialQrs}
+          featuresAccess={featuresAccess}
+          user={user}
+        />
 
         <TrialOfferWithQRPreviewWrapper
           initialQrs={initialQrs}
@@ -49,9 +53,11 @@ export default function WorkspaceQRsClient({
 function WorkspaceQRs({
   initialQrs,
   featuresAccess,
+  user,
 }: {
   initialQrs: QrStorageData[];
   featuresAccess: FeaturesAccess;
+  user: Session["user"];
 }) {
   const router = useRouter();
   const { isValidating } = useQrs({}, {}, true); // listenOnly mode
@@ -135,6 +141,7 @@ function WorkspaceQRs({
           CreateQrCodeButton={featuresAccess ? CreateQRButton : () => <></>}
           featuresAccess={featuresAccess.featuresAccess}
           initialQrs={initialQrs}
+          user={user}
         />
       </div>
     </>
@@ -160,11 +167,12 @@ function TrialOfferWithQRPreviewWrapper({
     });
 
   useEffect(() => {
-    setShowTrialOfferModal(
-      !isSubscribed,
+    if (!isSubscribed) {
       // TODO: uncomment this when we will prepare subscription for old users
       // && !featuresAccess.subscriptionId,
-    );
+
+      setShowTrialOfferModal(true);
+    }
   }, [isSubscribed]);
 
   return <TrialOfferWithQRPreviewModal />;

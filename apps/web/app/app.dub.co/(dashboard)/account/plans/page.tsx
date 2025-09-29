@@ -38,8 +38,12 @@ const PlansPage: NextPage = async () => {
       </PageContent>
       <PageViewedTrackerComponent
         sessionId={sessionUser.id!}
-        pageName="plans"
-        params={{ event_category: "Authorized", email: sessionUser?.email }}
+        pageName="profile"
+        params={{
+          event_category: "Authorized",
+          email: sessionUser?.email,
+          content_group: "plans",
+        }}
       />
     </>
   );

@@ -45,7 +45,7 @@ export const generateTrackingUpsellEvent = ({
     country: user?.currency?.countryCode,
     toxic: user?.toxic,
     event_category: "Authorized",
-    page_name: "account",
+    page_name: "profile",
     ...additionalParams,
   };
 

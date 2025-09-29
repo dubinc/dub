@@ -52,7 +52,7 @@ export const generateCheckoutFormPaymentEvents = ({
     subscription_id: subscriptionId,
     event_category: "Authorized",
     toxic,
-    page_name: "account",
+    page_name: "dashboard",
     billing_action: null,
     ...additionalParams,
   };

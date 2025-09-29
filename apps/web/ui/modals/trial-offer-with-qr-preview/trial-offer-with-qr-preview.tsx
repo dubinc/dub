@@ -7,6 +7,8 @@ import { QrCardType } from "@/ui/qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "@/ui/shared/five-stars.component";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ICustomerBody } from "core/integration/payment/config";
 import { Check, Gift } from "lucide-react";
@@ -16,6 +18,7 @@ import {
   RefObject,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -29,7 +32,7 @@ import { MOCK_QR } from "./constants/mock-qr";
 interface IQRPreviewModalProps {
   canvasRef: RefObject<HTMLCanvasElement>;
   qrCode: QRCodeStyling | null;
-  showQRPreviewModal: boolean;
+  showTrialOfferModal: boolean;
   setShowTrialOfferModal: Dispatch<SetStateAction<boolean>>;
   setShowQRPreviewModal: Dispatch<SetStateAction<boolean>>;
   firstQr: QrStorageData | null;
@@ -47,7 +50,7 @@ const FEATURES = [
 function TrialOfferWithQRPreview({
   canvasRef,
   qrCode,
-  showQRPreviewModal,
+  showTrialOfferModal,
   setShowTrialOfferModal,
   setShowQRPreviewModal,
   user,
@@ -67,11 +70,27 @@ function TrialOfferWithQRPreview({
     />
   );
 
+  useEffect(() => {
+    if (showTrialOfferModal) {
+      trackClientEvents({
+        event: EAnalyticEvents.ELEMENT_OPENED,
+        params: {
+          page_name: "dashboard",
+          element_name: "payment_modal",
+          content_group: "my_qr_codes",
+          email: user?.email,
+          event_category: "Authorized",
+        },
+        sessionId: user?.id,
+      });
+    }
+  }, [showTrialOfferModal]);
+
   return (
     <>
       {!isMobile && (
         <Modal
-          showModal={showQRPreviewModal}
+          showModal={showTrialOfferModal}
           setShowModal={setShowTrialOfferModal}
           preventDefaultClose
           className="max-w-4xl border-gray-300"
@@ -80,7 +99,7 @@ function TrialOfferWithQRPreview({
         </Modal>
       )}
 
-      {showQRPreviewModal && isMobile && (
+      {showTrialOfferModal && isMobile && (
         <div className="fixed left-0 top-0 flex h-full w-full items-center justify-center overflow-y-auto bg-white">
           <div className="h-full w-full max-w-4xl">{innerComponent}</div>
         </div>
@@ -96,7 +115,7 @@ function TrialOfferWithQRPreviewInner({
   setShowQRPreviewModal,
   user,
   firstQr,
-}: Omit<IQRPreviewModalProps, "showQRPreviewModal">) {
+}: Omit<IQRPreviewModalProps, "showTrialOfferModal">) {
   const { isMobile } = useMediaQuery();
 
   const [clientToken, setClientToken] = useState<string | null>(null);
@@ -105,6 +124,17 @@ function TrialOfferWithQRPreviewInner({
   )!;
 
   const onSubcriptionCreated = () => {
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_VIEWED,
+      params: {
+        page_name: "dashboard",
+        content_group: "my_qr_codes",
+        event_category: "Authorized",
+        email: user?.email,
+      },
+      sessionId: user?.id,
+    });
+
     if (firstQr) {
       setShowQRPreviewModal(true);
     }
@@ -247,6 +277,8 @@ export function useTrialOfferWithQRPreviewModal(data: {
     qrCode: builtQrCodeObject,
     width: 200,
     height: 200,
+    ...(firstQr ? { qrCodeId: firstQr.id } : {}),
+    user,
   });
 
   const ModalCallback = useCallback(() => {
@@ -257,7 +289,7 @@ export function useTrialOfferWithQRPreviewModal(data: {
           firstQr={firstQr}
           canvasRef={canvasRef}
           qrCode={demoBuiltQrCodeObject}
-          showQRPreviewModal={showTrialOfferModal}
+          showTrialOfferModal={showTrialOfferModal}
           setShowTrialOfferModal={setShowTrialOfferModal}
           setShowQRPreviewModal={setShowQRPreviewModal}
         />

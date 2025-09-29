@@ -248,7 +248,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           trackClientEvents({
             event: EAnalyticEvents.PAGE_CLICKED,
             params: {
-              page_name: homepageDemo ? "landing" : "profile",
+              page_name: homepageDemo ? "landing" : "dashboard",
               content_value: homepageDemo
                 ? "download"
                 : isEdit
@@ -272,7 +272,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           trackClientEvents({
             event: EAnalyticEvents.PAGE_CLICKED,
             params: {
-              page_name: homepageDemo ? "landing" : "profile",
+              page_name: homepageDemo ? "landing" : "dashboard",
               content_value: "continue",
               content_group: "complete_content",
               event_category: "nonAuthorized",

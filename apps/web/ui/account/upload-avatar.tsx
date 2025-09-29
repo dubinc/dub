@@ -40,8 +40,8 @@ const UploadAvatar: FC<Readonly<IUploadAvatarProps>> = ({ sessionId }) => {
               event: EAnalyticEvents.ACCOUNT_UPDATED,
               params: {
                 event_category: "nonAuthorized",
-                page_name: "account",
-                content_group: "general",
+                page_name: "profile",
+                content_group: "account",
                 email: session?.user?.email,
                 nameChanged: false,
                 emailChanged: false,
