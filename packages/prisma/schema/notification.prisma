@@ -16,8 +16,10 @@ model NotificationEmail {
   partnerId       String?
   recipientUserId String?
 
-  openedAt  DateTime?
-  createdAt DateTime  @default(now())
+  deliveredAt DateTime?
+  openedAt    DateTime?
+  bouncedAt   DateTime?
+  createdAt   DateTime  @default(now())
 
   message  Message?  @relation(fields: [messageId], references: [id], onDelete: Cascade)
   bounty   Bounty?   @relation(fields: [bountyId], references: [id], onDelete: Cascade)
