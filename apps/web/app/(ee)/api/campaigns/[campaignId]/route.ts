@@ -90,7 +90,7 @@ export const DELETE = withWorkspace(
       })(),
     );
 
-    return NextResponse.json({ id: programId });
+    return NextResponse.json({ id: campaignId });
   },
   {
     requiredPlan: ["advanced", "enterprise"],

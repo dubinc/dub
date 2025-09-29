@@ -1,12 +1,14 @@
 import { WorkflowCondition, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
+import NewMessageFromProgram from "@dub/email/templates/new-message-from-program";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Workflow } from "@prisma/client";
 import { subDays } from "date-fns";
 import { createId } from "../create-id";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+import { renderEmailTemplate } from "./render-email-template";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
@@ -18,6 +20,9 @@ export const executeSendCampaignWorkflow = async ({
   const { condition, action } = parseWorkflowConfig(workflow);
 
   if (action.type !== WORKFLOW_ACTION_TYPES.SendCampaign) {
+    console.log(
+      `Workflow ${workflow.id} is not a send campaign workflow: ${action.type}`,
+    );
     return;
   }
 
@@ -32,11 +37,13 @@ export const executeSendCampaignWorkflow = async ({
       id: campaignId,
     },
     include: {
+      program: true,
       groups: true,
     },
   });
 
   if (!campaign) {
+    console.log(`Workflow ${workflow.id} campaign ${campaignId} not found.`);
     return;
   }
 
@@ -66,6 +73,9 @@ export const executeSendCampaignWorkflow = async ({
   });
 
   if (programEnrollments.length === 0) {
+    console.log(
+      `Workflow ${workflow.id} no program enrollments found for campaign ${campaignId}.`,
+    );
     return;
   }
 
@@ -83,6 +93,12 @@ export const executeSendCampaignWorkflow = async ({
     },
   });
 
+  if (alreadySentEmails.length > 0) {
+    console.log(
+      `Workflow ${workflow.id} already sent campaign emails to ${alreadySentEmails.length} partners: ${alreadySentEmails.map(({ partnerId }) => partnerId).join(", ")}`,
+    );
+  }
+
   const alreadySentPartnerIds = new Set(
     alreadySentEmails.map(({ partnerId }) => partnerId),
   );
@@ -93,6 +109,9 @@ export const executeSendCampaignWorkflow = async ({
   );
 
   if (programEnrollments.length === 0) {
+    console.log(
+      `Workflow ${workflow.id} no program enrollments left to send campaign emails to.`,
+    );
     return;
   }
 
@@ -115,7 +134,7 @@ export const executeSendCampaignWorkflow = async ({
     );
 
     // Create messages
-    await prisma.message.createMany({
+    const messages = await prisma.message.createMany({
       data: programEnrollmentChunk.map((programEnrollment) => ({
         id: createId({ prefix: "msg_" }),
         programId: programEnrollment.programId,
@@ -126,11 +145,15 @@ export const executeSendCampaignWorkflow = async ({
         text: renderEmailTemplate({
           template: campaign.body,
           variables: {
-            name: programEnrollment.partner.name,
+            partnerName: programEnrollment.partner.name,
           },
         }),
       })),
     });
+
+    console.log(
+      `Workflow ${workflow.id} created ${messages.count} messages for campaign ${campaignId}.`,
+    );
 
     // Send emails
     const { data } = await sendBatchEmail(
@@ -138,11 +161,28 @@ export const executeSendCampaignWorkflow = async ({
         variant: "notifications",
         to: partnerUser.email!,
         subject: campaign.subject,
-        text: renderEmailTemplate({
-          template: campaign.body,
-          variables: {
-            name: partnerUser.partner.name,
+        react: NewMessageFromProgram({
+          program: {
+            name: campaign.program.name,
+            logo: campaign.program.logo,
+            slug: campaign.program.slug,
           },
+          messages: [
+            {
+              text: renderEmailTemplate({
+                template: campaign.body,
+                variables: {
+                  partnerName: partnerUser.partner.name,
+                },
+              }),
+              createdAt: new Date(),
+              user: {
+                name: campaign.program.name,
+                image: campaign.program.logo,
+              },
+            },
+          ],
+          email: partnerUser.email!,
         }),
         tags: [{ name: "type", value: "notification-email" }],
         headers: {
@@ -151,8 +191,12 @@ export const executeSendCampaignWorkflow = async ({
       })),
     );
 
+    console.log(
+      `Workflow ${workflow.id} sent ${data?.data.length} emails for campaign ${campaignId}.`,
+    );
+
     if (data) {
-      await prisma.notificationEmail.createMany({
+      const notificationEmails = await prisma.notificationEmail.createMany({
         data: partnerUsers.map((partnerUser, idx) => ({
           id: createId({ prefix: "em_" }),
           type: NotificationEmailType.Campaign,
@@ -163,6 +207,10 @@ export const executeSendCampaignWorkflow = async ({
           recipientUserId: partnerUser.id,
         })),
       });
+
+      console.log(
+        `Workflow ${workflow.id} created ${notificationEmails.count} notification emails for campaign ${campaignId}.`,
+      );
     }
   }
 };
@@ -178,20 +226,4 @@ function buildEnrollmentWhere(condition: WorkflowCondition) {
         },
       };
   }
-}
-
-function renderEmailTemplate({
-  template,
-  variables,
-}: {
-  template: string;
-  variables: Record<string, string | number | null | undefined>;
-}): string {
-  return template.replace(
-    /{{\s*([\w.]+)(?:\|([^}]+))?\s*}}/g,
-    (_, key, fallback) => {
-      const value = variables[key];
-      return value != null ? String(value) : fallback ?? "";
-    },
-  );
 }
