@@ -8,15 +8,12 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-interface RequestParams {
-  params: {
-    workflowId: string;
-  };
-}
-
 // POST /api/cron/workflows/[workflowId] - Execute a scheduled workflow
-export async function POST(req: Request, requestParams: RequestParams) {
-  const { workflowId } = requestParams.params;
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ workflowId: string }> },
+) {
+  const { workflowId } = await params;
 
   try {
     const rawBody = await req.text();
