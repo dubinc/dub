@@ -6,7 +6,7 @@ import { isGenericEmail } from "../../is-generic-email";
 // Checks if SAML SSO is enforced for a given email domain
 export const isSamlEnforcedForEmailDomain = async (email: string) => {
   const hostname = (await headers()).get("host");
-  const emailDomain = email.split("@")[1];
+  const emailDomain = email.split("@")[1].toLowerCase();
 
   if (
     !hostname ||
