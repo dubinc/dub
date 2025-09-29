@@ -141,7 +141,7 @@ export const executeSendCampaignWorkflow = async ({
         text: renderEmailTemplate({
           template: campaign.body,
           variables: {
-            name: partnerUser.name,
+            name: partnerUser.partner.name,
           },
         }),
         tags: [{ name: "type", value: "notification-email" }],
