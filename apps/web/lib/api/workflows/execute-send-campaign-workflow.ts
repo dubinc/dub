@@ -10,7 +10,7 @@ import { parseWorkflowConfig } from "./parse-workflow-config";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
-  context
+  context,
 }: {
   workflow: Workflow;
   context?: WorkflowContext;
@@ -27,15 +27,28 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
-  const where = buildEnrollmentWhere({
+  const { campaignId } = action.data;
+  const { programId, partnerId } = context || {
     programId: workflow.programId,
-    condition,
+    partnerId: undefined,
+  };
+
+  const campaign = await prisma.campaign.findUnique({
+    where: {
+      id: campaignId,
+    },
   });
+
+  if (!campaign) {
+    return;
+  }
 
   const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
-      ...where,
+      programId,
+      partnerId,
       status: "approved",
+      ...buildEnrollmentWhere(condition),
     },
     include: {
       partner: {
@@ -50,18 +63,7 @@ export const executeSendCampaignWorkflow = async ({
     },
   });
 
-  // No program enrollments found matching the condition
   if (programEnrollments.length === 0) {
-    return;
-  }
-
-  const campaign = await prisma.campaign.findUnique({
-    where: {
-      id: action.data.campaignId,
-    },
-  });
-
-  if (!campaign) {
     return;
   }
 
@@ -134,19 +136,12 @@ export const executeSendCampaignWorkflow = async ({
   }
 };
 
-function buildEnrollmentWhere({
-  programId,
-  condition,
-}: {
-  programId: string;
-  condition: WorkflowCondition;
-}) {
+function buildEnrollmentWhere(condition: WorkflowCondition) {
   const thresholdDate = subDays(new Date(), condition.value);
 
   switch (condition.operator) {
     case "gte":
       return {
-        programId,
         createdAt: {
           lte: thresholdDate,
         },

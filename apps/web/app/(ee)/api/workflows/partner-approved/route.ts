@@ -2,6 +2,7 @@ import { triggerDraftBountySubmissionCreation } from "@/lib/api/bounties/trigger
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { createPartnerDefaultLinks } from "@/lib/api/partners/create-partner-default-links";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
 import { PlanProps, RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
@@ -310,18 +311,18 @@ export const { POST } = serve<Payload>(
     // Step 5: Execute Dub workflows using the “partnerEnrolled” trigger.
     await context.run("execute-workflows", async () => {
       logger.info({
-        message: "Started executing workflow step 'execute-workflows'.",
+        message:
+          "Started executing workflow step 'execute-workflows' for the trigger 'partnerEnrolled'.",
         data: input,
       });
 
-      // await triggerDraftBountySubmissionCreation({
-      //   programId,
-      //   partnerIds: [partnerId],
-      // });
-
-      // logger.info({
-      //   message: `Triggered draft bounty submission creation for partner ${partnerId} in program ${programId}.`,
-      // });
+      await executeWorkflows({
+        trigger: "partnerEnrolled",
+        context: {
+          programId,
+          partnerId,
+        },
+      });
     });
   },
   {
