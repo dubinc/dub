@@ -1,6 +1,6 @@
 enum CampaignType {
   marketing
-  automation
+  transactional
 }
 
 enum CampaignStatus {
@@ -20,7 +20,7 @@ model Campaign {
   name       String
   subject    String
   body       String         @db.Text
-  deliverAt  DateTime?
+  scheduledAt  DateTime?
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
 

@@ -9,10 +9,10 @@ export const validateCampaign = ({
   type,
   triggerCondition,
 }: Partial<z.infer<typeof createCampaignSchema>>) => {
-  if (type === "automation") {
+  if (type === "transactional") {
     if (!triggerCondition) {
       throw new DubApiError({
-        message: "Trigger condition is required for automation campaigns.",
+        message: "Trigger condition is required for transactional campaigns.",
         code: "bad_request",
       });
     }

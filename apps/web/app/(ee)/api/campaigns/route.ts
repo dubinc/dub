@@ -97,8 +97,8 @@ export const POST = withWorkspace(
       let workflow: Workflow | null = null;
       const campaignId = createId({ prefix: "cmp_" });
 
-      // Create a workflow for the automation campaigns
-      if (type === "automation" && triggerCondition) {
+      // Create a workflow for the transactional campaigns
+      if (type === "transactional" && triggerCondition) {
         const action: WorkflowAction = {
           type: WORKFLOW_ACTION_TYPES.SendCampaign,
           data: {
