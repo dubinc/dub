@@ -88,6 +88,7 @@ export async function createShopifySale({
           conversions: {
             increment: 1,
           },
+          lastConversionAt: new Date(),
         }),
         sales: {
           increment: 1,

@@ -60,6 +60,10 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
         })),
         skipDuplicates: true,
       });
+
+      console.log(
+        `Created ${groups.count} new groups for ${program.id}: ${newCampaigns.map(({ campaign }) => campaign.name).join(", ")}`,
+      );
     }
 
     currentPage++;

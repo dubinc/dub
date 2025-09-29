@@ -64,7 +64,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const search = searchParams.get("search");
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
@@ -80,6 +80,8 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       {
         workspaceId,
         status: "rejected",
+        sortBy,
+        sortOrder,
       },
       { exclude: ["partnerId"] },
     )}`,

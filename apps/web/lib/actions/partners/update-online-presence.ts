@@ -65,7 +65,7 @@ const updateOnlinePresenceResponseSchema = updateOnlinePresenceSchema.merge(
 export const updateOnlinePresenceAction = authPartnerActionClient
   .schema(
     updateOnlinePresenceSchema.refine(
-      (data) => {
+      async (data) => {
         return !data.website || isValidUrl(data.website);
       },
       {
@@ -171,12 +171,16 @@ export const updateOnlinePresenceAction = authPartnerActionClient
                     await generateCodeChallengeHash(codeVerifier);
 
                   // Store code verifier in cookie
-                  cookies().set("online_presence_code_verifier", codeVerifier, {
-                    httpOnly: true,
-                    secure: process.env.NODE_ENV === "production",
-                    sameSite: "lax",
-                    maxAge: 60 * 5, // 5 minutes
-                  });
+                  (await cookies()).set(
+                    "online_presence_code_verifier",
+                    codeVerifier,
+                    {
+                      httpOnly: true,
+                      secure: process.env.NODE_ENV === "production",
+                      sameSite: "lax",
+                      maxAge: 60 * 5, // 5 minutes
+                    },
+                  );
 
                   params.code_challenge = codeChallenge;
                   params.code_challenge_method = "S256";

@@ -281,6 +281,7 @@ export const trackLead = async ({
                 leads: {
                   increment: eventQuantity ?? 1,
                 },
+                lastLeadAt: new Date(),
               },
               include: includeTags,
             }),

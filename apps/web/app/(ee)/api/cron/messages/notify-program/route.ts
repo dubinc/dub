@@ -123,7 +123,8 @@ export async function POST(req: Request) {
             name: partner.name,
             image: partner.image,
           },
-          messages: unreadMessages.map((message) => ({
+          // can potentially replace this with `.toReversed()` once it's more widely supported
+          messages: [...unreadMessages].reverse().map((message) => ({
             text: message.text,
             createdAt: message.createdAt,
           })),

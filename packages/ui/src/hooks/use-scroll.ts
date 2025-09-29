@@ -2,7 +2,7 @@ import { RefObject, useCallback, useEffect, useState } from "react";
 
 export function useScroll(
   threshold: number,
-  { container }: { container?: RefObject<HTMLElement> } = {},
+  { container }: { container?: RefObject<HTMLElement | null> } = {},
 ) {
   const [scrolled, setScrolled] = useState(false);
 

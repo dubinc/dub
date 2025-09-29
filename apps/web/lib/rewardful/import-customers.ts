@@ -2,6 +2,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { logImportError } from "../tinybird/log-import-error";
 import { recordClick } from "../tinybird/record-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
@@ -220,7 +221,13 @@ async function createCustomer({
 
     prisma.link.update({
       where: { id: link.id },
-      data: { leads: { increment: 1 } },
+      data: {
+        leads: { increment: 1 },
+        lastLeadAt: updateLinkStatsForImporter({
+          currentTimestamp: link.lastLeadAt,
+          newTimestamp: new Date(referral.became_lead_at),
+        }),
+      },
     }),
   ]);
 }

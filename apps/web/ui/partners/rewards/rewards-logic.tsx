@@ -39,8 +39,8 @@ import {
   truncate,
 } from "@dub/utils";
 import { Command } from "cmdk";
-import { motion } from "framer-motion";
 import { Package } from "lucide-react";
+import { motion } from "motion/react";
 import { Fragment, useContext, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
 import {

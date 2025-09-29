@@ -41,10 +41,11 @@ model Project {
   allowedHostnames Json?
   publishableKey   String? @unique // for the client-side publishable key
 
-  conversionEnabled Boolean @default(false) // Whether to enable conversion tracking for links by default
-  webhookEnabled    Boolean @default(false)
-  ssoEnabled        Boolean @default(false)
-  dotLinkClaimed    Boolean @default(false)
+  conversionEnabled Boolean   @default(false) // Whether to enable conversion tracking for links by default
+  webhookEnabled    Boolean   @default(false)
+  ssoEnabled        Boolean   @default(false) // TODO: this is not used
+  dotLinkClaimed    Boolean   @default(false)
+  ssoEmailDomain    String?   @unique
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
