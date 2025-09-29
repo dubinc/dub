@@ -5,6 +5,7 @@ import {
   IPurchaseEventTracking,
 } from "../../integration/analytic/interfaces/analytic.interface.ts";
 import {
+  getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
   ICustomerBody,
   TPaymentPlan,
@@ -26,6 +27,7 @@ export const generateTrackingUpsellEvent = ({
   paymentId,
 }: Props) => {
   const { priceForPay } = getPaymentPlanPrice({ paymentPlan, user });
+  const chargePeriodDays = getChargePeriodDaysIdByPlan({ paymentPlan, user });
 
   const params = {
     error_code: null,
@@ -33,10 +35,12 @@ export const generateTrackingUpsellEvent = ({
     currency: user?.currency?.currencyForPay ?? null,
     email: user?.email ?? null,
     customer_id: user?.paymentInfo?.customerId || null,
-    flow_type: "internal",
+    flow_type: "upgrade",
     payment_subtype: "SUBSCRIPTION",
     mixpanel_user_id: user?.id,
     plan_name: paymentPlan,
+    plan_price: priceForPay,
+    charge_period_days: chargePeriodDays,
     payment_id: paymentId ?? null,
     payment_type: user?.paymentInfo?.paymentType ?? null,
     payment_method: user?.paymentInfo?.paymentMethodType ?? null,

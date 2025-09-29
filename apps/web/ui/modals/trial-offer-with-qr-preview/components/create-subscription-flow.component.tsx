@@ -53,7 +53,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   const priceForViewText = getCalculatePriceForView(priceForView, user);
 
   const { priceForView: oldPriceForView } = getPaymentPlanPrice({
-    paymentPlan: "PRICE_MONTH_PLAN",
+    paymentPlan: subPaymentPlan,
     user,
   });
   const oldPriceForViewText = getCalculatePriceForView(oldPriceForView, user);
@@ -122,8 +122,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     generateCheckoutFormPaymentEvents({
       user,
       stage: "attempt",
-      price: priceForPay,
-      planCode: trialPaymentPlan,
+      amount: priceForPay,
+      planCode: subPaymentPlan,
       paymentType: paymentTypeRef.current!,
       toxic: false,
     });
@@ -159,8 +159,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           message: "Subscription creation failed!",
           ...res,
         },
-        planCode: trialPaymentPlan,
-        price: priceForPay,
+        planCode: subPaymentPlan,
+        amount: priceForPay,
         stage: "error",
         toxic: false,
       });
@@ -171,8 +171,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     generateCheckoutFormPaymentEvents({
       user,
       data,
-      planCode: trialPaymentPlan,
-      price: priceForPay,
+      planCode: subPaymentPlan,
+      amount: priceForPay,
       stage: "success",
       paymentType: data.paymentType,
       subscriptionId: res!.data!.subscriptionId!,
@@ -206,8 +206,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     generateCheckoutFormPaymentEvents({
       user,
       data: eventData,
-      planCode: trialPaymentPlan,
-      price: priceForPay,
+      planCode: subPaymentPlan,
+      amount: priceForPay,
       stage: "error",
       toxic: false,
       paymentType: paymentTypeRef.current!,
