@@ -71,7 +71,7 @@ const ProgramSheetAccordionContent = React.forwardRef<
     <AccordionContent
       ref={ref}
       className={cn(
-        // Remove default animations and use framer-motion instead
+        // Remove default animations and use motion/react instead
         "bg-white px-4 py-4 data-[state=closed]:animate-none data-[state=open]:animate-none",
         className,
       )}

@@ -506,11 +506,7 @@ export function AppSidebarNav({
     submissionsCount?.find(({ status }) => status === "submitted")?.count || 0;
 
   const { count: unreadMessagesCount } = usePartnerMessagesCount({
-    enabled: Boolean(
-      currentArea === "program" &&
-        defaultProgramId &&
-        getPlanCapabilities(plan).canMessagePartners,
-    ),
+    enabled: Boolean(currentArea === "program"),
     query: {
       unread: true,
     },

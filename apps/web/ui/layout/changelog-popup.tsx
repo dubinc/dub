@@ -1,8 +1,8 @@
 "use client";
 
 import { BlurImage, Popup, PopupContext } from "@dub/ui";
-import { motion } from "framer-motion";
 import { X } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useContext } from "react";
 

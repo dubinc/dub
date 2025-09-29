@@ -137,7 +137,7 @@ export function LanderPreview({
               isGeneratingLander &&
                 "pointer-events-auto opacity-100 backdrop-blur-md",
             )}
-            {...{ inert: isGeneratingLander ? undefined : "" }}
+            {...{ inert: isGeneratingLander ? undefined : true }}
           >
             <div
               className={cn(
@@ -205,7 +205,7 @@ export function LanderPreview({
                   )}
                 </div>
 
-                <div className="flex items-center gap-2" {...{ inert: "" }}>
+                <div className="flex items-center gap-2" inert>
                   <Button
                     type="button"
                     variant="secondary"
@@ -248,7 +248,7 @@ export function LanderPreview({
               <div className="px-6">
                 <div
                   className="animate-scale-in-fade mt-6 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
-                  {...{ inert: "" }}
+                  inert
                 >
                   <Button
                     type="button"
@@ -301,7 +301,7 @@ export function LanderPreview({
                       className={cn(
                         "pointer-events-none absolute inset-0 opacity-0",
                         "transition-opacity duration-150 group-hover:opacity-100 sm:group-has-[+div:hover]:opacity-100",
-                        "group-has-[+div:data-touched=true]:opacity-100 group-data-[touched=true]:opacity-100",
+                        "group-has-[+div[data-touched='true']]:opacity-100 group-data-[touched=true]:opacity-100",
                       )}
                     >
                       <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
@@ -320,10 +320,7 @@ export function LanderPreview({
                       </div>
                     </div>
 
-                    <div
-                      className="relative mx-auto max-w-screen-sm"
-                      {...{ inert: "" }}
-                    >
+                    <div className="relative mx-auto max-w-screen-sm" inert>
                       <div className="px-6">
                         <Component
                           block={block}

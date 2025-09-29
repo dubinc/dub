@@ -18,8 +18,8 @@ import {
   TableRows2,
 } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useContext, useState } from "react";
 import LinkSort from "./link-sort";
 import { LinksDisplayContext } from "./links-display-provider";

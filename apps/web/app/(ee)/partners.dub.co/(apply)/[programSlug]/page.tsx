@@ -9,11 +9,18 @@ import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
 import { ApplyHeader } from "./header";
 
-export default async function ApplyPage({
-  params: { programSlug, groupSlug },
-}: {
-  params: { programSlug: string; groupSlug?: string };
-}) {
+export default async function ApplyPage(
+  props: {
+    params: Promise<{ programSlug: string; groupSlug?: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    programSlug,
+    groupSlug
+  } = params;
+
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
   const program = await getProgram({

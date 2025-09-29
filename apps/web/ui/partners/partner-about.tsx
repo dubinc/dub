@@ -6,7 +6,7 @@ import {
   preferredEarningStructuresMap,
   salesChannelsMap,
 } from "@/lib/partners/partner-profile";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { OnlinePresenceSummary } from "@/ui/partners/online-presence-summary";
 import { Icon } from "@dub/ui";
 
@@ -14,16 +14,16 @@ export function PartnerAbout({
   partner,
   error,
 }: {
-  partner?: EnrolledPartnerProps;
+  partner?: EnrolledPartnerExtendedProps;
   error?: any;
 }) {
   return partner ? (
     <>
       <div className="flex flex-col gap-2">
-        <h3 className="text-content-emphasis text-xs font-semibold">
+        <h3 className="text-content-emphasis text-sm font-semibold">
           Description
         </h3>
-        <p className="text-content-default text-xs">
+        <p className="text-content-default max-w-prose text-sm">
           {partner.description || (
             <span className="italic text-neutral-400">
               No description provided
@@ -33,14 +33,13 @@ export function PartnerAbout({
       </div>
 
       <div className="flex flex-col gap-2">
-        <h3 className="text-content-emphasis text-xs font-semibold">
+        <h3 className="text-content-emphasis text-sm font-semibold">
           Website and socials
         </h3>
         <OnlinePresenceSummary
           partner={partner}
           showLabels={false}
           className="gap-y-2"
-          emptyClassName="text-xs"
         />
       </div>
 

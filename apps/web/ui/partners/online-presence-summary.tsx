@@ -1,5 +1,5 @@
 import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { Fragment } from "react";
 import { OnlinePresenceCard } from "./online-presence-card";
@@ -10,7 +10,7 @@ export function OnlinePresenceSummary({
   className,
   emptyClassName,
 }: {
-  partner: EnrolledPartnerProps;
+  partner: EnrolledPartnerExtendedProps;
   showLabels?: boolean;
   className?: string;
   emptyClassName?: string;

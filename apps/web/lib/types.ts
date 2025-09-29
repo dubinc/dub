@@ -72,6 +72,7 @@ import {
 import {
   createPartnerSchema,
   EnrolledPartnerSchema,
+  EnrolledPartnerSchemaExtended,
   PartnerSchema,
   WebhookPartnerSchema,
 } from "./zod/schemas/partners";
@@ -447,6 +448,10 @@ export type DiscoverablePartnerProps = z.infer<
 
 export type PartnerConversionScore = z.infer<
   typeof PartnerConversionScoreSchema
+>;
+
+export type EnrolledPartnerExtendedProps = z.infer<
+  typeof EnrolledPartnerSchemaExtended
 >;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;

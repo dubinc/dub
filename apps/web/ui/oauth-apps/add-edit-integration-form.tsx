@@ -2,7 +2,7 @@
 
 import { addEditIntegration } from "@/lib/actions/add-edit-integration";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewOrExistingIntegration } from "@/lib/types";
 import {
@@ -14,8 +14,8 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { Reorder } from "framer-motion";
 import { Paperclip, Trash2 } from "lucide-react";
+import { Reorder } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";

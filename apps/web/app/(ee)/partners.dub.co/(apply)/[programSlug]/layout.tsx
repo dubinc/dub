@@ -10,11 +10,18 @@ import { notFound } from "next/navigation";
 import Script from "next/script";
 import { PropsWithChildren } from "react";
 
-export async function generateMetadata({
-  params: { programSlug, groupSlug },
-}: {
-  params: { programSlug: string; groupSlug?: string };
-}) {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ programSlug: string; groupSlug?: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    programSlug,
+    groupSlug
+  } = params;
+
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
   const program = await getProgram({
@@ -50,10 +57,17 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function ApplyLayout({
-  children,
-  params: { programSlug },
-}: PropsWithChildren<{ params: { programSlug: string } }>) {
+export default async function ApplyLayout(props: PropsWithChildren<{ params: Promise<{ programSlug: string }> }>) {
+  const params = await props.params;
+
+  const {
+    programSlug
+  } = params;
+
+  const {
+    children
+  } = props;
+
   const program = await getProgram({ slug: programSlug });
 
   if (!program) {

@@ -3,7 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { programLanderSimpleSchema } from "@/lib/zod/schemas/program-lander";
 import { X } from "@/ui/shared/icons";
 import { Button, Grid, LoadingSpinner, Sparkle3 } from "@dub/ui";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
