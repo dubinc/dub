@@ -1,9 +1,9 @@
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { ResourceSection } from "@/ui/partners/resources/resource-section";
-import { FileContent } from "@dub/ui";
-import { formatFileSize, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { motion } from "framer-motion";
+import { FileContent, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/ui";
+import { formatFileSize } from "@dub/utils";
+import { motion } from "motion/react";
 import { z } from "zod";
 
 export function ReferralsEmbedResources({

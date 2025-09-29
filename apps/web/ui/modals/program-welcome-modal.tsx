@@ -1,6 +1,11 @@
-import { Button, Modal, useRouterStuff, useScrollProgress } from "@dub/ui";
-import { STAGGER_CHILD_VARIANTS } from "@dub/utils";
-import { motion } from "framer-motion";
+import {
+  Button,
+  Modal,
+  STAGGER_CHILD_VARIANTS,
+  useRouterStuff,
+  useScrollProgress,
+} from "@dub/ui";
+import { motion } from "motion/react";
 import { useParams } from "next/navigation";
 import {
   Dispatch,

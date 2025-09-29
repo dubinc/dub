@@ -9,11 +9,17 @@ import { redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ProgramSidebar } from "./program-sidebar";
 
-export default async function ProgramDetailsPage({
-  params: { programSlug },
-}: {
-  params: { programSlug: string };
-}) {
+export default async function ProgramDetailsPage(
+  props: {
+    params: Promise<{ programSlug: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    programSlug
+  } = params;
+
   const program = await getProgram({
     slug: programSlug,
     groupSlug: DEFAULT_PARTNER_GROUP.slug,

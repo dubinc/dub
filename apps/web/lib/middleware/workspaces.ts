@@ -31,7 +31,7 @@ export default async function WorkspacesMiddleware(
 
     if (!redirectPath) {
       // Determine product from cookie (default to links)
-      const product = getDubProductFromCookie(defaultWorkspace);
+      const product = await getDubProductFromCookie(defaultWorkspace);
       redirectPath = `/${product}`;
     }
 

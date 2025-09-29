@@ -3,9 +3,9 @@
 import { CheckCircleFill } from "@/ui/shared/icons";
 import { AnimatedSizeContainer, ClientOnly, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import Cookies from "js-cookie";
 import { X } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { createContext, useCallback, useState } from "react";
 import { toast } from "sonner";

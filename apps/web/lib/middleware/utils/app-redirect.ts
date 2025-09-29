@@ -19,7 +19,7 @@ const PROGRAM_REDIRECTS = {
   "/program/link-settings": "/program/groups/default/links",
 };
 
-export const appRedirect = (path: string) => {
+export const appRedirect = async (path: string) => {
   if (APP_REDIRECTS[path]) {
     return APP_REDIRECTS[path];
   }
@@ -27,7 +27,7 @@ export const appRedirect = (path: string) => {
   // Redirect "/[slug]" to "/[slug]/[product]"
   const rootRegex = /^\/([^\/]+)$/;
   if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
-    const product = getDubProductFromCookie(path.split("/")[1]);
+    const product = await getDubProductFromCookie(path.split("/")[1]);
     return path.replace(rootRegex, `/$1/${product}`);
   }
 

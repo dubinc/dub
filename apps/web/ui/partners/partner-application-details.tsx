@@ -32,7 +32,7 @@ export function PartnerApplicationDetails({
   ];
 
   return (
-    <div className="grid grid-cols-1 gap-5 text-xs">
+    <div className="grid grid-cols-1 gap-5 text-sm">
       {fields.map((field) => (
         <div key={field.title}>
           <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
@@ -44,7 +44,7 @@ export function PartnerApplicationDetails({
                   target: "_blank",
                   rel: "noopener noreferrer nofollow",
                   className:
-                    "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
+                    "underline underline-offset-4 text-sm max-w-prose text-neutral-400 hover:text-neutral-700",
                 }}
               >
                 {field.value || (
