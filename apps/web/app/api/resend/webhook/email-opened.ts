@@ -4,34 +4,32 @@ const NOTIFICATION_EMAIL_SUBJECT_KEYWORDS = ["bounty", "message"];
 
 export async function emailOpened({
   email_id: emailId,
-  subject,
   tags,
+  subject,
 }: {
   email_id: string;
-  subject?: string;
   tags?: Record<string, string>;
+  subject?: string;
 }) {
-  // TODO: replace this with tags once it's confirmed working
+  console.log({ emailId, tags, subject });
+
+  // if none of the following conditions are met, ignore the email
+  // 1. the tags include "type" with the value "notification-email"
+  // 2. the subject contains one of the keywords (TODO remove this soon)
   if (
-    !subject ||
-    !NOTIFICATION_EMAIL_SUBJECT_KEYWORDS.some((keyword) =>
-      subject.includes(keyword),
+    !(
+      tags?.type === "notification-email" ||
+      (subject &&
+        NOTIFICATION_EMAIL_SUBJECT_KEYWORDS.some((keyword) =>
+          subject.includes(keyword),
+        ))
     )
   ) {
     console.log(
-      `Ignoring email.opened webhook for email ${emailId} because it's not a notification email. Subject: ${subject}`,
+      `Ignoring email.opened webhook for email ${emailId} because it's not a notification email...`,
     );
     return;
   }
-
-  console.log(`Found tags: ${JSON.stringify(tags, null, 2)}`);
-
-  // if (!tags || tags.type !== "notification-email") {
-  //   console.log(
-  //     `Ignoring email.opened webhook for email ${emailId} because it doesn't have a notification-email tag...`,
-  //   );
-  //   return;
-  // }
 
   const notificationEmail = await prisma.notificationEmail.findUnique({
     where: {
