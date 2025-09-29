@@ -93,12 +93,13 @@ export const DELETE = withWorkspace(
         id: workspace.id,
       },
       data: {
-        ssoEnforcedAt: null,
         ssoEmailDomain: null,
       },
     });
 
-    return NextResponse.json({ response: "removed SAML connection" });
+    return NextResponse.json({
+      response: "Successfully removed SAML connection",
+    });
   },
   {
     requiredPermissions: ["workspaces.write"],

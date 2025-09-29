@@ -45,7 +45,6 @@ model Project {
   webhookEnabled    Boolean   @default(false)
   ssoEnabled        Boolean   @default(false) // TODO: this is not used
   dotLinkClaimed    Boolean   @default(false)
-  ssoEnforcedAt     DateTime?
   ssoEmailDomain    String?   @unique
 
   createdAt        DateTime @default(now())

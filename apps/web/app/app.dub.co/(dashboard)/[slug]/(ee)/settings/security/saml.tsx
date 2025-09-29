@@ -8,32 +8,35 @@ import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
   IconMenu,
+  InfoTooltip,
   Popover,
-  Switch,
   TooltipContent,
-  useOptimisticUpdate,
 } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import { Lock, ShieldOff } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+
+type FormData = {
+  ssoEmailDomain: string;
+};
 
 export function SAML() {
-  const { plan, id, ssoEnforcedAt } = useWorkspace();
+  const { plan, id, ssoEmailDomain, mutate } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
   const [openPopover, setOpenPopover] = useState(false);
 
   const {
-    data: workspaceData,
-    isLoading,
-    update,
-  } = useOptimisticUpdate<{
-    ssoEnforcedAt: Date | null;
-  }>(`/api/workspaces/${id}`, {
-    loading: "Saving SAML enforcement setting...",
-    success: "SAML enforcement has been updated successfully.",
-    error: "Unable to update SAML enforcement. Please try again.",
+    register,
+    handleSubmit,
+    formState: { isDirty, isSubmitting },
+    reset,
+  } = useForm<FormData>({
+    defaultValues: {
+      ssoEmailDomain: ssoEmailDomain || "",
+    },
   });
 
   const currentProvider = useMemo(
@@ -74,37 +77,35 @@ export function SAML() {
     }
   }, [provider, configured, loading]);
 
-  const handleSSOEnforcementChange = useCallback(
-    async (enforceSAML: boolean) => {
-      if (!configured) {
-        return;
+  const onSubmit = async (data: FormData) => {
+    if (!configured) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/workspaces/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ssoEmailDomain: data.ssoEmailDomain.trim() || null,
+        }),
+      });
+
+      if (!response.ok) {
+        const { error } = await response.json();
+        throw new Error(error.message || "Failed to update email domain.");
       }
 
-      const updateWorkspace = async () => {
-        const response = await fetch(`/api/workspaces/${id}`, {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ enforceSAML }),
-        });
-
-        if (!response.ok) {
-          const { error } = await response.json();
-          throw new Error(error.message || "Failed to update workspace.");
-        }
-
-        return {
-          ssoEnforcedAt: enforceSAML ? new Date() : null,
-        };
-      };
-
-      await update(updateWorkspace, {
-        ssoEnforcedAt: enforceSAML ? new Date() : null,
-      });
-    },
-    [id, configured, update],
-  );
+      // Reset form to mark as not dirty
+      await mutate();
+      reset(data);
+    } catch (error) {
+      console.error("Error updating email domain:", error);
+      alert("Failed to update email domain. Please try again.");
+    }
+  };
 
   return (
     <>
@@ -197,18 +198,34 @@ export function SAML() {
 
         <div className="rounded-b-lg border-t border-neutral-200 bg-neutral-50 px-3 py-5 sm:px-10">
           {configured ? (
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-neutral-700">
-                Require SAML SSO authentication for all members of the
-                workspace.
-              </label>
-              <Switch
-                checked={!!(workspaceData?.ssoEnforcedAt || ssoEnforcedAt)}
-                loading={isLoading}
-                disabled={plan !== "enterprise"}
-                fn={handleSSOEnforcementChange}
-              />
-            </div>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+              <div className="flex items-center space-x-2">
+                <label
+                  htmlFor="ssoEmailDomain"
+                  className="text-sm font-medium text-neutral-700"
+                >
+                  Email Domain for SAML Enforcement
+                </label>
+                <InfoTooltip content="Users with email addresses from this domain will be required to authenticate via SAML SSO. Leave empty to allow all users to choose their authentication method." />
+              </div>
+              <div className="flex items-center space-x-3">
+                <input
+                  {...register("ssoEmailDomain")}
+                  id="ssoEmailDomain"
+                  type="text"
+                  placeholder="example.com"
+                  className="w-64 rounded-md border border-neutral-300 px-3 py-2 text-sm placeholder-neutral-400 focus:border-black focus:outline-none focus:ring-black"
+                  disabled={plan !== "enterprise"}
+                />
+                <Button
+                  type="submit"
+                  text="Save"
+                  loading={isSubmitting}
+                  disabled={plan !== "enterprise" || !isDirty}
+                  className="w-fit"
+                />
+              </div>
+            </form>
           ) : (
             <div className="flex items-center justify-between">
               <a

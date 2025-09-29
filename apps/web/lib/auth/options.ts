@@ -7,7 +7,7 @@ import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, APP_HOSTNAMES } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
@@ -17,10 +17,9 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-import { headers } from "next/headers";
 import { createId } from "../api/create-id";
+import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { qstash } from "../cron";
-import { isGenericEmail } from "../is-generic-email";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
 import {
@@ -223,7 +222,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         // SSO enforcement check
-        const ssoEnforced = await isSamlEnforcedForDomain(email);
+        const ssoEnforced = await isSamlEnforcedForEmailDomain(email);
 
         if (ssoEnforced) {
           throw new Error("require-saml-sso");
@@ -349,7 +348,7 @@ export const authOptions: NextAuthOptions = {
         account?.provider !== "saml-idp" &&
         account?.provider !== "credentials" // for credentials, we do the check in the CredentialsProvider
       ) {
-        const ssoEnforced = await isSamlEnforcedForDomain(user.email);
+        const ssoEnforced = await isSamlEnforcedForEmailDomain(user.email);
 
         if (ssoEnforced) {
           throw new Error("require-saml-sso");
@@ -609,34 +608,4 @@ export const authOptions: NextAuthOptions = {
       }
     },
   },
-};
-
-// Checks if SAML SSO is enforced for a given email domain
-export const isSamlEnforcedForDomain = async (email: string) => {
-  const hostname = headers().get("host");
-  const emailDomain = email.split("@")[1];
-
-  if (
-    !hostname ||
-    !emailDomain ||
-    !APP_HOSTNAMES.has(hostname) ||
-    isGenericEmail(email)
-  ) {
-    return false;
-  }
-
-  const workspace = await prisma.project.findUnique({
-    where: {
-      ssoEmailDomain: emailDomain,
-    },
-    select: {
-      ssoEnforcedAt: true,
-    },
-  });
-
-  if (workspace?.ssoEnforcedAt) {
-    return true;
-  }
-
-  return false;
 };

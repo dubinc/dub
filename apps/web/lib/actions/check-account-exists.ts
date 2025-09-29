@@ -3,9 +3,7 @@
 import { getIP } from "@/lib/api/utils/get-ip";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { APP_HOSTNAMES } from "@dub/utils";
-import { headers } from "next/headers";
-import { isGenericEmail } from "../is-generic-email";
+import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import z from "../zod";
 import { emailSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -30,13 +28,7 @@ export const checkAccountExistsAction = actionClient
       throw new Error("Too many requests. Please try again later.");
     }
 
-    // Check SAML enforcement
-    const hostname = headers().get("host");
-    const emailDomain = email.split("@")[1];
-    const shouldCheckSAML =
-      hostname && APP_HOSTNAMES.has(hostname) && !isGenericEmail(email);
-
-    const [user, workspace] = await Promise.all([
+    const [user, isSamlEnforced] = await Promise.all([
       prisma.user.findUnique({
         where: {
           email,
@@ -46,21 +38,12 @@ export const checkAccountExistsAction = actionClient
         },
       }),
 
-      shouldCheckSAML
-        ? prisma.project.findUnique({
-            where: {
-              ssoEmailDomain: emailDomain,
-            },
-            select: {
-              ssoEnforcedAt: true,
-            },
-          })
-        : Promise.resolve(null),
+      isSamlEnforcedForEmailDomain(email),
     ]);
 
     return {
       accountExists: !!user,
       hasPassword: !!user?.passwordHash,
-      requireSAML: !!workspace?.ssoEnforcedAt,
+      requireSAML: isSamlEnforced,
     };
   });

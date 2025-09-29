@@ -33,7 +33,7 @@ const updateWorkspaceSchema = createWorkspaceSchema
         z.null(),
       ])
       .optional(),
-    enforceSAML: z.boolean().optional(),
+    ssoEmailDomain: z.string().nullish(),
   })
   .partial();
 
@@ -85,20 +85,13 @@ export const PATCH = withWorkspace(
       conversionEnabled,
       allowedHostnames,
       publishableKey,
-      enforceSAML,
+      ssoEmailDomain,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
       throw new DubApiError({
         code: "forbidden",
         message: "Conversion tracking is not available on free or pro plans.",
-      });
-    }
-
-    if (enforceSAML && workspace.plan !== "enterprise") {
-      throw new DubApiError({
-        code: "forbidden",
-        message: "SAML SSO is only available on enterprise plans.",
       });
     }
 
@@ -113,38 +106,27 @@ export const PATCH = withWorkspace(
         )
       : null;
 
-    // Handle SAML SSO enforcement
-    let ssoEmailDomain: string | null | undefined = undefined;
-    let ssoEnforcedAt: Date | null | undefined = undefined;
-
-    if (enforceSAML !== undefined) {
-      if (enforceSAML) {
-        ssoEmailDomain = session.user.email.split("@")[1];
-        ssoEnforcedAt = new Date();
-
-        // Check if SAML is configured before enforcing
-        const { apiController } = await jackson();
-
-        const connections = await apiController.getConnections({
-          tenant: workspace.id,
-          product: "Dub",
+    if (ssoEmailDomain) {
+      if (workspace.plan !== "enterprise") {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "SAML SSO is only available on enterprise plans.",
         });
-
-        if (connections.length === 0) {
-          throw new DubApiError({
-            code: "forbidden",
-            message: "SAML SSO is not configured for this workspace.",
-          });
-        }
-      } else {
-        ssoEnforcedAt = null;
-        ssoEmailDomain = null;
       }
 
-      // Don't overwrite the SSO enforcement if it's already set
-      if (enforceSAML && workspace.ssoEnforcedAt) {
-        ssoEnforcedAt = undefined;
-        ssoEmailDomain = undefined;
+      // Check if SAML is configured before enforcing ssoEmailDomain
+      const { apiController } = await jackson();
+
+      const connections = await apiController.getConnections({
+        tenant: workspace.id,
+        product: "Dub",
+      });
+
+      if (connections.length === 0) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "SAML SSO is not configured for this workspace.",
+        });
       }
     }
 
@@ -162,7 +144,6 @@ export const PATCH = withWorkspace(
             allowedHostnames: validHostnames,
           }),
           ...(publishableKey !== undefined && { publishableKey }),
-          ...(enforceSAML !== undefined && { ssoEnforcedAt }),
           ...(ssoEmailDomain !== undefined && { ssoEmailDomain }),
         },
         include: {
