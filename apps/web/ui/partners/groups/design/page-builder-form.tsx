@@ -1,8 +1,13 @@
 "use client";
 
-import { v4 as uuid } from "uuid";
+import { updateGroupApplicationFormAction } from "@/lib/actions/partners/update-group-application-form";
+import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { GroupWithProgramProps, ProgramProps } from "@/lib/types";
+import {
+  GroupWithProgramProps,
+  ProgramApplicationFormData,
+  ProgramProps,
+} from "@/lib/types";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import {
   Brush,
@@ -15,22 +20,20 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "motion/react";
 import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { KeyedMutator } from "swr";
+import { v4 as uuid } from "uuid";
 import {
   PageBuilderContextProvider,
   usePageBuilderContext,
 } from "./page-builder-context-provider";
 import { PageBuilderSettingsForm } from "./page-builder-settings-form";
 import { ApplicationPreview } from "./previews/application-preview";
-import useGroup from "@/lib/swr/use-group";
-import { updateGroupApplicationFormAction } from "@/lib/actions/partners/update-group-application-form";
-import { ProgramApplicationFormData } from "@/lib/types";
 
 export type PageBuilderFormData = {
   applicationFormData: ProgramApplicationFormData;
@@ -43,12 +46,7 @@ export function usePageBuilderFormContext() {
 export function PageBuilderForm() {
   const { defaultProgramId } = useWorkspace();
 
-  const {
-    group,
-    mutateGroup,
-    loading,
-  } = useGroup<GroupWithProgramProps>(
-    {},
+  const { group, mutateGroup, loading } = useGroup<GroupWithProgramProps>(
     {
       query: { includeExpandedFields: true },
     },
@@ -91,7 +89,9 @@ const PREVIEW_TABS = [
   },
 ];
 
-const defaultApplicationFormData = (program: ProgramProps): ProgramApplicationFormData => {
+const defaultApplicationFormData = (
+  program: ProgramProps,
+): ProgramApplicationFormData => {
   return {
     fields: [
       {
@@ -149,7 +149,8 @@ function PageBuilderFormInner({
       logo: group.program?.logo ?? null,
       wordmark: group.program?.wordmark ?? null,
       brandColor: group.program?.brandColor ?? null,
-      applicationFormData: group.applicationFormData ?? defaultApplicationFormData(group.program),
+      applicationFormData:
+        group.applicationFormData ?? defaultApplicationFormData(group.program),
     },
   });
 
@@ -161,28 +162,31 @@ function PageBuilderFormInner({
     getValues,
   } = form;
 
-  const { executeAsync, isPending } = useAction(updateGroupApplicationFormAction, {
-    async onSuccess({ data }) {
-      await mutateGroup();
-      toast.success("Group updated successfully.");
+  const { executeAsync, isPending } = useAction(
+    updateGroupApplicationFormAction,
+    {
+      async onSuccess({ data }) {
+        await mutateGroup();
+        toast.success("Group updated successfully.");
 
-      const currentValues = getValues();
+        const currentValues = getValues();
 
-      if (data?.applicationFormData) {
-        // Reset to persisted (in case anything changed)
-        reset({
-          ...currentValues,
-          applicationFormData: data?.applicationFormData,
-        });
-      } else {
-        // Still reset form state to clear isSubmitSuccessful
-        reset(currentValues);
-      }
+        if (data?.applicationFormData) {
+          // Reset to persisted (in case anything changed)
+          reset({
+            ...currentValues,
+            applicationFormData: data?.applicationFormData,
+          });
+        } else {
+          // Still reset form state to clear isSubmitSuccessful
+          reset(currentValues);
+        }
+      },
+      onError({ error }) {
+        console.error(error);
+      },
     },
-    onError({ error }) {
-      console.error(error);
-    },
-  });
+  );
 
   // Unsaved changes warning
   useEffect(() => {
@@ -358,13 +362,13 @@ function Drafts({
     // Update form values to draft
     // setTimeout: https://github.com/orgs/react-hook-form/discussions/9913#discussioncomment-4936301
     setTimeout(() =>
-      (["logo", "wordmark", "brandColor", "applicationFormData"] as const).forEach(
-        (key) => {
-          setValue(key, draft[key], {
-            shouldDirty: true,
-          });
-        },
-      ),
+      (
+        ["logo", "wordmark", "brandColor", "applicationFormData"] as const
+      ).forEach((key) => {
+        setValue(key, draft[key], {
+          shouldDirty: true,
+        });
+      }),
     );
   }, []);
 

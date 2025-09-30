@@ -5,10 +5,11 @@ import { GroupProps } from "../types";
 import useWorkspace from "./use-workspace";
 
 export default function useGroup<T = GroupProps>(
-  { groupIdOrSlug: groupIdOrSlugProp }: { groupIdOrSlug?: string } = {},
   {
+    groupIdOrSlug: groupIdOrSlugProp,
     query,
   }: {
+    groupIdOrSlug?: string;
     query?: Record<string, any>;
   } = {},
   swrOpts?: SWRConfiguration,
