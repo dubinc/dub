@@ -218,97 +218,84 @@ function DiscountSheetContent({
                       height
                       transition={{ ease: "easeInOut", duration: 0.2 }}
                     >
-                      <div className="p-1">
-                        <div
-                          className={cn(
-                            "space-y-4 transition-opacity duration-200",
-                          )}
-                          aria-hidden={!isRecurring}
-                          {...{
-                            inert: !isRecurring,
-                          }}
-                        >
-                          <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
-                            {discountTypes.map(
-                              ({ label, description, recurring }) => {
-                                const isSelected = isRecurring === recurring;
+                      <div className="space-y-4 p-1 transition-opacity duration-200">
+                        <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+                          {discountTypes.map(
+                            ({ label, description, recurring }) => {
+                              const isSelected = isRecurring === recurring;
 
-                                return (
-                                  <label
-                                    key={label}
-                                    className={cn(
-                                      "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
-                                      "transition-all duration-150",
-                                      isSelected &&
-                                        "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
-                                    )}
-                                  >
-                                    <input
-                                      type="radio"
-                                      value={label}
-                                      className="hidden"
-                                      checked={isSelected}
-                                      onChange={(e) => {
-                                        if (e.target.checked) {
-                                          setIsRecurring(recurring);
-                                          setValue(
-                                            "maxDuration",
-                                            recurring
-                                              ? discount?.maxDuration ||
-                                                  Infinity
-                                              : 0,
-                                          );
-                                        }
-                                      }}
-                                    />
-                                    <div className="flex grow flex-col text-sm">
-                                      <span className="font-medium">
-                                        {label}
-                                      </span>
-                                      <span>{description}</span>
-                                    </div>
-                                    <CircleCheckFill
-                                      className={cn(
-                                        "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                                        isSelected && "scale-100 opacity-100",
-                                      )}
-                                    />
-                                  </label>
-                                );
-                              },
-                            )}
-                          </div>
-
-                          {isRecurring && (
-                            <div className="space-y-4">
-                              <div>
+                              return (
                                 <label
-                                  htmlFor="duration"
-                                  className="text-sm font-medium text-neutral-800"
+                                  key={label}
+                                  className={cn(
+                                    "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600 hover:bg-neutral-50",
+                                    "transition-all duration-150",
+                                    isSelected &&
+                                      "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
+                                  )}
                                 >
-                                  Duration
+                                  <input
+                                    type="radio"
+                                    value={label}
+                                    className="hidden"
+                                    checked={isSelected}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setIsRecurring(recurring);
+                                        setValue(
+                                          "maxDuration",
+                                          recurring
+                                            ? discount?.maxDuration || Infinity
+                                            : 0,
+                                        );
+                                      }
+                                    }}
+                                  />
+                                  <div className="flex grow flex-col text-sm">
+                                    <span className="font-medium">{label}</span>
+                                    <span>{description}</span>
+                                  </div>
+                                  <CircleCheckFill
+                                    className={cn(
+                                      "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                                      isSelected && "scale-100 opacity-100",
+                                    )}
+                                  />
                                 </label>
-                                <div className="relative mt-2 rounded-md shadow-sm">
-                                  <select
-                                    className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                                    {...register("maxDuration", {
-                                      valueAsNumber: true,
-                                    })}
-                                  >
-                                    {RECURRING_MAX_DURATIONS.filter(
-                                      (v) => v !== 0, // filter out one-time discounts (already covered by the one-time discount type)
-                                    ).map((v) => (
-                                      <option value={v} key={v}>
-                                        {v} {pluralize("month", Number(v))}
-                                      </option>
-                                    ))}
-                                    <option value={Infinity}>Lifetime</option>
-                                  </select>
-                                </div>
-                              </div>
-                            </div>
+                              );
+                            },
                           )}
                         </div>
+
+                        {isRecurring && (
+                          <div className="space-y-4">
+                            <div>
+                              <label
+                                htmlFor="duration"
+                                className="text-sm font-medium text-neutral-800"
+                              >
+                                Duration
+                              </label>
+                              <div className="relative mt-2 rounded-md shadow-sm">
+                                <select
+                                  className="block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                                  {...register("maxDuration", {
+                                    valueAsNumber: true,
+                                  })}
+                                >
+                                  {RECURRING_MAX_DURATIONS.filter(
+                                    (v) => v !== 0, // filter out one-time discounts (already covered by the one-time discount type)
+                                  ).map((v) => (
+                                    <option value={v} key={v}>
+                                      {v} {pluralize("month", Number(v))}
+                                    </option>
+                                  ))}
+                                  <option value={Infinity}>Lifetime</option>
+                                </select>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </AnimatedSizeContainer>
                   </div>
