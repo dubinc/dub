@@ -68,33 +68,36 @@ export function ProgramPartnersDirectoryPageClient() {
   const status =
     tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
 
-  const queryString = workspaceId
-    ? getQueryString(
-        {
-          workspaceId,
-          status,
-        },
-        {
-          include: ["page"],
-        },
-      )
-    : undefined;
-
   const { data: partnersCount, error: countError } = useSWR<{
     total: number;
     discover: number;
     invited: number;
     recruited: number;
-  }>(queryString && `/api/network/partners/count${queryString}`, fetcher);
+  }>(
+    workspaceId &&
+      `/api/network/partners/count?${new URLSearchParams({ workspaceId })}`,
+    fetcher,
+    { revalidateOnFocus: false, keepPreviousData: true },
+  );
 
   const {
     data: partners,
     error,
     mutate: mutatePartners,
+    isValidating,
   } = useSWR<DiscoverablePartnerProps[]>(
-    queryString && `/api/network/partners${queryString}`,
+    workspaceId &&
+      `/api/network/partners${getQueryString(
+        {
+          workspaceId,
+          status,
+        },
+        {
+          exclude: ["tab"],
+        },
+      )}`,
     fetcher,
-    { keepPreviousData: true },
+    { revalidateOnFocus: false, keepPreviousData: true },
   );
 
   const { executeAsync: starPartner } = useAction(starPartnerAction);
@@ -175,7 +178,12 @@ export function ProgramPartnersDirectoryPageClient() {
         </div>
       ) : !partners || partners?.length ? (
         <div>
-          <div className="@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 lg:gap-6">
+          <div
+            className={cn(
+              "@5xl/page:grid-cols-4 @3xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 transition-opacity lg:gap-6",
+              isValidating && "opacity-50",
+            )}
+          >
             {partners
               ? partners?.map((partner) => (
                   <PartnerCard

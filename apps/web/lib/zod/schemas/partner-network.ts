@@ -34,6 +34,7 @@ export const partnerNetworkPartnersStatusSchema = z.enum([
 export const getPartnerNetworkPartnersQuerySchema = z
   .object({
     status: partnerNetworkPartnersStatusSchema.default("discover"),
+    country: z.string().optional(),
   })
   .merge(
     getPaginationQuerySchema({

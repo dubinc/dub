@@ -14,7 +14,7 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { status, page, pageSize } =
+    const { status, page, pageSize, country } =
       getPartnerNetworkPartnersQuerySchema.parse(searchParams);
 
     const partners = (await prisma.$queryRaw`
@@ -63,6 +63,7 @@ export const GET = withWorkspace(
       ) salesChannels ON salesChannels.partnerId = p.id
       WHERE 
         p.discoverableAt IS NOT NULL
+        ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
         ${
           status === "discover"
             ? Prisma.sql`AND pe.id IS NULL`
@@ -71,8 +72,6 @@ export const GET = withWorkspace(
               : Prisma.sql`AND pe.status = 'approved' AND dp.invitedAt IS NOT NULL`
         }
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
-
-    console.log("!!!", partners);
 
     return NextResponse.json(
       z.array(PartnerNetworkPartnerSchema).parse(
