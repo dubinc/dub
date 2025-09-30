@@ -28,6 +28,7 @@ import {
   LinesY as LinesYStatic,
   MoneyBills2,
   Msgs,
+  PaperPlane,
   Receipt2,
   ShieldCheck,
   Sliders,
@@ -286,6 +287,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         name: "Engagement",
         items: [
+          {
+            name: "Campaigns",
+            icon: PaperPlane,
+            href: `/${slug}/program/campaigns`,
+            badge: "New",
+          },
           {
             name: "Bounties",
             icon: Trophy,
