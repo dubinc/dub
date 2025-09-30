@@ -3,7 +3,7 @@ import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partne
 import { useRouterStuff } from "@dub/ui";
 import { FlagWavy, Heart } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 export function usePartnerNetworkFilters({
   status,
@@ -67,63 +67,69 @@ export function usePartnerNetworkFilters({
     [countriesCount],
   );
 
-  const selectedIndustryInterests = useMemo(
-    () => searchParamsObj.industryInterests?.split(",")?.filter(Boolean) ?? [],
-    [searchParamsObj.industryInterests],
+  const multiFilters = useMemo(
+    () => ({
+      industryInterests:
+        searchParamsObj.industryInterests?.split(",")?.filter(Boolean) ?? [],
+    }),
+    [searchParamsObj],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, country } = searchParamsObj;
+    const { country } = searchParamsObj;
 
     return [
-      // Handle tagIds special case
-      ...(selectedIndustryInterests.length > 0
-        ? [{ key: "industryInterests", value: selectedIndustryInterests }]
-        : []),
+      ...Object.entries(multiFilters)
+        .map(([key, value]) => ({ key, value }))
+        .filter(({ value }) => value.length > 0),
+
       ...(country ? [{ key: "country", value: country }] : []),
     ];
-  }, [searchParamsObj, selectedIndustryInterests]);
+  }, [searchParamsObj, multiFilters]);
 
-  const onSelect = (key: string, value: any) =>
-    queryParams({
-      set:
-        key === "industryInterests"
+  const onSelect = useCallback(
+    (key: string, value: any) =>
+      queryParams({
+        set: Object.keys(multiFilters).includes(key)
           ? {
-              [key]: selectedIndustryInterests.concat(value).join(","),
+              [key]: multiFilters[key].concat(value).join(","),
             }
           : {
               [key]: value,
             },
-      del: "page",
-    });
-
-  const onRemove = (key: string, value: any) => {
-    if (
-      key === "industryInterests" &&
-      !(
-        selectedIndustryInterests.length === 1 &&
-        selectedIndustryInterests[0] === value
-      )
-    ) {
-      queryParams({
-        set: {
-          industryInterests: selectedIndustryInterests
-            .filter((id) => id !== value)
-            .join(","),
-        },
         del: "page",
-      });
-    } else {
-      queryParams({
-        del: [key, "page"],
-      });
-    }
-  };
+      }),
+    [queryParams, multiFilters],
+  );
 
-  const onRemoveAll = () =>
-    queryParams({
-      del: ["industryInterests", "country"],
-    });
+  const onRemove = useCallback(
+    (key: string, value: any) => {
+      if (
+        Object.keys(multiFilters).includes(key) &&
+        !(multiFilters[key].length === 1 && multiFilters[key][0] === value)
+      ) {
+        queryParams({
+          set: {
+            [key]: multiFilters[key].filter((id) => id !== value).join(","),
+          },
+          del: "page",
+        });
+      } else {
+        queryParams({
+          del: [key, "page"],
+        });
+      }
+    },
+    [queryParams, multiFilters],
+  );
+
+  const onRemoveAll = useCallback(
+    () =>
+      queryParams({
+        del: [...Object.keys(multiFilters), "country"],
+      }),
+    [queryParams],
+  );
 
   const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
 
