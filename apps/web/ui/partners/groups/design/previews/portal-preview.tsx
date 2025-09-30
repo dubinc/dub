@@ -1,8 +1,7 @@
 "use client";
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import useGroup from "@/lib/swr/use-group";
-import { ProgramWithLanderDataProps } from "@/lib/types";
+import { GroupWithProgramProps } from "@/lib/types";
 import {
   getPrettyUrl,
   OG_AVATAR_URL,
@@ -14,11 +13,8 @@ import { useWatch } from "react-hook-form";
 import { useBrandingFormContext } from "../branding-form";
 import { PreviewWindow } from "../preview-window";
 
-export function PortalPreview({
-  program,
-}: {
-  program: ProgramWithLanderDataProps;
-}) {
+export function PortalPreview({ group }: { group: GroupWithProgramProps }) {
+  const program = group.program;
   const id = useId();
   const { getValues } = useBrandingFormContext();
   const { brandColor, logo } = {
@@ -26,7 +22,6 @@ export function PortalPreview({
     ...getValues(),
   };
 
-  const { group } = useGroup({ groupIdOrSlug: "default" });
   const partnerLink = getPrettyUrl(
     constructPartnerLink({
       group,

@@ -1,14 +1,19 @@
 "use client";
 
-import { updateProgramAction } from "@/lib/actions/partners/update-program";
-import useProgram from "@/lib/swr/use-program";
+import { updateGroupApplicationFormAction } from "@/lib/actions/partners/update-group-application-form";
+import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramProps, ProgramWithLanderDataProps } from "@/lib/types";
-import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
+import {
+  GroupWithProgramProps,
+  ProgramApplicationFormData,
+  ProgramLanderData,
+  ProgramProps,
+} from "@/lib/types";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import {
   Brush,
   Button,
+  FeatherFill,
   MenuItem,
   Popover,
   ToggleGroup,
@@ -19,22 +24,25 @@ import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { KeyedMutator } from "swr";
-import { z } from "zod";
+import { v4 as uuid } from "uuid";
 import {
   BrandingContextProvider,
   useBrandingContext,
 } from "./branding-context-provider";
 import { BrandingSettingsForm } from "./branding-settings-form";
+import { ApplicationPreview } from "./previews/application-preview";
 import { EmbedPreview } from "./previews/embed-preview";
 import { LanderPreview } from "./previews/lander-preview";
 import { PortalPreview } from "./previews/portal-preview";
 
 export type BrandingFormData = {
-  landerData: z.infer<typeof programLanderSchema>;
+  applicationFormData: ProgramApplicationFormData;
+  landerData: ProgramLanderData;
 } & Pick<ProgramProps, "logo" | "wordmark" | "brandColor">;
 
 export function useBrandingFormContext() {
@@ -43,27 +51,43 @@ export function useBrandingFormContext() {
 
 export function BrandingForm() {
   const { defaultProgramId } = useWorkspace();
+
+  const { groupSlug } = useParams<{ groupSlug: string }>();
+
   const {
-    program,
-    mutate: mutateProgram,
-    loading,
-  } = useProgram<ProgramWithLanderDataProps>(
+    group,
+    mutateGroup,
+    loading: loadingGroup,
+  } = useGroup<GroupWithProgramProps>(
     {
-      query: { includeLanderData: true },
+      query: { includeExpandedFields: true },
     },
     {
       keepPreviousData: true,
     },
   );
 
+  const isDefaultGroup = groupSlug === "default";
+
+  const { group: defaultGroup, loading: loadingDefaultGroup } =
+    useGroup<GroupWithProgramProps>({
+      groupIdOrSlug: "default",
+      query: { includeExpandedFields: true },
+      shouldFetch: !isDefaultGroup,
+    });
+
   const [draft, setDraft] = useLocalStorage<BrandingFormData | null>(
-    `program-lander-${defaultProgramId}`,
+    `application-form-${defaultProgramId}`,
     null,
   );
 
-  if (loading) return <LayoutLoader />;
+  const loading = loadingGroup || (!isDefaultGroup && loadingDefaultGroup);
 
-  if (!program)
+  if (loading) {
+    return <LayoutLoader />;
+  }
+
+  if (!group)
     return (
       <div className="text-content-muted text-sm">Failed to load program</div>
     );
@@ -71,8 +95,9 @@ export function BrandingForm() {
   return (
     <BrandingContextProvider>
       <BrandingFormInner
-        program={program}
-        mutateProgram={mutateProgram}
+        group={group}
+        defaultGroup={defaultGroup}
+        mutateGroup={mutateGroup}
         draft={draft}
         setDraft={setDraft}
       />
@@ -87,6 +112,12 @@ const PREVIEW_TABS = [
     component: LanderPreview,
   },
   {
+    value: "application",
+    label: "Application page",
+    icon: FeatherFill,
+    component: ApplicationPreview,
+  },
+  {
     value: "portal",
     label: "Partner portal",
     component: PortalPreview,
@@ -98,14 +129,52 @@ const PREVIEW_TABS = [
   },
 ];
 
+const defaultApplicationFormData = (
+  program: ProgramProps,
+): ProgramApplicationFormData => {
+  return {
+    fields: [
+      {
+        id: uuid(),
+        type: "short-text",
+        label: "Website / Social media channel",
+        required: true,
+        data: {
+          placeholder: "https://example.com",
+        },
+      },
+      {
+        id: uuid(),
+        type: "long-text",
+        label: `How do you plan to promote ${program?.name ?? "us"}?`,
+        required: true,
+        data: {
+          placeholder: "",
+        },
+      },
+      {
+        id: uuid(),
+        type: "long-text",
+        label: "Any additional questions or comments?",
+        required: false,
+        data: {
+          placeholder: "",
+        },
+      },
+    ],
+  };
+};
+
 function BrandingFormInner({
-  program,
-  mutateProgram,
+  group,
+  defaultGroup,
+  mutateGroup,
   draft,
   setDraft,
 }: {
-  program: ProgramWithLanderDataProps;
-  mutateProgram: KeyedMutator<ProgramWithLanderDataProps>;
+  group: GroupWithProgramProps;
+  defaultGroup?: GroupWithProgramProps | null;
+  mutateGroup: KeyedMutator<GroupWithProgramProps>;
   draft: BrandingFormData | null;
   setDraft: (draft: BrandingFormData | null) => void;
 }) {
@@ -119,10 +188,15 @@ function BrandingFormInner({
 
   const form = useForm<BrandingFormData>({
     defaultValues: {
-      logo: program?.logo ?? null,
-      wordmark: program?.wordmark ?? null,
-      brandColor: program?.brandColor ?? null,
-      landerData: program?.landerData ?? { blocks: [] },
+      logo: group.program?.logo ?? null,
+      wordmark: group.program?.wordmark ?? null,
+      brandColor: group.program?.brandColor ?? null,
+      applicationFormData:
+        group.applicationFormData ??
+        defaultGroup?.applicationFormData ??
+        defaultApplicationFormData(group.program),
+      landerData: group.landerData ??
+        defaultGroup?.landerData ?? { blocks: [] },
     },
   });
 
@@ -134,28 +208,31 @@ function BrandingFormInner({
     getValues,
   } = form;
 
-  const { executeAsync, isPending } = useAction(updateProgramAction, {
-    async onSuccess({ data }) {
-      await mutateProgram();
-      toast.success("Program updated successfully.");
+  const { executeAsync, isPending } = useAction(
+    updateGroupApplicationFormAction,
+    {
+      async onSuccess({ data }) {
+        await mutateGroup();
+        toast.success("Group updated successfully.");
 
-      const currentValues = getValues();
+        const currentValues = getValues();
 
-      if (data?.program.landerData) {
-        // Reset to persisted (in case anything changed)
-        reset({
-          ...currentValues,
-          landerData: data?.program.landerData,
-        });
-      } else {
-        // Still reset form state to clear isSubmitSuccessful
-        reset(currentValues);
-      }
+        if (data?.applicationFormData) {
+          // Reset to persisted (in case anything changed)
+          reset({
+            ...currentValues,
+            applicationFormData: data?.applicationFormData,
+          });
+        } else {
+          // Still reset form state to clear isSubmitSuccessful
+          reset(currentValues);
+        }
+      },
+      onError({ error }) {
+        console.error(error);
+      },
     },
-    onError({ error }) {
-      console.error(error);
-    },
-  });
+  );
 
   // Unsaved changes warning
   useEffect(() => {
@@ -176,7 +253,7 @@ function BrandingFormInner({
   //   - there are no changes
   //   - the program lander is already published
   const disablePublishButton =
-    isGeneratingLander || (!isDirty && program.landerPublishedAt)
+    isGeneratingLander || (!isDirty && group.applicationFormPublishedAt)
       ? true
       : false;
 
@@ -185,12 +262,13 @@ function BrandingFormInner({
       onSubmit={handleSubmit(async (data) => {
         const result = await executeAsync({
           workspaceId: workspaceId!,
+          groupId: group.id,
           ...data,
         });
 
         if (!result?.data?.success) {
-          toast.error("Failed to update program.");
-          setError("root", { message: "Failed to update program." });
+          toast.error("Failed to update application form.");
+          setError("root", { message: "Failed to update application form." });
           return;
         }
       })}
@@ -256,7 +334,7 @@ function BrandingFormInner({
           </div>
           <div className="flex grow basis-0 items-center justify-end gap-4">
             <Drafts
-              enabled={!program.landerData}
+              enabled={!group.applicationFormData}
               draft={draft}
               setDraft={setDraft}
             />
@@ -298,7 +376,7 @@ function BrandingFormInner({
                 transition={{ duration: 0.1, ease: "easeInOut" }}
                 className="h-full"
               >
-                <previewTab.component program={program} />
+                <previewTab.component group={group} />
               </motion.div>
             </AnimatePresence>
           </div>
@@ -330,13 +408,13 @@ function Drafts({
     // Update form values to draft
     // setTimeout: https://github.com/orgs/react-hook-form/discussions/9913#discussioncomment-4936301
     setTimeout(() =>
-      (["logo", "wordmark", "brandColor", "landerData"] as const).forEach(
-        (key) => {
-          setValue(key, draft[key], {
-            shouldDirty: true,
-          });
-        },
-      ),
+      (
+        ["logo", "wordmark", "brandColor", "applicationFormData"] as const
+      ).forEach((key) => {
+        setValue(key, draft[key], {
+          shouldDirty: true,
+        });
+      }),
     );
   }, []);
 

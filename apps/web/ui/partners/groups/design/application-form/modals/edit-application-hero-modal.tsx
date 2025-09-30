@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
-import { PageBuilderFormData, usePageBuilderFormContext } from "../page-builder-form";
+import { BrandingFormData, useBrandingFormContext } from "../../branding-form";
 
 type EditApplicationHeroModalProps = {
   showEditApplicationHeroModal: boolean;
@@ -29,19 +29,21 @@ function EditApplicationHeroModal(props: EditApplicationHeroModalProps) {
   );
 }
 
-function EditApplicationHeroModalInner({ setShowEditApplicationHeroModal }: EditApplicationHeroModalProps) {
+function EditApplicationHeroModalInner({
+  setShowEditApplicationHeroModal,
+}: EditApplicationHeroModalProps) {
   const id = useId();
   const { isMobile } = useMediaQuery();
   const { program } = useProgram();
 
   const { getValues: getValuesParent, setValue: setValueParent } =
-    usePageBuilderFormContext();
+    useBrandingFormContext();
 
   const {
     register,
     handleSubmit,
     formState: { isDirty },
-  } = useForm<Pick<PageBuilderFormData, "applicationFormData">>({
+  } = useForm<Pick<BrandingFormData, "applicationFormData">>({
     values: {
       applicationFormData: getValuesParent("applicationFormData"),
     },
@@ -80,7 +82,11 @@ function EditApplicationHeroModalInner({ setShowEditApplicationHeroModal }: Edit
               <input
                 id={`${id}-label`}
                 type="text"
-                placeholder={program?.name ? `${program.name} Affiliate Program` : "Affiliate Program"}
+                placeholder={
+                  program?.name
+                    ? `${program.name} Affiliate Program`
+                    : "Affiliate Program"
+                }
                 autoFocus={!isMobile}
                 className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                 {...register("applicationFormData.label")}
@@ -152,7 +158,8 @@ function EditApplicationHeroModalInner({ setShowEditApplicationHeroModal }: Edit
 }
 
 export function useEditApplicationHeroModal() {
-  const [showEditApplicationHeroModal, setShowEditApplicationHeroModal] = useState(false);
+  const [showEditApplicationHeroModal, setShowEditApplicationHeroModal] =
+    useState(false);
 
   const EditApplicationHeroModalCallback = useCallback(() => {
     return (

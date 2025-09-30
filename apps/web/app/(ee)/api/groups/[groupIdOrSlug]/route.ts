@@ -63,6 +63,7 @@ export const PATCH = withWorkspace(
       utmTemplateId,
       linkStructure,
       applicationFormData,
+      landerData,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -94,19 +95,19 @@ export const PATCH = withWorkspace(
     // Find the UTM template
     const utmTemplate = utmTemplateId
       ? await prisma.utmTemplate.findUniqueOrThrow({
-        where: {
-          id: utmTemplateId,
-          projectId: workspace.id,
-        },
-      })
+          where: {
+            id: utmTemplateId,
+            projectId: workspace.id,
+          },
+        })
       : null;
 
     // Deduplicate additionalLinks by domain, keeping the first occurrence
     const deduplicatedAdditionalLinks = additionalLinks
       ? additionalLinks.filter(
-        (link, index, array) =>
-          array.findIndex((l) => l.domain === link.domain) === index,
-      )
+          (link, index, array) =>
+            array.findIndex((l) => l.domain === link.domain) === index,
+        )
       : additionalLinks;
 
     const additionalLinksInput = deduplicatedAdditionalLinks
@@ -128,6 +129,7 @@ export const PATCH = withWorkspace(
         utmTemplateId,
         linkStructure,
         applicationFormData,
+        landerData,
       },
       include: {
         clickReward: true,
@@ -183,12 +185,12 @@ export const PATCH = withWorkspace(
           }),
 
           group.utmTemplateId !== updatedGroup.utmTemplateId &&
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
-            body: {
-              groupId: group.id,
-            },
-          }),
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/sync-utm`,
+              body: {
+                groupId: group.id,
+              },
+            }),
         ]);
       })(),
     );
@@ -219,14 +221,14 @@ export const DELETE = withWorkspace(
         where: {
           ...(groupIdOrSlug.startsWith("grp_")
             ? {
-              id: groupIdOrSlug,
-            }
+                id: groupIdOrSlug,
+              }
             : {
-              programId_slug: {
-                programId,
-                slug: groupIdOrSlug,
-              },
-            }),
+                programId_slug: {
+                  programId,
+                  slug: groupIdOrSlug,
+                },
+              }),
         },
         include: {
           partners: true,

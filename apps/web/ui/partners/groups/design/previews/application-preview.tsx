@@ -2,7 +2,7 @@
 
 import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
 import { GroupWithProgramProps, ProgramApplicationFormData } from "@/lib/types";
-import { PreviewWindow } from "@/ui/partners/design/preview-window";
+import { PreviewWindow } from "@/ui/partners/groups/design/preview-window";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import {
   Button,
@@ -28,12 +28,15 @@ import {
   useState,
 } from "react";
 import { useWatch } from "react-hook-form";
-import { ProgramApplicationFormField } from "../fields";
-import { AddFieldModal, DESIGNER_FIELDS } from "../modals/add-field-modal";
-import { useEditApplicationHeroModal } from "../modals/edit-application-hero-modal";
-import { usePageBuilderFormContext } from "../page-builder-form";
-import RequiredFieldsPreview from "../required-fields-preview";
-import { ApplicationFormHero } from "./application-hero-preview";
+import { ApplicationFormHero } from "../application-form/application-hero-preview";
+import { ProgramApplicationFormField } from "../application-form/fields";
+import {
+  AddFieldModal,
+  DESIGNER_FIELDS,
+} from "../application-form/modals/add-field-modal";
+import { useEditApplicationHeroModal } from "../application-form/modals/edit-application-hero-modal";
+import RequiredFieldsPreview from "../application-form/required-fields-preview";
+import { useBrandingFormContext } from "../branding-form";
 
 export function ApplicationPreview({
   group,
@@ -49,7 +52,7 @@ export function ApplicationPreview({
 
   const program = group.program;
 
-  const { setValue, getValues } = usePageBuilderFormContext();
+  const { setValue, getValues } = useBrandingFormContext();
   const { applicationFormData, brandColor, logo, wordmark } = {
     ...useWatch(),
     ...getValues(),

@@ -9,17 +9,12 @@ import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
 import { ApplyHeader } from "./header";
 
-export default async function ApplyPage(
-  props: {
-    params: Promise<{ programSlug: string; groupSlug?: string }>;
-  }
-) {
+export default async function ApplyPage(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
   const params = await props.params;
 
-  const {
-    programSlug,
-    groupSlug
-  } = params;
+  const { programSlug, groupSlug } = params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
@@ -28,11 +23,18 @@ export default async function ApplyPage(
     groupSlug: partnerGroupSlug,
   });
 
-  if (!program || !program.landerData || !program.landerPublishedAt) {
+  if (
+    !program ||
+    !program.group ||
+    !program.group.landerData ||
+    !program.group.landerPublishedAt
+  ) {
     notFound();
   }
 
-  const landerData = programLanderSchema.parse(program.landerData);
+  const landerData = programLanderSchema.parse(
+    program.group.landerData || program.landerData || {},
+  );
 
   return (
     <div

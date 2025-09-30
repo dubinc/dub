@@ -18,6 +18,8 @@ model PartnerGroup {
   additionalLinks            Json?                @db.Json
   applicationFormData        Json?                @db.Json
   applicationFormPublishedAt DateTime?
+  landerData                 Json?                @db.Json
+  landerPublishedAt          DateTime?
   maxPartnerLinks            Int                  @default(0)
   utmTemplateId              String?              @unique
   createdAt                  DateTime             @default(now())

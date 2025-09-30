@@ -1,9 +1,9 @@
-import { PageBuilderForm } from "@/ui/partners/groups/design/page-builder-form";
+import { BrandingForm } from "@/ui/partners/groups/design/branding-form";
 
-export default function GroupPageBuilderPage() {
+export default function GroupBrandingPage() {
   return (
     <div className="mb-4 grid gap-10">
-      <PageBuilderForm />
+      <BrandingForm />
     </div>
   );
 }

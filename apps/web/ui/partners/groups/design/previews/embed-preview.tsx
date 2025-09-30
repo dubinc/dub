@@ -1,8 +1,7 @@
 "use client";
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
-import useGroup from "@/lib/swr/use-group";
-import { ProgramWithLanderDataProps } from "@/lib/types";
+import { GroupWithProgramProps } from "@/lib/types";
 import { getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
 import { CSSProperties, useId } from "react";
 import { useWatch } from "react-hook-form";
@@ -10,11 +9,9 @@ import { useBrandingFormContext } from "../branding-form";
 import { PreviewWindow } from "../preview-window";
 import { StudsPattern } from "../studs-pattern";
 
-export function EmbedPreview({
-  program,
-}: {
-  program: ProgramWithLanderDataProps;
-}) {
+export function EmbedPreview({ group }: { group: GroupWithProgramProps }) {
+  const program = group.program;
+
   const id = useId();
 
   const { getValues } = useBrandingFormContext();
@@ -23,7 +20,6 @@ export function EmbedPreview({
     ...getValues(),
   };
 
-  const { group } = useGroup({ groupIdOrSlug: "default" });
   const partnerLink = getPrettyUrl(
     constructPartnerLink({
       group,

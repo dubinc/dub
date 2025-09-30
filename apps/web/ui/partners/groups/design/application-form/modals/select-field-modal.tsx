@@ -1,7 +1,7 @@
 "use client";
 
 import { programApplicationFormSelectFieldSchema } from "@/lib/zod/schemas/program-application-form";
-import { EditList, EditListItem } from "@/ui/partners/design/edit-list";
+import { EditList, EditListItem } from "@/ui/partners/groups/design/edit-list";
 import {
   Button,
   Modal,

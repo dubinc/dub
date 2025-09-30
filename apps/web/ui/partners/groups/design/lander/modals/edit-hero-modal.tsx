@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
-import { BrandingFormData, useBrandingFormContext } from "../branding-form";
+import { BrandingFormData, useBrandingFormContext } from "../../branding-form";
 
 type EditHeroModalProps = {
   showEditHeroModal: boolean;

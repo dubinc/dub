@@ -13,7 +13,7 @@ import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
-import { EditList, ExpandableEditListItem } from "../edit-list";
+import { EditList, ExpandableEditListItem } from "../../edit-list";
 
 type FilesBlockData = z.infer<typeof programLanderFilesBlockSchema>["data"];
 

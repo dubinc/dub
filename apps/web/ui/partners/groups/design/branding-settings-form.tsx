@@ -7,10 +7,10 @@ import { cn } from "@dub/utils/src";
 import { flightRouterStateSchema } from "next/dist/server/app-render/types";
 import { ReactNode, useId } from "react";
 import { Controller } from "react-hook-form";
-import { usePageBuilderFormContext } from "./page-builder-form";
+import { useBrandingFormContext } from "./branding-form";
 
-export function PageBuilderSettingsForm() {
-  const { control } = usePageBuilderFormContext();
+export function BrandingSettingsForm() {
+  const { control } = useBrandingFormContext();
 
   return (
     <div>
@@ -18,11 +18,13 @@ export function PageBuilderSettingsForm() {
         <div className="flex flex-col gap-6">
           <FormRow
             label="Brand elements"
-            description={(
+            description={
               <>
-                Set the group style and content for <span className="font-semibold">all groups</span>. This will be how it appears to all your partners.
+                Set the group style and content for{" "}
+                <span className="font-semibold">all groups</span>. This will be
+                how it appears to all your partners.
               </>
-            )}
+            }
           />
 
           <Divider />
@@ -140,12 +142,15 @@ function FormRow({
           <label className="text-sm font-medium text-neutral-800" htmlFor={id}>
             {label}
 
-            {required && <span className="text-sm font-medium text-neutral-500"> (required)</span>}
+            {required && (
+              <span className="text-sm font-medium text-neutral-500">
+                {" "}
+                (required)
+              </span>
+            )}
           </label>
 
-          {tooltip && (
-            <InfoTooltip content={tooltip} />
-          )}
+          {tooltip && <InfoTooltip content={tooltip} />}
         </div>
 
         {description && (

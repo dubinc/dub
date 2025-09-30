@@ -28,7 +28,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
-import { ProgramApplicationFormField } from "./groups/design/fields";
+import { ProgramApplicationFormField } from "./groups/design/application-form/fields";
 
 interface ProgramApplicationSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;

@@ -1,17 +1,29 @@
 "use client";
 
+import { programApplicationFormFieldSchema } from "@/lib/zod/schemas/program-application-form";
 import { Icon, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { z } from "zod";
-import { usePageBuilderFormContext } from "../page-builder-form";
+import { useBrandingFormContext } from "../../branding-form";
+import {
+  LongTextFieldModal,
+  LongTextFieldThumbnail,
+} from "./long-text-field-modal";
+import {
+  MultipleChoiceFieldModal,
+  MultipleChoiceFieldThumbnail,
+} from "./multiple-choice-field-modal";
 import { SelectFieldModal, SelectFieldThumbnail } from "./select-field-modal";
-import { LongTextFieldModal, LongTextFieldThumbnail } from "./long-text-field-modal";
-import { programApplicationFormFieldSchema } from "@/lib/zod/schemas/program-application-form";
-import { ShortTextFieldModal, ShortTextFieldThumbnail } from "./short-text-field-modal";
-import { MultipleChoiceFieldModal, MultipleChoiceFieldThumbnail } from "./multiple-choice-field-modal";
-import { WebsiteAndSocialsFieldModal, WebsiteAndSocialsFieldIcon } from "./website-and-socials-field-modal";
+import {
+  ShortTextFieldModal,
+  ShortTextFieldThumbnail,
+} from "./short-text-field-modal";
+import {
+  WebsiteAndSocialsFieldIcon,
+  WebsiteAndSocialsFieldModal,
+} from "./website-and-socials-field-modal";
 
 type AddFieldModalProps = {
   showAddFieldModal: boolean;
@@ -31,50 +43,50 @@ export function AddFieldModal(props: AddFieldModalProps) {
 }
 
 export const DESIGNER_FIELDS: ({
-  id: z.infer<typeof programApplicationFormFieldSchema>["type"]
+  id: z.infer<typeof programApplicationFormFieldSchema>["type"];
   label: string;
   description: string;
   modal: React.ComponentType<any>;
 } & (
-    | { icon: Icon; thumbnail?: never }
-    | { thumbnail: ReactNode; icon?: never }
-  ))[] = [
-    {
-      id: "short-text",
-      label: "Short Text",
-      description: "Quick answers that don’t need much space",
-      modal: ShortTextFieldModal,
-      thumbnail: <ShortTextFieldThumbnail />,
-    },
-    {
-      id: "long-text",
-      label: "Long Text",
-      description: "Let applicants share details in their own words",
-      modal: LongTextFieldModal,
-      thumbnail: <LongTextFieldThumbnail />,
-    },
-    {
-      id: "select",
-      label: "Dropdown",
-      description: "For giving many options to choose from",
-      modal: SelectFieldModal,
-      thumbnail: <SelectFieldThumbnail />,
-    },
-    {
-      id: "multiple-choice",
-      label: "Multiple Choice",
-      description: "For a shorter range of answers to a question",
-      modal: MultipleChoiceFieldModal,
-      thumbnail: <MultipleChoiceFieldThumbnail />,
-    },
-    {
-      id: "website-and-socials",
-      label: "Website and socials",
-      description: "Collect website and social media links",
-      modal: WebsiteAndSocialsFieldModal,
-      icon: WebsiteAndSocialsFieldIcon,
-    },
-  ];
+  | { icon: Icon; thumbnail?: never }
+  | { thumbnail: ReactNode; icon?: never }
+))[] = [
+  {
+    id: "short-text",
+    label: "Short Text",
+    description: "Quick answers that don’t need much space",
+    modal: ShortTextFieldModal,
+    thumbnail: <ShortTextFieldThumbnail />,
+  },
+  {
+    id: "long-text",
+    label: "Long Text",
+    description: "Let applicants share details in their own words",
+    modal: LongTextFieldModal,
+    thumbnail: <LongTextFieldThumbnail />,
+  },
+  {
+    id: "select",
+    label: "Dropdown",
+    description: "For giving many options to choose from",
+    modal: SelectFieldModal,
+    thumbnail: <SelectFieldThumbnail />,
+  },
+  {
+    id: "multiple-choice",
+    label: "Multiple Choice",
+    description: "For a shorter range of answers to a question",
+    modal: MultipleChoiceFieldModal,
+    thumbnail: <MultipleChoiceFieldThumbnail />,
+  },
+  {
+    id: "website-and-socials",
+    label: "Website and socials",
+    description: "Collect website and social media links",
+    modal: WebsiteAndSocialsFieldModal,
+    icon: WebsiteAndSocialsFieldIcon,
+  },
+];
 
 function AddFieldModalInner({
   setShowAddFieldModal,
@@ -84,15 +96,19 @@ function AddFieldModalInner({
     null | z.infer<typeof programApplicationFormFieldSchema>["type"]
   >(null);
 
-  const { control, setValue } = usePageBuilderFormContext();
+  const { control, setValue } = useBrandingFormContext();
   const applicationFormData = useWatch({
     control,
     name: "applicationFormData",
   });
 
-  const hasWebsiteAndSocialsField = applicationFormData.fields.some((field) => field.type === "website-and-socials");
+  const hasWebsiteAndSocialsField = applicationFormData.fields.some(
+    (field) => field.type === "website-and-socials",
+  );
 
-  const fields = DESIGNER_FIELDS.filter((field) => field.id !== "website-and-socials" || !hasWebsiteAndSocialsField);
+  const fields = DESIGNER_FIELDS.filter(
+    (field) => field.id !== "website-and-socials" || !hasWebsiteAndSocialsField,
+  );
 
   return (
     <>

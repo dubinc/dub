@@ -2,9 +2,9 @@
 
 import useDiscounts from "@/lib/swr/use-discounts";
 import useRewards from "@/lib/swr/use-rewards";
-import { ProgramLanderData, ProgramWithLanderDataProps } from "@/lib/types";
-import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
-import { PreviewWindow } from "@/ui/partners/design/preview-window";
+import { GroupWithProgramProps, ProgramLanderData } from "@/lib/types";
+import { useEditHeroModal } from "@/ui/partners/groups/design/lander/modals/edit-hero-modal";
+import { PreviewWindow } from "@/ui/partners/groups/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import {
@@ -33,16 +33,16 @@ import {
 import { useWatch } from "react-hook-form";
 import { useBrandingContext } from "../branding-context-provider";
 import { useBrandingFormContext } from "../branding-form";
-import { LanderAIBanner } from "../lander-ai-banner";
-import { LanderPreviewControls } from "../lander-preview-controls";
-import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
+import { LanderAIBanner } from "../lander/lander-ai-banner";
+import { LanderPreviewControls } from "../lander/lander-preview-controls";
+import {
+  AddBlockModal,
+  DESIGNER_BLOCKS,
+} from "../lander/modals/add-block-modal";
 import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
 
-export function LanderPreview({
-  program,
-}: {
-  program: ProgramWithLanderDataProps;
-}) {
+export function LanderPreview({ group }: { group: GroupWithProgramProps }) {
+  const program = group.program;
   const { isMobile } = useMediaQuery();
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -126,7 +126,7 @@ export function LanderPreview({
       />
       <LanderAIBanner />
       <PreviewWindow
-        url={`${PARTNERS_DOMAIN}/${program?.slug}`}
+        url={`${PARTNERS_DOMAIN}/${program.slug}/${group.slug}`}
         scrollRef={scrollRef}
         controls={<LanderPreviewControls />}
         overlay={

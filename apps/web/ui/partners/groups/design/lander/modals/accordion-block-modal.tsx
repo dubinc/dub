@@ -13,7 +13,7 @@ import { Dispatch, SetStateAction, useId, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
-import { EditList, ExpandableEditListItem } from "../edit-list";
+import { EditList, ExpandableEditListItem } from "../../edit-list";
 
 type AccordionBlockData = z.infer<
   typeof programLanderAccordionBlockSchema
@@ -156,11 +156,11 @@ function AccordionBlockModalInner({
                     onRemove={
                       fields.length > 1
                         ? () =>
-                          setValue(
-                            "items",
-                            fields.filter(({ id }) => id !== field.id),
-                            { shouldDirty: true },
-                          )
+                            setValue(
+                              "items",
+                              fields.filter(({ id }) => id !== field.id),
+                              { shouldDirty: true },
+                            )
                         : undefined
                     }
                   >
@@ -181,7 +181,7 @@ function AccordionBlockModalInner({
                             className={cn(
                               "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                               fieldErrors?.title &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                                "border-red-600 focus:border-red-500 focus:ring-red-600",
                             )}
                             {...register(`items.${index}.title`, {
                               required: "Title is required",
@@ -207,7 +207,7 @@ function AccordionBlockModalInner({
                             className={cn(
                               "block max-h-32 min-h-16 w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                               fieldErrors?.content &&
-                              "border-red-600 focus:border-red-500 focus:ring-red-600",
+                                "border-red-600 focus:border-red-500 focus:ring-red-600",
                             )}
                             {...register(`items.${index}.content`, {
                               required: "Content is required",
