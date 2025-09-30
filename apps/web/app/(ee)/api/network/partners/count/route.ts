@@ -8,7 +8,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { status, groupBy, country } =
+    const { status, groupBy, country, starred, industryInterests } =
       getPartnerNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const commonWhere = {
@@ -21,7 +21,12 @@ export const GET = withWorkspace(
     const statusWheres = {
       discover: {
         programs: { none: { programId } },
-        discoveredPartners: { none: { programId, ignoredAt: { not: null } } },
+        discoveredPartners: {
+          none: { programId, ignoredAt: { not: null } },
+          ...(starred === true && {
+            some: { programId, starredAt: { not: null } },
+          }),
+        },
       },
       invited: {
         programs: { some: { programId, status: "invited" } },

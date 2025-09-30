@@ -1,3 +1,4 @@
+import { IndustryInterest } from "@dub/prisma/client";
 import { z } from "zod";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
@@ -36,6 +37,7 @@ export const getPartnerNetworkPartnersQuerySchema = z
     status: partnerNetworkPartnersStatusSchema.default("discover"),
     country: z.string().optional(),
     starred: booleanQuerySchema.nullish(),
+    industryInterests: z.array(z.nativeEnum(IndustryInterest)).optional(),
   })
   .merge(
     getPaginationQuerySchema({

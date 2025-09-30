@@ -121,6 +121,7 @@ export function ProgramPartnersDirectoryPageClient() {
               onClick={() => {
                 queryParams({
                   set: { tab: tab.id },
+                  del: ["page", "starred"],
                 });
               }}
             >
@@ -148,20 +149,22 @@ export function ProgramPartnersDirectoryPageClient() {
             onSelect={onSelect}
             onRemove={onRemove}
           />
-          <label className="flex items-center gap-2">
-            <Switch
-              checked={searchParams.get("starred") == "true"}
-              fn={(checked) => {
-                queryParams({
-                  set: checked ? { starred: "true" } : undefined,
-                  del: ["page", ...(!checked ? ["starred"] : [])],
-                });
-              }}
-            />
-            <span className="text-content-emphasis text-sm font-medium">
-              Starred
-            </span>
-          </label>
+          {status === "discover" && (
+            <label className="flex items-center gap-2">
+              <Switch
+                checked={searchParams.get("starred") == "true"}
+                fn={(checked) => {
+                  queryParams({
+                    set: checked ? { starred: "true" } : undefined,
+                    del: ["page", ...(!checked ? ["starred"] : [])],
+                  });
+                }}
+              />
+              <span className="text-content-emphasis text-sm font-medium">
+                Starred
+              </span>
+            </label>
+          )}
         </div>
         <AnimatedSizeContainer height>
           <div>

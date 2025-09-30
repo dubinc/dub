@@ -1,6 +1,7 @@
+import { industryInterests } from "@/lib/partners/partner-profile";
 import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partners-count";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy } from "@dub/ui/icons";
+import { FlagWavy, Heart } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
 
@@ -27,30 +28,20 @@ export function usePartnerNetworkFilters({
 
   const filters = useMemo(
     () => [
-      // {
-      //   key: "status",
-      //   icon: CircleDotted,
-      //   label: "Status",
-      //   options:
-      //     statusCount
-      //       ?.filter(({ status }) => !["pending", "rejected"].includes(status))
-      //       ?.map(({ status, _count }) => {
-      //         const Icon = PartnerStatusBadges[status].icon;
-      //         return {
-      //           value: status,
-      //           label: PartnerStatusBadges[status].label,
-      //           icon: (
-      //             <Icon
-      //               className={cn(
-      //                 PartnerStatusBadges[status].className,
-      //                 "size-4 bg-transparent",
-      //               )}
-      //             />
-      //           ),
-      //           right: nFormatter(_count || 0, { full: true }),
-      //         };
-      //       }) ?? [],
-      // },
+      {
+        key: "industryInterests",
+        icon: Heart,
+        label: "Industry interest",
+        multiple: true,
+        options:
+          industryInterests?.map(({ id, icon: Icon, label }) => {
+            return {
+              value: id,
+              label,
+              icon: <Icon className="size-4" />,
+            };
+          }) ?? [],
+      },
       {
         key: "country",
         icon: FlagWavy,
@@ -76,20 +67,33 @@ export function usePartnerNetworkFilters({
     [countriesCount],
   );
 
+  const selectedIndustryInterests = useMemo(
+    () => searchParamsObj.industryInterests?.split(",")?.filter(Boolean) ?? [],
+    [searchParamsObj.industryInterests],
+  );
+
   const activeFilters = useMemo(() => {
     const { status, country } = searchParamsObj;
 
     return [
-      ...(status ? [{ key: "status", value: status }] : []),
+      // Handle tagIds special case
+      ...(selectedIndustryInterests.length > 0
+        ? [{ key: "industryInterests", value: selectedIndustryInterests }]
+        : []),
       ...(country ? [{ key: "country", value: country }] : []),
     ];
-  }, [searchParamsObj]);
+  }, [searchParamsObj, selectedIndustryInterests]);
 
   const onSelect = (key: string, value: any) =>
     queryParams({
-      set: {
-        [key]: value,
-      },
+      set:
+        key === "industryInterests"
+          ? {
+              [key]: selectedIndustryInterests.concat(value).join(","),
+            }
+          : {
+              [key]: value,
+            },
       del: "page",
     });
 
@@ -100,7 +104,7 @@ export function usePartnerNetworkFilters({
 
   const onRemoveAll = () =>
     queryParams({
-      del: ["status", "country"],
+      del: ["industryInterests", "country"],
     });
 
   const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
