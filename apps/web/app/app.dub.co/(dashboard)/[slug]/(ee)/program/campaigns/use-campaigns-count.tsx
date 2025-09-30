@@ -5,34 +5,30 @@ import { fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { z } from "zod";
 
+interface UseCampaignsCountProps
+  extends z.infer<typeof getCampaignsCountQuerySchema> {
+  exclude?: string[];
+}
+
 export default function useCampaignsCount<T>({
-  ignoreParams,
-  enabled,
+  exclude,
   ...params
-}: z.infer<typeof getCampaignsCountQuerySchema> & {
-  programId?: string;
-  ignoreParams?: boolean;
-  enabled?: boolean;
-} = {}) {
+}: UseCampaignsCountProps = {}) {
   const { getQueryString } = useRouterStuff();
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-  const queryString = ignoreParams
-    ? // @ts-ignore
-      `?${new URLSearchParams({
-        ...(params.groupBy && { groupBy: params.groupBy }),
-        ...(params.status && { status: params.status }),
-        workspaceId,
-      }).toString()}`
-    : getQueryString({
-        ...params,
-        workspaceId,
-      });
+  const queryString = getQueryString(
+    {
+      ...params,
+      workspaceId,
+    },
+    {
+      exclude: exclude || [],
+    },
+  );
 
   const { data: campaignsCount, error } = useSWR(
-    enabled !== false && defaultProgramId
-      ? `/api/campaigns/count${queryString}`
-      : null,
+    defaultProgramId ? `/api/campaigns/count${queryString}` : null,
     fetcher,
     {
       keepPreviousData: true,
@@ -41,7 +37,7 @@ export default function useCampaignsCount<T>({
 
   return {
     campaignsCount: campaignsCount as T,
+    loading: !error && campaignsCount === undefined,
     error,
-    loading: enabled !== false && !error && campaignsCount === undefined,
   };
 }
