@@ -63,12 +63,14 @@ export const getCommissionsQuerySchema = z
     partnerId: z
       .string()
       .optional()
-      .describe("Filter the list of commissions by the associated partner."),
+      .describe(
+        "Filter the list of commissions by the associated partner. When specified, takes precedence over `tenantId`.",
+      ),
     tenantId: z
       .string()
       .optional()
       .describe(
-        "Filter the list of commissions by the associated partner tenantId.",
+        "Filter the list of commissions by the associated partner's `tenantId` (their unique ID within your database).",
       ),
     groupId: z
       .string()
