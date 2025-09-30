@@ -1,13 +1,22 @@
-export const PRICING_PLANS = [
+export type PricingPlan = {
+  badge: string;
+  title: string;
+  plan: string;
+  planFeatures: string[];
+  withButton?: boolean;
+};
+
+export const PRICING_PLANS: PricingPlan[] = [
   {
-    badge: "Free Trial",
+    badge: "7-Day Trial",
     title: "Get Started",
-    plan: "Free",
+    plan: "$0.99/ 7 days",
     planFeatures: [
-      "First 10 days free",
-      "Up to 30 QR scans",
-      "Full functionality",
+      "Unlimited QR codes",
+      "Advanced analytics",
+      "Full customization",
     ],
+    withButton: true,
   },
   {
     badge: "Most Flexible",

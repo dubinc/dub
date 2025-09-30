@@ -1,4 +1,4 @@
-export const TrialDays = 10;
+export const TrialDays = 7;
 
 export const TrialClicks = 30;
 export const TrialClicksForTest = 10;

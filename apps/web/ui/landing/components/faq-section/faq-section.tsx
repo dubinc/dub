@@ -15,7 +15,7 @@ import { FC, useEffect, useRef, useState } from "react";
 
 type FaqItems = {
   title: string;
-  content: string;
+  content: string | string[];
 };
 
 interface IFaqSectionProps {
@@ -93,9 +93,15 @@ export const FAQSection: FC<IFaqSectionProps> = ({
                 contentRefs.current[idx] = el;
               }}
             >
-              <BlockMarkdown className="py-2 text-left text-base text-neutral-300">
-                {item.content}
-              </BlockMarkdown>
+              {Array.isArray(item.content) ? item.content.map((content) => (
+                <BlockMarkdown key={content} className="py-2 text-left text-base text-neutral-300">
+                  {content}
+                </BlockMarkdown>
+              )) : (
+                <BlockMarkdown className="py-2 text-left text-base text-neutral-300">
+                  {item.content}
+                </BlockMarkdown>
+              )}
             </AccordionContent>
           </AccordionItem>
         ))}
