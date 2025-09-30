@@ -1,5 +1,5 @@
 import { resend } from "./resend";
-import { VARIANT_TO_FROM_MAP } from "./resend/constants";
+import { VARIANT_TO_FROM_MAP, RESEND_REPLY_TO } from "./resend/constants";
 import { ResendEmailOptions } from "./resend/types";
 
 // Send email using Resend (Recommended for production)
@@ -16,7 +16,7 @@ export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
     from,
     variant = "primary",
     bcc,
-    replyTo,
+    replyTo = RESEND_REPLY_TO,
     subject,
     text,
     react,
@@ -27,7 +27,7 @@ export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
     to: email,
     from: from || VARIANT_TO_FROM_MAP[variant],
     bcc: bcc,
-    replyTo: replyTo || "support@dub.co",
+    replyTo,
     subject,
     text,
     react,
