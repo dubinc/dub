@@ -177,11 +177,6 @@ function ProgramEmailForm() {
                 )}
               />
             </label>
-
-            <label className="contents">
-              <span className={labelClassName}>Delivery</span>
-              <div />
-            </label>
           </div>
 
           <div className="mt-6">
@@ -200,8 +195,9 @@ function ProgramEmailForm() {
                         workspaceId: workspaceId!,
                       });
 
-                      if (!result?.data)
+                      if (!result?.data) {
                         throw new Error("Failed to get signed upload URL");
+                      }
 
                       const { signedUrl, destinationUrl } = result.data;
 
@@ -214,8 +210,9 @@ function ProgramEmailForm() {
                         },
                       });
 
-                      if (!uploadResponse.ok)
+                      if (!uploadResponse.ok) {
                         throw new Error("Failed to upload to signed URL");
+                      }
 
                       return destinationUrl;
                     } catch (e) {
