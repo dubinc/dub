@@ -3,7 +3,20 @@ import { z } from "zod";
 import { GroupSchema } from "./groups";
 import { workflowConditionSchema } from "./workflows";
 
-export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30];
+export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30] as const;
+
+export const EMAIL_TEMPLATE_VARIABLES = {
+  partnerName: "PartnerName",
+  partnerEmail: "PartnerEmail",
+} as const;
+
+export const EMAIL_TEMPLATE_VARIABLE_KEYS = Object.keys(
+  EMAIL_TEMPLATE_VARIABLES,
+);
+
+export const EMAIL_TEMPLATE_VARIABLE_LABELS = Object.values(
+  EMAIL_TEMPLATE_VARIABLES,
+);
 
 export const CampaignSchema = z.object({
   id: z.string(),

@@ -1,3 +1,5 @@
+import { EMAIL_TEMPLATE_VARIABLE_KEYS } from "@/lib/zod/schemas/campaigns";
+
 /**
  * Renders an email template by replacing variable placeholders with actual values.
  *
@@ -17,8 +19,6 @@
  * // Result: "Hello John, welcome to the program!"
  * ```
  */
-
-const EMAIL_TEMPLATE_VARIABLE_KEYS = ["partnerName", "partnerEmail"] as const;
 
 export function renderEmailTemplate({
   template,

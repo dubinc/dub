@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   campaignTypeSchema,
   createCampaignSchema,
+  EMAIL_TEMPLATE_VARIABLE_LABELS,
 } from "@/lib/zod/schemas/campaigns";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -188,7 +189,7 @@ function ProgramEmailForm() {
                   editorClassName="-m-2 min-h-[200px] p-2"
                   initialValue={field.value}
                   onChange={field.onChange}
-                  variables={["PartnerName", "PartnerEmail"]}
+                  variables={EMAIL_TEMPLATE_VARIABLE_LABELS}
                   uploadImage={async (file) => {
                     try {
                       const result = await executeImageUpload({
