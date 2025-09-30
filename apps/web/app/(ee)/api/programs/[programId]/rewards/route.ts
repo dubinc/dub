@@ -5,6 +5,7 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+// TODO: Remove once we migrate fully to partner groups
 // GET /api/programs/[programId]/rewards - get all rewards for a program
 export const GET = withWorkspace(async ({ workspace }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
@@ -14,9 +15,6 @@ export const GET = withWorkspace(async ({ workspace }) => {
       programId,
     },
     orderBy: [
-      {
-        default: "desc",
-      },
       {
         event: "desc",
       },

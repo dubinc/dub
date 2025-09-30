@@ -2,7 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getFolderOrThrow } from "@/lib/folder/get-folder-or-throw";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
 import { ProgramLanderData } from "@/lib/types";
 import {
@@ -42,16 +42,13 @@ export const updateProgramAction = authActionClient
       landerData: landerDataInput,
       domain,
       url,
-      linkStructure,
-      urlValidationMode,
-      maxPartnerLinks,
       supportEmail,
       helpUrl,
       termsUrl,
       holdingPeriodDays,
       minPayoutAmount,
       cookieLength,
-      defaultFolderId,
+      messagingEnabledAt,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -59,14 +56,6 @@ export const updateProgramAction = authActionClient
       workspaceId: workspace.id,
       programId,
     });
-
-    if (defaultFolderId) {
-      await getFolderOrThrow({
-        workspaceId: workspace.id,
-        userId: ctx.user.id,
-        folderId: defaultFolderId,
-      });
-    }
 
     const [logoUrl, wordmarkUrl] = await Promise.all([
       logo && !isStored(logo)
@@ -94,25 +83,24 @@ export const updateProgramAction = authActionClient
         logo: logoUrl ?? undefined,
         wordmark: wordmarkUrl ?? undefined,
         brandColor,
-        landerData: landerData === null ? Prisma.JsonNull : landerData,
+        landerData: landerData === null ? Prisma.DbNull : landerData,
         landerPublishedAt: landerData ? new Date() : undefined,
         domain,
         url,
-        linkStructure,
-        urlValidationMode,
-        maxPartnerLinks,
         supportEmail,
         helpUrl,
         termsUrl,
         cookieLength,
         holdingPeriodDays,
         minPayoutAmount,
-        defaultFolderId,
+        ...(messagingEnabledAt !== undefined &&
+          (getPlanCapabilities(workspace.plan).canMessagePartners ||
+            messagingEnabledAt === null) && { messagingEnabledAt }),
       },
     });
 
     waitUntil(
-      Promise.all([
+      Promise.allSettled([
         // Delete old logo/wordmark if they were updated
         ...(logoUrl && program.logo
           ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
@@ -137,7 +125,6 @@ export const updateProgramAction = authActionClient
           ? [
               revalidatePath(`/partners.dub.co/${program.slug}`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply`),
-              revalidatePath(`/partners.dub.co/${program.slug}/apply/form`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply/success`),
             ]
           : []),

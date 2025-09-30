@@ -1,12 +1,15 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { trackSingularLeadEvent } from "@/lib/integrations/singular/track-lead";
 import { trackSingularSaleEvent } from "@/lib/integrations/singular/track-sale";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
+import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const singularToDubEvent = {
+  activated: "lead",
   sng_complete_registration: "lead",
   sng_subscribe: "sale",
   sng_ecommerce_purchase: "sale",
@@ -25,13 +28,16 @@ const authSchema = z.object({
   dub_workspace_id: z
     .string()
     .min(1, "dub_workspace_id is required")
-    .describe(" Unique to identify the advertiser."),
+    .describe(
+      "The Singular advertiser's workspace ID on Dub (see https://d.to/id).",
+    )
+    .transform((v) => normalizeWorkspaceId(v)),
 });
 
 const singularWebhookToken = process.env.SINGULAR_WEBHOOK_TOKEN;
 
 // GET /api/singular/webhook – listen to Postback events from Singular
-export const GET = async (req: Request) => {
+export const GET = withAxiom(async (req: AxiomRequest) => {
   try {
     if (!singularWebhookToken) {
       throw new DubApiError({
@@ -109,8 +115,8 @@ export const GET = async (req: Request) => {
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
-};
+});
 
-export const HEAD = async () => {
+export const HEAD = () => {
   return new Response("OK");
 };

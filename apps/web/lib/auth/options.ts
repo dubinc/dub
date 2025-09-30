@@ -7,6 +7,7 @@ import { sendEmail } from "@dub/email";
 import LoginLink from "@dub/email/templates/login-link";
 import { prisma } from "@dub/prisma";
 import { PrismaClient } from "@dub/prisma/client";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { waitUntil } from "@vercel/functions";
 import { User, type NextAuthOptions } from "next-auth";
@@ -16,9 +17,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
-
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { createId } from "../api/create-id";
+import { isSamlEnforcedForEmailDomain } from "../api/workspaces/is-saml-enforced-for-email-domain";
 import { qstash } from "../cron";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions = {
           return;
         } else {
           sendEmail({
-            email: identifier,
+            to: identifier,
             subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
             react: LoginLink({ url, email: identifier }),
           });
@@ -221,6 +221,13 @@ export const authOptions: NextAuthOptions = {
           throw new Error("too-many-login-attempts");
         }
 
+        // SSO enforcement check
+        const ssoEnforced = await isSamlEnforcedForEmailDomain(email);
+
+        if (ssoEnforced) {
+          throw new Error("require-saml-sso");
+        }
+
         const user = await prisma.user.findUnique({
           where: { email },
           select: {
@@ -335,6 +342,19 @@ export const authOptions: NextAuthOptions = {
         return false;
       }
 
+      // If the user is not using SAML, we need to check if SAML is enforced for the email domain
+      if (
+        account?.provider !== "saml" &&
+        account?.provider !== "saml-idp" &&
+        account?.provider !== "credentials" // for credentials, we do the check in the CredentialsProvider
+      ) {
+        const ssoEnforced = await isSamlEnforcedForEmailDomain(user.email);
+
+        if (ssoEnforced) {
+          throw new Error("require-saml-sso");
+        }
+      }
+
       if (account?.provider === "google" || account?.provider === "github") {
         const userExists = await prisma.user.findUnique({
           where: { email: user.email },
@@ -388,19 +408,38 @@ export const authOptions: NextAuthOptions = {
         if (!samlProfile?.requested?.tenant) {
           return false;
         }
+
         const workspace = await prisma.project.findUnique({
           where: {
             id: samlProfile.requested.tenant,
           },
+          select: {
+            id: true,
+            ssoEmailDomain: true,
+          },
         });
+
         if (workspace) {
+          const { ssoEmailDomain } = workspace;
+
+          if (ssoEmailDomain) {
+            const emailDomain = user.email.split("@")[1];
+
+            if (
+              emailDomain.toLocaleLowerCase() !==
+              ssoEmailDomain.toLocaleLowerCase()
+            ) {
+              return false;
+            }
+          }
+
           await Promise.allSettled([
             // add user to workspace
             prisma.projectUsers.upsert({
               where: {
                 userId_projectId: {
-                  projectId: workspace.id,
                   userId: user.id,
+                  projectId: workspace.id,
                 },
               },
               update: {},
@@ -562,7 +601,9 @@ export const authOptions: NextAuthOptions = {
       }
 
       // Complete any outstanding program applications
-      waitUntil(completeProgramApplications(message.user.id));
+      if (message.user.email) {
+        waitUntil(completeProgramApplications(message.user.email));
+      }
     },
   },
 };

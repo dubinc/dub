@@ -16,6 +16,8 @@ export const SCOPES = [
   "workspaces.write",
   "webhooks.read",
   "webhooks.write",
+  "groups.read",
+  "groups.write",
   "apis.all", // All API scopes
   "apis.read", // All read scopes
 ] as const;
@@ -87,6 +89,20 @@ export const RESOURCE_SCOPES: {
     resource: "domains",
   },
   {
+    scope: "groups.read",
+    roles: ["owner", "member"],
+    permissions: ["groups.read"],
+    type: "read",
+    resource: "groups",
+  },
+  {
+    scope: "groups.write",
+    roles: ["owner", "member"],
+    permissions: ["groups.write", "groups.read"],
+    type: "write",
+    resource: "groups",
+  },
+  {
     scope: "workspaces.read",
     roles: ["owner", "member"],
     permissions: ["workspaces.read"],
@@ -131,6 +147,7 @@ export const RESOURCE_SCOPES: {
       "domains.read",
       "workspaces.read",
       "analytics.read",
+      "groups.read",
     ],
   },
   {
@@ -148,6 +165,8 @@ export const RESOURCE_SCOPES: {
       "workspaces.read",
       "workspaces.write",
       "analytics.read",
+      "groups.read",
+      "groups.write",
     ],
   },
 ];

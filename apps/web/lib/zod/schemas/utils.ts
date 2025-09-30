@@ -1,13 +1,19 @@
 import z from "@/lib/zod";
 import { getUrlFromString, isValidUrl, parseDateTime } from "@dub/utils";
 
+// This is the default max length for URL validation
+export const DESTINATION_URL_MAX_LENGTH = 32000;
+
 export const parseUrlSchema = z
   .string()
+  .max(DESTINATION_URL_MAX_LENGTH, {
+    message: `Must be ${DESTINATION_URL_MAX_LENGTH} or fewer characters long.`,
+  })
   .transform((v) => getUrlFromString(v))
   .refine((v) => isValidUrl(v), { message: "Invalid URL" });
 
 export const parseUrlSchemaAllowEmpty = ({
-  maxLength,
+  maxLength = DESTINATION_URL_MAX_LENGTH,
   trim = false,
 }: {
   maxLength?: number;
@@ -21,7 +27,7 @@ export const parseUrlSchemaAllowEmpty = ({
 
   if (maxLength) {
     schema = schema.max(maxLength, {
-      message: `Must be ${maxLength} or fewer characters long`,
+      message: `Must be ${maxLength} or fewer characters long.`,
     });
   }
 

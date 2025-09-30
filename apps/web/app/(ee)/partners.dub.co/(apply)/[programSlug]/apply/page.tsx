@@ -1,27 +1,38 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
 import { notFound } from "next/navigation";
 import { CSSProperties } from "react";
-import { Header } from "../header";
+import { ApplyHeader } from "../header";
 
-export default async function ApplicationPage({
-  params: { programSlug },
-}: {
-  params: { programSlug: string };
-}) {
+export default async function ApplicationPage(
+  props: {
+    params: Promise<{ programSlug: string; groupSlug?: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    programSlug,
+    groupSlug
+  } = params;
+
+  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
+
   const program = await getProgram({
     slug: programSlug,
-    include: ["allRewards", "allDiscounts"],
+    groupSlug: partnerGroupSlug,
   });
 
-  if (!program) {
+  if (!program || !program.group) {
     notFound();
   }
 
-  const { rewards, discount } =
-    getProgramApplicationRewardsAndDiscount(program);
+  const applicationFormData = programApplicationFormSchema.parse(
+    program.applicationFormData || {},
+  );
 
   return (
     <div
@@ -33,29 +44,32 @@ export default async function ApplicationPage({
         } as CSSProperties
       }
     >
-      <Header program={program} showApply={false} />
+      <ApplyHeader program={program} showApply={false} />
       <div className="p-6">
         {/* Hero section */}
         <div className="grid grid-cols-1 gap-5 sm:pt-20">
           <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
-            {program.name} Affiliate Program
+            {applicationFormData.label || `${program.name} Affiliate Program`}
           </p>
-          <h1 className="text-4xl font-semibold">Apply to {program.name}</h1>
+          <h1 className="text-4xl font-semibold">
+            {applicationFormData.title || `Apply to ${program.name}`}
+          </h1>
           <p className="text-base text-neutral-700">
-            Submit your application to join the {program.name} affiliate program
-            and start earning commissions for your referrals.
+            {applicationFormData.description ||
+              `Submit your application to join the ${program.name} affiliate program
+            and start earning commissions for your referrals.`}
           </p>
         </div>
 
         <LanderRewards
           className="mt-10"
-          rewards={rewards}
-          discount={discount}
+          rewards={program.rewards}
+          discount={program.discount}
         />
 
         {/* Application form */}
         <div className="mt-10">
-          <ProgramApplicationForm program={program} />
+          <ProgramApplicationForm program={program} group={program.group} />
         </div>
       </div>
     </div>

@@ -1,0 +1,56 @@
+enum NotificationEmailType {
+  Message
+  Bounty
+  Campaign
+}
+
+model NotificationEmail {
+  id         String                @id @default(cuid())
+  emailId    String                @unique // Resend email id
+  type       NotificationEmailType
+  messageId  String?
+  bountyId   String?
+  campaignId String?
+
+  programId       String?
+  partnerId       String?
+  recipientUserId String?
+
+  deliveredAt DateTime?
+  openedAt    DateTime?
+  bouncedAt   DateTime?
+  createdAt   DateTime  @default(now())
+
+  message  Message?  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  bounty   Bounty?   @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index(type)
+  @@index(messageId)
+  @@index(bountyId)
+  @@index(campaignId)
+}
+
+model NotificationPreference {
+  id                         String  @id @default(cuid())
+  projectUserId              String  @unique
+  linkUsageSummary           Boolean @default(true)
+  domainConfigurationUpdates Boolean @default(true)
+  newPartnerSale             Boolean @default(true)
+  newPartnerApplication      Boolean @default(true)
+  newBountySubmitted         Boolean @default(true)
+  newMessageFromPartner      Boolean @default(true)
+
+  projectUser ProjectUsers @relation(fields: [projectUserId], references: [id], onDelete: Cascade)
+}
+
+model PartnerNotificationPreferences {
+  id            String @id @default(cuid())
+  partnerUserId String @unique
+
+  commissionCreated     Boolean @default(true)
+  applicationApproved   Boolean @default(true)
+  newMessageFromProgram Boolean @default(true)
+
+  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+}

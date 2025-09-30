@@ -16,21 +16,19 @@ export const getLinkStructureOptions = ({
   return [
     {
       id: PartnerLinkStructure.short,
-      label: "Short link",
-      example: `${shortDomain}/{partnerName}`,
-      comingSoon: false,
+      label: "Short Link",
+      example: `${shortDomain}/{partner-link-key}`,
+      recommended: true,
     },
     {
       id: PartnerLinkStructure.query,
-      label: "Query parameter",
-      example: `${websiteDomain}?via={partnerName}`,
-      comingSoon: false,
+      label: "Query Parameter",
+      example: `${websiteDomain}?via={partner-link-key}`,
     },
-    {
-      id: PartnerLinkStructure.path,
-      label: "Dynamic path",
-      example: `${websiteDomain}/refer/{partnerName}`,
-      comingSoon: true,
-    },
+    // {
+    //   id: PartnerLinkStructure.path,
+    //   label: "Dynamic path",
+    //   example: `${websiteDomain}/refer/{partner-link-key}`,
+    // },
   ];
 };

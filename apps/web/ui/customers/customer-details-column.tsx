@@ -160,8 +160,7 @@ export function CustomerDetailsColumn({
           <span>
             {customerActivity?.ltv !== undefined
               ? currencyFormatter(customerActivity.ltv / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
+                  trailingZeroDisplay: "stripIfInteger",
                 })
               : "-"}
           </span>

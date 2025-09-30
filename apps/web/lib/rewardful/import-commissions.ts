@@ -6,6 +6,7 @@ import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvents } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
@@ -116,7 +117,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
 
   if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email: workspaceUser.user.email,
+      to: workspaceUser.user.email,
       subject: "Rewardful campaign imported",
       react: ProgramImported({
         email: workspaceUser.user.email,
@@ -358,6 +359,10 @@ async function createCommission({
           conversions: {
             increment: 1,
           },
+          lastConversionAt: updateLinkStatsForImporter({
+            currentTimestamp: customerFound.link.lastConversionAt,
+            newTimestamp: new Date(commission.created_at),
+          }),
         }),
         sales: { increment: 1 },
         saleAmount: { increment: amount },

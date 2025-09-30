@@ -1,7 +1,13 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
 import useCustomersCount from "@/lib/swr/use-customers-count";
+import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
+import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -21,17 +27,18 @@ import {
   LifeRing,
   LinesY as LinesYStatic,
   MoneyBills2,
+  Msgs,
   PaperPlane,
   Receipt2,
   ShieldCheck,
-  ShieldKeyhole,
   Sliders,
   Tag,
   UserCheck,
-  Users2,
+  Users,
   Users6,
   Webhook,
 } from "@dub/ui/icons";
+import { Trophy } from "lucide-react";
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
 import { useParams, usePathname } from "next/navigation";
@@ -55,7 +62,10 @@ type SidebarNavData = {
   defaultProgramId?: string;
   session?: Session | null;
   showNews?: boolean;
+  pendingPayoutsCount?: number;
   applicationsCount?: number;
+  submittedBountiesCount?: number;
+  unreadMessagesCount?: number;
   showConversionGuides?: boolean;
 };
 
@@ -182,7 +192,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   }),
 
   // Program
-  program: ({ slug, showNews, applicationsCount }) => ({
+  program: ({
+    slug,
+    showNews,
+    pendingPayoutsCount,
+    applicationsCount,
+    submittedBountiesCount,
+    unreadMessagesCount,
+  }) => ({
     title: "Partner Program",
     showNews,
     direction: "left",
@@ -199,6 +216,21 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Payouts",
             icon: MoneyBills2,
             href: `/${slug}/program/payouts?status=pending&sortBy=amount`,
+            badge: pendingPayoutsCount
+              ? pendingPayoutsCount > 99
+                ? "99+"
+                : pendingPayoutsCount
+              : undefined,
+          },
+          {
+            name: "Messages",
+            icon: Msgs,
+            href: `/${slug}/program/messages`,
+            badge: unreadMessagesCount
+              ? unreadMessagesCount > 99
+                ? "99+"
+                : unreadMessagesCount
+              : "New",
           },
         ],
       },
@@ -207,9 +239,13 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         items: [
           {
             name: "All Partners",
-            icon: Users2,
+            icon: Users,
             href: `/${slug}/program/partners`,
-            exact: true,
+            isActive: (pathname: string, href: string) =>
+              pathname.startsWith(href) &&
+              ["applications"].every(
+                (p) => !pathname.startsWith(`${href}/${p}`),
+              ),
           },
           {
             name: "Applications",
@@ -220,6 +256,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 ? "99+"
                 : applicationsCount
               : undefined,
+          },
+          {
+            name: "Groups",
+            icon: Users6,
+            href: `/${slug}/program/groups`,
           },
         ],
       },
@@ -236,10 +277,30 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: InvoiceDollar,
             href: `/${slug}/program/commissions`,
           },
+          // {
+          //   name: "Fraud & Risk",
+          //   icon: ShieldKeyhole,
+          //   href: `/${slug}/program/fraud`,
+          // },
+        ],
+      },
+      {
+        name: "Engagement",
+        items: [
           {
-            name: "Fraud & Risk",
-            icon: ShieldKeyhole,
-            href: `/${slug}/program/fraud`,
+            name: "Bounties",
+            icon: Trophy,
+            href: `/${slug}/program/bounties`,
+            badge: submittedBountiesCount
+              ? submittedBountiesCount > 99
+                ? "99+"
+                : submittedBountiesCount
+              : "New",
+          },
+          {
+            name: "Resources",
+            icon: LifeRing,
+            href: `/${slug}/program/resources`,
           },
         ],
       },
@@ -266,22 +327,28 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Rewards",
             icon: Gift,
-            href: `/${slug}/program/rewards`,
+            href: `/${slug}/program/groups/default/rewards`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Discounts",
             icon: Discount,
-            href: `/${slug}/program/discounts`,
+            href: `/${slug}/program/groups/default/discounts`,
+            arrow: true,
+            isActive: () => false,
+          },
+          {
+            name: "Link Settings",
+            icon: Sliders,
+            href: `/${slug}/program/groups/default/links`,
+            arrow: true,
+            isActive: () => false,
           },
           {
             name: "Branding",
             icon: Brush,
             href: `/${slug}/program/branding`,
-          },
-          {
-            name: "Link Settings",
-            icon: Sliders,
-            href: `/${slug}/program/link-settings`,
           },
         ],
       },
@@ -410,7 +477,6 @@ export function AppSidebarNav({
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
   const { plan, defaultProgramId } = useWorkspace();
-  const { canTrackConversions } = getPlanCapabilities(plan);
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -422,7 +488,8 @@ export function AppSidebarNav({
           pathname.endsWith("/guides") ||
             pathname.includes("/guides/") ||
             // for the email editor page
-            pathname.includes("/program/emails/") ||
+            pathname.includes("/program/campaigns/") ||
+            pathname.includes("/program/messages/") ||
             // this one is for the payout success page
             pathname.endsWith("/program/payouts/success")
           ? null
@@ -431,10 +498,35 @@ export function AppSidebarNav({
             : "default";
   }, [slug, pathname]);
 
+  const { payoutsCount: pendingPayoutsCount } = usePayoutsCount<
+    number | undefined
+  >({
+    eligibility: "eligible",
+    status: "pending",
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
   const applicationsCount = useProgramApplicationsCount({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
+  const { submissionsCount } = useBountySubmissionsCount<
+    SubmissionsCountByStatus[]
+  >({
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
+  const submittedBountiesCount =
+    submissionsCount?.find(({ status }) => status === "submitted")?.count || 0;
+
+  const { count: unreadMessagesCount } = usePartnerMessagesCount({
+    enabled: Boolean(currentArea === "program"),
+    query: {
+      unread: true,
+    },
+  });
+
+  const { canTrackConversions } = getPlanCapabilities(plan);
   const { data: customersCount } = useCustomersCount({
     enabled: canTrackConversions === true,
   });
@@ -453,7 +545,10 @@ export function AppSidebarNav({
         session: session || undefined,
         showNews: pathname.startsWith(`/${slug}/program`) ? false : true,
         defaultProgramId: defaultProgramId || undefined,
+        pendingPayoutsCount,
         applicationsCount,
+        submittedBountiesCount,
+        unreadMessagesCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
       }}
       toolContent={toolContent}

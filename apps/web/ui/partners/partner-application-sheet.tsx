@@ -6,35 +6,86 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, useMediaQuery, useRouterStuff } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
-import { ProgramApplication } from "@prisma/client";
-import Linkify from "linkify-react";
-import { ChevronLeft } from "lucide-react";
+import {
+  Button,
+  ChevronLeft,
+  ChevronRight,
+  Msgs,
+  Sheet,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
-import useSWRImmutable from "swr/immutable";
-import { OnlinePresenceSummary } from "./online-presence-summary";
-import { PartnerInfoSection } from "./partner-info-section";
-import { PartnerLinkSelector } from "./partner-link-selector";
+import { PartnerAbout } from "./partner-about";
+import { PartnerApplicationDetails } from "./partner-application-details";
+import { PartnerApplicationTabs } from "./partner-application-tabs";
+import { PartnerComments } from "./partner-comments";
+import { PartnerInfoCards } from "./partner-info-cards";
 
 type PartnerApplicationSheetProps = {
   partner: EnrolledPartnerProps;
+  onNext?: () => void;
+  onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 function PartnerApplicationSheetContent({
   partner,
+  onPrevious,
+  onNext,
   setIsOpen,
 }: PartnerApplicationSheetProps) {
+  const { slug: workspaceSlug } = useWorkspace();
+  const [currentTabId, setCurrentTabId] = useState<string>("about");
+
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(
+    partner.groupId ?? null,
+  );
+
+  // Reset selection when navigating between partners
+  useEffect(() => {
+    setSelectedGroupId(partner.groupId ?? null);
+  }, [partner.groupId]);
+
   return (
-    <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
+    <div className="flex size-full flex-col">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
           Partner application
         </Sheet.Title>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
+          <Link
+            href={`/${workspaceSlug}/program/messages/${partner.id}`}
+            target="_blank"
+          >
+            <Button
+              variant="secondary"
+              text="Message"
+              icon={<Msgs className="size-4 shrink-0" />}
+              className="hidden h-9 rounded-lg px-4 sm:flex"
+            />
+          </Link>
+          <div className="flex items-center">
+            <Button
+              type="button"
+              disabled={!onPrevious}
+              onClick={onPrevious}
+              variant="secondary"
+              className="size-9 rounded-l-lg rounded-r-none p-0"
+              icon={<ChevronLeft className="size-3.5" />}
+            />
+            <Button
+              type="button"
+              disabled={!onNext}
+              onClick={onNext}
+              variant="secondary"
+              className="-ml-px size-9 rounded-l-none rounded-r-lg p-0"
+              icon={<ChevronRight className="size-3.5" />}
+            />
+          </div>
           <Sheet.Close asChild>
             <Button
               variant="outline"
@@ -45,103 +96,79 @@ function PartnerApplicationSheetContent({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <div className="border-b border-neutral-200 bg-neutral-50 p-6">
-          {/* Basic info */}
-          <PartnerInfoSection partner={partner} />
+      <div className="@3xl/sheet:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] scrollbar-hide grid min-h-0 grow grid-cols-1 gap-x-6 gap-y-4 overflow-y-auto p-4 sm:p-6">
+        <div className="@3xl/sheet:order-2">
+          <PartnerInfoCards
+            partner={partner}
+            hideStatuses={["pending"]}
+            {...(partner.status === "rejected" && {
+              selectedGroupId,
+              setSelectedGroupId,
+            })}
+          />
         </div>
-        <div className="p-6 text-sm text-neutral-600">
-          <PendingPartnerSummary partner={partner} />
+        <div className="@3xl/sheet:order-1">
+          <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
+            <PartnerApplicationTabs
+              partnerId={partner.id}
+              currentTabId={currentTabId}
+              setCurrentTabId={setCurrentTabId}
+            />
+            <div className="border-border-subtle -mx-px -mb-px rounded-xl border bg-white p-4">
+              {currentTabId === "about" && (
+                <PartnerApplicationAbout partner={partner} />
+              )}
+              {currentTabId === "comments" && (
+                <PartnerApplicationComments partnerId={partner.id} />
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {partner.status === "pending" && (
-        <div className="border-t border-neutral-200 p-5">
-          <PartnerApproval partner={partner} setIsOpen={setIsOpen} />
+      {["pending", "rejected"].includes(partner.status) && (
+        <div className="shrink-0 border-t border-neutral-200 p-5">
+          <PartnerApproval
+            key={partner.id} // Reset when navigating between partners to avoid memoized action callback issues
+            partner={partner}
+            groupId={
+              partner.status === "rejected" ? selectedGroupId : partner.groupId
+            }
+            setIsOpen={setIsOpen}
+            onNext={onNext}
+          />
         </div>
       )}
     </div>
   );
 }
 
-function PendingPartnerSummary({ partner }: { partner: EnrolledPartnerProps }) {
+function PartnerApplicationAbout({
+  partner,
+}: {
+  partner: EnrolledPartnerProps;
+}) {
   return (
-    <div className="grid grid-cols-1 gap-6 text-sm text-neutral-600">
-      <div>
-        <h4 className="text-content-emphasis font-semibold">Description</h4>
-        <p className="mt-1">
-          {partner.description || (
-            <span className="text-content-muted italic">
-              No description provided
-            </span>
-          )}
-        </p>
-      </div>
-      <hr className="border-neutral-200" />
+    <div className="grid grid-cols-1 gap-5 text-sm text-neutral-600">
       {partner.applicationId && (
         <>
-          <PartnerApplication applicationId={partner.applicationId} />
+          <h3 className="text-content-emphasis text-lg font-semibold">
+            Application
+          </h3>
+          <PartnerApplicationDetails applicationId={partner.applicationId} />
           <hr className="border-neutral-200" />
         </>
       )}
-      <div>
-        <h4 className="text-content-emphasis font-semibold">Online presence</h4>
-        <OnlinePresenceSummary partner={partner} className="mt-3" />
-      </div>
+      <PartnerAbout partner={partner} />
     </div>
   );
 }
 
-function PartnerApplication({ applicationId }: { applicationId: string }) {
-  const { id: workspaceId } = useWorkspace();
-  const { program } = useProgram();
-
-  const { data: application } = useSWRImmutable<ProgramApplication>(
-    program &&
-      workspaceId &&
-      `/api/programs/${program.id}/applications/${applicationId}?workspaceId=${workspaceId}`,
-    fetcher,
-  );
-
-  const fields = [
-    {
-      title: `How do you plan to promote ${program?.name}?`,
-      value: application?.proposal,
-    },
-    {
-      title: "Any additional questions or comments?",
-      value: application?.comments,
-    },
-  ];
-
+function PartnerApplicationComments({ partnerId }: { partnerId: string }) {
   return (
-    <div className="grid grid-cols-1 gap-6 text-sm">
-      {fields.map((field) => (
-        <div key={field.title}>
-          <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
-          <div className="mt-1">
-            {field.value || field.value === "" ? (
-              <Linkify
-                as="p"
-                options={{
-                  target: "_blank",
-                  rel: "noopener noreferrer nofollow",
-                  className:
-                    "underline underline-offset-4 text-neutral-400 hover:text-neutral-700",
-                }}
-              >
-                {field.value || (
-                  <span className="text-content-muted italic">
-                    No response provided
-                  </span>
-                )}
-              </Linkify>
-            ) : (
-              <div className="h-5 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
-            )}
-          </div>
-        </div>
-      ))}
+    <div>
+      <h3 className="text-content-emphasis text-lg font-semibold">Comments</h3>
+      <PartnerComments partnerId={partnerId} />
     </div>
   );
 }
@@ -161,6 +188,10 @@ export function PartnerApplicationSheet({
       onOpenChange={rest.setIsOpen}
       onClose={() => queryParams({ del: "partnerId", scroll: false })}
       nested={nested}
+      contentProps={{
+        // 540px - 1170px width based on viewport
+        className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
+      }}
     >
       <PartnerApplicationSheetContent {...rest} />
     </Sheet>
@@ -169,245 +200,95 @@ export function PartnerApplicationSheet({
 
 function PartnerApproval({
   partner,
+  groupId,
   setIsOpen,
+  onNext,
 }: {
   partner: EnrolledPartnerProps;
+  groupId?: string | null;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  onNext?: () => void;
 }) {
-  const { isMobile } = useMediaQuery();
-  const { queryParams } = useRouterStuff();
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
-  const [isApproving, setIsApproving] = useState(false);
-  const [selectedLinkId, setSelectedLinkId] = useState<string | null>(null);
-  const [linkError, setLinkError] = useState(false);
-
-  useEffect(() => {
-    if (selectedLinkId) setLinkError(false);
-  }, [selectedLinkId]);
-
   const { executeAsync, isPending } = useAction(approvePartnerAction, {
-    onSuccess: async () => {
-      await mutatePrefix("/api/partners");
-      queryParams({ del: "partnerId" });
-      setIsOpen(false);
-      toast.success("Approved the partner successfully.");
+    onSuccess: () => {
+      onNext ? onNext() : setIsOpen(false);
+      toast.success(`Successfully approved ${partner.email} to your program.`);
+      mutatePrefix("/api/partners");
     },
     onError({ error }) {
       toast.error(error.serverError || "Failed to approve partner.");
     },
   });
 
-  const createLink = async (search: string) => {
-    if (!search) throw new Error("No link entered");
+  const { setShowConfirmModal, confirmModal } = useConfirmModal({
+    title: "Approve Partner",
+    description: "Are you sure you want to approve this partner application?",
+    confirmText: "Approve",
+    confirmShortcut: "a",
+    confirmShortcutOptions: { sheet: true, modal: true },
+    onConfirm: async () => {
+      if (!program || !workspaceId) return;
 
-    const shortKey = search.startsWith(program?.domain + "/")
-      ? search.substring((program?.domain + "/").length)
-      : search;
+      await executeAsync({
+        workspaceId: workspaceId,
+        partnerId: partner.id,
+        groupId,
+      });
+    },
+  });
 
-    const response = await fetch(`/api/links?workspaceId=${workspaceId}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        domain: program?.domain,
-        key: shortKey,
-        url: program?.url,
-        trackConversion: true,
-        programId: program?.id,
-        folderId: program?.defaultFolderId,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      const { error } = result;
-      throw new Error(error.message);
-    }
-
-    setSelectedLinkId(result.id);
-
-    return result.id;
-  };
-
-  const handleApproveClick = async () => {
-    if (!program || !workspaceId) {
-      return;
-    }
-
-    if (!isApproving) {
-      setIsApproving(true);
-      setLinkError(false);
-      return;
-    }
-
-    // Approve partner
-    await executeAsync({
-      workspaceId: workspaceId!,
-      partnerId: partner.id,
-      linkId: selectedLinkId,
-    });
-  };
-
-  const handleBackClick = () => {
-    setIsApproving(false);
-    setSelectedLinkId(null);
-  };
-
-  if (isMobile) {
-    return (
-      <div className="flex flex-col gap-3">
-        {/* First row - Approve button */}
-        <div className="flex">
-          <div className="flex grow">
-            <Button
-              type="button"
-              variant="primary"
-              text="Approve"
-              loading={isPending}
-              className="w-full"
-              onClick={handleApproveClick}
-            />
-          </div>
-        </div>
-
-        {/* Second row - Reject button and link selector */}
-        <div className="flex">
-          <div
-            className={cn(
-              "transition-[width] duration-300",
-              isApproving ? "w-10" : "w-full",
-            )}
-          >
-            {isApproving ? (
-              <Button
-                type="button"
-                variant="secondary"
-                icon={<ChevronLeft className="size-4 shrink-0" />}
-                onClick={handleBackClick}
-              />
-            ) : (
-              <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
-            )}
-          </div>
-
-          <div
-            className={cn(
-              "overflow-hidden transition-[width] duration-300",
-              isApproving ? "w-full pl-2" : "w-0",
-            )}
-          >
-            <div
-              className={cn(
-                "w-0 transition-[width] duration-300",
-                isApproving && "w-full",
-              )}
-            >
-              <PartnerLinkSelector
-                selectedLinkId={selectedLinkId}
-                setSelectedLinkId={setSelectedLinkId}
-                showDestinationUrl={false}
-                onCreate={async (search) => {
-                  try {
-                    await createLink(search);
-                    return true;
-                  } catch (error) {
-                    toast.error(error?.message ?? "Failed to create link");
-                  }
-                  return false;
-                }}
-                error={linkError}
-                optional
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  useKeyboardShortcut("a", () => setShowConfirmModal(true), { sheet: true });
 
   return (
-    <div className="flex">
-      <div
-        className={cn(
-          "transition-[width] duration-300",
-          isApproving ? "w-[52px]" : "w-[83px]",
-        )}
-      >
-        {isApproving ? (
-          <Button
-            type="button"
-            variant="secondary"
-            icon={<ChevronLeft className="size-4 shrink-0" />}
-            onClick={handleBackClick}
-          />
-        ) : (
-          <PartnerRejectButton partner={partner} setIsOpen={setIsOpen} />
-        )}
-      </div>
-
-      <div className="flex grow pl-2">
-        <div
-          className={cn(
-            "w-0 transition-[width] duration-300",
-            isApproving && "w-full",
-          )}
-        >
-          <div className="w-[calc(100%-8px)]">
-            <PartnerLinkSelector
-              selectedLinkId={selectedLinkId}
-              setSelectedLinkId={setSelectedLinkId}
-              showDestinationUrl={false}
-              onCreate={async (search) => {
-                try {
-                  await createLink(search);
-                  return true;
-                } catch (error) {
-                  toast.error(error?.message ?? "Failed to create link");
-                }
-                return false;
-              }}
-              error={linkError}
-              optional
+    <>
+      {confirmModal}
+      <div className="flex justify-end gap-2">
+        {partner.status !== "rejected" && (
+          <div className="flex-shrink-0">
+            <PartnerRejectButton
+              partner={partner}
+              setIsOpen={setIsOpen}
+              onNext={onNext}
             />
           </div>
-        </div>
-
-        <div className="grow">
-          <Button
-            type="button"
-            variant="primary"
-            text="Approve"
-            loading={isPending}
-            onClick={handleApproveClick}
-          />
-        </div>
+        )}
+        <Button
+          type="button"
+          variant="primary"
+          text="Approve"
+          shortcut="A"
+          loading={isPending}
+          onClick={() => setShowConfirmModal(true)}
+          className="w-fit shrink-0"
+        />
       </div>
-    </div>
+    </>
   );
 }
 
 function PartnerRejectButton({
   partner,
   setIsOpen,
+  onNext,
 }: {
   partner: EnrolledPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
+  onNext?: () => void;
 }) {
   const { id: workspaceId } = useWorkspace();
 
   const { executeAsync: rejectPartner, isPending } = useAction(
     rejectPartnerAction,
     {
-      onSuccess: async () => {
-        await mutatePrefix("/api/partners");
+      onSuccess: () => {
+        onNext ? onNext() : setIsOpen(false);
         toast.success(
-          "Application rejected. No email sent, and can they reapply in 30 days.",
+          `Partner ${partner.email} has been rejected from your program.`,
         );
-        setIsOpen(false);
+        mutatePrefix("/api/partners");
       },
       onError({ error }) {
         toast.error(error.serverError || "Failed to reject partner.");
@@ -419,6 +300,8 @@ function PartnerRejectButton({
     title: "Reject Application",
     description: "Are you sure you want to reject this partner application?",
     confirmText: "Reject",
+    confirmShortcut: "r",
+    confirmShortcutOptions: { sheet: true, modal: true },
     onConfirm: async () => {
       await rejectPartner({
         workspaceId: workspaceId!,
@@ -426,6 +309,8 @@ function PartnerRejectButton({
       });
     },
   });
+
+  useKeyboardShortcut("r", () => setShowConfirmModal(true), { sheet: true });
 
   return (
     <>
@@ -435,27 +320,12 @@ function PartnerRejectButton({
         variant="secondary"
         text={isPending ? "" : "Reject"}
         loading={isPending}
+        shortcut="R"
         onClick={() => {
           setShowConfirmModal(true);
         }}
+        className="px-4"
       />
     </>
   );
-}
-
-export function usePartnerApplicationSheet(
-  props: { nested?: boolean } & Omit<PartnerApplicationSheetProps, "setIsOpen">,
-) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    partnerApplicationSheet: (
-      <PartnerApplicationSheet
-        setIsOpen={setIsOpen}
-        isOpen={isOpen}
-        {...props}
-      />
-    ),
-    setIsOpen,
-  };
 }

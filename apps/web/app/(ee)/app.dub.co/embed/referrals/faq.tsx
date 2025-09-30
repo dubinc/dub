@@ -8,9 +8,9 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/ui";
-import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export function ReferralsEmbedFAQ({
   program,
@@ -20,10 +20,7 @@ export function ReferralsEmbedFAQ({
   reward: RewardProps | null;
 }) {
   const rewardDescription = reward
-    ? `For each new customer you refer, you'll earn a ${constructRewardAmount({
-        amount: reward.amount,
-        type: reward.type,
-      })} commission on their subscription${
+    ? `For each new customer you refer, you'll earn a ${constructRewardAmount(reward)} commission on their subscription${
         reward.maxDuration === null
           ? " for their lifetime"
           : reward.maxDuration && reward.maxDuration > 1

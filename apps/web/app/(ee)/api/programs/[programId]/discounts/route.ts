@@ -5,6 +5,7 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+// TODO: Remove once we migrate fully to partner groups
 // GET /api/programs/[programId]/discounts - get all discounts for a program
 export const GET = withWorkspace(async ({ workspace }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);

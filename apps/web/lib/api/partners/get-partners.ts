@@ -7,9 +7,10 @@ const sortColumnsMap = {
   createdAt: "pe.createdAt",
   clicks: "totalClicks",
   leads: "totalLeads",
+  conversions: "totalConversions",
   sales: "totalSales",
   saleAmount: "totalSaleAmount",
-  commissions: "totalCommissions",
+  totalCommissions: "totalCommissions",
   netRevenue: "netRevenue",
 };
 
@@ -17,15 +18,15 @@ const sortColumnsMap = {
 const sortColumnExtraMap = {
   createdAt: "totalClicks",
   clicks: "totalLeads",
-  leads: "totalSaleAmount",
+  leads: "totalConversions",
+  conversions: "totalSaleAmount",
   sales: "totalClicks",
   saleAmount: "totalClicks",
-  commissions: "totalSaleAmount",
+  totalCommissions: "totalSaleAmount",
   netRevenue: "totalSaleAmount",
 };
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
-  workspaceId: string;
   programId: string;
 };
 
@@ -33,10 +34,8 @@ export async function getPartners(filters: PartnerFilters) {
   const {
     status,
     country,
-    clickRewardId,
-    leadRewardId,
-    saleRewardId,
     search,
+    email,
     tenantId,
     partnerIds,
     page,
@@ -45,6 +44,7 @@ export async function getPartners(filters: PartnerFilters) {
     sortOrder,
     programId,
     includeExpandedFields,
+    groupId,
   } = filters;
 
   const partners = (await prisma.$queryRaw`
@@ -55,6 +55,7 @@ export async function getPartners(filters: PartnerFilters) {
       pe.programId, 
       pe.partnerId, 
       pe.tenantId,
+      pe.groupId,
       pe.applicationId,
       pe.createdAt as enrollmentCreatedAt,
       pe.bannedAt,
@@ -68,6 +69,7 @@ export async function getPartners(filters: PartnerFilters) {
           ? Prisma.sql`
       COALESCE(metrics.totalClicks, 0) as totalClicks,
       COALESCE(metrics.totalLeads, 0) as totalLeads,
+      COALESCE(metrics.totalConversions, 0) as totalConversions,
       COALESCE(metrics.totalSales, 0) as totalSales,
       COALESCE(metrics.totalSaleAmount, 0) as totalSaleAmount,
       COALESCE(pe.totalCommissions, 0) as totalCommissions,
@@ -76,6 +78,7 @@ export async function getPartners(filters: PartnerFilters) {
           : Prisma.sql`
       0 as totalClicks,
       0 as totalLeads,
+      0 as totalConversions,
       0 as totalSales,
       0 as totalSaleAmount,
       0 as totalCommissions,
@@ -93,6 +96,7 @@ export async function getPartners(filters: PartnerFilters) {
               'url', l.url,
               'clicks', CAST(l.clicks AS SIGNED),
               'leads', CAST(l.leads AS SIGNED),
+              'conversions', CAST(l.conversions AS SIGNED),
               'sales', CAST(l.sales AS SIGNED),
               'saleAmount', CAST(l.saleAmount AS SIGNED)
             ),
@@ -115,6 +119,7 @@ export async function getPartners(filters: PartnerFilters) {
         partnerId,
         SUM(clicks) as totalClicks,
         SUM(leads) as totalLeads,
+        SUM(conversions) as totalConversions,
         SUM(sales) as totalSales,
         SUM(saleAmount) as totalSaleAmount
       FROM Link
@@ -128,16 +133,14 @@ export async function getPartners(filters: PartnerFilters) {
     }
     WHERE 
       pe.programId = ${programId}
-      ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status NOT IN ('pending', 'rejected', 'banned', 'archived')`}
-      ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
+      ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status IN ('approved', 'invited')`}
+      ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : email ? Prisma.sql`AND p.email = ${email}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
-      ${clickRewardId ? Prisma.sql`AND pe.clickRewardId = ${clickRewardId}` : Prisma.sql``}
-      ${leadRewardId ? Prisma.sql`AND pe.leadRewardId = ${leadRewardId}` : Prisma.sql``}
-      ${saleRewardId ? Prisma.sql`AND pe.saleRewardId = ${saleRewardId}` : Prisma.sql``}
       ${
         search
           ? Prisma.sql`AND (
-        LOWER(p.name) LIKE LOWER(${`%${search}%`}) 
+        LOWER(p.id) LIKE LOWER(${`%${search}%`})
+        OR LOWER(p.name) LIKE LOWER(${`%${search}%`}) 
         OR LOWER(p.email) LIKE LOWER(${`%${search}%`})
         OR EXISTS (
           SELECT 1 FROM Link searchLink 
@@ -149,22 +152,22 @@ export async function getPartners(filters: PartnerFilters) {
           : Prisma.sql``
       }
       ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND pe.partnerId IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
+      ${groupId ? Prisma.sql`AND pe.groupId = ${groupId}` : Prisma.sql``}
     GROUP BY 
-      p.id, pe.id${includeExpandedFields ? Prisma.sql`, metrics.totalClicks, metrics.totalLeads, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions` : Prisma.sql``}
+      p.id, pe.id${includeExpandedFields ? Prisma.sql`, metrics.totalClicks, metrics.totalLeads, metrics.totalConversions, metrics.totalSales, metrics.totalSaleAmount, pe.totalCommissions` : Prisma.sql``}
     ORDER BY ${Prisma.raw(sortColumnsMap[sortBy])} ${Prisma.raw(sortOrder)} ${Prisma.raw(`, ${sortColumnExtraMap[sortBy]} ${sortOrder}`)}
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
-  return partners.map((partner) => {
-    return {
-      ...partner,
-      createdAt: new Date(partner.enrollmentCreatedAt),
-      clicks: Number(partner.totalClicks),
-      leads: Number(partner.totalLeads),
-      sales: Number(partner.totalSales),
-      saleAmount: Number(partner.totalSaleAmount),
-      totalCommissions: Number(partner.totalCommissions),
-      netRevenue: Number(partner.netRevenue),
-      links: partner.links.filter((link: any) => link !== null),
-    };
-  });
+  return partners.map((partner) => ({
+    ...partner,
+    createdAt: new Date(partner.enrollmentCreatedAt),
+    clicks: Number(partner.totalClicks),
+    leads: Number(partner.totalLeads),
+    conversions: Number(partner.totalConversions),
+    sales: Number(partner.totalSales),
+    saleAmount: Number(partner.totalSaleAmount),
+    totalCommissions: Number(partner.totalCommissions),
+    netRevenue: Number(partner.netRevenue),
+    links: partner.links.filter((link: any) => link !== null),
+  }));
 }

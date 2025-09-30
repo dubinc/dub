@@ -67,6 +67,7 @@ export const WorkspaceSchema = z
     tagsLimit: z.number().describe("The tags limit of the workspace."),
     foldersUsage: z.number().describe("The folders usage of the workspace."),
     foldersLimit: z.number().describe("The folders limit of the workspace."),
+    groupsLimit: z.number().describe("The groups limit of the workspace."),
     usersLimit: z.number().describe("The users limit of the workspace."),
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),
@@ -81,10 +82,6 @@ export const WorkspaceSchema = z
       .describe(
         "Whether the workspace has claimed a free .link domain. (dub.link/free)",
       ),
-    partnersEnabled: z
-      .boolean()
-      .describe("Whether the workspace has Dub Partners enabled."),
-
     createdAt: z
       .date()
       .describe("The date and time when the workspace was created."),
@@ -148,15 +145,13 @@ export const createWorkspaceSchema = z.object({
   conversionEnabled: z.boolean().optional(),
 });
 
-export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
-  allowedHostnames: z.array(z.string()).optional(),
-});
-
 export const notificationTypes = z.enum([
   "linkUsageSummary",
   "domainConfigurationUpdates",
   "newPartnerSale",
   "newPartnerApplication",
+  "newBountySubmitted",
+  "newMessageFromPartner",
 ]);
 
 export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
@@ -171,6 +166,8 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
       workspacePreferences: z.record(z.any()).nullish(),
     }),
   ),
+  publishableKey: z.string().nullable(),
+  ssoEmailDomain: z.string().nullable(),
 });
 
 export const OnboardingUsageSchema = z.object({

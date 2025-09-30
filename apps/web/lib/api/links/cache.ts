@@ -1,5 +1,5 @@
 import { LinkProps, RedisLinkProps } from "@/lib/types";
-import { formatRedisLink, redis } from "@/lib/upstash";
+import { formatRedisLink, redis, redisWithTimeout } from "@/lib/upstash";
 import { decodeKey, isCaseSensitiveDomain } from "./case-sensitivity";
 import { ExpandedLink } from "./utils/transform-link";
 
@@ -51,10 +51,21 @@ class LinkCache {
   }
 
   async get({ domain, key }: Pick<LinkProps, "domain" | "key">) {
-    // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
-    // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
-    // so we should get the original key from the cache
-    return await redis.get<RedisLinkProps>(`linkcache:${domain}:${key}`);
+    // we're using the special redisWithTimeout client in case Redis times out
+    try {
+      // here we use linkcache:${domain}:${key} instead of this._createKey({ domain, key })
+      // because the key can either be cached as case-sensitive or case-insensitive depending on the domain
+      // so we should get the original key from the cache
+      return await redisWithTimeout.get<RedisLinkProps>(
+        `linkcache:${domain}:${key}`,
+      );
+    } catch (error) {
+      console.error(
+        "[LinkCache]: Timeout getting cached link from Redis:",
+        error,
+      );
+      return null;
+    }
   }
 
   async delete({ domain, key }: Pick<LinkProps, "domain" | "key">) {

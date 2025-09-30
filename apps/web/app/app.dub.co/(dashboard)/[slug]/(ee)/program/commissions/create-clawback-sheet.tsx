@@ -138,6 +138,7 @@ function CreateClawbackSheetContent(
                   <input
                     id="amount"
                     type="number"
+                    onWheel={(e) => e.currentTarget.blur()}
                     min="0"
                     step="0.01"
                     className="block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"

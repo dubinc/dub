@@ -21,6 +21,10 @@ export const PERMISSION_ACTIONS = [
   "folders.read",
   "folders.write",
   "payouts.write",
+  "groups.write",
+  "groups.read",
+  "messages.read",
+  "messages.write",
 ] as const;
 
 export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
@@ -129,6 +133,26 @@ export const ROLE_PERMISSIONS: {
     action: "payouts.write",
     description: "confirm payouts",
     roles: ["owner"],
+  },
+  {
+    action: "groups.write",
+    description: "create, update, or delete groups",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "groups.read",
+    description: "access groups",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "messages.write",
+    description: "create, update, or delete messages",
+    roles: ["owner", "member"],
+  },
+  {
+    action: "messages.read",
+    description: "access messages",
+    roles: ["owner", "member"],
   },
 ];
 

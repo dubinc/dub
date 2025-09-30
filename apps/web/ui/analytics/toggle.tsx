@@ -240,7 +240,7 @@ export default function Toggle({
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
                       <>
-                        {domain && key && <ShareButton />}
+                        <ShareButton />
                         <Link
                           href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`}
                         >
@@ -250,7 +250,7 @@ export default function Toggle({
                             icon={
                               <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                             }
-                            text={isMobile ? undefined : "Switch to Events"}
+                            text={isMobile ? undefined : "View Events"}
                           />
                         </Link>
                         <AnalyticsOptions />
@@ -267,7 +267,7 @@ export default function Toggle({
                             icon={
                               <ChartLine className="h-4 w-4 text-neutral-600" />
                             }
-                            text={isMobile ? undefined : "Switch to Analytics"}
+                            text={isMobile ? undefined : "View Analytics"}
                           />
                         </Link>
                         <EventsOptions />

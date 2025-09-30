@@ -17,7 +17,13 @@
     "email": "matthew@example.com",
     "image": null,
     "payoutsEnabledAt": null,
-    "country": "US"
+    "country": "US",
+    "totalClicks": 50,
+    "totalLeads": 15,
+    "totalConversions": 10,
+    "totalSales": 10,
+    "totalSaleAmount": 100000,
+    "totalCommissions": 50000
   },
   "customer": {
     "id": "cus_1K09DJDEACR47NPYC93RM43WF",

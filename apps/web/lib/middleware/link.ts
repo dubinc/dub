@@ -2,12 +2,13 @@ import {
   createResponseWithCookies,
   detectBot,
   getFinalUrl,
-  isSupportedDeeplinkProtocol,
+  isSupportedCustomURIScheme,
   parse,
 } from "@/lib/middleware/utils";
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
 import {
+  APP_DOMAIN,
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
@@ -17,7 +18,7 @@ import {
   nanoid,
   punyEncode,
 } from "@dub/utils";
-import { ipAddress } from "@vercel/functions";
+import { geolocation, ipAddress } from "@vercel/functions";
 import { cookies } from "next/headers";
 import {
   NextFetchEvent,
@@ -31,7 +32,9 @@ import { recordClickCache } from "../api/links/record-click-cache";
 import { getLinkViaEdge } from "../planetscale";
 import { getDomainViaEdge } from "../planetscale/get-domain-via-edge";
 import { getPartnerAndDiscount } from "../planetscale/get-partner-discount";
+import { cacheDeepLinkClickData } from "./utils/cache-deeplink-click-data";
 import { crawlBitly } from "./utils/crawl-bitly";
+import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
@@ -145,7 +148,6 @@ export default async function LinkMiddleware(
     expiresAt,
     ios,
     android,
-    geo,
     expiredUrl,
     doIndex,
     webhookIds,
@@ -154,7 +156,9 @@ export default async function LinkMiddleware(
     projectId: workspaceId,
   } = cachedLink;
 
-  const testUrl = resolveABTestURL({
+  const geo = geolocation(req);
+
+  const testUrl = await resolveABTestURL({
     testVariants,
     testCompletedAt,
   });
@@ -242,7 +246,7 @@ export default async function LinkMiddleware(
 
   const dubIdCookieName = `dub_id_${domain}_${key}`;
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
     // if we need to pass the clickId, check if clickId is cached in Redis
@@ -297,7 +301,9 @@ export default async function LinkMiddleware(
   const ua = userAgent(req);
 
   const { country } =
-    process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
+    process.env.VERCEL === "1" && geolocation(req)
+      ? geolocation(req)
+      : LOCALHOST_GEO_DATA;
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {
@@ -314,8 +320,8 @@ export default async function LinkMiddleware(
       cookieData,
     );
 
-    // rewrite to deeplink page if the link is a mailto: or tel:
-  } else if (isSupportedDeeplinkProtocol(url)) {
+    // rewrite to custom-uri-scheme page if the link is a custom URI scheme
+  } else if (isSupportedCustomURIScheme(url)) {
     ev.waitUntil(
       recordClick({
         req,
@@ -333,7 +339,7 @@ export default async function LinkMiddleware(
     return createResponseWithCookies(
       NextResponse.rewrite(
         new URL(
-          `/deeplink/${encodeURIComponent(
+          `/custom-uri-scheme/${encodeURIComponent(
             getFinalUrl(url, {
               req,
               ...(shouldCacheClickId && { clickId }),
@@ -408,6 +414,41 @@ export default async function LinkMiddleware(
       }),
     );
 
+    // if it's an iOS app store URL (and skip_deeplink_preview is not set)
+    // we need to show the interstitial page + cache deep link click data
+    if (
+      isIosAppStoreUrl(ios) &&
+      !req.nextUrl.searchParams.get("skip_deeplink_preview")
+    ) {
+      ev.waitUntil(
+        cacheDeepLinkClickData({
+          req,
+          clickId,
+          link: {
+            id: linkId,
+            domain,
+            key,
+            url, // pass the main destination URL to the cache (for deferred deep linking)
+          },
+        }),
+      );
+
+      // redirect to the deeplink interstitial splash page "DeepLinkPreviewPage"
+      // we're doing this because the interstitial page needs to be on a different domain than the actual deep link domain
+      // @see: https://stackoverflow.com/a/78189982/10639526
+      return createResponseWithCookies(
+        NextResponse.redirect(
+          new URL(`/deeplink/${domain}/${encodeURIComponent(key)}`, APP_DOMAIN),
+          {
+            headers: {
+              ...DUB_HEADERS,
+              ...(!shouldIndex && { "X-Robots-Tag": "googlebot: noindex" }),
+            },
+          },
+        ),
+        cookieData,
+      );
+    }
     return createResponseWithCookies(
       NextResponse.redirect(
         getFinalUrl(ios, {

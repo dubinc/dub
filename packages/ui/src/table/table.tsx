@@ -9,14 +9,16 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import {
   CSSProperties,
   HTMLAttributes,
   memo,
   useEffect,
   useMemo,
+  useRef,
   useState,
+  type JSX,
 } from "react";
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
@@ -70,6 +72,8 @@ export function useTable<T extends any>(
   const [rowSelection, setRowSelection] = useState<RowSelectionState>(
     props.selectedRows ?? {},
   );
+
+  const lastSelectedRowId = useRef<string | null>(null);
 
   // Manually unset row selection if the row is no longer in the data
   // There doesn't seem to be a proper solution for this: https://github.com/TanStack/table/issues/4498
@@ -137,12 +141,56 @@ export function useTable<T extends any>(
                   />
                 </div>
               ),
-              cell: ({ row }: { row: Row<T> }) => (
+              cell: ({ row, table }: { row: Row<T>; table: TableType<T> }) => (
                 <div className="flex size-full items-center justify-center">
                   <Checkbox
                     className="border-border-default size-4 rounded data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                     checked={row.getIsSelected()}
-                    onCheckedChange={row.getToggleSelectedHandler()}
+                    onClick={(e) => {
+                      const currentId = getRowId?.(row.original);
+                      const rows = table.getRowModel().rows;
+                      const lastSelectedIndex =
+                        lastSelectedRowId.current !== null
+                          ? rows.findIndex(
+                              (row) =>
+                                getRowId?.(row.original) ===
+                                lastSelectedRowId.current,
+                            )
+                          : -1;
+
+                      if (
+                        e.shiftKey &&
+                        lastSelectedRowId.current !== null &&
+                        lastSelectedIndex !== -1
+                      ) {
+                        // Multi-select w/ shift key
+                        const currentIndex = row.index;
+
+                        const start = Math.min(lastSelectedIndex, currentIndex);
+                        const end = Math.max(lastSelectedIndex, currentIndex);
+                        const rangeIds = rows
+                          .slice(start, end + 1)
+                          .map((row) => getRowId?.(row.original));
+
+                        table.setRowSelection((rowSelection) => {
+                          const alreadySelected =
+                            currentId !== undefined &&
+                            (rowSelection?.[currentId] ?? false);
+
+                          return {
+                            ...rowSelection,
+                            ...Object.fromEntries(
+                              rangeIds.map((id) => [id, !alreadySelected]),
+                            ),
+                          };
+                        });
+
+                        lastSelectedRowId.current = currentId ?? null;
+                      } else {
+                        row.toggleSelected();
+                        lastSelectedRowId.current = currentId ?? null;
+                      }
+                    }}
                     title="Select"
                   />
                 </div>
@@ -196,13 +244,17 @@ type ResizableTableRowProps<T> = {
   row: Row<T>;
   rowProps?: HTMLAttributes<HTMLTableRowElement>;
   table: TableType<T>;
-} & Pick<TableProps<T>, "cellRight" | "tdClassName" | "onRowClick">;
+} & Pick<
+  TableProps<T>,
+  "cellRight" | "tdClassName" | "onRowClick" | "onRowAuxClick"
+>;
 
 // Memoized row component to prevent re-renders during column resizing
 const ResizableTableRow = memo(
   function ResizableTableRow<T>({
     row,
     onRowClick,
+    onRowAuxClick,
     rowProps,
     cellRight,
     tdClassName,
@@ -228,6 +280,15 @@ const ResizableTableRow = memo(
                 // Ignore if click is on an interactive child
                 if (isClickOnInteractiveChild(e)) return;
                 onRowClick(row, e);
+              }
+            : undefined
+        }
+        onAuxClick={
+          onRowAuxClick
+            ? (e) => {
+                // Ignore if click is on an interactive child
+                if (isClickOnInteractiveChild(e)) return;
+                onRowAuxClick(row, e);
               }
             : undefined
         }
@@ -295,6 +356,7 @@ export function Table<T>({
   pagination,
   resourceName,
   onRowClick,
+  onRowAuxClick,
   onRowSelectionChange,
   selectionControls,
   rowProps,
@@ -450,6 +512,7 @@ export function Table<T>({
                         .join(",")}`}
                       row={row}
                       onRowClick={onRowClick}
+                      onRowAuxClick={onRowAuxClick}
                       rowProps={props}
                       cellRight={cellRight}
                       tdClassName={tdClassName}
@@ -471,6 +534,14 @@ export function Table<T>({
                           ? (e) => {
                               if (isClickOnInteractiveChild(e)) return;
                               onRowClick(row, e);
+                            }
+                          : undefined
+                      }
+                      onAuxClick={
+                        onRowAuxClick
+                          ? (e) => {
+                              if (isClickOnInteractiveChild(e)) return;
+                              onRowAuxClick(row, e);
                             }
                           : undefined
                       }

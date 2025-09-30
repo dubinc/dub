@@ -3,6 +3,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -84,10 +85,15 @@ export const PATCH = withWorkspace(
         0, // Ensure the amount is not negative
       );
 
-      const reward = await determinePartnerReward({
-        event: "sale",
+      const programEnrollment = await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId,
+        includeSaleReward: true,
+      });
+
+      const reward = determinePartnerReward({
+        event: "sale",
+        programEnrollment,
       });
 
       if (!reward) {
@@ -107,17 +113,20 @@ export const PATCH = withWorkspace(
       });
     }
 
+    const isRefunded = finalAmount === 0 || finalEarnings === 0;
+
     const updatedCommission = await prisma.commission.update({
       where: {
         id: commission.id,
       },
       data: {
-        amount: finalAmount,
-        earnings: finalEarnings,
-        status,
-        // need to update payoutId to null if the commission has no earnings
-        // or is being updated to refunded, duplicate, canceled, or fraudulent
-        ...(finalEarnings === 0 || status ? { payoutId: null } : {}),
+        // if the sale/commission is fully refunded, we don't need to update the amount or earnings
+        // we just update status to refunded and exclude it from the payout
+        // same goes for updating status to refunded, duplicate, canceled, or fraudulent
+        amount: isRefunded ? undefined : finalAmount,
+        earnings: isRefunded ? undefined : finalEarnings,
+        status: status ?? (isRefunded ? "refunded" : undefined),
+        ...(status || isRefunded ? { payoutId: null } : {}),
       },
       include: {
         customer: true,

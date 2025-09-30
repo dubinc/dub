@@ -15,9 +15,7 @@ import {
   LinkedIn,
   MicrophoneFill,
   Php,
-  ProductHunt,
   Python,
-  Raycast,
   Ruby,
   Toggle2Fill,
   Twitter,
@@ -26,7 +24,6 @@ import {
   YouTube,
 } from "./icons";
 import { DubApiIcon } from "./icons/dub-api";
-import { Elxo } from "./icons/elxo";
 import { Logo } from "./logo";
 
 export type NavItemChild = {
@@ -44,24 +41,28 @@ export type NavItemChildren = (
 
 export const FEATURES_LIST = [
   {
+    id: "links",
     title: "Dub Links",
     description: "Short links with superpowers",
     icon: DubLinksIcon,
     href: "/links",
   },
   {
+    id: "partners",
     title: "Dub Partners",
     description: "Grow your revenue with partnerships",
     icon: DubPartnersIcon,
     href: "/partners",
   },
   {
+    id: "analytics",
     title: "Dub Analytics",
     description: "Powerful real-time analytics",
     icon: DubAnalyticsIcon,
     href: "/analytics",
   },
   {
+    id: "api",
     title: "Dub API",
     description: "Programmatic link creation at scale",
     icon: DubApiIcon,
@@ -72,30 +73,6 @@ export const FEATURES_LIST = [
     description: "Connect Dub with your favorite tools",
     icon: Toggle2Fill,
     href: "/integrations",
-  },
-];
-
-export const CUSTOMER_STORIES = [
-  {
-    icon: Raycast,
-    iconClassName: "group-hover:text-[#FF6363]",
-    title: "Raycast",
-    description: "Programmatic link sharing",
-    href: "/customers/raycast",
-  },
-  {
-    icon: ProductHunt,
-    iconClassName: "group-hover:text-[#FF6154]",
-    title: "Product Hunt",
-    description: "Unlocking new growth",
-    href: "/customers/product-hunt",
-  },
-  {
-    icon: Elxo,
-    iconClassName: "group-hover:text-[#353D7C]",
-    title: "Elxo",
-    description: "Overcoming API latency",
-    href: "/customers/elxo",
   },
 ];
 
@@ -219,11 +196,14 @@ export const COMPARE_PAGES = [
 ];
 
 export const LEGAL_PAGES = [
-  { name: "Privacy", slug: "privacy" },
-  { name: "Terms", slug: "terms" },
+  { name: "Affiliate Program Terms", slug: "affiliates" },
   { name: "DPA", slug: "dpa" },
-  { name: "Subprocessors", slug: "subprocessors" },
+  { name: "Partner Terms", slug: "partners" },
+  { name: "Privacy Policy", slug: "privacy" },
   { name: "Report Abuse", slug: "abuse" },
+  { name: "SLA", slug: "sla" },
+  { name: "Subprocessors", slug: "subprocessors" },
+  { name: "Terms of Service", slug: "terms" },
 ];
 
 export const SOCIAL_LINKS = [

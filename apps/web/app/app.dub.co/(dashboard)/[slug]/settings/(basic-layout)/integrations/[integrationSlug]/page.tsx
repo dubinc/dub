@@ -1,24 +1,21 @@
 import { prisma } from "@dub/prisma";
-import { notFound, redirect } from "next/navigation";
+import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src";
+import { redirect } from "next/navigation";
 import IntegrationPageClient from "./page-client";
 
 export const revalidate = 0;
 
-export default async function IntegrationPage({
-  params,
-}: {
-  params: { slug: string; integrationSlug: string };
-}) {
+export default async function IntegrationPage(
+  props: {
+    params: Promise<{ slug: string; integrationSlug: string }>;
+  }
+) {
+  const params = await props.params;
   const integration = await prisma.integration.findUnique({
     where: {
       slug: params.integrationSlug,
     },
     include: {
-      _count: {
-        select: {
-          installations: true,
-        },
-      },
       installations: {
         where: {
           project: {
@@ -44,11 +41,10 @@ export default async function IntegrationPage({
     },
   });
 
-  if (!integration) {
-    notFound();
-  }
-
-  if (integration.comingSoon) {
+  if (
+    !integration ||
+    (integration.comingSoon && integration.id !== HUBSPOT_INTEGRATION_ID)
+  ) {
     redirect(`/${params.slug}/settings/integrations`);
   }
 
@@ -60,6 +56,10 @@ export default async function IntegrationPage({
 
   const credentials = installed
     ? integration.installations[0]?.credentials
+    : undefined;
+
+  const settings = installed
+    ? integration.installations[0]?.settings
     : undefined;
 
   // TODO:
@@ -74,7 +74,6 @@ export default async function IntegrationPage({
         integration={{
           ...integration,
           screenshots: integration.screenshots as string[],
-          installations: integration._count.installations,
           installed: installed
             ? {
                 id: integration.installations[0].id,
@@ -88,6 +87,7 @@ export default async function IntegrationPage({
               }
             : null,
           credentials,
+          settings,
           webhookId,
         }}
       />

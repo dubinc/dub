@@ -273,11 +273,32 @@ export const PLAN_COMPARE_FEATURES: {
       {
         check: {
           default: false,
+          business: true,
           advanced: true,
           enterprise: true,
         },
-        text: "White-labeling support",
-        href: "https://dub.co/docs/partners/white-labeling",
+        text: ({ plan }) => (
+          <>
+            <strong>
+              {plan.limits.groups === 0
+                ? "No"
+                : plan.limits.groups === INFINITY_NUMBER
+                  ? "Unlimited"
+                  : nFormatter(plan.limits.groups)}
+            </strong>{" "}
+            partner groups
+          </>
+        ),
+        href: "https://dub.co/help/article/partner-groups",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Embedded referral dashboard",
+        href: "https://dub.co/docs/partners/embedded-referrals",
       },
       {
         check: {
@@ -287,6 +308,14 @@ export const PLAN_COMPARE_FEATURES: {
         },
         text: "Partners API",
         href: "https://dub.co/docs/api-reference/endpoint/create-a-partner",
+      },
+      {
+        check: {
+          default: false,
+          advanced: true,
+          enterprise: true,
+        },
+        text: "Messaging center",
       },
       {
         check: {

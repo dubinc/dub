@@ -52,7 +52,11 @@ export class IntegrationHarness {
       workspace,
     };
 
-    return { ...this.resources, http: this.http };
+    return {
+      ...this.resources,
+      http: this.http,
+      env: this.env,
+    };
   }
 
   // Delete link
@@ -91,6 +95,15 @@ export class IntegrationHarness {
   public async deleteFolder(id: string) {
     await this.http.delete({
       path: `/folders/${id}`,
+    });
+  }
+
+  // Delete bounty
+  public async deleteBounty(id: string) {
+    if (!id) return;
+
+    await this.http.delete({
+      path: `/bounties/${id}`,
     });
   }
 }

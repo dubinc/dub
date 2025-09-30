@@ -1,68 +1,106 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { bulkApprovePartners } from "@/lib/partners/bulk-approve-partners";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { triggerWorkflows } from "@/lib/cron/qstash-workflow";
 import { bulkApprovePartnersSchema } from "@/lib/zod/schemas/partners";
-import { ProgramWithLanderDataSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 // Approve partners applications in bulk
-// A referral link will be created for each partner
 export const bulkApprovePartnersAction = authActionClient
   .schema(bulkApprovePartnersSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
+    const { partnerIds, groupId } = parsedInput;
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    let { partnerIds } = parsedInput;
-
-    const program = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      include: {
-        rewards: true,
-        discounts: true,
-        partners: {
-          where: {
-            status: "pending",
-            partnerId: {
-              in: partnerIds,
-            },
-          },
-          include: {
-            partner: {
-              include: {
-                users: {
-                  where: {
-                    notificationPreferences: {
-                      applicationApproved: true,
-                    },
-                  },
-                  include: {
-                    user: true,
-                  },
-                },
+    const { partners: programEnrollments, ...program } =
+      await prisma.program.findUniqueOrThrow({
+        where: {
+          id: programId,
+        },
+        include: {
+          partners: {
+            where: {
+              status: "pending",
+              partnerId: {
+                in: partnerIds,
               },
             },
           },
         },
+      });
+
+    const group = await getGroupOrThrow({
+      programId: program.id,
+      groupId: groupId ?? program.defaultGroupId,
+    });
+
+    // Approve the enrollments
+    await prisma.programEnrollment.updateMany({
+      where: {
+        id: {
+          in: programEnrollments.map(({ id }) => id),
+        },
+      },
+      data: {
+        status: "approved",
+        createdAt: new Date(),
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
       },
     });
 
-    const programWithLanderData = ProgramWithLanderDataSchema.parse(program);
+    waitUntil(
+      (async () => {
+        // Refetch the updated program enrollments with the partner
+        const updatedEnrollments = await prisma.programEnrollment.findMany({
+          where: {
+            id: {
+              in: programEnrollments.map(({ id }) => id),
+            },
+          },
+          include: {
+            partner: true,
+          },
+        });
 
-    const { rewards, discount } =
-      getProgramApplicationRewardsAndDiscount(program);
+        await Promise.allSettled([
+          recordAuditLog(
+            updatedEnrollments.map(({ partner }) => ({
+              workspaceId: workspace.id,
+              programId: program.id,
+              action: "partner_application.approved",
+              description: `Partner application approved for ${partner.id}`,
+              actor: user,
+              targets: [
+                {
+                  type: "partner",
+                  id: partner.id,
+                  metadata: partner,
+                },
+              ],
+            })),
+          ),
 
-    await bulkApprovePartners({
-      workspace,
-      program: programWithLanderData,
-      programEnrollments: program.partners,
-      rewards,
-      discount,
-      user,
-    });
+          triggerWorkflows(
+            updatedEnrollments.map(({ partnerId, programId }) => ({
+              workflowId: "partner-approved",
+              body: {
+                programId,
+                partnerId,
+                userId: user.id,
+              },
+            })),
+          ),
+        ]);
+      })(),
+    );
   });

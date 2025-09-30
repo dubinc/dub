@@ -17,16 +17,18 @@ model Reward {
   type        RewardStructure @default(percentage)
   amount      Int             @default(0)
   maxDuration Int? // in months (0 -> not recurring, null -> infinite)
-  maxAmount   Int? // how much a partner can receive payouts (in cents)
-  default     Boolean         @default(false)
   modifiers   Json?           @db.Json
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
 
-  program          Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  clickEnrollments ProgramEnrollment[] @relation("ClickRewardEnrollments")
-  leadEnrollments  ProgramEnrollment[] @relation("LeadRewardEnrollments")
-  saleEnrollments  ProgramEnrollment[] @relation("SaleRewardEnrollments")
+  program           Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  clickEnrollments  ProgramEnrollment[] @relation("ClickRewardEnrollments")
+  leadEnrollments   ProgramEnrollment[] @relation("LeadRewardEnrollments")
+  saleEnrollments   ProgramEnrollment[] @relation("SaleRewardEnrollments")
+  clickPartnerGroup PartnerGroup?       @relation("ClickReward")
+  leadPartnerGroup  PartnerGroup?       @relation("LeadReward")
+  salePartnerGroup  PartnerGroup?       @relation("SaleReward")
+  commissions       Commission[]
 
   @@index([programId, event])
   @@index(event) // used in aggregate-clicks cron job

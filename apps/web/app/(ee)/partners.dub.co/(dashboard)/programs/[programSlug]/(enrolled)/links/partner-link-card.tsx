@@ -105,8 +105,8 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   }, [timeseries]);
 
   const partnerLink = constructPartnerLink({
-    program: programEnrollment?.program,
-    linkKey: link.key,
+    group: programEnrollment?.group,
+    link,
   });
 
   return (

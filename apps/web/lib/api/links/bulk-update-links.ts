@@ -54,8 +54,8 @@ export async function bulkUpdateLinks(
               ? `${R2_URL}/images/${linkIds[0]}_${imageUrlNonce}`
               : image,
           expiresAt: expiresAt ? new Date(expiresAt) : expiresAt,
-          geo: geo === null ? Prisma.JsonNull : geo,
-          testVariants: testVariants === null ? Prisma.JsonNull : testVariants,
+          geo: geo === null ? Prisma.DbNull : geo,
+          testVariants: testVariants === null ? Prisma.DbNull : testVariants,
 
           ...(url && getParamsFromURL(url)),
           // Associate tags by tagNames

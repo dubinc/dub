@@ -82,6 +82,16 @@ const Form = () => {
           "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
           pending && "bg-neutral-100",
         )}
+        onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
+          // remove mailto: on paste
+          e.preventDefault();
+          const text = e.clipboardData.getData("text/plain");
+          if (text.startsWith("mailto:")) {
+            e.currentTarget.value = text.replace("mailto:", "");
+          } else {
+            e.currentTarget.value = text;
+          }
+        }}
         placeholder="stey@vercel.com"
         aria-invalid="true"
       />

@@ -1,10 +1,10 @@
-import { prisma } from "@dub/prisma";
-import { EventType, ProgramEnrollment, Reward } from "@dub/prisma/client";
+import { EventType, Link, Reward } from "@dub/prisma/client";
 import { RewardContext } from "../types";
 import {
   rewardConditionsArraySchema,
   RewardSchema,
 } from "../zod/schemas/rewards";
+import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { evaluateRewardConditions } from "./evaluate-reward-conditions";
 
 const REWARD_EVENT_COLUMN_MAPPING = {
@@ -13,40 +13,41 @@ const REWARD_EVENT_COLUMN_MAPPING = {
   [EventType.sale]: "saleReward",
 };
 
-export const determinePartnerReward = async ({
+interface ProgramEnrollmentWithReward {
+  totalCommissions: number;
+  clickReward?: Reward | null;
+  leadReward?: Reward | null;
+  saleReward?: Reward | null;
+  links?: Link[] | null;
+}
+
+export const determinePartnerReward = ({
   event,
-  partnerId,
-  programId,
+  programEnrollment,
   context,
 }: {
   event: EventType;
-  partnerId: string;
-  programId: string;
-  context?: RewardContext;
+  programEnrollment: ProgramEnrollmentWithReward;
+  context?: RewardContext; // additional reward context (e.g. customer.country, sale.productId, etc.)
 }) => {
-  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
-
-  const partnerEnrollment = (await prisma.programEnrollment.findUnique({
-    where: {
-      partnerId_programId: {
-        partnerId,
-        programId,
-      },
-    },
-    include: {
-      [rewardIdColumn]: true,
-    },
-  })) as (ProgramEnrollment & { [key: string]: Reward | null }) | null;
-
-  if (!partnerEnrollment) {
-    return null;
-  }
-
-  const partnerReward = partnerEnrollment[rewardIdColumn];
+  let partnerReward: Reward =
+    programEnrollment[REWARD_EVENT_COLUMN_MAPPING[event]];
 
   if (!partnerReward) {
     return null;
   }
+
+  // Add the links metrics to the context
+  const partnerLinksStats = aggregatePartnerLinksStats(programEnrollment.links);
+
+  context = {
+    ...context,
+    partner: {
+      ...context?.partner,
+      ...partnerLinksStats,
+      totalCommissions: programEnrollment.totalCommissions,
+    },
+  };
 
   if (partnerReward.modifiers && context) {
     const modifiers = rewardConditionsArraySchema.safeParse(
@@ -55,18 +56,22 @@ export const determinePartnerReward = async ({
 
     // Parse the conditions before evaluating them
     if (modifiers.success) {
-      const matchingCondition = evaluateRewardConditions({
+      const matchedCondition = evaluateRewardConditions({
         conditions: modifiers.data,
         context,
       });
 
-      if (matchingCondition) {
-        partnerReward.amount = matchingCondition.amount;
-
-        console.log("Matching condition found", {
-          matchingCondition: JSON.stringify(matchingCondition, null, 2),
-          context: JSON.stringify(context, null, 2),
-        });
+      if (matchedCondition) {
+        partnerReward = {
+          ...partnerReward,
+          // Override the reward amount, type and max duration with the matched condition
+          amount: matchedCondition.amount,
+          type: matchedCondition.type || partnerReward.type,
+          maxDuration:
+            matchedCondition.maxDuration !== undefined
+              ? matchedCondition.maxDuration
+              : partnerReward.maxDuration,
+        };
       }
     }
   }

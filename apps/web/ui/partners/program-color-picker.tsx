@@ -1,12 +1,10 @@
 "use client";
 
+import { RAINBOW_CONIC_GRADIENT } from "@/ui/colors";
 import { Popover, Tooltip } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { CSSProperties, useState } from "react";
 import { HexColorInput } from "react-colorful";
-
-const RAINBOW_CONIC_GRADIENT =
-  "conic-gradient(in hsl, #ee535d 0deg, #e9d988 90deg, #9fe0b8 180deg, #bf87e4 270deg, #ee535d 360deg)";
 
 const COLORS = [
   { color: "#737373", name: "Gray" },

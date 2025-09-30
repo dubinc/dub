@@ -7,14 +7,14 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PartnerBanner } from "../partner-banner";
 
-export default async function LoginPage({
-  params: { programSlug },
-}: {
-  params: { programSlug?: string };
+export default async function LoginPage(props: {
+  params: Promise<{ programSlug?: string }>;
 }) {
+  const { programSlug } = await props.params;
+
   if (programSlug === "framer") {
     return (
-      <AuthLayout showTerms>
+      <AuthLayout showTerms="partners">
         <div className="mx-auto my-10 flex w-full max-w-sm flex-col gap-8">
           <div className="animate-slide-up-fade relative flex w-auto flex-col items-center [--offset:10px] [animation-duration:1.3s] [animation-fill-mode:both]">
             <img
@@ -56,7 +56,7 @@ export default async function LoginPage({
   return (
     <div className="relative">
       {program && <PartnerBanner program={program} />}
-      <AuthLayout showTerms>
+      <AuthLayout showTerms="partners">
         <div className="w-full max-w-sm">
           <h1 className="text-center text-xl font-semibold">
             Log in to your Dub Partner account

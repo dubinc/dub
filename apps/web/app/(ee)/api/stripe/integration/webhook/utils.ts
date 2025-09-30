@@ -1,12 +1,15 @@
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { stripeAppClient } from "@/lib/stripe";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
+import { WebhookPartner } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
+import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -72,7 +75,7 @@ export async function createNewCustomer(event: Stripe.Event) {
     // Record lead
     recordLead(leadData),
 
-    // update link leads count
+    // update link leads count + lastLeadAt date
     prisma.link.update({
       where: {
         id: linkId,
@@ -81,6 +84,7 @@ export async function createNewCustomer(event: Stripe.Event) {
         leads: {
           increment: 1,
         },
+        lastLeadAt: new Date(),
       },
       include: includeTags,
     }),
@@ -98,8 +102,9 @@ export async function createNewCustomer(event: Stripe.Event) {
     }),
   ]);
 
+  let webhookPartner: WebhookPartner | undefined;
   if (link.programId && link.partnerId) {
-    await createPartnerCommission({
+    const createdCommission = await createPartnerCommission({
       event: "lead",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -113,19 +118,37 @@ export async function createNewCustomer(event: Stripe.Event) {
         },
       },
     });
+    webhookPartner = createdCommission?.webhookPartner;
   }
 
   waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "lead.created",
-      workspace,
-      data: transformLeadEventData({
-        ...clickData,
-        eventName,
-        link: linkUpdated,
-        customer,
+    Promise.allSettled([
+      sendWorkspaceWebhook({
+        trigger: "lead.created",
+        workspace,
+        data: transformLeadEventData({
+          ...clickData,
+          eventName,
+          link: linkUpdated,
+          customer,
+          partner: webhookPartner,
+          metadata: null,
+        }),
       }),
-    }),
+
+      link.programId &&
+        link.partnerId &&
+        executeWorkflows({
+          trigger: WorkflowTrigger.leadRecorded,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              leads: 1,
+            },
+          },
+        }),
+    ]),
   );
 
   return `New Dub customer created: ${customer.id}. Lead event recorded: ${leadData.event_id}`;

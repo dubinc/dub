@@ -1,5 +1,6 @@
 "use client";
 
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -85,7 +86,7 @@ function WorkspaceLinks() {
     setSelectedFilter,
   } = useLinkFilters();
 
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
   const { isMegaFolder } = useIsMegaFolder();
 
   const { isLoading } = useFolderPermissions();
@@ -393,9 +394,9 @@ function ImportOption({
   children: ReactNode;
   onClick: () => void;
 }) {
-  const { slug, exceededLinks, nextPlan } = useWorkspace();
+  const { slug, exceededLinks, plan, nextPlan } = useWorkspace();
 
-  return exceededLinks ? (
+  return exceededLinks && plan !== "enterprise" ? (
     <Tooltip
       content={
         <TooltipContent

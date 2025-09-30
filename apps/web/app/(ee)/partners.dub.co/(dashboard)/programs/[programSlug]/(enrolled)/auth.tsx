@@ -29,14 +29,5 @@ export function ProgramEnrollmentAuth({
     return <UnapprovedProgramPage programEnrollment={programEnrollment} />;
   }
 
-  // Redirect to /links if no links found for a program enrollment
-  if (
-    programEnrollment &&
-    programEnrollment.links?.length === 0 &&
-    !pathname.endsWith("/links")
-  ) {
-    redirect(`/programs/${programSlug}/links`);
-  }
-
   return children;
 }

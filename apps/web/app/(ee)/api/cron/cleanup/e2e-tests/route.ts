@@ -1,9 +1,8 @@
-import { markDomainAsDeleted } from "@/lib/api/domains";
+import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkDeleteLinks } from "@/lib/api/links/bulk-delete-links";
 import { bulkDeletePartners } from "@/lib/api/partners/bulk-delete-partners";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { unsubscribe } from "@dub/email/resend";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
@@ -147,13 +146,6 @@ export async function GET(req: Request) {
           },
         },
       });
-
-      for (const user of users) {
-        if (user.email) {
-          const res = await unsubscribe({ email: user.email });
-          console.log("Unsubscribed user", user.email, res);
-        }
-      }
     }
 
     console.log("Removed the following items.", {

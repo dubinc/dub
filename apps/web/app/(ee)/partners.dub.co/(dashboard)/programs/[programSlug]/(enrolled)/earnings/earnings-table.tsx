@@ -154,10 +154,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         accessorKey: "amount",
         cell: ({ row }) =>
           row.original.amount
-            ? currencyFormatter(row.original.amount / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })
+            ? currencyFormatter(row.original.amount / 100)
             : "-",
       },
       {
@@ -167,10 +164,7 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         cell: ({ row }) => {
           const commission = row.original;
 
-          const earnings = currencyFormatter(commission.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          const earnings = currencyFormatter(commission.earnings / 100);
 
           if (commission.description) {
             const reason =
@@ -213,12 +207,12 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               icon={null}
               variant={badge.variant}
               tooltip={badge.tooltip({
+                name: programEnrollment?.program.name ?? "Support",
+                slug: programEnrollment?.program.slug ?? "support",
                 holdingPeriodDays:
                   programEnrollment?.program.holdingPeriodDays ?? 0,
                 minPayoutAmount:
                   programEnrollment?.program.minPayoutAmount ?? 0,
-                supportEmail:
-                  programEnrollment?.program.supportEmail ?? "support@dub.co",
               })}
             >
               {badge.label}

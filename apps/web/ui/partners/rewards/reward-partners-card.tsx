@@ -1,84 +1,53 @@
 import usePartners from "@/lib/swr/use-partners";
-import { EnrolledPartnerProps, RewardProps } from "@/lib/types";
-import { ChevronRight, Users } from "@dub/ui/icons";
-import { cn, OG_AVATAR_URL, pluralize } from "@dub/utils";
-import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
-import { useWatch } from "react-hook-form";
-import { useAddEditRewardForm } from "./add-edit-reward-sheet";
+import usePartnersCount from "@/lib/swr/use-partners-count";
+import { EnrolledPartnerProps } from "@/lib/types";
+import { Button, ChevronRight, Table, useTable } from "@dub/ui";
+import { Users } from "@dub/ui/icons";
+import { cn, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
+import { motion } from "motion/react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useState } from "react";
 import { RewardIconSquare } from "./reward-icon-square";
-import { RewardPartnersTable } from "./reward-partners-table";
 
-export function RewardPartnersCard({
-  isDefault,
-  rewardPartners,
-  isLoadingRewardPartners,
-  reward,
-}: {
-  isDefault?: boolean;
-  rewardPartners?: EnrolledPartnerProps[];
-  isLoadingRewardPartners: boolean;
-  reward?: RewardProps;
-}) {
-  const { control, setValue, getValues } = useAddEditRewardForm();
+export function RewardPartnersCard({ groupId }: { groupId: string }) {
+  const { partners } = usePartners({
+    query: { groupId, pageSize: 10 },
+  });
+  const { partnersCount } = usePartnersCount<number | undefined>({ groupId });
 
-  const { event, includedPartnerIds, excludedPartnerIds } = {
-    ...useWatch({
-      control,
-    }),
-    ...getValues(),
-  };
-
-  const [isExpanded, setIsExpanded] = useState<boolean | null>(
-    isDefault ? false : null,
-  );
-
-  // Once everything's loaded, expand the card if it's not a default reward and has no partners selected
-  useEffect(() => {
-    if (isExpanded !== null || isLoadingRewardPartners) return;
-
-    setIsExpanded(!isDefault && !rewardPartners?.length);
-  }, [isExpanded, isLoadingRewardPartners, isDefault, rewardPartners]);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
 
   return (
     <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">
       <button
         type="button"
         onClick={() => setIsExpanded((e) => !e)}
-        disabled={isExpanded === null}
-        className="flex w-full items-center justify-between gap-4 p-2.5 pr-4"
+        disabled={partnersCount === undefined}
+        className={cn(
+          "flex w-full items-center justify-between gap-4 p-2.5 pr-4",
+          partnersCount === undefined && "cursor-not-allowed",
+        )}
       >
         <div className="text-content-emphasis flex items-center gap-2.5 font-medium">
           <RewardIconSquare icon={Users} />
-          {isExpanded === null ? (
+          {partnersCount === undefined ? (
             <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
           ) : (
-            <>
-              {isDefault ? (
-                <span>
-                  To all partners
-                  {!!excludedPartnerIds?.length && (
-                    <>
-                      , excluding{" "}
-                      <PartnerPreviewOrCount
-                        ids={excludedPartnerIds}
-                        rewardPartners={rewardPartners}
-                        isExpanded={isExpanded}
-                      />
-                    </>
-                  )}
-                </span>
+            <span>
+              {partnersCount === 0 ? (
+                "No partners selected"
               ) : (
-                <span>
+                <>
                   To{" "}
                   <PartnerPreviewOrCount
-                    ids={includedPartnerIds || []}
-                    rewardPartners={rewardPartners}
+                    previewPartners={partners?.slice(0, 3) || []}
+                    partnersCount={partnersCount}
                     isExpanded={isExpanded}
                   />
-                </span>
+                </>
               )}
-            </>
+            </span>
           )}
         </div>
         <ChevronRight
@@ -88,6 +57,7 @@ export function RewardPartnersCard({
           )}
         />
       </button>
+
       <motion.div
         className={cn(
           "overflow-hidden transition-opacity duration-200",
@@ -96,78 +66,115 @@ export function RewardPartnersCard({
         initial={false}
         animate={{ height: isExpanded ? "auto" : 0 }}
         transition={{ duration: 0.2 }}
-        {...{
-          inert: isExpanded ? undefined : "",
-        }}
       >
         <div className="border-border-subtle -mx-px rounded-xl border-x border-t bg-neutral-50 p-2.5">
-          <div className="space-y-4">
-            <RewardPartnersTable
-              event={event}
-              rewardId={reward?.id}
-              partnerIds={
-                (isDefault ? excludedPartnerIds : includedPartnerIds) || []
-              }
-              setPartnerIds={(value: string[]) => {
-                if (isDefault) setValue("excludedPartnerIds", value);
-                else setValue("includedPartnerIds", value);
-              }}
-              rewardPartners={rewardPartners || []}
-              loading={isLoadingRewardPartners}
-              mode={isDefault ? "exclude" : "include"}
-            />
-          </div>
+          <PartnersCompactTable
+            partners={partners}
+            partnersCount={partnersCount || 0}
+            groupId={groupId}
+          />
         </div>
       </motion.div>
     </div>
   );
 }
 
-function PartnerPreviewOrCount({
-  ids,
-  rewardPartners,
-  isExpanded,
+function PartnersCompactTable({
+  partners,
+  partnersCount,
+  groupId,
 }: {
-  ids: string[];
-  rewardPartners?: EnrolledPartnerProps[];
-  isExpanded: boolean;
+  partners?: EnrolledPartnerProps[];
+  partnersCount: number;
+  groupId: string;
 }) {
-  const count = ids.length;
-  const showAvatars = !isExpanded && count > 0;
+  const { slug } = useParams<{ slug: string }>();
 
-  const firstThreeIds = ids.slice(0, 3);
-  const partnerIdsToFetch = firstThreeIds.filter(
-    (id) => !rewardPartners?.find((p) => p.id === id),
-  );
-
-  const { partners } = usePartners({
-    query: {
-      partnerIds: partnerIdsToFetch,
-    },
-    enabled: partnerIdsToFetch.length > 0,
+  const { table, ...tableProps } = useTable({
+    data: partners || [],
+    columns: [
+      {
+        header: "Partner",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <img
+              src={row.original.image || `${OG_AVATAR_URL}${row.original.name}`}
+              alt={row.original.name}
+              className="size-6 shrink-0 rounded-full"
+            />
+            <span className="truncate text-sm text-neutral-700">
+              {row.original.name}
+            </span>
+          </div>
+        ),
+        size: 180,
+        minSize: 180,
+        maxSize: 180,
+      },
+      {
+        header: "Email",
+        cell: ({ row }) => (
+          <div className="truncate text-sm text-neutral-600">
+            {row.original.email}
+          </div>
+        ),
+        size: 160,
+        minSize: 160,
+        maxSize: 160,
+      },
+    ],
+    thClassName: "border-l-0",
+    tdClassName: (columnId: string) =>
+      cn("border-l-0", columnId !== "menu" && "max-w-0 truncate"),
+    resourceName: (p: boolean) => `partner${p ? "s" : ""}`,
+    rowCount: partners?.length || 0,
   });
 
-  const previewPartners = useMemo(
-    () =>
-      firstThreeIds.map((id) => {
-        const partner = [...(rewardPartners || []), ...(partners || [])].find(
-          (p) => p.id === id,
-        );
-
-        return partner
-          ? {
-              id,
-              image: partner.image || `${OG_AVATAR_URL}${partner.name}`,
-              name: partner.name,
-            }
-          : {
-              id,
-              image: OG_AVATAR_URL,
-              name: "Partner",
-            };
-      }),
-    [firstThreeIds, rewardPartners, partners],
+  return (
+    <div className="relative">
+      {partners?.length ? (
+        <>
+          <Table
+            {...tableProps}
+            table={table}
+            containerClassName="border"
+            scrollWrapperClassName="overflow-x-hidden"
+          />
+          {partnersCount > 10 && (
+            <div className="mt-2 flex justify-end">
+              <Link
+                href={`/${slug}/program/partners?groupId=${groupId}`}
+                target="_blank"
+              >
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="h-7 w-fit rounded-lg px-2.5"
+                  text="View all"
+                />
+              </Link>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="text-content-muted flex h-24 items-center justify-center text-sm">
+          No partners found.
+        </div>
+      )}
+    </div>
   );
+}
+
+function PartnerPreviewOrCount({
+  previewPartners,
+  partnersCount,
+  isExpanded,
+}: {
+  previewPartners: EnrolledPartnerProps[];
+  partnersCount: number;
+  isExpanded: boolean;
+}) {
+  const showAvatars = !isExpanded && partnersCount > 0;
 
   return (
     <span className="relative">
@@ -177,8 +184,10 @@ function PartnerPreviewOrCount({
           showAvatars && "pointer-events-none -translate-y-0.5 opacity-0",
         )}
       >
-        <strong className="font-semibold">{count}</strong>{" "}
-        {pluralize("partner", count)}
+        <strong className="font-semibold">
+          {nFormatter(partnersCount, { full: true })}
+        </strong>{" "}
+        {partnersCount && pluralize("partner", partnersCount)}
       </span>
 
       <span
@@ -190,14 +199,16 @@ function PartnerPreviewOrCount({
         {previewPartners.map(({ id, name, image }) => (
           <img
             key={id}
-            src={image}
+            src={image || `${OG_AVATAR_URL}${name}`}
             alt={`${name} avatar`}
             title={name}
             className="-ml-1.5 size-[1.125rem] shrink-0 rounded-full border border-white"
           />
         ))}
-        {count > 3 && (
-          <span className="text-content-subtle ml-1 text-xs">+{count - 3}</span>
+        {partnersCount > 3 && (
+          <span className="text-content-subtle ml-1 text-xs">
+            +{nFormatter(partnersCount - 3, { full: true })}
+          </span>
         )}
       </span>
     </span>

@@ -4,9 +4,11 @@ import { useShareDashboardModal } from "../modals/share-dashboard-modal";
 import { AnalyticsContext } from "./analytics-provider";
 
 export function ShareButton() {
-  const { domain, key } = useContext(AnalyticsContext);
+  const { domain, key, partnerPage } = useContext(AnalyticsContext);
 
-  return domain && key ? <ShareButtonInner domain={domain} _key={key} /> : null;
+  return domain && key && !partnerPage ? (
+    <ShareButtonInner domain={domain} _key={key} />
+  ) : null;
 }
 
 const ShareButtonInner = memo(

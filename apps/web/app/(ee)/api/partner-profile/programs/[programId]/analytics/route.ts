@@ -1,14 +1,14 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
+import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/analytics – get analytics for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program } = await getProgramEnrollmentOrThrow({
+    const { program, links } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
     });
@@ -16,28 +16,30 @@ export const GET = withPartnerProfile(
     let { linkId, domain, key, ...rest } =
       partnerProfileAnalyticsQuerySchema.parse(searchParams);
 
-    if (!linkId && domain && key) {
-      const link = await prisma.link.findUnique({
-        where: {
-          domain_key: {
-            domain,
-            key,
-          },
-        },
-      });
-
-      if (!link || link.partnerId !== partner.id) {
-        return NextResponse.json({ error: "Link not found" }, { status: 404 });
+    if (linkId) {
+      if (!links.some((link) => link.id === linkId)) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found",
+        });
+      }
+    } else if (domain && key) {
+      const foundLink = links.find(
+        (link) => link.domain === domain && link.key === key,
+      );
+      if (!foundLink) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found",
+        });
       }
 
-      linkId = link.id;
+      linkId = foundLink.id;
     }
 
     const response = await getAnalytics({
       ...rest,
-      linkId,
-      programId: program.id,
-      partnerId: partner.id,
+      ...(linkId ? { linkId } : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.createdAt,
     });
 

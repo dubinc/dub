@@ -1,23 +1,39 @@
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
+import { PartnerGroupProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { Prisma, Reward } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
 export async function getProgramEnrollmentOrThrow({
   partnerId,
   programId,
   includePartner = false,
-  includeRewards = false,
+  includeProgram = false,
+  includeClickReward = false,
+  includeLeadReward = false,
+  includeSaleReward = false,
   includeDiscount = false,
+  includeGroup = false,
+  includeWorkspace = false,
 }: {
   partnerId: string;
   programId: string;
   includePartner?: boolean;
-  includeRewards?: boolean;
+  includeProgram?: boolean;
+  includeClickReward?: boolean;
+  includeLeadReward?: boolean;
+  includeSaleReward?: boolean;
   includeDiscount?: boolean;
+  includeGroup?: boolean;
+  includeWorkspace?: boolean;
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
-    program: true,
+    program: includeWorkspace
+      ? {
+          include: {
+            workspace: true,
+          },
+        }
+      : true,
     links: {
       orderBy: {
         createdAt: "asc",
@@ -26,13 +42,23 @@ export async function getProgramEnrollmentOrThrow({
     ...(includePartner && {
       partner: true,
     }),
-    ...(includeRewards && {
+    ...(includeProgram && {
+      program: true,
+    }),
+    ...(includeClickReward && {
       clickReward: true,
+    }),
+    ...(includeLeadReward && {
       leadReward: true,
+    }),
+    ...(includeSaleReward && {
       saleReward: true,
     }),
     ...(includeDiscount && {
       discount: true,
+    }),
+    ...(includeGroup && {
+      partnerGroup: true,
     }),
   };
 
@@ -64,27 +90,8 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  const { links } = programEnrollment;
-
-  if (!links) {
-    throw new DubApiError({
-      code: "not_found",
-      message:
-        "You don't have a link for this program yet. Contact your program admin to get one.",
-    });
-  }
-
   return {
     ...programEnrollment,
-    ...(includeRewards && {
-      rewards: sortRewardsByEventOrder(
-        [
-          programEnrollment.clickReward,
-          programEnrollment.leadReward,
-          programEnrollment.saleReward,
-        ].filter((r): r is Reward => r !== null),
-      ),
-    }),
-    links,
+    group: programEnrollment.partnerGroup as PartnerGroupProps,
   };
 }

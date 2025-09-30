@@ -18,7 +18,7 @@ export function AnimatedEmptyState({
   className,
 }: {
   title: string;
-  description: string;
+  description: ReactNode;
   cardContent: ReactNode | ((index: number) => ReactNode);
   addButton?: ReactNode;
   pillContent?: string;
@@ -52,9 +52,9 @@ export function AnimatedEmptyState({
       {pillContent && <Badge variant="blueGradient">{pillContent}</Badge>}
       <div className="max-w-sm text-pretty text-center">
         <span className="text-base font-medium text-neutral-900">{title}</span>
-        <p className="mt-2 text-pretty text-sm text-neutral-500">
+        <div className="mt-2 text-pretty text-sm text-neutral-500">
           {description}
-        </p>
+        </div>
       </div>
       <div className="flex items-center gap-2">
         {addButton}

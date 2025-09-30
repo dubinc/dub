@@ -6,6 +6,7 @@ import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvents } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
@@ -125,7 +126,7 @@ export async function importCommissions(payload: ToltImportPayload) {
 
   if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email: workspaceUser.user.email,
+      to: workspaceUser.user.email,
       subject: "Tolt program imported",
       react: ProgramImported({
         email: workspaceUser.user.email,
@@ -210,17 +211,17 @@ async function createCommission({
     return;
   }
 
-  // Sale amount
-  let amount = Number(sale.amount);
+  // Sale amount (can potentially be null)
+  let saleAmount = Number(sale.revenue ?? 0);
 
   if (programCurrency.toUpperCase() !== "USD" && fxRates) {
     const { amount: convertedAmount } = convertCurrencyWithFxRates({
       currency: programCurrency,
-      amount,
+      amount: saleAmount,
       fxRates,
     });
 
-    amount = convertedAmount;
+    saleAmount = convertedAmount;
   }
 
   // Earnings
@@ -250,7 +251,7 @@ async function createCommission({
       },
       customerId: customerFound.id,
       type: "sale",
-      amount,
+      amount: saleAmount,
     },
   });
 
@@ -321,7 +322,7 @@ async function createCommission({
         partnerId: customerFound.link.partnerId,
         linkId: customerFound.linkId,
         customerId: customerFound.id,
-        amount,
+        amount: saleAmount,
         earnings,
         // TODO: allow custom "defaultCurrency" on workspace table in the future
         currency: "usd",
@@ -332,20 +333,21 @@ async function createCommission({
       },
     }),
 
-    recordSaleWithTimestamp({
-      ...clickData,
-      event_id: eventId,
-      event_name: "Invoice paid",
-      amount,
-      customer_id: customerFound.id,
-      payment_processor: "stripe",
-      // TODO: allow custom "defaultCurrency" on workspace table in the future
-      currency: "usd",
-      metadata: JSON.stringify(commission),
-      timestamp: new Date(sale.created_at).toISOString(),
-    }),
+    saleAmount > 0 &&
+      recordSaleWithTimestamp({
+        ...clickData,
+        event_id: eventId,
+        event_name: "Invoice paid",
+        amount: saleAmount,
+        customer_id: customerFound.id,
+        payment_processor: "stripe",
+        // TODO: allow custom "defaultCurrency" on workspace table in the future
+        currency: "usd",
+        metadata: JSON.stringify(commission),
+        timestamp: new Date(sale.created_at).toISOString(),
+      }),
 
-    // update link stats
+    // update link stats (if sale amount is greater than 0)
     prisma.link.update({
       where: {
         id: customerFound.linkId,
@@ -358,30 +360,37 @@ async function createCommission({
           conversions: {
             increment: 1,
           },
+          lastConversionAt: updateLinkStatsForImporter({
+            currentTimestamp: customerFound.link.lastConversionAt,
+            newTimestamp: new Date(commission.created_at),
+          }),
         }),
-        sales: {
-          increment: 1,
-        },
-        saleAmount: {
-          increment: amount,
-        },
+        ...(saleAmount > 0 && {
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: saleAmount,
+          },
+        }),
       },
     }),
 
-    // update customer stats
-    prisma.customer.update({
-      where: {
-        id: customerFound.id,
-      },
-      data: {
-        sales: {
-          increment: 1,
+    // update customer stats (if sale amount is greater than 0)
+    saleAmount > 0 &&
+      prisma.customer.update({
+        where: {
+          id: customerFound.id,
         },
-        saleAmount: {
-          increment: amount,
+        data: {
+          sales: {
+            increment: 1,
+          },
+          saleAmount: {
+            increment: saleAmount,
+          },
         },
-      },
-    }),
+      }),
   ]);
 
   await syncTotalCommissions({

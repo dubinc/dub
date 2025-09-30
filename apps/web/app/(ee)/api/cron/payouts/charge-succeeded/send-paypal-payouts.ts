@@ -1,6 +1,5 @@
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 
@@ -48,11 +47,11 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
 
   console.log("PayPal batch payout created", batchPayout);
 
-  const batchEmails = await resend?.batch.send(
+  const batchEmails = await sendBatchEmail(
     payouts
       .filter((payout) => payout.partner.email)
       .map((payout) => ({
-        from: VARIANT_TO_FROM_MAP.notifications,
+        variant: "notifications",
         to: payout.partner.email!,
         subject: "You've been paid!",
         react: PartnerPayoutProcessed({

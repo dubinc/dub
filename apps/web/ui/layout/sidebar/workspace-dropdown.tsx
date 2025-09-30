@@ -46,10 +46,10 @@ export function WorkspaceDropdown() {
     if (slug && workspaces && selectedWorkspace) {
       return {
         ...selectedWorkspace,
-        plan: isLegacyBusinessPlan(
-          selectedWorkspace.plan,
-          selectedWorkspace.payoutsLimit ?? 0,
-        )
+        plan: isLegacyBusinessPlan({
+          plan: selectedWorkspace.plan,
+          payoutsLimit: selectedWorkspace.payoutsLimit,
+        })
           ? "business (legacy)"
           : selectedWorkspace.plan,
         image:

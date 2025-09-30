@@ -1,14 +1,26 @@
 "use client";
 
-import { ALL_TOOLS, cn, createHref } from "@dub/utils";
+import { cn, createHref } from "@dub/utils";
+import { ChevronDown } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { useState } from "react";
 import { COMPARE_PAGES, FEATURES_LIST, LEGAL_PAGES } from "./content";
 import { DubStatusBadge } from "./dub-status-badge";
-import { Github, LinkedIn, ReferredVia, Twitter, YouTube } from "./icons";
+import {
+  DubProduct,
+  DubProductIcon,
+  Github,
+  LinkedIn,
+  ReferredVia,
+  Twitter,
+  YouTube,
+} from "./icons";
 import { MaxWidthWrapper } from "./max-width-wrapper";
+import { menuItemVariants } from "./menu-item";
 import { NavWordmark } from "./nav-wordmark";
+import { Popover } from "./popover";
 
 const socials = [
   {
@@ -35,12 +47,14 @@ const socials = [
 
 const navigation = {
   product: [
-    ...FEATURES_LIST.map(({ title, href }) => ({
-      name: title,
-      href,
-    })),
-    { name: "Dub Enterprise", href: "/enterprise" },
-    { name: "Pricing", href: "/pricing" },
+    ...FEATURES_LIST.filter(({ title }) => title !== "Dub Integrations").map(
+      ({ id, title, href }) => ({
+        id,
+        name: title,
+        href,
+      }),
+    ),
+    { id: null, name: "Dub Enterprise", href: "/enterprise" },
   ],
   solutions: [
     { name: "Marketing attribution", href: "/analytics" },
@@ -50,37 +64,44 @@ const navigation = {
   resources: [
     { name: "Docs", href: "/docs/introduction" },
     { name: "Help Center", href: "/help" },
-    { name: "Changelog", href: "/changelog" },
-    { name: "Blog", href: "/blog" },
-    { name: "Customers", href: "/customers" },
+    { name: "Integrations", href: "/integrations" },
+    { name: "Pricing", href: "/pricing" },
     {
       name: "Affiliates",
       href: "https://partners.dub.co/dub",
       target: "_blank",
     },
+  ],
+  company: [
     { name: "About", href: "/about" },
+    { name: "Blog", href: "/blog" },
     { name: "Careers", href: "/careers" },
+    { name: "Changelog", href: "/changelog" },
+    { name: "Customers", href: "/customers" },
     { name: "Brand", href: "/brand" },
     { name: "Contact", href: "/contact" },
+    { name: "Privacy", href: "/privacy" },
   ],
   compare: COMPARE_PAGES.map(({ name, slug }) => ({
     name,
     href: `/compare/${slug}`,
-  })),
-  legal: LEGAL_PAGES.map(({ name, slug }) => ({
-    name,
-    href: `/legal/${slug}`,
-  })),
-  tools: ALL_TOOLS.map(({ name, slug }) => ({
-    name,
-    href: `/tools/${slug}`,
-  })),
+    product: "links",
+  })).concat(
+    ["Rewardful", "PartnerStack", "FirstPromoter", "Tolt"].map((name) => ({
+      name,
+      href:
+        name === "Rewardful"
+          ? "/blog/dub-vs-rewardful"
+          : `/help/article/migrating-from-${name.toLowerCase()}`,
+      product: "partners",
+    })),
+  ),
 };
 
 const linkListHeaderClassName = "text-sm font-medium text-neutral-900";
 const linkListClassName = "flex flex-col mt-2.5 gap-3.5";
 const linkListItemClassName =
-  "flex items-center gap-1 text-sm text-neutral-500 hover:text-neutral-700 transition-colors duration-75";
+  "flex items-center gap-2 text-sm text-neutral-500 hover:text-neutral-700 transition-colors duration-75";
 
 export function Footer({
   staticDomain,
@@ -93,6 +114,8 @@ export function Footer({
   if (staticDomain) {
     domain = staticDomain;
   }
+
+  const [openPopover, setOpenPopover] = useState(false);
 
   return (
     <MaxWidthWrapper
@@ -152,6 +175,9 @@ export function Footer({
                           })}
                           className={linkListItemClassName}
                         >
+                          {item.id && (
+                            <DubProductIcon product={item.id as DubProduct} />
+                          )}
                           {item.name}
                         </Link>
                       </li>
@@ -192,7 +218,7 @@ export function Footer({
                           utm_content: item.name,
                         })}
                         target={item.target}
-                        className={linkListItemClassName}
+                        className={cn(linkListItemClassName, "gap-1")}
                       >
                         {item.name}
                         {item.target && <ReferredVia className="size-3.5" />}
@@ -205,9 +231,9 @@ export function Footer({
             <div className="md:grid md:grid-cols-2">
               <div className="grid gap-8">
                 <div>
-                  <h3 className={linkListHeaderClassName}>Compare</h3>
+                  <h3 className={linkListHeaderClassName}>Company</h3>
                   <ul role="list" className={linkListClassName}>
-                    {navigation.compare.map((item) => (
+                    {navigation.company.map((item) => (
                       <li key={item.name}>
                         <Link
                           href={createHref(item.href, domain, {
@@ -216,50 +242,57 @@ export function Footer({
                             utm_campaign: domain,
                             utm_content: item.name,
                           })}
-                          className={linkListItemClassName}
+                          className={cn(linkListItemClassName, "gap-1")}
                         >
                           {item.name}
                         </Link>
                       </li>
                     ))}
-                  </ul>
-                </div>
-                <div>
-                  <h3 className={linkListHeaderClassName}>Legal</h3>
-                  <ul role="list" className={linkListClassName}>
-                    {navigation.legal.map((item) => (
-                      <li key={item.name}>
-                        <Link
-                          href={createHref(item.href, domain, {
-                            utm_source: "Custom Domain",
-                            utm_medium: "Footer",
-                            utm_campaign: domain,
-                            utm_content: item.name,
-                          })}
-                          className={linkListItemClassName}
-                        >
-                          {item.name}
-                        </Link>
-                      </li>
-                    ))}
-                    <li>
-                      <a
-                        href="https://security.dub.co"
-                        target="_blank"
-                        rel="noreferrer"
-                        className={linkListItemClassName}
+                    <li className="-mt-1">
+                      <Popover
+                        content={
+                          <div className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+                            {LEGAL_PAGES.map((page) => (
+                              <Link
+                                key={page.name}
+                                href={createHref(
+                                  `/legal/${page.slug}`,
+                                  domain,
+                                  {
+                                    utm_source: "Custom Domain",
+                                    utm_medium: "Footer",
+                                    utm_campaign: domain,
+                                    utm_content: page.name,
+                                  },
+                                )}
+                                className={cn(
+                                  menuItemVariants({ variant: "default" }),
+                                  linkListItemClassName,
+                                  "justify-start font-normal",
+                                )}
+                              >
+                                {page.name}
+                              </Link>
+                            ))}
+                          </div>
+                        }
+                        openPopover={openPopover}
+                        setOpenPopover={setOpenPopover}
                       >
-                        Trust Center <ReferredVia className="size-3.5" />
-                      </a>
+                        <button className={linkListItemClassName}>
+                          Legal
+                          <ChevronDown className="size-3.5" />
+                        </button>
+                      </Popover>
                     </li>
                   </ul>
                 </div>
               </div>
 
               <div className="mt-10 md:mt-0">
-                <h3 className={linkListHeaderClassName}>Tools</h3>
+                <h3 className={linkListHeaderClassName}>Compare</h3>
                 <ul role="list" className={linkListClassName}>
-                  {navigation.tools.map((item) => (
+                  {navigation.compare.map((item) => (
                     <li key={item.name}>
                       <Link
                         href={createHref(item.href, domain, {
@@ -270,6 +303,7 @@ export function Footer({
                         })}
                         className={linkListItemClassName}
                       >
+                        <DubProductIcon product={item.product as DubProduct} />
                         {item.name}
                       </Link>
                     </li>

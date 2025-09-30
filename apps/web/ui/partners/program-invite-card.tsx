@@ -13,6 +13,7 @@ import { formatDateSmart, OG_AVATAR_URL } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export function ProgramInviteCard({
@@ -20,12 +21,14 @@ export function ProgramInviteCard({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
+  const router = useRouter();
   const { program } = programEnrollment;
 
   const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
     onSuccess: async () => {
       await mutatePrefix("/api/partner-profile/programs");
       toast.success("Program invite accepted!");
+      router.push(`/programs/${program.slug}`);
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
@@ -78,7 +81,6 @@ export function ProgramInviteCard({
             loading={isPending}
             onClick={async () =>
               await executeAsync({
-                partnerId: programEnrollment.partnerId,
                 programId: programEnrollment.programId,
               })
             }

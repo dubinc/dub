@@ -19,6 +19,7 @@ model Commission {
   id          String           @id @default(cuid())
   programId   String
   partnerId   String
+  rewardId    String?
   linkId      String?
   payoutId    String?
   invoiceId   String? // only for sales (idempotency key, each sale event is associated with a unique invoice)
@@ -35,11 +36,13 @@ model Commission {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  program  Program   @relation(fields: [programId], references: [id])
-  partner  Partner   @relation(fields: [partnerId], references: [id])
-  payout   Payout?   @relation(fields: [payoutId], references: [id])
-  link     Link?     @relation(fields: [linkId], references: [id])
-  customer Customer? @relation(fields: [customerId], references: [id])
+  program          Program           @relation(fields: [programId], references: [id])
+  partner          Partner           @relation(fields: [partnerId], references: [id])
+  payout           Payout?           @relation(fields: [payoutId], references: [id])
+  link             Link?             @relation(fields: [linkId], references: [id])
+  customer         Customer?         @relation(fields: [customerId], references: [id])
+  reward           Reward?           @relation(fields: [rewardId], references: [id])
+  bountySubmission BountySubmission?
 
   @@unique([invoiceId, programId])
   @@index([earnings, programId, partnerId, status])
@@ -49,4 +52,5 @@ model Commission {
   @@index(customerId)
   @@index(linkId)
   @@index(status)
+  @@index(rewardId)
 }

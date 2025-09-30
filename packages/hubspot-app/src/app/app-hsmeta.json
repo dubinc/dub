@@ -1,0 +1,35 @@
+{
+  "uid": "dub",
+  "type": "app",
+  "config": {
+    "description": "Track Hubspot leads/deal changes and auto-generate partner commissions on Dub – the modern affiliate platform & partner network built for SaaS.",
+    "name": "Dub Partners",
+    "distribution": "marketplace",
+    "auth": {
+      "type": "oauth",
+      "redirectUrls": [
+        "https://app.dub.co/api/hubspot/callback",
+        "https://preview.dub.co/api/hubspot/callback"
+      ],
+      "requiredScopes": [
+        "oauth",
+        "crm.objects.contacts.read",
+        "crm.objects.contacts.write",
+        "crm.objects.deals.read",
+        "crm.schemas.contacts.write"
+      ],
+      "optionalScopes": [],
+      "conditionallyRequiredScopes": []
+    },
+    "permittedUrls": {
+      "fetch": ["https://api.hubapi.com"],
+      "iframe": [],
+      "img": []
+    },
+    "support": {
+      "supportEmail": "support@dub.co",
+      "documentationUrl": "https://dub.co/docs/conversions/hubspot",
+      "supportUrl": "https://dub.co/contact"
+    }
+  }
+}

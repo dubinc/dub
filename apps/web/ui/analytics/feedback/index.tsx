@@ -1,8 +1,8 @@
 "use client";
 
 import { Button } from "@dub/ui";
-import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { submitFeedback } from "./action";

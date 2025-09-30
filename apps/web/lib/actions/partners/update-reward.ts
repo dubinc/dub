@@ -4,32 +4,19 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import {
-  REWARD_EVENT_COLUMN_MAPPING,
-  updateRewardSchema,
-} from "@/lib/zod/schemas/rewards";
+import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import { Reward } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
+import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
 
 export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    let {
-      rewardId,
-      amount,
-      maxDuration,
-      type,
-      includedPartnerIds,
-      excludedPartnerIds,
-      modifiers,
-    } = parsedInput;
-
-    includedPartnerIds = includedPartnerIds || [];
-    excludedPartnerIds = excludedPartnerIds || [];
+    const { rewardId, amount, maxDuration, type, description, modifiers } =
+      parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -38,35 +25,12 @@ export const updateRewardAction = authActionClient
       programId,
     });
 
-    if (
-      modifiers &&
-      !getPlanCapabilities(workspace.plan).canUseAdvancedRewardLogic
-    )
+    const { canUseAdvancedRewardLogic } = getPlanCapabilities(workspace.plan);
+
+    if (modifiers && !canUseAdvancedRewardLogic) {
       throw new Error(
         "Advanced reward structures are only available on the Advanced plan and above.",
       );
-
-    const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
-
-    if (finalPartnerIds && finalPartnerIds.length > 0) {
-      const programEnrollments = await prisma.programEnrollment.findMany({
-        where: {
-          programId,
-          partnerId: {
-            in: finalPartnerIds,
-          },
-        },
-      });
-
-      const invalidPartnerIds = finalPartnerIds.filter(
-        (id) => !programEnrollments.some(({ partnerId }) => partnerId === id),
-      );
-
-      if (invalidPartnerIds.length > 0) {
-        throw new Error(
-          `Invalid partner IDs provided (partners must be enrolled in the program): ${invalidPartnerIds.join(", ")}`,
-        );
-      }
     }
 
     const updatedReward = await prisma.reward.update({
@@ -77,170 +41,55 @@ export const updateRewardAction = authActionClient
         type,
         amount,
         maxDuration,
-        modifiers: modifiers === null ? Prisma.JsonNull : modifiers,
+        description: description || null,
+        modifiers: modifiers === null ? Prisma.DbNull : modifiers,
+      },
+      include: {
+        program: true,
+        clickPartnerGroup: true,
+        leadPartnerGroup: true,
+        salePartnerGroup: true,
       },
     });
 
-    // Update partners associated with the reward
-    if (updatedReward.default) {
-      await updateDefaultRewardPartners({
-        reward: updatedReward,
-        partnerIds: excludedPartnerIds,
-      });
-    } else {
-      await updateNonDefaultRewardPartners({
-        reward: updatedReward,
-        partnerIds: includedPartnerIds,
-      });
-    }
+    const {
+      program,
+      clickPartnerGroup,
+      leadPartnerGroup,
+      salePartnerGroup,
+      ...rewardMetadata
+    } = updatedReward;
+
+    const isDefaultGroup = [
+      clickPartnerGroup,
+      leadPartnerGroup,
+      salePartnerGroup,
+    ].some((group) => group?.slug === "default");
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: "reward.updated",
-        description: `Reward ${rewardId} updated`,
-        actor: user,
-        targets: [
-          {
-            type: "reward",
-            id: rewardId,
-            metadata: updatedReward,
-          },
-        ],
-      }),
+      Promise.allSettled([
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "reward.updated",
+          description: `Reward ${rewardId} updated`,
+          actor: user,
+          targets: [
+            {
+              type: "reward",
+              id: rewardId,
+              metadata: rewardMetadata,
+            },
+          ],
+        }),
+
+        // we only cache default group pages for now so we need to invalidate them
+        ...(isDefaultGroup
+          ? [
+              revalidatePath(`/partners.dub.co/${program.slug}`),
+              revalidatePath(`/partners.dub.co/${program.slug}/apply`),
+            ]
+          : []),
+      ]),
     );
   });
-
-// Update default reward
-const updateDefaultRewardPartners = async ({
-  reward,
-  partnerIds,
-}: {
-  reward: Reward;
-  partnerIds: string[]; // Excluded partners
-}) => {
-  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-
-  const existingPartners = await prisma.programEnrollment.findMany({
-    where: {
-      programId: reward.programId,
-      [rewardIdColumn]: null,
-    },
-    select: {
-      partnerId: true,
-    },
-  });
-
-  const existingPartnerIds = existingPartners.map(({ partnerId }) => partnerId);
-
-  const excludedPartnerIds = partnerIds.filter(
-    (id) => !existingPartnerIds.includes(id),
-  );
-
-  const includedPartnerIds = existingPartnerIds.filter(
-    (id) => !partnerIds.includes(id),
-  );
-
-  // Exclude partners from the default reward
-  if (excludedPartnerIds.length > 0) {
-    await prisma.programEnrollment.updateMany({
-      where: {
-        programId: reward.programId,
-        partnerId: {
-          in: excludedPartnerIds,
-        },
-      },
-      data: {
-        [rewardIdColumn]: null,
-      },
-    });
-  }
-
-  // Include partners in the default reward
-  if (includedPartnerIds.length > 0) {
-    await prisma.programEnrollment.updateMany({
-      where: {
-        programId: reward.programId,
-        [rewardIdColumn]: null,
-        partnerId: {
-          in: includedPartnerIds,
-        },
-      },
-      data: {
-        [rewardIdColumn]: reward.id,
-      },
-    });
-  }
-};
-
-// Update non-default rewards
-const updateNonDefaultRewardPartners = async ({
-  reward,
-  partnerIds,
-}: {
-  reward: Reward;
-  partnerIds: string[]; // Included partners
-}) => {
-  const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-
-  const existingPartners = await prisma.programEnrollment.findMany({
-    where: {
-      programId: reward.programId,
-      [rewardIdColumn]: reward.id,
-    },
-    select: {
-      partnerId: true,
-    },
-  });
-
-  const existingPartnerIds = existingPartners.map(({ partnerId }) => partnerId);
-
-  const includedPartnerIds = partnerIds.filter(
-    (id) => !existingPartnerIds.includes(id),
-  );
-
-  const excludedPartnerIds = existingPartnerIds.filter(
-    (id) => !partnerIds.includes(id),
-  );
-
-  // Include partners in the reward
-  if (includedPartnerIds.length > 0) {
-    await prisma.programEnrollment.updateMany({
-      where: {
-        programId: reward.programId,
-        partnerId: {
-          in: includedPartnerIds,
-        },
-      },
-      data: {
-        [rewardIdColumn]: reward.id,
-      },
-    });
-  }
-
-  // Exclude partners from the reward
-  if (excludedPartnerIds.length > 0) {
-    const defaultReward = await prisma.reward.findFirst({
-      where: {
-        programId: reward.programId,
-        event: reward.event,
-        default: true,
-      },
-    });
-
-    await prisma.programEnrollment.updateMany({
-      where: {
-        programId: reward.programId,
-        [rewardIdColumn]: reward.id,
-        partnerId: {
-          in: excludedPartnerIds,
-        },
-      },
-      data: {
-        // Replace the reward with the default reward if it exists
-        [rewardIdColumn]: defaultReward ? defaultReward.id : null,
-      },
-    });
-  }
-};

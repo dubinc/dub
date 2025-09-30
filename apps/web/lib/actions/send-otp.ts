@@ -1,15 +1,15 @@
 "use server";
 
+import { getIP } from "@/lib/api/utils/get-ip";
 import { ratelimit, redis } from "@/lib/upstash";
 import { sendEmail } from "@dub/email";
 import VerifyEmail from "@dub/email/templates/verify-email";
 import { prisma } from "@dub/prisma";
 import { get } from "@vercel/edge-config";
 import { flattenValidationErrors } from "next-safe-action";
-import { getIP } from "../api/utils";
 import { generateOTP } from "../auth";
 import { EMAIL_OTP_EXPIRY_IN } from "../auth/constants";
-import { isGenericEmail } from "../emails";
+import { isGenericEmail } from "../is-generic-email";
 import z from "../zod";
 import { emailSchema, passwordSchema } from "../zod/schemas/auth";
 import { throwIfAuthenticated } from "./auth/throw-if-authenticated";
@@ -23,14 +23,16 @@ const schema = z.object({
 // Send OTP to email to verify account
 export const sendOtpAction = actionClient
   .schema(schema, {
-    handleValidationErrorsShape: (ve) =>
+    handleValidationErrorsShape: async (ve) =>
       flattenValidationErrors(ve).fieldErrors,
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
     const { email } = parsedInput;
 
-    const { success } = await ratelimit(2, "1 m").limit(`send-otp:${getIP()}`);
+    const { success } = await ratelimit(2, "1 m").limit(
+      `send-otp:${await getIP()}`,
+    );
 
     if (!success) {
       throw new Error("Too many requests. Please try again later.");
@@ -67,13 +69,21 @@ export const sendOtpAction = actionClient
         (blacklistedEmailDomainTermsRegex &&
           blacklistedEmailDomainTermsRegex.test(domain))
       ) {
-        // edge case: the user already has a partner account on Dub with this email address, we can allow them to continue
-        const isPartnerAccount = await prisma.partner.findUnique({
-          where: {
-            email,
-          },
-        });
-        if (!isPartnerAccount) {
+        // edge case: the user already has a partner account on Dub with this email address,
+        // or they have an existing application for a program, we can allow them to continue
+        const [isPartnerAccount, hasExistingApplicaitons] = await Promise.all([
+          prisma.partner.findUnique({
+            where: {
+              email,
+            },
+          }),
+          prisma.programApplication.findFirst({
+            where: {
+              email,
+            },
+          }),
+        ]);
+        if (!isPartnerAccount && !hasExistingApplicaitons) {
           throw new Error(
             "Invalid email address – please use your work email instead. If you think this is a mistake, please contact us at support@dub.co",
           );
@@ -112,7 +122,7 @@ export const sendOtpAction = actionClient
 
       sendEmail({
         subject: `${process.env.NEXT_PUBLIC_APP_NAME}: OTP to verify your account`,
-        email,
+        to: email,
         react: VerifyEmail({
           email,
           code,

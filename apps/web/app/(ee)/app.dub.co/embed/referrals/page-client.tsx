@@ -2,13 +2,13 @@
 
 import { constructPartnerLink } from "@/lib/partners/construct-partner-link";
 import { QueryLinkStructureHelpText } from "@/lib/partners/query-link-structure-help-text";
-import { DiscountProps, RewardProps } from "@/lib/types";
+import { DiscountProps, PartnerGroupProps, RewardProps } from "@/lib/types";
 import { programEmbedSchema } from "@/lib/zod/schemas/program-embed";
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Program } from "@dub/prisma/client";
+import { Partner, Program } from "@dub/prisma/client";
 import {
   Button,
   Check,
@@ -21,14 +21,14 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
 import { ReferralsEmbedEarnings } from "./earnings";
 import { ReferralsEmbedEarningsSummary } from "./earnings-summary";
 import { ReferralsEmbedFAQ } from "./faq";
 import { ReferralsEmbedLeaderboard } from "./leaderboard";
-import ReferralsEmbedLinks from "./links";
+import { ReferralsEmbedLinks } from "./links";
 import { ReferralsEmbedQuickstart } from "./quickstart";
 import { ReferralsEmbedResources } from "./resources";
 import { ThemeOptions } from "./theme-options";
@@ -37,15 +37,18 @@ import { ReferralsEmbedLink } from "./types";
 
 export function ReferralsEmbedPageClient({
   program,
+  partner,
   links,
   rewards,
   discount,
   earnings,
   stats,
+  group,
   themeOptions,
   dynamicHeight,
 }: {
   program: Program;
+  partner: Pick<Partner, "id" | "name" | "email">;
   links: ReferralsEmbedLink[];
   rewards: RewardProps[];
   discount?: DiscountProps | null;
@@ -59,12 +62,17 @@ export function ReferralsEmbedPageClient({
     sales: number;
     saleAmount: number;
   };
+  group: Pick<
+    PartnerGroupProps,
+    "id" | "additionalLinks" | "maxPartnerLinks" | "linkStructure"
+  >;
   themeOptions: ThemeOptions;
   dynamicHeight: boolean;
 }) {
   const resources = programResourcesSchema.parse(
     program.resources ?? { logos: [], colors: [], files: [] },
   );
+
   const programEmbedData = programEmbedSchema.parse(program.embedData);
 
   const hasResources =
@@ -102,8 +110,8 @@ export function ReferralsEmbedPageClient({
   const partnerLink =
     links.length > 0
       ? constructPartnerLink({
-          program,
-          linkKey: links[0].key,
+          group,
+          link: links[0],
         })
       : undefined;
 
@@ -170,11 +178,8 @@ export function ReferralsEmbedPageClient({
             )}
           </div>
 
-          {partnerLink && program.linkStructure === "query" && (
-            <QueryLinkStructureHelpText
-              program={program}
-              linkKey={links[0].key}
-            />
+          {partnerLink && group.linkStructure === "query" && (
+            <QueryLinkStructureHelpText link={links[0]} />
           )}
 
           <div className="mt-12 sm:max-w-[50%]">
@@ -214,6 +219,7 @@ export function ReferralsEmbedPageClient({
           <ReferralsEmbedEarningsSummary
             earnings={earnings}
             programSlug={program.slug}
+            partnerEmail={partner.email}
           />
         </div>
         <div className="mt-4">
@@ -252,7 +258,11 @@ export function ReferralsEmbedPageClient({
               ) : selectedTab === "Earnings" ? (
                 <ReferralsEmbedEarnings salesCount={stats.sales} />
               ) : selectedTab === "Links" ? (
-                <ReferralsEmbedLinks links={links} program={program} />
+                <ReferralsEmbedLinks
+                  links={links}
+                  program={program}
+                  group={group}
+                />
               ) : selectedTab === "Leaderboard" &&
                 programEmbedData?.leaderboard?.mode !== "disabled" ? (
                 <ReferralsEmbedLeaderboard />

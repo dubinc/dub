@@ -3,8 +3,9 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { OnboardingUsageSchema } from "@/lib/zod/schemas/workspaces";
+import { Markdown } from "@/ui/shared/markdown";
 import { Button } from "@dub/ui";
-import { LayoutGroup, motion } from "framer-motion";
+import { LayoutGroup, motion } from "motion/react";
 import { useId } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
@@ -58,9 +59,9 @@ export function Form() {
           name="links"
           render={({ field }) => (
             <RadioGroup
-              label="How many links do you create per month?"
+              label="How many [links](https://dub.co/help/article/how-to-create-link) do you create per month?"
               options={[
-                { id: 1_000, label: "Less than 1K" },
+                { id: 1_000, label: "1K or less" },
                 { id: 10_000, label: "10K" },
                 { id: 50_000, label: "50K" },
               ]}
@@ -75,9 +76,9 @@ export function Form() {
           name="clicks"
           render={({ field }) => (
             <RadioGroup
-              label="How many clicks do you get per month?"
+              label="How many [clicks](https://dub.co/help/article/dub-analytics) do your links get per month?"
               options={[
-                { id: 50_000, label: "Less than 50K" },
+                { id: 50_000, label: "50K or less" },
                 { id: 250_000, label: "250K" },
                 { id: 1_000_000, label: "1M" },
               ]}
@@ -92,7 +93,7 @@ export function Form() {
           name="conversions"
           render={({ field }) => (
             <RadioGroup
-              label="Do you want to track conversions on your links?"
+              label="Do you want to [track conversions](https://dub.co/help/article/dub-conversions) on your links?"
               options={[
                 { id: false, label: "No" },
                 { id: true, label: "Yes" },
@@ -103,12 +104,12 @@ export function Form() {
           )}
         />
 
-        {/* <Controller
+        <Controller
           control={control}
           name="partners"
           render={({ field }) => (
             <RadioGroup
-              label="Do you want to create a partner program?"
+              label="Do you want to create a [partner program](https://dub.co/help/article/dub-partners)?"
               options={[
                 { id: false, label: "No" },
                 { id: true, label: "Yes" },
@@ -117,7 +118,7 @@ export function Form() {
               onSelect={field.onChange}
             />
           )}
-        /> */}
+        />
 
         <Button
           type="submit"
@@ -144,9 +145,11 @@ function RadioGroup<T extends string>({
 
   return (
     <div>
-      <span className="text-content-emphasis mb-1.5 block text-sm font-medium">
-        {label}
-      </span>
+      {label && (
+        <Markdown className="prose-a:underline-offset-2 mb-1.5 p-0 text-sm font-medium">
+          {label}
+        </Markdown>
+      )}
       <div
         className="relative z-0 grid rounded-md border border-neutral-300 bg-neutral-100 p-0.5"
         style={{
@@ -157,7 +160,7 @@ function RadioGroup<T extends string>({
           {options.map((option) => (
             <label
               key={option.id}
-              className="group relative flex cursor-pointer items-center justify-center gap-2 px-4 py-2.5"
+              className="group relative flex cursor-pointer items-center justify-center gap-2 px-4 py-2"
             >
               <input
                 type="radio"

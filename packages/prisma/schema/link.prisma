@@ -7,6 +7,7 @@ model Link {
   archived        Boolean   @default(false) // whether the link is archived or not
   expiresAt       DateTime? // when the link expires – stored on Redis via ttl
   expiredUrl      String?   @db.Text // URL to redirect the user to when the link is expired
+  disabledAt      DateTime? // when the link was disabled
   password        String? // password to access the link
   trackConversion Boolean   @default(false) // whether to track conversions or not
 
@@ -61,8 +62,13 @@ model Link {
   saleAmount  Int     @default(0) // total revenue from sales (in cents)
 
   lastClicked DateTime? // when the link was last clicked
+  lastLeadAt DateTime? // when the link last brought in a new lead
+  lastConversionAt DateTime? // when the link last brought in a new conversion
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  // Link short domain
+  shortDomain Domain @relation(fields: [domain], references: [slug])
 
   // Link tags
   tags LinkTag[]
@@ -75,10 +81,12 @@ model Link {
 
   dashboard Dashboard?
 
-  programId         String?
-  program           Program?           @relation(fields: [programId], references: [id])
-  partnerId         String?
-  programEnrollment ProgramEnrollment? @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  programId                 String?
+  program                   Program?                 @relation(fields: [programId], references: [id])
+  partnerId                 String?
+  programEnrollment         ProgramEnrollment?       @relation(fields: [programId, partnerId], references: [programId, partnerId])
+  partnerGroupDefaultLinkId String?
+  partnerGroupDefaultLink   PartnerGroupDefaultLink? @relation(fields: [partnerGroupDefaultLinkId], references: [id])
 
   customers   Customer[]
   commissions Commission[]
@@ -89,7 +97,9 @@ model Link {
   @@index([projectId, url(length: 500)]) // for upserting a link by URL
   @@index([projectId, folderId, archived, createdAt(sort: Desc)]) // most getLinksForWorkspace queries
   @@index([programId, partnerId]) // for getting a referral link (programId + partnerId)
+  @@index(partnerId) // for getting links by partnerId
   @@index([domain, createdAt]) // for bulk link deletion workflows (by domain) + deleting old short-lived links
   @@index(folderId) // used in /api/folders
   @@index(userId) // for relation to User table, used in /api/cron/cleanup/e2e-tests too
+  @@index(partnerGroupDefaultLinkId)
 }

@@ -52,7 +52,8 @@ export const resendProgramInviteAction = authActionClient
     await Promise.allSettled([
       sendEmail({
         subject: `${program.name} invited you to join Dub Partners`,
-        email: partner.email!,
+        variant: "notifications",
+        to: partner.email!,
         react: PartnerInvite({
           email: partner.email!,
           program: {

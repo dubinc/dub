@@ -1,11 +1,16 @@
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 
-export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
+export async function sendStripePayouts({
+  invoiceId,
+  chargeId,
+}: {
+  invoiceId: string;
+  chargeId?: string;
+}) {
   const commonInclude = Prisma.validator<Prisma.PayoutInclude>()({
     partner: {
       select: {
@@ -86,28 +91,27 @@ export async function sendStripePayouts({ invoiceId }: { invoiceId: string }) {
       currentInvoicePayouts: partnerPayouts.filter(
         (p) => p.invoiceId === invoiceId,
       ),
+      chargeId,
     });
 
     // sleep for 250ms
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
 
-  const resendBatch = await resend?.batch.send(
+  const resendBatch = await sendBatchEmail(
     currentInvoicePayouts
       .filter((p) => p.partner.email)
-      .map((p) => {
-        return {
-          from: VARIANT_TO_FROM_MAP.notifications,
-          to: p.partner.email!,
-          subject: "You've been paid!",
-          react: PartnerPayoutProcessed({
-            email: p.partner.email!,
-            program: p.program,
-            payout: p,
-            variant: "stripe",
-          }),
-        };
-      }),
+      .map((p) => ({
+        variant: "notifications",
+        to: p.partner.email!,
+        subject: "You've been paid!",
+        react: PartnerPayoutProcessed({
+          email: p.partner.email!,
+          program: p.program,
+          payout: p,
+          variant: "stripe",
+        }),
+      })),
   );
 
   console.log("Sent Resend batch emails", JSON.stringify(resendBatch, null, 2));

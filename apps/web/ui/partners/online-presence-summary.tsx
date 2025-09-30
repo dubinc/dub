@@ -1,4 +1,4 @@
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import {
   Globe,
   Icon,
@@ -15,7 +15,7 @@ import { OnlinePresenceCard } from "./online-presence-card";
 const fields: {
   label: string;
   icon: Icon;
-  data: (partner: EnrolledPartnerProps) => {
+  data: (partner: EnrolledPartnerExtendedProps) => {
     value?: string | null;
     verified: boolean;
     href?: string | null;
@@ -88,10 +88,14 @@ const fields: {
 
 export function OnlinePresenceSummary({
   partner,
+  showLabels = true,
   className,
+  emptyClassName,
 }: {
-  partner: EnrolledPartnerProps;
+  partner: EnrolledPartnerExtendedProps;
+  showLabels?: boolean;
   className?: string;
+  emptyClassName?: string;
 }) {
   const fieldData = fields
     .map((field) => ({
@@ -104,14 +108,17 @@ export function OnlinePresenceSummary({
   return fieldData.length ? (
     <div
       className={cn(
-        "grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-4 gap-y-5 text-sm md:gap-x-16",
+        "grid items-center gap-x-4 gap-y-5 text-sm md:gap-x-16",
+        showLabels ? "grid-cols-[max-content_minmax(0,1fr)]" : "grid-cols-1",
         className,
       )}
     >
       {fieldData.map(({ label, icon: Icon, value, verified, href, info }) => {
         return (
           <Fragment key={label}>
-            <span className="text-content-default font-medium">{label}</span>
+            {showLabels && (
+              <span className="text-content-default font-medium">{label}</span>
+            )}
             <div>
               <OnlinePresenceCard
                 icon={Icon}
@@ -126,7 +133,13 @@ export function OnlinePresenceSummary({
       })}
     </div>
   ) : (
-    <div className={cn("text-sm italic text-neutral-400", className)}>
+    <div
+      className={cn(
+        "text-sm italic text-neutral-400",
+        className,
+        emptyClassName,
+      )}
+    >
       No online presence provided
     </div>
   );

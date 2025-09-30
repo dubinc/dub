@@ -13,6 +13,10 @@ const columnIdToLabel = exportPartnerColumns.reduce((acc, column) => {
   return acc;
 }, {});
 
+const expandedColumns = exportPartnerColumns
+  .filter((column) => column.expanded)
+  .map((column) => column.id);
+
 // GET /api/partners/export – export partners to CSV
 export const GET = withWorkspace(
   async ({ searchParams, workspace }) => {
@@ -20,12 +24,16 @@ export const GET = withWorkspace(
 
     let { columns, ...filters } = partnersExportQuerySchema.parse(searchParams);
 
+    const includeExpandedFields = expandedColumns.some((column) =>
+      columns.includes(column),
+    );
+
     const partners = await getPartners({
       ...filters,
       page: 1,
       pageSize: 5000,
-      workspaceId: workspace.id,
       programId,
+      includeExpandedFields,
     });
 
     const columnOrderMap = exportPartnerColumns.reduce((acc, column, index) => {
@@ -39,7 +47,7 @@ export const GET = withWorkspace(
 
     const schemaFields = {};
     columns.forEach((column) => {
-      if (["clicks", "leads", "sales", "saleAmount"].includes(column)) {
+      if (expandedColumns.includes(column)) {
         schemaFields[columnIdToLabel[column]] = z.coerce
           .number()
           .optional()
@@ -71,7 +79,7 @@ export const GET = withWorkspace(
     return new Response(convertToCSV(formattedPartners), {
       headers: {
         "Content-Type": "text/csv",
-        "Content-Disposition": `attachment`,
+        "Content-Disposition": "attachment",
       },
     });
   },

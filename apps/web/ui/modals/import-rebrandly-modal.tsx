@@ -1,3 +1,4 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ImportedDomainCountProps } from "@/lib/types";
 import {
@@ -14,8 +15,8 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
-import { motion } from "framer-motion";
 import { ArrowRight, ChevronDown } from "lucide-react";
+import { motion } from "motion/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Dispatch,
@@ -39,7 +40,7 @@ function ImportRebrandlyModal({
   const { id: workspaceId, slug } = useWorkspace();
   const searchParams = useSearchParams();
 
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
 
   const {
     data: { domains, tagsCount } = {

@@ -12,6 +12,7 @@ import {
 import { sendEmail } from "@dub/email";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -52,12 +53,14 @@ export const banPartnerAction = authActionClient
           partnerId_programId: where,
         },
         data: {
-          status: "banned",
+          status: ProgramEnrollmentStatus.banned,
           bannedAt: new Date(),
           bannedReason: parsedInput.reason,
+          groupId: null,
           clickRewardId: null,
           leadRewardId: null,
           saleRewardId: null,
+          discountId: null,
         },
       }),
 
@@ -69,9 +72,24 @@ export const banPartnerAction = authActionClient
       }),
 
       prisma.payout.updateMany({
-        where,
+        where: {
+          ...where,
+          status: "pending",
+        },
         data: {
           status: "canceled",
+        },
+      }),
+
+      prisma.bountySubmission.updateMany({
+        where: {
+          ...where,
+          status: {
+            not: "approved",
+          },
+        },
+        data: {
+          status: "rejected",
         },
       }),
     ]);
@@ -90,7 +108,7 @@ export const banPartnerAction = authActionClient
 
         const supportEmail = program.supportEmail || "support@dub.co";
 
-        // Delete links from cache
+        // Expire links from cache
         const links = await prisma.link.findMany({
           where,
           select: {
@@ -99,12 +117,12 @@ export const banPartnerAction = authActionClient
           },
         });
 
-        await linkCache.deleteMany(links);
+        await linkCache.expireMany(links);
 
         await Promise.allSettled([
           sendEmail({
             subject: `You've been banned from the ${program.name} Partner Program`,
-            email: partner.email,
+            to: partner.email,
             replyTo: supportEmail,
             react: PartnerBanned({
               partner: {
@@ -113,7 +131,7 @@ export const banPartnerAction = authActionClient
               },
               program: {
                 name: program.name,
-                supportEmail,
+                slug: program.slug,
               },
               bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
             }),

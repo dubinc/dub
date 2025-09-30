@@ -42,7 +42,6 @@ export default function ProgramWelcome({
     logo: string | null;
   };
 }) {
-  const programLandingUrl = `https://partners.dub.co/${program.slug}`;
   const workspaceUrlPrefix = `https://app.dub.co/${workspace.slug}`;
 
   return (
@@ -86,10 +85,10 @@ export default function ProgramWelcome({
                   </Text>
 
                   <Link
-                    href={programLandingUrl}
+                    href={`${workspaceUrlPrefix}/program`}
                     className="m-0 text-xs font-medium text-neutral-800 underline"
                   >
-                    {getPrettyUrl(programLandingUrl)}
+                    {getPrettyUrl(`${workspaceUrlPrefix}/program`)}
                   </Link>
                 </Column>
               </Row>
@@ -147,7 +146,7 @@ export default function ProgramWelcome({
               </Link>{" "}
               to your program, or{" "}
               <Link
-                href="https://dub.co/docs/partners/white-labeling"
+                href="https://dub.co/docs/partners/embedded-referrals"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 enroll them automatically.

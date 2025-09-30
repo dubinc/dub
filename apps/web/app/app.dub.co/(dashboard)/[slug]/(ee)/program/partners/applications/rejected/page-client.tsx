@@ -18,6 +18,7 @@ import {
   MenuItem,
   Popover,
   Table,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -35,14 +36,35 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { useColumnVisibility } from "../use-column-visibility";
+
+const applicationsColumns = {
+  all: [
+    "partner",
+    "createdAt",
+    "location",
+    "website",
+    "youtube",
+    "twitter",
+    "linkedin",
+    "instagram",
+    "tiktok",
+  ],
+  defaultVisible: [
+    "partner",
+    "createdAt",
+    "location",
+    "website",
+    "youtube",
+    "linkedin",
+  ],
+};
 
 export function ProgramPartnersRejectedApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const search = searchParams.get("search");
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
@@ -58,6 +80,8 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       {
         workspaceId,
         status: "rejected",
+        sortBy,
+        sortOrder,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -84,7 +108,11 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       partnerId: detailsSheetState.partnerId,
     });
 
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "applications-table-columns",
+    applicationsColumns,
+  );
+
   const { pagination, setPagination } = usePagination();
 
   const columns = useMemo(
@@ -137,7 +165,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             <PartnerSocialColumn
               value={getDomainWithoutWWW(row.original.website) ?? "-"}
               verified={!!row.original.websiteVerifiedAt}
-              href={row.original.website}
             />
           );
         },
@@ -152,7 +179,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               at
               value={row.original.youtube}
               verified={!!row.original.youtubeVerifiedAt}
-              href={`https://youtube.com/@${row.original.youtube}`}
             />
           );
         },
@@ -167,7 +193,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               at
               value={row.original.twitter}
               verified={!!row.original.twitterVerifiedAt}
-              href={`https://x.com/${row.original.twitter}`}
             />
           );
         },
@@ -181,7 +206,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             <PartnerSocialColumn
               value={row.original.linkedin}
               verified={!!row.original.linkedinVerifiedAt}
-              href={`https://linkedin.com/in/${row.original.linkedin}`}
             />
           );
         },
@@ -196,7 +220,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               at
               value={row.original.instagram}
               verified={!!row.original.instagramVerifiedAt}
-              href={`https://instagram.com/${row.original.instagram}`}
             />
           );
         },
@@ -211,7 +234,6 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
               at
               value={row.original.tiktok}
               verified={!!row.original.tiktokVerifiedAt}
-              href={`https://tiktok.com/@${row.original.tiktok}`}
             />
           );
         },
@@ -268,6 +290,20 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
+  const [previousPartnerId, nextPartnerId] = useMemo(() => {
+    if (!partners || !detailsSheetState.partnerId) return [null, null];
+
+    const currentIndex = partners.findIndex(
+      ({ id }) => id === detailsSheetState.partnerId,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? partners[currentIndex - 1].id : null,
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+    ];
+  }, [partners, detailsSheetState.partnerId]);
+
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.partnerId && currentPartner && (
@@ -277,6 +313,24 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          onPrevious={
+            previousPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: previousPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+          onNext={
+            nextPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: nextPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
         />
       )}
       <div className="w-min">
@@ -338,7 +392,6 @@ function PartnerRowMenuButton({
       await approvePartner({
         workspaceId: workspaceId!,
         partnerId: row.original.id,
-        linkId: null,
       });
     },
   });

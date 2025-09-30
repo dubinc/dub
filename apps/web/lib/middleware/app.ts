@@ -28,7 +28,8 @@ export default async function AppMiddleware(req: NextRequest) {
     path !== "/register" &&
     path !== "/auth/saml" &&
     !path.startsWith("/auth/reset-password/") &&
-    !path.startsWith("/share/")
+    !path.startsWith("/share/") &&
+    !path.startsWith("/deeplink/")
   ) {
     return NextResponse.redirect(
       new URL(
@@ -99,9 +100,12 @@ export default async function AppMiddleware(req: NextRequest) {
       isTopLevelSettingsRedirect(path)
     ) {
       return WorkspacesMiddleware(req, user);
-    } else if (appRedirect(path)) {
+    }
+
+    const appRedirectPath = await appRedirect(path);
+    if (appRedirectPath) {
       return NextResponse.redirect(
-        new URL(`${appRedirect(path)}${searchParamsString}`, req.url),
+        new URL(`${appRedirectPath}${searchParamsString}`, req.url),
       );
     }
   }

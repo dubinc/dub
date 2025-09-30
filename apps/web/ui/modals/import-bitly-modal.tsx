@@ -1,3 +1,4 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BitlyGroupProps } from "@/lib/types";
 import {
@@ -32,7 +33,7 @@ function ImportBitlyModal({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
   const { id: workspaceId } = useWorkspace();
 
   const [redirecting, setRedirecting] = useState(false);

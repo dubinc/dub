@@ -1,35 +1,22 @@
 "use client";
 
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
-import useDiscounts from "@/lib/swr/use-discounts";
-import useRewards from "@/lib/swr/use-rewards";
+import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
+import useGroup from "@/lib/swr/use-group";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { LoadingSpinner } from "@dub/ui";
-import { useWatch } from "react-hook-form";
-import { useBrandingFormContext } from "./branding-form";
 
 export function RewardsDiscountsPreview() {
-  const { getValues } = useBrandingFormContext();
-  const { landerData } = {
-    ...useWatch(),
-    ...getValues(),
-  };
+  const { group } = useGroup({ groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug });
 
-  const { rewards, loading: rewardsLoading } = useRewards();
-  const { discounts, loading: discountsLoading } = useDiscounts();
-
-  if (rewardsLoading || discountsLoading)
+  if (!group)
     return (
       <div className="flex h-[117px] items-center justify-center">
         <LoadingSpinner />
       </div>
     );
 
-  const result = getProgramApplicationRewardsAndDiscount({
-    rewards: rewards || [],
-    discounts: discounts || [],
-    landerData,
-  });
+  const { rewards, discount } = getGroupRewardsAndDiscount(group);
 
-  return <LanderRewards rewards={result.rewards} discount={result.discount} />;
+  return <LanderRewards rewards={rewards} discount={discount} />;
 }

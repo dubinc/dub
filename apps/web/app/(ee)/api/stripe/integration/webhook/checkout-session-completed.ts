@@ -2,7 +2,7 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import {
   getClickEvent,
@@ -10,7 +10,7 @@ import {
   recordLead,
   recordSale,
 } from "@/lib/tinybird";
-import { ClickEventTB, LeadEventTB } from "@/lib/types";
+import { ClickEventTB, LeadEventTB, WebhookPartner } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -18,7 +18,7 @@ import {
   transformSaleEventData,
 } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
-import { Customer } from "@dub/prisma/client";
+import { Customer, WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
@@ -214,10 +214,24 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   if (invoiceId) {
     // Skip if invoice id is already processed
-    const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
-      ex: 60 * 60 * 24 * 7,
-      nx: true,
-    });
+    const ok = await redis.set(
+      `trackSale:stripe:invoiceId:${invoiceId}`, // here we assume that Stripe's invoice ID is unique across all customers
+      {
+        timestamp: new Date().toISOString(),
+        dubCustomerId,
+        stripeCustomerId,
+        stripeAccountId,
+        invoiceId,
+        customerId: customer.id,
+        workspaceId: customer.projectId,
+        amount: charge.amount_total,
+        currency: charge.currency,
+      },
+      {
+        ex: 60 * 60 * 24 * 7,
+        nx: true,
+      },
+    );
 
     if (!ok) {
       console.info(
@@ -271,10 +285,15 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     },
   });
 
+  const firstConversionFlag = isFirstConversion({
+    customer,
+    linkId,
+  });
+
   const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
-    // update link sales count
+    // update link stats
     link &&
       prisma.link.update({
         where: {
@@ -286,14 +305,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             leads: {
               increment: 1,
             },
+            lastLeadAt: new Date(),
           }),
-          ...(isFirstConversion({
-            customer,
-            linkId,
-          }) && {
+          ...(firstConversionFlag && {
             conversions: {
               increment: 1,
             },
+            lastConversionAt: new Date(),
           }),
           sales: {
             increment: 1,
@@ -334,6 +352,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   ]);
 
   // for program links
+  let webhookPartner: WebhookPartner | undefined;
   if (link && link.programId && link.partnerId) {
     const productId = await getSubscriptionProductId({
       stripeSubscriptionId: charge.subscription as string,
@@ -341,7 +360,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       livemode: event.livemode,
     });
 
-    const commission = await createPartnerCommission({
+    const createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -361,15 +380,38 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
       },
     });
+    webhookPartner = createdCommission?.webhookPartner;
 
-    if (commission) {
-      waitUntil(
-        notifyPartnerSale({
-          link,
-          commission,
+    waitUntil(
+      Promise.allSettled([
+        executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
+          },
         }),
-      );
-    }
+        // same logic as lead.created webhook below:
+        // if the clickEvent variable exists and there was no existing customer before,
+        // we need to trigger the leadRecorded workflow
+        clickEvent &&
+          !existingCustomer &&
+          executeWorkflows({
+            trigger: WorkflowTrigger.leadRecorded,
+            context: {
+              programId: link.programId,
+              partnerId: link.partnerId,
+              current: {
+                leads: 1,
+              },
+            },
+          }),
+      ]),
+    );
   }
 
   waitUntil(
@@ -385,6 +427,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
             eventName: "Checkout session completed",
             link: linkUpdated,
             customer,
+            partner: webhookPartner,
+            metadata: null,
           }),
         });
       }
@@ -398,6 +442,8 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           clickedAt: customer.clickedAt || customer.createdAt,
           link: linkUpdated,
           customer,
+          partner: webhookPartner,
+          metadata: null,
         }),
       });
     })(),

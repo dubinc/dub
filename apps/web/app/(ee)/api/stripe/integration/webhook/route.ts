@@ -1,4 +1,5 @@
 import { stripe } from "@/lib/stripe";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
 import { withAxiom } from "next-axiom";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
@@ -76,7 +77,5 @@ export const POST = withAxiom(async (req: Request) => {
       break;
   }
 
-  return new Response(response, {
-    status: 200,
-  });
+  return logAndRespond(response);
 });

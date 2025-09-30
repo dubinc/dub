@@ -67,9 +67,6 @@ export const PayoutStats = memo(() => {
                           payout.status === PayoutStatus.processing,
                       )
                       ?.reduce((acc, p) => acc + p.amount, 0) || 0) / 100,
-                    {
-                      maximumFractionDigits: 2,
-                    },
                   )}
                 </p>
               ) : (
@@ -90,9 +87,6 @@ export const PayoutStats = memo(() => {
                         payout.status === PayoutStatus.completed,
                     )
                     ?.reduce((acc, p) => acc + p.amount, 0) ?? 0) / 100,
-                  {
-                    maximumFractionDigits: 2,
-                  },
                 )}
               </p>
             ) : (

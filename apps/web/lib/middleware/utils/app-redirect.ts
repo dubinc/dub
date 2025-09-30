@@ -14,9 +14,12 @@ const PROGRAM_REDIRECTS = {
   "/program/sales": "/program/commissions",
   "/program/communication": "/program/resources",
   "/program/branding/resources": "/program/resources",
+  "/program/rewards": "/program/groups/default/rewards",
+  "/program/discounts": "/program/groups/default/discounts",
+  "/program/link-settings": "/program/groups/default/links",
 };
 
-export const appRedirect = (path: string) => {
+export const appRedirect = async (path: string) => {
   if (APP_REDIRECTS[path]) {
     return APP_REDIRECTS[path];
   }
@@ -24,7 +27,7 @@ export const appRedirect = (path: string) => {
   // Redirect "/[slug]" to "/[slug]/[product]"
   const rootRegex = /^\/([^\/]+)$/;
   if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
-    const product = getDubProductFromCookie(path.split("/")[1]);
+    const product = await getDubProductFromCookie(path.split("/")[1]);
     return path.replace(rootRegex, `/$1/${product}`);
   }
 
@@ -51,6 +54,17 @@ export const appRedirect = (path: string) => {
       (_match, slug, subPath) =>
         `/${slug}/program${subPath ? `/${subPath}` : ""}`,
     );
+
+  // Redirect "/[slug]/program/groups/:groupSlug" to "/[slug]/program/groups/:groupSlug/rewards"
+  const groupRegex = /^\/([^\/]+)\/program\/groups\/([^\/]+)$/;
+  if (groupRegex.test(path))
+    return path.replace(groupRegex, "/$1/program/groups/$2/rewards");
+
+  // Redirect "/[slug]/program/partners/:partnerId" to "/[slug]/program/partners/:partnerId/links"
+  // Only applies when partnerId starts with "pn_" (exclude /applications, /directory)
+  const partnerPageRegex = /^\/([^\/]+)\/program\/partners\/(pn_[^\/]+)$/;
+  if (partnerPageRegex.test(path))
+    return path.replace(partnerPageRegex, "/$1/program/partners/$2/links");
 
   // Handle additional simpler program redirects
   const programRedirect = Object.keys(PROGRAM_REDIRECTS).find((redirect) =>

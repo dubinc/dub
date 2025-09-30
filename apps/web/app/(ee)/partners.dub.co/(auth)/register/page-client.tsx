@@ -1,5 +1,6 @@
 "use client";
 
+import { emailSchema } from "@/lib/zod/schemas/auth";
 import { AuthAlternativeBanner } from "@/ui/auth/auth-alternative-banner";
 import {
   RegisterProvider,
@@ -11,6 +12,7 @@ import { AuthLayout } from "@/ui/layout/auth-layout";
 import { truncate } from "@dub/utils";
 import { Program } from "@prisma/client";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { PartnerBanner } from "../partner-banner";
 
 type PartialProgram = Pick<Program, "name" | "logo" | "slug">;
@@ -24,8 +26,17 @@ export default function RegisterPageClient({
   email?: string;
   lockEmail?: boolean;
 }) {
+  const searchParams = useSearchParams();
+  const searchEmailResult = emailSchema.safeParse(searchParams.get("email"));
+
   return (
-    <RegisterProvider email={email} lockEmail={lockEmail}>
+    <RegisterProvider
+      email={
+        (searchEmailResult.success ? searchEmailResult.data : undefined) ??
+        email
+      }
+      lockEmail={searchEmailResult.success || lockEmail}
+    >
       <RegisterFlow program={program} />
     </RegisterProvider>
   );
@@ -35,7 +46,7 @@ function SignUp({ program }: { program?: PartialProgram }) {
   return (
     <div className="relative">
       {program && <PartnerBanner program={program} />}
-      <AuthLayout showTerms>
+      <AuthLayout showTerms="partners">
         <div className="w-full max-w-sm">
           <h1 className="text-center text-xl font-semibold">
             Create your Dub Partner account

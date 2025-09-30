@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ProgramProps } from "@/lib/types";
@@ -75,7 +76,7 @@ function ProgramApplicationSheetContent({
       setError("root.serverError", {
         message: "Failed to submit application",
       });
-      toast.error("Failed to submit application");
+      toast.error(parseActionError(result, "Failed to submit application"));
     }
   };
 
@@ -89,9 +90,7 @@ function ProgramApplicationSheetContent({
           "flex h-full flex-col transition-opacity duration-200",
           isSubmitSuccessful && "pointer-events-none opacity-0",
         )}
-        {...{
-          inert: isSubmitSuccessful,
-        }}
+        inert={isSubmitSuccessful}
       >
         <div className="flex items-start justify-between bg-neutral-50 p-6">
           <Sheet.Title asChild className="min-w-0">
@@ -187,7 +186,7 @@ function ProgramApplicationSheetContent({
                   rel="noopener noreferrer"
                   className="text-[var(--brand)] underline hover:opacity-80"
                 >
-                  {program.name} Partner Program Terms ↗
+                  {program.name} Affiliate Program Terms ↗
                 </a>
               </label>
             </div>
@@ -210,9 +209,7 @@ function ProgramApplicationSheetContent({
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-4 opacity-0",
         )}
-        {...{
-          inert: !isSubmitSuccessful,
-        }}
+        inert={!isSubmitSuccessful}
       >
         <Grid
           cellSize={60}

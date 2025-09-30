@@ -2,9 +2,9 @@ import { ClientOnly } from "@dub/ui";
 import { PropsWithChildren, Suspense } from "react";
 
 export const AuthLayout = ({
-  showTerms = false,
+  showTerms,
   children,
-}: PropsWithChildren<{ showTerms?: boolean }>) => {
+}: PropsWithChildren<{ showTerms?: "app" | "partners" }>) => {
   return (
     <div className="flex min-h-screen w-full flex-col items-center justify-between">
       {/* Empty div to help center main content */}
@@ -21,11 +21,11 @@ export const AuthLayout = ({
           <p className="px-20 py-8 text-center text-xs font-medium text-neutral-500 md:px-0">
             By continuing, you agree to Dub&rsquo;s{" "}
             <a
-              href="https://dub.co/legal/terms"
+              href={`https://dub.co/legal/${showTerms === "app" ? "terms" : "partners"}`}
               target="_blank"
               className="font-semibold text-neutral-600 hover:text-neutral-800"
             >
-              Terms of Service
+              {showTerms === "app" ? "Terms of Service" : "Partner Terms"}
             </a>{" "}
             and{" "}
             <a

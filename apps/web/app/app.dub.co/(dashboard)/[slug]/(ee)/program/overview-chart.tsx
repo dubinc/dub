@@ -38,7 +38,7 @@ export function OverviewChart() {
   >(
     viewType === "revenue"
       ? `/api/analytics?${editQueryString(queryString, {
-          event: "composite",
+          event: "sales",
           groupBy: "timeseries",
         })}`
       : null,
@@ -156,10 +156,7 @@ export function OverviewChart() {
                       </p>
                     </div>
                     <p className="text-right font-medium text-neutral-900">
-                      {currencyFormatter(d.values.amount, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
+                      {currencyFormatter(d.values.amount)}
                     </p>
                   </div>
                 </>

@@ -31,7 +31,7 @@ type ChartRequiredProps<T extends Datum = any> = {
 
 type ChartOptionalProps<T extends Datum = any> = {
   type?: "area" | "bar";
-  tooltipContent?: (datum: TimeSeriesDatum<T>) => ReactElement | string;
+  tooltipContent?: (datum: TimeSeriesDatum<T>) => ReactElement<any> | string;
   tooltipClassName?: string;
   defaultTooltipIndex?: number | null;
 

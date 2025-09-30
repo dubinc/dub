@@ -59,6 +59,12 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
+    if (amount < 1000) {
+      throw new Error(
+        "Your payout total is less than the minimum invoice amount of $10.",
+      );
+    }
+
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
 
     if (paymentMethod.customer !== workspace.stripeId) {

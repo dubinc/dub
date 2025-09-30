@@ -10,7 +10,7 @@ export async function unsubscribe({
 }) {
   if (!resend) {
     console.error(
-      "Resend client is not properly initialized. Skipping operation.",
+      "No RESEND_API_KEY is set in the environment variables. Skipping.",
     );
     return;
   }

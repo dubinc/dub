@@ -10,7 +10,7 @@ export function Framer(props: SVGProps<SVGSVGElement>) {
       xmlns="http://www.w3.org/2000/svg"
       {...props}
     >
-      <g clip-path="url(#clip0_18024_111660)">
+      <g clipPath="url(#clip0_18024_111660)">
         <path
           d="M0.667969 0H27.3346V13.3333H14.0013L0.667969 0ZM0.667969 13.3333H14.0013L27.3346 26.6667H14.0013V40L0.667969 26.6667V13.3333Z"
           fill="black"

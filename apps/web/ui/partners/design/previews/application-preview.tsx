@@ -59,7 +59,7 @@ export function ApplicationPreview({
                 )}
               </div>
 
-              <div className="flex items-center gap-2" {...{ inert: "" }}>
+              <div className="flex items-center gap-2" inert>
                 <Button
                   type="button"
                   variant="secondary"
@@ -93,7 +93,7 @@ export function ApplicationPreview({
             </div>
           </div>
 
-          <div className="mx-auto my-10 max-w-screen-sm" {...{ inert: "" }}>
+          <div className="mx-auto my-10 max-w-screen-sm" inert>
             <div className="px-6">
               <ProgramApplicationForm program={program} preview />
             </div>
