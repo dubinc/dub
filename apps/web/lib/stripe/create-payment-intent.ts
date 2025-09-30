@@ -11,7 +11,7 @@ export const createPaymentIntent = async ({
 }: {
   stripeId: string;
   amount: number;
-  invoiceId: string;
+  invoiceId?: string; // used for transfer_group (only for partner payouts)
   description: string;
   statementDescriptor: string;
   idempotencyKey?: string;
@@ -45,7 +45,7 @@ export const createPaymentIntent = async ({
       {
         amount,
         customer: stripeId,
-        transfer_group: invoiceId,
+        ...(invoiceId ? { transfer_group: invoiceId } : {}),
         payment_method_types: ["card", "link"],
         payment_method: paymentMethod.id,
         currency: "usd",
@@ -58,7 +58,7 @@ export const createPaymentIntent = async ({
     );
 
     console.log(
-      `Payment intent ${paymentIntent.id} created for invoice ${invoiceId} with amount ${currencyFormatter(paymentIntent.amount / 100)}`,
+      `Payment intent ${paymentIntent.id} created ${invoiceId ? `for invoice ${invoiceId} ` : ""}with amount ${currencyFormatter(paymentIntent.amount / 100)}`,
     );
 
     return { paymentIntent, paymentMethod };
@@ -66,7 +66,7 @@ export const createPaymentIntent = async ({
     console.error(error);
 
     await log({
-      message: `Failed to create payment intent for the invoice ${invoiceId}.`,
+      message: `Failed to create payment intent${invoiceId ? ` for the invoice ${invoiceId}` : ""}. ${JSON.stringify(error, null, 2)}`,
       type: "errors",
       mention: true,
     });

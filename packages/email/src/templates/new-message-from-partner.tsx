@@ -84,7 +84,10 @@ export default function NewMessageFromPartner({
                     />
                   </Column>
                   <Column className="w-full pl-2">
-                    <Text className="my-0 rounded-lg rounded-bl-none bg-neutral-100 px-4 py-2.5 text-sm leading-5 text-neutral-800">
+                    <Text
+                      className="my-0 rounded-lg rounded-bl-none bg-neutral-100 px-4 py-2.5 text-sm leading-5 text-neutral-800"
+                      style={{ whiteSpace: "pre-wrap" }}
+                    >
                       {message.text}
                     </Text>
                   </Column>

@@ -137,7 +137,7 @@ export function LanderPreview({
               isGeneratingLander &&
                 "pointer-events-auto opacity-100 backdrop-blur-md",
             )}
-            {...{ inert: isGeneratingLander ? undefined : true }}
+            inert={!isGeneratingLander}
           >
             <div
               className={cn(

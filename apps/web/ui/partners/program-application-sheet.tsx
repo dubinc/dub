@@ -90,9 +90,7 @@ function ProgramApplicationSheetContent({
           "flex h-full flex-col transition-opacity duration-200",
           isSubmitSuccessful && "pointer-events-none opacity-0",
         )}
-        {...{
-          inert: isSubmitSuccessful,
-        }}
+        inert={isSubmitSuccessful}
       >
         <div className="flex items-start justify-between bg-neutral-50 p-6">
           <Sheet.Title asChild className="min-w-0">
@@ -211,9 +209,7 @@ function ProgramApplicationSheetContent({
             ? "translate-y-0 opacity-100"
             : "pointer-events-none translate-y-4 opacity-0",
         )}
-        {...{
-          inert: !isSubmitSuccessful,
-        }}
+        inert={!isSubmitSuccessful}
       >
         <Grid
           cellSize={60}

@@ -167,8 +167,7 @@ export function PartnerMessagesProgramPageClient() {
               error={errorMessages}
               currentUserType="partner"
               currentUserId={partner?.id || ""}
-              programImage={program?.logo}
-              programName={program?.name}
+              program={program}
               onSendMessage={async (message) => {
                 const createdAt = new Date();
 
@@ -212,12 +211,12 @@ export function PartnerMessagesProgramPageClient() {
                                     programId: program!.id,
                                     partnerId: partner!.id,
                                     text: message,
-
+                                    subject: null,
+                                    type: "direct",
                                     readInApp: null,
                                     readInEmail: null,
                                     createdAt,
                                     updatedAt: createdAt,
-
                                     senderUserId: user!.id,
                                     senderUser: {
                                       id: user!.id,

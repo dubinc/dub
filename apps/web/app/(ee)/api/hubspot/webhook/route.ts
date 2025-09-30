@@ -1,17 +1,17 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { HUBSPOT_CLIENT_SECRET } from "@/lib/integrations/hubspot/constants";
-import { refreshAccessToken } from "@/lib/integrations/hubspot/refresh-token";
+import { hubSpotOAuthProvider } from "@/lib/integrations/hubspot/oauth";
 import {
   hubSpotSettingsSchema,
   hubSpotWebhookSchema,
 } from "@/lib/integrations/hubspot/schema";
 import { trackHubSpotLeadEvent } from "@/lib/integrations/hubspot/track-lead";
 import { trackHubSpotSaleEvent } from "@/lib/integrations/hubspot/track-sale";
-import { HubSpotAuthToken } from "@/lib/integrations/hubspot/types";
 import { prisma } from "@dub/prisma";
 import crypto from "crypto";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
+
+const HUBSPOT_CLIENT_SECRET = process.env.HUBSPOT_CLIENT_SECRET || "";
 
 // POST /api/hubspot/webhook – listen to webhook events from Hubspot
 export const POST = withAxiom(async (req: AxiomRequest) => {
@@ -89,13 +89,11 @@ async function processWebhookEvent(event: any) {
     return;
   }
 
-  const workspace = installation.project;
+  const { project: workspace } = installation;
 
   // Refresh the access token if needed
-  const authToken = await refreshAccessToken({
-    installationId: installation.id,
-    authToken: installation.credentials as HubSpotAuthToken,
-  });
+  const authToken =
+    await hubSpotOAuthProvider.refreshTokenForInstallation(installation);
 
   if (!authToken) {
     console.error(

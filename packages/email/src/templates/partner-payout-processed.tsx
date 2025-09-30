@@ -83,7 +83,7 @@ export default function PartnerPayoutProcessed({
               {startDate && endDate ? (
                 <>
                   {" "}
-                  for affiliate sales made from{" "}
+                  for affiliate commissions made from{" "}
                   <strong className="text-black">{startDate}</strong> to{" "}
                   <strong className="text-black">{endDate}</strong>.
                 </>
