@@ -48,12 +48,13 @@ export async function POST(req: Request) {
             messages: {
               where: {
                 programId,
-                senderPartnerId: null, // Not sent by the partner
                 createdAt: {
-                  gt: subDays(new Date(), 3), // Sent in the last 3 days
+                  gt: subDays(new Date(), 3), // sent in the last 3 days
                 },
-                readInApp: null, // Unread
-                readInEmail: null, // Unread
+                type: "direct", // only notify for direct messages
+                senderPartnerId: null, // not sent by the partner
+                readInApp: null, // unread messages only
+                readInEmail: null, // unread messages only
               },
               orderBy: {
                 createdAt: "desc",

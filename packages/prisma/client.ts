@@ -12,6 +12,7 @@ export {
   FolderUserRole,
   IndustryInterest,
   InvoiceStatus,
+  MessageType,
   MonthlyTraffic,
   NotificationEmailType,
   PartnerBannedReason,
@@ -28,5 +29,4 @@ export {
   SalesChannel,
   WebhookReceiver,
   WorkflowTrigger,
-  WorkflowTriggerType,
 } from "@prisma/client";

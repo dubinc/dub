@@ -55,23 +55,24 @@ model Program {
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
 
-  workspace         Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain     Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners          ProgramEnrollment[]
-  payouts           Payout[]
-  invoices          Invoice[]
-  applications      ProgramApplication[]
-  links             Link[]
-  commissions       Commission[]
-  rewards           Reward[]
-  discounts         Discount[]           @relation("ProgramDiscounts")
-  groups            PartnerGroup[]
+  workspace                Project                   @relation(fields: [workspaceId], references: [id])
+  primaryDomain            Domain?                   @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners                 ProgramEnrollment[]
+  payouts                  Payout[]
+  invoices                 Invoice[]
+  applications             ProgramApplication[]
+  links                    Link[]
+  commissions              Commission[]
+  rewards                  Reward[]
+  discounts                Discount[]                @relation("ProgramDiscounts")
+  groups                   PartnerGroup[]
   partnerGroupDefaultLinks PartnerGroupDefaultLink[]
-  bounties          Bounty[]
-  bountySubmissions BountySubmission[]
-  workflows         Workflow[]
-  messages          Message[]
-  comments          PartnerComment[]
+  bounties                 Bounty[]
+  bountySubmissions        BountySubmission[]
+  workflows                Workflow[]
+  messages                 Message[]
+  comments                 PartnerComment[]
+  campaigns                Campaign[]
 
   @@index(workspaceId)
   @@index(domain)

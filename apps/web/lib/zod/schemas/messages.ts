@@ -2,6 +2,7 @@ import { z } from "zod";
 import { PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
+import { MessageType } from "@prisma/client";
 
 export const MAX_MESSAGE_LENGTH = 2000;
 
@@ -14,6 +15,8 @@ export const MessageSchema = z.object({
   senderPartnerId: z.string().nullable(),
   senderUserId: z.string(),
   text: messageTextSchema,
+  subject: z.string().nullable(),
+  type: z.nativeEnum(MessageType),
   readInApp: z.date().nullable(),
   readInEmail: z.date().nullable(),
   createdAt: z.date(),

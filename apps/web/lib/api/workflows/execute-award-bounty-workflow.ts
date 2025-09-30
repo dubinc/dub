@@ -1,26 +1,24 @@
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
-import {
-  WorkflowAction,
-  WorkflowCondition,
-  WorkflowConditionAttribute,
-  WorkflowContext,
-} from "@/lib/types";
+import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
+import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import { prisma } from "@dub/prisma";
+import { Workflow } from "@dub/prisma/client";
 import { createId } from "../create-id";
 import { evaluateWorkflowCondition } from "./execute-workflows";
+import { parseWorkflowConfig } from "./parse-workflow-config";
 
-export const executeAwardBountyAction = async ({
-  condition,
+export const executeAwardBountyWorkflow = async ({
+  workflow,
   context,
-  action,
 }: {
-  condition: WorkflowCondition;
+  workflow: Workflow;
   context: WorkflowContext;
-  action: WorkflowAction;
 }) => {
-  if (action.type !== "awardBounty") {
+  const { condition, action } = parseWorkflowConfig(workflow);
+
+  if (action.type !== WORKFLOW_ACTION_TYPES.AwardBounty) {
     return;
   }
 
