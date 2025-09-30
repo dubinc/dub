@@ -12,18 +12,19 @@ import {
 import { cn } from "@dub/utils/src";
 import { Heading } from "@radix-ui/themes";
 import { FC, useEffect, useRef, useState } from "react";
-import { FAQ_ITEMS_PAYWALL } from './config';
 
 type FaqItems = {
   title: string;
-  content: string;
+  content: string | string[];
 };
 
 interface IFaqSectionProps {
+  faqItems: FaqItems[];
   homePageDemo?: boolean;
 }
 
 export const FAQSection: FC<IFaqSectionProps> = ({
+  faqItems,
   homePageDemo = true,
 }) => {
   const { isMobile } = useMediaQuery();
@@ -68,7 +69,7 @@ export const FAQSection: FC<IFaqSectionProps> = ({
         value={openItems}
         onValueChange={setOpenItems}
       >
-        {FAQ_ITEMS_PAYWALL.map((item, idx) => (
+        {faqItems.map((item, idx) => (
           <AccordionItem
             key={idx}
             value={idx.toString()}

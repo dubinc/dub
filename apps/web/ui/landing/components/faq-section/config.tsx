@@ -1,4 +1,4 @@
-import { TrialClicks, TrialDays } from '@/lib/constants/trial';
+import { TrialDays } from '@/lib/constants/trial';
 
 export const FAQ_ITEMS_HOMEPAGE = [
   {
