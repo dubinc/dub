@@ -7,12 +7,12 @@ import { GroupProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   ArrowUpRight2,
+  Brush,
   Button,
   ChevronRight,
   Discount,
   Gift,
   Hyperlink,
-  Post,
   Sliders,
   Users,
 } from "@dub/ui";
@@ -85,12 +85,12 @@ export function GroupHeaderTabs() {
         `/${slug}/program/groups/${group.slug}/links`,
     },
     {
-      id: "page-builder",
-      label: "Page builder",
-      icon: Post,
+      id: "branding",
+      label: "Branding",
+      icon: Brush,
       external: false,
       getHref: (group: GroupProps) =>
-        `/${slug}/program/groups/${group.slug}/page-builder`,
+        `/${slug}/program/groups/${group.slug}/branding`,
     },
     {
       id: "partners",
