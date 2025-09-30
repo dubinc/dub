@@ -6,7 +6,7 @@ export function BlockMarkdown({
   children,
 }: {
   className?: string;
-  children: string;
+  children: React.ReactNode | undefined;
 }) {
   return (
     <Markdown
@@ -23,7 +23,7 @@ export function BlockMarkdown({
         ),
       }}
     >
-      {children}
+      {children as string}
     </Markdown>
   );
 }

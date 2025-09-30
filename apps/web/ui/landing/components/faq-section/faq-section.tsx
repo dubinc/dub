@@ -12,6 +12,7 @@ import {
 import { cn } from "@dub/utils/src";
 import { Heading } from "@radix-ui/themes";
 import { FC, useEffect, useRef, useState } from "react";
+import { FAQ_ITEMS_PAYWALL } from './config';
 
 type FaqItems = {
   title: string;
@@ -19,12 +20,10 @@ type FaqItems = {
 };
 
 interface IFaqSectionProps {
-  faqItems: FaqItems[];
   homePageDemo?: boolean;
 }
 
 export const FAQSection: FC<IFaqSectionProps> = ({
-  faqItems,
   homePageDemo = true,
 }) => {
   const { isMobile } = useMediaQuery();
@@ -69,7 +68,7 @@ export const FAQSection: FC<IFaqSectionProps> = ({
         value={openItems}
         onValueChange={setOpenItems}
       >
-        {faqItems.map((item, idx) => (
+        {FAQ_ITEMS_PAYWALL.map((item, idx) => (
           <AccordionItem
             key={idx}
             value={idx.toString()}
@@ -93,9 +92,15 @@ export const FAQSection: FC<IFaqSectionProps> = ({
                 contentRefs.current[idx] = el;
               }}
             >
-              <BlockMarkdown className="py-2 text-left text-base text-neutral-300">
-                {item.content}
-              </BlockMarkdown>
+              {Array.isArray(item.content) ? item.content.map((content) => (
+                <BlockMarkdown key={content} className="py-2 text-left text-base text-neutral-300">
+                  {content}
+                </BlockMarkdown>
+              )) : (
+                <BlockMarkdown className="py-2 text-left text-base text-neutral-300">
+                  {item.content}
+                </BlockMarkdown>
+              )}
             </AccordionContent>
           </AccordionItem>
         ))}
