@@ -6,10 +6,11 @@ import Link from "@tiptap/extension-link";
 import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Bold, Heading1, Heading2, Italic, LinkIcon } from "lucide-react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 export function CampaignEditor() {
   const { program, loading } = useProgram();
+  const [name, setName] = useState("New email");
 
   const editor = useEditor({
     immediatelyRender: false,
@@ -94,8 +95,23 @@ export function CampaignEditor() {
   ];
 
   return (
-    <div className="">
-      <div className="mb-6 flex items-center gap-1">
+    <div>
+      <div className="py-4">
+        <div className="grid grid-cols-2 items-center gap-4">
+          <label className="text-content-subtle text-sm font-medium">
+            Name
+          </label>
+          <input
+            type="text"
+            name="name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="text-content-default h-8 cursor-pointer rounded-lg border border-transparent p-2 text-sm font-medium hover:bg-neutral-100 focus:border-neutral-500 focus:bg-neutral-100 focus:outline-none"
+          />
+        </div>
+      </div>
+
+      <div className="mb-6 mt-6 flex items-center gap-1 bg-yellow-50">
         {toolbarButtons.map(({ icon: Icon, action, isDisabled }, idx) => (
           <ToolbarButton
             key={idx}
