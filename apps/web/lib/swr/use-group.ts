@@ -8,9 +8,11 @@ export default function useGroup<T = GroupProps>(
   {
     groupIdOrSlug: groupIdOrSlugProp,
     query,
+    shouldFetch,
   }: {
     groupIdOrSlug?: string;
     query?: Record<string, any>;
+    shouldFetch?: boolean;
   } = {},
   swrOpts?: SWRConfiguration,
 ) {
@@ -24,9 +26,9 @@ export default function useGroup<T = GroupProps>(
     error,
     mutate: mutateGroup,
   } = useSWR<T>(
-    workspaceId && groupIdOrSlug
+    workspaceId && groupIdOrSlug && shouldFetch !== false
       ? `/api/groups/${groupIdOrSlug}?${new URLSearchParams({ workspaceId, ...query }).toString()}`
-      : undefined,
+      : null,
     fetcher,
     {
       keepPreviousData: true,

@@ -23,6 +23,7 @@ import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
@@ -46,7 +47,13 @@ export function usePageBuilderFormContext() {
 export function PageBuilderForm() {
   const { defaultProgramId } = useWorkspace();
 
-  const { group, mutateGroup, loading } = useGroup<GroupWithProgramProps>(
+  const { groupSlug } = useParams<{ groupSlug: string }>();
+
+  const {
+    group,
+    mutateGroup,
+    loading: loadingGroup,
+  } = useGroup<GroupWithProgramProps>(
     {
       query: { includeExpandedFields: true },
     },
@@ -55,12 +62,25 @@ export function PageBuilderForm() {
     },
   );
 
+  const isDefaultGroup = groupSlug === "default";
+
+  const { group: defaultGroup, loading: loadingDefaultGroup } =
+    useGroup<GroupWithProgramProps>({
+      groupIdOrSlug: "default",
+      query: { includeExpandedFields: true },
+      shouldFetch: !isDefaultGroup,
+    });
+
   const [draft, setDraft] = useLocalStorage<PageBuilderFormData | null>(
     `application-form-${defaultProgramId}`,
     null,
   );
 
-  if (loading) return <LayoutLoader />;
+  const loading = loadingGroup || (!isDefaultGroup && loadingDefaultGroup);
+
+  if (loading) {
+    return <LayoutLoader />;
+  }
 
   if (!group)
     return (
@@ -71,6 +91,7 @@ export function PageBuilderForm() {
     <PageBuilderContextProvider>
       <PageBuilderFormInner
         group={group}
+        defaultGroup={defaultGroup}
         mutateGroup={mutateGroup}
         draft={draft}
         setDraft={setDraft}
@@ -127,11 +148,13 @@ const defaultApplicationFormData = (
 
 function PageBuilderFormInner({
   group,
+  defaultGroup,
   mutateGroup,
   draft,
   setDraft,
 }: {
   group: GroupWithProgramProps;
+  defaultGroup?: GroupWithProgramProps | null;
   mutateGroup: KeyedMutator<GroupWithProgramProps>;
   draft: PageBuilderFormData | null;
   setDraft: (draft: PageBuilderFormData | null) => void;
@@ -150,7 +173,9 @@ function PageBuilderFormInner({
       wordmark: group.program?.wordmark ?? null,
       brandColor: group.program?.brandColor ?? null,
       applicationFormData:
-        group.applicationFormData ?? defaultApplicationFormData(group.program),
+        group.applicationFormData ??
+        defaultGroup?.applicationFormData ??
+        defaultApplicationFormData(group.program),
     },
   });
 
