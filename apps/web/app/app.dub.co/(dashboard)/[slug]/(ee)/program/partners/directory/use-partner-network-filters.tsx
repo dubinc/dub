@@ -1,7 +1,10 @@
-import { industryInterests } from "@/lib/partners/partner-profile";
+import {
+  industryInterests,
+  salesChannels,
+} from "@/lib/partners/partner-profile";
 import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partners-count";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy, Heart } from "@dub/ui/icons";
+import { FlagWavy, Heart, InvoiceDollar } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
@@ -34,13 +37,22 @@ export function usePartnerNetworkFilters({
         label: "Industry interest",
         multiple: true,
         options:
-          industryInterests?.map(({ id, icon: Icon, label }) => {
-            return {
-              value: id,
-              label,
-              icon: <Icon className="size-4" />,
-            };
-          }) ?? [],
+          industryInterests?.map(({ id, icon: Icon, label }) => ({
+            value: id,
+            label,
+            icon: <Icon className="size-4" />,
+          })) ?? [],
+      },
+      {
+        key: "salesChannels",
+        icon: InvoiceDollar,
+        label: "Sales channel",
+        multiple: true,
+        options:
+          salesChannels?.map(({ id, label }) => ({
+            value: id,
+            label,
+          })) ?? [],
       },
       {
         key: "country",
@@ -71,6 +83,8 @@ export function usePartnerNetworkFilters({
     () => ({
       industryInterests:
         searchParamsObj.industryInterests?.split(",")?.filter(Boolean) ?? [],
+      salesChannels:
+        searchParamsObj.salesChannels?.split(",")?.filter(Boolean) ?? [],
     }),
     [searchParamsObj],
   );

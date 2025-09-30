@@ -1,4 +1,4 @@
-import { IndustryInterest } from "@dub/prisma/client";
+import { IndustryInterest, SalesChannel } from "@dub/prisma/client";
 import { z } from "zod";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
@@ -43,9 +43,11 @@ export const getPartnerNetworkPartnersQuerySchema = z
         z.array(z.nativeEnum(IndustryInterest)),
       )
       .optional(),
-    tagIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    salesChannels: z
+      .preprocess(
+        (v) => (typeof v === "string" ? v.split(",") : v),
+        z.array(z.nativeEnum(SalesChannel)),
+      )
       .optional(),
   })
   .merge(

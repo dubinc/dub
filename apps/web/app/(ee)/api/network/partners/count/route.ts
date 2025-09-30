@@ -8,13 +8,27 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { status, groupBy, country, starred, industryInterests } =
-      getPartnerNetworkPartnersCountQuerySchema.parse(searchParams);
+    const {
+      status,
+      groupBy,
+      country,
+      starred,
+      industryInterests,
+      salesChannels,
+    } = getPartnerNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const commonWhere = {
       discoverableAt: { not: null },
       ...(country && {
         country,
+      }),
+      ...(industryInterests && {
+        industryInterests: {
+          some: { industryInterest: { in: industryInterests } },
+        },
+      }),
+      ...(salesChannels && {
+        salesChannels: { some: { salesChannel: { in: salesChannels } } },
       }),
     };
 
