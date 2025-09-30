@@ -9,6 +9,10 @@ import { Controller, useForm } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
 
+const MIN_LENGTH = 1;
+const MAX_LENGTH = 1000;
+const DEFAULT_MAX_LENGTH = 25;
+
 type ShortTextFieldData = z.infer<
   typeof programApplicationFormShortTextFieldSchema
 >;
@@ -61,7 +65,7 @@ const formDataForShortTextFieldData = (
     data: {
       placeholder: shortTextFieldData?.data?.placeholder ?? "",
       maxLengthEnabled: hasMaxLength,
-      maxLength: hasMaxLength ? maxLength : 25,
+      maxLength: hasMaxLength ? maxLength : DEFAULT_MAX_LENGTH,
     },
   };
 };
@@ -77,13 +81,12 @@ function ShortTextFieldModalInner({
     control,
     handleSubmit,
     register,
+    unregister,
     formState: { errors },
     watch,
   } = useForm<FormData>({
     defaultValues: formDataForShortTextFieldData(defaultValues),
   });
-
-  const values = watch();
 
   const maxLengthEnabled = watch("data.maxLengthEnabled");
 
@@ -220,15 +223,33 @@ function ShortTextFieldModalInner({
                   id={`${id}-max-length`}
                   type="number"
                   placeholder=""
-                  {...register("data.maxLength", {
-                    min: 0,
-                    max: 2000,
-                    valueAsNumber: true,
-                  })}
+                  {...(maxLengthEnabled
+                    ? register("data.maxLength", {
+                        min: {
+                          value: MIN_LENGTH,
+                          message: `Please enter a number between ${MIN_LENGTH} and ${MAX_LENGTH}`,
+                        },
+                        max: {
+                          value: MAX_LENGTH,
+                          message: `Please enter a number between ${MIN_LENGTH} and ${MAX_LENGTH}`,
+                        },
+                        valueAsNumber: true,
+                      })
+                    : {})}
                   autoFocus={!isMobile}
-                  className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  className={cn(
+                    "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    !!errors.data?.maxLength &&
+                      "border-red-600 focus:border-red-500 focus:ring-red-600",
+                  )}
                 />
               </div>
+
+              {errors.data?.maxLength?.message && (
+                <div className={cn("ml-1 mt-1 text-xs text-red-500")}>
+                  {errors.data?.maxLength.message}
+                </div>
+              )}
             </motion.div>
           </div>
 
