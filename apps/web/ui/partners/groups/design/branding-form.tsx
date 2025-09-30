@@ -217,16 +217,13 @@ function BrandingFormInner({
 
         const currentValues = getValues();
 
-        if (data?.applicationFormData) {
-          // Reset to persisted (in case anything changed)
-          reset({
-            ...currentValues,
-            applicationFormData: data?.applicationFormData,
-          });
-        } else {
-          // Still reset form state to clear isSubmitSuccessful
-          reset(currentValues);
-        }
+        // Still reset form state to clear isSubmitSuccessful
+        reset({
+          ...currentValues,
+          applicationFormData:
+            data?.applicationFormData ?? currentValues.applicationFormData,
+          landerData: data?.landerData ?? currentValues.landerData,
+        });
       },
       onError({ error }) {
         console.error(error);
@@ -334,7 +331,7 @@ function BrandingFormInner({
           </div>
           <div className="flex grow basis-0 items-center justify-end gap-4">
             <Drafts
-              enabled={!group.applicationFormData}
+              enabled={!group.applicationFormData || !group.landerData}
               draft={draft}
               setDraft={setDraft}
             />
@@ -409,7 +406,13 @@ function Drafts({
     // setTimeout: https://github.com/orgs/react-hook-form/discussions/9913#discussioncomment-4936301
     setTimeout(() =>
       (
-        ["logo", "wordmark", "brandColor", "applicationFormData"] as const
+        [
+          "logo",
+          "wordmark",
+          "brandColor",
+          "applicationFormData",
+          "landerData",
+        ] as const
       ).forEach((key) => {
         setValue(key, draft[key], {
           shouldDirty: true,
