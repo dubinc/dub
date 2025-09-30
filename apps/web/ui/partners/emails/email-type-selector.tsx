@@ -33,8 +33,10 @@ export const EmailTypeSelector = memo(function EmailTypeSelector({
   const [isOpen, setIsOpen] = useState(false);
 
   const selectedType = EMAIL_TYPES.find((type) => type.type === value);
-  if (!selectedType)
+
+  if (!selectedType) {
     throw new Error("Invalid email type passed to TypeSelector");
+  }
 
   return (
     <Popover

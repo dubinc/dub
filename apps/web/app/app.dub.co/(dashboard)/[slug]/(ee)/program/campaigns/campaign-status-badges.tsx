@@ -1,6 +1,6 @@
 import { CircleHalfDottedClock, CirclePlay, PaperPlane, Pen2 } from "@dub/ui";
 
-export const CampaignStatusBadges = {
+export const CAMPAIGN_STATUS_BADGES = {
   draft: {
     label: "Draft",
     variant: "neutral",

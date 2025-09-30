@@ -4,8 +4,8 @@ import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Sliders } from "@dub/ui/icons";
 import { nFormatter } from "@dub/utils";
 import { useMemo } from "react";
-import { CampaignStatusBadges } from "./campaign-status-badges";
-import { CampaignTypeBadges } from "./campaign-type-badges";
+import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
+import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
 import useCampaignsCount from "./use-campaigns-count";
 
 interface CampaignsCountByType {
@@ -46,7 +46,7 @@ export function useCampaignsFilters() {
               label,
               icon: Icon,
               iconClassName,
-            } = CampaignStatusBadges[status];
+            } = CAMPAIGN_STATUS_BADGES[status];
 
             return {
               label,
@@ -66,7 +66,7 @@ export function useCampaignsFilters() {
               label,
               icon: Icon,
               iconClassName,
-            } = CampaignTypeBadges[type];
+            } = CAMPAIGN_TYPE_BADGES[type];
 
             return {
               label,

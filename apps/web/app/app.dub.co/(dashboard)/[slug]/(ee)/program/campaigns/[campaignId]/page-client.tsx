@@ -19,27 +19,30 @@ import {
 import { toast } from "sonner";
 import { z } from "zod";
 
+type ProgramEmailFormData = z.infer<typeof programEmailSchema>;
+
+const useProgramEmailFormContext = () => useFormContext<ProgramEmailFormData>();
+
+const labelClassName = "text-sm font-medium text-content-muted";
+
+const inputClassName =
+  "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted";
+
 export function ProgramCampaignPageClient() {
   const { campaignId } = useParams<{ campaignId: string }>();
 
-  if (campaignId !== "new") return <div>WIP</div>;
+  if (campaignId !== "new") {
+    return <div>WIP</div>;
+  }
 
   // TODO: Load existing email data
 
   return <ProgramEmailForm />;
 }
 
-type ProgramEmailFormData = z.infer<typeof programEmailSchema>;
-
-const useProgramEmailFormContext = () => useFormContext<ProgramEmailFormData>();
-
-const labelClassName = "text-sm font-medium text-content-muted";
-const inputClassName =
-  "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted";
-
 function ProgramEmailForm() {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const searchParams = useSearchParams();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { executeAsync: executeImageUpload } = useAction(
     uploadEmailImageAction,
@@ -56,7 +59,6 @@ function ProgramEmailForm() {
   });
 
   const { register, control, watch, handleSubmit } = form;
-
   const type = watch("type");
 
   return (

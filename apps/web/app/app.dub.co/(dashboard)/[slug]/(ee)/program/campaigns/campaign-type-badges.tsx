@@ -1,6 +1,6 @@
 import { Megaphone, Workflow } from "@dub/ui";
 
-export const CampaignTypeBadges = {
+export const CAMPAIGN_TYPE_BADGES = {
   marketing: {
     label: "Marketing",
     icon: Megaphone,

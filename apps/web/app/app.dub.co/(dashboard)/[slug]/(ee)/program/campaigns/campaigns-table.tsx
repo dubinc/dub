@@ -17,8 +17,8 @@ import { cn, fetcher, formatDateTime, formatDateTimeSmart } from "@dub/utils";
 import { Mail } from "lucide-react";
 import useSWR from "swr";
 
-import { CampaignStatusBadges } from "./campaign-status-badges";
-import { CampaignTypeBadges } from "./campaign-type-badges";
+import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
+import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
 import { CreateCampaignButton } from "./create-campaign-button";
 import { useCampaignsFilters } from "./use-campaigns-filters";
 
@@ -67,7 +67,7 @@ export function CampaignsTable() {
             icon: Icon,
             iconClassName,
             className,
-          } = CampaignTypeBadges[row.original.type];
+          } = CAMPAIGN_TYPE_BADGES[row.original.type];
 
           return (
             <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ export function CampaignsTable() {
         id: "status",
         header: "Status",
         cell: ({ row }) => {
-          const badge = CampaignStatusBadges[row.original.status];
+          const badge = CAMPAIGN_STATUS_BADGES[row.original.status];
 
           return badge ? (
             <StatusBadge icon={null} variant={badge.variant}>

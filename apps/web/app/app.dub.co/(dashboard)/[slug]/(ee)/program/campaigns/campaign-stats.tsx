@@ -7,7 +7,7 @@ import { CampaignType } from "@prisma/client";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo } from "react";
-import { CampaignTypeBadges } from "./campaign-type-badges";
+import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
 import useCampaignsCount from "./use-campaigns-count";
 
 interface StatsFilterProps {
@@ -67,7 +67,7 @@ export function CampaignStats() {
         active={searchParamsObj.type == undefined}
       />
       <StatsFilter
-        label={CampaignTypeBadges.marketing.label}
+        label={CAMPAIGN_TYPE_BADGES.marketing.label}
         href={
           queryParams({
             set: { type: "marketing" },
@@ -75,13 +75,13 @@ export function CampaignStats() {
           }) as string
         }
         count={marketingCount}
-        icon={CampaignTypeBadges.marketing.icon}
-        iconClassName={CampaignTypeBadges.marketing.iconClassName}
+        icon={CAMPAIGN_TYPE_BADGES.marketing.icon}
+        iconClassName={CAMPAIGN_TYPE_BADGES.marketing.iconClassName}
         error={!!error}
         active={searchParamsObj.type === "marketing"}
       />
       <StatsFilter
-        label={CampaignTypeBadges.transactional.label}
+        label={CAMPAIGN_TYPE_BADGES.transactional.label}
         href={
           queryParams({
             set: { type: "transactional" },
@@ -89,8 +89,8 @@ export function CampaignStats() {
           }) as string
         }
         count={transactionalCount}
-        icon={CampaignTypeBadges.transactional.icon}
-        iconClassName={CampaignTypeBadges.transactional.iconClassName}
+        icon={CAMPAIGN_TYPE_BADGES.transactional.icon}
+        iconClassName={CAMPAIGN_TYPE_BADGES.transactional.iconClassName}
         error={!!error}
         active={searchParamsObj.type === "transactional"}
       />
