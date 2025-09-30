@@ -32,9 +32,11 @@ export const CampaignListSchema = z.object({
   updatedAt: z.date(),
 });
 
+export const campaignTypeSchema = z.nativeEnum(CampaignType);
+
 export const createCampaignSchema = z.object({
   groupIds: z.array(z.string()).nullish().default(null),
-  type: z.nativeEnum(CampaignType),
+  type: campaignTypeSchema,
   name: z
     .string()
     .trim()

@@ -6,24 +6,24 @@ import { cn } from "@dub/utils";
 import { Command } from "cmdk";
 import { memo, useState } from "react";
 
-export const EMAIL_TYPES = [
+export const CAMPAIGN_TYPES = [
   {
-    type: "campaign",
+    type: "marketing",
     icon: Megaphone,
-    name: "Campaign",
+    name: "Marketing",
     description: "Sent once manually",
     colorClassName: "text-green-700 bg-green-100",
   },
   {
-    type: "automation",
+    type: "transactional",
     icon: Workflow,
-    name: "Automation",
+    name: "Transactional",
     description: "Triggered by an event",
     colorClassName: "text-blue-700 bg-blue-100",
   },
 ];
 
-export const EmailTypeSelector = memo(function EmailTypeSelector({
+export const CampaignTypeSelector = memo(function CampaignTypeSelector({
   value,
   onChange,
 }: {
@@ -32,7 +32,7 @@ export const EmailTypeSelector = memo(function EmailTypeSelector({
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const selectedType = EMAIL_TYPES.find((type) => type.type === value);
+  const selectedType = CAMPAIGN_TYPES.find((type) => type.type === value);
 
   if (!selectedType) {
     throw new Error("Invalid email type passed to TypeSelector");
@@ -49,7 +49,7 @@ export const EmailTypeSelector = memo(function EmailTypeSelector({
           loop
         >
           <Command.List>
-            {EMAIL_TYPES.sort((a) =>
+            {CAMPAIGN_TYPES.sort((a) =>
               a.type === selectedType.type ? -1 : 1,
             ).map(({ type, icon: Icon, name, description, colorClassName }) => (
               <Command.Item

@@ -2,14 +2,28 @@
 
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { programEmailSchema } from "@/lib/zod/schemas/program-emails";
+import {
+  campaignTypeSchema,
+  createCampaignSchema,
+} from "@/lib/zod/schemas/campaigns";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { EmailTypeSelector } from "@/ui/partners/emails/email-type-selector";
-import { ChevronRight, PaperPlane, RichTextArea } from "@dub/ui";
+import { CampaignTypeSelector } from "@/ui/partners/emails/email-type-selector";
+import { ThreeDots } from "@/ui/shared/icons";
+import {
+  Button,
+  ChevronRight,
+  MenuItem,
+  PaperPlane,
+  Popover,
+  RichTextArea,
+  Trash,
+} from "@dub/ui";
+import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -19,9 +33,10 @@ import {
 import { toast } from "sonner";
 import { z } from "zod";
 
-type ProgramEmailFormData = z.infer<typeof programEmailSchema>;
+type CreateCampaignFormData = z.infer<typeof createCampaignSchema>;
 
-const useProgramEmailFormContext = () => useFormContext<ProgramEmailFormData>();
+const useProgramEmailFormContext = () =>
+  useFormContext<CreateCampaignFormData>();
 
 const labelClassName = "text-sm font-medium text-content-muted";
 
@@ -42,24 +57,26 @@ export function ProgramCampaignPageClient() {
 
 function ProgramEmailForm() {
   const searchParams = useSearchParams();
+  const [openPopover, setOpenPopover] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
+  const campaignType = campaignTypeSchema.safeParse(searchParams.get("type"));
+
+  const form = useForm<CreateCampaignFormData>({
+    defaultValues: {
+      name: "New email",
+      type: campaignType.success ? campaignType.data : "transactional",
+    },
+  });
 
   const { executeAsync: executeImageUpload } = useAction(
     uploadEmailImageAction,
   );
 
-  const form = useForm<ProgramEmailFormData>({
-    defaultValues: {
-      type:
-        (["campaign", "automation"] as const).find(
-          (t) => t === searchParams.get("type"),
-        ) || "campaign",
-      name: "New email",
-    },
-  });
-
   const { register, control, watch, handleSubmit } = form;
   const type = watch("type");
+
+  const title = type === "marketing" ? "Campaign" : "Automation";
 
   return (
     <FormProvider {...form}>
@@ -67,16 +84,58 @@ function ProgramEmailForm() {
         title={
           <div className="flex items-center gap-1.5">
             <Link
-              href={`/${workspaceSlug}/program/emails`}
+              href={`/${workspaceSlug}/program/campaigns`}
               className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
             >
               <PaperPlane className="text-content-default size-4" />
             </Link>
             <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-            <span>{`New ${type === "campaign" ? "email" : type}`}</span>
+            <span>{`New ${title}`}</span>
           </div>
         }
-        controls={<></>}
+        controls={
+          <div className="flex items-center gap-2">
+            <Button onClick={() => {}} text="Create" className="h-9" />
+            <Popover
+              openPopover={openPopover}
+              setOpenPopover={setOpenPopover}
+              align="end"
+              content={
+                <Command tabIndex={0} loop className="focus:outline-none">
+                  <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
+                    <MenuItem
+                      as={Command.Item}
+                      icon={PaperPlane}
+                      onSelect={() => {
+                        //
+                      }}
+                    >
+                      Send preview
+                    </MenuItem>
+
+                    <MenuItem
+                      as={Command.Item}
+                      icon={Trash}
+                      variant="danger"
+                      onSelect={() => {
+                        //
+                      }}
+                    >
+                      Delete
+                    </MenuItem>
+                  </Command.List>
+                </Command>
+              }
+            >
+              <Button
+                onClick={() => setOpenPopover(!openPopover)}
+                variant="secondary"
+                className="h-8 w-auto px-1.5"
+                icon={<ThreeDots className="size-5 text-neutral-500" />}
+              />
+            </Popover>
+          </div>
+        }
       >
         <PageWidthWrapper className="mb-8 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
@@ -111,7 +170,7 @@ function ProgramEmailForm() {
                 control={control}
                 name="type"
                 render={({ field }) => (
-                  <EmailTypeSelector
+                  <CampaignTypeSelector
                     value={field.value}
                     onChange={field.onChange}
                   />
