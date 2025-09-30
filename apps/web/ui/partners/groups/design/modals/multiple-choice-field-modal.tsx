@@ -326,7 +326,7 @@ export function MultipleChoiceFieldThumbnail() {
         stroke="#171717"
         strokeWidth="0.625"
       />
-      <g clip-path="url(#clip0_2001_4158)">
+      <g clipPath="url(#clip0_2001_4158)">
         <path
           d="M27.8298 32.3367L29.2187 34.0728L32.1701 30.427"
           stroke="white"
@@ -370,7 +370,7 @@ export function MultipleChoiceFieldThumbnail() {
         stroke="#171717"
         strokeWidth="0.625"
       />
-      <g clip-path="url(#clip1_2001_4158)">
+      <g clipPath="url(#clip1_2001_4158)">
         <path
           d="M27.8298 67.8367L29.2187 69.5728L32.1701 65.927"
           stroke="white"

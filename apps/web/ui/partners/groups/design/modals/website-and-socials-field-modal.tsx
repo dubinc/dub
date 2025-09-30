@@ -320,7 +320,7 @@ export function WebsiteAndSocialsFieldIcon() {
     >
       <rect x="0.5" y="0.5" width="47" height="47" rx="5.5" fill="white" />
       <rect x="0.5" y="0.5" width="47" height="47" rx="5.5" stroke="#E5E5E5" />
-      <g clip-path="url(#clip0_2001_4183)">
+      <g clipPath="url(#clip0_2001_4183)">
         <path
           d="M24 26.3337C27.1142 26.3337 29.6389 25.289 29.6389 24.0003C29.6389 22.7117 27.1142 21.667 24 21.667C20.8857 21.667 18.3611 22.7117 18.3611 24.0003C18.3611 25.289 20.8857 26.3337 24 26.3337Z"
           stroke="#404040"
