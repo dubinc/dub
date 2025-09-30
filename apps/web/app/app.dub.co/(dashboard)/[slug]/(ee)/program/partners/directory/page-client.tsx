@@ -15,10 +15,12 @@ import {
 } from "@/lib/zod/schemas/partner-network";
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
 import {
+  AnimatedSizeContainer,
   BadgeCheck2Fill,
   Button,
   ChartActivity2,
   DynamicTooltipWrapper,
+  Filter,
   PaginationControls,
   Tooltip,
   UserPlus,
@@ -42,34 +44,35 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { usePartnerNetworkFilters } from "./use-partner-network-filters";
+
+const tabs = [
+  {
+    label: "Discover",
+    id: "discover",
+  },
+  {
+    label: "Invited",
+    id: "invited",
+  },
+  {
+    label: "Recruited",
+    id: "recruited",
+  },
+] as const;
 
 export function ProgramPartnersDirectoryPageClient() {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
 
-  const tabs = [
-    {
-      label: "Discover",
-      id: "discover",
-    },
-    {
-      label: "Invited",
-      id: "invited",
-    },
-    {
-      label: "Recruited",
-      id: "recruited",
-    },
-  ];
-
-  const currentTabId =
+  const status =
     tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
 
   const queryString = workspaceId
     ? getQueryString(
         {
           workspaceId,
-          ...(currentTabId !== "discover" && { status: currentTabId }),
+          status,
         },
         {
           include: ["page"],
@@ -100,11 +103,14 @@ export function ProgramPartnersDirectoryPageClient() {
     PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE,
   );
 
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    usePartnerNetworkFilters({ status });
+
   return (
-    <div>
-      <div className="mb-6 grid grid-cols-3 gap-2">
+    <div className="flex flex-col gap-6">
+      <div className="grid grid-cols-3 gap-2">
         {tabs.map((tab) => {
-          const isActive = currentTabId === tab.id;
+          const isActive = status === tab.id;
 
           return (
             <button
@@ -135,6 +141,32 @@ export function ProgramPartnersDirectoryPageClient() {
             </button>
           );
         })}
+      </div>
+
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
       </div>
 
       {error || countError ? (
@@ -197,7 +229,7 @@ export function ProgramPartnersDirectoryPageClient() {
             <PaginationControls
               pagination={pagination}
               setPagination={setPagination}
-              totalCount={partnersCount?.[currentTabId] || 0}
+              totalCount={partnersCount?.[status] || 0}
               unit={(p) => `partner${p ? "s" : ""}`}
             />
           </div>

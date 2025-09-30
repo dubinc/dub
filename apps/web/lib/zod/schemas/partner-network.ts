@@ -25,9 +25,15 @@ export const PartnerConversionScoreSchema = z.enum(PARTNER_CONVERSION_SCORES);
 
 export const PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE = 50;
 
+export const partnerNetworkPartnersStatusSchema = z.enum([
+  "discover",
+  "invited",
+  "recruited",
+]);
+
 export const getPartnerNetworkPartnersQuerySchema = z
   .object({
-    status: z.enum(["discover", "invited", "recruited"]).default("discover"),
+    status: partnerNetworkPartnersStatusSchema.default("discover"),
   })
   .merge(
     getPaginationQuerySchema({
@@ -36,11 +42,16 @@ export const getPartnerNetworkPartnersQuerySchema = z
   );
 
 export const getPartnerNetworkPartnersCountQuerySchema =
-  getPartnerNetworkPartnersQuerySchema.omit({
-    status: true,
-    page: true,
-    pageSize: true,
-  });
+  getPartnerNetworkPartnersQuerySchema
+    .omit({
+      status: true,
+      page: true,
+      pageSize: true,
+    })
+    .extend({
+      status: partnerNetworkPartnersStatusSchema.nullish(),
+      groupBy: z.enum(["status", "country"]).default("status"),
+    });
 
 export const PartnerNetworkPartnerSchema = PartnerSchema.pick({
   id: true,

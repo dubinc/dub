@@ -72,6 +72,8 @@ export const GET = withWorkspace(
         }
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
+    console.log("!!!", partners);
+
     return NextResponse.json(
       z.array(PartnerNetworkPartnerSchema).parse(
         partners.map((partner) => ({

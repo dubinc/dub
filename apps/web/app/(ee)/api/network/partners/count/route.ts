@@ -8,54 +8,70 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const _ = getPartnerNetworkPartnersCountQuerySchema.parse(searchParams);
+    const { status, groupBy } =
+      getPartnerNetworkPartnersCountQuerySchema.parse(searchParams);
 
-    const partnerWhere = {
+    const commonWhere = {
       discoverableAt: { not: null },
     };
 
-    const [all, invited, recruited] = await Promise.all([
-      prisma.partner.count({
-        where: {
-          ...partnerWhere,
-          programs: { none: { programId } },
-          discoveredPartners: { none: { programId, ignoredAt: { not: null } } },
+    const statusWheres = {
+      discover: {
+        programs: { none: { programId } },
+        discoveredPartners: { none: { programId, ignoredAt: { not: null } } },
+      },
+      invited: {
+        programs: { some: { programId, status: "invited" } },
+        discoveredPartners: {
+          some: { programId, invitedAt: { not: null }, ignoredAt: null },
         },
-      }),
-      prisma.discoveredPartner.count({
-        where: {
-          programId,
-          partner: {
-            ...partnerWhere,
-            programs: { some: { programId, status: "invited" } },
-          },
-          invitedAt: {
-            not: null,
-          },
-          ignoredAt: null,
+      },
+      recruited: {
+        programs: { some: { programId, status: "approved" } },
+        discoveredPartners: {
+          some: { programId, invitedAt: { not: null } },
         },
-      }),
-      prisma.discoveredPartner.count({
-        where: {
-          programId,
-          partner: {
-            ...partnerWhere,
-            programs: { some: { programId, status: "approved" } },
-          },
-          invitedAt: {
-            not: null,
-          },
-          ignoredAt: null,
-        },
-      }),
-    ]);
+      },
+    } as const;
 
-    return NextResponse.json({
-      total: all,
-      discover: all - invited - recruited,
-      invited,
-      recruited,
-    });
+    if (groupBy === "status") {
+      const [discover, invited, recruited] = await Promise.all([
+        prisma.partner.count({
+          where: {
+            ...commonWhere,
+            ...statusWheres.discover,
+          },
+        }),
+        prisma.partner.count({
+          where: {
+            ...commonWhere,
+            ...statusWheres.invited,
+          },
+        }),
+        prisma.partner.count({
+          where: {
+            ...commonWhere,
+            ...statusWheres.recruited,
+          },
+        }),
+      ]);
+
+      return NextResponse.json({
+        discover,
+        invited,
+        recruited,
+      });
+    } else if (groupBy === "country") {
+      const countries = await prisma.partner.groupBy({
+        by: ["country"],
+        _count: true,
+        where: { ...commonWhere, ...statusWheres[status || "discover"] },
+      });
+
+      return NextResponse.json(countries);
+    }
+
+    throw new Error("Invalid groupBy");
   },
   {
     requiredPlan: ["enterprise"],
