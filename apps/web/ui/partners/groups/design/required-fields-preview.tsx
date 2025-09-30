@@ -14,8 +14,6 @@ const RequiredFieldItemPreview = ({
 };
 
 const RequiredFieldsPreview = () => {
-  const description = "Mandatory during Dub Partners account creation";
-
   return (
     <div className="rounded-[10px] border border-blue-200 bg-blue-50 px-4 pb-2 pt-4">
       <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-3">
@@ -27,7 +25,9 @@ const RequiredFieldsPreview = () => {
         <div className="relative h-4 w-4">
           <LockIcon />
         </div>
-        <div className="text-sm font-medium text-blue-900">{description}</div>
+        <div className="text-sm font-medium text-blue-900">
+          Mandatory fields
+        </div>
       </div>
     </div>
   );
