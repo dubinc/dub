@@ -9,7 +9,7 @@ import { EmailTypeSelector } from "@/ui/partners/emails/email-type-selector";
 import { ChevronRight, PaperPlane, RichTextArea } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import {
   Controller,
   FormProvider,
@@ -19,8 +19,10 @@ import {
 import { toast } from "sonner";
 import { z } from "zod";
 
-export function ProgramEmailPageClient({ emailId }: { emailId: string }) {
-  if (emailId !== "new") return <div>WIP</div>;
+export function ProgramCampaignPageClient() {
+  const { campaignId } = useParams<{ campaignId: string }>();
+
+  if (campaignId !== "new") return <div>WIP</div>;
 
   // TODO: Load existing email data
 

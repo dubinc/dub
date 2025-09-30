@@ -6,24 +6,24 @@ import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
-export function CreateEmailButton() {
-  const { slug: workspaceSlug } = useWorkspace();
+export function CreateCampaignButton() {
   const router = useRouter();
+  const { slug: workspaceSlug } = useWorkspace();
 
   useKeyboardShortcut("c", () =>
-    router.push(`/${workspaceSlug}/program/emails/new`),
+    router.push(`/${workspaceSlug}/program/campaigns/new`),
   );
 
   return (
     <>
       <Link
-        href={`/${workspaceSlug}/program/emails/new`}
+        href={`/${workspaceSlug}/program/campaigns/new`}
         className={cn(
           buttonVariants({ variant: "primary" }),
           "flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-lg border px-3 text-sm",
         )}
       >
-        Create email
+        Create campaign
         <kbd
           className={cn(
             "hidden rounded px-2 py-0.5 text-xs font-light transition-all duration-75 md:inline-block",

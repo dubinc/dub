@@ -8,6 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { WorkflowAction } from "@/lib/types";
 import {
+  CampaignListSchema,
   CampaignSchema,
   createCampaignSchema,
   getCampaignsQuerySchema,
@@ -28,13 +29,14 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { sortBy, sortOrder, status, search } =
+    const { sortBy, sortOrder, status, search, type } =
       getCampaignsQuerySchema.parse(searchParams);
 
     const campaigns = await prisma.campaign.findMany({
       where: {
         programId,
         ...(status && { status }),
+        ...(type && { type }),
         ...(search && {
           OR: [
             { name: { contains: search } },
@@ -43,12 +45,6 @@ export const GET = withWorkspace(
         }),
       },
       include: {
-        workflow: {
-          select: {
-            id: true,
-            triggerConditions: true,
-          },
-        },
         groups: {
           select: {
             groupId: true,
@@ -63,12 +59,14 @@ export const GET = withWorkspace(
     const data = campaigns.map((campaign) => {
       return {
         ...campaign,
-        groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
-        triggerCondition: campaign.workflow?.triggerConditions?.[0],
+        partners: 0,
+        delivered: 0,
+        bounced: 0,
+        opened: 0,
       };
     });
 
-    return NextResponse.json(z.array(CampaignSchema).parse(data));
+    return NextResponse.json(z.array(CampaignListSchema).parse(data));
   },
   {
     requiredPlan: ["advanced", "enterprise"],
