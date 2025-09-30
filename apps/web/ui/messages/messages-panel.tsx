@@ -10,7 +10,7 @@ import {
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import Linkify from "linkify-react";
 import { ChevronRight } from "lucide-react";
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import { MessageInput } from "../shared/message-input";
 
 interface Sender {
@@ -28,7 +28,6 @@ export function MessagesPanel({
   onSendMessage,
   placeholder,
   partnerName,
-  programName,
   error,
 }: {
   messages?: (Message & { delivered?: boolean })[];
@@ -38,19 +37,22 @@ export function MessagesPanel({
   onSendMessage: (message: string) => void;
   placeholder?: string;
   partnerName?: string;
-  programName?: string;
   error?: any;
 }) {
   const { isMobile } = useMediaQuery();
   const scrollRef = useRef<HTMLDivElement>(null);
 
   // Generate personalized placeholder based on user type
-  const personalizedPlaceholder = placeholder || 
-    (currentUserType === "partner" && programName 
-      ? `Message ${programName}...` 
-      : currentUserType === "user" && partnerName 
-        ? `Message ${partnerName}...` 
-        : "Type a message...");
+  const personalizedPlaceholder = useMemo(
+    () =>
+      placeholder ||
+      (currentUserType === "partner" && program?.name
+        ? `Message ${program.name}...`
+        : currentUserType === "user" && partnerName
+          ? `Message ${partnerName}...`
+          : "Type a message..."),
+    [placeholder, currentUserType, program?.name, partnerName],
+  );
 
   const sendMessage = (message: string) => {
     if (!messages) return false;
