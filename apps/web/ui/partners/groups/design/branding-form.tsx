@@ -76,7 +76,7 @@ export function BrandingForm() {
     });
 
   const [draft, setDraft] = useLocalStorage<BrandingFormData | null>(
-    `application-form-${defaultProgramId}`,
+    `branding-form-${defaultProgramId}`,
     null,
   );
 
