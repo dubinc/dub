@@ -1,5 +1,7 @@
+import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { GroupWithProgramProps } from "@/lib/types";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import {
@@ -20,6 +22,10 @@ import { toast } from "sonner";
 export function OverviewLinks() {
   const { slug } = useWorkspace();
   const { program } = useProgram();
+  const { group: defaultGroup } = useGroup<GroupWithProgramProps>({
+    groupIdOrSlug: "default",
+    query: { includeExpandedFields: true },
+  });
 
   const links = useMemo(
     () => [
@@ -27,13 +33,13 @@ export function OverviewLinks() {
         icon: Post,
         label: "Landing page",
         href: `${PARTNERS_DOMAIN}/${program?.slug}`,
-        disabled: !program?.landerPublishedAt,
+        disabled: !defaultGroup?.landerPublishedAt,
       },
       {
         icon: InputField,
         label: "Application form",
         href: `${PARTNERS_DOMAIN}/${program?.slug}/apply`,
-        disabled: !program?.landerPublishedAt,
+        disabled: !defaultGroup?.applicationFormPublishedAt,
       },
       {
         icon: Window,
@@ -42,7 +48,7 @@ export function OverviewLinks() {
         disabled: !program,
       },
     ],
-    [slug, program],
+    [slug, program, defaultGroup],
   );
 
   return (

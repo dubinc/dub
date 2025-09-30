@@ -96,6 +96,11 @@ export function LanderPreview({ group }: { group: GroupWithProgramProps }) {
     string | "hero" | "rewards" | null
   >(null);
 
+  const previewUrl =
+    group.slug === "default"
+      ? `${PARTNERS_DOMAIN}/${program.slug}`
+      : `${PARTNERS_DOMAIN}/${program.slug}/${group.slug}`;
+
   return (
     <>
       {editingBlock && editingBlockMeta && (
@@ -126,7 +131,7 @@ export function LanderPreview({ group }: { group: GroupWithProgramProps }) {
       />
       <LanderAIBanner />
       <PreviewWindow
-        url={`${PARTNERS_DOMAIN}/${program.slug}/${group.slug}`}
+        url={previewUrl}
         scrollRef={scrollRef}
         controls={<LanderPreviewControls />}
         overlay={

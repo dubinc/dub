@@ -100,6 +100,11 @@ export function ApplicationPreview({
 
   const fields = applicationFormData?.fields || [];
 
+  const previewUrl =
+    group.slug === "default"
+      ? `${PARTNERS_DOMAIN}/${program.slug}/apply`
+      : `${PARTNERS_DOMAIN}/${program.slug}/${group.slug}/apply`;
+
   return (
     <>
       {editingField && editingFieldMeta && (
@@ -128,7 +133,7 @@ export function ApplicationPreview({
         }}
       />
       <PreviewWindow
-        url={`${PARTNERS_DOMAIN}/${program.slug}/${group.slug}/apply`}
+        url={previewUrl}
         scrollRef={scrollRef}
         overlay={
           <div
