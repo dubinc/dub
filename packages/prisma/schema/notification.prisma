@@ -1,28 +1,34 @@
 enum NotificationEmailType {
   Message
   Bounty
+  Campaign
 }
 
 model NotificationEmail {
-  id        String                @id @default(cuid())
-  emailId   String                @unique // Resend email id
-  type      NotificationEmailType
-  messageId String?
-  bountyId  String?
+  id         String                @id @default(cuid())
+  emailId    String                @unique // Resend email id
+  type       NotificationEmailType
+  messageId  String?
+  bountyId   String?
+  campaignId String?
 
   programId       String?
   partnerId       String?
   recipientUserId String?
 
-  openedAt  DateTime?
-  createdAt DateTime  @default(now())
+  deliveredAt DateTime?
+  openedAt    DateTime?
+  bouncedAt   DateTime?
+  createdAt   DateTime  @default(now())
 
-  message Message? @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  bounty  Bounty?  @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  message  Message?  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  bounty   Bounty?   @relation(fields: [bountyId], references: [id], onDelete: Cascade)
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
 
   @@index(type)
   @@index(messageId)
   @@index(bountyId)
+  @@index(campaignId)
 }
 
 model NotificationPreference {
