@@ -20,7 +20,7 @@ import { generateCheckoutFormPaymentEvents } from "core/services/events/checkout
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FC, useRef, useState } from "react";
+import { FC, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -40,6 +40,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
   const [isSubscriptionCreation, setIsSubscriptionCreation] = useState(false);
+
+  const [isPaidTraffic, setIsPaidTraffic] = useState(false);
 
   const { update: updateSession } = useSession();
 
@@ -214,6 +216,43 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     });
   };
 
+  const termsAndConditionsText = useMemo(() => {
+    return (
+      <div className="font-medium">
+        By continuing, you agree to our{" "}
+        <Link className="font-semibold underline" href="/eula">
+          Terms and Conditions
+        </Link>{" "}
+        and{" "}
+        <Link className="font-semibold underline" href="/privacy-policy">
+          Privacy Policy
+        </Link>
+        . If you don’t cancel at least 24 hours before the end of your 7-day
+        trial, your subscription will automatically renew at{" "}
+        <span className="font-semibold">
+          {oldPriceForViewText} every month until you cancel
+        </span>{" "}
+        through our Help Center. For assistance, please contact our support team
+        at{" "}
+        <Link className="font-semibold underline" href="mailto:help@getqr.com">
+          help@getqr.com
+        </Link>
+      </div>
+    );
+  }, []);
+
+  useEffect(() => {
+    const utmList = JSON.parse(localStorage.getItem("utmValues") || "{}");
+
+    if (
+      utmList &&
+      utmList.utm_source &&
+      !utmList.utm_source.includes("email")
+    ) {
+      setIsPaidTraffic(true);
+    }
+  }, []);
+
   return (
     <>
       <div id="payment-block" className="flex flex-col gap-4">
@@ -238,30 +277,10 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           onPaymentMethodSelected={onPaymentMethodTypeClick}
           onBeforePaymentCreate={onPaymentMethodTypeOpen}
           submitBtn={{
-            text: "Subscribe",
+            text: "Pay Now",
           }}
-          termsAndConditionsText={
-            <>
-              By continuing, you agree to our{" "}
-              <Link className="font-semibold underline" href="/eula">
-                Terms and Conditions
-              </Link>{" "}
-              and{" "}
-              <Link className="font-semibold underline" href="/privacy-policy">
-                Privacy Policy
-              </Link>
-              . If you don’t cancel at least 24 hours before the end of your
-              7-day trial, your subscription will automatically renew at{" "}
-              <span className="font-semibold">
-                {oldPriceForViewText} every month until you cancel
-              </span>{" "}
-              through our Help Center. For assistance, please contact our
-              support team at{" "}
-              <Link className="font-semibold" href="mailto:help@getqr.com">
-                help@getqr.com
-              </Link>
-            </>
-          }
+          isPaidTraffic={isPaidTraffic}
+          termsAndConditionsText={termsAndConditionsText}
         />
       </div>
 
