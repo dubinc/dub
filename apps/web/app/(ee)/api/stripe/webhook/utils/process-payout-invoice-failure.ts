@@ -82,7 +82,6 @@ export async function processPayoutInvoiceFailure({
     const { paymentIntent, paymentMethod } = await createPaymentIntent({
       stripeId: workspace.stripeId,
       amount: PAYOUT_FAILURE_FEE_CENTS,
-      invoiceId: invoice.id,
       description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
       statementDescriptor: "Dub Partners",
     });
@@ -102,22 +101,24 @@ export async function processPayoutInvoiceFailure({
   waitUntil(
     (async () => {
       // Send email to the workspace users about the failed payout
-      const emailData = workspace.users.map((user) => ({
-        email: user.user.email!,
-        workspace: {
-          slug: workspace.slug,
-        },
-        program: {
-          name: workspace.programs[0].name,
-        },
-        payout: {
-          amount: charge.amount,
-          ...(chargedFailureFee && {
-            failureFee: PAYOUT_FAILURE_FEE_CENTS,
-            cardLast4,
-          }),
-        },
-      }));
+      const emailData = workspace.users
+        .filter((user) => user.user.email)
+        .map((user) => ({
+          email: user.user.email!,
+          workspace: {
+            slug: workspace.slug,
+          },
+          program: {
+            name: workspace.programs[0].name,
+          },
+          payout: {
+            amount: charge.amount,
+            ...(chargedFailureFee && {
+              failureFee: PAYOUT_FAILURE_FEE_CENTS,
+              cardLast4,
+            }),
+          },
+        }));
 
       if (emailData.length === 0) {
         console.log("No users found to send email, skipping...");

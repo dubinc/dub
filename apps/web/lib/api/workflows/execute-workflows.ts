@@ -5,13 +5,13 @@ import {
 } from "@/lib/types";
 import {
   OPERATOR_FUNCTIONS,
-  workflowActionSchema,
-  workflowConditionSchema,
+  WORKFLOW_ACTION_TYPES,
 } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/client";
-import { z } from "zod";
-import { executeAwardBountyAction } from "./execute-award-bounty-action";
+import { executeAwardBountyWorkflow } from "./execute-award-bounty-workflow";
+import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
+import { parseWorkflowConfig } from "./parse-workflow-config";
 
 export async function executeWorkflows({
   trigger,
@@ -70,30 +70,22 @@ export async function executeWorkflows({
 
   // Execute each workflow for the program
   for (const workflow of workflows) {
-    const conditions = z
-      .array(workflowConditionSchema)
-      .parse(workflow.triggerConditions);
+    const { action } = parseWorkflowConfig(workflow);
 
-    if (conditions.length === 0) {
-      continue;
-    }
+    switch (action.type) {
+      case WORKFLOW_ACTION_TYPES.AwardBounty:
+        await executeAwardBountyWorkflow({
+          workflow,
+          context: workflowContext,
+        });
+        break;
 
-    const actions = z.array(workflowActionSchema).parse(workflow.actions);
-
-    if (actions.length === 0) {
-      continue;
-    }
-
-    // We only support one trigger and action for now
-    const condition = conditions[0];
-    const action = actions[0];
-
-    if (action.type === "awardBounty") {
-      await executeAwardBountyAction({
-        condition,
-        context: workflowContext,
-        action,
-      });
+      case WORKFLOW_ACTION_TYPES.SendCampaign:
+        await executeSendCampaignWorkflow({
+          workflow,
+          context: workflowContext,
+        });
+        break;
     }
   }
 }

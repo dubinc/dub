@@ -47,7 +47,7 @@ export function LanderPreviewControls() {
           showGenerateButton &&
             "pointer-events-auto w-auto translate-y-0 opacity-100",
         )}
-        {...{ inert: showGenerateButton ? undefined : true }}
+        inert={!showGenerateButton}
       >
         <Button
           type="button"
