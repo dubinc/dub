@@ -4,7 +4,7 @@ import { programApplicationFormSchema } from "@/lib/zod/schemas/program-applicat
 import { ApplicationFormHero } from "@/ui/partners/groups/design/application-form/application-hero-preview";
 import { ProgramApplicationForm } from "@/ui/partners/groups/design/application-form/program-application-form";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyHeader } from "../header";
 
@@ -28,7 +28,12 @@ export default async function ApplicationPage(props: {
     !program.group.applicationFormData ||
     !program.group.applicationFormPublishedAt
   ) {
-    notFound();
+    // throw 404 if it's the default group, else redirect to the default group page
+    if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      notFound();
+    } else {
+      redirect(`/${programSlug}/apply`);
+    }
   }
 
   const applicationFormData = programApplicationFormSchema.parse(

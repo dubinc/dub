@@ -1,9 +1,13 @@
+import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
 import "dotenv-flow/config";
 
 async function main() {
-  const now = new Date();
   const programs = await prisma.program.findMany({
+    where: {
+      slug: "acme",
+    },
     include: {
       groups: true,
     },
@@ -13,20 +17,25 @@ async function main() {
 
   for (const program of programs) {
     const groupIds = program.groups.map(({ id }) => id);
+    const programLanderData = program.landerData
+      ? programLanderSchema.parse(program.landerData)
+      : Prisma.JsonNull;
+
+    console.log("programLanderData", programLanderData);
 
     // Use the default landerData
-
-    await prisma.partnerGroup.updateMany({
+    const updatedGroups = await prisma.partnerGroup.updateMany({
       where: {
         id: {
           in: groupIds,
         },
       },
       data: {
-        landerData: program.landerData || { blocks: [] },
-        landerPublishedAt: now,
+        landerData: programLanderData,
       },
     });
+
+    console.log(`Updated ${updatedGroups.count} groups`);
   }
 }
 

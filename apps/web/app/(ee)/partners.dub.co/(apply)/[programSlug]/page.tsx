@@ -4,7 +4,7 @@ import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
 import { ApplyHeader } from "./header";
@@ -29,7 +29,12 @@ export default async function ApplyPage(props: {
     !program.group.landerData ||
     !program.group.landerPublishedAt
   ) {
-    notFound();
+    // throw 404 if it's the default group, else redirect to the default group page
+    if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      notFound();
+    } else {
+      redirect(`/${programSlug}`);
+    }
   }
 
   const landerData = programLanderSchema.parse(

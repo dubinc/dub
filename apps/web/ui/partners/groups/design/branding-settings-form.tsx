@@ -38,8 +38,8 @@ export function BrandingSettingsForm() {
           <Divider />
 
           <FormRow
-            label="Icon"
-            tooltip="A smaller representation of your logo, and must be square"
+            label="Logo"
+            tooltip="A square 1:1 logo used in various parts of the partner portal."
             required
           >
             {(id) => (
@@ -68,8 +68,8 @@ export function BrandingSettingsForm() {
           </FormRow>
 
           <FormRow
-            label="Logo"
-            tooltip="Optional full-sized logo used in place of the icon where applicable"
+            label="Wordmark"
+            tooltip="Optional full-sized wordmark used in the navigation menu bar."
           >
             {(id) => (
               <Controller

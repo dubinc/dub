@@ -1,14 +1,14 @@
 import { ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { v4 as uuid } from "uuid";
+import { Prisma, ProgramApplication } from "@dub/prisma/client";
 import "dotenv-flow/config";
-import { ProgramApplication } from "@prisma/client";
+import { v4 as uuid } from "uuid";
 
 const defaultApplicationFormData = (program) => {
   return {
     label: program.applicationFormData?.label || "",
     title: program.applicationFormData?.title || "",
-    description: program.applicationFormData?.description || "",  
+    description: program.applicationFormData?.description || "",
     fields: [
       {
         id: uuid(),
@@ -41,7 +41,10 @@ const defaultApplicationFormData = (program) => {
   };
 };
 
-const defaultApplicationFormDataWithValues = (program: ProgramProps, application: ProgramApplication) => {
+const defaultApplicationFormDataWithValues = (
+  program: ProgramProps,
+  application: ProgramApplication,
+) => {
   return {
     fields: [
       {
@@ -78,10 +81,11 @@ const defaultApplicationFormDataWithValues = (program: ProgramProps, application
   };
 };
 
-
 async function main() {
-  const now = new Date();
   const programs = await prisma.program.findMany({
+    where: {
+      slug: "acme",
+    },
     include: {
       groups: true,
     },
@@ -92,34 +96,40 @@ async function main() {
   for (const program of programs) {
     const groupIds = program.groups.map(({ id }) => id);
 
-      // Use the default applicationFormData
-      const applicationFormData = defaultApplicationFormData(program);
+    // Use the default applicationFormData
+    const applicationFormData = defaultApplicationFormData(program);
 
-      await prisma.partnerGroup.updateMany({
-        where: {
-          id: {
-            in: groupIds,
-          },
+    const updatedGroups = await prisma.partnerGroup.updateMany({
+      where: {
+        id: {
+          in: groupIds,
         },
-        data: {
-          applicationFormData,
-          applicationFormPublishedAt: now,
-        },
-      });
+      },
+      data: {
+        applicationFormData,
+      },
+    });
+    console.log(`Updated ${updatedGroups.count} groups`);
 
     // Now that we have applicationFormData we need to migrate all the applications for the program
     // by moving the contents of website, proposal, and comments into the formData field of the application
     const applications = await prisma.programApplication.findMany({
       where: {
         programId: program.id,
+        formData: {
+          equals: Prisma.JsonNull,
+        },
       },
     });
-    
+
     for (const application of applications) {
       await prisma.programApplication.update({
         where: { id: application.id },
-        data: { formData: defaultApplicationFormDataWithValues(program, application) },
+        data: {
+          formData: defaultApplicationFormDataWithValues(program, application),
+        },
       });
+      console.log(`Updated application ${application.id}`);
     }
   }
 }
