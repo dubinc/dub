@@ -97,10 +97,28 @@ export function usePartnerNetworkFilters({
       del: "page",
     });
 
-  const onRemove = (key: string, value: any) =>
-    queryParams({
-      del: [key, "page"],
-    });
+  const onRemove = (key: string, value: any) => {
+    if (
+      key === "industryInterests" &&
+      !(
+        selectedIndustryInterests.length === 1 &&
+        selectedIndustryInterests[0] === value
+      )
+    ) {
+      queryParams({
+        set: {
+          industryInterests: selectedIndustryInterests
+            .filter((id) => id !== value)
+            .join(","),
+        },
+        del: "page",
+      });
+    } else {
+      queryParams({
+        del: [key, "page"],
+      });
+    }
+  };
 
   const onRemoveAll = () =>
     queryParams({

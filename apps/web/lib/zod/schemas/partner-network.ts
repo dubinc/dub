@@ -37,7 +37,16 @@ export const getPartnerNetworkPartnersQuerySchema = z
     status: partnerNetworkPartnersStatusSchema.default("discover"),
     country: z.string().optional(),
     starred: booleanQuerySchema.nullish(),
-    industryInterests: z.array(z.nativeEnum(IndustryInterest)).optional(),
+    industryInterests: z
+      .preprocess(
+        (v) => (typeof v === "string" ? v.split(",") : v),
+        z.array(z.nativeEnum(IndustryInterest)),
+      )
+      .optional(),
+    tagIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional(),
   })
   .merge(
     getPaginationQuerySchema({
