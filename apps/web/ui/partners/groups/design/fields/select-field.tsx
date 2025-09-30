@@ -35,14 +35,18 @@ export function SelectField({
       <Controller
         control={control}
         name={keyPath}
-        rules={{
-          validate: (val: any) => {
-            if (field.required && (!val || val === "")) {
-              return "Please select an option";
-            }
-            return true;
-          },
-        }}
+        rules={
+          preview
+            ? {}
+            : {
+                validate: (val: any) => {
+                  if (field.required && (!val || val === "")) {
+                    return "Please select an option";
+                  }
+                  return true;
+                },
+              }
+        }
         render={({ field }) => (
           <Combobox
             selected={options.find((o) => o.value === field.value) ?? null}

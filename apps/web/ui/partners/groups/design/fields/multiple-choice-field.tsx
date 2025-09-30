@@ -19,10 +19,9 @@ export function MultipleChoiceField({
   keyPath: keyPathProp,
   preview,
 }: MultipleChoiceFieldProps) {
-  const { getFieldState, watch, setValue, control } = useFormContext<any>();
+  const { getFieldState, control } = useFormContext<any>();
   const keyPath = keyPathProp ? `${keyPathProp}.value` : "value";
   const state = getFieldState(keyPath);
-  const value = watch(keyPath);
   const options = field.data.options;
 
   let content: React.ReactNode;
@@ -32,18 +31,22 @@ export function MultipleChoiceField({
       <Controller
         control={control}
         name={keyPath}
-        rules={{
-          validate: (val: any) => {
-            if ((field.required && !Array.isArray(val)) || !val.length) {
-              return "Select all that apply";
-            }
-            return true;
-          },
-        }}
+        rules={
+          preview
+            ? {}
+            : {
+                validate: (val: any) => {
+                  if (field.required && (!Array.isArray(val) || !val.length)) {
+                    return "Select all that apply";
+                  }
+                  return true;
+                },
+              }
+        }
         render={({ field }) => (
           <div className="space-y-2">
             {options.map((option) => {
-              const isSelected = value?.includes(option.value);
+              const isSelected = field.value?.includes(option.value);
 
               return (
                 <label
@@ -55,16 +58,17 @@ export function MultipleChoiceField({
                     checked={isSelected}
                     className="border-border-default size-4 rounded focus:border-[var(--brand)] focus:ring-[var(--brand)] focus-visible:border-[var(--brand)] focus-visible:ring-[var(--brand)] data-[state=checked]:bg-black data-[state=indeterminate]:bg-black"
                     onCheckedChange={(checked) => {
+                      if (preview) return;
+
                       if (checked) {
-                        setValue(keyPath, [...(value || []), option.value]);
+                        field.onChange([...(field.value || []), option.value]);
                       } else {
                         if (
-                          Array.isArray(value) &&
-                          value.includes(option.value)
+                          Array.isArray(field.value) &&
+                          field.value.includes(option.value)
                         ) {
-                          setValue(
-                            keyPath,
-                            value.filter((v) => v !== option.value),
+                          field.onChange(
+                            field.value.filter((v) => v !== option.value),
                           );
                         }
                       }
@@ -86,18 +90,25 @@ export function MultipleChoiceField({
       <Controller
         control={control}
         name={keyPath}
-        rules={{
-          validate: (val: any) => {
-            if (field.required && (!val || val === "")) {
-              return "Please select an option";
-            }
-            return true;
-          },
-        }}
+        rules={
+          preview
+            ? {}
+            : {
+                validate: (val: any) => {
+                  if (field.required && (!val || val === "")) {
+                    return "Please select an option";
+                  }
+                  return true;
+                },
+              }
+        }
         render={({ field }) => (
           <RadioGroup
-            value={typeof value === "string" ? value : ""}
-            onValueChange={(newValue) => setValue(keyPath, newValue)}
+            value={typeof field.value === "string" ? field.value : ""}
+            onValueChange={(newValue) => {
+              if (preview) return;
+              field.onChange(newValue);
+            }}
             className="space-y-2"
           >
             {options.map((option) => (
