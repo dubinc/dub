@@ -3,7 +3,10 @@
 import { LoadingSpinner, Modal } from "@dub/ui";
 import { Payment } from "@primer-io/checkout-web";
 import { useCreateSubscriptionMutation } from "core/api/user/subscription/subscription.hook";
-import { trackClientEvents } from "core/integration/analytic";
+import {
+  setPeopleAnalytic,
+  trackClientEvents,
+} from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import {
   CheckoutFormComponent,
@@ -12,6 +15,7 @@ import {
 } from "core/integration/payment/client/checkout-form";
 import {
   getCalculatePriceForView,
+  getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
   ICustomerBody,
   TPaymentPlan,
@@ -169,6 +173,16 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     }
 
     toast.success("Subscription created successfully!");
+
+    const chargePeriodDays = getChargePeriodDaysIdByPlan({
+      paymentPlan: subPaymentPlan,
+      user,
+    });
+
+    setPeopleAnalytic({
+      plan_name: subPaymentPlan,
+      charge_period_days: chargePeriodDays,
+    });
 
     generateCheckoutFormPaymentEvents({
       user,
