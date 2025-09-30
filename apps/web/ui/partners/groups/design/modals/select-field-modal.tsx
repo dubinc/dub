@@ -193,20 +193,23 @@ function SelectFieldModalInner({
                   }
                 >
                   {fields.map((field, index) => {
-                    const fieldErrors = errors.data?.options?.[index];
+                    const error = errors.data?.options?.[index]?.value;
 
                     return (
                       <EditListItem
                         key={field.id}
                         value={field.id}
-                        error={!!fieldErrors?.value}
+                        error={!!error?.message}
+                        className={cn(
+                          !error && "focus-within:border-neutral-500",
+                        )}
                         title={
                           <input
                             id={`${id}-${field.id}-name`}
                             type="text"
                             placeholder="Option"
                             className={cn(
-                              "my-1 block w-full rounded-md border-transparent bg-transparent py-1 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500",
+                              "my-1 block w-full rounded-md border-transparent bg-transparent py-1 text-sm text-neutral-900 placeholder-neutral-400 focus:border-transparent focus:outline-none focus:ring-0",
                             )}
                             {...register(`data.options.${index}.value`, {
                               required: "Value is required",

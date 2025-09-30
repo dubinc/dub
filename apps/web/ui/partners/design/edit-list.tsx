@@ -22,7 +22,7 @@ const EditListContext = createContext<{
   setExpandedValue: Dispatch<SetStateAction<string | null>>;
 }>({
   expandedValue: null,
-  setExpandedValue: () => { },
+  setExpandedValue: () => {},
 });
 
 export function EditList({
@@ -75,11 +75,13 @@ export function EditListItem({
   title,
   onRemove,
   error,
+  className,
 }: {
   value: string;
   title: ReactNode;
-  error?: boolean
+  error?: boolean;
   onRemove?: () => void;
+  className?: string;
 }) {
   const controls = useDragControls();
 
@@ -89,7 +91,11 @@ export function EditListItem({
       value={value}
       dragListener={false}
       dragControls={controls}
-      className={cn("relative overflow-hidden rounded-md border border-neutral-200 bg-neutral-50", error && "border-red-500")}
+      className={cn(
+        "relative overflow-hidden rounded-md border border-neutral-200 bg-neutral-50",
+        className,
+        error && "border-red-500",
+      )}
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: "auto" }}
       exit={{ opacity: 0, height: 0 }}
@@ -104,9 +110,7 @@ export function EditListItem({
           <GripDotsVertical className="size-4 text-neutral-800" />
         </div>
 
-        <div className="px-6">
-          {title}
-        </div>
+        <div className="px-6">{title}</div>
 
         {onRemove && (
           <button
