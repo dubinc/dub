@@ -6,6 +6,7 @@ import {
   industryInterestsMap,
   salesChannelsMap,
 } from "@/lib/partners/partner-profile";
+import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscoverablePartnerProps } from "@/lib/types";
 import {
@@ -68,17 +69,8 @@ export function ProgramPartnersDirectoryPageClient() {
   const status =
     tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
 
-  const { data: partnersCount, error: countError } = useSWR<{
-    total: number;
-    discover: number;
-    invited: number;
-    recruited: number;
-  }>(
-    workspaceId &&
-      `/api/network/partners/count?${new URLSearchParams({ workspaceId })}`,
-    fetcher,
-    { revalidateOnFocus: false, keepPreviousData: true },
-  );
+  const { data: partnerCounts, error: countError } =
+    usePartnerNetworkPartnersCount();
 
   const {
     data: partners,
@@ -134,9 +126,9 @@ export function ProgramPartnersDirectoryPageClient() {
               <span className="text-content-default text-xs font-semibold">
                 {tab.label}
               </span>
-              {partnersCount ? (
+              {partnerCounts ? (
                 <span className="text-content-emphasis text-base font-semibold">
-                  {(partnersCount?.[tab.id] || 0).toLocaleString()}
+                  {(partnerCounts?.[tab.id] || 0).toLocaleString()}
                 </span>
               ) : (
                 <div className="h-6 w-12 animate-pulse rounded-md bg-neutral-200" />
@@ -237,7 +229,7 @@ export function ProgramPartnersDirectoryPageClient() {
             <PaginationControls
               pagination={pagination}
               setPagination={setPagination}
-              totalCount={partnersCount?.[status] || 0}
+              totalCount={partnerCounts?.[status] || 0}
               unit={(p) => `partner${p ? "s" : ""}`}
             />
           </div>

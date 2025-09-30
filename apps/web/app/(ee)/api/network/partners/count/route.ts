@@ -8,11 +8,14 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { status, groupBy } =
+    const { status, groupBy, country } =
       getPartnerNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const commonWhere = {
       discoverableAt: { not: null },
+      ...(country && {
+        country,
+      }),
     };
 
     const statusWheres = {
@@ -36,24 +39,30 @@ export const GET = withWorkspace(
 
     if (groupBy === "status") {
       const [discover, invited, recruited] = await Promise.all([
-        prisma.partner.count({
-          where: {
-            ...commonWhere,
-            ...statusWheres.discover,
-          },
-        }),
-        prisma.partner.count({
-          where: {
-            ...commonWhere,
-            ...statusWheres.invited,
-          },
-        }),
-        prisma.partner.count({
-          where: {
-            ...commonWhere,
-            ...statusWheres.recruited,
-          },
-        }),
+        !status || status === "discover"
+          ? prisma.partner.count({
+              where: {
+                ...commonWhere,
+                ...statusWheres.discover,
+              },
+            })
+          : undefined,
+        !status || status === "invited"
+          ? prisma.partner.count({
+              where: {
+                ...commonWhere,
+                ...statusWheres.invited,
+              },
+            })
+          : undefined,
+        !status || status === "recruited"
+          ? prisma.partner.count({
+              where: {
+                ...commonWhere,
+                ...statusWheres.recruited,
+              },
+            })
+          : undefined,
       ]);
 
       return NextResponse.json({

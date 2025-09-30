@@ -1,31 +1,29 @@
-import useWorkspace from "@/lib/swr/use-workspace";
+import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partners-count";
 import { useRouterStuff } from "@dub/ui";
 import { FlagWavy } from "@dub/ui/icons";
-import { COUNTRIES, fetcher, nFormatter } from "@dub/utils";
+import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useMemo } from "react";
-import useSWR from "swr";
 
 export function usePartnerNetworkFilters({
   status,
 }: {
   status: "discover" | "invited" | "recruited";
 }) {
-  const { getQueryString, searchParamsObj, queryParams } = useRouterStuff();
-  const { id: workspaceId, slug } = useWorkspace();
+  const { searchParamsObj, queryParams } = useRouterStuff();
 
-  const { data: countriesCount } = useSWR<
+  const { data: countriesCount } = usePartnerNetworkPartnersCount<
     | {
         country: string;
         _count: number;
       }[]
     | undefined
-  >(
-    `/api/network/partners/count${getQueryString({ workspaceId, status, groupBy: "country" }, { exclude: ["tab", "page"] })}`,
-    fetcher,
-    {
-      keepPreviousData: true,
+  >({
+    query: {
+      status,
+      groupBy: "country",
     },
-  );
+    excludeParams: ["country"],
+  });
 
   const filters = useMemo(
     () => [
