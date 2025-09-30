@@ -292,18 +292,21 @@ export const DELETE = withWorkspace(
       });
     });
 
+    const partnerIds = group.partners.map(({ partnerId }) => partnerId);
+
     waitUntil(
       Promise.allSettled([
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-          body: {
-            programId,
-            groupId: defaultGroup.id,
-            partnerIds: group.partners.map(({ partnerId }) => partnerId),
-            userId: session.user.id,
-            isGroupDeleted: true,
-          },
-        }),
+        partnerIds.length > 0 &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+            body: {
+              programId,
+              groupId: defaultGroup.id,
+              partnerIds,
+              userId: session.user.id,
+              isGroupDeleted: true,
+            },
+          }),
 
         recordAuditLog({
           workspaceId: workspace.id,
