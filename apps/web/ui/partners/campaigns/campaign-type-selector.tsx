@@ -44,7 +44,7 @@ export const CampaignTypeSelector = memo(function CampaignTypeSelector({
       setOpenPopover={setIsOpen}
       content={
         <Command
-          className="p-1 focus:outline-none sm:min-w-[240px]"
+          className="p-1 focus:outline-none sm:min-w-[480px]"
           tabIndex={0}
           loop
         >
@@ -83,7 +83,7 @@ export const CampaignTypeSelector = memo(function CampaignTypeSelector({
       <button
         type="button"
         className={cn(
-          "text-content-default flex h-7 w-fit items-center gap-2 rounded-md border border-transparent bg-white px-1.5 text-sm",
+          "text-content-default flex h-7 w-full items-center gap-2 rounded-md border border-transparent bg-white px-1.5 text-sm",
           "hover:border-border-subtle data-[state=open]:border-border-subtle transition-colors duration-150 data-[state=open]:bg-neutral-100",
         )}
       >
