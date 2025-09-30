@@ -39,6 +39,20 @@ export const CampaignSchema = z.object({
   updatedAt: z.date(),
 });
 
+// GET /api/campaigns
+export const CampaignListSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.nativeEnum(CampaignType),
+  status: z.nativeEnum(CampaignStatus),
+  partners: z.number(),
+  delivered: z.number(),
+  bounced: z.number(),
+  opened: z.number(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 export const getCampaignsQuerySchema = z.object({
   status: z.nativeEnum(CampaignStatus).optional(),
   sortBy: z.enum(["createdAt"]).optional().default("createdAt"),
