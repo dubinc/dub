@@ -68,7 +68,6 @@ function StatsGrid() {
       <Referer />
       <Locations />
       <Devices />
-      {/* <Feedback /> */}
     </div>
   );
 }
