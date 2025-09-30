@@ -14,7 +14,7 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { status, page, pageSize, country } =
+    const { status, page, pageSize, country, starred } =
       getPartnerNetworkPartnersQuerySchema.parse(searchParams);
 
     const partners = (await prisma.$queryRaw`
@@ -71,6 +71,10 @@ export const GET = withWorkspace(
               ? Prisma.sql`AND pe.status = 'invited' AND dp.invitedAt IS NOT NULL`
               : Prisma.sql`AND pe.status = 'approved' AND dp.invitedAt IS NOT NULL`
         }
+        ${starred === true ? Prisma.sql`AND dp.starredAt IS NOT NULL` : Prisma.sql``}
+        ${starred === false ? Prisma.sql`AND dp.starredAt IS NULL` : Prisma.sql``}
+      -- Ordering
+      ${starred === true ? Prisma.sql`ORDER BY dp.starredAt DESC` : Prisma.sql``}
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
     return NextResponse.json(

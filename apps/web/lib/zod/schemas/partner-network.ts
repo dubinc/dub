@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 
 export const PARTNER_CONVERSION_SCORES = [
@@ -35,6 +35,7 @@ export const getPartnerNetworkPartnersQuerySchema = z
   .object({
     status: partnerNetworkPartnersStatusSchema.default("discover"),
     country: z.string().optional(),
+    starred: booleanQuerySchema.nullish(),
   })
   .merge(
     getPaginationQuerySchema({

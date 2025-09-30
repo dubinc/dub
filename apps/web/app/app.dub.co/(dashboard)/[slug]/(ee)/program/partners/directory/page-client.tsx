@@ -23,6 +23,7 @@ import {
   DynamicTooltipWrapper,
   Filter,
   PaginationControls,
+  Switch,
   Tooltip,
   UserPlus,
   usePagination,
@@ -139,14 +140,28 @@ export function ProgramPartnersDirectoryPageClient() {
       </div>
 
       <div>
-        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div className="xs:flex-row xs:items-center flex flex-col gap-4">
           <Filter.Select
-            className="w-full md:w-fit"
+            className="h-9 w-full rounded-lg md:w-fit"
             filters={filters}
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
           />
+          <label className="flex items-center gap-2">
+            <Switch
+              checked={searchParams.get("starred") == "true"}
+              fn={(checked) => {
+                queryParams({
+                  set: checked ? { starred: "true" } : undefined,
+                  del: ["page", ...(!checked ? ["starred"] : [])],
+                });
+              }}
+            />
+            <span className="text-content-emphasis text-sm font-medium">
+              Starred
+            </span>
+          </label>
         </div>
         <AnimatedSizeContainer height>
           <div>
