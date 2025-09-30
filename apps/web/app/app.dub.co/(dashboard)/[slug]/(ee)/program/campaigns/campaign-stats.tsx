@@ -2,10 +2,11 @@
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import { useRouterStuff } from "@dub/ui";
-import { Icon, Megaphone, Users, Workflow } from "@dub/ui/icons";
+import { Icon, Users } from "@dub/ui/icons";
 import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { CampaignTypeBadges } from "./campaign-type-badges";
 
 interface StatsFilterProps {
   label: string;
@@ -16,21 +17,6 @@ interface StatsFilterProps {
   error: boolean;
   active: boolean;
 }
-
-// TODO:
-// Move to a file
-export const CampaignTypeBadges = {
-  marketing: {
-    label: "Marketing",
-    icon: Megaphone,
-    iconClassName: "text-green-600 bg-green-100",
-  },
-  transactional: {
-    label: "Transactional",
-    icon: Workflow,
-    iconClassName: "text-blue-600 bg-blue-100",
-  },
-} as const;
 
 export function CampaignStats() {
   const { slug } = useParams();

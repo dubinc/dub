@@ -3,7 +3,10 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CampaignList } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
+  AnimatedSizeContainer,
+  Filter,
   StatusBadge,
   Table,
   usePagination,
@@ -11,38 +14,27 @@ import {
   useTable,
 } from "@dub/ui";
 import { cn, fetcher, formatDateTime, formatDateTimeSmart } from "@dub/utils";
-import { CampaignStatus } from "@prisma/client";
 import { Mail } from "lucide-react";
 import useSWR from "swr";
-import { CampaignTypeBadges } from "./campaign-stats";
-import { CreateCampaignButton } from "./create-campaign-button";
 
-export const CampaignStatusBadges: Record<
-  CampaignStatus,
-  { label: string; variant: string }
-> = {
-  draft: {
-    label: "Draft",
-    variant: "neutral",
-  },
-  active: {
-    label: "Active",
-    variant: "success",
-  },
-  paused: {
-    label: "Paused",
-    variant: "warning",
-  },
-  sent: {
-    label: "Sent",
-    variant: "neutral",
-  },
-};
+import { CampaignStatusBadges } from "./campaign-status-badges";
+import { CampaignTypeBadges } from "./campaign-type-badges";
+import { CreateCampaignButton } from "./create-campaign-button";
+import { useCampaignsFilters } from "./use-campaigns-filters";
 
 export function CampaignsTable() {
   const { id: workspaceId } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
+
+  const {
+    filters,
+    activeFilters,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+    isFiltered,
+  } = useCampaignsFilters();
 
   const sortBy = searchParams.get("sortBy") || "updatedAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -71,18 +63,21 @@ export function CampaignsTable() {
         enableHiding: false,
         minSize: 200,
         cell: ({ row }) => {
-          const { icon: Icon, iconClassName } =
-            CampaignTypeBadges[row.original.type];
+          const {
+            icon: Icon,
+            iconClassName,
+            className,
+          } = CampaignTypeBadges[row.original.type];
 
           return (
             <div className="flex items-center gap-2">
               <div
                 className={cn(
                   "flex size-6 items-center justify-center rounded-md",
-                  iconClassName,
+                  className,
                 )}
               >
-                <Icon className="size-3.5" />
+                <Icon className={cn("size-3.5", iconClassName)} />
               </div>
               <span className="text-content-emphasis text-sm font-medium">
                 {row.original.name}
@@ -160,21 +155,57 @@ export function CampaignsTable() {
   });
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
+      <div>
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <Filter.Select
+            className="w-full md:w-fit"
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          <SearchBoxPersisted
+            placeholder="Search by name"
+            inputClassName="md:w-[19rem]"
+          />
+        </div>
+        <AnimatedSizeContainer height>
+          <div>
+            {activeFilters.length > 0 && (
+              <div className="pt-3">
+                <Filter.List
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onRemove={onRemove}
+                  onRemoveAll={onRemoveAll}
+                />
+              </div>
+            )}
+          </div>
+        </AnimatedSizeContainer>
+      </div>
+
       {campaigns?.length !== 0 ? (
         <Table {...tableProps} table={table} />
       ) : (
         <AnimatedEmptyState
           title="Email campaigns"
-          description="Create one-off or automated emails to send to your partners."
+          description={
+            !isFiltered
+              ? "Create one-off or automated emails to send to your partners."
+              : "No campaigns found for the selected filters."
+          }
           cardContent={() => (
             <>
               <Mail className="size-4 text-neutral-700" />
               <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
             </>
           )}
-          addButton={<CreateCampaignButton />}
-          learnMoreHref="https://dub.co/docs/email-campaigns"
+          addButton={!isFiltered ? <CreateCampaignButton /> : undefined}
+          learnMoreHref={
+            !isFiltered ? "https://dub.co/docs/email-campaigns" : undefined
+          }
         />
       )}
     </div>
