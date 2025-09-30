@@ -54,8 +54,9 @@ export const CampaignListSchema = z.object({
 });
 
 export const getCampaignsQuerySchema = z.object({
+  type: z.nativeEnum(CampaignType).optional(),
   status: z.nativeEnum(CampaignStatus).optional(),
-  sortBy: z.enum(["createdAt"]).optional().default("createdAt"),
+  sortBy: z.enum(["createdAt", "updatedAt"]).optional().default("createdAt"),
   sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
   search: z.string().optional(),
 });

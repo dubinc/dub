@@ -29,13 +29,14 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { sortBy, sortOrder, status, search } =
+    const { sortBy, sortOrder, status, search, type } =
       getCampaignsQuerySchema.parse(searchParams);
 
     const campaigns = await prisma.campaign.findMany({
       where: {
         programId,
         ...(status && { status }),
+        ...(type && { type }),
         ...(search && {
           OR: [
             { name: { contains: search } },
