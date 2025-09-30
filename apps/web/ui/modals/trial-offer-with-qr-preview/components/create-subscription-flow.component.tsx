@@ -232,7 +232,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
   const termsAndConditionsText = useMemo(() => {
     return (
-      <div className="font-medium">
+      <div className="text-xs font-medium text-neutral-500">
         By continuing, you agree to our{" "}
         <Link className="font-semibold underline" href="/eula">
           Terms and Conditions

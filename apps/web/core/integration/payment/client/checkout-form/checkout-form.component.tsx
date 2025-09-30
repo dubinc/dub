@@ -530,14 +530,13 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
               isCheckedRef.current = checked;
             }}
           />
-          <label
-            htmlFor="terms-and-conditions"
-            className="select-none text-xs text-neutral-500"
-          >
+          <label htmlFor="terms-and-conditions" className="select-none">
             {termsAndConditionsText}
           </label>
         </div>
       )}
+
+      {checkoutInstance && isPaidTraffic ? termsAndConditionsText : null}
     </>
   );
 };
