@@ -1,10 +1,8 @@
 "use client";
 
 import useGroup from "@/lib/swr/use-group";
-import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import {
   ArrowUpRight2,
   Brush,
@@ -18,9 +16,20 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { redirect, useParams, usePathname } from "next/navigation";
+import {
+  redirect,
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
+import { Group, GroupHeaderSelector } from "./group-header-selector";
 
 export function GroupHeaderTitle() {
+  const router = useRouter();
+  const params = useParams<{ slug: string; groupSlug: string }>();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { group, loading } = useGroup();
   const { slug: workspaceSlug } = useWorkspace();
 
@@ -31,6 +40,14 @@ export function GroupHeaderTitle() {
   if (!group) {
     redirect(`/${workspaceSlug}/program/groups`);
   }
+
+  const switchToGroup = (newGroup: Group) => {
+    if (group.id === newGroup.id || params.groupSlug === newGroup.slug) return;
+
+    const url = `${pathname.replace(`/groups/${params.groupSlug}`, `/groups/${newGroup.slug}`)}?${searchParams.toString()}`;
+
+    router.push(url);
+  };
 
   return (
     <div className="flex items-center gap-1.5">
@@ -43,12 +60,11 @@ export function GroupHeaderTitle() {
         <Users className="size-4" />
       </Link>
       <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-      <div className="flex items-center gap-1.5">
-        <GroupColorCircle group={group} />
-        <span className="text-lg font-semibold leading-7 text-neutral-900">
-          {group.name}
-        </span>
-      </div>
+
+      <GroupHeaderSelector
+        selectedGroup={group}
+        setSelectedGroup={switchToGroup}
+      />
     </div>
   );
 }
@@ -56,7 +72,6 @@ export function GroupHeaderTitle() {
 export function GroupHeaderTabs() {
   const pathname = usePathname();
   const { slug } = useParams<{ slug: string }>();
-  const { program } = useProgram();
   const { group, loading } = useGroup();
 
   const GROUP_NAVIGATION_TABS = [
