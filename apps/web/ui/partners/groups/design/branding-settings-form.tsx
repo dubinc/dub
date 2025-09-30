@@ -1,15 +1,18 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramColorPicker } from "@/ui/partners/program-color-picker";
 import { FileUpload, InfoTooltip } from "@dub/ui";
 import { Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src";
 import { flightRouterStateSchema } from "next/dist/server/app-render/types";
+import Link from "next/link";
 import { ReactNode, useId } from "react";
 import { Controller } from "react-hook-form";
 import { useBrandingFormContext } from "./branding-form";
 
 export function BrandingSettingsForm() {
+  const { slug } = useWorkspace();
   const { control } = useBrandingFormContext();
 
   return (
@@ -21,8 +24,13 @@ export function BrandingSettingsForm() {
             description={
               <>
                 Set the group style and content for{" "}
-                <span className="font-semibold">all groups</span>. This will be
-                how it appears to all your partners.
+                <Link
+                  className="font-semibold decoration-dotted underline-offset-2 hover:underline"
+                  href={`/${slug}/program/groups`}
+                >
+                  all partner groups
+                </Link>
+                . This will be how it appears to all your partners.
               </>
             }
           />

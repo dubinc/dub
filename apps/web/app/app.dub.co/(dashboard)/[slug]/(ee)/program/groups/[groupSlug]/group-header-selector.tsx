@@ -124,7 +124,7 @@ export function GroupHeaderSelector({
       open={openPopover}
       onOpenChange={setOpenPopover}
       popoverProps={{
-        contentClassName: "min-w-[200px]",
+        contentClassName: "min-w-[280px]",
       }}
       labelProps={{
         className: "text-lg font-semibold leading-7 text-neutral-900",
