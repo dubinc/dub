@@ -50,8 +50,8 @@ export function PartnerInfoSection({
             </Tooltip>
           )}
         </div>
-        <div className="mt-4 flex items-start gap-2">
-          <span className="text-lg font-semibold leading-tight text-neutral-900">
+        <div className="mt-4 flex min-w-0 items-start gap-2">
+          <span className="min-w-0 max-w-full text-lg font-semibold leading-tight text-neutral-900" style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
             {partner.name}
           </span>
           {badge && (
