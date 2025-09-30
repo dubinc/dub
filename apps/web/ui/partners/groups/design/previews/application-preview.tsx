@@ -323,13 +323,19 @@ export function ApplicationPreview({
               )}
             </div>
 
-            {/* Submit button */}
-            <div className="relative mx-auto max-w-screen-sm py-4">
+            {/* Buttons */}
+            <div className="mx-auto mb-6 max-w-screen-sm">
               <div className="px-6">
-                <Button
-                  text="Submit application"
-                  className="mt-4 enabled:border-[var(--brand)] enabled:bg-[var(--brand)] enabled:hover:bg-[var(--brand)] enabled:hover:ring-[var(--brand-ring)]"
-                />
+                <div
+                  className="animate-scale-in-fade mt-6 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
+                  inert
+                >
+                  <Button
+                    type="button"
+                    text="Submit application"
+                    className="border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+                  />
+                </div>
               </div>
             </div>
           </div>
