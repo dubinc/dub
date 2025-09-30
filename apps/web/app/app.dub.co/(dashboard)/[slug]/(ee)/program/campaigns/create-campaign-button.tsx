@@ -1,22 +1,29 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, useKeyboardShortcut, useMediaQuery } from "@dub/ui";
-import { useBountySheet } from "../bounties/add-edit-bounty-sheet";
+import { useRouter } from "next/navigation";
+
+
+// TODO:
+// Replace this with Link
 
 export function CreateCampaignButton() {
+  const router = useRouter();
+  const { slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
-  const { BountySheet, setShowCreateBountySheet } = useBountySheet({
-    nested: false,
-  });
 
-  useKeyboardShortcut("c", () => setShowCreateBountySheet(true));
+  const redirectToNewCampaign = () => {
+    router.push(`/${slug}/program/campaigns/new`);
+  };
+
+  useKeyboardShortcut("c", () => redirectToNewCampaign());
 
   return (
     <>
-      {BountySheet}
       <Button
         type="button"
-        onClick={() => setShowCreateBountySheet(true)}
+        onClick={redirectToNewCampaign}
         text={`Create${isMobile ? "" : " email"}`}
         shortcut="C"
         className="h-8 px-3 sm:h-9"
