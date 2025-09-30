@@ -538,6 +538,8 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
           </label>
         </div>
       )}
+
+      {checkoutInstance && isPaidTraffic ? termsAndConditionsText : null}
     </>
   );
 };
