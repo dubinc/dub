@@ -1,6 +1,6 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getPartnerNetworkPartnersQuerySchema } from "@/lib/zod/schemas/partner-network";
+import { getPartnerNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -8,8 +8,7 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { page, pageSize } =
-      getPartnerNetworkPartnersQuerySchema.parse(searchParams);
+    const _ = getPartnerNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const partnerWhere = {
       discoverableAt: { not: null },
@@ -28,7 +27,7 @@ export const GET = withWorkspace(
           programId,
           partner: {
             ...partnerWhere,
-            programs: { none: { programId } },
+            programs: { some: { programId, status: "invited" } },
           },
           invitedAt: {
             not: null,

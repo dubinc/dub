@@ -6,6 +6,7 @@ import {
   getPartnerNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -13,7 +14,7 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const { page, pageSize } =
+    const { status, page, pageSize } =
       getPartnerNetworkPartnersQuerySchema.parse(searchParams);
 
     const partners = (await prisma.$queryRaw`
@@ -24,7 +25,9 @@ export const GET = withWorkspace(
         salesChannels.salesChannels,
         metrics.lastConversionAt as lastConversionAt,
         metrics.conversionRate as conversionRate,
-        dp.starredAt as starredAt
+        dp.starredAt as starredAt,
+        dp.ignoredAt as ignoredAt,
+        dp.invitedAt as invitedAt
       FROM 
         Partner p
       -- Any associated program enrollment
@@ -60,7 +63,13 @@ export const GET = withWorkspace(
       ) salesChannels ON salesChannels.partnerId = p.id
       WHERE 
         p.discoverableAt IS NOT NULL
-        AND pe.id IS NULL
+        ${
+          status === "discover"
+            ? Prisma.sql`AND pe.id IS NULL`
+            : status === "invited"
+              ? Prisma.sql`AND pe.status = 'invited' AND dp.invitedAt IS NOT NULL`
+              : Prisma.sql`AND pe.status = 'approved' AND dp.invitedAt IS NOT NULL`
+        }
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
     return NextResponse.json(
@@ -76,6 +85,8 @@ export const GET = withWorkspace(
               ? null
               : getConversionScore(partner.conversionRate),
           starredAt: partner.starredAt ? new Date(partner.starredAt) : null,
+          ignoredAt: partner.ignoredAt ? new Date(partner.ignoredAt) : null,
+          invitedAt: partner.invitedAt ? new Date(partner.invitedAt) : null,
         })),
       ),
     );
