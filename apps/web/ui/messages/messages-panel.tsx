@@ -11,7 +11,9 @@ export function MessagesPanel({
   currentUserId,
   programImage,
   onSendMessage,
-  placeholder = "Type a message...",
+  placeholder,
+  partnerName,
+  programName,
   error,
 }: {
   messages?: (Message & { delivered?: boolean })[];
@@ -20,10 +22,20 @@ export function MessagesPanel({
   programImage?: string | null;
   onSendMessage: (message: string) => void;
   placeholder?: string;
+  partnerName?: string;
+  programName?: string;
   error?: any;
 }) {
   const { isMobile } = useMediaQuery();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Generate personalized placeholder based on user type
+  const personalizedPlaceholder = placeholder || 
+    (currentUserType === "partner" && programName 
+      ? `Message ${programName}...` 
+      : currentUserType === "user" && partnerName 
+        ? `Message ${partnerName}...` 
+        : "Type a message...");
 
   const sendMessage = (message: string) => {
     if (!messages) return false;
@@ -196,7 +208,7 @@ export function MessagesPanel({
       )}
       <div className="border-border-subtle border-t p-3 sm:p-6">
         <MessageInput
-          placeholder={placeholder}
+          placeholder={personalizedPlaceholder}
           onSendMessage={sendMessage}
           autoFocus={!isMobile}
         />

@@ -168,6 +168,7 @@ export function PartnerMessagesProgramPageClient() {
               currentUserType="partner"
               currentUserId={partner?.id || ""}
               programImage={program?.logo}
+              programName={program?.name}
               onSendMessage={async (message) => {
                 const createdAt = new Date();
 
