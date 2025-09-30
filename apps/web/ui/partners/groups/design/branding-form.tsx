@@ -13,7 +13,6 @@ import LayoutLoader from "@/ui/layout/layout-loader";
 import {
   Brush,
   Button,
-  FeatherFill,
   MenuItem,
   Popover,
   ToggleGroup,
@@ -113,8 +112,7 @@ const PREVIEW_TABS = [
   },
   {
     value: "application",
-    label: "Application page",
-    icon: FeatherFill,
+    label: "Application form",
     component: ApplicationPreview,
   },
   {

@@ -31,7 +31,7 @@ export function OverviewLinks() {
       },
       {
         icon: InputField,
-        label: "Application page",
+        label: "Application form",
         href: `${PARTNERS_DOMAIN}/${program?.slug}/apply`,
         disabled: !program?.landerPublishedAt,
       },
@@ -52,7 +52,7 @@ export function OverviewLinks() {
           Program links
         </h2>
         <ButtonLink
-          href={`/${slug}/program/branding`}
+          href={`/${slug}/program/groups/default/branding`}
           variant="secondary"
           className="-mr-1 -mt-1 h-7 px-2 text-sm"
         >

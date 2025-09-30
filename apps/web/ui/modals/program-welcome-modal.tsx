@@ -32,8 +32,8 @@ function ProgramWelcomeModal({
 
   const NEXT_STEPS = [
     {
-      text: "Create your program application page",
-      href: `/${workspaceSlug}/program/branding`,
+      text: "Create your program application form",
+      href: `/${workspaceSlug}/program/groups/default/branding`,
     },
     {
       text: "Set up a bank account for partner payouts",
