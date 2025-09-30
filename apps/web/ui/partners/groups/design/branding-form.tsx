@@ -49,15 +49,9 @@ export function useBrandingFormContext() {
 }
 
 export function BrandingForm() {
-  const { defaultProgramId } = useWorkspace();
-
   const { groupSlug } = useParams<{ groupSlug: string }>();
 
-  const {
-    group,
-    mutateGroup,
-    loading: loadingGroup,
-  } = useGroup<GroupWithProgramProps>(
+  const { group, mutateGroup, loading } = useGroup<GroupWithProgramProps>(
     {
       query: { includeExpandedFields: true },
     },
@@ -66,21 +60,10 @@ export function BrandingForm() {
     },
   );
 
-  const isDefaultGroup = groupSlug === "default";
-
-  const { group: defaultGroup, loading: loadingDefaultGroup } =
-    useGroup<GroupWithProgramProps>({
-      groupIdOrSlug: "default",
-      query: { includeExpandedFields: true },
-      shouldFetch: !isDefaultGroup,
-    });
-
   const [draft, setDraft] = useLocalStorage<BrandingFormData | null>(
-    `branding-form-${defaultProgramId}`,
+    `branding-form-${group?.id}`,
     null,
   );
-
-  const loading = loadingGroup || (!isDefaultGroup && loadingDefaultGroup);
 
   if (loading) {
     return <LayoutLoader />;
@@ -95,7 +78,6 @@ export function BrandingForm() {
     <BrandingContextProvider>
       <BrandingFormInner
         group={group}
-        defaultGroup={defaultGroup}
         mutateGroup={mutateGroup}
         draft={draft}
         setDraft={setDraft}
@@ -165,13 +147,11 @@ const defaultApplicationFormData = (
 
 function BrandingFormInner({
   group,
-  defaultGroup,
   mutateGroup,
   draft,
   setDraft,
 }: {
   group: GroupWithProgramProps;
-  defaultGroup?: GroupWithProgramProps | null;
   mutateGroup: KeyedMutator<GroupWithProgramProps>;
   draft: BrandingFormData | null;
   setDraft: (draft: BrandingFormData | null) => void;
@@ -190,11 +170,8 @@ function BrandingFormInner({
       wordmark: group.program?.wordmark ?? null,
       brandColor: group.program?.brandColor ?? null,
       applicationFormData:
-        group.applicationFormData ??
-        defaultGroup?.applicationFormData ??
-        defaultApplicationFormData(group.program),
-      landerData: group.landerData ??
-        defaultGroup?.landerData ?? { blocks: [] },
+        group.applicationFormData ?? defaultApplicationFormData(group.program),
+      landerData: group.landerData ?? { blocks: [] },
     },
   });
 
