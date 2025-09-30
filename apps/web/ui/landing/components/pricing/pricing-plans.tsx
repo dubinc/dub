@@ -21,13 +21,10 @@ export const PricingSection: FC<IPricingSectionProps> = ({
       <ScrollArea.Root type="auto" className="w-full">
         <ScrollArea.Viewport className="w-full overflow-x-scroll">
           <div className="flex flex-row items-stretch justify-between gap-4 md:gap-6">
-            {PRICING_PLANS.map((card, idx) => (
+            {PRICING_PLANS.map((plan, idx) => (
               <PricingPlanCard
                 key={idx}
-                badge={card.badge}
-                title={card.title}
-                plan={card.plan}
-                planFeatures={card.planFeatures}
+                plan={plan}
                 handleScrollButtonClick={() => handleScrollButtonClick("3")}
               />
             ))}

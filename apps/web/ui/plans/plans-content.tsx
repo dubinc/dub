@@ -53,7 +53,7 @@ export const PlansContent: FC<Readonly<IPlansContentProps>> = ({
         </div>
       </div>
 
-      <FAQSection faqItems={FAQ_ITEMS_PAYWALL} homePageDemo={false} />
+      <FAQSection homePageDemo={false} />
     </div>
   );
 };
