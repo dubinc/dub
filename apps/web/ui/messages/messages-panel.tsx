@@ -1,4 +1,4 @@
-import { Message, ProgramProps } from "@/lib/types";
+import { Message, PartnerProps, ProgramProps } from "@/lib/types";
 import {
   AnimatedSizeContainer,
   Check2,
@@ -25,18 +25,18 @@ export function MessagesPanel({
   currentUserType,
   currentUserId,
   program,
+  partner,
   onSendMessage,
   placeholder,
-  partnerName,
   error,
 }: {
   messages?: (Message & { delivered?: boolean })[];
   currentUserType: "partner" | "user";
   currentUserId: string;
   program?: Pick<ProgramProps, "logo" | "name">;
+  partner?: Pick<PartnerProps, "name">;
   onSendMessage: (message: string) => void;
   placeholder?: string;
-  partnerName?: string;
   error?: any;
 }) {
   const { isMobile } = useMediaQuery();
@@ -48,10 +48,10 @@ export function MessagesPanel({
       placeholder ||
       (currentUserType === "partner" && program?.name
         ? `Message ${program.name}...`
-        : currentUserType === "user" && partnerName
-          ? `Message ${partnerName}...`
+        : currentUserType === "user" && partner?.name
+          ? `Message ${partner.name}...`
           : "Type a message..."),
-    [placeholder, currentUserType, program?.name, partnerName],
+    [placeholder, currentUserType, program?.name, partner?.name],
   );
 
   const sendMessage = (message: string) => {
