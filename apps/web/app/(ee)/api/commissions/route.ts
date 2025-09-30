@@ -20,6 +20,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     customerId,
     payoutId,
     partnerId,
+    tenantId,
     invoiceId,
     groupId,
     page,
@@ -67,6 +68,17 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
               },
             },
           }),
+          ...(tenantId &&
+            !partnerId && {
+              partner: {
+                programs: {
+                  some: {
+                    tenantId,
+                    programId,
+                  },
+                },
+              },
+            }),
         },
     include: {
       customer: true,
