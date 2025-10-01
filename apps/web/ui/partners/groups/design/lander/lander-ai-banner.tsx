@@ -8,8 +8,8 @@ import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
-import { useBrandingContext } from "./branding-context-provider";
-import { useBrandingFormContext } from "./branding-form";
+import { useBrandingContext } from "../branding-context-provider";
+import { useBrandingFormContext } from "../branding-form";
 import { GenerateLanderModal } from "./modals/generate-lander-modal";
 
 export function LanderAIBanner() {

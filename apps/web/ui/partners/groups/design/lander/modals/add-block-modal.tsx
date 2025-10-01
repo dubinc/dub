@@ -7,7 +7,7 @@ import { Dispatch, Fragment, ReactNode, SetStateAction, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { v4 as uuid } from "uuid";
 import { z } from "zod";
-import { useBrandingFormContext } from "../branding-form";
+import { useBrandingFormContext } from "../../branding-form";
 import {
   AccordionBlockModal,
   AccordionBlockThumbnail,
@@ -152,8 +152,6 @@ function AddBlockModalInner({
               </button>
             </Fragment>
           ))}
-
-          {/* <div className="col-span-2 h-20 rounded-md bg-neutral-100" /> */}
         </div>
       </div>
     </>

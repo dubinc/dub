@@ -123,9 +123,16 @@ model ProgramApplication {
   groupId   String?
   name      String
   email     String
+  country   String?
   proposal  String?  @db.Text
   website   String?  @db.Text
+  youtube   String?  @db.Text
+  twitter   String?  @db.Text
+  linkedin  String?  @db.Text
+  instagram String?  @db.Text
+  tiktok    String?  @db.Text
   comments  String?  @db.Text
+  formData  Json?    @db.Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

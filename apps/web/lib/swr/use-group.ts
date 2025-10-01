@@ -4,8 +4,14 @@ import useSWR, { SWRConfiguration } from "swr";
 import { GroupProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useGroup(
-  { groupIdOrSlug: groupIdOrSlugProp }: { groupIdOrSlug?: string } = {},
+export default function useGroup<T = GroupProps>(
+  {
+    groupIdOrSlug: groupIdOrSlugProp,
+    query,
+  }: {
+    groupIdOrSlug?: string;
+    query?: Record<string, any>;
+  } = {},
   swrOpts?: SWRConfiguration,
 ) {
   const { id: workspaceId } = useWorkspace();
@@ -17,10 +23,10 @@ export default function useGroup(
     data: group,
     error,
     mutate: mutateGroup,
-  } = useSWR<GroupProps>(
+  } = useSWR<T>(
     workspaceId && groupIdOrSlug
-      ? `/api/groups/${groupIdOrSlug}?workspaceId=${workspaceId}`
-      : undefined,
+      ? `/api/groups/${groupIdOrSlug}?${new URLSearchParams({ workspaceId, ...query }).toString()}`
+      : null,
     fetcher,
     {
       keepPreviousData: true,

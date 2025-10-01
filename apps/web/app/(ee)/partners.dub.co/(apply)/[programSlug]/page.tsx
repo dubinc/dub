@@ -4,22 +4,17 @@ import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
 import { ApplyHeader } from "./header";
 
-export default async function ApplyPage(
-  props: {
-    params: Promise<{ programSlug: string; groupSlug?: string }>;
-  }
-) {
+export default async function ApplyPage(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
   const params = await props.params;
 
-  const {
-    programSlug,
-    groupSlug
-  } = params;
+  const { programSlug, groupSlug } = params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
@@ -28,11 +23,23 @@ export default async function ApplyPage(
     groupSlug: partnerGroupSlug,
   });
 
-  if (!program || !program.landerData || !program.landerPublishedAt) {
-    notFound();
+  if (
+    !program ||
+    !program.group ||
+    !program.group.landerData ||
+    !program.group.landerPublishedAt
+  ) {
+    // throw 404 if it's the default group, else redirect to the default group page
+    if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      notFound();
+    } else {
+      redirect(`/${programSlug}`);
+    }
   }
 
-  const landerData = programLanderSchema.parse(program.landerData);
+  const landerData = programLanderSchema.parse(
+    program.group.landerData || program.landerData || {},
+  );
 
   return (
     <div

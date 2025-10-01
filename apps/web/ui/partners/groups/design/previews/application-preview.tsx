@@ -1,12 +1,9 @@
 "use client";
 
-import useDiscounts from "@/lib/swr/use-discounts";
-import useRewards from "@/lib/swr/use-rewards";
-import { ProgramLanderData, ProgramWithLanderDataProps } from "@/lib/types";
-import { useEditHeroModal } from "@/ui/partners/design/modals/edit-hero-modal";
-import { PreviewWindow } from "@/ui/partners/design/preview-window";
-import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
-import { LanderHero } from "@/ui/partners/lander/lander-hero";
+import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
+import { GroupWithProgramProps, ProgramApplicationFormData } from "@/lib/types";
+import { PreviewWindow } from "@/ui/partners/groups/design/preview-window";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import {
   Button,
   CircleInfo,
@@ -31,118 +28,124 @@ import {
   useState,
 } from "react";
 import { useWatch } from "react-hook-form";
-import { useBrandingContext } from "../branding-context-provider";
+import { ApplicationFormHero } from "../application-form/application-hero-preview";
+import { ProgramApplicationFormField } from "../application-form/fields";
+import {
+  AddFieldModal,
+  DESIGNER_FIELDS,
+} from "../application-form/modals/add-field-modal";
+import { useEditApplicationHeroModal } from "../application-form/modals/edit-application-hero-modal";
+import RequiredFieldsPreview from "../application-form/required-fields-preview";
 import { useBrandingFormContext } from "../branding-form";
-import { LanderAIBanner } from "../lander-ai-banner";
-import { LanderPreviewControls } from "../lander-preview-controls";
-import { AddBlockModal, DESIGNER_BLOCKS } from "../modals/add-block-modal";
-import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
 
-export function LanderPreview({
-  program,
+export function ApplicationPreview({
+  group,
 }: {
-  program: ProgramWithLanderDataProps;
+  group: GroupWithProgramProps;
 }) {
   const { isMobile } = useMediaQuery();
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const scrolled = useScroll(0, { container: scrollRef });
 
-  const { isGeneratingLander } = useBrandingContext();
+  const { rewards, discount } = getGroupRewardsAndDiscount(group);
 
-  const { rewards } = useRewards();
-  const { discounts } = useDiscounts();
+  const program = group.program;
 
   const { setValue, getValues } = useBrandingFormContext();
-  const { landerData, brandColor, logo, wordmark } = {
+  const { applicationFormData, brandColor, logo, wordmark } = {
     ...useWatch(),
     ...getValues(),
   };
 
-  const updateBlocks = useCallback(
+  const updateFields = useCallback(
     (
-      fn: (blocks: ProgramLanderData["blocks"]) => ProgramLanderData["blocks"],
+      fn: (
+        fields: ProgramApplicationFormData["fields"],
+      ) => ProgramApplicationFormData["fields"],
     ) => {
       return setValue(
-        "landerData",
+        "applicationFormData",
         {
-          ...landerData,
-          blocks: fn([...landerData.blocks]),
+          ...applicationFormData,
+          fields: fn([...applicationFormData.fields]),
         },
         {
           shouldDirty: true,
         },
       );
     },
-    [landerData],
+    [applicationFormData],
   );
 
-  const { setShowEditHeroModal, EditHeroModal } = useEditHeroModal();
+  const { setShowEditApplicationHeroModal, EditApplicationHeroModal } =
+    useEditApplicationHeroModal();
 
-  const [addBlockIndex, setAddBlockIndex] = useState<number | null>(null);
-  const [editingBlockId, setEditingBlockId] = useState<string | null>(null);
+  const [addFieldIndex, setAddFieldIndex] = useState<number | null>(null);
+  const [editingFieldId, setEditingFieldId] = useState<string | null>(null);
 
-  const [editingBlock, editingBlockMeta] = useMemo(() => {
-    if (!editingBlockId) return [null, null];
+  const [editingField, editingFieldMeta] = useMemo(() => {
+    if (!editingFieldId) return [null, null];
 
-    const block = landerData.blocks.find(
-      (block) => block.id === editingBlockId,
+    const field = applicationFormData.fields.find(
+      (field) => field.id === editingFieldId,
     );
 
-    return [block, DESIGNER_BLOCKS.find((b) => b.id === block?.type)];
-  }, [landerData, editingBlockId]);
+    return [field, DESIGNER_FIELDS.find((b) => b.id === field?.type)];
+  }, [applicationFormData, editingFieldId]);
 
-  const [touchedBlockId, setTouchedBlockId] = useState<
+  const [touchedFieldId, setTouchedFieldId] = useState<
     string | "hero" | "rewards" | null
   >(null);
 
+  const fields = applicationFormData?.fields || [];
+
+  const previewUrl =
+    group.slug === "default"
+      ? `${PARTNERS_DOMAIN}/${program.slug}/apply`
+      : `${PARTNERS_DOMAIN}/${program.slug}/${group.slug}/apply`;
+
   return (
     <>
-      {editingBlock && editingBlockMeta && (
-        <editingBlockMeta.modal
-          defaultValues={editingBlock.data}
+      {editingField && editingFieldMeta && (
+        <editingFieldMeta.modal
+          defaultValues={editingField}
           showModal={true}
-          setShowModal={(show) => !show && setEditingBlockId(null)}
-          onSubmit={(data) => {
-            updateBlocks((blocks) => {
-              blocks[blocks.findIndex((b) => b.id === editingBlockId)].data =
-                data;
-              return blocks;
+          setShowModal={(show) => !show && setEditingFieldId(null)}
+          onSubmit={(field) => {
+            updateFields((fields) => {
+              fields[fields.findIndex((b) => b.id === editingFieldId)] = field;
+              return fields;
             });
-            setTouchedBlockId(null);
+            setTouchedFieldId(null);
           }}
         />
       )}
-      <EditHeroModal />
-      <AddBlockModal
-        addIndex={addBlockIndex ?? 0}
-        showAddBlockModal={addBlockIndex !== null}
-        setShowAddBlockModal={(show) => {
+      <EditApplicationHeroModal />
+      <AddFieldModal
+        addIndex={addFieldIndex ?? 0}
+        showAddFieldModal={addFieldIndex !== null}
+        setShowAddFieldModal={(show) => {
           if (!show) {
-            setAddBlockIndex(null);
-            setTouchedBlockId(null);
+            setAddFieldIndex(null);
+            setTouchedFieldId(null);
           }
         }}
       />
-      <LanderAIBanner />
       <PreviewWindow
-        url={`${PARTNERS_DOMAIN}/${program?.slug}`}
+        url={previewUrl}
         scrollRef={scrollRef}
-        controls={<LanderPreviewControls />}
         overlay={
           <div
             className={cn(
               "absolute inset-0 flex items-center justify-center bg-white/10",
               "pointer-events-none opacity-0 transition-[backdrop-filter,opacity] duration-500",
-              isGeneratingLander &&
-                "pointer-events-auto opacity-100 backdrop-blur-md",
             )}
-            inert={!isGeneratingLander}
+            inert
           >
             <div
               className={cn(
-                "flex flex-col items-center gap-6 px-4 text-center text-sm transition-transform duration-500 sm:gap-2",
-                !isGeneratingLander && "translate-y-1",
+                "flex translate-y-1 flex-col items-center gap-6 px-4 text-center text-sm transition-transform duration-500 sm:gap-2",
               )}
             >
               <div className="text-content-default flex items-center">
@@ -152,7 +155,7 @@ export function LanderPreview({
                   {[...Array(3)].map((_, i) => (
                     <span
                       key={i}
-                      className="animate-ellipsis-wave inline-block"
+                      className="animate-ellipsis-wave inline-field"
                       style={{
                         animationDelay: `${3 - i * -0.15}s`,
                       }}
@@ -199,6 +202,7 @@ export function LanderPreview({
                     <img
                       className="max-h-7 max-w-32"
                       src={(wordmark ?? logo) as string}
+                      alt={program.name ?? "Program logo"}
                     />
                   ) : (
                     <Wordmark className="h-7" />
@@ -212,11 +216,6 @@ export function LanderPreview({
                     text="Log in"
                     className="animate-fade-in h-8 w-fit text-neutral-600"
                   />
-                  <Button
-                    type="button"
-                    text="Apply"
-                    className="animate-fade-in h-8 w-fit border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
-                  />
                 </div>
               </div>
             </header>
@@ -224,97 +223,93 @@ export function LanderPreview({
             {/* Hero */}
             <div
               className="group relative mt-6"
-              data-touched={touchedBlockId === "hero"}
-              onClick={() => isMobile && setTouchedBlockId("hero")}
+              data-touched={touchedFieldId === "hero"}
+              onClick={() => isMobile && setTouchedFieldId("hero")}
             >
               <EditIndicatorGrid />
-              <EditToolbar onEdit={() => setShowEditHeroModal(true)} />
+              <EditToolbar
+                onEdit={() => setShowEditApplicationHeroModal(true)}
+              />
               <div className="mx-auto max-w-screen-sm">
                 <div className="px-6">
-                  <LanderHero program={program} landerData={landerData} />
-                </div>
-              </div>
-            </div>
-
-            {/* Program rewards */}
-            <div className="relative mx-auto max-w-screen-sm py-4">
-              <div className="px-6">
-                <RewardsDiscountsPreview />
-              </div>
-            </div>
-
-            {/* Buttons */}
-            <div className="mx-auto max-w-screen-sm">
-              <div className="px-6">
-                <div
-                  className="animate-scale-in-fade mt-6 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
-                  inert
-                >
-                  <Button
-                    type="button"
-                    text="Apply today"
-                    className="border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+                  <ApplicationFormHero
+                    program={program}
+                    applicationFormData={applicationFormData}
+                    preview
                   />
                 </div>
               </div>
             </div>
 
-            {/* Content blocks */}
+            {/* Program rewards */}
+            <div className="mx-auto mb-1 mt-6 max-w-screen-sm">
+              <div className="px-6">
+                <LanderRewards rewards={rewards} discount={discount} />
+              </div>
+            </div>
+
+            {/* Required fields */}
+            <div className="relative mx-auto max-w-screen-sm py-6">
+              <div className="px-6">
+                <RequiredFieldsPreview />
+              </div>
+            </div>
+
+            {/* Content fields */}
             <div className="relative z-0 my-6 grid grid-cols-1">
-              {landerData?.blocks.map((block, idx) => {
-                const Component = BLOCK_COMPONENTS[block.type];
-                return Component ? (
+              {fields.map((field, idx) => {
+                return (
                   <div
-                    key={block.id}
+                    key={field.id}
                     className="group relative py-10"
-                    data-touched={touchedBlockId === block.id}
-                    onClick={() => isMobile && setTouchedBlockId(block.id)}
+                    data-touched={touchedFieldId === field.id}
+                    onClick={() => isMobile && setTouchedFieldId(field.id)}
                   >
                     <EditIndicatorGrid />
 
                     {/* Edit toolbar */}
                     <EditToolbar
-                      onEdit={() => setEditingBlockId(block.id)}
+                      onEdit={() => setEditingFieldId(field.id)}
                       onMoveUp={
                         idx !== 0
                           ? () =>
-                              updateBlocks((blocks) =>
-                                moveItem(blocks, idx, idx - 1),
+                              updateFields((fields) =>
+                                moveItem(fields, idx, idx - 1),
                               )
                           : undefined
                       }
                       onMoveDown={
-                        idx !== landerData.blocks.length - 1
+                        idx !== fields.length - 1
                           ? () =>
-                              updateBlocks((blocks) =>
-                                moveItem(blocks, idx, idx + 1),
+                              updateFields((fields) =>
+                                moveItem(fields, idx, idx + 1),
                               )
                           : undefined
                       }
                       onDelete={() =>
-                        updateBlocks((blocks) => blocks.toSpliced(idx, 1))
+                        updateFields((fields) => fields.toSpliced(idx, 1))
                       }
                     />
 
-                    {/* Insert block button */}
+                    {/* Insert field button */}
                     <div
                       className={cn(
                         "pointer-events-none absolute inset-0 opacity-0",
                         "transition-opacity duration-150 group-hover:opacity-100 sm:group-has-[+div:hover]:opacity-100",
-                        "group-has-[+div[data-touched='true']]:opacity-100 group-data-[touched=true]:opacity-100",
+                        "group-has-[+div[data-[touched=true]]]:opacity-100 group-data-[touched=true]:opacity-100",
                       )}
                     >
-                      <div className="absolute inset-x-0 top-0 z-10 hidden group-first:block">
+                      <div className="group-first:field absolute inset-x-0 top-0 z-10 hidden">
                         <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <AddBlockButton
-                            onClick={() => setAddBlockIndex(idx)}
+                          <AddFieldButton
+                            onClick={() => setAddFieldIndex(idx)}
                           />
                         </div>
                       </div>
                       <div className="absolute inset-x-0 bottom-0 z-10">
                         <div className="pointer-events-auto absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                          <AddBlockButton
-                            onClick={() => setAddBlockIndex(idx + 1)}
+                          <AddFieldButton
+                            onClick={() => setAddFieldIndex(idx + 1)}
                           />
                         </div>
                       </div>
@@ -322,26 +317,34 @@ export function LanderPreview({
 
                     <div className="relative mx-auto max-w-screen-sm" inert>
                       <div className="px-6">
-                        <Component
-                          block={block}
-                          program={{
-                            ...program,
-                            rewards,
-                            discounts,
-                            landerData,
-                          }}
-                        />
+                        <ProgramApplicationFormField field={field} preview />
                       </div>
                     </div>
                   </div>
-                ) : null;
+                );
               })}
 
-              {!landerData?.blocks?.length && (
+              {fields.length === 0 && (
                 <div className="flex justify-center py-10">
-                  <AddBlockButton onClick={() => setAddBlockIndex(0)} />
+                  <AddFieldButton onClick={() => setAddFieldIndex(0)} />
                 </div>
               )}
+            </div>
+
+            {/* Buttons */}
+            <div className="mx-auto mb-6 max-w-screen-sm">
+              <div className="px-6">
+                <div
+                  className="animate-scale-in-fade mt-6 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]"
+                  inert
+                >
+                  <Button
+                    type="button"
+                    text="Submit application"
+                    className="border-[var(--brand)] bg-[var(--brand)] hover:bg-[var(--brand)] hover:ring-[var(--brand-ring)]"
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -350,11 +353,11 @@ export function LanderPreview({
   );
 }
 
-function AddBlockButton({ onClick }: { onClick: () => void }) {
+function AddFieldButton({ onClick }: { onClick: () => void }) {
   return (
     <Button
       type="button"
-      text="Insert block"
+      text="Insert field"
       onClick={onClick}
       icon={<Plus2 className="size-2.5" />}
       variant="secondary"
