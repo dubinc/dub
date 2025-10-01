@@ -11,7 +11,7 @@ interface PartnerSelectorProps {
   disabled?: boolean;
 }
 
-export function EmailPartnersSelector({
+export function CampaignPartnersSelector({
   selectedPartnerIds,
   setSelectedPartnerIds,
   disabled,
