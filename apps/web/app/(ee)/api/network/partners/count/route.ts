@@ -9,6 +9,7 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
     const {
+      partnerIds,
       status,
       groupBy,
       country,
@@ -20,6 +21,9 @@ export const GET = withWorkspace(
 
     const commonWhere = {
       discoverableAt: { not: null },
+      ...(partnerIds && {
+        id: { in: partnerIds },
+      }),
       ...(country && {
         country,
       }),

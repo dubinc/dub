@@ -10,7 +10,23 @@ export function OnlinePresenceSummary({
   className,
   emptyClassName,
 }: {
-  partner: EnrolledPartnerExtendedProps;
+  partner: Pick<
+    EnrolledPartnerExtendedProps,
+    | "website"
+    | "websiteVerifiedAt"
+    | "youtube"
+    | "youtubeSubscriberCount"
+    | "youtubeVerifiedAt"
+    | "youtubeViewCount"
+    | "twitter"
+    | "twitterVerifiedAt"
+    | "linkedin"
+    | "linkedinVerifiedAt"
+    | "instagram"
+    | "instagramVerifiedAt"
+    | "tiktok"
+    | "tiktokVerifiedAt"
+  >;
   showLabels?: boolean;
   className?: string;
   emptyClassName?: string;

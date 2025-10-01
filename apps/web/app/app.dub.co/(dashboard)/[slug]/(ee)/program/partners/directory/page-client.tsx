@@ -8,19 +8,16 @@ import {
 } from "@/lib/partners/partner-profile";
 import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DiscoverablePartnerProps } from "@/lib/types";
-import {
-  PARTNER_CONVERSION_SCORES,
-  PARTNER_CONVERSION_SCORE_RATES,
-  PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE,
-} from "@/lib/zod/schemas/partner-network";
+import { PartnerNetworkPartnerProps } from "@/lib/types";
+import { PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
+import { PartnerNetworkPartnerSheet } from "@/ui/partners/partner-network-partner-sheet";
+import { ConversionScoreTooltip } from "@/ui/partners/partner-network/conversion-score-tooltip";
 import {
   AnimatedSizeContainer,
   BadgeCheck2Fill,
   Button,
   ChartActivity2,
-  DynamicTooltipWrapper,
   Filter,
   PaginationControls,
   Switch,
@@ -39,6 +36,7 @@ import {
   cn,
   fetcher,
   formatDate,
+  isClickOnInteractiveChild,
   timeAgo,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -79,7 +77,7 @@ export function ProgramPartnersDirectoryPageClient() {
     error,
     mutate: mutatePartners,
     isValidating,
-  } = useSWR<DiscoverablePartnerProps[]>(
+  } = useSWR<PartnerNetworkPartnerProps[]>(
     workspaceId &&
       `/api/network/partners${getQueryString(
         {
@@ -103,8 +101,65 @@ export function ProgramPartnersDirectoryPageClient() {
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     usePartnerNetworkFilters({ status });
 
+  const [detailsSheetState, setDetailsSheetState] = useState<
+    | { open: false; partnerId: string | null }
+    | { open: true; partnerId: string }
+  >({ open: false, partnerId: null });
+
+  useEffect(() => {
+    const partnerId = searchParams.get("partnerId");
+    if (partnerId) setDetailsSheetState({ open: true, partnerId });
+  }, [searchParams]);
+
+  const { currentPartner, isLoading: isCurrentPartnerLoading } =
+    useCurrentPartner({
+      partners,
+      partnerId: detailsSheetState.partnerId,
+    });
+
+  const [previousPartnerId, nextPartnerId] = useMemo(() => {
+    if (!partners || !detailsSheetState.partnerId) return [null, null];
+
+    const currentIndex = partners.findIndex(
+      ({ id }) => id === detailsSheetState.partnerId,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? partners[currentIndex - 1].id : null,
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+    ];
+  }, [partners, detailsSheetState.partnerId]);
+
   return (
     <div className="flex flex-col gap-6">
+      {detailsSheetState.partnerId && currentPartner && (
+        <PartnerNetworkPartnerSheet
+          isOpen={detailsSheetState.open}
+          setIsOpen={(open) =>
+            setDetailsSheetState((s) => ({ ...s, open }) as any)
+          }
+          partner={currentPartner}
+          onPrevious={
+            previousPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: previousPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+          onNext={
+            nextPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: nextPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+        />
+      )}
       <div className="grid grid-cols-3 gap-2">
         {tabs.map((tab) => {
           const isActive = status === tab.id;
@@ -268,9 +323,11 @@ function PartnerCard({
   partner,
   onToggleStarred,
 }: {
-  partner?: DiscoverablePartnerProps;
+  partner?: PartnerNetworkPartnerProps;
   onToggleStarred?: (starred: boolean) => void;
 }) {
+  const { queryParams } = useRouterStuff();
+
   const basicFields = useMemo(
     () => [
       {
@@ -304,6 +361,7 @@ function PartnerCard({
             ? `${capitalize(partner.conversionScore)} conversion`
             : "Unknown conversion"
           : undefined,
+        wrapper: ConversionScoreTooltip,
       },
     ],
     [partner],
@@ -322,7 +380,17 @@ function PartnerCard({
   );
 
   return (
-    <div className="border-border-subtle rounded-xl border p-4">
+    <div
+      className={cn(
+        "border-border-subtle rounded-xl border bg-white p-4",
+        partner?.id && "cursor-pointer hover:drop-shadow-sm",
+      )}
+      onClick={(e) => {
+        if (!partner?.id || isClickOnInteractiveChild(e)) return;
+
+        queryParams({ set: { partnerId: partner.id } });
+      }}
+    >
       <div className="flex justify-between gap-4">
         {/* Avatar + country icon */}
         <div className="relative w-fit">
@@ -378,65 +446,8 @@ function PartnerCard({
         <div className="flex flex-col items-start gap-1">
           {basicFields
             .filter(({ text }) => text !== null)
-            .map(({ id, icon, text }) => (
-              <DynamicTooltipWrapper
-                key={id}
-                tooltipProps={
-                  id === "conversion"
-                    ? {
-                        content: (
-                          <div className="max-w-60 p-2.5 text-xs">
-                            <div className="flex flex-col gap-2.5">
-                              {PARTNER_CONVERSION_SCORES.map((score, idx) => (
-                                <div
-                                  key={score}
-                                  className="flex items-center gap-1.5"
-                                >
-                                  <ConversionScoreIcon
-                                    score={score}
-                                    className="size-3.5 shrink-0"
-                                  />
-                                  <span className="text-content-default font-semibold">
-                                    {capitalize(score)}{" "}
-                                    <span className="text-content-subtle font-medium">
-                                      (
-                                      {idx <
-                                      PARTNER_CONVERSION_SCORES.length - 1 ? (
-                                        <>
-                                          {PARTNER_CONVERSION_SCORE_RATES[
-                                            score
-                                          ] * 100}
-                                          -
-                                          {PARTNER_CONVERSION_SCORE_RATES[
-                                            PARTNER_CONVERSION_SCORES[idx + 1]
-                                          ] * 100}
-                                        </>
-                                      ) : (
-                                        <>
-                                          &gt;
-                                          {PARTNER_CONVERSION_SCORE_RATES[
-                                            score
-                                          ] * 100}
-                                        </>
-                                      )}
-                                      %)
-                                    </span>
-                                  </span>
-                                </div>
-                              ))}
-                            </div>
-                            <p className="text-content-subtle mt-4 font-medium">
-                              This score is an average for all Dub programs the
-                              partner is enrolled in.
-                            </p>
-                          </div>
-                        ),
-                        side: "right",
-                        align: "end",
-                      }
-                    : undefined
-                }
-              >
+            .map(({ id, icon, text, wrapper: Wrapper = "div" }) => (
+              <Wrapper key={id}>
                 <div className="text-content-subtle flex cursor-default items-center gap-1">
                   {text !== undefined ? (
                     <>
@@ -447,7 +458,7 @@ function PartnerCard({
                     <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
                   )}
                 </div>
-              </DynamicTooltipWrapper>
+              </Wrapper>
             ))}
         </div>
 
@@ -638,4 +649,37 @@ function ListPill({ icon: Icon, label }: { icon?: Icon; label: string }) {
       </span>
     </div>
   );
+}
+
+/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
+function useCurrentPartner({
+  partners,
+  partnerId,
+}: {
+  partners?: PartnerNetworkPartnerProps[];
+  partnerId: string | null;
+}) {
+  const { id: workspaceId } = useWorkspace();
+
+  let currentPartner = partnerId
+    ? partners?.find(({ id }) => id === partnerId)
+    : null;
+
+  const fetchPartnerId =
+    partners && partnerId && !currentPartner ? partnerId : null;
+
+  const { data: fetchedPartners, isLoading } =
+    useSWR<PartnerNetworkPartnerProps>(
+      fetchPartnerId &&
+        `/api/network/partners?workspaceId=${workspaceId}&partnerIds=${fetchPartnerId}`,
+      fetcher,
+      {
+        keepPreviousData: true,
+      },
+    );
+
+  if (!currentPartner && fetchedPartners?.[0]?.id === partnerId)
+    currentPartner = fetchedPartners[0];
+
+  return { currentPartner, isLoading };
 }

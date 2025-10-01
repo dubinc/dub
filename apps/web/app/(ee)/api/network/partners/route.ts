@@ -15,6 +15,7 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
     const {
+      partnerIds,
       status,
       page,
       pageSize,
@@ -71,6 +72,7 @@ export const GET = withWorkspace(
       ) salesChannels ON salesChannels.partnerId = p.id
       WHERE 
         p.discoverableAt IS NOT NULL
+        ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND p.id IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
         ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
         ${
           status === "discover"
