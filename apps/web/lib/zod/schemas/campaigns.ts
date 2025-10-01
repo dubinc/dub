@@ -3,7 +3,7 @@ import { z } from "zod";
 import { GroupSchema } from "./groups";
 import { workflowConditionSchema } from "./workflows";
 
-export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30] as const;
+export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30];
 
 export const EMAIL_TEMPLATE_VARIABLES = {
   partnerName: "PartnerName",
