@@ -30,6 +30,7 @@ import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
 import { CampaignAutomationLogic } from "./campaign-automation-logic";
+import { useSendEmailPreviewModal } from "./send-email-preview-modal";
 
 const inputClassName =
   "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
@@ -48,6 +49,14 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
   const { makeRequest: publishCampaign, isSubmitting: isCreatingCampaign } =
     useApiMutation<Campaign>();
+
+  const {
+    SendEmailPreviewModal,
+    setShowSendEmailPreviewModal,
+    showSendEmailPreviewModal,
+  } = useSendEmailPreviewModal({
+    campaignId: campaign.id,
+  });
 
   const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
@@ -224,7 +233,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                       disabled={!!validationError || isCreatingCampaign}
                       disabledTooltip={validationError}
                       onSelect={() => {
-                        //
+                        setOpenPopover(false);
+                        setShowSendEmailPreviewModal(true);
                       }}
                     >
                       Send preview
@@ -362,6 +372,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
           </div>
         </PageWidthWrapper>
       </PageContent>
+
+      <SendEmailPreviewModal />
     </FormProvider>
   );
 }
