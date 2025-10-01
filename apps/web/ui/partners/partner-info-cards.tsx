@@ -42,8 +42,8 @@ type PartnerInfoCardsProps = {
   selectedGroupId?: string | null;
   setSelectedGroupId?: (groupId: string) => void;
 } & (
-  | { type?: "enrolled"; partner: EnrolledPartnerExtendedProps }
-  | { type: "network"; partner: PartnerNetworkPartnerProps }
+  | { type?: "enrolled"; partner?: EnrolledPartnerExtendedProps }
+  | { type: "network"; partner?: PartnerNetworkPartnerProps }
 );
 
 export function PartnerInfoCards({
@@ -78,7 +78,7 @@ export function PartnerInfoCards({
 
   const basicFields = isEnrolled
     ? [
-        ...(partner.status === "approved"
+        ...(partner?.status === "approved"
           ? [
               {
                 id: "lastLeadAt",
@@ -129,9 +129,11 @@ export function PartnerInfoCards({
           {
             id: "lastConversionAt",
             icon: <ChartActivity2 className="size-3.5" />,
-            text: partner.lastConversionAt
-              ? `Last conversion ${timeAgo(partner.lastConversionAt, { withAgo: true })}`
-              : "No conversions yet",
+            text: partner
+              ? partner.lastConversionAt
+                ? `Last conversion ${timeAgo(partner.lastConversionAt, { withAgo: true })}`
+                : "No conversions yet"
+              : undefined,
           },
           {
             id: "companyName",
@@ -149,7 +151,7 @@ export function PartnerInfoCards({
       : [];
 
   const badge =
-    isEnrolled && !hideStatuses.includes(partner.status)
+    isEnrolled && partner && !hideStatuses.includes(partner.status)
       ? PartnerStatusBadges[partner.status]
       : null;
 
