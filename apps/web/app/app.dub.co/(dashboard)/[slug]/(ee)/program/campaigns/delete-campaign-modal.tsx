@@ -58,23 +58,23 @@ const DeleteCampaignModal = ({
             {campaign.name}
           </span>
         </div>
-      </div>
 
-      <div className="flex items-center justify-end gap-2 px-5 py-4">
-        <Button
-          variant="secondary"
-          className="h-9 w-fit px-3"
-          text="Cancel"
-          onClick={() => setShowModal(false)}
-          disabled={isSubmitting}
-        />
-        <Button
-          variant="danger"
-          className="h-9 w-fit px-3"
-          text="Delete"
-          loading={isSubmitting}
-          onClick={handleCampaignDeletion}
-        />
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            variant="secondary"
+            className="h-9 w-fit px-3"
+            text="Cancel"
+            onClick={() => setShowModal(false)}
+            disabled={isSubmitting}
+          />
+          <Button
+            variant="danger"
+            className="h-9 w-fit px-3"
+            text="Delete"
+            loading={isSubmitting}
+            onClick={handleCampaignDeletion}
+          />
+        </div>
       </div>
     </Modal>
   );
