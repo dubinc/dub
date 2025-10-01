@@ -7,7 +7,10 @@ import { QrCardType } from "@/ui/qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "@/ui/shared/five-stars.component";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
-import { trackClientEvents } from "core/integration/analytic";
+import {
+  setPeopleAnalyticOnce,
+  trackClientEvents,
+} from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ICustomerBody } from "core/integration/payment/config";
@@ -40,11 +43,12 @@ interface IQRPreviewModalProps {
 }
 
 const FEATURES = [
-  "Unlimited QR code scans & edits",
-  "Full customization (colors, logos, frames)",
-  "Dynamic & editable QR codes — update anytime",
-  "Advanced analytics (track scans, devices, locations)",
-  "High-quality downloads (PNG, JPG, SVG)",
+  "Receive your QR code instantly by email",
+  "Download your QR code in PNG, JPG, or SVG",
+  "Edit your QR code anytime, even after printing",
+  "Create unlimited QR codes",
+  "Track scans, devices & locations with analytics",
+  "Customize with colors, logos & frames",
 ];
 
 function TrialOfferWithQRPreview({
@@ -57,7 +61,6 @@ function TrialOfferWithQRPreview({
   firstQr,
 }: IQRPreviewModalProps) {
   const { isMobile } = useMediaQuery();
-  // const isMobile = true;
 
   const innerComponent = (
     <TrialOfferWithQRPreviewInner
@@ -85,6 +88,14 @@ function TrialOfferWithQRPreview({
       });
     }
   }, [showTrialOfferModal]);
+
+  useEffect(() => {
+    if (user?.isPaidUser) {
+      setPeopleAnalyticOnce({ acquisition_type: "paid" });
+    } else {
+      setPeopleAnalyticOnce({ acquisition_type: null });
+    }
+  }, []);
 
   return (
     <>
@@ -123,6 +134,8 @@ function TrialOfferWithQRPreviewInner({
     (item) => item.id === firstQr?.qrType,
   )!;
 
+  const isPaidTraffic = user?.isPaidUser || false;
+
   const onSubcriptionCreated = () => {
     trackClientEvents({
       event: EAnalyticEvents.PAGE_VIEWED,
@@ -152,7 +165,7 @@ function TrialOfferWithQRPreviewInner({
   return (
     <Theme>
       <div className="flex w-full flex-col sm:flex-row">
-        <div className="flex grow flex-col gap-4 bg-neutral-50 p-6">
+        <div className="flex grow flex-col items-center gap-4 bg-neutral-50 p-6">
           <div className="flex flex-col gap-2 text-center">
             {firstQr && (
               <h2 className="text-primary !mt-0 truncate text-2xl font-bold">
@@ -161,9 +174,9 @@ function TrialOfferWithQRPreviewInner({
             )}
           </div>
 
-          <div className="relative flex w-full flex-col justify-center gap-2">
+          <div className="relative flex w-full max-w-[300px] flex-col justify-center gap-2">
             {firstQr && (
-              <div className="bg-primary-100 absolute left-0 top-0 z-10 rounded-tl-lg p-1">
+              <div className="bg-primary-100 absolute left-0 top-0 z-10 rounded-tl-lg">
                 <QrCardType
                   className="bg-primary-100"
                   currentQrTypeInfo={currentQrTypeInfo}
@@ -182,7 +195,23 @@ function TrialOfferWithQRPreviewInner({
             </span>
           </div>
 
-          <div className="bg-primary-100 flex w-full flex-row items-center justify-between gap-4 rounded-lg p-3 shadow-none">
+          <h3 className="flex flex-wrap items-center justify-center gap-0.5 text-center text-base text-neutral-800">
+            <FiveStarsComponent className="mr-1" />
+            <span className="whitespace-nowrap">Trusted by over</span>{" "}
+            <span className="font-bold">700,000</span> people
+          </h3>
+
+          {isMobile ? (
+            <div className="flex w-full justify-center py-2">
+              <Button
+                onClick={onScrollToPaymentBlock}
+                className="max-w-md"
+                text={firstQr ? "Download Now!" : "Create QR Noew!"}
+              />
+            </div>
+          ) : null}
+
+          <div className="bg-primary-100 flex hidden w-full max-w-[360px] flex-row items-center justify-between gap-4 rounded-lg p-3 shadow-none sm:flex">
             <p className="text-sm">
               <span className="font-semibold">52.9K</span> QR codes created
               today
@@ -192,27 +221,13 @@ function TrialOfferWithQRPreviewInner({
           </div>
         </div>
 
-        {isMobile ? (
-          <div className="flex justify-center px-6 py-2">
-            <Button
-              onClick={onScrollToPaymentBlock}
-              className="max-w-md"
-              text={firstQr ? "Download Now!" : "Create QR Noew!"}
-            />
-          </div>
-        ) : null}
-
         <div className="flex grow flex-col gap-4 p-6 sm:min-w-[50%] sm:max-w-[50%] sm:basis-[50%]">
           <div className="flex flex-col gap-2 text-center">
             <h2 className="text-neutral !mt-0 truncate text-2xl font-bold">
-              Unlock 7-Day Full Access
+              {isPaidTraffic && firstQr
+                ? "Download Your QR Code"
+                : "Unlock 7-Day Full Access"}
             </h2>
-            <h3 className="flex flex-wrap items-center justify-center gap-0.5 text-center text-base text-neutral-800">
-              <span className="font-semibold">Excellent</span>{" "}
-              <FiveStarsComponent /> <span className="font-bold">4.81</span>{" "}
-              <span className="whitespace-nowrap">based on</span>{" "}
-              <span className="font-bold">924</span> <span>reviews</span>
-            </h3>
           </div>
 
           <ul className="flex flex-col gap-2 text-center">
@@ -243,6 +258,7 @@ function TrialOfferWithQRPreviewInner({
           <ClientSessionComponent onSessionCreated={setClientToken} />
           {clientToken && (
             <CreateSubscriptionFlow
+              isPaidTraffic={isPaidTraffic}
               user={{
                 ...user!,
                 paymentInfo: { ...user!.paymentInfo, clientToken },

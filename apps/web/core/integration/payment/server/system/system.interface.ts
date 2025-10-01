@@ -98,7 +98,7 @@ export interface IUpdateSystemSubscriptionBody {
     type: string;
   };
   resetNextBillingDate?: boolean;
-  noSubtract: boolean;
+  appendPaidPeriod: boolean;
   plan: ISystemSubscription["plan"];
   attributes: { [key: string]: string | number | boolean | object | null };
 }

@@ -21,7 +21,7 @@ import {
   updateUserCookieService,
 } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
-import { format } from "date-fns";
+import { format, differenceInCalendarDays } from "date-fns";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -135,8 +135,8 @@ export const POST = withSession(
       await paymentService.updateClientSubscription(
         paymentData?.paymentInfo?.subscriptionId || "",
         {
-          noSubtract: false,
-          resetNextBillingDate: false,
+          appendPaidPeriod: true,
+          resetNextBillingDate: true,
           plan: {
             currencyCode: paymentData?.currency?.currencyForPay || "",
             trialPrice: 0,
@@ -184,6 +184,13 @@ export const POST = withSession(
 
       console.log("sub data after update", newSubData);
 
+      const carryoverDays = subscription?.nextBillingDate
+        ? differenceInCalendarDays(
+            new Date(subscription.nextBillingDate),
+            new Date(),
+          )
+        : 0;
+
       await Promise.all([
         prisma.user.update({
           where: {
@@ -220,6 +227,7 @@ export const POST = withSession(
             ),
             new_plan: titlesByPlans[body.paymentPlan],
             current_plan: titlesByPlans[prevPlan],
+            carryover_days: String(carryoverDays),
           },
           customerId: user?.id,
         }),
