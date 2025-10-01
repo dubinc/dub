@@ -8,8 +8,6 @@ import { DubApiError } from "../errors";
 export const validateCampaign = (
   campaign: z.infer<typeof updateCampaignSchema>,
 ) => {
-  console.log(campaign)
-
   if (campaign.status === "draft") {
     return;
   }

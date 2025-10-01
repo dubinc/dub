@@ -9,6 +9,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CampaignTypeSelector } from "@/ui/partners/campaigns/campaign-type-selector";
 import { ThreeDots } from "@/ui/shared/icons";
+import { CampaignStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronRight,
@@ -22,6 +23,7 @@ import {
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -35,9 +37,17 @@ const inputClassName =
 const labelClassName = "text-sm font-medium text-content-subtle";
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
-  const { makeRequest } = useApiMutation<Campaign>();
+  const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
+  const {
+    makeRequest: saveDraftCampaign,
+    isSubmitting: isSavingDraftCampaign,
+  } = useApiMutation<Campaign>();
+
+  const { makeRequest: publishCampaign, isSubmitting: isCreatingCampaign } =
+    useApiMutation<Campaign>();
 
   const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
@@ -69,8 +79,17 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     "triggerCondition",
   ]);
 
-  const saveDraftCampaign = useCallback(
+  // Autosave draft campaign changes
+  const handleSaveDraftCampaign = useCallback(
     useDebouncedCallback(async () => {
+      if (
+        campaign.status !== "draft" ||
+        isSavingDraftCampaign ||
+        isCreatingCampaign
+      ) {
+        return;
+      }
+
       const allFormData = getValues();
 
       // Only send fields that have changed (PATCH)
@@ -87,7 +106,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
       // Only make request if there are changed fields
       if (Object.keys(changedFields).length > 0) {
-        await makeRequest(`/api/campaigns/${campaign.id}`, {
+        await saveDraftCampaign(`/api/campaigns/${campaign.id}`, {
           method: "PATCH",
           body: changedFields,
           onSuccess: () => {
@@ -99,14 +118,36 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         });
       }
     }, 1000),
-    [getValues, dirtyFields, makeRequest, campaign.id, reset],
+    [getValues, dirtyFields, saveDraftCampaign, campaign.id, reset],
   );
+
+  // Publish the campaign
+  const handlePublishCampaign = useCallback(async () => {
+    const allFormData = getValues();
+
+    await publishCampaign(`/api/campaigns/${campaign.id}`, {
+      method: "PATCH",
+      body: {
+        ...allFormData,
+        status: CampaignStatus.active,
+        triggerCondition: {
+          attribute: "totalLeads",
+          operator: "gte",
+          value: 1,
+        },
+      },
+      onSuccess: () => {
+        toast.success("Campaign published successfully!");
+        router.push(`/${workspaceSlug}/program/campaigns`);
+      },
+    });
+  }, [getValues, publishCampaign, campaign.id, router, workspaceSlug]);
 
   // Watch for form changes and trigger autosave
   useEffect(() => {
     const { unsubscribe } = watch(() => {
       if (isDirty) {
-        saveDraftCampaign();
+        handleSaveDraftCampaign();
       }
     });
 
@@ -165,7 +206,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             <Button
               disabled={!!validationError}
               disabledTooltip={validationError}
-              onClick={() => {}}
+              onClick={handlePublishCampaign}
+              loading={isCreatingCampaign}
               text="Create"
               className="h-9"
             />
@@ -179,7 +221,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     <MenuItem
                       as={Command.Item}
                       icon={PaperPlane}
-                      disabled={!!validationError}
+                      disabled={!!validationError || isCreatingCampaign}
                       disabledTooltip={validationError}
                       onSelect={() => {
                         //
@@ -191,6 +233,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     <MenuItem
                       as={Command.Item}
                       icon={Trash}
+                      disabled={isCreatingCampaign}
                       variant="danger"
                       onSelect={() => {
                         //
@@ -273,7 +316,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   initialValue={field.value}
                   onChange={(value) => {
                     field.onChange(value);
-                    saveDraftCampaign();
+                    handleSaveDraftCampaign();
                   }}
                   variables={EMAIL_TEMPLATE_VARIABLES}
                   uploadImage={async (file) => {

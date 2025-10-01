@@ -72,6 +72,9 @@ export const PATCH = withWorkspace(
       ...(triggerCondition && { triggerCondition }),
     });
 
+    // TODO:
+    // Update the workflow
+
     const updatedCampaign = await prisma.campaign.update({
       where: {
         id: campaignId,
@@ -83,7 +86,6 @@ export const PATCH = withWorkspace(
         ...(subject && { subject }),
         ...(status && { status }),
         ...(body && { body }),
-        ...(triggerCondition && { triggerCondition }),
       },
       include: {
         groups: true,
