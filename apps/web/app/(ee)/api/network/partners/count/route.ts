@@ -15,6 +15,7 @@ export const GET = withWorkspace(
       starred,
       industryInterests,
       salesChannels,
+      preferredEarningStructures,
     } = getPartnerNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const commonWhere = {
@@ -29,6 +30,13 @@ export const GET = withWorkspace(
       }),
       ...(salesChannels && {
         salesChannels: { some: { salesChannel: { in: salesChannels } } },
+      }),
+      ...(preferredEarningStructures && {
+        preferredEarningStructures: {
+          some: {
+            preferredEarningStructure: { in: preferredEarningStructures },
+          },
+        },
       }),
     };
 

@@ -1,4 +1,8 @@
-import { IndustryInterest, SalesChannel } from "@dub/prisma/client";
+import {
+  IndustryInterest,
+  PreferredEarningStructure,
+  SalesChannel,
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
@@ -47,6 +51,12 @@ export const getPartnerNetworkPartnersQuerySchema = z
       .preprocess(
         (v) => (typeof v === "string" ? v.split(",") : v),
         z.array(z.nativeEnum(SalesChannel)),
+      )
+      .optional(),
+    preferredEarningStructures: z
+      .preprocess(
+        (v) => (typeof v === "string" ? v.split(",") : v),
+        z.array(z.nativeEnum(PreferredEarningStructure)),
       )
       .optional(),
   })

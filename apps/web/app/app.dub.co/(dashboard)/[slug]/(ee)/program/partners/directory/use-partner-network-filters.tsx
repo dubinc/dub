@@ -1,10 +1,11 @@
 import {
   industryInterests,
+  preferredEarningStructures,
   salesChannels,
 } from "@/lib/partners/partner-profile";
 import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partners-count";
 import { useRouterStuff } from "@dub/ui";
-import { FlagWavy, Heart, InvoiceDollar } from "@dub/ui/icons";
+import { FlagWavy, Heart, InvoiceDollar, MoneyBills2 } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
@@ -55,6 +56,17 @@ export function usePartnerNetworkFilters({
           })) ?? [],
       },
       {
+        key: "preferredEarningStructures",
+        icon: MoneyBills2,
+        label: "Preferred earning structure",
+        multiple: true,
+        options:
+          preferredEarningStructures?.map(({ id, label }) => ({
+            value: id,
+            label,
+          })) ?? [],
+      },
+      {
         key: "country",
         icon: FlagWavy,
         label: "Location",
@@ -85,6 +97,10 @@ export function usePartnerNetworkFilters({
         searchParamsObj.industryInterests?.split(",")?.filter(Boolean) ?? [],
       salesChannels:
         searchParamsObj.salesChannels?.split(",")?.filter(Boolean) ?? [],
+      preferredEarningStructures:
+        searchParamsObj.preferredEarningStructures
+          ?.split(",")
+          ?.filter(Boolean) ?? [],
     }),
     [searchParamsObj],
   );
