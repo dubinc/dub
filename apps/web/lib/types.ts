@@ -33,7 +33,11 @@ import {
   getBountySubmissionsQuerySchema,
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
-import { CampaignListSchema, CampaignSchema } from "./zod/schemas/campaigns";
+import {
+  CampaignListSchema,
+  CampaignSchema,
+  updateCampaignSchema,
+} from "./zod/schemas/campaigns";
 import {
   clickEventResponseSchema,
   clickEventSchemaTB,
@@ -616,3 +620,5 @@ export type Message = z.infer<typeof MessageSchema>;
 export type CampaignList = z.infer<typeof CampaignListSchema>;
 
 export type Campaign = z.infer<typeof CampaignSchema>;
+
+export type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;

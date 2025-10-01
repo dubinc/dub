@@ -3,11 +3,8 @@
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Campaign } from "@/lib/types";
-import {
-  EMAIL_TEMPLATE_VARIABLE_LABELS,
-  updateCampaignSchema,
-} from "@/lib/zod/schemas/campaigns";
+import { Campaign, UpdateCampaignFormData } from "@/lib/types";
+import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CampaignTypeSelector } from "@/ui/partners/campaigns/campaign-type-selector";
@@ -25,32 +22,22 @@ import {
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import {
-  Controller,
-  FormProvider,
-  useForm,
-  useFormContext,
-} from "react-hook-form";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
-import { z } from "zod";
 import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
-
-type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;
-
-const useProgramEmailFormContext = () =>
-  useFormContext<UpdateCampaignFormData>();
+import { CampaignAutomationLogic } from "./campaign-automation-logic";
 
 const inputClassName =
   "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
 
-const labelClassName = "text-sm font-medium text-content-muted";
+const labelClassName = "text-sm font-medium text-content-subtle";
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
+  const { makeRequest } = useApiMutation<Campaign>();
   const [openPopover, setOpenPopover] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const { makeRequest, isSubmitting } = useApiMutation<Campaign>();
 
   const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
@@ -58,6 +45,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       name: campaign?.name,
       subject: campaign?.subject,
       body: campaign?.body,
+      status: campaign.status,
+      groupIds: campaign.groups.map(({ id }) => id),
+      triggerCondition: campaign.triggerCondition,
     },
   });
 
@@ -70,7 +60,15 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     formState: { isDirty, dirtyFields },
   } = form;
 
-  // Autosave function with debouncing
+  const [name, subject, groupIds, body, status, triggerCondition] = watch([
+    "name",
+    "subject",
+    "groupIds",
+    "body",
+    "status",
+    "triggerCondition",
+  ]);
+
   const saveDraftCampaign = useCallback(
     useDebouncedCallback(async () => {
       const allFormData = getValues();
@@ -86,8 +84,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         },
         {} as Record<string, any>,
       );
-
-      console.log("changedFields", changedFields);
 
       // Only make request if there are changed fields
       if (Object.keys(changedFields).length > 0) {
@@ -116,6 +112,24 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
     return () => unsubscribe();
   }, [watch, isDirty, saveDraftCampaign]);
+
+  const validationError = useMemo(() => {
+    if (!name) {
+      return "Please enter a campaign name.";
+    }
+
+    if (!subject) {
+      return "Please enter a subject.";
+    }
+
+    if (groupIds === undefined) {
+      return "Please select the groups you want to send this campaign to.";
+    }
+
+    if (!body?.replace("<p></p>", "")) {
+      return "Please write the message you want to send to the partners.";
+    }
+  }, [name, subject, groupIds, body, status, triggerCondition]);
 
   const { executeAsync: executeImageUpload } = useAction(
     uploadEmailImageAction,
@@ -148,7 +162,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         }
         controls={
           <div className="flex items-center gap-2">
-            <Button onClick={() => {}} text="Create" className="h-9" />
+            <Button
+              disabled={!!validationError}
+              disabledTooltip={validationError}
+              onClick={() => {}}
+              text="Create"
+              className="h-9"
+            />
             <Popover
               openPopover={openPopover}
               setOpenPopover={setOpenPopover}
@@ -159,6 +179,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     <MenuItem
                       as={Command.Item}
                       icon={PaperPlane}
+                      disabled={!!validationError}
+                      disabledTooltip={validationError}
                       onSelect={() => {
                         //
                       }}
@@ -230,6 +252,15 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 )}
               />
             </label>
+
+            {campaign.type === "transactional" && (
+              <>
+                <label className="contents">
+                  <span className={labelClassName}>Automation</span>
+                </label>
+                <CampaignAutomationLogic />
+              </>
+            )}
           </div>
 
           <div className="mt-6">
@@ -244,7 +275,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     field.onChange(value);
                     saveDraftCampaign();
                   }}
-                  variables={EMAIL_TEMPLATE_VARIABLE_LABELS}
+                  variables={EMAIL_TEMPLATE_VARIABLES}
                   uploadImage={async (file) => {
                     try {
                       const result = await executeImageUpload({

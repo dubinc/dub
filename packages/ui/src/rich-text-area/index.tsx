@@ -100,11 +100,23 @@ export function RichTextArea({
         : []),
       ...(variables
         ? [
-            Mention.configure({
-              HTMLAttributes: {
-                class:
-                  "px-1 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold",
+            Mention.extend({
+              renderHTML({ node }) {
+                return [
+                  "span",
+                  {
+                    class:
+                      "px-1 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold",
+                    "data-type": "mention",
+                    "data-id": node.attrs.id,
+                  },
+                  `{{${node.attrs.id}}}`,
+                ];
               },
+              renderText({ node }) {
+                return `{{${node.attrs.id}}}`;
+              },
+            }).configure({
               suggestion: suggestions(variables),
             }),
           ]

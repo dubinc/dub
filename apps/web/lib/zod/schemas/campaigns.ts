@@ -5,18 +5,7 @@ import { workflowConditionSchema } from "./workflows";
 
 export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30];
 
-export const EMAIL_TEMPLATE_VARIABLES = {
-  partnerName: "PartnerName",
-  partnerEmail: "PartnerEmail",
-} as const;
-
-export const EMAIL_TEMPLATE_VARIABLE_KEYS = Object.keys(
-  EMAIL_TEMPLATE_VARIABLES,
-);
-
-export const EMAIL_TEMPLATE_VARIABLE_LABELS = Object.values(
-  EMAIL_TEMPLATE_VARIABLES,
-);
+export const EMAIL_TEMPLATE_VARIABLES = ["PartnerName", "PartnerEmail"];
 
 export const CampaignSchema = z.object({
   id: z.string(),
@@ -84,3 +73,26 @@ export const getCampaignsCountQuerySchema = getCampaignsQuerySchema
   .extend({
     groupBy: z.enum(["type", "status"]).optional(),
   });
+
+// Workflow
+export const CAMPAIGN_WORKFLOW_ATTRIBUTES = [
+  "totalLeads",
+  "totalConversions",
+  "totalSaleAmount",
+  "totalCommissions",
+  "partnerEnrolledDays",
+] as const;
+
+export type CampaignWorkflowAttribute =
+  (typeof CAMPAIGN_WORKFLOW_ATTRIBUTES)[number];
+
+export const CAMPAIGN_WORKFLOW_ATTRIBUTE_LABELS: Record<
+  CampaignWorkflowAttribute,
+  string
+> = {
+  totalLeads: "lead",
+  totalConversions: "conversions",
+  totalSaleAmount: "revenue",
+  totalCommissions: "commissions",
+  partnerEnrolledDays: "been in the program for",
+} as const;

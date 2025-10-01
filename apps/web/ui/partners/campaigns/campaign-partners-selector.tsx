@@ -1,4 +1,4 @@
-// @ts-nocheck
+// @ts-nocheck-
 // TODO: fix this
 
 import usePartners from "@/lib/swr/use-partners";
