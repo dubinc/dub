@@ -1,6 +1,6 @@
 "use client";
 
-import { updateGroupApplicationFormAction } from "@/lib/actions/partners/update-group-application-form";
+import { updateGroupBrandingAction } from "@/lib/actions/partners/update-group-branding";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -183,28 +183,25 @@ function BrandingFormInner({
     getValues,
   } = form;
 
-  const { executeAsync, isPending } = useAction(
-    updateGroupApplicationFormAction,
-    {
-      async onSuccess({ data }) {
-        await mutateGroup();
-        toast.success("Group updated successfully.");
+  const { executeAsync, isPending } = useAction(updateGroupBrandingAction, {
+    async onSuccess({ data }) {
+      await mutateGroup();
+      toast.success("Group updated successfully.");
 
-        const currentValues = getValues();
+      const currentValues = getValues();
 
-        // Still reset form state to clear isSubmitSuccessful
-        reset({
-          ...currentValues,
-          applicationFormData:
-            data?.applicationFormData ?? currentValues.applicationFormData,
-          landerData: data?.landerData ?? currentValues.landerData,
-        });
-      },
-      onError({ error }) {
-        console.error(error);
-      },
+      // Still reset form state to clear isSubmitSuccessful
+      reset({
+        ...currentValues,
+        applicationFormData:
+          data?.applicationFormData ?? currentValues.applicationFormData,
+        landerData: data?.landerData ?? currentValues.landerData,
+      });
     },
-  );
+    onError({ error }) {
+      console.error(error);
+    },
+  });
 
   // Unsaved changes warning
   useEffect(() => {

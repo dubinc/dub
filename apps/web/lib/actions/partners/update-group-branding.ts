@@ -24,7 +24,7 @@ const schema = z.object({
   landerData: programLanderSchema.nullish(),
 });
 
-export const updateGroupApplicationFormAction = authActionClient
+export const updateGroupBrandingAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
@@ -43,13 +43,17 @@ export const updateGroupApplicationFormAction = authActionClient
       programId,
     });
 
+    const logoUpdated = logo && !isStored(logo);
+    const wordmarkUpdated = wordmark && !isStored(wordmark);
+    const brandColorUpdated = brandColor !== program.brandColor;
+
     const [logoUrl, wordmarkUrl] = await Promise.all([
-      logo && !isStored(logo)
+      logoUpdated
         ? storage
             .upload(`programs/${programId}/logo_${nanoid(7)}`, logo)
             .then(({ url }) => url)
         : null,
-      wordmark && !isStored(wordmark)
+      wordmarkUpdated
         ? storage
             .upload(`programs/${programId}/wordmark_${nanoid(7)}`, wordmark)
             .then(({ url }) => url)
@@ -86,10 +90,10 @@ export const updateGroupApplicationFormAction = authActionClient
     waitUntil(
       Promise.allSettled([
         // Delete old logo/wordmark if they were updated
-        ...(logoUrl && program.logo
+        ...(logoUpdated && program.logo
           ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
           : []),
-        ...(wordmarkUrl && program.wordmark
+        ...(wordmarkUpdated && program.wordmark
           ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
           : []),
 
@@ -101,22 +105,14 @@ export const updateGroupApplicationFormAction = authActionClient
          - brand color
          - lander data
         */
-        ...// logoUrl ||
-        // wordmarkUrl ||
-        (brandColor !== program.brandColor || applicationFormDataInput
+        ...(logoUpdated ||
+        wordmarkUpdated ||
+        brandColorUpdated ||
+        applicationFormDataInput
           ? [
               revalidatePath(`/partners.dub.co/${program.slug}`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply`),
               revalidatePath(`/partners.dub.co/${program.slug}/apply/success`),
-              revalidatePath(
-                `/partners.dub.co/${program.slug}/${updatedGroup.slug}`,
-              ),
-              revalidatePath(
-                `/partners.dub.co/${program.slug}/${updatedGroup.slug}/apply`,
-              ),
-              revalidatePath(
-                `/partners.dub.co/${program.slug}/${updatedGroup.slug}/apply/success`,
-              ),
             ]
           : []),
 

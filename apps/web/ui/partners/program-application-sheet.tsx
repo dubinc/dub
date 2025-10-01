@@ -54,7 +54,8 @@ function ProgramApplicationSheetContent({
     programEnrollment?.groupId ||
     programProp?.defaultGroupId ||
     DEFAULT_PARTNER_GROUP.slug;
-  const { group, loading } = useGroup<GroupWithProgramProps>(
+
+  const { group } = useGroup<GroupWithProgramProps>(
     { groupIdOrSlug: groupId, query: { includeExpandedFields: true } },
     {
       keepPreviousData: true,
