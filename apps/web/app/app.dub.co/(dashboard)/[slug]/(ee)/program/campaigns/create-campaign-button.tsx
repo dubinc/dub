@@ -1,5 +1,6 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign } from "@/lib/types";
@@ -17,8 +18,9 @@ export function CreateCampaignButton() {
       body: {
         type: "transactional",
       },
-      onSuccess: (data) => {
-        router.push(`/${slug}/program/campaigns/${data.id}`);
+      onSuccess: (campaign) => {
+        router.push(`/${slug}/program/campaigns/${campaign.id}`);
+        mutatePrefix("/api/campaigns");
       },
     });
   };

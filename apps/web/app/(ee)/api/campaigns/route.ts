@@ -8,6 +8,7 @@ import {
   getCampaignsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
 import { prisma } from "@dub/prisma";
+import { CampaignStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -72,7 +73,7 @@ export const POST = withWorkspace(
         id: createId({ prefix: "cmp_" }),
         programId,
         userId: session.user.id,
-        status: "draft",
+        status: CampaignStatus.draft,
         name: "Untitled",
         subject: "",
         body: "",

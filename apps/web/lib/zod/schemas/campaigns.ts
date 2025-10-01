@@ -45,15 +45,21 @@ export const CampaignListSchema = z.object({
   updatedAt: z.date(),
 });
 
-export const campaignTypeSchema = z.nativeEnum(CampaignType);
-
 export const createCampaignSchema = z.object({
-  type: z.literal("transactional"), // We only support transactional campaigns for now.
+  type: z.nativeEnum(CampaignType),
 });
 
-export const updateCampaignSchema = createCampaignSchema
-  .omit({ type: true })
-  .partial();
+export const updateCampaignSchema = z.object({
+  type: z.nativeEnum(CampaignType),
+  name: z.string().trim().max(100, "Name must be less than 100 characters."),
+  subject: z
+    .string()
+    .trim()
+    .max(100, "Subject must be less than 100 characters."),
+  body: z.string(),
+  triggerCondition: workflowConditionSchema.nullish(),
+  groupIds: z.array(z.string()).nullish().default(null),
+});
 
 export const getCampaignsQuerySchema = z.object({
   type: z.nativeEnum(CampaignType).optional(),

@@ -35,7 +35,7 @@ export const CampaignTypeSelector = memo(function CampaignTypeSelector({
   const selectedType = CAMPAIGN_TYPES.find((type) => type.type === value);
 
   if (!selectedType) {
-    throw new Error("Invalid email type passed to TypeSelector");
+    return;
   }
 
   return (

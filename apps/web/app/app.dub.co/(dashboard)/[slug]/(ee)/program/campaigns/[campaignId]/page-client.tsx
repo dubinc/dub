@@ -2,10 +2,10 @@
 
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Campaign } from "@/lib/types";
 import {
-  campaignTypeSchema,
-  createCampaignSchema,
   EMAIL_TEMPLATE_VARIABLE_LABELS,
+  updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -23,7 +23,7 @@ import {
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { notFound } from "next/navigation";
 import { useState } from "react";
 import {
   Controller,
@@ -33,34 +33,43 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import useCampaign from "../use-campaign";
+import { CampaignEditorSkeleton } from "./campaign-editor-skeleton";
 
-type CreateCampaignFormData = z.infer<typeof createCampaignSchema>;
+type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;
 
 const useProgramEmailFormContext = () =>
-  useFormContext<CreateCampaignFormData>();
-
-const labelClassName = "text-sm font-medium text-content-muted";
+  useFormContext<UpdateCampaignFormData>();
 
 const inputClassName =
   "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted";
 
-export function ProgramCampaignPageClient() {
-  const { campaignId } = useParams<{ campaignId: string }>();
+const labelClassName = "text-sm font-medium text-content-muted";
 
-  return <ProgramEmailForm />;
+export function ProgramCampaignPageClient() {
+  const { campaign, error, loading } = useCampaign();
+
+  if (error) {
+    return notFound();
+  }
+
+  if (loading || !campaign) {
+    return <CampaignEditorSkeleton />;
+  }
+
+  return <CampaignEditor campaign={campaign} />;
 }
 
-function ProgramEmailForm() {
-  const searchParams = useSearchParams();
+function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const [openPopover, setOpenPopover] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const campaignType = campaignTypeSchema.safeParse(searchParams.get("type"));
-
-  const form = useForm<CreateCampaignFormData>({
+  const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
-      name: "New email",
-      type: campaignType.success ? campaignType.data : "transactional",
+      type: campaign?.type,
+      name: campaign?.name,
+      subject: campaign?.subject,
+      body: campaign?.body,
     },
   });
 
@@ -70,7 +79,6 @@ function ProgramEmailForm() {
 
   const { register, control, watch, handleSubmit } = form;
   const type = watch("type");
-
   const title = type === "marketing" ? "Campaign" : "Automation";
 
   return (
