@@ -1,9 +1,10 @@
 import { prisma } from "@dub/prisma";
 import Stripe from "stripe";
 import { processDomainRenewalFailure } from "./utils/process-domain-renewal-failure";
+import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";
 
 export async function paymentIntentRequiresAction(event: Stripe.Event) {
-  const { transfer_group: invoiceId } = event.data
+  const { transfer_group: invoiceId, latest_charge: charge } = event.data
     .object as Stripe.PaymentIntent;
 
   if (!invoiceId) {
@@ -22,13 +23,6 @@ export async function paymentIntentRequiresAction(event: Stripe.Event) {
     return;
   }
 
-  if (invoice.type !== "domainRenewal") {
-    console.log(
-      `Invoice with transfer group ${invoiceId} is not a domain renewal.`,
-    );
-    return;
-  }
-
   invoice = await prisma.invoice.update({
     where: {
       id: invoiceId,
@@ -43,5 +37,9 @@ export async function paymentIntentRequiresAction(event: Stripe.Event) {
     },
   });
 
-  return await processDomainRenewalFailure({ invoice });
+  if (invoice.type === "partnerPayout") {
+    return await processPayoutInvoiceFailure({ invoice });
+  } else if (invoice.type === "domainRenewal") {
+    return await processDomainRenewalFailure({ invoice });
+  }
 }

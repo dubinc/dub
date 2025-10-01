@@ -23,7 +23,10 @@ export default function PartnerPayoutFailed({
   },
   payout = {
     amount: 530000,
-    failureFee: 1000,
+    method: "card",
+    // failureFee: 1000,
+    failureReason:
+      "Your payment requires additional authentication to complete.",
     cardLast4: "1234",
   },
   email = "panic@thedis.co",
@@ -36,6 +39,8 @@ export default function PartnerPayoutFailed({
   };
   payout: {
     amount: number; // in cents
+    method: "card" | "direct_debit";
+    failureReason?: string | null;
     failureFee?: number; // in cents
     cardLast4?: string;
   };
@@ -67,10 +72,19 @@ export default function PartnerPayoutFailed({
               <span className="font-semibold text-purple-600">
                 {program.name}
               </span>{" "}
-              failed. It's been reverted back to{" "}
+              failed. The payouts have been reverted back to{" "}
               <span className="font-semibold text-neutral-800">Pending</span>{" "}
               and will need to be confirmed again.
             </Text>
+
+            {payout.failureReason && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                Reason:{" "}
+                <span className="font-semibold italic text-neutral-800">
+                  {payout.failureReason}
+                </span>
+              </Text>
+            )}
 
             {payout.failureFee && (
               <Text className="text-sm leading-6 text-neutral-600">
@@ -92,8 +106,9 @@ export default function PartnerPayoutFailed({
             )}
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Please update your direct debit details at your earliest
-              convenience to ensure that your partners are paid on time.
+              Please update your {payout.method.replace("_", " ")} details at
+              your earliest convenience to ensure that your partners are paid on
+              time.
             </Text>
 
             <Section className="my-8">
