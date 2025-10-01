@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { isStored, storage } from "@/lib/storage";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
@@ -11,7 +12,6 @@ import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
 import { ProgramWithLanderDataSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
 
@@ -39,10 +39,13 @@ export const updateGroupBrandingAction = authActionClient
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
+    const group = await getGroupOrThrow({
       programId,
+      groupId,
+      includeExpandedFields: true,
     });
+
+    const { program } = group;
 
     const logoUpdated = logo && !isStored(logo);
     const wordmarkUpdated = wordmark && !isStored(wordmark);
@@ -92,10 +95,10 @@ export const updateGroupBrandingAction = authActionClient
       (async () => {
         const res = await Promise.allSettled([
           // Delete old logo/wordmark if they were updated
-          ...(logoUpdated && program.logo
+          ...(logoUpdated && program.logo && isStored(program.logo)
             ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
             : []),
-          ...(wordmarkUpdated && program.wordmark
+          ...(wordmarkUpdated && program.wordmark && isStored(program.wordmark)
             ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
             : []),
 
@@ -110,6 +113,7 @@ export const updateGroupBrandingAction = authActionClient
           ...(logoUpdated ||
           wordmarkUpdated ||
           brandColorUpdated ||
+          landerDataInput ||
           applicationFormDataInput
             ? [
                 revalidatePath(`/partners.dub.co/${program.slug}`),

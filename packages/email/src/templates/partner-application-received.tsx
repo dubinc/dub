@@ -141,7 +141,7 @@ export default function PartnerApplicationReceived({
 
                 <Section className="p-4">
                   {partner.applicationFormData.map((field) => (
-                    <Section className="mb-6">
+                    <Section key={field.title} className="mb-6">
                       <Text className="m-0 mb-2 p-0 text-base font-medium text-neutral-900">
                         {field.title}
                       </Text>
