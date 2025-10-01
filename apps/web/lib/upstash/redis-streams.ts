@@ -141,19 +141,6 @@ export class RedisStream {
               }
             }
           }
-
-          // Additionally, trim the stream to prevent unbounded growth
-          // Keep only the last 2000 entries (soft limit)
-          try {
-            // Upstash/Redis xtrim expects an options object, not just a number
-            await redis.xtrim(this.streamKey, {
-              strategy: "MAXLEN",
-              threshold: 2000,
-              exactness: "~",
-            });
-          } catch (trimError) {
-            // Not critical if trim fails
-          }
         } catch (error) {
           console.warn("Failed to clean up stream entries:", error);
           // Don't throw - this is not critical
@@ -174,17 +161,18 @@ export class RedisStream {
    * Read and process project usage updates from the stream
    * This method aggregates usage and clicks by projectId and returns the total counts
    */
-  async readAndProcessProjectUpdates(
+  async readAndProcessProjectUpdates<T>(
+    handler: (info: {
+      updates: ProcessedProjectUpdate[];
+      lastProcessedId: string | null;
+    }) => Promise<T>,
     options: {
       startId?: string;
       endId?: string;
       count?: number;
       deleteAfterRead?: boolean;
     } = {},
-  ): Promise<{
-    updates: ProcessedProjectUpdate[];
-    lastProcessedId: string | null;
-  }> {
+  ): Promise<T> {
     const {
       startId = "0",
       endId = "+",
@@ -197,7 +185,7 @@ export class RedisStream {
       const entries = await redis.xrange(this.streamKey, startId, endId, count);
 
       if (!entries || Object.keys(entries).length === 0) {
-        return { updates: [], lastProcessedId: null };
+        return handler({ updates: [], lastProcessedId: null });
       }
 
       // Aggregate usage by projectId
@@ -238,6 +226,11 @@ export class RedisStream {
         }
       }
 
+      const response = await handler({
+        updates: Array.from(aggregatedUsage.values()),
+        lastProcessedId: lastId,
+      });
+
       // Optionally delete processed entries to prevent memory buildup
       if (deleteAfterRead && lastId) {
         try {
@@ -268,10 +261,7 @@ export class RedisStream {
         }
       }
 
-      return {
-        updates: Array.from(aggregatedUsage.values()),
-        lastProcessedId: lastId,
-      };
+      return response;
     } catch (error) {
       console.error("Failed to read project usage updates from stream:", error);
       throw error;
@@ -356,7 +346,8 @@ export const publishLinkClick = async (event: ClickEvent) => {
   try {
     const pipeline = redis.pipeline();
 
-    pipeline.xadd(LINK_CLICK_UPDATES_STREAM_KEY, "*", entry);
+    // TODO: - Uncomment when we handle
+    // pipeline.xadd(LINK_CLICK_UPDATES_STREAM_KEY, "*", entry);
 
     if (url) {
       pipeline.xadd(PROJECT_USAGE_UPDATES_STREAM_KEY, "*", entry);

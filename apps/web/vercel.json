@@ -13,6 +13,10 @@
       "schedule": "0 8 * * *"
     },
     {
+      "path": "/api/cron/projects/usage-updates-queue",
+      "schedule": "*/5 * * * * *"
+    },
+    {
       "path": "/api/cron/usage",
       "schedule": "0 12 * * *"
     },
