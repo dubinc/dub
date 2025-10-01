@@ -46,6 +46,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { DirectoryEmptyState } from "./directory-empty-state";
 import { usePartnerNetworkFilters } from "./use-partner-network-filters";
 
 const tabs = [
@@ -253,9 +254,11 @@ export function ProgramPartnersDirectoryPageClient() {
           </div>
         </div>
       ) : (
-        <div className="text-content-subtle py-12 text-sm">
-          No partners found
-        </div>
+        <DirectoryEmptyState
+          isFiltered={activeFilters.length > 0}
+          isStarred={searchParams.get("starred") == "true"}
+          onClearAllFilters={onRemoveAll}
+        />
       )}
     </div>
   );

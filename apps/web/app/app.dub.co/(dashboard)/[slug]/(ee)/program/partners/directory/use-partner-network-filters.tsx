@@ -156,7 +156,7 @@ export function usePartnerNetworkFilters({
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: [...Object.keys(multiFilters), "country"],
+        del: [...Object.keys(multiFilters), "country", "starred"],
       }),
     [queryParams],
   );
