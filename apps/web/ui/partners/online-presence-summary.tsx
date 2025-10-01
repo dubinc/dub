@@ -1,4 +1,4 @@
-import { EnrolledPartnerProps } from "@/lib/types";
+import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import {
   Globe,
   Icon,
@@ -15,7 +15,7 @@ import { OnlinePresenceCard } from "./online-presence-card";
 const fields: {
   label: string;
   icon: Icon;
-  data: (partner: EnrolledPartnerProps) => {
+  data: (partner: EnrolledPartnerExtendedProps) => {
     value?: string | null;
     verified: boolean;
     href?: string | null;
@@ -90,10 +90,12 @@ export function OnlinePresenceSummary({
   partner,
   showLabels = true,
   className,
+  emptyClassName,
 }: {
-  partner: EnrolledPartnerProps;
+  partner: EnrolledPartnerExtendedProps;
   showLabels?: boolean;
   className?: string;
+  emptyClassName?: string;
 }) {
   const fieldData = fields
     .map((field) => ({
@@ -131,7 +133,13 @@ export function OnlinePresenceSummary({
       })}
     </div>
   ) : (
-    <div className={cn("text-sm italic text-neutral-400", className)}>
+    <div
+      className={cn(
+        "text-sm italic text-neutral-400",
+        className,
+        emptyClassName,
+      )}
+    >
       No online presence provided
     </div>
   );

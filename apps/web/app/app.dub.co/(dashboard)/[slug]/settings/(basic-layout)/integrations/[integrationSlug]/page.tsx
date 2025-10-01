@@ -5,11 +5,12 @@ import IntegrationPageClient from "./page-client";
 
 export const revalidate = 0;
 
-export default async function IntegrationPage({
-  params,
-}: {
-  params: { slug: string; integrationSlug: string };
-}) {
+export default async function IntegrationPage(
+  props: {
+    params: Promise<{ slug: string; integrationSlug: string }>;
+  }
+) {
+  const params = await props.params;
   const integration = await prisma.integration.findUnique({
     where: {
       slug: params.integrationSlug,
@@ -57,6 +58,10 @@ export default async function IntegrationPage({
     ? integration.installations[0]?.credentials
     : undefined;
 
+  const settings = installed
+    ? integration.installations[0]?.settings
+    : undefined;
+
   // TODO:
   // Fix this, we only displaying the first webhook only
   const webhookId = installed
@@ -82,6 +87,7 @@ export default async function IntegrationPage({
               }
             : null,
           credentials,
+          settings,
           webhookId,
         }}
       />

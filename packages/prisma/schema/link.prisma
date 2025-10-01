@@ -7,6 +7,7 @@ model Link {
   archived        Boolean   @default(false) // whether the link is archived or not
   expiresAt       DateTime? // when the link expires – stored on Redis via ttl
   expiredUrl      String?   @db.Text // URL to redirect the user to when the link is expired
+  disabledAt      DateTime? // when the link was disabled
   password        String? // password to access the link
   trackConversion Boolean   @default(false) // whether to track conversions or not
 
@@ -60,9 +61,11 @@ model Link {
   sales       Int     @default(0) // number of sales (includes recurring sales)
   saleAmount  Int     @default(0) // total revenue from sales (in cents)
 
-  lastClicked DateTime? // when the link was last clicked
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  lastClicked      DateTime? // when the link was last clicked
+  lastLeadAt       DateTime? // when the link last brought in a new lead
+  lastConversionAt DateTime? // when the link last brought in a new conversion
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   // Link short domain
   shortDomain Domain @relation(fields: [domain], references: [slug])

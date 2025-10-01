@@ -43,8 +43,9 @@ model Project {
 
   conversionEnabled Boolean @default(false) // Whether to enable conversion tracking for links by default
   webhookEnabled    Boolean @default(false)
-  ssoEnabled        Boolean @default(false)
+  ssoEnabled        Boolean @default(false) // TODO: this is not used
   dotLinkClaimed    Boolean @default(false)
+  ssoEmailDomain    String? @unique
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -109,6 +110,7 @@ model ProjectUsers {
   @@index([projectId])
 }
 
+// TODO: could potentially combine this with NotificationEmail in the future?
 model SentEmail {
   id        String   @id @default(cuid())
   type      String
@@ -117,17 +119,4 @@ model SentEmail {
   projectId String?
 
   @@index([projectId])
-}
-
-model NotificationPreference {
-  id                         String  @id @default(cuid())
-  projectUserId              String  @unique
-  linkUsageSummary           Boolean @default(true)
-  domainConfigurationUpdates Boolean @default(true)
-  newPartnerSale             Boolean @default(true)
-  newPartnerApplication      Boolean @default(true)
-  newBountySubmitted         Boolean @default(true)
-  newMessageFromPartner      Boolean @default(true)
-
-  projectUser ProjectUsers @relation(fields: [projectUserId], references: [id], onDelete: Cascade)
 }

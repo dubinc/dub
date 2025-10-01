@@ -4,8 +4,8 @@ import { LinkProps } from "@/lib/types";
 import { LinkifyTooltipContent, Tooltip, useMediaQuery } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
-import { motion } from "framer-motion";
 import { Search } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import {
   ComponentProps,

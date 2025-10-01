@@ -3,7 +3,7 @@ import { uploadBountySubmissionFileAction } from "@/lib/actions/partners/upload-
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
-import { BountySubmissionProps, PartnerBountyProps } from "@/lib/types";
+import { PartnerBountyProps } from "@/lib/types";
 import {
   MAX_SUBMISSION_FILES,
   MAX_SUBMISSION_URLS,
@@ -25,8 +25,9 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn, formatDate, getPrettyUrl } from "@dub/utils";
-import { motion } from "framer-motion";
+import { isBefore } from "date-fns";
 import Linkify from "linkify-react";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
@@ -39,7 +40,6 @@ import { BountyThumbnailImage } from "./bounty-thumbnail-image";
 type ClaimBountyModalProps = {
   setShowModal: Dispatch<SetStateAction<boolean>>;
   bounty: PartnerBountyProps;
-  submission?: BountySubmissionProps["submission"];
 };
 
 interface FileInput {
@@ -54,10 +54,9 @@ interface Url {
   url: string;
 }
 
-function ClaimBountyModalContent({
-  bounty,
-  submission,
-}: ClaimBountyModalProps) {
+function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
+  const { submission } = bounty;
+
   const { programEnrollment } = useProgramEnrollment();
 
   const [success, setSuccess] = useState(false);
@@ -141,6 +140,10 @@ function ClaimBountyModalContent({
   const urlRequired = bounty.submissionRequirements?.includes("url");
   const fileUploading = files.some(({ uploading }) => uploading);
 
+  const hasSubmissionsOpen = bounty.submissionsOpenAt
+    ? isBefore(bounty.submissionsOpenAt, new Date())
+    : true;
+
   // Confirmation modal for final submission
   const { confirmModal, setShowConfirmModal } = useConfirmModal({
     title: "Confirm submission",
@@ -199,9 +202,7 @@ function ClaimBountyModalContent({
       });
 
       if (!result?.data?.success) {
-        throw new Error(
-          isDraft ? "Failed to save progress." : "Failed to create submission.",
-        );
+        throw new Error(result?.serverError);
       }
 
       toast.success(isDraft ? "Bounty progress saved." : "Bounty submitted.");
@@ -623,6 +624,19 @@ function ClaimBountyModalContent({
                       name="submit" // for submitter.name detection above
                       loading={isDraft === false}
                       disabled={fileUploading || isDraft === true}
+                      disabledTooltip={
+                        !hasSubmissionsOpen
+                          ? `Submissions are not open yet. They will open on ${formatDate(
+                              bounty.submissionsOpenAt!,
+                              {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                                timeZone: "UTC",
+                              },
+                            )}. In the meantime, you can save your progress as a draft.`
+                          : undefined
+                      }
                     />
                   </div>
                 </div>

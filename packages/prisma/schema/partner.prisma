@@ -14,6 +14,14 @@ enum PartnerProfileType {
   company
 }
 
+enum MonthlyTraffic {
+  ZeroToOneThousand
+  OneThousandToTenThousand
+  TenThousandToFiftyThousand
+  FiftyThousandToOneHundredThousand
+  OneHundredThousandPlus
+}
+
 model Partner {
   id                           String             @id @default(cuid())
   name                         String
@@ -49,6 +57,7 @@ model Partner {
   tiktok                       String?
   tiktokVerifiedAt             DateTime?
   invoiceSettings              Json?
+  monthlyTraffic               MonthlyTraffic?
 
   programs          ProgramEnrollment[]
   users             PartnerUser[]
@@ -57,8 +66,12 @@ model Partner {
   commissions       Commission[]
   bountySubmissions BountySubmission[]
   messages          Message[]
-  sentMessages      Message[] @relation("SenderPartner")
+  sentMessages      Message[]           @relation("SenderPartner")
   comments          PartnerComment[]
+
+  industryInterests          PartnerIndustryInterest[]
+  preferredEarningStructures PartnerPreferredEarningStructure[]
+  salesChannels              PartnerSalesChannel[]
 }
 
 model PartnerInvite {
@@ -91,13 +104,77 @@ model PartnerUser {
   @@index([partnerId])
 }
 
-model PartnerNotificationPreferences {
-  id            String @id @default(cuid())
-  partnerUserId String @unique
+enum IndustryInterest {
+  SaaS
+  DevTool
+  AI
+  Creative_And_Design
+  Productivity_Software
+  Marketing
+  Gaming
+  Finance
+  Sales
+  Ecommerce
+  Customer_Service_And_Support
+  Content_Management
+  Human_Resources
+  Security
+  Analytics_And_Data
+  Social_Media
+  Consumer_Tech
+  Education_And_Learning
+  Health_And_Fitness
+  Food_And_Beverage
+  Travel_And_Lifestyle
+  Entertainment_And_Media
+  Sports
+  Science_And_Engineering
+}
 
-  commissionCreated     Boolean @default(true)
-  applicationApproved   Boolean @default(true)
-  newMessageFromProgram Boolean @default(true)
+model PartnerIndustryInterest {
+  partnerId        String
+  industryInterest IndustryInterest
 
-  partnerUser PartnerUser @relation(fields: [partnerUserId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, industryInterest])
+  @@index(partnerId)
+}
+
+enum PreferredEarningStructure {
+  Revenue_Share
+  Per_Lead
+  Per_Sale
+  Per_Click
+  One_Time_Payment
+}
+
+model PartnerPreferredEarningStructure {
+  partnerId                 String
+  preferredEarningStructure PreferredEarningStructure
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, preferredEarningStructure])
+  @@index(partnerId)
+}
+
+enum SalesChannel {
+  Blogs
+  Coupons
+  Direct_Reselling
+  Newsletters
+  Social_Media
+  Events
+  Company_Referrals
+}
+
+model PartnerSalesChannel {
+  partnerId    String
+  salesChannel SalesChannel
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, salesChannel])
+  @@index(partnerId)
 }

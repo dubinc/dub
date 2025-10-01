@@ -500,6 +500,8 @@ function PayoutInvoiceSheetContent() {
                 cta="Upgrade"
                 href={`/${slug}/settings/billing/upgrade`}
               />
+            ) : amount && amount < 1000 ? (
+              "Your payout total is less than the minimum invoice amount of $10."
             ) : (
               permissionsError || undefined
             )
@@ -556,8 +558,8 @@ function ConfirmPayoutsButton({
   const holding = useRef(false);
   const progress = useRef(0);
 
-  const requestRef = useRef<number | null>();
-  const previousTimeRef = useRef();
+  const requestRef = useRef<number | null>(undefined);
+  const previousTimeRef = useRef(undefined);
 
   // Rounded progress to nearest tenth
   const [roundedProgress, setRoundedProgress] = useState(0);

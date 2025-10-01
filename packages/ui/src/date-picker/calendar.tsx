@@ -219,7 +219,7 @@ function Calendar({
           );
         },
         Day: ({ date, displayMonth }: DayProps) => {
-          const buttonRef = useRef<HTMLButtonElement>(null);
+          const buttonRef = useRef<HTMLButtonElement>(null!);
           const { activeModifiers, buttonProps, divProps, isButton, isHidden } =
             useDayRender(date, displayMonth, buttonRef);
 

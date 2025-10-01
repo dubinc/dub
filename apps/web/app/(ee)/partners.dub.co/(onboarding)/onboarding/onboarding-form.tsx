@@ -1,5 +1,6 @@
 "use client";
 
+import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
@@ -10,10 +11,11 @@ import {
   FileUpload,
   ToggleGroup,
   useEnterSubmit,
+  useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils/src/functions";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -65,14 +67,20 @@ export function OnboardingForm({
     },
   });
 
-  const { name, image, profileType } = watch();
+  const { name, image, country, profileType } = watch();
+
+  const [partnerData] = useLocalStorage<PartnerData | null>(
+    `application-form-partner-data`,
+    null,
+  );
 
   useEffect(() => {
     if (session?.user) {
-      !name && setValue("name", session.user.name ?? "");
+      !name && setValue("name", partnerData?.name ?? session.user.name ?? "");
       !image && setValue("image", session.user.image ?? "");
+      !country && setValue("country", partnerData?.country ?? "");
     }
-  }, [session?.user, name, image]);
+  }, [session?.user, name, image, country, partnerData]);
 
   // refresh the session after the Partner account is created
   useEffect(() => {

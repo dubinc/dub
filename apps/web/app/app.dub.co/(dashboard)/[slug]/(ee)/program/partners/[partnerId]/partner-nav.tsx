@@ -12,7 +12,7 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { LayoutGroup, motion } from "framer-motion";
+import { LayoutGroup, motion } from "motion/react";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
 import { useEffect, useId, useMemo, useRef } from "react";

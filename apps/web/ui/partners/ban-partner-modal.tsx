@@ -76,10 +76,8 @@ function BanPartnerModal({
   );
 
   const isDisabled = useMemo(() => {
-    return (
-      !workspaceId || !partner.id || confirm !== `confirm ban ${partner.name}`
-    );
-  }, [workspaceId, partner.id, reason, confirm]);
+    return !workspaceId || !partner.id || confirm !== "confirm ban partner";
+  }, [workspaceId, partner.id, confirm]);
 
   return (
     <Modal
@@ -142,7 +140,7 @@ function BanPartnerModal({
         <div>
           <label htmlFor="name" className="flex items-center space-x-2">
             <h2 className="text-sm font-medium text-neutral-900">
-              To verify, type <strong>confirm ban {partner.name}</strong> below
+              To verify, type <strong>confirm ban partner</strong> below
             </h2>
           </label>
           <div className="relative mt-2 rounded-md shadow-sm">
@@ -151,7 +149,7 @@ function BanPartnerModal({
                 "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                 errors.confirm && "border-red-600",
               )}
-              placeholder={`confirm ban ${partner.name}`}
+              placeholder="confirm ban partner"
               type="text"
               autoComplete="off"
               {...register("confirm", {

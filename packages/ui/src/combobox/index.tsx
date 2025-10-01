@@ -57,6 +57,9 @@ export type ComboboxProps<
   createLabel?: (search: string) => ReactNode;
   onCreate?: (search: string) => Promise<boolean>;
   buttonProps?: ButtonProps;
+  labelProps?: { className?: string };
+  iconProps?: { className?: string };
+  popoverProps?: { contentClassName?: string };
   shortcutHint?: string;
   caret?: boolean | ReactNode;
   side?: PopoverProps["side"];
@@ -93,6 +96,9 @@ export function Combobox({
   createLabel,
   onCreate,
   buttonProps,
+  labelProps,
+  iconProps,
+  popoverProps,
   shortcutHint,
   caret,
   side,
@@ -204,6 +210,7 @@ export function Combobox({
       }}
       popoverContentClassName={cn(
         matchTriggerWidth && "sm:w-[var(--radix-popover-trigger-width)]",
+        popoverProps?.contentClassName,
       )}
       content={
         <AnimatedSizeContainer
@@ -324,7 +331,12 @@ export function Combobox({
           )}
           text={
             <>
-              <div className="min-w-0 grow truncate text-left">
+              <div
+                className={cn(
+                  "min-w-0 grow truncate text-left",
+                  labelProps?.className,
+                )}
+              >
                 {children ||
                   selected.map((option) => option.label).join(", ") ||
                   placeholder}
@@ -344,7 +356,7 @@ export function Combobox({
               isReactNode(Icon) ? (
                 Icon
               ) : (
-                <Icon className="size-4 shrink-0" />
+                <Icon className={cn("size-4 shrink-0", iconProps?.className)} />
               )
             ) : undefined
           }

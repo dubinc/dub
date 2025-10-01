@@ -1,5 +1,5 @@
 import { cn } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 const upPath = "M6.75 8.25L4 11L1.25 8.25";
 const downPath = "M6.75 3.75L4 1L1.25 3.75";

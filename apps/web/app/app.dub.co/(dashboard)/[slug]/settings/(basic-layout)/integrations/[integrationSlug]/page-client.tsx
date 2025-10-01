@@ -1,6 +1,7 @@
 "use client";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
+import { HubSpotSettings } from "@/lib/integrations/hubspot/ui/settings";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
 import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
 import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
@@ -56,6 +57,7 @@ const integrationSettings = {
   [ZAPIER_INTEGRATION_ID]: ZapierSettings,
   [SLACK_INTEGRATION_ID]: SlackSettings,
   [SEGMENT_INTEGRATION_ID]: SegmentSettings,
+  [HUBSPOT_INTEGRATION_ID]: HubSpotSettings,
 };
 
 export default function IntegrationPageClient({

@@ -1,10 +1,10 @@
 import { prisma } from "@dub/prisma";
 import { Program } from "@prisma/client";
 import { cache } from "react";
-import { DiscountProps, GroupProps, RewardProps } from "../types";
+import { DiscountProps, GroupWithFormDataProps, RewardProps } from "../types";
 
 type Result = Program & {
-  groups: GroupProps[];
+  groups: GroupWithFormDataProps[];
 };
 
 export const getProgram = cache(
@@ -69,6 +69,10 @@ export const getProgram = cache(
         name: group.name,
         slug: group.slug,
         color: group.color,
+        applicationFormData: group.applicationFormData,
+        applicationFormPublishedAt: group.applicationFormPublishedAt,
+        landerData: group.landerData,
+        landerPublishedAt: group.landerPublishedAt,
       },
       rewards: rewards as RewardProps[],
       discount: discount as DiscountProps | null,

@@ -4,11 +4,12 @@ import { redirect } from "next/navigation";
 
 export const runtime = "edge";
 
-export default async function OldStatsPage({
-  params,
-}: {
-  params: { domain: string; key: string };
-}) {
+export default async function OldStatsPage(
+  props: {
+    params: Promise<{ domain: string; key: string }>;
+  }
+) {
+  const params = await props.params;
   const link = await prismaEdge.link.findUnique({
     where: {
       domain_key: {

@@ -29,10 +29,13 @@ const analyticsTriggersResponse = z
 export const analyticsResponse = {
   count: z
     .object({
-      clicks: z.number().describe("The total number of clicks").default(0),
-      leads: z.number().describe("The total number of leads").default(0),
-      sales: z.number().describe("The total number of sales").default(0),
-      saleAmount: z
+      clicks: z.coerce
+        .number()
+        .describe("The total number of clicks")
+        .default(0),
+      leads: z.coerce.number().describe("The total number of leads").default(0),
+      sales: z.coerce.number().describe("The total number of sales").default(0),
+      saleAmount: z.coerce
         .number()
         .describe("The total amount of sales, in cents")
         .default(0),

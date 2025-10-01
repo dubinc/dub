@@ -14,7 +14,7 @@ import { actionClient } from "./safe-action";
 // Request a password reset email
 export const requestPasswordResetAction = actionClient
   .schema(requestPasswordResetSchema, {
-    handleValidationErrorsShape: (ve) =>
+    handleValidationErrorsShape: async (ve) =>
       flattenValidationErrors(ve).fieldErrors,
   })
   .use(throwIfAuthenticated)

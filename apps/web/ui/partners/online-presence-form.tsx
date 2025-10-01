@@ -178,7 +178,12 @@ export const OnlinePresenceForm = forwardRef<
               if (result?.data?.success) onSubmitSuccessful?.();
             })}
           >
-            <div className={cn("flex w-full flex-col gap-6 text-left")}>
+            <div
+              className={cn(
+                "flex w-full flex-col gap-6 text-left",
+                variant === "settings" && "gap-4",
+              )}
+            >
               <FormRow
                 label="Website"
                 property="website"
@@ -225,6 +230,7 @@ export const OnlinePresenceForm = forwardRef<
                     {...register("website")}
                   />
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -259,6 +265,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -289,6 +296,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -320,6 +328,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -351,6 +360,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -384,6 +394,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
             </div>
 
@@ -525,6 +536,7 @@ function FormRow({
   icon: Icon,
   onVerifyClick,
   verifyDisabledTooltip,
+  variant,
 }: {
   label: string;
   input: ReactNode;
@@ -535,6 +547,7 @@ function FormRow({
   icon: Icon;
   onVerifyClick: () => Promise<boolean>;
   verifyDisabledTooltip?: string;
+  variant: "onboarding" | "settings";
 }) {
   const { partner } = usePartnerProfile();
   const { control, setValue } = useFormContext<OnlinePresenceFormData>();
@@ -566,7 +579,12 @@ function FormRow({
         <div className="p-0.5">
           {isVerified ? (
             <div className="flex flex-col gap-1.5">
-              <span className="text-content-emphasis text-sm font-medium">
+              <span
+                className={cn(
+                  "text-content-emphasis text-sm font-medium",
+                  variant === "settings" && "sr-only",
+                )}
+              >
                 {label}
               </span>
               <OnlinePresenceCard
@@ -580,7 +598,12 @@ function FormRow({
             </div>
           ) : (
             <label className={cn("flex flex-col gap-1.5")}>
-              <span className="text-content-emphasis text-sm font-medium">
+              <span
+                className={cn(
+                  "text-content-emphasis text-sm font-medium",
+                  variant === "settings" && "sr-only",
+                )}
+              >
                 {label}
               </span>
               <div className={cn("relative")}>

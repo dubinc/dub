@@ -3,10 +3,11 @@ import {
   Check,
   PLAN_FEATURE_ICONS,
   SimpleTooltipContent,
+  STAGGER_CHILD_VARIANTS,
   Tooltip,
 } from "@dub/ui";
-import { cn, SELF_SERVE_PAID_PLANS, STAGGER_CHILD_VARIANTS } from "@dub/utils";
-import { motion } from "framer-motion";
+import { cn, SELF_SERVE_PAID_PLANS } from "@dub/utils";
+import { motion } from "motion/react";
 
 export function PlanFeatures({
   plan,

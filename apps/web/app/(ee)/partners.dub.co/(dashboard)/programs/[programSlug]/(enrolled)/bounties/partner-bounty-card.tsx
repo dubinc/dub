@@ -8,11 +8,8 @@ import { Calendar6, Gift } from "@dub/ui/icons";
 import { formatDate } from "@dub/utils";
 
 export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
-  const { submission } = bounty;
-
   const { claimBountyModal, setShowClaimBountyModal } = useClaimBountyModal({
     bounty,
-    submission,
   });
 
   return (
@@ -56,7 +53,6 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
         <div className="flex grow flex-col justify-end">
           {renderSubmissionStatus({
             bounty,
-            submission,
             setShowClaimBountyModal,
           })}
         </div>
@@ -86,13 +82,14 @@ export const PartnerBountyCardSkeleton = () => {
 
 function renderSubmissionStatus({
   bounty,
-  submission,
   setShowClaimBountyModal,
 }: {
   bounty: PartnerBountyProps;
-  submission: PartnerBountyProps["submission"];
   setShowClaimBountyModal: (show: boolean) => void;
 }) {
+  const { submission } = bounty;
+
+  // When there is no submission, we show the performance or claim bounty button
   if (!submission) {
     return bounty.type === "performance" ? (
       <BountyPerformance bounty={bounty} />
@@ -108,7 +105,9 @@ function renderSubmissionStatus({
 
   switch (submission.status) {
     case "draft":
-      return (
+      return bounty.type === "performance" ? (
+        <BountyPerformance bounty={bounty} />
+      ) : (
         <div
           className="group-hover:ring-border-subtle flex h-7 w-fit items-center rounded-lg bg-black px-2.5 text-sm text-white transition-all group-hover:ring-2"
           onClick={() => setShowClaimBountyModal(true)}

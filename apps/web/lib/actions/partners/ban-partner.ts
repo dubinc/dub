@@ -65,10 +65,7 @@ export const banPartnerAction = authActionClient
       }),
 
       prisma.commission.updateMany({
-        where: {
-          ...where,
-          status: "pending",
-        },
+        where,
         data: {
           status: "canceled",
         },
@@ -81,6 +78,18 @@ export const banPartnerAction = authActionClient
         },
         data: {
           status: "canceled",
+        },
+      }),
+
+      prisma.bountySubmission.updateMany({
+        where: {
+          ...where,
+          status: {
+            not: "approved",
+          },
+        },
+        data: {
+          status: "rejected",
         },
       }),
     ]);
@@ -99,7 +108,7 @@ export const banPartnerAction = authActionClient
 
         const supportEmail = program.supportEmail || "support@dub.co";
 
-        // Delete links from cache
+        // Expire links from cache
         const links = await prisma.link.findMany({
           where,
           select: {
@@ -108,7 +117,7 @@ export const banPartnerAction = authActionClient
           },
         });
 
-        await linkCache.deleteMany(links);
+        await linkCache.expireMany(links);
 
         await Promise.allSettled([
           sendEmail({

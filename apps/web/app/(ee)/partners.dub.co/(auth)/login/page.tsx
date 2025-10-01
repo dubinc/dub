@@ -7,11 +7,11 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { PartnerBanner } from "../partner-banner";
 
-export default async function LoginPage({
-  params: { programSlug },
-}: {
-  params: { programSlug?: string };
+export default async function LoginPage(props: {
+  params: Promise<{ programSlug?: string }>;
 }) {
+  const { programSlug } = await props.params;
+
   if (programSlug === "framer") {
     return (
       <AuthLayout showTerms="partners">

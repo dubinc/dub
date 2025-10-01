@@ -8,15 +8,15 @@ export const hubSpotAuthTokenSchema = z.object({
   scopes: z.array(z.string()),
   hub_id: z.number(),
   expires_in: z.number().describe("Expires in seconds."),
-  created_at: z.number(),
+  created_at: z.number().optional(),
 });
 
-export const hubSpotRefreshTokenSchema = z.object({
-  access_token: z.string(),
-  refresh_token: z.string(),
-  token_type: z.string(),
-  expires_in: z.number(),
-  id_token: z.string().nullable(),
+// Integration settings
+export const hubSpotSettingsSchema = z.object({
+  closedWonDealStageId: z
+    .string()
+    .nullish()
+    .describe("The ID of the deal stage that represents a closed won deal."),
 });
 
 // CRM
@@ -26,7 +26,9 @@ export const hubSpotContactSchema = z.object({
     email: z.string(),
     firstname: z.string().nullable(),
     lastname: z.string().nullable(),
-    dub_id: z.string().nullable(),
+    dub_id: z.string().nullish(),
+    dub_link: z.string().nullish(),
+    dub_partner_email: z.string().nullish(),
   }),
 });
 

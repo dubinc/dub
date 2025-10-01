@@ -71,7 +71,7 @@ export default function ProgramPartnerLayout({
         <PartnerStats partner={partner} error={Boolean(partnerError)} />
         <div className="@3xl/page:grid-cols-[minmax(440px,1fr)_minmax(0,360px)] mt-6 grid grid-cols-1 gap-x-6 gap-y-4">
           <div className="@3xl/page:order-2">
-            <PartnerInfoCards partner={partner} />
+            <PartnerInfoCards partner={partner} hideStatuses={["approved"]} />
           </div>
           <div className="@3xl/page:order-1">
             <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">

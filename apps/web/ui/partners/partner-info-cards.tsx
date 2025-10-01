@@ -5,17 +5,17 @@ import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyListProps,
-  EnrolledPartnerProps,
+  EnrolledPartnerExtendedProps,
   RewardProps,
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { EventDatum } from "@/ui/analytics/events/events-table";
 import {
   CalendarIcon,
   ChartActivity2,
   CopyButton,
   Heart,
   OfficeBuilding,
+  StatusBadge,
   Tooltip,
   Trophy,
 } from "@dub/ui";
@@ -29,34 +29,25 @@ import {
 import Link from "next/link";
 import useSWR from "swr";
 import { PartnerInfoGroup } from "./partner-info-group";
+import { PartnerStatusBadges } from "./partner-status-badges";
 import { ProgramRewardList } from "./program-reward-list";
 
 export function PartnerInfoCards({
   partner,
-
+  hideStatuses = [],
   selectedGroupId,
   setSelectedGroupId,
 }: {
-  partner?: EnrolledPartnerProps;
+  partner?: EnrolledPartnerExtendedProps;
+
+  /** Partner statuses to hide badges for */
+  hideStatuses?: EnrolledPartnerExtendedProps["status"][];
 
   // Only used for a controlled group selector that doesn't persist the selection itself
   selectedGroupId?: string | null;
   setSelectedGroupId?: (groupId: string) => void;
 }) {
-  const {
-    id: workspaceId,
-    slug: workspaceSlug,
-    defaultProgramId,
-  } = useWorkspace();
-
-  const { data: eventsData } = useSWR<EventDatum[]>(
-    workspaceId &&
-      defaultProgramId &&
-      partner &&
-      partner.status === "approved" &&
-      `/api/events?${new URLSearchParams({ workspaceId, programId: defaultProgramId, partnerId: partner.id, interval: "all", limit: "1" })}`,
-    fetcher,
-  );
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const { group } = useGroup(
     {
@@ -78,13 +69,18 @@ export function PartnerInfoCards({
     ...(partner?.status === "approved"
       ? [
           {
-            id: "event",
+            id: "lastLeadAt",
             icon: <ChartActivity2 className="size-3.5" />,
-            text: eventsData
-              ? eventsData.length
-                ? `Last event ${timeAgo(new Date(eventsData[0].timestamp), { withAgo: true })}`
-                : null
-              : undefined,
+            text: partner.lastLeadAt
+              ? `Last lead event ${timeAgo(new Date(partner.lastLeadAt), { withAgo: true })}`
+              : null,
+          },
+          {
+            id: "lastConversionAt",
+            icon: <ChartActivity2 className="size-3.5" />,
+            text: partner.lastConversionAt
+              ? `Last conversion event ${timeAgo(new Date(partner.lastConversionAt), { withAgo: true })}`
+              : null,
           },
         ]
       : []),
@@ -103,29 +99,42 @@ export function PartnerInfoCards({
     },
   ];
 
+  const badge =
+    partner && !hideStatuses.includes(partner.status)
+      ? PartnerStatusBadges[partner.status]
+      : null;
+
   return (
     <div className="flex flex-col gap-4">
       <div className="border-border-subtle flex flex-col rounded-xl border p-4">
-        <div className="relative w-fit">
-          {partner ? (
-            <img
-              src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
-              alt={partner.name}
-              className="size-20 rounded-full"
-            />
-          ) : (
-            <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
-          )}
-          {partner?.country && (
-            <Tooltip content={COUNTRIES[partner.country]}>
-              <div className="absolute right-0 top-0 overflow-hidden rounded-full bg-neutral-50 p-0.5 transition-transform duration-100 hover:scale-[1.15]">
-                <img
-                  alt=""
-                  src={`https://flag.vercel.app/m/${partner.country}.svg`}
-                  className="size-4 rounded-full"
-                />
-              </div>
-            </Tooltip>
+        <div className="flex justify-between gap-2">
+          <div className="relative w-fit">
+            {partner ? (
+              <img
+                src={partner.image || `${OG_AVATAR_URL}${partner.name}`}
+                alt={partner.name}
+                className="size-20 rounded-full"
+              />
+            ) : (
+              <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
+            )}
+            {partner?.country && (
+              <Tooltip content={COUNTRIES[partner.country]}>
+                <div className="absolute right-0 top-0 overflow-hidden rounded-full bg-neutral-50 p-0.5 transition-transform duration-100 hover:scale-[1.15]">
+                  <img
+                    alt=""
+                    src={`https://flag.vercel.app/m/${partner.country}.svg`}
+                    className="size-4 rounded-full"
+                  />
+                </div>
+              </Tooltip>
+            )}
+          </div>
+
+          {badge && (
+            <StatusBadge icon={null} variant={badge.variant}>
+              {badge.label}
+            </StatusBadge>
           )}
         </div>
         <div className="mt-4">

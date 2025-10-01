@@ -1,10 +1,13 @@
+import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerLinkStructure } from "@dub/prisma/client";
-import { validDomainRegex, validSlugRegex } from "@dub/utils";
+import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { programApplicationFormSchema } from "./program-application-form";
+import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
@@ -24,7 +27,9 @@ export const additionalPartnerLinkSchema = z.object({
   domain: z
     .string()
     .min(1, "domain is required")
-    .refine((v) => validDomainRegex.test(v), { message: "Invalid domain" }),
+    .refine((v) => isValidDomainFormat(v), {
+      message: "Please enter a valid domain (eg: acme.com).",
+    }),
   validationMode: z.enum([
     "domain", // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
     "exact", // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
@@ -45,6 +50,13 @@ export const GroupSchema = z.object({
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.nativeEnum(PartnerLinkStructure),
+});
+
+export const GroupWithFormDataSchema = GroupSchema.extend({
+  applicationFormData: programApplicationFormSchema.nullable(),
+  applicationFormPublishedAt: z.date().nullable(),
+  landerData: programLanderSchema.nullable(),
+  landerPublishedAt: z.date().nullable(),
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({
@@ -95,6 +107,8 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   maxPartnerLinks: z.number().optional(),
   utmTemplateId: z.string().optional(),
   linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
+  applicationFormData: programApplicationFormSchema.optional(),
+  landerData: programLanderSchema.optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({

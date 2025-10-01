@@ -13,11 +13,11 @@ model Domain {
   assetLinks              Json?
   deepviewData            Json?    @default("{}")
 
-  linkRetentionDays       Int? // default is null (links are retained forever)
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  linkRetentionDays Int? // default is null (links are retained forever)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  projectId               String?
+  projectId        String?
   project          Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   links            Link[]
   registeredDomain RegisteredDomain?
