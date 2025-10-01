@@ -167,7 +167,7 @@ function TrialOfferWithQRPreviewInner({
 
           <div className="relative flex w-full max-w-[300px] flex-col justify-center gap-2">
             {firstQr && (
-              <div className="bg-primary-100 absolute left-0 top-0 z-10 rounded-tl-lg p-1">
+              <div className="bg-primary-100 absolute left-0 top-0 z-10 rounded-tl-lg">
                 <QrCardType
                   className="bg-primary-100"
                   currentQrTypeInfo={currentQrTypeInfo}
