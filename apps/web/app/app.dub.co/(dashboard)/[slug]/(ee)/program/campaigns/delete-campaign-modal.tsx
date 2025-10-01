@@ -1,6 +1,6 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import { CampaignList } from "@/lib/types";
+import { Campaign } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
 
 interface DeleteCampaignModalProps {
-  campaign: CampaignList;
+  campaign: Pick<Campaign, "id" | "name" | "type">;
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
 }
@@ -80,7 +80,9 @@ const DeleteCampaignModal = ({
   );
 };
 
-export function useDeleteCampaignModal(campaign: CampaignList) {
+export function useDeleteCampaignModal(
+  campaign: Pick<Campaign, "id" | "name" | "type">,
+) {
   const [showDeleteCampaignModal, setShowDeleteCampaignModal] = useState(false);
 
   const DeleteCampaignModalCallback = useCallback(() => {

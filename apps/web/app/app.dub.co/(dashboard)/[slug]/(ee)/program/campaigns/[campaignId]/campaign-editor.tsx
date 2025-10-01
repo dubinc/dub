@@ -8,29 +8,16 @@ import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { CampaignTypeSelector } from "@/ui/partners/campaigns/campaign-type-selector";
-import { ThreeDots } from "@/ui/shared/icons";
-import { CampaignStatus } from "@dub/prisma/client";
-import {
-  Button,
-  ChevronRight,
-  MenuItem,
-  PaperPlane,
-  Popover,
-  RichTextArea,
-  StatusBadge,
-  Trash,
-} from "@dub/ui";
-import { Command } from "cmdk";
+import { ChevronRight, PaperPlane, RichTextArea, StatusBadge } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
 import { CampaignAutomationLogic } from "./campaign-automation-logic";
-import { useSendEmailPreviewModal } from "./send-email-preview-modal";
+import { CampaignEditorControls } from "./campaign-editor-controls";
 
 const inputClassName =
   "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
@@ -38,25 +25,12 @@ const inputClassName =
 const labelClassName = "text-sm font-medium text-content-subtle";
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
-  const router = useRouter();
-  const [openPopover, setOpenPopover] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const {
     makeRequest: saveDraftCampaign,
     isSubmitting: isSavingDraftCampaign,
   } = useApiMutation<Campaign>();
-
-  const { makeRequest: publishCampaign, isSubmitting: isCreatingCampaign } =
-    useApiMutation<Campaign>();
-
-  const {
-    SendEmailPreviewModal,
-    setShowSendEmailPreviewModal,
-    showSendEmailPreviewModal,
-  } = useSendEmailPreviewModal({
-    campaignId: campaign.id,
-  });
 
   const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
@@ -79,23 +53,10 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     formState: { isDirty, dirtyFields },
   } = form;
 
-  const [name, subject, groupIds, body, status, triggerCondition] = watch([
-    "name",
-    "subject",
-    "groupIds",
-    "body",
-    "status",
-    "triggerCondition",
-  ]);
-
   // Autosave draft campaign changes
   const handleSaveDraftCampaign = useCallback(
     useDebouncedCallback(async () => {
-      if (
-        campaign.status !== "draft" ||
-        isSavingDraftCampaign ||
-        isCreatingCampaign
-      ) {
+      if (campaign.status !== "draft" || isSavingDraftCampaign) {
         return;
       }
 
@@ -130,28 +91,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     [getValues, dirtyFields, saveDraftCampaign, campaign.id, reset],
   );
 
-  // Publish the campaign
-  const handlePublishCampaign = useCallback(async () => {
-    const allFormData = getValues();
-
-    await publishCampaign(`/api/campaigns/${campaign.id}`, {
-      method: "PATCH",
-      body: {
-        ...allFormData,
-        status: CampaignStatus.active,
-        triggerCondition: {
-          attribute: "totalLeads",
-          operator: "gte",
-          value: 1,
-        },
-      },
-      onSuccess: () => {
-        toast.success("Campaign published successfully!");
-        router.push(`/${workspaceSlug}/program/campaigns`);
-      },
-    });
-  }, [getValues, publishCampaign, campaign.id, router, workspaceSlug]);
-
   // Watch for form changes and trigger autosave
   useEffect(() => {
     const { unsubscribe } = watch(() => {
@@ -162,24 +101,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
     return () => unsubscribe();
   }, [watch, isDirty, saveDraftCampaign]);
-
-  const validationError = useMemo(() => {
-    if (!name) {
-      return "Please enter a campaign name.";
-    }
-
-    if (!subject) {
-      return "Please enter a subject.";
-    }
-
-    if (groupIds === undefined) {
-      return "Please select the groups you want to send this campaign to.";
-    }
-
-    if (!body?.replace("<p></p>", "")) {
-      return "Please write the message you want to send to the partners.";
-    }
-  }, [name, subject, groupIds, body, status, triggerCondition]);
 
   const { executeAsync: executeImageUpload } = useAction(
     uploadEmailImageAction,
@@ -210,60 +131,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             </div>
           </div>
         }
-        controls={
-          <div className="flex items-center gap-2">
-            <Button
-              disabled={!!validationError}
-              disabledTooltip={validationError}
-              onClick={handlePublishCampaign}
-              loading={isCreatingCampaign}
-              text="Create"
-              className="h-9"
-            />
-            <Popover
-              openPopover={openPopover}
-              setOpenPopover={setOpenPopover}
-              align="end"
-              content={
-                <Command tabIndex={0} loop className="focus:outline-none">
-                  <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
-                    <MenuItem
-                      as={Command.Item}
-                      icon={PaperPlane}
-                      disabled={!!validationError || isCreatingCampaign}
-                      disabledTooltip={validationError}
-                      onSelect={() => {
-                        setOpenPopover(false);
-                        setShowSendEmailPreviewModal(true);
-                      }}
-                    >
-                      Send preview
-                    </MenuItem>
-
-                    <MenuItem
-                      as={Command.Item}
-                      icon={Trash}
-                      disabled={isCreatingCampaign}
-                      variant="danger"
-                      onSelect={() => {
-                        //
-                      }}
-                    >
-                      Delete
-                    </MenuItem>
-                  </Command.List>
-                </Command>
-              }
-            >
-              <Button
-                onClick={() => setOpenPopover(!openPopover)}
-                variant="secondary"
-                className="h-8 w-auto px-1.5"
-                icon={<ThreeDots className="size-5 text-neutral-500" />}
-              />
-            </Popover>
-          </div>
-        }
+        controls={<CampaignEditorControls campaign={campaign} />}
       >
         <PageWidthWrapper className="mb-8 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
@@ -372,8 +240,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
           </div>
         </PageWidthWrapper>
       </PageContent>
-
-      <SendEmailPreviewModal />
     </FormProvider>
   );
 }

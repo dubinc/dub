@@ -34,7 +34,8 @@ import { useDeleteCampaignModal } from "./delete-campaign-modal";
 import { useCampaignsFilters } from "./use-campaigns-filters";
 
 export function CampaignsTable() {
-  const { id: workspaceId } = useWorkspace();
+  const router = useRouter();
+  const { id: workspaceId, slug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
@@ -149,6 +150,19 @@ export function CampaignsTable() {
         cell: ({ row }) => <RowMenuButton row={row} />,
       },
     ],
+    onRowClick: (row, e) => {
+      const url = `/${slug}/program/campaigns/${row.original.id}`;
+
+      if (e.metaKey || e.ctrlKey) {
+        window.open(url, "_blank");
+      } else {
+        router.push(url);
+      }
+    },
+    onRowAuxClick: (row) => {
+      const url = `/${slug}/program/campaigns/${row.original.id}`;
+      window.open(url, "_blank");
+    },
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: ["updatedAt", "status", "delivered", "bounced", "opened"],
