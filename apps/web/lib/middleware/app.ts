@@ -47,7 +47,6 @@ export default async function AppMiddleware(
       response = NextResponse.redirect(new URL("/?login=true", req.url));
     }
 
-
     // Set country cookie
     if (country) {
       response.cookies.set("country", country, {

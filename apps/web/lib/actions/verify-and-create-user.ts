@@ -4,7 +4,9 @@ import { hashPassword } from "@/lib/auth/password.ts";
 import { prisma } from "@dub/prisma";
 import { generateRandomString } from "@dub/utils/src";
 import slugify from "@sindresorhus/slugify";
+import { ECookieArg } from "core/interfaces/cookie.interface";
 import { nanoid } from "nanoid";
+import { cookies } from "next/headers";
 
 export interface CreateWorkspaceParams {
   password?: string;
@@ -79,6 +81,8 @@ export async function verifyAndCreateUser({
       throw error;
     }
 
+    const cookieStore = cookies();
+    const sourceCookie = cookieStore.get(ECookieArg.SOURCE)?.value;
     let createdUser;
     try {
       createdUser = await tx.user.create({
@@ -90,6 +94,7 @@ export async function verifyAndCreateUser({
           ...(name && { name }),
           ...(image && { image }), // Add image to user creation
           ...(password && { passwordHash: await hashPassword(password) }),
+          ...(sourceCookie && { source: sourceCookie }),
         },
         select: {
           id: true,

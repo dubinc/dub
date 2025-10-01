@@ -37,6 +37,7 @@ interface IQRPreviewModalProps {
   setShowQRPreviewModal: Dispatch<SetStateAction<boolean>>;
   firstQr: QrStorageData | null;
   user: ICustomerBody | null;
+  isPaidTraffic: boolean;
 }
 
 const FEATURES = [
@@ -56,6 +57,7 @@ function TrialOfferWithQRPreview({
   setShowQRPreviewModal,
   user,
   firstQr,
+  isPaidTraffic,
 }: IQRPreviewModalProps) {
   const { isMobile } = useMediaQuery();
 
@@ -67,6 +69,7 @@ function TrialOfferWithQRPreview({
       setShowQRPreviewModal={setShowQRPreviewModal}
       user={user}
       firstQr={firstQr}
+      isPaidTraffic={isPaidTraffic}
     />
   );
 
@@ -115,10 +118,9 @@ function TrialOfferWithQRPreviewInner({
   setShowQRPreviewModal,
   user,
   firstQr,
+  isPaidTraffic,
 }: Omit<IQRPreviewModalProps, "showTrialOfferModal">) {
   const { isMobile } = useMediaQuery();
-
-  const [isPaidTraffic, setIsPaidTraffic] = useState(false);
 
   const [clientToken, setClientToken] = useState<string | null>(null);
   const currentQrTypeInfo = QR_TYPES.find(
@@ -150,18 +152,6 @@ function TrialOfferWithQRPreviewInner({
       paymentBlock.scrollIntoView({ behavior: "smooth" });
     }
   };
-
-  useEffect(() => {
-    const utmList = JSON.parse(localStorage.getItem("utmValues") || "{}");
-
-    if (
-      utmList &&
-      utmList.utm_source &&
-      !utmList.utm_source.includes("email")
-    ) {
-      setIsPaidTraffic(true);
-    }
-  }, []);
 
   return (
     <Theme>
@@ -276,8 +266,9 @@ function TrialOfferWithQRPreviewInner({
 export function useTrialOfferWithQRPreviewModal(data: {
   firstQr: QrStorageData | null;
   user: ICustomerBody | null;
+  isPaidTraffic: boolean;
 }) {
-  const { firstQr, user } = data;
+  const { firstQr, user, isPaidTraffic } = data;
   const [showTrialOfferModal, setShowTrialOfferModal] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -307,12 +298,13 @@ export function useTrialOfferWithQRPreviewModal(data: {
           showTrialOfferModal={showTrialOfferModal}
           setShowTrialOfferModal={setShowTrialOfferModal}
           setShowQRPreviewModal={setShowQRPreviewModal}
+          isPaidTraffic={isPaidTraffic}
         />
 
         <QRPreviewModal />
       </>
     );
-  }, [showTrialOfferModal, QRPreviewModal]);
+  }, [showTrialOfferModal, QRPreviewModal, isPaidTraffic]);
 
   return useMemo(
     () => ({

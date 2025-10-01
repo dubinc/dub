@@ -6,6 +6,17 @@ import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 export const userSessionIdInit = (request: NextRequest, forceId?: string) => {
   let needsUpdate = false;
   let sessionId = "";
+  let needsSourceCookie = false;
+
+  // Check if URL contains the specific query parameter
+  const idParam = request.nextUrl.searchParams.get("id");
+  if (idParam === "7kQ9mL2nP5xR8wY3vZ1t") {
+    const existingSourceCookie = request.cookies.get(ECookieArg.SOURCE)?.value;
+    if (existingSourceCookie !== "paid") {
+      needsSourceCookie = true;
+      request.cookies.set(ECookieArg.SOURCE, "paid");
+    }
+  }
 
   // const cookieSettings = {
   //   httpOnly: true,
@@ -41,5 +52,8 @@ export const userSessionIdInit = (request: NextRequest, forceId?: string) => {
     needsUpdate,
     sessionId,
     cookieName: ECookieArg.SESSION_ID,
+    needsSourceCookie,
+    sourceCookieName: ECookieArg.SOURCE,
+    sourceCookieValue: "paid",
   };
 };

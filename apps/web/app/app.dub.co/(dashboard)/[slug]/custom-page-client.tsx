@@ -46,6 +46,7 @@ export default function WorkspaceQRsClient({
           initialQrs={initialQrs}
           featuresAccess={featuresAccess}
           user={cookieUser}
+          isPaidTraffic={cookieUser?.isPaidUser || false}
         />
       </QrCodesDisplayProvider>
     </UserProvider>
@@ -154,10 +155,12 @@ function TrialOfferWithQRPreviewWrapper({
   initialQrs,
   featuresAccess,
   user,
+  isPaidTraffic,
 }: {
   initialQrs: QrStorageData[];
   featuresAccess: FeaturesAccess;
   user: ICustomerBody | null;
+  isPaidTraffic: boolean;
 }) {
   const firstQr = initialQrs?.[0] || null;
   const { isSubscribed } = featuresAccess;
@@ -166,6 +169,7 @@ function TrialOfferWithQRPreviewWrapper({
     useTrialOfferWithQRPreviewModal({
       user,
       firstQr,
+      isPaidTraffic,
     });
 
   useEffect(() => {
