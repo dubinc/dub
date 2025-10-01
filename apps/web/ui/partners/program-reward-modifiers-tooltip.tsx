@@ -45,7 +45,7 @@ export function ProgramRewardModifiersTooltip({
   );
 }
 
-function ProgramRewardModifiersTooltipContent({
+export function ProgramRewardModifiersTooltipContent({
   reward,
 }: ProgramRewardModifiersTooltipProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
