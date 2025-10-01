@@ -1,3 +1,4 @@
+import { formatApplicationFormData } from "@/lib/partners/format-application-form-data";
 import { sendBatchEmail } from "@dub/email";
 import { ResendBulkEmailOptions } from "@dub/email/resend/types";
 import PartnerApplicationReceived from "@dub/email/templates/partner-application-received";
@@ -54,6 +55,7 @@ export async function notifyPartnerApplication({
           email: partner.email!,
           image: partner.image,
           country: partner.country,
+          applicationFormData: formatApplicationFormData(application),
         },
         program: {
           name: program.name,

@@ -23,6 +23,18 @@ export default function PartnerApplicationReceived({
     image:
       "https://www.gravatar.com/avatar/2c7d99fe281ecd3bcd65ab915bac6dd5?s=250",
     country: "US",
+    applicationFormData: [
+      {
+        title: "How do you plan to promote Acme?",
+        value:
+          "This is a text field the applicant can fill out with details about the question asked above.",
+      },
+      {
+        title: "Any additional questions or comments?",
+        value:
+          "This is a text field the applicant can fill out with details about the question asked above.",
+      },
+    ],
   },
   program = {
     name: "Acme",
@@ -39,8 +51,7 @@ export default function PartnerApplicationReceived({
     email: string;
     image: string | null;
     country: string | null;
-    proposal: string | null;
-    comments: string | null;
+    applicationFormData: { title: string; value: string }[];
   };
   program: {
     name: string;
@@ -129,6 +140,16 @@ export default function PartnerApplicationReceived({
                 </Container>
 
                 <Section className="p-4">
+                  {partner.applicationFormData.map((field) => (
+                    <Section className="mb-6">
+                      <Text className="m-0 mb-2 p-0 text-base font-medium text-neutral-900">
+                        {field.title}
+                      </Text>
+                      <Text className="m-0 p-0 leading-6 text-neutral-600">
+                        {field.value}
+                      </Text>
+                    </Section>
+                  ))}
                   <Section className="mt-8 text-center">
                     <Link
                       href={applicationUrl}

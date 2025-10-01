@@ -4,7 +4,7 @@ import { fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
 import useSWRImmutable from "swr/immutable";
-import { formatApplicationFormData } from "./applications/utils/format-application-form-data";
+import { formatApplicationFormData } from "../../lib/partners/format-application-form-data";
 
 export function PartnerApplicationDetails({
   applicationId,

@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { isStored, storage } from "@/lib/storage";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
@@ -88,16 +89,17 @@ export const updateGroupBrandingAction = authActionClient
     });
 
     waitUntil(
-      Promise.allSettled([
-        // Delete old logo/wordmark if they were updated
-        ...(logoUpdated && program.logo
-          ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
-          : []),
-        ...(wordmarkUpdated && program.wordmark
-          ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
-          : []),
+      (async () => {
+        const res = await Promise.allSettled([
+          // Delete old logo/wordmark if they were updated
+          ...(logoUpdated && program.logo
+            ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
+            : []),
+          ...(wordmarkUpdated && program.wordmark
+            ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
+            : []),
 
-        /*
+          /*
          Revalidate public pages if the following fields were updated:
          - name
          - logo
@@ -105,32 +107,72 @@ export const updateGroupBrandingAction = authActionClient
          - brand color
          - lander data
         */
-        ...(logoUpdated ||
-        wordmarkUpdated ||
-        brandColorUpdated ||
-        applicationFormDataInput
-          ? [
-              revalidatePath(`/partners.dub.co/${program.slug}`),
-              revalidatePath(`/partners.dub.co/${program.slug}/apply`),
-              revalidatePath(`/partners.dub.co/${program.slug}/apply/success`),
-            ]
-          : []),
+          ...(logoUpdated ||
+          wordmarkUpdated ||
+          brandColorUpdated ||
+          applicationFormDataInput
+            ? [
+                revalidatePath(`/partners.dub.co/${program.slug}`),
+                revalidatePath(`/partners.dub.co/${program.slug}/apply`),
+                revalidatePath(
+                  `/partners.dub.co/${program.slug}/apply/success`,
+                ),
+              ]
+            : []),
 
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "program.updated",
-          description: `Program ${program.name} updated`,
-          actor: user,
-          targets: [
-            {
-              type: "program",
-              id: program.id,
-              metadata: updatedProgram,
-            },
-          ],
-        }),
-      ]),
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId: program.id,
+            action: "program.updated",
+            description: `Program ${program.name} updated`,
+            actor: user,
+            targets: [
+              {
+                type: "program",
+                id: program.id,
+                metadata: updatedProgram,
+              },
+            ],
+          }),
+        ]);
+
+        console.log(
+          `Completed waitUntil steps for group branding update: ${JSON.stringify(res, null, 2)}`,
+        );
+
+        if (updatedGroup.slug === DEFAULT_PARTNER_GROUP.slug) {
+          console.log(
+            `Default ${landerDataInput ? "lander" : "application form"} updated, updating other groups (that don't have a custom data)...`,
+          );
+          if (landerDataInput) {
+            const updatedGroups = await prisma.partnerGroup.updateMany({
+              where: {
+                programId,
+                landerPublishedAt: null,
+              },
+              data: {
+                landerData: landerDataInput,
+              },
+            });
+            console.log(
+              `Updated data for ${updatedGroups.count} other groups based on default group lander data`,
+            );
+          } else if (applicationFormDataInput) {
+            const updatedGroups = await prisma.partnerGroup.updateMany({
+              where: {
+                programId,
+                applicationFormPublishedAt: null,
+              },
+              data: {
+                applicationFormData: applicationFormDataInput,
+              },
+            });
+            console.log(
+              `Updated data for ${updatedGroups.count} other groups based on default group application form`,
+            );
+          }
+        }
+      })(),
     );
 
     return {
