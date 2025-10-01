@@ -102,6 +102,7 @@ export async function verifyAndCreateUser({
           name: true,
           emailVerified: true,
           defaultWorkspace: true,
+          source: true,
         },
       });
     } catch (error: any) {
