@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 const schema = z.object({
   programId: z.string(),
   groupId: z.string(),
-  partnerIds: z.array(z.string()),
+  partnerIds: z.array(z.string()).min(1),
   userId: z.string(),
   isGroupDeleted: z.boolean().optional(),
 });
@@ -42,10 +42,6 @@ export async function POST(req: Request) {
 
     const { programId, groupId, partnerIds, userId, isGroupDeleted } =
       schema.parse(JSON.parse(rawBody));
-
-    if (partnerIds.length === 0) {
-      return logAndRespond("No partner IDs provided.");
-    }
 
     const [program, partnerGroup, programEnrollments] = await Promise.all([
       prisma.program.findUniqueOrThrow({
