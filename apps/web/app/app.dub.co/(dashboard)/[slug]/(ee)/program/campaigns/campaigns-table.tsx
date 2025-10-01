@@ -1,5 +1,7 @@
 "use client";
 
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CampaignList } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -17,11 +19,12 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, Duplicate, Trash } from "@dub/ui/icons";
+import { Dots, Duplicate, LoadingCircle, Trash } from "@dub/ui/icons";
 import { cn, fetcher, formatDateTime, formatDateTimeSmart } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { Mail, Pause, Play } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
 import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
@@ -225,10 +228,31 @@ export function CampaignsTable() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<CampaignList> }) {
+function RowMenuButton({
+  row: { original: campaign },
+}: {
+  row: Row<CampaignList>;
+}) {
+  const router = useRouter();
+  const { slug } = useWorkspace();
   const [isOpen, setIsOpen] = useState(false);
 
-  const isPaused = row.original.status === "paused";
+  const {
+    makeRequest: duplicateCampaign,
+    isSubmitting: isDuplicatingCampaign,
+  } = useApiMutation<{ id: string }>();
+
+  const handleCampaignDuplication = async () => {
+    await duplicateCampaign(`/api/campaigns/${campaign.id}/duplicate`, {
+      method: "POST",
+      onSuccess: (campaign) => {
+        router.push(`/${slug}/program/campaigns/${campaign.id}`);
+        mutatePrefix("/api/campaigns");
+      },
+    });
+  };
+
+  const isPaused = campaign.status === "paused";
 
   return (
     <Popover
@@ -238,12 +262,10 @@ function RowMenuButton({ row }: { row: Row<CampaignList> }) {
         <Command tabIndex={0} loop className="focus:outline-none">
           <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
             <MenuItem
-              icon={Duplicate}
+              icon={isDuplicatingCampaign ? LoadingCircle : Duplicate}
               variant="default"
-              onClick={() => {
-                // TODO: Implement duplicate functionality
-                console.log("Duplicate campaign:", row.original.id);
-              }}
+              onClick={handleCampaignDuplication}
+              disabled={isDuplicatingCampaign}
             >
               Duplicate
             </MenuItem>
@@ -255,7 +277,7 @@ function RowMenuButton({ row }: { row: Row<CampaignList> }) {
                 // TODO: Implement pause/resume functionality
                 console.log(
                   `${isPaused ? "Resume" : "Pause"} campaign:`,
-                  row.original.id,
+                  campaign.id,
                 );
               }}
             >
@@ -267,7 +289,7 @@ function RowMenuButton({ row }: { row: Row<CampaignList> }) {
               variant="danger"
               onClick={() => {
                 // TODO: Implement delete functionality
-                console.log("Delete campaign:", row.original.id);
+                console.log("Delete campaign:", campaign.id);
               }}
             >
               Delete
