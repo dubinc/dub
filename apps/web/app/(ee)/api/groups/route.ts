@@ -8,6 +8,7 @@ import { withWorkspace } from "@/lib/auth";
 import {
   additionalPartnerLinkSchema,
   createGroupSchema,
+  DEFAULT_PARTNER_GROUP,
   getGroupsQuerySchema,
   GroupSchema,
   GroupSchemaExtended,
@@ -56,44 +57,41 @@ export const POST = withWorkspace(
       where: {
         id: programId,
       },
-      select: {
-        defaultGroupId: true,
+      include: {
+        groups: {
+          where: {
+            slug: DEFAULT_PARTNER_GROUP.slug,
+          },
+          include: {
+            partnerGroupDefaultLinks: true,
+          },
+        },
       },
     });
 
-    const [existingGroup, defaultGroup] = await Promise.all([
-      prisma.partnerGroup.findUnique({
-        where: {
-          programId_slug: {
-            programId,
-            slug,
-          },
-        },
-      }),
-
-      prisma.partnerGroup.findUniqueOrThrow({
-        where: {
-          id: program.defaultGroupId,
-        },
-        include: {
-          partnerGroupDefaultLinks: true,
-        },
-      }),
-    ]);
-
-    if (existingGroup) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Group with slug ${slug} already exists in your program.`,
-      });
-    }
-
     const group = await prisma.$transaction(async (tx) => {
-      const groupsCount = await tx.partnerGroup.count({
-        where: {
-          programId,
-        },
-      });
+      const [existingGroup, groupsCount] = await Promise.all([
+        tx.partnerGroup.findUnique({
+          where: {
+            programId_slug: {
+              programId,
+              slug,
+            },
+          },
+        }),
+        tx.partnerGroup.count({
+          where: {
+            programId,
+          },
+        }),
+      ]);
+
+      if (existingGroup) {
+        throw new DubApiError({
+          code: "conflict",
+          message: `Group with slug ${slug} already exists in your program.`,
+        });
+      }
 
       if (groupsCount >= workspace.groupsLimit) {
         throw new DubApiError({
@@ -106,13 +104,16 @@ export const POST = withWorkspace(
         });
       }
 
-      // Copy over the default group's link settings when creating a new group
+      // copy over the default group's link settings + lander/application data
+      // when creating a new group
       const {
         additionalLinks,
         maxPartnerLinks,
         linkStructure,
         partnerGroupDefaultLinks,
-      } = defaultGroup;
+        applicationFormData,
+        landerData,
+      } = program.groups[0];
 
       // Deduplicate additionalLinks by domain, keeping the first occurrence
       const deduplicatedAdditionalLinks =
@@ -137,6 +138,8 @@ export const POST = withWorkspace(
           }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
+          ...(applicationFormData && { applicationFormData }),
+          ...(landerData && { landerData }),
           partnerGroupDefaultLinks: {
             createMany: {
               data: partnerGroupDefaultLinks.map((link) => ({

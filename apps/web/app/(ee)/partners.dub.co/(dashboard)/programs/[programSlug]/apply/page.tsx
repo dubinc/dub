@@ -9,23 +9,19 @@ import { redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ProgramSidebar } from "./program-sidebar";
 
-export default async function ProgramDetailsPage(
-  props: {
-    params: Promise<{ programSlug: string }>;
-  }
-) {
+export default async function ProgramDetailsPage(props: {
+  params: Promise<{ programSlug: string }>;
+}) {
   const params = await props.params;
 
-  const {
-    programSlug
-  } = params;
+  const { programSlug } = params;
 
   const program = await getProgram({
     slug: programSlug,
     groupSlug: DEFAULT_PARTNER_GROUP.slug,
   });
 
-  if (!program) {
+  if (!program || !program.group) {
     redirect("/programs");
   }
 
@@ -62,10 +58,10 @@ export default async function ProgramDetailsPage(
               </div>
 
               {/* Content blocks */}
-              {program.landerData && (
+              {program.group.landerData && (
                 <div className="mt-10 grid grid-cols-1 gap-10">
                   {programLanderSchema
-                    .parse(program.landerData)
+                    .parse(program.group.landerData)
                     .blocks.map((block, idx) => {
                       const Component = BLOCK_COMPONENTS[block.type];
                       return Component ? (

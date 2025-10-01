@@ -16,12 +16,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (PARTNERS_HOSTNAMES.has(domain)) {
     const programs = await prisma.program.findMany({
       where: {
-        landerData: {
-          not: Prisma.AnyNull,
+        groups: {
+          some: {
+            slug: "default",
+            landerData: {
+              not: Prisma.AnyNull,
+            },
+            landerPublishedAt: {
+              not: null,
+            },
+          },
         },
-        landerPublishedAt: {
-          not: null,
-        },
+      },
+      orderBy: {
+        slug: "asc",
       },
     });
 

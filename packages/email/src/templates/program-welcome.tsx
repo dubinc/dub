@@ -102,16 +102,16 @@ export default function ProgramWelcome({
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
               1.{" "}
               <span className="font-medium">
-                Create your program application page
+                Create your program application form
               </span>
               : Use our{" "}
               <Link
-                href={`${workspaceUrlPrefix}/program/branding`}
+                href={`${workspaceUrlPrefix}/program/groups/default/branding`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 interactive builder
               </Link>{" "}
-              to create a beautiful, branded program application page to get
+              to create a beautiful, branded program application form to get
               more partners applying to join your program.
             </Text>
             <Text className="mb-4 text-sm leading-5 text-neutral-800">

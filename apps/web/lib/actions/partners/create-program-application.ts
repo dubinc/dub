@@ -5,7 +5,12 @@ import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-appl
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import {
+  ProgramApplicationFormData,
+  ProgramApplicationFormDataWithValues,
+} from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import {
@@ -21,9 +26,79 @@ import { cookies } from "next/headers";
 import z from "../../zod";
 import { actionClient } from "../safe-action";
 
+export type PartnerData = { name: string; country: string };
+
 interface Response {
   programApplicationId: string;
   programEnrollmentId?: string;
+  partnerData: PartnerData;
+}
+
+type ProgramApplicationData = z.infer<typeof createProgramApplicationSchema>;
+
+type WebsiteAndSocialsData = z.infer<
+  typeof programApplicationFormWebsiteAndSocialsFieldWithValueSchema
+>;
+
+const sanitizeFormData = (
+  formData: ProgramApplicationFormDataWithValues,
+  group: PartnerGroup,
+): ProgramApplicationFormDataWithValues | null => {
+  if (!group.applicationFormData) {
+    return null;
+  }
+
+  const applicationFormData =
+    group.applicationFormData as ProgramApplicationFormData;
+  const validFieldIds = new Set(
+    applicationFormData.fields.map((field) => field.id),
+  );
+  const fields = (formData.fields || []).filter((field) =>
+    validFieldIds.has(field.id),
+  );
+
+  return {
+    fields,
+  };
+};
+
+function sanitizeData(rawData: ProgramApplicationData, group: PartnerGroup) {
+  const { formData: rawFormData, ...data } = rawData;
+
+  const formData = rawFormData ? sanitizeFormData(rawFormData, group) : null;
+
+  if (!formData) {
+    return data;
+  }
+
+  const websitesAndSocials = formData.fields.find(
+    (field) => field.type === "website-and-socials",
+  ) as WebsiteAndSocialsData;
+
+  if (!websitesAndSocials) {
+    return {
+      ...data,
+      formData,
+    };
+  }
+
+  return {
+    ...data,
+    formData,
+    website: websitesAndSocials.data.find((field) => field.type === "website")
+      ?.value,
+    youtube: websitesAndSocials.data.find((field) => field.type === "youtube")
+      ?.value,
+    twitter: websitesAndSocials.data.find((field) => field.type === "twitter")
+      ?.value,
+    linkedin: websitesAndSocials.data.find((field) => field.type === "linkedin")
+      ?.value,
+    instagram: websitesAndSocials.data.find(
+      (field) => field.type === "instagram",
+    )?.value,
+    tiktok: websitesAndSocials.data.find((field) => field.type === "tiktok")
+      ?.value,
+  };
 }
 
 // Create a program application (or enrollment if a partner is already logged in)
@@ -59,6 +134,12 @@ export const createProgramApplicationAction = actionClient
       throw new Error("This program has no groups.");
     }
 
+    const group = program.groups[0];
+
+    if (!group) {
+      throw new Error("Invalid group.");
+    }
+
     const session = await getSession();
 
     // Get currently logged in partner
@@ -78,14 +159,14 @@ export const createProgramApplicationAction = actionClient
         program,
         data: parsedInput,
         partner: existingPartner,
-        group: program.groups[0],
+        group,
       });
     }
 
     const application = await createApplication({
       program,
       data: parsedInput,
-      group: program.groups[0],
+      group,
     });
 
     await qstash.publishJSON({
@@ -121,7 +202,7 @@ async function createApplicationAndEnrollment({
   const [application, _] = await Promise.all([
     prisma.programApplication.create({
       data: {
-        ...data,
+        ...sanitizeData(data, group),
         id: applicationId,
         programId: program.id,
         groupId: group.id,
@@ -171,6 +252,10 @@ async function createApplicationAndEnrollment({
   return {
     programApplicationId: applicationId,
     programEnrollmentId: enrollmentId,
+    partnerData: {
+      name: data.name,
+      country: data.country,
+    },
   };
 }
 
@@ -185,7 +270,7 @@ async function createApplication({
 }) {
   const application = await prisma.programApplication.create({
     data: {
-      ...data,
+      ...sanitizeData(data, group),
       id: createId({ prefix: "pga_" }),
       programId: program.id,
       groupId: group.id,
@@ -209,5 +294,9 @@ async function createApplication({
 
   return {
     programApplicationId: application.id,
+    partnerData: {
+      name: data.name,
+      country: data.country,
+    },
   };
 }

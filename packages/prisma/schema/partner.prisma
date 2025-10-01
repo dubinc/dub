@@ -67,7 +67,7 @@ model Partner {
   commissions       Commission[]
   bountySubmissions BountySubmission[]
   messages          Message[]
-  sentMessages      Message[] @relation("SenderPartner")
+  sentMessages      Message[]           @relation("SenderPartner")
   comments          PartnerComment[]
   discoveredPartners DiscoveredPartner[]
 
@@ -136,7 +136,7 @@ enum IndustryInterest {
 }
 
 model PartnerIndustryInterest {
-  partnerId String
+  partnerId        String
   industryInterest IndustryInterest
 
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
@@ -154,7 +154,7 @@ enum PreferredEarningStructure {
 }
 
 model PartnerPreferredEarningStructure {
-  partnerId String
+  partnerId                 String
   preferredEarningStructure PreferredEarningStructure
 
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
@@ -174,7 +174,7 @@ enum SalesChannel {
 }
 
 model PartnerSalesChannel {
-  partnerId String
+  partnerId    String
   salesChannel SalesChannel
 
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
