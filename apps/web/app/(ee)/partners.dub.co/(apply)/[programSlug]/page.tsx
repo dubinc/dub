@@ -37,9 +37,7 @@ export default async function ApplyPage(props: {
     }
   }
 
-  const landerData = programLanderSchema.parse(
-    program.group.landerData || program.landerData || {},
-  );
+  const landerData = programLanderSchema.parse(program.group.landerData || {});
 
   return (
     <div

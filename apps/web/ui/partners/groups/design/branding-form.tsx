@@ -24,7 +24,7 @@ import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
 import { KeyedMutator } from "swr";
@@ -214,16 +214,22 @@ function BrandingFormInner({
 
   const { isGeneratingLander } = useBrandingContext();
 
-  // Disable publish button when:
-  // - the lander is being generated with AI
-  // OR:
-  //   - there are no changes
-  //   - the program lander is already published
-  const disablePublishButton =
-    isGeneratingLander || (!isDirty && group.applicationFormPublishedAt)
-      ? true
-      : false;
+  const disablePublishButton = useMemo(() => {
+    // the lander is being generated with AI, disable publishing
+    if (isGeneratingLander) return true;
 
+    // if the lander / application form is not published yet, allow publishing
+    if (!group.landerPublishedAt || !group.applicationFormPublishedAt)
+      return false;
+
+    // if there are no changes, disable publishing
+    return !isDirty;
+  }, [
+    isGeneratingLander,
+    isDirty,
+    group.landerPublishedAt,
+    group.applicationFormPublishedAt,
+  ]);
   return (
     <form
       onSubmit={handleSubmit(async (data) => {

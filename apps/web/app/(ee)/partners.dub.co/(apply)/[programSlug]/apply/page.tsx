@@ -37,7 +37,7 @@ export default async function ApplicationPage(props: {
   }
 
   const applicationFormData = programApplicationFormSchema.parse(
-    program.group.applicationFormData || program.applicationFormData || {},
+    program.group.applicationFormData || {},
   );
 
   return (
