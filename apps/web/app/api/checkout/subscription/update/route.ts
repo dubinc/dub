@@ -135,8 +135,8 @@ export const POST = withSession(
       await paymentService.updateClientSubscription(
         paymentData?.paymentInfo?.subscriptionId || "",
         {
-          noSubtract: false,
-          resetNextBillingDate: false,
+          appendPaidPeriod: true,
+          resetNextBillingDate: true,
           plan: {
             currencyCode: paymentData?.currency?.currencyForPay || "",
             trialPrice: 0,
