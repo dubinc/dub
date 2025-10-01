@@ -1,12 +1,12 @@
 "use client";
 
-import useDiscounts from "@/lib/swr/use-discounts";
-import useRewards from "@/lib/swr/use-rewards";
+import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
 import { GroupWithProgramProps, ProgramLanderData } from "@/lib/types";
 import { useEditHeroModal } from "@/ui/partners/groups/design/lander/modals/edit-hero-modal";
 import { PreviewWindow } from "@/ui/partners/groups/design/preview-window";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import {
   Button,
   CircleInfo,
@@ -39,7 +39,6 @@ import {
   AddBlockModal,
   DESIGNER_BLOCKS,
 } from "../lander/modals/add-block-modal";
-import { RewardsDiscountsPreview } from "../rewards-discounts-preview";
 
 export function LanderPreview({ group }: { group: GroupWithProgramProps }) {
   const program = group.program;
@@ -50,8 +49,7 @@ export function LanderPreview({ group }: { group: GroupWithProgramProps }) {
 
   const { isGeneratingLander } = useBrandingContext();
 
-  const { rewards } = useRewards();
-  const { discounts } = useDiscounts();
+  const { rewards, discount } = getGroupRewardsAndDiscount(group);
 
   const { setValue, getValues } = useBrandingFormContext();
   const { landerData, brandColor, logo, wordmark } = {
@@ -242,9 +240,9 @@ export function LanderPreview({ group }: { group: GroupWithProgramProps }) {
             </div>
 
             {/* Program rewards */}
-            <div className="relative mx-auto max-w-screen-sm py-4">
+            <div className="mx-auto mb-1 mt-6 max-w-screen-sm">
               <div className="px-6">
-                <RewardsDiscountsPreview />
+                <LanderRewards rewards={rewards} discount={discount} />
               </div>
             </div>
 
@@ -332,7 +330,7 @@ export function LanderPreview({ group }: { group: GroupWithProgramProps }) {
                           program={{
                             ...program,
                             rewards,
-                            discounts,
+                            discounts: discount,
                             landerData,
                           }}
                         />
