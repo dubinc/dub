@@ -48,20 +48,7 @@ export const CampaignListSchema = z.object({
 export const campaignTypeSchema = z.nativeEnum(CampaignType);
 
 export const createCampaignSchema = z.object({
-  groupIds: z.array(z.string()).nullish().default(null),
-  type: campaignTypeSchema,
-  name: z
-    .string()
-    .trim()
-    .min(1, "Name is required.")
-    .max(100, "Name must be less than 100 characters."),
-  subject: z
-    .string()
-    .trim()
-    .min(1, "Subject is required.")
-    .max(100, "Subject must be less than 100 characters."),
-  body: z.string().min(1, "Body is required."),
-  triggerCondition: workflowConditionSchema.nullish(),
+  type: z.literal("transactional"), // We only support transactional campaigns for now.
 });
 
 export const updateCampaignSchema = createCampaignSchema

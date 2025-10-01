@@ -1,24 +1,38 @@
 "use client";
 
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Campaign } from "@/lib/types";
 import { Button, useKeyboardShortcut } from "@dub/ui";
 import { useRouter } from "next/navigation";
 
 export function CreateCampaignButton() {
   const router = useRouter();
-  const { slug: workspaceSlug } = useWorkspace();
+  const { slug } = useWorkspace();
+  const { makeRequest, isSubmitting } = useApiMutation<Campaign>();
 
-  // useKeyboardShortcut("c", () =>
-  //   router.push(`/${workspaceSlug}/program/campaigns/new`),
-  // );
+  const createDraftCampaign = async () => {
+    await makeRequest(`/api/campaigns`, {
+      method: "POST",
+      body: {
+        type: "transactional",
+      },
+      onSuccess: (data) => {
+        router.push(`/${slug}/program/campaigns/${data.id}`);
+      },
+    });
+  };
+
+  useKeyboardShortcut("c", () => createDraftCampaign);
 
   return (
     <Button
       type="button"
       text="Create campaign"
-      shortcut="C"
       className="h-8 px-3 sm:h-9"
-      onClick={() => router.push(`/${workspaceSlug}/program/campaigns/new`)}
+      loading={isSubmitting}
+      shortcut="C"
+      onClick={createDraftCampaign}
     />
   );
 }
