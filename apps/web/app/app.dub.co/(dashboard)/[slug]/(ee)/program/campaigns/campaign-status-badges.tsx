@@ -25,4 +25,10 @@ export const CAMPAIGN_STATUS_BADGES = {
     icon: PaperPlane,
     iconClassName: "text-neutral-600",
   },
+  scheduled: {
+    label: "Scheduled",
+    variant: "neutral",
+    icon: CircleHalfDottedClock,
+    iconClassName: "text-neutral-600",
+  },
 } as const;
