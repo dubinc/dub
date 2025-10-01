@@ -101,7 +101,7 @@ export function RichTextArea({
       ...(variables
         ? [
             Mention.extend({
-              renderHTML({ node }) {
+              renderHTML({ node }: { node: any }) {
                 return [
                   "span",
                   {
@@ -113,7 +113,7 @@ export function RichTextArea({
                   `{{${node.attrs.id}}}`,
                 ];
               },
-              renderText({ node }) {
+              renderText({ node }: { node: any }) {
                 return `{{${node.attrs.id}}}`;
               },
             }).configure({
