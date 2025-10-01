@@ -87,8 +87,6 @@ export async function POST(req: Request) {
       }
     }
 
-    console.log({ discountCodesToUpdate, discountCodesToRemove });
-
     // Update the discount codes to use the new discount
     if (discountCodesToUpdate.length > 0) {
       await prisma.discountCode.updateMany({
