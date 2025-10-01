@@ -72,6 +72,7 @@ export const GET = withWorkspace(
       ) salesChannels ON salesChannels.partnerId = p.id
       WHERE 
         p.discoverableAt IS NOT NULL
+        AND dp.ignoredAt IS NULL
         ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND p.id IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
         ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
         ${

@@ -1,16 +1,16 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { starPartnerSchema } from "@/lib/zod/schemas/partner-network";
+import { updateDiscoveredPartnerSchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
 import { authActionClient } from "../safe-action";
 
-// Star a partner in the partner network
-export const starPartnerAction = authActionClient
-  .schema(starPartnerSchema)
+// Star or dismiss a partner in the partner network
+export const updateDiscoveredPartnerAction = authActionClient
+  .schema(updateDiscoveredPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { partnerId, starred } = parsedInput;
+    const { partnerId, starred, ignored } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -25,13 +25,20 @@ export const starPartnerAction = authActionClient
         partnerId,
         programId,
         starredAt: starred ? new Date() : null,
+        ignoredAt: ignored ? new Date() : null,
       },
       update: {
-        starredAt: starred ? new Date() : null,
+        ...(starred !== undefined && {
+          starredAt: starred ? new Date() : null,
+        }),
+        ...(ignored !== undefined && {
+          ignoredAt: ignored ? new Date() : null,
+        }),
       },
     });
 
     return {
       starredAt: discoveredPartner.starredAt,
+      ignoredAt: discoveredPartner.ignoredAt,
     };
   });

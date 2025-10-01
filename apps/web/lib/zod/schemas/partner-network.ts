@@ -121,8 +121,9 @@ export const PartnerNetworkPartnerSchema = PartnerSchema.pick({
   }),
 );
 
-export const starPartnerSchema = z.object({
+export const updateDiscoveredPartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
-  starred: z.boolean().default(true),
+  starred: z.boolean().optional(),
+  ignored: z.boolean().optional(),
 });

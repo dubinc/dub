@@ -1,6 +1,6 @@
 "use client";
 
-import { starPartnerAction } from "@/lib/actions/partners/star-partner";
+import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
 import {
   industryInterestsMap,
@@ -92,7 +92,9 @@ export function ProgramPartnersDirectoryPageClient() {
     { revalidateOnFocus: false, keepPreviousData: true },
   );
 
-  const { executeAsync: starPartner } = useAction(starPartnerAction);
+  const { executeAsync: updateDiscoveredPartner } = useAction(
+    updateDiscoveredPartnerAction,
+  );
 
   const { pagination, setPagination } = usePagination(
     PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE,
@@ -259,7 +261,7 @@ export function ProgramPartnersDirectoryPageClient() {
                       mutatePartners(
                         // @ts-ignore SWR doesn't seem to have proper typing for partial data results w/ `populateCache`
                         async () => {
-                          const result = await starPartner({
+                          const result = await updateDiscoveredPartner({
                             workspaceId: workspaceId!,
                             partnerId: partner.id,
                             starred,
