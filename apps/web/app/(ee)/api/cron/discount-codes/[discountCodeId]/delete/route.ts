@@ -27,9 +27,6 @@ export async function POST(
       },
     });
 
-    // Fake wait 5 seconds
-    await new Promise((resolve) => setTimeout(resolve, 5000));
-
     if (!discountCode) {
       return logAndRespond(`Discount code ${discountCodeId} not found.`);
     }
