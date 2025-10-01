@@ -47,6 +47,7 @@ export default function PartnerPayoutFailed({
   email: string;
 }) {
   const payoutAmount = currencyFormatter(payout.amount / 100);
+  const payoutMethod = payout.method.replace("_", " ");
 
   return (
     <Html>
@@ -106,17 +107,29 @@ export default function PartnerPayoutFailed({
             )}
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Please update your {payout.method.replace("_", " ")} details at
-              your earliest convenience to ensure that your partners are paid on
-              time.
+              Please{" "}
+              <Link
+                href={`https://app.dub.co/${workspace.slug}/settings/billing`}
+                className="font-medium text-black underline"
+              >
+                update your {payoutMethod} details
+              </Link>{" "}
+              at your earliest convenience and retry the payout from your{" "}
+              <Link
+                href="https://app.dub.co/program/payouts?status=pending&sortBy=amount"
+                className="font-medium text-black underline"
+              >
+                payouts tab
+              </Link>{" "}
+              to ensure that your partners are paid on time.
             </Text>
 
             <Section className="my-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
-                href={`https://app.dub.co/${workspace.slug}/settings/billing`}
+                href="https://app.dub.co/program/payouts?status=pending&sortBy=amount"
               >
-                Update direct debit details
+                Retry payout
               </Link>
             </Section>
 
