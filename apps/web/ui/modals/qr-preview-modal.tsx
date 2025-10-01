@@ -37,6 +37,8 @@ const FORMAT_OPTIONS = [
 interface IQRPreviewModalProps {
   showQRPreviewModal: boolean;
   setShowQRPreviewModal: Dispatch<SetStateAction<boolean>>;
+  setIsNewQr: Dispatch<SetStateAction<boolean>>;
+  isNewQr?: boolean;
   canvasRef: RefObject<HTMLCanvasElement>;
   qrCode: QRCodeStyling | null;
   qrCodeId?: string;
@@ -48,6 +50,8 @@ interface IQRPreviewModalProps {
 function QRPreviewModal({
   showQRPreviewModal,
   setShowQRPreviewModal,
+  setIsNewQr,
+  isNewQr,
   canvasRef,
   qrCode,
   qrCodeId,
@@ -62,11 +66,12 @@ function QRPreviewModal({
 
   const { downloadQrCode } = useQrDownload(qrCode);
 
-  const isWelcomeModal = searchParams.has("onboarded");
+  const isWelcomeModal = searchParams.has("onboarded") || isNewQr;
 
   const handleClose = () => {
     if (!isDownloading) {
       setShowQRPreviewModal(false);
+      setIsNewQr(false);
       if (isWelcomeModal) {
         queryParams({
           del: ["onboarded"],
@@ -266,6 +271,12 @@ export function useQRPreviewModal(data: {
 }) {
   const { canvasRef, qrCode, qrCodeId, width = 200, height = 200, user } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
+  const [isNewQr, setIsNewQr] = useState(false);
+
+  const handleOpenNewQr = useCallback(() => {
+    setShowQRPreviewModal(true);
+    setIsNewQr(true);
+  }, []);
 
   const QRPreviewModalCallback = useCallback(() => {
     return (
@@ -277,16 +288,16 @@ export function useQRPreviewModal(data: {
         height={height}
         showQRPreviewModal={showQRPreviewModal}
         setShowQRPreviewModal={setShowQRPreviewModal}
+        setIsNewQr={setIsNewQr}
+        isNewQr={isNewQr}
         user={user}
       />
     );
   }, [width, height, showQRPreviewModal, qrCodeId]);
 
-  return useMemo(
-    () => ({
-      QRPreviewModal: QRPreviewModalCallback,
-      setShowQRPreviewModal,
-    }),
-    [QRPreviewModalCallback],
-  );
+  return {
+    QRPreviewModal: QRPreviewModalCallback,
+    setShowQRPreviewModal,
+    handleOpenNewQr,
+  };
 }
