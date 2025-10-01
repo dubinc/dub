@@ -34,6 +34,11 @@ import {
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
 import {
+  CampaignListSchema,
+  CampaignSchema,
+  updateCampaignSchema,
+} from "./zod/schemas/campaigns";
+import {
   clickEventResponseSchema,
   clickEventSchemaTB,
 } from "./zod/schemas/clicks";
@@ -77,7 +82,6 @@ import {
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
-import { programEmailSchema } from "./zod/schemas/program-emails";
 import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
@@ -461,8 +465,6 @@ export type PartnerProgramInviteProps = z.infer<
 
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
-export type ProgramEmailProps = z.infer<typeof programEmailSchema>;
-
 export type PayoutsCount = {
   status: PayoutStatus;
   count: number;
@@ -614,3 +616,9 @@ export type BountySubmissionsQueryFilters = z.infer<
 >;
 
 export type Message = z.infer<typeof MessageSchema>;
+
+export type CampaignList = z.infer<typeof CampaignListSchema>;
+
+export type Campaign = z.infer<typeof CampaignSchema>;
+
+export type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;

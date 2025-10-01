@@ -288,6 +288,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         name: "Engagement",
         items: [
           {
+            name: "Email Campaigns",
+            icon: PaperPlane,
+            href: `/${slug}/program/campaigns`,
+            badge: "New",
+          },
+          {
             name: "Bounties",
             icon: Trophy,
             href: `/${slug}/program/bounties`,
@@ -295,29 +301,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
               ? submittedBountiesCount > 99
                 ? "99+"
                 : submittedBountiesCount
-              : "New",
+              : "",
           },
           {
             name: "Resources",
             icon: LifeRing,
             href: `/${slug}/program/resources`,
-          },
-        ],
-      },
-      {
-        name: "Communication",
-        items: [
-          {
-            name: "Email Campaigns",
-            icon: PaperPlane,
-            href: `/${slug}/program/emails`,
-            badge: "New",
-          },
-          {
-            name: "Resources",
-            icon: LifeRing,
-            href: `/${slug}/program/resources`,
-            exact: true,
           },
         ],
       },

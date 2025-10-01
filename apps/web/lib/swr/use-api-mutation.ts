@@ -2,22 +2,19 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { useCallback, useState } from "react";
 import { toast } from "sonner";
 
-interface ApiRequestOptions<TBody> {
+interface ApiRequestOptions<TBody, TResponse> {
   method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: TBody;
   headers?: Record<string, string>;
-  showToast?: boolean;
-  onSuccess?: () => void;
-  onError?: () => void;
+  onSuccess?: (data: TResponse) => void;
+  onError?: (error: string) => void;
 }
 
 interface ApiResponse<T> {
-  data: T | null;
-  error: string | null;
   isSubmitting: boolean;
   makeRequest: (
     endpoint: string,
-    options?: ApiRequestOptions<any>,
+    options?: ApiRequestOptions<any, T>,
   ) => Promise<void>;
 }
 
@@ -29,7 +26,7 @@ interface ApiError {
 
 const debug = (...args: any[]) => {
   if (process.env.NODE_ENV === "development") {
-    console.log(...args);
+    // console.log(...args);
   }
 };
 
@@ -38,24 +35,16 @@ export function useApiMutation<
   TBody = any,
 >(): ApiResponse<TResponse> {
   const { id: workspaceId } = useWorkspace();
-  const [data, setData] = useState<TResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const makeRequest = useCallback(
-    async (endpoint: string, options: ApiRequestOptions<TBody> = {}) => {
-      const {
-        method = "GET",
-        body,
-        headers,
-        showToast = true,
-        onSuccess,
-        onError,
-      } = options;
+    async (
+      endpoint: string,
+      options: ApiRequestOptions<TBody, TResponse> = {},
+    ) => {
+      const { method = "GET", body, headers, onSuccess, onError } = options;
 
       setIsSubmitting(true);
-      setError(null);
-      setData(null);
 
       try {
         debug("Starting request", {
@@ -88,8 +77,7 @@ export function useApiMutation<
 
         // Handle success
         const data = (await response.json()) as TResponse;
-        setData(data);
-        onSuccess?.();
+        onSuccess?.(data);
 
         debug("Response received", data);
       } catch (error) {
@@ -98,10 +86,9 @@ export function useApiMutation<
             ? error.message
             : "Something went wrong. Please try again.";
 
-        setError(errorMessage);
-        onError?.();
-
-        if (showToast) {
+        if (onError) {
+          onError?.(errorMessage);
+        } else {
           toast.error(errorMessage);
         }
 
@@ -115,8 +102,6 @@ export function useApiMutation<
   );
 
   return {
-    data,
-    error,
     isSubmitting,
     makeRequest,
   };

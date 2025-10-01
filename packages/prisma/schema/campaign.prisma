@@ -5,24 +5,29 @@ enum CampaignType {
 
 enum CampaignStatus {
   draft
+
+  // Transactional
   active
   paused
+
+  // Marketing
   sent
+  scheduled
 }
 
 model Campaign {
-  id         String         @id @default(cuid())
-  programId  String
-  workflowId String?        @unique
-  userId     String
-  type       CampaignType
-  status     CampaignStatus @default(draft)
-  name       String
-  subject    String
-  body       String         @db.Text
-  scheduledAt  DateTime?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id          String         @id @default(cuid())
+  programId   String
+  workflowId  String?        @unique
+  userId      String
+  type        CampaignType
+  status      CampaignStatus @default(draft)
+  name        String
+  subject     String
+  body        String         @db.Text
+  scheduledAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
 
   program  Program             @relation(fields: [programId], references: [id])
   workflow Workflow?           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
