@@ -49,17 +49,20 @@ export const createCampaignSchema = z.object({
   type: z.nativeEnum(CampaignType),
 });
 
-export const updateCampaignSchema = z.object({
-  type: z.nativeEnum(CampaignType),
-  name: z.string().trim().max(100, "Name must be less than 100 characters."),
-  subject: z
-    .string()
-    .trim()
-    .max(100, "Subject must be less than 100 characters."),
-  body: z.string(),
-  triggerCondition: workflowConditionSchema.nullish(),
-  groupIds: z.array(z.string()).nullish().default(null),
-});
+export const updateCampaignSchema = z
+  .object({
+    type: z.nativeEnum(CampaignType),
+    name: z.string().trim().max(100, "Name must be less than 100 characters."),
+    subject: z
+      .string()
+      .trim()
+      .max(100, "Subject must be less than 100 characters."),
+    body: z.string(),
+    triggerCondition: workflowConditionSchema.nullish(),
+    groupIds: z.array(z.string()).nullish().default(null),
+    status: z.nativeEnum(CampaignStatus),
+  })
+  .partial();
 
 export const getCampaignsQuerySchema = z.object({
   type: z.nativeEnum(CampaignType).optional(),

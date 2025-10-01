@@ -1,6 +1,7 @@
 "use client";
 
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign } from "@/lib/types";
 import {
@@ -18,12 +19,13 @@ import {
   PaperPlane,
   Popover,
   RichTextArea,
+  StatusBadge,
   Trash,
 } from "@dub/ui";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -31,7 +33,9 @@ import {
   useFormContext,
 } from "react-hook-form";
 import { toast } from "sonner";
+import { useDebouncedCallback } from "use-debounce";
 import { z } from "zod";
+import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
 
 type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;
 
@@ -46,6 +50,7 @@ const labelClassName = "text-sm font-medium text-content-muted";
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const [openPopover, setOpenPopover] = useState(false);
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { makeRequest, isSubmitting } = useApiMutation<Campaign>();
 
   const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
@@ -56,27 +61,89 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     },
   });
 
+  const {
+    register,
+    control,
+    watch,
+    getValues,
+    reset,
+    formState: { isDirty, dirtyFields },
+  } = form;
+
+  // Autosave function with debouncing
+  const saveDraftCampaign = useCallback(
+    useDebouncedCallback(async () => {
+      const allFormData = getValues();
+
+      // Only send fields that have changed (PATCH)
+      const changedFields = Object.keys(dirtyFields).reduce(
+        (acc, key) => {
+          if (dirtyFields[key as keyof typeof dirtyFields]) {
+            acc[key] = allFormData[key as keyof UpdateCampaignFormData];
+          }
+
+          return acc;
+        },
+        {} as Record<string, any>,
+      );
+
+      console.log("changedFields", changedFields);
+
+      // Only make request if there are changed fields
+      if (Object.keys(changedFields).length > 0) {
+        await makeRequest(`/api/campaigns/${campaign.id}`, {
+          method: "PATCH",
+          body: changedFields,
+          onSuccess: () => {
+            reset(allFormData, { keepValues: true });
+          },
+          onError: () => {
+            toast.error("Failed to save the draft campaign.");
+          },
+        });
+      }
+    }, 1000),
+    [getValues, dirtyFields, makeRequest, campaign.id, reset],
+  );
+
+  // Watch for form changes and trigger autosave
+  useEffect(() => {
+    const { unsubscribe } = watch(() => {
+      if (isDirty) {
+        saveDraftCampaign();
+      }
+    });
+
+    return () => unsubscribe();
+  }, [watch, isDirty, saveDraftCampaign]);
+
   const { executeAsync: executeImageUpload } = useAction(
     uploadEmailImageAction,
   );
 
-  const { register, control, watch, handleSubmit } = form;
-  const type = watch("type");
-  const title = type === "marketing" ? "Campaign" : "Automation";
+  const statusBadge = CAMPAIGN_STATUS_BADGES[campaign.status];
 
   return (
     <FormProvider {...form}>
       <PageContent
         title={
           <div className="flex items-center gap-1.5">
-            <Link
-              href={`/${workspaceSlug}/program/campaigns`}
-              className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
-            >
-              <PaperPlane className="text-content-default size-4" />
-            </Link>
-            <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-            <span>{`New ${title}`}</span>
+            <div className="flex items-center gap-1">
+              <Link
+                href={`/${workspaceSlug}/program/campaigns`}
+                className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
+              >
+                <PaperPlane className="text-content-default size-4" />
+              </Link>
+              <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <span>New Automation</span>
+              <StatusBadge variant={statusBadge.variant} icon={null}>
+                {statusBadge.label}
+              </StatusBadge>
+            </div>
           </div>
         }
         controls={
@@ -157,7 +224,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 name="type"
                 render={({ field }) => (
                   <CampaignTypeSelector
-                    value={field.value}
+                    value={field.value!}
                     onChange={field.onChange}
                   />
                 )}
@@ -173,7 +240,10 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 <RichTextArea
                   editorClassName="-m-2 min-h-[200px] p-2"
                   initialValue={field.value}
-                  onChange={field.onChange}
+                  onChange={(value) => {
+                    field.onChange(value);
+                    saveDraftCampaign();
+                  }}
                   variables={EMAIL_TEMPLATE_VARIABLE_LABELS}
                   uploadImage={async (file) => {
                     try {
