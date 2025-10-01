@@ -16,6 +16,18 @@ export const parse = (req: NextRequest) => {
       // for local development and preview URLs
       domain = SHORT_DOMAIN;
     }
+  } else if (process.env.TEST_DOMAINS) {
+    const testDomains = process.env.TEST_DOMAINS.split(",");
+
+    // Check if the current domain (with port) matches any test domain, and if so, strip the port
+    const matchedTestDomain = testDomains.find(
+      (testDomain) => testDomain === domain,
+    );
+
+    if (matchedTestDomain) {
+      // Remove port if present (e.g., "click.localhost:8888" -> "click.localhost")
+      domain = domain.split(":")[0];
+    }
   }
 
   // fullPath is the full URL path (along with search params)
