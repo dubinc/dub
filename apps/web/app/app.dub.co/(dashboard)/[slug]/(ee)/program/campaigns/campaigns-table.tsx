@@ -30,6 +30,7 @@ import useSWR from "swr";
 import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
 import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
 import { CreateCampaignButton } from "./create-campaign-button";
+import { useDeleteCampaignModal } from "./delete-campaign-modal";
 import { useCampaignsFilters } from "./use-campaigns-filters";
 
 export function CampaignsTable() {
@@ -80,13 +81,13 @@ export function CampaignsTable() {
             <div className="flex items-center gap-2">
               <div
                 className={cn(
-                  "flex size-6 items-center justify-center rounded-md",
+                  "flex size-6 shrink-0 items-center justify-center rounded-md",
                   iconClassName,
                 )}
               >
                 <Icon className="size-3.5" />
               </div>
-              <span className="text-content-emphasis text-sm font-medium">
+              <span className="text-content-emphasis truncate text-sm font-medium">
                 {row.original.name}
               </span>
             </div>
@@ -237,6 +238,9 @@ function RowMenuButton({
   const { slug } = useWorkspace();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { setShowDeleteCampaignModal, DeleteCampaignModal } =
+    useDeleteCampaignModal(campaign);
+
   const {
     makeRequest: duplicateCampaign,
     isSubmitting: isDuplicatingCampaign,
@@ -255,56 +259,59 @@ function RowMenuButton({
   const isPaused = campaign.status === "paused";
 
   return (
-    <Popover
-      openPopover={isOpen}
-      setOpenPopover={setIsOpen}
-      content={
-        <Command tabIndex={0} loop className="focus:outline-none">
-          <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
-            <MenuItem
-              icon={isDuplicatingCampaign ? LoadingCircle : Duplicate}
-              variant="default"
-              onClick={handleCampaignDuplication}
-              disabled={isDuplicatingCampaign}
-            >
-              Duplicate
-            </MenuItem>
+    <>
+      <DeleteCampaignModal />
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
+              <MenuItem
+                icon={isDuplicatingCampaign ? LoadingCircle : Duplicate}
+                variant="default"
+                onClick={handleCampaignDuplication}
+                disabled={isDuplicatingCampaign}
+              >
+                Duplicate
+              </MenuItem>
 
-            <MenuItem
-              icon={isPaused ? Play : Pause}
-              variant="default"
-              onClick={() => {
-                // TODO: Implement pause/resume functionality
-                console.log(
-                  `${isPaused ? "Resume" : "Pause"} campaign:`,
-                  campaign.id,
-                );
-              }}
-            >
-              {isPaused ? "Resume" : "Pause"}
-            </MenuItem>
+              <MenuItem
+                icon={isPaused ? Play : Pause}
+                variant="default"
+                onClick={() => {
+                  // TODO: Implement pause/resume functionality
+                  console.log(
+                    `${isPaused ? "Resume" : "Pause"} campaign:`,
+                    campaign.id,
+                  );
+                }}
+              >
+                {isPaused ? "Resume" : "Pause"}
+              </MenuItem>
 
-            <MenuItem
-              icon={Trash}
-              variant="danger"
-              onClick={() => {
-                // TODO: Implement delete functionality
-                console.log("Delete campaign:", campaign.id);
-              }}
-            >
-              Delete
-            </MenuItem>
-          </Command.List>
-        </Command>
-      }
-      align="end"
-    >
-      <Button
-        type="button"
-        className="h-8 whitespace-nowrap px-2"
-        variant="outline"
-        icon={<Dots className="h-4 w-4 shrink-0" />}
-      />
-    </Popover>
+              <MenuItem
+                icon={Trash}
+                variant="danger"
+                onClick={() => {
+                  setIsOpen(false);
+                  setShowDeleteCampaignModal(true);
+                }}
+              >
+                Delete
+              </MenuItem>
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </>
   );
 }
