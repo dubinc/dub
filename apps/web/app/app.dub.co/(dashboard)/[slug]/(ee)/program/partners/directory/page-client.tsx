@@ -275,7 +275,7 @@ function PartnerCard({
         icon: <UserPlus className="size-3.5 shrink-0" />,
         text: partner
           ? partner.discoverableAt
-            ? `Listed ${formatDate(partner.discoverableAt)}`
+            ? `Listed ${formatDate(partner.discoverableAt, { month: "short" })}`
             : null
           : undefined,
       },
