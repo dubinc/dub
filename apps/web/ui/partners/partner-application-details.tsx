@@ -1,10 +1,10 @@
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramApplicationFormDataWithValues } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
 import useSWRImmutable from "swr/immutable";
+import { formatApplicationFormData } from "./applications/utils/format-application-form-data";
 
 export function PartnerApplicationDetails({
   applicationId,
@@ -27,47 +27,7 @@ export function PartnerApplicationDetails({
     return <PartnerApplicationDetailsSkeleton />;
   }
 
-  const formData =
-    application?.formData as ProgramApplicationFormDataWithValues;
-
-  const fields: { title: string; value: string }[] = (formData?.fields ?? [])
-    .map((field) => {
-      switch (field.type) {
-        case "short-text":
-          return {
-            title: field.label,
-            value: field.value,
-          };
-        case "long-text":
-          return {
-            title: field.label,
-            value: field.value,
-          };
-        case "select":
-          return {
-            title: field.label,
-            value: field.value,
-          };
-        case "multiple-choice":
-          let value;
-
-          if (field.data.multiple) {
-            value = Array.isArray(field.value)
-              ? field.value.join(", ")
-              : field.value;
-          } else {
-            value = field.value;
-          }
-
-          return {
-            title: field.label,
-            value,
-          };
-        case "website-and-socials":
-          return null;
-      }
-    })
-    .filter((v) => !!v) as any;
+  const fields = formatApplicationFormData(application);
 
   content = (
     <>

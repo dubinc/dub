@@ -54,8 +54,6 @@ export async function notifyPartnerApplication({
           email: partner.email!,
           image: partner.image,
           country: partner.country,
-          proposal: application.proposal,
-          comments: application.comments,
         },
         program: {
           name: program.name,
