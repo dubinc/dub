@@ -10,6 +10,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
@@ -32,7 +33,7 @@ export const GET = withWorkspace(
       includeExpandedFields: true,
     });
 
-    return NextResponse.json(GroupSchema.parse(group));
+    return NextResponse.json(GroupWithProgramSchema.parse(group));
   },
   {
     requiredPermissions: ["groups.read"],
@@ -65,6 +66,8 @@ export const PATCH = withWorkspace(
       additionalLinks,
       utmTemplateId,
       linkStructure,
+      applicationFormData,
+      landerData,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -129,6 +132,8 @@ export const PATCH = withWorkspace(
         maxPartnerLinks,
         utmTemplateId,
         linkStructure,
+        applicationFormData,
+        landerData,
       },
       include: {
         clickReward: true,
@@ -319,7 +324,7 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 5. Delete the group
+      // 45. Delete the group
       await tx.partnerGroup.delete({
         where: {
           id: group.id,
@@ -329,19 +334,22 @@ export const DELETE = withWorkspace(
       return true;
     });
 
+    const partnerIds = group.partners.map(({ partnerId }) => partnerId);
+
     if (deletedGroup) {
       waitUntil(
         Promise.allSettled([
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-            body: {
-              programId,
-              groupId: defaultGroup.id,
-              partnerIds: group.partners.map(({ partnerId }) => partnerId),
-              userId: session.user.id,
-              isGroupDeleted: true,
-            },
-          }),
+          partnerIds.length > 0 &&
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+              body: {
+                programId,
+                groupId: defaultGroup.id,
+                partnerIds,
+                userId: session.user.id,
+                isGroupDeleted: true,
+              },
+            }),
 
           ...discountCodesToDelete.map((discountCode) =>
             queueDiscountCodeDeletion(discountCode.id),

@@ -42,9 +42,9 @@ model Program {
   holdingPeriodDays            Int                      @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount              Int                      @default(0) // Default minimum payout amount of $0
   embedData                    Json?                    @db.Json
-  landerData                   Json?                    @db.Json
-  landerPublishedAt            DateTime?
-  applicationFormData          Json?                    @db.Json
+  landerData                   Json?                    @db.Json // TODO: drop this column after PR #2893 merges
+  landerPublishedAt            DateTime? // TODO: drop this column after PR #2893 merges
+  applicationFormData          Json?                    @db.Json // TODO: drop this column after PR #2893 merges
   resources                    Json?                    @db.Json
   termsUrl                     String?                  @db.Text
   helpUrl                      String?                  @db.Text
@@ -73,6 +73,7 @@ model Program {
   messages                 Message[]
   comments                 PartnerComment[]
   discountCodes            DiscountCode[]
+  campaigns                Campaign[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -124,9 +125,16 @@ model ProgramApplication {
   groupId   String?
   name      String
   email     String
-  proposal  String?  @db.Text
+  country   String?
+  proposal  String?  @db.Text // TODO: drop this column after PR #2893 merges
   website   String?  @db.Text
-  comments  String?  @db.Text
+  youtube   String?  @db.Text
+  twitter   String?  @db.Text
+  linkedin  String?  @db.Text
+  instagram String?  @db.Text
+  tiktok    String?  @db.Text
+  comments  String?  @db.Text // TODO: drop this column after PR #2893 merges
+  formData  Json?    @db.Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

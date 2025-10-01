@@ -3,7 +3,7 @@ import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { sendBatchEmail } from "@dub/email";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import { prisma } from "@dub/prisma";
-import { chunk } from "@dub/utils";
+import { ACME_PROGRAM_ID, chunk } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +20,9 @@ export async function GET(req: Request) {
       by: ["partnerId", "programId"],
       where: {
         status: "pending",
+        programId: {
+          not: ACME_PROGRAM_ID,
+        },
         partner: {
           payoutsEnabledAt: null,
           OR: [

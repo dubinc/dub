@@ -43,8 +43,8 @@ model Bounty {
 
   submissions BountySubmission[]
   groups      BountyGroup[]
-  program     Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
-  workflow    Workflow?          @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  program     Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  workflow    Workflow?           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
   emails      NotificationEmail[]
 
   @@index(programId)

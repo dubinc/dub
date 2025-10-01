@@ -6,6 +6,8 @@ import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
+import { programApplicationFormSchema } from "./program-application-form";
+import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { parseUrlSchema } from "./utils";
 import { UTMTemplateSchema } from "./utm";
@@ -49,6 +51,13 @@ export const GroupSchema = z.object({
   additionalLinks: z.array(additionalPartnerLinkSchema).nullable(),
   maxPartnerLinks: z.number(),
   linkStructure: z.nativeEnum(PartnerLinkStructure),
+});
+
+export const GroupWithFormDataSchema = GroupSchema.extend({
+  applicationFormData: programApplicationFormSchema.nullable(),
+  applicationFormPublishedAt: z.date().nullable(),
+  landerData: programLanderSchema.nullable(),
+  landerPublishedAt: z.date().nullable(),
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({
@@ -99,6 +108,8 @@ export const updateGroupSchema = createGroupSchema.partial().extend({
   maxPartnerLinks: z.number().optional(),
   utmTemplateId: z.string().optional(),
   linkStructure: z.nativeEnum(PartnerLinkStructure).optional(),
+  applicationFormData: programApplicationFormSchema.optional(),
+  landerData: programLanderSchema.optional(),
 });
 
 export const PartnerGroupDefaultLinkSchema = z.object({

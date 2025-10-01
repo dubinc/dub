@@ -429,7 +429,7 @@ export function AddEditDomainForm({
                         transition={{ duration: 0.1 }}
                         initial={false}
                         className="-m-1 overflow-hidden p-1"
-                        {...{ inert: showOption ? undefined : true }}
+                        inert={!showOption}
                       >
                         <div className="relative mt-2 rounded-md shadow-sm">
                           {id === "logo" ? (
