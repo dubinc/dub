@@ -1,0 +1,236 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
+import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { Campaign, UpdateCampaignFormData } from "@/lib/types";
+import { ThreeDots } from "@/ui/shared/icons";
+import { CampaignStatus } from "@dub/prisma/client";
+import {
+  Button,
+  Duplicate,
+  MediaPause,
+  MediaPlay,
+  MenuItem,
+  PaperPlane,
+  Popover,
+  Trash,
+} from "@dub/ui";
+import { Command } from "cmdk";
+import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
+import { toast } from "sonner";
+import { useDeleteCampaignModal } from "../delete-campaign-modal";
+import { useCampaignFormContext } from "./campaign-form-context";
+import { useSendEmailPreviewModal } from "./send-email-preview-modal";
+
+interface CampaignActionsProps {
+  campaign: Pick<Campaign, "id" | "name" | "type" | "status">;
+}
+
+export function CampaignActions({ campaign }: CampaignActionsProps) {
+  const router = useRouter();
+  const { slug: workspaceSlug } = useWorkspace();
+  const [openPopover, setOpenPopover] = useState(false);
+  const { watch, getValues } = useCampaignFormContext();
+
+  const { makeRequest, isSubmitting: isUpdatingCampaign } =
+    useApiMutation<Campaign>();
+
+  const { SendEmailPreviewModal, setShowSendEmailPreviewModal } =
+    useSendEmailPreviewModal({
+      campaignId: campaign.id,
+    });
+
+  const { DeleteCampaignModal, setShowDeleteCampaignModal } =
+    useDeleteCampaignModal(campaign);
+
+  const [name, subject, groupIds, body, status, triggerCondition] = watch([
+    "name",
+    "subject",
+    "groupIds",
+    "body",
+    "status",
+    "triggerCondition",
+  ]);
+
+  // Form validation
+  const validationError = useMemo(() => {
+    if (!name) {
+      return "Please enter a campaign name.";
+    }
+
+    if (!subject) {
+      return "Please enter a subject.";
+    }
+
+    if (groupIds === undefined) {
+      return "Please select the groups you want to send this campaign to.";
+    }
+
+    if (!body?.replace("<p></p>", "")) {
+      return "Please write the message you want to send to the partners.";
+    }
+  }, [name, subject, groupIds, body, status, triggerCondition]);
+
+  const updateCampaign = useCallback(
+    async (
+      data: Partial<UpdateCampaignFormData>,
+      onSuccess: (data: Campaign) => void,
+    ) => {
+      await makeRequest(`/api/campaigns/${campaign.id}`, {
+        method: "PATCH",
+        body: data,
+        onSuccess: async (data) => {
+          await mutatePrefix(`/api/campaigns/${campaign.id}`);
+          onSuccess(data);
+        },
+      });
+    },
+    [makeRequest, campaign.id],
+  );
+
+  const renderActionButton = () => {
+    switch (campaign.status) {
+      case CampaignStatus.draft:
+        return (
+          <Button
+            text="Publish"
+            disabled={!!validationError}
+            disabledTooltip={validationError}
+            onClick={async () => {
+              await updateCampaign(
+                {
+                  ...getValues(),
+                  status: CampaignStatus.active,
+                  triggerCondition: {
+                    attribute: "totalLeads",
+                    operator: "gte",
+                    value: 1,
+                  },
+                },
+                () => {
+                  toast.success("Email campaign published!");
+                  router.push(`/${workspaceSlug}/program/campaigns`);
+                },
+              );
+            }}
+            loading={isUpdatingCampaign}
+            className="h-9 px-4"
+            variant="outline"
+          />
+        );
+      case CampaignStatus.active:
+        return (
+          <Button
+            text="Pause"
+            disabled={!!validationError}
+            disabledTooltip={validationError}
+            onClick={async () => {
+              await updateCampaign(
+                {
+                  status: CampaignStatus.paused,
+                },
+                () => {
+                  toast.success("Email campaign paused!");
+                },
+              );
+            }}
+            loading={isUpdatingCampaign}
+            className="h-9 px-4"
+            icon={<MediaPause className="size-4" />}
+            variant="secondary"
+          />
+        );
+      case CampaignStatus.paused:
+        return (
+          <Button
+            text="Resume"
+            disabled={!!validationError}
+            disabledTooltip={validationError}
+            className="h-9 px-4"
+            icon={<MediaPlay className="size-4" />}
+            variant="secondary"
+            loading={isUpdatingCampaign}
+            onClick={async () => {
+              await updateCampaign(
+                {
+                  status: CampaignStatus.active,
+                },
+                () => {
+                  toast.success("Email campaign resumed!");
+                },
+              );
+            }}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <>
+      <div className="flex items-center gap-2">
+        {renderActionButton()}
+
+        <Popover
+          openPopover={openPopover}
+          setOpenPopover={setOpenPopover}
+          align="end"
+          content={
+            <Command tabIndex={0} loop className="focus:outline-none">
+              <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
+                <MenuItem
+                  as={Command.Item}
+                  icon={PaperPlane}
+                  disabled={!!validationError || isUpdatingCampaign}
+                  disabledTooltip={validationError}
+                  onSelect={() => {
+                    setOpenPopover(false);
+                    setShowSendEmailPreviewModal(true);
+                  }}
+                >
+                  Send preview
+                </MenuItem>
+
+                <MenuItem
+                  as={Command.Item}
+                  icon={Duplicate}
+                  disabled={isUpdatingCampaign}
+                  onSelect={() => {
+                    setOpenPopover(false);
+                    setShowDeleteCampaignModal(true);
+                  }}
+                >
+                  Duplicate
+                </MenuItem>
+
+                <MenuItem
+                  as={Command.Item}
+                  icon={Trash}
+                  disabled={isUpdatingCampaign}
+                  variant="danger"
+                  onSelect={() => {
+                    setOpenPopover(false);
+                    setShowDeleteCampaignModal(true);
+                  }}
+                >
+                  Delete
+                </MenuItem>
+              </Command.List>
+            </Command>
+          }
+        >
+          <Button
+            onClick={() => setOpenPopover(!openPopover)}
+            variant="secondary"
+            className="h-9 w-auto px-1.5"
+            icon={<ThreeDots className="size-5 text-neutral-500" />}
+          />
+        </Popover>
+      </div>
+
+      <SendEmailPreviewModal />
+      <DeleteCampaignModal />
+    </>
+  );
+}

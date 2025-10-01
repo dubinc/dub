@@ -16,8 +16,8 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
+import { CampaignActions } from "./campaign-actions";
 import { CampaignAutomationLogic } from "./campaign-automation-logic";
-import { CampaignEditorControls } from "./campaign-editor-controls";
 
 const inputClassName =
   "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
@@ -131,7 +131,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             </div>
           </div>
         }
-        controls={<CampaignEditorControls campaign={campaign} />}
+        controls={<CampaignActions campaign={campaign} />}
       >
         <PageWidthWrapper className="mb-8 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">

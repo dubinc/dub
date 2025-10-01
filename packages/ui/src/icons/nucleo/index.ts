@@ -157,6 +157,8 @@ export * from "./lock-fill";
 export * from "./magnifier";
 export * from "./map-position";
 export * from "./marketing-target";
+export * from "./media-pause";
+export * from "./media-play";
 export * from "./megaphone";
 export * from "./menu3";
 export * from "./message-smile";

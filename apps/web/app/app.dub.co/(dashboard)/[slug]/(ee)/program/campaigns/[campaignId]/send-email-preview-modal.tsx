@@ -1,6 +1,7 @@
 "use client";
 
 import { sendCampaignPreviewEmail } from "@/lib/actions/campaigns/send-campaign-preview-email";
+import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
@@ -19,10 +20,11 @@ function SendEmailPreviewModal({
   setShowModal,
   campaignId,
 }: SendEmailPreviewModalProps) {
+  const { user } = useUser();
   const { isMobile } = useMediaQuery();
   const { id: workspaceId } = useWorkspace();
   const { watch } = useCampaignFormContext();
-  const [emailAddresses, setEmailAddresses] = useState("kiran@dub.co");
+  const [emailAddresses, setEmailAddresses] = useState(user?.email ?? "");
 
   const [subject, body] = watch(["subject", "body"]);
 
