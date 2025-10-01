@@ -47,12 +47,6 @@ const inputClassName =
 export function ProgramCampaignPageClient() {
   const { campaignId } = useParams<{ campaignId: string }>();
 
-  if (campaignId !== "new") {
-    return <div>WIP</div>;
-  }
-
-  // TODO: Load existing email data
-
   return <ProgramEmailForm />;
 }
 

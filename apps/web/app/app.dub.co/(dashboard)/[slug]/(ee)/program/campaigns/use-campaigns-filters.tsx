@@ -3,6 +3,7 @@ import { CampaignStatus, CampaignType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, Sliders } from "@dub/ui/icons";
 import { nFormatter } from "@dub/utils";
+import { cn } from "@dub/utils/src";
 import { useMemo } from "react";
 import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
 import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
@@ -51,7 +52,9 @@ export function useCampaignsFilters() {
             return {
               label,
               value: status,
-              icon: <Icon className={iconClassName} />,
+              icon: (
+                <Icon className={cn(iconClassName, "size-4 bg-transparent")} />
+              ),
               right: nFormatter(_count || 0, { full: true }),
             };
           }) ?? [],
@@ -71,7 +74,9 @@ export function useCampaignsFilters() {
             return {
               label,
               value: type,
-              icon: <Icon className={iconClassName} />,
+              icon: (
+                <Icon className={cn(iconClassName, "size-4 bg-transparent")} />
+              ),
               right: nFormatter(_count || 0, { full: true }),
             };
           }) ?? [],

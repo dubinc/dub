@@ -16,7 +16,6 @@ import {
 import { cn, fetcher, formatDateTime, formatDateTimeSmart } from "@dub/utils";
 import { Mail } from "lucide-react";
 import useSWR from "swr";
-
 import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
 import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
 import { CreateCampaignButton } from "./create-campaign-button";
@@ -63,21 +62,18 @@ export function CampaignsTable() {
         enableHiding: false,
         minSize: 200,
         cell: ({ row }) => {
-          const {
-            icon: Icon,
-            iconClassName,
-            className,
-          } = CAMPAIGN_TYPE_BADGES[row.original.type];
+          const { icon: Icon, iconClassName } =
+            CAMPAIGN_TYPE_BADGES[row.original.type];
 
           return (
             <div className="flex items-center gap-2">
               <div
                 className={cn(
                   "flex size-6 items-center justify-center rounded-md",
-                  className,
+                  iconClassName,
                 )}
               >
-                <Icon className={cn("size-3.5", iconClassName)} />
+                <Icon className="size-3.5" />
               </div>
               <span className="text-content-emphasis text-sm font-medium">
                 {row.original.name}

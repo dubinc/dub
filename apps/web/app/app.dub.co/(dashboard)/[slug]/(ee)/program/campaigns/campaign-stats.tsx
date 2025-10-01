@@ -67,7 +67,7 @@ export function CampaignStats() {
         active={searchParamsObj.type == undefined}
       />
       <StatsFilter
-        label={CAMPAIGN_TYPE_BADGES.marketing.label}
+        {...CAMPAIGN_TYPE_BADGES.marketing}
         href={
           queryParams({
             set: { type: "marketing" },
@@ -75,13 +75,11 @@ export function CampaignStats() {
           }) as string
         }
         count={marketingCount}
-        icon={CAMPAIGN_TYPE_BADGES.marketing.icon}
-        iconClassName={CAMPAIGN_TYPE_BADGES.marketing.iconClassName}
         error={!!error}
         active={searchParamsObj.type === "marketing"}
       />
       <StatsFilter
-        label={CAMPAIGN_TYPE_BADGES.transactional.label}
+        {...CAMPAIGN_TYPE_BADGES.transactional}
         href={
           queryParams({
             set: { type: "transactional" },
@@ -89,8 +87,6 @@ export function CampaignStats() {
           }) as string
         }
         count={transactionalCount}
-        icon={CAMPAIGN_TYPE_BADGES.transactional.icon}
-        iconClassName={CAMPAIGN_TYPE_BADGES.transactional.iconClassName}
         error={!!error}
         active={searchParamsObj.type === "transactional"}
       />
