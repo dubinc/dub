@@ -60,12 +60,12 @@ export function PartnerApplicationDetails({
     </>
   );
 
-  return <div className="grid grid-cols-1 gap-5 text-xs">{content}</div>;
+  return <div className="grid grid-cols-1 gap-5 text-sm">{content}</div>;
 }
 
 function PartnerApplicationDetailsSkeleton() {
   return (
-    <div className="grid grid-cols-1 gap-5 text-xs">
+    <div className="grid grid-cols-1 gap-5">
       {[...Array(3)].map((_, idx) => (
         <div key={idx}>
           <h4 className="text-content-emphasis font-semibold" />
