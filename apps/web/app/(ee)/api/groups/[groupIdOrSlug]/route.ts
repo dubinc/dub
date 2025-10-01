@@ -324,7 +324,7 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 45. Delete the group
+      // 5. Delete the group
       await tx.partnerGroup.delete({
         where: {
           id: group.id,
