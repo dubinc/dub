@@ -7,7 +7,10 @@ import { QrCardType } from "@/ui/qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "@/ui/shared/five-stars.component";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
-import { trackClientEvents } from "core/integration/analytic";
+import {
+  setPeopleAnalyticOnce,
+  trackClientEvents,
+} from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ICustomerBody } from "core/integration/payment/config";
@@ -37,7 +40,6 @@ interface IQRPreviewModalProps {
   setShowQRPreviewModal: Dispatch<SetStateAction<boolean>>;
   firstQr: QrStorageData | null;
   user: ICustomerBody | null;
-  isPaidTraffic: boolean;
 }
 
 const FEATURES = [
@@ -57,7 +59,6 @@ function TrialOfferWithQRPreview({
   setShowQRPreviewModal,
   user,
   firstQr,
-  isPaidTraffic,
 }: IQRPreviewModalProps) {
   const { isMobile } = useMediaQuery();
 
@@ -69,7 +70,6 @@ function TrialOfferWithQRPreview({
       setShowQRPreviewModal={setShowQRPreviewModal}
       user={user}
       firstQr={firstQr}
-      isPaidTraffic={isPaidTraffic}
     />
   );
 
@@ -88,6 +88,14 @@ function TrialOfferWithQRPreview({
       });
     }
   }, [showTrialOfferModal]);
+
+  useEffect(() => {
+    if (user?.isPaidUser) {
+      setPeopleAnalyticOnce({ acquisition_type: "paid" });
+    } else {
+      setPeopleAnalyticOnce({ acquisition_type: null });
+    }
+  }, []);
 
   return (
     <>
@@ -118,7 +126,6 @@ function TrialOfferWithQRPreviewInner({
   setShowQRPreviewModal,
   user,
   firstQr,
-  isPaidTraffic,
 }: Omit<IQRPreviewModalProps, "showTrialOfferModal">) {
   const { isMobile } = useMediaQuery();
 
@@ -126,6 +133,8 @@ function TrialOfferWithQRPreviewInner({
   const currentQrTypeInfo = QR_TYPES.find(
     (item) => item.id === firstQr?.qrType,
   )!;
+
+  const isPaidTraffic = user?.isPaidUser || false;
 
   const onSubcriptionCreated = () => {
     trackClientEvents({
@@ -266,9 +275,8 @@ function TrialOfferWithQRPreviewInner({
 export function useTrialOfferWithQRPreviewModal(data: {
   firstQr: QrStorageData | null;
   user: ICustomerBody | null;
-  isPaidTraffic: boolean;
 }) {
-  const { firstQr, user, isPaidTraffic } = data;
+  const { firstQr, user } = data;
   const [showTrialOfferModal, setShowTrialOfferModal] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -298,13 +306,12 @@ export function useTrialOfferWithQRPreviewModal(data: {
           showTrialOfferModal={showTrialOfferModal}
           setShowTrialOfferModal={setShowTrialOfferModal}
           setShowQRPreviewModal={setShowQRPreviewModal}
-          isPaidTraffic={isPaidTraffic}
         />
 
         <QRPreviewModal />
       </>
     );
-  }, [showTrialOfferModal, QRPreviewModal, isPaidTraffic]);
+  }, [showTrialOfferModal, QRPreviewModal]);
 
   return useMemo(
     () => ({
