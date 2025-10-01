@@ -141,10 +141,10 @@ export const updateGroupBrandingAction = authActionClient
         );
 
         if (updatedGroup.slug === DEFAULT_PARTNER_GROUP.slug) {
-          console.log(
-            `Default ${landerDataInput ? "lander" : "application form"} updated, updating other groups (that don't have a custom data)...`,
-          );
           if (landerDataInput) {
+            console.log(
+              "Default lander data updated, updating other groups (that don't have a custom data)...",
+            );
             const updatedGroups = await prisma.partnerGroup.updateMany({
               where: {
                 programId,
@@ -155,9 +155,14 @@ export const updateGroupBrandingAction = authActionClient
               },
             });
             console.log(
-              `Updated data for ${updatedGroups.count} other groups based on default group lander data`,
+              `Updated data for ${updatedGroups.count} other groups based on default group lander data...`,
             );
-          } else if (applicationFormDataInput) {
+          }
+
+          if (applicationFormDataInput) {
+            console.log(
+              "Default application form data updated, updating other groups (that don't have a custom data)...",
+            );
             const updatedGroups = await prisma.partnerGroup.updateMany({
               where: {
                 programId,
