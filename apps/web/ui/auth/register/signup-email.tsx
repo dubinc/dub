@@ -55,7 +55,7 @@ export const SignUpEmail = ({
       trackClientEvents({
         event: EAnalyticEvents.AUTH_SUCCESS,
         params: {
-          page_name: "profile",
+          page_name: "dashboard",
           auth_type: "signup",
           auth_method: "email",
           auth_origin: qrDataToCreate ? "qr" : "none",

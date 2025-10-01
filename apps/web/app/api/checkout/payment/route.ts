@@ -8,12 +8,13 @@ import {
 } from "core/api/user/payment/payment.interface.ts";
 import { getSubscriptionRenewalAction } from "core/constants/subscription-plans-weight.ts";
 import {
+  getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
   TPaymentPlan,
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
-import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
+import { getUserCookieService } from "core/services/cookie/user-session.service";
 import { getUserIp } from "core/util/user-ip.util.ts";
 import { v4 as uuidV4 } from "uuid";
 
@@ -63,6 +64,12 @@ export const POST = withSession(
       user!.id! || cookieStore.get(ECookieArg.SESSION_ID)!.value!,
     );
 
+    const { user: cookieUser } = await getUserCookieService();
+    const { priceForPay } = getPaymentPlanPrice({
+      paymentPlan: body.paymentPlan,
+      user: cookieUser,
+    });
+
     const metadata: { [key: string]: string | number | null } = {
       ...body.metadata,
 
@@ -71,12 +78,17 @@ export const POST = withSession(
 
       //**** for analytics ****//
       email: user.email || null,
-      flow_type: "internal",
+      flow_type: "upgrade",
       locale: "en",
       mixpanel_user_id:
         user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
       // plan_name: paymentData?.paymentInfo?.subscriptionPlanCode as string,
       plan_name: body.paymentPlan,
+      plan_price: priceForPay,
+      charge_period_days: getChargePeriodDaysIdByPlan({
+        paymentPlan: body.paymentPlan,
+        user: cookieUser!,
+      }),
       payment_subtype: "SUBSCRIPTION",
       billing_action:
         getSubscriptionRenewalAction(
@@ -94,12 +106,6 @@ export const POST = withSession(
       ...subProcessorData,
       //**** fields for subscription system ****//
     };
-
-    const { user: cookieUser } = await getUserCookieService();
-    const { priceForPay } = getPaymentPlanPrice({
-      paymentPlan: body.paymentPlan,
-      user: cookieUser,
-    });
 
     try {
       const { id, status } = await paymentService.createClientOneTimePayment({

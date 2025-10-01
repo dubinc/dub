@@ -3,28 +3,21 @@ import { Check } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src";
 import { Card, Flex, Heading, Text } from "@radix-ui/themes";
 import { FC } from "react";
+import { PricingPlan } from '../config';
 
 interface IPricingPlanCardProps {
-  badge: string;
-  title: string;
-  plan: string;
-  planFeatures: string[];
+  plan: PricingPlan;
   handleScrollButtonClick: (type: "1" | "2") => void;
 }
 export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
-  badge,
-  title,
-  plan,
-  planFeatures,
+  plan: { badge, title, plan, planFeatures, withButton },
   handleScrollButtonClick,
 }) => {
-  const isFree = plan === "Free";
-
   return (
     <Card
       className={cn(
         "border-border-100 relative flex min-w-[260px] shrink-0 flex-col items-stretch justify-between gap-4 border p-3 lg:gap-6",
-        isFree && "!border-primary !bg-primary-100",
+        withButton && "!border-primary !bg-primary-100",
       )}
     >
       <Flex direction="column" align="start" justify="start" gap="3">
@@ -41,7 +34,7 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
           <Badge
             className={cn(
               "bg-primary-100 text-primary min-w-[100px] items-center justify-center px-2.5 py-1.5 text-center text-sm font-semibold",
-              isFree && "bg-primary border-primary text-white",
+              withButton && "bg-primary border-primary text-white",
             )}
           >
             {badge}
@@ -65,9 +58,9 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
           ))}
         </ul>
       </Flex>
-      {isFree && (
+      {withButton && (
         <Button
-          text="Start Free"
+          text="Start Trial"
           className="mt-4"
           onClick={() => handleScrollButtonClick("2")}
         />

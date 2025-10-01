@@ -15,7 +15,7 @@ import {
   PUBLIC_ROUTES,
 } from "./app/[domain]/(public)/constants/types.ts";
 import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
-import { getUserCountry } from './lib/middleware/utils/get-user-country.ts';
+import { getUserCountry } from "./lib/middleware/utils/get-user-country.ts";
 
 export const config = {
   matcher: [
@@ -73,6 +73,19 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
         secure: true,
         sameSite: "lax",
       });
+    }
+
+    // Set source cookie if needed
+    if (sessionInit.needsSourceCookie) {
+      response.cookies.set(
+        sessionInit.sourceCookieName,
+        sessionInit.sourceCookieValue,
+        {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+        },
+      );
     }
 
     return response;

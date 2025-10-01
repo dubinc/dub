@@ -8,7 +8,7 @@ import {
   convertQrStorageDataToBuilder,
 } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
-import { useToastWithUndo } from "@dub/ui";
+import { useRouterStuff, useToastWithUndo } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
@@ -22,6 +22,7 @@ export const useQrOperations = () => {
   const { id: workspaceId } = useWorkspace();
   const { user } = useUserCache();
   const toastWithUndo = useToastWithUndo();
+  const { queryParams } = useRouterStuff();
 
   const createQr = useCallback(
     async (qrBuilderData: QRBuilderData) => {
@@ -52,6 +53,12 @@ export const useQrOperations = () => {
           const responseData = await res.json();
           const createdQrId = responseData?.createdQr?.id;
 
+          queryParams({
+            set: {
+              qrId: createdQrId,
+            },
+          });
+
           // Track QR created event
           const trackingParams = createQRTrackingParams(
             qrBuilderData,
@@ -61,7 +68,7 @@ export const useQrOperations = () => {
             event: EAnalyticEvents.QR_CREATED,
             params: {
               event_category: "Authorized",
-              page_name: "profile",
+              page_name: "dashboard",
               email: user?.email,
               link_url: responseData.createdLink?.shortLink,
               link_id: responseData.createdLink?.id,
@@ -84,7 +91,7 @@ export const useQrOperations = () => {
         return false;
       }
     },
-    [workspaceId, slug, user],
+    [workspaceId, slug, user, queryParams],
   );
 
   const updateQrWithOriginal = useCallback(
@@ -139,7 +146,7 @@ export const useQrOperations = () => {
             event: EAnalyticEvents.QR_UPDATED,
             params: {
               event_category: "Authorized",
-              page_name: "profile",
+              page_name: "dashboard",
               email: user?.email,
               is_activated: false,
               is_deactivated: false,
@@ -213,7 +220,7 @@ export const useQrOperations = () => {
             event: EAnalyticEvents.QR_UPDATED,
             params: {
               event_category: "Authorized",
-              page_name: "profile",
+              page_name: "dashboard",
               email: user?.email,
               ...trackingParams,
               is_activated: !archive,
@@ -266,7 +273,7 @@ export const useQrOperations = () => {
             event: EAnalyticEvents.QR_UPDATED,
             params: {
               event_category: "Authorized",
-              page_name: "profile",
+              page_name: "dashboard",
               email: user?.email,
               ...trackingParams,
               is_activated: false,

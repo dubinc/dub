@@ -51,7 +51,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
           event_category: "Authorized",
           email: user.email,
           plan_name: plan.paymentPlan,
-          page_name: "account",
+          page_name: "profile",
           content_group: "plans",
         },
         sessionId: user.id,

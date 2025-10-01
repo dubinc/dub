@@ -9,8 +9,13 @@ import {
   getSubscriptionRenewalAction,
   subscriptionPlansWeight,
 } from "core/constants/subscription-plans-weight.ts";
+import { setPeopleAnalytic } from "core/integration/analytic";
 import { pollPaymentStatus } from "core/integration/payment/client/services/payment-status.service.ts";
-import { ICustomerBody, TPaymentPlan } from "core/integration/payment/config";
+import {
+  getChargePeriodDaysIdByPlan,
+  ICustomerBody,
+  TPaymentPlan,
+} from "core/integration/payment/config";
 import { IGetPrimerClientPaymentInfoRes } from "core/integration/payment/server";
 import { generateTrackingUpsellEvent } from "core/services/events/upsell-events.service.ts";
 import { useSession } from "next-auth/react";
@@ -134,6 +139,16 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
           toast.success(
             `The plan ${getSubscriptionRenewalAction(selectedPlan.paymentPlan, currentSubscriptionPlan as TPaymentPlan)} was successful!`,
           );
+
+          const chargePeriodDays = getChargePeriodDaysIdByPlan({
+            paymentPlan: selectedPlan.paymentPlan,
+            user,
+          });
+
+          setPeopleAnalytic({
+            plan_name: selectedPlan.paymentPlan,
+            charge_period_days: chargePeriodDays,
+          });
 
           setIsTrialOver(false);
           await updateSession();

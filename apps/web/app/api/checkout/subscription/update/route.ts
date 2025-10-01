@@ -21,7 +21,7 @@ import {
   updateUserCookieService,
 } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
-import { format } from "date-fns";
+import { format, differenceInCalendarDays } from "date-fns";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -135,8 +135,8 @@ export const POST = withSession(
       await paymentService.updateClientSubscription(
         paymentData?.paymentInfo?.subscriptionId || "",
         {
-          noSubtract: true,
-          resetNextBillingDate: false,
+          appendPaidPeriod: true,
+          resetNextBillingDate: true,
           plan: {
             currencyCode: paymentData?.currency?.currencyForPay || "",
             trialPrice: 0,
@@ -157,6 +157,8 @@ export const POST = withSession(
             mixpanel_user_id:
               user?.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
             plan_name: body.paymentPlan,
+            plan_price: priceForPay,
+            charge_period_days: chargePeriodDays,
             payment_subtype: "SUBSCRIPTION",
             billing_action: "rebill",
             //**** for analytics ****//
@@ -181,6 +183,13 @@ export const POST = withSession(
       ) as IGetSystemUserDataRes["subscriptions"][0];
 
       console.log("sub data after update", newSubData);
+
+      const carryoverDays = subscription?.nextBillingDate
+        ? differenceInCalendarDays(
+            new Date(subscription.nextBillingDate),
+            new Date(),
+          )
+        : 0;
 
       await Promise.all([
         prisma.user.update({
@@ -218,6 +227,7 @@ export const POST = withSession(
             ),
             new_plan: titlesByPlans[body.paymentPlan],
             current_plan: titlesByPlans[prevPlan],
+            carryover_days: String(carryoverDays),
           },
           customerId: user?.id,
         }),

@@ -44,14 +44,14 @@ const SettingsPageClient: FC<Readonly<ISettingsPageClientProps>> = ({
               trackClientEvents({
                 event: EAnalyticEvents.ACCOUNT_UPDATED,
                 params: {
-                  event_category: "nonAuthorized",
-                  page_name: "account",
-                  content_group: "general",
+                  page_name: "profile",
+                  content_group: "account",
                   email: session?.user?.email,
                   nameChanged: true,
                   emailChanged: false,
                   avatarChanged: false,
                   passwordChanged: false,
+                  event_category: "Authorized",
                 },
                 sessionId,
               });

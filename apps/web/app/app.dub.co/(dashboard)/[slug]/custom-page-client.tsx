@@ -13,6 +13,8 @@ import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.t
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Button, MaxWidthWrapper } from "@dub/ui";
 import { ShieldAlert } from "@dub/ui/icons";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { ICustomerBody } from "core/integration/payment/config";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -34,7 +36,11 @@ export default function WorkspaceQRsClient({
   return (
     <UserProvider user={user}>
       <QrCodesDisplayProvider>
-        <WorkspaceQRs initialQrs={initialQrs} featuresAccess={featuresAccess} />
+        <WorkspaceQRs
+          initialQrs={initialQrs}
+          featuresAccess={featuresAccess}
+          user={user}
+        />
 
         <TrialOfferWithQRPreviewWrapper
           initialQrs={initialQrs}
@@ -49,9 +55,11 @@ export default function WorkspaceQRsClient({
 function WorkspaceQRs({
   initialQrs,
   featuresAccess,
+  user,
 }: {
   initialQrs: QrStorageData[];
   featuresAccess: FeaturesAccess;
+  user: Session["user"];
 }) {
   const router = useRouter();
   const { isValidating } = useQrs({}, {}, true); // listenOnly mode
@@ -135,6 +143,7 @@ function WorkspaceQRs({
           CreateQrCodeButton={featuresAccess ? CreateQRButton : () => <></>}
           featuresAccess={featuresAccess.featuresAccess}
           initialQrs={initialQrs}
+          user={user}
         />
       </div>
     </>
@@ -160,11 +169,23 @@ function TrialOfferWithQRPreviewWrapper({
     });
 
   useEffect(() => {
-    setShowTrialOfferModal(
-      !isSubscribed,
+    if (!isSubscribed) {
       // TODO: uncomment this when we will prepare subscription for old users
       // && !featuresAccess.subscriptionId,
-    );
+
+      setShowTrialOfferModal(true);
+    } else {
+      trackClientEvents({
+        event: EAnalyticEvents.PAGE_VIEWED,
+        params: {
+          page_name: "dashboard",
+          content_group: "my_qr_codes",
+          event_category: "Authorized",
+          email: user?.email,
+        },
+        sessionId: user?.id,
+      });
+    }
   }, [isSubscribed]);
 
   return <TrialOfferWithQRPreviewModal />;

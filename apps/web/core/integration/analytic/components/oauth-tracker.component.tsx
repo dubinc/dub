@@ -17,7 +17,7 @@ export const OauthTrackerComponent: FC<Readonly<IOauthTrackerProps>> = ({
     trackClientEvents({
       event: EAnalyticEvents.AUTH_SUCCESS,
       params: {
-        page_name: "profile",
+        page_name: "dashboard",
         auth_type: flow === "signup" ? "signup" : "login",
         auth_method: provider,
         ...(flow === "signup" ? { auth_origin: signupOrigin ?? "none" } : {}),

@@ -19,8 +19,12 @@ const SettingsPage: NextPage = async () => {
       <SettingsPageClient sessionId={authUser.id!} />
       <PageViewedTrackerComponent
         sessionId={authUser.id!}
-        pageName="settings"
-        params={{ event_category: "Authorized", email: authUser?.email }}
+        pageName="profile"
+        params={{
+          event_category: "Authorized",
+          email: authUser?.email,
+          content_group: "account",
+        }}
       />
     </>
   );

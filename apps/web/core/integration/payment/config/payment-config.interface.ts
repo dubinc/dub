@@ -4,6 +4,7 @@ export interface ICustomerBody {
   iat?: number;
   email?: string;
   toxic?: boolean;
+  isPaidUser?: boolean;
   currency?: {
     countryCode?: string;
     currencyCode?: string;

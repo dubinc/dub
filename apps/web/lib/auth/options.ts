@@ -34,7 +34,6 @@ import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-univer
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
-import { createAutoLoginURL } from "./jwt-signin";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -320,6 +319,7 @@ export const authOptions: NextAuthOptions = {
             image: true,
             invalidLoginAttempts: true,
             emailVerified: true,
+            source: true,
           },
         });
 
@@ -365,6 +365,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
+          source: user.source,
         };
       },
     }),
@@ -579,7 +580,6 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
-      console.log("events signIn message: ", JSON.stringify(message));
       const cookieStore = cookies();
 
       const { user: userFromCookie } = await getUserCookieService();

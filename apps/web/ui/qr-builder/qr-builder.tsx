@@ -45,6 +45,7 @@ interface IQRBuilderProps {
   isEdit?: boolean;
   initialStep?: number;
   typeToScrollTo?: EQRType | null;
+  sessionId?: string;
   handleResetTypeToScrollTo?: () => void;
 }
 
@@ -58,6 +59,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
   forwardRef(
     (
       {
+        sessionId,
         props,
         homepageDemo,
         handleSaveQR,
@@ -222,7 +224,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
               ? { email: user?.email, event_category: "Authorized" }
               : {}),
           },
-          sessionId: user?.id as string,
+          sessionId,
         });
 
         setSelectedQRType(type);
@@ -248,7 +250,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           trackClientEvents({
             event: EAnalyticEvents.PAGE_CLICKED,
             params: {
-              page_name: homepageDemo ? "landing" : "profile",
+              page_name: homepageDemo ? "landing" : "dashboard",
               content_value: homepageDemo
                 ? "download"
                 : isEdit
@@ -260,7 +262,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 ? { email: user?.email, event_category: "Authorized" }
                 : {}),
             },
-            sessionId: user?.id as string,
+            sessionId,
           });
 
           onSaveClick();
@@ -272,7 +274,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
           trackClientEvents({
             event: EAnalyticEvents.PAGE_CLICKED,
             params: {
-              page_name: homepageDemo ? "landing" : "profile",
+              page_name: homepageDemo ? "landing" : "dashboard",
               content_value: "continue",
               content_group: "complete_content",
               event_category: "nonAuthorized",
@@ -280,7 +282,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                 ? { email: user?.email, event_category: "Authorized" }
                 : {}),
             },
-            sessionId: user?.id as string,
+            sessionId,
           });
 
           handleNextStep();
@@ -485,7 +487,7 @@ export const QrBuilder: FC<IQRBuilderProps & { ref?: Ref<HTMLDivElement> }> =
                         !isMobile &&
                         !navigationButtonsInViewport && (
                           <QrTabsDownloadButton
-                            sessionId={user?.id as string}
+                            sessionId={sessionId}
                             onRegistrationClick={onSaveClick}
                             isQrDisabled={isQrDisabled}
                           />
