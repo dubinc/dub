@@ -43,7 +43,7 @@ const useProgramEmailFormContext = () =>
   useFormContext<UpdateCampaignFormData>();
 
 const inputClassName =
-  "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted";
+  "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
 
 const labelClassName = "text-sm font-medium text-content-muted";
 
