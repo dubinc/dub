@@ -20,7 +20,6 @@ Core class that handles stream operations:
 - `readAndProcessUpdates(options)`: Reads and aggregates click data from the stream
 - `readAndProcessProjectUpdates(options)`: Reads and aggregates project usage data from the stream
 - `getStreamInfo()`: Gets stream metadata for monitoring
-- `clearStream()`: Emergency cleanup (use with caution)
 
 ### Stream Instances
 

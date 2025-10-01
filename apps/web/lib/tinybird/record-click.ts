@@ -19,6 +19,7 @@ import {
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
+import { publishLinkClick } from "../upstash/redis-streams";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
@@ -181,19 +182,8 @@ export async function recordClick({
         // cache the recorded click for the corresponding IP address in Redis for 1 hour
         recordClickCache.set({ domain, key, ip, clickId }),
 
-        // increment the click count for the link (based on their ID)
-        // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
-        conn.execute(
-          "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
-          [linkId],
-        ),
-        // if the link has a destination URL, increment the usage count for the workspace
-        // and then we have a cron that will reset it at the start of new billing cycle
-        url &&
-          conn.execute(
-            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
-            [linkId],
-          ),
+        // Publish the click event to the click events stream
+        publishLinkClick({ linkId, timestamp: clickData.timestamp, url }),
       ]);
 
       // Find the rejected promises and log them

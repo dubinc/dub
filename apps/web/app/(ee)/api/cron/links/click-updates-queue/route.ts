@@ -44,6 +44,7 @@ export async function GET(req: Request) {
     const errors: any[] = [];
 
     for (const batch of batches) {
+      console.log("Processing batch:", JSON.stringify(batch, null, 2));
       try {
         // Execute all updates in the batch in parallel
         const batchPromises = batch.map(async (update) => {
