@@ -275,7 +275,7 @@ export function ProgramPartnersDirectoryPageClient() {
                         },
                         {
                           optimisticData: (data) =>
-                            data!.map((p) =>
+                            (data || partners).map((p) =>
                               p.id === partner.id
                                 ? {
                                     ...p,
@@ -286,14 +286,13 @@ export function ProgramPartnersDirectoryPageClient() {
                           populateCache: (
                             result: { starredAt: Date | null },
                             data,
-                          ) => {
-                            console.log("populateCache", { result, data });
-                            data!.map((p) =>
+                          ) =>
+                            (data || partners).map((p) =>
                               p.id === partner.id
                                 ? { ...p, starredAt: result.starredAt }
                                 : p,
-                            );
-                          },
+                            ),
+                          revalidate: false,
                         },
                       );
                     }}
