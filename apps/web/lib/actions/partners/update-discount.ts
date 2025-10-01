@@ -60,15 +60,6 @@ export const updateDiscountAction = authActionClient
         );
 
         await Promise.allSettled([
-          // shouldExpireCache
-          //   ? qstash.publishJSON({
-          //       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          //       body: {
-          //         groupId: partnerGroup?.id,
-          //       },
-          //     })
-          //   : Promise.resolve(),
-
           ...(shouldExpireCache
             ? [
                 qstash.publishJSON({

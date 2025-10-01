@@ -1,6 +1,6 @@
 import { ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { Prisma, ProgramApplication } from "@dub/prisma/client";
+import { ProgramApplication } from "@dub/prisma/client";
 import "dotenv-flow/config";
 import { v4 as uuid } from "uuid";
 
@@ -83,9 +83,6 @@ const defaultApplicationFormDataWithValues = (
 
 async function main() {
   const programs = await prisma.program.findMany({
-    where: {
-      slug: "acme",
-    },
     include: {
       groups: true,
     },
@@ -116,11 +113,10 @@ async function main() {
     const applications = await prisma.programApplication.findMany({
       where: {
         programId: program.id,
-        formData: {
-          equals: Prisma.JsonNull,
-        },
       },
     });
+
+    console.log(`Found ${applications.length} applications to update`);
 
     for (const application of applications) {
       await prisma.programApplication.update({

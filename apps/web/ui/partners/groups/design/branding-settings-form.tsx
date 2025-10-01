@@ -5,7 +5,6 @@ import { ProgramColorPicker } from "@/ui/partners/program-color-picker";
 import { FileUpload, InfoTooltip } from "@dub/ui";
 import { Plus } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src";
-import { flightRouterStateSchema } from "next/dist/server/app-render/types";
 import Link from "next/link";
 import { ReactNode, useId } from "react";
 import { Controller } from "react-hook-form";
@@ -46,7 +45,6 @@ export function BrandingSettingsForm() {
               <Controller
                 control={control}
                 name="logo"
-                rules={{ required: flightRouterStateSchema }}
                 render={({ field }) => (
                   <FileUpload
                     id={id}

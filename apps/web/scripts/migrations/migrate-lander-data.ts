@@ -5,9 +5,6 @@ import "dotenv-flow/config";
 
 async function main() {
   const programs = await prisma.program.findMany({
-    where: {
-      slug: "acme",
-    },
     include: {
       groups: true,
     },

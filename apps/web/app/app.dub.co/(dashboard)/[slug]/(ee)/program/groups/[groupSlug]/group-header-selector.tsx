@@ -95,11 +95,8 @@ export function GroupHeaderSelector({
         return;
       }
 
-      console.log(`Selected option: ${option.value}`);
-
       const group = getGroupById(option.value);
 
-      console.log(`Selected group: ${group}`);
       if (!group) {
         return;
       }

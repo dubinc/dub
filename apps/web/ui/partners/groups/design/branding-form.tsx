@@ -35,9 +35,7 @@ import {
 } from "./branding-context-provider";
 import { BrandingSettingsForm } from "./branding-settings-form";
 import { ApplicationPreview } from "./previews/application-preview";
-import { EmbedPreview } from "./previews/embed-preview";
 import { LanderPreview } from "./previews/lander-preview";
-import { PortalPreview } from "./previews/portal-preview";
 
 export type BrandingFormData = {
   applicationFormData: ProgramApplicationFormData;
@@ -97,16 +95,16 @@ const PREVIEW_TABS = [
     label: "Application form",
     component: ApplicationPreview,
   },
-  {
-    value: "portal",
-    label: "Partner portal",
-    component: PortalPreview,
-  },
-  {
-    value: "embed",
-    label: "Referral embed",
-    component: EmbedPreview,
-  },
+  // {
+  //   value: "portal",
+  //   label: "Partner portal",
+  //   component: PortalPreview,
+  // },
+  // {
+  //   value: "embed",
+  //   label: "Referral embed",
+  //   component: EmbedPreview,
+  // },
 ];
 
 const defaultApplicationFormData = (
@@ -260,7 +258,7 @@ function BrandingFormInner({
               <ToggleGroup
                 className="rounded-lg bg-neutral-50 p-0.5"
                 indicatorClassName="rounded-md bg-white"
-                optionClassName="text-xs py-1 px-2.5 normal-case"
+                optionClassName="py-1 normal-case"
                 options={PREVIEW_TABS}
                 selected={previewTab.value}
                 selectAction={(value) => {
