@@ -14,7 +14,7 @@ import { useMessagesContext } from "@/ui/messages/messages-context";
 import { MessagesPanel } from "@/ui/messages/messages-panel";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { ProgramHelpLinks } from "@/ui/partners/program-help-links";
-import { ProgramRewardList } from "@/ui/partners/program-reward-list";
+import { ProgramRewardsPanel } from "@/ui/partners/program-rewards-panel";
 import { X } from "@/ui/shared/icons";
 import { Button, Grid, useCopyToClipboard, useMediaQuery } from "@dub/ui";
 import {
@@ -137,7 +137,7 @@ export function PartnerMessagesProgramPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        {["rejected", "banned"].includes(programEnrollment?.status ?? "") ||
+        {["banned", "rejected"].includes(programEnrollment?.status ?? "") ||
         programEnrollment?.program?.messagingEnabledAt === null ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />
@@ -323,9 +323,9 @@ function ProgramInfoPanel({
           <img
             src={program.logo || `${OG_AVATAR_URL}${program.name}`}
             alt={`${program.name} logo`}
-            className="size-12 rounded-full"
+            className="size-10 rounded-full"
           />
-          <div>
+          <div className="flex flex-col">
             <span className="text-content-emphasis block truncate text-lg font-semibold">
               {program.name}
             </span>
@@ -338,7 +338,7 @@ function ProgramInfoPanel({
 
       {/* Referral link */}
       {programEnrollment.links && programEnrollment.links.length > 0 && (
-        <div className="border-border-subtle border-b p-6">
+        <div className="pl-6 pr-6 pt-7">
           <div className="flex items-end justify-between">
             <h3 className="text-content-emphasis text-sm font-semibold">
               Referral link
@@ -352,23 +352,31 @@ function ProgramInfoPanel({
             </Link>
           </div>
 
-          <input
-            type="text"
-            readOnly
-            value={getPrettyUrl(partnerLink)}
-            className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default mt-2 block h-10 w-full rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
-          />
-
-          <Button
-            icon={
-              <div className="relative size-4">
+          <div className="relative mt-2">
+            <input
+              type="text"
+              readOnly
+              value={getPrettyUrl(partnerLink)}
+              className="text-content-default focus:border-border-emphasis bg-bg-default block h-11 w-full rounded-xl border border-neutral-200 pl-3 pr-12 text-sm focus:outline-none focus:ring-neutral-500"
+            />
+            {/* Gradient fade overlay */}
+            <div className="pointer-events-none absolute right-12 top-1 h-8 w-10 bg-gradient-to-r from-transparent to-white" />
+            <button
+              type="button"
+              onClick={() => {
+                copyToClipboard(partnerLink);
+                toast.success("Link copied");
+              }}
+              className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-lg bg-neutral-900 text-white transition-colors hover:bg-gray-800"
+            >
+              <div className="relative size-3">
                 <div
                   className={cn(
                     "absolute inset-0 transition-[transform,opacity]",
                     copied && "translate-y-1 opacity-0",
                   )}
                 >
-                  <Copy className="size-4" />
+                  <Copy className="size-3" />
                 </div>
                 <div
                   className={cn(
@@ -376,34 +384,23 @@ function ProgramInfoPanel({
                     !copied && "translate-y-1 opacity-0",
                   )}
                 >
-                  <Check className="size-4" />
+                  <Check className="size-3" />
                 </div>
               </div>
-            }
-            text={copied ? "Copied link" : "Copy link"}
-            className="mt-3 h-8 rounded-lg"
-            onClick={() => copyToClipboard(partnerLink)}
-          />
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Rewards */}
-      <div className="border-border-subtle border-b p-6">
-        <h3 className="text-content-emphasis text-sm font-semibold">Rewards</h3>
-        <ProgramRewardList
-          rewards={programEnrollment.rewards ?? []}
-          discount={programEnrollment.discount}
-          className="mt-2"
-        />
-      </div>
-
       {/* Stats */}
-      <div className="border-border-subtle border-b p-6">
-        <h3 className="text-content-emphasis text-sm font-semibold">Stats</h3>
-        <div className="divide-border-subtle border-border-subtle mt-2 divide-y rounded-lg border">
+      <div className="pl-6 pr-6 pt-7">
+        <h3 className="text-content-emphasis text-sm font-semibold">
+          Performance
+        </h3>
+        <div className="divide-border-subtle border-border-subtle mt-2 divide-y rounded-xl border">
           <div className="divide-border-subtle grid grid-cols-3 divide-x">
             {["clicks", "leads", "sales"].map((event) => (
-              <div key={event} className="flex flex-col gap-1 p-3">
+              <div key={event} className="flex flex-col px-3 py-2.5">
                 <span className="text-content-subtle text-xs font-medium">
                   {capitalize(event)}
                 </span>
@@ -422,7 +419,7 @@ function ProgramInfoPanel({
               { label: "Revenue", value: statsTotals?.saleAmount },
               { label: "Earnings", value: programEnrollment.totalCommissions },
             ].map(({ label, value }) => (
-              <div key={label} className="flex flex-col gap-1 p-3">
+              <div key={label} className="flex flex-col px-3 py-2.5">
                 <span className="text-content-subtle text-xs font-medium">
                   {label}
                 </span>
@@ -439,12 +436,23 @@ function ProgramInfoPanel({
         </div>
       </div>
 
+      {/* Rewards */}
+      <div className="pl-6 pr-6 pt-7">
+        <h3 className="text-content-emphasis text-sm font-semibold">Rewards</h3>
+        <div className="mt-1">
+          <ProgramRewardsPanel
+            rewards={programEnrollment.rewards ?? []}
+            discount={programEnrollment.discount}
+          />
+        </div>
+      </div>
+
       {/* Help & support */}
-      <div className="border-border-subtle border-b p-6">
+      <div className="border-border-subtle pl-6 pr-6 pt-7">
         <h3 className="text-content-emphasis text-sm font-semibold">
           Help and support
         </h3>
-        <div className="border-border-subtle mt-2 rounded-lg border p-2">
+        <div className="mt-1">
           <ProgramHelpLinks />
         </div>
       </div>

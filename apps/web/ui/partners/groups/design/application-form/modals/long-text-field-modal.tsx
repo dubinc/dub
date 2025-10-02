@@ -308,8 +308,8 @@ export function LongTextFieldThumbnail() {
           y2="59"
           gradientUnits="userSpaceOnUse"
         >
-          <stop stop-color="white" />
-          <stop offset="1" stop-color="white" stop-opacity="0" />
+          <stop stopColor="white" />
+          <stop offset="1" stopColor="white" stopOpacity="0" />
         </linearGradient>
         <clipPath id="clip0_2001_4135">
           <rect width="168" height="100" rx="6" fill="white" />

@@ -10,10 +10,11 @@ export interface OAuthProviderConfig {
   authUrl: string;
   tokenUrl: string;
   redirectUri: string;
-  scopes: string;
+  scopes?: string;
   redisStatePrefix: string;
   tokenSchema: z.ZodSchema;
   bodyFormat: "form" | "json";
+  responseFormat?: "json" | "text";
   authorizationMethod: "header" | "body";
 }
 
@@ -26,7 +27,7 @@ export class OAuthProvider<T extends z.ZodSchema> {
   constructor(private provider: OAuthProviderConfig) {}
 
   // Generate the authorization URL for the OAuth provider
-  async generateAuthUrl(contextId: string) {
+  async generateAuthUrl(contextId: string | Record<string, string>) {
     const state = nanoid(16);
     await redis.set(`${this.provider.redisStatePrefix}:${state}`, contextId, {
       ex: 30 * 60,
@@ -35,7 +36,7 @@ export class OAuthProvider<T extends z.ZodSchema> {
     const searchParams = new URLSearchParams({
       client_id: this.provider.clientId,
       redirect_uri: this.provider.redirectUri,
-      scope: this.provider.scopes,
+      ...(this.provider.scopes ? { scope: this.provider.scopes } : {}),
       response_type: "code",
       state,
     });
@@ -44,15 +45,15 @@ export class OAuthProvider<T extends z.ZodSchema> {
   }
 
   // Exchange the authorization code for a token
-  async exchangeCodeForToken(request: Request): Promise<{
-    contextId: string;
+  async exchangeCodeForToken<K>(request: Request): Promise<{
+    contextId: K;
     token: z.infer<T>;
   }> {
     const { code, state } = codeExchangeSchema.parse(
       getSearchParams(request.url),
     );
 
-    const contextId = await redis.getdel<string>(
+    const contextId = await redis.get<K>(
       `${this.provider.redisStatePrefix}:${state}`,
     );
 
@@ -119,7 +120,10 @@ export class OAuthProvider<T extends z.ZodSchema> {
       body,
     });
 
-    const data = await response.json();
+    const responseFormat = this.provider.responseFormat || "json";
+
+    const data =
+      responseFormat === "json" ? await response.json() : await response.text();
 
     if (!response.ok) {
       console.error(`[${this.provider.name}] exchangeCodeForToken`, data);
@@ -152,16 +156,19 @@ export class OAuthProvider<T extends z.ZodSchema> {
       }),
     });
 
-    const result = await response.json();
+    const responseFormat = this.provider.responseFormat || "json";
+
+    const data =
+      responseFormat === "json" ? await response.json() : await response.text();
 
     if (!response.ok) {
-      console.error(`[${this.provider.name}] refreshToken`, result);
+      console.error(`[${this.provider.name}] refreshToken`, data);
 
       throw new Error(
         `[${this.provider.name}] Failed to refresh the access token. Please try again.`,
       );
     }
 
-    return this.provider.tokenSchema.parse(result);
+    return this.provider.tokenSchema.parse(data);
   }
 }

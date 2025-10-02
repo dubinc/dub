@@ -33,7 +33,7 @@ export const GET = async (req: Request) => {
     }
 
     const { token, contextId } =
-      await paypalOAuthProvider.exchangeCodeForToken(req);
+      await paypalOAuthProvider.exchangeCodeForToken<string>(req);
 
     await prisma.user.findUniqueOrThrow({
       where: {

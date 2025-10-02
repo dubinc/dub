@@ -746,14 +746,7 @@ function CreateCommissionSheetContent({
                             </div>
                           </div>
 
-                          <AnimatedSizeContainer
-                            height
-                            transition={{ ease: "easeInOut", duration: 0.2 }}
-                            className={!hasInvoiceId ? "hidden" : ""}
-                            style={{
-                              display: !hasInvoiceId ? "none" : "block",
-                            }}
-                          >
+                          <div>
                             <div className="flex items-center gap-4">
                               <Switch
                                 fn={setHasInvoiceId}
@@ -801,16 +794,9 @@ function CreateCommissionSheetContent({
                                 </div>
                               </div>
                             )}
-                          </AnimatedSizeContainer>
+                          </div>
 
-                          <AnimatedSizeContainer
-                            height
-                            transition={{ ease: "easeInOut", duration: 0.2 }}
-                            className={!hasProductId ? "hidden" : ""}
-                            style={{
-                              display: !hasProductId ? "none" : "block",
-                            }}
-                          >
+                          <div>
                             <div className="flex items-center gap-4">
                               <Switch
                                 fn={setHasProductId}
@@ -858,7 +844,7 @@ function CreateCommissionSheetContent({
                                 </div>
                               </div>
                             )}
-                          </AnimatedSizeContainer>
+                          </div>
                         </div>
                       ) : null)}
                   </div>

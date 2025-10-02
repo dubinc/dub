@@ -24,10 +24,10 @@ export const POST = withReferralsEmbedToken(
       .pick({ url: true, key: true })
       .parse(await parseRequestBody(req));
 
-    if (programEnrollment.status === "banned") {
+    if (["banned", "deactivated"].includes(programEnrollment.status)) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are banned from this program hence cannot create links.",
+        message: `You are ${programEnrollment.status} from this program hence cannot create links.`,
       });
     }
 
