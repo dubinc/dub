@@ -247,7 +247,6 @@ function BrandingFormInner({
   const isDefaultValueDirty = applicationFormDataDirty || landerDataDirty;
 
   const form = useForm<BrandingFormData>({
-    reValidateMode: "onChange",
     defaultValues: {
       logo: group.program?.logo ?? draft?.logo ?? null,
       wordmark: group.program?.wordmark ?? draft?.wordmark ?? null,
