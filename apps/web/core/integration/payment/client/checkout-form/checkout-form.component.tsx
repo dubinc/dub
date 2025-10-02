@@ -58,6 +58,7 @@ interface ICheckoutFormComponentProps {
   onPaymentAttempt?: () => void;
   cardPreferredFlow?: CardPreferredFlow;
   termsAndConditionsText?: ReactNode;
+  isPaidTraffic?: boolean;
 }
 
 // component
@@ -80,6 +81,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
     onPaymentAttempt,
     cardPreferredFlow = "DEDICATED_SCENE",
     termsAndConditionsText,
+    isPaidTraffic,
   } = props;
 
   const checkoutTriggeredRef = useRef(false);
@@ -449,17 +451,10 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
   }, [clientToken]);
 
   useEffect(() => {
-    const utmList = JSON.parse(localStorage.getItem("utmValues") || "{}");
-
-    if (
-      utmList &&
-      utmList.utm_source &&
-      !utmList.utm_source.includes("email")
-    ) {
-      setIsChecked(true);
+    if (isPaidTraffic) {
       isCheckedRef.current = true;
     }
-  }, []);
+  }, [isPaidTraffic]);
 
   // return
   return (
@@ -525,7 +520,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
         )}
       </div>
 
-      {checkoutInstance && (
+      {checkoutInstance && !isPaidTraffic && (
         <div className="group flex gap-2">
           <Checkbox
             id="terms-and-conditions"
@@ -535,14 +530,13 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
               isCheckedRef.current = checked;
             }}
           />
-          <label
-            htmlFor="terms-and-conditions"
-            className="select-none text-sm text-xs font-medium text-neutral-500"
-          >
+          <label htmlFor="terms-and-conditions" className="select-none">
             {termsAndConditionsText}
           </label>
         </div>
       )}
+
+      {checkoutInstance && isPaidTraffic ? termsAndConditionsText : null}
     </>
   );
 };

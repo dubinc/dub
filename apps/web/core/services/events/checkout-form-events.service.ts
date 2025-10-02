@@ -4,7 +4,12 @@ import {
   ICheckoutFormSuccess,
   IPrimerClientError,
 } from "../../integration/payment/client";
-import { ICustomerBody, TPaymentPlan } from "../../integration/payment/config";
+import {
+  getChargePeriodDaysIdByPlan,
+  getPaymentPlanPrice,
+  ICustomerBody,
+  TPaymentPlan,
+} from "../../integration/payment/config";
 
 type TPrimerClientErrorData = IPrimerClientError & {
   payment?: { id?: string };
@@ -14,7 +19,7 @@ type TPrimerClientErrorData = IPrimerClientError & {
 interface ICheckoutFormEventProps {
   user: ICustomerBody;
   data?: ICheckoutFormSuccess | TPrimerClientErrorData;
-  price: number;
+  amount: number;
   planCode: TPaymentPlan;
   stage: "attempt" | "success" | "error";
   subscriptionId?: string | null;
@@ -29,15 +34,24 @@ export const generateCheckoutFormPaymentEvents = ({
   user,
   data,
   planCode,
-  price,
+  amount,
   stage,
   subscriptionId = null,
   toxic = false,
   paymentType,
   additionalParams,
 }: ICheckoutFormEventProps) => {
+  const { priceForPay } = getPaymentPlanPrice({
+    paymentPlan: planCode,
+    user,
+  });
+  const chargePeriodDays = getChargePeriodDaysIdByPlan({
+    paymentPlan: planCode,
+    user,
+  });
+
   const baseParams = {
-    amount: price,
+    amount,
     currency:
       stage === "success" && data && "currencyCode" in data
         ? (data as ICheckoutFormSuccess).currencyCode
@@ -46,13 +60,15 @@ export const generateCheckoutFormPaymentEvents = ({
     customer_id: user.id,
     mixpanel_user_id: user.id,
     country: user.currency?.countryCode,
-    flow_type: "internal",
+    flow_type: "web_onboarding",
     payment_subtype: "FIRST_PAYMENT",
     plan_name: planCode,
+    plan_price: priceForPay,
+    charge_period_days: chargePeriodDays,
     subscription_id: subscriptionId,
     event_category: "Authorized",
     toxic,
-    page_name: "account",
+    page_name: "dashboard",
     billing_action: null,
     ...additionalParams,
   };

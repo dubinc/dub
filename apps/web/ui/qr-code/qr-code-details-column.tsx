@@ -1,3 +1,4 @@
+import { Session } from "@/lib/auth/utils";
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
@@ -13,9 +14,11 @@ interface QrCodeDetailsColumnProps {
   currentQrTypeInfo: QRType;
   featuresAccess?: boolean;
   setShowTrialExpiredModal?: (show: boolean) => void;
+  user: Session["user"];
 }
 
 export function QrCodeDetailsColumn({
+  user,
   qrCode,
   canvasRef,
   builtQrCodeObject,
@@ -36,6 +39,7 @@ export function QrCodeDetailsColumn({
       </div>
 
       <QrCodeControls
+        user={user}
         qrCode={qrCode}
         canvasRef={canvasRef}
         builtQrCodeObject={builtQrCodeObject}

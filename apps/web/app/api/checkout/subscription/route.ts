@@ -107,6 +107,11 @@ export const POST = withSession(
       },
     });
 
+    const period = getChargePeriodDaysIdByPlan({
+      paymentPlan: initialSubPaymentPlan,
+      user,
+    });
+
     const headerStore = headers();
     const cookieStore = cookies();
 
@@ -124,6 +129,8 @@ export const POST = withSession(
       mixpanel_user_id:
         user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
       plan_name: initialSubPaymentPlan,
+      plan_price: price,
+      charge_period_days: period,
       payment_subtype: "SUBSCRIPTION",
       //**** for analytics ****//
 
@@ -137,11 +144,6 @@ export const POST = withSession(
     };
 
     try {
-      const period = getChargePeriodDaysIdByPlan({
-        paymentPlan: initialSubPaymentPlan,
-        user,
-      });
-
       const createSubscriptionBody = {
         user: {
           email: user.email || "",

@@ -3,7 +3,10 @@
 import { LoadingSpinner, Modal } from "@dub/ui";
 import { Payment } from "@primer-io/checkout-web";
 import { useCreateSubscriptionMutation } from "core/api/user/subscription/subscription.hook";
-import { trackClientEvents } from "core/integration/analytic";
+import {
+  setPeopleAnalytic,
+  trackClientEvents,
+} from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import {
   CheckoutFormComponent,
@@ -12,6 +15,7 @@ import {
 } from "core/integration/payment/client/checkout-form";
 import {
   getCalculatePriceForView,
+  getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
   ICustomerBody,
   TPaymentPlan,
@@ -20,12 +24,13 @@ import { generateCheckoutFormPaymentEvents } from "core/services/events/checkout
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FC, useRef, useState } from "react";
+import { FC, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 interface ICreateSubscriptionProps {
   user: ICustomerBody;
+  isPaidTraffic: boolean;
   onSubcriptionCreated: () => void;
 }
 
@@ -35,6 +40,7 @@ const subPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 
 export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   user,
+  isPaidTraffic,
   onSubcriptionCreated,
 }) => {
   const router = useRouter();
@@ -53,7 +59,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   const priceForViewText = getCalculatePriceForView(priceForView, user);
 
   const { priceForView: oldPriceForView } = getPaymentPlanPrice({
-    paymentPlan: "PRICE_MONTH_PLAN",
+    paymentPlan: subPaymentPlan,
     user,
   });
   const oldPriceForViewText = getCalculatePriceForView(oldPriceForView, user);
@@ -62,10 +68,12 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     paymentTypeRef.current = paymentMethodType;
 
     trackClientEvents({
-      event: EAnalyticEvents.PAGE_CLICKED,
+      event: EAnalyticEvents.ELEMENT_CLICKED,
       params: {
         page_name: pageName,
+        content_group: "my_qr_codes",
         content_value: paymentMethodType,
+        element_name: "payment_modal",
         email: user?.email,
         event_category: "Authorized",
       },
@@ -84,6 +92,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       event: EAnalyticEvents.ELEMENT_OPENED,
       params: {
         page_name: pageName,
+        content_group: "my_qr_codes",
         element_name: paymentMethodType,
         email: user?.email,
         event_category: "Authorized",
@@ -119,8 +128,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     generateCheckoutFormPaymentEvents({
       user,
       stage: "attempt",
-      price: priceForPay,
-      planCode: trialPaymentPlan,
+      amount: priceForPay,
+      planCode: subPaymentPlan,
       paymentType: paymentTypeRef.current!,
       toxic: false,
     });
@@ -156,8 +165,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           message: "Subscription creation failed!",
           ...res,
         },
-        planCode: trialPaymentPlan,
-        price: priceForPay,
+        planCode: subPaymentPlan,
+        amount: priceForPay,
         stage: "error",
         toxic: false,
       });
@@ -165,11 +174,21 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
     toast.success("Subscription created successfully!");
 
+    const chargePeriodDays = getChargePeriodDaysIdByPlan({
+      paymentPlan: subPaymentPlan,
+      user,
+    });
+
+    setPeopleAnalytic({
+      plan_name: subPaymentPlan,
+      charge_period_days: chargePeriodDays,
+    });
+
     generateCheckoutFormPaymentEvents({
       user,
       data,
-      planCode: trialPaymentPlan,
-      price: priceForPay,
+      planCode: subPaymentPlan,
+      amount: priceForPay,
       stage: "success",
       paymentType: data.paymentType,
       subscriptionId: res!.data!.subscriptionId!,
@@ -203,13 +222,62 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     generateCheckoutFormPaymentEvents({
       user,
       data: eventData,
-      planCode: trialPaymentPlan,
-      price: priceForPay,
+      planCode: subPaymentPlan,
+      amount: priceForPay,
       stage: "error",
       toxic: false,
       paymentType: paymentTypeRef.current!,
     });
   };
+
+  const termsAndConditionsText = useMemo(() => {
+    if (isPaidTraffic) {
+      return (
+        // By continuing, you agree to our Terms and Conditions and Privacy Policy.
+        // After 7 days you will be charged €39.99 every month unless you cancel 24 hours before your trial ends.
+
+        <div className="text-xs font-medium text-neutral-500">
+          By continuing, you agree to our{" "}
+          <Link className="font-semibold underline" href="/eula">
+            Terms and Conditions
+          </Link>{" "}
+          and{" "}
+          <Link className="font-semibold underline" href="/privacy-policy">
+            Privacy Policy
+          </Link>
+          . After 7 days you will be charged{" "}
+          <span className="font-semibold">{oldPriceForViewText}</span> every
+          month unless you cancel 24 hours before your trial ends.
+        </div>
+      );
+    }
+
+    return (
+      <div className="text-xs font-medium text-neutral-500">
+        By continuing, you agree to our{" "}
+        <Link className="font-semibold underline" href="/eula">
+          Terms and Conditions
+        </Link>{" "}
+        and{" "}
+        <Link className="font-semibold underline" href="/privacy-policy">
+          Privacy Policy
+        </Link>
+        . If you don’t cancel at least 24 hours before the end of your 7-day
+        trial, your subscription will automatically renew at{" "}
+        <span className="font-bold text-black">
+          {oldPriceForViewText} every month
+        </span>{" "}
+        until you cancel through our{" "}
+        <Link className="font-semibold underline" href="/help">
+          Help Center
+        </Link>
+        . For assistance, please contact our support team at{" "}
+        <Link className="font-semibold underline" href="mailto:help@getqr.com">
+          help@getqr.com
+        </Link>
+      </div>
+    );
+  }, [isPaidTraffic]);
 
   return (
     <>
@@ -235,30 +303,10 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           onPaymentMethodSelected={onPaymentMethodTypeClick}
           onBeforePaymentCreate={onPaymentMethodTypeOpen}
           submitBtn={{
-            text: "Subscribe",
+            text: "Pay Now",
           }}
-          termsAndConditionsText={
-            <>
-              By continuing, you agree to our{" "}
-              <Link className="font-semibold underline" href="/eula">
-                Terms and Conditions
-              </Link>{" "}
-              and{" "}
-              <Link className="font-semibold underline" href="/privacy-policy">
-                Privacy Policy
-              </Link>
-              . If you don’t cancel at least 24 hours before the end of your
-              7-day trial, your subscription will automatically renew at{" "}
-              <span className="font-semibold">
-                {oldPriceForViewText} every month until you cancel
-              </span>{" "}
-              through our Help Center. For assistance, please contact our
-              support team at{" "}
-              <Link className="font-semibold" href="mailto:help@getqr.com">
-                help@getqr.com
-              </Link>
-            </>
-          }
+          isPaidTraffic={isPaidTraffic}
+          termsAndConditionsText={termsAndConditionsText}
         />
       </div>
 

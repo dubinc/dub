@@ -327,6 +327,7 @@ export const authOptions: NextAuthOptions = {
             image: true,
             invalidLoginAttempts: true,
             emailVerified: true,
+            source: true,
           },
         });
 
@@ -372,6 +373,7 @@ export const authOptions: NextAuthOptions = {
           name: user.name,
           email: user.email,
           image: user.image,
+          source: user.source,
         };
       },
     }),
@@ -586,7 +588,6 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async signIn(message) {
-      console.log("events signIn message: ", JSON.stringify(message));
       const cookieStore = cookies();
 
       const { user: userFromCookie } = await getUserCookieService();

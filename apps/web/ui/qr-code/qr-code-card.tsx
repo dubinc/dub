@@ -1,3 +1,4 @@
+import { Session } from "@/lib/auth/utils";
 import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal.tsx";
 import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
@@ -10,9 +11,11 @@ import { QrCodeTitleColumn } from "./qr-code-title-column.tsx";
 export function QrCodeCard({
   qrCode,
   featuresAccess,
+  user,
 }: {
   qrCode: QrStorageData;
   featuresAccess: boolean;
+  user: Session["user"];
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const { setShowTrialExpiredModal, TrialExpiredModalCallback } =
@@ -34,6 +37,7 @@ export function QrCodeCard({
       >
         <div className="h-full min-w-0 grow">
           <QrCodeTitleColumn
+            user={user}
             qrCode={qrCode}
             canvasRef={canvasRef}
             builtQrCodeObject={builtQrCodeObject}
@@ -43,6 +47,7 @@ export function QrCodeCard({
           />
         </div>
         <QrCodeDetailsColumn
+          user={user}
           qrCode={qrCode}
           canvasRef={canvasRef}
           builtQrCodeObject={builtQrCodeObject}

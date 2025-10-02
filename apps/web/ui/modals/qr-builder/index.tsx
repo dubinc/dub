@@ -29,6 +29,7 @@ type QRBuilderModalProps = {
   showQRBuilderModal: boolean;
   setShowQRBuilderModal: Dispatch<SetStateAction<boolean>>;
   initialStep?: number;
+  sessionId?: string;
 };
 
 export function QRBuilderModal({
@@ -36,6 +37,7 @@ export function QRBuilderModal({
   showQRBuilderModal,
   setShowQRBuilderModal,
   initialStep,
+  sessionId,
 }: QRBuilderModalProps) {
   const { createQr, updateQrWithOriginal } = useQrOperations();
   const { isMobile } = useMediaQuery();
@@ -94,6 +96,7 @@ export function QRBuilderModal({
       </div>
       <Theme>
         <QrBuilder
+          sessionId={sessionId}
           isEdit={!!props}
           props={props}
           handleSaveQR={handleSaveQR}
@@ -172,9 +175,10 @@ function CreateQRButton({
 
 export function useQRBuilder(data?: {
   props?: QrStorageData;
+  sessionId?: string;
   initialStep?: number;
 }) {
-  const { props, initialStep } = data ?? {};
+  const { props, initialStep, sessionId } = data ?? {};
 
   const [showQRBuilderModal, setShowQRBuilderModal] = useState(false);
 
@@ -182,6 +186,7 @@ export function useQRBuilder(data?: {
     return (
       <QRBuilderModal
         props={props}
+        sessionId={sessionId}
         showQRBuilderModal={showQRBuilderModal}
         setShowQRBuilderModal={setShowQRBuilderModal}
         initialStep={initialStep}

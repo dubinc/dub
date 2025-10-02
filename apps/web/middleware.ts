@@ -75,6 +75,19 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
       });
     }
 
+    // Set source cookie if needed
+    if (sessionInit.needsSourceCookie) {
+      response.cookies.set(
+        sessionInit.sourceCookieName,
+        sessionInit.sourceCookieValue,
+        {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+        },
+      );
+    }
+
     return response;
   }
 

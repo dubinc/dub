@@ -3,6 +3,8 @@
 import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
 import { Button } from "@dub/ui";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useCallback, useEffect } from "react";
@@ -28,6 +30,18 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
   const handleScrollToQRGenerationBlock = useCallback(() => {
     const qrGenerationBlock = document.getElementById("qr-generation-block");
     if (qrGenerationBlock) {
+      trackClientEvents({
+        event: EAnalyticEvents.PAGE_CLICKED,
+        params: {
+          page_name: "landing",
+          content_value: "create_qr",
+          content_group: null,
+          element_no: "1",
+          event_category: "nonAuthorized",
+        },
+        sessionId,
+      });
+
       qrGenerationBlock.scrollIntoView({ behavior: "smooth" });
       return;
     }
