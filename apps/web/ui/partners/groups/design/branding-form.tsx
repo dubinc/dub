@@ -159,84 +159,6 @@ const dateIsAfter = (
   return date.getTime() > compareToDate.getTime();
 };
 
-const getDefaultApplicationFormData = (
-  group: GroupWithProgramProps,
-  draft: DraftData | null,
-): {
-  dirty: boolean;
-  draft: boolean;
-  applicationFormData: ProgramApplicationFormData;
-} => {
-  if (draft) {
-    if (!group.applicationFormPublishedAt) {
-      return {
-        applicationFormData: draft.applicationFormData,
-        dirty: true,
-        draft: true,
-      };
-    }
-
-    if (
-      draft.draftSavedAt &&
-      dateIsAfter(draft.draftSavedAt, group.applicationFormPublishedAt)
-    ) {
-      // There is a saved draft and that draft is newer than the last published content
-      return {
-        applicationFormData: draft.applicationFormData,
-        dirty: true,
-        draft: true,
-      };
-    }
-  }
-
-  if (group.applicationFormData) {
-    return {
-      applicationFormData: group.applicationFormData,
-      dirty: !group.applicationFormPublishedAt,
-      draft: false,
-    };
-  }
-
-  return {
-    applicationFormData: defaultApplicationFormData(group.program),
-    dirty: true,
-    draft: false,
-  };
-};
-
-const getDefaultLanderData = (
-  group: GroupWithProgramProps,
-  draft: DraftData | null,
-): { dirty: boolean; draft: boolean; landerData: ProgramLanderData } => {
-  if (draft) {
-    if (!group.landerPublishedAt) {
-      return { landerData: draft.landerData, dirty: true, draft: true };
-    }
-
-    if (
-      draft.draftSavedAt &&
-      dateIsAfter(draft.draftSavedAt, group.landerPublishedAt)
-    ) {
-      // There is a saved draft and that draft is newer than the last published content
-      return { landerData: draft.landerData, dirty: true, draft: true };
-    }
-  }
-
-  if (group.landerData) {
-    return {
-      landerData: group.landerData,
-      dirty: !group.landerPublishedAt,
-      draft: false,
-    };
-  }
-
-  return {
-    landerData: { blocks: [] },
-    dirty: false,
-    draft: false,
-  };
-};
-
 function BrandingFormInner({
   group,
   mutateGroup,
@@ -256,29 +178,14 @@ function BrandingFormInner({
 
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
 
-  const {
-    applicationFormData,
-    dirty: applicationFormDataDirty,
-    draft: applicationFormDraftUsed,
-  } = getDefaultApplicationFormData(group, draft);
-  const {
-    landerData,
-    dirty: landerDataDirty,
-    draft: landerDraftUsed,
-  } = getDefaultLanderData(group, draft);
-
-  const isDefaultValueDirty = useMemo(
-    () => applicationFormDataDirty || landerDataDirty,
-    [applicationFormDataDirty, landerDataDirty],
-  );
-
   const form = useForm<BrandingFormData>({
     defaultValues: {
       logo: group.program?.logo ?? draft?.logo ?? null,
       wordmark: group.program?.wordmark ?? draft?.wordmark ?? null,
       brandColor: group.program?.brandColor ?? draft?.brandColor ?? null,
-      applicationFormData,
-      landerData,
+      applicationFormData:
+        group.applicationFormData ?? defaultApplicationFormData(group.program),
+      landerData: group.landerData ?? { blocks: [] },
     },
   });
 
@@ -289,25 +196,24 @@ function BrandingFormInner({
     formState: { isDirty, isSubmitting, isSubmitSuccessful },
     getValues,
     setValue,
+
+    resetField,
   } = form;
 
   useEffect(() => {
-    if (applicationFormDraftUsed) {
-      // update the form value
-      setValue("applicationFormData", applicationFormData, {
-        shouldDirty: true,
-      });
+    if (draft) {
+      if (
+        !group.landerPublishedAt ||
+        (draft.draftSavedAt &&
+          dateIsAfter(draft.draftSavedAt, group.landerPublishedAt))
+      ) {
+        setValue("applicationFormData", draft.applicationFormData, {
+          shouldDirty: true,
+        });
+        setValue("landerData", draft.landerData, { shouldDirty: true });
+      }
     }
-  }, [applicationFormDraftUsed, applicationFormData]);
-
-  useEffect(() => {
-    if (landerDraftUsed) {
-      // update the form value
-      setValue("landerData", landerData, {
-        shouldDirty: true,
-      });
-    }
-  }, [landerDraftUsed, landerData]);
+  }, [draft]);
 
   const { executeAsync, isPending } = useAction(updateGroupBrandingAction, {
     async onSuccess({ data }) {
@@ -346,16 +252,10 @@ function BrandingFormInner({
     // the lander is being generated with AI, disable publishing
     if (isGeneratingLander) return true;
 
-    if (isDirty) {
-      return false;
-    } else {
-      if (isDefaultValueDirty) {
-        return false;
-      } else {
-        return true;
-      }
-    }
-  }, [isGeneratingLander, isDirty, isDefaultValueDirty]);
+    // if (draftUsed && draft) return false;
+
+    return !isDirty;
+  }, [isGeneratingLander, isDirty]);
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
