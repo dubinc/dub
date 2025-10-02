@@ -752,6 +752,11 @@ export const bulkBanPartnersSchema = z.object({
   ),
 });
 
+export const deactivatePartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
+
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
