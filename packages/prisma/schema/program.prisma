@@ -76,6 +76,7 @@ model Program {
   comments                 PartnerComment[]
   campaigns                Campaign[]
   discoveredPartners       DiscoveredPartner[]
+  industryInterests        ProgramIndustryInterest[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -146,4 +147,14 @@ model ProgramApplication {
   @@index(programId)
   @@index(groupId)
   @@index(email)
+}
+
+model ProgramIndustryInterest {
+  programId        String
+  industryInterest IndustryInterest
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, industryInterest])
+  @@index(programId)
 }
