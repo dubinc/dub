@@ -267,7 +267,10 @@ function BrandingFormInner({
     draft: landerDraftUsed,
   } = getDefaultLanderData(group, draft);
 
-  const isDefaultValueDirty = applicationFormDataDirty || landerDataDirty;
+  const isDefaultValueDirty = useMemo(
+    () => applicationFormDataDirty || landerDataDirty,
+    [applicationFormDataDirty, landerDataDirty],
+  );
 
   const form = useForm<BrandingFormData>({
     defaultValues: {
