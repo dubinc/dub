@@ -16,9 +16,11 @@ export default function PartnerDirectoryLayout({
   children: ReactNode;
 }) {
   const { plan } = useWorkspace();
-  const { loading } = useProgram();
+  const { program, loading } = useProgram();
 
   if (loading) return <LayoutLoader />;
+
+  if (!program?.partnerNetworkEnabledAt) return <DirectoryUpsell contactUs />;
 
   const { canDiscoverPartners } = getPlanCapabilities(plan);
   if (!canDiscoverPartners) return <DirectoryUpsell />;
@@ -26,7 +28,7 @@ export default function PartnerDirectoryLayout({
   return children;
 }
 
-function DirectoryUpsell() {
+function DirectoryUpsell({ contactUs }: { contactUs?: boolean }) {
   return (
     <PageContent title="Partner Discovery">
       <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
@@ -57,7 +59,7 @@ function DirectoryUpsell() {
               "flex h-8 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",
             )}
           >
-            Upgrade to Enterprise
+            {contactUs ? "Contact us" : "Upgrade to Enterprise"}
           </Link>
         </div>
       </div>

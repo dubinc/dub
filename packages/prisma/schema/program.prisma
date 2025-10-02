@@ -53,6 +53,7 @@ model Program {
   ageVerification              Int?
   autoApprovePartnersEnabledAt DateTime?
   messagingEnabledAt           DateTime?
+  partnerNetworkEnabledAt      DateTime?
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
 

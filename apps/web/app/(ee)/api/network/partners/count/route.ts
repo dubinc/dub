@@ -1,3 +1,4 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getPartnerNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
@@ -8,6 +9,21 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const { partnerNetworkEnabledAt } = await prisma.program.findUniqueOrThrow({
+      select: {
+        partnerNetworkEnabledAt: true,
+      },
+      where: {
+        id: programId,
+      },
+    });
+    if (!partnerNetworkEnabledAt)
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Partner network is not enabled for this program.",
+      });
+
     const {
       partnerIds,
       status,
