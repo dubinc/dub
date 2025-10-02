@@ -81,6 +81,7 @@ type SelectPaymentMethod =
   (typeof PAYMENT_METHODS)[keyof typeof PAYMENT_METHODS] & {
     id: string;
     fee: number;
+    fastSettlement: boolean;
   };
 
 function PayoutInvoiceSheetContent() {
@@ -94,6 +95,7 @@ function PayoutInvoiceSheetContent() {
     payoutsUsage,
     payoutsLimit,
     payoutFee,
+    fasterAchPayouts,
   } = useWorkspace();
 
   const { paymentMethods, loading: paymentMethodsLoading } =
@@ -133,41 +135,65 @@ function PayoutInvoiceSheetContent() {
     },
   });
 
-  const finalPaymentMethods = useMemo(
-    () =>
-      paymentMethods?.map((pm) => {
-        const paymentMethod = PAYMENT_METHODS[pm.type];
+  const finalPaymentMethods = useMemo(() => {
+    if (!paymentMethods) return undefined;
 
-        const base = {
-          ...paymentMethod,
-          id: pm.id,
-          fee: calculatePayoutFeeForMethod({
-            paymentMethod: pm.type,
-            payoutFee,
-          }),
-        };
+    const methods = paymentMethods.flatMap((pm) => {
+      const paymentMethod = PAYMENT_METHODS[pm.type];
 
-        if (pm.link) {
-          return {
-            ...base,
-            title: `Link – ${truncate(pm.link.email, 16)}`,
-          };
-        }
+      const base = {
+        ...paymentMethod,
+        id: pm.id,
+        fastSettlement: false,
+        fee: calculatePayoutFeeForMethod({
+          paymentMethod: pm.type,
+          payoutFee,
+        }),
+      };
 
-        if (pm.card) {
-          return {
-            ...base,
-            title: `${capitalize(pm.card.brand)} **** ${pm.card.last4}`,
-          };
-        }
-
+      if (pm.link) {
         return {
           ...base,
-          title: `${paymentMethod.label} **** ${pm[paymentMethod.type]?.last4}`,
+          title: `Link – ${truncate(pm.link.email, 16)}`,
         };
-      }),
-    [paymentMethods, plan],
-  );
+      }
+
+      if (pm.card) {
+        return {
+          ...base,
+          title: `${capitalize(pm.card.brand)} **** ${pm.card.last4}`,
+        };
+      }
+
+      if (paymentMethod.type === "us_bank_account") {
+        const methods = [
+          {
+            ...base,
+            title: `ACH **** ${pm[paymentMethod.type]?.last4}`,
+          },
+        ];
+
+        if (fasterAchPayouts) {
+          methods.unshift({
+            ...base,
+            id: `${pm.id}-fast`,
+            title: `Fast ACH **** ${pm[paymentMethod.type]?.last4}`,
+            duration: "2 business days",
+            fastSettlement: true,
+          });
+        }
+
+        return methods;
+      }
+
+      return {
+        ...base,
+        title: `${paymentMethod.label} **** ${pm[paymentMethod.type]?.last4}`,
+      };
+    });
+
+    return methods;
+  }, [paymentMethods, payoutFee, fasterAchPayouts]);
 
   useEffect(() => {
     if (
@@ -206,13 +232,13 @@ function PayoutInvoiceSheetContent() {
               <select
                 className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
                 value={selectedPaymentMethod?.id || ""}
-                onChange={(e) =>
-                  setSelectedPaymentMethod(
-                    finalPaymentMethods?.find(
-                      (pm) => pm.id === e.target.value,
-                    ) || null,
-                  )
-                }
+                onChange={(e) => {
+                  const selectedMethod = finalPaymentMethods?.find(
+                    (pm) => pm.id === e.target.value,
+                  );
+
+                  setSelectedPaymentMethod(selectedMethod || null);
+                }}
               >
                 {finalPaymentMethods?.map(({ id, title }) => (
                   <option key={id} value={id}>
@@ -468,6 +494,7 @@ function PayoutInvoiceSheetContent() {
               amount: amount ?? 0,
               fee: fee ?? 0,
               total: total ?? 0,
+              fastSettlement: selectedPaymentMethod.fastSettlement,
             });
 
             if (!result?.data?.invoiceId) return false;
@@ -518,6 +545,7 @@ function PayoutInvoiceSheetContent() {
 }
 
 function FastAchPayoutToggle() {
+  const { fasterAchPayouts } = useWorkspace();
   const [isVisible, setIsVisible] = useState(true);
 
   if (!isVisible) {
@@ -542,23 +570,25 @@ function FastAchPayoutToggle() {
         </div>
       </div>
 
-      <div className="flex items-center gap-0.5">
-        <Button
-          variant="secondary"
-          text="Contact sales to enable"
-          className="border-border-subtle h-7 w-fit whitespace-nowrap rounded-lg bg-white px-2.5 py-2 text-sm"
-          onClick={() => {
-            window.open("https://dub.co/enterprise", "_blank");
-          }}
-        />
-        <button
-          onClick={() => setIsVisible(false)}
-          className="text-content-emphasis p-1"
-          aria-label="Close"
-        >
-          <X className="size-3" />
-        </button>
-      </div>
+      {!fasterAchPayouts && (
+        <div className="flex items-center gap-0.5">
+          <Button
+            variant="secondary"
+            text="Contact sales to enable"
+            className="border-border-subtle h-7 w-fit whitespace-nowrap rounded-lg bg-white px-2.5 py-2 text-sm"
+            onClick={() => {
+              window.open("https://dub.co/enterprise", "_blank");
+            }}
+          />
+          <button
+            onClick={() => setIsVisible(false)}
+            className="text-content-emphasis p-1"
+            aria-label="Close"
+          >
+            <X className="size-3" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
