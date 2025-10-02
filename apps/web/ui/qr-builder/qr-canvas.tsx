@@ -108,7 +108,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
 
           const img = new Image();
           img.onload = () => {
-            onCanvasReady?.();
             ctx.save();
             ctx.scale(
               renderSize / canvasSize.width,
@@ -124,6 +123,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
         } catch (err) {
           console.error("SVG render failed:", err);
         }
+        onCanvasReady?.();
       };
 
       const initialRenderTimeout = setTimeout(renderSVGToCanvas, 100);
