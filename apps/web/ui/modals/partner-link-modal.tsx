@@ -169,11 +169,12 @@ function PartnerLinkModalContent({
   link?: PartnerProfileLinkProps;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
-  const isDuplicateMode = !link?.id;
+  const isEditingLink = Boolean(link?.id); // When duplicating the id will be empty
+  const isCreatingLink = !link;
 
   const { programSlug } = useParams();
   const { programEnrollment } = useProgramEnrollment();
-  const [lockKey, setLockKey] = useState(Boolean(link?.id && !isDuplicateMode));
+  const [lockKey, setLockKey] = useState(isEditingLink);
   const [isLoading, setIsLoading] = useState(false);
   const [isExactMode, setIsExactMode] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -259,10 +260,10 @@ function PartnerLinkModalContent({
         try {
           const response = await fetch(
             `/api/partner-profile/programs/${programEnrollment?.program?.id}/links${
-              link && !isDuplicateMode ? `/${link.id}` : ""
+              isEditingLink ? `/${link!.id}` : ""
             }`,
             {
-              method: link && !isDuplicateMode ? "PATCH" : "POST",
+              method: isEditingLink ? "PATCH" : "POST",
               headers: {
                 "Content-Type": "application/json",
               },
@@ -289,14 +290,16 @@ function PartnerLinkModalContent({
             mutateSuffix("/links"),
           ]);
 
-          if (!link && !isDuplicateMode) {
+          if (isCreatingLink) {
             try {
               await copyToClipboard(result.shortLink);
               toast.success("Copied short link to clipboard!");
             } catch (err) {
               toast.success("Successfully created link!");
             }
-          } else toast.success("Successfully updated short link!");
+          } else {
+            toast.success("Successfully updated short link!");
+          }
 
           setShowPartnerLinkModal(false);
         } finally {
@@ -307,7 +310,7 @@ function PartnerLinkModalContent({
       <div className="flex flex-col items-start justify-between gap-6 px-6 py-4">
         <div className="flex w-full items-center justify-between">
           <h3 className="text-lg font-medium">
-            {link && !isDuplicateMode ? "Edit Link" : "New Link"}
+            {isEditingLink ? "Edit Link" : "New Link"}
           </h3>
           <button
             type="button"
@@ -399,7 +402,7 @@ function PartnerLinkModalContent({
                     selectedDomain={destinationDomain}
                     setSelectedDomain={setDestinationDomain}
                     destinationDomains={destinationDomains}
-                    disabled={Boolean(link && !isDuplicateMode)}
+                    disabled={isEditingLink}
                   />
                 </div>
                 <input
@@ -481,7 +484,7 @@ function PartnerLinkModalContent({
           loading={isLoading}
           text={
             <span className="flex items-center gap-2">
-              {link && !isDuplicateMode ? "Save changes" : "Create link"}
+              {isEditingLink ? "Save changes" : "Create link"}
               <div className="rounded border border-white/20 p-1">
                 <ArrowTurnLeft className="size-3.5" />
               </div>

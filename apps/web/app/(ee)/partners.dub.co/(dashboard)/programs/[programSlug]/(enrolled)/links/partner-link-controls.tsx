@@ -4,7 +4,6 @@ import { usePartnerLinkQRModal } from "@/ui/modals/partner-link-qr-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, PenWriting, Popover, useKeyboardShortcut } from "@dub/ui";
 import { QRCode } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
 import { CopyPlus } from "lucide-react";
 
 export function PartnerLinkControls({
@@ -112,10 +111,7 @@ export function PartnerLinkControls({
       >
         <Button
           variant="secondary"
-          className={cn(
-            "h-8 px-1.5 outline-none transition-all duration-200",
-            "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
-          )}
+          className="h-8 border-neutral-200 px-1.5 outline-none transition-all duration-200"
           icon={<ThreeDots className="h-5 w-5 shrink-0" />}
           onClick={() => {
             setOpenPopover(!openPopover);
