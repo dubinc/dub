@@ -193,7 +193,7 @@ export async function recordClick({
         url &&
           publishClickEvent({
             linkId,
-            projectId: workspaceId,
+            workspaceId,
             timestamp: clickData.timestamp,
             url,
           }).catch(() => {

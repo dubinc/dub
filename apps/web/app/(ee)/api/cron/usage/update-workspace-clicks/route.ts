@@ -4,7 +4,7 @@ import { conn } from "@/lib/planetscale";
 import {
   ClickEvent,
   Entry,
-  projectUsageStream,
+  workspaceUsageStream,
 } from "@/lib/upstash/redis-streams";
 import { NextResponse } from "next/server";
 
@@ -12,8 +12,8 @@ export const dynamic = "force-dynamic";
 
 const BATCH_SIZE = 1000;
 
-type ProjectAggregateUsage = {
-  projectId: string;
+type WorkspaceAggregateUsage = {
+  workspaceId: string;
   usage: number;
   clicks: number;
   firstTimestamp: number;
@@ -21,29 +21,21 @@ type ProjectAggregateUsage = {
   entryIds: string[];
 };
 
-type ProcessResponse = {
-  success: boolean;
-  updates: ProjectAggregateUsage[];
-  errors?: { projectId: string; error: any }[];
-  totalProcessed?: number;
-  lastProcessedId?: string | null;
-};
-
-const aggregateProjectUsage = (
+const aggregateWorkspaceUsage = (
   entries: Entry<ClickEvent>[],
-): { updates: ProjectAggregateUsage[]; lastProcessedId: string | null } => {
-  // Aggregate usage by projectId
-  const aggregatedUsage = new Map<string, ProjectAggregateUsage>();
+): { updates: WorkspaceAggregateUsage[]; lastProcessedId: string | null } => {
+  // Aggregate usage by workspaceId
+  const aggregatedUsage = new Map<string, WorkspaceAggregateUsage>();
 
   let lastId: string | null = null;
 
-  // The entries are a batch of project usage events, each with projectId, timestamp, and possibly linkId.
-  // We want to aggregate by projectId, counting total events (clicks) and tracking first/last timestamps.
+  // The entries are a batch of workspace usage events, each with workspaceId, timestamp, and possibly linkId.
+  // We want to aggregate by workspaceId, counting total events (clicks) and tracking first/last timestamps.
 
   for (const entry of entries) {
-    const projectId = entry.data.projectId;
+    const workspaceId = entry.data.workspaceId;
 
-    if (!projectId) {
+    if (!workspaceId) {
       continue;
     }
 
@@ -51,16 +43,16 @@ const aggregateProjectUsage = (
 
     lastId = entry.id;
 
-    if (aggregatedUsage.has(projectId)) {
-      const existing = aggregatedUsage.get(projectId)!;
+    if (aggregatedUsage.has(workspaceId)) {
+      const existing = aggregatedUsage.get(workspaceId)!;
       existing.usage += 1;
       existing.clicks += 1;
       existing.lastTimestamp = Math.max(existing.lastTimestamp, timestamp);
       existing.firstTimestamp = Math.min(existing.firstTimestamp, timestamp);
       existing.entryIds.push(entry.id);
     } else {
-      aggregatedUsage.set(projectId, {
-        projectId,
+      aggregatedUsage.set(workspaceId, {
+        workspaceId,
         usage: 1,
         clicks: 1,
         firstTimestamp: timestamp,
@@ -76,8 +68,8 @@ const aggregateProjectUsage = (
   };
 };
 
-const processProjectUpdateStreamBatch = () =>
-  projectUsageStream.processBatch<ClickEvent>(
+const processWorkspaceUpdateStreamBatch = () =>
+  workspaceUsageStream.processBatch<ClickEvent>(
     async (entries) => {
       if (!entries || Object.keys(entries).length === 0) {
         return {
@@ -87,15 +79,15 @@ const processProjectUpdateStreamBatch = () =>
         };
       }
 
-      const { updates, lastProcessedId } = aggregateProjectUsage(entries);
+      const { updates, lastProcessedId } = aggregateWorkspaceUsage(entries);
 
       if (updates.length === 0) {
-        console.log("No project usage updates to process");
+        console.log("No workspace usage updates to process");
         return { success: true, updates: [], processedEntryIds: [] };
       }
 
       console.log(
-        `Processing ${updates.length} aggregated project usage updates`,
+        `Processing ${updates.length} aggregated workspace usage updates`,
       );
 
       // Process updates in parallel batches to avoid overwhelming the database
@@ -107,7 +99,7 @@ const processProjectUpdateStreamBatch = () =>
       }
 
       let totalProcessed = 0;
-      const errors: { projectId: string; error: any }[] = [];
+      const errors: { workspaceId: string; error: any }[] = [];
       const processedEntryIds: string[] = [];
 
       for (const batch of batches) {
@@ -116,11 +108,10 @@ const processProjectUpdateStreamBatch = () =>
           // Execute all updates in the batch in parallel
           const batchPromises = batch.map(async (update) => {
             try {
-              // Update the project usage and click counts
-              // "usage" is a reserved keyword in MySQL, so we must escape it with backticks
+              // Update the workspace usage and click counts
               await conn.execute(
                 "UPDATE Project p SET p.usage = p.usage + ?, p.totalClicks = p.totalClicks + ? WHERE id = ?",
-                [update.usage, update.clicks, update.projectId],
+                [update.usage, update.clicks, update.workspaceId],
               );
 
               processedEntryIds.push(...update.entryIds);
@@ -131,12 +122,12 @@ const processProjectUpdateStreamBatch = () =>
               };
             } catch (error) {
               console.error(
-                `Failed to update project ${update.projectId}:`,
+                `Failed to update workspace ${update.workspaceId}:`,
                 error,
               );
               return {
                 success: false,
-                error: { projectId: update.projectId, error },
+                error: { workspaceId: update.workspaceId, error },
               };
             }
           });
@@ -164,7 +155,7 @@ const processProjectUpdateStreamBatch = () =>
       // Log results
       const successRate = (totalProcessed / updates.length) * 100;
       console.log(
-        `Processed ${totalProcessed}/${updates.length} project usage updates (${successRate.toFixed(1)}% success rate)`,
+        `Processed ${totalProcessed}/${updates.length} workspace usage updates (${successRate.toFixed(1)}% success rate)`,
       );
 
       if (errors.length > 0) {
@@ -188,16 +179,16 @@ const processProjectUpdateStreamBatch = () =>
     },
   );
 
-// This route is used to process aggregated project usage events from Redis streams
+// This route is used to process aggregated workspace usage events from Redis streams
 // It runs every 5 seconds to consume high-frequency usage updates
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    console.log("Processing project usage updates from Redis stream...");
+    console.log("Processing workspace usage updates from Redis stream...");
 
     const { updates, errors, totalProcessed, lastProcessedId } =
-      await processProjectUpdateStreamBatch();
+      await processWorkspaceUpdateStreamBatch();
 
     if (!updates.length) {
       return NextResponse.json({
@@ -208,18 +199,20 @@ export async function GET(req: Request) {
     }
 
     // Get stream info for monitoring
-    const streamInfo = await projectUsageStream.getStreamInfo();
-
-    return NextResponse.json({
+    const streamInfo = await workspaceUsageStream.getStreamInfo();
+    const response = {
       success: true,
       processed: totalProcessed,
       errors: errors?.length || 0,
       lastProcessedId,
       streamInfo,
-      message: `Successfully processed ${totalProcessed} project usage updates`,
-    });
+      message: `Successfully processed ${totalProcessed} workspace usage updates`,
+    };
+    console.log(response);
+
+    return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to process project usage updates:", error);
+    console.error("Failed to process workspace usage updates:", error);
     return handleAndReturnErrorResponse(error);
   }
 }

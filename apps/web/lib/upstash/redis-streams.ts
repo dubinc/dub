@@ -1,11 +1,11 @@
 import { redis } from "./redis";
 
 // Stream key constants
-export const PROJECT_USAGE_UPDATES_STREAM_KEY = "project:usage:updates";
+export const WORKSPACE_USAGE_UPDATES_STREAM_KEY = "workspace:usage:updates";
 
 export interface ClickEvent {
   linkId: string;
-  projectId?: string;
+  workspaceId?: string;
   timestamp: string;
   url?: string;
 }
@@ -77,7 +77,10 @@ export class RedisStream {
 
       return response as Response;
     } catch (error) {
-      console.error("Failed to read project usage updates from stream:", error);
+      console.error(
+        "Failed to read workspace usage updates from stream:",
+        error,
+      );
       throw error;
     }
   }
@@ -145,14 +148,14 @@ export class RedisStream {
   }
 }
 
-export const projectUsageStream = new RedisStream(
-  PROJECT_USAGE_UPDATES_STREAM_KEY,
+export const workspaceUsageStream = new RedisStream(
+  WORKSPACE_USAGE_UPDATES_STREAM_KEY,
 );
 
 // Publishes a click event to any relevant streams in a single transaction
 export const publishClickEvent = async (event: ClickEvent) => {
-  const { linkId, timestamp, projectId, url } = event;
-  const entry = { linkId, timestamp, projectId };
+  const { linkId, timestamp, workspaceId, url } = event;
+  const entry = { linkId, timestamp, workspaceId };
 
   try {
     const pipeline = redis.pipeline();
@@ -161,7 +164,7 @@ export const publishClickEvent = async (event: ClickEvent) => {
     // pipeline.xadd(LINK_CLICK_UPDATES_STREAM_KEY, "*", entry);
 
     if (url) {
-      pipeline.xadd(PROJECT_USAGE_UPDATES_STREAM_KEY, "*", entry);
+      pipeline.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", entry);
     }
 
     return await pipeline.exec();

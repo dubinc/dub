@@ -13,8 +13,8 @@
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/cron/projects/usage-updates-queue",
-      "schedule": "*/5 * * * * *"
+      "path": "/api/cron/usage/update-workspace-clicks",
+      "schedule": "* * * * *"
     },
     {
       "path": "/api/cron/usage",
