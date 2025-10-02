@@ -49,7 +49,11 @@ export const updateCampaignSchema = z
     body: z.string(),
     triggerCondition: workflowConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullish().default(null),
-    status: z.nativeEnum(CampaignStatus),
+    status: z.enum([
+      CampaignStatus.draft,
+      CampaignStatus.active,
+      CampaignStatus.paused,
+    ]),
   })
   .partial();
 

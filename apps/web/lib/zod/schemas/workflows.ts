@@ -25,7 +25,7 @@ export const WORKFLOW_ATTRIBUTE_LABELS: Record<
   partnerEnrolledDays: "been in the program for",
 } as const;
 
-export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
+export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   WorkflowConditionAttribute,
   WorkflowTrigger
 > = {

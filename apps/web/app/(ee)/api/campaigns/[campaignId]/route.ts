@@ -1,4 +1,4 @@
-import { validateCampaign } from "@/lib/api/campaigns/validate-campaign";
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
@@ -8,7 +8,12 @@ import {
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
+import {
+  WORKFLOW_ACTION_TYPES,
+  WORKFLOW_ATTRIBUTE_TRIGGER,
+} from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
+import { CampaignStatus, CampaignType, Workflow } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -62,35 +67,83 @@ export const PATCH = withWorkspace(
       },
     });
 
-    validateCampaign({
-      ...campaign,
-      ...(type && { type }),
-      ...(name && { name }),
-      ...(subject && { subject }),
-      ...(status && { status }),
-      ...(body && { body }),
-      ...(triggerCondition && { triggerCondition }),
-    });
-
-    // TODO:
+    // TODO
+    // When pausing we need to disable the workflow
+    // When resuming we need to enable the workflow
     // Update the workflow
 
-    const updatedCampaign = await prisma.campaign.update({
-      where: {
-        id: campaignId,
-        programId,
-      },
-      data: {
-        ...(type && { type }),
-        ...(name && { name }),
-        ...(subject && { subject }),
-        ...(status && { status }),
-        ...(body && { body }),
-      },
-      include: {
-        groups: true,
-        workflow: true,
-      },
+    // validateCampaign({
+    //   ...campaign,
+    //   ...(type && { type }),
+    //   ...(name && { name }),
+    //   ...(subject && { subject }),
+    //   ...(status && { status }),
+    //   ...(body && { body }),
+    //   ...(triggerCondition && { triggerCondition }),
+    // });
+
+    const updatedCampaign = await prisma.$transaction(async (tx) => {
+      let workflow: Workflow | null = null;
+
+ 
+      if (
+        status === CampaignStatus.draft &&
+        campaign.type === CampaignType.transactional &&
+        triggerCondition
+      ) {
+        const trigger = WORKFLOW_ATTRIBUTE_TRIGGER[triggerCondition.attribute];
+        const triggerConditions = [triggerCondition];
+        const actions = [
+          { type: WORKFLOW_ACTION_TYPES.SendCampaign, data: { campaignId } },
+        ];
+
+        console.log({triggerCondition, trigger, triggerConditions, actions})
+
+
+        if (campaign.workflowId) {
+          // Update existing workflow
+          workflow = await tx.workflow.update({
+            where: {
+              id: campaign.workflowId,
+            },
+            data: {
+              triggerConditions,
+              trigger,
+              actions,
+            },
+          });
+        } else {
+          // Create new workflow
+          workflow = await tx.workflow.create({
+            data: {
+              id: createId({ prefix: "wf_" }),
+              programId,
+              triggerConditions,
+              trigger,
+              actions,
+            },
+          });
+        }
+      }
+
+      return await tx.campaign.update({
+        where: {
+          id: campaignId,
+          programId,
+        },
+        data: {
+          ...(type && { type }),
+          ...(name && { name }),
+          ...(subject && { subject }),
+          ...(status && { status }),
+          ...(body && { body }),
+          ...(workflow && { workflowId: workflow.id }),
+        },
+        include: {
+          groups: true,
+          workflow: true,
+        },
+      });
     });
 
     const response = CampaignSchema.parse({

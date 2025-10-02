@@ -25,7 +25,7 @@ export function CreateCampaignButton() {
     });
   };
 
-  useKeyboardShortcut("c", () => createDraftCampaign);
+  useKeyboardShortcut("c", () => createDraftCampaign());
 
   return (
     <Button

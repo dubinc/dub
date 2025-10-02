@@ -101,11 +101,6 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
                 {
                   ...getValues(),
                   status: CampaignStatus.active,
-                  triggerCondition: {
-                    attribute: "totalLeads",
-                    operator: "gte",
-                    value: 1,
-                  },
                 },
                 () => {
                   toast.success("Email campaign published!");
@@ -115,7 +110,7 @@ export function CampaignActions({ campaign }: CampaignActionsProps) {
             }}
             loading={isUpdatingCampaign}
             className="h-9 px-4"
-            variant="outline"
+            variant="secondary"
           />
         );
       case CampaignStatus.active:

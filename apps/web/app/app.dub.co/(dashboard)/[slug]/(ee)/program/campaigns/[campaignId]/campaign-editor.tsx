@@ -7,7 +7,6 @@ import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { CampaignTypeSelector } from "@/ui/partners/campaigns/campaign-type-selector";
 import { ChevronRight, PaperPlane, RichTextArea, StatusBadge } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -38,7 +37,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       name: campaign?.name,
       subject: campaign?.subject,
       body: campaign?.body,
-      status: campaign.status,
       groupIds: campaign.groups.map(({ id }) => id),
       triggerCondition: campaign.triggerCondition,
     },
@@ -78,7 +76,14 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       if (Object.keys(changedFields).length > 0) {
         await saveDraftCampaign(`/api/campaigns/${campaign.id}`, {
           method: "PATCH",
-          body: changedFields,
+          body: {
+            ...changedFields,
+            triggerCondition: {
+              attribute: "totalLeads",
+              operator: "gte",
+              value: 1,
+            },
+          },
           onSuccess: () => {
             reset(allFormData, { keepValues: true });
           },
@@ -157,20 +162,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 placeholder="Enter a subject..."
                 className={inputClassName}
                 {...register("subject")}
-              />
-            </label>
-
-            <label className="contents">
-              <span className={labelClassName}>Type</span>
-              <Controller
-                control={control}
-                name="type"
-                render={({ field }) => (
-                  <CampaignTypeSelector
-                    value={field.value!}
-                    onChange={field.onChange}
-                  />
-                )}
               />
             </label>
 
