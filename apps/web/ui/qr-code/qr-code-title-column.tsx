@@ -11,7 +11,7 @@ import { Tooltip, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { cn, formatDateTime, timeAgo } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
 import QRCodeStyling from "qr-code-styling";
-import { RefObject, useCallback, useEffect, useRef } from "react";
+import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
 import { Session } from '@/lib/auth';
 import { useSearchParams } from 'next/navigation';
@@ -39,6 +39,15 @@ export function QrCodeTitleColumn({
   const { isMobile, width } = useMediaQuery();
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
+  const [readyCanvases, setReadyCanvases] = useState<number>(0);
+  
+  const handlePreviewCanvasReady = useCallback(() => {
+    setReadyCanvases((prev) => prev + 1);
+  }, []);
+
+  const handleTitleCanvasReady = useCallback(() => {
+    setReadyCanvases((prev) => prev + 1);
+  }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
@@ -48,16 +57,17 @@ export function QrCodeTitleColumn({
     width: isMobile ? 300 : 200,
     height: isMobile ? 300 : 200,
     user,
+    onCanvasReady: handlePreviewCanvasReady,
   });
 
-  const onCanvasReady = useCallback(() => {
-    if (qrCode.id === searchParams.get("qrId")) {
+  useEffect(() => {
+    if (qrCode.id === searchParams.get("qrId") && readyCanvases === 2) {
       handleOpenNewQr();
       queryParams({
         del: ["qrId"],
       });
     }
-  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
+  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams, readyCanvases]);
 
   return (
     <>
@@ -76,7 +86,7 @@ export function QrCodeTitleColumn({
               qrCode={builtQrCodeObject}
               width={100}
               height={100}
-              onCanvasReady={onCanvasReady}
+              onCanvasReady={handleTitleCanvasReady}
             />
           </div>
           <QRStatusBadge
