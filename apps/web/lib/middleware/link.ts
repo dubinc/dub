@@ -143,6 +143,7 @@ export default async function LinkMiddleware(
     id: linkId,
     password,
     trackConversion,
+    geo: geoTargeting,
     proxy,
     rewrite,
     expiresAt,
@@ -155,8 +156,6 @@ export default async function LinkMiddleware(
     testCompletedAt,
     projectId: workspaceId,
   } = cachedLink;
-
-  const geo = geolocation(req);
 
   const testUrl = await resolveABTestURL({
     testVariants,
@@ -501,8 +500,8 @@ export default async function LinkMiddleware(
       cookieData,
     );
 
-    // redirect to geo-specific link if it is specified and the user is in the specified country
-  } else if (geo && country && country in geo) {
+    // redirect to geo-targeting link if it is specified and the user is in the specified country
+  } else if (geoTargeting && country && country in geoTargeting) {
     ev.waitUntil(
       recordClick({
         req,
@@ -510,7 +509,7 @@ export default async function LinkMiddleware(
         linkId,
         domain,
         key,
-        url: geo[country],
+        url: geoTargeting[country],
         webhookIds,
         workspaceId,
         shouldCacheClickId,
@@ -519,7 +518,7 @@ export default async function LinkMiddleware(
 
     return createResponseWithCookies(
       NextResponse.redirect(
-        getFinalUrl(geo[country], {
+        getFinalUrl(geoTargeting[country], {
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),

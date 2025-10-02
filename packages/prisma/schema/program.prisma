@@ -4,6 +4,7 @@ enum ProgramEnrollmentStatus {
   rejected // program rejected the partner
   invited // partner who has been invited
   declined // partner declined the invite
+  deactivated // partner is deactivated by the program
   banned // partner is banned from the program
   archived // partner is archived by the program
 }
