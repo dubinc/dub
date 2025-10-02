@@ -37,7 +37,7 @@ export const GET = async (req: Request) => {
     }
 
     const { token, contextId: workspaceId } =
-      await hubSpotOAuthProvider.exchangeCodeForToken(req);
+      await hubSpotOAuthProvider.exchangeCodeForToken<string>(req);
 
     workspace = await prisma.project.findUniqueOrThrow({
       where: {
