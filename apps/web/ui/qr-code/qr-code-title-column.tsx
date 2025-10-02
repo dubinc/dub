@@ -57,7 +57,7 @@ export function QrCodeTitleColumn({
         queryParams({
           del: ["qrId"],
         });
-      }, 0);
+      }, 500);
     }
   }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
 
