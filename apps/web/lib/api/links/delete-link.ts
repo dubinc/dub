@@ -1,5 +1,5 @@
 import { storage } from "@/lib/storage";
-import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
+import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -28,10 +28,7 @@ export async function deleteLink(linkId: string) {
       linkCache.delete(link),
 
       // Record link in the Tinybird
-      recordLinkTB({
-        ...transformLinkTB(link),
-        deleted: true,
-      }),
+      recordLink(link, { deleted: true }),
 
       link.projectId &&
         prisma.project.update({

@@ -78,12 +78,21 @@ export const transformLinkTB = (link: ExpandedLink) => {
   };
 };
 
-export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {
+export const recordLink = async (
+  payload: ExpandedLink | ExpandedLink[],
+  { deleted }: { deleted?: boolean } = {},
+) => {
   if (Array.isArray(payload)) {
-    waitUntil(recordLinkTBNew(payload.map(transformLinkTB)));
-    return await recordLinkTB(payload.map(transformLinkTB));
+    waitUntil(
+      recordLinkTBNew(
+        payload.map(transformLinkTB).map((p) => ({ ...p, deleted })),
+      ),
+    );
+    return await recordLinkTB(
+      payload.map(transformLinkTB).map((p) => ({ ...p, deleted })),
+    );
   } else {
-    waitUntil(recordLinkTBNew(transformLinkTB(payload)));
-    return await recordLinkTB(transformLinkTB(payload));
+    waitUntil(recordLinkTBNew({ ...transformLinkTB(payload), deleted }));
+    return await recordLinkTB({ ...transformLinkTB(payload), deleted });
   }
 };
