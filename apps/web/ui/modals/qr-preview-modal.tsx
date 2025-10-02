@@ -271,16 +271,26 @@ export function useQRPreviewModal(data: {
   width?: number;
   height?: number;
   user: Session["user"];
-  onCanvasReady?: () => void;
 }) {
-  const { canvasRef, qrCode, qrCodeId, width = 200, height = 200, user, onCanvasReady } = data;
+  const { canvasRef, qrCode, qrCodeId, width = 200, height = 200, user } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
   const [isNewQr, setIsNewQr] = useState(false);
+  const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
 
   const handleOpenNewQr = useCallback(() => {
     setShowQRPreviewModal(true);
     setIsNewQr(true);
   }, []);
+
+  const onCanvasReady = useCallback(() => {
+    if (qrCodeId === searchParams.get("qrId")) {
+      handleOpenNewQr();
+      queryParams({
+        del: ["qrId"],
+      });
+    }
+  }, [qrCodeId, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
 
   const QRPreviewModalCallback = useCallback(() => {
     return (
