@@ -23,7 +23,6 @@ import { cn } from "@dub/utils";
 import { ChevronDown } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
-import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { FormProvider, useForm, useFormContext } from "react-hook-form";
 import { toast } from "sonner";
@@ -46,9 +45,9 @@ export function useBrandingFormContext() {
   return useFormContext<BrandingFormData>();
 }
 
-export function BrandingForm() {
-  const { groupSlug } = useParams<{ groupSlug: string }>();
+type DraftData = BrandingFormData & { draftSavedAt: string | null };
 
+export function BrandingForm() {
   const { group, mutateGroup, loading } = useGroup<GroupWithProgramProps>(
     {
       query: { includeExpandedFields: true },
@@ -58,7 +57,7 @@ export function BrandingForm() {
     },
   );
 
-  const [draft, setDraft] = useLocalStorage<BrandingFormData | null>(
+  const [draft, setDraft] = useLocalStorage<DraftData | null>(
     `branding-form-${group?.id}`,
     null,
   );
@@ -67,10 +66,11 @@ export function BrandingForm() {
     return <LayoutLoader />;
   }
 
-  if (!group)
+  if (!group) {
     return (
       <div className="text-content-muted text-sm">Failed to load program</div>
     );
+  }
 
   return (
     <BrandingContextProvider>
@@ -143,6 +143,81 @@ const defaultApplicationFormData = (
   };
 };
 
+const dateIsAfter = (
+  dateOrDateString: Date | string,
+  compareToDateOrDateString: Date | string,
+) => {
+  const date =
+    typeof dateOrDateString === "string"
+      ? new Date(dateOrDateString)
+      : dateOrDateString;
+  const compareToDate =
+    typeof compareToDateOrDateString === "string"
+      ? new Date(compareToDateOrDateString)
+      : compareToDateOrDateString;
+
+  return date.getTime() > compareToDate.getTime();
+};
+
+const getDefaultApplicationFormData = (
+  group: GroupWithProgramProps,
+  draft: DraftData | null,
+): { dirty: boolean; applicationFormData: ProgramApplicationFormData } => {
+  if (draft) {
+    if (!group.applicationFormPublishedAt) {
+      return { applicationFormData: draft.applicationFormData, dirty: true };
+    }
+
+    if (
+      draft.draftSavedAt &&
+      dateIsAfter(draft.draftSavedAt, group.applicationFormPublishedAt)
+    ) {
+      // There is a saved draft and that draft is newer than the last published content
+      return { applicationFormData: draft.applicationFormData, dirty: true };
+    }
+  }
+
+  if (group.applicationFormData) {
+    return {
+      applicationFormData: group.applicationFormData,
+      dirty: !group.applicationFormPublishedAt,
+    };
+  }
+
+  return {
+    applicationFormData: defaultApplicationFormData(group.program),
+    dirty: true,
+  };
+};
+
+const getDefaultLanderData = (
+  group: GroupWithProgramProps,
+  draft: DraftData | null,
+): { dirty: boolean; landerData: ProgramLanderData } => {
+  if (draft) {
+    if (!group.landerPublishedAt) {
+      return { landerData: draft.landerData, dirty: true };
+    }
+
+    if (
+      draft.draftSavedAt &&
+      dateIsAfter(draft.draftSavedAt, group.landerPublishedAt)
+    ) {
+      // There is a saved draft and that draft is newer than the last published content
+      return { landerData: draft.landerData, dirty: true };
+    }
+  }
+
+  if (group.landerData) {
+    return { landerData: group.landerData, dirty: !group.landerPublishedAt };
+  }
+
+  return {
+    landerData: { blocks: [] },
+    dirty: false,
+  };
+};
+
 function BrandingFormInner({
   group,
   mutateGroup,
@@ -151,8 +226,8 @@ function BrandingFormInner({
 }: {
   group: GroupWithProgramProps;
   mutateGroup: KeyedMutator<GroupWithProgramProps>;
-  draft: BrandingFormData | null;
-  setDraft: (draft: BrandingFormData | null) => void;
+  draft: DraftData | null;
+  setDraft: (draft: DraftData | null) => void;
 }) {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, queryParams } = useRouterStuff();
@@ -162,14 +237,23 @@ function BrandingFormInner({
 
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(true);
 
+  const { applicationFormData, dirty: applicationFormDataDirty } =
+    getDefaultApplicationFormData(group, draft);
+  const { landerData, dirty: landerDataDirty } = getDefaultLanderData(
+    group,
+    draft,
+  );
+
+  const isDefaultValueDirty = applicationFormDataDirty || landerDataDirty;
+
   const form = useForm<BrandingFormData>({
+    reValidateMode: "onChange",
     defaultValues: {
-      logo: group.program?.logo ?? null,
-      wordmark: group.program?.wordmark ?? null,
-      brandColor: group.program?.brandColor ?? null,
-      applicationFormData:
-        group.applicationFormData ?? defaultApplicationFormData(group.program),
-      landerData: group.landerData ?? { blocks: [] },
+      logo: group.program?.logo ?? draft?.logo ?? null,
+      wordmark: group.program?.wordmark ?? draft?.wordmark ?? null,
+      brandColor: group.program?.brandColor ?? draft?.brandColor ?? null,
+      applicationFormData,
+      landerData,
     },
   });
 
@@ -179,7 +263,22 @@ function BrandingFormInner({
     setError,
     formState: { isDirty, isSubmitting, isSubmitSuccessful },
     getValues,
+    setValue,
   } = form;
+
+  useEffect(() => {
+    // update the form value
+    setValue("applicationFormData", applicationFormData, {
+      shouldDirty: applicationFormDataDirty,
+    });
+  }, [applicationFormData, applicationFormDataDirty]);
+
+  useEffect(() => {
+    // update the form value
+    setValue("landerData", landerData, {
+      shouldDirty: landerDataDirty,
+    });
+  }, [landerData, landerDataDirty]);
 
   const { executeAsync, isPending } = useAction(updateGroupBrandingAction, {
     async onSuccess({ data }) {
@@ -218,18 +317,8 @@ function BrandingFormInner({
     // the lander is being generated with AI, disable publishing
     if (isGeneratingLander) return true;
 
-    // if the lander / application form is not published yet, allow publishing
-    if (!group.landerPublishedAt || !group.applicationFormPublishedAt)
-      return false;
-
-    // if there are no changes, disable publishing
-    return !isDirty;
-  }, [
-    isGeneratingLander,
-    isDirty,
-    group.landerPublishedAt,
-    group.applicationFormPublishedAt,
-  ]);
+    return !(isDirty && isDefaultValueDirty);
+  }, [isGeneratingLander, isDirty, isDefaultValueDirty]);
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
@@ -242,6 +331,7 @@ function BrandingFormInner({
         if (!result?.data?.success) {
           toast.error("Failed to update application form.");
           setError("root", { message: "Failed to update application form." });
+          setDraft(null);
           return;
         }
       })}
@@ -306,11 +396,7 @@ function BrandingFormInner({
             </div>
           </div>
           <div className="flex grow basis-0 items-center justify-end gap-4">
-            <Drafts
-              enabled={!group.applicationFormData || !group.landerData}
-              draft={draft}
-              setDraft={setDraft}
-            />
+            <Drafts draft={draft} setDraft={setDraft} />
             <Button
               type="submit"
               variant="primary"
@@ -360,13 +446,11 @@ function BrandingFormInner({
 }
 
 function Drafts({
-  enabled,
   draft,
   setDraft,
 }: {
-  enabled: boolean;
-  draft: BrandingFormData | null;
-  setDraft: (draft: BrandingFormData | null) => void;
+  draft: DraftData | null;
+  setDraft: (draft: DraftData | null) => void;
 }) {
   const {
     setValue,
@@ -376,7 +460,7 @@ function Drafts({
 
   // Load draft
   useEffect(() => {
-    if (!enabled || !draft) return;
+    if (!draft) return;
 
     // Update form values to draft
     // setTimeout: https://github.com/orgs/react-hook-form/discussions/9913#discussioncomment-4936301
@@ -399,17 +483,21 @@ function Drafts({
 
   // Save draft
   useEffect(() => {
-    if (!enabled || !isDirty) return;
+    if (!isDirty) return;
 
     // TODO: Use `subscribe` from a future version of `react-hook-form`
     const interval = setInterval(() => {
-      setDraft(getValues());
+      const values = getValues();
+      setDraft({
+        ...values,
+        draftSavedAt: new Date().toISOString(),
+      });
     }, 1_000);
 
     return () => clearInterval(interval);
-  }, [enabled, isDirty]);
+  }, [isDirty]);
 
-  return enabled && isDirty ? (
+  return isDirty ? (
     <span className="text-content-muted text-sm">Unsaved draft</span>
   ) : null;
 }
