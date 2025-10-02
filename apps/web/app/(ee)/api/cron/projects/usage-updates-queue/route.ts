@@ -18,6 +18,7 @@ type ProjectAggregateUsage = {
   clicks: number;
   firstTimestamp: number;
   lastTimestamp: number;
+  entryIds: string[];
 };
 
 type ProcessResponse = {
@@ -56,6 +57,7 @@ const aggregateProjectUsage = (
       existing.clicks += 1;
       existing.lastTimestamp = Math.max(existing.lastTimestamp, timestamp);
       existing.firstTimestamp = Math.min(existing.firstTimestamp, timestamp);
+      existing.entryIds.push(entry.id);
     } else {
       aggregatedUsage.set(projectId, {
         projectId,
@@ -63,6 +65,7 @@ const aggregateProjectUsage = (
         clicks: 1,
         firstTimestamp: timestamp,
         lastTimestamp: timestamp,
+        entryIds: [entry.id],
       });
     }
   }
@@ -74,20 +77,21 @@ const aggregateProjectUsage = (
 };
 
 const processProjectUpdateStreamBatch = () =>
-  projectUsageStream.processBatch<ClickEvent, ProcessResponse>(
+  projectUsageStream.processBatch<ClickEvent>(
     async (entries) => {
       if (!entries || Object.keys(entries).length === 0) {
         return {
           success: true,
           updates: [],
-        } as ProcessResponse;
+          processedEntryIds: [],
+        };
       }
 
       const { updates, lastProcessedId } = aggregateProjectUsage(entries);
 
       if (updates.length === 0) {
         console.log("No project usage updates to process");
-        return { success: true, updates: [] } as ProcessResponse;
+        return { success: true, updates: [], processedEntryIds: [] };
       }
 
       console.log(
@@ -104,6 +108,7 @@ const processProjectUpdateStreamBatch = () =>
 
       let totalProcessed = 0;
       const errors: { projectId: string; error: any }[] = [];
+      const processedEntryIds: string[] = [];
 
       for (const batch of batches) {
         console.log(`BATCH: ${JSON.stringify(batch)}`);
@@ -117,6 +122,8 @@ const processProjectUpdateStreamBatch = () =>
                 "UPDATE Project p SET p.usage = p.usage + ?, p.totalClicks = p.totalClicks + ? WHERE id = ?",
                 [update.usage, update.clicks, update.projectId],
               );
+
+              processedEntryIds.push(...update.entryIds);
 
               return {
                 ...update,
@@ -172,7 +179,8 @@ const processProjectUpdateStreamBatch = () =>
         errors,
         totalProcessed,
         lastProcessedId,
-      } as ProcessResponse;
+        processedEntryIds,
+      };
     },
     {
       count: BATCH_SIZE,

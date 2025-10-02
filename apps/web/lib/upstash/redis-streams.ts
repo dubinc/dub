@@ -26,15 +26,17 @@ export class RedisStream {
    * Read and process a batch of items from the stream
    * This provides a consumable batch of messages with the ability to delete them upon successful completion of the handler
    */
-  async processBatch<T, Response>(
-    handler: (records: Entry<T>[]) => Promise<Response>,
+  async processBatch<T>(
+    handler: (
+      records: Entry<T>[],
+    ) => Promise<any & { processedEntryIds: string[] }>,
     options: {
       startId?: string;
       endId?: string;
       count?: number;
       deleteAfterRead?: boolean;
     } = {},
-  ): Promise<Response> {
+  ): Promise<any> {
     const {
       startId = "0",
       endId = "+",
@@ -58,16 +60,11 @@ export class RedisStream {
         }),
       );
 
-      const response = await handler(entries);
+      const { processedEntryIds, ...response } = await handler(entries);
 
       // Optionally delete processed entries to prevent memory buildup
       if (deleteAfterRead) {
         try {
-          // Delete all entries up to and including the last processed ID
-          // We do this by collecting the IDs we just processed and deleting them
-          // (Assumes entries is the batch we just processed)
-          const processedEntryIds = Object.keys(entriesMap);
-
           if (processedEntryIds.length > 0) {
             // xdel supports deleting multiple IDs at once
             await redis.xdel(this.streamKey, processedEntryIds);
@@ -78,7 +75,7 @@ export class RedisStream {
         }
       }
 
-      return response;
+      return response as Response;
     } catch (error) {
       console.error("Failed to read project usage updates from stream:", error);
       throw error;
