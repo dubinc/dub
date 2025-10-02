@@ -7,10 +7,11 @@ interface QRCanvasProps {
   height?: number;
   maxWidth?: number;
   minWidth?: number;
+  onCanvasReady?: () => void;
 }
 
 export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
-  ({ qrCode, width = 200, height = 200, maxWidth, minWidth = 100 }, ref) => {
+  ({ qrCode, width = 200, height = 200, maxWidth, minWidth = 100, onCanvasReady }, ref) => {
     const internalCanvasRef = useRef<HTMLCanvasElement>(null);
     const svgContainerRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
@@ -114,6 +115,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
             );
             ctx.drawImage(img, 0, 0, canvasSize.width, canvasSize.height);
             ctx.restore();
+            onCanvasReady?.();
           };
           img.onerror = (e) => {
             console.error("Failed to load QR image:", e);
