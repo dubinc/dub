@@ -60,7 +60,8 @@ export async function POST(req: NextRequest) {
       if (isSamePassword) {
         throw new DubApiError({
           code: "unprocessable_entity",
-          message: "New password must be different from your current password.",
+          message:
+            "Your new password cannot be the same as your current password.",
         });
       }
     }
