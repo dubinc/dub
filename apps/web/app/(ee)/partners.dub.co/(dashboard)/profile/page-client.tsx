@@ -8,6 +8,7 @@ import { Button } from "@dub/ui";
 import { AboutYouForm } from "./about-you-form";
 import { HowYouWorkForm } from "./how-you-work-form";
 import { ProfileDetailsForm } from "./profile-details-form";
+import { ProfileDiscoveryGuide } from "./profile-discovery-guide";
 
 export function ProfileSettingsPageClient() {
   const { partner } = usePartnerProfile();
@@ -23,6 +24,7 @@ export function ProfileSettingsPageClient() {
       controls={<Controls />}
     >
       <PageWidthWrapper className="mb-20 flex flex-col gap-6">
+        {partner && <ProfileDiscoveryGuide partner={partner} />}
         <ProfileDetailsForm partner={partner} />
         <AboutYouForm partner={partner} />
         <HowYouWorkForm partner={partner} />
