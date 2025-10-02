@@ -4,6 +4,7 @@ import { usePartnerLinkQRModal } from "@/ui/modals/partner-link-qr-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, PenWriting, Popover, useKeyboardShortcut } from "@dub/ui";
 import { QRCode } from "@dub/ui/icons";
+import { nanoid } from "@dub/utils";
 import { CopyPlus } from "lucide-react";
 
 export function PartnerLinkControls({
@@ -35,6 +36,7 @@ export function PartnerLinkControls({
     link: {
       ...link,
       id: "",
+      key: `${link.key}-${nanoid(6)}`,
     },
   });
 
