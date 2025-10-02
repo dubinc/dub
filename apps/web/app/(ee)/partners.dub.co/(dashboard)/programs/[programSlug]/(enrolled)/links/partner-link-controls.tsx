@@ -32,7 +32,12 @@ export function PartnerLinkControls({
   const {
     setShowPartnerLinkModal: setShowDuplicateLinkModal,
     PartnerLinkModal: DuplicateLinkModal,
-  } = usePartnerLinkModal();
+  } = usePartnerLinkModal({
+    link: {
+      ...link,
+      id: "",
+    },
+  });
 
   useKeyboardShortcut(
     ["e", "q", "d"],

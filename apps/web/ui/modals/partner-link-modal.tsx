@@ -169,9 +169,11 @@ function PartnerLinkModalContent({
   link?: PartnerProfileLinkProps;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const isDuplicateMode = !link?.id;
+
   const { programSlug } = useParams();
   const { programEnrollment } = useProgramEnrollment();
-  const [lockKey, setLockKey] = useState(Boolean(link));
+  const [lockKey, setLockKey] = useState(Boolean(link?.id && !isDuplicateMode));
   const [isLoading, setIsLoading] = useState(false);
   const [isExactMode, setIsExactMode] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -257,10 +259,10 @@ function PartnerLinkModalContent({
         try {
           const response = await fetch(
             `/api/partner-profile/programs/${programEnrollment?.program?.id}/links${
-              link ? `/${link.id}` : ""
+              link && !isDuplicateMode ? `/${link.id}` : ""
             }`,
             {
-              method: link ? "PATCH" : "POST",
+              method: link && !isDuplicateMode ? "PATCH" : "POST",
               headers: {
                 "Content-Type": "application/json",
               },
@@ -287,7 +289,7 @@ function PartnerLinkModalContent({
             mutateSuffix("/links"),
           ]);
 
-          if (!link) {
+          if (!link && !isDuplicateMode) {
             try {
               await copyToClipboard(result.shortLink);
               toast.success("Copied short link to clipboard!");
@@ -305,7 +307,7 @@ function PartnerLinkModalContent({
       <div className="flex flex-col items-start justify-between gap-6 px-6 py-4">
         <div className="flex w-full items-center justify-between">
           <h3 className="text-lg font-medium">
-            {link ? "Edit Link" : "New Link"}
+            {link && !isDuplicateMode ? "Edit Link" : "New Link"}
           </h3>
           <button
             type="button"
@@ -397,7 +399,7 @@ function PartnerLinkModalContent({
                     selectedDomain={destinationDomain}
                     setSelectedDomain={setDestinationDomain}
                     destinationDomains={destinationDomains}
-                    disabled={Boolean(link)}
+                    disabled={Boolean(link && !isDuplicateMode)}
                   />
                 </div>
                 <input
@@ -479,7 +481,7 @@ function PartnerLinkModalContent({
           loading={isLoading}
           text={
             <span className="flex items-center gap-2">
-              {link ? "Save changes" : "Create link"}
+              {link && !isDuplicateMode ? "Save changes" : "Create link"}
               <div className="rounded border border-white/20 p-1">
                 <ArrowTurnLeft className="size-3.5" />
               </div>
