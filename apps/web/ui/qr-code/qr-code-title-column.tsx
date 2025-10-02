@@ -51,15 +51,13 @@ export function QrCodeTitleColumn({
   });
 
   useEffect(() => {
-    if (qrCode.id === searchParams.get("qrId")) {
-      setTimeout(() => {
-        handleOpenNewQr();
-        queryParams({
-          del: ["qrId"],
-        });
-      }, 500);
+    if (qrCode.id === searchParams.get("qrId") && canvasRef.current) {
+      handleOpenNewQr();
+      queryParams({
+        del: ["qrId"],
+      });
     }
-  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
+  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams, canvasRef.current]);
 
   return (
     <>
