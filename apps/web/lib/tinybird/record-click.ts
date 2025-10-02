@@ -188,14 +188,14 @@ export async function recordClick({
           "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
           [linkId],
         ),
-        // if the link has a destination URL, increment the usage count for the workspace
-        // and then we have a cron that will reset it at the start of new billing cycle
-        url &&
+        // if the link is associated with a workspace + has a destination URL
+        // increment the usage count for the workspace
+        workspaceId &&
+          url &&
           publishClickEvent({
             linkId,
             workspaceId,
             timestamp: clickData.timestamp,
-            url,
           }).catch(() => {
             // Fallback on writing directly to the database
             return conn.execute(

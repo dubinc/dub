@@ -3,14 +3,14 @@ import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { conn } from "@/lib/planetscale";
 import {
   ClickEvent,
-  Entry,
+  RedisStreamEntry,
   workspaceUsageStream,
 } from "@/lib/upstash/redis-streams";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-const BATCH_SIZE = 1000;
+const BATCH_SIZE = 10000;
 
 type WorkspaceAggregateUsage = {
   workspaceId: string;
@@ -22,7 +22,7 @@ type WorkspaceAggregateUsage = {
 };
 
 const aggregateWorkspaceUsage = (
-  entries: Entry<ClickEvent>[],
+  entries: RedisStreamEntry<ClickEvent>[],
 ): { updates: WorkspaceAggregateUsage[]; lastProcessedId: string | null } => {
   // Aggregate usage by workspaceId
   const aggregatedUsage = new Map<string, WorkspaceAggregateUsage>();
@@ -180,7 +180,7 @@ const processWorkspaceUpdateStreamBatch = () =>
   );
 
 // This route is used to process aggregated workspace usage events from Redis streams
-// It runs every 5 seconds to consume high-frequency usage updates
+// It runs every minute with a batch size of 10,000 to consume high-frequency usage updates
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);

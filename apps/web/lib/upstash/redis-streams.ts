@@ -5,12 +5,11 @@ export const WORKSPACE_USAGE_UPDATES_STREAM_KEY = "workspace:usage:updates";
 
 export interface ClickEvent {
   linkId: string;
-  workspaceId?: string;
+  workspaceId: string;
   timestamp: string;
-  url?: string;
 }
 
-export type Entry<T> = {
+export type RedisStreamEntry<T> = {
   id: string;
   data: T;
 };
@@ -28,7 +27,7 @@ export class RedisStream {
    */
   async processBatch<T>(
     handler: (
-      records: Entry<T>[],
+      records: RedisStreamEntry<T>[],
     ) => Promise<any & { processedEntryIds: string[] }>,
     options: {
       startId?: string;
@@ -53,7 +52,7 @@ export class RedisStream {
         count,
       );
 
-      const entries: Entry<T>[] = Object.entries(entriesMap).map(
+      const entries: RedisStreamEntry<T>[] = Object.entries(entriesMap).map(
         ([id, data]) => ({
           id,
           data: data as any,
@@ -154,7 +153,7 @@ export const workspaceUsageStream = new RedisStream(
 
 // Publishes a click event to any relevant streams in a single transaction
 export const publishClickEvent = async (event: ClickEvent) => {
-  const { linkId, timestamp, workspaceId, url } = event;
+  const { linkId, timestamp, workspaceId } = event;
   const entry = { linkId, timestamp, workspaceId };
 
   try {
@@ -163,9 +162,7 @@ export const publishClickEvent = async (event: ClickEvent) => {
     // TODO: - Uncomment when we handle click updates
     // pipeline.xadd(LINK_CLICK_UPDATES_STREAM_KEY, "*", entry);
 
-    if (url) {
-      pipeline.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", entry);
-    }
+    pipeline.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", entry);
 
     return await pipeline.exec();
   } catch (error) {
