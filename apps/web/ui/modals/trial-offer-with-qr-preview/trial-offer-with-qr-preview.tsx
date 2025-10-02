@@ -3,7 +3,6 @@
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
 import { QrStorageData } from "@/ui/qr-builder/types/types";
-import { QrCardType } from "@/ui/qr-code/qr-code-card-type";
 import { FiveStarsComponent } from "@/ui/shared/five-stars.component";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
@@ -26,7 +25,6 @@ import {
   useRef,
   useState,
 } from "react";
-import { QR_TYPES } from "../../qr-builder/constants/get-qr-config";
 import { useQRPreviewModal } from "../qr-preview-modal";
 import { AvatarsComponent } from "./components/avatars.component";
 import { CreateSubscriptionFlow } from "./components/create-subscription-flow.component";
@@ -130,9 +128,6 @@ function TrialOfferWithQRPreviewInner({
   const { isMobile } = useMediaQuery();
 
   const [clientToken, setClientToken] = useState<string | null>(null);
-  const currentQrTypeInfo = QR_TYPES.find(
-    (item) => item.id === firstQr?.qrType,
-  )!;
 
   const isPaidTraffic = user?.isPaidUser || false;
 
@@ -175,14 +170,6 @@ function TrialOfferWithQRPreviewInner({
           </div>
 
           <div className="relative flex w-full max-w-[300px] flex-col justify-center gap-2">
-            {firstQr && (
-              <div className="bg-primary-100 absolute left-0 top-0 z-10 rounded-tl-lg">
-                <QrCardType
-                  className="bg-primary-100"
-                  currentQrTypeInfo={currentQrTypeInfo}
-                />
-              </div>
-            )}
             <QRCanvas
               ref={canvasRef}
               qrCode={qrCode}
