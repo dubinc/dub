@@ -284,6 +284,7 @@ export function useQRPreviewModal(data: {
   }, []);
 
   const onCanvasReady = useCallback(() => {
+    console.log("onCanvasReady", qrCodeId, searchParams.get("qrId"));
     if (qrCodeId === searchParams.get("qrId")) {
       handleOpenNewQr();
       queryParams({
