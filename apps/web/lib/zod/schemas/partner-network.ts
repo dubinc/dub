@@ -118,6 +118,7 @@ export const PartnerNetworkPartnerSchema = PartnerSchema.pick({
     starredAt: z.date().nullable(),
     invitedAt: z.date().nullable(),
     ignoredAt: z.date().nullable(),
+    recruitedAt: z.date().nullable(),
   }),
 );
 

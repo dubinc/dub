@@ -36,7 +36,11 @@ export const GET = withWorkspace(
         metrics.conversionRate as conversionRate,
         dp.starredAt as starredAt,
         dp.ignoredAt as ignoredAt,
-        dp.invitedAt as invitedAt
+        dp.invitedAt as invitedAt,
+        case
+          when pe.status = 'approved' then pe.createdAt
+          else null
+        end as recruitedAt
       FROM 
         Partner p
       -- Any associated program enrollment
