@@ -2,19 +2,21 @@ import { PartnerProfileLinkProps } from "@/lib/types";
 import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
 import { usePartnerLinkQRModal } from "@/ui/modals/partner-link-qr-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, PenWriting, Popover } from "@dub/ui";
+import { Button, PenWriting, Popover, useKeyboardShortcut } from "@dub/ui";
 import { QRCode } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
-import { useState } from "react";
+import { CopyPlus } from "lucide-react";
 
-// this is unused for now
-// at least until we have more controls available for partner links
 export function PartnerLinkControls({
   link,
-  programId,
+  openPopover,
+  setOpenPopover,
+  shortcutsEnabled,
 }: {
   link: PartnerProfileLinkProps;
-  programId: string;
+  openPopover: boolean;
+  setOpenPopover: (open: boolean) => void;
+  shortcutsEnabled: boolean;
 }) {
   const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({
     link,
@@ -27,12 +29,38 @@ export function PartnerLinkControls({
     },
   });
 
-  const [openPopover, setOpenPopover] = useState(false);
+  const {
+    setShowPartnerLinkModal: setShowDuplicateLinkModal,
+    PartnerLinkModal: DuplicateLinkModal,
+  } = usePartnerLinkModal();
+
+  useKeyboardShortcut(
+    ["e", "q", "d"],
+    (e) => {
+      setOpenPopover(false);
+      switch (e.key) {
+        case "e":
+          setShowPartnerLinkModal(true);
+          break;
+        case "q":
+          setShowLinkQRModal(true);
+          break;
+        case "d":
+          setShowDuplicateLinkModal(true);
+          break;
+      }
+    },
+    {
+      enabled: shortcutsEnabled,
+      priority: 1,
+    },
+  );
 
   return (
     <div className="flex justify-end">
       <LinkQRModal />
       <PartnerLinkModal />
+      <DuplicateLinkModal />
       <Popover
         content={
           <div className="w-full sm:w-48">
@@ -45,7 +73,8 @@ export function PartnerLinkControls({
                   setShowPartnerLinkModal(true);
                 }}
                 icon={<PenWriting className="size-4" />}
-                className="h-9 justify-start px-2 font-medium"
+                shortcut="E"
+                className="h-9 px-2 font-medium"
               />
               <Button
                 text="QR Code"
@@ -55,7 +84,19 @@ export function PartnerLinkControls({
                   setShowLinkQRModal(true);
                 }}
                 icon={<QRCode className="size-4" />}
-                className="h-9 justify-start px-2 font-medium"
+                shortcut="Q"
+                className="h-9 px-2 font-medium"
+              />
+              <Button
+                text="Duplicate"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDuplicateLinkModal(true);
+                }}
+                icon={<CopyPlus className="size-4" />}
+                shortcut="D"
+                className="h-9 px-2 font-medium"
               />
             </div>
           </div>
