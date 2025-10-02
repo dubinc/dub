@@ -12,6 +12,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
+  Bolt,
   Button,
   buttonVariants,
   CreditCard,
@@ -525,8 +526,11 @@ function FastAchPayoutToggle() {
 
   return (
     <div className="flex h-12 items-center gap-2 rounded-lg bg-neutral-100 px-4 py-2">
-      <div className="flex size-8 items-center justify-center rounded-md border border-neutral-200 text-neutral-200">
+      <div className="relative flex size-8 items-center justify-center rounded-md border border-neutral-200 p-2 text-neutral-200">
         <GreekTemple className="text-content-emphasis size-4" />
+        <div className="absolute left-1/2 top-1 flex size-2 translate-x-[3px] items-center justify-center rounded-sm">
+          <Bolt className="size-2.5 fill-amber-500 text-amber-500" />
+        </div>
       </div>
 
       <div className="flex-1">
