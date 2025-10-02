@@ -45,7 +45,6 @@ interface IQRPreviewModalProps {
   width?: number;
   height?: number;
   user: Session["user"];
-  onCanvasReady?: () => void;
 }
 
 function QRPreviewModal({
@@ -59,7 +58,6 @@ function QRPreviewModal({
   width = 200,
   height = 200,
   user,
-  onCanvasReady,
 }: IQRPreviewModalProps) {
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
@@ -194,7 +192,6 @@ function QRPreviewModal({
                   qrCode={qrCode}
                   width={width}
                   height={height}
-                  onCanvasReady={onCanvasReady}
                 />
               </div>
 
@@ -275,23 +272,11 @@ export function useQRPreviewModal(data: {
   const { canvasRef, qrCode, qrCodeId, width = 200, height = 200, user } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
   const [isNewQr, setIsNewQr] = useState(false);
-  const searchParams = useSearchParams();
-  const { queryParams } = useRouterStuff();
 
   const handleOpenNewQr = useCallback(() => {
     setShowQRPreviewModal(true);
     setIsNewQr(true);
   }, []);
-
-  const onCanvasReady = useCallback(() => {
-    console.log("onCanvasReady", qrCodeId, searchParams.get("qrId"));
-    if (qrCodeId === searchParams.get("qrId")) {
-      handleOpenNewQr();
-      queryParams({
-        del: ["qrId"],
-      });
-    }
-  }, [qrCodeId, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
 
   const QRPreviewModalCallback = useCallback(() => {
     return (
@@ -306,7 +291,6 @@ export function useQRPreviewModal(data: {
         setIsNewQr={setIsNewQr}
         isNewQr={isNewQr}
         user={user}
-        onCanvasReady={onCanvasReady}
       />
     );
   }, [width, height, showQRPreviewModal, qrCodeId]);
