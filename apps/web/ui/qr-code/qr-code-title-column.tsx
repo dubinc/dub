@@ -7,14 +7,12 @@ import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
 import { QRCardTitle } from "@/ui/qr-code/qr-code-card-title.tsx";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
-import { Tooltip, useMediaQuery, useRouterStuff } from "@dub/ui";
+import { Tooltip, useMediaQuery } from "@dub/ui";
 import { cn, formatDateTime, timeAgo } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
 import QRCodeStyling from "qr-code-styling";
-import { RefObject, useEffect, useRef } from "react";
+import { RefObject, useRef } from "react";
 import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
-import { Session } from '@/lib/auth';
-import { useSearchParams } from 'next/navigation';
 
 interface QrCodeTitleColumnProps {
   user: Session["user"];
@@ -37,11 +35,9 @@ export function QrCodeTitleColumn({
 }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, title } = qrCode?.link ?? {};
   const { isMobile, width } = useMediaQuery();
-  const searchParams = useSearchParams();
-  const { queryParams } = useRouterStuff();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
+  const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
     canvasRef,
     qrCode: builtQrCodeObject,
     qrCodeId: qrCode.id,
@@ -49,15 +45,6 @@ export function QrCodeTitleColumn({
     height: isMobile ? 300 : 200,
     user,
   });
-
-  useEffect(() => {
-    if (qrCode.id === searchParams.get("qrId")) {
-      handleOpenNewQr();
-      queryParams({
-        del: ["qrId"],
-      });
-    }
-  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
 
   return (
     <>
