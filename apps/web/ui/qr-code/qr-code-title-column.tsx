@@ -52,10 +52,12 @@ export function QrCodeTitleColumn({
 
   useEffect(() => {
     if (qrCode.id === searchParams.get("qrId")) {
-      handleOpenNewQr();
-      queryParams({
-        del: ["qrId"],
-      });
+      setTimeout(() => {
+        handleOpenNewQr();
+        queryParams({
+          del: ["qrId"],
+        });
+      }, 0);
     }
   }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
 
