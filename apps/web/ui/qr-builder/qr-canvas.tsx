@@ -62,6 +62,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       svgContainerRef.current.style.display = "none";
 
       const renderSVGToCanvas = () => {
+        onCanvasReady?.();
         const svg = svgContainerRef.current?.querySelector("svg");
 
         if (!svg || !canvasRef.current) {
@@ -123,7 +124,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
         } catch (err) {
           console.error("SVG render failed:", err);
         }
-        onCanvasReady?.();
       };
 
       const initialRenderTimeout = setTimeout(renderSVGToCanvas, 100);
