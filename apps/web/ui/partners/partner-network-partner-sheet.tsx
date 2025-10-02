@@ -14,6 +14,7 @@ import {
   useKeyboardShortcut,
   useRouterStuff,
 } from "@dub/ui";
+import { timeAgo } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
@@ -193,19 +194,29 @@ function PartnerControls({
 
   useKeyboardShortcut("s", () => setShowConfirmModal(true), { sheet: true });
 
+  const alreadyInvited = Boolean(partner.invitedAt || partner.recruitedAt);
+
   return (
     <>
       {confirmModal}
       <div className="flex justify-end gap-2">
-        <div className="flex-shrink-0">
-          <PartnerIgnoreButton partner={partner} setIsOpen={setIsOpen} />
-        </div>
+        {!alreadyInvited && (
+          <div className="flex-shrink-0">
+            <PartnerIgnoreButton partner={partner} setIsOpen={setIsOpen} />
+          </div>
+        )}
         <Button
           type="button"
           variant="primary"
-          text={partner.invitedAt ? "Invited" : "Send invite"}
-          disabled={!!partner.invitedAt}
-          shortcut="S"
+          text={
+            partner.recruitedAt
+              ? `Recruited ${timeAgo(partner.recruitedAt, { withAgo: true })}`
+              : partner.invitedAt
+                ? `Invited ${timeAgo(partner.invitedAt, { withAgo: true })}`
+                : "Send invite"
+          }
+          disabled={alreadyInvited}
+          shortcut={alreadyInvited ? undefined : "S"}
           loading={isPending}
           onClick={() => setShowConfirmModal(true)}
           className="w-fit shrink-0"
