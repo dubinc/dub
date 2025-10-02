@@ -11,7 +11,7 @@ import { Tooltip, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { cn, formatDateTime, timeAgo } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
 import QRCodeStyling from "qr-code-styling";
-import { RefObject, useEffect, useLayoutEffect, useRef } from "react";
+import { RefObject, useEffect, useRef } from "react";
 import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
 import { Session } from '@/lib/auth';
 import { useSearchParams } from 'next/navigation';
@@ -50,14 +50,16 @@ export function QrCodeTitleColumn({
     user,
   });
 
-  useLayoutEffect(() => {
-    if (qrCode.id === searchParams.get("qrId") && canvasRef.current) {
-      handleOpenNewQr();
-      queryParams({
-        del: ["qrId"],
-      });
+  useEffect(() => {
+    if (qrCode.id === searchParams.get("qrId")) {
+      setTimeout(() => {
+        handleOpenNewQr();
+        queryParams({
+          del: ["qrId"],
+        });
+      }, 100);
     }
-  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams, canvasRef.current]);
+  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
 
   return (
     <>
