@@ -443,7 +443,11 @@ function PayoutInvoiceSheetContent() {
           </div>
         </div>
 
-        <div className="p-6 pt-2">
+        <div className="px-6">
+          <FastAchPayoutToggle />
+        </div>
+
+        <div className="p-6">
           <Table {...table} />
         </div>
       </div>
@@ -507,6 +511,49 @@ function PayoutInvoiceSheetContent() {
             )
           }
         />
+      </div>
+    </div>
+  );
+}
+
+function FastAchPayoutToggle() {
+  const [isVisible, setIsVisible] = useState(true);
+
+  if (!isVisible) {
+    return null;
+  }
+
+  return (
+    <div className="flex h-12 items-center gap-2 rounded-lg bg-neutral-100 px-4 py-2">
+      <div className="flex size-8 items-center justify-center rounded-md border border-neutral-200 text-neutral-200">
+        <GreekTemple className="text-content-emphasis size-4" />
+      </div>
+
+      <div className="flex-1">
+        <div className="text-content-emphasis text-xs font-semibold">
+          Fast ACH
+        </div>
+        <div className="text-content-default text-xs font-medium">
+          Send ACH payouts in 2 days.
+        </div>
+      </div>
+
+      <div className="flex items-center gap-0.5">
+        <Button
+          variant="secondary"
+          text="Contact sales to enable"
+          className="border-border-subtle h-7 w-fit whitespace-nowrap rounded-lg bg-white px-2.5 py-2 text-sm"
+          onClick={() => {
+            window.open("https://dub.co/enterprise", "_blank");
+          }}
+        />
+        <button
+          onClick={() => setIsVisible(false)}
+          className="text-content-emphasis p-1"
+          aria-label="Close"
+        >
+          <X className="size-3" />
+        </button>
       </div>
     </div>
   );
