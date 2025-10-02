@@ -177,17 +177,6 @@ export async function recordClick({
             body: JSON.stringify(clickData),
           },
         ).then((res) => res.json()),
-        // TODO: Remove after Tinybird migration
-        fetchWithRetry(
-          `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_NEW}`,
-            },
-            body: JSON.stringify(clickData),
-          },
-        ).then((res) => res.json()),
 
         // cache the recorded click for the corresponding IP address in Redis for 1 hour
         recordClickCache.set({ domain, key, ip, clickId }),
@@ -205,6 +194,18 @@ export async function recordClick({
             "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
             [linkId],
           ),
+
+        // TODO: Remove after Tinybird migration
+        fetchWithRetry(
+          `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_NEW}`,
+            },
+            body: JSON.stringify(clickData),
+          },
+        ).then((res) => res.json()),
       ]);
 
       // Find the rejected promises and log them
