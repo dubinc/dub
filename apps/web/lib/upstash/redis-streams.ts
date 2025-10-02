@@ -1,41 +1,19 @@
 import { redis } from "./redis";
 
 // Stream key constants
-export const LINK_CLICK_UPDATES_STREAM_KEY = "link:click:updates";
 export const PROJECT_USAGE_UPDATES_STREAM_KEY = "project:usage:updates";
 
 export interface ClickEvent {
   linkId: string;
+  projectId?: string;
   timestamp: string;
   url?: string;
 }
 
-export interface StreamEntry {
+export type Entry<T> = {
   id: string;
-  linkId: string;
-  timestamp: string;
-}
-
-export interface ProjectStreamEntry {
-  id: string;
-  linkId: string;
-  timestamp: string;
-}
-
-export interface ProcessedClickUpdate {
-  linkId: string;
-  totalCount: number;
-  firstTimestamp: number;
-  lastTimestamp: number;
-}
-
-export interface ProcessedProjectUpdate {
-  projectId: string;
-  totalUsage: number;
-  totalClicks: number;
-  firstTimestamp: number;
-  lastTimestamp: number;
-}
+  data: T;
+};
 
 export class RedisStream {
   private streamKey: string;
@@ -45,20 +23,18 @@ export class RedisStream {
   }
 
   /**
-   * Read and process click updates from the stream
-   * This method aggregates clicks by linkId and returns the total counts
+   * Read and process a batch of items from the stream
+   * This provides a consumable batch of messages with the ability to delete them upon successful completion of the handler
    */
-  async readAndProcessUpdates(
+  async processBatch<T, Response>(
+    handler: (records: Entry<T>[]) => Promise<Response>,
     options: {
       startId?: string;
       endId?: string;
       count?: number;
       deleteAfterRead?: boolean;
     } = {},
-  ): Promise<{
-    updates: ProcessedClickUpdate[];
-    lastProcessedId: string | null;
-  }> {
+  ): Promise<Response> {
     const {
       startId = "0",
       endId = "+",
@@ -68,195 +44,36 @@ export class RedisStream {
 
     try {
       // Read entries from the stream
-      const entries = await redis.xrange(this.streamKey, startId, endId, count);
+      const entriesMap = await redis.xrange(
+        this.streamKey,
+        startId,
+        endId,
+        count,
+      );
 
-      if (!entries || Object.keys(entries).length === 0) {
-        return { updates: [], lastProcessedId: null };
-      }
+      const entries: Entry<T>[] = Object.entries(entriesMap).map(
+        ([id, data]) => ({
+          id,
+          data: data as any,
+        }),
+      );
 
-      // Aggregate clicks by linkId
-      const aggregatedClicks = new Map<string, ProcessedClickUpdate>();
-      let lastId: string | null = null;
-
-      for (const [streamId, fields] of Object.entries(entries)) {
-        const entry = fields as unknown as {
-          linkId: string;
-          timestamp: string;
-        };
-        const linkId = entry.linkId;
-        const timestamp = Date.parse(entry.timestamp) / 1000;
-        const count = 1;
-
-        lastId = streamId;
-
-        if (aggregatedClicks.has(linkId)) {
-          const existing = aggregatedClicks.get(linkId)!;
-          existing.totalCount += count;
-          existing.lastTimestamp = Math.max(existing.lastTimestamp, timestamp);
-          existing.firstTimestamp = Math.min(
-            existing.firstTimestamp,
-            timestamp,
-          );
-        } else {
-          aggregatedClicks.set(linkId, {
-            linkId,
-            totalCount: count,
-            firstTimestamp: timestamp,
-            lastTimestamp: timestamp,
-          });
-        }
-      }
+      const response = await handler(entries);
 
       // Optionally delete processed entries to prevent memory buildup
-      // xackdel is not a standard Redis command, but if you are referring to a custom helper or a pattern
-      // that acknowledges and deletes entries in a consumer group (as with xack + xdel), you could use it
-      // if you are using consumer groups. However, this code is not using consumer groups, so xdel is correct.
-      // If you want to use xackdel, you must be using XREADGROUP and have a consumer group context.
-      // For now, keep xdel, but add a note:
-
-      if (deleteAfterRead && lastId) {
+      if (deleteAfterRead) {
         try {
-          // NOTE: If using Redis Streams with consumer groups, you should use XACK to acknowledge
-          // entries for a group/consumer, and optionally XDEL to delete. Here, we are not using consumer groups,
-          // so we just delete processed entries directly.
-          // If you migrate to consumer groups, replace this with xack + xdel as appropriate.
+          // Delete all entries up to and including the last processed ID
+          // We do this by collecting the IDs we just processed and deleting them
+          // (Assumes entries is the batch we just processed)
+          const processedEntryIds = Object.keys(entries);
 
-          // Remove all processed entries up to and including lastId
-          // Get all entry IDs up to lastId
-          const processedEntries = await redis.xrange(
-            this.streamKey,
-            "-",
-            lastId,
-          );
-          const processedEntryIds = Object.keys(processedEntries || {});
           if (processedEntryIds.length > 0) {
-            // xdel supports deleting multiple IDs at once, but Upstash limits batch size, so chunk if needed
-            const BATCH_SIZE = 100;
-            for (let i = 0; i < processedEntryIds.length; i += BATCH_SIZE) {
-              const batch = processedEntryIds.slice(i, i + BATCH_SIZE);
-              try {
-                await redis.xdel(this.streamKey, batch);
-              } catch (delError) {
-                // Continue if individual batch delete fails
-              }
-            }
+            // xdel supports deleting multiple IDs at once
+            await redis.xdel(this.streamKey, processedEntryIds);
           }
         } catch (error) {
-          console.warn("Failed to clean up stream entries:", error);
-          // Don't throw - this is not critical
-        }
-      }
-
-      return {
-        updates: Array.from(aggregatedClicks.values()),
-        lastProcessedId: lastId,
-      };
-    } catch (error) {
-      console.error("Failed to read updates from stream:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Read and process project usage updates from the stream
-   * This method aggregates usage and clicks by projectId and returns the total counts
-   */
-  async readAndProcessProjectUpdates<T>(
-    handler: (info: {
-      updates: ProcessedProjectUpdate[];
-      lastProcessedId: string | null;
-    }) => Promise<T>,
-    options: {
-      startId?: string;
-      endId?: string;
-      count?: number;
-      deleteAfterRead?: boolean;
-    } = {},
-  ): Promise<T> {
-    const {
-      startId = "0",
-      endId = "+",
-      count = 1000,
-      deleteAfterRead = true,
-    } = options;
-
-    try {
-      // Read entries from the stream
-      const entries = await redis.xrange(this.streamKey, startId, endId, count);
-
-      if (!entries || Object.keys(entries).length === 0) {
-        return handler({ updates: [], lastProcessedId: null });
-      }
-
-      // Aggregate usage by projectId
-      const aggregatedUsage = new Map<string, ProcessedProjectUpdate>();
-      let lastId: string | null = null;
-
-      for (const [streamId, fields] of Object.entries(entries)) {
-        const entry = fields as unknown as {
-          projectId: string;
-          timestamp: string;
-          usageCount: string;
-          clickCount: string;
-        };
-        const projectId = entry.projectId;
-        const timestamp = Date.parse(entry.timestamp) / 1000;
-        const usageCount = parseInt(entry.usageCount);
-        const clickCount = parseInt(entry.clickCount);
-
-        lastId = streamId;
-
-        if (aggregatedUsage.has(projectId)) {
-          const existing = aggregatedUsage.get(projectId)!;
-          existing.totalUsage += usageCount;
-          existing.totalClicks += clickCount;
-          existing.lastTimestamp = Math.max(existing.lastTimestamp, timestamp);
-          existing.firstTimestamp = Math.min(
-            existing.firstTimestamp,
-            timestamp,
-          );
-        } else {
-          aggregatedUsage.set(projectId, {
-            projectId,
-            totalUsage: usageCount,
-            totalClicks: clickCount,
-            firstTimestamp: timestamp,
-            lastTimestamp: timestamp,
-          });
-        }
-      }
-
-      const response = await handler({
-        updates: Array.from(aggregatedUsage.values()),
-        lastProcessedId: lastId,
-      });
-
-      // Optionally delete processed entries to prevent memory buildup
-      if (deleteAfterRead && lastId) {
-        try {
-          // Remove entries up to the last processed ID
-          // We'll implement this by deleting all entries older than the last processed one
-          // For now, we'll keep a maximum number of entries to prevent unbounded growth
-          const allEntries = await redis.xrange(this.streamKey, "-", "+");
-          const totalEntries = Object.keys(allEntries || {}).length;
-
-          // Keep only the last 1000 entries if we have more than 2000
-          if (totalEntries > 2000) {
-            const entryIds = Object.keys(allEntries);
-            const keepFromIndex = totalEntries - 1000;
-            const minIdToKeep = entryIds[keepFromIndex];
-
-            // Delete entries older than minIdToKeep (this is a workaround for xtrim)
-            for (let i = 0; i < keepFromIndex; i++) {
-              try {
-                await redis.xdel(this.streamKey, entryIds[i]);
-              } catch (delError) {
-                // Continue if individual delete fails
-              }
-            }
-          }
-        } catch (error) {
-          console.warn("Failed to clean up stream entries:", error);
+          console.warn("Failed to clean up processed stream entries:", error);
           // Don't throw - this is not critical
         }
       }
@@ -331,22 +148,19 @@ export class RedisStream {
   }
 }
 
-// Export instances for both click and project usage updates
-export const clickUpdatesStream = new RedisStream(
-  LINK_CLICK_UPDATES_STREAM_KEY,
-);
 export const projectUsageStream = new RedisStream(
   PROJECT_USAGE_UPDATES_STREAM_KEY,
 );
 
-export const publishLinkClick = async (event: ClickEvent) => {
-  const { linkId, timestamp, url } = event;
-  const entry = { linkId, timestamp };
+// Publishes a click event to any relevant streams in a single transaction
+export const publishClickEvent = async (event: ClickEvent) => {
+  const { linkId, timestamp, projectId, url } = event;
+  const entry = { linkId, timestamp, projectId };
 
   try {
     const pipeline = redis.pipeline();
 
-    // TODO: - Uncomment when we handle
+    // TODO: - Uncomment when we handle click updates
     // pipeline.xadd(LINK_CLICK_UPDATES_STREAM_KEY, "*", entry);
 
     if (url) {

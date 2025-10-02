@@ -19,7 +19,7 @@ import {
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
-import { publishLinkClick } from "../upstash/redis-streams";
+import { publishClickEvent } from "../upstash/redis-streams";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
@@ -191,11 +191,12 @@ export async function recordClick({
         // if the link has a destination URL, increment the usage count for the workspace
         // and then we have a cron that will reset it at the start of new billing cycle
         url &&
-          publishLinkClick({
+          publishClickEvent({
             linkId,
+            projectId: workspaceId,
             timestamp: clickData.timestamp,
             url,
-          }).catch((err) => {
+          }).catch(() => {
             // Fallback on writing directly to the database
             return conn.execute(
               "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
