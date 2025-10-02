@@ -548,7 +548,7 @@ function FastAchPayoutToggle() {
   const { fasterAchPayouts } = useWorkspace();
   const [isVisible, setIsVisible] = useState(true);
 
-  if (!isVisible) {
+  if (!isVisible || fasterAchPayouts) {
     return null;
   }
 
