@@ -39,16 +39,16 @@ const aggregateProjectUsage = (
   // The entries are a batch of project usage events, each with projectId, timestamp, and possibly linkId.
   // We want to aggregate by projectId, counting total events (clicks) and tracking first/last timestamps.
 
-  for (const [streamId, fields] of Object.entries(entries)) {
-    const entry = fields as unknown as {
-      projectId: string;
-      timestamp: string;
-      linkId?: string;
-    };
-    const projectId = entry.projectId;
-    const timestamp = Date.parse(entry.timestamp) / 1000;
+  for (const entry of entries) {
+    const projectId = entry.data.projectId;
 
-    lastId = streamId;
+    if (!projectId) {
+      continue;
+    }
+
+    const timestamp = Date.parse(entry.data.timestamp) / 1000;
+
+    lastId = entry.id;
 
     if (aggregatedUsage.has(projectId)) {
       const existing = aggregatedUsage.get(projectId)!;

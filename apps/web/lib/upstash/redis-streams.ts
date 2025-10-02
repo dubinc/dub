@@ -66,7 +66,7 @@ export class RedisStream {
           // Delete all entries up to and including the last processed ID
           // We do this by collecting the IDs we just processed and deleting them
           // (Assumes entries is the batch we just processed)
-          const processedEntryIds = Object.keys(entries);
+          const processedEntryIds = Object.keys(entriesMap);
 
           if (processedEntryIds.length > 0) {
             // xdel supports deleting multiple IDs at once
