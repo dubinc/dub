@@ -330,9 +330,10 @@ function BrandingFormInner({
         if (!result?.data?.success) {
           toast.error("Failed to update application form.");
           setError("root", { message: "Failed to update application form." });
-          setDraft(null);
           return;
         }
+
+        setDraft(null);
       })}
       className="overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100"
     >
