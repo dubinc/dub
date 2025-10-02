@@ -1,7 +1,7 @@
 "use client";
 
-import { Button, useKeyboardShortcut } from "@dub/ui";
 import { useUser } from "@/ui/contexts/user";
+import { Button, useKeyboardShortcut } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 
@@ -28,10 +28,5 @@ export function CreateQRButton({ onClick }: CreateQRButtonProps) {
     onClick();
   };
 
-  return (
-    <Button
-      text="Create QR code"
-      onClick={handleClick}
-    />
-  );
+  return <Button text="Create QR code" onClick={handleClick} />;
 }

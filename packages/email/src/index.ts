@@ -1,8 +1,8 @@
 import { CreateEmailOptions } from "resend";
-import { resend, sendEmailViaResend } from "./resend";
-import { sendViaNodeMailer } from "./send-via-nodemailer";
-import { sendViaCustomerIO } from "./send-via-customerio";
 import { CUSTOMER_IO_TEMPLATES } from "./constants";
+import { resend, sendEmailViaResend } from "./resend";
+import { sendViaCustomerIO } from "./send-via-customerio";
+import { sendViaNodeMailer } from "./send-via-nodemailer";
 
 export { CUSTOMER_IO_TEMPLATES };
 
@@ -29,7 +29,10 @@ export const sendEmail = async ({
 }) => {
   console.log("Sending email");
   console.log("template", template);
-  console.log("process.env.CUSTOMER_IO_API_KEY", process.env.CUSTOMER_IO_API_KEY);
+  console.log(
+    "process.env.CUSTOMER_IO_API_KEY",
+    process.env.CUSTOMER_IO_API_KEY,
+  );
   // If template is provided, use Customer.io transactional API
   if (template && process.env.CUSTOMER_IO_API_KEY) {
     return await sendViaCustomerIO(template, email, messageData, customerId);

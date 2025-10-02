@@ -12,7 +12,7 @@ export const getQr = async ({ qrId }: GetQrParams) => {
       link: true,
       user: true,
       file: true,
-    }
+    },
   });
 
   if (!qr) {

@@ -23,58 +23,71 @@ export const qrTypeDataEncoders = {
   [EQRType.WEBSITE]: (values: Record<string, any>) => {
     return values.websiteLink || "";
   },
-  
+
   [EQRType.APP_LINK]: (values: Record<string, any>) => {
     return values.storeLink || "";
   },
-  
+
   [EQRType.SOCIAL]: (values: Record<string, any>) => {
     return values.socialLink || "";
   },
-  
+
   [EQRType.FEEDBACK]: (values: Record<string, any>) => {
     return values.link || "";
   },
-  
+
   [EQRType.WHATSAPP]: (values: Record<string, any>) => {
     const { number, message } = values;
     if (!number) return "";
-    
+
     // Clean and format the phone number
     const cleanNumber = number.replace(/\D/g, "");
-    const formattedNumber = cleanNumber.startsWith("+") ? cleanNumber : `+${cleanNumber}`;
-    
+    const formattedNumber = cleanNumber.startsWith("+")
+      ? cleanNumber
+      : `+${cleanNumber}`;
+
     return message && message.trim()
       ? `https://wa.me/${formattedNumber}?text=${encodeURIComponent(message.trim())}`
       : `https://wa.me/${formattedNumber}`;
   },
-  
+
   [EQRType.WIFI]: (values: Record<string, any>) => {
     const {
       networkEncryption = "WPA",
       networkName = "",
       networkPassword = "",
-      isHiddenNetwork = false
+      isHiddenNetwork = false,
     } = values;
-    
+
     const encryptionType = escapeWiFiValue(networkEncryption);
     const ssid = escapeWiFiValue(networkName);
     const password = escapeWiFiValue(networkPassword);
     const hidden = Boolean(isHiddenNetwork);
-    
+
     return `WIFI:T:${encryptionType};S:${ssid};P:${password};H:${hidden};`;
   },
-  
-  // For file types, return empty string (backend constructs the proper URL using fileId)
-  [EQRType.PDF]: (_values: Record<string, any>, _fileId?: string) => {
+
+  // For file types, construct URL if fileId is provided (for QR rendering)
+  // Backend will replace this with proper R2 URL when saving
+  [EQRType.PDF]: (_values: Record<string, any>, fileId?: string) => {
+    if (fileId) {
+      // Construct a valid URL for QR rendering
+      return `${process.env.NEXT_PUBLIC_APP_DOMAIN || "https://getqr.com"}/qrs-content/${fileId}`;
+    }
     return "";
   },
 
-  [EQRType.IMAGE]: (_values: Record<string, any>, _fileId?: string) => {
+  [EQRType.IMAGE]: (_values: Record<string, any>, fileId?: string) => {
+    if (fileId) {
+      return `${process.env.NEXT_PUBLIC_APP_DOMAIN || "https://getqr.com"}/qrs-content/${fileId}`;
+    }
     return "";
   },
 
-  [EQRType.VIDEO]: (_values: Record<string, any>, _fileId?: string) => {
+  [EQRType.VIDEO]: (_values: Record<string, any>, fileId?: string) => {
+    if (fileId) {
+      return `${process.env.NEXT_PUBLIC_APP_DOMAIN || "https://getqr.com"}/qrs-content/${fileId}`;
+    }
     return "";
   },
 };
@@ -84,19 +97,19 @@ export const qrTypeDataParsers = {
   [EQRType.WEBSITE]: (data: string): Record<string, any> => {
     return { websiteLink: data };
   },
-  
+
   [EQRType.APP_LINK]: (data: string): Record<string, any> => {
     return { storeLink: data };
   },
-  
+
   [EQRType.SOCIAL]: (data: string): Record<string, any> => {
     return { socialLink: data };
   },
-  
+
   [EQRType.FEEDBACK]: (data: string): Record<string, any> => {
     return { link: data };
   },
-  
+
   [EQRType.WHATSAPP]: (data: string): Record<string, any> => {
     try {
       const url = new URL(data);
@@ -106,15 +119,20 @@ export const qrTypeDataParsers = {
       if (url.hostname === "wa.me") {
         number = url.pathname.replace("/", "");
         const textParam = url.searchParams.get("text");
-        message = textParam && textParam !== "undefined" 
-          ? decodeURIComponent(textParam) 
-          : "";
-      } else if (url.hostname === "whatsapp.com" || url.hostname === "api.whatsapp.com") {
+        message =
+          textParam && textParam !== "undefined"
+            ? decodeURIComponent(textParam)
+            : "";
+      } else if (
+        url.hostname === "whatsapp.com" ||
+        url.hostname === "api.whatsapp.com"
+      ) {
         number = url.searchParams.get("phone") || "";
         const textParam = url.searchParams.get("text");
-        message = textParam && textParam !== "undefined" 
-          ? decodeURIComponent(textParam) 
-          : "";
+        message =
+          textParam && textParam !== "undefined"
+            ? decodeURIComponent(textParam)
+            : "";
       }
 
       // Clean number formatting
@@ -136,12 +154,12 @@ export const qrTypeDataParsers = {
       return { number: "", message: "" };
     }
   },
-  
+
   [EQRType.WIFI]: (data: string): Record<string, any> => {
     const wifiMatch = data.match(
-      /WIFI:T:([^;]+(?:\\;[^;]+)*);S:([^;]+(?:\\;[^;]+)*);P:([^;]+(?:\\;[^;]+)*);H:([^;]+(?:\\;[^;]+)*);/
+      /WIFI:T:([^;]+(?:\\;[^;]+)*);S:([^;]+(?:\\;[^;]+)*);P:([^;]+(?:\\;[^;]+)*);H:([^;]+(?:\\;[^;]+)*);/,
     );
-    
+
     if (wifiMatch) {
       return {
         networkEncryption: unescapeWiFiValue(wifiMatch[1]),
@@ -150,7 +168,7 @@ export const qrTypeDataParsers = {
         isHiddenNetwork: wifiMatch[4] === "true",
       };
     }
-    
+
     return {
       networkEncryption: "WPA",
       networkName: "",
@@ -158,7 +176,7 @@ export const qrTypeDataParsers = {
       isHiddenNetwork: false,
     };
   },
-  
+
   // For file types, we'll extract any URL or return empty values
   [EQRType.PDF]: (data: string): Record<string, any> => {
     // If data is a URL, it's likely the file URL
@@ -169,7 +187,7 @@ export const qrTypeDataParsers = {
       return {};
     }
   },
-  
+
   [EQRType.IMAGE]: (data: string): Record<string, any> => {
     try {
       new URL(data);
@@ -178,7 +196,7 @@ export const qrTypeDataParsers = {
       return {};
     }
   },
-  
+
   [EQRType.VIDEO]: (data: string): Record<string, any> => {
     try {
       new URL(data);
@@ -193,25 +211,25 @@ export const qrTypeDataParsers = {
 export const encodeQRData = (
   qrType: EQRType,
   formData: Record<string, any>,
-  fileId?: string
+  fileId?: string,
 ): string => {
   const encoder = qrTypeDataEncoders[qrType];
   if (!encoder) {
     throw new Error(`No encoder found for QR type: ${qrType}`);
   }
-  
+
   return encoder(formData, fileId);
 };
 
 // Helper function to parse QR data for a specific QR type
 export const parseQRData = (
   qrType: EQRType,
-  data: string
+  data: string,
 ): Record<string, any> => {
   const parser = qrTypeDataParsers[qrType];
   if (!parser) {
     throw new Error(`No parser found for QR type: ${qrType}`);
   }
-  
+
   return parser(data);
 };

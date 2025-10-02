@@ -20,11 +20,11 @@ async function handler(req: Request) {
 
     let totalDeletedCount = 0;
     let batchCount = 0;
-    
+
     // Process all orphaned files in batches until none are left
     while (true) {
       batchCount++;
-      
+
       // Find files without related QRs that are older than 1 day
       const orphanedFiles = await prisma.file.findMany({
         where: {
@@ -43,14 +43,16 @@ async function handler(req: Request) {
         break;
       }
 
-      console.log(`Processing batch ${batchCount}: ${orphanedFiles.length} orphaned files`);
+      console.log(
+        `Processing batch ${batchCount}: ${orphanedFiles.length} orphaned files`,
+      );
 
       // First, try to delete files from storage
       const storageResults = await Promise.allSettled(
         orphanedFiles.map(async (file) => ({
           fileId: file.id,
-          result: await storage.delete(`qrs-content/${file.id}`)
-        }))
+          result: await storage.delete(`qrs-content/${file.id}`),
+        })),
       );
 
       // Collect successfully deleted file IDs
@@ -62,7 +64,10 @@ async function handler(req: Request) {
           successfullyDeletedFileIds.push(orphanedFiles[index].id);
         } else {
           failedStorageDeletions.push(orphanedFiles[index].id);
-          console.error(`Failed to delete file ${orphanedFiles[index].id} from storage:`, result.reason);
+          console.error(
+            `Failed to delete file ${orphanedFiles[index].id} from storage:`,
+            result.reason,
+          );
         }
       });
 
@@ -76,9 +81,15 @@ async function handler(req: Request) {
               },
             },
           });
-          console.log(`Batch ${batchCount}: Successfully deleted ${successfullyDeletedFileIds.length} files from storage and database`);
+          console.log(
+            `Batch ${batchCount}: Successfully deleted ${successfullyDeletedFileIds.length} files from storage and database`,
+          );
         } catch (error) {
-          console.error(`Batch ${batchCount}: Failed to delete database records for files:`, successfullyDeletedFileIds, error);
+          console.error(
+            `Batch ${batchCount}: Failed to delete database records for files:`,
+            successfullyDeletedFileIds,
+            error,
+          );
           await log({
             message: `File cleanup batch ${batchCount}: Database deletion failed for ${successfullyDeletedFileIds.length} files that were deleted from storage`,
             type: "errors",
@@ -88,7 +99,9 @@ async function handler(req: Request) {
 
       // Log failures
       if (failedStorageDeletions.length > 0) {
-        console.error(`Batch ${batchCount}: Failed to delete ${failedStorageDeletions.length} files from storage`);
+        console.error(
+          `Batch ${batchCount}: Failed to delete ${failedStorageDeletions.length} files from storage`,
+        );
         await log({
           message: `File cleanup batch ${batchCount}: Storage deletion failed for ${failedStorageDeletions.length} files`,
           type: "errors",
@@ -96,15 +109,17 @@ async function handler(req: Request) {
       }
 
       totalDeletedCount += successfullyDeletedFileIds.length;
-      console.log(`Batch ${batchCount} completed: ${successfullyDeletedFileIds.length} files deleted (${totalDeletedCount} total so far)`);
+      console.log(
+        `Batch ${batchCount} completed: ${successfullyDeletedFileIds.length} files deleted (${totalDeletedCount} total so far)`,
+      );
     }
 
     if (totalDeletedCount === 0) {
-      return NextResponse.json({ 
-        status: "OK", 
+      return NextResponse.json({
+        status: "OK",
         message: "No orphaned files found",
         deleted: 0,
-        batches: 0
+        batches: 0,
       });
     }
 
@@ -113,15 +128,16 @@ async function handler(req: Request) {
       type: "cron",
     });
 
-    console.log(`Cleanup completed: ${totalDeletedCount} orphaned files deleted in ${batchCount - 1} batches`);
+    console.log(
+      `Cleanup completed: ${totalDeletedCount} orphaned files deleted in ${batchCount - 1} batches`,
+    );
 
-    return NextResponse.json({ 
-      status: "OK", 
+    return NextResponse.json({
+      status: "OK",
       message: `Cleaned up ${totalDeletedCount} orphaned files`,
       deleted: totalDeletedCount,
-      batches: batchCount - 1
+      batches: batchCount - 1,
     });
-
   } catch (error) {
     await log({
       message: `File cleanup cron job failed: ${error.message}`,

@@ -1,4 +1,5 @@
 import { EventType } from "@/lib/analytics/types";
+import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
@@ -18,7 +19,6 @@ import {
   useState,
 } from "react";
 import { AnalyticsContext } from "./analytics-provider";
-import { X } from "@/ui/shared/icons";
 
 export function AnalyticsCard<T extends string>({
   tabs,
@@ -68,12 +68,12 @@ export function AnalyticsCard<T extends string>({
         <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
           <h1 className="text-lg font-semibold">{selectedTab?.label}</h1>
           <button
-              type="button"
-              onClick={() => setShowModal(false)}
-              className="active:bg-border-500 group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none md:right-0 md:block"
-            >
-              <X className="h-5 w-5" />
-            </button>
+            type="button"
+            onClick={() => setShowModal(false)}
+            className="active:bg-border-500 group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none md:right-0 md:block"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
         {subTabs && selectedSubTabId && onSelectSubTab && (
           <SubTabs

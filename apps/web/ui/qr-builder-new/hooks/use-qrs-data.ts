@@ -16,7 +16,7 @@ export const useQrsData = () => {
     fetcher,
     {
       revalidateOnFocus: false,
-    }
+    },
   );
 
   return {

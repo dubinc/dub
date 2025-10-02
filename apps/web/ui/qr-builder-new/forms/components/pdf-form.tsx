@@ -8,11 +8,11 @@ import {
   QR_FILE_TITLES,
   QR_NAME_PLACEHOLDERS,
 } from "../../constants/qr-type-inputs-placeholders";
+import { useQrBuilderContext } from "../../context";
 import { useQRFormData } from "../../hooks/use-qr-form-data";
 import { PdfQRFormData, pdfQRSchema } from "../../validation/schemas";
 import { BaseFormField } from "./base-form-field.tsx";
 import { FileUploadField } from "./file-upload-field";
-import { useQrBuilderContext } from "../../context";
 
 export interface PdfFormRef {
   validate: () => Promise<boolean>;
@@ -55,7 +55,7 @@ export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
     // Update hidden fileId field when fileId state changes
     useEffect(() => {
       if (fileId) {
-        form.setValue('fileId' as any, fileId);
+        form.setValue("fileId" as any, fileId);
       }
     }, [fileId, form]);
 

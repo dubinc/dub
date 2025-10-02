@@ -1,5 +1,5 @@
 import QRCodeStyling, { Options } from "qr-code-styling";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { BLACK_COLOR, WHITE_COLOR } from "../constants/customization/colors";
 import { FRAMES } from "../constants/customization/frames";
 import {
@@ -15,7 +15,7 @@ interface UseQRCodeStylingOptions {
 
 export const useQRCodeStyling = ({
   customizationData,
-  defaultData = "https://getqr.com/qr-complete-setup"
+  defaultData = "https://getqr.com/qr-complete-setup",
 }: UseQRCodeStylingOptions) => {
   const [qrCode, setQrCode] = useState<QRCodeStyling | null>(null);
   const [options, setOptions] = useState<Options>(() => {
@@ -47,14 +47,14 @@ export const useQRCodeStyling = ({
   });
 
   // Create stable references to track deep changes in customization data
-  const customizationDataString = useMemo(() =>
-    JSON.stringify(customizationData),
-    [customizationData]
+  const customizationDataString = useMemo(
+    () => JSON.stringify(customizationData),
+    [customizationData],
   );
 
-  const frameDataString = useMemo(() =>
-    JSON.stringify(customizationData.frame),
-    [customizationData.frame]
+  const frameDataString = useMemo(
+    () => JSON.stringify(customizationData.frame),
+    [customizationData.frame],
   );
 
   useEffect(() => {
@@ -104,17 +104,13 @@ export const useQRCodeStyling = ({
         return;
       } else if (customizationData.logo.fileId) {
         // Construct full R2 URL for uploaded logo using fileId
-        const storageBaseUrl = process.env.NEXT_PUBLIC_STORAGE_BASE_URL;
-        if (storageBaseUrl) {
-          newOptions.image = `${storageBaseUrl}/files/${customizationData.logo.fileId}`;
-        } else {
-          // Fallback: try to construct URL without base (relative path)
-          // This will work if storage is on same domain or CORS is configured
-          console.warn('NEXT_PUBLIC_STORAGE_BASE_URL is not configured. Using relative path for uploaded logo.');
-          newOptions.image = `/files/${customizationData.logo.fileId}`;
-        }
+        // Use same pattern as QR content files: /qrs-content/{fileId}
+        const storageBaseUrl =
+          process.env.NEXT_PUBLIC_STORAGE_BASE_URL ||
+          "https://dev-assets.getqr.com";
+        newOptions.image = `${storageBaseUrl}/qrs-content/${customizationData.logo.fileId}`;
       } else {
-        newOptions.image = '';
+        newOptions.image = "";
       }
     } else if (
       customizationData.logo.type === "suggested" &&
@@ -122,7 +118,9 @@ export const useQRCodeStyling = ({
       customizationData.logo.id !== "logo-none"
     ) {
       // Use iconSrc if available (from logo selection), otherwise lookup from logo constant
-      const logoSrc = customizationData.logo.iconSrc || getSuggestedLogoSrc(customizationData.logo.id);
+      const logoSrc =
+        customizationData.logo.iconSrc ||
+        getSuggestedLogoSrc(customizationData.logo.id);
 
       if (logoSrc) {
         // Convert SVG to base64 to avoid CORS and 404 issues
@@ -142,18 +140,21 @@ export const useQRCodeStyling = ({
           })
           .catch((error) => {
             // Logo failed to load, render QR without logo
-            console.warn(`Logo failed to load: ${logoSrc}. Rendering QR code without logo.`, error);
-            newOptions.image = '';
+            console.warn(
+              `Logo failed to load: ${logoSrc}. Rendering QR code without logo.`,
+              error,
+            );
+            newOptions.image = "";
             setOptions(newOptions);
             qrCode.update(newOptions);
           });
         // Don't update yet, wait for fetch to complete
         return;
       } else {
-        newOptions.image = '';
+        newOptions.image = "";
       }
     } else {
-      newOptions.image = '';
+      newOptions.image = "";
     }
 
     setOptions(newOptions);

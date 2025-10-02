@@ -5,10 +5,8 @@ import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.h
 import { createAutoLoginURL } from "@/lib/auth/jwt-signin.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit, redis } from "@/lib/upstash";
-import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
-import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";

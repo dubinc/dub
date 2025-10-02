@@ -1,12 +1,11 @@
+import { QrBuilderButtons } from "@/ui/qr-builder-new/components/qr-builder-buttons.tsx";
 import { QRBuilderInner } from "@/ui/qr-builder-new/components/qr-builder-inner.tsx";
 import { QRBuilderSteps } from "@/ui/qr-builder-new/components/qr-builder-steps.tsx";
 import { QR_BUILDER_STEP_TITLES } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import { useQrBuilderContext } from "@/ui/qr-builder-new/context";
-import { QrBuilderButtons } from "@/ui/qr-builder-new/components/qr-builder-buttons.tsx";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { Heading } from "@radix-ui/themes";
-import React from "react";
 
 export const QRBuilderWrapper = () => {
   const {
@@ -18,7 +17,11 @@ export const QRBuilderWrapper = () => {
     isProcessing,
     isFileUploading,
     isFileProcessing,
+    currentFormValues,
+    customizationData,
   } = useQrBuilderContext();
+
+  const logoData = customizationData.logo;
 
   const { isMobile } = useMediaQuery();
 
@@ -48,6 +51,8 @@ export const QRBuilderWrapper = () => {
             isFileUploading={isFileUploading}
             isFileProcessing={isFileProcessing}
             homepageDemo={homepageDemo}
+            currentFormValues={currentFormValues}
+            logoData={logoData}
           />
         </div>
       )}

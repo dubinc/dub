@@ -1,4 +1,4 @@
-import { FeaturesAccess } from '@/lib/actions/check-features-access-auth-less';
+import { FeaturesAccess } from "@/lib/actions/check-features-access-auth-less";
 import { Flex, Heading, Text } from "@radix-ui/themes";
 import { FC, useMemo } from "react";
 
@@ -6,9 +6,7 @@ interface IPlansHeading {
   featuresAccess: FeaturesAccess;
 }
 
-export const PlansHeading: FC<IPlansHeading> = ({
-  featuresAccess,
-}) => {
+export const PlansHeading: FC<IPlansHeading> = ({ featuresAccess }) => {
   const subHeaderText = useMemo(() => {
     switch (true) {
       case !featuresAccess.isTrialOver && !featuresAccess.isSubscribed:

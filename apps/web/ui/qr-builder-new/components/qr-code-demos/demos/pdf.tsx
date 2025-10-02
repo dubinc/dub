@@ -1,8 +1,8 @@
 import { cn } from "@dub/utils";
-import { FC } from "react";
-import { QR_DEMO_DEFAULTS } from "../../../constants/qr-type-inputs-placeholders";
 import dynamic from "next/dynamic";
 import Image from "next/image";
+import { FC } from "react";
+import { QR_DEMO_DEFAULTS } from "../../../constants/qr-type-inputs-placeholders";
 import PdfDemoPlaceholder from "./placeholders/pdf-demo-placeholder.webp";
 
 const PdfViewer = dynamic(() => import("../pdf-viewer"), {
@@ -30,8 +30,12 @@ export const QRCodeDemoPDF: FC<QRCodeDemoPDFProps> = ({
 }) => {
   const file = typeof filesPDF === "string" ? undefined : filesPDF?.[0];
   const url = typeof filesPDF === "string" ? filesPDF : undefined;
-  const hasContent = typeof filesPDF === "string" || (Array.isArray(filesPDF) && filesPDF.length > 0);
-  const displayText = hasContent ? "Your PDF" : QR_DEMO_DEFAULTS.PDF_PLACEHOLDER;
+  const hasContent =
+    typeof filesPDF === "string" ||
+    (Array.isArray(filesPDF) && filesPDF.length > 0);
+  const displayText = hasContent
+    ? "Your PDF"
+    : QR_DEMO_DEFAULTS.PDF_PLACEHOLDER;
 
   return (
     <svg

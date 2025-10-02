@@ -12,4 +12,4 @@ export const lightenHexColor = (hex: string, percent: number): string => {
   const lightenHex = ((r << 16) | (g << 8) | b).toString(16).padStart(6, "0");
 
   return `#${lightenHex}`;
-}; 
+};

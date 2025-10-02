@@ -4,7 +4,6 @@ import LoginForm from "@/ui/auth/login/login-form.tsx";
 import { AuthType, MessageType } from "@/ui/modals/auth-modal.tsx";
 import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
-import Link from "next/link";
 
 type LoginContentProps = {
   sessionId: string;

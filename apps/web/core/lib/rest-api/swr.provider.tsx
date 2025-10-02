@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { fetcher } from './fetcher';
-import { SWRConfig } from 'swr';
+import { SWRConfig } from "swr";
+import { fetcher } from "./fetcher";
 
-import { FC, ReactNode } from 'react';
+import { FC, ReactNode } from "react";
 
 // interface
 interface ISwrProviderProps {

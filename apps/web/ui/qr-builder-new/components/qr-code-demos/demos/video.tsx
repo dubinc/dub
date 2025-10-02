@@ -1,23 +1,20 @@
 import { cn } from "@dub/utils";
+import Image from "next/image";
 import { FC, useEffect, useState } from "react";
 import { QR_DEMO_DEFAULTS } from "../../../constants/qr-type-inputs-placeholders";
-import Image from "next/image";
+import { generateVideoPreview } from "../../../helpers/generate-video-preview.ts";
 import VideoDemoPlaceholder from "./placeholders/video-demo-placeholder.webp";
-import {generateVideoPreview} from "../../../helpers/generate-video-preview.ts";
 
 interface QRCodeDemoVideoProps {
   filesVideo?: File[] | string;
   smallPreview?: boolean;
 }
 
-
 export const QRCodeDemoVideo: FC<QRCodeDemoVideoProps> = ({
   filesVideo,
   smallPreview = false,
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-
 
   useEffect(() => {
     if (typeof filesVideo === "string") {
@@ -32,13 +29,19 @@ export const QRCodeDemoVideo: FC<QRCodeDemoVideoProps> = ({
     }
 
     const url = URL.createObjectURL(file);
-    return generateVideoPreview(url, setPreviewUrl, () => URL.revokeObjectURL(url), true);
+    return generateVideoPreview(
+      url,
+      setPreviewUrl,
+      () => URL.revokeObjectURL(url),
+      true,
+    );
   }, [filesVideo]);
-
 
   const imageToShow = previewUrl || VideoDemoPlaceholder;
   const hasContent = typeof filesVideo === "string" || !!previewUrl;
-  const displayText = hasContent ? "Your Video" : QR_DEMO_DEFAULTS.VIDEO_PLACEHOLDER;
+  const displayText = hasContent
+    ? "Your Video"
+    : QR_DEMO_DEFAULTS.VIDEO_PLACEHOLDER;
 
   return (
     <svg
@@ -86,15 +89,15 @@ export const QRCodeDemoVideo: FC<QRCodeDemoVideoProps> = ({
         <g clipPath="url(#clip0_1608_3245)">
           <foreignObject x="30" y="80" width="212" height="140">
             <Image
-                src={imageToShow}
-                width={212}
-                height={140}
-                alt="Preview"
-                style={{
-                  objectFit: "contain",
-                  borderRadius: 12,
-                }}
-                unoptimized={!!previewUrl}
+              src={imageToShow}
+              width={212}
+              height={140}
+              alt="Preview"
+              style={{
+                objectFit: "contain",
+                borderRadius: 12,
+              }}
+              unoptimized={!!previewUrl}
             />
           </foreignObject>
           <path

@@ -9,9 +9,9 @@ export function useTrialExpiredModal() {
 
   const TrialExpiredModalCallback = useCallback(() => {
     return showTrialExpiredModal ? (
-      <TrialExpiredModal 
+      <TrialExpiredModal
         showModal={showTrialExpiredModal}
-        setShowModal={setShowTrialExpiredModal} 
+        setShowModal={setShowTrialExpiredModal}
       />
     ) : null;
   }, [showTrialExpiredModal]);

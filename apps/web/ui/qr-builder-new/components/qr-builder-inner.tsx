@@ -1,16 +1,16 @@
-import { useQrBuilderContext } from "@/ui/qr-builder-new/context";
 import { QrBuilderButtons } from "@/ui/qr-builder-new/components/qr-builder-buttons.tsx";
+import { useQrBuilderContext } from "@/ui/qr-builder-new/context";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
+import { QRCodeDemoPlaceholder } from "../constants/qr-code-demo-placeholder.tsx";
+import { QRCustomization } from "./customization";
+import { QRPreview } from "./customization/qr-preview";
 import { QRCodeDemoMap } from "./qr-code-demos/qr-code-demo-map";
 import { QrContentStep } from "./qr-content-step.tsx";
 import { QrTypeSelection } from "./qr-type-selection";
-import { QRCustomization } from "./customization";
-import { QRPreview } from "./customization/qr-preview";
-import { QRCodeDemoPlaceholder } from "../constants/qr-code-demo-placeholder.tsx";
 
 export const QRBuilderInner = () => {
   const {
@@ -38,6 +38,8 @@ export const QRBuilderInner = () => {
     isFileUploading,
     isFileProcessing,
   } = useQrBuilderContext();
+
+  const logoData = customizationData.logo;
 
   const qrCodeDemo = currentQRType ? QRCodeDemoMap[currentQRType] : null;
 
@@ -83,9 +85,7 @@ export const QRBuilderInner = () => {
             </Flex>
           )}
 
-          {isContentStep && (
-            <QrContentStep ref={contentStepRef} />
-          )}
+          {isContentStep && <QrContentStep ref={contentStepRef} />}
           {!isMobile && !isTypeStep && !isCustomizationStep && (
             <div className="w-full" ref={qrBuilderButtonsWrapperRef}>
               <QrBuilderButtons
@@ -97,6 +97,8 @@ export const QRBuilderInner = () => {
                 isFileUploading={isFileUploading}
                 isFileProcessing={isFileProcessing}
                 homepageDemo={homepageDemo}
+                currentFormValues={currentFormValues}
+                logoData={logoData}
               />
             </div>
           )}
@@ -122,6 +124,8 @@ export const QRBuilderInner = () => {
                     isFileUploading={isFileUploading}
                     isFileProcessing={isFileProcessing}
                     homepageDemo={homepageDemo}
+                    currentFormValues={currentFormValues}
+                    logoData={logoData}
                   />
                 </div>
               )}
@@ -144,7 +148,11 @@ export const QRBuilderInner = () => {
         {!isCustomizationStep && (
           <div className="relative inline-block">
             <motion.div
-              key={currentQRType ? `${currentQRType}-${hoveredQRType !== null ? 'hovered' : 'default'}` : 'placeholder'}
+              key={
+                currentQRType
+                  ? `${currentQRType}-${hoveredQRType !== null ? "hovered" : "default"}`
+                  : "placeholder"
+              }
               initial="hidden"
               animate="visible"
               exit="exit"
@@ -168,7 +176,7 @@ export const QRBuilderInner = () => {
         )}
 
         {isCustomizationStep && (
-          <div className="center sticky w-full h-max top-20 flex flex-col gap-6">
+          <div className="center sticky top-20 flex h-max w-full flex-col gap-6">
             <QRPreview customizationData={customizationData} />
           </div>
         )}

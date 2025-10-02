@@ -9,10 +9,10 @@ export interface IQRCustomizationData {
   style: IStyleData;
 
   // QR Shape settings
-  shape: IShapeData
+  shape: IShapeData;
 
   // Logo settings
-  logo: ILogoData
+  logo: ILogoData;
 }
 
 // Individual section data types
@@ -48,13 +48,16 @@ export interface IStyleOption {
   type: string;
   icon: any; // React component or image
   defaultTextColor?: string;
-  extension?: (qr: SVGSVGElement, options: {
-    width: number;
-    height: number;
-    frameColor: string;
-    frameTextColor: string;
-    frameText: string;
-  }) => Promise<void>;
+  extension?: (
+    qr: SVGSVGElement,
+    options: {
+      width: number;
+      height: number;
+      frameColor: string;
+      frameTextColor: string;
+      frameText: string;
+    },
+  ) => Promise<void>;
 }
 
 // Default values

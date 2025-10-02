@@ -15,7 +15,7 @@ import {
   PUBLIC_ROUTES,
 } from "./app/[domain]/(public)/constants/types.ts";
 import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
-import { getUserCountry } from './lib/middleware/utils/get-user-country.ts';
+import { getUserCountry } from "./lib/middleware/utils/get-user-country.ts";
 
 export const config = {
   matcher: [

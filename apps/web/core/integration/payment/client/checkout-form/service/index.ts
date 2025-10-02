@@ -1,1 +1,1 @@
-export { isValidDeclineReason } from './checkout-form.service';
+export { isValidDeclineReason } from "./checkout-form.service";

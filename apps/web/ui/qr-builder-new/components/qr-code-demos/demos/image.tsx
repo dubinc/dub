@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
-import { FC, useEffect, useState } from "react";
 import Image from "next/image";
+import { FC, useEffect, useState } from "react";
 import ImageDemoPlaceholder from "./placeholders/image-demo-placeholder.webp";
 
 interface QRCodeDemoImageProps {
@@ -31,9 +31,9 @@ export const QRCodeDemoImage: FC<QRCodeDemoImageProps> = ({
   }, [filesImage]);
 
   const displayUrl =
-      typeof filesImage === "string"
-          ? filesImage
-          : imageObjectUrl || ImageDemoPlaceholder;
+    typeof filesImage === "string"
+      ? filesImage
+      : imageObjectUrl || ImageDemoPlaceholder;
   const hasContent = typeof filesImage === "string" || !!imageObjectUrl;
   const displayText = hasContent ? "Your Image" : "Your Image";
 
@@ -82,13 +82,13 @@ export const QRCodeDemoImage: FC<QRCodeDemoImageProps> = ({
         />
         <foreignObject x="29" y="75" width="212" height="263">
           <Image
-              src={displayUrl}
-              alt="QR Code Demo"
-              width={270}
-              height={352}
-              className="object-cover"
-              unoptimized={!!displayUrl}
-              priority
+            src={displayUrl}
+            alt="QR Code Demo"
+            width={270}
+            height={352}
+            className="object-cover"
+            unoptimized={!!displayUrl}
+            priority
           />
         </foreignObject>
       </g>

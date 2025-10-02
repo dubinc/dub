@@ -5,7 +5,6 @@ import { createQrWithLinkUniversal } from "@/lib/api/qrs/create-qr-with-link-uni
 import { getQrs } from "@/lib/api/qrs/get-qrs";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { createAutoLoginURL } from '@/lib/auth/jwt-signin';
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -13,10 +12,8 @@ import {
   linkEventSchema,
 } from "@/lib/zod/schemas/links";
 import { createQrBodySchema } from "@/lib/zod/schemas/qrs";
-import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
-import { HOME_DOMAIN, LOCALHOST_IP, R2_URL } from "@dub/utils";
+import { LOCALHOST_IP, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 

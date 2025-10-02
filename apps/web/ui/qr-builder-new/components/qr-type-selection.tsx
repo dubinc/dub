@@ -1,8 +1,12 @@
-import { EQRType, QR_TYPES, LINKED_QR_TYPES } from "../constants/get-qr-config.ts";
-import { QrTypeIcon } from "./qr-type-icon";
 import { cn } from "@dub/utils";
 import { Card, Flex } from "@radix-ui/themes";
 import { FC } from "react";
+import {
+  EQRType,
+  LINKED_QR_TYPES,
+  QR_TYPES,
+} from "../constants/get-qr-config.ts";
+import { QrTypeIcon } from "./qr-type-icon";
 
 interface QrTypeSelectionProps {
   selectedQRType: EQRType | null;
@@ -15,10 +19,9 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
   onSelect,
   onHover,
 }) => {
-
   const filteredQrTypes = QR_TYPES.filter(
     (qrType) =>
-      !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE
+      !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
   );
 
   return (
@@ -33,10 +36,9 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
             "hover:!bg-secondary-100 hover:!border-secondary group",
             "transition-all duration-300 ease-in-out",
             {
-              "!bg-secondary-100 !border-secondary":
-                selectedQRType === type.id,
+              "!bg-secondary-100 !border-secondary": selectedQRType === type.id,
               "!bg-background md:!bg-white": selectedQRType !== type.id,
-            }
+            },
           )}
           onClick={() => onSelect(type.id)}
           onMouseEnter={() => onHover(type.id)}
@@ -66,7 +68,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
                     "text-neutral text-md group-hover:text-secondary font-medium md:text-lg",
                     {
                       "!text-secondary": selectedQRType === type.id,
-                    }
+                    },
                   )}
                 >
                   {type.label}

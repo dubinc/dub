@@ -2,8 +2,11 @@
 
 import { saveQrDataToRedisAction } from "@/lib/actions/save-qr-data-to-redis.ts";
 import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
+import {
+  convertNewBuilderToStorageFormat,
+  TNewQRBuilderData,
+} from "@/ui/qr-builder-new/helpers/data-converters";
 import { QRBuilderNew } from "@/ui/qr-builder-new/index.tsx";
-import { TNewQRBuilderData, convertNewBuilderToStorageFormat } from "@/ui/qr-builder-new/helpers/data-converters";
 import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder.tsx";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
@@ -84,8 +87,7 @@ export const QRTabs: FC<
     };
 
     const handleNewBuilderDownload = async (data: TNewQRBuilderData) => {
-
-      if (isProcessingSignup) return; 
+      if (isProcessingSignup) return;
       setIsProcessingSignup(true);
 
       try {
@@ -94,7 +96,7 @@ export const QRTabs: FC<
 
         await saveQrDataToRedis({
           sessionId,
-          qrData: storageData
+          qrData: storageData,
         });
 
         showModal("signup");
@@ -139,5 +141,3 @@ export const QRTabs: FC<
     );
   },
 );
-
-

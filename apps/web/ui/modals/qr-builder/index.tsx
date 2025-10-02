@@ -12,7 +12,7 @@ import {
 import { toast } from "sonner";
 import { Drawer } from "vaul";
 
-import { UserProps } from "@/lib/types.ts";
+import { useUser } from "@/ui/contexts/user";
 import { DEFAULT_WEBSITE } from "@/ui/qr-builder/constants/qr-type-inputs-placeholders.ts";
 import { QrBuilder } from "@/ui/qr-builder/qr-builder";
 import { QRBuilderData, QrStorageData } from "@/ui/qr-builder/types/types.ts";
@@ -23,7 +23,6 @@ import { Modal } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { LoaderCircle } from "lucide-react";
-import { useUser } from '@/ui/contexts/user';
 
 type QRBuilderModalProps = {
   props?: QrStorageData;
@@ -191,11 +190,7 @@ export function useQRBuilder(data?: {
   }, [props, showQRBuilderModal, initialStep]);
 
   const CreateQRButtonCallback = useCallback(() => {
-    return (
-      <CreateQRButton
-        setShowQRBuilderModal={setShowQRBuilderModal}
-      />
-    );
+    return <CreateQRButton setShowQRBuilderModal={setShowQRBuilderModal} />;
   }, []);
 
   return useMemo(

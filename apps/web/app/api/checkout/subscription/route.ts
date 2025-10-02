@@ -2,6 +2,8 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { withSession } from "@/lib/auth";
+import { createAutoLoginURL } from "@/lib/auth/jwt-signin";
+import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import {
@@ -22,8 +24,6 @@ import {
 } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
 import { addDays, format } from "date-fns";
-import { createAutoLoginURL } from '@/lib/auth/jwt-signin';
-import { QR_TYPES } from '@/ui/qr-builder/constants/get-qr-config';
 
 const getPeriod = (paymentPlan: string) => {
   const periodMap = {
@@ -218,7 +218,7 @@ export const POST = withSession(
           id: true,
           title: true,
           qrType: true,
-        }
+        },
       });
 
       const loginUrl = await createAutoLoginURL(user.id);
@@ -239,53 +239,52 @@ export const POST = withSession(
         }),
         firstQr
           ? await sendEmail({
-            email: user!.email!,
-            subject: "Welcome to GetQR",
-            template: CUSTOMER_IO_TEMPLATES.WELCOME_TRIAL,
-            messageData: {
-              // period: getPeriod(initialSubPaymentPlan),
-              // price: (price / 100).toFixed(2),
-              // currency: user.currency?.currencyForPay as string,
-              // next_billing_date: format(
-              //   addDays(new Date(), period),
-              //   "yyyy-MM-dd",
-              // ),
-              trial_price: (trialPrice / 100).toFixed(2),
-              currency_symbol: user.currency?.currencyForPay as string,
-              trial_period: trialPeriodDays.toString(),
-              trial_end_date: format(
-                addDays(new Date(), trialPeriodDays),
-                "yyyy-MM-dd",
-              ),
-              price: (price / 100).toFixed(2),
-              period: period.toString(),
-              qr_name: firstQr?.title || "Untitled QR",
-              qr_type:
-                QR_TYPES.find(
-                  (item) => item.id === firstQr?.qrType,
-                )!.label || "Undefined type",
-              url: loginUrl,
-            },
-            customerId: user.id,
-          })
+              email: user!.email!,
+              subject: "Welcome to GetQR",
+              template: CUSTOMER_IO_TEMPLATES.WELCOME_TRIAL,
+              messageData: {
+                // period: getPeriod(initialSubPaymentPlan),
+                // price: (price / 100).toFixed(2),
+                // currency: user.currency?.currencyForPay as string,
+                // next_billing_date: format(
+                //   addDays(new Date(), period),
+                //   "yyyy-MM-dd",
+                // ),
+                trial_price: (trialPrice / 100).toFixed(2),
+                currency_symbol: user.currency?.currencyForPay as string,
+                trial_period: trialPeriodDays.toString(),
+                trial_end_date: format(
+                  addDays(new Date(), trialPeriodDays),
+                  "yyyy-MM-dd",
+                ),
+                price: (price / 100).toFixed(2),
+                period: period.toString(),
+                qr_name: firstQr?.title || "Untitled QR",
+                qr_type:
+                  QR_TYPES.find((item) => item.id === firstQr?.qrType)!.label ||
+                  "Undefined type",
+                url: loginUrl,
+              },
+              customerId: user.id,
+            })
           : sendEmail({
-            email: user!.email!,
-            subject: "Welcome to GetQR",
-            template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
-            messageData: {
-              trial_price: (trialPrice / 100).toFixed(2),
-              currency_symbol: user.currency?.currencyForPay as string,
-              trial_period: trialPeriodDays.toString(),
-              trial_end_date: format(
-                addDays(new Date(), trialPeriodDays),
-                "yyyy-MM-dd",
-              ),
-              price: (price / 100).toFixed(2),
-              period: period.toString(),
-              url: loginUrl,
-            },
-            customerId: user.id,
-          })
+              email: user!.email!,
+              subject: "Welcome to GetQR",
+              template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
+              messageData: {
+                trial_price: (trialPrice / 100).toFixed(2),
+                currency_symbol: user.currency?.currencyForPay as string,
+                trial_period: trialPeriodDays.toString(),
+                trial_end_date: format(
+                  addDays(new Date(), trialPeriodDays),
+                  "yyyy-MM-dd",
+                ),
+                price: (price / 100).toFixed(2),
+                period: period.toString(),
+                url: loginUrl,
+              },
+              customerId: user.id,
+            }),
       ]);
 
       return NextResponse.json({

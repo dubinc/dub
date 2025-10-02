@@ -1,4 +1,7 @@
-import { frameMemoryCache, loadAndCacheFrame } from "@/ui/qr-builder/helpers/frame-cache";
+import {
+  frameMemoryCache,
+  loadAndCacheFrame,
+} from "@/ui/qr-builder/helpers/frame-cache";
 import { lightenHexColor } from "@/ui/qr-builder/helpers/lighten-hex-color.ts";
 import { measureTextWidth } from "@/ui/qr-builder/helpers/measure-text-width.ts";
 import CardFirstPreview from "@/ui/qr-builder/icons/frames/card-1-preview.svg";
@@ -136,7 +139,7 @@ export async function preloadAllFrames() {
   ];
 
   const BATCH_SIZE = 3;
-  
+
   for (let i = 0; i < framesToLoad.length; i += BATCH_SIZE) {
     const batch = framesToLoad.slice(i, i + BATCH_SIZE);
     await Promise.all(
@@ -146,7 +149,7 @@ export async function preloadAllFrames() {
         } catch (err) {
           console.error(`Failed to preload frame: ${frame.src}`, err);
         }
-      })
+      }),
     );
   }
 }

@@ -1,13 +1,13 @@
 import { cn } from "@dub/utils";
-import { FC, useEffect, useRef, useCallback, useMemo, useState } from "react";
+import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
 import { SUGGESTED_LOGOS } from "../../constants/customization/logos";
+import { useQrBuilderContext } from "../../context";
+import { useFileUpload } from "../../hooks/use-file-upload";
 import { ILogoData } from "../../types/customization";
 import { StylePicker } from "./style-picker";
-import { useFileUpload } from "../../hooks/use-file-upload";
-import { useQrBuilderContext } from "../../context";
 
 const FILE_UPLOAD_FIELD_NAME = "fileUploadLogo";
 const MAX_LOGO_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -45,14 +45,17 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
   // File upload hook
   const { uploadFile, isUploading, uploadProgress } = useFileUpload({
     onFileIdReceived: (fileId) => {
+      console.log("=== Logo fileId received ===", fileId);
       // Update logo data with fileId
       const lastFile = uploadedLogoFiles?.[uploadedLogoFiles.length - 1];
       if (lastFile) {
-        onLogoChange({
-          type: "uploaded",
+        const logoData = {
+          type: "uploaded" as const,
           fileId,
           file: lastFile, // Keep file for preview
-        });
+        };
+        console.log("Updating logo with:", logoData);
+        onLogoChange(logoData);
       }
       setUploadError(null);
     },
@@ -66,7 +69,6 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
 
   // Sync logo upload state to context
   useEffect(() => {
-    console.log('Logo upload state:', isUploading);
     setIsFileUploading(isUploading);
   }, [isUploading, setIsFileUploading]);
 
@@ -114,25 +116,28 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
     previousFilesRef.current = uploadedLogoFiles || [];
   }, [uploadedLogoFiles, onLogoChange, uploadFile, methods]);
 
-  const handleSuggestedLogoSelect = useCallback((logoId: string, icon?: any) => {
-    if (logoId === "logo-none") {
-      onLogoChange({
-        type: "none",
-        id: undefined,
-        file: undefined,
-      });
-    } else {
-      onLogoChange({
-        type: "suggested",
-        id: logoId,
-        iconSrc: icon?.src, // Store the icon src for direct use
-      });
-    }
+  const handleSuggestedLogoSelect = useCallback(
+    (logoId: string, icon?: any) => {
+      if (logoId === "logo-none") {
+        onLogoChange({
+          type: "none",
+          id: undefined,
+          file: undefined,
+        });
+      } else {
+        onLogoChange({
+          type: "suggested",
+          id: logoId,
+          iconSrc: icon?.src, // Store the icon src for direct use
+        });
+      }
 
-    // Clear uploaded files when selecting a suggested logo
-    methods.setValue(FILE_UPLOAD_FIELD_NAME, []);
-    methods.trigger(FILE_UPLOAD_FIELD_NAME);
-  }, [onLogoChange, methods]);
+      // Clear uploaded files when selecting a suggested logo
+      methods.setValue(FILE_UPLOAD_FIELD_NAME, []);
+      methods.trigger(FILE_UPLOAD_FIELD_NAME);
+    },
+    [onLogoChange, methods],
+  );
 
   const selectedStyle = useMemo(() => {
     if (logoData.type === "suggested" && logoData.id) {
@@ -148,7 +153,7 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
   // }, [methods]);
 
   return (
-    <div 
+    <div
       className={cn("flex max-w-[540px] flex-col gap-4", {
         "border-border-500 rounded-lg border p-3": !isMobile,
       })}
@@ -164,7 +169,7 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
         styleButtonClassName="[&_img]:h-10 [&_img]:w-10 p-2"
         disabled={disabled}
       />
-      
+
       <FormProvider {...methods}>
         <form>
           <Controller
@@ -175,11 +180,13 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
               fieldState: { error },
             }) => (
               <div className="flex flex-col gap-2">
-                <div className={cn(
-                  "border-border-500 rounded-lg border-2 border-dashed p-4 text-center transition-colors",
-                  disabled && "opacity-50 pointer-events-none",
-                  isUploading && "border-blue-500 bg-blue-50"
-                )}>
+                <div
+                  className={cn(
+                    "border-border-500 rounded-lg border-2 border-dashed p-4 text-center transition-colors",
+                    disabled && "pointer-events-none opacity-50",
+                    isUploading && "border-blue-500 bg-blue-50",
+                  )}
+                >
                   {value.length > 0 ? (
                     <div className="flex flex-col items-center gap-2">
                       <img
@@ -202,7 +209,7 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
                     </div>
                   ) : (
                     <>
-                      <p className="text-sm text-gray-600 mb-2">
+                      <p className="mb-2 text-sm text-gray-600">
                         Upload your logo (max 5MB)
                       </p>
                       <input
@@ -224,10 +231,14 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
                 {isUploading && uploadProgress.length > 0 && (
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between text-xs text-gray-600">
-                      <span>{uploadProgress[0].status === "uploading" ? "Uploading..." : "Processing..."}</span>
+                      <span>
+                        {uploadProgress[0].status === "uploading"
+                          ? "Uploading..."
+                          : "Processing..."}
+                      </span>
                       <span>{uploadProgress[0].progress}%</span>
                     </div>
-                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
                       <div
                         className="h-full bg-blue-600 transition-all duration-300"
                         style={{ width: `${uploadProgress[0].progress}%` }}

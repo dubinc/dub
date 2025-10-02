@@ -199,7 +199,7 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
         },
         sessionId: user?.id,
       });
-    }, 0)
+    }, 0);
 
     // Call original onClick if provided
     if (onClick) {

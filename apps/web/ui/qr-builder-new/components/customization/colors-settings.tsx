@@ -1,13 +1,14 @@
 import { Button } from "@dub/ui";
 import { motion } from "framer-motion";
 import { RotateCcw } from "lucide-react";
-import {FC, useState, useEffect, useCallback} from "react";
+import { FC, useCallback, useEffect, useState } from "react";
 
-import { 
-  BLACK_COLOR, 
-  WHITE_COLOR 
-} from "../../constants/customization/colors";
-import { isValidHex, isWhiteHex, isBlackHex } from "../../helpers/color-validation";
+import { BLACK_COLOR, WHITE_COLOR } from "../../constants/customization/colors";
+import {
+  isBlackHex,
+  isValidHex,
+  isWhiteHex,
+} from "../../helpers/color-validation";
 import { IStyleData } from "../../types/customization";
 import { ColorPickerInput } from "./color-picker";
 
@@ -36,38 +37,35 @@ export const ColorsSettings: FC<ColorsSettingsProps> = ({
     setBackgroundColor(styleData.backgroundColor || WHITE_COLOR);
   }, [styleData]);
 
-
   const handleForegroundColorChange = useCallback(
-      (color: string) => {
-        setForegroundColor(color);
-        const valid = isValidHex(color);
+    (color: string) => {
+      setForegroundColor(color);
+      const valid = isValidHex(color);
 
-        if (valid) {
-          onStyleChange({
-            ...styleData,
-            foregroundColor: color,
-          });
-        }
-      },
-      [setForegroundColor, onStyleChange, styleData]
+      if (valid) {
+        onStyleChange({
+          ...styleData,
+          foregroundColor: color,
+        });
+      }
+    },
+    [setForegroundColor, onStyleChange, styleData],
   );
 
   const handleBackgroundColorChange = useCallback(
-      (color: string) => {
-        setBackgroundColor(color);
-        const valid = isValidHex(color);
+    (color: string) => {
+      setBackgroundColor(color);
+      const valid = isValidHex(color);
 
-        if (valid) {
-          onStyleChange({
-            ...styleData,
-            backgroundColor: color,
-          });
-        }
-      },
-      [setBackgroundColor, onStyleChange, styleData]
+      if (valid) {
+        onStyleChange({
+          ...styleData,
+          backgroundColor: color,
+        });
+      }
+    },
+    [setBackgroundColor, onStyleChange, styleData],
   );
-
-
 
   return (
     <div className="flex flex-col gap-1">
@@ -124,7 +122,6 @@ export const ColorsSettings: FC<ColorsSettingsProps> = ({
           </div>
         )}
       </div>
-
     </div>
   );
 };

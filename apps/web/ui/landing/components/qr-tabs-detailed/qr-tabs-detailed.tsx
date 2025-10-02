@@ -139,7 +139,9 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       className="flex w-full flex-row items-center justify-center gap-2 md:max-w-[201px]"
                       size={{ initial: "4", md: "3" }}
                       color="blue"
-                      onClick={() => handleScrollButtonClick("2", type.scrollTo)}
+                      onClick={() =>
+                        handleScrollButtonClick("2", type.scrollTo)
+                      }
                       text="Create QR code"
                     />
                   </div>

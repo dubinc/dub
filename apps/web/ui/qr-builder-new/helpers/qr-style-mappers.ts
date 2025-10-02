@@ -1,24 +1,33 @@
-import { DOT_STYLES, CORNER_SQUARE_STYLES, CORNER_DOT_STYLES } from "@/ui/qr-builder-new/constants/customization/styles";
+import {
+  BLACK_COLOR,
+  WHITE_COLOR,
+} from "@/ui/qr-builder-new/constants/customization/colors";
 import { SUGGESTED_LOGOS } from "@/ui/qr-builder-new/constants/customization/logos";
-import { BLACK_COLOR, WHITE_COLOR } from "@/ui/qr-builder-new/constants/customization/colors";
-import { DotType, CornerSquareType, CornerDotType } from "qr-code-styling";
+import {
+  CORNER_DOT_STYLES,
+  CORNER_SQUARE_STYLES,
+  DOT_STYLES,
+} from "@/ui/qr-builder-new/constants/customization/styles";
+import { CornerDotType, CornerSquareType, DotType } from "qr-code-styling";
 
 /**
  * Maps QR customization style IDs to QRCodeStyling type values
  */
 
 export const getDotsType = (dotsStyleId: string): DotType => {
-  const style = DOT_STYLES.find(s => s.id === dotsStyleId);
+  const style = DOT_STYLES.find((s) => s.id === dotsStyleId);
   return (style?.type as DotType) || "dots";
 };
 
-export const getCornerSquareType = (cornerSquareStyleId: string): CornerSquareType => {
-  const style = CORNER_SQUARE_STYLES.find(s => s.id === cornerSquareStyleId);
+export const getCornerSquareType = (
+  cornerSquareStyleId: string,
+): CornerSquareType => {
+  const style = CORNER_SQUARE_STYLES.find((s) => s.id === cornerSquareStyleId);
   return (style?.type as CornerSquareType) || "square";
 };
 
 export const getCornerDotType = (cornerDotStyleId: string): CornerDotType => {
-  const style = CORNER_DOT_STYLES.find(s => s.id === cornerDotStyleId);
+  const style = CORNER_DOT_STYLES.find((s) => s.id === cornerDotStyleId);
   return (style?.type as CornerDotType) || "square";
 };
 
@@ -27,19 +36,14 @@ export const getCornerDotType = (cornerDotStyleId: string): CornerDotType => {
  * Fallback for when iconSrc is not available in logo data
  */
 export const getSuggestedLogoSrc = (logoId: string) => {
-  const logo = SUGGESTED_LOGOS.find(l => l.id === logoId);
-  // SVG imports in Next.js return an object with 'src' property
-  // If icon is a string, return it directly, otherwise get the src property
+  const logo = SUGGESTED_LOGOS.find((l) => l.id === logoId);
   if (!logo?.icon) {
     return undefined;
   }
 
-  // Handle both direct imports and Next.js optimized imports
-  if (typeof logo.icon === 'string') {
+  if (typeof logo.icon === "string") {
     return logo.icon;
   }
-
-  // For Next.js StaticImageData or similar objects
   return logo.icon.src || logo.icon.default?.src || undefined;
 };
 
@@ -60,7 +64,10 @@ export const convertSvgUrlToBase64 = async (url: string): Promise<string> => {
 /**
  * Converts QR customization data to QRCodeStyling options
  */
-export const mapCustomizationToQROptions = (customizationData: any, defaultData: string) => {
+export const mapCustomizationToQROptions = (
+  customizationData: any,
+  defaultData: string,
+) => {
   return {
     data: defaultData,
     dotsOptions: {

@@ -1,8 +1,8 @@
 import { EQRType } from "../../constants/get-qr-config.ts";
-import { QRCodeDemoWebsite } from "./demos/website";
 import { QRCodeDemoImage } from "./demos/image";
 import { QRCodeDemoPDF } from "./demos/pdf";
 import { QRCodeDemoVideo } from "./demos/video";
+import { QRCodeDemoWebsite } from "./demos/website";
 import { QRCodeDemoWhatsapp } from "./demos/whatsapp";
 import { QRCodeDemoWifi } from "./demos/wifi";
 

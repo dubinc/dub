@@ -34,7 +34,6 @@ import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-univer
 import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
 import { FRAMER_API_HOST } from "./constants";
-import { createAutoLoginURL } from "./jwt-signin";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,

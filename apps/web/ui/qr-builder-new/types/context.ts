@@ -7,21 +7,20 @@ export type TDestinationData = string | null;
 export type TQrType = EQRType | null;
 
 // Import form data types
+import { QRContentStepRef } from "@/ui/qr-builder-new/components/qr-content-step.tsx";
+import { RefObject } from "react";
 import {
+  TAppLinkQRFormData,
+  TFeedbackQRFormData,
+  TImageQRFormData,
+  TPdfQRFormData,
+  TSocialQRFormData,
+  TVideoQRFormData,
   TWebsiteQRFormData,
   TWhatsappQRFormData,
   TWifiQRFormData,
-  TPdfQRFormData,
-  TImageQRFormData,
-  TVideoQRFormData,
-  TSocialQRFormData,
-  TAppLinkQRFormData,
-  TFeedbackQRFormData,
 } from "../validation/schemas";
-import {RefObject} from "react";
-import {QRContentStepRef} from "@/ui/qr-builder-new/components/qr-content-step.tsx";
 import { IQRCustomizationData } from "./customization";
-import { TQrServerData } from "../helpers/data-converters";
 
 export type TQRFormData =
   | TWebsiteQRFormData
@@ -88,5 +87,5 @@ export interface IQrBuilderContextType {
 
   // Refs
   contentStepRef: RefObject<QRContentStepRef>;
-  qrBuilderButtonsWrapperRef:RefObject<HTMLDivElement>
+  qrBuilderButtonsWrapperRef: RefObject<HTMLDivElement>;
 }

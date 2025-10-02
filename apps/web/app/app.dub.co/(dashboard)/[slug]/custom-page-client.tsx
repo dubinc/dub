@@ -4,7 +4,7 @@ import { FeaturesAccess } from "@/lib/actions/check-features-access-auth-less";
 import { Session } from "@/lib/auth/utils";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { UserProvider } from "@/ui/contexts/user";
-import { QRBuilderModal, CreateQRButton } from "@/ui/modals/qr-builder-new";
+import { CreateQRButton, QRBuilderModal } from "@/ui/modals/qr-builder-new";
 import { useTrialOfferWithQRPreviewModal } from "@/ui/modals/trial-offer-with-qr-preview";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
@@ -134,7 +134,13 @@ function WorkspaceQRs({
 
       <div className="mt-3">
         <QrCodesContainer
-          CreateQrCodeButton={featuresAccess ? () => <CreateQRButton onClick={() => setShowQRBuilderModal(true)} /> : () => <></>}
+          CreateQrCodeButton={
+            featuresAccess
+              ? () => (
+                  <CreateQRButton onClick={() => setShowQRBuilderModal(true)} />
+                )
+              : () => <></>
+          }
           featuresAccess={featuresAccess.featuresAccess}
           initialQrs={initialQrs}
         />

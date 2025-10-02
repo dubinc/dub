@@ -1,9 +1,10 @@
 import { z } from "zod";
-import { qrNameSchema, phoneNumberSchema } from "./base";
+import { phoneNumberSchema, qrNameSchema } from "./base";
 
 export const whatsappQRSchema = qrNameSchema.extend({
   number: phoneNumberSchema,
-  message: z.string()
+  message: z
+    .string()
     .max(160, "Message must be less than 160 characters")
     .optional()
     .or(z.literal("")),

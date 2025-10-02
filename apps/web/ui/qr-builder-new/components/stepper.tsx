@@ -13,14 +13,22 @@ interface IStepperProps {
   disabled?: boolean;
 }
 
-export default function Stepper({ steps, currentStep, onStepClick, disabled = false }: IStepperProps) {
+export default function Stepper({
+  steps,
+  currentStep,
+  onStepClick,
+  disabled = false,
+}: IStepperProps) {
   return (
     <div className="flex w-full items-center justify-center md:w-3/4">
       {steps.map((step, index) => {
         const isCompleted = currentStep > step.number;
         const isActive = currentStep === step.number;
         const isLast = index === steps.length - 1;
-        const isClickable = !disabled && onStepClick && (isCompleted || step.number === currentStep + 1);
+        const isClickable =
+          !disabled &&
+          onStepClick &&
+          (isCompleted || step.number === currentStep + 1);
 
         return (
           <div
@@ -31,7 +39,7 @@ export default function Stepper({ steps, currentStep, onStepClick, disabled = fa
               className={cn(
                 "flex flex-col items-center",
                 isClickable && "cursor-pointer",
-                disabled && "opacity-50 cursor-not-allowed"
+                disabled && "cursor-not-allowed opacity-50",
               )}
               onClick={() => isClickable && onStepClick(step.number)}
             >

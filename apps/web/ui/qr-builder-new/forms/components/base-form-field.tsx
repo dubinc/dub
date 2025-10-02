@@ -1,14 +1,14 @@
 "use client";
 
-import { useFormContext } from "react-hook-form";
+import { TooltipComponent } from "@/ui/qr-builder/components/tooltip";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
-import { TooltipComponent } from "@/ui/qr-builder/components/tooltip";
-import { FormInput } from "./form-input";
-import "react-phone-number-input/style.css";
-import { useState, useEffect } from "react";
 import Cookies from "js-cookie";
+import { useEffect, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { Country } from "react-phone-number-input/input";
+import "react-phone-number-input/style.css";
+import { FormInput } from "./form-input";
 
 interface BaseFormFieldProps {
   name: string;
@@ -33,9 +33,11 @@ export const BaseFormField = ({
   required = true,
   initFromPlaceholder = false,
 }: BaseFormFieldProps) => {
-  const { formState: { errors } } = useFormContext();
+  const {
+    formState: { errors },
+  } = useFormContext();
   const [defaultCountry, setDefaultCountry] = useState<Country>("US");
-  
+
   const error = errors[name]?.message as string;
 
   useEffect(() => {

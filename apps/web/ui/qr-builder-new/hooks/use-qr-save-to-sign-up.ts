@@ -2,15 +2,19 @@ import { saveQrDataToRedisAction } from "@/lib/actions/save-qr-data-to-redis";
 import { useLocalStorage } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback } from "react";
-import { convertNewBuilderToStorageFormat, TNewQRBuilderData, TQRBuilderDataForStorage } from "../helpers/data-converters";
+import {
+  convertNewBuilderToStorageFormat,
+  TNewQRBuilderData,
+  TQRBuilderDataForStorage,
+} from "../helpers/data-converters";
 
-export const useQrDownload = (sessionId: string) => {
-  const [qrDataToCreate, setQrDataToCreate] = useLocalStorage<TQRBuilderDataForStorage | null>(
-    "qr-data-to-create",
-    null
+export const useQRSaveToSignUp = (sessionId: string) => {
+  const [qrDataToCreate, setQrDataToCreate] =
+    useLocalStorage<TQRBuilderDataForStorage | null>("qr-data-to-create", null);
+
+  const { executeAsync: saveQrDataToRedis } = useAction(
+    saveQrDataToRedisAction,
   );
-
-  const { executeAsync: saveQrDataToRedis } = useAction(saveQrDataToRedisAction);
 
   const saveQrDataForDownload = useCallback(
     async (builderData: TNewQRBuilderData) => {
@@ -32,7 +36,7 @@ export const useQrDownload = (sessionId: string) => {
           console.log("Download: Saving to Redis with sessionId:", sessionId);
           await saveQrDataToRedis({
             sessionId,
-            qrData: storageData
+            qrData: storageData,
           });
 
           console.log("Download: Successfully saved to localStorage and Redis");
@@ -46,7 +50,7 @@ export const useQrDownload = (sessionId: string) => {
         return false;
       }
     },
-    [sessionId, qrDataToCreate, setQrDataToCreate, saveQrDataToRedis]
+    [sessionId, qrDataToCreate, setQrDataToCreate, saveQrDataToRedis],
   );
 
   return {

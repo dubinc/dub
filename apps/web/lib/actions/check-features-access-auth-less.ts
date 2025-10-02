@@ -11,9 +11,7 @@ export type FeaturesAccess = {
   subscriptionId: string | null;
 };
 
-export const checkFeaturesAccessAuthLess = async (
-  userId: string,
-) => {
+export const checkFeaturesAccessAuthLess = async (userId: string) => {
   const { rows } = await conn.execute(
     `SELECT u.createdAt as userCreatedAt, u.email as email
     FROM User u 

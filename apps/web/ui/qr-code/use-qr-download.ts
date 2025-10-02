@@ -19,10 +19,10 @@ const getDeviceRenderingSettings = () => {
   const pixelRatio = window.devicePixelRatio || 1;
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
   const isChromeIOS = isChromeOnIOS();
-  
+
   // Internal rendering size - can vary by device capabilities
   let internalRenderSize: number;
-  
+
   if (isChromeIOS) {
     // Chrome iOS: very conservative to avoid memory issues
     internalRenderSize = Math.min(1024 * pixelRatio, 2048);
@@ -33,7 +33,7 @@ const getDeviceRenderingSettings = () => {
     // Desktop: can handle larger sizes
     internalRenderSize = Math.min(2048 * pixelRatio, 4096);
   }
-  
+
   return {
     internalRenderSize,
     outputSize: UNIVERSAL_OUTPUT_SIZE,
@@ -48,28 +48,28 @@ const getDeviceRenderingSettings = () => {
 // Helper function to resize canvas to universal output size
 const resizeCanvasToUniversalSize = (
   sourceCanvas: HTMLCanvasElement,
-  targetSize: number
+  targetSize: number,
 ): HTMLCanvasElement => {
   if (sourceCanvas.width === targetSize && sourceCanvas.height === targetSize) {
     return sourceCanvas; // No resize needed
   }
-  
+
   const outputCanvas = document.createElement("canvas");
   outputCanvas.width = targetSize;
   outputCanvas.height = targetSize;
   const outputCtx = outputCanvas.getContext("2d");
-  
+
   if (!outputCtx) {
     throw new Error("Failed to create output canvas context");
   }
-  
+
   // High-quality resize
   outputCtx.imageSmoothingEnabled = true;
   outputCtx.imageSmoothingQuality = "high";
-  
+
   // Draw source canvas onto output canvas with resize
   outputCtx.drawImage(sourceCanvas, 0, 0, targetSize, targetSize);
-  
+
   return outputCanvas;
 };
 
@@ -96,9 +96,11 @@ export const useQrDownload = (qrCode: QRCodeStyling | null) => {
       renderCanvas.width = settings.internalRenderSize;
       renderCanvas.height = settings.internalRenderSize;
       const ctx = renderCanvas.getContext("2d");
-      
+
       if (!ctx) {
-        console.error("Failed to get canvas context - canvas memory limit may be exceeded");
+        console.error(
+          "Failed to get canvas context - canvas memory limit may be exceeded",
+        );
         return;
       }
 
@@ -120,73 +122,83 @@ export const useQrDownload = (qrCode: QRCodeStyling | null) => {
 
       const img = new Image();
       const mimeType = format === "png" ? "image/png" : "image/jpeg";
-      
+
       img.onload = () => {
         let outputCanvas: HTMLCanvasElement | null = null;
-        
+
         try {
           // Fill background for JPG format
           if (format === "jpg") {
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, renderCanvas.width, renderCanvas.height);
           }
-          
+
           // Draw to render canvas
           ctx.drawImage(img, 0, 0, renderCanvas.width, renderCanvas.height);
 
           // Resize to universal output size if needed
           if (settings.needsResize) {
-            outputCanvas = resizeCanvasToUniversalSize(renderCanvas, settings.outputSize);
+            outputCanvas = resizeCanvasToUniversalSize(
+              renderCanvas,
+              settings.outputSize,
+            );
           } else {
             outputCanvas = renderCanvas;
           }
-          
+
           // Generate download with universal settings
           const dataUrl = outputCanvas.toDataURL(mimeType, settings.quality);
-          
+
           // Check if dataUrl is valid
           if (!dataUrl || dataUrl === "data:,") {
-            throw new Error("Canvas toDataURL failed - likely due to memory constraints");
+            throw new Error(
+              "Canvas toDataURL failed - likely due to memory constraints",
+            );
           }
 
           // Universal filename (no device-specific info in final version)
           const fileName = `qr-code-${settings.outputSize}px.${format}`;
-          
+
           const link = document.createElement("a");
           link.href = dataUrl;
           link.download = fileName;
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-          
         } catch (error) {
           console.error("Error generating QR code image:", error);
-          
+
           // Fallback: try with much smaller size for Chrome iOS
           if (settings.isChromeIOS && settings.internalRenderSize > 1024) {
             console.log("Retrying with fallback size for Chrome iOS...");
-            
+
             try {
               const fallbackCanvas = document.createElement("canvas");
               fallbackCanvas.width = 1024;
               fallbackCanvas.height = 1024;
               const fallbackCtx = fallbackCanvas.getContext("2d");
-              
+
               if (fallbackCtx) {
                 fallbackCtx.imageSmoothingEnabled = true;
                 fallbackCtx.imageSmoothingQuality = "high";
-                
+
                 if (format === "jpg") {
                   fallbackCtx.fillStyle = "#ffffff";
                   fallbackCtx.fillRect(0, 0, 1024, 1024);
                 }
-                
+
                 fallbackCtx.drawImage(img, 0, 0, 1024, 1024);
-                
+
                 // Always resize fallback to universal size
-                const fallbackOutput = resizeCanvasToUniversalSize(fallbackCanvas, settings.outputSize);
-                const fallbackDataUrl = fallbackOutput.toDataURL(mimeType, settings.quality);
-                
+                const fallbackOutput = resizeCanvasToUniversalSize(
+                  fallbackCanvas,
+                  settings.outputSize,
+                );
+                const fallbackDataUrl = fallbackOutput.toDataURL(
+                  mimeType,
+                  settings.quality,
+                );
+
                 if (fallbackDataUrl && fallbackDataUrl !== "data:,") {
                   const fallbackLink = document.createElement("a");
                   fallbackLink.href = fallbackDataUrl;
@@ -195,7 +207,7 @@ export const useQrDownload = (qrCode: QRCodeStyling | null) => {
                   fallbackLink.click();
                   document.body.removeChild(fallbackLink);
                 }
-                
+
                 // Clean up
                 releaseCanvas(fallbackCanvas);
                 fallbackCanvas.remove();
@@ -211,7 +223,7 @@ export const useQrDownload = (qrCode: QRCodeStyling | null) => {
         } finally {
           tempDiv.remove();
           URL.revokeObjectURL(img.src);
-          
+
           // Clean up canvases
           releaseCanvas(renderCanvas);
           if (outputCanvas && outputCanvas !== renderCanvas) {

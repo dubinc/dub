@@ -1,7 +1,7 @@
-import { storage } from '@/lib/storage';
-import { deleteLink } from '../links';
-import { getQr } from './get-qr';
+import { storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
+import { deleteLink } from "../links";
+import { getQr } from "./get-qr";
 
 export async function deleteQr(qrId: string) {
   const qr = await getQr({

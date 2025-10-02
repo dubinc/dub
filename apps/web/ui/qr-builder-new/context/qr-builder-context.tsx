@@ -10,20 +10,24 @@ import {
   useRef,
   useState,
 } from "react";
+import { toast } from "sonner";
 import { EQRType } from "../constants/get-qr-config.ts";
 import {
+  convertServerQRToNewBuilder,
+  TNewQRBuilderData,
+  TQrServerData,
+} from "../helpers/data-converters";
+import {
   IQrBuilderContextType,
+  TDestinationData,
   TQRFormData,
   TQrType,
-  TDestinationData,
   TStepState,
 } from "../types/context";
 import {
   DEFAULT_QR_CUSTOMIZATION,
   IQRCustomizationData,
 } from "../types/customization";
-import { TQrServerData, convertServerQRToNewBuilder, TNewQRBuilderData } from "../helpers/data-converters";
-import { toast } from "sonner";
 
 // Create context
 const QrBuilderContext = createContext<IQrBuilderContextType | undefined>(
@@ -38,7 +42,10 @@ interface QrBuilderProviderProps {
   homepageDemo?: boolean;
   sessionId?: string;
   onDownload?: (data: TNewQRBuilderData) => Promise<void>;
-  onSave?: (builderData: TNewQRBuilderData, originalQrData?: TQrServerData | null) => Promise<any>;
+  onSave?: (
+    builderData: TNewQRBuilderData,
+    originalQrData?: TQrServerData | null,
+  ) => Promise<any>;
 }
 
 // Provider component
@@ -51,7 +58,6 @@ export function QrBuilderProvider({
   onDownload,
   onSave: onSaveProp,
 }: QrBuilderProviderProps) {
-
   const getInitializedProps = useCallback(() => {
     if (initialQrData) {
       const builderData = convertServerQRToNewBuilder(initialQrData);
@@ -77,10 +83,14 @@ export function QrBuilderProvider({
   const [builderStep, setBuilderStep] = useState<TStepState>(1);
   const [destinationData, setDestinationData] =
     useState<TDestinationData>(null);
-  const [selectedQrType, setSelectedQrType] = useState<TQrType>(initialState.selectedQrType);
+  const [selectedQrType, setSelectedQrType] = useState<TQrType>(
+    initialState.selectedQrType,
+  );
   const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
   const [typeSelectionError, setTypeSelectionError] = useState<string>("");
-  const [formData, setFormData] = useState<TQRFormData | null>(initialState.formData);
+  const [formData, setFormData] = useState<TQRFormData | null>(
+    initialState.formData,
+  );
   const [currentFormValues, setCurrentFormValues] = useState<
     Record<string, any>
   >({});
@@ -179,6 +189,10 @@ export function QrBuilderProvider({
         fileId: (formData as any)?.fileId || initialState.fileId,
       };
 
+      console.log("=== onSave in context ===");
+      console.log("customizationData being saved:", customizationData);
+      console.log("customizationData.logo:", customizationData.logo);
+
       await onSaveProp(builderData, initialQrData);
     } catch (error) {
       console.error("Error saving QR:", error);
@@ -201,10 +215,6 @@ export function QrBuilderProvider({
         toast.error("Please complete all required fields");
         return;
       }
-
-      console.log("=== handleContinue (download) ===");
-      console.log("customizationData at save:", customizationData);
-      console.log("customizationData.frame at save:", customizationData.frame);
 
       const builderData: TNewQRBuilderData = {
         qrType: selectedQrType,
@@ -232,13 +242,27 @@ export function QrBuilderProvider({
       // Save the current form values to formData state before moving to next step
       if (currentFormValues && Object.keys(currentFormValues).length > 0) {
         setFormData(currentFormValues as TQRFormData);
-        console.log("Saving form data before moving to customization step:", currentFormValues);
+        console.log(
+          "Saving form data before moving to customization step:",
+          currentFormValues,
+        );
       }
     }
 
     // Move to next step
     handleNextStep();
-  }, [isContentStep, isCustomizationStep, homepageDemo, onDownload, selectedQrType, formData, customizationData, onSave, handleNextStep, currentFormValues]);
+  }, [
+    isContentStep,
+    isCustomizationStep,
+    homepageDemo,
+    onDownload,
+    selectedQrType,
+    formData,
+    customizationData,
+    onSave,
+    handleNextStep,
+    currentFormValues,
+  ]);
 
   const updateCurrentFormValues = useCallback((values: Record<string, any>) => {
     setCurrentFormValues(values);
@@ -246,9 +270,6 @@ export function QrBuilderProvider({
 
   // Customization methods
   const updateCustomizationData = useCallback((data: IQRCustomizationData) => {
-    console.log("=== updateCustomizationData called ===");
-    console.log("New customizationData:", data);
-    console.log("New frame data:", data.frame);
     setCustomizationData(data);
   }, []);
 
@@ -275,7 +296,7 @@ export function QrBuilderProvider({
     isTypeStep,
     isContentStep,
     isCustomizationStep,
-    isEditMode:isEdit,
+    isEditMode: isEdit,
     homepageDemo,
 
     // Methods

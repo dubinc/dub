@@ -1,23 +1,26 @@
 "use client";
 
-import { useForm, FormProvider, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { websiteQRSchema, WebsiteQRFormData } from "../../validation/schemas";
-import { BaseFormField } from "./base-form-field.tsx";
-import { forwardRef, useImperativeHandle, useEffect } from "react";
-import { QR_NAME_PLACEHOLDERS, QR_INPUT_PLACEHOLDERS } from "../../constants/qr-type-inputs-placeholders";
+import { forwardRef, useEffect, useImperativeHandle } from "react";
+import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { EQRType } from "../../constants/get-qr-config";
+import {
+  QR_INPUT_PLACEHOLDERS,
+  QR_NAME_PLACEHOLDERS,
+} from "../../constants/qr-type-inputs-placeholders";
 import { useQRFormData } from "../../hooks/use-qr-form-data";
+import { TWebsiteQRFormData, websiteQRSchema } from "../../validation/schemas";
+import { BaseFormField } from "./base-form-field.tsx";
 
 export interface WebsiteFormRef {
   validate: () => Promise<boolean>;
-  getValues: () => WebsiteQRFormData & { encodedData: string };
-  form: UseFormReturn<WebsiteQRFormData>;
+  getValues: () => TWebsiteQRFormData & { encodedData: string };
+  form: UseFormReturn<TWebsiteQRFormData>;
 }
 
 interface WebsiteFormProps {
-  onSubmit: (data: WebsiteQRFormData & { encodedData: string }) => void;
-  defaultValues?: Partial<WebsiteQRFormData>;
+  onSubmit: (data: TWebsiteQRFormData & { encodedData: string }) => void;
+  defaultValues?: Partial<TWebsiteQRFormData>;
   initialData?: {
     qrType: EQRType;
     data: string;
@@ -38,7 +41,7 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
       ...defaultValues,
     });
 
-    const form = useForm<WebsiteQRFormData>({
+    const form = useForm<TWebsiteQRFormData>({
       resolver: zodResolver(websiteQRSchema),
       defaultValues: formDefaults,
     });
@@ -71,24 +74,24 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
 
     return (
       <FormProvider {...form}>
-          <form className="flex w-full flex-col gap-4">
-            <BaseFormField
-              name="qrName"
-              label="Name your QR Code"
-              placeholder={QR_NAME_PLACEHOLDERS.WEBSITE}
-              tooltip="Only you can see this. It helps you recognize your QR codes later."
-              initFromPlaceholder
-            />
-            
-            <BaseFormField
-              name="websiteLink"
-              label="Enter your website"
-              type="url"
-              placeholder={QR_INPUT_PLACEHOLDERS.WEBSITE_URL}
-              tooltip="This is the link people will open when they scan your QR code."
-            />
-          </form>
+        <form className="flex w-full flex-col gap-4">
+          <BaseFormField
+            name="qrName"
+            label="Name your QR Code"
+            placeholder={QR_NAME_PLACEHOLDERS.WEBSITE}
+            tooltip="Only you can see this. It helps you recognize your QR codes later."
+            initFromPlaceholder
+          />
+
+          <BaseFormField
+            name="websiteLink"
+            label="Enter your website"
+            type="url"
+            placeholder={QR_INPUT_PLACEHOLDERS.WEBSITE_URL}
+            tooltip="This is the link people will open when they scan your QR code."
+          />
+        </form>
       </FormProvider>
     );
-  }
+  },
 );

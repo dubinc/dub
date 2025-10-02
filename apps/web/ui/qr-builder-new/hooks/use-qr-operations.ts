@@ -3,7 +3,11 @@ import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { SHORT_DOMAIN } from "@dub/utils/src";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import { convertNewQRBuilderDataToServer, TNewQRBuilderData, TQrServerData } from "../helpers/data-converters";
+import {
+  convertNewQRBuilderDataToServer,
+  TNewQRBuilderData,
+  TQrServerData,
+} from "../helpers/data-converters";
 
 export const useNewQrOperations = () => {
   const { id: workspaceId } = useWorkspace();
@@ -21,8 +25,8 @@ export const useNewQrOperations = () => {
           domain: SHORT_DOMAIN!,
         });
 
-        console.log(serverData,'serverData11111');
-        
+        console.log(serverData, "serverData11111");
+
         const res = await fetch(`/api/qrs?workspaceId=${workspaceId}`, {
           method: "POST",
           headers: {
@@ -39,16 +43,22 @@ export const useNewQrOperations = () => {
         } else {
           const errorResponse = await res.json();
           console.error("API Error Response:", errorResponse);
-          const errorMessage = errorResponse?.error?.message || "Failed to create QR";
+          const errorMessage =
+            errorResponse?.error?.message || "Failed to create QR";
 
           // Check if it's a body consumption error and retry
-          if (errorMessage.includes("Body is unusable") || errorMessage.includes("already been read")) {
+          if (
+            errorMessage.includes("Body is unusable") ||
+            errorMessage.includes("already been read")
+          ) {
             if (retryCount < 2) {
               // Add a small delay before retry
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise((resolve) => setTimeout(resolve, 500));
               return createQr(builderData, retryCount + 1);
             } else {
-              toast.error("Request failed after multiple attempts. Please try again.");
+              toast.error(
+                "Request failed after multiple attempts. Please try again.",
+              );
               return false;
             }
           }
@@ -61,8 +71,13 @@ export const useNewQrOperations = () => {
         console.error("Failed to create QR", e);
 
         // Check if it's a network-level body consumption error and retry
-        if (e instanceof Error && (e.message.includes("Body is unusable") || e.message.includes("already been read")) && retryCount < 2) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+        if (
+          e instanceof Error &&
+          (e.message.includes("Body is unusable") ||
+            e.message.includes("already been read")) &&
+          retryCount < 2
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
           return createQr(builderData, retryCount + 1);
         }
 
@@ -74,7 +89,11 @@ export const useNewQrOperations = () => {
   );
 
   const updateQr = useCallback(
-    async (originalQR: TQrServerData, builderData: TNewQRBuilderData, retryCount = 0) => {
+    async (
+      originalQR: TQrServerData,
+      builderData: TNewQRBuilderData,
+      retryCount = 0,
+    ) => {
       try {
         if (!workspaceId) {
           toast.error("Workspace ID not found");
@@ -82,24 +101,28 @@ export const useNewQrOperations = () => {
         }
 
         // Convert new builder data to server format
-        const newServerData = await convertNewQRBuilderDataToServer(builderData, {
-          domain: SHORT_DOMAIN!,
-        });
+        const newServerData = await convertNewQRBuilderDataToServer(
+          builderData,
+          {
+            domain: SHORT_DOMAIN!,
+          },
+        );
 
         // Simple comparison to check for changes
         const hasChanges =
           newServerData.title !== originalQR.title ||
           newServerData.qrType !== originalQR.qrType ||
           newServerData.data !== originalQR.data ||
-          JSON.stringify(newServerData.styles) !== JSON.stringify(originalQR.styles) ||
-          JSON.stringify(newServerData.frameOptions) !== JSON.stringify(originalQR.frameOptions) ||
+          JSON.stringify(newServerData.styles) !==
+            JSON.stringify(originalQR.styles) ||
+          JSON.stringify(newServerData.frameOptions) !==
+            JSON.stringify(originalQR.frameOptions) ||
           newServerData.fileId !== originalQR.fileId;
 
         if (!hasChanges) {
           toast.info("No changes to save");
           return true;
         }
-
 
         const res = await fetch(
           `/api/qrs/${originalQR.id}?workspaceId=${workspaceId}`,
@@ -119,15 +142,21 @@ export const useNewQrOperations = () => {
           return responseData;
         } else {
           const errorResponse = await res.json();
-          const errorMessage = errorResponse?.error?.message || "Failed to update QR";
+          const errorMessage =
+            errorResponse?.error?.message || "Failed to update QR";
 
           // Check if it's a body consumption error and retry
-          if (errorMessage.includes("Body is unusable") || errorMessage.includes("already been read")) {
+          if (
+            errorMessage.includes("Body is unusable") ||
+            errorMessage.includes("already been read")
+          ) {
             if (retryCount < 2) {
-              await new Promise(resolve => setTimeout(resolve, 500));
+              await new Promise((resolve) => setTimeout(resolve, 500));
               return updateQr(originalQR, builderData, retryCount + 1);
             } else {
-              toast.error("Update failed after multiple attempts. Please try again.");
+              toast.error(
+                "Update failed after multiple attempts. Please try again.",
+              );
               return false;
             }
           }
@@ -139,8 +168,13 @@ export const useNewQrOperations = () => {
         console.error("Failed to update QR", e);
 
         // Check if it's a network-level body consumption error and retry
-        if (e instanceof Error && (e.message.includes("Body is unusable") || e.message.includes("already been read")) && retryCount < 2) {
-          await new Promise(resolve => setTimeout(resolve, 500));
+        if (
+          e instanceof Error &&
+          (e.message.includes("Body is unusable") ||
+            e.message.includes("already been read")) &&
+          retryCount < 2
+        ) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
           return updateQr(originalQR, builderData, retryCount + 1);
         }
 

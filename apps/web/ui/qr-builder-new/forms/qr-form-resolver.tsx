@@ -2,16 +2,16 @@
 
 import { forwardRef } from "react";
 import { EQRType } from "../constants/get-qr-config";
+import { TQRFormData } from "../types/context";
 import {
+  ImageForm,
+  PdfForm,
+  VideoForm,
   WebsiteForm,
   WhatsAppForm,
   WifiForm,
-  PdfForm,
-  ImageForm,
-  VideoForm,
 } from "./components";
 import { QRFormRef } from "./types";
-import { TQRFormData } from "../types/context";
 
 interface QRFormResolverProps {
   qrType: EQRType;
@@ -109,5 +109,5 @@ export const QrFormResolver = forwardRef<QRFormRef, QRFormResolverProps>(
     );
 
     return <div className="w-full">{selectedForm}</div>;
-  }
+  },
 );

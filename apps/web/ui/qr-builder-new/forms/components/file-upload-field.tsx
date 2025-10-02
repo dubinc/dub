@@ -5,7 +5,6 @@ import { Button } from "@radix-ui/themes";
 import { Upload, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { useFileUpload as useFileUploadHook } from "../../hooks/use-file-upload";
 import {
   FileUpload,
   FileUploadDropzone,
@@ -16,6 +15,7 @@ import {
   FileUploadItemProgress,
   FileUploadList,
 } from "../../components/file-upload/file-upload";
+import { useFileUpload as useFileUploadHook } from "../../hooks/use-file-upload";
 
 interface FileUploadFieldProps {
   name: string;
@@ -152,7 +152,7 @@ export const FileUploadField = ({
                   "border-red-500": fieldState.error || uploadError,
                 })}
               >
-                <div className="flex flex-col items-center gap-1 text-center mb-2">
+                <div className="mb-2 flex flex-col items-center gap-1 text-center">
                   <div className="border-secondary-100 flex items-center justify-center rounded-full border p-2.5">
                     <Upload className="text-secondary size-6" />
                   </div>

@@ -1,29 +1,29 @@
-import NoLogoIcon from "../../icons/no-logo.svg";
-import CardPreview from "../../icons/frames/card-preview.svg";
-import Card from "../../icons/frames/card.svg";
 import CardFirstPreview from "../../icons/frames/card-1-preview.svg";
 import CardFirst from "../../icons/frames/card-1.svg";
 import CardSecondPreview from "../../icons/frames/card-2-preview.svg";
 import CardSecond from "../../icons/frames/card-2.svg";
 import CardThirdPreview from "../../icons/frames/card-3-preview.svg";
 import CardThird from "../../icons/frames/card-3.svg";
-import WreathPreview from "../../icons/frames/wreath-preview.svg";
-import Wreath from "../../icons/frames/wreath.svg";
-import EnvelopePreview from "../../icons/frames/envelope-preview.svg";
-import Envelope from "../../icons/frames/envelope.svg";
-import WaitressPreview from "../../icons/frames/waitress-preview.svg";
-import Waitress from "../../icons/frames/waitress.svg";
-import CoffeeCupPreview from "../../icons/frames/coffee-cup-preview.svg";
-import CoffeeCup from "../../icons/frames/coffee-cup.svg";
-import ScooterPreview from "../../icons/frames/scooter-preview.svg";
-import Scooter from "../../icons/frames/scooter.svg";
+import CardPreview from "../../icons/frames/card-preview.svg";
+import Card from "../../icons/frames/card.svg";
 import ClipboardFramePreview from "../../icons/frames/clipboard-preview.svg";
 import ClipboardFrame from "../../icons/frames/clipboard.svg";
+import CoffeeCupPreview from "../../icons/frames/coffee-cup-preview.svg";
+import CoffeeCup from "../../icons/frames/coffee-cup.svg";
+import EnvelopePreview from "../../icons/frames/envelope-preview.svg";
+import Envelope from "../../icons/frames/envelope.svg";
+import ScooterPreview from "../../icons/frames/scooter-preview.svg";
+import Scooter from "../../icons/frames/scooter.svg";
+import WaitressPreview from "../../icons/frames/waitress-preview.svg";
+import Waitress from "../../icons/frames/waitress.svg";
+import WreathPreview from "../../icons/frames/wreath-preview.svg";
+import Wreath from "../../icons/frames/wreath.svg";
+import NoLogoIcon from "../../icons/no-logo.svg";
 
+import { isBlackHex, isWhiteHex } from "../../helpers/color-validation";
+import { embedQRIntoFrame } from "../../helpers/frame-helpers";
 import { IStyleOption } from "../../types/customization";
 import { BLACK_COLOR } from "./colors";
-import { isWhiteHex, isBlackHex } from "../../helpers/color-validation";
-import { embedQRIntoFrame } from "../../helpers/frame-helpers";
 
 export const FRAME_TEXT = "Scan Me!";
 

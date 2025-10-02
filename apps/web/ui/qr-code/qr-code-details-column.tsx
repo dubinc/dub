@@ -4,7 +4,7 @@ import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import { QrCodeControls } from "@/ui/qr-code/qr-code-controls.tsx";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useRef } from "react";
-import { QRStatusBadge } from './qr-status-badge/qr-status-badge';
+import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
 
 interface QrCodeDetailsColumnProps {
   qrCode: QrStorageData;

@@ -64,7 +64,7 @@ export const QR_TYPES: QRType[] = [
     content:
       "Start conversations instantly! Use a QR code to let customers, clients, or friends message you on WhatsApp with a single scan.",
     yourContentColumnTitle: "Your Number",
-    scrollTo: EQRType.WHATSAPP, 
+    scrollTo: EQRType.WHATSAPP,
   },
   {
     id: EQRType.WIFI,
@@ -142,7 +142,9 @@ export const ANALYTICS_QR_TYPES: EQRType[] = [
   EQRType.VIDEO,
 ];
 
-export const ANALYTICS_QR_TYPES_DATA = QR_TYPES.filter(qr => ANALYTICS_QR_TYPES.includes(qr.id));
+export const ANALYTICS_QR_TYPES_DATA = QR_TYPES.filter((qr) =>
+  ANALYTICS_QR_TYPES.includes(qr.id),
+);
 
 export const LINKED_QR_TYPES: EQRType[] = [
   EQRType.WEBSITE,

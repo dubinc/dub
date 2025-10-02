@@ -36,7 +36,7 @@ export const checkAccountExistsAction = actionClient
       },
     });
 
-    console.log('login action');
+    console.log("login action");
     console.log(user);
 
     return {

@@ -14,7 +14,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useContext, useState } from "react";
 import { errorCodes, LoginFormContext } from "./login-form";
-import { CUSTOMER_IO_TEMPLATES } from 'node_modules/@dub/email/src/constants';
 
 interface IEmailSignInProps {
   sessionId: string;

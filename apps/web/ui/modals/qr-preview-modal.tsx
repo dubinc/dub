@@ -52,7 +52,6 @@ function QRPreviewModal({
   const [isDownloading, setIsDownloading] = useState(false);
   const [selectedFormat, setSelectedFormat] = useState<TDownloadFormat>("svg");
 
-  
   const { downloadQrCode } = useQrDownload(qrCode);
 
   const isWelcomeModal = searchParams.has("onboarded");

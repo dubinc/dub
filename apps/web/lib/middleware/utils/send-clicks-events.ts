@@ -1,14 +1,25 @@
-import { checkFeaturesAccessAuthLess, FeaturesAccess } from '@/lib/actions/check-features-access-auth-less';
-import { ClicksThresholds, TrialClicks, TrialClicksForTest } from '@/lib/constants/trial';
-import { conn } from '@/lib/planetscale';
-import { EAnalyticEvents } from 'core/integration/analytic/interfaces/analytic.interface';
-import { trackMixpanelApiService } from 'core/integration/analytic/services/track-mixpanel-api.service';
+import {
+  checkFeaturesAccessAuthLess,
+  FeaturesAccess,
+} from "@/lib/actions/check-features-access-auth-less";
+import {
+  ClicksThresholds,
+  TrialClicks,
+  TrialClicksForTest,
+} from "@/lib/constants/trial";
+import { conn } from "@/lib/planetscale";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { trackMixpanelApiService } from "core/integration/analytic/services/track-mixpanel-api.service";
 
 const auth = Buffer.from(
   `${process.env.CUSTOMER_IO_SITE_ID}:${process.env.CUSTOMER_IO_TRACK_API_KEY}`,
 ).toString("base64");
 
-export const trackCustomerioEvent = async (link: Record<string, any>, eventName: string, data: Record<string, any>) => {
+export const trackCustomerioEvent = async (
+  link: Record<string, any>,
+  eventName: string,
+  data: Record<string, any>,
+) => {
   return await fetch(
     `https://track.customer.io/api/v1/customers/${link.userId}/events`,
     {
@@ -23,15 +34,21 @@ export const trackCustomerioEvent = async (link: Record<string, any>, eventName:
       }),
     },
   );
-}
+};
 
-const sendThresholdEvents = async (link: Record<string, any>, featuresAccess: FeaturesAccess) => {
-  ClicksThresholds.forEach(async threshold => {
+const sendThresholdEvents = async (
+  link: Record<string, any>,
+  featuresAccess: FeaturesAccess,
+) => {
+  ClicksThresholds.forEach(async (threshold) => {
     const clicksThreshold =
       process.env.NEXT_PUBLIC_APP_ENV === "dev"
         ? threshold.thresholdForTest - 1
         : threshold.threshold - 1;
-    if (link.totalUserClicks === clicksThreshold && !featuresAccess.featuresAccess) {
+    if (
+      link.totalUserClicks === clicksThreshold &&
+      !featuresAccess.featuresAccess
+    ) {
       const responses = await Promise.all([
         trackCustomerioEvent(link, "threshold_passed", {
           codes: threshold.threshold,
@@ -45,7 +62,7 @@ const sendThresholdEvents = async (link: Record<string, any>, featuresAccess: Fe
             codes: threshold.threshold,
             timestamp: new Date().toISOString(),
           },
-        })
+        }),
       ]);
 
       if (!responses[0].ok) {
@@ -61,7 +78,7 @@ const sendThresholdEvents = async (link: Record<string, any>, featuresAccess: Fe
       }
     }
   });
-}
+};
 
 export const sendClicksEvents = async (linkId: string) => {
   console.log("Sending scan limit reached event for link", linkId);
@@ -83,7 +100,7 @@ export const sendClicksEvents = async (linkId: string) => {
     console.log("Link", link);
 
     const featuresAccess = await checkFeaturesAccessAuthLess(link.userId);
-    
+
     const maxClicks =
       process.env.NEXT_PUBLIC_APP_ENV === "dev"
         ? TrialClicksForTest - 1
@@ -105,7 +122,7 @@ export const sendClicksEvents = async (linkId: string) => {
             codes: TrialClicks,
             timestamp: new Date().toISOString(),
           },
-        })
+        }),
       ]);
 
       if (!responses[0].ok) {

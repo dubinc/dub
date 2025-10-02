@@ -1,5 +1,6 @@
 import { checkFeaturesAccessAuthLess } from "@/lib/actions/check-features-access-auth-less";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { TrialDays } from "@/lib/constants/trial.ts";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
@@ -7,7 +8,6 @@ import { NextResponse } from "next/server";
 import { EAnalyticEvents } from "../../../../core/integration/analytic/interfaces/analytic.interface.ts";
 import { trackMixpanelApiService } from "../../../../core/integration/analytic/services/track-mixpanel-api.service.ts";
 import { CustomerIOClient } from "../../../../core/lib/customerio/customerio.config.ts";
-import { TrialDays } from '@/lib/constants/trial.ts';
 
 export const dynamic = "force-dynamic";
 
@@ -38,8 +38,7 @@ async function handler(req: Request) {
 
     if (users.length === 0) {
       await log({
-        message:
-          `No users found registered between ${TrialDays} days 1 hour ago and ${TrialDays} days ago`,
+        message: `No users found registered between ${TrialDays} days 1 hour ago and ${TrialDays} days ago`,
         type: "cron",
       });
       return NextResponse.json({
@@ -65,7 +64,7 @@ async function handler(req: Request) {
               title: true,
             },
             orderBy: {
-              createdAt: 'asc',
+              createdAt: "asc",
             },
           });
           const firstQrName = firstQr?.title || null;

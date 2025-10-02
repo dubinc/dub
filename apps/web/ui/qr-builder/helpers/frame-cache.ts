@@ -2,16 +2,18 @@ import { StaticImageData } from "next/image";
 
 export const frameMemoryCache = new Map<string, HTMLElement>();
 
-export async function loadAndCacheFrame(frame: StaticImageData): Promise<HTMLElement | null> {
+export async function loadAndCacheFrame(
+  frame: StaticImageData,
+): Promise<HTMLElement | null> {
   const { src } = frame;
 
   if (frameMemoryCache.has(src)) {
     return frameMemoryCache.get(src)!;
   }
 
-  try {    
+  try {
     const res = await fetch(src, {
-      cache: 'force-cache',
+      cache: "force-cache",
     });
 
     if (!res.ok) {
@@ -21,7 +23,7 @@ export async function loadAndCacheFrame(frame: StaticImageData): Promise<HTMLEle
     const svgText = await res.text();
     const parsed = new DOMParser().parseFromString(
       svgText,
-      "image/svg+xml"
+      "image/svg+xml",
     ).documentElement;
 
     frameMemoryCache.set(src, parsed);
@@ -35,4 +37,4 @@ export async function loadAndCacheFrame(frame: StaticImageData): Promise<HTMLEle
 
 export function clearFrameMemoryCache(): void {
   frameMemoryCache.clear();
-} 
+}

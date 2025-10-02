@@ -1,8 +1,8 @@
 export const generateVideoPreview = (
-    videoSrc: string,
-    setPreviewUrl: (url: string | null) => void,
-    cleanup?: () => void,
-    isLocalFile: boolean = false
+  videoSrc: string,
+  setPreviewUrl: (url: string | null) => void,
+  cleanup?: () => void,
+  isLocalFile: boolean = false,
 ) => {
   const video = document.createElement("video");
   video.src = videoSrc;
@@ -65,17 +65,17 @@ export const generateVideoPreview = (
       } catch (dataUrlError) {
         try {
           canvas.toBlob(
-              (blob) => {
-                if (blob && blob.size > 0) {
-                  isExtracted = true;
-                  const imageUrl = URL.createObjectURL(blob);
-                  setPreviewUrl(imageUrl);
-                } else {
-                  setPreviewUrl(null);
-                }
-              },
-              "image/jpeg",
-              0.8
+            (blob) => {
+              if (blob && blob.size > 0) {
+                isExtracted = true;
+                const imageUrl = URL.createObjectURL(blob);
+                setPreviewUrl(imageUrl);
+              } else {
+                setPreviewUrl(null);
+              }
+            },
+            "image/jpeg",
+            0.8,
           );
         } catch (blobError) {
           setPreviewUrl(null);

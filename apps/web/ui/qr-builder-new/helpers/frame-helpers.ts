@@ -3,9 +3,11 @@ import { StaticImageData } from "next/image";
 // Frame cache functionality
 export const frameMemoryCache = new Map<string, SVGElement>();
 
-export const loadAndCacheFrame = async (frame: StaticImageData): Promise<SVGElement | null> => {
+export const loadAndCacheFrame = async (
+  frame: StaticImageData,
+): Promise<SVGElement | null> => {
   const { src } = frame;
-  
+
   if (frameMemoryCache.has(src)) {
     return frameMemoryCache.get(src)!;
   }
@@ -16,7 +18,7 @@ export const loadAndCacheFrame = async (frame: StaticImageData): Promise<SVGElem
     const parser = new DOMParser();
     const doc = parser.parseFromString(svgText, "image/svg+xml");
     const svgElement = doc.querySelector("svg") as SVGElement;
-    
+
     if (svgElement) {
       frameMemoryCache.set(src, svgElement);
       return svgElement;
@@ -33,14 +35,24 @@ export const lightenHexColor = (hex: string, percent: number): string => {
   const num = parseInt(hex.replace("#", ""), 16);
   const amt = Math.round(2.55 * percent);
   const R = (num >> 16) + amt;
-  const B = (num >> 8 & 0x00FF) + amt;
-  const G = (num & 0x0000FF) + amt;
-  return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + (B < 255 ? B < 1 ? 0 : B : 255) * 0x100 + (G < 255 ? G < 1 ? 0 : G : 255)).toString(16).slice(1);
+  const B = ((num >> 8) & 0x00ff) + amt;
+  const G = (num & 0x0000ff) + amt;
+  return (
+    "#" +
+    (
+      0x1000000 +
+      (R < 255 ? (R < 1 ? 0 : R) : 255) * 0x10000 +
+      (B < 255 ? (B < 1 ? 0 : B) : 255) * 0x100 +
+      (G < 255 ? (G < 1 ? 0 : G) : 255)
+    )
+      .toString(16)
+      .slice(1)
+  );
 };
 
 export const measureTextWidth = (text: string, font: string): number => {
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
   if (!context) return 0;
   context.font = font;
   return context.measureText(text).width;

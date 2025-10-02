@@ -18,83 +18,109 @@ interface UseFileUploadOptions {
 const uploadUrl = process.env.NEXT_PUBLIC_FILES_HANDLER_URL;
 
 export const useFileUpload = (options: UseFileUploadOptions = {}) => {
-  const [uploadProgress, setUploadProgress] = useState<Map<File, UploadProgress>>(new Map());
+  const [uploadProgress, setUploadProgress] = useState<
+    Map<File, UploadProgress>
+  >(new Map());
   const [isUploading, setIsUploading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  const uploadFile = useCallback(async (file: File) => {
-    // Cancel any existing upload
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
+  const uploadFile = useCallback(
+    async (file: File) => {
+      // Cancel any existing upload
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
 
-    abortControllerRef.current = new AbortController();
-    setIsUploading(true);
+      abortControllerRef.current = new AbortController();
+      setIsUploading(true);
 
-    // Initialize progress tracking
-    setUploadProgress(prev => new Map(prev.set(file, {
-      file,
-      progress: 0,
-      status: "uploading"
-    })));
-
-    try {
-      const result = await uploadFileWithProgress(
-        file,
-        (uploadFile, progress) => {
-          setUploadProgress(prev => new Map(prev.set(file, {
-            file,
-            progress,
-            status: progress === 100 ? "processing" : "uploading"
-          })));
-          
-          options.onProgress?.(uploadFile, progress);
-          
-          if (progress === 100) {
-            setIsUploading(false);
-          }
-        },
-        abortControllerRef.current.signal
+      // Initialize progress tracking
+      setUploadProgress(
+        (prev) =>
+          new Map(
+            prev.set(file, {
+              file,
+              progress: 0,
+              status: "uploading",
+            }),
+          ),
       );
 
-      if (result?.file?.id) {
-        const fileId = result.file.id;
-        
-        setUploadProgress(prev => new Map(prev.set(file, {
+      try {
+        const result = await uploadFileWithProgress(
           file,
-          progress: 100,
-          status: "success",
-          fileId
-        })));
+          (uploadFile, progress) => {
+            setUploadProgress(
+              (prev) =>
+                new Map(
+                  prev.set(file, {
+                    file,
+                    progress,
+                    status: progress === 100 ? "processing" : "uploading",
+                  }),
+                ),
+            );
 
-        options.onFileIdReceived?.(fileId);
-        options.onSuccess?.(file, fileId);
-        
-        return fileId;
-      } else {
-        throw new Error("No file ID received");
+            options.onProgress?.(uploadFile, progress);
+
+            if (progress === 100) {
+              setIsUploading(false);
+            }
+          },
+          abortControllerRef.current.signal,
+        );
+
+        if (result?.file?.id) {
+          const fileId = result.file.id;
+
+          setUploadProgress(
+            (prev) =>
+              new Map(
+                prev.set(file, {
+                  file,
+                  progress: 100,
+                  status: "success",
+                  fileId,
+                }),
+              ),
+          );
+
+          options.onFileIdReceived?.(fileId);
+          options.onSuccess?.(file, fileId);
+
+          return fileId;
+        } else {
+          throw new Error("No file ID received");
+        }
+      } catch (error) {
+        if (error instanceof Error && error.name === "AbortError") {
+          return null;
+        }
+
+        const errorMessage =
+          error instanceof Error ? error.message : "Upload failed";
+
+        setUploadProgress(
+          (prev) =>
+            new Map(
+              prev.set(file, {
+                file,
+                progress: 0,
+                status: "error",
+                error: errorMessage,
+              }),
+            ),
+        );
+
+        options.onError?.(file, errorMessage);
+        throw error;
+      } finally {
+        setIsUploading(false);
+        abortControllerRef.current = null;
       }
-    } catch (error) {
-      if (error instanceof Error && error.name === "AbortError") {
-        return null;
-      }
-
-      const errorMessage = error instanceof Error ? error.message : "Upload failed";
-      
-      setUploadProgress(prev => new Map(prev.set(file, {
-        file,
-        progress: 0,
-        status: "error",
-        error: errorMessage
-      })));
-
-      options.onError?.(file, errorMessage);
-      throw error;
-    } finally {
-      setIsUploading(false);
-      abortControllerRef.current = null;
-    }
-  }, [options]);
+    },
+    [options],
+  );
 
   const cancelUpload = useCallback(() => {
     if (abortControllerRef.current) {
@@ -105,9 +131,12 @@ export const useFileUpload = (options: UseFileUploadOptions = {}) => {
     setUploadProgress(new Map());
   }, []);
 
-  const getFileProgress = useCallback((file: File) => {
-    return uploadProgress.get(file);
-  }, [uploadProgress]);
+  const getFileProgress = useCallback(
+    (file: File) => {
+      return uploadProgress.get(file);
+    },
+    [uploadProgress],
+  );
 
   const clearProgress = useCallback(() => {
     setUploadProgress(new Map());
@@ -119,7 +148,7 @@ export const useFileUpload = (options: UseFileUploadOptions = {}) => {
     getFileProgress,
     clearProgress,
     isUploading,
-    uploadProgress: Array.from(uploadProgress.values())
+    uploadProgress: Array.from(uploadProgress.values()),
   };
 };
 
@@ -172,10 +201,14 @@ const uploadFileWithProgress = (
     });
 
     if (!uploadUrl) {
-      reject(new Error("Upload URL not configured. Please set NEXT_PUBLIC_FILES_HANDLER_URL environment variable."));
+      reject(
+        new Error(
+          "Upload URL not configured. Please set NEXT_PUBLIC_FILES_HANDLER_URL environment variable.",
+        ),
+      );
       return;
     }
-    
+
     xhr.open("POST", uploadUrl);
 
     xhr.send(formData);

@@ -1,7 +1,8 @@
 import { Button } from "@dub/ui";
 import QRCodeStyling from "qr-code-styling";
-import { useQrBuilderContext } from "../context";
+import { useCallback } from "react";
 import { toast } from "sonner";
+import { useQrBuilderContext } from "../context";
 
 interface DownloadButtonProps {
   qrCode: QRCodeStyling | null;
@@ -17,9 +18,19 @@ export const DownloadButton = ({
     formData,
     homepageDemo,
     handleContinue,
+    isEditMode,
+    isFileUploading,
+    isFileProcessing,
+    isProcessing,
+    customizationData,
   } = useQrBuilderContext();
 
-  const handleSave = async () => {
+  // Check if logo upload is incomplete
+  const hasUploadedLogoWithoutFileId =
+    customizationData.logo?.type === "uploaded" &&
+    !customizationData.logo?.fileId;
+
+  const handleSave = useCallback(async () => {
     if (!qrCode || disabled) return;
 
     if (!selectedQrType || !formData) {
@@ -31,16 +42,35 @@ export const DownloadButton = ({
       await handleContinue();
       return;
     }
+  }, [
+    qrCode,
+    disabled,
+    selectedQrType,
+    formData,
+    homepageDemo,
+    handleContinue,
+  ]);
 
-  };
+  const getButtonText = useCallback(() => {
+    if (isFileUploading) return "Uploading...";
+    if (isFileProcessing) return "Processing...";
+    if (isEditMode) return "Save changes";
+    if (homepageDemo) return "Download QR Code";
+    return "Create QR Code";
+  }, [isFileUploading, isFileProcessing, isEditMode, homepageDemo]);
+
+  const buttonText = getButtonText();
+  const isDisabled =
+    disabled || isProcessing || isFileUploading || isFileProcessing || hasUploadedLogoWithoutFileId;
 
   return (
-      <Button
-        color="blue"
-        className="grow basis-3/4 w-full"
-        onClick={handleSave}
-        disabled={disabled}
-        text={"Download QR code"}
-      />
+    <Button
+      color="blue"
+      className="w-full grow basis-3/4"
+      onClick={handleSave}
+      disabled={isDisabled}
+      loading={isProcessing || isFileUploading || isFileProcessing}
+      text={buttonText}
+    />
   );
 };

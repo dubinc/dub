@@ -8,10 +8,10 @@ interface StyleIconProps {
   className?: string;
 }
 
-export const StyleIcon: FC<StyleIconProps> = ({ 
-  src, 
-  size = 40, 
-  className 
+export const StyleIcon: FC<StyleIconProps> = ({
+  src,
+  size = 40,
+  className,
 }) => {
   return (
     <Image

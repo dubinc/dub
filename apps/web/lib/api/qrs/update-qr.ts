@@ -1,6 +1,6 @@
 import { NewQrProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
-import { getQr } from './get-qr';
+import { getQr } from "./get-qr";
 
 export async function updateQr(
   id: string,

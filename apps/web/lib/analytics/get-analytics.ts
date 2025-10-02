@@ -149,7 +149,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         if (!link) {
           return null;
         }
-        console.log('link', link);
+        console.log("link", link);
         return analyticsResponse[groupBy].parse({
           id: link.id,
           domain: link.domain,

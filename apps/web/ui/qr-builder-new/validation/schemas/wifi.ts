@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { qrNameSchema, wifiNetworkNameSchema, wifiPasswordSchema } from "./base";
+import {
+  qrNameSchema,
+  wifiNetworkNameSchema,
+  wifiPasswordSchema,
+} from "./base";
 
 export const wifiQRSchema = qrNameSchema.extend({
   networkName: wifiNetworkNameSchema,

@@ -17,7 +17,7 @@ export const useQrData = (qrId: string | null) => {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   );
 
   return {

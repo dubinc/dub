@@ -29,11 +29,11 @@ export const sendEmailViaResend = async ({
 
   return await resend.emails.send({
     to: email,
-    from: 'help@getqr.com',
-      // from ||
-      // (marketing
-      //   ? "Steven from Dub.co <steven@ship.dub.co>"
-      //   : "Dub.co <system@dub.co>"),
+    from: "help@getqr.com",
+    // from ||
+    // (marketing
+    //   ? "Steven from Dub.co <steven@ship.dub.co>"
+    //   : "Dub.co <system@dub.co>"),
     bcc: bcc,
     replyTo,
     subject,

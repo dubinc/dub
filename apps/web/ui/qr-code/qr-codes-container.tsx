@@ -35,10 +35,15 @@ export default function QrCodesContainer({
     // showArchived
   } = useContext(QrCodesDisplayContext);
 
-  const { qrs: clientQrs, isValidating } = useQrs({
-    sortBy,
-    showArchived: true,
-  }, {}, false, true);
+  const { qrs: clientQrs, isValidating } = useQrs(
+    {
+      sortBy,
+      showArchived: true,
+    },
+    {},
+    false,
+    true,
+  );
 
   const qrs = clientQrs || initialQrs;
 
@@ -121,7 +126,11 @@ function QrCodesList({
             {qrCodes?.length
               ? // Link cards
                 qrCodes.map((qrCode) => (
-                  <QrCodeCard key={qrCode.id} qrCode={qrCode} featuresAccess={featuresAccess} />
+                  <QrCodeCard
+                    key={qrCode.id}
+                    qrCode={qrCode}
+                    featuresAccess={featuresAccess}
+                  />
                 ))
               : // Loading placeholder cards
                 Array.from({ length: 12 }).map((_, idx) => (

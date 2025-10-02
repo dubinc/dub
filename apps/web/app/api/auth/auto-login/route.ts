@@ -1,13 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { verifyServerAuthJWT, setServerAuthSession } from "@/lib/auth/jwt-signin";
+import {
+  setServerAuthSession,
+  verifyServerAuthJWT,
+} from "@/lib/auth/jwt-signin";
 import { ratelimit } from "@/lib/upstash";
+import { NextRequest, NextResponse } from "next/server";
 
 /**
  * GET /api/auth/auto-login?token=<jwt>&redirect=<url>
- * 
+ *
  * Auto-login endpoint that accepts a JWT token and automatically signs in the user.
  * This provides a way to create "magic links" for server-side authentication.
- * 
+ *
  * Query Parameters:
  * - token: JWT token created by createServerAuthJWT
  * - redirect: URL to redirect to after successful login (optional, defaults to "/")
@@ -21,7 +24,7 @@ export async function GET(req: NextRequest) {
     if (!token) {
       return NextResponse.json(
         { error: "Token parameter is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -31,19 +34,16 @@ export async function GET(req: NextRequest) {
     );
 
     if (!success) {
-      return NextResponse.json(
-        { error: "Too many requests" },
-        { status: 429 }
-      );
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
     // Verify the JWT token
     const session = await verifyServerAuthJWT(token);
-    
+
     if (!session) {
       return NextResponse.json(
         { error: "Invalid or expired token" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -56,16 +56,16 @@ export async function GET(req: NextRequest) {
     console.error("Auto-login error:", error);
     return NextResponse.json(
       { error: "Authentication failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 /**
  * POST /api/auth/auto-login
- * 
+ *
  * Alternative endpoint for programmatic auto-login that returns JSON instead of redirecting.
- * 
+ *
  * Body:
  * {
  *   "token": "jwt-token-here"
@@ -77,10 +77,7 @@ export async function POST(req: NextRequest) {
     const { token } = body;
 
     if (!token) {
-      return NextResponse.json(
-        { error: "Token is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Token is required" }, { status: 400 });
     }
 
     // Rate limiting for security
@@ -89,19 +86,16 @@ export async function POST(req: NextRequest) {
     );
 
     if (!success) {
-      return NextResponse.json(
-        { error: "Too many requests" },
-        { status: 429 }
-      );
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
 
     // Verify the JWT token
     const session = await verifyServerAuthJWT(token);
-    
+
     if (!session) {
       return NextResponse.json(
         { error: "Invalid or expired token" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -117,8 +111,7 @@ export async function POST(req: NextRequest) {
     console.error("Auto-login POST error:", error);
     return NextResponse.json(
       { error: "Authentication failed" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

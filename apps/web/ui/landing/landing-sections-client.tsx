@@ -7,7 +7,7 @@ import { ReviewsSection } from "@/ui/landing/components/reviews/reviews-section.
 import { FC, useCallback, useRef, useState } from "react";
 import { trackClientEvents } from "../../core/integration/analytic";
 import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
-import { EQRType } from '../qr-builder/constants/get-qr-config.ts';
+import { EQRType } from "../qr-builder/constants/get-qr-config.ts";
 
 interface ILandingSectionsClientProps {
   sessionId: string;

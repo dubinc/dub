@@ -1,21 +1,18 @@
-import { cn } from "@dub/utils";
 import { Button, Input } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { Flex, Text } from "@radix-ui/themes";
 import { AnimatePresence, motion } from "framer-motion";
 import { RotateCcw } from "lucide-react";
-import {FC, FormEvent, useCallback, useEffect, useState} from "react";
+import { FC, FormEvent, useCallback, useEffect, useState } from "react";
 
-import { 
-  FRAMES, 
-  FRAME_TEXT, 
-  isDefaultTextColor 
+import { BLACK_COLOR, WHITE_COLOR } from "../../constants/customization/colors";
+import {
+  FRAMES,
+  FRAME_TEXT,
+  isDefaultTextColor,
 } from "../../constants/customization/frames";
-import { 
-  BLACK_COLOR, 
-  WHITE_COLOR 
-} from "../../constants/customization/colors";
+import { isBlackHex, isValidHex } from "../../helpers/color-validation";
 import { IFrameData } from "../../types/customization";
-import { isValidHex, isBlackHex } from "../../helpers/color-validation";
 import { ColorPickerInput } from "./color-picker";
 import { StylePicker } from "./style-picker";
 
@@ -60,7 +57,7 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
     frameData.textColor || null,
   );
   const [frameText, setFrameText] = useState<string>(
-    frameData.text ?? FRAME_TEXT
+    frameData.text ?? FRAME_TEXT,
   );
 
   const selectedFrame = FRAMES.find((f) => f.id === frameData.id);
@@ -77,92 +74,92 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
   }, [frameData]);
 
   const handleFrameSelect = useCallback(
-      (frameId: string) => {
-        console.log("=== handleFrameSelect called ===");
-        console.log("Selected frameId:", frameId);
-        console.log("Current frameData:", frameData);
+    (frameId: string) => {
+      console.log("=== handleFrameSelect called ===");
+      console.log("Selected frameId:", frameId);
+      console.log("Current frameData:", frameData);
 
-        // If switching to "no frame", clear all settings
-        if (frameId === "frame-none") {
-          const newFrameData: IFrameData = {
-            id: frameId,
-            color: undefined,
-            textColor: undefined,
-            text: undefined,
-          };
-          console.log("Clearing frame, sending:", newFrameData);
-          onFrameChange(newFrameData);
-          return;
-        }
-
-        // If re-selecting the same frame, preserve existing settings from frameData
-        if (frameId === frameData.id) {
-          console.log("Re-selecting same frame, no change");
-          return;
-        }
-
-        // If switching to a new frame, use current settings but with new frame's default text color
-        const newSelectedFrame = FRAMES.find((f) => f.id === frameId);
-        const newDefaultTextColor = newSelectedFrame?.defaultTextColor || WHITE_COLOR;
-
+      // If switching to "no frame", clear all settings
+      if (frameId === "frame-none") {
         const newFrameData: IFrameData = {
           id: frameId,
-          color: frameColor,
-          textColor: newDefaultTextColor,
-          text: frameText,
+          color: undefined,
+          textColor: undefined,
+          text: undefined,
         };
-
-        console.log("Selecting new frame, sending:", newFrameData);
+        console.log("Clearing frame, sending:", newFrameData);
         onFrameChange(newFrameData);
-      },
-      [frameColor, frameText, onFrameChange, frameData]
+        return;
+      }
+
+      // If re-selecting the same frame, preserve existing settings from frameData
+      if (frameId === frameData.id) {
+        console.log("Re-selecting same frame, no change");
+        return;
+      }
+
+      // If switching to a new frame, use current settings but with new frame's default text color
+      const newSelectedFrame = FRAMES.find((f) => f.id === frameId);
+      const newDefaultTextColor =
+        newSelectedFrame?.defaultTextColor || WHITE_COLOR;
+
+      const newFrameData: IFrameData = {
+        id: frameId,
+        color: frameColor,
+        textColor: newDefaultTextColor,
+        text: frameText,
+      };
+
+      console.log("Selecting new frame, sending:", newFrameData);
+      onFrameChange(newFrameData);
+    },
+    [frameColor, frameText, onFrameChange, frameData],
   );
 
   const handleFrameColorChange = useCallback(
-      (color: string) => {
-        setFrameColor(color);
-        const valid = isValidHex(color);
+    (color: string) => {
+      setFrameColor(color);
+      const valid = isValidHex(color);
 
-        if (valid && isFrameSelected) {
-          onFrameChange({
-            ...frameData,
-            color,
-          });
-        }
-      },
-      [setFrameColor, isFrameSelected, onFrameChange, frameData]
+      if (valid && isFrameSelected) {
+        onFrameChange({
+          ...frameData,
+          color,
+        });
+      }
+    },
+    [setFrameColor, isFrameSelected, onFrameChange, frameData],
   );
 
   const handleFrameTextColorChange = useCallback(
-      (color: string) => {
-        setFrameTextColor(color);
-        const valid = isValidHex(color);
+    (color: string) => {
+      setFrameTextColor(color);
+      const valid = isValidHex(color);
 
-        if (valid && isFrameSelected) {
-          onFrameChange({
-            ...frameData,
-            textColor: color,
-          });
-        }
-      },
-      [setFrameTextColor, isFrameSelected, onFrameChange, frameData]
+      if (valid && isFrameSelected) {
+        onFrameChange({
+          ...frameData,
+          textColor: color,
+        });
+      }
+    },
+    [setFrameTextColor, isFrameSelected, onFrameChange, frameData],
   );
 
   const handleFrameTextChange = useCallback(
-      (text: string) => {
-        const truncatedText = text.slice(0, MAX_FRAME_TEXT_LENGTH);
-        setFrameText(truncatedText);
+    (text: string) => {
+      const truncatedText = text.slice(0, MAX_FRAME_TEXT_LENGTH);
+      setFrameText(truncatedText);
 
-        if (isFrameSelected) {
-          onFrameChange({
-            ...frameData,
-            text: truncatedText,
-          });
-        }
-      },
-      [setFrameText, isFrameSelected, onFrameChange, frameData]
+      if (isFrameSelected) {
+        onFrameChange({
+          ...frameData,
+          text: truncatedText,
+        });
+      }
+    },
+    [setFrameText, isFrameSelected, onFrameChange, frameData],
   );
-
 
   return (
     <motion.div
@@ -182,7 +179,7 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
         styleButtonClassName="[&_img]:h-[60px] [&_img]:w-[60px] p-2"
         disabled={disabled}
       />
-      
+
       <AnimatePresence>
         {isFrameSelected && (
           <motion.div
@@ -213,7 +210,7 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
                 disabled={disabled}
               />
             </Flex>
-            
+
             <Flex direction="row" gap="2" className="items-end text-sm">
               <ColorPickerInput
                 label="Frame colour"
@@ -240,7 +237,7 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
                 )}
               </AnimatePresence>
             </Flex>
-            
+
             <Flex direction="row" gap="2" className="items-end text-sm">
               <ColorPickerInput
                 label="Text Colour"
@@ -249,22 +246,25 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
                 disabled={disabled}
               />
               <AnimatePresence>
-                {frameTextColor !== null && !isDefaultTextColor(frameTextColor) && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <Button
-                      variant="secondary"
-                      className="border-border-500 h-11 max-w-11 p-3"
-                      onClick={() => handleFrameTextColorChange(defaultTextColor)}
-                      icon={<RotateCcw className="text-neutral h-5 w-5" />}
-                      disabled={disabled}
-                    />
-                  </motion.div>
-                )}
+                {frameTextColor !== null &&
+                  !isDefaultTextColor(frameTextColor) && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.2 }}
+                    >
+                      <Button
+                        variant="secondary"
+                        className="border-border-500 h-11 max-w-11 p-3"
+                        onClick={() =>
+                          handleFrameTextColorChange(defaultTextColor)
+                        }
+                        icon={<RotateCcw className="text-neutral h-5 w-5" />}
+                        disabled={disabled}
+                      />
+                    </motion.div>
+                  )}
               </AnimatePresence>
             </Flex>
           </motion.div>

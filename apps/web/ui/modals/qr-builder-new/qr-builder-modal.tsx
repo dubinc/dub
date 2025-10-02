@@ -29,7 +29,10 @@ export function QRBuilderModal({
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleSaveQR = async (data: any, initialData?: TQrServerData | null) => {
+  const handleSaveQR = async (
+    data: any,
+    initialData?: TQrServerData | null,
+  ) => {
     setIsProcessing(true);
 
     try {

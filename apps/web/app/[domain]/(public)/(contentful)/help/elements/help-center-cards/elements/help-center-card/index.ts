@@ -1,1 +1,1 @@
-export { HelpCenterCardComponent } from './help-center-card.component';
+export { HelpCenterCardComponent } from "./help-center-card.component";

@@ -30,10 +30,10 @@ export function usePdfLoader({ file, url }: UsePdfLoaderProps): PdfLoadResult {
     const loadPdf = async () => {
       setIsLoading(true);
       setError(null);
-      
+
       try {
         const { pdfjs } = await import("react-pdf");
-        
+
         if (typeof window !== "undefined") {
           pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
         }

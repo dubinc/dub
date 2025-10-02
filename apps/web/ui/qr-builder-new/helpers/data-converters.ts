@@ -1,16 +1,16 @@
 import { NewQrProps } from "@/lib/types";
 import { Options } from "qr-code-styling";
-import { EQRType, FILE_QR_TYPES } from "../constants/get-qr-config";
-import { IQRCustomizationData, IFrameData } from "../types/customization";
+import { FRAMES } from "../constants/customization/frames";
+import { EQRType } from "../constants/get-qr-config";
 import { TQRFormData } from "../types/context";
+import { IFrameData, IQRCustomizationData } from "../types/customization";
 import { encodeQRData, parseQRData } from "./qr-data-handlers";
 import {
-  getDotsType,
-  getCornerSquareType,
   getCornerDotType,
+  getCornerSquareType,
+  getDotsType,
   getSuggestedLogoSrc,
 } from "./qr-style-mappers";
-import { FRAMES } from "../constants/customization/frames";
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -32,7 +32,7 @@ export type TNewQRBuilderData = {
  */
 export type TQRBuilderDataForStorage = {
   title: string;
-  styles: Options; // Logo is stored in styles.image as relative path: /files/{fileId} or /logos/{logoId}.png
+  styles: Options;
   frameOptions: {
     id: string;
     color: string;
@@ -40,7 +40,7 @@ export type TQRBuilderDataForStorage = {
     text: string;
   };
   qrType: EQRType;
-  fileId?: string; // For PDF/Image/Video QR content files ONLY
+  fileId?: string;
 };
 
 /**
@@ -73,7 +73,7 @@ export type TQrServerData = {
 
 function buildQRStylingOptions(
   customizationData: IQRCustomizationData,
-  qrData: string
+  qrData: string,
 ): Options {
   const { style, shape, logo } = customizationData;
 
@@ -113,11 +113,11 @@ function buildQRStylingOptions(
 
   if (logo.type === "uploaded") {
     if (logo.fileId) {
-      // Use relative path for uploaded file (backend will construct full URL)
-      options.image = `/files/${logo.fileId}`;
-      console.log('Saving uploaded logo with fileId:', logo.fileId);
-    } else {
-      console.warn('Uploaded logo has no fileId - logo will not be saved', logo);
+      // Use full URL for uploaded file (same pattern as QR content files)
+      const storageBaseUrl =
+        process.env.NEXT_PUBLIC_STORAGE_BASE_URL ||
+        "https://dev-assets.getqr.com";
+      options.image = `${storageBaseUrl}/qrs-content/${logo.fileId}`;
     }
   } else if (logo.type === "suggested" && logo.id && logo.id !== "logo-none") {
     // For suggested logos, always use iconSrc if available
@@ -138,7 +138,6 @@ function buildQRStylingOptions(
  * Converts frame data to frame options object
  */
 function buildFrameOptions(frameData: IFrameData) {
-
   // Find the frame by ID and get its TYPE for storage
   const frame = FRAMES.find((f) => f.id === frameData.id);
   const frameType = frame?.type || "none";
@@ -157,10 +156,6 @@ function buildFrameOptions(frameData: IFrameData) {
 // HELPER FUNCTIONS - EXTRACT/PARSE DATA
 // ============================================================================
 
-/**
- * Extract logo data from QRCodeStyling options
- * Now handles fileId for uploaded logos and iconSrc for suggested logos
- */
 function extractLogoData(styles: Options): {
   type: "none" | "suggested" | "uploaded";
   id?: string;
@@ -173,12 +168,11 @@ function extractLogoData(styles: Options): {
 
   const imageStr = typeof styles.image === "string" ? styles.image : "";
 
-  // Check if it's an uploaded logo from storage (contains /files/)
-  if (imageStr.includes("/files/")) {
-    const match = imageStr.match(/\/files\/([^/]+)$/);
+  if (imageStr.includes("/files/") || imageStr.includes("/qrs-content/")) {
+    const match = imageStr.match(/\/(files|qrs-content)\/([^/]+)$/);
     return {
       type: "uploaded",
-      fileId: match?.[1],
+      fileId: match?.[2],
     };
   }
 
@@ -259,7 +253,7 @@ function getCornerDotStyleId(type: any): string {
  */
 function extractCustomizationData(
   styles: Options,
-  frameOptions: any
+  frameOptions: any,
 ): IQRCustomizationData {
   // Convert frame TYPE to ID by finding the frame in FRAMES array
   const frameType = frameOptions?.id || "none";
@@ -279,7 +273,9 @@ function extractCustomizationData(
       backgroundColor: styles.backgroundOptions?.color || "#ffffff",
     },
     shape: {
-      cornerSquareStyle: getCornerSquareStyleId(styles.cornersSquareOptions?.type),
+      cornerSquareStyle: getCornerSquareStyleId(
+        styles.cornersSquareOptions?.type,
+      ),
       cornerDotStyle: getCornerDotStyleId(styles.cornersDotOptions?.type),
     },
     logo: extractLogoData(styles),
@@ -295,27 +291,22 @@ function extractCustomizationData(
  */
 export async function convertNewQRBuilderDataToServer(
   builderData: TNewQRBuilderData,
-  options: { domain: string }
+  options: { domain: string },
 ): Promise<NewQrProps> {
   const { qrType, formData, customizationData, title, fileId } = builderData;
   const { domain } = options;
 
-  // Encode form data to QR data string using qr-data-handlers
   const data = encodeQRData(qrType, formData, fileId);
 
-  // Build QR styling options
   const styles = buildQRStylingOptions(customizationData, data);
 
-  // Build frame options
   const frameOptions = buildFrameOptions(customizationData.frame);
 
-  // Generate default title if not provided
-  const qrTitle = title || `${qrType.charAt(0).toUpperCase() + qrType.slice(1)} QR Code`;
+  const qrTitle =
+    title || `${qrType.charAt(0).toUpperCase() + qrType.slice(1)} QR Code`;
 
-  // For file-based QR types with fileId, pass a placeholder URL
-  // The API will construct the actual URL server-side at /api/qrs route.ts line 88
-  const isFileType = FILE_QR_TYPES.includes(qrType);
-  const linkUrl = isFileType && fileId ? `https://placeholder.url/qrs-content/${fileId}` : data;
+  // Use the encoded data directly
+  const linkUrl = data;
 
   const result = {
     data,
@@ -338,7 +329,9 @@ export async function convertNewQRBuilderDataToServer(
 /**
  * Convert server QR data back to new builder format
  */
-export function convertServerQRToNewBuilder(serverData: TQrServerData): TNewQRBuilderData {
+export function convertServerQRToNewBuilder(
+  serverData: TQrServerData,
+): TNewQRBuilderData {
   // Parse QR data to form data using qr-data-handlers
   const sourceData = serverData.link?.url || serverData.data;
   const formData = parseQRData(serverData.qrType, sourceData) as TQRFormData;
@@ -346,7 +339,7 @@ export function convertServerQRToNewBuilder(serverData: TQrServerData): TNewQRBu
   // Extract customization data from styles and frame options
   const customizationData = extractCustomizationData(
     serverData.styles,
-    serverData.frameOptions
+    serverData.frameOptions,
   );
 
   return {
@@ -362,7 +355,7 @@ export function convertServerQRToNewBuilder(serverData: TQrServerData): TNewQRBu
  * Convert new builder data to storage format (for localStorage/Redis)
  */
 export function convertNewBuilderToStorageFormat(
-  builderData: TNewQRBuilderData
+  builderData: TNewQRBuilderData,
 ): TQRBuilderDataForStorage {
   const { qrType, formData, customizationData, title, fileId } = builderData;
 
@@ -376,7 +369,8 @@ export function convertNewBuilderToStorageFormat(
   const frameOptions = buildFrameOptions(customizationData.frame);
 
   const result = {
-    title: title || `${qrType.charAt(0).toUpperCase() + qrType.slice(1)} QR Code`,
+    title:
+      title || `${qrType.charAt(0).toUpperCase() + qrType.slice(1)} QR Code`,
     styles,
     frameOptions,
     qrType,
@@ -384,31 +378,4 @@ export function convertNewBuilderToStorageFormat(
   };
 
   return result;
-}
-
-/**
- * Convert storage format back to new builder format
- */
-export function convertStorageFormatToNewBuilder(
-  storageData: TQRBuilderDataForStorage
-): TNewQRBuilderData {
-  // Extract QR data from styles
-  const qrData = (storageData.styles?.data as string) || "";
-
-  // Parse QR data to form data
-  const formData = parseQRData(storageData.qrType, qrData) as TQRFormData;
-
-  // Extract customization data
-  const customizationData = extractCustomizationData(
-    storageData.styles,
-    storageData.frameOptions
-  );
-
-  return {
-    qrType: storageData.qrType,
-    formData,
-    customizationData,
-    title: storageData.title,
-    fileId: storageData.fileId,
-  };
 }
