@@ -56,10 +56,7 @@ export function ProgramLinksPageClient() {
     links && maxPartnerLinks && links.length >= maxPartnerLinks;
   const hasAdditionalLinks = additionalLinks && additionalLinks.length > 0;
 
-  const canCreateNewLink =
-    !hasLinksLimitReached &&
-    hasAdditionalLinks &&
-    programEnrollment?.status !== "banned";
+  const canCreateNewLink = !hasLinksLimitReached && hasAdditionalLinks;
 
   useKeyboardShortcut("c", () => setShowPartnerLinkModal(true), {
     enabled: canCreateNewLink ?? false,
@@ -81,13 +78,11 @@ export function ProgramLinksPageClient() {
           onClick={() => setShowPartnerLinkModal(true)}
           disabled={!canCreateNewLink}
           disabledTooltip={
-            programEnrollment?.status === "banned"
-              ? "You are banned from this program."
-              : hasLinksLimitReached
-                ? `You have reached the limit of ${maxPartnerLinks} referral links.`
-                : !hasAdditionalLinks
-                  ? `${program?.name ?? "This"} program does not allow partners to create new links.`
-                  : undefined
+            hasLinksLimitReached
+              ? `You have reached the limit of ${maxPartnerLinks} referral links.`
+              : !hasAdditionalLinks
+                ? `${program?.name ?? "This"} program does not allow partners to create new links.`
+                : undefined
           }
         />
       </div>

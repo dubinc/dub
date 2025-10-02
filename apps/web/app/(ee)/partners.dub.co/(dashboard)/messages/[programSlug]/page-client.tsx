@@ -137,7 +137,7 @@ export function PartnerMessagesProgramPageClient() {
             onClick={() => setIsRightPanelOpen((o) => !o)}
           />
         </div>
-        {["rejected", "banned"].includes(programEnrollment?.status ?? "") ||
+        {["banned", "rejected"].includes(programEnrollment?.status ?? "") ||
         programEnrollment?.program?.messagingEnabledAt === null ? (
           <div className="flex size-full flex-col items-center justify-center px-4">
             <MsgsDotted className="size-10 text-neutral-700" />

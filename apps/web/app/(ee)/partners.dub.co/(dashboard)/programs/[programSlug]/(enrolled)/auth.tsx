@@ -2,7 +2,7 @@
 
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { redirect, useParams, usePathname } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { UnapprovedProgramPage } from "./unapproved-program-page";
 
 export function ProgramEnrollmentAuth({
@@ -10,7 +10,6 @@ export function ProgramEnrollmentAuth({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
   const { programSlug } = useParams();
   const { programEnrollment, error, loading } = useProgramEnrollment();
 
