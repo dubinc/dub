@@ -298,7 +298,7 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         url: `${FRAMER_API_HOST}/auth/oauth/authorize`,
         params: {
-          scope: "",
+          scope: "email",
           response_type: "code",
         },
       },
