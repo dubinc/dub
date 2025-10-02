@@ -37,17 +37,6 @@ export function QrCodeTitleColumn({
 }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, title } = qrCode?.link ?? {};
   const { isMobile, width } = useMediaQuery();
-  const searchParams = useSearchParams();
-  const { queryParams } = useRouterStuff();
-
-  const onCanvasReady = () => {
-    if (qrCode.id === searchParams.get("qrId")) {
-      handleOpenNewQr();
-      queryParams({
-        del: ["qrId"],
-      });
-    }
-  };
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
@@ -57,7 +46,6 @@ export function QrCodeTitleColumn({
     width: isMobile ? 300 : 200,
     height: isMobile ? 300 : 200,
     user,
-    onCanvasReady,
   });
 
   return (

@@ -108,6 +108,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
 
           const img = new Image();
           img.onload = () => {
+            onCanvasReady?.();
             ctx.save();
             ctx.scale(
               renderSize / canvasSize.width,
@@ -115,7 +116,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
             );
             ctx.drawImage(img, 0, 0, canvasSize.width, canvasSize.height);
             ctx.restore();
-            onCanvasReady?.();
           };
           img.onerror = (e) => {
             console.error("Failed to load QR image:", e);
@@ -143,7 +143,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
         observer.disconnect();
         svgContainerRef.current?.replaceChildren();
       };
-    }, [qrCode, canvasRef, canvasSize.width, canvasSize.height]);
+    }, [qrCode, canvasRef, canvasSize.width, canvasSize.height, onCanvasReady]);
 
     return (
       <div ref={containerRef} className="flex w-full flex-col gap-4">
