@@ -5,6 +5,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
 import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
 import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
 import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
@@ -14,6 +15,7 @@ import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
 import {
+  BoxArchive,
   ChevronRight,
   CircleXmark,
   InvoiceDollar,
@@ -122,6 +124,10 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
     useReactivatePartnerModal({
       partner,
     });
+  const { ArchivePartnerModal, setShowArchivePartnerModal } =
+    useArchivePartnerModal({
+      partner,
+    });
 
   return (
     <>
@@ -131,6 +137,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
       <UnbanPartnerModal />
       <DeactivatePartnerModal />
       <ReactivatePartnerModal />
+      <ArchivePartnerModal />
 
       <Button
         variant="primary"
@@ -184,6 +191,18 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
             >
               Advanced settings
             </MenuItem>
+            {!["banned", "deactivated"].includes(partner.status) && (
+              <MenuItem
+                icon={BoxArchive}
+                onClick={() => {
+                  setShowArchivePartnerModal(true);
+                  setIsOpen(false);
+                }}
+              >
+                {partner.status === "archived" ? "Unarchive" : "Archive"}{" "}
+                partner
+              </MenuItem>
+            )}
             {partner.status === "deactivated" ? (
               <MenuItem
                 icon={LockOpen}
