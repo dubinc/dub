@@ -295,7 +295,13 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.FRAMER_CLIENT_ID,
       clientSecret: process.env.FRAMER_CLIENT_SECRET,
       checks: ["state"],
-      authorization: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+      authorization: {
+        url: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+        params: {
+          scope: "",
+          response_type: "code",
+        },
+      },
       token: `${FRAMER_API_HOST}/auth/oauth/token`,
       userinfo: `${FRAMER_API_HOST}/auth/oauth/profile`,
       profile({ sub, email, name, picture }) {
