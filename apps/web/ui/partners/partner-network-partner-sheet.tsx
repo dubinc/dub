@@ -1,4 +1,4 @@
-import { invitePartnerAction } from "@/lib/actions/partners/invite-partner";
+import { invitePartnerFromNetworkAction } from "@/lib/actions/partners/invite-partner-from-network";
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
@@ -159,16 +159,19 @@ function PartnerControls({
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
-  const { executeAsync, isPending } = useAction(invitePartnerAction, {
-    onSuccess: async () => {
-      toast.success("Invitation sent to partner!");
-      setIsOpen(false);
-      mutatePrefix(`/api/partners/network`);
+  const { executeAsync, isPending } = useAction(
+    invitePartnerFromNetworkAction,
+    {
+      onSuccess: async () => {
+        toast.success("Invitation sent to partner!");
+        setIsOpen(false);
+        mutatePrefix(`/api/network/partners`);
+      },
+      onError({ error }) {
+        toast.error(error.serverError);
+      },
     },
-    onError({ error }) {
-      toast.error(error.serverError);
-    },
-  });
+  );
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Invite Partner",
@@ -180,12 +183,11 @@ function PartnerControls({
     onConfirm: async () => {
       if (!program || !workspaceId) return;
 
-      throw new Error("WIP"); // TODO
-      // await executeAsync({
-      //   workspaceId: workspaceId,
-      //   partnerId: partner.id,
-      //   groupId,
-      // });
+      await executeAsync({
+        workspaceId: workspaceId,
+        partnerId: partner.id,
+        groupId,
+      });
     },
   });
 
@@ -201,7 +203,8 @@ function PartnerControls({
         <Button
           type="button"
           variant="primary"
-          text="Send invite"
+          text={partner.invitedAt ? "Invited" : "Send invite"}
+          disabled={!!partner.invitedAt}
           shortcut="S"
           loading={isPending}
           onClick={() => setShowConfirmModal(true)}
@@ -227,7 +230,7 @@ function PartnerIgnoreButton({
       onSuccess: () => {
         setIsOpen(false);
         toast.success("Hid partner successfully");
-        mutatePrefix("/api/partners/network");
+        mutatePrefix("/api/network/partners");
       },
       onError({ error }) {
         toast.error(error.serverError || "Failed to hide partner.");

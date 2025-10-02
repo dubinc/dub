@@ -113,11 +113,10 @@ export function ProgramPartnersDirectoryPageClient() {
     if (partnerId) setDetailsSheetState({ open: true, partnerId });
   }, [searchParams]);
 
-  const { currentPartner, isLoading: isCurrentPartnerLoading } =
-    useCurrentPartner({
-      partners,
-      partnerId: detailsSheetState.partnerId,
-    });
+  const { currentPartner } = useCurrentPartner({
+    partners,
+    partnerId: detailsSheetState.partnerId,
+  });
 
   const [previousPartnerId, nextPartnerId] = useMemo(() => {
     if (!partners || !detailsSheetState.partnerId) return [null, null];

@@ -127,3 +127,9 @@ export const updateDiscoveredPartnerSchema = z.object({
   starred: z.boolean().optional(),
   ignored: z.boolean().optional(),
 });
+
+export const invitePartnerFromNetworkSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  groupId: z.string().nullish().default(null),
+});
