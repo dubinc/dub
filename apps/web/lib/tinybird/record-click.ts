@@ -177,6 +177,17 @@ export async function recordClick({
             body: JSON.stringify(clickData),
           },
         ).then((res) => res.json()),
+        // TODO: Remove after Tinybird migration
+        fetchWithRetry(
+          `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_NEW}`,
+            },
+            body: JSON.stringify(clickData),
+          },
+        ).then((res) => res.json()),
 
         // cache the recorded click for the corresponding IP address in Redis for 1 hour
         recordClickCache.set({ domain, key, ip, clickId }),

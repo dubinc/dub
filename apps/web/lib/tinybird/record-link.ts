@@ -1,8 +1,9 @@
 import z from "@/lib/zod";
+import { waitUntil } from "@vercel/functions";
 import { ExpandedLink } from "../api/links";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
-import { tb } from "./client";
+import { tb, tbNew } from "./client";
 
 export const dubLinksMetadataSchema = z.object({
   link_id: z.string(),
@@ -49,6 +50,13 @@ export const recordLinkTB = tb.buildIngestEndpoint({
   wait: true,
 });
 
+// TODO: Remove after Tinybird migration
+export const recordLinkTBNew = tbNew.buildIngestEndpoint({
+  datasource: "dub_links_metadata",
+  event: dubLinksMetadataSchema,
+  wait: true,
+});
+
 export const transformLinkTB = (link: ExpandedLink) => {
   const key = decodeKeyIfCaseSensitive({
     domain: link.domain,
@@ -72,8 +80,10 @@ export const transformLinkTB = (link: ExpandedLink) => {
 
 export const recordLink = async (payload: ExpandedLink | ExpandedLink[]) => {
   if (Array.isArray(payload)) {
+    waitUntil(recordLinkTBNew(payload.map(transformLinkTB)));
     return await recordLinkTB(payload.map(transformLinkTB));
   } else {
+    waitUntil(recordLinkTBNew(transformLinkTB(payload)));
     return await recordLinkTB(transformLinkTB(payload));
   }
 };
