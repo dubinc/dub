@@ -8,6 +8,7 @@ import {
 } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
+import { ACME_PROGRAM_ID } from "@dub/utils";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -63,7 +64,7 @@ export const GET = withWorkspace(
       LEFT JOIN ProgramEnrollment pe ON pe.partnerId = p.id AND pe.programId = ${programId}
       -- Any associated discovered partner data
       LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
-      -- Metrics (lastConversionAt)
+      -- Metrics (lastConversionAt, conversionRate)
       LEFT JOIN (
         SELECT 
           partnerId,
@@ -71,6 +72,7 @@ export const GET = withWorkspace(
           SUM(conversions) / COALESCE(SUM(clicks), 0) as conversionRate
         FROM Link
         WHERE programId IS NOT NULL
+        AND programId != ${ACME_PROGRAM_ID} -- Exclude test data
         AND partnerId IS NOT NULL
         GROUP BY partnerId
       ) metrics ON metrics.partnerId = p.id
