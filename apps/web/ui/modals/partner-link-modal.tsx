@@ -228,8 +228,11 @@ function PartnerLinkModalContent({
 
   const saveDisabled = useMemo(
     () =>
-      Boolean(isLoading || (link ? !isDirty : destinationDomains.length === 0)),
-    [isLoading, link, isDirty, destinationDomains],
+      Boolean(
+        isLoading ||
+          (isEditingLink ? !isDirty : destinationDomains.length === 0),
+      ),
+    [isLoading, isEditingLink, isDirty, destinationDomains],
   );
 
   // we hide the destination URL input if:
