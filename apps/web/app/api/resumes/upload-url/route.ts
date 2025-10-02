@@ -4,10 +4,10 @@ import { LOCALHOST_IP, nanoid, R2_URL } from "@dub/utils";
 import { ipAddress } from "@vercel/functions";
 import { NextRequest, NextResponse } from "next/server";
 
-const CORS_HEADERS = {
+const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Methods": "POST",
   "Access-Control-Allow-Headers": "Content-Type",
-};
+});
 
 // POST /api/resumes/upload-url – get a signed URL to upload a resume
 export const POST = async (req: NextRequest) => {
