@@ -16,6 +16,7 @@ const confirmPayoutsSchema = z.object({
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
   excludedPayoutIds: z.array(z.string()).optional(),
+  fastSettlement: z.boolean().optional().default(false),
   amount: z.number(),
   fee: z.number(),
   total: z.number(),
@@ -30,6 +31,7 @@ export const confirmPayoutsAction = authActionClient
       paymentMethodId,
       cutoffPeriod,
       excludedPayoutIds,
+      fastSettlement,
       amount,
       fee,
       total,
@@ -45,6 +47,12 @@ export const confirmPayoutsAction = authActionClient
 
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
+    }
+
+    if (fastSettlement && !workspace.fasterAchPayouts) {
+      throw new Error(
+        "Fast settlement is not enabled for this program. Contact sales to enable it.",
+      );
     }
 
     // if workspace's payouts usage + the current invoice amount
@@ -79,6 +87,10 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
+    if (fastSettlement && paymentMethod.type !== "us_bank_account") {
+      throw new Error("Fast settlement is only supported for ACH payment.");
+    }
+
     const invoice = await prisma.$transaction(async (tx) => {
       // Generate the next invoice number by counting the number of invoices for the workspace
       const totalInvoices = await tx.invoice.count({
@@ -86,6 +98,7 @@ export const confirmPayoutsAction = authActionClient
           workspaceId: workspace.id,
         },
       });
+
       const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
       const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
 
@@ -101,6 +114,7 @@ export const confirmPayoutsAction = authActionClient
           amount,
           fee,
           total,
+          fastSettlement,
         },
       });
     });
@@ -115,6 +129,7 @@ export const confirmPayoutsAction = authActionClient
         paymentMethodId,
         cutoffPeriod,
         excludedPayoutIds,
+        fastSettlement,
       },
     });
 

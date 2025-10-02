@@ -168,6 +168,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
   ),
   publishableKey: z.string().nullable(),
   ssoEmailDomain: z.string().nullable(),
+  fasterAchPayouts: z.boolean().nullable().default(false),
 });
 
 export const OnboardingUsageSchema = z.object({

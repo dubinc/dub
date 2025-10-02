@@ -33,6 +33,7 @@ export async function processPayouts({
   paymentMethodId,
   cutoffPeriod,
   excludedPayoutIds,
+  fastSettlement,
 }: {
   workspace: Pick<
     Project,
@@ -50,6 +51,7 @@ export async function processPayouts({
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
   excludedPayoutIds?: string[];
+  fastSettlement: boolean;
 }) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
@@ -177,6 +179,14 @@ export async function processPayouts({
     customer: workspace.stripeId!,
     payment_method_types: [paymentMethod.type],
     payment_method: paymentMethod.id,
+    ...(paymentMethod.type === "us_bank_account" &&
+      fastSettlement && {
+        payment_method_options: {
+          us_bank_account: {
+            preferred_settlement_speed: "fastest",
+          },
+        },
+      }),
     currency,
     confirmation_method: "automatic",
     confirm: true,
@@ -249,6 +259,7 @@ export async function processPayouts({
               amount: payout.amount,
               startDate: payout.periodStart,
               endDate: payout.periodEnd,
+              fastSettlement,
             },
           }),
         })),
