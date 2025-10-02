@@ -23,7 +23,6 @@ import {
   IQRCustomizationData,
 } from "../types/customization";
 import { TQrServerData, convertServerQRToNewBuilder, TNewQRBuilderData } from "../helpers/data-converters";
-import { useNewQrOperations } from "../hooks/use-qr-operations";
 import { toast } from "sonner";
 
 // Create context
@@ -39,6 +38,7 @@ interface QrBuilderProviderProps {
   homepageDemo?: boolean;
   sessionId?: string;
   onDownload?: (data: TNewQRBuilderData) => Promise<void>;
+  onSave?: (builderData: TNewQRBuilderData, originalQrData?: TQrServerData | null) => Promise<any>;
 }
 
 // Provider component
@@ -48,11 +48,11 @@ export function QrBuilderProvider({
   isEdit = false,
   homepageDemo = false,
   sessionId,
-  onDownload
+  onDownload,
+  onSave: onSaveProp,
 }: QrBuilderProviderProps) {
-  const { createQr, updateQr } = useNewQrOperations();
 
-  const initializeFromProps = useCallback(() => {
+  const getInitializedProps = useCallback(() => {
     if (initialQrData) {
       const builderData = convertServerQRToNewBuilder(initialQrData);
       return {
@@ -72,7 +72,7 @@ export function QrBuilderProvider({
     };
   }, [initialQrData]);
 
-  const initialState = initializeFromProps();
+  const initialState = getInitializedProps();
 
   const [builderStep, setBuilderStep] = useState<TStepState>(1);
   const [destinationData, setDestinationData] =
@@ -85,13 +85,10 @@ export function QrBuilderProvider({
     Record<string, any>
   >({});
 
-  // QR data for editing
-  const [originalQrData, setOriginalQrData] = useState<TQrServerData | null>(initialQrData || null);
-  const [qrTitle, setQrTitle] = useState<string>(initialState.qrTitle);
-  const [fileId, setFileId] = useState<string | undefined>(initialState.fileId);
-
   // Processing states
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [isFileUploading, setIsFileUploading] = useState<boolean>(false);
+  const [isFileProcessing, setIsFileProcessing] = useState<boolean>(false);
 
   // Customization states
   const [customizationData, setCustomizationData] =
@@ -105,7 +102,6 @@ export function QrBuilderProvider({
   const isTypeStep = builderStep === 1;
   const isContentStep = builderStep === 2;
   const isCustomizationStep = builderStep === 3;
-  const isEditMode = isEdit || !!originalQrData;
 
   const currentQRType = useMemo(() => {
     return isTypeStep
@@ -166,6 +162,12 @@ export function QrBuilderProvider({
       return;
     }
 
+    if (!onSaveProp) {
+      console.error("onSave prop not provided to QrBuilderProvider");
+      toast.error("Save functionality not configured");
+      return;
+    }
+
     setIsProcessing(true);
 
     try {
@@ -173,15 +175,11 @@ export function QrBuilderProvider({
         qrType: selectedQrType,
         formData,
         customizationData,
-        title: qrTitle || `${selectedQrType} QR Code`,
-        fileId,
+        title: initialState.qrTitle || `${selectedQrType} QR Code`,
+        fileId: (formData as any)?.fileId || initialState.fileId,
       };
 
-      if (isEditMode && originalQrData) {
-        await updateQr(originalQrData, builderData);
-      } else {
-        await createQr(builderData);
-      }
+      await onSaveProp(builderData, initialQrData);
     } catch (error) {
       console.error("Error saving QR:", error);
     } finally {
@@ -191,12 +189,10 @@ export function QrBuilderProvider({
     selectedQrType,
     formData,
     customizationData,
-    qrTitle,
-    fileId,
-    isEditMode,
-    originalQrData,
-    createQr,
-    updateQr,
+    initialState.qrTitle,
+    initialState.fileId,
+    initialQrData,
+    onSaveProp,
   ]);
 
   const handleContinue = useCallback(async () => {
@@ -206,12 +202,16 @@ export function QrBuilderProvider({
         return;
       }
 
+      console.log("=== handleContinue (download) ===");
+      console.log("customizationData at save:", customizationData);
+      console.log("customizationData.frame at save:", customizationData.frame);
+
       const builderData: TNewQRBuilderData = {
         qrType: selectedQrType,
         formData,
         customizationData,
-        title: qrTitle || `${selectedQrType} QR Code`,
-        fileId,
+        title: initialState.qrTitle || `${selectedQrType} QR Code`,
+        fileId: (formData as any)?.fileId || initialState.fileId,
       };
 
       await onDownload(builderData);
@@ -238,7 +238,7 @@ export function QrBuilderProvider({
 
     // Move to next step
     handleNextStep();
-  }, [isContentStep, isCustomizationStep, homepageDemo, onDownload, selectedQrType, formData, customizationData, qrTitle, fileId, onSave, handleNextStep, currentFormValues]);
+  }, [isContentStep, isCustomizationStep, homepageDemo, onDownload, selectedQrType, formData, customizationData, onSave, handleNextStep, currentFormValues]);
 
   const updateCurrentFormValues = useCallback((values: Record<string, any>) => {
     setCurrentFormValues(values);
@@ -246,20 +246,12 @@ export function QrBuilderProvider({
 
   // Customization methods
   const updateCustomizationData = useCallback((data: IQRCustomizationData) => {
+    console.log("=== updateCustomizationData called ===");
+    console.log("New customizationData:", data);
+    console.log("New frame data:", data.frame);
     setCustomizationData(data);
   }, []);
 
-  // QR data methods
-  const initializeFromServerData = useCallback((serverData: TQrServerData) => {
-    setOriginalQrData(serverData);
-    const builderData = convertServerQRToNewBuilder(serverData);
-
-    setQrTitle(builderData.title || "");
-    setSelectedQrType(builderData.qrType);
-    setFormData(builderData.formData);
-    setCustomizationData(builderData.customizationData);
-    setFileId(builderData.fileId);
-  }, []);
   const contextValue: IQrBuilderContextType = {
     // States
     builderStep,
@@ -270,14 +262,10 @@ export function QrBuilderProvider({
     typeSelectionError,
     formData,
     currentFormValues,
-
-    // QR data for editing
-    originalQrData,
-    qrTitle,
-    fileId,
-
     // Processing states
     isProcessing,
+    isFileUploading,
+    isFileProcessing,
 
     // Customization states
     customizationData,
@@ -287,7 +275,7 @@ export function QrBuilderProvider({
     isTypeStep,
     isContentStep,
     isCustomizationStep,
-    isEditMode,
+    isEditMode:isEdit,
     homepageDemo,
 
     // Methods
@@ -300,11 +288,6 @@ export function QrBuilderProvider({
     handleFormSubmit,
     updateCurrentFormValues,
 
-    // QR data methods
-    setQrTitle,
-    setFileId,
-    initializeFromServerData,
-
     // Customization methods
     updateCustomizationData,
     setCustomizationActiveTab,
@@ -313,6 +296,8 @@ export function QrBuilderProvider({
     setBuilderStep,
     setDestinationData,
     setSelectedQrType,
+    setIsFileUploading,
+    setIsFileProcessing,
 
     //Buttons
     handleBack,
@@ -331,7 +316,7 @@ export function QrBuilderProvider({
 }
 
 // Custom hook to use the context
-export function useQrBuilder(): IQrBuilderContextType {
+export function useQrBuilderContext(): IQrBuilderContextType {
   const context = useContext(QrBuilderContext);
 
   if (context === undefined) {

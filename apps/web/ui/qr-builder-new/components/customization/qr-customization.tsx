@@ -37,10 +37,15 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
   const isFrameSelected = customizationData.frame.id !== "frame-none";
 
   const handleFrameChange = useCallback((frameData: IFrameData) => {
-    onCustomizationChange({
+    console.log("=== handleFrameChange called ===");
+    console.log("Current customizationData:", customizationData);
+    console.log("New frameData:", frameData);
+    const updatedData = {
       ...customizationData,
       frame: frameData,
-    });
+    };
+    console.log("Updated customizationData to be sent:", updatedData);
+    onCustomizationChange(updatedData);
   }, [customizationData, onCustomizationChange]);
 
   const handleStyleChange = useCallback((styleData: IStyleData) => {

@@ -1,6 +1,5 @@
-import { useQrBuilder } from "@/ui/qr-builder-new/context";
+import { useQrBuilderContext } from "@/ui/qr-builder-new/context";
 import { QrBuilderButtons } from "@/ui/qr-builder-new/components/qr-builder-buttons.tsx";
-import { QRCodeDemoPlaceholder } from "@/ui/qr-builder/components/qr-code-demos/qr-code-demo-placeholder";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Flex } from "@radix-ui/themes";
@@ -11,6 +10,7 @@ import { QrContentStep } from "./qr-content-step.tsx";
 import { QrTypeSelection } from "./qr-type-selection";
 import { QRCustomization } from "./customization";
 import { QRPreview } from "./customization/qr-preview";
+import { QRCodeDemoPlaceholder } from "../constants/qr-code-demo-placeholder.tsx";
 
 export const QRBuilderInner = () => {
   const {
@@ -34,7 +34,10 @@ export const QRBuilderInner = () => {
     updateCustomizationData,
     setCustomizationActiveTab,
     homepageDemo,
-  } = useQrBuilder();
+    isProcessing,
+    isFileUploading,
+    isFileProcessing,
+  } = useQrBuilderContext();
 
   const qrCodeDemo = currentQRType ? QRCodeDemoMap[currentQRType] : null;
 
@@ -90,7 +93,9 @@ export const QRBuilderInner = () => {
                 onBack={handleBack}
                 onContinue={handleContinue}
                 isEdit={false}
-                isProcessing={false}
+                isProcessing={isProcessing}
+                isFileUploading={isFileUploading}
+                isFileProcessing={isFileProcessing}
                 homepageDemo={homepageDemo}
               />
             </div>
@@ -113,7 +118,9 @@ export const QRBuilderInner = () => {
                     onBack={handleBack}
                     onContinue={handleContinue}
                     isEdit={false}
-                    isProcessing={false}
+                    isProcessing={isProcessing}
+                    isFileUploading={isFileUploading}
+                    isFileProcessing={isFileProcessing}
                     homepageDemo={homepageDemo}
                   />
                 </div>

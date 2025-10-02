@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, forwardRef, useImperativeHandle, useEffect } from "react";
-import { useQrBuilder } from "../context/qr-builder-context";
+import { useQrBuilderContext } from "../context/qr-builder-context";
 import { QrFormResolver } from "../forms/qr-form-resolver.tsx";
 import { QRFormRef } from "../forms/types";
 
@@ -10,7 +10,7 @@ export interface QRContentStepRef {
 }
 
 export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
-  const { selectedQrType, handleFormSubmit, formData, updateCurrentFormValues } = useQrBuilder();
+  const { selectedQrType, handleFormSubmit, formData, updateCurrentFormValues } = useQrBuilderContext();
   const formRef = useRef<QRFormRef>(null);
 
   useImperativeHandle(ref, () => ({

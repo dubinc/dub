@@ -1,13 +1,38 @@
 import { NewQrProps } from "@/lib/types";
 import { Options } from "qr-code-styling";
-import { EQRType } from "../constants/get-qr-config";
+import { EQRType, FILE_QR_TYPES } from "../constants/get-qr-config";
 import { IQRCustomizationData, IFrameData } from "../types/customization";
 import { TQRFormData } from "../types/context";
+import { encodeQRData, parseQRData } from "./qr-data-handlers";
+import {
+  getDotsType,
+  getCornerSquareType,
+  getCornerDotType,
+  getSuggestedLogoSrc,
+} from "./qr-style-mappers";
+import { FRAMES } from "../constants/customization/frames";
 
-// New builder types for localStorage/Redis storage 
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
+/**
+ * New builder internal data format - used throughout the builder
+ */
+export type TNewQRBuilderData = {
+  qrType: EQRType;
+  formData: TQRFormData;
+  customizationData: IQRCustomizationData;
+  title?: string;
+  fileId?: string;
+};
+
+/**
+ * Storage format for localStorage/Redis - compatible with old builder
+ */
 export type TQRBuilderDataForStorage = {
   title: string;
-  styles: Options;
+  styles: Options; // Logo is stored in styles.image as relative path: /files/{fileId} or /logos/{logoId}.png
   frameOptions: {
     id: string;
     color: string;
@@ -15,19 +40,12 @@ export type TQRBuilderDataForStorage = {
     text: string;
   };
   qrType: EQRType;
-  fileId?: string;
+  fileId?: string; // For PDF/Image/Video QR content files ONLY
 };
 
-// Type representing all collected data from the new QR builder
-export type TNewQRBuilderData = {
-  qrType: EQRType;
-  formData: TQRFormData;
-  customizationData: IQRCustomizationData;
-  title?: string;
-  fileId?: string;
-}
-
-// Type for QR data stored on server (to be converted back to client)
+/**
+ * Server response format - QR data from API
+ */
 export type TQrServerData = {
   id: string;
   title: string;
@@ -47,51 +65,19 @@ export type TQrServerData = {
     tagId?: string | null;
     webhookIds?: string[];
   };
-}
+};
 
+// ============================================================================
+// HELPER FUNCTIONS - QR STYLING OPTIONS
+// ============================================================================
 
-function convertFormDataToQRData(qrType: EQRType, formData: TQRFormData): string {
-  switch (qrType) {
-    case EQRType.WEBSITE:
-    case EQRType.SOCIAL:
-    case EQRType.APP_LINK:
-    case EQRType.FEEDBACK:
-      return (formData as any).websiteLink || "";
-
-    case EQRType.WHATSAPP:
-      const whatsappData = formData as any;
-      const phoneNumber = whatsappData.phoneNumber?.replace(/\D/g, "") || "";
-      const message = whatsappData.message || "";
-      return `https://wa.me/${phoneNumber}${message ? `?text=${encodeURIComponent(message)}` : ""}`;
-
-    case EQRType.WIFI:
-      const wifiData = formData as any;
-      const security = wifiData.security || "WPA";
-      const networkName = wifiData.networkName || "";
-      const password = wifiData.password || "";
-      const hidden = wifiData.hidden ? "true" : "false";
-      return `WIFI:T:${security};S:${networkName};P:${password};H:${hidden};;`;
-
-    case EQRType.PDF:
-    case EQRType.IMAGE:
-    case EQRType.VIDEO:
-      // For file types, the actual URL will be set by the server after file upload
-      return "";
-
-    default:
-      return "";
-  }
-}
-
-// Helper functions for server conversion
-function generateDefaultTitle(qrType: EQRType): string {
-  return `${qrType.charAt(0).toUpperCase() + qrType.slice(1)} QR Code`;
-}
-
-function buildQRStylingOptions(customizationData: IQRCustomizationData, qrData: string): Options {
+function buildQRStylingOptions(
+  customizationData: IQRCustomizationData,
+  qrData: string
+): Options {
   const { style, shape, logo } = customizationData;
 
-  const stylingOptions: Options = {
+  const options: Options = {
     data: qrData,
     width: 300,
     height: 300,
@@ -100,298 +86,329 @@ function buildQRStylingOptions(customizationData: IQRCustomizationData, qrData: 
     qrOptions: {
       typeNumber: 0,
       mode: "Byte",
-      errorCorrectionLevel: "Q"
+      errorCorrectionLevel: "Q",
     },
     imageOptions: {
       hideBackgroundDots: true,
       imageSize: 0.4,
       margin: 10,
-      crossOrigin: "anonymous"
+      crossOrigin: "anonymous",
     },
     dotsOptions: {
       color: style.foregroundColor || "#000000",
-      type: mapDotsStyleToQRCodeStyling(style.dotsStyle)
+      type: getDotsType(style.dotsStyle),
     },
     backgroundOptions: {
-      color: style.backgroundColor || "#ffffff"
+      color: style.backgroundColor || "#ffffff",
     },
     cornersSquareOptions: {
       color: style.foregroundColor || "#000000",
-      type: mapCornerSquareStyleToQRCodeStyling(shape.cornerSquareStyle)
+      type: getCornerSquareType(shape.cornerSquareStyle),
     },
     cornersDotOptions: {
       color: style.foregroundColor || "#000000",
-      type: mapCornerDotStyleToQRCodeStyling(shape.cornerDotStyle)
-    }
+      type: getCornerDotType(shape.cornerDotStyle),
+    },
   };
 
-  // Handle logo
-  if (logo.type === "uploaded" && logo.file) {
-    stylingOptions.image = URL.createObjectURL(logo.file);
+  if (logo.type === "uploaded") {
+    if (logo.fileId) {
+      // Use relative path for uploaded file (backend will construct full URL)
+      options.image = `/files/${logo.fileId}`;
+      console.log('Saving uploaded logo with fileId:', logo.fileId);
+    } else {
+      console.warn('Uploaded logo has no fileId - logo will not be saved', logo);
+    }
   } else if (logo.type === "suggested" && logo.id && logo.id !== "logo-none") {
-    stylingOptions.image = `/logos/${logo.id}.png`;
+    // For suggested logos, always use iconSrc if available
+    // If not available (old QRs), lookup from SUGGESTED_LOGOS
+    if (logo.iconSrc) {
+      options.image = logo.iconSrc;
+    } else if (logo.id) {
+      // Fallback: Get iconSrc from logo ID
+      const logoSrc = getSuggestedLogoSrc(logo.id);
+      options.image = logoSrc || logo.id;
+    }
   }
 
-  return stylingOptions;
+  return options;
 }
 
-function buildFrameOptions(frameData: IFrameData): any {
-  return {
-    id: frameData.id === "frame-none" ? "none" : frameData.id,
+/**
+ * Converts frame data to frame options object
+ */
+function buildFrameOptions(frameData: IFrameData) {
+
+  // Find the frame by ID and get its TYPE for storage
+  const frame = FRAMES.find((f) => f.id === frameData.id);
+  const frameType = frame?.type || "none";
+
+  const result = {
+    id: frameType,
     color: frameData.color || "#000000",
     textColor: frameData.textColor || "#ffffff",
-    text: frameData.text || "Scan Me"
+    text: frameData.text || "Scan Me",
   };
+
+  return result;
 }
 
-// Helper functions for client conversion
-function extractFormDataFromServer(qrType: EQRType, data: string, linkUrl?: string): TQRFormData {
-  const sourceData = linkUrl || data;
+// ============================================================================
+// HELPER FUNCTIONS - EXTRACT/PARSE DATA
+// ============================================================================
 
-  switch (qrType) {
-    case EQRType.WEBSITE:
-    case EQRType.SOCIAL:
-    case EQRType.APP_LINK:
-    case EQRType.FEEDBACK:
-      return {
-        qrName: "",
-        websiteLink: sourceData
-      } as any;
-
-    case EQRType.WHATSAPP:
-      const whatsappMatch = sourceData.match(/https:\/\/wa\.me\/(\d+)(?:\?text=(.*))?/);
-      return {
-        qrName: "",
-        phoneNumber: whatsappMatch?.[1] || "",
-        message: whatsappMatch?.[2] ? decodeURIComponent(whatsappMatch[2]) : ""
-      } as any;
-
-    case EQRType.WIFI:
-      const wifiMatch = sourceData.match(/WIFI:T:([^;]*);S:([^;]*);P:([^;]*);H:([^;]*);/);
-      return {
-        qrName: "",
-        security: wifiMatch?.[1] || "WPA",
-        networkName: wifiMatch?.[2] || "",
-        password: wifiMatch?.[3] || "",
-        hidden: wifiMatch?.[4] === "true"
-      } as any;
-
-    case EQRType.PDF:
-    case EQRType.IMAGE:
-    case EQRType.VIDEO:
-      return {
-        qrName: "",
-        file: null
-      } as any;
-
-    default:
-      return {
-        qrName: ""
-      } as any;
+/**
+ * Extract logo data from QRCodeStyling options
+ * Now handles fileId for uploaded logos and iconSrc for suggested logos
+ */
+function extractLogoData(styles: Options): {
+  type: "none" | "suggested" | "uploaded";
+  id?: string;
+  iconSrc?: string;
+  fileId?: string;
+} {
+  if (!styles.image) {
+    return { type: "none" };
   }
+
+  const imageStr = typeof styles.image === "string" ? styles.image : "";
+
+  // Check if it's an uploaded logo from storage (contains /files/)
+  if (imageStr.includes("/files/")) {
+    const match = imageStr.match(/\/files\/([^/]+)$/);
+    return {
+      type: "uploaded",
+      fileId: match?.[1],
+    };
+  }
+
+  // Check if it's a suggested logo (path to /logos/ - legacy format)
+  if (imageStr.includes("/logos/")) {
+    const match = imageStr.match(/\/logos\/([^.]+)\.png$/);
+    const logoId = match?.[1];
+    // Lookup the actual iconSrc for old QRs
+    const iconSrc = logoId ? getSuggestedLogoSrc(logoId) : undefined;
+    return {
+      type: "suggested",
+      id: logoId,
+      iconSrc: iconSrc,
+    };
+  }
+
+  // Check if it's a Next.js static import path (/_next/static/...)
+  if (imageStr.startsWith("/_next/")) {
+    const logoIdMatch = imageStr.match(/logo-([^/.]+)/);
+    return {
+      type: "suggested",
+      id: logoIdMatch ? `logo-${logoIdMatch[1]}` : undefined,
+      iconSrc: imageStr,
+    };
+  }
+
+  // Check if it's just a logo ID (starts with "logo-")
+  if (imageStr.startsWith("logo-")) {
+    return {
+      type: "suggested",
+      id: imageStr,
+    };
+  }
+
+  // Otherwise it's an uploaded logo (legacy or blob URL)
+  return { type: "uploaded" };
 }
 
-function extractCustomizationDataFromServer(
-  styles: Options,
-  frameOptions: any
-): IQRCustomizationData {
-  return {
-    frame: {
-      id: frameOptions?.id === "none" ? "frame-none" : (frameOptions?.id || "frame-none"),
-      color: frameOptions?.color || "#000000",
-      textColor: frameOptions?.textColor || "#ffffff",
-      text: frameOptions?.text || "Scan Me"
-    },
-    style: {
-      dotsStyle: mapQRCodeStylingToDotsStyle(styles.dotsOptions?.type) || "dots-square",
-      foregroundColor: styles.dotsOptions?.color || "#000000",
-      backgroundColor: styles.backgroundOptions?.color || "#ffffff"
-    },
-    shape: {
-      cornerSquareStyle: mapQRCodeStylingToCornerSquareStyle(styles.cornersSquareOptions?.type) || "corner-square-square",
-      cornerDotStyle: mapQRCodeStylingToCornerDotStyle(styles.cornersDotOptions?.type) || "corner-dot-square"
-    },
-    logo: {
-      type: styles.image ? (styles.image.includes("/logos/") ? "suggested" : "uploaded") : "none",
-      id: styles.image ? extractLogoIdFromUrl(styles.image) : undefined
-    }
-  };
-}
-
-// Style mapping functions
-function mapDotsStyleToQRCodeStyling(dotsStyle: string): any {
-  const styleMap: Record<string, any> = {
-    "dots-square": "square",
-    "dots-rounded": "rounded",
-    "dots-dots": "dots",
-    "dots-classy": "classy",
-    "dots-classy-rounded": "classy-rounded",
-    "dots-extra-rounded": "extra-rounded"
-  };
-  return styleMap[dotsStyle] || "square";
-}
-
-function mapCornerSquareStyleToQRCodeStyling(cornerStyle: string): any {
-  const styleMap: Record<string, any> = {
-    "corner-square-square": "square",
-    "corner-square-extra-rounded": "extra-rounded",
-    "corner-square-dot": "dot"
-  };
-  return styleMap[cornerStyle] || "square";
-}
-
-function mapCornerDotStyleToQRCodeStyling(cornerDotStyle: string): any {
-  const styleMap: Record<string, any> = {
-    "corner-dot-square": "square",
-    "corner-dot-dot": "dot"
-  };
-  return styleMap[cornerDotStyle] || "square";
-}
-
-function mapQRCodeStylingToDotsStyle(type: any): string {
+/**
+ * Get style ID from QRCodeStyling type
+ */
+function getDotsStyleId(type: any): string {
   const typeMap: Record<string, string> = {
-    "square": "dots-square",
-    "rounded": "dots-rounded",
-    "dots": "dots-dots",
-    "classy": "dots-classy",
+    square: "dots-square",
+    dots: "dots-dots",
+    rounded: "dots-rounded",
+    classy: "dots-classy",
     "classy-rounded": "dots-classy-rounded",
-    "extra-rounded": "dots-extra-rounded"
+    "extra-rounded": "dots-extra-rounded",
   };
   return typeMap[type] || "dots-square";
 }
 
-function mapQRCodeStylingToCornerSquareStyle(type: any): string {
+function getCornerSquareStyleId(type: any): string {
   const typeMap: Record<string, string> = {
-    "square": "corner-square-square",
-    "extra-rounded": "corner-square-extra-rounded",
-    "dot": "corner-square-dot"
+    square: "corner-square-square",
+    rounded: "corner-square-rounded",
+    dot: "corner-square-dot",
+    "classy-rounded": "corner-square-classy-rounded",
   };
   return typeMap[type] || "corner-square-square";
 }
 
-function mapQRCodeStylingToCornerDotStyle(type: any): string {
+function getCornerDotStyleId(type: any): string {
   const typeMap: Record<string, string> = {
-    "square": "corner-dot-square",
-    "dot": "corner-dot-dot"
+    square: "corner-dot-square",
+    dot: "corner-dot-dot",
+    dots: "corner-dot-dots",
+    rounded: "corner-dot-rounded",
+    classy: "corner-dot-classy",
   };
   return typeMap[type] || "corner-dot-square";
 }
 
-function extractLogoIdFromUrl(url: string): string | undefined {
-  const match = url.match(/\/logos\/([^.]+)\.png$/);
-  return match?.[1];
+/**
+ * Extract customization data from server styles and frame options
+ * IMPORTANT: Storage has frame TYPE (e.g., "card"), but we need ID (e.g., "frame-card")
+ */
+function extractCustomizationData(
+  styles: Options,
+  frameOptions: any
+): IQRCustomizationData {
+  // Convert frame TYPE to ID by finding the frame in FRAMES array
+  const frameType = frameOptions?.id || "none";
+  const frame = FRAMES.find((f) => f.type === frameType);
+  const frameId = frame?.id || "frame-none";
+
+  return {
+    frame: {
+      id: frameId, // Convert TYPE to ID (e.g., "card" -> "frame-card")
+      color: frameOptions?.color,
+      textColor: frameOptions?.textColor,
+      text: frameOptions?.text,
+    },
+    style: {
+      dotsStyle: getDotsStyleId(styles.dotsOptions?.type),
+      foregroundColor: styles.dotsOptions?.color || "#000000",
+      backgroundColor: styles.backgroundOptions?.color || "#ffffff",
+    },
+    shape: {
+      cornerSquareStyle: getCornerSquareStyleId(styles.cornersSquareOptions?.type),
+      cornerDotStyle: getCornerDotStyleId(styles.cornersDotOptions?.type),
+    },
+    logo: extractLogoData(styles),
+  };
 }
 
+// ============================================================================
+// MAIN CONVERSION FUNCTIONS
+// ============================================================================
 
 /**
- *  Main converter
- *  New QR Builder collected data-> Server QR body
+ * Convert new QR builder data to server API format
  */
 export async function convertNewQRBuilderDataToServer(
   builderData: TNewQRBuilderData,
-  options: {
-    domain: string;
-  }
+  options: { domain: string }
 ): Promise<NewQrProps> {
   const { qrType, formData, customizationData, title, fileId } = builderData;
   const { domain } = options;
 
-  // Convert form data to QR data string
-  const data = convertFormDataToQRData(qrType, formData);
+  // Encode form data to QR data string using qr-data-handlers
+  const data = encodeQRData(qrType, formData, fileId);
 
-  // Build QR styling options with data included (matching old builder format)
+  // Build QR styling options
   const styles = buildQRStylingOptions(customizationData, data);
 
-  // Build frame options (matching old builder format)
+  // Build frame options
   const frameOptions = buildFrameOptions(customizationData.frame);
 
-  // Return in exact same format as old builder
-  return {
+  // Generate default title if not provided
+  const qrTitle = title || `${qrType.charAt(0).toUpperCase() + qrType.slice(1)} QR Code`;
+
+  // For file-based QR types with fileId, pass a placeholder URL
+  // The API will construct the actual URL server-side at /api/qrs route.ts line 88
+  const isFileType = FILE_QR_TYPES.includes(qrType);
+  const linkUrl = isFileType && fileId ? `https://placeholder.url/qrs-content/${fileId}` : data;
+
+  const result = {
     data,
     qrType,
-    title: title || generateDefaultTitle(qrType),
+    title: qrTitle,
     styles,
     frameOptions,
     fileId,
     link: {
-      url: data,
+      url: linkUrl,
       domain,
       tagId: null,
-      webhookIds: []
-    }
+      webhookIds: [],
+    },
   };
+
+  return result;
 }
 
+/**
+ * Convert server QR data back to new builder format
+ */
 export function convertServerQRToNewBuilder(serverData: TQrServerData): TNewQRBuilderData {
-  // Step 1: Extract and convert form data from server QR data
-  const formDataFromServer = extractFormDataFromServer(
-    serverData.qrType,
-    serverData.data,
-    serverData.link?.url
-  );
+  // Parse QR data to form data using qr-data-handlers
+  const sourceData = serverData.link?.url || serverData.data;
+  const formData = parseQRData(serverData.qrType, sourceData) as TQRFormData;
 
-  // Step 2: Extract and convert customization data from server styles and frame
-  const customizationDataFromServer = extractCustomizationDataFromServer(
+  // Extract customization data from styles and frame options
+  const customizationData = extractCustomizationData(
     serverData.styles,
     serverData.frameOptions
   );
 
-  // Step 3: Build complete builder data object
-  const builderData: TNewQRBuilderData = {
+  return {
     qrType: serverData.qrType,
-    formData: formDataFromServer,
-    customizationData: customizationDataFromServer,
+    formData,
+    customizationData,
     title: serverData.title,
-    fileId: serverData.fileId
+    fileId: serverData.fileId,
   };
-
-  return builderData;
 }
-
-
 
 /**
- * Helper function to get QR data from form based on type
+ * Convert new builder data to storage format (for localStorage/Redis)
  */
-export function getQRDataFromForm(qrType: EQRType, formData: TQRFormData): string {
-  return convertFormDataToQRData(qrType, formData);
+export function convertNewBuilderToStorageFormat(
+  builderData: TNewQRBuilderData
+): TQRBuilderDataForStorage {
+  const { qrType, formData, customizationData, title, fileId } = builderData;
+
+  // Encode form data to QR data string
+  const qrData = encodeQRData(qrType, formData, fileId);
+
+  // Build QR styling options
+  const styles = buildQRStylingOptions(customizationData, qrData);
+
+  // Build frame options
+  const frameOptions = buildFrameOptions(customizationData.frame);
+
+  const result = {
+    title: title || `${qrType.charAt(0).toUpperCase() + qrType.slice(1)} QR Code`,
+    styles,
+    frameOptions,
+    qrType,
+    fileId, // For PDF/Image/Video content files only
+  };
+
+  return result;
 }
 
+/**
+ * Convert storage format back to new builder format
+ */
+export function convertStorageFormatToNewBuilder(
+  storageData: TQRBuilderDataForStorage
+): TNewQRBuilderData {
+  // Extract QR data from styles
+  const qrData = (storageData.styles?.data as string) || "";
 
-export function convertStorageFormatToNewBuilder(storageData: TQRBuilderDataForStorage): TNewQRBuilderData {
-  // Extract the QR data from the styles object
-  const qrData = storageData.styles?.data as string || "";
+  // Parse QR data to form data
+  const formData = parseQRData(storageData.qrType, qrData) as TQRFormData;
 
-  // Convert server data to form data using the actual QR data
-  const formData = extractFormDataFromServer(storageData.qrType, qrData, qrData);
-
-  // Convert styling back to customization data
-  const customizationData = extractCustomizationDataFromServer(storageData.styles, storageData.frameOptions);
+  // Extract customization data
+  const customizationData = extractCustomizationData(
+    storageData.styles,
+    storageData.frameOptions
+  );
 
   return {
     qrType: storageData.qrType,
     formData,
     customizationData,
     title: storageData.title,
-    fileId: storageData.fileId
-  };
-}
-
-/**
- * Converts new QR builder data to storage format for localStorage/Redis
- */
-export function convertNewBuilderToStorageFormat(builderData: TNewQRBuilderData): TQRBuilderDataForStorage {
-  const { qrType, formData, customizationData, title, fileId } = builderData;
-
-  const qrData = convertFormDataToQRData(qrType, formData);
-  const styles = buildQRStylingOptions(customizationData, qrData);
-  const frameOptions = buildFrameOptions(customizationData.frame);
-
-  return {
-    title: title || generateDefaultTitle(qrType),
-    styles,
-    frameOptions,
-    qrType,
-    fileId
+    fileId: storageData.fileId,
   };
 }

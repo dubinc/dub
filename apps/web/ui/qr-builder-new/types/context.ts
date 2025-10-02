@@ -45,13 +45,10 @@ export interface IQrBuilderContextType {
   formData: TQRFormData | null;
   currentFormValues: Record<string, any>;
 
-  // QR data for editing
-  originalQrData: TQrServerData | null;
-  qrTitle: string;
-  fileId?: string;
-
   // Processing states
   isProcessing: boolean;
+  isFileUploading: boolean;
+  isFileProcessing: boolean;
 
   // Customization states
   customizationData: IQRCustomizationData;
@@ -74,11 +71,6 @@ export interface IQrBuilderContextType {
   handleFormSubmit: (data: TQRFormData) => void;
   updateCurrentFormValues: (values: Record<string, any>) => void;
 
-  // QR data methods
-  setQrTitle: (title: string) => void;
-  setFileId: (fileId: string | undefined) => void;
-  initializeFromServerData: (serverData: TQrServerData) => void;
-
   // Customization methods
   updateCustomizationData: (data: IQRCustomizationData) => void;
   setCustomizationActiveTab: (tab: string) => void;
@@ -87,9 +79,11 @@ export interface IQrBuilderContextType {
   setBuilderStep: (state: TStepState) => void;
   setDestinationData: (data: TDestinationData) => void;
   setSelectedQrType: (type: TQrType) => void;
+  setIsFileUploading: (uploading: boolean) => void;
+  setIsFileProcessing: (processing: boolean) => void;
 
   // Buttons
-  handleContinue: () => void;
+  handleContinue: () => Promise<void>;
   handleBack: () => void;
 
   // Refs

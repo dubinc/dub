@@ -1,7 +1,6 @@
 import { Button } from "@dub/ui";
 import QRCodeStyling from "qr-code-styling";
-import { useQrBuilder } from "../context";
-import { TNewQRBuilderData } from "../helpers/data-converters";
+import { useQrBuilderContext } from "../context";
 import { toast } from "sonner";
 
 interface DownloadButtonProps {
@@ -16,14 +15,11 @@ export const DownloadButton = ({
   const {
     selectedQrType,
     formData,
-    customizationData,
-    qrTitle,
-    fileId,
     homepageDemo,
-    onDownload,
-  } = useQrBuilder();
+    handleContinue,
+  } = useQrBuilderContext();
 
-  const handleDownload = async () => {
+  const handleSave = async () => {
     if (!qrCode || disabled) return;
 
     if (!selectedQrType || !formData) {
@@ -31,45 +27,18 @@ export const DownloadButton = ({
       return;
     }
 
-    console.log("DOWNLOAD BUTTON - QR Code:", qrCode);
-    console.log("DOWNLOAD BUTTON - Selected QR Type:", selectedQrType);
-    console.log("DOWNLOAD BUTTON - Form Data:", formData);
-    console.log("DOWNLOAD BUTTON - Customization Data:", customizationData);
-
-    const builderData: TNewQRBuilderData = {
-      qrType: selectedQrType,
-      formData,
-      customizationData,
-      title: qrTitle || `${selectedQrType} QR Code`,
-      fileId,
-    };
-
-    console.log("DOWNLOAD BUTTON - Builder Data for download:", builderData);
-
-    if (homepageDemo && onDownload) {
-      await onDownload(builderData);
+    if (homepageDemo) {
+      await handleContinue();
       return;
     }
 
-    // For non-homepage demo, implement direct download functionality
-    try {
-      await qrCode.download({
-        name: qrTitle || `${selectedQrType}_qr_code`,
-        extension: "png",
-      });
-
-      toast.success("QR code downloaded successfully!");
-    } catch (error) {
-      console.error("Download failed:", error);
-      toast.error("Failed to download QR code");
-    }
   };
 
   return (
       <Button
         color="blue"
         className="grow basis-3/4 w-full"
-        onClick={handleDownload}
+        onClick={handleSave}
         disabled={disabled}
         text={"Download QR code"}
       />

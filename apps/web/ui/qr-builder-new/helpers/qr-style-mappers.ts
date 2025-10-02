@@ -24,10 +24,23 @@ export const getCornerDotType = (cornerDotStyleId: string): CornerDotType => {
 
 /**
  * Gets the suggested logo icon source by ID
+ * Fallback for when iconSrc is not available in logo data
  */
 export const getSuggestedLogoSrc = (logoId: string) => {
   const logo = SUGGESTED_LOGOS.find(l => l.id === logoId);
-  return logo?.icon?.src;
+  // SVG imports in Next.js return an object with 'src' property
+  // If icon is a string, return it directly, otherwise get the src property
+  if (!logo?.icon) {
+    return undefined;
+  }
+
+  // Handle both direct imports and Next.js optimized imports
+  if (typeof logo.icon === 'string') {
+    return logo.icon;
+  }
+
+  // For Next.js StaticImageData or similar objects
+  return logo.icon.src || logo.icon.default?.src || undefined;
 };
 
 /**

@@ -3,11 +3,7 @@ import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { SHORT_DOMAIN } from "@dub/utils/src";
 import { useCallback } from "react";
 import { toast } from "sonner";
-import useSWR from "swr";
 import { convertNewQRBuilderDataToServer, TNewQRBuilderData, TQrServerData } from "../helpers/data-converters";
-
-// Fetcher function for SWR
-const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export const useNewQrOperations = () => {
   const { id: workspaceId } = useWorkspace();
@@ -25,6 +21,8 @@ export const useNewQrOperations = () => {
           domain: SHORT_DOMAIN!,
         });
 
+        console.log(serverData,'serverData11111');
+        
         const res = await fetch(`/api/qrs?workspaceId=${workspaceId}`, {
           method: "POST",
           headers: {
@@ -40,6 +38,7 @@ export const useNewQrOperations = () => {
           return responseData;
         } else {
           const errorResponse = await res.json();
+          console.error("API Error Response:", errorResponse);
           const errorMessage = errorResponse?.error?.message || "Failed to create QR";
 
           // Check if it's a body consumption error and retry
@@ -54,6 +53,7 @@ export const useNewQrOperations = () => {
             }
           }
 
+          console.error("Error creating QR:", errorMessage);
           toast.error(errorMessage);
           return false;
         }
@@ -154,46 +154,5 @@ export const useNewQrOperations = () => {
   return {
     createQr,
     updateQr,
-  };
-};
-
-// Hook to fetch a single QR by ID using SWR
-export const useQrData = (qrId: string | null) => {
-  const { id: workspaceId } = useWorkspace();
-
-  const { data, error, isLoading, mutate } = useSWR(
-    qrId && workspaceId ? `/api/qrs/${qrId}?workspaceId=${workspaceId}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      revalidateOnReconnect: false,
-    }
-  );
-
-  return {
-    qrData: data?.qr as TQrServerData | undefined,
-    isLoading,
-    isError: error,
-    mutate,
-  };
-};
-
-// Hook to fetch all QRs using SWR
-export const useQrsData = () => {
-  const { id: workspaceId } = useWorkspace();
-
-  const { data, error, isLoading, mutate } = useSWR(
-    workspaceId ? `/api/qrs?workspaceId=${workspaceId}` : null,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-    }
-  );
-
-  return {
-    qrs: data?.qrs as TQrServerData[] | undefined,
-    isLoading,
-    isError: error,
-    mutate,
   };
 };

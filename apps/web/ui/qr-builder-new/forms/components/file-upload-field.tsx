@@ -2,10 +2,20 @@
 
 import { cn } from "@dub/utils";
 import { Button } from "@radix-ui/themes";
-import { Upload } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { Upload, X } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
-import { useFileUpload } from "../../hooks/use-file-upload";
+import { useFileUpload as useFileUploadHook } from "../../hooks/use-file-upload";
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemMetadata,
+  FileUploadItemPreview,
+  FileUploadItemProgress,
+  FileUploadList,
+} from "../../components/file-upload/file-upload";
 
 interface FileUploadFieldProps {
   name: string;
@@ -15,6 +25,8 @@ interface FileUploadFieldProps {
   multiple?: boolean;
   className?: string;
   onFileIdReceived?: (fileId: string) => void;
+  onUploadStateChange?: (uploading: boolean) => void;
+  onProcessingStateChange?: (processing: boolean) => void;
   title: string;
 }
 
@@ -23,22 +35,31 @@ export const FileUploadField = ({
   label,
   accept,
   maxSize,
-  multiple = false,
   className,
   onFileIdReceived,
+  onUploadStateChange,
+  onProcessingStateChange,
   title,
 }: FileUploadFieldProps) => {
   const { control } = useFormContext();
-  const [dragActive, setDragActive] = useState(false);
   const [uploadError, setUploadError] = useState<string>("");
 
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const { uploadFile } = useFileUpload({
+  const { uploadFile, isUploading, uploadProgress } = useFileUploadHook({
     onFileIdReceived,
     onError: (_, error) => setUploadError(error),
     onSuccess: () => setUploadError(""),
   });
+
+  // Notify parent about upload state changes
+  useEffect(() => {
+    onUploadStateChange?.(isUploading);
+  }, [isUploading, onUploadStateChange]);
+
+  // Notify parent about processing state changes
+  useEffect(() => {
+    const isProcessing = uploadProgress.some((p) => p.status === "processing");
+    onProcessingStateChange?.(isProcessing);
+  }, [uploadProgress, onProcessingStateChange]);
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -48,61 +69,57 @@ export const FileUploadField = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
-  const handleDrag = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(e.type === "dragenter" || e.type === "dragover");
+  const handleFileValidation = useCallback(
+    (file: File) => {
+      if (file.size > maxSize) {
+        return `File too large. Maximum size is ${formatFileSize(maxSize)}`;
+      }
+      return null;
+    },
+    [maxSize],
+  );
+
+  const handleFileReject = useCallback((file: File, message: string) => {
+    setUploadError(message);
   }, []);
 
-  const handleFileChange = useCallback(
+  const handleFileAccept = useCallback(() => {
+    setUploadError("");
+  }, []);
+
+  const handleUpload = useCallback(
     async (
-      files: FileList | null,
-      onChange: (files: FileList | null) => void,
+      files: File[],
+      {
+        onProgress,
+        onSuccess,
+        onError,
+      }: {
+        onProgress: (file: File, progress: number) => void;
+        onSuccess: (file: File) => void;
+        onError: (file: File, error: Error) => void;
+      },
     ) => {
-      if (!files || files.length === 0) return;
-
-      const file = files[0];
-
-      if (file.size > maxSize) {
-        setUploadError(
-          `File too large. Maximum size is ${formatFileSize(maxSize)}`,
-        );
-        return;
-      }
-
-      setUploadError("");
-      onChange(files);
-
       try {
-        await uploadFile(file);
+        await Promise.all(
+          files.map(async (file: File) => {
+            try {
+              onProgress(file, 0);
+              await uploadFile(file);
+              onSuccess(file);
+            } catch (error) {
+              const err =
+                error instanceof Error ? error : new Error("Upload failed");
+              onError(file, err);
+              setUploadError(err.message);
+            }
+          }),
+        );
       } catch (error) {
-        console.error("Upload failed:", error);
+        console.error("Upload error:", error);
       }
     },
-    [maxSize, formatFileSize, uploadFile],
-  );
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent, onChange: (files: FileList | null) => void) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setDragActive(false);
-
-      if (e.dataTransfer.files?.[0]) {
-        handleFileChange(e.dataTransfer.files, onChange);
-      }
-    },
-    [handleFileChange],
-  );
-
-  const handleInputChange = useCallback(
-    (
-      e: React.ChangeEvent<HTMLInputElement>,
-      onChange: (files: FileList | null) => void,
-    ) => {
-      handleFileChange(e.target.files, onChange);
-    },
-    [handleFileChange],
+    [uploadFile],
   );
 
   return (
@@ -115,58 +132,73 @@ export const FileUploadField = ({
       <Controller
         name={name}
         control={control}
-        render={({ field: { onChange }, fieldState }) => (
+        render={({ field: { value, onChange }, fieldState }) => (
           <>
-            <div
-              className={cn(
-                "relative rounded-lg border-2 border-dashed border-gray-300 p-8 text-center transition-colors hover:bg-gray-50",
-                {
-                  "border-blue-400 bg-blue-50": dragActive,
-                  "border-red-500": fieldState.error,
-                },
-              )}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={(e) => handleDrop(e, onChange)}
+            <FileUpload
+              maxFiles={1}
+              maxSize={maxSize}
+              className="w-full max-w-xl"
+              value={value || []}
+              onValueChange={onChange}
+              onFileAccept={handleFileAccept}
+              onFileReject={handleFileReject}
+              onFileValidate={handleFileValidation}
+              onUpload={handleUpload}
+              accept={accept}
+              disabled={isUploading}
             >
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept={accept}
-                multiple={multiple}
-                onChange={(e) => handleInputChange(e, onChange)}
-                className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-              />
-
-              <div className="flex flex-col items-center gap-1 text-center mb-2">
-                <div className="border-secondary-100 flex items-center justify-center rounded-full border p-2.5">
-                  <Upload className="text-secondary size-6" />
-                </div>
-                <p className="text-neutral text-sm font-medium">
-                  {`Drag & drop your ${title}`}
-                </p>
-                <p className="text-xs text-neutral-800">
-                  {`or click to browse (1 file, up to ${formatFileSize(maxSize)})`}
-                </p>
-              </div>
-
-              <Button
-                variant="solid"
-                color="blue"
-                size="2"
-                className="mt-2 w-fit"
-                onClick={() => fileInputRef.current?.click()}
+              <FileUploadDropzone
+                className={cn("border-secondary-100", {
+                  "border-red-500": fieldState.error || uploadError,
+                })}
               >
-                Browse files
-              </Button>
+                <div className="flex flex-col items-center gap-1 text-center mb-2">
+                  <div className="border-secondary-100 flex items-center justify-center rounded-full border p-2.5">
+                    <Upload className="text-secondary size-6" />
+                  </div>
+                  <p className="text-neutral text-sm font-medium">
+                    {`Drag & drop your ${title}`}
+                  </p>
+                  <p className="text-xs text-neutral-800">
+                    {`or click to browse (1 file, up to ${formatFileSize(maxSize)})`}
+                  </p>
+                </div>
 
-              {(fieldState.error || uploadError) && (
-                <span className="text-sm text-red-500">
-                  {fieldState.error?.message || uploadError}
-                </span>
-              )}
-            </div>
+                <Button
+                  type="button"
+                  variant="solid"
+                  color="blue"
+                  size="2"
+                  className="mt-2 w-fit"
+                  disabled={isUploading}
+                >
+                  {isUploading ? "Uploading..." : "Browse files"}
+                </Button>
+              </FileUploadDropzone>
+
+              <FileUploadList>
+                {(value || []).map((file: File, index: number) => (
+                  <FileUploadItem key={index} value={file}>
+                    <div className="flex w-full items-center gap-2">
+                      <FileUploadItemPreview />
+                      <FileUploadItemMetadata />
+                      <FileUploadItemDelete asChild>
+                        <Button variant="ghost" size="1">
+                          <X className="stroke-neutral-200" />
+                        </Button>
+                      </FileUploadItemDelete>
+                    </div>
+                    <FileUploadItemProgress />
+                  </FileUploadItem>
+                ))}
+              </FileUploadList>
+            </FileUpload>
+
+            {(fieldState.error || uploadError) && (
+              <span className="text-sm text-red-500">
+                {fieldState.error?.message || uploadError}
+              </span>
+            )}
           </>
         )}
       />

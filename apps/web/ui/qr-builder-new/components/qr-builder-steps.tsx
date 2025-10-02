@@ -1,10 +1,13 @@
-import { useQrBuilder } from "@/ui/qr-builder-new/context";
+import { useQrBuilderContext } from "@/ui/qr-builder-new/context";
 import { Flex, Heading } from "@radix-ui/themes";
 import Stepper from "./stepper";
 
 
 export const QRBuilderSteps = () => {
-  const { builderStep, handleChangeStep } = useQrBuilder();
+  const { builderStep, handleChangeStep, isFileUploading, isFileProcessing } = useQrBuilderContext();
+
+  // Disable step navigation while files are uploading or processing
+  const isDisabled = isFileUploading || isFileProcessing;
 
   return (
       <Flex align="center" justify="center" className="px-6 py-3">
@@ -19,6 +22,7 @@ export const QRBuilderSteps = () => {
             { number: 3, label: "Customize QR" },
           ]}
           onStepClick={handleChangeStep}
+          disabled={isDisabled}
         />
       </Flex>
   );

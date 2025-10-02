@@ -1,8 +1,7 @@
 import { QRBuilderInner } from "@/ui/qr-builder-new/components/qr-builder-inner.tsx";
 import { QRBuilderSteps } from "@/ui/qr-builder-new/components/qr-builder-steps.tsx";
 import { QR_BUILDER_STEP_TITLES } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
-import { useQrBuilder } from "@/ui/qr-builder-new/context";
-import { useIsInViewport } from "@/ui/qr-builder-new/hooks/use-is-in-viewport";
+import { useQrBuilderContext } from "@/ui/qr-builder-new/context";
 import { QrBuilderButtons } from "@/ui/qr-builder-new/components/qr-builder-buttons.tsx";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils/src";
@@ -14,20 +13,14 @@ export const QRBuilderWrapper = () => {
     builderStep,
     handleBack,
     handleContinue,
-    isCustomizationStep,
-    handleChangeStep,
-    onSave,
-    qrBuilderButtonsWrapperRef,
     isTypeStep,
     homepageDemo,
-  } = useQrBuilder();
+    isProcessing,
+    isFileUploading,
+    isFileProcessing,
+  } = useQrBuilderContext();
 
   const { isMobile } = useMediaQuery();
-
-  const navigationButtonsInViewport = useIsInViewport(
-    qrBuilderButtonsWrapperRef,
-    0.6,
-  );
 
   return (
     <div
@@ -51,7 +44,9 @@ export const QRBuilderWrapper = () => {
             onBack={handleBack}
             onContinue={handleContinue}
             isEdit={false}
-            isProcessing={false}
+            isProcessing={isProcessing}
+            isFileUploading={isFileUploading}
+            isFileProcessing={isFileProcessing}
             homepageDemo={homepageDemo}
           />
         </div>

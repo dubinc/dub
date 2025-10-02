@@ -36,8 +36,10 @@ export interface IShapeData {
 
 export interface ILogoData {
   type: "none" | "suggested" | "uploaded";
-  id?: string;
-  file?: File;
+  id?: string; // For suggested logos, this is the logo ID. For uploaded logos, this is the fileId from upload
+  iconSrc?: string; // For suggested logos, the src path from the imported SVG
+  fileId?: string; // File ID from upload service for uploaded logos
+  file?: File; // Temporary File object before upload (client-side only, not serialized)
 }
 
 // Style option interface for pickers

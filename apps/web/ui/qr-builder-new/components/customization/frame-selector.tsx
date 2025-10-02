@@ -78,19 +78,44 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
 
   const handleFrameSelect = useCallback(
       (frameId: string) => {
-        // Always use the new frames default text color when switching
+        console.log("=== handleFrameSelect called ===");
+        console.log("Selected frameId:", frameId);
+        console.log("Current frameData:", frameData);
+
+        // If switching to "no frame", clear all settings
+        if (frameId === "frame-none") {
+          const newFrameData: IFrameData = {
+            id: frameId,
+            color: undefined,
+            textColor: undefined,
+            text: undefined,
+          };
+          console.log("Clearing frame, sending:", newFrameData);
+          onFrameChange(newFrameData);
+          return;
+        }
+
+        // If re-selecting the same frame, preserve existing settings from frameData
+        if (frameId === frameData.id) {
+          console.log("Re-selecting same frame, no change");
+          return;
+        }
+
+        // If switching to a new frame, use current settings but with new frame's default text color
         const newSelectedFrame = FRAMES.find((f) => f.id === frameId);
         const newDefaultTextColor = newSelectedFrame?.defaultTextColor || WHITE_COLOR;
 
         const newFrameData: IFrameData = {
           id: frameId,
-          color: frameId === "frame-none" ? undefined : frameColor,
-          textColor: frameId === "frame-none" ? undefined : newDefaultTextColor,
-          text: frameId === "frame-none" ? undefined : frameText,
+          color: frameColor,
+          textColor: newDefaultTextColor,
+          text: frameText,
         };
+
+        console.log("Selecting new frame, sending:", newFrameData);
         onFrameChange(newFrameData);
       },
-      [frameColor, frameText, onFrameChange]
+      [frameColor, frameText, onFrameChange, frameData]
   );
 
   const handleFrameColorChange = useCallback(

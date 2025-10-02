@@ -2,8 +2,8 @@ import { useQRCodeStyling } from "../../hooks/use-qr-code-styling";
 import { IQRCustomizationData } from "../../types/customization";
 import { DownloadButton } from "../download-button";
 import { QRCanvas } from "../qr-canvas";
-import { useQrBuilder } from "../../context";
-import { getQRDataFromForm } from "../../helpers/data-converters";
+import { useQrBuilderContext } from "../../context";
+import { encodeQRData } from "../../helpers/qr-data-handlers";
 import { useMemo } from "react";
 
 interface QRPreviewProps {
@@ -11,7 +11,7 @@ interface QRPreviewProps {
 }
 
 export const QRPreview = ({ customizationData }: QRPreviewProps) => {
-  const { selectedQrType, formData, currentFormValues } = useQrBuilder();
+  const { selectedQrType, formData, currentFormValues } = useQrBuilderContext();
 
   // Get the actual QR data from form or use default
   // Try current form values first (for real-time updates), then fallback to saved form data
@@ -20,7 +20,7 @@ export const QRPreview = ({ customizationData }: QRPreviewProps) => {
   const qrData = useMemo(() => {
     if (selectedQrType && activeFormData) {
       try {
-        const data = getQRDataFromForm(selectedQrType, activeFormData as any);
+        const data = encodeQRData(selectedQrType, activeFormData as any);
         return data || "https://getqr.com/qr-complete-setup";
       } catch (error) {
         console.error("Error generating QR data:", error);

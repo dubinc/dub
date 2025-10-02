@@ -10,7 +10,7 @@ const schema = z.object({
   sessionId: z.string(),
   qrData: z.object({
     title: z.string(),
-    styles: z.object({}).passthrough(),
+    styles: z.object({}).passthrough(), // Logo stored in styles.image
     frameOptions: z.object({
       id: z.string(),
       color: z.string().optional(),
@@ -28,7 +28,7 @@ const schema = z.object({
       "app",
       "feedback",
     ]),
-    fileId: z.string().optional(),
+    fileId: z.string().optional(), // For PDF/Image/Video QR content files ONLY
   }),
 });
 

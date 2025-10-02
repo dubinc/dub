@@ -7,7 +7,7 @@ import {FC, useCallback} from "react";
 interface IQrBuilderButtonsProps {
   step: number;
   onBack: () => void;
-  onContinue: () => void;
+  onContinue: () => Promise<void>;
   maxStep?: number;
   minStep?: number;
   className?: string;
@@ -79,8 +79,8 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
             color="blue"
             className="grow basis-3/4"
             onClick={onContinue}
-            disabled={isProcessing}
-            loading={isProcessing}
+            disabled={isProcessing || isFileUploading || isFileProcessing}
+            loading={isProcessing || isFileUploading || isFileProcessing}
             text={buttonText}
         />
       </Flex>

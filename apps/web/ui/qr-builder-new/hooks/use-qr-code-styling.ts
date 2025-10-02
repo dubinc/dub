@@ -3,7 +3,6 @@ import { useEffect, useState, useMemo } from "react";
 import { BLACK_COLOR, WHITE_COLOR } from "../constants/customization/colors";
 import { FRAMES } from "../constants/customization/frames";
 import {
-  convertSvgUrlToBase64,
   getSuggestedLogoSrc,
   mapCustomizationToQROptions,
 } from "../helpers/qr-style-mappers";
@@ -90,39 +89,71 @@ export const useQRCodeStyling = ({
       ...mappedOptions,
     };
 
-    if (
-      customizationData.logo.type === "uploaded" &&
-      customizationData.logo.file
-    ) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64 = reader.result as string;
-        newOptions.image = base64;
-        setOptions(newOptions);
-        qrCode.update(newOptions);
-      };
-      reader.readAsDataURL(customizationData.logo.file);
-      return;
+    // Handle logo rendering
+    if (customizationData.logo.type === "uploaded") {
+      if (customizationData.logo.file) {
+        // Use blob URL for temporary preview (before upload completes)
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result as string;
+          newOptions.image = base64;
+          setOptions(newOptions);
+          qrCode.update(newOptions);
+        };
+        reader.readAsDataURL(customizationData.logo.file);
+        return;
+      } else if (customizationData.logo.fileId) {
+        // Construct full R2 URL for uploaded logo using fileId
+        const storageBaseUrl = process.env.NEXT_PUBLIC_STORAGE_BASE_URL;
+        if (storageBaseUrl) {
+          newOptions.image = `${storageBaseUrl}/files/${customizationData.logo.fileId}`;
+        } else {
+          // Fallback: try to construct URL without base (relative path)
+          // This will work if storage is on same domain or CORS is configured
+          console.warn('NEXT_PUBLIC_STORAGE_BASE_URL is not configured. Using relative path for uploaded logo.');
+          newOptions.image = `/files/${customizationData.logo.fileId}`;
+        }
+      } else {
+        newOptions.image = '';
+      }
     } else if (
       customizationData.logo.type === "suggested" &&
       customizationData.logo.id &&
       customizationData.logo.id !== "logo-none"
     ) {
-      const logoSrc = getSuggestedLogoSrc(customizationData.logo.id);
+      // Use iconSrc if available (from logo selection), otherwise lookup from logo constant
+      const logoSrc = customizationData.logo.iconSrc || getSuggestedLogoSrc(customizationData.logo.id);
+
       if (logoSrc) {
-        convertSvgUrlToBase64(logoSrc).then((base64) => {
-          if (base64) {
+        // Convert SVG to base64 to avoid CORS and 404 issues
+        fetch(logoSrc)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`Failed to fetch logo: ${response.statusText}`);
+            }
+            return response.text();
+          })
+          .then((svgText) => {
+            // Convert SVG to base64 data URL
+            const base64 = `data:image/svg+xml;base64,${btoa(svgText)}`;
             newOptions.image = base64;
             setOptions(newOptions);
             qrCode.update(newOptions);
-          }
-        });
+          })
+          .catch((error) => {
+            // Logo failed to load, render QR without logo
+            console.warn(`Logo failed to load: ${logoSrc}. Rendering QR code without logo.`, error);
+            newOptions.image = '';
+            setOptions(newOptions);
+            qrCode.update(newOptions);
+          });
+        // Don't update yet, wait for fetch to complete
         return;
       } else {
-        newOptions.image = undefined;
+        newOptions.image = '';
       }
     } else {
-      newOptions.image = undefined;
+      newOptions.image = '';
     }
 
     setOptions(newOptions);

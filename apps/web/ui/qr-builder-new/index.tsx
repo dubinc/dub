@@ -6,6 +6,7 @@ interface QRBuilderNewProps {
   homepageDemo?: boolean;
   sessionId?: string;
   onDownload?: (data: TNewQRBuilderData) => Promise<void>;
+  onSave?: (data: TNewQRBuilderData, initialData?: TQrServerData | null) => Promise<void>;
   initialQrData?: TQrServerData | null;
   isEdit?: boolean;
 }
@@ -14,6 +15,7 @@ export const QRBuilderNew = ({
   homepageDemo,
   sessionId,
   onDownload,
+  onSave,
   initialQrData,
   isEdit
 }: QRBuilderNewProps) => {
@@ -22,6 +24,7 @@ export const QRBuilderNew = ({
       homepageDemo={homepageDemo}
       sessionId={sessionId}
       onDownload={onDownload}
+      onSave={onSave}
       initialQrData={initialQrData}
       isEdit={isEdit}
     >

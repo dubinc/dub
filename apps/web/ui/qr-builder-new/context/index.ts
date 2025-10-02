@@ -1,2 +1,2 @@
 export type { IQrBuilderContextType } from "../types/context";
-export { QrBuilderProvider, useQrBuilder } from "./qr-builder-context";
+export { QrBuilderProvider, useQrBuilderContext } from "./qr-builder-context";

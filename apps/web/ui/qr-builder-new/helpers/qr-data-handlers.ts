@@ -65,20 +65,17 @@ export const qrTypeDataEncoders = {
     return `WIFI:T:${encryptionType};S:${ssid};P:${password};H:${hidden};`;
   },
   
-  // For file types, we'll use the file URL if available, otherwise a placeholder
-  // TODO: Replace all hardcoded storage URLs with NEXT_PUBLIC_STORAGE_BASE_URL environment variable
-  // Use process.env.NEXT_PUBLIC_STORAGE_BASE_URL for client-side access to make URLs configurable
-  // This affects PDF, IMAGE, and VIDEO QR types below
-  [EQRType.PDF]: (values: Record<string, any>, fileId?: string) => {
-    return fileId ? `https://assets.getqr.com/qrs-content/${fileId}` : "";
+  // For file types, return empty string (backend constructs the proper URL using fileId)
+  [EQRType.PDF]: (_values: Record<string, any>, _fileId?: string) => {
+    return "";
   },
 
-  [EQRType.IMAGE]: (values: Record<string, any>, fileId?: string) => {
-    return fileId ? `https://assets.getqr.com/qrs-content/${fileId}` : "";
+  [EQRType.IMAGE]: (_values: Record<string, any>, _fileId?: string) => {
+    return "";
   },
-  
-  [EQRType.VIDEO]: (values: Record<string, any>, fileId?: string) => {
-    return fileId ? `https://assets.getqr.com/qrs-content/${fileId}` : "";
+
+  [EQRType.VIDEO]: (_values: Record<string, any>, _fileId?: string) => {
+    return "";
   },
 };
 

@@ -84,20 +84,22 @@ export const QRTabs: FC<
     };
 
     const handleNewBuilderDownload = async (data: TNewQRBuilderData) => {
-      if (isProcessingSignup) return; // Prevent double execution
+
+      if (isProcessingSignup) return; 
       setIsProcessingSignup(true);
 
       try {
         const storageData = convertNewBuilderToStorageFormat(data);
         setQrDataToCreate(storageData);
+
         await saveQrDataToRedis({
-          sessionId, 
+          sessionId,
           qrData: storageData
         });
 
         showModal("signup");
       } catch (error) {
-        console.error("Error saving new builder QR data:", error);
+        console.error("❌ Error saving new builder QR data:", error);
         showModal("signup"); // Still show signup even if save fails
       } finally {
         setTimeout(() => setIsProcessingSignup(false), 1000);
@@ -137,3 +139,5 @@ export const QRTabs: FC<
     );
   },
 );
+
+

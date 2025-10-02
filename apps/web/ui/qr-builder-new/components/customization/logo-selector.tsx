@@ -1,12 +1,16 @@
 import { cn } from "@dub/utils";
-import { FC, useEffect, useRef, useCallback, useMemo } from "react";
+import { FC, useEffect, useRef, useCallback, useMemo, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
+import { toast } from "sonner";
 
 import { SUGGESTED_LOGOS } from "../../constants/customization/logos";
 import { ILogoData } from "../../types/customization";
 import { StylePicker } from "./style-picker";
+import { useFileUpload } from "../../hooks/use-file-upload";
+import { useQrBuilderContext } from "../../context";
 
 const FILE_UPLOAD_FIELD_NAME = "fileUploadLogo";
+const MAX_LOGO_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
 interface LogoFormValues {
   fileUploadLogo: File[];
@@ -25,6 +29,8 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
   disabled = false,
   isMobile = false,
 }) => {
+  const { setIsFileUploading } = useQrBuilderContext();
+
   const methods = useForm<LogoFormValues>({
     defaultValues: {
       [FILE_UPLOAD_FIELD_NAME]: logoData.file ? [logoData.file] : [],
@@ -34,6 +40,35 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
   const { control, trigger } = methods;
   const uploadedLogoFiles = useWatch({ control, name: FILE_UPLOAD_FIELD_NAME });
   const previousFilesRef = useRef<File[]>([]);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // File upload hook
+  const { uploadFile, isUploading, uploadProgress } = useFileUpload({
+    onFileIdReceived: (fileId) => {
+      // Update logo data with fileId
+      const lastFile = uploadedLogoFiles?.[uploadedLogoFiles.length - 1];
+      if (lastFile) {
+        onLogoChange({
+          type: "uploaded",
+          fileId,
+          file: lastFile, // Keep file for preview
+        });
+      }
+      setUploadError(null);
+    },
+    onError: (file, error) => {
+      setUploadError(error);
+      toast.error(`Logo upload failed: ${error}`);
+      // Clear the file from form
+      methods.setValue(FILE_UPLOAD_FIELD_NAME, []);
+    },
+  });
+
+  // Sync logo upload state to context
+  useEffect(() => {
+    console.log('Logo upload state:', isUploading);
+    setIsFileUploading(isUploading);
+  }, [isUploading, setIsFileUploading]);
 
   useEffect(() => {
     const lastFile = uploadedLogoFiles?.[uploadedLogoFiles.length - 1] || null;
@@ -42,23 +77,44 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
 
     if (lastFile !== previousLastFile) {
       if (lastFile) {
+        // Validate file size
+        if (lastFile.size > MAX_LOGO_FILE_SIZE) {
+          toast.error("Logo file size must be less than 5MB");
+          methods.setValue(FILE_UPLOAD_FIELD_NAME, []);
+          return;
+        }
+
+        // Validate file type
+        if (!lastFile.type.startsWith("image/")) {
+          toast.error("Please select an image file");
+          methods.setValue(FILE_UPLOAD_FIELD_NAME, []);
+          return;
+        }
+
+        // Set file temporarily (for preview)
         onLogoChange({
           type: "uploaded",
           file: lastFile,
+        });
+
+        // Upload file to get fileId
+        uploadFile(lastFile).catch((error) => {
+          console.error("Logo upload error:", error);
         });
       } else {
         onLogoChange({
           type: "none",
           id: undefined,
           file: undefined,
+          fileId: undefined,
         });
       }
     }
 
     previousFilesRef.current = uploadedLogoFiles || [];
-  }, [uploadedLogoFiles, onLogoChange]);
+  }, [uploadedLogoFiles, onLogoChange, uploadFile, methods]);
 
-  const handleSuggestedLogoSelect = useCallback((logoId: string) => {
+  const handleSuggestedLogoSelect = useCallback((logoId: string, icon?: any) => {
     if (logoId === "logo-none") {
       onLogoChange({
         type: "none",
@@ -69,9 +125,10 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
       onLogoChange({
         type: "suggested",
         id: logoId,
+        iconSrc: icon?.src, // Store the icon src for direct use
       });
     }
-    
+
     // Clear uploaded files when selecting a suggested logo
     methods.setValue(FILE_UPLOAD_FIELD_NAME, []);
     methods.trigger(FILE_UPLOAD_FIELD_NAME);
@@ -108,8 +165,6 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
         disabled={disabled}
       />
       
-      {/* TODO QR_BUILDER_NEW: File upload component for logo upload */}
-      {/* This will be implemented when file upload functionality is ready */}
       <FormProvider {...methods}>
         <form>
           <Controller
@@ -119,25 +174,77 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
               field: { onChange, value = [] },
               fieldState: { error },
             }) => (
-              <div className="border-border-500 rounded-lg border-2 border-dashed p-4 text-center">
-                <p className="text-sm text-gray-500">
-                  {disabled 
-                    ? "Logo upload disabled" 
-                    : "Logo upload feature coming soon"
-                  }
-                </p>
-                {/* TODO QR_BUILDER_NEW: Replace with actual FileCardContent when ready */}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => {
-                    const files = Array.from(e.target.files || []);
-                    onChange(files);
-                    trigger(FILE_UPLOAD_FIELD_NAME);
-                  }}
-                  disabled={disabled}
-                  className="mt-2"
-                />
+              <div className="flex flex-col gap-2">
+                <div className={cn(
+                  "border-border-500 rounded-lg border-2 border-dashed p-4 text-center transition-colors",
+                  disabled && "opacity-50 pointer-events-none",
+                  isUploading && "border-blue-500 bg-blue-50"
+                )}>
+                  {value.length > 0 ? (
+                    <div className="flex flex-col items-center gap-2">
+                      <img
+                        src={URL.createObjectURL(value[0])}
+                        alt="Uploaded logo"
+                        className="h-16 w-16 object-contain"
+                      />
+                      <p className="text-sm text-gray-700">{value[0].name}</p>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onChange([]);
+                          trigger(FILE_UPLOAD_FIELD_NAME);
+                        }}
+                        disabled={isUploading}
+                        className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="text-sm text-gray-600 mb-2">
+                        Upload your logo (max 5MB)
+                      </p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          const files = Array.from(e.target.files || []);
+                          onChange(files);
+                          trigger(FILE_UPLOAD_FIELD_NAME);
+                        }}
+                        disabled={disabled || isUploading}
+                        className="text-sm"
+                      />
+                    </>
+                  )}
+                </div>
+
+                {/* Upload Progress */}
+                {isUploading && uploadProgress.length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between text-xs text-gray-600">
+                      <span>{uploadProgress[0].status === "uploading" ? "Uploading..." : "Processing..."}</span>
+                      <span>{uploadProgress[0].progress}%</span>
+                    </div>
+                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-blue-600 transition-all duration-300"
+                        style={{ width: `${uploadProgress[0].progress}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Upload Error */}
+                {uploadError && (
+                  <p className="text-xs text-red-600">{uploadError}</p>
+                )}
+
+                {/* Form Error */}
+                {error && (
+                  <p className="text-xs text-red-600">{error.message}</p>
+                )}
               </div>
             )}
           />

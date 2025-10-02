@@ -12,6 +12,7 @@ import { useQRFormData } from "../../hooks/use-qr-form-data";
 import { ImageQRFormData, imageQRSchema } from "../../validation/schemas";
 import { BaseFormField } from "./base-form-field.tsx";
 import { FileUploadField } from "./file-upload-field";
+import { useQrBuilderContext } from "../../context";
 
 export interface ImageFormRef {
   validate: () => Promise<boolean>;
@@ -33,6 +34,7 @@ interface ImageFormProps {
 export const ImageForm = forwardRef<ImageFormRef, ImageFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
     const [fileId, setFileId] = useState<string>(initialData?.fileId!);
+    const { setIsFileUploading, setIsFileProcessing } = useQrBuilderContext();
 
     const { getDefaultValues, encodeFormData } = useQRFormData({
       qrType: EQRType.IMAGE,
@@ -50,6 +52,13 @@ export const ImageForm = forwardRef<ImageFormRef, ImageFormProps>(
       defaultValues: formDefaults,
     });
 
+    // Update hidden fileId field when fileId state changes
+    useEffect(() => {
+      if (fileId) {
+        form.setValue('fileId' as any, fileId);
+      }
+    }, [fileId, form]);
+
     // Reset form when initialData changes
     useEffect(() => {
       if (initialData) {
@@ -65,14 +74,14 @@ export const ImageForm = forwardRef<ImageFormRef, ImageFormProps>(
         if (result) {
           const formData = form.getValues();
           const encodedData = encodeFormData(formData, fileId);
-          onSubmit({ ...formData, encodedData });
+          onSubmit({ ...formData, encodedData, fileId });
         }
         return result;
       },
       getValues: () => {
         const formData = form.getValues();
         const encodedData = encodeFormData(formData, fileId);
-        return { ...formData, encodedData };
+        return { ...formData, encodedData, fileId };
       },
       form,
     }));
@@ -95,6 +104,8 @@ export const ImageForm = forwardRef<ImageFormRef, ImageFormProps>(
             accept="image/*"
             maxSize={5 * 1024 * 1024}
             onFileIdReceived={setFileId}
+            onUploadStateChange={setIsFileUploading}
+            onProcessingStateChange={setIsFileProcessing}
           />
         </form>
       </FormProvider>
