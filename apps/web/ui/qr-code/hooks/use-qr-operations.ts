@@ -53,6 +53,12 @@ export const useQrOperations = () => {
           const responseData = await res.json();
           const createdQrId = responseData?.createdQr?.id;
 
+          queryParams({
+            set: {
+              qrId: createdQrId,
+            },
+          });
+
           // Track QR created event
           const trackingParams = createQRTrackingParams(
             qrBuilderData,
@@ -85,7 +91,7 @@ export const useQrOperations = () => {
         return false;
       }
     },
-    [workspaceId, slug, user],
+    [workspaceId, slug, user, queryParams],
   );
 
   const updateQrWithOriginal = useCallback(
