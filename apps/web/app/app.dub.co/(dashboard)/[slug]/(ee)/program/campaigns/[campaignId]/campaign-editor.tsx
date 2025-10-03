@@ -82,14 +82,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
         await saveDraftCampaign(`/api/campaigns/${campaign.id}`, {
           method: "PATCH",
-          body: {
-            ...changedFields,
-            triggerCondition: {
-              attribute: "totalLeads",
-              operator: "gte",
-              value: 1,
-            },
-          },
+          body: changedFields,
           onSuccess: () => {
             reset(allFormData, { keepValues: true });
           },
