@@ -314,7 +314,7 @@ describe("POST /track/sale", async () => {
     await verifyCommission(
       http,
       smallSaleInvoiceId,
-      response2.data.sale?.amount!,
+      response1.data.sale?.amount!,
       E2E_REWARD.amount,
     );
 
