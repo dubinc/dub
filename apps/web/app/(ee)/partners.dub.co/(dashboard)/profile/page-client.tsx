@@ -1,6 +1,7 @@
 "use client";
 
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
@@ -12,6 +13,7 @@ import { ProfileDiscoveryGuide } from "./profile-discovery-guide";
 
 export function ProfileSettingsPageClient() {
   const { partner } = usePartnerProfile();
+  const { programEnrollments } = useProgramEnrollments();
 
   return (
     <PageContent
@@ -24,7 +26,12 @@ export function ProfileSettingsPageClient() {
       controls={<Controls />}
     >
       <PageWidthWrapper className="mb-20 flex flex-col gap-6">
-        {partner && <ProfileDiscoveryGuide partner={partner} />}
+        {partner && programEnrollments && (
+          <ProfileDiscoveryGuide
+            partner={partner}
+            programEnrollments={programEnrollments}
+          />
+        )}
         <ProfileDetailsForm partner={partner} />
         <AboutYouForm partner={partner} />
         <HowYouWorkForm partner={partner} />

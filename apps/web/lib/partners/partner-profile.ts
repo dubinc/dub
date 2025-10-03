@@ -32,6 +32,8 @@ import {
   UsersSettings,
 } from "@dub/ui/icons";
 
+export const PARTNER_DISCOVERY_MIN_COMMISSIONS = 100_00;
+
 export const industryInterests: {
   id: IndustryInterest;
   icon: Icon;

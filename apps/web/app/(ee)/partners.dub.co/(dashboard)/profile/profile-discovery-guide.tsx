@@ -1,4 +1,6 @@
-import { PartnerProps } from "@/lib/types";
+import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
+import { PARTNER_DISCOVERY_MIN_COMMISSIONS } from "@/lib/partners/partner-profile";
+import { PartnerProps, ProgramEnrollmentProps } from "@/lib/types";
 import {
   Button,
   ChevronUp,
@@ -10,43 +12,59 @@ import {
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { HTMLProps, useState } from "react";
+import { HTMLProps, useMemo, useState } from "react";
 
-export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
+export function ProfileDiscoveryGuide({
+  partner,
+  programEnrollments,
+}: {
+  partner: PartnerProps;
+  programEnrollments: ProgramEnrollmentProps[];
+}) {
   if (partner.discoverableAt) return null;
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const tasks = [
-    {
-      label: "Add basic profile info",
-      completed: true,
-    },
-    {
-      label: "Verify your website or social account",
-      href: "#sites",
-      completed: false,
-    },
-    {
-      label: "Write your bio",
-      href: "#about",
-      completed: false,
-    },
-    {
-      label: "Select your industry interests",
-      href: "#interests",
-      completed: false,
-    },
-    {
-      label: "Choose your sales channels",
-      href: "#channels",
-      completed: false,
-    },
-    {
-      label: "Earn $100 in commissions",
-      completed: false,
-    },
-  ];
+  const tasks = useMemo(
+    () => [
+      {
+        label: "Add basic profile info",
+        completed: true,
+      },
+      {
+        label: "Verify your website or social account",
+        href: "#sites",
+        completed: ONLINE_PRESENCE_FIELDS.some(
+          (field) => field.data(partner).verified,
+        ),
+      },
+      {
+        label: "Write your bio",
+        href: "#about",
+        completed: !!partner.description,
+      },
+      {
+        label: "Select your industry interests",
+        href: "#interests",
+        completed: Boolean(partner.industryInterests?.length),
+      },
+      {
+        label: "Choose your sales channels",
+        href: "#channels",
+        completed: Boolean(partner.salesChannels?.length),
+      },
+      {
+        label: "Earn $100 in commissions",
+        completed:
+          programEnrollments.reduce(
+            (acc, programEnrollment) =>
+              acc + programEnrollment.totalCommissions,
+            0,
+          ) >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
+      },
+    ],
+    [partner, programEnrollments],
+  );
 
   const completedTasks = tasks.filter(({ completed }) => completed);
 
