@@ -175,8 +175,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               <>
                 <label className="contents">
                   <span className={labelClassName}>Logic</span>
+                  <TransactionalCampaignLogic />
                 </label>
-                <TransactionalCampaignLogic />
               </>
             )}
           </div>
