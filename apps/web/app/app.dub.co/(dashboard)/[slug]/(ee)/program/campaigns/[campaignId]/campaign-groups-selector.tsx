@@ -71,7 +71,10 @@ export function CampaignGroupsSelector({
             {selectedGroups.slice(0, MAX_DISPLAYED_GROUPS).map((group) => (
               <div
                 key={group.id}
-                className="flex h-5 min-w-0 items-center gap-1 rounded-md bg-neutral-200 px-1.5"
+                className={cn(
+                  "flex h-5 min-w-0 items-center gap-1 rounded-md px-1.5 transition-colors",
+                  isHovered ? "bg-neutral-200" : "bg-neutral-100",
+                )}
               >
                 <GroupColorCircle group={group} />
                 <span className="text-content-default min-w-0 truncate text-sm font-medium">
@@ -81,7 +84,12 @@ export function CampaignGroupsSelector({
             ))}
 
             {plusCount > 0 && (
-              <span className="flex items-center rounded-md bg-neutral-100 px-2 py-0.5 text-xs font-medium text-neutral-600">
+              <span
+                className={cn(
+                  "flex items-center rounded-md px-2 py-0.5 text-xs font-medium text-neutral-600 transition-colors",
+                  isHovered ? "bg-neutral-200" : "bg-neutral-100",
+                )}
+              >
                 +{plusCount}
               </span>
             )}
