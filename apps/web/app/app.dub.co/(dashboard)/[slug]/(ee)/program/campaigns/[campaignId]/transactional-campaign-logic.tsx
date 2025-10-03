@@ -11,7 +11,7 @@ import { useContext } from "react";
 import { Controller } from "react-hook-form";
 import { useCampaignFormContext } from "./campaign-form-context";
 
-export function CampaignAutomationLogic() {
+export function TransactionalCampaignLogic() {
   const { control, watch } = useCampaignFormContext();
 
   const [attribute, operator, value] = watch([

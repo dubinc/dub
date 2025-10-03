@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
 import { CampaignControls } from "./campaign-controls";
-import { CampaignAutomationLogic } from "./campaign-automation-logic";
+import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 
 const inputClassName =
   "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
@@ -129,7 +129,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             </div>
 
             <div className="flex items-center gap-1.5">
-              <span>New Automation</span>
+              <span>New Transactional</span>
               <StatusBadge variant={statusBadge.variant} icon={null}>
                 {statusBadge.label}
               </StatusBadge>
@@ -168,9 +168,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             {campaign.type === "transactional" && (
               <>
                 <label className="contents">
-                  <span className={labelClassName}>Automation</span>
+                  <span className={labelClassName}>Transactional</span>
                 </label>
-                <CampaignAutomationLogic />
+                <TransactionalCampaignLogic />
               </>
             )}
           </div>

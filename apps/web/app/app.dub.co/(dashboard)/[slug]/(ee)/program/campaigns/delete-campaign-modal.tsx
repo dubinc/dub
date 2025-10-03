@@ -1,8 +1,10 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign } from "@/lib/types";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
@@ -18,6 +20,8 @@ const DeleteCampaignModal = ({
   showModal,
   setShowModal,
 }: DeleteCampaignModalProps) => {
+  const router = useRouter();
+  const { slug } = useWorkspace();
   const { makeRequest: deleteCampaign, isSubmitting } = useApiMutation();
 
   const handleCampaignDeletion = async () => {
@@ -27,6 +31,7 @@ const DeleteCampaignModal = ({
         setShowModal(false);
         await mutatePrefix("/api/campaigns");
         toast.success("Campaign deleted successfully!");
+        router.push(`/${slug}/program/campaigns`);
       },
     });
   };
