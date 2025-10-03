@@ -24,18 +24,22 @@ export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
     },
     {
       label: "Verify your website or social account",
+      href: "#sites",
       completed: false,
     },
     {
       label: "Write your bio",
+      href: "#about",
       completed: false,
     },
     {
       label: "Select your industry interests",
+      href: "#interests",
       completed: false,
     },
     {
       label: "Choose your sales channels",
+      href: "#channels",
       completed: false,
     },
     {
@@ -108,13 +112,14 @@ export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
             className="grid grid-cols-1 rounded-lg bg-neutral-800 p-2 sm:grid-cols-2"
             onClick={(e) => e.stopPropagation()}
           >
-            {tasks.map(({ label, completed }) => (
+            {tasks.map(({ label, completed, href }) => (
               <ConditionalLink
                 key={label}
-                href={completed ? undefined : `#`}
+                href={completed ? undefined : href}
                 className={cn(
                   "group flex items-center justify-between gap-2 rounded-md px-3 py-2",
                   !completed &&
+                    href &&
                     "transition-colors duration-100 ease-out hover:bg-neutral-700",
                 )}
               >
@@ -126,7 +131,7 @@ export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
                   )}
                   <span className="min-w-0 truncate text-sm">{label}</span>
                 </div>
-                {!completed && (
+                {!completed && href && (
                   <div className="shrink-0 pr-4">
                     <ExpandingArrow className="group-hover:text-content-inverted text-neutral-500" />
                   </div>

@@ -131,6 +131,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
         </SettingsRow>
 
         <SettingsRow
+          id="channels"
           heading="Sales channels"
           description="Where you promote products and links. Select all that apply."
         >
