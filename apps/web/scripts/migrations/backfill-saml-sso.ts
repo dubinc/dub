@@ -4,6 +4,7 @@ import "dotenv-flow/config";
 async function main() {
   const workspaces = await prisma.project.findMany({
     where: {
+      ssoEmailDomain: null,
       plan: "enterprise",
     },
     select: {
@@ -11,6 +12,13 @@ async function main() {
       name: true,
       ssoEmailDomain: true,
       users: {
+        where: {
+          role: "owner",
+        },
+        orderBy: {
+          createdAt: "asc",
+        },
+        take: 1,
         select: {
           user: {
             select: {

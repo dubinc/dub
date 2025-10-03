@@ -31,7 +31,7 @@ export function SAML() {
     isLoading,
     update,
   } = useOptimisticUpdate<{
-    ssoEnforcedAt: Date | null;
+    ssoEnforcedAt: string | null;
   }>(`/api/workspaces/${workspaceId}`, {
     loading: "Saving SAML SSO login setting...",
     success: "SAML SSO login setting has been updated successfully.",
@@ -103,7 +103,7 @@ export function SAML() {
     };
 
     await update(updateWorkspace, {
-      ssoEnforcedAt: enforceSAML ? new Date() : null,
+      ssoEnforcedAt: enforceSAML ? new Date().toISOString() : null,
     });
   };
 
