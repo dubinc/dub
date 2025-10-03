@@ -7,6 +7,7 @@ import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
 import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
 import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
+import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import {
   Button,
   CopyButton,
@@ -27,7 +28,7 @@ export function ProgramPartnerLinksPageClient() {
   const { partner, error } = usePartner({ partnerId });
 
   return partner ? (
-    <div className="space-y-8">
+    <div className="grid gap-4">
       <PartnerLinks partner={partner} />
       <PartnerDiscountCodes partner={partner} />
     </div>
@@ -145,7 +146,9 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
   return (
     <>
       <div className="flex items-end justify-between gap-4">
-        <h2 className="text-content-emphasis text-lg font-semibold">Links</h2>
+        <h2 className="text-content-emphasis text-lg font-semibold">
+          Referral links
+        </h2>
         <Button
           variant="secondary"
           text="Create link"
@@ -153,9 +156,7 @@ const PartnerLinks = ({ partner }: { partner: EnrolledPartnerProps }) => {
           onClick={() => setShowAddPartnerLinkModal(true)}
         />
       </div>
-      <div className="mt-4">
-        <Table {...table} />
-      </div>
+      <Table {...table} />
       <AddPartnerLinkModal />
     </>
   );
@@ -189,21 +190,7 @@ const PartnerDiscountCodes = ({
       {
         id: "code",
         header: "Code",
-        cell: ({ row }) => (
-          <div className="group/discountcode relative flex h-5 w-fit items-center gap-1 rounded-lg bg-green-100 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:bg-green-200">
-            <Tag className="size-3 text-green-700" strokeWidth={1.5} />
-            <div className="text-xs font-medium text-green-700 transition-colors">
-              {row.original.code}
-            </div>
-            <span className="flex items-center">
-              <CopyButton
-                value={row.original.code}
-                variant="neutral"
-                className="p-0.5"
-              />
-            </span>
-          </div>
-        ),
+        cell: ({ row }) => <DiscountCodeBadge code={row.original.code} />,
       },
       {
         id: "shortLink",
@@ -226,14 +213,14 @@ const PartnerDiscountCodes = ({
       {
         id: "menu",
         enableHiding: false,
-        minSize: 35,
-        size: 35,
-        maxSize: 35,
+        minSize: 18,
+        size: 18,
+        maxSize: 18,
         cell: ({ row }) => (
           <Button
             icon={<Trash className="size-3.5 shrink-0 text-neutral-600" />}
             variant="outline"
-            className="h-8 whitespace-nowrap"
+            className="size-8 whitespace-nowrap"
             onClick={() => {
               setSelectedDiscountCode(row.original);
               setShowDeleteDiscountCodeModal(true);
@@ -295,31 +282,29 @@ const PartnerDiscountCodes = ({
         />
       </div>
 
-      <div className="mt-4">
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <LoadingSpinner />
-          </div>
-        ) : !error && (!discountCodes || discountCodes.length === 0) ? (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-6">
-            <Tag className="mb-2 size-6 text-neutral-900" />
-            <h3 className="text-content-emphasis text-sm font-semibold leading-5">
-              No codes created
-            </h3>
-            <p className="text-content-default -mt-1 text-sm font-medium leading-5">
-              Create a discount code for each link
-            </p>
-          </div>
-        ) : error ? (
-          <div className="flex justify-center py-16">
-            <span className="text-content-subtle text-sm">
-              Failed to load discount codes
-            </span>
-          </div>
-        ) : (
-          <Table {...table} />
-        )}
-      </div>
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <LoadingSpinner />
+        </div>
+      ) : !error && (!discountCodes || discountCodes.length === 0) ? (
+        <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 py-6">
+          <Tag className="mb-2 size-6 text-neutral-900" />
+          <h3 className="text-content-emphasis text-sm font-semibold leading-5">
+            No codes created
+          </h3>
+          <p className="text-content-default -mt-1 text-sm font-medium leading-5">
+            Create a discount code for each link
+          </p>
+        </div>
+      ) : error ? (
+        <div className="flex justify-center py-16">
+          <span className="text-content-subtle text-sm">
+            Failed to load discount codes
+          </span>
+        </div>
+      ) : (
+        <Table {...table} />
+      )}
 
       <AddDiscountCodeModal />
 

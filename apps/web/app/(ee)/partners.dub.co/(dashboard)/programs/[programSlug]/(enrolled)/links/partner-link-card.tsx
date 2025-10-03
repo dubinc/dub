@@ -4,6 +4,7 @@ import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
+import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import {
   ArrowTurnRight2,
   Button,
@@ -13,7 +14,6 @@ import {
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
-  Tag,
   useCopyToClipboard,
   useInViewport,
   UserCheck,
@@ -155,25 +155,6 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                   </div>
 
                   {link.comments && <CommentsBadge comments={link.comments} />}
-
-                  {link.discountCode && (
-                    <div className="group/discountcode relative flex h-5 w-fit items-center gap-1 rounded-lg bg-green-100 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:bg-green-200">
-                      <Tag
-                        className="size-3 text-green-700"
-                        strokeWidth={1.5}
-                      />
-                      <div className="text-xs font-medium text-green-700 transition-colors">
-                        {link.discountCode}
-                      </div>
-                      <span className="flex items-center">
-                        <CopyButton
-                          value={link.discountCode}
-                          variant="neutral"
-                          className="p-0.5"
-                        />
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 {/* The max width implementation here is a bit hacky, we should improve in the future */}
@@ -199,7 +180,12 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
               </div>
             </div>
           </div>
-          <Controls link={link} />
+          <div className="flex items-center gap-2">
+            {link.discountCode && (
+              <DiscountCodeBadge code={link.discountCode} showTooltip />
+            )}
+            <Controls link={link} />
+          </div>
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">

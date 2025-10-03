@@ -12,7 +12,7 @@ import {
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { cn, getPrettyUrl } from "@dub/utils";
 import { Tag } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -64,7 +64,7 @@ const AddDiscountCodeModal = ({
     if (!debouncedSearch) {
       return partnerLinks.map((link) => ({
         value: link.id,
-        label: link.shortLink,
+        label: getPrettyUrl(link.shortLink),
       }));
     }
 
@@ -74,7 +74,7 @@ const AddDiscountCodeModal = ({
       )
       .map((link) => ({
         value: link.id,
-        label: link.shortLink,
+        label: getPrettyUrl(link.shortLink),
       }));
   }, [partnerLinks, debouncedSearch]);
 
@@ -144,7 +144,7 @@ const AddDiscountCodeModal = ({
                   htmlFor="code"
                   className="block text-sm font-medium text-neutral-700"
                 >
-                  Discount code (optional)
+                  Discount code
                 </label>
               </div>
 
@@ -181,7 +181,7 @@ const AddDiscountCodeModal = ({
                   selectedLink
                     ? {
                         value: selectedLink.id,
-                        label: selectedLink.shortLink,
+                        label: getPrettyUrl(selectedLink.shortLink),
                       }
                     : null
                 }
