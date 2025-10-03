@@ -29,13 +29,13 @@ export function CampaignEditorSkeleton() {
           <div className="h-7 w-full animate-pulse rounded-md bg-neutral-100" />
 
           <span className={labelClassName}>To</span>
-          <div />
+          <div className="h-7 w-full animate-pulse rounded-md bg-neutral-100" />
 
           <span className={labelClassName}>Subject</span>
           <div className="h-7 w-full animate-pulse rounded-md bg-neutral-100" />
 
-          <span className={labelClassName}>Type</span>
-          <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-100" />
+          <span className={labelClassName}>Automation</span>
+          <div className="h-7 w-full animate-pulse rounded-md bg-neutral-100" />
         </div>
 
         <div className="mt-6">

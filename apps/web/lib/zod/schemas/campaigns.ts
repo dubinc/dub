@@ -1,3 +1,4 @@
+import { CampaignWorkflowAttribute } from "@/lib/types";
 import { CampaignStatus, CampaignType } from "@dub/prisma/client";
 import { z } from "zod";
 import { GroupSchema } from "./groups";
@@ -6,6 +7,15 @@ import { workflowConditionSchema } from "./workflows";
 export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30];
 
 export const EMAIL_TEMPLATE_VARIABLES = ["PartnerName", "PartnerEmail"];
+
+export const CAMPAIGN_WORKFLOW_ATTRIBUTES = ["partnerEnrolledDays"] as const;
+
+export const CAMPAIGN_WORKFLOW_ATTRIBUTE_LABELS: Record<
+  CampaignWorkflowAttribute,
+  string
+> = {
+  partnerEnrolledDays: "been in the program for",
+} as const;
 
 export const CampaignSchema = z.object({
   id: z.string(),
@@ -77,26 +87,3 @@ export const getCampaignsCountQuerySchema = getCampaignsQuerySchema
   .extend({
     groupBy: z.enum(["type", "status"]).optional(),
   });
-
-// Workflow
-export const CAMPAIGN_WORKFLOW_ATTRIBUTES = [
-  "totalLeads",
-  "totalConversions",
-  "totalSaleAmount",
-  "totalCommissions",
-  "partnerEnrolledDays",
-] as const;
-
-export type CampaignWorkflowAttribute =
-  (typeof CAMPAIGN_WORKFLOW_ATTRIBUTES)[number];
-
-export const CAMPAIGN_WORKFLOW_ATTRIBUTE_LABELS: Record<
-  CampaignWorkflowAttribute,
-  string
-> = {
-  totalLeads: "lead",
-  totalConversions: "conversions",
-  totalSaleAmount: "revenue",
-  totalCommissions: "commissions",
-  partnerEnrolledDays: "been in the program for",
-} as const;

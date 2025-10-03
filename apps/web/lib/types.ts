@@ -34,6 +34,7 @@ import {
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
 import {
+  CAMPAIGN_WORKFLOW_ATTRIBUTES,
   CampaignListSchema,
   CampaignSchema,
   updateCampaignSchema,
@@ -643,3 +644,6 @@ export type CampaignList = z.infer<typeof CampaignListSchema>;
 export type Campaign = z.infer<typeof CampaignSchema>;
 
 export type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;
+
+export type CampaignWorkflowAttribute =
+  (typeof CAMPAIGN_WORKFLOW_ATTRIBUTES)[number];

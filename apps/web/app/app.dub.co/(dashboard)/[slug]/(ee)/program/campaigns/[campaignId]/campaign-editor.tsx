@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
 import { CampaignControls } from "./campaign-controls";
+import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 
 const inputClassName =
@@ -150,10 +151,17 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               />
             </label>
 
-            <label className="contents">
-              <span className={labelClassName}>To</span>
-              <div />
-            </label>
+            <span className={labelClassName}>To</span>
+            <Controller
+              control={control}
+              name="groupIds"
+              render={({ field }) => (
+                <CampaignGroupsSelector
+                  selectedGroupIds={field.value ?? null}
+                  setSelectedGroupIds={field.onChange}
+                />
+              )}
+            />
 
             <label className="contents">
               <span className={labelClassName}>Subject</span>
