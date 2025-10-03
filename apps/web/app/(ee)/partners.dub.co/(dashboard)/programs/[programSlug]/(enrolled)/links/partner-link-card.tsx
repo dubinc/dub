@@ -14,6 +14,8 @@ import {
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
+  SimpleTooltipContent,
+  Tooltip,
   useCopyToClipboard,
   useInViewport,
   UserCheck,
@@ -182,7 +184,22 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
           </div>
           <div className="flex items-center gap-2">
             {link.discountCode && (
-              <DiscountCodeBadge code={link.discountCode} showTooltip />
+              <Tooltip
+                content={
+                  <SimpleTooltipContent
+                    title="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc."
+                    cta="Learn more"
+                    href="https://dub.co/help/article/dual-sided-incentives"
+                  />
+                }
+              >
+                <div className="flex items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1">
+                  <span className="text-sm leading-none text-neutral-500">
+                    Discount code
+                  </span>
+                  <DiscountCodeBadge code={link.discountCode} />
+                </div>
+              </Tooltip>
             )}
             <Controls link={link} />
           </div>

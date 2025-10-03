@@ -172,7 +172,7 @@ export const POST = withWorkspace(
         code: "bad_request",
         message:
           error.code === "more_permissions_required_for_application"
-            ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe app permissions in the dashboard or reach out to our support team for help."
+            ? "STRIPE_APP_UPGRADE_REQUIRED: Your connected Stripe account doesn't have the permissions needed to create discount codes. Please upgrade your Stripe integration in settings or reach out to our support team for help."
             : error.message,
       });
     }
