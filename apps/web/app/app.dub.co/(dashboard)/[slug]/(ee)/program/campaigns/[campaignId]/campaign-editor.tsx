@@ -2,12 +2,20 @@
 
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ChevronRight, PaperPlane, RichTextArea, StatusBadge } from "@dub/ui";
+import {
+  Button,
+  ChevronRight,
+  Lock,
+  PaperPlane,
+  RichTextArea,
+  StatusBadge,
+} from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useCallback, useEffect } from "react";
@@ -26,6 +34,7 @@ const labelClassName = "text-sm font-medium text-content-subtle";
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { program } = useProgram();
 
   const {
     makeRequest: saveDraftCampaign,
@@ -231,6 +240,18 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               )}
             />
           </div>
+
+          {program?.messagingEnabledAt && campaign.type === "transactional" && (
+            <div className="flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+              <div className="flex items-center justify-center gap-2 text-sm">
+                <Lock className="size-4 shrink-0 text-blue-500" />
+                <span className="text-sm font-medium text-blue-900">
+                  Allows the partner to respond in messages with any questions.
+                </span>
+              </div>
+              <Button text="Respond in Dub" className="h-9 rounded-lg" />
+            </div>
+          )}
 
           <div className="border-border-subtle mt-4 w-full border-t pt-4 text-center text-xs font-medium text-neutral-300">
             End of email
