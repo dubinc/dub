@@ -3,7 +3,7 @@ import {
   BountySubmissionSchema,
 } from "@/lib/zod/schemas/bounties";
 import { CommissionSchema } from "@/lib/zod/schemas/commissions";
-import { DiscountSchema } from "@/lib/zod/schemas/discount";
+import { DiscountCodeSchema, DiscountSchema } from "@/lib/zod/schemas/discount";
 import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { PayoutSchema } from "@/lib/zod/schemas/payouts";
@@ -42,6 +42,8 @@ const actionSchema = z.enum([
   "discount.created",
   "discount.updated",
   "discount.deleted",
+  "discount_code.created",
+  "discount_code.deleted",
 
   // Partner applications
   "partner_application.approved",
@@ -128,6 +130,12 @@ export const auditLogTarget = z.union([
       maxDuration: true,
       couponId: true,
     }),
+  }),
+
+  z.object({
+    type: z.literal("discount_code"),
+    id: z.string(),
+    metadata: DiscountCodeSchema,
   }),
 
   z.object({

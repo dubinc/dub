@@ -7,7 +7,7 @@ import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
@@ -16,8 +16,7 @@ export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { discountId, amount, type, maxDuration, couponId, couponTestId } =
-      parsedInput;
+    const { discountId, couponTestId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -32,11 +31,7 @@ export const updateDiscountAction = authActionClient
           id: discountId,
         },
         data: {
-          amount,
-          type,
-          maxDuration,
-          couponId,
-          couponTestId,
+          couponTestId: couponTestId || null,
         },
         include: {
           program: true,
@@ -46,18 +41,8 @@ export const updateDiscountAction = authActionClient
 
     waitUntil(
       (async () => {
-        const shouldExpireCache = !deepEqual(
-          {
-            amount: discount.amount,
-            type: discount.type,
-            maxDuration: discount.maxDuration,
-          },
-          {
-            amount: updatedDiscount.amount,
-            type: updatedDiscount.type,
-            maxDuration: updatedDiscount.maxDuration,
-          },
-        );
+        const shouldExpireCache =
+          discount.couponTestId !== updatedDiscount.couponTestId;
 
         await Promise.allSettled([
           ...(shouldExpireCache

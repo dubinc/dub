@@ -69,11 +69,13 @@ model Partner {
   messages          Message[]
   sentMessages      Message[]           @relation("SenderPartner")
   comments          PartnerComment[]
-  discoveredPartners DiscoveredPartner[]
+  discountCodes     DiscountCode[]
 
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
+
+  discoveredByPrograms DiscoveredPartner[]
 
   @@index(discoverableAt)
 }
@@ -195,5 +197,5 @@ model DiscoveredPartner {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([programId, partnerId])
-  @@index(programId)
+  @@index(partnerId)
 }

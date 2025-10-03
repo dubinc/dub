@@ -44,7 +44,7 @@ model Program {
   minPayoutAmount              Int                      @default(0) // Default minimum payout amount of $0
   embedData                    Json?                    @db.Json
   landerData                   Json?                    @db.Json // TODO: drop this column after PR #2893 merges
-  landerPublishedAt            DateTime?                         // TODO: drop this column after PR #2893 merges
+  landerPublishedAt            DateTime? // TODO: drop this column after PR #2893 merges
   applicationFormData          Json?                    @db.Json // TODO: drop this column after PR #2893 merges
   resources                    Json?                    @db.Json
   termsUrl                     String?                  @db.Text
@@ -74,6 +74,7 @@ model Program {
   workflows                Workflow[]
   messages                 Message[]
   comments                 PartnerComment[]
+  discountCodes            DiscountCode[]
   campaigns                Campaign[]
   discoveredPartners       DiscoveredPartner[]
   industryInterests        ProgramIndustryInterest[]
@@ -110,6 +111,7 @@ model ProgramEnrollment {
   saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
   discount          Discount?           @relation(fields: [discountId], references: [id])
   bountySubmissions BountySubmission[]
+  discountCodes     DiscountCode[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
