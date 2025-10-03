@@ -1,4 +1,6 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { isGenericEmail } from "@/lib/is-generic-email";
 import { jackson, samlAudience } from "@/lib/jackson";
 import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
@@ -56,6 +58,16 @@ export const POST = withWorkspace(
     const { metadataUrl, encodedRawMetadata } =
       createSAMLConnectionSchema.parse(await req.json());
 
+    const ssoEmailDomain = session.user.email.split("@")[1].toLocaleLowerCase();
+
+    if (isGenericEmail(ssoEmailDomain)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "SAML configuration requires you to be logged in with your organization’s work email.",
+      });
+    }
+
     const { apiController } = await jackson();
 
     const data = await apiController.createSAMLConnection({
@@ -66,8 +78,6 @@ export const POST = withWorkspace(
       tenant: workspace.id,
       product: "Dub",
     });
-
-    const ssoEmailDomain = session.user.email.split("@")[1].toLocaleLowerCase();
 
     await prisma.project.update({
       where: {
