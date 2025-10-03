@@ -26,16 +26,16 @@ export function CampaignEditorSkeleton() {
       <PageWidthWrapper className="mb-8 max-w-[600px]">
         <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
           <span className={labelClassName}>Name</span>
-          <div className="h-7 w-full animate-pulse rounded-md bg-neutral-100" />
+          <div className="h-8 w-full animate-pulse rounded-md bg-neutral-100" />
 
           <span className={labelClassName}>To</span>
-          <div className="h-7 w-full animate-pulse rounded-md bg-neutral-100" />
+          <div className="h-8 w-full animate-pulse rounded-md bg-neutral-100" />
 
           <span className={labelClassName}>Subject</span>
-          <div className="h-7 w-full animate-pulse rounded-md bg-neutral-100" />
+          <div className="h-8 w-full animate-pulse rounded-md bg-neutral-100" />
 
-          <span className={labelClassName}>Automation</span>
-          <div className="h-7 w-full animate-pulse rounded-md bg-neutral-100" />
+          <span className={labelClassName}>Logic</span>
+          <div className="h-8 w-full animate-pulse rounded-md bg-neutral-100" />
         </div>
 
         <div className="mt-6">
