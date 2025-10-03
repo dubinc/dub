@@ -476,6 +476,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         },
         sale: {
           productId,
+          amount: saleData.amount,
         },
       },
     });

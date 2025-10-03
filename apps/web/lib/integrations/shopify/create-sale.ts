@@ -145,6 +145,9 @@ export async function createShopifySale({
         customer: {
           country: customer.country,
         },
+        sale: {
+          amount: saleData.amount,
+        },
       },
     });
     webhookPartner = createdCommission?.webhookPartner;
