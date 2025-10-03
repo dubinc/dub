@@ -27,7 +27,7 @@ import {
 } from "@dub/ui/icons";
 import { LockOpen } from "lucide-react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { redirect, useParams } from "next/navigation";
 import { ReactNode, useState } from "react";
 import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
 import { PartnerNav } from "./partner-nav";
@@ -41,6 +41,7 @@ export default function ProgramPartnerLayout({
   const { slug: workspaceSlug } = useWorkspace();
 
   const { partnerId } = useParams() as { partnerId: string };
+
   const {
     partner,
     loading: isPartnerLoading,
@@ -48,6 +49,10 @@ export default function ProgramPartnerLayout({
   } = usePartner({
     partnerId,
   });
+
+  if (partnerError && partnerError.status === 404) {
+    redirect(`/${workspaceSlug}/program/partners`);
+  }
 
   return (
     <PageContent

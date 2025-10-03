@@ -42,7 +42,6 @@ export const payoutsCountQuerySchema = payoutsQuerySchema
     partnerId: true,
     eligibility: true,
     invoiceId: true,
-    excludeCurrentMonth: true,
   })
   .merge(
     z.object({
@@ -79,7 +78,6 @@ export const PayoutResponseSchema = PayoutSchema.merge(
 
 export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
   partner: true,
-  _count: true,
 }).merge(
   z.object({
     program: ProgramSchema.pick({

@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
@@ -28,6 +29,13 @@ export const deleteDiscountAction = authActionClient
       discountId,
     });
 
+    // Cache discount codes to delete them later
+    const discountCodes = await prisma.discountCode.findMany({
+      where: {
+        discountId: discount.id,
+      },
+    });
+
     const group = await prisma.$transaction(async (tx) => {
       const group = await tx.partnerGroup.update({
         where: {
@@ -39,6 +47,15 @@ export const deleteDiscountAction = authActionClient
       });
 
       await tx.programEnrollment.updateMany({
+        where: {
+          discountId: discount.id,
+        },
+        data: {
+          discountId: null,
+        },
+      });
+
+      await tx.discountCode.updateMany({
         where: {
           discountId: discount.id,
         },
@@ -64,6 +81,8 @@ export const deleteDiscountAction = authActionClient
             groupId: group.id,
           },
         }),
+
+        queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
 
         recordAuditLog({
           workspaceId: workspace.id,

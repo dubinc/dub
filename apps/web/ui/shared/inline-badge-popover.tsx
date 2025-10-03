@@ -33,11 +33,13 @@ export const InlineBadgePopoverContext = createContext<{
 export function InlineBadgePopover({
   text,
   invalid,
+  disabled,
   children,
   buttonClassName,
 }: PropsWithChildren<{
   text: ReactNode;
   invalid?: boolean;
+  disabled?: boolean;
   buttonClassName?: string;
 }>) {
   const [isOpen, setIsOpen] = useState(false);
@@ -61,6 +63,7 @@ export function InlineBadgePopover({
     >
       <button
         type="button"
+        disabled={disabled}
         className={cn(
           "inline-block rounded px-1.5 text-left text-sm font-semibold transition-colors",
           invalid
