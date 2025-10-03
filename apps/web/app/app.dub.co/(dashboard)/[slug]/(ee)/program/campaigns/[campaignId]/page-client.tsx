@@ -7,6 +7,7 @@ import { useState } from "react";
 import useCampaign from "../use-campaign";
 import { CampaignEditor } from "./campaign-editor";
 import { CampaignEditorSkeleton } from "./campaign-editor-skeleton";
+import { CampaignMetrics } from "./campaign-metrics";
 
 export function ProgramCampaignPageClient() {
   const { campaign, error, loading } = useCampaign();
@@ -38,7 +39,7 @@ export function ProgramCampaignPageClient() {
           />
         </div>
 
-        {/* Right panel - Empty for now */}
+        {/* Right panel - Metrics  */}
         <div
           className={cn(
             "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
@@ -47,7 +48,10 @@ export function ProgramCampaignPageClient() {
           )}
         >
           <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[360px]">
-            {/* Content will go here */}
+            <CampaignMetrics
+              isOpen={isRightPanelOpen}
+              onClose={() => setIsRightPanelOpen(false)}
+            />
           </div>
         </div>
       </div>

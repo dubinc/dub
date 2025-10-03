@@ -9,7 +9,7 @@ interface GetCampaignEventsParams
   campaignId: string;
 }
 
-const schema = z.object({
+const campaignEventSchema = z.object({
   partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,
@@ -20,7 +20,10 @@ const schema = z.object({
     name: true,
     color: true,
   }),
-  date: z.date(),
+  createdAt: z.date(),
+  openedAt: z.date().nullable(),
+  bouncedAt: z.date().nullable(),
+  deliveredAt: z.date().nullable(),
 });
 
 export const getCampaignEvents = async (params: GetCampaignEventsParams) => {
@@ -32,24 +35,44 @@ export const getCampaignEvents = async (params: GetCampaignEventsParams) => {
       ...(status === "opened" && { openedAt: { not: null } }),
       ...(status === "bounced" && { bouncedAt: { not: null } }),
     },
-    include: {
+    select: {
+      createdAt: true,
+      openedAt: true,
+      bouncedAt: true,
+      deliveredAt: true,
       partner: {
-        include: {
+        select: {
+          id: true,
+          name: true,
+          image: true,
           programs: {
-            include: {
-              partnerGroup: true
-            }
-          }
-        }
-      }
+            select: {
+              partnerGroup: {
+                select: {
+                  id: true,
+                  name: true,
+                  color: true,
+                },
+              },
+            },
+          },
+        },
+      },
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });
 
-  console.log(results)
+  const events = results.map((result) => {
+    return {
+      partner: result.partner,
+      group: result.partner?.programs[0]?.partnerGroup,
+      createdAt: result.createdAt,
+      openedAt: result.openedAt,
+      bouncedAt: result.bouncedAt,
+      deliveredAt: result.deliveredAt,
+    };
+  });
 
-  return results;
-
-  // return schema.parse(results);
+  return z.array(campaignEventSchema).parse(events);
 };

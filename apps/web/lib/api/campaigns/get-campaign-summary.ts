@@ -1,7 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 
-const schema = z.object({
+const campaignSummarySchema = z.object({
   sent: z.coerce.number(),
   delivered: z.coerce.number(),
   opened: z.coerce.number(),
@@ -9,7 +9,9 @@ const schema = z.object({
 });
 
 export const getCampaignSummary = async (campaignId: string) => {
-  const [queryResult] = await prisma.$queryRaw<z.infer<typeof schema>[]>`
+  const [queryResult] = await prisma.$queryRaw<
+    z.infer<typeof campaignSummarySchema>[]
+  >`
     SELECT
       COUNT(*) AS sent,
       SUM(CASE WHEN deliveredAt IS NOT NULL THEN 1 ELSE 0 END) AS delivered,
@@ -19,5 +21,5 @@ export const getCampaignSummary = async (campaignId: string) => {
     WHERE campaignId = ${campaignId}
   `;
 
-  return schema.parse(queryResult);
+  return campaignSummarySchema.parse(queryResult);
 };
