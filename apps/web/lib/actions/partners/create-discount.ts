@@ -8,7 +8,7 @@ import { qstash } from "@/lib/cron";
 import { createStripeCoupon } from "@/lib/stripe/create-stripe-coupon";
 import { createDiscountSchema } from "@/lib/zod/schemas/discount";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -49,6 +49,7 @@ export const createDiscountAction = authActionClient
             stripeConnectId: workspace.stripeConnectId,
           },
           discount: {
+            name: `Dub Discount (${truncate(group.name, 25)})`,
             amount,
             type,
             maxDuration: maxDuration ?? null,

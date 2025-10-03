@@ -12,7 +12,9 @@ export async function createStripeCoupon({
   discount,
 }: {
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId">;
-  discount: Pick<Discount, "amount" | "type" | "maxDuration">;
+  discount: Pick<Discount, "amount" | "type" | "maxDuration"> & {
+    name: string;
+  };
 }) {
   if (!workspace.stripeConnectId) {
     console.error(
@@ -47,6 +49,7 @@ export async function createStripeCoupon({
         ...(discount.type === "percentage"
           ? { percent_off: discount.amount }
           : { amount_off: discount.amount }),
+        ...(discount.name && { name: discount.name }),
       },
       {
         stripeAccount: workspace.stripeConnectId,
