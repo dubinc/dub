@@ -26,9 +26,9 @@ export const DeleteDiscountCodeModal = ({
     await deleteDiscountCode(`/api/discount-codes/${discountCode.id}`, {
       method: "DELETE",
       onSuccess: async () => {
-        toast.success(`Discount code deleted successfully!`);
-        await mutatePrefix("/api/discount-codes");
         setShowModal(false);
+        await mutatePrefix("/api/discount-codes");
+        toast.success(`Discount code deleted successfully!`);
       },
     });
   };

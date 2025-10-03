@@ -1,4 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { createId } from "@/lib/api/create-id";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -139,6 +140,7 @@ export const POST = withWorkspace(
 
       const discountCode = await prisma.discountCode.create({
         data: {
+          id: createId({ prefix: "dcode_" }),
           code: stripeDiscountCode.code,
           programId,
           partnerId,
