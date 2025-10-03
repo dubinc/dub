@@ -10,6 +10,7 @@ const AUTHENTICATED_PATHS = [
   "/onboarding",
   "/settings",
   "/profile",
+  "/messages",
   "/payouts",
   "/account",
 ];
