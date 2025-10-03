@@ -22,11 +22,13 @@ model NotificationEmail {
   message  Message?  @relation(fields: [messageId], references: [id], onDelete: Cascade)
   bounty   Bounty?   @relation(fields: [bountyId], references: [id], onDelete: Cascade)
   campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  partner  Partner?  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@index(type)
   @@index(messageId)
   @@index(bountyId)
   @@index(campaignId)
+  @@index(partnerId)
 }
 
 model NotificationPreference {

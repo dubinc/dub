@@ -59,15 +59,16 @@ model Partner {
   invoiceSettings              Json?
   monthlyTraffic               MonthlyTraffic?
 
-  programs          ProgramEnrollment[]
-  users             PartnerUser[]
-  invites           PartnerInvite[]
-  payouts           Payout[]
-  commissions       Commission[]
-  bountySubmissions BountySubmission[]
-  messages          Message[]
-  sentMessages      Message[]           @relation("SenderPartner")
-  comments          PartnerComment[]
+  programs           ProgramEnrollment[]
+  users              PartnerUser[]
+  invites            PartnerInvite[]
+  payouts            Payout[]
+  commissions        Commission[]
+  bountySubmissions  BountySubmission[]
+  messages           Message[]
+  sentMessages       Message[]           @relation("SenderPartner")
+  comments           PartnerComment[]
+  notificationEmails NotificationEmail[]
 
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]

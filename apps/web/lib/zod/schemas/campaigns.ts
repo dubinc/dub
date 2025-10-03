@@ -2,6 +2,7 @@ import { CampaignWorkflowAttribute } from "@/lib/types";
 import { CampaignStatus, CampaignType } from "@dub/prisma/client";
 import { z } from "zod";
 import { GroupSchema } from "./groups";
+import { getPaginationQuerySchema } from "./misc";
 import { workflowConditionSchema } from "./workflows";
 
 export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30];
@@ -87,3 +88,9 @@ export const getCampaignsCountQuerySchema = getCampaignsQuerySchema
   .extend({
     groupBy: z.enum(["type", "status"]).optional(),
   });
+
+export const getCampaignsEventsQuerySchema = z
+  .object({
+    status: z.enum(["opened", "bounced"]).default("opened"),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
