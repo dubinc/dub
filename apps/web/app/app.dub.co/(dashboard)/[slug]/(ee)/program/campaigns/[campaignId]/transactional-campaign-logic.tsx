@@ -30,8 +30,8 @@ export function TransactionalCampaignLogic() {
   }, [attribute, value, setValue]);
 
   return (
-    <div className="flex w-full items-center">
-      <span className="text-content-emphasis flex gap-1 text-sm font-medium leading-relaxed">
+    <div className="ml-2 flex w-full items-center">
+      <span className="text-content-default flex gap-1 text-sm font-medium leading-relaxed">
         When partner has
         <div className="inline-flex items-center gap-1">
           <Controller
@@ -59,37 +59,39 @@ export function TransactionalCampaignLogic() {
               </InlineBadgePopover>
             )}
           />
-        </div>{" "}
-        <Controller
-          control={control}
-          name="triggerCondition.value"
-          render={({ field }) => (
-            <InlineBadgePopover
-              text={
-                field.value !== undefined && field.value !== null
-                  ? String(field.value)
-                  : "1"
-              }
-              invalid={field.value === undefined || field.value === null}
-            >
-              <InlineBadgePopoverMenu
-                selectedValue={
+
+          <Controller
+            control={control}
+            name="triggerCondition.value"
+            render={({ field }) => (
+              <InlineBadgePopover
+                text={
                   field.value !== undefined && field.value !== null
                     ? String(field.value)
                     : "1"
                 }
-                onSelect={(val) => field.onChange(Number(val))}
-                items={ALLOWED_ATTRIBUTE_VALUES_IN_DAYS.filter(
-                  (days) => days !== 0,
-                ).map((days) => ({
-                  text: String(days),
-                  value: String(days),
-                }))}
-              />
-            </InlineBadgePopover>
-          )}
-        />{" "}
-        {pluralize("day", value || 1)}
+                invalid={field.value === undefined || field.value === null}
+              >
+                <InlineBadgePopoverMenu
+                  selectedValue={
+                    field.value !== undefined && field.value !== null
+                      ? String(field.value)
+                      : "1"
+                  }
+                  onSelect={(val) => field.onChange(Number(val))}
+                  items={ALLOWED_ATTRIBUTE_VALUES_IN_DAYS.filter(
+                    (days) => days !== 0,
+                  ).map((days) => ({
+                    text: String(days),
+                    value: String(days),
+                  }))}
+                />
+              </InlineBadgePopover>
+            )}
+          />
+
+          {pluralize("day", value || 1)}
+        </div>
       </span>
     </div>
   );
