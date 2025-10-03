@@ -1,3 +1,4 @@
+import { isGenericEmail } from "@/lib/is-generic-email";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
@@ -36,8 +37,10 @@ async function main() {
     const email = workspace.users[0]?.user?.email;
     const emailDomain = email ? email.split("@")[1]?.toLowerCase() : undefined;
 
-    if (!emailDomain) {
-      console.log(`Workspace ${workspace.name} has no email domain`);
+    if (!emailDomain || (email && isGenericEmail(email))) {
+      console.log(
+        `Workspace ${workspace.name}'s email domain (${emailDomain}) is invalid or generic, skipping...`,
+      );
       continue;
     }
 
@@ -50,18 +53,18 @@ async function main() {
 
   console.table(workspacesToUpdate);
 
-  // await Promise.allSettled(
-  //   workspacesToUpdate.map((workspace) =>
-  //     prisma.project.update({
-  //       where: {
-  //         id: workspace.id,
-  //       },
-  //       data: {
-  //         ssoEmailDomain: workspace.ssoEmailDomain,
-  //       },
-  //     }),
-  //   ),
-  // );
+  await Promise.allSettled(
+    workspacesToUpdate.map((workspace) =>
+      prisma.project.update({
+        where: {
+          id: workspace.id,
+        },
+        data: {
+          ssoEmailDomain: workspace.ssoEmailDomain,
+        },
+      }),
+    ),
+  );
 }
 
 main();
