@@ -73,10 +73,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         {} as Record<string, any>,
       );
 
-      console.log({changedFields})
-
-      // Only make request if there are changed fields
       if (Object.keys(changedFields).length > 0) {
+        if ("groupIds" in changedFields) {
+          changedFields.groupIds = Array.isArray(changedFields.groupIds)
+            ? changedFields.groupIds
+            : null;
+        }
+
         await saveDraftCampaign(`/api/campaigns/${campaign.id}`, {
           method: "PATCH",
           body: {

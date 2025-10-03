@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
@@ -53,7 +54,7 @@ export const PATCH = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { type, name, subject, status, body, triggerCondition } =
+    const { type, name, subject, status, body, groupIds, triggerCondition } =
       updateCampaignSchema.parse(await parseRequestBody(req));
 
     const campaign = await prisma.campaign.findUniqueOrThrow({
@@ -65,6 +66,11 @@ export const PATCH = withWorkspace(
         groups: true,
         workflow: true,
       },
+    });
+
+    const partnerGroups = await throwIfInvalidGroupIds({
+      programId,
+      groupIds,
     });
 
     // TODO
@@ -85,7 +91,6 @@ export const PATCH = withWorkspace(
     const updatedCampaign = await prisma.$transaction(async (tx) => {
       let workflow: Workflow | null = null;
 
- 
       if (
         status === CampaignStatus.draft &&
         campaign.type === CampaignType.transactional &&
@@ -96,9 +101,6 @@ export const PATCH = withWorkspace(
         const actions = [
           { type: WORKFLOW_ACTION_TYPES.SendCampaign, data: { campaignId } },
         ];
-
-        console.log({triggerCondition, trigger, triggerConditions, actions})
-
 
         if (campaign.workflowId) {
           // Update existing workflow
@@ -138,6 +140,13 @@ export const PATCH = withWorkspace(
           ...(status && { status }),
           ...(body && { body }),
           ...(workflow && { workflowId: workflow.id }),
+          ...(partnerGroups.length && {
+            groups: {
+              createMany: {
+                data: partnerGroups.map(({ id }) => ({ groupId: id })),
+              },
+            },
+          }),
         },
         include: {
           groups: true,
