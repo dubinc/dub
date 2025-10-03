@@ -55,6 +55,18 @@ export const E2E_REWARD = {
         },
       ],
     },
+    {
+      operator: "AND",
+      amount: 5000,
+      conditions: [
+        {
+          entity: "sale",
+          attribute: "amount",
+          operator: "greater_than",
+          value: 15000,
+        },
+      ],
+    },
   ],
 };
 
