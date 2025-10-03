@@ -91,7 +91,13 @@ export const createPartnerCommission = async ({
     reward = determinePartnerReward({
       event: event as EventType,
       programEnrollment,
-      context,
+      context: {
+        ...context,
+        sale: {
+          ...context?.sale,
+          amount,
+        },
+      },
     });
 
     // if there is no reward, skip commission creation
