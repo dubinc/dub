@@ -14,7 +14,6 @@ const BATCH_SIZE = 10000;
 
 type WorkspaceAggregateUsage = {
   workspaceId: string;
-  usage: number;
   clicks: number;
   firstTimestamp: number;
   lastTimestamp: number;
@@ -45,7 +44,6 @@ const aggregateWorkspaceUsage = (
 
     if (aggregatedUsage.has(workspaceId)) {
       const existing = aggregatedUsage.get(workspaceId)!;
-      existing.usage += 1;
       existing.clicks += 1;
       existing.lastTimestamp = Math.max(existing.lastTimestamp, timestamp);
       existing.firstTimestamp = Math.min(existing.firstTimestamp, timestamp);
@@ -53,7 +51,6 @@ const aggregateWorkspaceUsage = (
     } else {
       aggregatedUsage.set(workspaceId, {
         workspaceId,
-        usage: 1,
         clicks: 1,
         firstTimestamp: timestamp,
         lastTimestamp: timestamp,
@@ -111,7 +108,11 @@ const processWorkspaceUpdateStreamBatch = () =>
               // Update the workspace usage and click counts
               await conn.execute(
                 "UPDATE Project p SET p.usage = p.usage + ?, p.totalClicks = p.totalClicks + ? WHERE id = ?",
-                [update.usage, update.clicks, update.workspaceId],
+                [update.clicks, update.clicks, update.workspaceId],
+              );
+
+              console.log(
+                `Incremented workspace ${update.workspaceId} usage and totalClicks by ${update.clicks}`,
               );
 
               processedEntryIds.push(...update.entryIds);
