@@ -15,7 +15,7 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
-import { CampaignActions } from "./campaign-actions";
+import { CampaignControls } from "./campaign-controls";
 import { CampaignAutomationLogic } from "./campaign-automation-logic";
 
 const inputClassName =
@@ -136,7 +136,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             </div>
           </div>
         }
-        controls={<CampaignActions campaign={campaign} />}
+        controls={<CampaignControls campaign={campaign} />}
       >
         <PageWidthWrapper className="mb-8 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">

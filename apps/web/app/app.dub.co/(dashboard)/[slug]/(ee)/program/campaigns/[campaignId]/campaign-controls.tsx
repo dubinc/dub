@@ -22,11 +22,11 @@ import { useDeleteCampaignModal } from "../delete-campaign-modal";
 import { useCampaignFormContext } from "./campaign-form-context";
 import { useSendEmailPreviewModal } from "./send-email-preview-modal";
 
-interface CampaignActionsProps {
+interface CampaignControlsProps {
   campaign: Pick<Campaign, "id" | "name" | "type" | "status">;
 }
 
-export function CampaignActions({ campaign }: CampaignActionsProps) {
+export function CampaignControls({ campaign }: CampaignControlsProps) {
   const router = useRouter();
   const { slug: workspaceSlug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
