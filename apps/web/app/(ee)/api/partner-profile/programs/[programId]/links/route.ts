@@ -50,7 +50,7 @@ export const POST = withPartnerProfile(
         includeGroup: true,
       });
 
-    if (status === "banned") {
+    if (["banned", "deactivated", "rejected"].includes(status)) {
       throw new DubApiError({
         code: "forbidden",
         message: "You are banned from this program.",

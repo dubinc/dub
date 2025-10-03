@@ -29,7 +29,7 @@ export const PATCH = withPartnerProfile(
       },
     );
 
-    if (status === "banned") {
+    if (["banned", "deactivated"].includes(status)) {
       throw new DubApiError({
         code: "forbidden",
         message: "You are banned from this program.",

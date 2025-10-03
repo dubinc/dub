@@ -16,7 +16,7 @@ export async function processPayoutInvoiceFailure({
   charge,
 }: {
   invoice: Invoice;
-  charge: Stripe.Charge;
+  charge?: Stripe.Charge;
 }) {
   await log({
     message: `Partner payout failed for invoice ${invoice.id}.`,
@@ -69,16 +69,20 @@ export async function processPayoutInvoiceFailure({
     return;
   }
 
-  let cardLast4: string | undefined;
-  let chargedFailureFee = false;
-
-  // Charge failure fee for direct debit payment failures
-  if (
+  const paymentMethod =
+    charge &&
     charge.payment_method_details &&
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(
       charge.payment_method_details.type as Stripe.PaymentMethod.Type,
     )
-  ) {
+      ? "direct_debit"
+      : "card";
+
+  let chargedFailureFee = false;
+  let cardLast4: string | undefined;
+
+  // Charge failure fee for direct debit payment failures
+  if (paymentMethod === "direct_debit") {
     const { paymentIntent, paymentMethod } = await createPaymentIntent({
       stripeId: workspace.stripeId,
       amount: PAYOUT_FAILURE_FEE_CENTS,
@@ -112,7 +116,9 @@ export async function processPayoutInvoiceFailure({
             name: workspace.programs[0].name,
           },
           payout: {
-            amount: charge.amount,
+            amount: invoice.total,
+            method: paymentMethod as "card" | "direct_debit",
+            failedReason: invoice.failedReason,
             ...(chargedFailureFee && {
               failureFee: PAYOUT_FAILURE_FEE_CENTS,
               cardLast4,

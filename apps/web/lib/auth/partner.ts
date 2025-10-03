@@ -27,8 +27,9 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
   return withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      const params = (await initialParams) || {};
       try {
         const session = await getSession();
 

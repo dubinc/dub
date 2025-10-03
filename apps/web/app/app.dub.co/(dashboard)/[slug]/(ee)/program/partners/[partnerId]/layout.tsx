@@ -5,14 +5,19 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
+import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
+import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
+import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
 import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
-import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
 import {
+  BoxArchive,
   ChevronRight,
+  CircleXmark,
   InvoiceDollar,
   Msgs,
   PenWriting,
@@ -20,6 +25,7 @@ import {
   UserDelete,
   Users,
 } from "@dub/ui/icons";
+import { LockOpen } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { ReactNode, useState } from "react";
@@ -110,6 +116,18 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
   const { UnbanPartnerModal, setShowUnbanPartnerModal } = useUnbanPartnerModal({
     partner,
   });
+  const { DeactivatePartnerModal, setShowDeactivatePartnerModal } =
+    useDeactivatePartnerModal({
+      partner,
+    });
+  const { ReactivatePartnerModal, setShowReactivatePartnerModal } =
+    useReactivatePartnerModal({
+      partner,
+    });
+  const { ArchivePartnerModal, setShowArchivePartnerModal } =
+    useArchivePartnerModal({
+      partner,
+    });
 
   return (
     <>
@@ -117,6 +135,9 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
       <PartnerAdvancedSettingsModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
+      <DeactivatePartnerModal />
+      <ReactivatePartnerModal />
+      <ArchivePartnerModal />
 
       <Button
         variant="primary"
@@ -170,7 +191,50 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
             >
               Advanced settings
             </MenuItem>
-            {partner.status !== "banned" ? (
+            {!["banned", "deactivated"].includes(partner.status) && (
+              <MenuItem
+                icon={BoxArchive}
+                onClick={() => {
+                  setShowArchivePartnerModal(true);
+                  setIsOpen(false);
+                }}
+              >
+                {partner.status === "archived" ? "Unarchive" : "Archive"}{" "}
+                partner
+              </MenuItem>
+            )}
+            {partner.status === "deactivated" ? (
+              <MenuItem
+                icon={LockOpen}
+                onClick={() => {
+                  setShowReactivatePartnerModal(true);
+                  setIsOpen(false);
+                }}
+              >
+                Reactivate partner
+              </MenuItem>
+            ) : partner.status !== "banned" ? (
+              <MenuItem
+                icon={CircleXmark}
+                onClick={() => {
+                  setShowDeactivatePartnerModal(true);
+                  setIsOpen(false);
+                }}
+              >
+                Deactivate partner
+              </MenuItem>
+            ) : null}
+            {partner.status === "banned" ? (
+              <MenuItem
+                icon={UserCheck}
+                onClick={() => {
+                  setShowUnbanPartnerModal(true);
+                  setIsOpen(false);
+                }}
+              >
+                Unban partner
+              </MenuItem>
+            ) : (
               <MenuItem
                 icon={UserDelete}
                 variant="danger"
@@ -180,16 +244,6 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
                 }}
               >
                 Ban partner
-              </MenuItem>
-            ) : (
-              <MenuItem
-                icon={UserCheck}
-                onClick={() => {
-                  setShowUnbanPartnerModal(true);
-                  setIsOpen(false);
-                }}
-              >
-                Unban partner
               </MenuItem>
             )}
           </div>
