@@ -6,8 +6,9 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
-import { PageContent } from "@/ui/layout/page-content";
+import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import {
   Button,
   ChevronRight,
@@ -18,7 +19,7 @@ import {
 } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect } from "react";
+import { Dispatch, SetStateAction, useCallback, useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -32,7 +33,15 @@ const inputClassName =
 
 const labelClassName = "text-sm font-medium text-content-subtle";
 
-export function CampaignEditor({ campaign }: { campaign: Campaign }) {
+export function CampaignEditor({
+  campaign,
+  isRightPanelOpen,
+  setIsRightPanelOpen,
+}: {
+  campaign: Campaign;
+  isRightPanelOpen: boolean;
+  setIsRightPanelOpen: Dispatch<SetStateAction<boolean>>;
+}) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
@@ -123,30 +132,41 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
   return (
     <FormProvider {...form}>
-      <PageContent
-        title={
-          <div className="flex items-center gap-1.5">
-            <div className="flex items-center gap-1">
-              <Link
-                href={`/${workspaceSlug}/program/campaigns`}
-                className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
-              >
-                <PaperPlane className="text-content-default size-4" />
-              </Link>
-              <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-            </div>
-
+      <div className="flex h-full flex-col">
+        {/* Header */}
+        <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
+          <div className="flex min-w-0 items-center gap-4">
+            <NavButton />
             <div className="flex items-center gap-1.5">
-              <span>New Transactional</span>
-              <StatusBadge variant={statusBadge.variant} icon={null}>
-                {statusBadge.label}
-              </StatusBadge>
+              <div className="flex items-center gap-1">
+                <Link
+                  href={`/${workspaceSlug}/program/campaigns`}
+                  className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
+                >
+                  <PaperPlane className="text-content-default size-4" />
+                </Link>
+                <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+              </div>
+
+              <div className="flex items-center gap-1.5">
+                <span>New Transactional</span>
+                <StatusBadge variant={statusBadge.variant} icon={null}>
+                  {statusBadge.label}
+                </StatusBadge>
+              </div>
             </div>
           </div>
-        }
-        controls={<CampaignControls campaign={campaign} />}
-      >
-        <PageWidthWrapper className="mb-8 max-w-[600px]">
+          <div className="flex items-center gap-2">
+            <CampaignControls campaign={campaign} />
+            <ToggleSidePanelButton
+              isOpen={isRightPanelOpen}
+              onClick={() => setIsRightPanelOpen((o) => !o)}
+            />
+          </div>
+        </div>
+
+        {/* Content */}
+        <PageWidthWrapper className="mb-8 mt-6 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
             <label className="contents">
               <span className={labelClassName}>Name</span>
@@ -257,7 +277,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             End of email
           </div>
         </PageWidthWrapper>
-      </PageContent>
+      </div>
     </FormProvider>
   );
 }
