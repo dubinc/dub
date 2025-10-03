@@ -1,8 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import {
-  isDiscountEquivalent,
-  queueDiscountCodeDeletion,
-} from "@/lib/api/discounts/queue-discount-code-deletion";
+import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";

@@ -1,6 +1,5 @@
 import { qstash } from "@/lib/cron";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
-import { Discount } from "@prisma/client";
 
 const queue = qstash.queue({
   queueName: "discount-code-deletion",
@@ -39,29 +38,4 @@ export async function queueDiscountCodeDeletion(
       ),
     );
   }
-}
-
-export function isDiscountEquivalent(
-  firstDiscount: Discount | null | undefined,
-  secondDiscount: Discount | null | undefined,
-): boolean {
-  if (!firstDiscount || !secondDiscount) {
-    return false;
-  }
-
-  // If both groups use the same Stripe coupon
-  if (firstDiscount.couponId === secondDiscount.couponId) {
-    return true;
-  }
-
-  // If both discounts are effectively equivalent
-  if (
-    firstDiscount.amount === secondDiscount.amount &&
-    firstDiscount.type === secondDiscount.type &&
-    firstDiscount.maxDuration === secondDiscount.maxDuration
-  ) {
-    return true;
-  }
-
-  return false;
 }
