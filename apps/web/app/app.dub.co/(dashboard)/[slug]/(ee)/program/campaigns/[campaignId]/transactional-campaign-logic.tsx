@@ -30,7 +30,7 @@ export function TransactionalCampaignLogic() {
   }, [attribute, value, setValue]);
 
   return (
-    <div className="flex h-8 w-full items-center px-1.5">
+    <div className="flex h-8 w-full items-center px-2">
       <span className="text-content-default flex gap-1 text-sm font-medium leading-relaxed">
         When partner has
         <div className="inline-flex items-center gap-1">
