@@ -39,7 +39,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
   const stripeCustomerName = charge.customer_details?.name;
   const stripeCustomerEmail = charge.customer_details?.email;
   const invoiceId = charge.invoice as string;
-  const promotionCodeId = charge.discounts?.[0]?.promotion_code as string;
+  const promotionCodeId = charge.discounts?.[0]?.promotion_code as
+    | string
+    | null
+    | undefined;
 
   let customer: Customer | null = null;
   let existingCustomer: Customer | null = null;
@@ -595,6 +598,8 @@ async function attributeViaPromoCode({
     customer_id: customer.id,
     metadata: "",
   };
+
+  await recordLead(leadEvent);
 
   return {
     linkId,
