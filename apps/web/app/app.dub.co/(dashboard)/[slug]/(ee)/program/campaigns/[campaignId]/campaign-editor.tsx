@@ -174,7 +174,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             {campaign.type === "transactional" && (
               <>
                 <label className="contents">
-                  <span className={labelClassName}>Transactional</span>
+                  <span className={labelClassName}>Logic</span>
                 </label>
                 <TransactionalCampaignLogic />
               </>
