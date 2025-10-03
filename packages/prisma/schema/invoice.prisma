@@ -13,9 +13,10 @@ model Invoice {
   id                   String        @id @default(cuid())
   programId            String?
   workspaceId          String
-  number               String?       @unique // This starts with the customer’s unique invoicePrefix
+  number               String?       @unique // This starts with the customer's unique invoicePrefix
   status               InvoiceStatus @default(processing)
   type                 InvoiceType   @default(partnerPayout)
+  fastSettlement       Boolean?
   amount               Int           @default(0) // amount in usd cents
   fee                  Int           @default(0) // fee in usd cents
   total                Int           @default(0) // amount + fee in usd cents

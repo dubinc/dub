@@ -46,6 +46,7 @@ model Project {
   ssoEnabled        Boolean @default(false) // TODO: this is not used
   dotLinkClaimed    Boolean @default(false)
   ssoEmailDomain    String? @unique
+  fasterAchPayouts  Boolean @default(false)
 
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt

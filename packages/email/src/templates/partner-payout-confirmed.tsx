@@ -27,6 +27,7 @@ export default function PartnerPayoutConfirmed({
     amount: 490,
     startDate: new Date("2024-11-01"),
     endDate: new Date("2024-11-30"),
+    fastSettlement: true,
   },
 }: {
   email: string;
@@ -40,6 +41,7 @@ export default function PartnerPayoutConfirmed({
     amount: number;
     startDate?: Date | null;
     endDate?: Date | null;
+    fastSettlement?: boolean;
   };
 }) {
   const saleAmountInDollars = currencyFormatter(payout.amount / 100);
@@ -100,8 +102,13 @@ export default function PartnerPayoutConfirmed({
 
             <Text className="text-sm leading-6 text-neutral-600">
               The payout is currently being processed and is expected to be
-              credited to your account within 5 business days (excluding
-              weekends and public holidays).
+              credited to your account within
+              <strong>
+                {payout.fastSettlement
+                  ? " 2 business days"
+                  : " 5 business days"}
+              </strong>{" "}
+              (excluding weekends and public holidays).
             </Text>
 
             <Section className="mb-12 mt-8">
