@@ -5,7 +5,7 @@ import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
-import { useChangeGroupModal } from "./change-group-modal";
+import { useChangeGroupModal } from "../modals/change-group-modal";
 import { GroupColorCircle } from "./groups/group-color-circle";
 
 export function PartnerInfoGroup({

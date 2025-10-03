@@ -4,9 +4,9 @@ import useDiscountCodes from "@/lib/swr/use-discount-codes";
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
+import { useAddDiscountCodeModal } from "@/ui/modals/add-discount-code-modal";
+import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { DeleteDiscountCodeModal } from "@/ui/modals/delete-discount-code-modal";
-import { useAddDiscountCodeModal } from "@/ui/partners/add-discount-code-modal";
-import { useAddPartnerLinkModal } from "@/ui/partners/add-partner-link-modal";
 import {
   Button,
   CopyButton,

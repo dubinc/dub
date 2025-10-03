@@ -19,9 +19,9 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebounce } from "use-debounce";
 import { z } from "zod";
+import { STRIPE_ERROR_MAP } from "../partners/constants";
 import { X } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
-import { STRIPE_ERROR_MAP } from "./constants";
 
 type FormData = z.infer<typeof createDiscountCodeSchema>;
 
