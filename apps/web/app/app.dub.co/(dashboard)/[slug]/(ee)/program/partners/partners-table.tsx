@@ -4,7 +4,6 @@ import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
-import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
@@ -703,32 +702,4 @@ function MenuItem({
       {label}
     </Command.Item>
   );
-}
-
-/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
-function useCurrentPartner({
-  partners,
-  partnerId,
-}: {
-  partners?: EnrolledPartnerProps[];
-  partnerId: string | null;
-}) {
-  let currentPartner = partnerId
-    ? partners?.find(({ id }) => id === partnerId)
-    : null;
-
-  const { partner: fetchedPartner, loading: isLoading } = usePartner(
-    {
-      partnerId: partners && partnerId && !currentPartner ? partnerId : null,
-    },
-    {
-      keepPreviousData: true,
-    },
-  );
-
-  if (!currentPartner && fetchedPartner?.id === partnerId) {
-    currentPartner = fetchedPartner;
-  }
-
-  return { currentPartner, isLoading };
 }

@@ -1,6 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { DiscountCodeProps, EnrolledPartnerProps } from "@/lib/types";
 import { createDiscountCodeSchema } from "@/lib/zod/schemas/discount";
 import {
@@ -10,7 +9,6 @@ import {
   ComboboxOption,
   Modal,
   useCopyToClipboard,
-  useMediaQuery,
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
 import { Tag } from "lucide-react";
@@ -36,11 +34,9 @@ const AddDiscountCodeModal = ({
   setShowModal,
   partner,
 }: AddDiscountCodeModalProps) => {
-  const { stripeConnectId } = useWorkspace();
   const [search, setSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
 
-  const { isMobile } = useMediaQuery();
   const formRef = useRef<HTMLFormElement>(null);
   const [debouncedSearch] = useDebounce(search, 500);
   const [, copyToClipboard] = useCopyToClipboard();
@@ -141,34 +137,6 @@ const AddDiscountCodeModal = ({
             <div className="flex flex-col gap-2">
               <div className="flex items-center gap-2">
                 <label
-                  htmlFor="code"
-                  className="block text-sm font-medium text-neutral-700"
-                >
-                  Discount code
-                </label>
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Tag className="text-content-default h-4 w-4" />
-                </div>
-                <input
-                  {...register("code")}
-                  type="text"
-                  id="code"
-                  autoFocus={!isMobile}
-                  className="block w-full rounded-md border-[1.5px] border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                  placeholder="CODE"
-                />
-              </div>
-              <p className="text-xs text-neutral-500">
-                Discount codes cannot be edited after creation
-              </p>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex items-center gap-2">
-                <label
                   htmlFor="referral-link"
                   className="block text-sm font-medium text-neutral-700"
                 >
@@ -209,6 +177,36 @@ const AddDiscountCodeModal = ({
                 onOpenChange={setIsOpen}
                 onSearchChange={setSearch}
               />
+              <p className="text-xs text-neutral-500">
+                Choose a referral link to associate the discount code with
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <label
+                  htmlFor="code"
+                  className="block text-sm font-medium text-neutral-700"
+                >
+                  Discount code
+                </label>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Tag className="text-content-default h-4 w-4" />
+                </div>
+                <input
+                  {...register("code")}
+                  type="text"
+                  id="code"
+                  className="block w-full rounded-md border-[1.5px] border-neutral-300 pl-10 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                  placeholder={partner.name.split(" ")[0].toUpperCase()}
+                />
+              </div>
+              <p className="text-xs text-neutral-500">
+                Discount codes cannot be edited after creation
+              </p>
             </div>
           </div>
         </div>
