@@ -224,6 +224,7 @@ export async function invoicePaid(event: Stripe.Event) {
         },
         sale: {
           productId: invoice.lines.data[0]?.pricing?.price_details?.product,
+          amount: saleData.amount,
         },
       },
     });

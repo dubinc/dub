@@ -29,6 +29,7 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { CountryCombobox } from "../../../country-combobox";
 import { ProgramApplicationFormField } from "./fields";
+import { FormControlRequiredBadge } from "./fields/form-control";
 
 type FormData = {
   name: string;
@@ -195,7 +196,12 @@ export function ProgramApplicationForm({
         className="flex flex-col gap-6"
       >
         <label>
-          <span className="text-sm font-medium text-neutral-800">Name</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-content-emphasis text-sm font-medium">
+              Name
+            </span>
+            <FormControlRequiredBadge />
+          </div>
           <input
             type="text"
             autoComplete="name"
@@ -214,7 +220,12 @@ export function ProgramApplicationForm({
         </label>
 
         <label>
-          <span className="text-sm font-medium text-neutral-800">Email</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-content-emphasis text-sm font-medium">
+              Email
+            </span>
+            <FormControlRequiredBadge />
+          </div>
           <input
             type="email"
             autoComplete="email"
@@ -232,7 +243,13 @@ export function ProgramApplicationForm({
         </label>
 
         <label className="flex flex-col">
-          <span className="text-sm font-medium text-neutral-800">Country</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-content-emphasis text-sm font-medium">
+              Country
+            </span>
+            <FormControlRequiredBadge />
+          </div>
+
           <Controller
             control={control}
             name="country"

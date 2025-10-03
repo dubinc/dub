@@ -28,7 +28,7 @@ export const GET = async (req: Request) => {
     }
 
     const { token, contextId: workspaceId } =
-      await slackOAuthProvider.exchangeCodeForToken(req);
+      await slackOAuthProvider.exchangeCodeForToken<string>(req);
 
     workspace = await prisma.project.findUniqueOrThrow({
       where: {

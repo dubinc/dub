@@ -334,9 +334,9 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
+export type OAuthAppWithClientSecret = OAuthAppProps & { clientSecret: string };
 
-export type ExistingOAuthApp = OAuthAppProps;
+export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
 
 export type IntegrationProps = z.infer<typeof integrationSchema>;
 
