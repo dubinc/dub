@@ -15,6 +15,8 @@ import {
 } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { CampaignStatus, CampaignType, Workflow } from "@dub/prisma/client";
+import { arrayEqual } from "@dub/utils";
+import { PartnerGroup } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -68,10 +70,25 @@ export const PATCH = withWorkspace(
       },
     });
 
-    const partnerGroups = await throwIfInvalidGroupIds({
-      programId,
-      groupIds,
-    });
+    // if groupIds is provided and is different from the current groupIds, update the groups
+    let updatedPartnerGroups: PartnerGroup[] | undefined = undefined;
+    let shouldUpdateGroups = false;
+
+    if (groupIds !== undefined) {
+      const currentGroupIds = campaign.groups.map(({ groupId }) => groupId);
+      const newGroupIds = groupIds || []; // treat null as empty array (all groups)
+
+      if (!arrayEqual(currentGroupIds, newGroupIds)) {
+        if (newGroupIds.length > 0) {
+          updatedPartnerGroups = await throwIfInvalidGroupIds({
+            programId,
+            groupIds: newGroupIds,
+          });
+        }
+
+        shouldUpdateGroups = true;
+      }
+    }
 
     // TODO
     // When pausing we need to disable the workflow
@@ -140,11 +157,15 @@ export const PATCH = withWorkspace(
           ...(status && { status }),
           ...(body && { body }),
           ...(workflow && { workflowId: workflow.id }),
-          ...(partnerGroups.length && {
+          ...(shouldUpdateGroups && {
             groups: {
-              createMany: {
-                data: partnerGroups.map(({ id }) => ({ groupId: id })),
-              },
+              deleteMany: {},
+              ...(updatedPartnerGroups &&
+                updatedPartnerGroups.length > 0 && {
+                  create: updatedPartnerGroups.map((group) => ({
+                    groupId: group.id,
+                  })),
+                }),
             },
           }),
         },
