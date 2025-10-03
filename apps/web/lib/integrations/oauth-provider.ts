@@ -1,5 +1,4 @@
 import { getSearchParams, nanoid } from "@dub/utils";
-
 import { z } from "zod";
 import { redis } from "../upstash";
 
@@ -53,7 +52,7 @@ export class OAuthProvider<T extends z.ZodSchema> {
       getSearchParams(request.url),
     );
 
-    const contextId = await redis.get<K>(
+    const contextId = await redis.getdel<K>(
       `${this.provider.redisStatePrefix}:${state}`,
     );
 
