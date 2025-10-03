@@ -174,6 +174,7 @@ export function AuthModal({
                     sessionId={sessionId}
                     setAuthModalMessage={setAuthModalMessage}
                     switchAuthType={switchAuthType}
+                    handleClose={handleClose}
                   />
                 </motion.div>
               ) : (
