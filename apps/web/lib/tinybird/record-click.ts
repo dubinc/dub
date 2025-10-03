@@ -19,6 +19,7 @@ import {
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
+import { publishClickEvent } from "../upstash/redis-streams";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
@@ -187,13 +188,21 @@ export async function recordClick({
           "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
           [linkId],
         ),
-        // if the link has a destination URL, increment the usage count for the workspace
-        // and then we have a cron that will reset it at the start of new billing cycle
-        url &&
-          conn.execute(
-            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
-            [linkId],
-          ),
+        // if the link is associated with a workspace + has a destination URL
+        // increment the usage count for the workspace
+        workspaceId &&
+          url &&
+          publishClickEvent({
+            linkId,
+            workspaceId,
+            timestamp: clickData.timestamp,
+          }).catch(() => {
+            // Fallback on writing directly to the database
+            return conn.execute(
+              "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
+              [linkId],
+            );
+          }),
 
         // TODO: Remove after Tinybird migration
         fetchWithRetry(
