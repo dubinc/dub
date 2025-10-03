@@ -17,7 +17,7 @@ import type Stripe from "stripe";
 export async function createNewCustomer(event: Stripe.Event) {
   const stripeCustomer = event.data.object as Stripe.Customer;
   const stripeAccountId = event.account as string;
-  const dubCustomerExternalId = stripeCustomer.metadata?.dubCustomerId;
+  const dubCustomerExternalId = stripeCustomer.metadata?.dubCustomerId || stripeCustomer.metadata?.dub_customer_id;
   const clickId = stripeCustomer.metadata?.dubClickId;
 
   // The client app should always send dubClickId (dub_id) via metadata

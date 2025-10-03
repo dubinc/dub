@@ -31,7 +31,7 @@ import {
 // Handle event "checkout.session.completed"
 export async function checkoutSessionCompleted(event: Stripe.Event) {
   let charge = event.data.object as Stripe.Checkout.Session;
-  let dubCustomerId = charge.metadata?.dubCustomerId;
+  let dubCustomerId = charge.metadata?.dubCustomerId || charge.metadata?.dub_customer_id;
   const clientReferenceId = charge.client_reference_id;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = charge.customer as string;
