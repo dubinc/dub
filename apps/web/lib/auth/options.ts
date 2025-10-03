@@ -430,6 +430,7 @@ export const authOptions: NextAuthOptions = {
           const emailDomain = user.email.split("@")[1];
 
           // ssoEmailDomain should be required for all SAML enabled workspace
+          // this should not happen
           if (!ssoEmailDomain) {
             return false;
           }
