@@ -1,5 +1,5 @@
+import { PARTNER_DISCOVERY_MIN_COMMISSIONS } from "@/lib/partners/discoverability";
 import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
-import { PARTNER_DISCOVERY_MIN_COMMISSIONS } from "@/lib/partners/partner-profile";
 import { PartnerProps, ProgramEnrollmentProps } from "@/lib/types";
 import {
   Button,
@@ -12,59 +12,17 @@ import {
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "motion/react";
 import Link from "next/link";
-import { HTMLProps, useMemo, useState } from "react";
+import { HTMLProps, useState } from "react";
+import { usePartnerDiscoveryRequirements } from "./use-partner-discovery-requirements";
 
-export function ProfileDiscoveryGuide({
-  partner,
-  programEnrollments,
-}: {
-  partner: PartnerProps;
-  programEnrollments: ProgramEnrollmentProps[];
-}) {
+export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
   if (partner.discoverableAt) return null;
 
   const [isExpanded, setIsExpanded] = useState(false);
 
-  const tasks = useMemo(
-    () => [
-      {
-        label: "Add basic profile info",
-        completed: true,
-      },
-      {
-        label: "Verify your website or social account",
-        href: "#sites",
-        completed: ONLINE_PRESENCE_FIELDS.some(
-          (field) => field.data(partner).verified,
-        ),
-      },
-      {
-        label: "Write your bio",
-        href: "#about",
-        completed: !!partner.description,
-      },
-      {
-        label: "Select your industry interests",
-        href: "#interests",
-        completed: Boolean(partner.industryInterests?.length),
-      },
-      {
-        label: "Choose your sales channels",
-        href: "#channels",
-        completed: Boolean(partner.salesChannels?.length),
-      },
-      {
-        label: "Earn $100 in commissions",
-        completed:
-          programEnrollments.reduce(
-            (acc, programEnrollment) =>
-              acc + programEnrollment.totalCommissions,
-            0,
-          ) >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
-      },
-    ],
-    [partner, programEnrollments],
-  );
+  const tasks = usePartnerDiscoveryRequirements();
+
+  if (!tasks) return null;
 
   const completedTasks = tasks.filter(({ completed }) => completed);
 
@@ -176,4 +134,49 @@ function ConditionalLink({
   ) : (
     <div className={className}>{children}</div>
   );
+}
+
+export function getDiscoveryGuideTasks({
+  partner,
+  programEnrollments,
+}: {
+  partner: PartnerProps;
+  programEnrollments: ProgramEnrollmentProps[];
+}) {
+  return [
+    {
+      label: "Add basic profile info",
+      completed: true,
+    },
+    {
+      label: "Verify your website or social account",
+      href: "#sites",
+      completed: ONLINE_PRESENCE_FIELDS.some(
+        (field) => field.data(partner).verified,
+      ),
+    },
+    {
+      label: "Write your bio",
+      href: "#about",
+      completed: !!partner.description,
+    },
+    {
+      label: "Select your industry interests",
+      href: "#interests",
+      completed: Boolean(partner.industryInterests?.length),
+    },
+    {
+      label: "Choose your sales channels",
+      href: "#channels",
+      completed: Boolean(partner.salesChannels?.length),
+    },
+    {
+      label: "Earn $100 in commissions",
+      completed:
+        programEnrollments.reduce(
+          (acc, programEnrollment) => acc + programEnrollment.totalCommissions,
+          0,
+        ) >= PARTNER_DISCOVERY_MIN_COMMISSIONS,
+    },
+  ];
 }

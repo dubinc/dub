@@ -224,6 +224,7 @@ export * from "./user-delete";
 export * from "./user-focus";
 export * from "./user-minus";
 export * from "./user-plus";
+export * from "./user-search";
 export * from "./user-xmark";
 export * from "./users";
 export * from "./users-fill";

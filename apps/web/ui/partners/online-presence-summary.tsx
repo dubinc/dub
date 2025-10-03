@@ -1,4 +1,7 @@
-import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
+import {
+  ONLINE_PRESENCE_FIELDS,
+  PartnerOnlinePresenceFields,
+} from "@/lib/partners/online-presence";
 import { EnrolledPartnerExtendedProps } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { Fragment } from "react";
@@ -10,23 +13,7 @@ export function OnlinePresenceSummary({
   className,
   emptyClassName,
 }: {
-  partner: Pick<
-    EnrolledPartnerExtendedProps,
-    | "website"
-    | "websiteVerifiedAt"
-    | "youtube"
-    | "youtubeSubscriberCount"
-    | "youtubeVerifiedAt"
-    | "youtubeViewCount"
-    | "twitter"
-    | "twitterVerifiedAt"
-    | "linkedin"
-    | "linkedinVerifiedAt"
-    | "instagram"
-    | "instagramVerifiedAt"
-    | "tiktok"
-    | "tiktokVerifiedAt"
-  >;
+  partner: Pick<EnrolledPartnerExtendedProps, PartnerOnlinePresenceFields>;
   showLabels?: boolean;
   className?: string;
   emptyClassName?: string;

@@ -3,6 +3,7 @@ import {
   industryInterests,
   monthlyTrafficAmounts,
 } from "@/lib/partners/partner-profile";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerProps } from "@/lib/types";
 import { MAX_PARTNER_DESCRIPTION_LENGTH } from "@/lib/zod/schemas/partners";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
@@ -51,6 +52,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onSuccess: () => {
       toast.success("Your profile has been updated.");
+      mutatePrefix("/api/partner-profile");
     },
     onError({ error }) {
       setError("root.serverError", {

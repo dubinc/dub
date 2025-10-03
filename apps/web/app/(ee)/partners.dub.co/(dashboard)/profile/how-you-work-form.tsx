@@ -11,6 +11,7 @@ import {
   preferredEarningStructures,
   salesChannels,
 } from "@/lib/partners/partner-profile";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
 import { cn } from "@dub/utils";
 
@@ -43,6 +44,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onSuccess: () => {
       toast.success("Your profile has been updated.");
+      mutatePrefix("/api/partner-profile");
     },
     onError({ error }) {
       setError("root.serverError", {

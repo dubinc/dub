@@ -10,27 +10,27 @@ import {
 import { getPrettyUrl, nFormatter } from "@dub/utils";
 import { EnrolledPartnerExtendedProps } from "../types";
 
+export type PartnerOnlinePresenceFields =
+  | "website"
+  | "websiteVerifiedAt"
+  | "youtube"
+  | "youtubeSubscriberCount"
+  | "youtubeVerifiedAt"
+  | "youtubeViewCount"
+  | "twitter"
+  | "twitterVerifiedAt"
+  | "linkedin"
+  | "linkedinVerifiedAt"
+  | "instagram"
+  | "instagramVerifiedAt"
+  | "tiktok"
+  | "tiktokVerifiedAt";
+
 export const ONLINE_PRESENCE_FIELDS: {
   label: string;
   icon: Icon;
   data: (
-    partner: Pick<
-      EnrolledPartnerExtendedProps,
-      | "website"
-      | "websiteVerifiedAt"
-      | "youtube"
-      | "youtubeSubscriberCount"
-      | "youtubeVerifiedAt"
-      | "youtubeViewCount"
-      | "twitter"
-      | "twitterVerifiedAt"
-      | "linkedin"
-      | "linkedinVerifiedAt"
-      | "instagram"
-      | "instagramVerifiedAt"
-      | "tiktok"
-      | "tiktokVerifiedAt"
-    >,
+    partner: Pick<EnrolledPartnerExtendedProps, PartnerOnlinePresenceFields>,
   ) => {
     value?: string | null;
     verified: boolean;

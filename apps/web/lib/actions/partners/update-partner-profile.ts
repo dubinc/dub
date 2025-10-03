@@ -2,6 +2,7 @@
 
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { qstash } from "@/lib/cron";
+import { getPartnerDiscoveryRequirements } from "@/lib/partners/discoverability";
 import { storage } from "@/lib/storage";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
+  ACME_PROGRAM_ID,
   APP_DOMAIN_WITH_NGROK,
   COUNTRIES,
   deepEqual,
@@ -31,6 +33,7 @@ const updatePartnerProfileSchema = z
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
     profileType: z.nativeEnum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
+    discoverable: z.boolean().optional(),
   })
   .merge(PartnerProfileSchema.partial())
   .transform((data) => ({
@@ -55,6 +58,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
       industryInterests,
       preferredEarningStructures,
       salesChannels,
+      discoverable,
     } = parsedInput;
 
     if (
@@ -73,6 +77,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
     let needsEmailVerification = false;
     const emailChanged = newEmail !== undefined && partner.email !== newEmail;
 
+    const discoverableChanged =
+      discoverable !== undefined &&
+      discoverable !== Boolean(partner.discoverableAt);
+
     // Upload the new image
     if (image) {
       const path = `partners/${partner.id}/image_${nanoid(7)}`;
@@ -81,7 +89,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
     }
 
     try {
-      const updatedPartner = await prisma.partner.update({
+      let updatedPartner = await prisma.partner.update({
         where: {
           id: partner.id,
         },
@@ -123,6 +131,26 @@ export const updatePartnerProfileAction = authPartnerActionClient
         },
       });
 
+      // Update `discoverable` separately so we can check eligibility post-update
+      if (discoverableChanged) {
+        if (
+          discoverable &&
+          !(await isPartnerProfileEligibleForDiscovery({
+            partnerId: partner.id,
+          }))
+        )
+          throw new Error("Profile is not eligible for discovery");
+
+        updatedPartner = await prisma.partner.update({
+          where: {
+            id: partner.id,
+          },
+          data: {
+            discoverableAt: discoverable ? new Date() : null,
+          },
+        });
+      }
+
       // If the email is being changed, we need to verify the new email address
       if (emailChanged) {
         const partnerWithEmail = await prisma.partner.findUnique({
@@ -149,29 +177,51 @@ export const updatePartnerProfileAction = authPartnerActionClient
       }
 
       waitUntil(
-        (async () => {
-          const shouldExpireCache = !deepEqual(
-            {
-              name: partner.name,
-              image: partner.image,
-            },
-            {
-              name: updatedPartner.name,
-              image: updatedPartner.image,
-            },
-          );
+        Promise.allSettled([
+          (async () => {
+            const shouldExpireCache = !deepEqual(
+              {
+                name: partner.name,
+                image: partner.image,
+              },
+              {
+                name: updatedPartner.name,
+                image: updatedPartner.image,
+              },
+            );
 
-          if (!shouldExpireCache) {
-            return;
-          }
+            if (!shouldExpireCache) {
+              return;
+            }
 
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-            body: {
-              partnerId: partner.id,
-            },
-          });
-        })(),
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+              body: {
+                partnerId: partner.id,
+              },
+            });
+          })(),
+
+          // Reset discoverable status if no longer eligible
+          (async () => {
+            if (
+              !discoverableChanged &&
+              updatedPartner.discoverableAt &&
+              !(await isPartnerProfileEligibleForDiscovery({
+                partnerId: partner.id,
+              }))
+            ) {
+              await prisma.partner.update({
+                where: {
+                  id: partner.id,
+                },
+                data: {
+                  discoverableAt: null,
+                },
+              });
+            }
+          })(),
+        ]),
       );
 
       return {
@@ -244,3 +294,37 @@ const deleteStripeAccountIfRequired = async ({
     }
   }
 };
+
+async function isPartnerProfileEligibleForDiscovery({
+  partnerId,
+}: {
+  partnerId: string;
+}) {
+  const partner = await prisma.partner.findUniqueOrThrow({
+    where: {
+      id: partnerId,
+    },
+    include: {
+      industryInterests: true,
+      salesChannels: true,
+      programs: true,
+    },
+  });
+
+  const requirements = getPartnerDiscoveryRequirements({
+    partner: {
+      ...partner,
+      industryInterests: partner.industryInterests?.map(
+        ({ industryInterest }) => industryInterest,
+      ),
+      salesChannels: partner.salesChannels?.map(
+        ({ salesChannel }) => salesChannel,
+      ),
+    },
+    totalCommissions: partner.programs
+      .filter((program) => program.programId !== ACME_PROGRAM_ID)
+      .reduce((acc, program) => acc + program.totalCommissions, 0),
+  });
+
+  return requirements.every(({ completed }) => completed);
+}
