@@ -6,7 +6,6 @@ import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
-import { isGenericEmail } from "@/lib/is-generic-email";
 import { jackson } from "@/lib/jackson";
 import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
@@ -107,8 +106,6 @@ export const PATCH = withWorkspace(
         )
       : null;
 
-    let ssoEmailDomain: string | null | undefined;
-
     if (enforceSAML) {
       if (workspace.plan !== "enterprise") {
         throw new DubApiError({
@@ -116,15 +113,7 @@ export const PATCH = withWorkspace(
           message: "SAML SSO is only available on enterprise plans.",
         });
       }
-      ssoEmailDomain = session.user.email.split("@")[1];
-      if (isGenericEmail(session.user.email)) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: "SAML SSO is not available for generic emails.",
-        });
-      }
 
-      // Check if SAML is configured before enforcing ssoEmailDomain
       const { apiController } = await jackson();
 
       const connections = await apiController.getConnections({
@@ -138,8 +127,6 @@ export const PATCH = withWorkspace(
           message: "SAML SSO is not configured for this workspace.",
         });
       }
-    } else if (enforceSAML === false) {
-      ssoEmailDomain = null;
     }
 
     try {
@@ -156,7 +143,9 @@ export const PATCH = withWorkspace(
             allowedHostnames: validHostnames,
           }),
           ...(publishableKey !== undefined && { publishableKey }),
-          ...(ssoEmailDomain !== undefined && { ssoEmailDomain }),
+          ...(enforceSAML !== undefined && {
+            ssoEnforcedAt: enforceSAML ? new Date() : null,
+          }),
         },
         include: {
           domains: {
@@ -224,7 +213,7 @@ export const PATCH = withWorkspace(
       if (error.code === "P2002") {
         throw new DubApiError({
           code: "conflict",
-          message: `The ${ssoEmailDomain ? "email domain" : "slug"} "${ssoEmailDomain || slug}" is already in use.`,
+          message: `The slug "${slug}" is already in use.`,
         });
       } else {
         throw new DubApiError({

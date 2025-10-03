@@ -427,16 +427,19 @@ export const authOptions: NextAuthOptions = {
 
         if (workspace) {
           const { ssoEmailDomain } = workspace;
+          const emailDomain = user.email.split("@")[1];
 
-          if (ssoEmailDomain) {
-            const emailDomain = user.email.split("@")[1];
+          // ssoEmailDomain should be required for all SAML enabled workspace
+          // this should not happen
+          if (!ssoEmailDomain) {
+            return false;
+          }
 
-            if (
-              emailDomain.toLocaleLowerCase() !==
-              ssoEmailDomain.toLocaleLowerCase()
-            ) {
-              return false;
-            }
+          if (
+            emailDomain.toLocaleLowerCase() !==
+            ssoEmailDomain.toLocaleLowerCase()
+          ) {
+            return false;
           }
 
           await Promise.allSettled([
