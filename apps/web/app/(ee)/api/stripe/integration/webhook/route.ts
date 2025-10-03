@@ -87,5 +87,5 @@ export const POST = withAxiom(async (req: Request) => {
       break;
   }
 
-  return logAndRespond(response);
+  return logAndRespond(`[${event.type}]: ${response}`);
 });

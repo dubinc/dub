@@ -3485,3 +3485,7 @@ export const REGIONS: { [key: string]: string } = {
 };
 
 export const REGION_CODES = Object.keys(REGIONS) as [string, ...string[]];
+
+export const REGION_CODE_LOOKUP = Object.fromEntries(
+  Object.entries(REGIONS).map(([key, value]) => [value, key]),
+) as Record<string, string>;
