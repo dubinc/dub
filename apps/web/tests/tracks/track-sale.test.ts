@@ -293,7 +293,7 @@ describe("POST /track/sale", async () => {
 
     // Test with a large sale amount
     const largeSaleInvoiceId = `INV_${randomId()}`;
-    const largeSaleAmount = 15000; // $150.00
+    const largeSaleAmount = 20000; // $200.00
 
     const response2 = await http.post<TrackSaleResponse>({
       path: "/track/sale",
