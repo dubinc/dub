@@ -125,6 +125,7 @@ export function ProgramMessagesPartnerPageClient() {
             currentUserType="user"
             currentUserId={user?.id || ""}
             program={program}
+            partner={partner}
             onSendMessage={async (message) => {
               const createdAt = new Date();
 

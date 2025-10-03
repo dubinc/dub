@@ -21,13 +21,12 @@ import {
 import { fetcher } from "@dub/utils";
 import { Trash, Upload } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { redirect, useSearchParams } from "next/navigation";
+import { redirect } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 
 export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
-  const searchParams = useSearchParams();
   const { slug, id: workspaceId, role } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
   const { executeAsync, result, isPending } = useAction(generateClientSecret, {
@@ -170,11 +169,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
           <>
             <OAuthAppCredentials
               clientId={oAuthApp.clientId}
-              clientSecret={
-                result.data?.clientSecret ||
-                searchParams.get("client_secret") ||
-                null
-              }
+              clientSecret={result.data?.clientSecret || null}
               partialClientSecret={oAuthApp.partialClientSecret}
             />
             <hr />

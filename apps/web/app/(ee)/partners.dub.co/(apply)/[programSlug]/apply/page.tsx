@@ -1,23 +1,19 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
+import { ApplicationFormHero } from "@/ui/partners/groups/design/application-form/application-hero-preview";
+import { ProgramApplicationForm } from "@/ui/partners/groups/design/application-form/program-application-form";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { ProgramApplicationForm } from "@/ui/partners/lander/program-application-form";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyHeader } from "../header";
 
-export default async function ApplicationPage(
-  props: {
-    params: Promise<{ programSlug: string; groupSlug?: string }>;
-  }
-) {
+export default async function ApplicationPage(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
   const params = await props.params;
 
-  const {
-    programSlug,
-    groupSlug
-  } = params;
+  const { programSlug, groupSlug } = params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
@@ -26,12 +22,22 @@ export default async function ApplicationPage(
     groupSlug: partnerGroupSlug,
   });
 
-  if (!program || !program.group) {
-    notFound();
+  if (
+    !program ||
+    !program.group ||
+    !program.group.applicationFormData ||
+    !program.group.applicationFormPublishedAt
+  ) {
+    // throw 404 if it's the default group, else redirect to the default group page
+    if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      notFound();
+    } else {
+      redirect(`/${programSlug}/apply`);
+    }
   }
 
   const applicationFormData = programApplicationFormSchema.parse(
-    program.applicationFormData || {},
+    program.group.applicationFormData || {},
   );
 
   return (
@@ -47,19 +53,10 @@ export default async function ApplicationPage(
       <ApplyHeader program={program} showApply={false} />
       <div className="p-6">
         {/* Hero section */}
-        <div className="grid grid-cols-1 gap-5 sm:pt-20">
-          <p className="font-mono text-xs font-medium uppercase text-[var(--brand)]">
-            {applicationFormData.label || `${program.name} Affiliate Program`}
-          </p>
-          <h1 className="text-4xl font-semibold">
-            {applicationFormData.title || `Apply to ${program.name}`}
-          </h1>
-          <p className="text-base text-neutral-700">
-            {applicationFormData.description ||
-              `Submit your application to join the ${program.name} affiliate program
-            and start earning commissions for your referrals.`}
-          </p>
-        </div>
+        <ApplicationFormHero
+          program={program}
+          applicationFormData={applicationFormData}
+        />
 
         <LanderRewards
           className="mt-10"

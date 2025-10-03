@@ -13,10 +13,10 @@ const PROGRAM_REDIRECTS = {
   "/program/settings/links": "/program/link-settings",
   "/program/sales": "/program/commissions",
   "/program/communication": "/program/resources",
-  "/program/branding/resources": "/program/resources",
   "/program/rewards": "/program/groups/default/rewards",
   "/program/discounts": "/program/groups/default/discounts",
   "/program/link-settings": "/program/groups/default/links",
+  "/program/branding": "/program/groups/default/branding",
 };
 
 export const appRedirect = async (path: string) => {

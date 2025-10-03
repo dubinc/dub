@@ -4,6 +4,7 @@ import { fetcher } from "@dub/utils";
 import { ProgramApplication } from "@prisma/client";
 import Linkify from "linkify-react";
 import useSWRImmutable from "swr/immutable";
+import { formatApplicationFormData } from "../../lib/partners/format-application-form-data";
 
 export function PartnerApplicationDetails({
   applicationId,
@@ -13,26 +14,23 @@ export function PartnerApplicationDetails({
   const { id: workspaceId } = useWorkspace();
   const { program } = useProgram();
 
-  const { data: application } = useSWRImmutable<ProgramApplication>(
+  const { data: application, isLoading } = useSWRImmutable<ProgramApplication>(
     program &&
       workspaceId &&
       `/api/programs/${program.id}/applications/${applicationId}?workspaceId=${workspaceId}`,
     fetcher,
   );
 
-  const fields = [
-    {
-      title: `How do you plan to promote ${program?.name}?`,
-      value: application?.proposal,
-    },
-    {
-      title: "Any additional questions or comments?",
-      value: application?.comments,
-    },
-  ];
+  let content;
 
-  return (
-    <div className="grid grid-cols-1 gap-5 text-sm">
+  if (isLoading || !application) {
+    return <PartnerApplicationDetailsSkeleton />;
+  }
+
+  const fields = formatApplicationFormData(application);
+
+  content = (
+    <>
       {fields.map((field) => (
         <div key={field.title}>
           <h4 className="text-content-emphasis font-semibold">{field.title}</h4>
@@ -56,6 +54,25 @@ export function PartnerApplicationDetails({
             ) : (
               <div className="h-4 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
             )}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+
+  return <div className="grid grid-cols-1 gap-5 text-sm">{content}</div>;
+}
+
+function PartnerApplicationDetailsSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-5">
+      {[...Array(3)].map((_, idx) => (
+        <div key={idx}>
+          <h4 className="text-content-emphasis font-semibold" />
+          <div className="h-5 w-32 animate-pulse rounded-md bg-neutral-200" />
+
+          <div className="mt-2">
+            <div className="h-4 w-28 min-w-0 animate-pulse rounded-md bg-neutral-200" />
           </div>
         </div>
       ))}

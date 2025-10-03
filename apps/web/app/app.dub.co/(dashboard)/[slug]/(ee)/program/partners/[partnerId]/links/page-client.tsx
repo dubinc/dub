@@ -3,7 +3,7 @@
 import usePartner from "@/lib/swr/use-partner";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { useAddPartnerLinkModal } from "@/ui/partners/add-partner-link-modal";
+import { useAddPartnerLinkModal } from "@/ui/modals/add-partner-link-modal";
 import { Button, CopyButton, LoadingSpinner, Table, useTable } from "@dub/ui";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import Link from "next/link";

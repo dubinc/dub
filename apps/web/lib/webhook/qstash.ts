@@ -35,7 +35,7 @@ export const sendWebhooks = async ({
   );
 };
 
-// Publish webhook event to QStash
+// publish webhook event to QStash
 const publishWebhookEventToQStash = async ({
   webhook,
   payload,

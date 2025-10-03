@@ -35,9 +35,15 @@ export const PartnerStatusBadges = {
   },
   declined: {
     label: "Declined",
+    variant: "amber",
+    className: "text-amber-600 bg-amber-100",
+    icon: EnvelopeAlert,
+  },
+  deactivated: {
+    label: "Deactivated",
     variant: "neutral",
     className: "text-neutral-500 bg-neutral-100",
-    icon: EnvelopeAlert,
+    icon: CircleXmark,
   },
   banned: {
     label: "Banned",

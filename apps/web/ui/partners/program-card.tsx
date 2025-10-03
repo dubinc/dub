@@ -36,6 +36,13 @@ export function ProgramCard({
 
   const defaultLink = programEnrollment.links?.[0];
 
+  const statusDescriptions = {
+    banned: "You're banned from this program.",
+    rejected: "Your application has been rejected.",
+    deactivated: "Your partnership has been deactivated.",
+  };
+  const statusDescription = statusDescriptions[status];
+
   return (
     <Link
       href={`/programs/${program.slug}`}
@@ -72,19 +79,16 @@ export function ProgramCard({
         <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
           {status === "pending" ? (
             `Applied ${formatDate(createdAt)}`
-          ) : status === "banned" || status === "rejected" ? (
+          ) : statusDescription ? (
             <p>
-              {" "}
-              {status === "banned"
-                ? "You're banned from this program. "
-                : "Your application has been rejected. "}
+              {` ${statusDescription} `}
               <Link
                 href={`/messages/${program.slug}`}
                 className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
               >
-                Reach out to the {program.name} team to appeal
-              </Link>
-              .
+                Reach out to the {program.name} team
+              </Link>{" "}
+              if you have any questions.
             </p>
           ) : null}
         </div>

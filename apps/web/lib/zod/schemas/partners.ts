@@ -90,8 +90,6 @@ export const exportApplicationColumns = [
   { id: "linkedin", label: "LinkedIn" },
   { id: "instagram", label: "Instagram" },
   { id: "tiktok", label: "TikTok" },
-  { id: "proposal", label: "Proposal" },
-  { id: "comments", label: "Comments" },
 ];
 
 export const exportApplicationsColumnsDefault = [
@@ -752,6 +750,11 @@ export const bulkBanPartnersSchema = z.object({
       ...PartnerBannedReason[],
     ],
   ),
+});
+
+export const deactivatePartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
 });
 
 export const archivePartnerSchema = z.object({

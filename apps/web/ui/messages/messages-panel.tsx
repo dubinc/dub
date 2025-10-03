@@ -1,4 +1,4 @@
-import { Message, ProgramProps } from "@/lib/types";
+import { Message, PartnerProps, ProgramProps } from "@/lib/types";
 import {
   AnimatedSizeContainer,
   Check2,
@@ -10,7 +10,7 @@ import {
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import Linkify from "linkify-react";
 import { ChevronRight } from "lucide-react";
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useMemo, useRef, useState } from "react";
 import { MessageInput } from "../shared/message-input";
 
 interface Sender {
@@ -25,20 +25,34 @@ export function MessagesPanel({
   currentUserType,
   currentUserId,
   program,
+  partner,
   onSendMessage,
-  placeholder = "Type a message...",
+  placeholder,
   error,
 }: {
   messages?: (Message & { delivered?: boolean })[];
   currentUserType: "partner" | "user";
   currentUserId: string;
   program?: Pick<ProgramProps, "logo" | "name">;
+  partner?: Pick<PartnerProps, "name">;
   onSendMessage: (message: string) => void;
   placeholder?: string;
   error?: any;
 }) {
   const { isMobile } = useMediaQuery();
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Generate personalized placeholder based on user type
+  const personalizedPlaceholder = useMemo(
+    () =>
+      placeholder ||
+      (currentUserType === "partner" && program?.name
+        ? `Message ${program.name}...`
+        : currentUserType === "user" && partner?.name
+          ? `Message ${partner.name}...`
+          : "Type a message..."),
+    [placeholder, currentUserType, program?.name, partner?.name],
+  );
 
   const sendMessage = (message: string) => {
     if (!messages) return false;
@@ -197,7 +211,7 @@ export function MessagesPanel({
       )}
       <div className="border-border-subtle border-t p-3 sm:p-6">
         <MessageInput
-          placeholder={placeholder}
+          placeholder={personalizedPlaceholder}
           onSendMessage={sendMessage}
           autoFocus={!isMobile}
         />

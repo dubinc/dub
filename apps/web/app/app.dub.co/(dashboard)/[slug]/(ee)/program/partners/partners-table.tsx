@@ -8,13 +8,15 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
-import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
+import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
+import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
+import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { useChangeGroupModal } from "@/ui/partners/change-group-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
-import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -34,6 +36,7 @@ import {
 } from "@dub/ui";
 import {
   BoxArchive,
+  CircleXmark,
   Dots,
   EnvelopeArrowRight,
   LoadingSpinner,
@@ -460,6 +463,16 @@ function RowMenuButton({
     partner: row.original,
   });
 
+  const { DeactivatePartnerModal, setShowDeactivatePartnerModal } =
+    useDeactivatePartnerModal({
+      partner: row.original,
+    });
+
+  const { ReactivatePartnerModal, setShowReactivatePartnerModal } =
+    useReactivatePartnerModal({
+      partner: row.original,
+    });
+
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
       onSuccess: async () => {
@@ -491,14 +504,16 @@ function RowMenuButton({
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
+      <DeactivatePartnerModal />
+      <ReactivatePartnerModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+            <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               {row.original.status === "invited" ? (
-                <>
+                <Command.Group className="grid gap-px p-1.5">
                   <MenuItem
                     icon={Users6}
                     label="Change group"
@@ -547,62 +562,92 @@ function RowMenuButton({
                       });
                     }}
                   />
-                </>
+                </Command.Group>
               ) : (
                 <>
-                  <MenuItem
-                    icon={MoneyBill2}
-                    label="View commissions"
-                    onSelect={() => {
-                      router.push(
-                        `/${slug}/program/commissions?partnerId=${row.original.id}&interval=all`,
-                      );
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={Users6}
-                    label="Change group"
-                    onSelect={() => {
-                      setShowChangeGroupModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={BoxArchive}
-                    label={
-                      row.original.status === "archived"
-                        ? "Unarchive partner"
-                        : "Archive partner"
-                    }
-                    onSelect={() => {
-                      setShowArchivePartnerModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  {row.original.status !== "banned" ? (
+                  <Command.Group className="grid gap-px p-1.5">
                     <MenuItem
-                      icon={UserDelete}
-                      label="Ban partner"
-                      variant="danger"
+                      icon={MoneyBill2}
+                      label="View commissions"
                       onSelect={() => {
-                        setShowBanPartnerModal(true);
+                        router.push(
+                          `/${slug}/program/commissions?partnerId=${row.original.id}&interval=all`,
+                        );
                         setIsOpen(false);
                       }}
                     />
-                  ) : (
+
                     <MenuItem
-                      icon={LockOpen}
-                      label="Unban partner"
+                      icon={Users6}
+                      label="Change group"
                       onSelect={() => {
-                        setShowUnbanPartnerModal(true);
+                        setShowChangeGroupModal(true);
                         setIsOpen(false);
                       }}
                     />
-                  )}
+                  </Command.Group>
+
+                  <Command.Separator className="border-t border-neutral-200" />
+
+                  <Command.Group className="grid gap-px p-1.5">
+                    {!["banned", "deactivated"].includes(
+                      row.original.status,
+                    ) && (
+                      <MenuItem
+                        icon={BoxArchive}
+                        label={
+                          row.original.status === "archived"
+                            ? "Unarchive partner"
+                            : "Archive partner"
+                        }
+                        onSelect={() => {
+                          setShowArchivePartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
+
+                    {row.original.status === "deactivated" ? (
+                      <MenuItem
+                        icon={LockOpen}
+                        label="Reactivate partner"
+                        onSelect={() => {
+                          setShowReactivatePartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    ) : row.original.status !== "banned" ? (
+                      <MenuItem
+                        icon={CircleXmark}
+                        label="Deactivate partner"
+                        onSelect={() => {
+                          setShowDeactivatePartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    ) : null}
+
+                    {row.original.status === "banned" ? (
+                      <MenuItem
+                        icon={LockOpen}
+                        label="Unban partner"
+                        onSelect={() => {
+                          setShowUnbanPartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    ) : (
+                      <MenuItem
+                        icon={UserDelete}
+                        label="Ban partner"
+                        variant="danger"
+                        onSelect={() => {
+                          setShowBanPartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
+                  </Command.Group>
                 </>
               )}
             </Command.List>
