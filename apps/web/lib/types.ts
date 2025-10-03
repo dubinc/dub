@@ -44,7 +44,7 @@ import {
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
-import { DiscountSchema } from "./zod/schemas/discount";
+import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
@@ -302,6 +302,7 @@ export interface SAMLProviderProps {
 export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
 
 type ProcessedLinkOverrides = "domain" | "key" | "url" | "projectId";
+
 export type ProcessedLinkProps = Omit<NewLinkProps, ProcessedLinkOverrides> &
   Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] } & {
     createdAt?: Date;
@@ -450,6 +451,8 @@ export type EnrolledPartnerExtendedProps = z.infer<
 >;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
+
+export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 

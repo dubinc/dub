@@ -68,6 +68,7 @@ model Partner {
   messages          Message[]
   sentMessages      Message[]           @relation("SenderPartner")
   comments          PartnerComment[]
+  discountCodes     DiscountCode[]
 
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]

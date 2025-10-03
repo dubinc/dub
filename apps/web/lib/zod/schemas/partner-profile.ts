@@ -87,6 +87,7 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
 }).extend({
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
+  discountCode: z.string().nullable().default(null),
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
@@ -101,7 +102,6 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
 });
 
 export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
-  workspaceId: true,
   externalId: true,
   tenantId: true,
   programId: true,
@@ -112,7 +112,6 @@ export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
 });
 
 export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
-  workspaceId: true,
   externalId: true,
   tenantId: true,
   programId: true,

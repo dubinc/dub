@@ -4,9 +4,6 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Bounty } from "@prisma/client";
 import { getBountiesByGroups } from "./get-bounties-by-groups";
 
-// TODO:
-// Need a better method name
-
 // Trigger the creation of draft submissions for performance bounties that uses lifetime stats for the given partners
 export async function triggerDraftBountySubmissionCreation({
   programId,

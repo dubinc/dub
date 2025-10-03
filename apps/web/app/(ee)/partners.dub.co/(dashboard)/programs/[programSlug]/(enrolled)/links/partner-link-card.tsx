@@ -4,6 +4,7 @@ import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
+import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import {
   ArrowTurnRight2,
   Button,
@@ -13,6 +14,9 @@ import {
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
+  SimpleTooltipContent,
+  Tooltip,
+  useCopyToClipboard,
   useInViewport,
   UserCheck,
   useRouterStuff,
@@ -112,6 +116,8 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
     link,
   });
 
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
   return (
     <CardList.Card innerClassName="px-0 py-0 group/card">
       <div className="p-4" ref={ref}>
@@ -131,24 +137,28 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
             <div className="flex min-w-0 flex-col">
               <div className="flex flex-col">
-                <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
-                  <a
-                    href={partnerLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
-                  >
-                    {getPrettyUrl(partnerLink)}
-                  </a>
-                  <span className="flex items-center">
-                    <CopyButton
-                      value={partnerLink}
-                      variant="neutral"
-                      className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
-                    />
-                  </span>
+                <div className="flex items-center gap-1">
+                  <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
+                    <a
+                      href={partnerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
+                    >
+                      {getPrettyUrl(partnerLink)}
+                    </a>
+                    <span className="flex items-center">
+                      <CopyButton
+                        value={partnerLink}
+                        variant="neutral"
+                        className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
+                      />
+                    </span>
+                  </div>
+
                   {link.comments && <CommentsBadge comments={link.comments} />}
                 </div>
+
                 {/* The max width implementation here is a bit hacky, we should improve in the future */}
                 <div className="group/desturl flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100 sm:w-fit sm:max-w-[400px]">
                   <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
@@ -172,7 +182,27 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
               </div>
             </div>
           </div>
-          <Controls link={link} />
+          <div className="flex items-center gap-2">
+            {link.discountCode && (
+              <Tooltip
+                content={
+                  <SimpleTooltipContent
+                    title="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc."
+                    cta="Learn more"
+                    href="https://dub.co/help/article/dual-sided-incentives"
+                  />
+                }
+              >
+                <div className="flex items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1">
+                  <span className="text-sm leading-none text-neutral-500">
+                    Discount code
+                  </span>
+                  <DiscountCodeBadge code={link.discountCode} />
+                </div>
+              </Tooltip>
+            )}
+            <Controls link={link} />
+          </div>
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">

@@ -533,6 +533,7 @@ const _trackSale = async ({
             },
             sale: {
               productId: metadata?.productId as string,
+              amount: saleData.amount,
             },
           },
         });
