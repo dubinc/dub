@@ -73,7 +73,7 @@ export function CampaignGroupsSelector({
             </span>
           </div>
         ) : selectedGroups && selectedGroups.length > 0 ? (
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
             {selectedGroups.slice(0, MAX_DISPLAYED_GROUPS).map((group) => (
               <div
                 key={group.id}
