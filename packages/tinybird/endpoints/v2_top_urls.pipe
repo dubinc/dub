@@ -46,7 +46,9 @@ SQL >
         {% end %}
     WHERE
         url != ''
-        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
