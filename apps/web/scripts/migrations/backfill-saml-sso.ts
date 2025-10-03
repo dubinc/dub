@@ -1,0 +1,59 @@
+import { prisma } from "@dub/prisma";
+import "dotenv-flow/config";
+
+async function main() {
+  const workspaces = await prisma.project.findMany({
+    where: {
+      plan: "enterprise",
+    },
+    select: {
+      id: true,
+      name: true,
+      ssoEmailDomain: true,
+      users: {
+        select: {
+          user: {
+            select: {
+              email: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  const workspacesToUpdate: any[] = [];
+
+  for (const workspace of workspaces) {
+    const email = workspace.users[0]?.user?.email;
+    const emailDomain = email ? email.split("@")[1]?.toLowerCase() : undefined;
+
+    if (!emailDomain) {
+      console.log(`Workspace ${workspace.name} has no email domain`);
+      continue;
+    }
+
+    workspacesToUpdate.push({
+      id: workspace.id,
+      name: workspace.name,
+      ssoEmailDomain: emailDomain,
+    });
+  }
+
+  console.table(workspacesToUpdate);
+
+  // await Promise.allSettled(
+  //   workspacesToUpdate.map((workspace) =>
+  //     prisma.project.update({
+  //       where: {
+  //         id: workspace.id,
+  //       },
+  //       data: {
+  //         ssoEmailDomain: workspace.ssoEmailDomain,
+  //       },
+  //     }),
+  //   ),
+  // );
+}
+
+main();

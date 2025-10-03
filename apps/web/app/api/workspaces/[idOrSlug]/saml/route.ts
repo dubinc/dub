@@ -52,7 +52,7 @@ export const GET = withWorkspace(
 
 // POST /api/workspaces/[idOrSlug]/saml – create a new SAML connection
 export const POST = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     const { metadataUrl, encodedRawMetadata } =
       createSAMLConnectionSchema.parse(await req.json());
 
@@ -65,6 +65,17 @@ export const POST = withWorkspace(
       redirectUrl: process.env.NEXTAUTH_URL as string,
       tenant: workspace.id,
       product: "Dub",
+    });
+
+    const ssoEmailDomain = session.user.email.split("@")[1].toLocaleLowerCase();
+
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        ssoEmailDomain,
+      },
     });
 
     return NextResponse.json(data);
@@ -94,6 +105,7 @@ export const DELETE = withWorkspace(
       },
       data: {
         ssoEmailDomain: null,
+        ssoEnforcedAt: null,
       },
     });
 
