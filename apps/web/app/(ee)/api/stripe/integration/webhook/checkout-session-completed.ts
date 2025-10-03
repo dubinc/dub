@@ -22,7 +22,6 @@ import {
 import { prisma } from "@dub/prisma";
 import { Customer, WorkflowTrigger } from "@dub/prisma/client";
 import { COUNTRIES_TO_CONTINENTS, nanoid } from "@dub/utils";
-import { REGION_CODE_LOOKUP } from "@dub/utils/src/constants/regions";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
@@ -565,9 +564,7 @@ async function attributeViaPromoCode({
         ? COUNTRIES_TO_CONTINENTS[customerAddress.country]
         : "Unknown",
       country: customerAddress?.country ?? "Unknown",
-      region: customerAddress?.state
-        ? REGION_CODE_LOOKUP[customerAddress.state]
-        : "Unknown",
+      region: customerAddress?.state ?? "Unknown",
     },
   });
 
@@ -578,6 +575,7 @@ async function attributeViaPromoCode({
         customerDetails?.name || customerDetails?.email || generateRandomName(),
       email: customerDetails?.email,
       externalId: clickEvent.click_id,
+      stripeCustomerId: charge.customer as string,
       linkId: clickEvent.link_id,
       clickId: clickEvent.click_id,
       clickedAt: new Date(clickEvent.timestamp + "Z"),
