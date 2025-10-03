@@ -20,7 +20,7 @@ import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 
 const inputClassName =
-  "hover:border-border-subtle h-7 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
+  "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
 
 const labelClassName = "text-sm font-medium text-content-subtle";
 
@@ -72,6 +72,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         },
         {} as Record<string, any>,
       );
+
+      console.log({changedFields})
 
       // Only make request if there are changed fields
       if (Object.keys(changedFields).length > 0) {

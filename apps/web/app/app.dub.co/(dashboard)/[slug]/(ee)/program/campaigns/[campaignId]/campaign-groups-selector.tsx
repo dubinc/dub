@@ -19,7 +19,6 @@ export function CampaignGroupsSelector({
   setSelectedGroupIds,
 }: CampaignGroupsSelectorProps) {
   const { groups, loading } = useGroups();
-  const [isHovered, setIsHovered] = useState(false);
   const [openPopover, setOpenPopover] = useState(false);
 
   const selectedGroups = useMemo(() => {
@@ -52,19 +51,26 @@ export function CampaignGroupsSelector({
     >
       <div
         className={cn(
-          "group relative flex min-h-[28px] w-full cursor-pointer items-center gap-2 rounded-lg p-1.5 text-sm transition-colors duration-150 hover:bg-neutral-100",
+          "group relative flex h-8 w-full cursor-pointer items-center gap-2 rounded-lg p-1.5 text-sm transition-colors duration-150 hover:bg-neutral-100",
           openPopover && "bg-neutral-100",
         )}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
         onClick={() => setOpenPopover(true)}
       >
         {loading && selectedGroupIds?.length ? (
           <div className="h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
         ) : displayAllGroups ? (
-          <div className="text-content-default flex items-center gap-1.5">
+          <div
+            className={cn(
+              "flex h-5 items-center gap-1 rounded-md px-1.5 transition-colors",
+              openPopover
+                ? "bg-neutral-200"
+                : "bg-neutral-100 group-hover:bg-neutral-200",
+            )}
+          >
             <Users6 className="size-3.5 shrink-0" />
-            <span>All groups</span>
+            <span className="text-content-default text-sm font-medium">
+              All groups
+            </span>
           </div>
         ) : selectedGroups && selectedGroups.length > 0 ? (
           <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
@@ -73,7 +79,9 @@ export function CampaignGroupsSelector({
                 key={group.id}
                 className={cn(
                   "flex h-5 min-w-0 items-center gap-1 rounded-md px-1.5 transition-colors",
-                  isHovered ? "bg-neutral-200" : "bg-neutral-100",
+                  openPopover
+                    ? "bg-neutral-200"
+                    : "bg-neutral-100 group-hover:bg-neutral-200",
                 )}
               >
                 <GroupColorCircle group={group} />
@@ -87,7 +95,9 @@ export function CampaignGroupsSelector({
               <span
                 className={cn(
                   "flex items-center rounded-md px-2 py-0.5 text-xs font-medium text-neutral-600 transition-colors",
-                  isHovered ? "bg-neutral-200" : "bg-neutral-100",
+                  openPopover
+                    ? "bg-neutral-200"
+                    : "bg-neutral-100 group-hover:bg-neutral-200",
                 )}
               >
                 +{plusCount}
@@ -96,18 +106,19 @@ export function CampaignGroupsSelector({
           </div>
         ) : null}
 
-        {(isHovered || openPopover) && (
-          <button
-            type="button"
-            className="ml-auto h-5 shrink-0 rounded-md bg-neutral-200 px-2 text-xs font-semibold text-neutral-700 transition-colors"
-            onClick={(e) => {
-              e.stopPropagation();
-              setOpenPopover(true);
-            }}
-          >
-            Edit
-          </button>
-        )}
+        <button
+          type="button"
+          className={cn(
+            "ml-auto h-5 shrink-0 rounded-md bg-neutral-200 px-2 text-xs font-semibold text-neutral-700 transition-opacity",
+            openPopover ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpenPopover(true);
+          }}
+        >
+          Edit
+        </button>
       </div>
     </Popover>
   );
