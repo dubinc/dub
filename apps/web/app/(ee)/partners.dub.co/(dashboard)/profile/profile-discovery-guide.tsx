@@ -1,13 +1,50 @@
 import { PartnerProps } from "@/lib/types";
-import { Button, ChevronUp, ProgressCircle } from "@dub/ui";
+import {
+  Button,
+  ChevronUp,
+  CircleCheckFill,
+  CircleDotted,
+  ExpandingArrow,
+  ProgressCircle,
+} from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { motion } from "motion/react";
-import { useState } from "react";
+import Link from "next/link";
+import { HTMLProps, useState } from "react";
 
 export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
   if (partner.discoverableAt) return null;
 
   const [isExpanded, setIsExpanded] = useState(false);
+
+  const tasks = [
+    {
+      label: "Add basic profile info",
+      completed: true,
+    },
+    {
+      label: "Verify your website or social account",
+      completed: false,
+    },
+    {
+      label: "Write your bio",
+      completed: false,
+    },
+    {
+      label: "Select your industry interests",
+      completed: false,
+    },
+    {
+      label: "Choose your sales channels",
+      completed: false,
+    },
+    {
+      label: "Earn $100 in commissions",
+      completed: false,
+    },
+  ];
+
+  const completedTasks = tasks.filter(({ completed }) => completed);
 
   return (
     <motion.div
@@ -27,11 +64,11 @@ export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
           <div className="flex justify-between">
             <div className="bg-bg-default/10 mb-4 flex w-fit items-center gap-1.5 rounded-md px-2 py-1">
               <ProgressCircle
-                progress={1 / 6}
+                progress={completedTasks.length / tasks.length}
                 className="text-green-500 [--track-color:#fff3]"
               />
               <span className="text-xs font-medium">
-                1 of 6 tasks completed
+                {completedTasks.length} of {tasks.length} tasks completed
               </span>
             </div>
             <Button
@@ -67,9 +104,53 @@ export function ProfileDiscoveryGuide({ partner }: { partner: PartnerProps }) {
           transition={{ duration: 0.15, ease: "easeOut" }}
           className="overflow-hidden"
         >
-          <div className="rounded-lg bg-neutral-800 p-2">WIP</div>
+          <div
+            className="grid grid-cols-1 rounded-lg bg-neutral-800 p-2 sm:grid-cols-2"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {tasks.map(({ label, completed }) => (
+              <ConditionalLink
+                key={label}
+                href={completed ? undefined : `#`}
+                className={cn(
+                  "group flex items-center justify-between gap-2 rounded-md px-3 py-2",
+                  !completed &&
+                    "transition-colors duration-100 ease-out hover:bg-neutral-700",
+                )}
+              >
+                <div className="flex min-w-0 items-center gap-2">
+                  {completed ? (
+                    <CircleCheckFill className="size-4 shrink-0 text-green-500" />
+                  ) : (
+                    <CircleDotted className="size-4 shrink-0 text-neutral-400" />
+                  )}
+                  <span className="min-w-0 truncate text-sm">{label}</span>
+                </div>
+                {!completed && (
+                  <div className="shrink-0 pr-4">
+                    <ExpandingArrow className="group-hover:text-content-inverted text-neutral-500" />
+                  </div>
+                )}
+              </ConditionalLink>
+            ))}
+          </div>
         </motion.div>
       </div>
     </motion.div>
+  );
+}
+
+function ConditionalLink({
+  href,
+  className,
+  children,
+  ...rest
+}: Partial<HTMLProps<HTMLAnchorElement>>) {
+  return href ? (
+    <Link href={href} className={className} {...rest}>
+      {children}
+    </Link>
+  ) : (
+    <div className={className}>{children}</div>
   );
 }
