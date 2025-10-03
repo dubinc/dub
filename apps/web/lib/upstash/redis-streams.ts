@@ -157,14 +157,12 @@ export const publishClickEvent = async (event: ClickEvent) => {
   const entry = { linkId, timestamp, workspaceId };
 
   try {
-    const pipeline = redis.pipeline();
-
     // TODO: - Uncomment when we handle click updates
+    // const pipeline = redis.pipeline();
     // pipeline.xadd(LINK_CLICK_UPDATES_STREAM_KEY, "*", entry);
-
-    pipeline.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", entry);
-
-    return await pipeline.exec();
+    // pipeline.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", entry);
+    // return await pipeline.exec();
+    return await redis.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", entry);
   } catch (error) {
     console.error("Failed to publish click update to streams:", error);
     throw error;

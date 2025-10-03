@@ -28,7 +28,9 @@ const aggregateWorkspaceUsage = (
 
   let lastId: string | null = null;
 
-  // The entries are a batch of workspace usage events, each with workspaceId, timestamp, and possibly linkId.
+  console.log(`Aggregating ${entries.length} workspace usage events`);
+
+  // The entries are a batch of workspace usage events, each with workspaceId, timestamp, and linkId.
   // We want to aggregate by workspaceId, counting total events (clicks) and tracking first/last timestamps.
 
   for (const entry of entries) {
@@ -84,7 +86,7 @@ const processWorkspaceUpdateStreamBatch = () =>
       }
 
       console.log(
-        `Processing ${updates.length} aggregated workspace usage updates`,
+        `Processing ${updates.length} aggregated workspace usage updates...`,
       );
 
       // Process updates in parallel batches to avoid overwhelming the database
@@ -100,7 +102,6 @@ const processWorkspaceUpdateStreamBatch = () =>
       const processedEntryIds: string[] = [];
 
       for (const batch of batches) {
-        console.log(`BATCH: ${JSON.stringify(batch)}`);
         try {
           // Execute all updates in the batch in parallel
           const batchPromises = batch.map(async (update) => {
@@ -109,10 +110,6 @@ const processWorkspaceUpdateStreamBatch = () =>
               await conn.execute(
                 "UPDATE Project p SET p.usage = p.usage + ?, p.totalClicks = p.totalClicks + ? WHERE id = ?",
                 [update.clicks, update.clicks, update.workspaceId],
-              );
-
-              console.log(
-                `Incremented workspace ${update.workspaceId} usage and totalClicks by ${update.clicks}`,
               );
 
               processedEntryIds.push(...update.entryIds);

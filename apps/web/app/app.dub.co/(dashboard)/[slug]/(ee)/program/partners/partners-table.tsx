@@ -513,7 +513,7 @@ function RowMenuButton({
           <Command tabIndex={0} loop className="focus:outline-none">
             <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               {row.original.status === "invited" ? (
-                <>
+                <Command.Group className="grid gap-px p-1.5">
                   <MenuItem
                     icon={Users6}
                     label="Change group"
@@ -562,7 +562,7 @@ function RowMenuButton({
                       });
                     }}
                   />
-                </>
+                </Command.Group>
               ) : (
                 <>
                   <Command.Group className="grid gap-px p-1.5">
