@@ -41,7 +41,6 @@ interface IQRPreviewModalProps {
 }
 
 const FEATURES = [
-  "Receive your QR code instantly by email",
   "Download your QR code in PNG, JPG, or SVG",
   "Edit your QR code anytime, even after printing",
   "Create unlimited QR codes",
