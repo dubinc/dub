@@ -4,7 +4,7 @@ import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
-// GET /api/campaigns/[campaignId]/analytics
+// GET /api/campaigns/[campaignId]/summary
 export const GET = withWorkspace(
   async ({ workspace, params }) => {
     const { campaignId } = params;

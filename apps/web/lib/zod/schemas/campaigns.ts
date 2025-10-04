@@ -94,3 +94,15 @@ export const getCampaignsEventsQuerySchema = z
     status: z.enum(["opened", "bounced"]).default("opened"),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
+
+const metricSchema = z.object({
+  count: z.coerce.number(),
+  percent: z.coerce.number().min(0).max(100),
+});
+
+export const campaignSummarySchema = z.object({
+  sent: metricSchema,
+  delivered: metricSchema,
+  opened: metricSchema,
+  bounced: metricSchema,
+});
