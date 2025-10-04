@@ -2,6 +2,7 @@ export * from "./cctlds";
 export * from "./connect-supported-countries";
 export * from "./continents";
 export * from "./countries";
+export * from "./country-currency-codes";
 export * from "./country-phone-codes";
 export * from "./domains";
 export * from "./dub-domains";
