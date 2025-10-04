@@ -31,6 +31,7 @@ export * from "./pagination-controls";
 export * from "./popover";
 export * from "./progress-circle";
 export * from "./radio-group";
+export * from "./rich-text-area";
 export * from "./sheet";
 export * from "./shimmer-dots";
 export * from "./slider";

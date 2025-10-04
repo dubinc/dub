@@ -1,0 +1,53 @@
+"use server";
+
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { sendBatchEmail } from "@dub/email";
+import CampaignEmail from "@dub/email/templates/campaign-email";
+import { prisma } from "@dub/prisma";
+import { z } from "zod";
+import { authActionClient } from "../safe-action";
+
+const sendPreviewEmailSchema = z.object({
+  campaignId: z.string(),
+  workspaceId: z.string(),
+  subject: z.string().min(1, "Email subject is required."),
+  body: z.string().min(1, "Email body is required."),
+  emailAddresses: z
+    .array(z.string().email())
+    .min(1)
+    .max(10, "Maximum 10 email addresses allowed."),
+});
+
+export const sendCampaignPreviewEmail = authActionClient
+  .schema(sendPreviewEmailSchema)
+  .action(async ({ parsedInput, ctx }) => {
+    const { workspace } = ctx;
+    const { campaignId, subject, body, emailAddresses } = parsedInput;
+
+    console.log({campaignId, subject, body, emailAddresses})
+
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    await prisma.campaign.findUniqueOrThrow({
+      where: {
+        id: campaignId,
+        programId,
+      },
+    });
+
+    const response = await sendBatchEmail(
+      emailAddresses.map((email) => ({
+        variant: "notifications",
+        to: email,
+        subject: `[TEST] ${subject}`,
+        react: CampaignEmail({
+          campaign: {
+            subject,
+            body,
+          },
+        }),
+      })),
+    );
+
+    console.log(response)
+  });

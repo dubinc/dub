@@ -19,7 +19,7 @@ import {
 } from "@/lib/zod/schemas/bounties";
 import {
   WORKFLOW_ACTION_TYPES,
-  WORKFLOW_ATTRIBUTE_TRIGGER_MAP,
+  WORKFLOW_ATTRIBUTE_TRIGGER,
 } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { Workflow } from "@dub/prisma/client";
@@ -174,7 +174,7 @@ export const POST = withWorkspace(
             id: createId({ prefix: "wf_" }),
             programId,
             trigger:
-              WORKFLOW_ATTRIBUTE_TRIGGER_MAP[performanceCondition.attribute],
+              WORKFLOW_ATTRIBUTE_TRIGGER[performanceCondition.attribute],
             triggerConditions: [performanceCondition],
             actions: [action],
           },

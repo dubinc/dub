@@ -5,9 +5,14 @@ enum CampaignType {
 
 enum CampaignStatus {
   draft
+
+  // Transactional
   active
   paused
+
+  // Marketing
   sent
+  scheduled
 }
 
 model Campaign {

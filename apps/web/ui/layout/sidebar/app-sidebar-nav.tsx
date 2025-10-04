@@ -28,6 +28,7 @@ import {
   LinesY as LinesYStatic,
   MoneyBills2,
   Msgs,
+  PaperPlane,
   Receipt2,
   ShieldCheck,
   Sliders,
@@ -287,6 +288,12 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
         name: "Engagement",
         items: [
           {
+            name: "Email Campaigns",
+            icon: PaperPlane,
+            href: `/${slug}/program/campaigns`,
+            badge: "New",
+          },
+          {
             name: "Bounties",
             icon: Trophy,
             href: `/${slug}/program/bounties`,
@@ -294,7 +301,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
               ? submittedBountiesCount > 99
                 ? "99+"
                 : submittedBountiesCount
-              : "New",
+              : "",
           },
           {
             name: "Resources",
@@ -471,6 +478,8 @@ export function AppSidebarNav({
           // TODO: remove when we migrate to Next.js 15 + PPR
           pathname.endsWith("/guides") ||
             pathname.includes("/guides/") ||
+            // for the email editor page
+            pathname.includes("/program/campaigns/") ||
             pathname.includes("/program/messages/") ||
             // this one is for the payout success page
             pathname.endsWith("/program/payouts/success")
