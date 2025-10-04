@@ -50,7 +50,7 @@ export function CampaignEvents() {
           <p className="text-content-subtle text-sm">Failed to load events</p>
         </div>
       ) : (
-        <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
+        <div className="flex min-h-80 flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
           {isLoading ? (
             <CampaignEventsLoadingSkeleton />
           ) : events && events.length > 0 ? (
@@ -107,21 +107,23 @@ function CampaignEventRow({ event }: { event: CampaignEvent }) {
 function CampaignEventsLoadingSkeleton() {
   return (
     <>
-      {Array.from({ length: 5 }).map((_, index) => (
-        <div key={index} className="flex items-center gap-3 px-4 py-4">
-          <div className="size-8 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+      {Array.from({ length: 10 }).map((_, index) => (
+        <div key={index} className="flex gap-2 p-2.5">
+          <div className="flex h-8 shrink-0 items-center justify-center">
+            <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
+          </div>
 
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-              <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
-              <div className="flex items-center gap-1.5">
-                <div className="size-3 animate-pulse rounded-full bg-neutral-200" />
-                <div className="h-3 w-16 animate-pulse rounded bg-neutral-200" />
-              </div>
+          <div className="flex h-8 min-w-0 flex-1 flex-col">
+            <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
+            <div className="mt-0.5 flex items-center gap-1">
+              <div className="size-3 animate-pulse rounded-full bg-neutral-200" />
+              <div className="h-3 w-16 animate-pulse rounded bg-neutral-200" />
             </div>
           </div>
 
-          <div className="h-3 w-12 shrink-0 animate-pulse rounded bg-neutral-200" />
+          <div className="flex h-8 shrink-0 items-center justify-center">
+            <div className="h-3 w-12 animate-pulse rounded bg-neutral-200" />
+          </div>
         </div>
       ))}
     </>
