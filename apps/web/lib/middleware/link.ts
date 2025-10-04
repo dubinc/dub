@@ -296,7 +296,8 @@ export default async function LinkMiddleware(
     );
   }
 
-  const isBot = detectBot(req);
+  const isBot =
+    process.env.TEST_SKIP_BOT_DETECTION === "true" ? false : detectBot(req);
   const ua = userAgent(req);
 
   const { country } =
