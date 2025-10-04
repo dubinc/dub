@@ -22,7 +22,7 @@ const resendEmailForOptions = (opts: ResendEmailOptions) => {
     to,
     from: from || VARIANT_TO_FROM_MAP[variant],
     bcc: bcc,
-    replyTo: replyTo || "support@dub.co",
+    reply_to: replyTo || "support@dub.co",
     subject,
     text,
     react,
