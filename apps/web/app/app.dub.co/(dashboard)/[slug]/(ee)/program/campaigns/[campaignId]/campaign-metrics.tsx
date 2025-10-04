@@ -9,14 +9,9 @@ import { useMemo } from "react";
 import useSWR from "swr";
 import { z } from "zod";
 
-interface CampaignMetricsProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-export function CampaignMetrics({ isOpen, onClose }: CampaignMetricsProps) {
-  const { campaignId } = useParams<{ campaignId: string }>();
+export function CampaignMetrics() {
   const { id: workspaceId } = useWorkspace();
+  const { campaignId } = useParams<{ campaignId: string }>();
 
   const {
     data: summary,
@@ -57,51 +52,43 @@ export function CampaignMetrics({ isOpen, onClose }: CampaignMetricsProps) {
   );
 
   return (
-    <div className="flex h-full flex-col">
-      <div className="border-border-subtle flex h-12 items-center justify-between border-b px-6 sm:h-16">
-        <h2 className="text-lg font-semibold text-gray-900">Metrics</h2>
-      </div>
-
-      <div className="flex-1 bg-neutral-50 p-6">
-        {error ? (
-          <div className="flex h-full items-center justify-center">
-            <p className="text-content-subtle text-sm">
-              Failed to load metrics
-            </p>
-          </div>
-        ) : (
-          <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200">
-            {isLoading ? (
-              <MetricsLoadingSkeleton />
-            ) : (
-              metrics.map((metric) => (
-                <div key={metric.label} className="flex flex-col gap-2 p-3">
-                  <div className="flex items-center gap-1.5">
-                    <metric.icon className="text-content-subtle size-3.5" />
-                    <div className="text-xs font-medium text-neutral-500">
-                      {metric.label}
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-sm font-medium text-neutral-900">
-                      {metric.percentage}
-                    </span>
-                    <span className="text-content-subtle text-sm font-medium">
-                      {metric.count}
-                    </span>
+    <div>
+      {error ? (
+        <div className="flex h-full items-center justify-center">
+          <p className="text-content-subtle text-sm">Failed to load metrics</p>
+        </div>
+      ) : (
+        <div className="flex flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200">
+          {isLoading ? (
+            <CampaignMetricsLoadingSkeleton />
+          ) : (
+            metrics.map((metric) => (
+              <div key={metric.label} className="flex flex-col gap-2 p-3">
+                <div className="flex items-center gap-1.5">
+                  <metric.icon className="text-content-subtle size-3.5" />
+                  <div className="text-xs font-medium text-neutral-500">
+                    {metric.label}
                   </div>
                 </div>
-              ))
-            )}
-          </div>
-        )}
-      </div>
+
+                <div className="flex justify-between">
+                  <span className="text-sm font-medium text-neutral-900">
+                    {metric.percentage}
+                  </span>
+                  <span className="text-content-subtle text-sm font-medium">
+                    {metric.count}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }
 
-function MetricsLoadingSkeleton() {
+function CampaignMetricsLoadingSkeleton() {
   return (
     <>
       {Array.from({ length: 3 }).map((_, index) => (

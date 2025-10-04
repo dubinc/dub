@@ -7,6 +7,7 @@ import { useState } from "react";
 import useCampaign from "../use-campaign";
 import { CampaignEditor } from "./campaign-editor";
 import { CampaignEditorSkeleton } from "./campaign-editor-skeleton";
+import { CampaignEvents } from "./campaign-events";
 import { CampaignMetrics } from "./campaign-metrics";
 
 export function ProgramCampaignPageClient() {
@@ -48,10 +49,18 @@ export function ProgramCampaignPageClient() {
           )}
         >
           <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[360px]">
-            <CampaignMetrics
-              isOpen={isRightPanelOpen}
-              onClose={() => setIsRightPanelOpen(false)}
-            />
+            <div className="flex h-full flex-col">
+              <div className="border-border-subtle flex h-12 items-center justify-between border-b px-6 sm:h-16">
+                <h2 className="text-lg font-semibold text-gray-900">Metrics</h2>
+              </div>
+
+              <div className="flex-1 bg-neutral-50 p-6">
+                <div className="flex flex-col gap-4">
+                  <CampaignMetrics />
+                  <CampaignEvents />
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ import { CampaignStatus, CampaignType } from "@dub/prisma/client";
 import { z } from "zod";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
+import { EnrolledPartnerSchema } from "./partners";
 import { workflowConditionSchema } from "./workflows";
 
 export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30];
@@ -105,4 +106,22 @@ export const campaignSummarySchema = z.object({
   delivered: metricSchema,
   opened: metricSchema,
   bounced: metricSchema,
+});
+
+export const campaignEventSchema = z.object({
+  id: z.string(),
+  createdAt: z.date(),
+  openedAt: z.date().nullable(),
+  bouncedAt: z.date().nullable(),
+  deliveredAt: z.date().nullable(),
+  partner: EnrolledPartnerSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }),
+  group: GroupSchema.pick({
+    id: true,
+    name: true,
+    color: true,
+  }),
 });
