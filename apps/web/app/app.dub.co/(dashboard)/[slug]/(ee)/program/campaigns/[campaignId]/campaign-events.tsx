@@ -10,13 +10,13 @@ import { useState } from "react";
 import useSWR from "swr";
 import { z } from "zod";
 
-type EventStatus = "opened" | "bounced";
+type EventStatus = "delivered" | "opened" | "bounced";
 export type CampaignEvent = z.infer<typeof campaignEventSchema>;
 
 export function CampaignEvents() {
   const { id: workspaceId } = useWorkspace();
   const { campaignId } = useParams<{ campaignId: string }>();
-  const [status, setStatus] = useState<EventStatus>("opened");
+  const [status, setStatus] = useState<EventStatus>("delivered");
 
   const {
     data: events,
@@ -37,6 +37,7 @@ export function CampaignEvents() {
           optionClassName="h-8 flex items-center justify-center rounded-lg flex-1 text-sm font-medium"
           indicatorClassName="bg-white shadow-sm"
           options={[
+            { value: "delivered", label: "Delivered" },
             { value: "opened", label: "Opened" },
             { value: "bounced", label: "Bounced" },
           ]}
@@ -70,9 +71,10 @@ export function CampaignEvents() {
 
 function CampaignEventRow({ event }: { event: CampaignEvent }) {
   const getTimestamp = () => {
+    if (event.deliveredAt) return event.deliveredAt;
     if (event.openedAt) return event.openedAt;
     if (event.bouncedAt) return event.bouncedAt;
-    return event.createdAt;
+    return null;
   };
 
   return (

@@ -16,6 +16,7 @@ export const getCampaignEvents = async (params: GetCampaignEventsParams) => {
   const results = await prisma.notificationEmail.findMany({
     where: {
       campaignId,
+      ...(status === "delivered" && { deliveredAt: { not: null } }),
       ...(status === "opened" && { openedAt: { not: null } }),
       ...(status === "bounced" && { bouncedAt: { not: null } }),
     },

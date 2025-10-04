@@ -92,7 +92,7 @@ export const getCampaignsCountQuerySchema = getCampaignsQuerySchema
 
 export const getCampaignsEventsQuerySchema = z
   .object({
-    status: z.enum(["opened", "bounced"]).default("opened"),
+    status: z.enum(["delivered", "opened", "bounced"]).default("delivered"),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
