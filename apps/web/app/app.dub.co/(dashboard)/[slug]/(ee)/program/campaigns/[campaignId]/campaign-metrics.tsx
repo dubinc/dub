@@ -106,13 +106,13 @@ function MetricsLoadingSkeleton() {
     <>
       {Array.from({ length: 3 }).map((_, index) => (
         <div key={index} className="flex flex-col gap-2 p-3">
-          <div className="flex items-center gap-1.5">
+          <div className="flex h-4 items-center gap-1.5">
             <div className="size-3.5 animate-pulse rounded bg-neutral-200" />
             <div className="text-xs font-medium">
               <div className="h-[1em] w-16 animate-pulse rounded bg-neutral-200" />
             </div>
           </div>
-          <div className="flex justify-between">
+          <div className="flex h-5 justify-between">
             <span className="text-sm font-medium">
               <div className="h-[1em] w-12 animate-pulse rounded bg-neutral-200" />
             </span>
