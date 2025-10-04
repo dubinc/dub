@@ -146,7 +146,10 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     /*
     for regular stripe checkout setup (provided stripeCustomerId is present):
     - if dubCustomerExternalId is provided:
-      - we update the customer with the stripe customerId (for future events)
+      - we try to update the customer with the stripe customerId (for future events)
+       if the customer is not found, we check if a promotion code was used in the checkout:
+        - if yes, follow the promotion code logic below
+        - if no, we skip the event
     - else:
       - we first try to see if the customer with the Stripe ID already exists in Dub
         - if it does, great, we can use the customer found on Dub
@@ -173,7 +176,22 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       });
 
       if (!customer) {
-        return `dubCustomerExternalId was provided but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`;
+        if (promotionCodeId) {
+          const promoCodeResponse = await attributeViaPromoCode({
+            promotionCodeId,
+            stripeAccountId,
+            livemode: event.livemode,
+            charge,
+          });
+          if (promoCodeResponse) {
+            ({ linkId, customer, clickEvent, leadEvent } = promoCodeResponse);
+            shouldSendLeadWebhook = false;
+          } else {
+            return `Failed to attribute via promotion code ${promotionCodeId}, skipping...`;
+          }
+        } else {
+          return `dubCustomerExternalId was provided but customer with dubCustomerExternalId ${dubCustomerExternalId} not found on Dub, skipping...`;
+        }
       }
     } else {
       existingCustomer = await prisma.customer.findUnique({
