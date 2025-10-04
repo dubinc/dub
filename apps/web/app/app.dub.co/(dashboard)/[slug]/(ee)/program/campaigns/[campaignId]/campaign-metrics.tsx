@@ -5,12 +5,9 @@ import { campaignSummarySchema } from "@/lib/zod/schemas/campaigns";
 import { EnvelopeBan, EnvelopeCheck, EnvelopeOpen } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
 import { useParams } from "next/navigation";
+import { useMemo } from "react";
 import useSWR from "swr";
 import { z } from "zod";
-
-// TODO:
-// Fix the layout shift
-// Add useMemo
 
 interface CampaignMetricsProps {
   isOpen: boolean;
@@ -32,28 +29,32 @@ export function CampaignMetrics({ isOpen, onClose }: CampaignMetricsProps) {
     fetcher,
   );
 
-  const metrics = summary
-    ? [
-        {
-          icon: EnvelopeCheck,
-          label: "Delivered",
-          percentage: `${summary.delivered.percent}%`,
-          count: nFormatter(summary.delivered.count),
-        },
-        {
-          icon: EnvelopeBan,
-          label: "Bounced",
-          percentage: `${summary.bounced.percent}%`,
-          count: nFormatter(summary.bounced.count),
-        },
-        {
-          icon: EnvelopeOpen,
-          label: "Opened",
-          percentage: `${summary.opened.percent}%`,
-          count: nFormatter(summary.opened.count),
-        },
-      ]
-    : [];
+  const metrics = useMemo(
+    () =>
+      summary
+        ? [
+            {
+              icon: EnvelopeCheck,
+              label: "Delivered",
+              percentage: `${summary.delivered.percent}%`,
+              count: nFormatter(summary.delivered.count),
+            },
+            {
+              icon: EnvelopeBan,
+              label: "Bounced",
+              percentage: `${summary.bounced.percent}%`,
+              count: nFormatter(summary.bounced.count),
+            },
+            {
+              icon: EnvelopeOpen,
+              label: "Opened",
+              percentage: `${summary.opened.percent}%`,
+              count: nFormatter(summary.opened.count),
+            },
+          ]
+        : [],
+    [summary],
+  );
 
   return (
     <div className="flex h-full flex-col">
