@@ -14,14 +14,22 @@ import { PayoutMethodsDropdown } from "@/ui/partners/payout-methods-dropdown";
 import {
   AnimatedSizeContainer,
   Button,
+  InfoTooltip,
   Sheet,
+  SimpleTooltipContent,
   Slider,
   useScrollProgress,
 } from "@dub/ui";
-import { CONNECT_SUPPORTED_COUNTRIES, currencyFormatter } from "@dub/utils";
+import {
+  CONNECT_SUPPORTED_COUNTRIES,
+  COUNTRIES,
+  currencyFormatter,
+} from "@dub/utils";
+import { COUNTRY_CURRENCY_CODES } from "@dub/utils/src";
 import NumberFlow from "@number-flow/react";
 import { PartyPopper } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import {
   Dispatch,
   SetStateAction,
@@ -104,8 +112,17 @@ function PartnerPayoutSettingsSheetInner({
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <Sheet.Title className="text-lg font-semibold">
-          Payout settings
+        <Sheet.Title className="flex items-center gap-1 text-lg font-semibold">
+          Payout settings{" "}
+          <InfoTooltip
+            content={
+              <SimpleTooltipContent
+                title="Learn how to set up your payout account and receive payouts."
+                cta="Learn more."
+                href="https://dub.co/help/article/receiving-payouts"
+              />
+            }
+          />
         </Sheet.Title>
       </div>
 
@@ -129,6 +146,33 @@ function PartnerPayoutSettingsSheetInner({
               ) : (
                 <PayoutMethodsDropdown />
               )}
+
+              {partner?.country &&
+                CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) && (
+                  <p className="text-xs text-neutral-500">
+                    For compliance reasons, your payout bank account must match
+                    your local currency. Since you're based in{" "}
+                    <Link
+                      href="/profile"
+                      target="_blank"
+                      className="font-medium text-neutral-900 underline decoration-dotted underline-offset-2"
+                    >
+                      {COUNTRIES[partner.country]}
+                    </Link>{" "}
+                    , you will need to connect a{" "}
+                    <span className="font-medium text-neutral-900">
+                      {COUNTRY_CURRENCY_CODES[partner.country]} bank account
+                    </span>{" "}
+                    to receive payouts.{" "}
+                    <Link
+                      href="https://dub.co/help/article/receiving-payouts"
+                      target="_blank"
+                      className="font-medium text-neutral-900 underline decoration-dotted underline-offset-2"
+                    >
+                      Learn more ↗
+                    </Link>
+                  </p>
+                )}
             </div>
 
             {/*  Minimum withdrawal amount */}

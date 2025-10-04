@@ -1,4 +1,3 @@
-import { CreateBatchResponse } from "resend";
 import { resend } from "./resend";
 import { ResendBulkEmailOptions, ResendEmailOptions } from "./resend/types";
 import { sendViaNodeMailer } from "./send-via-nodemailer";
@@ -29,9 +28,7 @@ export const sendEmail = async (opts: ResendEmailOptions) => {
   );
 };
 
-export const sendBatchEmail = async (
-  payload: ResendBulkEmailOptions,
-): Promise<CreateBatchResponse> => {
+export const sendBatchEmail = async (payload: ResendBulkEmailOptions) => {
   if (resend) {
     return await sendBatchEmailViaResend(payload);
   }
