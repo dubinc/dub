@@ -51,6 +51,7 @@ SQL >
                 FROM dub_lead_events_mv
                 WHERE customer_id = {{ String(customerId) }}
             )
+        {% elif defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
         {% elif defined(linkId) %} AND link_id = {{ String(linkId) }}
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
             AND link_id IN (SELECT link_id FROM workspace_links)
@@ -102,7 +103,8 @@ SQL >
     WHERE
         timestamp >= {{ DateTime(start, '2024-01-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2025-12-31 00:00:00') }}
-        {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
+        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND link_id = {{ String(linkId) }}
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
             AND link_id IN (SELECT link_id FROM workspace_links)
         {% end %}
@@ -158,7 +160,7 @@ SQL >
                 {% end %}
             {% end %}
         {% end %}
-    
+
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
@@ -178,8 +180,9 @@ SQL >
     FROM dub_sale_events_mv
     WHERE
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
-        AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
-        {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
+        AND timestamp < {{ DateTime(end, '2025-12-31 00:00:00') }}
+        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND link_id = {{ String(linkId) }}
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
             AND link_id IN (SELECT link_id FROM workspace_links)
         {% end %}
@@ -258,7 +261,8 @@ SQL >
             WHERE
                 timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
                 AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
-                {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
+                {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+                {% elif defined(linkId) %} AND link_id = {{ String(linkId) }}
                 {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
                     AND link_id IN (SELECT link_id FROM workspace_links)
                 {% end %}
@@ -297,6 +301,31 @@ SQL >
                     LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
                 {% end %}
                 {% if defined(url) %} AND url = {{ url }} {% end %}
+
+
+                {% if defined(filters) %}
+                    {% for item in JSON(filters, '[]') %}
+                        {% if item.get('operand', '').startswith('metadata.') %}
+                            {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                            {% set operator = item.get('operator', 'equals') %}
+                            {% set value = item.get('value', '') %}
+
+                            {% if operator == 'equals' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                            {% elif operator == 'notEquals' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                            {% elif operator == 'greaterThan' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                            {% elif operator == 'lessThan' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                            {% elif operator == 'greaterThanOrEqual' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                            {% elif operator == 'lessThanOrEqual' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                            {% end %}
+                        {% end %}
+                    {% end %}
+                {% end %}
         ),
         distinct_sales AS (SELECT DISTINCT customer_id, link_id FROM sales),
         min_timestamps AS (

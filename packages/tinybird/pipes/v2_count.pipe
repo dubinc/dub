@@ -47,13 +47,15 @@ SQL >
                 FROM dub_lead_events_mv
                 WHERE customer_id = {{ String(customerId) }}
             )
-        {% elif not defined(linkId) and (
+        {% elif not defined(linkId) and not defined(linkIds) and (
             defined(workspaceId) or defined(partnerId) or defined(programId)
         ) %} PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
         true
-        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
@@ -94,12 +96,15 @@ SQL >
     SELECT COUNT(*) as leads
     FROM
         dub_lead_events_mv
-        {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
-            PREWHERE link_id in (SELECT link_id from workspace_links)
+        {% if not defined(linkId) and not defined(linkIds) and (
+            defined(workspaceId) or defined(partnerId) or defined(programId)
+        ) %} PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
         true
-        {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% end %}
         {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -119,6 +124,29 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
+        {% if defined(filters) %}
+            {% for item in JSON(filters, '[]') %}
+                {% if item.get('operand', '').startswith('metadata.') %}
+                    {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                    {% set operator = item.get('operator', 'equals') %}
+                    {% set value = item.get('value', '') %}
+
+                    {% if operator == 'equals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                    {% elif operator == 'notEquals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                    {% elif operator == 'greaterThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                    {% elif operator == 'lessThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                    {% elif operator == 'greaterThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                    {% elif operator == 'lessThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                    {% end %}
+                {% end %}
+            {% end %}
+        {% end %}
 
 
 
@@ -132,12 +160,14 @@ SQL >
             SELECT COUNT(*) as sales, sum(amount) as amount
             FROM
                 dub_sale_events_mv
-                {% if not defined(linkId) and (
+                {% if not defined(linkId) and not defined(linkIds) and (
                     defined(workspaceId) or defined(partnerId) or defined(programId)
                 ) %} PREWHERE link_id in (SELECT link_id from workspace_links) {% end %}
             WHERE
                 true
-                {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+                {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+                {% elif defined(linkId) %} AND link_id = {{ linkId }}
+                {% end %}
                 {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
                 {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
                 {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -175,6 +205,29 @@ SQL >
                 {% if defined(url) %} AND url = {{ url }} {% end %}
                 {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
                 {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
+                {% if defined(filters) %}
+                    {% for item in JSON(filters, '[]') %}
+                        {% if item.get('operand', '').startswith('metadata.') %}
+                            {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                            {% set operator = item.get('operator', 'equals') %}
+                            {% set value = item.get('value', '') %}
+
+                            {% if operator == 'equals' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                            {% elif operator == 'notEquals' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                            {% elif operator == 'greaterThan' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                            {% elif operator == 'lessThan' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                            {% elif operator == 'greaterThanOrEqual' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                            {% elif operator == 'lessThanOrEqual' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                            {% end %}
+                        {% end %}
+                    {% end %}
+                {% end %}
         ) AS subquery
 
 
@@ -188,12 +241,14 @@ SQL >
             SELECT customer_id, link_id, timestamp, amount
             FROM
                 dub_sale_events_mv
-                {% if not defined(linkId) and (
+                {% if not defined(linkId) and not defined(linkIds) and (
                     defined(workspaceId) or defined(partnerId) or defined(programId)
                 ) %} PREWHERE link_id in (SELECT link_id from workspace_links) {% end %}
             WHERE
                 true
-                {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
+                {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+                {% elif defined(linkId) %} AND link_id = {{ linkId }}
+                {% end %}
                 {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
                 {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
                 {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -231,19 +286,36 @@ SQL >
                 {% if defined(url) %} AND url = {{ url }} {% end %}
                 {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
                 {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
+                {% if defined(filters) %}
+                    {% for item in JSON(filters, '[]') %}
+                        {% if item.get('operand', '').startswith('metadata.') %}
+                            {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                            {% set operator = item.get('operator', 'equals') %}
+                            {% set value = item.get('value', '') %}
+
+                            {% if operator == 'equals' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                            {% elif operator == 'notEquals' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                            {% elif operator == 'greaterThan' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                            {% elif operator == 'lessThan' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                            {% elif operator == 'greaterThanOrEqual' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                            {% elif operator == 'lessThanOrEqual' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                            {% end %}
+                        {% end %}
+                    {% end %}
+                {% end %}
         ),
-        distinct_sales AS (
-          SELECT DISTINCT customer_id, link_id
-          FROM sales
-        ),
+        distinct_sales AS (SELECT DISTINCT customer_id, link_id FROM sales),
         min_timestamps AS (
-          SELECT
-          customer_id,
-          link_id,
-          min(timestamp) AS first_sale_ts
-          FROM dub_sale_events_mv
-          WHERE (customer_id, link_id) IN distinct_sales
-          GROUP BY customer_id, link_id
+            SELECT customer_id, link_id, min(timestamp) AS first_sale_ts
+            FROM dub_sale_events_mv
+            WHERE (customer_id, link_id) IN distinct_sales
+            GROUP BY customer_id, link_id
         )
     SELECT sales, amount, amount AS saleAmount
     FROM
