@@ -4,7 +4,7 @@ import { cn } from "@dub/utils";
 import { LayoutGroup, motion } from "motion/react";
 import { Dispatch, SetStateAction, useId, useMemo } from "react";
 
-export function PartnerApplicationTabs({
+export function PartnerSheetTabs({
   partnerId,
   currentTabId,
   setCurrentTabId,

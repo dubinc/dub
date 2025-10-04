@@ -1,15 +1,13 @@
 import { PageContent } from "@/ui/layout/page-content";
-import { ComingSoonPage } from "../../coming-soon-page";
-import { PartnersGraphic } from "../../partners-graphic";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { ProgramPartnersDirectoryPageClient } from "./page-client";
 
 export default function ProgramPartnersDirectory() {
   return (
-    <PageContent title="Partner Directory">
-      <ComingSoonPage
-        title="Partner Directory"
-        description="Discover top performing partners that have a proven track record of success helping companies grow."
-        graphic={<PartnersGraphic />}
-      />
+    <PageContent title="Partner Discovery">
+      <PageWidthWrapper className="mb-10">
+        <ProgramPartnersDirectoryPageClient />
+      </PageWidthWrapper>
     </PageContent>
   );
 }

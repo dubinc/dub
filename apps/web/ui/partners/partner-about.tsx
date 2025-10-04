@@ -14,7 +14,28 @@ export function PartnerAbout({
   partner,
   error,
 }: {
-  partner?: EnrolledPartnerExtendedProps;
+  partner?: Pick<
+    EnrolledPartnerExtendedProps,
+    | "description"
+    | "industryInterests"
+    | "salesChannels"
+    | "preferredEarningStructures"
+    | "monthlyTraffic"
+    | "website"
+    | "websiteVerifiedAt"
+    | "youtube"
+    | "youtubeSubscriberCount"
+    | "youtubeVerifiedAt"
+    | "youtubeViewCount"
+    | "twitter"
+    | "twitterVerifiedAt"
+    | "linkedin"
+    | "linkedinVerifiedAt"
+    | "instagram"
+    | "instagramVerifiedAt"
+    | "tiktok"
+    | "tiktokVerifiedAt"
+  >;
   error?: any;
 }) {
   return partner ? (

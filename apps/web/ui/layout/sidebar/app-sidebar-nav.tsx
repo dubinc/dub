@@ -8,6 +8,7 @@ import {
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -33,6 +34,7 @@ import {
   Sliders,
   Tag,
   UserCheck,
+  UserPlus,
   Users,
   Users6,
   Webhook,
@@ -66,6 +68,7 @@ type SidebarNavData = {
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   showConversionGuides?: boolean;
+  partnerNetworkEnabled?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -198,6 +201,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     applicationsCount,
     submittedBountiesCount,
     unreadMessagesCount,
+    partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -242,7 +246,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/partners`,
             isActive: (pathname: string, href: string) =>
               pathname.startsWith(href) &&
-              ["applications"].every(
+              ["applications", "directory"].every(
                 (p) => !pathname.startsWith(`${href}/${p}`),
               ),
           },
@@ -261,6 +265,15 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: Users6,
             href: `/${slug}/program/groups`,
           },
+          ...(partnerNetworkEnabled
+            ? [
+                {
+                  name: "Partner Discovery",
+                  icon: UserPlus,
+                  href: `/${slug}/program/partners/directory` as `/${string}`,
+                },
+              ]
+            : []),
         ],
       },
       {
@@ -480,6 +493,10 @@ export function AppSidebarNav({
             : "default";
   }, [slug, pathname]);
 
+  const { program } = useProgram({
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
+
   const { payoutsCount: pendingPayoutsCount } = usePayoutsCount<
     number | undefined
   >({
@@ -532,6 +549,7 @@ export function AppSidebarNav({
         submittedBountiesCount,
         unreadMessagesCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
+        partnerNetworkEnabled: Boolean(program?.partnerNetworkEnabledAt),
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}
