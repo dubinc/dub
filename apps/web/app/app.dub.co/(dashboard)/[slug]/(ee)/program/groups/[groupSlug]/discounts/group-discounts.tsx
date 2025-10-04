@@ -3,7 +3,7 @@
 import useGroup from "@/lib/swr/use-group";
 import type { DiscountProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { useDiscountSheet } from "@/ui/partners/add-edit-discount-sheet";
+import { useDiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { X } from "@/ui/shared/icons";
 import {

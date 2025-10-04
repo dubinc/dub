@@ -9,17 +9,31 @@ import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links } = await getProgramEnrollmentOrThrow({
+  const { links, discountCodes } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
+    includeDiscountCodes: true,
   });
 
-  return NextResponse.json(
-    links.map((link) => PartnerProfileLinkSchema.parse(link)),
+  // Add discount code to the links
+  const linksByDiscountCode = new Map(
+    discountCodes?.map((discountCode) => [discountCode.linkId, discountCode]),
   );
+
+  const result = links.map((link) => {
+    const discountCode = linksByDiscountCode.get(link.id);
+
+    return {
+      ...link,
+      discountCode: discountCode?.code,
+    };
+  });
+
+  return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
 });
 
 // POST /api/partner-profile/[programId]/links - create a link for a partner

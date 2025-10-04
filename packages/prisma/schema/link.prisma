@@ -10,12 +10,11 @@ model Link {
   disabledAt      DateTime? // when the link was disabled
   password        String? // password to access the link
   trackConversion Boolean   @default(false) // whether to track conversions or not
-
-  proxy       Boolean @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
-  title       String? // OG title for the link (e.g. Dub - open-source link attribution platform)
-  description String? @db.VarChar(280) // OG description for the link (e.g. The modern link attribution platform for short links, conversion tracking, and affiliate programs.)
-  image       String? @db.LongText // OG image for the link (e.g. https://d.to/og)
-  video       String? @db.Text // OG video for the link
+  proxy           Boolean   @default(false) // Proxy to use custom OG tags (stored on redis) – if false, will use OG tags from target url
+  title           String? // OG title for the link (e.g. Dub - open-source link attribution platform)
+  description     String?   @db.VarChar(280) // OG description for the link (e.g. The modern link attribution platform for short links, conversion tracking, and affiliate programs.)
+  image           String?   @db.LongText // OG image for the link (e.g. https://d.to/og)
+  video           String?   @db.Text // OG video for the link
 
   // UTM parameters
   utm_source   String? // UTM source for the link (e.g. youtube.com)
@@ -87,6 +86,7 @@ model Link {
   programEnrollment         ProgramEnrollment?       @relation(fields: [programId, partnerId], references: [programId, partnerId])
   partnerGroupDefaultLinkId String?
   partnerGroupDefaultLink   PartnerGroupDefaultLink? @relation(fields: [partnerGroupDefaultLinkId], references: [id])
+  discountCode              DiscountCode?
 
   customers   Customer[]
   commissions Commission[]
