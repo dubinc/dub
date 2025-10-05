@@ -44,7 +44,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { DirectoryEmptyState } from "./directory-empty-state";
+import { NetworkEmptyState } from "./network-empty-state";
 import { usePartnerNetworkFilters } from "./use-partner-network-filters";
 
 const tabs = [
@@ -62,7 +62,7 @@ const tabs = [
   },
 ] as const;
 
-export function ProgramPartnersDirectoryPageClient() {
+export function ProgramPartnerNetworkPageClient() {
   const { id: workspaceId } = useWorkspace();
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
 
@@ -309,7 +309,7 @@ export function ProgramPartnersDirectoryPageClient() {
           </div>
         </div>
       ) : (
-        <DirectoryEmptyState
+        <NetworkEmptyState
           isFiltered={activeFilters.length > 0}
           isStarred={searchParams.get("starred") == "true"}
           onClearAllFilters={onRemoveAll}

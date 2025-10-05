@@ -3,7 +3,7 @@ import { Button } from "@dub/ui";
 import { Star, StarFill } from "@dub/ui/icons";
 import { SVGProps, useId } from "react";
 
-export function DirectoryEmptyState({
+export function NetworkEmptyState({
   isFiltered,
   isStarred,
   onClearAllFilters,

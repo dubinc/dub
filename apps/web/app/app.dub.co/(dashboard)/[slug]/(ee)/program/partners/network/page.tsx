@@ -1,12 +1,12 @@
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ProgramPartnersDirectoryPageClient } from "./page-client";
+import { ProgramPartnerNetworkPageClient } from "./page-client";
 
-export default function ProgramPartnersDirectory() {
+export default function ProgramPartnerNetwork() {
   return (
-    <PageContent title="Partner Discovery">
+    <PageContent title="Partner Network">
       <PageWidthWrapper className="mb-10">
-        <ProgramPartnersDirectoryPageClient />
+        <ProgramPartnerNetworkPageClient />
       </PageWidthWrapper>
     </PageContent>
   );

@@ -68,7 +68,6 @@ type SidebarNavData = {
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   showConversionGuides?: boolean;
-  partnerNetworkEnabled?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -201,7 +200,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     applicationsCount,
     submittedBountiesCount,
     unreadMessagesCount,
-    partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -246,7 +244,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/partners`,
             isActive: (pathname: string, href: string) =>
               pathname.startsWith(href) &&
-              ["applications", "directory"].every(
+              ["applications", "network"].every(
                 (p) => !pathname.startsWith(`${href}/${p}`),
               ),
           },
@@ -265,15 +263,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: Users6,
             href: `/${slug}/program/groups`,
           },
-          ...(partnerNetworkEnabled
-            ? [
-                {
-                  name: "Partner Discovery",
-                  icon: UserPlus,
-                  href: `/${slug}/program/partners/directory` as `/${string}`,
-                },
-              ]
-            : []),
+          {
+            name: "Partner Network",
+            icon: UserPlus,
+            href: `/${slug}/program/partners/network` as `/${string}`,
+          },
         ],
       },
       {
@@ -549,7 +543,6 @@ export function AppSidebarNav({
         submittedBountiesCount,
         unreadMessagesCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
-        partnerNetworkEnabled: Boolean(program?.partnerNetworkEnabledAt),
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}

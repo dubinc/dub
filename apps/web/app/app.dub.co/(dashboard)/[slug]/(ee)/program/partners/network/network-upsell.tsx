@@ -1,36 +1,13 @@
 "use client";
 
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useProgram from "@/lib/swr/use-program";
-import useWorkspace from "@/lib/swr/use-workspace";
-import LayoutLoader from "@/ui/layout/layout-loader";
 import { PageContent } from "@/ui/layout/page-content";
 import { buttonVariants } from "@dub/ui";
-import { COUNTRIES, cn } from "@dub/utils";
+import { cn, COUNTRIES } from "@dub/utils";
 import Link from "next/link";
-import { ReactNode } from "react";
 
-export default function PartnerDirectoryLayout({
-  children,
-}: {
-  children: ReactNode;
-}) {
-  const { plan } = useWorkspace();
-  const { program, loading } = useProgram();
-
-  if (loading) return <LayoutLoader />;
-
-  if (!program?.partnerNetworkEnabledAt) return <DirectoryUpsell contactUs />;
-
-  const { canDiscoverPartners } = getPlanCapabilities(plan);
-  if (!canDiscoverPartners) return <DirectoryUpsell />;
-
-  return children;
-}
-
-function DirectoryUpsell({ contactUs }: { contactUs?: boolean }) {
+export function NetworkUpsell({ contactUs }: { contactUs?: boolean }) {
   return (
-    <PageContent title="Partner Discovery">
+    <PageContent title="Partner Network">
       <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
         <div
           className="flex w-full max-w-sm flex-col gap-4 overflow-hidden px-4 [mask-image:linear-gradient(transparent,black,transparent)]"
@@ -42,7 +19,7 @@ function DirectoryUpsell({ contactUs }: { contactUs?: boolean }) {
         </div>
         <div className="max-w-80 text-pretty text-center">
           <span className="text-base font-medium text-neutral-900">
-            Partner Discovery
+            Partner Network
           </span>
           <p className="mt-2 text-pretty text-sm text-neutral-500">
             Discover and recruit partners to help grow your revenue. Available
@@ -51,7 +28,7 @@ function DirectoryUpsell({ contactUs }: { contactUs?: boolean }) {
         </div>
         <div className="flex items-center gap-2">
           <Link
-            href="https://dub.co/contact/sales?utm_content=Partner+Discovery"
+            href="https://dub.co/contact/sales"
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
