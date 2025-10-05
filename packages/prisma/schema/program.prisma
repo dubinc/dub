@@ -158,5 +158,4 @@ model ProgramIndustryInterest {
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
   @@unique([programId, industryInterest])
-  @@index(programId)
 }

@@ -249,16 +249,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
               ),
           },
           {
-            name: "Applications",
-            icon: UserCheck,
-            href: `/${slug}/program/partners/applications`,
-            badge: applicationsCount
-              ? applicationsCount > 99
-                ? "99+"
-                : applicationsCount
-              : undefined,
-          },
-          {
             name: "Groups",
             icon: Users6,
             href: `/${slug}/program/groups`,
@@ -267,6 +257,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Partner Network",
             icon: UserPlus,
             href: `/${slug}/program/partners/network` as `/${string}`,
+          },
+          {
+            name: "Applications",
+            icon: UserCheck,
+            href: `/${slug}/program/partners/applications`,
+            badge: applicationsCount
+              ? applicationsCount > 99
+                ? "99+"
+                : applicationsCount
+              : undefined,
           },
         ],
       },

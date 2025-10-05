@@ -144,7 +144,6 @@ model PartnerIndustryInterest {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, industryInterest])
-  @@index(partnerId)
 }
 
 enum PreferredEarningStructure {
@@ -162,7 +161,6 @@ model PartnerPreferredEarningStructure {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, preferredEarningStructure])
-  @@index(partnerId)
 }
 
 enum SalesChannel {
@@ -182,7 +180,6 @@ model PartnerSalesChannel {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, salesChannel])
-  @@index(partnerId)
 }
 
 model DiscoveredPartner {
