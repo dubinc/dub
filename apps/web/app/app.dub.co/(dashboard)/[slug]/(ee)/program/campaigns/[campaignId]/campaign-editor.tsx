@@ -24,6 +24,7 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
+import { CampaignActionBar } from "./campaign-action-bar";
 import { CampaignControls } from "./campaign-controls";
 import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
@@ -70,10 +71,9 @@ export function CampaignEditor({
     formState: { isDirty, dirtyFields },
   } = form;
 
-  // Autosave draft campaign changes
-  const handleSaveDraftCampaign = useCallback(
-    useDebouncedCallback(async () => {
-      if (campaign.status !== "draft" || isSavingDraftCampaign) {
+  const handleSaveCampaign = useCallback(
+    async (isDraft: boolean = false, showSuccessToast: boolean = false) => {
+      if (isSavingDraftCampaign) {
         return;
       }
 
@@ -103,26 +103,47 @@ export function CampaignEditor({
           body: changedFields,
           onSuccess: () => {
             reset(allFormData, { keepValues: true });
+            if (showSuccessToast) {
+              toast.success("Campaign saved successfully!");
+            }
           },
           onError: () => {
-            toast.error("Failed to save the draft campaign.");
+            toast.error(
+              `Failed to save the ${isDraft ? "draft " : ""}campaign.`,
+            );
           },
         });
       }
-    }, 1000),
+    },
     [getValues, dirtyFields, saveDraftCampaign, campaign.id, reset],
   );
 
-  // Watch for form changes and trigger autosave
+  // Autosave draft campaign changes
+  const handleSaveDraftCampaign = useCallback(
+    useDebouncedCallback(async () => {
+      if (campaign.status !== "draft") {
+        return;
+      }
+      await handleSaveCampaign(true, false);
+    }, 1000),
+    [handleSaveCampaign, campaign.status],
+  );
+
+  // Manual save for non-draft campaigns
+  const handleManualSave = useCallback(async () => {
+    await handleSaveCampaign(false, true);
+  }, [handleSaveCampaign]);
+
+  // Watch for form changes and trigger autosave (only for draft campaigns)
   useEffect(() => {
     const { unsubscribe } = watch(() => {
-      if (isDirty) {
+      if (isDirty && campaign.status === "draft") {
         handleSaveDraftCampaign();
       }
     });
 
     return () => unsubscribe();
-  }, [watch, isDirty, saveDraftCampaign]);
+  }, [watch, isDirty, handleSaveDraftCampaign, campaign.status]);
 
   const { executeAsync: executeImageUpload } = useAction(
     uploadEmailImageAction,
@@ -277,6 +298,12 @@ export function CampaignEditor({
             End of email
           </div>
         </PageWidthWrapper>
+
+        <CampaignActionBar
+          campaignStatus={campaign.status}
+          onSave={handleManualSave}
+          isSaving={isSavingDraftCampaign}
+        />
       </div>
     </FormProvider>
   );
