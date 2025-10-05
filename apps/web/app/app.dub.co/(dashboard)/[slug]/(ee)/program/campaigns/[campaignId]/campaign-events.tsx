@@ -3,10 +3,11 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { campaignEventSchema } from "@/lib/zod/schemas/campaigns";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { ToggleGroup } from "@dub/ui";
-import { fetcher, OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import { ToggleGroup, Tooltip } from "@dub/ui";
+import { fetcher, formatDateTime, OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { z } from "zod";
 
@@ -14,7 +15,7 @@ type EventStatus = "delivered" | "opened" | "bounced";
 export type CampaignEvent = z.infer<typeof campaignEventSchema>;
 
 export function CampaignEvents() {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { campaignId } = useParams<{ campaignId: string }>();
   const [status, setStatus] = useState<EventStatus>("delivered");
 
@@ -56,7 +57,11 @@ export function CampaignEvents() {
             <CampaignEventsLoadingSkeleton />
           ) : events && events.length > 0 ? (
             events.map((event) => (
-              <CampaignEventRow key={event.id} event={event} />
+              <CampaignEventRow
+                key={event.id}
+                event={event}
+                workspaceSlug={workspaceSlug!}
+              />
             ))
           ) : (
             <div className="flex h-20 items-center justify-center text-sm text-neutral-500">
@@ -69,16 +74,27 @@ export function CampaignEvents() {
   );
 }
 
-function CampaignEventRow({ event }: { event: CampaignEvent }) {
-  const getTimestamp = () => {
+function CampaignEventRow({
+  event,
+  workspaceSlug,
+}: {
+  event: CampaignEvent;
+  workspaceSlug: string;
+}) {
+  const timestamp = useMemo(() => {
     if (event.deliveredAt) return event.deliveredAt;
     if (event.openedAt) return event.openedAt;
     if (event.bouncedAt) return event.bouncedAt;
     return null;
-  };
+  }, [event.deliveredAt, event.openedAt, event.bouncedAt]);
 
   return (
-    <div className="flex cursor-pointer gap-2 p-2.5 transition-colors hover:bg-neutral-50">
+    <Link
+      href={`/${workspaceSlug}/program/partners/${event.partner.id}`}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex cursor-pointer gap-2 p-2.5 no-underline transition-colors hover:bg-neutral-50"
+    >
       <div className="flex h-8 shrink-0 items-center justify-center">
         <img
           src={event.partner.image || `${OG_AVATAR_URL}${event.partner.name}`}
@@ -99,10 +115,15 @@ function CampaignEventRow({ event }: { event: CampaignEvent }) {
         </div>
       </div>
 
-      <div className="text-content-subtle flex h-8 shrink-0 items-center justify-center text-xs font-medium">
-        {timeAgo(getTimestamp())}
-      </div>
-    </div>
+      <Tooltip content={timestamp ? formatDateTime(timestamp) : "-"} side="top">
+        <div
+          className="text-content-subtle flex h-8 shrink-0 items-center justify-center text-xs font-medium"
+          onClick={(e) => e.preventDefault()}
+        >
+          {timeAgo(timestamp)}
+        </div>
+      </Tooltip>
+    </Link>
   );
 }
 
