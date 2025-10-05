@@ -91,7 +91,7 @@ export function CampaignEventsModal({
     <Modal
       showModal={showModal}
       setShowModal={setShowModal}
-      className="flex h-[800px] max-w-xl flex-col px-0"
+      className="flex h-[700px] max-w-md flex-col px-0"
     >
       <div className="flex flex-shrink-0 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <h1 className="text-lg font-semibold">
