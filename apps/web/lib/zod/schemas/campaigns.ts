@@ -69,16 +69,25 @@ export const updateCampaignSchema = z
   })
   .partial();
 
-export const getCampaignsQuerySchema = z.object({
-  type: z.nativeEnum(CampaignType).optional(),
-  status: z.nativeEnum(CampaignStatus).optional(),
-  sortBy: z
-    .enum(["createdAt", "updatedAt", "status"])
-    .optional()
-    .default("createdAt"),
-  sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
-  search: z.string().optional(),
-});
+export const getCampaignsQuerySchema = z
+  .object({
+    type: z.nativeEnum(CampaignType).optional(),
+    status: z.nativeEnum(CampaignStatus).optional(),
+    sortBy: z
+      .enum([
+        "createdAt",
+        "updatedAt",
+        "status",
+        "delivered",
+        "opened",
+        "bounced",
+      ])
+      .optional()
+      .default("createdAt"),
+    sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
+    search: z.string().optional(),
+  })
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const getCampaignsCountQuerySchema = getCampaignsQuerySchema
   .pick({

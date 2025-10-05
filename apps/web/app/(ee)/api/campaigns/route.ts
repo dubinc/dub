@@ -1,60 +1,27 @@
+import { getCampaigns } from "@/lib/api/campaigns/get-campaigns";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
-  CampaignListSchema,
   createCampaignSchema,
   getCampaignsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
 import { prisma } from "@dub/prisma";
 import { CampaignStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/campaigns - get all email campaigns for a program
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { sortBy, sortOrder, status, search, type } =
-      getCampaignsQuerySchema.parse(searchParams);
-
-    const campaigns = await prisma.campaign.findMany({
-      where: {
-        programId,
-        ...(status && { status }),
-        ...(type && { type }),
-        ...(search && {
-          OR: [
-            { name: { contains: search } },
-            { subject: { contains: search } },
-          ],
-        }),
-      },
-      include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
-        },
-      },
-      orderBy: {
-        [sortBy]: sortOrder,
-      },
+    const campaigns = await getCampaigns({
+      ...getCampaignsQuerySchema.parse(searchParams),
+      programId,
     });
 
-    const data = campaigns.map((campaign) => {
-      return {
-        ...campaign,
-        partners: 0,
-        delivered: 0,
-        bounced: 0,
-        opened: 0,
-      };
-    });
-
-    return NextResponse.json(z.array(CampaignListSchema).parse(data));
+    return NextResponse.json(campaigns);
   },
   {
     requiredPlan: ["advanced", "enterprise"],

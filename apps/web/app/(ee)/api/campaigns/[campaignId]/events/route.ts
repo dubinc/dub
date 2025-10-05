@@ -18,12 +18,10 @@ export const GET = withWorkspace(
       },
     });
 
-    const filters = {
+    const events = await getCampaignEvents({
       ...getCampaignsEventsQuerySchema.parse(searchParams),
       campaignId,
-    };
-
-    const events = await getCampaignEvents(filters);
+    });
 
     return NextResponse.json(events);
   },
