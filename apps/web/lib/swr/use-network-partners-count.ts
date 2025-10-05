@@ -2,10 +2,10 @@ import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
 import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
-import { getPartnerNetworkPartnersCountQuerySchema } from "../zod/schemas/partner-network";
+import { getNetworkPartnersCountQuerySchema } from "../zod/schemas/partner-network";
 import useWorkspace from "./use-workspace";
 
-export default function usePartnerNetworkPartnersCount<
+export default function useNetworkPartnersCount<
   T = { discover: number; invited: number; recruited: number },
 >({
   query,
@@ -14,7 +14,7 @@ export default function usePartnerNetworkPartnersCount<
   excludeParams = [],
   swrOpts,
 }: {
-  query?: Partial<z.infer<typeof getPartnerNetworkPartnersCountQuerySchema>>;
+  query?: Partial<z.infer<typeof getNetworkPartnersCountQuerySchema>>;
   enabled?: boolean;
   ignoreParams?: boolean;
   excludeParams?: string[];

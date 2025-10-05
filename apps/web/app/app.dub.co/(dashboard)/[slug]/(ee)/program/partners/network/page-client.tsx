@@ -6,12 +6,12 @@ import {
   industryInterestsMap,
   salesChannelsMap,
 } from "@/lib/partners/partner-profile";
-import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partners-count";
+import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PartnerNetworkPartnerProps } from "@/lib/types";
+import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
-import { PartnerNetworkPartnerSheet } from "@/ui/partners/partner-network-partner-sheet";
+import { NetworkPartnerSheet } from "@/ui/partners/network-partner-sheet";
 import { ConversionScoreTooltip } from "@/ui/partners/partner-network/conversion-score-tooltip";
 import {
   AnimatedSizeContainer,
@@ -69,15 +69,14 @@ export function ProgramPartnerNetworkPageClient() {
   const status =
     tabs.find(({ id }) => id === searchParams.get("tab"))?.id || "discover";
 
-  const { data: partnerCounts, error: countError } =
-    usePartnerNetworkPartnersCount();
+  const { data: partnerCounts, error: countError } = useNetworkPartnersCount();
 
   const {
     data: partners,
     error,
     mutate: mutatePartners,
     isValidating,
-  } = useSWR<PartnerNetworkPartnerProps[]>(
+  } = useSWR<NetworkPartnerProps[]>(
     workspaceId &&
       `/api/network/partners${getQueryString(
         {
@@ -135,7 +134,7 @@ export function ProgramPartnerNetworkPageClient() {
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.partnerId && currentPartner && (
-        <PartnerNetworkPartnerSheet
+        <NetworkPartnerSheet
           isOpen={detailsSheetState.open}
           setIsOpen={(open) =>
             setDetailsSheetState((s) => ({ ...s, open }) as any)
@@ -323,7 +322,7 @@ function PartnerCard({
   partner,
   onToggleStarred,
 }: {
-  partner?: PartnerNetworkPartnerProps;
+  partner?: NetworkPartnerProps;
   onToggleStarred?: (starred: boolean) => void;
 }) {
   const { queryParams } = useRouterStuff();
@@ -675,7 +674,7 @@ function useCurrentPartner({
   partners,
   partnerId,
 }: {
-  partners?: PartnerNetworkPartnerProps[];
+  partners?: NetworkPartnerProps[];
   partnerId: string | null;
 }) {
   const { id: workspaceId } = useWorkspace();
@@ -687,15 +686,14 @@ function useCurrentPartner({
   const fetchPartnerId =
     partners && partnerId && !currentPartner ? partnerId : null;
 
-  const { data: fetchedPartners, isLoading } =
-    useSWR<PartnerNetworkPartnerProps>(
-      fetchPartnerId &&
-        `/api/network/partners?workspaceId=${workspaceId}&partnerIds=${fetchPartnerId}`,
-      fetcher,
-      {
-        keepPreviousData: true,
-      },
-    );
+  const { data: fetchedPartners, isLoading } = useSWR<NetworkPartnerProps>(
+    fetchPartnerId &&
+      `/api/network/partners?workspaceId=${workspaceId}&partnerIds=${fetchPartnerId}`,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
 
   if (!currentPartner && fetchedPartners?.[0]?.id === partnerId)
     currentPartner = fetchedPartners[0];

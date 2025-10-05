@@ -4,7 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import {
   BountyListProps,
   EnrolledPartnerExtendedProps,
-  PartnerNetworkPartnerProps,
+  NetworkPartnerProps,
   RewardProps,
 } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
@@ -43,7 +43,7 @@ type PartnerInfoCardsProps = {
   setSelectedGroupId?: (groupId: string) => void;
 } & (
   | { type?: "enrolled"; partner?: EnrolledPartnerExtendedProps }
-  | { type: "network"; partner?: PartnerNetworkPartnerProps }
+  | { type: "network"; partner?: NetworkPartnerProps }
 );
 
 export function PartnerInfoCards({

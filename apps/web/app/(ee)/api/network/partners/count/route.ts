@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getPartnerNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
+import { getNetworkPartnersCountQuerySchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -33,7 +33,7 @@ export const GET = withWorkspace(
       industryInterests,
       salesChannels,
       preferredEarningStructures,
-    } = getPartnerNetworkPartnersCountQuerySchema.parse(searchParams);
+    } = getNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const commonWhere = {
       discoverableAt: { not: null },

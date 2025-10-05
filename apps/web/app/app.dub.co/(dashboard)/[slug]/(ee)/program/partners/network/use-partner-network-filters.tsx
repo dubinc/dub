@@ -3,7 +3,7 @@ import {
   preferredEarningStructures,
   salesChannels,
 } from "@/lib/partners/partner-profile";
-import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partners-count";
+import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import { useRouterStuff } from "@dub/ui";
 import { FlagWavy, Heart, InvoiceDollar, MoneyBills2 } from "@dub/ui/icons";
 import { COUNTRIES, nFormatter } from "@dub/utils";
@@ -16,7 +16,7 @@ export function usePartnerNetworkFilters({
 }) {
   const { searchParamsObj, queryParams } = useRouterStuff();
 
-  const { data: countriesCount } = usePartnerNetworkPartnersCount<
+  const { data: countriesCount } = useNetworkPartnersCount<
     | {
         country: string;
         _count: number;

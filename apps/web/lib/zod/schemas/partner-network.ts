@@ -32,15 +32,15 @@ export const PartnerConversionScoreSchema = z.enum(PARTNER_CONVERSION_SCORES);
 
 export const PARTNER_NETWORK_MAX_PAGE_SIZE = 100;
 
-export const partnerNetworkPartnersStatusSchema = z.enum([
+export const NetworkPartnersStatusSchema = z.enum([
   "discover",
   "invited",
   "recruited",
 ]);
 
-export const getPartnerNetworkPartnersQuerySchema = z
+export const getNetworkPartnersQuerySchema = z
   .object({
-    status: partnerNetworkPartnersStatusSchema.default("discover"),
+    status: NetworkPartnersStatusSchema.default("discover"),
     country: z.string().optional(),
     starred: booleanQuerySchema.nullish(),
     partnerIds: z
@@ -72,19 +72,18 @@ export const getPartnerNetworkPartnersQuerySchema = z
     }),
   );
 
-export const getPartnerNetworkPartnersCountQuerySchema =
-  getPartnerNetworkPartnersQuerySchema
-    .omit({
-      status: true,
-      page: true,
-      pageSize: true,
-    })
-    .extend({
-      status: partnerNetworkPartnersStatusSchema.nullish(),
-      groupBy: z.enum(["status", "country"]).default("status"),
-    });
+export const getNetworkPartnersCountQuerySchema = getNetworkPartnersQuerySchema
+  .omit({
+    status: true,
+    page: true,
+    pageSize: true,
+  })
+  .extend({
+    status: NetworkPartnersStatusSchema.nullish(),
+    groupBy: z.enum(["status", "country"]).default("status"),
+  });
 
-export const PartnerNetworkPartnerSchema = PartnerSchema.pick({
+export const NetworkPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
   companyName: true,

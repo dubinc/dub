@@ -3,8 +3,8 @@ import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
-  PartnerNetworkPartnerSchema,
-  getPartnerNetworkPartnersQuerySchema,
+  NetworkPartnerSchema,
+  getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
@@ -46,7 +46,7 @@ export const GET = withWorkspace(
       industryInterests,
       salesChannels,
       preferredEarningStructures,
-    } = getPartnerNetworkPartnersQuerySchema.parse(searchParams);
+    } = getNetworkPartnersQuerySchema.parse(searchParams);
 
     const partners = (await prisma.$queryRaw`
       SELECT 
@@ -135,7 +135,7 @@ export const GET = withWorkspace(
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
     return NextResponse.json(
-      z.array(PartnerNetworkPartnerSchema).parse(
+      z.array(NetworkPartnerSchema).parse(
         partners.map((partner) => ({
           ...partner,
           industryInterests: partner.industryInterests?.split(",") || undefined,

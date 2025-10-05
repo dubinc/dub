@@ -3,7 +3,7 @@ import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-dis
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { PartnerNetworkPartnerProps } from "@/lib/types";
+import { NetworkPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { X } from "@/ui/shared/icons";
 import {
@@ -23,19 +23,19 @@ import { PartnerComments } from "./partner-comments";
 import { PartnerInfoCards } from "./partner-info-cards";
 import { PartnerSheetTabs } from "./partner-sheet-tabs";
 
-type PartnerNetworkPartnerSheetProps = {
-  partner: PartnerNetworkPartnerProps;
+type NetworkPartnerSheetProps = {
+  partner: NetworkPartnerProps;
   onNext?: () => void;
   onPrevious?: () => void;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-function PartnerNetworkPartnerSheetContent({
+function NetworkPartnerSheetContent({
   partner,
   onPrevious,
   onNext,
   setIsOpen,
-}: PartnerNetworkPartnerSheetProps) {
+}: NetworkPartnerSheetProps) {
   const [currentTabId, setCurrentTabId] = useState<string>("about");
 
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
@@ -123,11 +123,11 @@ function PartnerNetworkPartnerSheetContent({
   );
 }
 
-export function PartnerNetworkPartnerSheet({
+export function NetworkPartnerSheet({
   isOpen,
   nested,
   ...rest
-}: PartnerNetworkPartnerSheetProps & {
+}: NetworkPartnerSheetProps & {
   isOpen: boolean;
   nested?: boolean;
 }) {
@@ -143,7 +143,7 @@ export function PartnerNetworkPartnerSheet({
         className: "md:w-[max(min(calc(100vw-334px),1170px),540px)]",
       }}
     >
-      <PartnerNetworkPartnerSheetContent {...rest} />
+      <NetworkPartnerSheetContent {...rest} />
     </Sheet>
   );
 }
@@ -153,7 +153,7 @@ function PartnerControls({
   setIsOpen,
   groupId,
 }: {
-  partner: PartnerNetworkPartnerProps;
+  partner: NetworkPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
   groupId?: string | null;
 }) {
@@ -230,7 +230,7 @@ function PartnerIgnoreButton({
   partner,
   setIsOpen,
 }: {
-  partner: PartnerNetworkPartnerProps;
+  partner: NetworkPartnerProps;
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 }) {
   const { id: workspaceId } = useWorkspace();
