@@ -7,19 +7,13 @@ import {
   Check2,
   LoadingSpinner,
   Magnifier,
+  ScrollContainer,
   ToggleGroup,
   Users6,
-  useScrollProgress,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
-import {
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { GroupColorCircle } from "./group-color-circle";
 
@@ -159,7 +153,7 @@ export function GroupsMultiSelect({
                     className="grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                   />
                 </label>
-                <Scroll>
+                <ScrollContainer>
                   <Command.List
                     className={cn("flex w-full flex-col gap-1 py-1")}
                   >
@@ -235,7 +229,7 @@ export function GroupsMultiSelect({
                       </Command.Loading>
                     )}
                   </Command.List>
-                </Scroll>
+                </ScrollContainer>
               </Command>
             )}
           </div>
@@ -244,26 +238,3 @@ export function GroupsMultiSelect({
     </div>
   );
 }
-
-const Scroll = ({ children }: PropsWithChildren) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
-
-  return (
-    <div className="relative">
-      <div
-        className="scrollbar-hide h-[190px] w-screen overflow-y-scroll sm:w-auto"
-        ref={ref}
-        onScroll={updateScrollProgress}
-      >
-        {children}
-      </div>
-      {/* Bottom scroll fade */}
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-8 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
-        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-      />
-    </div>
-  );
-};
