@@ -1,21 +1,27 @@
 import useGroups from "@/lib/swr/use-groups";
+import { GroupProps } from "@/lib/types";
 import { GROUPS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/groups";
-import { Combobox } from "@dub/ui";
+import { Combobox, ComboboxProps } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { GroupColorCircle } from "./group-color-circle";
 
-interface GroupSelectorProps {
+export type Group = Pick<GroupProps, "id" | "name" | "color">;
+
+type GroupSelectorProps = {
   selectedGroupId: string | null;
   setSelectedGroupId: (groupId: string) => void;
   disabled?: boolean;
-}
+  variant?: "default" | "header";
+} & Partial<ComboboxProps<false, any>>;
 
 export function GroupSelector({
   selectedGroupId,
   setSelectedGroupId,
   disabled,
+  variant = "default",
+  ...rest
 }: GroupSelectorProps) {
   const [search, setSearch] = useState("");
   const [useAsync, setUseAsync] = useState(false);
@@ -30,14 +36,11 @@ export function GroupSelector({
     query: selectedGroupId ? { groupIds: [selectedGroupId] } : undefined,
   });
 
-  // Determine if we should use async loading
-  useEffect(
-    () =>
-      setUseAsync(
-        Boolean(groups && !useAsync && groups.length >= GROUPS_MAX_PAGE_SIZE),
-      ),
-    [groups, useAsync],
-  );
+  useEffect(() => {
+    if (groups && !useAsync && groups.length >= GROUPS_MAX_PAGE_SIZE) {
+      setUseAsync(true);
+    }
+  }, [groups, useAsync]);
 
   const groupOptions = useMemo(() => {
     return groups?.map((group) => ({
@@ -67,10 +70,17 @@ export function GroupSelector({
     <Combobox
       options={loading ? undefined : groupOptions}
       setSelected={(option) => {
+        if (!option) return;
         setSelectedGroupId(option.value);
       }}
       selected={selectedOption}
-      icon={selectedGroupsLoading ? null : selectedOption?.icon}
+      icon={
+        !selectedOption?.icon ? (
+          <div className="size-5 flex-none animate-pulse rounded-full bg-neutral-200" />
+        ) : (
+          selectedOption?.icon
+        )
+      }
       caret={true}
       placeholder={selectedGroupsLoading ? "" : "Select group"}
       searchPlaceholder="Search groups..."
@@ -79,19 +89,39 @@ export function GroupSelector({
       matchTriggerWidth
       open={openPopover}
       onOpenChange={setOpenPopover}
-      buttonProps={{
-        disabled,
-        className: cn(
-          "w-full justify-start border-neutral-300 px-3",
-          "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
-          "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
-        ),
-      }}
+      {...(variant === "header"
+        ? {
+            popoverProps: {
+              contentClassName: "min-w-[280px]",
+            },
+            labelProps: {
+              className: "text-lg font-semibold leading-7 text-neutral-900",
+            },
+            iconProps: {
+              className: "size-6",
+            },
+            buttonProps: {
+              disabled,
+              className:
+                "w-full justify-start px-3 transition-none max-md:bg-bg-subtle hover:bg-bg-emphasis md:hover:bg-neutral-50 border-none",
+            },
+          }
+        : {
+            buttonProps: {
+              disabled,
+              className: cn(
+                "w-full justify-start border-neutral-300 px-3",
+                "data-[state=open]:ring-1 data-[state=open]:ring-neutral-500 data-[state=open]:border-neutral-500",
+                "focus:ring-1 focus:ring-neutral-500 focus:border-neutral-500 transition-none",
+              ),
+            },
+          })}
+      {...rest}
     >
-      {selectedGroupsLoading ? (
-        <div className="my-0.5 h-5 w-1/3 animate-pulse rounded bg-neutral-200" />
+      {!selectedOption?.label ? (
+        <div className="h-6 w-[120px] animate-pulse rounded bg-neutral-100" />
       ) : (
-        selectedOption?.label
+        selectedOption.label
       )}
     </Combobox>
   );
