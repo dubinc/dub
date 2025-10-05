@@ -1,5 +1,6 @@
 import { UserProps } from "@/lib/types";
 import { prismaEdge } from "@dub/prisma/edge";
+import { waitUntil } from "@vercel/functions";
 
 export async function getDefaultPartnerId(user: UserProps) {
   let defaultPartnerId = user?.defaultPartnerId;
@@ -60,6 +61,16 @@ export async function getDefaultPartnerId(user: UserProps) {
           },
         });
         defaultPartnerId = partner.id;
+        waitUntil(
+          prismaEdge.partner.update({
+            where: {
+              id: partner.id,
+            },
+            data: {
+              discoverableAt: new Date(),
+            },
+          }),
+        );
       }
     }
   }

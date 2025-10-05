@@ -28,7 +28,7 @@ export const PARTNER_CONVERSION_SCORE_RATES: Record<
 
 export const PartnerConversionScoreSchema = z.enum(PARTNER_CONVERSION_SCORES);
 
-export const PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE = 50;
+export const PARTNER_NETWORK_MAX_PAGE_SIZE = 100;
 
 export const partnerNetworkPartnersStatusSchema = z.enum([
   "discover",
@@ -66,7 +66,7 @@ export const getPartnerNetworkPartnersQuerySchema = z
   })
   .merge(
     getPaginationQuerySchema({
-      pageSize: PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE,
+      pageSize: PARTNER_NETWORK_MAX_PAGE_SIZE,
     }),
   );
 

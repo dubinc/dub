@@ -9,7 +9,7 @@ import {
 import usePartnerNetworkPartnersCount from "@/lib/swr/use-partner-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerNetworkPartnerProps } from "@/lib/types";
-import { PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
+import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
 import { PartnerNetworkPartnerSheet } from "@/ui/partners/partner-network-partner-sheet";
 import { ConversionScoreTooltip } from "@/ui/partners/partner-network/conversion-score-tooltip";
@@ -97,7 +97,7 @@ export function ProgramPartnersDirectoryPageClient() {
   );
 
   const { pagination, setPagination } = usePagination(
-    PARTNER_NETWORK_PARTNERS_MAX_PAGE_SIZE,
+    PARTNER_NETWORK_MAX_PAGE_SIZE,
   );
 
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =

@@ -63,7 +63,7 @@ export const GET = withWorkspace(
     const statusWheres = {
       discover: {
         programs: { none: { programId } },
-        discoveredPartners: {
+        discoveredByPrograms: {
           none: { programId, ignoredAt: { not: null } },
           ...(starred === true && {
             some: { programId, starredAt: { not: null } },
@@ -72,13 +72,13 @@ export const GET = withWorkspace(
       },
       invited: {
         programs: { some: { programId, status: "invited" } },
-        discoveredPartners: {
+        discoveredByPrograms: {
           some: { programId, invitedAt: { not: null }, ignoredAt: null },
         },
       },
       recruited: {
         programs: { some: { programId, status: "approved" } },
-        discoveredPartners: {
+        discoveredByPrograms: {
           some: { programId, invitedAt: { not: null } },
         },
       },
@@ -122,6 +122,11 @@ export const GET = withWorkspace(
         by: ["country"],
         _count: true,
         where: { ...commonWhere, ...statusWheres[status || "discover"] },
+        orderBy: {
+          _count: {
+            country: "desc",
+          },
+        },
       });
 
       return NextResponse.json(countries);

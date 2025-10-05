@@ -63,6 +63,7 @@ export const GET = withWorkspace(
           when pe.status = 'approved' then pe.createdAt
           else null
         end as recruitedAt,
+        COALESCE(commissions.totalCommissions, 0) as totalCommissions,
         -- Match score based on number of matching industry interests
         ${
           programIndustryInterests.length > 0
@@ -87,6 +88,15 @@ export const GET = withWorkspace(
         AND partnerId IS NOT NULL
         GROUP BY partnerId
       ) metrics ON metrics.partnerId = p.id
+      -- Total commissions across all programs
+      LEFT JOIN (
+        SELECT 
+          partnerId,
+          SUM(totalCommissions) as totalCommissions
+        FROM ProgramEnrollment
+        WHERE programId != ${ACME_PROGRAM_ID} -- Exclude test data
+        GROUP BY partnerId
+      ) commissions ON commissions.partnerId = p.id
       -- Profile field lists
       LEFT JOIN (
         SELECT partnerId, group_concat(industryInterest) AS industryInterests
@@ -120,7 +130,7 @@ export const GET = withWorkspace(
         ${industryInterests && industryInterests.length > 0 ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerIndustryInterest WHERE partnerId = p.id AND industryInterest IN (${Prisma.join(industryInterests)}))` : Prisma.sql``}
         ${salesChannels && salesChannels.length > 0 ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerSalesChannel WHERE partnerId = p.id AND salesChannel IN (${Prisma.join(salesChannels)}))` : Prisma.sql``}
         ${preferredEarningStructures && preferredEarningStructures.length > 0 ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerPreferredEarningStructure WHERE partnerId = p.id AND preferredEarningStructure IN (${Prisma.join(preferredEarningStructures)}))` : Prisma.sql``}
-      ORDER BY ${starred === true ? Prisma.sql`dp.starredAt DESC,` : Prisma.sql``} matchScore DESC, metrics.conversionRate DESC
+      ORDER BY ${starred === true ? Prisma.sql`dp.starredAt DESC,` : Prisma.sql``} matchScore DESC, metrics.conversionRate DESC, totalCommissions DESC
       LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}`) satisfies Array<any>;
 
     return NextResponse.json(
