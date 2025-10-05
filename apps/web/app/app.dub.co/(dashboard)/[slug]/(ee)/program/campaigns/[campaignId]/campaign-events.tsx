@@ -4,7 +4,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { campaignEventSchema } from "@/lib/zod/schemas/campaigns";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { Table, ToggleGroup, Tooltip, useTable } from "@dub/ui";
-import { fetcher, formatDateTime, OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import {
+  buildUrl,
+  fetcher,
+  formatDateTime,
+  OG_AVATAR_URL,
+  timeAgo,
+} from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
@@ -13,21 +19,6 @@ import { z } from "zod";
 type EventStatus = "delivered" | "opened" | "bounced";
 
 export type CampaignEvent = z.infer<typeof campaignEventSchema>;
-
-const getPartnerUrl = ({
-  workspaceSlug,
-  id,
-}: {
-  workspaceSlug: string;
-  id: string;
-}) => `/${workspaceSlug}/program/partners/${id}`;
-
-const getTimestamp = (event: CampaignEvent) => {
-  if (event.deliveredAt) return event.deliveredAt;
-  if (event.openedAt) return event.openedAt;
-  if (event.bouncedAt) return event.bouncedAt;
-  return null;
-};
 
 export function CampaignEvents() {
   const router = useRouter();
@@ -41,7 +32,11 @@ export function CampaignEvents() {
     isLoading,
   } = useSWR<CampaignEvent[]>(
     campaignId && workspaceId
-      ? `/api/campaigns/${campaignId}/events?workspaceId=${workspaceId}&status=${status}&pageSize=10`
+      ? buildUrl(`/api/campaigns/${campaignId}/events`, {
+          workspaceId,
+          status,
+          pageSize: 10,
+        })
       : null,
     fetcher,
   );
@@ -172,3 +167,27 @@ export function CampaignEvents() {
     </>
   );
 }
+
+const getPartnerUrl = ({
+  workspaceSlug,
+  id,
+}: {
+  workspaceSlug: string;
+  id: string;
+}) => `/${workspaceSlug}/program/partners/${id}`;
+
+const getTimestamp = (event: CampaignEvent) => {
+  if (event.deliveredAt) {
+    return event.deliveredAt;
+  }
+
+  if (event.openedAt) {
+    return event.openedAt;
+  }
+
+  if (event.bouncedAt) {
+    return event.bouncedAt;
+  }
+
+  return null;
+};
