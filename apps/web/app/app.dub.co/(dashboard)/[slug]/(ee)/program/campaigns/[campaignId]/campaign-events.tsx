@@ -15,13 +15,15 @@ import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { z } from "zod";
+import { CampaignEventsModal } from "./campaign-events-modal";
 
-type EventStatus = "delivered" | "opened" | "bounced";
+export type EventStatus = "delivered" | "opened" | "bounced";
 
 export type CampaignEvent = z.infer<typeof campaignEventSchema>;
 
 export function CampaignEvents() {
   const router = useRouter();
+  const [showModal, setShowModal] = useState(false);
   const { campaignId } = useParams<{ campaignId: string }>();
   const [status, setStatus] = useState<EventStatus>("delivered");
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
@@ -104,10 +106,7 @@ export function CampaignEvents() {
     data: events || [],
     columns,
     onRowClick: (row, e) => {
-      const url = getPartnerUrl({
-        workspaceSlug: workspaceSlug!,
-        id: row.original.partner.id,
-      });
+      const url = `/${workspaceSlug}/program/partners/${row.original.partner.id}`;
 
       if (e.metaKey || e.ctrlKey) {
         window.open(url, "_blank");
@@ -115,14 +114,10 @@ export function CampaignEvents() {
         router.push(url);
       }
     },
-    onRowAuxClick: (row) =>
-      window.open(
-        getPartnerUrl({
-          workspaceSlug: workspaceSlug!,
-          id: row.original.partner.id,
-        }),
-        "_blank",
-      ),
+    onRowAuxClick: (row) => {
+      const url = `/${workspaceSlug}/program/partners/${row.original.partner.id}`;
+      window.open(url, "_blank");
+    },
     rowProps: () => ({
       className:
         "cursor-pointer transition-colors hover:bg-neutral-50 border-b border-neutral-200 last:border-b-0",
@@ -132,15 +127,17 @@ export function CampaignEvents() {
     resourceName: () => "event",
     loading: isLoading,
     error: error ? "Failed to load events" : undefined,
-    emptyState: (
-      <div className="flex h-20 items-center justify-center text-sm text-neutral-500">
-        No {status} events found
-      </div>
-    ),
   });
 
   return (
     <>
+      <CampaignEventsModal
+        showModal={showModal}
+        setShowModal={setShowModal}
+        status={status}
+        columns={columns}
+      />
+
       <div className="flex w-full items-center">
         <ToggleGroup
           className="flex w-full items-center gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-0.5"
@@ -156,25 +153,33 @@ export function CampaignEvents() {
         />
       </div>
 
-      <div className="min-h-80 rounded-lg border border-neutral-200 bg-white">
-        <Table
-          {...tableProps}
-          table={table}
-          className="[&_thead]:hidden"
-          containerClassName="border-0 rounded-lg"
-        />
+      <div className="group relative z-0 min-h-80 overflow-hidden rounded-lg border border-neutral-200 bg-white">
+        <div className="max-h-96 overflow-hidden">
+          <Table
+            {...tableProps}
+            table={table}
+            className="[&_thead]:hidden"
+            containerClassName="border-0 rounded-lg"
+          />
+        </div>
+
+        {events && events.length >= 10 && (
+          <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">
+            <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />
+            <button
+              onClick={() => setShowModal(true)}
+              className="group relative flex w-full items-center justify-center py-4"
+            >
+              <div className="rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-sm text-neutral-950 group-hover:bg-neutral-100 group-active:border-neutral-300">
+                View All
+              </div>
+            </button>
+          </div>
+        )}
       </div>
     </>
   );
 }
-
-const getPartnerUrl = ({
-  workspaceSlug,
-  id,
-}: {
-  workspaceSlug: string;
-  id: string;
-}) => `/${workspaceSlug}/program/partners/${id}`;
 
 const getTimestamp = (event: CampaignEvent) => {
   if (event.deliveredAt) {
