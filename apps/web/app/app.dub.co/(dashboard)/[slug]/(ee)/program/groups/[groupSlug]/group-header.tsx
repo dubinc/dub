@@ -1,8 +1,10 @@
 "use client";
 
 import useGroup from "@/lib/swr/use-group";
+import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
+import { GroupSelector } from "@/ui/partners/groups/group-selector";
 import {
   ArrowUpRight2,
   Brush,
@@ -23,7 +25,6 @@ import {
   useRouter,
   useSearchParams,
 } from "next/navigation";
-import { Group, GroupHeaderSelector } from "./group-header-selector";
 
 export function GroupHeaderTitle() {
   const router = useRouter();
@@ -31,6 +32,7 @@ export function GroupHeaderTitle() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { group, loading } = useGroup();
+  const { groups } = useGroups();
   const { slug: workspaceSlug } = useWorkspace();
 
   if (loading) {
@@ -41,10 +43,14 @@ export function GroupHeaderTitle() {
     redirect(`/${workspaceSlug}/program/groups`);
   }
 
-  const switchToGroup = (newGroup: Group) => {
-    if (group.id === newGroup.id || params.groupSlug === newGroup.slug) return;
+  const switchToGroup = (groupId: string) => {
+    if (group.id === groupId) return;
 
-    const url = `${pathname.replace(`/groups/${params.groupSlug}`, `/groups/${newGroup.slug}`)}?${searchParams.toString()}`;
+    // Find the group by ID to get the slug
+    const targetGroup = groups?.find((g) => g.id === groupId);
+    if (!targetGroup) return;
+
+    const url = `${pathname.replace(`/groups/${params.groupSlug}`, `/groups/${targetGroup.slug}`)}?${searchParams.toString()}`;
 
     router.push(url);
   };
@@ -61,9 +67,10 @@ export function GroupHeaderTitle() {
       </Link>
       <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
 
-      <GroupHeaderSelector
-        selectedGroup={group}
-        setSelectedGroup={switchToGroup}
+      <GroupSelector
+        selectedGroupId={group.id}
+        setSelectedGroupId={switchToGroup}
+        variant="header"
       />
     </div>
   );
