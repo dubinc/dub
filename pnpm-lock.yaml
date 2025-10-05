@@ -512,25 +512,25 @@ importers:
         version: link:../utils
       '@react-email/components':
         specifier: ^0.0.22
-        version: 0.0.22(@types/react@18.2.48)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        version: 0.0.22(@types/react@18.2.48)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       lucide-react:
         specifier: ^0.462.0
-        version: 0.462.0(react@18.2.0)
+        version: 0.462.0(react@18.3.1)
       nodemailer:
         specifier: ^6.9.3
         version: 6.9.3
       react:
         specifier: ^18.2.0
-        version: 18.2.0
+        version: 18.3.1
       react-dom:
         specifier: ^18.2.0
-        version: 18.2.0(react@18.2.0)
+        version: 18.3.1(react@18.3.1)
       react-email:
         specifier: ^2.1.6
         version: 2.1.6(@opentelemetry/api@1.9.0)(@swc/helpers@0.5.15)(eslint@8.48.0)(ts-node@10.9.2(@swc/core@1.3.101(@swc/helpers@0.5.15))(@types/node@22.18.3)(typescript@5.6.2))
       resend:
-        specifier: ^4.0.0
-        version: 4.0.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+        specifier: ^6.1.2
+        version: 6.1.2(@react-email/render@0.0.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
     devDependencies:
       '@types/nodemailer':
         specifier: ~6.4.17
@@ -11227,9 +11227,14 @@ packages:
   requires-port@1.0.0:
     resolution: {integrity: sha512-KigOCHcocU3XODJxsu8i/j8T9tzT4adHiecwORRQ0ZZFcp7ahwXuRU1m+yuO90C5ZUyGeGfocHDI14M3L3yDAQ==}
 
-  resend@4.0.0:
-    resolution: {integrity: sha512-rDX0rspl/XcmC2JV2V5obQvRX2arzxXUvNFUDMOv5ObBLR68+7kigCOysb7+dlkb0JE3erhQG0nHrbBt/ZCWIg==}
+  resend@6.1.2:
+    resolution: {integrity: sha512-C9Q+YkRe57P8MQlkHG3yatSR/B6sqBGA06Ri2DveJfkz9Vm16182FC/iHB0K6IAfmqZ4yRrFebFw1EPuktLtSg==}
     engines: {node: '>=18'}
+    peerDependencies:
+      '@react-email/render': '*'
+    peerDependenciesMeta:
+      '@react-email/render':
+        optional: true
 
   resolve-alpn@1.2.1:
     resolution: {integrity: sha512-0a1F4l73/ZFZOakJnQ3FvkJ2+gSTQWz/r2KE5OdDY0TxPm5h4GkqkWWfM47T7HsbnOtcJVEF4epCVy6u7Q3K+g==}
@@ -16321,9 +16326,9 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.2.47
 
-  '@radix-ui/react-compose-refs@1.1.0(@types/react@18.2.48)(react@18.2.0)':
+  '@radix-ui/react-compose-refs@1.1.0(@types/react@18.2.48)(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
     optionalDependencies:
       '@types/react': 18.2.48
 
@@ -17242,10 +17247,10 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.2.47
 
-  '@radix-ui/react-slot@1.1.0(@types/react@18.2.48)(react@18.2.0)':
+  '@radix-ui/react-slot@1.1.0(@types/react@18.2.48)(react@18.3.1)':
     dependencies:
-      '@radix-ui/react-compose-refs': 1.1.0(@types/react@18.2.48)(react@18.2.0)
-      react: 18.2.0
+      '@radix-ui/react-compose-refs': 1.1.0(@types/react@18.2.48)(react@18.3.1)
+      react: 18.3.1
     optionalDependencies:
       '@types/react': 18.2.48
 
@@ -17854,121 +17859,121 @@ snapshots:
       clsx: 2.1.1
       react: 19.1.1
 
-  '@react-email/body@0.0.9(react@18.2.0)':
+  '@react-email/body@0.0.9(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/button@0.0.16(react@18.2.0)':
+  '@react-email/button@0.0.16(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/code-block@0.0.6(react@18.2.0)':
+  '@react-email/code-block@0.0.6(react@18.3.1)':
     dependencies:
       prismjs: 1.29.0
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/code-inline@0.0.3(react@18.2.0)':
+  '@react-email/code-inline@0.0.3(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/column@0.0.11(react@18.2.0)':
+  '@react-email/column@0.0.11(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/components@0.0.22(@types/react@18.2.48)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@react-email/components@0.0.22(@types/react@18.2.48)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@react-email/body': 0.0.9(react@18.2.0)
-      '@react-email/button': 0.0.16(react@18.2.0)
-      '@react-email/code-block': 0.0.6(react@18.2.0)
-      '@react-email/code-inline': 0.0.3(react@18.2.0)
-      '@react-email/column': 0.0.11(react@18.2.0)
-      '@react-email/container': 0.0.13(react@18.2.0)
-      '@react-email/font': 0.0.7(react@18.2.0)
-      '@react-email/head': 0.0.10(react@18.2.0)
-      '@react-email/heading': 0.0.13(@types/react@18.2.48)(react@18.2.0)
-      '@react-email/hr': 0.0.9(react@18.2.0)
-      '@react-email/html': 0.0.9(react@18.2.0)
-      '@react-email/img': 0.0.9(react@18.2.0)
-      '@react-email/link': 0.0.9(react@18.2.0)
-      '@react-email/markdown': 0.0.11(react@18.2.0)
-      '@react-email/preview': 0.0.10(react@18.2.0)
-      '@react-email/render': 0.0.17(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-      '@react-email/row': 0.0.9(react@18.2.0)
-      '@react-email/section': 0.0.13(react@18.2.0)
-      '@react-email/tailwind': 0.0.19(react@18.2.0)
-      '@react-email/text': 0.0.9(react@18.2.0)
-      react: 18.2.0
+      '@react-email/body': 0.0.9(react@18.3.1)
+      '@react-email/button': 0.0.16(react@18.3.1)
+      '@react-email/code-block': 0.0.6(react@18.3.1)
+      '@react-email/code-inline': 0.0.3(react@18.3.1)
+      '@react-email/column': 0.0.11(react@18.3.1)
+      '@react-email/container': 0.0.13(react@18.3.1)
+      '@react-email/font': 0.0.7(react@18.3.1)
+      '@react-email/head': 0.0.10(react@18.3.1)
+      '@react-email/heading': 0.0.13(@types/react@18.2.48)(react@18.3.1)
+      '@react-email/hr': 0.0.9(react@18.3.1)
+      '@react-email/html': 0.0.9(react@18.3.1)
+      '@react-email/img': 0.0.9(react@18.3.1)
+      '@react-email/link': 0.0.9(react@18.3.1)
+      '@react-email/markdown': 0.0.11(react@18.3.1)
+      '@react-email/preview': 0.0.10(react@18.3.1)
+      '@react-email/render': 0.0.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@react-email/row': 0.0.9(react@18.3.1)
+      '@react-email/section': 0.0.13(react@18.3.1)
+      '@react-email/tailwind': 0.0.19(react@18.3.1)
+      '@react-email/text': 0.0.9(react@18.3.1)
+      react: 18.3.1
     transitivePeerDependencies:
       - '@types/react'
       - react-dom
 
-  '@react-email/container@0.0.13(react@18.2.0)':
+  '@react-email/container@0.0.13(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/font@0.0.7(react@18.2.0)':
+  '@react-email/font@0.0.7(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/head@0.0.10(react@18.2.0)':
+  '@react-email/head@0.0.10(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/heading@0.0.13(@types/react@18.2.48)(react@18.2.0)':
+  '@react-email/heading@0.0.13(@types/react@18.2.48)(react@18.3.1)':
     dependencies:
-      '@radix-ui/react-slot': 1.1.0(@types/react@18.2.48)(react@18.2.0)
-      react: 18.2.0
+      '@radix-ui/react-slot': 1.1.0(@types/react@18.2.48)(react@18.3.1)
+      react: 18.3.1
     transitivePeerDependencies:
       - '@types/react'
 
-  '@react-email/hr@0.0.9(react@18.2.0)':
+  '@react-email/hr@0.0.9(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/html@0.0.9(react@18.2.0)':
+  '@react-email/html@0.0.9(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/img@0.0.9(react@18.2.0)':
+  '@react-email/img@0.0.9(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/link@0.0.9(react@18.2.0)':
+  '@react-email/link@0.0.9(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/markdown@0.0.11(react@18.2.0)':
+  '@react-email/markdown@0.0.11(react@18.3.1)':
     dependencies:
-      md-to-react-email: 5.0.2(react@18.2.0)
-      react: 18.2.0
+      md-to-react-email: 5.0.2(react@18.3.1)
+      react: 18.3.1
 
-  '@react-email/preview@0.0.10(react@18.2.0)':
+  '@react-email/preview@0.0.10(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/render@0.0.17(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+  '@react-email/render@0.0.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       html-to-text: 9.0.5
       js-beautify: 1.14.11
-      react: 18.2.0
-      react-dom: 18.2.0(react@18.2.0)
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
       react-promise-suspense: 0.3.4
 
-  '@react-email/row@0.0.9(react@18.2.0)':
+  '@react-email/row@0.0.9(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/section@0.0.13(react@18.2.0)':
+  '@react-email/section@0.0.13(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/tailwind@0.0.19(react@18.2.0)':
+  '@react-email/tailwind@0.0.19(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
-  '@react-email/text@0.0.9(react@18.2.0)':
+  '@react-email/text@0.0.9(react@18.3.1)':
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
   '@react-pdf/fns@2.2.1':
     dependencies:
@@ -24512,9 +24517,9 @@ snapshots:
       react: 18.3.1
     optional: true
 
-  lucide-react@0.462.0(react@18.2.0):
+  lucide-react@0.462.0(react@18.3.1):
     dependencies:
-      react: 18.2.0
+      react: 18.3.1
 
   lucide-react@0.462.0(react@19.1.1):
     dependencies:
@@ -24578,10 +24583,10 @@ snapshots:
 
   math-intrinsics@1.1.0: {}
 
-  md-to-react-email@5.0.2(react@18.2.0):
+  md-to-react-email@5.0.2(react@18.3.1):
     dependencies:
       marked: 7.0.4
-      react: 18.2.0
+      react: 18.3.1
 
   mdast-util-find-and-replace@3.0.2:
     dependencies:
@@ -26593,12 +26598,9 @@ snapshots:
 
   requires-port@1.0.0: {}
 
-  resend@4.0.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
-    dependencies:
-      '@react-email/render': 0.0.17(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
-    transitivePeerDependencies:
-      - react
-      - react-dom
+  resend@6.1.2(@react-email/render@0.0.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)):
+    optionalDependencies:
+      '@react-email/render': 0.0.17(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
   resolve-alpn@1.2.1: {}
 

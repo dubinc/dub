@@ -26,6 +26,7 @@ const prefixes = [
   "cm_", // commission
   "rw_", // reward
   "disc_", // discount
+  "dcode_", // discount code
   "dub_embed_", // dub embed
   "audit_", // audit log
   "import_", // import log

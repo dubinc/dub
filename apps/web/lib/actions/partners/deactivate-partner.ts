@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
@@ -23,6 +24,7 @@ export const deactivatePartnerAction = authActionClient
       partnerId,
       programId,
       includePartner: true,
+      includeDiscountCodes: true,
     });
 
     if (programEnrollment.status === "deactivated") {
@@ -66,6 +68,11 @@ export const deactivatePartnerAction = authActionClient
         await Promise.allSettled([
           // TODO send email to partner
           linkCache.expireMany(links),
+
+          queueDiscountCodeDeletion(
+            programEnrollment.discountCodes.map(({ id }) => id),
+          ),
+
           recordAuditLog({
             workspaceId: workspace.id,
             programId,
