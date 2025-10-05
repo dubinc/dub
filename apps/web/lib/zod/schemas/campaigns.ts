@@ -104,6 +104,7 @@ export const getCampaignsCountQuerySchema = getCampaignsQuerySchema
 export const getCampaignsEventsQuerySchema = z
   .object({
     status: z.enum(["delivered", "opened", "bounced"]).default("delivered"),
+    search: z.string().optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 

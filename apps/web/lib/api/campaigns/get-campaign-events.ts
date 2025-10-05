@@ -11,7 +11,7 @@ interface GetCampaignEventsParams
 }
 
 export const getCampaignEvents = async (params: GetCampaignEventsParams) => {
-  const { campaignId, status, page, pageSize } = params;
+  const { campaignId, status, page, pageSize, search } = params;
 
   const results = await prisma.notificationEmail.findMany({
     where: {
@@ -19,6 +19,14 @@ export const getCampaignEvents = async (params: GetCampaignEventsParams) => {
       ...(status === "delivered" && { deliveredAt: { not: null } }),
       ...(status === "opened" && { openedAt: { not: null } }),
       ...(status === "bounced" && { bouncedAt: { not: null } }),
+      ...(search && {
+        partner: {
+          OR: [
+            { name: { contains: search } },
+            { email: { contains: search } },
+          ],
+        },
+      }),
     },
     select: {
       id: true,

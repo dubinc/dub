@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { SearchBox } from "@/ui/shared/search-box";
 import {
   Modal,
   PaginationControls,
@@ -10,12 +11,11 @@ import {
 } from "@dub/ui";
 import { buildUrl, fetcher } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
+import { useState } from "react";
 import useSWR from "swr";
+import { useDebouncedCallback } from "use-debounce";
 import { CampaignEvent, EventStatus } from "./campaign-events";
 import { campaignEventsColumns } from "./campaign-events-columns";
-
-// TODO:
-// Fix title
 
 export function CampaignEventsModal({
   showModal,
@@ -31,6 +31,14 @@ export function CampaignEventsModal({
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
 
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  const debounced = useDebouncedCallback(
+    (value) => setDebouncedSearch(value),
+    500,
+  );
+
   const {
     data: events,
     error,
@@ -41,6 +49,7 @@ export function CampaignEventsModal({
           workspaceId,
           status,
           pageSize: 50,
+          ...(debouncedSearch && { search: debouncedSearch }),
         })
       : null,
     fetcher,
@@ -88,6 +97,18 @@ export function CampaignEventsModal({
         <h1 className="text-lg font-semibold">
           {status.charAt(0).toUpperCase() + status.slice(1)}
         </h1>
+      </div>
+
+      <div className="flex-shrink-0 border-b border-neutral-200 px-4 py-3">
+        <SearchBox
+          value={search}
+          onChange={(value) => {
+            setSearch(value);
+            debounced(value);
+          }}
+          placeholder="Search by partner name or email..."
+          loading={isLoading && debouncedSearch.length > 0}
+        />
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden">
