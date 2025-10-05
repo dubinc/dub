@@ -15,12 +15,19 @@ import {
   Popover,
   StatusBadge,
   Table,
+  Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { Dots, Duplicate, LoadingCircle, Trash } from "@dub/ui/icons";
-import { cn, fetcher, formatDateTime, formatDateTimeSmart } from "@dub/utils";
+import {
+  cn,
+  fetcher,
+  formatDateTime,
+  formatDateTimeSmart,
+  nFormatter,
+} from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { Mail, Pause, Play } from "lucide-react";
@@ -129,16 +136,49 @@ export function CampaignsTable() {
         id: "delivered",
         header: "Delivered",
         accessorFn: (d) => d.delivered,
+        cell: ({ row }) => {
+          const { sent, delivered } = row.original;
+
+          return (
+            <Tooltip content={`${nFormatter(delivered)} delivered`} side="top">
+              <span className="cursor-help">
+                {calculatePercentage(delivered, sent)}%
+              </span>
+            </Tooltip>
+          );
+        },
       },
       {
         id: "bounced",
         header: "Bounced",
         accessorFn: (d) => d.bounced,
+        cell: ({ row }) => {
+          const { sent, bounced } = row.original;
+
+          return (
+            <Tooltip content={`${nFormatter(bounced)} bounced`} side="top">
+              <span className="cursor-help">
+                {calculatePercentage(bounced, sent)}%
+              </span>
+            </Tooltip>
+          );
+        },
       },
       {
         id: "opened",
         header: "Opened",
         accessorFn: (d) => d.opened,
+        cell: ({ row }) => {
+          const { delivered, opened } = row.original;
+
+          return (
+            <Tooltip content={`${nFormatter(opened)} opened`} side="top">
+              <span className="cursor-help">
+                {calculatePercentage(opened, delivered)}%
+              </span>
+            </Tooltip>
+          );
+        },
       },
       {
         id: "menu",
@@ -329,3 +369,11 @@ function RowMenuButton({
     </>
   );
 }
+
+const calculatePercentage = (value: number, total: number) => {
+  if (total === 0) {
+    return 0;
+  }
+
+  return Math.round((value / total) * 100);
+};

@@ -13,6 +13,7 @@ interface QueryResult {
   status: string;
   createdAt: Date;
   updatedAt: Date;
+  sent: number;
   delivered: number;
   bounced: number;
   opened: number;
@@ -26,6 +27,7 @@ const SORT_COLUMNS_MAP = {
   createdAt: "c.createdAt",
   updatedAt: "c.updatedAt",
   status: "c.status",
+  sent: "sent",
   delivered: "delivered",
   bounced: "bounced",
   opened: "opened",
@@ -45,6 +47,7 @@ export const getCampaigns = async ({
   const metricsSubquery = Prisma.sql`
     SELECT 
       campaignId,
+      COUNT(*) AS sent,
       SUM(CASE WHEN deliveredAt IS NOT NULL THEN 1 ELSE 0 END) AS delivered,
       SUM(CASE WHEN openedAt IS NOT NULL THEN 1 ELSE 0 END) AS opened,
       SUM(CASE WHEN bouncedAt IS NOT NULL THEN 1 ELSE 0 END) AS bounced
@@ -63,6 +66,7 @@ export const getCampaigns = async ({
       c.status,
       c.createdAt,
       c.updatedAt,
+      COALESCE(metrics.sent, 0) AS sent,
       COALESCE(metrics.delivered, 0) AS delivered,
       COALESCE(metrics.opened, 0) AS opened,
       COALESCE(metrics.bounced, 0) AS bounced
@@ -85,6 +89,7 @@ export const getCampaigns = async ({
     createdAt: result.createdAt,
     updatedAt: result.updatedAt,
     partners: 0, // TODO: Fix it
+    sent: Number(result.sent),
     delivered: Number(result.delivered),
     bounced: Number(result.bounced),
     opened: Number(result.opened),

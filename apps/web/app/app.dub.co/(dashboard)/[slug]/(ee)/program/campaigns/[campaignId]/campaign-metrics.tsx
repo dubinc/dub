@@ -1,7 +1,7 @@
 "use client";
 
-import { calculateCampaignPercentages } from "@/lib/api/campaigns/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { CampaignSummary } from "@/lib/types";
 import { campaignSummarySchema } from "@/lib/zod/schemas/campaigns";
 import { EnvelopeBan, EnvelopeCheck, EnvelopeOpen } from "@dub/ui";
 import { fetcher, nFormatter } from "@dub/utils";
@@ -114,3 +114,26 @@ function CampaignMetricsLoadingSkeleton() {
     </>
   );
 }
+
+export const calculateCampaignPercentages = (summary: CampaignSummary) => {
+  const { sent, delivered, opened, bounced } = summary;
+
+  if (sent === 0) {
+    return {
+      ...summary,
+      deliveredPercentage: 0,
+      openedPercentage: 0,
+      bouncedPercentage: 0,
+    };
+  }
+
+  const sentInverse = 100 / sent;
+  const deliveredInverse = delivered > 0 ? 100 / delivered : 0;
+
+  return {
+    ...summary,
+    deliveredPercentage: Number((delivered * sentInverse).toFixed(2)),
+    openedPercentage: Number((opened * deliveredInverse).toFixed(2)),
+    bouncedPercentage: Number((bounced * sentInverse).toFixed(2)),
+  };
+};
