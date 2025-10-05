@@ -12,6 +12,7 @@ import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal"
 import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { usePartnerAdvancedSettingsModal } from "@/ui/partners/partner-advanced-settings-modal";
 import { PartnerInfoCards } from "@/ui/partners/partner-info-cards";
+import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MenuItem, Popover, useKeyboardShortcut } from "@dub/ui";
 import {
@@ -36,7 +37,6 @@ import {
 } from "next/navigation";
 import { ReactNode, useState } from "react";
 import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
-import { Partner, PartnerHeaderSelector } from "./partner-header-selector";
 import { PartnerNav } from "./partner-nav";
 import { PartnerStats } from "./partner-stats";
 
@@ -63,34 +63,11 @@ export default function ProgramPartnerLayout({
     redirect(`/${workspaceSlug}/program/partners`);
   }
 
-  const switchToPartner = (newPartner: Partner) => {
-    if (params.partnerId === newPartner.id) return;
-
-    const url = `${pathname.replace(`/partners/${params.partnerId}`, `/partners/${newPartner.id}`)}?${searchParams.toString()}`;
-
+  const switchToPartner = (newPartnerId: string) => {
+    if (params.partnerId === newPartnerId) return;
+    const url = `${pathname.replace(`/partners/${params.partnerId}`, `/partners/${newPartnerId}`)}?${searchParams.toString()}`;
     router.push(url);
   };
-
-  let partnerNameComponent;
-
-  if (isPartnerLoading) {
-    partnerNameComponent = (
-      <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />
-    );
-  } else if (partner) {
-    partnerNameComponent = (
-      <PartnerHeaderSelector
-        selectedPartner={partner}
-        setSelectedPartner={switchToPartner}
-      />
-    );
-  } else {
-    partnerNameComponent = (
-      <span className="min-w-0 truncate text-lg font-semibold leading-7 text-neutral-900">
-        {"-"}
-      </span>
-    );
-  }
 
   return (
     <PageContent
@@ -105,7 +82,11 @@ export default function ProgramPartnerLayout({
             <Users className="size-4" />
           </Link>
           <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-          {partnerNameComponent}
+          <PartnerSelector
+            variant="header"
+            selectedPartnerId={partner?.id ?? null}
+            setSelectedPartnerId={switchToPartner}
+          />
         </div>
       }
       controls={<>{partner && <PageControls partner={partner} />}</>}

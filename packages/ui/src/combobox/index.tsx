@@ -9,12 +9,11 @@ import {
   ReactNode,
   useCallback,
   useEffect,
-  useRef,
   useState,
 } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { Button, ButtonProps } from "../button";
-import { useMediaQuery, useScrollProgress } from "../hooks";
+import { useMediaQuery } from "../hooks";
 import {
   Check2,
   CheckboxCheckedFill,
@@ -24,6 +23,7 @@ import {
   Plus,
 } from "../icons";
 import { Popover, PopoverProps } from "../popover";
+import { ScrollContainer } from "../scroll-container";
 import { Tooltip } from "../tooltip";
 
 export type ComboboxOption<TMeta = any> = {
@@ -250,7 +250,7 @@ export function Combobox({
                 )}
               </div>
             )}
-            <Scroll>
+            <ScrollContainer className="h-full max-h-[min(50vh,250px)]">
               <Command.List
                 className={cn("flex w-full min-w-[100px] flex-col gap-1 p-1")}
               >
@@ -315,7 +315,7 @@ export function Combobox({
                   </Command.Loading>
                 )}
               </Command.List>
-            </Scroll>
+            </ScrollContainer>
           </Command>
         </AnimatedSizeContainer>
       }
@@ -365,29 +365,6 @@ export function Combobox({
     </Popover>
   );
 }
-
-const Scroll = ({ children }: PropsWithChildren) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
-
-  return (
-    <>
-      <div
-        className="scrollbar-hide max-h-[min(50vh,250px)] w-screen overflow-y-scroll sm:w-auto"
-        ref={ref}
-        onScroll={updateScrollProgress}
-      >
-        {children}
-      </div>
-      {/* Bottom scroll fade */}
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
-        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-      ></div>
-    </>
-  );
-};
 
 function Option({
   option,
