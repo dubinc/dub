@@ -12,6 +12,7 @@ import { buildUrl, fetcher } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import { CampaignEvent, EventStatus } from "./campaign-events";
+import { campaignEventsColumns } from "./campaign-events-columns";
 
 // TODO:
 // Fix title
@@ -20,12 +21,10 @@ export function CampaignEventsModal({
   showModal,
   setShowModal,
   status,
-  columns,
 }: {
   showModal: boolean;
   setShowModal: (show: boolean) => void;
   status: EventStatus;
-  columns: any[];
 }) {
   const router = useRouter();
   const { campaignId } = useParams<{ campaignId: string }>();
@@ -52,7 +51,7 @@ export function CampaignEventsModal({
 
   const { table, ...tableProps } = useTable({
     data: events || [],
-    columns,
+    columns: campaignEventsColumns,
     onRowClick: (row, e) => {
       const url = `/${workspaceSlug}/program/partners/${row.original.partner.id}`;
 
