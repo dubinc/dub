@@ -27,9 +27,16 @@ import {
 } from "@dub/ui/icons";
 import { LockOpen } from "lucide-react";
 import Link from "next/link";
-import { redirect, useParams } from "next/navigation";
+import {
+  redirect,
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 import { ReactNode, useState } from "react";
 import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
+import { Partner, PartnerHeaderSelector } from "./partner-header-selector";
 import { PartnerNav } from "./partner-nav";
 import { PartnerStats } from "./partner-stats";
 
@@ -39,19 +46,44 @@ export default function ProgramPartnerLayout({
   children: ReactNode;
 }) {
   const { slug: workspaceSlug } = useWorkspace();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-  const { partnerId } = useParams() as { partnerId: string };
-
+  const params = useParams() as { slug: string; partnerId: string };
   const {
     partner,
     loading: isPartnerLoading,
     error: partnerError,
   } = usePartner({
-    partnerId,
+    partnerId: params.partnerId,
   });
 
   if (partnerError && partnerError.status === 404) {
     redirect(`/${workspaceSlug}/program/partners`);
+  }
+
+  const switchToPartner = (newPartner: Partner) => {
+    if (params.partnerId === newPartner.id) return;
+
+    const url = `${pathname.replace(`/partners/${params.partnerId}`, `/partners/${newPartner.id}`)}?${searchParams.toString()}`;
+
+    router.push(url);
+  };
+
+  let partnerNameComponent;
+
+  if (isPartnerLoading) {
+    partnerNameComponent = (
+      <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />
+    );
+  } else if (partner) {
+    partnerNameComponent = (
+      <PartnerHeaderSelector
+        selectedPartner={partner}
+        setSelectedPartner={switchToPartner}
+      />
+    );
   }
 
   return (
@@ -67,13 +99,7 @@ export default function ProgramPartnerLayout({
             <Users className="size-4" />
           </Link>
           <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-          {isPartnerLoading ? (
-            <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-200" />
-          ) : (
-            <span className="min-w-0 truncate text-lg font-semibold leading-7 text-neutral-900">
-              {partner?.name ?? "-"}
-            </span>
-          )}
+          {partnerNameComponent}
         </div>
       }
       controls={<>{partner && <PageControls partner={partner} />}</>}
