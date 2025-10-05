@@ -98,6 +98,16 @@ async function createCustomer({
     entity_id: referralId,
   } as const;
 
+  if (!referral.link) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `Link not found for referral ${referralId} (could've been a coupon-based referral).`,
+    });
+
+    return;
+  }
+
   const link = await prisma.link.findUnique({
     where: {
       domain_key: {

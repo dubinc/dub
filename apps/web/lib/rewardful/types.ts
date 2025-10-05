@@ -57,7 +57,7 @@ export interface RewardfulAffiliate {
 
 export interface RewardfulReferral {
   id: string;
-  link: RewardfulLink;
+  link?: RewardfulLink; // could be null for coupon-based referrals
   customer: RewardfulCustomer;
   affiliate: RewardfulAffiliate;
   created_at: string;
