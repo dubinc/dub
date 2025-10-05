@@ -84,6 +84,12 @@ export default function ProgramPartnerLayout({
         setSelectedPartner={switchToPartner}
       />
     );
+  } else {
+    partnerNameComponent = (
+      <span className="min-w-0 truncate text-lg font-semibold leading-7 text-neutral-900">
+        {"-"}
+      </span>
+    );
   }
 
   return (
