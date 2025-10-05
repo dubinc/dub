@@ -3,21 +3,37 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { campaignEventSchema } from "@/lib/zod/schemas/campaigns";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { ToggleGroup, Tooltip } from "@dub/ui";
+import { Table, ToggleGroup, Tooltip, useTable } from "@dub/ui";
 import { fetcher, formatDateTime, OG_AVATAR_URL, timeAgo } from "@dub/utils";
-import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 import { z } from "zod";
 
 type EventStatus = "delivered" | "opened" | "bounced";
+
 export type CampaignEvent = z.infer<typeof campaignEventSchema>;
 
+const getPartnerUrl = ({
+  workspaceSlug,
+  id,
+}: {
+  workspaceSlug: string;
+  id: string;
+}) => `/${workspaceSlug}/program/partners/${id}`;
+
+const getTimestamp = (event: CampaignEvent) => {
+  if (event.deliveredAt) return event.deliveredAt;
+  if (event.openedAt) return event.openedAt;
+  if (event.bouncedAt) return event.bouncedAt;
+  return null;
+};
+
 export function CampaignEvents() {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const router = useRouter();
   const { campaignId } = useParams<{ campaignId: string }>();
   const [status, setStatus] = useState<EventStatus>("delivered");
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
   const {
     data: events,
@@ -29,6 +45,104 @@ export function CampaignEvents() {
       : null,
     fetcher,
   );
+
+  const columns = useMemo(
+    () => [
+      {
+        id: "partner",
+        header: "",
+        enableHiding: false,
+        cell: ({ row }: { row: { original: CampaignEvent } }) => (
+          <div className="flex gap-2">
+            <div className="flex h-8 shrink-0 items-center justify-center">
+              <img
+                src={
+                  row.original.partner.image ||
+                  `${OG_AVATAR_URL}${row.original.partner.name}`
+                }
+                alt={row.original.partner.name}
+                className="size-7 rounded-full object-cover"
+              />
+            </div>
+            <div className="flex h-8 min-w-0 flex-1 flex-col">
+              <div className="text-content-emphasis truncate text-xs font-semibold">
+                {row.original.partner.name}
+              </div>
+              <div className="flex items-center gap-1">
+                <GroupColorCircle group={row.original.group} />
+                <span className="text-content-subtle truncate text-xs font-medium">
+                  {row.original.group?.name}
+                </span>
+              </div>
+            </div>
+          </div>
+        ),
+      },
+      {
+        id: "timestamp",
+        header: "",
+        enableHiding: false,
+        minSize: 60,
+        cell: ({ row }: { row: { original: CampaignEvent } }) => {
+          const timestamp = getTimestamp(row.original);
+
+          return (
+            <Tooltip
+              content={timestamp ? formatDateTime(timestamp) : "-"}
+              side="top"
+            >
+              <div
+                className="text-content-subtle flex h-8 shrink-0 items-center justify-end text-xs font-medium"
+                onClick={(e) => e.preventDefault()}
+              >
+                {timeAgo(timestamp)}
+              </div>
+            </Tooltip>
+          );
+        },
+      },
+    ],
+    [],
+  );
+
+  const { table, ...tableProps } = useTable({
+    data: events || [],
+    columns,
+    onRowClick: (row, e) => {
+      const url = getPartnerUrl({
+        workspaceSlug: workspaceSlug!,
+        id: row.original.partner.id,
+      });
+
+      if (e.metaKey || e.ctrlKey) {
+        window.open(url, "_blank");
+      } else {
+        router.push(url);
+      }
+    },
+    onRowAuxClick: (row) =>
+      window.open(
+        getPartnerUrl({
+          workspaceSlug: workspaceSlug!,
+          id: row.original.partner.id,
+        }),
+        "_blank",
+      ),
+    rowProps: () => ({
+      className:
+        "cursor-pointer transition-colors hover:bg-neutral-50 border-b border-neutral-200 last:border-b-0",
+    }),
+    thClassName: "hidden",
+    tdClassName: "border-l-0",
+    resourceName: () => "event",
+    loading: isLoading,
+    error: error ? "Failed to load events" : undefined,
+    emptyState: (
+      <div className="flex h-20 items-center justify-center text-sm text-neutral-500">
+        No {status} events found
+      </div>
+    ),
+  });
 
   return (
     <>
@@ -47,108 +161,14 @@ export function CampaignEvents() {
         />
       </div>
 
-      {error ? (
-        <div className="flex h-full items-center justify-center">
-          <p className="text-content-subtle text-sm">Failed to load events</p>
-        </div>
-      ) : (
-        <div className="flex min-h-80 flex-col divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
-          {isLoading ? (
-            <CampaignEventsLoadingSkeleton />
-          ) : events && events.length > 0 ? (
-            events.map((event) => (
-              <CampaignEventRow
-                key={event.id}
-                event={event}
-                workspaceSlug={workspaceSlug!}
-              />
-            ))
-          ) : (
-            <div className="flex h-20 items-center justify-center text-sm text-neutral-500">
-              No {status} events found
-            </div>
-          )}
-        </div>
-      )}
-    </>
-  );
-}
-
-function CampaignEventRow({
-  event,
-  workspaceSlug,
-}: {
-  event: CampaignEvent;
-  workspaceSlug: string;
-}) {
-  const timestamp = useMemo(() => {
-    if (event.deliveredAt) return event.deliveredAt;
-    if (event.openedAt) return event.openedAt;
-    if (event.bouncedAt) return event.bouncedAt;
-    return null;
-  }, [event.deliveredAt, event.openedAt, event.bouncedAt]);
-
-  return (
-    <Link
-      href={`/${workspaceSlug}/program/partners/${event.partner.id}`}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex cursor-pointer gap-2 p-2.5 no-underline transition-colors hover:bg-neutral-50"
-    >
-      <div className="flex h-8 shrink-0 items-center justify-center">
-        <img
-          src={event.partner.image || `${OG_AVATAR_URL}${event.partner.name}`}
-          alt={event.partner.name}
-          className="size-7 rounded-full object-cover"
+      <div className="min-h-80 rounded-lg border border-neutral-200 bg-white">
+        <Table
+          {...tableProps}
+          table={table}
+          className="[&_thead]:hidden"
+          containerClassName="border-0 rounded-lg"
         />
       </div>
-
-      <div className="flex h-8 min-w-0 flex-1 flex-col">
-        <div className="text-content-emphasis truncate text-xs font-semibold">
-          {event.partner.name}
-        </div>
-        <div className="flex items-center gap-1">
-          <GroupColorCircle group={event.group} />
-          <span className="text-content-subtle truncate text-xs font-medium">
-            {event.group?.name}
-          </span>
-        </div>
-      </div>
-
-      <Tooltip content={timestamp ? formatDateTime(timestamp) : "-"} side="top">
-        <div
-          className="text-content-subtle flex h-8 shrink-0 items-center justify-center text-xs font-medium"
-          onClick={(e) => e.preventDefault()}
-        >
-          {timeAgo(timestamp)}
-        </div>
-      </Tooltip>
-    </Link>
-  );
-}
-
-function CampaignEventsLoadingSkeleton() {
-  return (
-    <>
-      {Array.from({ length: 10 }).map((_, index) => (
-        <div key={index} className="flex gap-2 p-2.5">
-          <div className="flex h-8 shrink-0 items-center justify-center">
-            <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
-          </div>
-
-          <div className="flex h-8 min-w-0 flex-1 flex-col">
-            <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
-            <div className="mt-0.5 flex items-center gap-1">
-              <div className="size-3 animate-pulse rounded-full bg-neutral-200" />
-              <div className="h-3 w-16 animate-pulse rounded bg-neutral-200" />
-            </div>
-          </div>
-
-          <div className="flex h-8 shrink-0 items-center justify-center">
-            <div className="h-3 w-12 animate-pulse rounded bg-neutral-200" />
-          </div>
-        </div>
-      ))}
     </>
   );
 }
