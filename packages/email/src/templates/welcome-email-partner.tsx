@@ -72,22 +72,24 @@ export default function WelcomeEmailPartner({
               >
                 Connect a payout method
               </Link>{" "}
-              to get paid for your referrals.
+              to get paid for your referrals. Your payout bank account must
+              match your local currency for compliance reasons. E.g. if you're
+              based in the UK, you will need to connect a GBP bank account to
+              receive payouts.{" "}
+              <Link
+                href="https://ship.dub.co/payouts-guide"
+                className="font-semibold text-black underline underline-offset-4"
+              >
+                Learn more ↗
+              </Link>
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
                 3. Join a program
               </strong>
-              : If you haven't already, join an affiliate program, or enroll in
-              our own{" "}
-              <Link
-                href="https://ship.dub.co/dub-program"
-                className="font-semibold text-black underline underline-offset-4"
-              >
-                Dub Affiliate Program
-              </Link>{" "}
-              to earn 30% for every sale you refer.
+              : If you haven't already, join an affiliate program and start
+              earning commissions for your referrals
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">

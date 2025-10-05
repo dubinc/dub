@@ -13,7 +13,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { GroupSelector } from "./groups/group-selector";
+import { GroupSelector } from "../partners/groups/group-selector";
 
 type ChangeGroupModalProps = {
   showChangeGroupModal: boolean;

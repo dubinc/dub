@@ -13,7 +13,7 @@ import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
-import { getConnectedCustomer } from "./utils";
+import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
 export async function invoicePaid(event: Stripe.Event) {
@@ -29,7 +29,7 @@ export async function invoicePaid(event: Stripe.Event) {
     },
   });
 
-  // if customer is not found, we check if the connected customer has a dubCustomerId
+  // if customer is not found, we check if the connected customer has a dubCustomerExternalId
   if (!customer) {
     const connectedCustomer = await getConnectedCustomer({
       stripeCustomerId,
@@ -37,16 +37,16 @@ export async function invoicePaid(event: Stripe.Event) {
       livemode: event.livemode,
     });
 
-    const dubCustomerId = connectedCustomer?.metadata.dubCustomerId;
+    const dubCustomerExternalId = connectedCustomer?.metadata.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
 
-    if (dubCustomerId) {
+    if (dubCustomerExternalId) {
       try {
         // Update customer with stripeCustomerId if exists – for future events
         customer = await prisma.customer.update({
           where: {
             projectConnectId_externalId: {
               projectConnectId: stripeAccountId,
-              externalId: dubCustomerId,
+              externalId: dubCustomerExternalId,
             },
           },
           data: {
@@ -55,14 +55,14 @@ export async function invoicePaid(event: Stripe.Event) {
         });
       } catch (error) {
         console.log(error);
-        return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
+        return `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`;
       }
     }
   }
 
   // if customer is still not found, we skip the event
   if (!customer) {
-    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerId), skipping...`;
+    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`;
   }
 
   // Skip if invoice id is already processed
@@ -70,7 +70,7 @@ export async function invoicePaid(event: Stripe.Event) {
     `trackSale:stripe:invoiceId:${invoiceId}`, // here we assume that Stripe's invoice ID is unique across all customers
     {
       timestamp: new Date().toISOString(),
-      dubCustomerId: customer.externalId,
+      dubCustomerExternalId: customer.externalId,
       stripeCustomerId,
       stripeAccountId,
       invoiceId,
@@ -224,6 +224,7 @@ export async function invoicePaid(event: Stripe.Event) {
         },
         sale: {
           productId: invoice.lines.data[0]?.pricing?.price_details?.product,
+          amount: saleData.amount,
         },
       },
     });

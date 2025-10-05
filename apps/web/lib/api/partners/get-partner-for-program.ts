@@ -15,6 +15,7 @@ export async function getPartnerForProgram({
       pe.programId,
       pe.partnerId,
       pe.groupId,
+      pe.discountId,
       pe.tenantId,
       pe.applicationId,
       pe.createdAt as enrollmentCreatedAt,
@@ -102,7 +103,7 @@ export async function getPartnerForProgram({
 
   return {
     ...partner[0],
-    links: partner[0].links.filter((link: any) => link !== null),
+    links: partner[0].links.filter((link: any) => link !== null && !!link.url),
     createdAt: new Date(partner[0].enrollmentCreatedAt),
     clicks: Number(partner[0].totalClicks),
     leads: Number(partner[0].totalLeads),
