@@ -1,6 +1,23 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const { withAxiom } = require("next-axiom");
 
+// Suppress specific external package warnings
+const originalConsoleWarn = console.warn;
+console.warn = (...args) => {
+  const message = args.join(" ");
+  if (
+    message.includes("Package mongodb can't be external") ||
+    message.includes("Package pg can't be external") ||
+    message.includes("Package sqlite3 can't be external") ||
+    message.includes("Package typeorm can't be external") ||
+    message.includes("matches serverExternalPackages") ||
+    message.includes("Try to install it into the project directory")
+  ) {
+    return; // Suppress these warnings
+  }
+  originalConsoleWarn.apply(console, args);
+};
+
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
