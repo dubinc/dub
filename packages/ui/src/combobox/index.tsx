@@ -250,7 +250,7 @@ export function Combobox({
                 )}
               </div>
             )}
-            <ScrollContainer className="h-full max-h-[min(50vh,250px)]">
+            <ScrollContainer className="max-h-[min(50vh,250px)]">
               <Command.List
                 className={cn("flex w-full min-w-[100px] flex-col gap-1 p-1")}
               >

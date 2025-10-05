@@ -412,7 +412,7 @@ function CampaignsStep({
                         className="grow border-none px-2 py-3 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                       />
                     </label>
-                    <ScrollContainer>
+                    <ScrollContainer className="h-[190px]">
                       <Command.List
                         className={cn("flex w-full flex-col gap-1 p-1")}
                       >

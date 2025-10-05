@@ -14,7 +14,7 @@ export function ScrollContainer({
     <div className="relative">
       <div
         className={cn(
-          "scrollbar-hide h-[190px] w-screen overflow-y-scroll sm:w-auto",
+          "scrollbar-hide h-full w-screen overflow-y-scroll sm:w-auto",
           className,
         )}
         ref={ref}
