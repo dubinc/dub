@@ -105,16 +105,11 @@ export const getCampaignsEventsQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
-const metricSchema = z.object({
-  count: z.coerce.number(),
-  percent: z.coerce.number().min(0).max(100),
-});
-
 export const campaignSummarySchema = z.object({
-  sent: metricSchema,
-  delivered: metricSchema,
-  opened: metricSchema,
-  bounced: metricSchema,
+  sent: z.coerce.number(),
+  delivered: z.coerce.number(),
+  opened: z.coerce.number(),
+  bounced: z.coerce.number(),
 });
 
 export const campaignEventSchema = z.object({

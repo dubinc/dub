@@ -37,6 +37,7 @@ import {
   CAMPAIGN_WORKFLOW_ATTRIBUTES,
   CampaignListSchema,
   CampaignSchema,
+  campaignSummarySchema,
   updateCampaignSchema,
 } from "./zod/schemas/campaigns";
 import {
@@ -650,3 +651,5 @@ export type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;
 
 export type CampaignWorkflowAttribute =
   (typeof CAMPAIGN_WORKFLOW_ATTRIBUTES)[number];
+
+export type CampaignSummary = z.infer<typeof campaignSummarySchema>;

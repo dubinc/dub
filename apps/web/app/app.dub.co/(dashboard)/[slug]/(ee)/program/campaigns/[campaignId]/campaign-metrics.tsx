@@ -1,5 +1,6 @@
 "use client";
 
+import { calculateCampaignPercentages } from "@/lib/api/campaigns/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { campaignSummarySchema } from "@/lib/zod/schemas/campaigns";
 import { EnvelopeBan, EnvelopeCheck, EnvelopeOpen } from "@dub/ui";
@@ -24,32 +25,33 @@ export function CampaignMetrics() {
     fetcher,
   );
 
-  const metrics = useMemo(
-    () =>
-      summary
-        ? [
-            {
-              icon: EnvelopeCheck,
-              label: "Delivered",
-              percentage: `${summary.delivered.percent}%`,
-              count: nFormatter(summary.delivered.count),
-            },
-            {
-              icon: EnvelopeBan,
-              label: "Bounced",
-              percentage: `${summary.bounced.percent}%`,
-              count: nFormatter(summary.bounced.count),
-            },
-            {
-              icon: EnvelopeOpen,
-              label: "Opened",
-              percentage: `${summary.opened.percent}%`,
-              count: nFormatter(summary.opened.count),
-            },
-          ]
-        : [],
-    [summary],
-  );
+  const metrics = useMemo(() => {
+    if (!summary) return [];
+
+    const { deliveredPercentage, bouncedPercentage, openedPercentage } =
+      calculateCampaignPercentages(summary);
+
+    return [
+      {
+        icon: EnvelopeCheck,
+        label: "Delivered",
+        percentage: `${deliveredPercentage}%`,
+        count: nFormatter(summary.delivered),
+      },
+      {
+        icon: EnvelopeBan,
+        label: "Bounced",
+        percentage: `${bouncedPercentage}%`,
+        count: nFormatter(summary.bounced),
+      },
+      {
+        icon: EnvelopeOpen,
+        label: "Opened",
+        percentage: `${openedPercentage}%`,
+        count: nFormatter(summary.opened),
+      },
+    ];
+  }, [summary]);
 
   return (
     <div>
