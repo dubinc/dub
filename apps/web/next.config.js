@@ -1,6 +1,23 @@
 const { PrismaPlugin } = require("@prisma/nextjs-monorepo-workaround-plugin");
 const { withAxiom } = require("next-axiom");
 
+// Suppress specific external package warnings
+const originalConsoleWarn = console.warn;
+console.warn = (...args) => {
+  const message = args.join(" ");
+  if (
+    message.includes("Package mongodb can't be external") ||
+    message.includes("Package pg can't be external") ||
+    message.includes("Package sqlite3 can't be external") ||
+    message.includes("Package typeorm can't be external") ||
+    message.includes("matches serverExternalPackages") ||
+    message.includes("Try to install it into the project directory")
+  ) {
+    return; // Suppress these warnings
+  }
+  originalConsoleWarn.apply(console, args);
+};
+
 /** @type {import('next').NextConfig} */
 module.exports = withAxiom({
   reactStrictMode: false,
@@ -26,14 +43,6 @@ module.exports = withAxiom({
   },
   webpack: (config, { webpack, isServer }) => {
     if (isServer) {
-      config.plugins.push(
-        // mute errors for unused typeorm deps
-        new webpack.IgnorePlugin({
-          resourceRegExp:
-            /(^@google-cloud\/spanner|^@mongodb-js\/zstd|^aws-crt|^aws4$|^pg-native$|^mongodb-client-encryption$|^@sap\/hana-client$|^@sap\/hana-client\/extension\/Stream$|^snappy$|^react-native-sqlite-storage$|^bson-ext$|^cardinal$|^kerberos$|^hdb-pool$|^sql.js$|^sqlite3$|^better-sqlite3$|^ioredis$|^typeorm-aurora-data-api-driver$|^pg-query-stream$|^oracledb$|^mysql$|^snappy\/package\.json$|^cloudflare:sockets$)/,
-        }),
-      );
-
       config.plugins = [...config.plugins, new PrismaPlugin()];
     }
 

@@ -81,7 +81,7 @@ export const GET = withWorkspace(
         SELECT 
           partnerId,
           MAX(lastConversionAt) as lastConversionAt,
-          SUM(conversions) / COALESCE(SUM(clicks), 0) as conversionRate
+          COALESCE(SUM(conversions) / SUM(clicks), 0) as conversionRate
         FROM Link
         WHERE programId IS NOT NULL
         AND programId != ${ACME_PROGRAM_ID} -- Exclude test data
@@ -116,6 +116,7 @@ export const GET = withWorkspace(
       WHERE 
         p.discoverableAt IS NOT NULL
         AND dp.ignoredAt IS NULL
+        AND conversionRate < 1 /* Exclude partners with a conversion rate of 1 and above (unrealistic) */
         ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND p.id IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
         ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
         ${
@@ -141,10 +142,7 @@ export const GET = withWorkspace(
           preferredEarningStructures:
             partner.preferredEarningStructures?.split(",") || undefined,
           salesChannels: partner.salesChannels?.split(",") || undefined,
-          conversionScore:
-            partner.conversionRate === null
-              ? null
-              : getConversionScore(partner.conversionRate),
+          conversionScore: getConversionScore(partner.conversionRate),
           starredAt: partner.starredAt ? new Date(partner.starredAt) : null,
           ignoredAt: partner.ignoredAt ? new Date(partner.ignoredAt) : null,
           invitedAt: partner.invitedAt ? new Date(partner.invitedAt) : null,

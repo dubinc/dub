@@ -12,5 +12,7 @@ export function getConversionScore(
         ? "good"
         : conversionRate > PARTNER_CONVERSION_SCORE_RATES.average
           ? "average"
-          : "low";
+          : conversionRate > PARTNER_CONVERSION_SCORE_RATES.low
+            ? "low"
+            : "unknown";
 }

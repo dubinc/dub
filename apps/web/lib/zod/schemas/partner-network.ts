@@ -8,6 +8,7 @@ import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
 
 export const PARTNER_CONVERSION_SCORES = [
+  "unknown",
   "low",
   "average",
   "good",
@@ -19,6 +20,7 @@ export const PARTNER_CONVERSION_SCORE_RATES: Record<
   (typeof PARTNER_CONVERSION_SCORES)[number],
   number
 > = {
+  unknown: 0,
   low: 0,
   average: 0.005,
   good: 0.01,
@@ -114,7 +116,7 @@ export const PartnerNetworkPartnerSchema = PartnerSchema.pick({
 }).merge(
   z.object({
     lastConversionAt: z.date().nullable(),
-    conversionScore: PartnerConversionScoreSchema.nullable(),
+    conversionScore: PartnerConversionScoreSchema,
     starredAt: z.date().nullable(),
     invitedAt: z.date().nullable(),
     ignoredAt: z.date().nullable(),
