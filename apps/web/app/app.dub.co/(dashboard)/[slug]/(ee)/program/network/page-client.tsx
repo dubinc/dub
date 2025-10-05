@@ -330,11 +330,11 @@ function PartnerCard({
   const basicFields = useMemo(
     () => [
       {
-        id: "listedAt",
+        id: "joinedAt",
         icon: <UserPlus className="size-3.5 shrink-0" />,
         text: partner
           ? partner.discoverableAt
-            ? `Listed ${formatDate(partner.discoverableAt, { month: "short" })}`
+            ? `Joined ${formatDate(partner.discoverableAt, { month: "short" })}`
             : null
           : undefined,
       },

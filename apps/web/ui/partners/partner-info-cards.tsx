@@ -141,10 +141,10 @@ export function PartnerInfoCards({
             text: partner ? partner.companyName || null : undefined,
           },
           {
-            id: "listedAt",
+            id: "joinedAt",
             icon: <CalendarIcon className="size-3.5" />,
             text: partner
-              ? `Listed ${formatDate(partner.discoverableAt!)}`
+              ? `Joined ${formatDate(partner.discoverableAt!)}`
               : undefined,
           },
         ]

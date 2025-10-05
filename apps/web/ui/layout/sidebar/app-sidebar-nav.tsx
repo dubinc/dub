@@ -256,7 +256,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Partner Network",
             icon: UserPlus,
-            href: `/${slug}/program/partners/network` as `/${string}`,
+            href: `/${slug}/program/network` as `/${string}`,
           },
           {
             name: "Applications",
