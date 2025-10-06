@@ -1,8 +1,10 @@
+import { useSearchParams } from 'next/navigation';
 import QRCodeStyling from "qr-code-styling";
 import { forwardRef, RefObject, useEffect, useRef, useState } from "react";
 
 interface QRCanvasProps {
   qrCode: QRCodeStyling | null;
+  qrCodeId?: string;
   width?: number;
   height?: number;
   maxWidth?: number;
@@ -11,10 +13,11 @@ interface QRCanvasProps {
 }
 
 export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
-  ({ qrCode, width = 200, height = 200, maxWidth, minWidth = 100, onCanvasReady }, ref) => {
+  ({ qrCode, qrCodeId, width = 200, height = 200, maxWidth, minWidth = 100, onCanvasReady }, ref) => {
     const internalCanvasRef = useRef<HTMLCanvasElement>(null);
     const svgContainerRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const searchParams = useSearchParams();
 
     const initialSize = Math.max(width, height);
     const [canvasSize, setCanvasSize] = useState({
@@ -62,6 +65,9 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       svgContainerRef.current.style.display = "none";
 
       const renderSVGToCanvas = () => {
+        if (qrCodeId === searchParams.get("qrId")) {
+          console.log("renderSVGToCanvas");
+        }
         onCanvasReady?.();
         const svg = svgContainerRef.current?.querySelector("svg");
 
@@ -143,7 +149,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
         observer.disconnect();
         svgContainerRef.current?.replaceChildren();
       };
-    }, [qrCode, canvasRef, canvasSize.width, canvasSize.height, onCanvasReady]);
+    }, [qrCode, canvasRef, canvasSize.width, canvasSize.height, onCanvasReady, qrCodeId, searchParams.get("qrId")]);
 
     return (
       <div ref={containerRef} className="flex w-full flex-col gap-4">

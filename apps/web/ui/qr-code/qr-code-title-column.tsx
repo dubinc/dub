@@ -40,19 +40,20 @@ export function QrCodeTitleColumn({
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const [readyCanvases, setReadyCanvases] = useState<number>(0);
-
-  useEffect(() => {
-    console.log("qrCode id", qrCode.id);
-    console.log("searchParams.get qrId", searchParams.get("qrId"));
-  }, [qrCode.id, searchParams.get("qrId")]);
   
   const handlePreviewCanvasReady = useCallback(() => {
+    if (qrCode.id === searchParams.get("qrId")) {
+      console.log("here");
+    }
     setReadyCanvases((prev) => prev + 1);
-  }, []);
+  }, [qrCode.id, searchParams.get("qrId")]);
 
   const handleTitleCanvasReady = useCallback(() => {
+    if (qrCode.id === searchParams.get("qrId")) {
+      console.log("here1");
+    }
     setReadyCanvases((prev) => prev + 1);
-  }, []);
+  }, [qrCode.id, searchParams.get("qrId")]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
@@ -66,6 +67,10 @@ export function QrCodeTitleColumn({
   });
 
   useEffect(() => {
+    console.log("qrCode.id === searchParams.get qrId", qrCode.id === searchParams.get("qrId"));
+    if (qrCode.id === searchParams.get("qrId")) {
+      console.log("readyCanvases", readyCanvases);
+    }
     if (qrCode.id === searchParams.get("qrId") && readyCanvases === 2) {
       handleOpenNewQr();
       queryParams({
@@ -88,6 +93,7 @@ export function QrCodeTitleColumn({
           >
             <QRCanvas
               ref={canvasRef}
+              qrCodeId={qrCode.id}
               qrCode={builtQrCodeObject}
               width={100}
               height={100}

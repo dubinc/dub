@@ -192,6 +192,7 @@ function QRPreviewModal({
                 <QRCanvas
                   ref={canvasRef}
                   qrCode={qrCode}
+                  qrCodeId={qrCodeId}
                   width={width}
                   height={height}
                   onCanvasReady={onCanvasReady}
