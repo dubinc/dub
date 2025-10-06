@@ -54,7 +54,7 @@ export const createAndEnrollPartner = async ({
 
   // Check if the tenantId is already enrolled in the program
   if (partner.tenantId && !programEnrollment) {
-    programEnrollment = await prisma.programEnrollment.findUnique({
+    const tenantEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         tenantId_programId: {
           tenantId: partner.tenantId,
@@ -62,6 +62,13 @@ export const createAndEnrollPartner = async ({
         },
       },
     });
+
+    if (tenantEnrollment) {
+      throw new DubApiError({
+        message: `Partner with tenantId '${partner.tenantId}' already enrolled in this program.`,
+        code: "conflict",
+      });
+    }
   }
 
   if (programEnrollment) {
