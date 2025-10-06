@@ -768,9 +768,6 @@ importers:
       '@tiptap/extensions':
         specifier: ^3.0.9
         version: 3.0.9(@tiptap/core@3.0.9(@tiptap/pm@3.0.9))(@tiptap/pm@3.0.9)
-      '@tiptap/html':
-        specifier: ^3.6.5
-        version: 3.6.5(@tiptap/core@3.0.9(@tiptap/pm@3.0.9))(@tiptap/pm@3.0.9)(happy-dom@18.0.1)
       '@tiptap/pm':
         specifier: ^3.0.9
         version: 3.0.9
