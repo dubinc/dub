@@ -1,5 +1,3 @@
-"use client";
-
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
@@ -167,11 +165,15 @@ export function CampaignEditor({
                 >
                   <PaperPlane className="text-content-default size-4" />
                 </Link>
-                <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
+                <ChevronRight className="text-content-subtle size-2.5 shrink-0 [&_*]:stroke-2" />
               </div>
 
               <div className="flex items-center gap-1.5">
-                <span>New Transactional</span>
+                <span className="text-lg font-semibold leading-7 text-neutral-900">
+                  {campaign.status === CampaignStatus.draft
+                    ? "New transactional email"
+                    : "Transactional email"}
+                </span>
                 <StatusBadge variant={statusBadge.variant} icon={null}>
                   {statusBadge.label}
                 </StatusBadge>
@@ -226,10 +228,8 @@ export function CampaignEditor({
 
             {campaign.type === "transactional" && (
               <>
-                <label className="contents">
-                  <span className={labelClassName}>Logic</span>
-                  <TransactionalCampaignLogic />
-                </label>
+                <span className={labelClassName}>Logic</span>
+                <TransactionalCampaignLogic />
               </>
             )}
           </div>
@@ -286,14 +286,18 @@ export function CampaignEditor({
           </div>
 
           {program?.messagingEnabledAt && campaign.type === "transactional" && (
-            <div className="flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
+            <div className="mt-6 flex flex-col gap-3 rounded-xl border border-blue-200 bg-blue-50 p-4">
               <div className="flex items-center justify-center gap-2 text-sm">
                 <Lock className="size-4 shrink-0 text-blue-500" />
                 <span className="text-sm font-medium text-blue-900">
                   Allows the partner to respond in messages with any questions.
                 </span>
               </div>
-              <Button text="Respond in Dub" className="h-9 rounded-lg" />
+              <Button
+                text="Respond in Dub"
+                className="pointer-events-none h-9 select-none rounded-lg"
+                aria-hidden
+              />
             </div>
           )}
 
