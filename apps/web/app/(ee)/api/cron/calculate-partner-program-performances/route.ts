@@ -1,21 +1,14 @@
-import {
-  calculatePartnerProgramPerformances,
-  calculateProgramSimilarities,
-} from "@/lib/api/network/program-similarity-calculator";
+import { calculatePartnerProgramPerformances } from "@/lib/api/network/program-similarity-calculator";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { NextRequest, NextResponse } from "next/server";
 
-// GET /api/cron/calculate-program-similarities
-// Calculate program similarities (this is computationally expensive, so run less frequently)
+// GET /api/cron/calculate-partner-program-performances
+// Calculate partner program performances (lighter computation, can run more frequently)
 export async function GET(req: NextRequest) {
   try {
     await verifyVercelSignature(req);
 
-    await calculateProgramSimilarities();
-
-    console.log(
-      "Program similarity and performance calculation completed successfully",
-    );
+    await calculatePartnerProgramPerformances();
 
     return NextResponse.json({
       success: true,
