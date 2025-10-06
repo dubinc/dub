@@ -42,18 +42,12 @@ export function QrCodeTitleColumn({
   const [readyCanvases, setReadyCanvases] = useState<number>(0);
   
   const handlePreviewCanvasReady = useCallback(() => {
-    if (qrCode.id === searchParams.get("qrId")) {
-      console.log("here");
-    }
     setReadyCanvases((prev) => prev + 1);
-  }, [qrCode.id, searchParams.get("qrId")]);
+  }, [qrCode.id]);
 
   const handleTitleCanvasReady = useCallback(() => {
-    if (qrCode.id === searchParams.get("qrId")) {
-      console.log("here1");
-    }
     setReadyCanvases((prev) => prev + 1);
-  }, [qrCode.id, searchParams.get("qrId")]);
+  }, [qrCode.id]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
