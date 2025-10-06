@@ -65,8 +65,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       svgContainerRef.current.style.display = "none";
 
       const renderSVGToCanvas = () => {
-        console.log("onCanvasReady");
-        onCanvasReady?.();
         const svg = svgContainerRef.current?.querySelector("svg");
 
         if (!svg || !canvasRef.current) {
@@ -134,7 +132,11 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       const initialRenderTimeout = setTimeout(renderSVGToCanvas, 100);
 
       const observer = new MutationObserver(() => {
-        setTimeout(renderSVGToCanvas, 50);
+        setTimeout(() => {
+          console.log("onCanvasReady");
+          onCanvasReady?.();
+          renderSVGToCanvas();
+        }, 50);
       });
 
       observer.observe(svgContainerRef.current, {

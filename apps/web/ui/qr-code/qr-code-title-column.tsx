@@ -43,7 +43,7 @@ export function QrCodeTitleColumn({
 
   const handleTitleCanvasReady = useCallback(() => {
     setIsPreviewCanvasReady(true);
-  }, [qrCode.id]);
+  }, []);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
@@ -56,13 +56,13 @@ export function QrCodeTitleColumn({
   });
 
   useEffect(() => {
-    if (qrCode.id === searchParams.get("qrId") && isPreviewCanvasReady) {
+    if (qrCode.id === searchParams.get("qrId")) {
       handleOpenNewQr();
       queryParams({
         del: ["qrId"],
       });
     }
-  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams, isPreviewCanvasReady]);
+  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
 
   return (
     <>
