@@ -1,18 +1,18 @@
 import { prisma } from "@dub/prisma";
+import { getBillingStartDate } from "@dub/utils";
+import { Project } from "@prisma/client";
 
-export async function getNetworkInvitesUsage({
-  workspaceId,
-}: {
-  workspaceId: string;
-}) {
+export async function getNetworkInvitesUsage(
+  workspace: Pick<Project, "id" | "billingCycleStart">,
+) {
   const invites = await prisma.discoveredPartner.aggregate({
     _count: true,
     where: {
       program: {
-        workspaceId,
+        workspaceId: workspace.id,
       },
       invitedAt: {
-        gt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        gt: getBillingStartDate(workspace.billingCycleStart),
       },
     },
   });

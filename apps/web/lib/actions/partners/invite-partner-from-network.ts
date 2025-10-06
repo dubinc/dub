@@ -18,9 +18,7 @@ export const invitePartnerFromNetworkAction = authActionClient
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
 
-    const networkInvitesUsage = await getNetworkInvitesUsage({
-      workspaceId: workspace.id,
-    });
+    const networkInvitesUsage = await getNetworkInvitesUsage(workspace);
 
     if (networkInvitesUsage >= workspace.networkInvitesLimit)
       throw new Error(

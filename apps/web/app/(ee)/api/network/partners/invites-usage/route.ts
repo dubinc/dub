@@ -5,9 +5,7 @@ import { NextResponse } from "next/server";
 // GET /api/network/partners/invites-usage - get the usage and limits for partner network invitations
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    const usage = await getNetworkInvitesUsage({
-      workspaceId: workspace.id,
-    });
+    const usage = await getNetworkInvitesUsage(workspace);
 
     return NextResponse.json({
       usage,
