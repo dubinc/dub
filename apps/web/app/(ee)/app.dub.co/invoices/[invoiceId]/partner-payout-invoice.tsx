@@ -143,6 +143,14 @@ export async function PartnerPayoutInvoice({
       label: `Platform fees (${Math.round((invoice.fee / invoice.amount) * 100)}%)`,
       value: `${currencyFormatter(invoice.fee / 100)}`,
     },
+    ...(invoice.paymentMethod === "ach_fast"
+      ? [
+          {
+            label: "Fast ACH fees",
+            value: "$25.00",
+          },
+        ]
+      : []),
     {
       label: "Invoice total",
       value: `${currencyFormatter(invoice.total / 100)}${nonUsdTransactionDisplay}`,
