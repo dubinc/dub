@@ -40,6 +40,7 @@ export function QrCodeTitleColumn({
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const [readyCanvases, setReadyCanvases] = useState<number>(0);
+  const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   
   const handlePreviewCanvasReady = useCallback(() => {
     console.log("handlePreviewCanvasReady");
@@ -53,7 +54,7 @@ export function QrCodeTitleColumn({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
-    canvasRef,
+    canvasRef: previewCanvasRef,
     qrCode: builtQrCodeObject,
     qrCodeId: qrCode.id,
     width: isMobile ? 300 : 200,
@@ -64,15 +65,12 @@ export function QrCodeTitleColumn({
 
   useEffect(() => {
     if (qrCode.id === searchParams.get("qrId")) {
-      console.log("readyCanvases", readyCanvases);
-    }
-    if (qrCode.id === searchParams.get("qrId") && readyCanvases >= 2) {
       handleOpenNewQr();
       queryParams({
         del: ["qrId"],
       });
     }
-  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams, readyCanvases]);
+  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
 
   return (
     <>
