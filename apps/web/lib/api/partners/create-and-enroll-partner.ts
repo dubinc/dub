@@ -6,11 +6,7 @@ import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import {
-  Prisma,
-  ProgramEnrollment,
-  ProgramEnrollmentStatus,
-} from "@dub/prisma/client";
+import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
@@ -38,46 +34,14 @@ export const createAndEnrollPartner = async ({
   enrolledAt,
   userId,
 }: CreateAndEnrollPartnerInput) => {
-  let programEnrollment: ProgramEnrollment | null = null;
-
-  // Check if the partner is already enrolled in the program by email
-  if (partner.email && !skipEnrollmentCheck) {
-    programEnrollment = await prisma.programEnrollment.findFirst({
+  if (!skipEnrollmentCheck) {
+    // Check if the partner is already enrolled in the program by email
+    const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
         partner: {
           email: partner.email,
         },
-      },
-    });
-  }
-
-  // Check if the tenantId is already enrolled in the program
-  if (partner.tenantId) {
-    const tenantEnrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        tenantId_programId: {
-          tenantId: partner.tenantId,
-          programId: program.id,
-        },
-      },
-    });
-
-    if (tenantEnrollment) {
-      throw new DubApiError({
-        message: `Partner with tenantId '${partner.tenantId}' already enrolled in this program.`,
-        code: "conflict",
-      });
-    }
-  }
-
-  if (programEnrollment) {
-    const updatedProgramEnrollment = await prisma.programEnrollment.update({
-      where: {
-        id: programEnrollment.id,
-      },
-      data: {
-        tenantId: partner.tenantId,
       },
       include: {
         partner: true,
@@ -85,14 +49,65 @@ export const createAndEnrollPartner = async ({
       },
     });
 
-    const enrolledPartner = EnrolledPartnerSchema.parse({
-      ...updatedProgramEnrollment.partner,
-      ...updatedProgramEnrollment,
-      id: updatedProgramEnrollment.partner.id,
-      links: updatedProgramEnrollment.links,
-    });
+    console.log({ partner, programEnrollment });
 
-    return enrolledPartner;
+    // If the partner is already enrolled in the program
+    if (programEnrollment) {
+      // If there is no tenantId passed, or the tenantId is the same as the existing enrollment
+      // return the existing enrollment
+      if (
+        !partner.tenantId ||
+        partner.tenantId === programEnrollment.tenantId
+      ) {
+        return EnrolledPartnerSchema.parse({
+          ...programEnrollment.partner,
+          ...programEnrollment,
+          id: programEnrollment.partner.id,
+          links: programEnrollment.links,
+        });
+        // else, if the passed tenantId is different from the existing enrollment...
+      } else if (partner.tenantId) {
+        const existingTenantEnrollment =
+          await prisma.programEnrollment.findUnique({
+            where: {
+              tenantId_programId: {
+                tenantId: partner.tenantId,
+                programId: program.id,
+              },
+            },
+          });
+
+        // check if the tenantId already exists for a different enrolled partner
+        // if so, throw an error
+        if (existingTenantEnrollment) {
+          throw new DubApiError({
+            message: `Partner with tenantId '${partner.tenantId}' already enrolled in this program.`,
+            code: "conflict",
+          });
+        }
+
+        // else, update the existing enrollment with the new tenantId
+        const updatedProgramEnrollment = await prisma.programEnrollment.update({
+          where: {
+            id: programEnrollment.id,
+          },
+          data: {
+            tenantId: partner.tenantId,
+          },
+          include: {
+            partner: true,
+            links: true,
+          },
+        });
+
+        return EnrolledPartnerSchema.parse({
+          ...updatedProgramEnrollment.partner,
+          ...updatedProgramEnrollment,
+          id: updatedProgramEnrollment.partner.id,
+          links: updatedProgramEnrollment.links,
+        });
+      }
+    }
   }
 
   const finalGroupId = partner.groupId || program.defaultGroupId;
