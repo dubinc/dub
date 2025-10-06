@@ -11,8 +11,8 @@ export function InvitesUsage() {
     <Tooltip
       content={
         <p className="max-w-xs p-2 text-center text-xs font-medium text-neutral-600">
-          Invite limits are based on a 7-day rolling period. If you need more
-          weekly invites,{" "}
+          Invitation limits are based on a 7-day rolling period. If you need
+          more weekly invites,{" "}
           <a
             href="https://dub.co/contact/sales"
             target="_blank"
