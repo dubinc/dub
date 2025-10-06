@@ -53,7 +53,7 @@ export const createAndEnrollPartner = async ({
   }
 
   // Check if the tenantId is already enrolled in the program
-  if (partner.tenantId && !programEnrollment) {
+  if (partner.tenantId) {
     const tenantEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         tenantId_programId: {
