@@ -55,4 +55,10 @@ export const PAYMENT_METHODS = Object.freeze({
     icon: GreekTemple,
     duration: "5 business days",
   },
+  ach_fast: {
+    label: "Fast ACH",
+    type: "ach",
+    icon: GreekTemple,
+    duration: "2 business days",
+  },
 });

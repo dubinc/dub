@@ -5,7 +5,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
-import { PaymentMethod } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
@@ -110,7 +109,8 @@ const InvoiceCard = ({
   invoice: InvoiceProps;
   displayPaymentMethod: boolean;
 }) => {
-  const paymentMethod = getPaymentMethodDisplay(invoice.paymentMethod ?? "ach");
+  const paymentMethod =
+    PAYMENT_METHODS[invoice.paymentMethod ?? "us_bank_account"];
 
   return (
     <div
@@ -238,24 +238,3 @@ const InvoiceCardSkeleton = ({
     </div>
   );
 };
-
-function getPaymentMethodDisplay(paymentMethod: PaymentMethod) {
-  switch (paymentMethod) {
-    case "ach":
-      return PAYMENT_METHODS["us_bank_account"];
-    case "ach_fast":
-      return {
-        ...PAYMENT_METHODS["us_bank_account"],
-        label: "FAST ACH",
-        duration: "2 business days",
-      };
-    case "card":
-      return PAYMENT_METHODS["card"];
-    case "sepa":
-      return PAYMENT_METHODS["sepa_debit"];
-    case "acss":
-      return PAYMENT_METHODS["acss_debit"];
-    default:
-      return null;
-  }
-}
