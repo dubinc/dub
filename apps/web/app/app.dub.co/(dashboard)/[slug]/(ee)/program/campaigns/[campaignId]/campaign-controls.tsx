@@ -72,7 +72,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       return "Please select the groups you want to send this campaign to.";
     }
 
-    if (!body?.replace("<p></p>", "")) {
+    if (!body?.content || !body.content.length) {
       return "Please write the message you want to send to the partners.";
     }
   }, [name, subject, groupIds, body, status, triggerCondition]);

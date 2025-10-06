@@ -43,7 +43,10 @@ export const POST = withWorkspace(
         status: CampaignStatus.draft,
         name: "Untitled",
         subject: "",
-        body: "",
+        body: {
+          type: "doc",
+          content: [],
+        },
         type,
       },
     });

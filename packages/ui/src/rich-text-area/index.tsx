@@ -10,6 +10,14 @@ import { LoadingSpinner } from "../icons";
 import { RichTextToolbar } from "./rich-text-toolbar";
 import { suggestions } from "./variables";
 
+export const richTextAreaExtensions = [
+  StarterKit.configure({
+    heading: {
+      levels: [1, 2],
+    },
+  }),
+];
+
 export function RichTextArea({
   initialValue,
   onChange,
@@ -19,8 +27,8 @@ export function RichTextArea({
   uploadImage,
   variables,
 }: {
-  initialValue?: string;
-  onChange?: (value: string) => void;
+  initialValue?: any;
+  onChange?: (editor: Editor) => void;
   placeholder?: string;
   className?: string;
   editorClassName?: string;
@@ -58,11 +66,7 @@ export function RichTextArea({
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: {
-          levels: [1, 2],
-        },
-      }),
+      ...richTextAreaExtensions,
       Placeholder.configure({
         placeholder,
         emptyEditorClass:
@@ -131,9 +135,7 @@ export function RichTextArea({
       },
     },
     content: initialValue,
-    onUpdate: ({ editor }) => {
-      onChange?.(editor.getHTML());
-    },
+    onUpdate: ({ editor }) => onChange?.(editor),
     immediatelyRender: false,
   });
 

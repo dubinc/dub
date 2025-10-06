@@ -23,7 +23,7 @@ export const CampaignSchema = z.object({
   id: z.string(),
   name: z.string(),
   subject: z.string(),
-  body: z.string(),
+  body: z.record(z.string(), z.any()),
   type: z.nativeEnum(CampaignType),
   status: z.nativeEnum(CampaignStatus),
   triggerCondition: workflowConditionSchema.nullable().default(null),
@@ -59,7 +59,7 @@ export const updateCampaignSchema = z
       .string()
       .trim()
       .max(100, "Subject must be less than 100 characters."),
-    body: z.string(),
+    body: z.record(z.string(), z.any()),
     triggerCondition: workflowConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),
     status: z.enum([
@@ -108,10 +108,11 @@ export const getCampaignsEventsQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
-export const getCampaignEventsCountQuerySchema = getCampaignsEventsQuerySchema.pick({
-  status: true,
-  search: true,
-});
+export const getCampaignEventsCountQuerySchema =
+  getCampaignsEventsQuerySchema.pick({
+    status: true,
+    search: true,
+  });
 
 export const campaignSummarySchema = z.object({
   sent: z.coerce.number(),

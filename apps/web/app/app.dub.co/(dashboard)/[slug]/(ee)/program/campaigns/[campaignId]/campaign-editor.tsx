@@ -242,8 +242,8 @@ export function CampaignEditor({
                 <RichTextArea
                   editorClassName="-m-2 min-h-[200px] p-2"
                   initialValue={field.value}
-                  onChange={(value) => {
-                    field.onChange(value);
+                  onChange={(editor) => {
+                    field.onChange(editor.getJSON());
                     handleSaveDraftCampaign();
                   }}
                   variables={EMAIL_TEMPLATE_VARIABLES}

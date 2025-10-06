@@ -3,8 +3,10 @@ import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import NewMessageFromProgram from "@dub/email/templates/new-message-from-program";
 import { prisma } from "@dub/prisma";
+import { richTextAreaExtensions } from "@dub/ui";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Workflow } from "@prisma/client";
+import { generateHTML } from "@tiptap/html";
 import { subDays } from "date-fns";
 import { createId } from "../create-id";
 import { parseWorkflowConfig } from "./parse-workflow-config";
@@ -145,7 +147,9 @@ export const executeSendCampaignWorkflow = async ({
         type: "campaign",
         subject: campaign.subject,
         text: renderEmailTemplate({
-          template: campaign.body,
+          template: campaign.body
+            ? generateHTML(campaign.body as any, richTextAreaExtensions)
+            : "",
           variables: {
             partnerName: programEnrollment.partner.name,
           },
@@ -172,7 +176,9 @@ export const executeSendCampaignWorkflow = async ({
           messages: [
             {
               text: renderEmailTemplate({
-                template: campaign.body,
+                template: campaign.body
+                  ? generateHTML(campaign.body as any, richTextAreaExtensions)
+                  : "",
                 variables: {
                   partnerName: partnerUser.partner.name,
                 },
