@@ -7,6 +7,7 @@ import { CampaignStatus } from "@dub/prisma/client";
 import {
   Button,
   Duplicate,
+  LoadingCircle,
   MediaPause,
   MediaPlay,
   MenuItem,
@@ -34,6 +35,11 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
 
   const { makeRequest, isSubmitting: isUpdatingCampaign } =
     useApiMutation<Campaign>();
+
+  const {
+    makeRequest: duplicateCampaign,
+    isSubmitting: isDuplicatingCampaign,
+  } = useApiMutation<{ id: string }>();
 
   const { SendEmailPreviewModal, setShowSendEmailPreviewModal } =
     useSendEmailPreviewModal({
@@ -88,6 +94,16 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     [makeRequest, campaign.id],
   );
 
+  const handleCampaignDuplication = async () => {
+    await duplicateCampaign(`/api/campaigns/${campaign.id}/duplicate`, {
+      method: "POST",
+      onSuccess: (campaign) => {
+        router.push(`/${workspaceSlug}/program/campaigns/${campaign.id}`);
+        mutatePrefix("/api/campaigns");
+      },
+    });
+  };
+
   const renderActionButton = () => {
     switch (campaign.status) {
       case CampaignStatus.draft:
@@ -113,6 +129,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
             variant="secondary"
           />
         );
+
       case CampaignStatus.active:
         return (
           <Button
@@ -135,6 +152,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
             variant="secondary"
           />
         );
+
       case CampaignStatus.paused:
         return (
           <Button
@@ -189,11 +207,10 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
 
                 <MenuItem
                   as={Command.Item}
-                  icon={Duplicate}
-                  disabled={isUpdatingCampaign}
+                  icon={isDuplicatingCampaign ? LoadingCircle : Duplicate}
+                  disabled={isUpdatingCampaign || isDuplicatingCampaign}
                   onSelect={() => {
-                    setOpenPopover(false);
-                    setShowDeleteCampaignModal(true);
+                    handleCampaignDuplication();
                   }}
                 >
                   Duplicate
