@@ -65,7 +65,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       svgContainerRef.current.style.display = "none";
 
       const renderSVGToCanvas = () => {
-        onCanvasReady?.();
         const svg = svgContainerRef.current?.querySelector("svg");
 
         if (!svg || !canvasRef.current) {
@@ -119,6 +118,10 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
             );
             ctx.drawImage(img, 0, 0, canvasSize.width, canvasSize.height);
             ctx.restore();
+            // Ensure the canvas has painted before notifying callers
+            requestAnimationFrame(() => {
+              onCanvasReady?.();
+            });
           };
           img.onerror = (e) => {
             console.error("Failed to load QR image:", e);

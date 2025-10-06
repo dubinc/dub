@@ -42,10 +42,12 @@ export function QrCodeTitleColumn({
   const [readyCanvases, setReadyCanvases] = useState<number>(0);
   
   const handlePreviewCanvasReady = useCallback(() => {
+    console.log("handlePreviewCanvasReady");
     setReadyCanvases((prev) => prev + 1);
   }, [qrCode.id]);
 
   const handleTitleCanvasReady = useCallback(() => {
+    console.log("handleTitleCanvasReady");
     setReadyCanvases((prev) => prev + 1);
   }, [qrCode.id]);
 
