@@ -17,7 +17,6 @@ const processPayoutsCronSchema = z.object({
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
   excludedPayoutIds: z.array(z.string()).optional(),
-  fastSettlement: z.boolean(),
 });
 
 // POST /api/cron/payouts/process
@@ -36,7 +35,6 @@ export async function POST(req: Request) {
       paymentMethodId,
       cutoffPeriod,
       excludedPayoutIds,
-      fastSettlement,
     } = processPayoutsCronSchema.parse(JSON.parse(rawBody));
 
     const workspace = await prisma.project.findUniqueOrThrow({
@@ -67,7 +65,6 @@ export async function POST(req: Request) {
       paymentMethodId,
       cutoffPeriod,
       excludedPayoutIds,
-      fastSettlement,
     });
 
     return new Response(`Payouts confirmed for program ${program.name}.`);

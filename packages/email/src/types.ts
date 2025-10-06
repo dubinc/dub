@@ -6,3 +6,5 @@ export type WorkspaceProps = {
   usageLimit: number;
   plan: string;
 };
+
+export type PaymentMethod = "card" | "ach" | "ach_fast" | "sepa" | "acss";

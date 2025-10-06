@@ -3,7 +3,10 @@
 import { createId } from "@/lib/api/create-id";
 import { exceededLimitError } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
-import { PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
+import {
+  PAYMENT_METHOD_TYPES,
+  STRIPE_PAYMENT_METHOD_NORMALIZATION,
+} from "@/lib/partners/constants";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
@@ -114,7 +117,9 @@ export const confirmPayoutsAction = authActionClient
           amount,
           fee,
           total,
-          fastSettlement,
+          paymentMethod: fastSettlement
+            ? "ach_fast"
+            : STRIPE_PAYMENT_METHOD_NORMALIZATION[paymentMethod.type],
         },
       });
     });
@@ -129,7 +134,6 @@ export const confirmPayoutsAction = authActionClient
         paymentMethodId,
         cutoffPeriod,
         excludedPayoutIds,
-        fastSettlement,
       },
     });
 

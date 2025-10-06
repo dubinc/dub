@@ -98,3 +98,11 @@ export const INVOICE_AVAILABLE_PAYOUT_STATUSES = [
   "sent",
   "completed",
 ];
+
+export const STRIPE_PAYMENT_METHOD_NORMALIZATION = {
+  card: "card",
+  link: "card",
+  us_bank_account: "ach",
+  acss_debit: "acss",
+  sepa_debit: "sepa",
+} as const;
