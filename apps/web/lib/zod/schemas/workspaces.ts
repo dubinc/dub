@@ -122,6 +122,8 @@ export const WorkspaceSchema = z
       .nullable()
       .describe("Specifies hostnames permitted for client-side click tracking.")
       .openapi({ example: ["dub.sh"] }),
+    ssoEmailDomain: z.string().nullable(),
+    ssoEnforcedAt: z.date().nullable(),
   })
   .openapi({
     title: "Workspace",
@@ -167,7 +169,6 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
     }),
   ),
   publishableKey: z.string().nullable(),
-  ssoEmailDomain: z.string().nullable(),
   fasterAchPayouts: z.boolean().nullable().default(false),
 });
 

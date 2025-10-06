@@ -20,16 +20,19 @@ export function ProgressCircle({
       width="100"
       height="100"
       viewBox="0 0 100 100"
-      className={cn("size-3 shrink-0 text-green-600", className)}
+      className={cn(
+        "size-3 shrink-0 text-green-600 [--track-color:#e5e5e5]",
+        className,
+      )}
     >
       <circle
         cx="50"
         cy="50"
         r={radius}
-        stroke="#e5e5e5"
         strokeWidth={`${strokeWidth}px`}
         fill="none"
         strokeLinecap="round"
+        className="stroke-[var(--track-color)]"
       />
       {progress > 0 && (
         <circle

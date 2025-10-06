@@ -28,7 +28,10 @@ export default function usePartners(
         } as Record<string, any>).toString()}`
       : undefined,
     fetcher,
-    swrOptions,
+    {
+      keepPreviousData: true,
+      ...swrOptions,
+    },
   );
 
   return {

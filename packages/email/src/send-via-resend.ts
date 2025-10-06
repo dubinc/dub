@@ -1,4 +1,3 @@
-import { CreateBatchResponse } from "resend";
 import { resend } from "./resend";
 import { VARIANT_TO_FROM_MAP } from "./resend/constants";
 import { ResendBulkEmailOptions, ResendEmailOptions } from "./resend/types";
@@ -53,9 +52,7 @@ export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
   return await resend.emails.send(resendEmailForOptions(opts));
 };
 
-export const sendBatchEmailViaResend = async (
-  opts: ResendBulkEmailOptions,
-): Promise<CreateBatchResponse> => {
+export const sendBatchEmailViaResend = async (opts: ResendBulkEmailOptions) => {
   if (!resend) {
     console.info(
       "RESEND_API_KEY is not set in the .env. Skipping sending email.",

@@ -331,6 +331,12 @@ export const PartnerSchema = z
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
+    discoverableAt: z
+      .date()
+      .nullable()
+      .describe(
+        "The date when the partner became discoverable in the partner network.",
+      ),
   })
   .merge(PartnerOnlinePresenceSchema)
   .merge(PartnerProfileSchema.partial());
@@ -521,7 +527,6 @@ export const createPartnerSchema = z.object({
       publicStats: true,
       tagId: true,
       geo: true,
-      projectId: true,
       programId: true,
       partnerId: true,
       webhookIds: true,

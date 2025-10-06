@@ -9,14 +9,16 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  campaignId: z.string().describe("Rewardful campaign ID to import."),
+  campaignIds: z
+    .array(z.string())
+    .describe("Rewardful campaign IDs to import."),
 });
 
 export const startRewardfulImportAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { campaignId } = parsedInput;
+    const { campaignIds } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -37,7 +39,7 @@ export const startRewardfulImportAction = authActionClient
       importId: createId({ prefix: "import_" }),
       userId: user.id,
       programId,
-      campaignId,
-      action: "import-campaign",
+      campaignIds,
+      action: "import-campaigns",
     });
   });

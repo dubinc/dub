@@ -4,15 +4,21 @@ import { RewardfulCampaign } from "@/lib/rewardful/types";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
+  AnimatedSizeContainer,
   Button,
+  Check2,
   LoadingSpinner,
   Logo,
+  Magnifier,
   Modal,
+  ScrollContainer,
+  ToggleGroup,
   useMediaQuery,
   useRouterStuff,
 } from "@dub/ui";
-import { capitalize, fetcher } from "@dub/utils";
-import { ArrowRight, ServerOff } from "lucide-react";
+import { cn, fetcher } from "@dub/utils";
+import { Command } from "cmdk";
+import { ArrowRight, ServerOff, Users } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -25,6 +31,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import useSWRImmutable from "swr/immutable";
+import { useDebounce } from "use-debounce";
 
 function ImportRewardfulModal({
   showImportRewardfulModal,
@@ -42,8 +49,9 @@ function ImportRewardfulModal({
   const { slug } = useParams() as { slug?: string };
   const [step, setStep] = useState<"token" | "campaigns">("token");
 
-  const [selectedCampaign, setSelectedCampaign] =
-    useState<RewardfulCampaign | null>(null);
+  const [selectedCampaignIds, setSelectedCampaignIds] = useState<
+    string[] | null
+  >(null);
 
   const {
     executeAsync: setRewardfulToken,
@@ -67,7 +75,7 @@ function ImportRewardfulModal({
     },
     onSuccess: () => {
       toast.success(
-        "Successfully added campaigns to import queue! We will send you an email when your campaigns have been fully imported.",
+        `Successfully added your Rewardful campaigns to import queue! We will send you an email when your campaigns have been fully imported.`,
       );
       router.push(`/${slug}/program/partners`);
     },
@@ -115,18 +123,21 @@ function ImportRewardfulModal({
   const handleCampaignsSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!workspaceId || !program?.id) {
+    if (!workspaceId || !program?.id || !campaigns) {
       return;
     }
 
-    if (!selectedCampaign) {
-      toast.error("Please select a campaign to import.");
+    const campaignIdsToImport =
+      selectedCampaignIds || campaigns.map((c) => c.id);
+
+    if (!campaignIdsToImport.length) {
+      toast.error("Please select at least one campaign to import.");
       return;
     }
 
     await startRewardfulImport({
       workspaceId,
-      campaignId: selectedCampaign.id,
+      campaignIds: campaignIdsToImport,
     });
   };
 
@@ -140,8 +151,8 @@ function ImportRewardfulModal({
         })
       }
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-8 sm:px-16">
-        <div className="flex items-center space-x-3 py-4">
+      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-8">
+        <div className="flex items-center space-x-3">
           <img
             src="https://assets.dub.co/misc/icons/rewardful.svg"
             alt="Rewardful logo"
@@ -150,14 +161,59 @@ function ImportRewardfulModal({
           <ArrowRight className="h-5 w-5 text-neutral-600" />
           <Logo />
         </div>
-        <h3 className="text-lg font-medium">Import Your Rewardful Campaigns</h3>
-        <p className="text-center text-sm text-neutral-500">
-          Import your existing Rewardful campaigns into{" "}
-          {process.env.NEXT_PUBLIC_APP_NAME} with just a few clicks.
-        </p>
+        <div className="flex flex-col items-center space-y-1">
+          <h3 className="text-lg font-medium">
+            Import Your Rewardful Campaigns
+          </h3>
+          <p className="text-center text-sm text-neutral-500">
+            Import your existing Rewardful campaigns. You can select specific
+            campaigns or import all of them at once.
+          </p>
+        </div>
+
+        {/* Steps indicator */}
+        <div className="flex items-center space-x-2 pt-2">
+          <div
+            className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
+              step === "token"
+                ? "bg-neutral-900 text-white"
+                : "bg-green-100 text-green-600"
+            }`}
+          >
+            {step === "campaigns" ? "✓" : "1"}
+          </div>
+          <div
+            className={`h-px w-8 ${step === "campaigns" ? "bg-green-200" : "bg-neutral-200"}`}
+          />
+          <div
+            className={`flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium ${
+              step === "campaigns"
+                ? "bg-neutral-900 text-white"
+                : "bg-neutral-100 text-neutral-400"
+            }`}
+          >
+            2
+          </div>
+        </div>
+
+        <div className="flex items-center space-x-2 text-xs text-neutral-500">
+          <span
+            className={step === "token" ? "font-medium text-neutral-900" : ""}
+          >
+            API Token
+          </span>
+          <span>•</span>
+          <span
+            className={
+              step === "campaigns" ? "font-medium text-neutral-900" : ""
+            }
+          >
+            Select Campaigns
+          </span>
+        </div>
       </div>
 
-      <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-16">
+      <div className="flex flex-col space-y-6 bg-neutral-50 px-4 py-8 text-left sm:px-8">
         {step === "token" ? (
           <TokenStep
             apiToken={apiToken}
@@ -173,8 +229,8 @@ function ImportRewardfulModal({
         ) : campaigns ? (
           <CampaignsStep
             campaigns={campaigns}
-            selectedCampaign={selectedCampaign}
-            setSelectedCampaign={setSelectedCampaign}
+            selectedCampaignIds={selectedCampaignIds}
+            setSelectedCampaignIds={setSelectedCampaignIds}
             importing={isStartingRewardfulImport}
             onSubmit={handleCampaignsSubmit}
           />
@@ -205,7 +261,7 @@ function TokenStep({
   const { isMobile } = useMediaQuery();
   return (
     <form onSubmit={onSubmit} className="flex flex-col space-y-4">
-      <div>
+      <div className="space-y-2">
         <label
           htmlFor="apiToken"
           className="block text-sm font-medium text-neutral-700"
@@ -218,51 +274,56 @@ function TokenStep({
           value={apiToken}
           autoFocus={!isMobile}
           onChange={(e) => setApiToken(e.target.value)}
-          placeholder="Enter your Rewardful API token"
-          className="mt-1 block w-full rounded-md border border-neutral-200 px-3 py-2 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+          placeholder="Enter your Rewardful API secret"
+          className="block w-full rounded-md border border-neutral-300 px-3 py-2 text-sm placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-1 focus:ring-neutral-500"
           required
         />
-        <p className="mt-1.5 text-xs text-neutral-500">
-          You can find your Rewardful API Secret on your{" "}
+        <p className="text-xs text-neutral-500">
+          You can find this in your{" "}
           <a
             href="https://app.getrewardful.com/company/edit"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-blue-500 hover:text-blue-600"
+            className="text-neutral-700 underline hover:text-neutral-900"
           >
             Company settings page
           </a>
         </p>
       </div>
-      <Button
-        text={isSubmittingToken ? "Fetching campaigns..." : "Fetch campaigns"}
-        loading={isSubmittingToken}
-        disabled={!apiToken}
-      />
+      <div className="flex justify-end space-x-2 pt-2">
+        <Button
+          text={isSubmittingToken ? "Fetching campaigns..." : "Continue"}
+          loading={isSubmittingToken}
+          disabled={!apiToken}
+        />
+      </div>
     </form>
   );
 }
 
 function CampaignsStep({
   campaigns,
-  selectedCampaign,
-  setSelectedCampaign,
+  selectedCampaignIds,
+  setSelectedCampaignIds,
   importing,
   onSubmit,
 }: {
   campaigns: RewardfulCampaign[];
-  selectedCampaign: RewardfulCampaign | null;
-  setSelectedCampaign: (campaign: RewardfulCampaign | null) => void;
+  selectedCampaignIds: string[] | null;
+  setSelectedCampaignIds: (campaignIds: string[] | null) => void;
   importing: boolean;
   onSubmit: (e: React.FormEvent) => Promise<void>;
 }) {
-  const handleCampaignChange = useCallback(
-    (e: React.ChangeEvent<HTMLSelectElement>) => {
-      const campaign = campaigns.find((c) => c.id === e.target.value) || null;
-      setSelectedCampaign(campaign);
-    },
-    [campaigns, setSelectedCampaign],
+  const [selectedMode, setSelectedMode] = useState<"all" | "select">(
+    selectedCampaignIds?.length ? "select" : "all",
   );
+
+  const [search, setSearch] = useState("");
+  const [debouncedSearch] = useDebounce(search, 500);
+
+  const [sortedCampaigns, setSortedCampaigns] = useState<
+    RewardfulCampaign[] | undefined
+  >(undefined);
 
   const formatCommission = useCallback((campaign: RewardfulCampaign) => {
     return campaign.reward_type === "percent"
@@ -270,67 +331,196 @@ function CampaignsStep({
       : `$${(campaign.commission_amount_cents / 100).toFixed(2)}`;
   }, []);
 
+  const sortCampaigns = useCallback(
+    (campaigns: RewardfulCampaign[], search: string) => {
+      let filtered = campaigns;
+
+      if (search) {
+        filtered = campaigns.filter((campaign) =>
+          campaign.name.toLowerCase().includes(search.toLowerCase()),
+        );
+      }
+
+      return search === ""
+        ? [
+            ...filtered.filter((c) => selectedCampaignIds?.includes(c.id)),
+            ...filtered.filter((c) => !selectedCampaignIds?.includes(c.id)),
+          ]
+        : filtered;
+    },
+    [selectedCampaignIds],
+  );
+
+  // Sort campaigns when search or selection changes
+  useEffect(() => {
+    setSortedCampaigns(sortCampaigns(campaigns, debouncedSearch));
+  }, [campaigns, debouncedSearch, sortCampaigns]);
+
+  const selectedCampaigns = useMemo(
+    () => campaigns.filter((c) => selectedCampaignIds?.includes(c.id)),
+    [campaigns, selectedCampaignIds],
+  );
+
   return (
     <form onSubmit={onSubmit} className="flex flex-col space-y-6">
-      <div>
-        <label
-          htmlFor="campaign"
-          className="block text-sm font-medium text-neutral-700"
-        >
-          Choose the campaign you want to import
+      <div className="space-y-3">
+        <label className="block text-sm font-medium text-neutral-700">
+          Choose campaigns to import
         </label>
-        <select
-          id="campaign"
-          value={selectedCampaign?.id || ""}
-          onChange={handleCampaignChange}
-          className="mt-1 block w-full rounded-md border border-neutral-200 bg-white px-3 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500"
-        >
-          <option value="">Select a campaign</option>
-          {campaigns.map((campaign) => (
-            <option key={campaign.id} value={campaign.id}>
-              {campaign.name}
-            </option>
-          ))}
-        </select>
+
+        <div className="space-y-2">
+          <ToggleGroup
+            className="flex w-full items-center gap-1 rounded-lg border-none bg-neutral-100 p-1"
+            optionClassName="h-8 flex items-center justify-center flex-1 text-sm normal-case"
+            indicatorClassName="bg-white"
+            options={[
+              { value: "all", label: "All campaigns" },
+              { value: "select", label: "Select campaigns" },
+            ]}
+            selected={selectedMode}
+            selectAction={(value) => {
+              setSelectedMode(value as "all" | "select");
+              if (value === "all") setSelectedCampaignIds(null);
+            }}
+          />
+
+          <AnimatedSizeContainer
+            height
+            transition={{ ease: "easeInOut", duration: 0.1 }}
+            className="-m-0.5"
+          >
+            <div className="p-0.5">
+              {selectedMode === "all" ? (
+                <div className="flex flex-col items-center justify-center rounded-lg border border-neutral-200 bg-white px-4 py-6">
+                  <div className="text-content-default flex items-center gap-1.5 font-semibold">
+                    <Users className="size-4 shrink-0" />
+                    {campaigns.length}
+                  </div>
+                  <span className="text-content-subtle text-sm font-medium">
+                    Campaigns selected
+                  </span>
+                </div>
+              ) : (
+                <div className="overflow-hidden rounded-lg border border-neutral-200 bg-white">
+                  <Command loop shouldFilter={false}>
+                    <label className="relative flex grow items-center overflow-hidden border-b border-neutral-200">
+                      <Magnifier className="text-content-default ml-3 size-3.5 shrink-0" />
+                      <Command.Input
+                        placeholder="Search campaigns..."
+                        value={search}
+                        onValueChange={setSearch}
+                        className="grow border-none px-2 py-3 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
+                      />
+                    </label>
+                    <ScrollContainer className="h-[190px]">
+                      <Command.List
+                        className={cn("flex w-full flex-col gap-1 p-1")}
+                      >
+                        {sortedCampaigns !== undefined ? (
+                          <>
+                            {sortedCampaigns.map((campaign) => {
+                              const checked = Boolean(
+                                selectedCampaignIds?.includes(campaign.id),
+                              );
+
+                              return (
+                                <Command.Item
+                                  key={campaign.id}
+                                  value={campaign.name}
+                                  onSelect={() =>
+                                    setSelectedCampaignIds(
+                                      selectedCampaignIds?.includes(campaign.id)
+                                        ? selectedCampaignIds.length === 1
+                                          ? null // Revert to null if there will be no campaigns selected
+                                          : selectedCampaignIds.filter(
+                                              (id) => id !== campaign.id,
+                                            )
+                                        : [
+                                            ...(selectedCampaignIds ?? []),
+                                            campaign.id,
+                                          ],
+                                    )
+                                  }
+                                  className={cn(
+                                    "flex cursor-pointer select-none items-start gap-3 whitespace-nowrap rounded-md px-3 py-2.5 text-left text-sm text-neutral-700",
+                                    "data-[selected=true]:bg-neutral-100",
+                                  )}
+                                >
+                                  <div
+                                    className={cn(
+                                      "border-border-emphasis mt-0.5 flex size-4 shrink-0 items-center justify-center rounded border bg-white transition-colors duration-75",
+                                      checked &&
+                                        "border-neutral-900 bg-neutral-900",
+                                    )}
+                                  >
+                                    {checked && (
+                                      <span className="sr-only">Checked</span>
+                                    )}
+                                    <Check2
+                                      className={cn(
+                                        "size-2.5 text-white transition-[transform,opacity] duration-75",
+                                        !checked && "scale-75 opacity-0",
+                                      )}
+                                    />
+                                  </div>
+                                  <div className="flex min-w-0 flex-1 flex-col gap-1">
+                                    <span className="min-w-0 truncate font-medium">
+                                      {campaign.name}
+                                    </span>
+                                    <div className="flex items-center gap-4 text-xs text-neutral-500">
+                                      <span>
+                                        {campaign.affiliates} affiliates
+                                      </span>
+                                      <span>
+                                        {formatCommission(campaign)} commission
+                                      </span>
+                                      <span>
+                                        {campaign.max_commission_period_months
+                                          ? `${campaign.max_commission_period_months} months`
+                                          : "Lifetime"}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </Command.Item>
+                              );
+                            })}
+                            {sortedCampaigns.length === 0 ? (
+                              <div className="flex min-h-12 items-center justify-center text-sm text-neutral-500">
+                                No matches
+                              </div>
+                            ) : null}
+                          </>
+                        ) : (
+                          // undefined data / explicit loading state
+                          <Command.Loading>
+                            <div className="flex h-12 items-center justify-center">
+                              <LoadingSpinner />
+                            </div>
+                          </Command.Loading>
+                        )}
+                      </Command.List>
+                    </ScrollContainer>
+                  </Command>
+                </div>
+              )}
+            </div>
+          </AnimatedSizeContainer>
+        </div>
       </div>
 
-      {selectedCampaign && (
-        <dl className="grid grid-cols-2 gap-3 rounded-md border border-neutral-200 bg-white p-4 text-xs">
-          <div>
-            <dt className="text-neutral-500">Affiliates</dt>
-            <dd className="font-medium text-neutral-700">
-              {selectedCampaign.affiliates}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-neutral-500">Commission</dt>
-            <dd className="font-medium text-neutral-700">
-              {formatCommission(selectedCampaign)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-neutral-500">Duration</dt>
-            <dd className="font-medium text-neutral-700">
-              {selectedCampaign.max_commission_period_months
-                ? `${selectedCampaign.max_commission_period_months} months`
-                : "Lifetime"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-neutral-500">Type</dt>
-            <dd className="font-medium text-neutral-700">
-              {capitalize(selectedCampaign.reward_type)}
-            </dd>
-          </div>
-        </dl>
-      )}
-
-      <Button
-        text="Import campaign"
-        loading={importing}
-        disabled={!selectedCampaign}
-        className="w-full justify-center"
-      />
+      <div className="flex justify-end space-x-2 pt-2">
+        <Button
+          text={
+            selectedMode === "all"
+              ? `Import all campaigns (${campaigns.length})`
+              : selectedCampaignIds?.length
+                ? `Import ${selectedCampaignIds.length} campaign${selectedCampaignIds.length === 1 ? "" : "s"}`
+                : "Import campaigns"
+          }
+          loading={importing}
+          disabled={selectedMode === "select" && !selectedCampaignIds?.length}
+        />
+      </div>
     </form>
   );
 }

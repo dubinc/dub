@@ -12,7 +12,7 @@ import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulImportPayload, RewardfulReferral } from "./types";
 
 export async function importCustomers(payload: RewardfulImportPayload) {
-  const { importId, programId, campaignId, page = 1 } = payload;
+  const { importId, programId, campaignIds, page = 1 } = payload;
 
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
@@ -47,7 +47,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
           referral,
           workspace,
           program,
-          campaignId,
+          campaignIds,
           importId,
         }),
       ),
@@ -69,22 +69,22 @@ async function createCustomer({
   referral,
   workspace,
   program,
-  campaignId,
+  campaignIds,
   importId,
 }: {
   referral: RewardfulReferral;
   workspace: Project;
   program: Program;
-  campaignId: string;
+  campaignIds: string[];
   importId: string;
 }) {
   const referralId = referral.customer ? referral.customer.email : referral.id;
   if (
     referral.affiliate?.campaign?.id &&
-    referral.affiliate.campaign.id !== campaignId
+    !campaignIds.includes(referral.affiliate.campaign.id)
   ) {
     console.log(
-      `Referral ${referralId} not in campaign ${campaignId} (they're in ${referral.affiliate.campaign.id}). Skipping...`,
+      `Referral ${referralId} not in campaignIds (${campaignIds.join(", ")}) (they're in ${referral.affiliate.campaign.id}). Skipping...`,
     );
 
     return;
@@ -97,6 +97,16 @@ async function createCustomer({
     entity: "customer",
     entity_id: referralId,
   } as const;
+
+  if (!referral.link) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `Link not found for referral ${referralId} (could've been a coupon-based referral).`,
+    });
+
+    return;
+  }
 
   const link = await prisma.link.findUnique({
     where: {

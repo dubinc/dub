@@ -295,7 +295,13 @@ export const authOptions: NextAuthOptions = {
       clientId: process.env.FRAMER_CLIENT_ID,
       clientSecret: process.env.FRAMER_CLIENT_SECRET,
       checks: ["state"],
-      authorization: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+      authorization: {
+        url: `${FRAMER_API_HOST}/auth/oauth/authorize`,
+        params: {
+          scope: "email",
+          response_type: "code",
+        },
+      },
       token: `${FRAMER_API_HOST}/auth/oauth/token`,
       userinfo: `${FRAMER_API_HOST}/auth/oauth/profile`,
       profile({ sub, email, name, picture }) {
@@ -421,16 +427,19 @@ export const authOptions: NextAuthOptions = {
 
         if (workspace) {
           const { ssoEmailDomain } = workspace;
+          const emailDomain = user.email.split("@")[1];
 
-          if (ssoEmailDomain) {
-            const emailDomain = user.email.split("@")[1];
+          // ssoEmailDomain should be required for all SAML enabled workspace
+          // this should not happen
+          if (!ssoEmailDomain) {
+            return false;
+          }
 
-            if (
-              emailDomain.toLocaleLowerCase() !==
-              ssoEmailDomain.toLocaleLowerCase()
-            ) {
-              return false;
-            }
+          if (
+            emailDomain.toLocaleLowerCase() !==
+            ssoEmailDomain.toLocaleLowerCase()
+          ) {
+            return false;
           }
 
           await Promise.allSettled([

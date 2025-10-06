@@ -1,4 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -14,7 +16,7 @@ import {
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { DiscountCode, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -232,14 +234,19 @@ export const DELETE = withWorkspace(
         },
         include: {
           partners: true,
+          discount: true,
         },
       }),
+
       prisma.partnerGroup.findUniqueOrThrow({
         where: {
           programId_slug: {
             programId,
             slug: DEFAULT_PARTNER_GROUP.slug,
           },
+        },
+        include: {
+          discount: true,
         },
       }),
     ]);
@@ -250,7 +257,23 @@ export const DELETE = withWorkspace(
         message: "You cannot delete the default group of your program.",
       });
     }
-    await prisma.$transaction(async (tx) => {
+
+    const keepDiscountCodes = isDiscountEquivalent(
+      group.discount,
+      defaultGroup.discount,
+    );
+
+    // Cache discount codes to delete them later
+    let discountCodesToDelete: DiscountCode[] = [];
+    if (group.discountId && !keepDiscountCodes) {
+      discountCodesToDelete = await prisma.discountCode.findMany({
+        where: {
+          discountId: group.discountId,
+        },
+      });
+    }
+
+    const deletedGroup = await prisma.$transaction(async (tx) => {
       // 1. Update all partners in the group to the default group
       await tx.programEnrollment.updateMany({
         where: {
@@ -280,8 +303,18 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 3. Delete the group's discount
       if (group.discountId) {
+        // 3. Update the discount codes
+        await tx.discountCode.updateMany({
+          where: {
+            discountId: group.discountId,
+          },
+          data: {
+            discountId: keepDiscountCodes ? defaultGroup.discountId : null,
+          },
+        });
+
+        // 4. Delete the group's discount
         await tx.discount.delete({
           where: {
             id: group.discountId,
@@ -289,46 +322,54 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 4. Delete the group
+      // 5. Delete the group
       await tx.partnerGroup.delete({
         where: {
           id: group.id,
         },
       });
+
+      return true;
     });
 
     const partnerIds = group.partners.map(({ partnerId }) => partnerId);
 
-    waitUntil(
-      Promise.allSettled([
-        partnerIds.length > 0 &&
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-            body: {
-              programId,
-              groupId: defaultGroup.id,
-              partnerIds,
-              userId: session.user.id,
-              isGroupDeleted: true,
-            },
-          }),
+    if (deletedGroup) {
+      waitUntil(
+        Promise.allSettled([
+          partnerIds.length > 0 &&
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+              body: {
+                programId,
+                groupId: defaultGroup.id,
+                partnerIds,
+                userId: session.user.id,
+                isGroupDeleted: true,
+              },
+            }),
 
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "group.deleted",
-          description: `Group ${group.name} (${group.id}) deleted`,
-          actor: session.user,
-          targets: [
-            {
-              type: "group",
-              id: group.id,
-              metadata: group,
-            },
-          ],
-        }),
-      ]),
-    );
+          ...discountCodesToDelete.map((discountCode) =>
+            queueDiscountCodeDeletion(discountCode.id),
+          ),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "group.deleted",
+            description: `Group ${group.name} (${group.id}) deleted`,
+            actor: session.user,
+            targets: [
+              {
+                type: "group",
+                id: group.id,
+                metadata: group,
+              },
+            ],
+          }),
+        ]),
+      );
+    }
 
     return NextResponse.json({ id: group.id });
   },

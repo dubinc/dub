@@ -17,12 +17,10 @@ import {
 } from "@dub/ui";
 import { SAML_PROVIDERS } from "@dub/utils";
 import { Lock, ShieldOff } from "lucide-react";
-import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
 
 export function SAML() {
-  const { data: session } = useSession();
-  const { id: workspaceId, plan } = useWorkspace();
+  const { id: workspaceId, plan, ssoEmailDomain } = useWorkspace();
   const { SAMLModal, setShowSAMLModal } = useSAMLModal();
   const { RemoveSAMLModal, setShowRemoveSAMLModal } = useRemoveSAMLModal();
   const { provider, configured, loading } = useSAML();
@@ -33,7 +31,7 @@ export function SAML() {
     isLoading,
     update,
   } = useOptimisticUpdate<{
-    ssoEmailDomain: string | null;
+    ssoEnforcedAt: string | null;
   }>(`/api/workspaces/${workspaceId}`, {
     loading: "Saving SAML SSO login setting...",
     success: "SAML SSO login setting has been updated successfully.",
@@ -96,17 +94,16 @@ export function SAML() {
         const { error } = await response.json();
         throw new Error(error.message || "Failed to update workspace.");
       }
+
       const data = await response.json();
 
       return {
-        ssoEmailDomain: data.ssoEmailDomain,
+        ssoEnforcedAt: data.ssoEnforcedAt,
       };
     };
 
     await update(updateWorkspace, {
-      ssoEmailDomain: workspaceData?.ssoEmailDomain
-        ? null
-        : session?.user?.email?.split("@")[1] || "domain.com", // fallback to dummy domain for optimistic update
+      ssoEnforcedAt: enforceSAML ? new Date().toISOString() : null,
     });
   };
 
@@ -208,18 +205,18 @@ export function SAML() {
                 Require workspace members to login with SAML to access this
                 workspace
               </label>
-              {workspaceData?.ssoEmailDomain && (
+              {workspaceData?.ssoEnforcedAt && (
                 <Badge
                   variant="blueGradient"
                   className="flex items-center gap-1"
                 >
                   <Globe2 className="size-3" />
-                  {workspaceData.ssoEmailDomain}
+                  {ssoEmailDomain}
                 </Badge>
               )}
             </div>
             <Switch
-              checked={!!workspaceData?.ssoEmailDomain}
+              checked={workspaceData?.ssoEnforcedAt !== null}
               loading={isLoading}
               disabled={plan !== "enterprise"}
               fn={handleSSOEnforcementChange}

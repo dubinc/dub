@@ -2,6 +2,7 @@
 
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { qstash } from "@/lib/cron";
+import { getPartnerDiscoveryRequirements } from "@/lib/partners/discoverability";
 import { storage } from "@/lib/storage";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import {
+  ACME_PROGRAM_ID,
   APP_DOMAIN_WITH_NGROK,
   COUNTRIES,
   deepEqual,
@@ -31,6 +33,7 @@ const updatePartnerProfileSchema = z
     country: z.enum(Object.keys(COUNTRIES) as [string, ...string[]]).nullish(),
     profileType: z.nativeEnum(PartnerProfileType).optional(),
     companyName: z.string().nullish(),
+    discoverable: z.boolean().optional(),
   })
   .merge(PartnerProfileSchema.partial())
   .transform((data) => ({
@@ -55,6 +58,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
       industryInterests,
       preferredEarningStructures,
       salesChannels,
+      discoverable,
     } = parsedInput;
 
     if (
@@ -93,6 +97,11 @@ export const updatePartnerProfileAction = authPartnerActionClient
           profileType,
           companyName,
           monthlyTraffic,
+          discoverableAt: discoverable
+            ? new Date()
+            : discoverable === false
+              ? null
+              : undefined,
 
           ...(industryInterests && {
             industryInterests: {
@@ -120,6 +129,11 @@ export const updatePartnerProfileAction = authPartnerActionClient
               })),
             },
           }),
+        },
+        include: {
+          industryInterests: true,
+          salesChannels: true,
+          programs: true,
         },
       });
 
@@ -149,29 +163,74 @@ export const updatePartnerProfileAction = authPartnerActionClient
       }
 
       waitUntil(
-        (async () => {
-          const shouldExpireCache = !deepEqual(
-            {
-              name: partner.name,
-              image: partner.image,
-            },
-            {
-              name: updatedPartner.name,
-              image: updatedPartner.image,
-            },
-          );
+        Promise.allSettled([
+          (async () => {
+            // double check that the partner is still eligible for discovery
+            if (updatedPartner.discoverableAt) {
+              const partnerDiscoveryRequirements =
+                getPartnerDiscoveryRequirements({
+                  partner: {
+                    ...updatedPartner,
+                    industryInterests: updatedPartner.industryInterests?.map(
+                      (interest) => interest.industryInterest,
+                    ),
+                    salesChannels: updatedPartner.salesChannels?.map(
+                      (channel) => channel.salesChannel,
+                    ),
+                  },
+                  totalCommissions: updatedPartner.programs
+                    .filter((program) => program.programId !== ACME_PROGRAM_ID)
+                    .reduce(
+                      (acc, program) => acc + program.totalCommissions,
+                      0,
+                    ),
+                });
 
-          if (!shouldExpireCache) {
-            return;
-          }
+              if (
+                !partnerDiscoveryRequirements.every(
+                  (requirement) => requirement.completed,
+                )
+              ) {
+                console.log(
+                  `Partner ${partner.id} is no longer eligible for discovery due to missing requirements: ${partnerDiscoveryRequirements
+                    .filter((requirement) => !requirement.completed)
+                    .map((requirement) => requirement.label)
+                    .join(", ")}`,
+                );
+                await prisma.partner.update({
+                  where: {
+                    id: partner.id,
+                  },
+                  data: {
+                    discoverableAt: null,
+                  },
+                });
+              }
+            }
 
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
-            body: {
-              partnerId: partner.id,
-            },
-          });
-        })(),
+            const shouldExpireCache = !deepEqual(
+              {
+                name: partner.name,
+                image: partner.image,
+              },
+              {
+                name: updatedPartner.name,
+                image: updatedPartner.image,
+              },
+            );
+
+            if (!shouldExpireCache) {
+              return;
+            }
+
+            await qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
+              body: {
+                partnerId: partner.id,
+              },
+            });
+          })(),
+        ]),
       );
 
       return {

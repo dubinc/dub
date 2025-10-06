@@ -245,6 +245,9 @@ export function OnboardingForm({
               )}
               indicatorClassName="bg-white"
             />
+            <p className="mt-1.5 text-xs text-neutral-500">
+              You can update this later in your partner profile settings.
+            </p>
           </div>
         </div>
 
@@ -280,9 +283,6 @@ export function OnboardingForm({
                     required: profileType === "company",
                   })}
                 />
-                <p className="mt-1.5 text-xs text-neutral-500">
-                  This cannot be changed once set.
-                </p>
               </label>
             </motion.div>
           )}

@@ -8,15 +8,19 @@ import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { RewardIconSquare } from "./reward-icon-square";
+import { RewardIconSquare } from "../rewards/reward-icon-square";
 
-export function RewardPartnersCard({ groupId }: { groupId: string }) {
-  const { partners } = usePartners({
-    query: { groupId, pageSize: 10 },
-  });
+export function RewardDiscountPartnersCard({ groupId }: { groupId: string }) {
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
   const { partnersCount } = usePartnersCount<number | undefined>({ groupId });
 
-  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const { partners } = usePartners({
+    query: {
+      groupId,
+      pageSize: 10,
+    },
+  });
 
   return (
     <div className="border-border-subtle rounded-xl border bg-white text-sm shadow-sm">

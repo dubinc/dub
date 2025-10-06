@@ -13,6 +13,10 @@
       "schedule": "0 8 * * *"
     },
     {
+      "path": "/api/cron/usage/update-workspace-clicks",
+      "schedule": "* * * * *"
+    },
+    {
       "path": "/api/cron/usage",
       "schedule": "0 12 * * *"
     },

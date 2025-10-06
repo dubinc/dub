@@ -44,8 +44,9 @@ import {
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
-import { DiscountSchema } from "./zod/schemas/discount";
+import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
+import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
   additionalPartnerLinkSchema,
   GroupSchema,
@@ -53,7 +54,6 @@ import {
   GroupWithFormDataSchema,
   PartnerGroupDefaultLinkSchema,
 } from "./zod/schemas/groups";
-import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import { integrationSchema } from "./zod/schemas/integration";
 import { InvoiceSchema } from "./zod/schemas/invoices";
 import {
@@ -68,6 +68,10 @@ import {
 import { MessageSchema } from "./zod/schemas/messages";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
+  NetworkPartnerSchema,
+  PartnerConversionScoreSchema,
+} from "./zod/schemas/partner-network";
+import {
   createPartnerSchema,
   EnrolledPartnerSchema,
   EnrolledPartnerSchemaExtended,
@@ -79,6 +83,11 @@ import {
   PayoutResponseSchema,
   PayoutSchema,
 } from "./zod/schemas/payouts";
+import {
+  programApplicationFormDataWithValuesSchema,
+  programApplicationFormFieldWithValuesSchema,
+  programApplicationFormSchema,
+} from "./zod/schemas/program-application-form";
 import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
@@ -117,7 +126,6 @@ import {
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
-import { programApplicationFormDataWithValuesSchema, programApplicationFormFieldWithValuesSchema, programApplicationFormSchema } from "./zod/schemas/program-application-form";
 
 export type LinkProps = Link;
 
@@ -298,6 +306,7 @@ export interface SAMLProviderProps {
 export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
 
 type ProcessedLinkOverrides = "domain" | "key" | "url" | "projectId";
+
 export type ProcessedLinkProps = Omit<NewLinkProps, ProcessedLinkOverrides> &
   Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] } & {
     createdAt?: Date;
@@ -326,9 +335,9 @@ export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
+export type OAuthAppWithClientSecret = OAuthAppProps & { clientSecret: string };
 
-export type ExistingOAuthApp = OAuthAppProps;
+export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
 
 export type IntegrationProps = z.infer<typeof integrationSchema>;
 
@@ -441,11 +450,19 @@ export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
+export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
+
+export type PartnerConversionScore = z.infer<
+  typeof PartnerConversionScoreSchema
+>;
+
 export type EnrolledPartnerExtendedProps = z.infer<
   typeof EnrolledPartnerSchemaExtended
 >;
 
 export type DiscountProps = z.infer<typeof DiscountSchema>;
+
+export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
@@ -455,11 +472,17 @@ export type ProgramWithLanderDataProps = z.infer<
   typeof ProgramWithLanderDataSchema
 >;
 
-export type ProgramApplicationFormData = z.infer<typeof programApplicationFormSchema>;
+export type ProgramApplicationFormData = z.infer<
+  typeof programApplicationFormSchema
+>;
 
-export type ProgramApplicationFormDataWithValues = z.infer<typeof programApplicationFormDataWithValuesSchema>;
+export type ProgramApplicationFormDataWithValues = z.infer<
+  typeof programApplicationFormDataWithValuesSchema
+>;
 
-export type ProgramApplicationFormFieldWithValues = z.infer<typeof programApplicationFormFieldWithValuesSchema>;
+export type ProgramApplicationFormFieldWithValues = z.infer<
+  typeof programApplicationFormFieldWithValuesSchema
+>;
 
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 
@@ -552,7 +575,7 @@ export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
 export type SaleEventTB = z.infer<typeof saleEventSchemaTB>;
 
-export type GroupProps = z.infer<typeof GroupSchema>
+export type GroupProps = z.infer<typeof GroupSchema>;
 
 export type GroupWithFormDataProps = z.infer<typeof GroupWithFormDataSchema>;
 

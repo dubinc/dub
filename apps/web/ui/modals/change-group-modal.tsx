@@ -13,12 +13,13 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { GroupSelector } from "./groups/group-selector";
+import { GroupSelector } from "../partners/groups/group-selector";
 
 type ChangeGroupModalProps = {
   showChangeGroupModal: boolean;
   setShowChangeGroupModal: Dispatch<SetStateAction<boolean>>;
-  partners: EnrolledPartnerProps[];
+  partners: (Pick<EnrolledPartnerProps, "id" | "groupId" | "name" | "image"> &
+    Partial<Pick<EnrolledPartnerProps, "email">>)[];
 
   /** Called when the selection is confirmed. Return false to prevent persisting the group change. */
   onChangeGroup?: (groupId: string) => void | boolean;
@@ -79,9 +80,11 @@ function ChangeGroupModal({
                 <h4 className="truncate text-sm font-medium text-neutral-900">
                   {partners[0].name}
                 </h4>
-                <p className="truncate text-xs text-neutral-500">
-                  {partners[0].email}
-                </p>
+                {partners[0].email && (
+                  <p className="truncate text-xs text-neutral-500">
+                    {partners[0].email}
+                  </p>
+                )}
               </div>
             </div>
           ) : (

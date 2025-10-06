@@ -8,6 +8,14 @@ export type FormControlProps = PropsWithChildren<{
   error?: string;
 }>;
 
+export const FormControlRequiredBadge = () => {
+  return (
+    <span className="min-h-4 rounded-md bg-orange-100 px-1 text-xs font-semibold text-orange-600">
+      Required
+    </span>
+  );
+};
+
 export const FormControl = ({
   label,
   required,
@@ -21,11 +29,7 @@ export const FormControl = ({
         <span className="text-content-emphasis text-sm font-medium">
           {label}
         </span>
-        {required && (
-          <span className="min-h-4 rounded-md bg-orange-100 px-1 text-xs font-semibold text-orange-600">
-            Required
-          </span>
-        )}
+        {required && <FormControlRequiredBadge />}
       </div>
 
       <div className="mt-2">

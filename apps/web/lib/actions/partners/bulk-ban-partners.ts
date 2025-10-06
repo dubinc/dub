@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -9,7 +10,6 @@ import {
   bulkBanPartnersSchema,
 } from "@/lib/zod/schemas/partners";
 import { sendBatchEmail } from "@dub/email";
-import { resend } from "@dub/email/resend";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
@@ -47,6 +47,7 @@ export const bulkBanPartnersAction = authActionClient
           select: {
             domain: true,
             key: true,
+            discountCode: true,
           },
         },
       },
@@ -108,6 +109,15 @@ export const bulkBanPartnersAction = authActionClient
           status: "canceled",
         },
       }),
+
+      prisma.discountCode.updateMany({
+        where: {
+          ...commonWhere,
+        },
+        data: {
+          discountId: null,
+        },
+      }),
     ]);
 
     waitUntil(
@@ -122,9 +132,16 @@ export const bulkBanPartnersAction = authActionClient
           ),
         );
 
+        const links = programEnrollments.flatMap(({ links }) => links);
+
         // Expire links from cache
-        await linkCache.expireMany(
-          programEnrollments.flatMap(({ links }) => links),
+        await linkCache.expireMany(links);
+
+        // Queue discount code deletions
+        await queueDiscountCodeDeletion(
+          links
+            .map((link) => link.discountCode?.id)
+            .filter((id): id is string => id !== undefined),
         );
 
         // Record audit log for each partner
@@ -155,11 +172,6 @@ export const bulkBanPartnersAction = authActionClient
             slug: true,
           },
         });
-
-        if (!resend) {
-          console.error("Resend is not configured, skipping email sending.");
-          return;
-        }
 
         await sendBatchEmail(
           programEnrollments

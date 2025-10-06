@@ -16,6 +16,7 @@ const prefixes = [
   "utm_", // utm template
   "wh_", // webhook
   "pn_", // partner
+  "dpn_", // discovered partner
   "prog_", // program
   "pga_", // program application
   "pgi_", // program invitation
@@ -26,6 +27,7 @@ const prefixes = [
   "cm_", // commission
   "rw_", // reward
   "disc_", // discount
+  "dcode_", // discount code
   "dub_embed_", // dub embed
   "audit_", // audit log
   "import_", // import log

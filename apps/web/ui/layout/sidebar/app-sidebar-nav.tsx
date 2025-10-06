@@ -8,6 +8,7 @@ import {
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -33,6 +34,7 @@ import {
   Sliders,
   Tag,
   UserCheck,
+  UserPlus,
   Users,
   Users6,
   Webhook,
@@ -242,9 +244,19 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/partners`,
             isActive: (pathname: string, href: string) =>
               pathname.startsWith(href) &&
-              ["applications"].every(
+              ["applications", "network"].every(
                 (p) => !pathname.startsWith(`${href}/${p}`),
               ),
+          },
+          {
+            name: "Groups",
+            icon: Users6,
+            href: `/${slug}/program/groups`,
+          },
+          {
+            name: "Partner Network",
+            icon: UserPlus,
+            href: `/${slug}/program/network` as `/${string}`,
           },
           {
             name: "Applications",
@@ -255,11 +267,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 ? "99+"
                 : applicationsCount
               : undefined,
-          },
-          {
-            name: "Groups",
-            icon: Users6,
-            href: `/${slug}/program/groups`,
           },
         ],
       },
@@ -479,6 +486,10 @@ export function AppSidebarNav({
             ? "program"
             : "default";
   }, [slug, pathname]);
+
+  const { program } = useProgram({
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
 
   const { payoutsCount: pendingPayoutsCount } = usePayoutsCount<
     number | undefined

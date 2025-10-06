@@ -7,16 +7,16 @@ import {
   PartnerBannedReason,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
+import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
+import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
 import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
-import { COUNTRY_CODES } from "@dub/utils";
-import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
 
 export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 
@@ -34,6 +34,7 @@ export const ProgramSchema = z.object({
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
+  partnerNetworkEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string(),

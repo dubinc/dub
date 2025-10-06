@@ -4,7 +4,7 @@ import usePartnerAnalytics from "@/lib/swr/use-partner-analytics";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerProfileLinkProps } from "@/lib/types";
 import { CommentsBadge } from "@/ui/links/comments-badge";
-import { usePartnerLinkModal } from "@/ui/modals/partner-link-modal";
+import { DiscountCodeBadge } from "@/ui/partners/discounts/discount-code-badge";
 import {
   ArrowTurnRight2,
   Button,
@@ -14,7 +14,9 @@ import {
   InvoiceDollar,
   LinkLogo,
   LoadingSpinner,
-  PenWriting,
+  SimpleTooltipContent,
+  Tooltip,
+  useCopyToClipboard,
   useInViewport,
   UserCheck,
   useRouterStuff,
@@ -23,8 +25,16 @@ import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
 import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { ComponentProps, useMemo, useRef } from "react";
+import {
+  ComponentProps,
+  memo,
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+} from "react";
 import { usePartnerLinksContext } from "./page-client";
+import { PartnerLinkControls } from "./partner-link-controls";
 
 const CHARTS = [
   {
@@ -52,9 +62,6 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = usePartnerLinksContext();
   const { programEnrollment } = useProgramEnrollment();
-  const { setShowPartnerLinkModal, PartnerLinkModal } = usePartnerLinkModal({
-    link,
-  });
 
   const ref = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(ref);
@@ -109,13 +116,11 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
     link,
   });
 
+  const [copied, copyToClipboard] = useCopyToClipboard();
+
   return (
-    <CardList.Card
-      innerClassName="px-0 py-0 hover:cursor-pointer group"
-      onClick={() => setShowPartnerLinkModal(true)}
-    >
-      <PartnerLinkModal />
-      <div className="relative p-4" ref={ref}>
+    <CardList.Card innerClassName="px-0 py-0 group/card">
+      <div className="p-4" ref={ref}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative hidden shrink-0 items-center justify-center sm:flex">
@@ -132,24 +137,28 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
 
             <div className="flex min-w-0 flex-col">
               <div className="flex flex-col">
-                <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
-                  <a
-                    href={partnerLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
-                  >
-                    {getPrettyUrl(partnerLink)}
-                  </a>
-                  <span className="flex items-center">
-                    <CopyButton
-                      value={partnerLink}
-                      variant="neutral"
-                      className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
-                    />
-                  </span>
+                <div className="flex items-center gap-1">
+                  <div className="group/shortlink relative flex w-fit items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100">
+                    <a
+                      href={partnerLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="truncate text-sm font-semibold leading-6 text-neutral-700 transition-colors hover:text-black"
+                    >
+                      {getPrettyUrl(partnerLink)}
+                    </a>
+                    <span className="flex items-center">
+                      <CopyButton
+                        value={partnerLink}
+                        variant="neutral"
+                        className="p-0.5 opacity-0 transition-opacity duration-150 group-hover/shortlink:opacity-100"
+                      />
+                    </span>
+                  </div>
+
                   {link.comments && <CommentsBadge comments={link.comments} />}
                 </div>
+
                 {/* The max width implementation here is a bit hacky, we should improve in the future */}
                 <div className="group/desturl flex max-w-[100px] items-center gap-1 py-0 pl-1 pr-1.5 transition-colors duration-150 hover:rounded-lg hover:bg-neutral-100 sm:w-fit sm:max-w-[400px]">
                   <ArrowTurnRight2 className="h-3 w-3 shrink-0 text-neutral-400" />
@@ -173,13 +182,27 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
               </div>
             </div>
           </div>
-          <Button
-            variant="secondary"
-            icon={<PenWriting className="size-3.5" />}
-            text="Edit"
-            className="h-7 w-fit px-2"
-            onClick={() => setShowPartnerLinkModal(true)}
-          />
+          <div className="flex items-center gap-2">
+            {link.discountCode && (
+              <Tooltip
+                content={
+                  <SimpleTooltipContent
+                    title="This program supports discount code tracking. Copy the code to use it in podcasts, videos, etc."
+                    cta="Learn more"
+                    href="https://dub.co/help/article/dual-sided-incentives"
+                  />
+                }
+              >
+                <div className="flex items-center gap-1.5 rounded-xl border border-neutral-200 py-1 pl-2 pr-1">
+                  <span className="text-sm leading-none text-neutral-500">
+                    Discount code
+                  </span>
+                  <DiscountCodeBadge code={link.discountCode} />
+                </div>
+              </Tooltip>
+            )}
+            <Controls link={link} />
+          </div>
         </div>
 
         <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -274,6 +297,30 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
     </CardList.Card>
   );
 }
+
+const Controls = memo(({ link }: { link: PartnerProfileLinkProps }) => {
+  const { hovered } = useContext(CardList.Card.Context);
+  const { openMenuLinkId, setOpenMenuLinkId } = usePartnerLinksContext();
+
+  const openPopover = openMenuLinkId === link.id;
+  const setOpenPopover = useCallback(
+    (open: boolean) => {
+      setOpenMenuLinkId(open ? link.id : null);
+    },
+    [link.id, setOpenMenuLinkId],
+  );
+
+  const shortcutsEnabled = openPopover || (hovered && openMenuLinkId === null);
+
+  return (
+    <PartnerLinkControls
+      link={link}
+      openPopover={openPopover}
+      setOpenPopover={setOpenPopover}
+      shortcutsEnabled={shortcutsEnabled}
+    />
+  );
+});
 
 function LinkEventsChart({
   data,
