@@ -105,7 +105,7 @@ export default function PartnerPayoutConfirmed({
               The payout is currently being processed and is expected to be
               credited to your account within
               <strong>
-                {payout.fastSettlement
+                {payout.paymentMethod === "ach_fast"
                   ? " 2 business days"
                   : " 5 business days"}
               </strong>{" "}
