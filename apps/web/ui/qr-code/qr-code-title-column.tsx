@@ -40,6 +40,10 @@ export function QrCodeTitleColumn({
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
   const [readyCanvases, setReadyCanvases] = useState<number>(0);
+
+  useEffect(() => {
+    console.log("qrCode id", qrCode.id);
+  }, [qrCode.id]);
   
   const handlePreviewCanvasReady = useCallback(() => {
     setReadyCanvases((prev) => prev + 1);
