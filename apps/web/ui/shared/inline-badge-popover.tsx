@@ -106,7 +106,7 @@ export function InlineBadgePopoverMenu<T extends any>({
 
   const sortedItems = useMemo(
     () =>
-      items.sort((a, b) => {
+      items.toSorted((a, b) => {
         const aSelected = isMultiSelect
           ? selectedValue?.includes(a.value)
           : selectedValue === a.value;
