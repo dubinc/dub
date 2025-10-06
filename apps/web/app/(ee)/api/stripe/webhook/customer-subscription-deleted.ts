@@ -118,6 +118,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         tagsLimit: FREE_PLAN.limits.tags!,
         foldersLimit: FREE_PLAN.limits.folders!,
         groupsLimit: FREE_PLAN.limits.groups!,
+        networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
         usersLimit: FREE_PLAN.limits.users!,
         paymentFailedAt: null,
         foldersUsage: 0,
