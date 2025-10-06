@@ -41,11 +41,7 @@ export function QrCodeTitleColumn({
   const { queryParams } = useRouterStuff();
   const [readyCanvases, setReadyCanvases] = useState<number>(0);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
-  
-  const handlePreviewCanvasReady = useCallback(() => {
-    console.log("handlePreviewCanvasReady");
-    setReadyCanvases((prev) => prev + 1);
-  }, [qrCode.id]);
+  console.log("readyCanvases", readyCanvases);
 
   const handleTitleCanvasReady = useCallback(() => {
     console.log("handleTitleCanvasReady");
@@ -60,7 +56,6 @@ export function QrCodeTitleColumn({
     width: isMobile ? 300 : 200,
     height: isMobile ? 300 : 200,
     user,
-    onCanvasReady: handlePreviewCanvasReady,
   });
 
   useEffect(() => {

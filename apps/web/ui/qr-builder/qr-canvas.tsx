@@ -119,9 +119,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
             ctx.drawImage(img, 0, 0, canvasSize.width, canvasSize.height);
             ctx.restore();
             // Ensure the canvas has painted before notifying callers
-            requestAnimationFrame(() => {
-              onCanvasReady?.();
-            });
           };
           img.onerror = (e) => {
             console.error("Failed to load QR image:", e);
@@ -135,7 +132,11 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       const initialRenderTimeout = setTimeout(renderSVGToCanvas, 100);
 
       const observer = new MutationObserver(() => {
-        setTimeout(renderSVGToCanvas, 50);
+        setTimeout(() => {
+          console.log("onCanvasReady");
+          onCanvasReady?.();
+          renderSVGToCanvas();
+        }, 50);
       });
 
       observer.observe(svgContainerRef.current, {
