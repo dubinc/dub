@@ -9,12 +9,6 @@ async function main() {
     users: {
       some: {},
     },
-    industryInterests: {
-      some: {},
-    },
-    salesChannels: {
-      some: {},
-    },
     programs: {
       some: {
         programId: {

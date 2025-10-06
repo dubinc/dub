@@ -534,12 +534,16 @@ function PartnerCard({
             </h3>
             <ListRow
               className={cn(!partner && "animate-pulse")}
-              items={partner?.industryInterests
-                ?.map((interest) => industryInterestsMap[interest])
-                .filter(
-                  (item): item is { icon: Icon; label: string } =>
-                    item !== undefined,
-                )}
+              items={
+                partner
+                  ? partner.industryInterests
+                      ?.map((interest) => industryInterestsMap[interest])
+                      .filter(
+                        (item): item is { icon: Icon; label: string } =>
+                          item !== undefined,
+                      ) ?? []
+                  : undefined
+              }
             />
           </div>
 
@@ -550,11 +554,15 @@ function PartnerCard({
             </h3>
             <ListRow
               className={cn(!partner && "animate-pulse")}
-              items={partner?.salesChannels
-                ?.map((salesChannel) => salesChannelsMap[salesChannel])
-                .filter(
-                  (item): item is { label: string } => item !== undefined,
-                )}
+              items={
+                partner
+                  ? partner.salesChannels
+                      ?.map((salesChannel) => salesChannelsMap[salesChannel])
+                      .filter(
+                        (item): item is { label: string } => item !== undefined,
+                      ) ?? []
+                  : undefined
+              }
             />
           </div>
         </div>
@@ -618,34 +626,42 @@ function ListRow({
       )}
     >
       <div className={cn("flex gap-1", className)}>
-        {items?.length ? (
-          <>
-            {shownItems?.map(({ icon, label }) => (
-              <ListPill key={label} icon={icon} label={label} />
-            ))}
-            {(shownItems?.length ?? 0) < items.length && (
-              <Tooltip
-                content={
-                  <div className="flex max-w-sm flex-wrap gap-1 p-2">
-                    {items
-                      .filter(
-                        ({ label }) =>
-                          !shownItems?.some(
-                            ({ label: shownLabel }) => shownLabel === label,
-                          ),
-                      )
-                      .map(({ icon, label }) => (
-                        <ListPill key={label} icon={icon} label={label} />
-                      ))}
+        {items ? (
+          items.length ? (
+            <>
+              {shownItems?.map(({ icon, label }) => (
+                <ListPill key={label} icon={icon} label={label} />
+              ))}
+              {(shownItems?.length ?? 0) < items.length && (
+                <Tooltip
+                  content={
+                    <div className="flex max-w-sm flex-wrap gap-1 p-2">
+                      {items
+                        .filter(
+                          ({ label }) =>
+                            !shownItems?.some(
+                              ({ label: shownLabel }) => shownLabel === label,
+                            ),
+                        )
+                        .map(({ icon, label }) => (
+                          <ListPill key={label} icon={icon} label={label} />
+                        ))}
+                    </div>
+                  }
+                >
+                  <div className="text-content-default flex h-7 select-none items-center rounded-full bg-neutral-100 px-2 text-xs font-medium hover:bg-neutral-200">
+                    +{items.length - (shownItems?.length ?? 0)}
                   </div>
-                }
-              >
-                <div className="text-content-default flex h-7 select-none items-center rounded-full bg-neutral-100 px-2 text-xs font-medium hover:bg-neutral-200">
-                  +{items.length - (shownItems?.length ?? 0)}
-                </div>
-              </Tooltip>
-            )}
-          </>
+                </Tooltip>
+              )}
+            </>
+          ) : (
+            <div className="flex h-7 w-fit items-center rounded-full border border-dashed border-neutral-300 bg-neutral-50 px-2">
+              <span className="text-content-subtle text-xs opacity-60">
+                Not specified
+              </span>
+            </div>
+          )
         ) : (
           [...Array(2)].map((_, idx) => (
             <div key={idx} className="h-7 w-20 rounded-full bg-neutral-100" />

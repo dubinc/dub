@@ -33,6 +33,27 @@ export function usePartnerNetworkFilters({
   const filters = useMemo(
     () => [
       {
+        key: "country",
+        icon: FlagWavy,
+        label: "Location",
+        getOptionIcon: (value) => (
+          <img
+            alt={value}
+            src={`https://flag.vercel.app/m/${value}.svg`}
+            className="h-2.5 w-4"
+          />
+        ),
+        getOptionLabel: (value) => COUNTRIES[value],
+        options:
+          countriesCount
+            ?.filter(({ country }) => COUNTRIES[country])
+            .map(({ country, _count }) => ({
+              value: country,
+              label: COUNTRIES[country],
+              right: nFormatter(_count, { full: true }),
+            })) ?? [],
+      },
+      {
         key: "industryInterests",
         icon: Heart,
         label: "Industry interest",
@@ -65,27 +86,6 @@ export function usePartnerNetworkFilters({
             value: id,
             label,
           })) ?? [],
-      },
-      {
-        key: "country",
-        icon: FlagWavy,
-        label: "Location",
-        getOptionIcon: (value) => (
-          <img
-            alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
-            className="h-2.5 w-4"
-          />
-        ),
-        getOptionLabel: (value) => COUNTRIES[value],
-        options:
-          countriesCount
-            ?.filter(({ country }) => COUNTRIES[country])
-            .map(({ country, _count }) => ({
-              value: country,
-              label: COUNTRIES[country],
-              right: nFormatter(_count, { full: true }),
-            })) ?? [],
       },
     ],
     [countriesCount],
