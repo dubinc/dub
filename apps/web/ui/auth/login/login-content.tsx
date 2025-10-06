@@ -56,11 +56,11 @@ export function LoginContent({
             setAuthModalMessage={setAuthModalMessage}
             authModal={authModal}
           />
-          <span className="mt-4 block text-center text-sm text-neutral-300">
+          <span className="mt-4 block text-center text-xs text-neutral-500">
             No account? Create your first QR.{" "}
             <Link
               href="/"
-              className="font-semibold underline"
+              className="underline hover:text-neutral-800"
               onClick={() => handleClose?.()}
             >
               Get started
