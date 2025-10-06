@@ -11,13 +11,14 @@ type LoginContentProps = {
   authModal?: boolean;
   setAuthModalMessage?: (message: string | null, type: MessageType) => void;
   switchAuthType?: (type: AuthType) => void;
+  handleClose?: () => void;
 };
 
 export function LoginContent({
   sessionId,
   authModal = false,
   setAuthModalMessage,
-  switchAuthType,
+  handleClose,
 }: LoginContentProps) {
   return (
     <>
@@ -47,7 +48,7 @@ export function LoginContent({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
           className={cn("bg-neutral-50 px-4 py-8 sm:px-16", {
-            "px-0 py-4 sm:px-0": authModal,
+            "px-0 py-4 pb-0 sm:px-0": authModal,
           })}
         >
           <LoginForm
@@ -55,6 +56,16 @@ export function LoginContent({
             setAuthModalMessage={setAuthModalMessage}
             authModal={authModal}
           />
+          <span className="mt-4 block text-center text-xs text-neutral-500">
+            No account? Create your first QR.{" "}
+            <Link
+              href="/"
+              className="underline hover:text-neutral-800"
+              onClick={() => handleClose?.()}
+            >
+              Get started
+            </Link>
+          </span>
         </motion.div>
       </motion.div>
       {/* {!authModal && (
