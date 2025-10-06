@@ -15,6 +15,7 @@ model DiscoveredPartner {
 
   @@unique([programId, partnerId])
   @@index(partnerId)
+  @@index([programId, invitedAt])
 }
 
 

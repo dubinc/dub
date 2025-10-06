@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-usage";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
 import { sendEmail } from "@dub/email";
@@ -16,6 +17,16 @@ export const invitePartnerFromNetworkAction = authActionClient
   .schema(invitePartnerFromNetworkSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
+
+    const networkInvitesUsage = await getNetworkInvitesUsage({
+      workspaceId: workspace.id,
+    });
+
+    if (networkInvitesUsage >= workspace.networkInvitesLimit)
+      throw new Error(
+        "You have reached your partner network invitations limit.",
+      );
+
     const { partnerId, groupId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
