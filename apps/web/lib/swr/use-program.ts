@@ -6,8 +6,10 @@ import useWorkspace from "./use-workspace";
 export default function useProgram<T = ProgramProps>(
   {
     query,
+    enabled = true,
   }: {
     query?: Record<string, any>;
+    enabled?: boolean;
   } = {},
   options?: SWRConfiguration,
 ) {
@@ -18,7 +20,8 @@ export default function useProgram<T = ProgramProps>(
     error,
     mutate,
   } = useSWR<T>(
-    workspaceId &&
+    enabled &&
+      workspaceId &&
       defaultProgramId &&
       `/api/programs/${defaultProgramId}?${new URLSearchParams({ workspaceId, ...query }).toString()}`,
     fetcher,

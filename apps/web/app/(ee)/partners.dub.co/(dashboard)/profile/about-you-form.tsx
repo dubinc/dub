@@ -3,6 +3,7 @@ import {
   industryInterests,
   monthlyTrafficAmounts,
 } from "@/lib/partners/partner-profile";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerProps } from "@/lib/types";
 import { MAX_PARTNER_DESCRIPTION_LENGTH } from "@/lib/zod/schemas/partners";
 import { MaxCharactersCounter } from "@/ui/shared/max-characters-counter";
@@ -51,6 +52,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onSuccess: () => {
       toast.success("Your profile has been updated.");
+      mutatePrefix("/api/partner-profile");
     },
     onError({ error }) {
       setError("root.serverError", {
@@ -82,6 +84,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
         })}
       >
         <SettingsRow
+          id="about"
           heading="About you"
           description="Share who you are, what you do, and who your audience is. A strong bio helps you stand out and get accepted into more programs."
         >
@@ -109,6 +112,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
         </SettingsRow>
 
         <SettingsRow
+          id="interests"
           heading="Industry interests"
           description="Add the industries you care and post content about. This helps programs in those areas discover you."
         >

@@ -17,6 +17,7 @@ export default function usePartnerProfile() {
     fetcher,
     {
       dedupingInterval: 60000,
+      keepPreviousData: true,
     },
   );
 

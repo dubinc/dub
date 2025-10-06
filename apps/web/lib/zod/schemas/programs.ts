@@ -34,6 +34,7 @@ export const ProgramSchema = z.object({
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
+  partnerNetworkEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string(),
