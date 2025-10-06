@@ -48,7 +48,6 @@ export function CampaignEventsModal({
       ? buildUrl(`/api/campaigns/${campaignId}/events`, {
           workspaceId,
           status,
-          pageSize: 50,
           ...(debouncedSearch && { search: debouncedSearch }),
         })
       : null,
