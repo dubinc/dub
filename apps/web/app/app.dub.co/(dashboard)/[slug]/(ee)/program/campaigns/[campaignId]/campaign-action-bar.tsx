@@ -42,7 +42,7 @@ export function CampaignActionBar({
       >
         {children || (
           <span
-            className="hidden text-sm font-medium text-neutral-600 lg:block"
+            className="hidden text-sm font-normal text-neutral-600 lg:block"
             aria-hidden={!isDirty}
           >
             Unsaved changes
