@@ -1,5 +1,6 @@
 "use client";
 
+import { CampaignStatus } from "@dub/prisma/client";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { notFound } from "next/navigation";
@@ -41,28 +42,33 @@ export function ProgramCampaignPageClient() {
         </div>
 
         {/* Right panel - Metrics  */}
-        <div
-          className={cn(
-            "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
-            "@[960px]/page:shadow-none @[960px]/page:relative",
-            isRightPanelOpen && "w-full sm:w-[360px]",
-          )}
-        >
-          <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[360px]">
-            <div className="flex h-full flex-col">
-              <div className="border-border-subtle flex h-12 items-center justify-between border-b px-6 sm:h-16">
-                <h2 className="text-lg font-semibold text-gray-900">Metrics</h2>
-              </div>
 
-              <div className="flex-1 bg-neutral-50 p-6">
-                <div className="flex flex-col gap-4">
-                  <CampaignMetrics />
-                  <CampaignEvents />
+        {campaign?.status !== CampaignStatus.draft && (
+          <div
+            className={cn(
+              "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
+              "@[960px]/page:shadow-none @[960px]/page:relative",
+              isRightPanelOpen && "w-full sm:w-[360px]",
+            )}
+          >
+            <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[360px]">
+              <div className="flex h-full flex-col">
+                <div className="border-border-subtle flex h-12 items-center justify-between border-b px-6 sm:h-16">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    Metrics
+                  </h2>
+                </div>
+
+                <div className="flex-1 bg-neutral-50 p-6">
+                  <div className="flex flex-col gap-4">
+                    <CampaignMetrics />
+                    <CampaignEvents />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

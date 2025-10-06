@@ -9,6 +9,7 @@ import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import { NavButton } from "@/ui/layout/page-content/nav-button";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
+import { CampaignStatus } from "@dub/prisma/client";
 import {
   Button,
   ChevronRight,
@@ -121,7 +122,7 @@ export function CampaignEditor({
   // Autosave draft campaign changes
   const handleSaveDraftCampaign = useCallback(
     useDebouncedCallback(async () => {
-      if (campaign.status !== "draft") {
+      if (campaign.status !== CampaignStatus.draft) {
         return;
       }
       await handleSaveCampaign(true, false);
@@ -137,7 +138,7 @@ export function CampaignEditor({
   // Watch for form changes and trigger autosave (only for draft campaigns)
   useEffect(() => {
     const { unsubscribe } = watch(() => {
-      if (isDirty && campaign.status === "draft") {
+      if (isDirty && campaign.status === CampaignStatus.draft) {
         handleSaveDraftCampaign();
       }
     });
@@ -179,10 +180,12 @@ export function CampaignEditor({
           </div>
           <div className="flex items-center gap-2">
             <CampaignControls campaign={campaign} />
-            <ToggleSidePanelButton
-              isOpen={isRightPanelOpen}
-              onClick={() => setIsRightPanelOpen((o) => !o)}
-            />
+            {campaign.status !== CampaignStatus.draft && (
+              <ToggleSidePanelButton
+                isOpen={isRightPanelOpen}
+                onClick={() => setIsRightPanelOpen((o) => !o)}
+              />
+            )}
           </div>
         </div>
 
