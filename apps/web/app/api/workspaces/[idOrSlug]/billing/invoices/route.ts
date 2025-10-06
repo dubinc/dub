@@ -70,6 +70,7 @@ const otherInvoices = async ({
       total: true,
       createdAt: true,
       status: true,
+      paymentMethod: true,
       failedReason: true,
     },
     orderBy: {

@@ -1,9 +1,11 @@
 "use client";
 
+import { PAYMENT_METHODS } from "@/lib/payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
+import { PaymentMethod } from "@dub/prisma/client";
 import {
   Button,
   buttonVariants,
@@ -42,6 +44,8 @@ export default function WorkspaceInvoicesClient() {
     fetcher,
   );
 
+  const displayPaymentMethod = selectedInvoiceType.id === "partnerPayout";
+
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:p-8 md:pb-2 lg:flex-row">
@@ -68,7 +72,11 @@ export default function WorkspaceInvoicesClient() {
         {invoices ? (
           invoices.length > 0 ? (
             invoices.map((invoice) => (
-              <InvoiceCard key={invoice.id} invoice={invoice} />
+              <InvoiceCard
+                key={invoice.id}
+                invoice={invoice}
+                displayPaymentMethod={displayPaymentMethod}
+              />
             ))
           ) : (
             <AnimatedEmptyState
@@ -85,9 +93,9 @@ export default function WorkspaceInvoicesClient() {
           )
         ) : (
           <>
-            <InvoiceCardSkeleton />
-            <InvoiceCardSkeleton />
-            <InvoiceCardSkeleton />
+            <InvoiceCardSkeleton displayPaymentMethod={displayPaymentMethod} />
+            <InvoiceCardSkeleton displayPaymentMethod={displayPaymentMethod} />
+            <InvoiceCardSkeleton displayPaymentMethod={displayPaymentMethod} />
           </>
         )}
       </div>
@@ -95,9 +103,22 @@ export default function WorkspaceInvoicesClient() {
   );
 }
 
-const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
+const InvoiceCard = ({
+  invoice,
+  displayPaymentMethod = false,
+}: {
+  invoice: InvoiceProps;
+  displayPaymentMethod: boolean;
+}) => {
+  const paymentMethod = getPaymentMethodDisplay(invoice.paymentMethod ?? "ach");
+
   return (
-    <div className="grid grid-cols-3 gap-4 px-6 py-4 sm:px-12">
+    <div
+      className={cn(
+        "grid gap-4 px-6 py-4 sm:px-12",
+        displayPaymentMethod ? "grid-cols-4" : "grid-cols-3",
+      )}
+    >
       <div className="text-sm">
         <div className="font-medium">{invoice.description}</div>
         <div className="text-neutral-500">
@@ -122,7 +143,7 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
                 <StatusBadge
                   icon={null}
                   variant={badge.variant}
-                  className="rounded-full py-0.5"
+                  className="rounded-md py-0.5"
                 >
                   {badge.label}
                 </StatusBadge>
@@ -130,6 +151,28 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
             })()}
         </div>
       </div>
+
+      {displayPaymentMethod && (
+        <div className="text-left text-sm">
+          <div className="font-medium">Method</div>
+          {paymentMethod ? (
+            <div className="flex items-center gap-1.5 text-neutral-500">
+              <div className="text-content-subtle text-sm font-medium">
+                {paymentMethod.label}
+              </div>
+              <StatusBadge
+                icon={null}
+                variant="neutral"
+                className="rounded-md py-0.5 text-xs font-semibold text-neutral-700"
+              >
+                {paymentMethod.duration}
+              </StatusBadge>
+            </div>
+          ) : (
+            "-"
+          )}
+        </div>
+      )}
 
       <div className="flex items-center justify-end">
         {invoice.pdfUrl ? (
@@ -161,9 +204,18 @@ const InvoiceCard = ({ invoice }: { invoice: InvoiceProps }) => {
   );
 };
 
-const InvoiceCardSkeleton = () => {
+const InvoiceCardSkeleton = ({
+  displayPaymentMethod = false,
+}: {
+  displayPaymentMethod?: boolean;
+}) => {
   return (
-    <div className="flex items-center justify-between px-6 py-4 sm:px-12">
+    <div
+      className={cn(
+        "grid gap-4 px-6 py-4 sm:px-12",
+        displayPaymentMethod ? "grid-cols-4" : "grid-cols-3",
+      )}
+    >
       <div className="flex flex-col gap-1 text-sm">
         <div className="h-4 w-32 animate-pulse rounded-md bg-neutral-200" />
         <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
@@ -172,7 +224,38 @@ const InvoiceCardSkeleton = () => {
         <div className="h-4 w-16 animate-pulse rounded-md bg-neutral-200" />
         <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
       </div>
-      <div className="h-8 w-16 animate-pulse rounded-md bg-neutral-200" />
+
+      {displayPaymentMethod && (
+        <div className="flex flex-col gap-1">
+          <div className="h-4 w-12 animate-pulse rounded-md bg-neutral-200" />
+          <div className="h-4 w-20 animate-pulse rounded-md bg-neutral-200" />
+        </div>
+      )}
+
+      <div className="flex items-center justify-end">
+        <div className="h-8 w-16 animate-pulse rounded-md bg-neutral-200" />
+      </div>
     </div>
   );
 };
+
+function getPaymentMethodDisplay(paymentMethod: PaymentMethod) {
+  switch (paymentMethod) {
+    case "ach":
+      return PAYMENT_METHODS["us_bank_account"];
+    case "ach_fast":
+      return {
+        ...PAYMENT_METHODS["us_bank_account"],
+        label: "FAST ACH",
+        duration: "2 business days",
+      };
+    case "card":
+      return PAYMENT_METHODS["card"];
+    case "sepa":
+      return PAYMENT_METHODS["sepa_debit"];
+    case "acss":
+      return PAYMENT_METHODS["acss_debit"];
+    default:
+      return null;
+  }
+}

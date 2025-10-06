@@ -6,7 +6,10 @@ import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
+import {
+  calculatePayoutFeeForMethod,
+  PAYMENT_METHODS,
+} from "@/lib/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
@@ -15,7 +18,6 @@ import {
   Bolt,
   Button,
   buttonVariants,
-  CreditCard,
   DynamicTooltipWrapper,
   Gear,
   GreekTemple,
@@ -43,39 +45,6 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Stripe from "stripe";
 import useSWR from "swr";
-
-const PAYMENT_METHODS = Object.freeze({
-  link: {
-    label: "link",
-    type: "link",
-    icon: CreditCard,
-    duration: "Instantly",
-  },
-  card: {
-    label: "card",
-    type: "card",
-    icon: CreditCard,
-    duration: "Instantly",
-  },
-  us_bank_account: {
-    label: "ACH",
-    type: "us_bank_account",
-    icon: GreekTemple,
-    duration: "4 business days",
-  },
-  acss_debit: {
-    label: "ACSS Debit",
-    type: "acss_debit",
-    icon: GreekTemple,
-    duration: "5 business days",
-  },
-  sepa_debit: {
-    label: "SEPA Debit",
-    type: "sepa_debit",
-    icon: GreekTemple,
-    duration: "5 business days",
-  },
-});
 
 type SelectPaymentMethod =
   (typeof PAYMENT_METHODS)[keyof typeof PAYMENT_METHODS] & {
@@ -488,7 +457,7 @@ function PayoutInvoiceSheetContent() {
 
             const result = await confirmPayouts({
               workspaceId,
-              paymentMethodId: selectedPaymentMethod.id,
+              paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
               cutoffPeriod,
               excludedPayoutIds,
               amount: amount ?? 0,
