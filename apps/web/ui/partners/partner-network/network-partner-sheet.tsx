@@ -194,8 +194,6 @@ function PartnerControls({
     },
   });
 
-  useKeyboardShortcut("s", () => setShowConfirmModal(true), { sheet: true });
-
   const alreadyInvited = Boolean(partner.invitedAt || partner.recruitedAt);
 
   const { remaining } = usePartnerNetworkInvitesUsage({
@@ -203,6 +201,11 @@ function PartnerControls({
   });
 
   const disabled = alreadyInvited || remaining === 0;
+
+  useKeyboardShortcut("s", () => setShowConfirmModal(true), {
+    sheet: true,
+    enabled: !disabled,
+  });
 
   return (
     <>
