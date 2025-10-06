@@ -49,8 +49,6 @@ export const createAndEnrollPartner = async ({
       },
     });
 
-    console.log({ partner, programEnrollment });
-
     // If the partner is already enrolled in the program
     if (programEnrollment) {
       // If there is no tenantId passed, or the tenantId is the same as the existing enrollment
