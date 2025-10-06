@@ -10,6 +10,7 @@ import {
   useState,
 } from "react";
 import { X } from "@/ui/shared/icons";
+import { CircleX } from 'lucide-react';
 
 type DeleteQRModalProps = {
   showDeleteQRModal: boolean;
@@ -39,48 +40,41 @@ function DeleteQRModal({ showDeleteQRModal, setShowDeleteQRModal, props }: Delet
     <Modal
       showModal={showDeleteQRModal}
       setShowModal={setShowDeleteQRModal}
-      className="border-border-500 max-w-md"
+      className="border-border-500 md:max-w-md"
       drawerRootProps={{
         repositionInputs: false,
       }}
     >
       <Theme>
         <div className="flex flex-col gap-2">
-          <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
-            <div className="flex items-center gap-2">
-              <h3 className="!mt-0 max-w-xs text-lg font-medium">
-                Are you sure you want to delete "{props.title}"?
-              </h3>
-            </div>
+        <div className="flex w-full items-center justify-center px-2 py-4 relative">
+            <h3 className="!mt-0 max-w-xs text-lg font-semibold text-center">
+              Are you sure you want to delete
+              <br />
+              "{props.title}"?
+            </h3>
             <button
               disabled={deleting}
               type="button"
               onClick={handleClose}
-              className="active:bg-border-500 group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none md:right-0 md:block"
+              className="active:bg-border-500 group absolute right-6 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none md:block"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           <div className="px-6 pb-6">
-            <div className="flex flex-col gap-4">
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                gap={{ initial: "2", lg: "3" }}
-                className="bg-red-100 rounded-lg p-3 lg:p-3.5"
-              >
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
                 <Flex
                   direction="row"
                   align="center"
                   className="w-full gap-1.5"
                 >
-                  <X className="text-red-800 h-[18px] w-[18px]"/>
+                  <CircleX className="text-red-800 h-[18px] w-[18px]"/>
                   <Text
                     as="span"
                     size={{ initial: "1", lg: "2" }}
-                    className="text-red-600"
                   >
                     This permanently removes the QR code.
                   </Text>
@@ -90,11 +84,10 @@ function DeleteQRModal({ showDeleteQRModal, setShowDeleteQRModal, props }: Delet
                   align="center"
                   className="w-full gap-1.5"
                 >
-                  <X className="text-red-800 h-[18px] w-[18px]"/>
+                  <CircleX className="text-red-800 h-[18px] w-[18px]"/>
                   <Text
                     as="span"
                     size={{ initial: "1", lg: "2" }}
-                    className="text-red-600"
                   >
                     Future scans will not work.
                   </Text>
@@ -104,16 +97,15 @@ function DeleteQRModal({ showDeleteQRModal, setShowDeleteQRModal, props }: Delet
                   align="center"
                   className="w-full gap-1.5"
                 >
-                  <X className="text-red-800 h-[18px] w-[18px]"/>
+                  <CircleX className="text-red-800 h-[18px] w-[18px]"/>
                   <Text
                     as="span"
                     size={{ initial: "1", lg: "2" }}
-                    className="text-red-600"
                   >
                     All analytics for this code will be deleted.
                   </Text>
                 </Flex>
-              </Flex>
+              </div>
 
               <div className="flex justify-end gap-3">
                 <Button
@@ -125,6 +117,7 @@ function DeleteQRModal({ showDeleteQRModal, setShowDeleteQRModal, props }: Delet
                 />
                 <Button
                   type="button"
+                  variant="danger"
                   onClick={handleDelete}
                   loading={deleting}
                   text="Confirm delete"
