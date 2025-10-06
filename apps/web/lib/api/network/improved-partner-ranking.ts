@@ -8,7 +8,7 @@ interface ImprovedRankingParams {
   partnerIds?: string[];
   status?: "discover" | "invited" | "recruited";
   country?: string;
-  starred?: boolean;
+  starred?: boolean | null;
   industryInterests?: string[];
   salesChannels?: string[];
   preferredEarningStructures?: string[];
