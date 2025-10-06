@@ -108,4 +108,48 @@ describe.sequential("POST /partners", async () => {
       ]),
     );
   });
+
+  test("upsert behavior - update existing partner with tenantId", async () => {
+    const email = randomEmail();
+
+    // First, create a partner with email and no tenantId
+    const initialPartner = {
+      email,
+      name: generateRandomName(),
+      groupId: E2E_PARTNER_GROUP.id,
+    };
+
+    const { data: firstData, status: firstStatus } = await http.post<Partner>({
+      path: "/partners",
+      body: initialPartner,
+    });
+
+    expect(firstStatus).toEqual(201);
+
+    const firstParsed = EnrolledPartnerSchema.parse(firstData);
+    expect(firstParsed.name).toBe(initialPartner.name);
+    expect(firstParsed.email).toBe(initialPartner.email);
+    expect(firstParsed.tenantId).toBeNull();
+
+    // Then, create the same partner with the same email but with a tenantId
+    const updatedPartner = {
+      email,
+      tenantId: randomId(),
+    };
+
+    const { data: secondData, status: secondStatus } = await http.post<Partner>(
+      {
+        path: "/partners",
+        body: updatedPartner,
+      },
+    );
+
+    expect(secondStatus).toEqual(201);
+    const secondParsed = EnrolledPartnerSchema.parse(secondData);
+
+    // Should be the same partner (same ID) but with updated fields
+    expect(secondParsed.id).toBe(firstParsed.id);
+    expect(secondParsed.email).toBe(email);
+    expect(secondParsed.tenantId).toBe(updatedPartner.tenantId);
+  });
 });
