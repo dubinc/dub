@@ -6,7 +6,11 @@ import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
-import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
+import {
+  Prisma,
+  ProgramEnrollment,
+  ProgramEnrollmentStatus,
+} from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
@@ -34,8 +38,11 @@ export const createAndEnrollPartner = async ({
   enrolledAt,
   userId,
 }: CreateAndEnrollPartnerInput) => {
-  if (!skipEnrollmentCheck && partner.email) {
-    const programEnrollment = await prisma.programEnrollment.findFirst({
+  let programEnrollment: ProgramEnrollment | null = null;
+
+  // Check if the partner is already enrolled in the program by email
+  if (partner.email && !skipEnrollmentCheck) {
+    programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
         partner: {
@@ -43,18 +50,11 @@ export const createAndEnrollPartner = async ({
         },
       },
     });
-
-    if (programEnrollment) {
-      throw new DubApiError({
-        message: `Partner ${partner.email} already enrolled in this program.`,
-        code: "conflict",
-      });
-    }
   }
 
   // Check if the tenantId is already enrolled in the program
-  if (partner.tenantId) {
-    const tenantEnrollment = await prisma.programEnrollment.findUnique({
+  if (partner.tenantId && !programEnrollment) {
+    programEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         tenantId_programId: {
           tenantId: partner.tenantId,
@@ -62,13 +62,30 @@ export const createAndEnrollPartner = async ({
         },
       },
     });
+  }
 
-    if (tenantEnrollment) {
-      throw new DubApiError({
-        message: `Tenant ${partner.tenantId} already enrolled in this program.`,
-        code: "conflict",
-      });
-    }
+  if (programEnrollment) {
+    const updatedProgramEnrollment = await prisma.programEnrollment.update({
+      where: {
+        id: programEnrollment.id,
+      },
+      data: {
+        tenantId: partner.tenantId,
+      },
+      include: {
+        partner: true,
+        links: true,
+      },
+    });
+
+    const enrolledPartner = EnrolledPartnerSchema.parse({
+      ...updatedProgramEnrollment.partner,
+      ...updatedProgramEnrollment,
+      id: updatedProgramEnrollment.partner.id,
+      links: updatedProgramEnrollment.links,
+    });
+
+    return enrolledPartner;
   }
 
   const finalGroupId = partner.groupId || program.defaultGroupId;
