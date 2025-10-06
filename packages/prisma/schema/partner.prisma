@@ -39,6 +39,7 @@ model Partner {
   connectPayoutsLastRemindedAt DateTime?
   createdAt                    DateTime           @default(now())
   updatedAt                    DateTime           @updatedAt
+  discoverableAt               DateTime?
   website                      String?
   websiteTxtRecord             String?
   websiteVerifiedAt            DateTime?
@@ -74,6 +75,10 @@ model Partner {
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
+
+  discoveredByPrograms DiscoveredPartner[]
+
+  @@index(discoverableAt)
 }
 
 model PartnerInvite {
@@ -106,33 +111,6 @@ model PartnerUser {
   @@index([partnerId])
 }
 
-enum IndustryInterest {
-  SaaS
-  DevTool
-  AI
-  Creative_And_Design
-  Productivity_Software
-  Marketing
-  Gaming
-  Finance
-  Sales
-  Ecommerce
-  Customer_Service_And_Support
-  Content_Management
-  Human_Resources
-  Security
-  Analytics_And_Data
-  Social_Media
-  Consumer_Tech
-  Education_And_Learning
-  Health_And_Fitness
-  Food_And_Beverage
-  Travel_And_Lifestyle
-  Entertainment_And_Media
-  Sports
-  Science_And_Engineering
-}
-
 model PartnerIndustryInterest {
   partnerId        String
   industryInterest IndustryInterest
@@ -140,7 +118,6 @@ model PartnerIndustryInterest {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, industryInterest])
-  @@index(partnerId)
 }
 
 enum PreferredEarningStructure {
@@ -158,7 +135,6 @@ model PartnerPreferredEarningStructure {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, preferredEarningStructure])
-  @@index(partnerId)
 }
 
 enum SalesChannel {
@@ -178,5 +154,4 @@ model PartnerSalesChannel {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([partnerId, salesChannel])
-  @@index(partnerId)
 }

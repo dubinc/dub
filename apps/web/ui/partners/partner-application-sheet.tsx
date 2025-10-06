@@ -21,9 +21,9 @@ import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { PartnerAbout } from "./partner-about";
 import { PartnerApplicationDetails } from "./partner-application-details";
-import { PartnerApplicationTabs } from "./partner-application-tabs";
 import { PartnerComments } from "./partner-comments";
 import { PartnerInfoCards } from "./partner-info-cards";
+import { PartnerSheetTabs } from "./partner-sheet-tabs";
 
 type PartnerApplicationSheetProps = {
   partner: EnrolledPartnerProps;
@@ -109,7 +109,7 @@ function PartnerApplicationSheetContent({
         </div>
         <div className="@3xl/sheet:order-1">
           <div className="border-border-subtle overflow-hidden rounded-xl border bg-neutral-100">
-            <PartnerApplicationTabs
+            <PartnerSheetTabs
               partnerId={partner.id}
               currentTabId={currentTabId}
               setCurrentTabId={setCurrentTabId}

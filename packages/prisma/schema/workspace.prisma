@@ -43,7 +43,6 @@ model Project {
 
   conversionEnabled Boolean   @default(false) // Whether to enable conversion tracking for links by default
   webhookEnabled    Boolean   @default(false)
-  ssoEnabled        Boolean   @default(false) // TODO: this is not used
   dotLinkClaimed    Boolean   @default(false)
   ssoEmailDomain    String?   @unique
   ssoEnforcedAt     DateTime?
