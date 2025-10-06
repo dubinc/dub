@@ -33,24 +33,35 @@ export async function GET(req: Request) {
       `Found ${groupedCommissions.length} pending commissions to process.`,
     );
 
-    const programIdsToPartnerIds = groupedCommissions.reduce(
-      (acc, { programId, partnerId }) => {
-        acc[programId] = partnerId;
-        return acc;
-      },
-      {},
-    );
+    const programIdsToPartnerIds = groupedCommissions.reduce<
+      Record<string, string[]>
+    >((acc, { programId, partnerId }) => {
+      acc[programId] ??= [];
+      if (!acc[programId].includes(partnerId)) {
+        acc[programId].push(partnerId);
+      }
+      return acc;
+    }, {});
 
-    for (const programId in programIdsToPartnerIds) {
+    const programIdsToPartnerIdsArray = Object.entries(
+      programIdsToPartnerIds,
+    ).map(([programId, partnerIds]) => ({
+      programId,
+      partnerIds,
+    }));
+
+    for (const { programId, partnerIds } of programIdsToPartnerIdsArray) {
       const program = await prisma.program.findUnique({
         where: {
           id: programId,
         },
-        include: {
+        select: {
+          name: true,
+          holdingPeriodDays: true,
           partners: {
             where: {
               partnerId: {
-                in: programIdsToPartnerIds[programId],
+                in: partnerIds,
               },
             },
           },
@@ -73,7 +84,7 @@ export async function GET(req: Request) {
           },
           programId,
           partnerId: {
-            in: bannedPartners.map((partner) => partner.id),
+            in: bannedPartners.map(({ partnerId }) => partnerId),
           },
           status: "pending",
         },
@@ -190,7 +201,7 @@ export async function GET(req: Request) {
             },
           });
           console.log(
-            `Noe existing payout found, created new one ${payoutToUse.id} for partner ${partnerId}`,
+            `No existing payout found, created new one ${payoutToUse.id} for partner ${partnerId}`,
           );
         }
 
@@ -199,6 +210,7 @@ export async function GET(req: Request) {
             id: { in: commissions.map((c) => c.id) },
           },
           data: {
+            status: "processed",
             payoutId: payoutToUse.id,
           },
         });
@@ -216,6 +228,7 @@ export async function GET(req: Request) {
               amount: {
                 increment: totalEarnings,
               },
+              periodEnd,
             },
           });
           console.log(
