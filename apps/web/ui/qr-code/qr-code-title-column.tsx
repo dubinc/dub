@@ -43,7 +43,8 @@ export function QrCodeTitleColumn({
 
   useEffect(() => {
     console.log("qrCode id", qrCode.id);
-  }, [qrCode.id]);
+    console.log("searchParams.get qrId", searchParams.get("qrId"));
+  }, [qrCode.id, searchParams.get("qrId")]);
   
   const handlePreviewCanvasReady = useCallback(() => {
     setReadyCanvases((prev) => prev + 1);
