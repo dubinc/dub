@@ -333,9 +333,7 @@ function PartnerCard({
         id: "joinedAt",
         icon: <UserPlus className="size-3.5 shrink-0" />,
         text: partner
-          ? partner.discoverableAt
-            ? `Joined ${formatDate(partner.discoverableAt, { month: "short" })}`
-            : null
+          ? `Joined ${formatDate(partner.createdAt, { month: "short" })}`
           : undefined,
       },
       {

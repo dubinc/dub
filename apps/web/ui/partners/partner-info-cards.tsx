@@ -144,7 +144,7 @@ export function PartnerInfoCards({
             id: "joinedAt",
             icon: <CalendarIcon className="size-3.5" />,
             text: partner
-              ? `Joined ${formatDate(partner.discoverableAt!)}`
+              ? `Joined ${formatDate(partner.createdAt!)}`
               : undefined,
           },
         ]

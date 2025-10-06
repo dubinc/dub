@@ -2,11 +2,20 @@
 
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { PartnerProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, Popover, Switch, Tooltip, Users2, UserSearch } from "@dub/ui";
+import {
+  Button,
+  Popover,
+  Switch,
+  Tooltip,
+  useOptimisticUpdate,
+  Users2,
+  UserSearch,
+} from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
 import { useMemo, useState } from "react";
@@ -19,7 +28,6 @@ import { usePartnerDiscoveryRequirements } from "./use-partner-discovery-require
 
 export function ProfileSettingsPageClient() {
   const { partner } = usePartnerProfile();
-
   const tasks = usePartnerDiscoveryRequirements();
 
   const allTasksCompleted = useMemo(
@@ -60,7 +68,14 @@ function Controls({
 }: {
   showDiscoverableToggle: boolean;
 }) {
-  const { partner, mutate } = usePartnerProfile();
+  const { data: partner, update } = useOptimisticUpdate<PartnerProps>(
+    "/api/partner-profile",
+    {
+      loading: "Updating profile...",
+      success: "Profile updated",
+      error: "Failed to update profile",
+    },
+  );
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -72,6 +87,23 @@ function Controls({
       toast.error(error.serverError);
     },
   });
+
+  const handleDiscoverableUpdate = async ({
+    checked,
+    currentPartner,
+  }: {
+    checked: boolean;
+    currentPartner: PartnerProps;
+  }) => {
+    await executeAsync({
+      discoverable: checked,
+    });
+
+    return {
+      ...currentPartner,
+      discoverableAt: checked ? new Date() : null,
+    };
+  };
 
   return (
     <>
@@ -99,29 +131,21 @@ function Controls({
             <span className="text-sm font-medium">Discoverable</span>
             <Switch
               checked={!!partner.discoverableAt}
-              fn={(checked) =>
-                mutate(
-                  async () => {
-                    const result = await executeAsync({
-                      discoverable: checked,
-                    });
+              fn={(checked: boolean) => {
+                if (!partner) return;
 
-                    if (result?.serverError || result?.validationErrors)
-                      throw new Error("Failed to update profile");
-
-                    return {
-                      ...partner,
-                      discoverableAt: checked ? new Date() : null,
-                    };
-                  },
-                  {
-                    optimisticData: () => ({
-                      ...partner,
-                      discoverableAt: checked ? new Date() : null,
+                update(
+                  () =>
+                    handleDiscoverableUpdate({
+                      checked,
+                      currentPartner: partner,
                     }),
+                  {
+                    ...partner,
+                    discoverableAt: checked ? new Date() : null,
                   },
-                )
-              }
+                );
+              }}
               trackDimensions="radix-state-checked:bg-neutral-600 focus-visible:ring-black/20"
             />
           </label>

@@ -49,7 +49,6 @@ export const onboardPartnerAction = authUserActionClient
           }),
       ...(description && { description }),
       image: imageUrl,
-      discoverableAt: new Date(),
       users: {
         connectOrCreate: {
           where: {

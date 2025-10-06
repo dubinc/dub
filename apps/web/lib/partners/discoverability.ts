@@ -25,14 +25,14 @@ export function getPartnerDiscoveryRequirements({
       completed: true,
     },
     {
-      label: "Verify your website or social account",
+      label: "Connect your website or social account",
       href: "#sites",
       completed: ONLINE_PRESENCE_FIELDS.some(
-        (field) => field.data(partner).verified,
+        (field) => field.data(partner).value, // TODO: update this to also check for "verified" in the future
       ),
     },
     {
-      label: "Write your bio",
+      label: "Update your profile description",
       href: "#about",
       completed: !!partner.description,
     },

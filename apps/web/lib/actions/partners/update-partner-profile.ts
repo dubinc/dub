@@ -77,10 +77,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
     let needsEmailVerification = false;
     const emailChanged = newEmail !== undefined && partner.email !== newEmail;
 
-    const discoverableChanged =
-      discoverable !== undefined &&
-      discoverable !== Boolean(partner.discoverableAt);
-
     // Upload the new image
     if (image) {
       const path = `partners/${partner.id}/image_${nanoid(7)}`;
@@ -89,7 +85,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
     }
 
     try {
-      let updatedPartner = await prisma.partner.update({
+      const updatedPartner = await prisma.partner.update({
         where: {
           id: partner.id,
         },
@@ -101,6 +97,11 @@ export const updatePartnerProfileAction = authPartnerActionClient
           profileType,
           companyName,
           monthlyTraffic,
+          discoverableAt: discoverable
+            ? new Date()
+            : discoverable === false
+              ? null
+              : undefined,
 
           ...(industryInterests && {
             industryInterests: {
@@ -129,27 +130,12 @@ export const updatePartnerProfileAction = authPartnerActionClient
             },
           }),
         },
+        include: {
+          industryInterests: true,
+          salesChannels: true,
+          programs: true,
+        },
       });
-
-      // Update `discoverable` separately so we can check eligibility post-update
-      if (discoverableChanged) {
-        if (
-          discoverable &&
-          !(await isPartnerProfileEligibleForDiscovery({
-            partnerId: partner.id,
-          }))
-        )
-          throw new Error("Profile is not eligible for discovery");
-
-        updatedPartner = await prisma.partner.update({
-          where: {
-            id: partner.id,
-          },
-          data: {
-            discoverableAt: discoverable ? new Date() : null,
-          },
-        });
-      }
 
       // If the email is being changed, we need to verify the new email address
       if (emailChanged) {
@@ -179,6 +165,49 @@ export const updatePartnerProfileAction = authPartnerActionClient
       waitUntil(
         Promise.allSettled([
           (async () => {
+            // double check that the partner is still eligible for discovery
+            if (updatedPartner.discoverableAt) {
+              const partnerDiscoveryRequirements =
+                getPartnerDiscoveryRequirements({
+                  partner: {
+                    ...updatedPartner,
+                    industryInterests: updatedPartner.industryInterests?.map(
+                      (interest) => interest.industryInterest,
+                    ),
+                    salesChannels: updatedPartner.salesChannels?.map(
+                      (channel) => channel.salesChannel,
+                    ),
+                  },
+                  totalCommissions: updatedPartner.programs
+                    .filter((program) => program.programId !== ACME_PROGRAM_ID)
+                    .reduce(
+                      (acc, program) => acc + program.totalCommissions,
+                      0,
+                    ),
+                });
+
+              if (
+                !partnerDiscoveryRequirements.every(
+                  (requirement) => requirement.completed,
+                )
+              ) {
+                console.log(
+                  `Partner ${partner.id} is no longer eligible for discovery due to missing requirements: ${partnerDiscoveryRequirements
+                    .filter((requirement) => !requirement.completed)
+                    .map((requirement) => requirement.label)
+                    .join(", ")}`,
+                );
+                await prisma.partner.update({
+                  where: {
+                    id: partner.id,
+                  },
+                  data: {
+                    discoverableAt: null,
+                  },
+                });
+              }
+            }
+
             const shouldExpireCache = !deepEqual(
               {
                 name: partner.name,
@@ -194,32 +223,12 @@ export const updatePartnerProfileAction = authPartnerActionClient
               return;
             }
 
-            qstash.publishJSON({
+            await qstash.publishJSON({
               url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-partners`,
               body: {
                 partnerId: partner.id,
               },
             });
-          })(),
-
-          // Reset discoverable status if no longer eligible
-          (async () => {
-            if (
-              !discoverableChanged &&
-              updatedPartner.discoverableAt &&
-              !(await isPartnerProfileEligibleForDiscovery({
-                partnerId: partner.id,
-              }))
-            ) {
-              await prisma.partner.update({
-                where: {
-                  id: partner.id,
-                },
-                data: {
-                  discoverableAt: null,
-                },
-              });
-            }
           })(),
         ]),
       );
@@ -294,37 +303,3 @@ const deleteStripeAccountIfRequired = async ({
     }
   }
 };
-
-async function isPartnerProfileEligibleForDiscovery({
-  partnerId,
-}: {
-  partnerId: string;
-}) {
-  const partner = await prisma.partner.findUniqueOrThrow({
-    where: {
-      id: partnerId,
-    },
-    include: {
-      industryInterests: true,
-      salesChannels: true,
-      programs: true,
-    },
-  });
-
-  const requirements = getPartnerDiscoveryRequirements({
-    partner: {
-      ...partner,
-      industryInterests: partner.industryInterests?.map(
-        ({ industryInterest }) => industryInterest,
-      ),
-      salesChannels: partner.salesChannels?.map(
-        ({ salesChannel }) => salesChannel,
-      ),
-    },
-    totalCommissions: partner.programs
-      .filter((program) => program.programId !== ACME_PROGRAM_ID)
-      .reduce((acc, program) => acc + program.totalCommissions, 0),
-  });
-
-  return requirements.every(({ completed }) => completed);
-}
