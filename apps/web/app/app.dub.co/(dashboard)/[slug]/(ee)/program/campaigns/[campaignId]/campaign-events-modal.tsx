@@ -58,6 +58,24 @@ export function CampaignEventsModal({
     },
   );
 
+  const {
+    data: totalCount,
+    error: countError,
+    isLoading: isCountLoading,
+  } = useSWR<number>(
+    showModal && campaignId && workspaceId
+      ? buildUrl(`/api/campaigns/${campaignId}/events/count`, {
+          workspaceId,
+          status,
+          ...(debouncedSearch && { search: debouncedSearch }),
+        })
+      : null,
+    fetcher,
+    {
+      keepPreviousData: true,
+    },
+  );
+
   const { table, ...tableProps } = useTable({
     data: events || [],
     columns: campaignEventsColumns,
@@ -82,8 +100,8 @@ export function CampaignEventsModal({
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: () => "event",
-    loading: isLoading,
-    error: error ? "Failed to load events" : undefined,
+    loading: isLoading || isCountLoading,
+    error: error || countError ? "Failed to load events" : undefined,
     rowCount: events?.length || 0,
   });
 
@@ -121,12 +139,12 @@ export function CampaignEventsModal({
           />
         </div>
 
-        {events && events.length > 0 && (
+        {totalCount !== undefined && totalCount > 0 && (
           <div className="flex-shrink-0 border-t border-neutral-200 bg-white px-6 py-4">
             <PaginationControls
               pagination={pagination}
               setPagination={setPagination}
-              totalCount={events.length}
+              totalCount={totalCount}
               unit={(p) => `event${p ? "s" : ""}`}
             />
           </div>

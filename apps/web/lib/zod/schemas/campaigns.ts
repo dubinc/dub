@@ -108,6 +108,11 @@ export const getCampaignsEventsQuerySchema = z
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
+export const getCampaignEventsCountQuerySchema = getCampaignsEventsQuerySchema.pick({
+  status: true,
+  search: true,
+});
+
 export const campaignSummarySchema = z.object({
   sent: z.coerce.number(),
   delivered: z.coerce.number(),
