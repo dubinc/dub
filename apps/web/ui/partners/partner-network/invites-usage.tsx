@@ -11,8 +11,8 @@ export function InvitesUsage() {
     <Tooltip
       content={
         <p className="max-w-xs p-2 text-center text-xs font-medium text-neutral-600">
-          Invitation limits are based on a 7-day rolling period. If you need
-          more weekly invites,{" "}
+          Invitation limits are reset at the start of your billing cycle. If you
+          need more invites,{" "}
           <a
             href="https://dub.co/contact/sales"
             target="_blank"
