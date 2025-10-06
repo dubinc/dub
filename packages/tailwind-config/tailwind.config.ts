@@ -247,6 +247,9 @@ const config: Config = {
       dropShadow: {
         "card-hover": ["0 8px 12px #222A350d", "0 32px 80px #2f30370f"],
       },
+      boxShadow: {
+        xs: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+      },
     },
   },
   plugins: [

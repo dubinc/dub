@@ -3,13 +3,13 @@
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { Button, CopyButton } from "@dub/ui";
-import { nanoid } from "@dub/utils";
-import Link from "next/link";
+import { Button, CopyButton, InfoTooltip, Key } from "@dub/ui";
+import { cn, nanoid } from "@dub/utils";
 import { useState } from "react";
 import { toast } from "sonner";
+import PublishableKeyMenu from "./publishable-key-menu";
 
-export const PublishableKeyForm = () => {
+export const PublishableKeyForm = ({ className }: { className?: string }) => {
   const { id, publishableKey, mutate, role } = useWorkspace();
   const [processing, setProcessing] = useState(false);
 
@@ -89,27 +89,19 @@ export const PublishableKeyForm = () => {
     });
 
   return (
-    <div className="rounded-lg border border-neutral-200 p-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-xl font-semibold tracking-tight text-black">
-            Publishable Key
+    <div className={cn("flex flex-col gap-2 p-3", className)}>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-0.5">
+          <h2 className="text-content-emphasis flex-1 text-sm font-semibold">
+            Publishable key
           </h2>
-          <p className="text-sm text-neutral-500">
-            Use this key for client-side conversion tracking.{" "}
-            <Link
-              href="https://dub.co/docs/sdks/client-side/features/conversion-tracking"
-              target="_blank"
-              className="underline transition-colors hover:text-neutral-800"
-            >
-              Learn more.
-            </Link>
-          </p>
+          <InfoTooltip content="Required for conversion tracking." />
         </div>
+
         {!publishableKey && (
           <Button
-            text="Generate Key"
-            className="h-8 w-fit px-3 sm:shrink-0"
+            text="Generate"
+            className="w-fit rounded-lg px-2.5 py-1 text-sm font-medium h-7"
             onClick={() => setShowGenerateModal(true)}
             loading={processing}
             disabledTooltip={permissionsError || undefined}
@@ -118,41 +110,38 @@ export const PublishableKeyForm = () => {
       </div>
 
       {publishableKey ? (
-        <div className="mt-5 space-y-3">
-          <div className="flex flex-col gap-3 rounded-md border border-neutral-200 p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
-            <div className="flex min-w-0 items-center gap-2">
+        <div className="flex flex-col gap-3 rounded-xl border border-neutral-200 bg-white p-3 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+          <div className="flex min-w-0 items-center gap-2">
+            <div className="flex min-w-0 items-center gap-4">
+              <div className="flex size-[28px] items-center justify-center rounded-md bg-neutral-100">
+                <Key className="size-4 text-neutral-800" />
+              </div>
               <code className="min-w-0 flex-1 truncate font-mono text-sm text-neutral-800">
                 {publishableKey}
               </code>
-              <CopyButton value={publishableKey} className="shrink-0" />
             </div>
-            <div className="flex w-fit items-center gap-2 sm:shrink-0">
-              <Button
-                text="Regenerate"
-                variant="secondary"
-                onClick={() => setShowGenerateModal(true)}
-                loading={processing}
-                disabledTooltip={permissionsError || undefined}
-                className="h-7 w-fit flex-1 px-2 text-xs sm:flex-none"
-              />
-              <Button
-                text="Revoke"
-                variant="danger"
-                onClick={() => setShowRevokeModal(true)}
-                loading={processing}
-                disabledTooltip={permissionsError || undefined}
-                className="h-7 w-fit flex-1 px-2 text-xs sm:flex-none"
-              />
-            </div>
+            <CopyButton value={publishableKey} className="shrink-0" />
+          </div>
+          <div className="flex w-fit items-center gap-2 sm:shrink-0">
+            <Button
+              text="Regenerate"
+              variant="secondary"
+              onClick={() => setShowGenerateModal(true)}
+              loading={processing}
+              disabledTooltip={permissionsError || undefined}
+              className="h-7 w-fit flex-1 px-2 text-xs sm:flex-none"
+            />
+            <PublishableKeyMenu
+              onRevoke={() => setShowRevokeModal(true)}
+              loading={processing}
+            />
           </div>
         </div>
       ) : (
-        <div className="mt-5">
-          <div className="flex items-center justify-center rounded-md border border-dashed border-neutral-300 p-8">
-            <p className="text-sm text-neutral-500">
-              No publishable key configured
-            </p>
-          </div>
+        <div className="flex items-center justify-center rounded-xl border border-neutral-200 bg-neutral-100 p-3">
+          <p className="text-content-subtle text-sm font-medium">
+            No publishable key created
+          </p>
         </div>
       )}
       {generateModal}

@@ -23,9 +23,16 @@ export type IntegrationGuide = {
   description?: string;
   subtitle?: string;
   icon: any;
+  iconProps?: {
+    fullSize?: boolean;
+  };
   recommended?: boolean;
   content?: string;
   url: string;
+};
+
+export type IntegrationGuideWithMarkdown = IntegrationGuide & {
+  markdown: string | null;
 };
 
 export const sections: {
@@ -181,6 +188,9 @@ export const guides: IntegrationGuide[] = [
     recommended: true,
     description: "Stripe Checkout",
     icon: Stripe,
+    iconProps: {
+      fullSize: true,
+    },
     url: "https://dub.co/docs/conversions/sales/stripe#option-2%3A-using-stripe-checkout-recommended",
   },
   {
@@ -190,6 +200,9 @@ export const guides: IntegrationGuide[] = [
     subtitle: "Payment Links",
     description: "Stripe Payment Links",
     icon: Stripe,
+    iconProps: {
+      fullSize: true,
+    },
     url: "https://dub.co/docs/conversions/sales/stripe#option-1%3A-using-stripe-payment-links",
   },
   {
@@ -199,6 +212,9 @@ export const guides: IntegrationGuide[] = [
     subtitle: "Customers",
     description: "Stripe Customers",
     icon: Stripe,
+    iconProps: {
+      fullSize: true,
+    },
     url: "https://dub.co/docs/conversions/sales/stripe#option-3%3A-using-stripe-customers",
   },
   {

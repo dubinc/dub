@@ -184,4 +184,10 @@ export const workspaceStoreKeys = z.enum([
   "conversionsOnboarding", // boolean
   "dubPartnersPopupDismissed", // boolean
   "dotLinkOfferDismissed", // string
+  "analyticsSettingsConversionTrackingEnabled", // boolean
+  "analyticsSettingsSiteVisitTrackingEnabled", // boolean
+  "analyticsSettingsOutboundDomainTrackingEnabled", // boolean
+  "analyticsSettingsConnectionSeupComplete", // boolean
+  "analyticsSettingsLeadTrackingSetupComplete", // boolean
+  "analyticsSettingsSaleTrackingSetupComplete", // boolean
 ]);

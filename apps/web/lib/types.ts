@@ -122,6 +122,7 @@ import {
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
+import { workspaceStoreKeys } from "./zod/schemas/workspaces";
 
 export type LinkProps = Link;
 

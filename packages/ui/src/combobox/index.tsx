@@ -28,6 +28,8 @@ import { Tooltip } from "../tooltip";
 
 export type ComboboxOption<TMeta = any> = {
   label: string | ReactNode;
+  description?: string;
+  badge?: string;
   value: string;
   icon?: Icon | ReactNode;
   disabledTooltip?: ReactNode;
@@ -331,15 +333,22 @@ export function Combobox({
           )}
           text={
             <>
-              <div
-                className={cn(
-                  "min-w-0 grow truncate text-left",
-                  labelProps?.className,
+              <div>
+                <div
+                  className={cn(
+                    "min-w-0 grow truncate text-left",
+                    labelProps?.className,
+                  )}
+                >
+                  {children ||
+                    selected.map((option) => option.label).join(", ") ||
+                    placeholder}
+                </div>
+                {selected.length === 1 && selected[0].description && (
+                  <div className="text-content-subtle text-xs font-medium">
+                    {selected[0].description}
+                  </div>
                 )}
-              >
-                {children ||
-                  selected.map((option) => option.label).join(", ") ||
-                  placeholder}
               </div>
               {caret &&
                 (caret === true ? (
@@ -414,7 +423,22 @@ function Option({
                 )}
               </span>
             )}
-            <span className="grow truncate">{option.label}</span>
+            <div>
+              <div className="flex items-center gap-1.5">
+                <span className="grow truncate">{option.label}</span>
+
+                {option.badge && (
+                  <span className="min-h-4 rounded-md bg-violet-100 px-1 text-xs font-semibold text-violet-600">
+                    {option.badge}
+                  </span>
+                )}
+              </div>
+              {option.description && (
+                <div className="text-content-subtle text-xs font-medium">
+                  {option.description}
+                </div>
+              )}
+            </div>
           </div>
           {right}
           {!multiple && selected && (
