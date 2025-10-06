@@ -70,7 +70,11 @@
     },
     {
       "path": "/api/cron/calculate-program-similarities",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/calculate-partner-program-performances",
+      "schedule": "0,30 * * * *"
     }
   ],
   "functions": {

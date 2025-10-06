@@ -12,10 +12,8 @@ interface ProgramSimilarityData {
   sharedIndustryCount: number;
 }
 
-/**
- * Calculate similarity scores between all programs
- * This should be run periodically (e.g., daily) to update similarity data
- */
+// Calculate similarity scores between all programs
+// This should be run periodically (e.g., daily) to update similarity data
 export async function calculateProgramSimilarities(): Promise<void> {
   console.log("Starting program similarity calculation...");
 
@@ -70,8 +68,8 @@ export async function calculateProgramSimilarities(): Promise<void> {
           : 0;
 
       // 2. Partner Overlap Score (0-1)
-      const sharedPartnersData = await prisma.$queryRaw<
-        Array<{ sharedCount: number; total1: number; total2: number }>
+      const [sharedPartnersData] = await prisma.$queryRaw<
+        Array<{ sharedCount: bigint; total1: bigint; total2: bigint }>
       >`
         SELECT 
           COUNT(DISTINCT p1.partnerId) as sharedCount,
@@ -85,7 +83,10 @@ export async function calculateProgramSimilarities(): Promise<void> {
         AND p2.conversions > 0
       `;
 
-      const { sharedCount, total1, total2 } = sharedPartnersData[0];
+      const sharedCount = Number(sharedPartnersData.sharedCount);
+      const total1 = Number(sharedPartnersData.total1);
+      const total2 = Number(sharedPartnersData.total2);
+
       const totalUniquePartners = total1 + total2 - sharedCount;
       const partnerOverlapScore =
         totalUniquePartners > 0 ? sharedCount / totalUniquePartners : 0;
@@ -171,165 +172,19 @@ export async function calculateProgramSimilarities(): Promise<void> {
     }
   }
 
-  console.log(`Calculated ${similarities.length} similarity relationships`);
+  console.log(
+    `Calculated ${similarities.length} similarity relationships`,
+    similarities,
+  );
 
   // Clear existing similarities and insert new ones
-  await prisma.programSimilarity.deleteMany({});
+  // await prisma.programSimilarity.deleteMany({});
 
-  if (similarities.length > 0) {
-    await prisma.programSimilarity.createMany({
-      data: similarities,
-    });
-  }
+  // if (similarities.length > 0) {
+  //   await prisma.programSimilarity.createMany({
+  //     data: similarities,
+  //   });
+  // }
 
   console.log("Program similarity calculation completed");
-}
-
-/**
- * Calculate and store partner performance scores for each program enrollment
- */
-export async function calculatePartnerProgramPerformances(): Promise<void> {
-  console.log("Starting partner program performance calculation...");
-
-  // Get all partner-program combinations with meaningful activity
-  const partnerPrograms = await prisma.$queryRaw<
-    Array<{
-      partnerId: string;
-      programId: string;
-      totalClicks: number;
-      totalLeads: number;
-      totalConversions: number;
-      totalSales: number;
-      totalSaleAmount: number;
-      lastConversionAt: Date | null;
-    }>
-  >`
-    SELECT 
-      l.partnerId,
-      l.programId,
-      SUM(l.clicks) as totalClicks,
-      SUM(l.leads) as totalLeads,
-      SUM(l.conversions) as totalConversions,
-      SUM(l.sales) as totalSales,
-      SUM(l.saleAmount) as totalSaleAmount,
-      MAX(l.lastConversionAt) as lastConversionAt
-    FROM Link l
-    WHERE l.programId IS NOT NULL 
-    AND l.programId != ${ACME_PROGRAM_ID}
-    AND l.partnerId IS NOT NULL
-    AND l.clicks > 0 -- Only partners with some activity
-    GROUP BY l.partnerId, l.programId
-    HAVING totalClicks >= 10 -- Minimum threshold for meaningful analysis
-  `;
-
-  console.log(
-    `Found ${partnerPrograms.length} partner-program relationships to analyze`,
-  );
-
-  const performances = partnerPrograms.map((pp) => {
-    const conversionRate =
-      pp.totalClicks > 0 ? pp.totalConversions / pp.totalClicks : 0;
-    const averageLifetimeValue =
-      pp.totalConversions > 0 ? pp.totalSaleAmount / pp.totalConversions : 0;
-    const leadConversionRate =
-      pp.totalLeads > 0 ? pp.totalConversions / pp.totalLeads : 0;
-
-    // Calculate Wilson Score for this specific program
-    const wilsonScore =
-      pp.totalClicks > 0
-        ? (conversionRate +
-            (1.96 * 1.96) / (2 * pp.totalClicks) -
-            1.96 *
-              Math.sqrt(
-                (conversionRate * (1 - conversionRate) +
-                  (1.96 * 1.96) / (4 * pp.totalClicks)) /
-                  pp.totalClicks,
-              )) /
-          (1 + (1.96 * 1.96) / pp.totalClicks)
-        : 0;
-
-    // Performance score (0-100)
-    const sampleSizeMultiplier = Math.min(1.0, pp.totalClicks / 50.0);
-    const performanceScore = Math.max(
-      0,
-      wilsonScore * sampleSizeMultiplier * 100,
-    );
-
-    // Consistency score based on conversion timing
-    let consistencyScore = 50; // Default middle score
-    if (pp.lastConversionAt) {
-      const daysSinceLastConversion = Math.floor(
-        (Date.now() - pp.lastConversionAt.getTime()) / (1000 * 60 * 60 * 24),
-      );
-
-      // Higher consistency score for more recent conversions
-      if (daysSinceLastConversion <= 7) consistencyScore = 100;
-      else if (daysSinceLastConversion <= 30) consistencyScore = 85;
-      else if (daysSinceLastConversion <= 90) consistencyScore = 70;
-      else if (daysSinceLastConversion <= 180) consistencyScore = 55;
-      else consistencyScore = 40;
-    }
-
-    const daysSinceLastConversion = pp.lastConversionAt
-      ? Math.floor(
-          (Date.now() - pp.lastConversionAt.getTime()) / (1000 * 60 * 60 * 24),
-        )
-      : null;
-
-    return {
-      partnerId: pp.partnerId,
-      programId: pp.programId,
-      totalClicks: pp.totalClicks,
-      totalLeads: pp.totalLeads,
-      totalConversions: pp.totalConversions,
-      totalSales: pp.totalSales,
-      totalSaleAmount: pp.totalSaleAmount,
-      conversionRate,
-      averageLifetimeValue,
-      leadConversionRate,
-      lastConversionAt: pp.lastConversionAt,
-      daysSinceLastConversion,
-      performanceScore,
-      consistencyScore,
-      lastCalculatedAt: new Date(),
-    };
-  });
-
-  // Clear existing performance data and insert new calculations
-  await prisma.partnerProgramPerformance.deleteMany({});
-
-  if (performances.length > 0) {
-    await prisma.partnerProgramPerformance.createMany({
-      data: performances,
-    });
-  }
-
-  console.log(
-    `Calculated performance scores for ${performances.length} partner-program relationships`,
-  );
-}
-
-/**
- * Get the top similar programs for a given program
- */
-export async function getSimilarPrograms(
-  programId: string,
-  limit: number = 10,
-) {
-  return await prisma.programSimilarity.findMany({
-    where: { programId },
-    orderBy: { combinedSimilarityScore: "desc" },
-    take: limit,
-    include: {
-      similarProgram: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          logo: true,
-          industryInterests: true,
-        },
-      },
-    },
-  });
 }

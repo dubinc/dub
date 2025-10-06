@@ -1,6 +1,8 @@
-import { calculatePartnerProgramPerformances } from "@/lib/api/network/program-similarity-calculator";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { calculatePartnerProgramPerformances } from "@/lib/api/network/calculate-partner-program-performances";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { logAndRespond } from "../utils";
 
 // GET /api/cron/calculate-partner-program-performances
 // Calculate partner program performances (lighter computation, can run more frequently)
@@ -10,16 +12,8 @@ export async function GET(req: NextRequest) {
 
     await calculatePartnerProgramPerformances();
 
-    return NextResponse.json({
-      success: true,
-      message: "Program similarity and performance calculation completed",
-    });
+    return logAndRespond("Partner program performances calculation completed.");
   } catch (error) {
-    console.error("Error in program similarity calculation cron:", error);
-
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: 500 },
-    );
+    return handleAndReturnErrorResponse(error);
   }
 }
