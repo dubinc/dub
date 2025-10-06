@@ -16,6 +16,7 @@ const prefixes = [
   "utm_", // utm template
   "wh_", // webhook
   "pn_", // partner
+  "dpn_", // discovered partner
   "prog_", // program
   "pga_", // program application
   "pgi_", // program invitation
