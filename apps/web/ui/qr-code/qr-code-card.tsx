@@ -39,7 +39,6 @@ export function QrCodeCard({
           <QrCodeTitleColumn
             user={user}
             qrCode={qrCode}
-            canvasRef={canvasRef}
             builtQrCodeObject={builtQrCodeObject}
             currentQrTypeInfo={currentQrTypeInfo}
             featuresAccess={featuresAccess}

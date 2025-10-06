@@ -19,7 +19,6 @@ import { useSearchParams } from 'next/navigation';
 interface QrCodeTitleColumnProps {
   user: Session["user"];
   qrCode: QrStorageData;
-  canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
   featuresAccess?: boolean;
@@ -29,7 +28,6 @@ interface QrCodeTitleColumnProps {
 export function QrCodeTitleColumn({
   user,
   qrCode,
-  canvasRef,
   builtQrCodeObject,
   currentQrTypeInfo,
   featuresAccess,
@@ -39,18 +37,17 @@ export function QrCodeTitleColumn({
   const { isMobile, width } = useMediaQuery();
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
-  const [readyCanvases, setReadyCanvases] = useState<number>(0);
+  const [isPreviewCanvasReady, setIsPreviewCanvasReady] = useState<boolean>(false);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
-  console.log("readyCanvases", readyCanvases);
+  const modalCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const handleTitleCanvasReady = useCallback(() => {
-    console.log("handleTitleCanvasReady");
-    setReadyCanvases((prev) => prev + 1);
+    setIsPreviewCanvasReady(true);
   }, [qrCode.id]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
-    canvasRef: previewCanvasRef,
+    canvasRef: modalCanvasRef,
     qrCode: builtQrCodeObject,
     qrCodeId: qrCode.id,
     width: isMobile ? 300 : 200,
@@ -59,13 +56,13 @@ export function QrCodeTitleColumn({
   });
 
   useEffect(() => {
-    if (qrCode.id === searchParams.get("qrId")) {
+    if (qrCode.id === searchParams.get("qrId") && isPreviewCanvasReady) {
       handleOpenNewQr();
       queryParams({
         del: ["qrId"],
       });
     }
-  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams]);
+  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams, isPreviewCanvasReady]);
 
   return (
     <>
@@ -80,7 +77,7 @@ export function QrCodeTitleColumn({
             onClick={() => setShowQRPreviewModal(true)}
           >
             <QRCanvas
-              ref={canvasRef}
+              ref={previewCanvasRef}
               qrCodeId={qrCode.id}
               qrCode={builtQrCodeObject}
               width={100}
