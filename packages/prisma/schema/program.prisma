@@ -78,6 +78,13 @@ model Program {
   campaigns                Campaign[]
   discoveredPartners       DiscoveredPartner[]
   industryInterests        ProgramIndustryInterest[]
+  
+  // Program similarity relations
+  similarityRelations      ProgramSimilarity[]       @relation("ProgramSimilarities")
+  similarToPrograms        ProgramSimilarity[]       @relation("SimilarPrograms")
+  
+  // Partner performance tracking
+  partnerPerformances      PartnerProgramPerformance[]
 
   @@index(workspaceId)
   @@index(domain)

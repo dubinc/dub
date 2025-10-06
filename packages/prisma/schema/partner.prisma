@@ -76,6 +76,9 @@ model Partner {
   salesChannels              PartnerSalesChannel[]
 
   discoveredByPrograms DiscoveredPartner[]
+  
+  // Program-level performance tracking
+  programPerformances PartnerProgramPerformance[]
 
   @@index(discoverableAt)
 }
