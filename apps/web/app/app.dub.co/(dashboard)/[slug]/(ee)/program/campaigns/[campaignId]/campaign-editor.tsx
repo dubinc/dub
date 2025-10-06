@@ -153,7 +153,7 @@ export function CampaignEditor({
 
   return (
     <FormProvider {...form}>
-      <div className="flex h-full flex-col">
+      <div className="flex min-h-[calc(100vh-8px)] flex-col bg-white">
         {/* Header */}
         <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
           <div className="flex min-w-0 items-center gap-4">
@@ -298,6 +298,9 @@ export function CampaignEditor({
             End of email
           </div>
         </PageWidthWrapper>
+
+        {/* Spacer to push action bar to bottom */}
+        <div className="grow" />
 
         <CampaignActionBar
           campaignStatus={campaign.status}
