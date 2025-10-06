@@ -1,4 +1,5 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps, PayoutsCount } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
@@ -91,6 +92,7 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
       </SettingsRow>
 
       <SettingsRow
+        id="sites"
         heading="Website and socials"
         description="Add your website and social accounts you use to share links. Verifying at least one helps build trust with programs."
       >
@@ -174,6 +176,7 @@ function BasicInfoForm({
       } else {
         toast.success("Your profile has been updated.");
       }
+      mutatePrefix("/api/partner-profile");
     },
     onError({ error }) {
       setError("root.serverError", {
