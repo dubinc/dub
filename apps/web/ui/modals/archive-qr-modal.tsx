@@ -11,7 +11,7 @@ import {
   useState,
 } from "react";
 import { X } from "@/ui/shared/icons";
-import { CircleAlert } from 'lucide-react';
+import { CircleAlert, CircleCheck } from 'lucide-react';
 
 type ArchiveQRModalProps = {
   showArchiveQRModal: boolean;
@@ -43,83 +43,119 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
     <Modal
       showModal={showArchiveQRModal}
       setShowModal={setShowArchiveQRModal}
-      className="border-border-500 max-w-md"
+      className="border-border-500 md:max-w-md"
       drawerRootProps={{
         repositionInputs: false,
       }}
     >
       <Theme>
         <div className="flex flex-col gap-2">
-          <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
-            <div className="flex items-center gap-2">
-              <h3 className="!mt-0 max-w-xs text-lg font-medium">
-                {props.archived ? "Are you sure you want to unpause" : "Are you sure you want to pause"} "{props.title}"?
-              </h3>
-            </div>
+          <div className="flex w-full items-center justify-center px-2 py-4 relative">
+            <h3 className="!mt-0 max-w-xs text-lg font-semibold text-center">
+              {props.archived ? "Are you sure you want to resume" : "Are you sure you want to pause"}
+              <br />
+              "{props.title}"?
+            </h3>
             <button
               disabled={archiving}
               type="button"
               onClick={handleClose}
-              className="active:bg-border-500 group relative -right-2 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none md:right-0 md:block"
+              className="active:bg-border-500 group absolute right-6 rounded-full p-2 text-neutral-500 transition-all duration-75 hover:bg-neutral-100 focus:outline-none md:block"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           <div className="px-6 pb-6">
-            <div className="flex flex-col gap-4">
-              {!props.archived && (
-                <Flex
-                  direction="column"
-                  align="center"
-                  justify="center"
-                  gap={{ initial: "2", lg: "3" }}
-                  className="bg-amber-50 rounded-lg p-3 lg:p-3.5"
-                >
-                  <Flex
-                    direction="row"
-                    align="center"
-                    className="w-full gap-1.5"
-                  >
-                    <CircleAlert className="text-amber-800 h-[18px] w-[18px]" strokeWidth={2} />
-                    <Text
-                      as="span"
-                      size={{ initial: "1", lg: "2" }}
-                      className="text-amber-700"
+            <div className="flex flex-col gap-6">
+              {!props.archived
+                ? (
+                  <div className="flex flex-col gap-2">
+                    <Flex
+                      direction="row"
+                      align="center"
+                      className="w-full gap-1.5"
                     >
-                      New scans won’t open the destination.
-                    </Text>
-                  </Flex>
-                  <Flex
-                    direction="row"
-                    align="center"
-                    className="w-full gap-1.5"
-                  >
-                    <CircleAlert className="text-amber-800 h-[18px] w-[18px]" strokeWidth={2} />
-                    <Text
-                      as="span"
-                      size={{ initial: "1", lg: "2" }}
-                      className="text-amber-700"
+                      <CircleAlert className="text-amber-600 h-[18px] w-[18px]" strokeWidth={2} />
+                      <Text
+                        as="span"
+                        size={{ initial: "1", lg: "2" }}
+                      >
+                        New scans won’t open the destination.
+                      </Text>
+                    </Flex>
+                    <Flex
+                      direction="row"
+                      align="center"
+                      className="w-full gap-1.5"
                     >
-                      Analytics won’t be recorded while paused.
-                    </Text>
-                  </Flex>
-                  <Flex
-                    direction="row"
-                    align="center"
-                    className="w-full gap-1.5"
-                  >
-                    <CircleAlert className="text-amber-800 h-[18px] w-[18px]" strokeWidth={2} />
-                    <Text
-                      as="span"
-                      size={{ initial: "1", lg: "2" }}
-                      className="text-amber-700"
+                      <CircleAlert className="text-amber-600 h-[18px] w-[18px]" strokeWidth={2} />
+                      <Text
+                        as="span"
+                        size={{ initial: "1", lg: "2" }}
+                      >
+                        Analytics won’t be recorded while paused.
+                      </Text>
+                    </Flex>
+                    <Flex
+                      direction="row"
+                      align="center"
+                      className="w-full gap-1.5"
                     >
-                      You can resume at any time.
-                    </Text>
-                  </Flex>
-                </Flex>
-              )}
+                      <CircleAlert className="text-amber-600 h-[18px] w-[18px]" strokeWidth={2} />
+                      <Text
+                        as="span"
+                        size={{ initial: "1", lg: "2" }}
+                      >
+                        You can resume at any time.
+                      </Text>
+                    </Flex>
+                  </div>
+                )
+                : (
+                  <div className="flex flex-col gap-2">
+                    <Flex
+                      direction="row"
+                      align="center"
+                      className="w-full gap-1.5"
+                    >
+                      <CircleCheck className="text-green-600 h-[18px] w-[18px]" strokeWidth={2} />
+                      <Text
+                        as="span"
+                        size={{ initial: "1", lg: "2" }}
+                      >
+                        New scans will open the destination again.
+                      </Text>
+                    </Flex>
+                    <Flex
+                      direction="row"
+                      align="center"
+                      className="w-full gap-1.5"
+                    >
+                      <CircleCheck className="text-green-600 h-[18px] w-[18px]" strokeWidth={2} />
+                      <Text
+                        as="span"
+                        size={{ initial: "1", lg: "2" }}
+                      >
+                        Analytics will start recording from now on.
+                      </Text>
+                    </Flex>
+                    <Flex
+                      direction="row"
+                      align="center"
+                      className="w-full gap-1.5"
+                    >
+                      <CircleCheck className="text-green-600 h-[18px] w-[18px]" strokeWidth={2} />
+                      <Text
+                        as="span"
+                        size={{ initial: "1", lg: "2" }}
+                      >
+                        You can pause this code at any time.
+                      </Text>
+                    </Flex>
+                  </div>
+                )
+              }
 
               <div className="flex justify-end gap-3">
                 <Button
@@ -131,6 +167,7 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
                 />
                 <Button
                   type="button"
+                  variant={props.archived ? "primary" : "warning"}
                   onClick={handleArchiveRequest}
                   loading={archiving}
                   text={props.archived ? "Confirm unpause" : "Confirm pause"}
