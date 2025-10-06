@@ -67,11 +67,10 @@ export function QrCodeTitleColumn({
   });
 
   useEffect(() => {
-    console.log("qrCode.id === searchParams.get qrId", qrCode.id === searchParams.get("qrId"));
     if (qrCode.id === searchParams.get("qrId")) {
       console.log("readyCanvases", readyCanvases);
     }
-    if (qrCode.id === searchParams.get("qrId") && readyCanvases === 2) {
+    if (qrCode.id === searchParams.get("qrId") && readyCanvases >= 2) {
       handleOpenNewQr();
       queryParams({
         del: ["qrId"],

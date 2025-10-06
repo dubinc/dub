@@ -65,9 +65,6 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       svgContainerRef.current.style.display = "none";
 
       const renderSVGToCanvas = () => {
-        if (qrCodeId === searchParams.get("qrId")) {
-          console.log("renderSVGToCanvas");
-        }
         onCanvasReady?.();
         const svg = svgContainerRef.current?.querySelector("svg");
 
@@ -149,7 +146,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
         observer.disconnect();
         svgContainerRef.current?.replaceChildren();
       };
-    }, [qrCode, canvasRef, canvasSize.width, canvasSize.height, onCanvasReady, qrCodeId, searchParams.get("qrId")]);
+    }, [qrCode, canvasRef, canvasSize.width, canvasSize.height, onCanvasReady]);
 
     return (
       <div ref={containerRef} className="flex w-full flex-col gap-4">
