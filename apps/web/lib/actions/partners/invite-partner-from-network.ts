@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { createId } from "@/lib/api/create-id";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
@@ -63,6 +64,7 @@ export const invitePartnerFromNetworkAction = authActionClient
         },
       },
       create: {
+        id: createId({ prefix: "dpn_" }),
         programId,
         partnerId,
         invitedAt: new Date(),

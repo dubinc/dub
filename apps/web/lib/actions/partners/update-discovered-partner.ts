@@ -1,5 +1,6 @@
 "use server";
 
+import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { updateDiscoveredPartnerSchema } from "@/lib/zod/schemas/partner-network";
 import { prisma } from "@dub/prisma";
@@ -22,6 +23,7 @@ export const updateDiscoveredPartnerAction = authActionClient
         },
       },
       create: {
+        id: createId({ prefix: "dpn_" }),
         partnerId,
         programId,
         starredAt: starred ? new Date() : null,

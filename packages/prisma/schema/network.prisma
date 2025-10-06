@@ -1,11 +1,14 @@
-
 model DiscoveredPartner {
+  id        String   @id @default(cuid())
   programId String
   partnerId String
 
   starredAt DateTime?
   ignoredAt DateTime?
   invitedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)

@@ -84,7 +84,7 @@ export function ProgramPartnerNetworkPageClient() {
           status,
         },
         {
-          exclude: ["tab"],
+          exclude: ["tab", "partnerId"],
         },
       )}`,
     fetcher,
