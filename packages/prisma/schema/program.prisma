@@ -23,6 +23,20 @@ enum PartnerUrlValidationMode {
   exact // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
 }
 
+enum Category {
+  Artificial_Intelligence
+  Development
+  Design
+  Productivity
+  Finance
+  Marketing
+  Ecommerce
+  Security
+  Education
+  Health
+  Consumer
+}
+
 model Program {
   id                           String                   @id @default(cuid())
   workspaceId                  String
@@ -77,14 +91,14 @@ model Program {
   discountCodes            DiscountCode[]
   campaigns                Campaign[]
   discoveredPartners       DiscoveredPartner[]
-  industryInterests        ProgramIndustryInterest[]
-  
+  categories               ProgramCategory[]
+
   // Program similarity relations
-  similarityRelations      ProgramSimilarity[]       @relation("ProgramSimilarities")
-  similarToPrograms        ProgramSimilarity[]       @relation("SimilarPrograms")
-  
+  similarityRelations ProgramSimilarity[] @relation("ProgramSimilarities")
+  similarToPrograms   ProgramSimilarity[] @relation("SimilarPrograms")
+
   // Partner performance tracking
-  partnerPerformances      PartnerProgramPerformance[]
+  partnerPerformances PartnerProgramPerformance[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -158,11 +172,11 @@ model ProgramApplication {
   @@index(email)
 }
 
-model ProgramIndustryInterest {
-  programId        String
-  industryInterest IndustryInterest
+model ProgramCategory {
+  programId String
+  category  Category
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
-  @@unique([programId, industryInterest])
+  @@unique([programId, category])
 }
