@@ -74,7 +74,7 @@
     },
     {
       "path": "/api/cron/calculate-partner-program-performances",
-      "schedule": "0,30 * * * *"
+      "schedule": "*/5 * * * *"
     }
   ],
   "functions": {
