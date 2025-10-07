@@ -109,7 +109,7 @@ const InvoiceCard = ({
   displayPaymentMethod: boolean;
 }) => {
   const invoicePaymentMethod =
-    INVOICE_PAYMENT_METHODS[invoice.invoicePaymentMethod ?? "ach"];
+    INVOICE_PAYMENT_METHODS[invoice.paymentMethod ?? "ach"];
 
   return (
     <div className="px-3 py-4 sm:px-12">
