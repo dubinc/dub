@@ -15,6 +15,7 @@ import { RefObject, useCallback, useEffect, useRef, useState } from "react";
 import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
 import { Session } from '@/lib/auth';
 import { useSearchParams } from 'next/navigation';
+import { useNewQrContext } from 'app/app.dub.co/(dashboard)/[slug]/helpers/new-qr-context';
 
 interface QrCodeTitleColumnProps {
   user: Session["user"];
@@ -35,11 +36,10 @@ export function QrCodeTitleColumn({
 }: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, title } = qrCode?.link ?? {};
   const { isMobile, width } = useMediaQuery();
-  const searchParams = useSearchParams();
-  const { queryParams } = useRouterStuff();
   const [isPreviewCanvasReady, setIsPreviewCanvasReady] = useState<boolean>(false);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const modalCanvasRef = useRef<HTMLCanvasElement>(null);
+  const { newQrId, setNewQrId } = useNewQrContext();
 
   const handleTitleCanvasReady = useCallback(() => {
     setIsPreviewCanvasReady(true);
@@ -56,13 +56,11 @@ export function QrCodeTitleColumn({
   });
 
   useEffect(() => {
-    if (qrCode.id === searchParams.get("qrId") && isPreviewCanvasReady) {
+    if (qrCode.id === newQrId && isPreviewCanvasReady) {
       handleOpenNewQr();
-      queryParams({
-        del: ["qrId"],
-      });
+      setNewQrId?.(null);
     }
-  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams, isPreviewCanvasReady]);
+  }, [qrCode.id, newQrId, setNewQrId, handleOpenNewQr, isPreviewCanvasReady]);
 
   return (
     <>
