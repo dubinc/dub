@@ -184,6 +184,20 @@ function PayoutInvoiceSheetContent() {
     return option || null;
   }, [selectedPaymentMethod, paymentMethodOptions]);
 
+  const cutoffPeriodOptions = useMemo(() => {
+    return CUTOFF_PERIOD.map(({ id, label, value }) => ({
+      value: id,
+      label: `${label} (${formatDate(value)})`,
+    }));
+  }, []);
+
+  const selectedCutoffPeriodOption = useMemo(() => {
+    return (
+      cutoffPeriodOptions.find((option) => option.value === cutoffPeriod) ||
+      null
+    );
+  }, [cutoffPeriod, cutoffPeriodOptions]);
+
   useEffect(() => {
     if (
       !selectedPaymentMethod &&
@@ -214,7 +228,7 @@ function PayoutInvoiceSheetContent() {
       {
         key: "Method",
         value: (
-          <div className="w- flex w-full items-center justify-between gap-2 pr-6">
+          <div className="w- flex w-64 items-center justify-between gap-2 pr-6">
             {paymentMethodsLoading ? (
               <div className="h-[30px] w-full animate-pulse rounded-md bg-neutral-200" />
             ) : (
@@ -260,17 +274,26 @@ function PayoutInvoiceSheetContent() {
       {
         key: "Cutoff Period",
         value: (
-          <select
-            value={cutoffPeriod}
-            className="h-auto w-fit rounded-md border border-neutral-200 py-1 text-xs focus:border-neutral-600 focus:ring-neutral-600"
-            onChange={(e) => setCutoffPeriod(e.target.value)}
-          >
-            {CUTOFF_PERIOD.map(({ id, label, value }) => (
-              <option key={id} value={id}>
-                {label} ({formatDate(value)})
-              </option>
-            ))}
-          </select>
+          <div className="w-60">
+            <Combobox
+              options={cutoffPeriodOptions}
+              selected={selectedCutoffPeriodOption}
+              setSelected={(option: ComboboxOption) => {
+                if (!option) {
+                  return;
+                }
+
+                setCutoffPeriod(option.value as CUTOFF_PERIOD_TYPES);
+              }}
+              placeholder="Select cutoff period"
+              buttonProps={{
+                className:
+                  "h-auto border border-neutral-200 px-3 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600",
+              }}
+              matchTriggerWidth
+              hideSearch
+            />
+          </div>
         ),
         tooltipContent:
           "Cutoff period in UTC. If set, only commissions accrued up to the cutoff period will be included in the payout invoice.",
@@ -324,7 +347,14 @@ function PayoutInvoiceSheetContent() {
           ),
       },
     ];
-  }, [amount, paymentMethods, selectedPaymentMethod, cutoffPeriod]);
+  }, [
+    amount,
+    paymentMethods,
+    selectedPaymentMethod,
+    cutoffPeriod,
+    cutoffPeriodOptions,
+    selectedCutoffPeriodOption,
+  ]);
 
   const partnerColumn = useMemo(
     () => ({
