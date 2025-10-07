@@ -44,7 +44,7 @@ export function AnimatedEmptyState({
           style={{ "--scroll": "-50%" } as CSSProperties}
           className="animate-infinite-scroll-y flex flex-col [animation-duration:10s]"
         >
-          {[...Array(6)].map((_, idx) => (
+          {[...Array(cardCount * 2)].map((_, idx) => (
             <Card key={idx} className={cardClassName}>
               {typeof cardContent === "function"
                 ? cardContent(idx % cardCount)

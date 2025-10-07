@@ -18,21 +18,22 @@ model Project {
   totalLinks  Int @default(0) // Total number of links in the workspace
   totalClicks Int @default(0) // Total number of clicks in the workspace
 
-  usage        Int   @default(0)
-  usageLimit   Int   @default(1000)
-  linksUsage   Int   @default(0)
-  linksLimit   Int   @default(25)
-  payoutsUsage Int   @default(0)
-  payoutsLimit Int   @default(0)
-  payoutFee    Float @default(0.05) // processing fee (in decimals) for partner payouts
-  domainsLimit Int   @default(3)
-  tagsLimit    Int   @default(5)
-  foldersUsage Int   @default(0)
-  foldersLimit Int   @default(0)
-  groupsLimit  Int   @default(0)
-  usersLimit   Int   @default(1)
-  aiUsage      Int   @default(0)
-  aiLimit      Int   @default(10)
+  usage               Int   @default(0)
+  usageLimit          Int   @default(1000)
+  linksUsage          Int   @default(0)
+  linksLimit          Int   @default(25)
+  payoutsUsage        Int   @default(0)
+  payoutsLimit        Int   @default(0)
+  payoutFee           Float @default(0.05) // processing fee (in decimals) for partner payouts
+  domainsLimit        Int   @default(3)
+  tagsLimit           Int   @default(5)
+  foldersUsage        Int   @default(0)
+  foldersLimit        Int   @default(0)
+  groupsLimit         Int   @default(0)
+  usersLimit          Int   @default(1)
+  aiUsage             Int   @default(0)
+  aiLimit             Int   @default(10)
+  networkInvitesLimit Int   @default(0)
 
   referralLinkId  String? @unique
   referredSignups Int     @default(0)
