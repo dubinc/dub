@@ -60,7 +60,7 @@ export function QrCodeTitleColumn({
       setTimeout(() => {
         handleOpenNewQr();
         setNewQrId?.(null);
-      }, 50);
+      }, 100);
     }
   }, [qrCode.id, newQrId, setNewQrId, handleOpenNewQr, isPreviewCanvasReady]);
 
