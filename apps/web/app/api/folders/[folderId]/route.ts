@@ -42,7 +42,7 @@ export const PATCH = withWorkspace(
   async ({ req, params, workspace, session }) => {
     const { folderId } = params;
 
-    const { name, accessLevel } = updateFolderSchema.parse(
+    const { name, description, accessLevel } = updateFolderSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -76,6 +76,7 @@ export const PATCH = withWorkspace(
         },
         data: {
           name,
+          description,
           accessLevel,
         },
       });
