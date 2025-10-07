@@ -3,7 +3,7 @@ import useSWR, { SWRConfiguration } from "swr";
 
 export default function useGuide(guideKey: string, swrOpts?: SWRConfiguration) {
   const { data: guideMarkdown, error } = useSWR(
-    `/api/docs/guides/${guideKey}.md`,
+    `/api/docs/guides/${guideKey}`,
     textFetcher,
     {
       keepPreviousData: true,

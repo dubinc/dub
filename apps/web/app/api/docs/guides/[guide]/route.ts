@@ -3,8 +3,7 @@ import { getIntegrationGuideMarkdown } from "@/lib/get-integration-guide-markdow
 
 // GET /api/docs/guides/[guide] - get doc guide markdown
 export const GET = withSession(async ({ params }) => {
-  const { guide: rawGuide } = params;
-  const guide = rawGuide.replace(".md", "").toLowerCase();
+  const { guide } = params;
 
   const markdown = await getIntegrationGuideMarkdown(guide);
 

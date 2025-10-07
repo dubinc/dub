@@ -145,7 +145,7 @@ export default function WorkspaceAnalytics() {
   };
 
   return (
-    <div className="flex h-full flex-col gap-8 overflow-hidden">
+    <div className="mx-auto flex h-full w-full max-w-[800px] flex-col gap-8 overflow-hidden">
       <div className="flex flex-wrap justify-between gap-6">
         <h1 className="text-2xl font-semibold tracking-tight text-black">
           Analytics

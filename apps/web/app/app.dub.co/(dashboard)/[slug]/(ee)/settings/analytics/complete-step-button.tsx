@@ -8,11 +8,6 @@ export const CompleteStepButton = ({
   loading?: boolean;
 }) => {
   return (
-    <Button
-      text="Mark step as complete"
-      className=""
-      loading={loading}
-      onClick={onClick}
-    />
+    <Button text="Mark step as complete" loading={loading} onClick={onClick} />
   );
 };

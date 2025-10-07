@@ -105,7 +105,6 @@ const AddHostnameForm = ({
             variant="primary"
             text="Add hostname"
             className="h-8 w-fit px-3"
-            onClick={addHostname}
             disabled={!isValidHostname(hostname)}
             loading={processing}
             disabledTooltip={permissionsError || undefined}

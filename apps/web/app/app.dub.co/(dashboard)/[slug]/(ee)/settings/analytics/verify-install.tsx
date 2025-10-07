@@ -1,12 +1,13 @@
 import { verifyWorkspaceSetup } from "@/lib/actions/verify-workspace-setup";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Button, Plug2 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useMemo } from "react";
 import { toast } from "sonner";
+import { CompleteStepButton } from "./complete-step-button";
 
 type VerifyStatus = "pending" | "success" | "error";
 
@@ -14,13 +15,13 @@ const VerifyInstallIcon = ({ status }: { status: VerifyStatus }) => {
   return (
     <div
       className={cn(
-        "flex size-[42px] items-center justify-center rounded-full",
+        "text-content-default flex size-10 items-center justify-center rounded-full",
         status === "pending" && "border border-blue-200 bg-white",
-        status === "error" && "",
-        status === "success" && "",
+        status === "error" && "bg-red-400 text-red-900",
+        status === "success" && "bg-green-400 text-green-800",
       )}
     >
-      <Plug2 className="text-content-default size-[18px]" />
+      <Plug2 className="size-4" />
     </div>
   );
 };
@@ -37,10 +38,10 @@ const VerifyInstall = () => {
 
   const error: any | null = null;
   const response: VerificationResponse | null = null;
-  //   const response: VerificationResponse | null = {
-  //     verifiedAt: new Date(),
-  //     verifiedBy: { name: "Ian" },
-  //   };
+  // const response: VerificationResponse | null = {
+  //   verifiedAt: new Date(),
+  //   verifiedBy: { name: "Ian" },
+  // };
 
   const { executeAsync, isPending } = useAction(verifyWorkspaceSetup, {
     async onSuccess(response) {
@@ -64,30 +65,9 @@ const VerifyInstall = () => {
     return "pending";
   }, [response, error]);
 
-  const title = useMemo(() => {
-    if (error) return "Unable to connect";
-    if (response) return "Successfully connected!";
-    return "Verify your install";
-  }, [response, error]);
-
-  const subtitle = useMemo(() => {
-    if (error)
-      return (
-        <>
-          Try again. For more help, see our{" "}
-          <Link href={"/docs"} className="underline">
-            docs
-          </Link>{" "}
-          or{" "}
-          <Link href={"/contact"} className="underline">
-            contact support
-          </Link>
-          .
-        </>
-      );
-    if (response) return "You’re connected and ready to track conversions";
-    return "Test your connection to Dub";
-  }, [response, error]);
+  const [complete, markComplete, { loading }] = useWorkspaceStore<boolean>(
+    "analyticsSettingsConnectionSetupComplete",
+  );
 
   return (
     <div
@@ -113,34 +93,55 @@ const VerifyInstall = () => {
           <div className="flex flex-col items-center">
             <VerifyInstallIcon status={status} />
 
-            <div className="text-content-emphasis font-semibold">{title}</div>
+            <div className="text-content-emphasis mt-3 font-semibold">
+              {error
+                ? "Unable to connect"
+                : response
+                  ? "Successfully connected!"
+                  : "Verify your install"}
+            </div>
 
             <p className="text-content-emphasis text-sm font-medium">
-              {subtitle}
+              {error ? (
+                <>
+                  Try again. For more help, see our{" "}
+                  <Link href={"/docs"} className="underline">
+                    docs
+                  </Link>{" "}
+                  or{" "}
+                  <Link href={"/contact"} className="underline">
+                    contact support
+                  </Link>
+                  .
+                </>
+              ) : response ? (
+                "You’re connected and ready to track conversions"
+              ) : (
+                "Test your connection to Dub"
+              )}
             </p>
           </div>
 
-          <Button
-            className="mt-8"
-            text={isPending ? "Verifying..." : "Verify"}
-            type="submit"
-            loading={isPending}
-            disabled={isPending}
-            variant={status === "pending" ? "success" : "primary"}
-          />
+          <div className="mt-4">
+            {status !== "success" && (
+              <Button
+                text={isPending ? "Verifying..." : "Verify"}
+                type="submit"
+                loading={isPending}
+                disabled={isPending}
+                variant={status === "pending" ? "success" : "primary"}
+              />
+            )}
 
-          <motion.div
-            animate={{
-              height: !!response ? "auto" : 0,
-              overflow: "hidden",
-            }}
-            transition={{
-              duration: 0.15,
-            }}
-            initial={false}
-          >
-            Last verified by
-          </motion.div>
+            {status === "success" && !complete && (
+              <CompleteStepButton
+                onClick={() => {
+                  markComplete(true);
+                }}
+                loading={loading}
+              />
+            )}
+          </div>
         </div>
       </form>
     </div>

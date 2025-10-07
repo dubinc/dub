@@ -14,7 +14,7 @@ const OutboundDomainTrackingSection = () => {
 
   return (
     <div className="flex flex-1 flex-col rounded-lg border border-neutral-200 bg-neutral-50">
-      <div className="gap-4m flex items-center justify-between p-5">
+      <div className="gap-4m flex items-center justify-between p-3">
         <div className="flex min-w-0 items-center gap-4">
           <div className="overflow-hidden">
             <label

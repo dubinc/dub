@@ -2,9 +2,8 @@
 
 import { PropsWithChildren } from "react";
 
-import { Button, Check2 } from "@dub/ui";
-import { cn } from "@dub/utils";
-import { ChevronDown } from "lucide-react";
+import { Button, Check2, ChevronRight } from "@dub/ui";
+import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { ReactNode } from "react";
 
@@ -39,8 +38,13 @@ const Step = ({
     <div className="flex items-start gap-[22px] rounded-xl border border-neutral-200 bg-white p-5">
       <StepNumber number={step} complete={complete} />
 
-      <div className="flex flex-1 flex-col gap-5">
-        <div className="flex items-center justify-between gap-2">
+      <div className="flex flex-1 flex-col">
+        <div
+          className="group/step-header flex cursor-pointer items-center justify-between gap-2"
+          onClick={(e) => {
+            if (!isClickOnInteractiveChild(e)) toggleExpanded();
+          }}
+        >
           <div>
             <div className="text-content-emphasis text-base font-semibold">
               {title}
@@ -54,29 +58,35 @@ const Step = ({
 
           <Button
             variant="plain"
-            className="hover:bg-bg-subtle size-8 w-fit rounded-full border-none px-2"
+            className="hover:bg-bg-subtle group-hover/step-header:bg-bg-subtle group size-8 w-fit rounded-full border-none px-2"
             data-state={expanded ? "open" : "closed"}
             text={
-              <ChevronDown className="text-content-emphasis size-4 transition-transform duration-75 data-[state=open]:rotate-180" />
+              <ChevronRight className="text-content-emphasis size-4 transition-transform duration-75 group-data-[state=open]:rotate-90" />
             }
             onClick={() => toggleExpanded()}
           />
         </div>
 
-        <AnimatePresence initial={false}>
-          {expanded && (
-            <motion.div
-              className={cn(contentClassName, "flex-1 overflow-y-scroll")}
-              key="step-content"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.2, ease: "easeInOut" }}
-            >
-              {children}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <motion.div
+          initial={false}
+          animate={{ height: expanded ? "auto" : 0 }}
+          className="overflow-hidden"
+        >
+          <AnimatePresence initial={false}>
+            {expanded && (
+              <motion.div
+                className={cn(contentClassName, "pt-5")}
+                key="step-content"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+              >
+                {children}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
       </div>
     </div>
   );
