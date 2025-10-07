@@ -69,7 +69,7 @@ function PayoutInvoiceSheetContent() {
     payoutsUsage,
     payoutsLimit,
     payoutFee,
-    fasterAchPayouts,
+    fastDirectDebitPayouts,
   } = useWorkspace();
 
   const { paymentMethods, loading: paymentMethodsLoading } =
@@ -147,7 +147,7 @@ function PayoutInvoiceSheetContent() {
           },
         ];
 
-        if (fasterAchPayouts) {
+        if (fastDirectDebitPayouts) {
           methods.unshift({
             ...base,
             id: `${pm.id}-fast`,
@@ -167,7 +167,7 @@ function PayoutInvoiceSheetContent() {
     });
 
     return methods;
-  }, [paymentMethods, payoutFee, fasterAchPayouts]);
+  }, [paymentMethods, payoutFee, fastDirectDebitPayouts]);
 
   const paymentMethodOptions = useMemo(() => {
     return finalPaymentMethods?.map((method) => ({
@@ -612,10 +612,10 @@ function PayoutInvoiceSheetContent() {
 }
 
 function FastAchPayoutToggle() {
-  const { fasterAchPayouts } = useWorkspace();
+  const { fastDirectDebitPayouts } = useWorkspace();
   const [isVisible, setIsVisible] = useState(true);
 
-  if (!isVisible || fasterAchPayouts) {
+  if (!isVisible || fastDirectDebitPayouts) {
     return null;
   }
 
@@ -637,7 +637,7 @@ function FastAchPayoutToggle() {
         </div>
       </div>
 
-      {!fasterAchPayouts && (
+      {!fastDirectDebitPayouts && (
         <div className="flex items-center gap-0.5">
           <Button
             variant="secondary"

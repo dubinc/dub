@@ -52,7 +52,7 @@ export const confirmPayoutsAction = authActionClient
       throw new Error("Workspace does not have a valid Stripe ID.");
     }
 
-    if (fastSettlement && !workspace.fasterAchPayouts) {
+    if (fastSettlement && !workspace.fastDirectDebitPayouts) {
       throw new Error(
         "Fast settlement is not enabled for this program. Contact sales to enable it.",
       );
