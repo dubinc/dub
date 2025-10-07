@@ -9,6 +9,7 @@ type FolderRecord = z.infer<typeof FolderSchema>;
 const expectedFolder = {
   id: expect.any(String),
   type: "default",
+  description: null,
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
 };
