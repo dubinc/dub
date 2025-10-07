@@ -112,9 +112,9 @@ const InvoiceCard = ({
     INVOICE_PAYMENT_METHODS[invoice.paymentMethod ?? "ach"];
 
   return (
-    <div className="px-3 py-4 sm:px-12">
+    <div className="px-3 py-4 xl:px-12">
       {/* Mobile layout */}
-      <div className="block sm:hidden">
+      <div className="block xl:hidden">
         <div className="mb-4 flex items-start justify-between">
           <div className="text-sm">
             <div className="font-medium">{invoice.description}</div>
@@ -201,8 +201,8 @@ const InvoiceCard = ({
       </div>
 
       {/* Desktop layout */}
-      <div className="hidden sm:grid sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-        <div className="text-sm sm:col-span-1">
+      <div className="hidden xl:grid xl:grid-cols-4 xl:gap-4">
+        <div className="text-sm xl:col-span-1">
           <div className="font-medium">{invoice.description}</div>
           <div className="text-neutral-500">
             {new Date(invoice.createdAt).toLocaleDateString("en-US", {
