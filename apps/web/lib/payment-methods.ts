@@ -26,13 +26,13 @@ export const calculatePayoutFeeForMethod = ({
 
 export const PAYMENT_METHODS = Object.freeze({
   link: {
-    label: "link",
+    label: "Link",
     type: "link",
     icon: CreditCard,
     duration: "Instantly",
   },
   card: {
-    label: "card",
+    label: "Card",
     type: "card",
     icon: CreditCard,
     duration: "Instantly",

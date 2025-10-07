@@ -171,6 +171,7 @@ function PayoutInvoiceSheetContent() {
       value: method.id,
       label: method.title,
       icon: method.icon,
+      ...(method.fastSettlement && { meta: "+$25" }),
     }));
   }, [finalPaymentMethods]);
 
@@ -228,7 +229,7 @@ function PayoutInvoiceSheetContent() {
       {
         key: "Method",
         value: (
-          <div className="w- flex w-64 items-center justify-between gap-2 pr-6">
+          <div className="flex w-full items-center justify-between gap-2">
             {paymentMethodsLoading ? (
               <div className="h-[30px] w-full animate-pulse rounded-md bg-neutral-200" />
             ) : (
@@ -246,6 +247,13 @@ function PayoutInvoiceSheetContent() {
                     );
 
                     setSelectedPaymentMethod(selectedMethod || null);
+                  }}
+                  optionRight={(option) => {
+                    return option.meta ? (
+                      <span className="rounded-md bg-neutral-100 p-1 text-xs font-semibold text-neutral-700">
+                        {option.meta}
+                      </span>
+                    ) : null;
                   }}
                   placeholder="Select payment method"
                   buttonProps={{
@@ -274,7 +282,7 @@ function PayoutInvoiceSheetContent() {
       {
         key: "Cutoff Period",
         value: (
-          <div className="w-60">
+          <div className="w-full">
             <Combobox
               options={cutoffPeriodOptions}
               selected={selectedCutoffPeriodOption}
@@ -516,12 +524,12 @@ function PayoutInvoiceSheetContent() {
             const result = await confirmPayouts({
               workspaceId,
               paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
+              fastSettlement: selectedPaymentMethod.fastSettlement,
               cutoffPeriod,
               excludedPayoutIds,
               amount: amount ?? 0,
               fee: fee ?? 0,
               total: total ?? 0,
-              fastSettlement: selectedPaymentMethod.fastSettlement,
             });
 
             if (!result?.data?.invoiceId) return false;
