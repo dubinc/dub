@@ -499,6 +499,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                               await handleUpload(file)
                             }
                             disabled={files.length >= MAX_SUBMISSION_FILES}
+                            maxFileSizeMB={5}
                           />
                         </div>
                       </div>

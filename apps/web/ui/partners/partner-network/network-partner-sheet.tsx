@@ -1,6 +1,7 @@
 import { invitePartnerFromNetworkAction } from "@/lib/actions/partners/invite-partner-from-network";
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import usePartnerNetworkInvitesUsage from "@/lib/swr/use-partner-network-invites-usage";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
@@ -18,10 +19,11 @@ import { timeAgo } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { toast } from "sonner";
-import { PartnerAbout } from "./partner-about";
-import { PartnerComments } from "./partner-comments";
-import { PartnerInfoCards } from "./partner-info-cards";
-import { PartnerSheetTabs } from "./partner-sheet-tabs";
+import { PartnerAbout } from "../partner-about";
+import { PartnerComments } from "../partner-comments";
+import { PartnerInfoCards } from "../partner-info-cards";
+import { PartnerSheetTabs } from "../partner-sheet-tabs";
+import { InvitesUsage } from "./invites-usage";
 
 type NetworkPartnerSheetProps = {
   partner: NetworkPartnerProps;
@@ -192,14 +194,28 @@ function PartnerControls({
     },
   });
 
-  useKeyboardShortcut("s", () => setShowConfirmModal(true), { sheet: true });
-
   const alreadyInvited = Boolean(partner.invitedAt || partner.recruitedAt);
+
+  const { remaining } = usePartnerNetworkInvitesUsage({
+    enabled: !alreadyInvited,
+  });
+
+  const disabled = alreadyInvited || remaining === 0;
+
+  useKeyboardShortcut("s", () => setShowConfirmModal(true), {
+    sheet: true,
+    enabled: !disabled,
+  });
 
   return (
     <>
       {confirmModal}
-      <div className="flex justify-end gap-2">
+      <div className="flex items-center justify-end gap-2">
+        {!alreadyInvited && (
+          <div className="mr-2">
+            <InvitesUsage />
+          </div>
+        )}
         {!alreadyInvited && (
           <div className="flex-shrink-0">
             <PartnerIgnoreButton partner={partner} setIsOpen={setIsOpen} />
@@ -215,8 +231,8 @@ function PartnerControls({
                 ? `Invited ${timeAgo(partner.invitedAt, { withAgo: true })}`
                 : "Send invite"
           }
-          disabled={alreadyInvited}
-          shortcut={alreadyInvited ? undefined : "S"}
+          disabled={disabled}
+          shortcut={disabled ? undefined : "S"}
           loading={isPending}
           onClick={() => setShowConfirmModal(true)}
           className="w-fit shrink-0"
