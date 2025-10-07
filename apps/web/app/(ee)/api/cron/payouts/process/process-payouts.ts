@@ -177,12 +177,14 @@ export async function processPayouts({
     customer: workspace.stripeId!,
     payment_method_types: [paymentMethod.type],
     payment_method: paymentMethod.id,
-    payment_method_options: {
-      us_bank_account: {
-        preferred_settlement_speed:
-          invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+    ...(paymentMethod.type === "us_bank_account" && {
+      payment_method_options: {
+        us_bank_account: {
+          preferred_settlement_speed:
+            invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+        },
       },
-    },
+    }),
     currency,
     confirmation_method: "automatic",
     confirm: true,
