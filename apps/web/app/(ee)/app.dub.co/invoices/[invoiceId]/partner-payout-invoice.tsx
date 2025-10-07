@@ -138,6 +138,14 @@ export async function PartnerPayoutInvoice({
   const fastAchFee =
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
 
+  // guard against invalid invoice amounts
+  if (invoice.amount === 0) {
+    throw new Error("Invoice amount cannot be zero");
+  }
+  if (invoice.fee < fastAchFee) {
+    throw new Error("Invoice fee cannot be less than Fast ACH fee");
+  }
+
   const invoiceSummaryDetails = [
     {
       label: "Invoice amount",

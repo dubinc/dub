@@ -232,7 +232,7 @@ function PayoutInvoiceSheetContent() {
       ? FAST_ACH_FEE_CENTS
       : 0;
 
-    const fee = amount * selectedPaymentMethod.fee + fastAchFee;
+    const fee = Math.round(amount * selectedPaymentMethod.fee + fastAchFee);
     const total = amount + fee;
 
     return {

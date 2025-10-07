@@ -172,7 +172,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
     }),
   ),
   publishableKey: z.string().nullable(),
-  fastDirectDebitPayouts: z.boolean().nullable().default(false),
+  fastDirectDebitPayouts: z.boolean().default(false),
 });
 
 export const OnboardingUsageSchema = z.object({
