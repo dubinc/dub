@@ -30,9 +30,9 @@ export async function GET(req: NextRequest) {
         id: {
           not: ACME_PROGRAM_ID,
         },
-        // categories: {
-        //   some: {},
-        // },
+        categories: {
+          some: {},
+        },
       },
       select: {
         id: true,

@@ -188,6 +188,7 @@ export async function calculateSimilarityForProgram(programId: string) {
 
   console.log(
     `Stored ${similarities.length} similarities for program ${sourceProgram.name}`,
+    similarities,
   );
 
   return similarities;
