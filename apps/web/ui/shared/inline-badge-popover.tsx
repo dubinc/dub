@@ -17,6 +17,7 @@ import {
   ReactNode,
   useContext,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from "react";
@@ -96,17 +97,16 @@ export function InlineBadgePopoverMenu<T extends any>({
   selectedValue?: T | T[];
   search?: boolean;
 }) {
+  const { setIsOpen, isOpen } = useContext(InlineBadgePopoverContext);
+
   const isMultiSelect = Array.isArray(selectedValue);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
-  const [sortedItems, setSortedItems] = useState<MenuItem<T>[]>(items);
-
-  // Sort items so that the selected values are always at the top
-  useEffect(() => {
-    setSortedItems(
-      items.sort((a, b) => {
+  const sortedItems = useMemo(
+    () =>
+      items.toSorted((a, b) => {
         const aSelected = isMultiSelect
           ? selectedValue?.includes(a.value)
           : selectedValue === a.value;
@@ -120,8 +120,16 @@ export function InlineBadgePopoverMenu<T extends any>({
         // Then sort as per the original order of the items
         return items.indexOf(a) - items.indexOf(b);
       }),
-    );
-  }, [items, isMultiSelect, selectedValue]);
+    [items, isMultiSelect, selectedValue],
+  );
+
+  const [displayedItems, setDisplayedItems] =
+    useState<MenuItem<T>[]>(sortedItems);
+
+  // Update the displayed items to sorted when closed
+  useEffect(() => {
+    if (!isOpen) setDisplayedItems(sortedItems);
+  }, [isOpen, sortedItems]);
 
   return (
     <Command loop className="focus:outline-none">
@@ -140,7 +148,7 @@ export function InlineBadgePopoverMenu<T extends any>({
             ref={scrollRef}
             onScroll={updateScrollProgress}
           >
-            {sortedItems.map(
+            {displayedItems.map(
               ({ icon, text, value, onSelect: itemOnSelect }) => (
                 <Command.Item
                   key={text}
@@ -148,6 +156,7 @@ export function InlineBadgePopoverMenu<T extends any>({
                   onSelect={() => {
                     itemOnSelect?.();
                     onSelect?.(value);
+                    !isMultiSelect && setIsOpen(false);
                   }}
                   className="flex cursor-pointer items-center justify-between rounded-md px-1.5 py-1 transition-colors duration-150 data-[selected=true]:bg-neutral-100"
                 >
