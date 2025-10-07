@@ -6,7 +6,12 @@ import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { ResourceSection } from "@/ui/partners/resources/resource-section";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { FileContent, FileZip2, Link4, Palette2, Post } from "@dub/ui/icons";
-import { formatFileSize, getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
+import {
+  formatFileSize,
+  getApexDomain,
+  getPrettyUrl,
+  GOOGLE_FAVICON_URL,
+} from "@dub/utils";
 
 const emptyStateIcons = [Post, Palette2, FileZip2, Link4];
 
@@ -97,8 +102,8 @@ export function ResourcesPageClient() {
                     </div>
                   }
                   title={link.name}
-                  description={link.url}
-                  copyText={link.url}
+                  description={getPrettyUrl(link.url)}
+                  visitUrl={link.url}
                 />
               ))}
             </ResourceSection>

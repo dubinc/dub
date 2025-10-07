@@ -10,6 +10,7 @@ import {
   capitalize,
   formatFileSize,
   getApexDomain,
+  getPrettyUrl,
   GOOGLE_FAVICON_URL,
 } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -190,7 +191,7 @@ export function ProgramBrandAssets() {
                           </div>
                         }
                         title={link.name}
-                        description={link.url}
+                        description={getPrettyUrl(link.url)}
                         visitUrl={link.url}
                         copyText={link.url}
                         onDelete={() => handleDelete("link", link.id)}

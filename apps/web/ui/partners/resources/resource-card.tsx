@@ -69,7 +69,7 @@ export function ResourceCard({
         </div>
       </div>
       <div className="relative">
-        {onDelete || (downloadUrl && copyText) || visitUrl ? (
+        {onDelete || (downloadUrl && copyText && visitUrl) ? (
           <Popover
             content={
               <div className="grid w-full grid-cols-1 gap-px p-2 sm:w-48">
@@ -94,6 +94,21 @@ export function ResourceCard({
                   </a>
                 )}
 
+                {copyText && (
+                  <Button
+                    text={`Copy ${resourceType}`}
+                    variant="outline"
+                    onClick={() => {
+                      copyToClipboard(copyText, {
+                        onSuccess: () => toast.success("Copied to clipboard"),
+                      });
+                      setOpenPopover(false);
+                    }}
+                    icon={<Copy className="size-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
+
                 {visitUrl && (
                   <a
                     href={visitUrl}
@@ -106,24 +121,10 @@ export function ResourceCard({
                     onClick={() => setOpenPopover(false)}
                   >
                     <Link className="size-4" />
-                    Visit
+                    Visit {resourceType}
                   </a>
                 )}
 
-                {copyText && (
-                  <Button
-                    text="Copy"
-                    variant="outline"
-                    onClick={() => {
-                      copyToClipboard(copyText, {
-                        onSuccess: () => toast.success("Copied to clipboard"),
-                      });
-                      setOpenPopover(false);
-                    }}
-                    icon={<Copy className="size-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                  />
-                )}
                 {onDelete && (
                   <Button
                     text={`Delete ${resourceType}`}
@@ -219,6 +220,17 @@ export function ResourceCard({
                 className="h-8 px-3"
                 onClick={() => copyToClipboard(copyText)}
               />
+            )}
+            {visitUrl && (
+              <a href={visitUrl} target="_blank" rel="noopener noreferrer">
+                <Button
+                  icon={<Link className="size-4" />}
+                  text="Visit URL"
+                  variant="secondary"
+                  className="h-8 px-3"
+                  onClick={() => setOpenPopover(false)}
+                />
+              </a>
             )}
           </>
         )}
