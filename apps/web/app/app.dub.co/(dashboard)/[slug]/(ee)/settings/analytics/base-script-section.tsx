@@ -19,7 +19,7 @@ const BaseScriptSection = () => {
               Base script
             </label>
             <p className="text-content-subtle text-sm font-medium">
-              Required for all Dub tracking
+              For basic cookie-management and client-side click tracking.
             </p>
           </div>
         </div>

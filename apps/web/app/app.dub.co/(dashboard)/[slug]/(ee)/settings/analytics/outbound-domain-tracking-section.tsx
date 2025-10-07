@@ -2,7 +2,6 @@
 
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Switch } from "@dub/ui";
-import Link from "next/link";
 import { useId } from "react";
 
 const OutboundDomainTrackingSection = () => {
@@ -25,12 +24,14 @@ const OutboundDomainTrackingSection = () => {
             </label>
             <p className="text-content-subtle text-sm font-medium">
               Track outbound clicks to your other domains.{" "}
-              <Link
+              <a
+                href="https://dub.co/docs/sdks/client-side/features/cross-domain-tracking#cross-domain-tracking"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="underline"
-                href="/docs/sdks/client-side/introduction#cross-domain-tracking"
               >
                 Learn more
-              </Link>
+              </a>
             </p>
           </div>
         </div>

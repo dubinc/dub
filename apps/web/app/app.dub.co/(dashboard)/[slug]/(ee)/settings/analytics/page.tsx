@@ -20,7 +20,7 @@ const ConnectStep = ({ expanded, toggleExpanded }: BaseStepProps) => {
       id="connect"
       step={1}
       title="Connect to Dub"
-      subtitle="Select scripts to enable page, conversion, and outbound tracking."
+      subtitle="Select scripts to enable page, conversion, and outbound tracking"
       expanded={expanded}
       toggleExpanded={toggleExpanded}
       contentClassName="flex flex-col gap-8"
@@ -103,7 +103,7 @@ const SaleEventsStep = ({
       id="sale"
       step={3}
       title="Track sale events"
-      subtitle="Select scripts to enable page, conversion, and outbound tracking."
+      subtitle="For tracking purchases using our Stripe integration or our server side SDKs"
       expanded={expanded}
       toggleExpanded={toggleExpanded}
       complete={complete}

@@ -3,7 +3,6 @@
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Switch } from "@dub/ui";
 import { motion } from "motion/react";
-import Link from "next/link";
 import { useId } from "react";
 import { PublishableKeyForm } from "./publishable-key-form";
 
@@ -26,10 +25,15 @@ const ConversionTrackingSection = () => {
               Conversion Tracking
             </label>
             <p className="text-content-subtle text-sm font-medium">
-              For tracking all conversions.{" "}
-              <Link className="underline" href={"/docs/conversions/quickstart"}>
+              For client-side conversion tracking.{" "}
+              <a
+                href="https://dub.co/docs/conversions/quickstart"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline"
+              >
                 Learn more
-              </Link>
+              </a>
             </p>
           </div>
         </div>
