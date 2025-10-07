@@ -38,7 +38,9 @@ export function FolderInfoPanel() {
       {folder.description && (
         <div className="flex flex-col gap-2">
           <SectionHeader>Description</SectionHeader>
-          <p className="text-content-subtle text-sm">{folder.description}</p>
+          <p className="text-content-subtle whitespace-pre-wrap text-sm">
+            {folder.description}
+          </p>
         </div>
       )}
 
