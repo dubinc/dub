@@ -2,6 +2,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  FAST_ACH_FEE_CENTS,
   FOREX_MARKUP_RATE,
 } from "@/lib/partners/constants";
 import {
@@ -130,9 +131,17 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
+  let invoice = await prisma.invoice.findUniqueOrThrow({
+    where: {
+      id: invoiceId,
+    },
+  });
+
   const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
   const totalFee = Math.round(payoutAmount * payoutFee);
-  const total = payoutAmount + totalFee;
+  const fastAchFee =
+    invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
+  const total = payoutAmount + totalFee + fastAchFee;
   let convertedTotal = total;
 
   // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
@@ -161,7 +170,7 @@ export async function processPayouts({
   }
 
   // Update the invoice with the finalized payout amount, fee, and total
-  const invoice = await prisma.invoice.update({
+  invoice = await prisma.invoice.update({
     where: {
       id: invoiceId,
     },
