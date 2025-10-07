@@ -113,7 +113,7 @@ const InvoiceCard = ({
 
   return (
     <div className="px-4 py-6 sm:px-12">
-      {/* Mobile layout - button at top right */}
+      {/* Mobile layout */}
       <div className="block sm:hidden">
         <div className="mb-4 flex items-start justify-between">
           <div className="text-sm">
@@ -154,7 +154,6 @@ const InvoiceCard = ({
         </div>
 
         <div className="space-y-4">
-          {/* Total section */}
           <div className="text-left text-sm">
             <div className="font-medium">Total</div>
             <div className="flex items-center gap-1.5 text-neutral-500">
@@ -177,7 +176,6 @@ const InvoiceCard = ({
             </div>
           </div>
 
-          {/* Payment method section - shown on mobile for partner payouts */}
           {displayPaymentMethod && (
             <div className="text-left text-sm">
               <div className="font-medium">Method</div>
@@ -202,9 +200,8 @@ const InvoiceCard = ({
         </div>
       </div>
 
-      {/* Desktop layout - original grid */}
+      {/* Desktop layout */}
       <div className="hidden sm:grid sm:grid-cols-3 sm:gap-4 lg:grid-cols-4">
-        {/* Header section */}
         <div className="text-sm sm:col-span-1">
           <div className="font-medium">{invoice.description}</div>
           <div className="text-neutral-500">
@@ -216,7 +213,6 @@ const InvoiceCard = ({
           </div>
         </div>
 
-        {/* Total section */}
         <div className="text-left text-sm sm:col-span-1">
           <div className="font-medium">Total</div>
           <div className="flex items-center gap-1.5 text-neutral-500">
@@ -239,7 +235,6 @@ const InvoiceCard = ({
           </div>
         </div>
 
-        {/* Payment method section - desktop only for partner payouts */}
         {displayPaymentMethod && (
           <div className="text-left text-sm sm:col-span-1 lg:block">
             <div className="font-medium">Method</div>
@@ -262,7 +257,6 @@ const InvoiceCard = ({
           </div>
         )}
 
-        {/* Button section - desktop */}
         <div className="flex items-center justify-end sm:col-span-1 sm:justify-end">
           {invoice.pdfUrl ? (
             <a
