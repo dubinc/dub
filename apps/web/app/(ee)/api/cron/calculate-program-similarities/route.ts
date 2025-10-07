@@ -1,5 +1,5 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { calculateProgramSimilarities } from "@/lib/api/network/program-similarity-calculator";
+import { calculateProgramSimilarities } from "@/lib/api/network/calculate-program-similarities";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { NextRequest } from "next/server";
 import { logAndRespond } from "../utils";
