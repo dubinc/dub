@@ -2,6 +2,7 @@ import { FOLDER_WORKSPACE_ACCESS } from "@/lib/folder/constants";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { FolderAccessLevel, FolderSummary } from "@/lib/types";
+import { FOLDER_MAX_DESCRIPTION_LENGTH } from "@/lib/zod/schemas/folders";
 import {
   BlurImage,
   Button,
@@ -26,6 +27,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
   const { isMobile } = useMediaQuery();
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState<string | undefined>(undefined);
+  const [description, setDescription] = useState<string | undefined>(undefined);
   const [accessLevel, setAccessLevel] = useState<FolderAccessLevel>("write");
 
   // Create new folder
@@ -37,6 +39,7 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
       method: "POST",
       body: JSON.stringify({
         name,
+        description,
         ...(accessLevel && { accessLevel }),
       }),
     });
@@ -97,32 +100,56 @@ export const AddFolderForm = ({ onSuccess, onCancel }: AddFolderFormProps) => {
           <div className="flex flex-col gap-y-6 px-4 text-left sm:px-6">
             {step === 1 ? (
               <div className="mt-6">
-                <label className="text-sm font-normal text-neutral-500">
-                  Name
+                <label>
+                  <span className="text-content-emphasis text-sm font-medium">
+                    Name
+                  </span>
+                  <div className="mt-2 flex rounded-md">
+                    <input
+                      type="text"
+                      required
+                      autoComplete="off"
+                      className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+                      aria-invalid="true"
+                      placeholder="Acme Links"
+                      autoFocus={!isMobile}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          setStep(2);
+                        }
+                      }}
+                    />
+                  </div>
                 </label>
-                <div className="mt-2 flex rounded-md">
-                  <input
-                    type="text"
-                    required
-                    autoComplete="off"
-                    className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+
+                <label className="mt-6 block">
+                  <span className="text-content-emphasis text-sm font-medium">
+                    Description
+                  </span>
+                  <textarea
+                    className="mt-2 block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                     aria-invalid="true"
-                    placeholder="Acme Links"
-                    autoFocus={!isMobile}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") {
+                      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                         e.preventDefault();
                         setStep(2);
                       }
                     }}
                   />
-                </div>
+                  <span className="text-content-subtle text-xs tabular-nums">
+                    {description?.toString().length || 0}/
+                    {FOLDER_MAX_DESCRIPTION_LENGTH}
+                  </span>
+                </label>
               </div>
             ) : (
               <div className="mt-6">
-                <label className="text-sm font-normal text-neutral-500">
+                <label className="text-content-emphasis text-sm font-medium">
                   Workspace access
                 </label>
                 <div className="mt-2 flex h-10 items-center justify-between rounded-md border border-neutral-300 bg-white">

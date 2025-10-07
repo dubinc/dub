@@ -17,6 +17,7 @@ enum FolderUserRole {
 model Folder {
   id          String             @id @default(cuid())
   name        String
+  description String?
   projectId   String
   type        FolderType         @default(default)
   accessLevel FolderAccessLevel? // Access level of the folder within the workspace

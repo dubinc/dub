@@ -9,17 +9,18 @@ import {
   useCheckFolderPermission,
   useFolderPermissions,
 } from "@/lib/swr/use-folder-permissions";
+import { useFolderUsers } from "@/lib/swr/use-folder-users";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Folder, FolderUser } from "@/lib/types";
 import { FolderUserRole } from "@dub/prisma/client";
 import { Avatar, BlurImage, Button, Tooltip, TooltipContent } from "@dub/ui";
 import { Globe, UserCheck } from "@dub/ui/icons";
-import { cn, fetcher, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
+import { cn, nFormatter, OG_AVATAR_URL, pluralize } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useState } from "react";
 import { toast } from "sonner";
-import useSWR, { mutate } from "swr";
+import { mutate } from "swr";
 import { Drawer } from "vaul";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { X } from "../shared/icons";
@@ -56,19 +57,11 @@ const FolderPermissionsPanel = ({
   const { canManageFolderPermissions } = getPlanCapabilities(plan);
 
   const {
-    data: users,
+    users,
     isLoading: isUsersLoading,
     isValidating: isUsersValidating,
-  } = useSWR<FolderUser[]>(
-    showPanel && canManageFolderPermissions
-      ? `/api/folders/${folder.id}/users?workspaceId=${workspaceId}`
-      : undefined,
-    fetcher,
-    {
-      revalidateOnFocus: false,
-      keepPreviousData: true,
-    },
-  );
+  } = useFolderUsers({ folderId: folder.id, enabled: showPanel });
+
   const { folderLinkCount } = useFolderLinkCount({ folderId: folder.id });
 
   const updateWorkspaceAccessLevel = async (accessLevel: string) => {
