@@ -57,8 +57,10 @@ export function QrCodeTitleColumn({
 
   useEffect(() => {
     if (qrCode.id === newQrId && isPreviewCanvasReady) {
-      handleOpenNewQr();
-      setNewQrId?.(null);
+      setTimeout(() => {
+        handleOpenNewQr();
+        setNewQrId?.(null);
+      }, 50);
     }
   }, [qrCode.id, newQrId, setNewQrId, handleOpenNewQr, isPreviewCanvasReady]);
 
