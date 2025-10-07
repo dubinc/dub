@@ -1,15 +1,28 @@
 enum IndustryInterest {
-  Artificial_Intelligence
-  Development
-  Design
-  Productivity
-  Finance
+  SaaS
+  DevTool
+  AI
+  Creative_And_Design
+  Productivity_Software
   Marketing
+  Gaming
+  Finance
+  Sales
   Ecommerce
+  Customer_Service_And_Support
+  Content_Management
+  Human_Resources
   Security
-  Education
-  Health
-  Consumer
+  Analytics_And_Data
+  Social_Media
+  Consumer_Tech
+  Education_And_Learning
+  Health_And_Fitness
+  Food_And_Beverage
+  Travel_And_Lifestyle
+  Entertainment_And_Media
+  Sports
+  Science_And_Engineering
 }
 
 model DiscoveredPartner {
