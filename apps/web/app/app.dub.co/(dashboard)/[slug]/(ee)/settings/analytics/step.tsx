@@ -38,7 +38,7 @@ const Step = ({
     <div className="flex items-start gap-[22px] rounded-xl border border-neutral-200 bg-white p-5">
       <StepNumber number={step} complete={complete} />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex min-w-0 grow flex-col">
         <div
           className="group/step-header flex cursor-pointer items-center justify-between gap-2"
           onClick={(e) => {
@@ -102,7 +102,7 @@ const StepNumber = ({
   return (
     <div
       className={cn(
-        "flex size-[42px] shrink-0 items-center justify-center rounded-full",
+        "hidden size-[42px] shrink-0 items-center justify-center rounded-full sm:flex",
         complete ? "bg-green-400" : "bg-neutral-100",
       )}
     >
