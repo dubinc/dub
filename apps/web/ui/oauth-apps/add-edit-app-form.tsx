@@ -405,6 +405,7 @@ export default function AddOAuthAppForm({
             onChange={async ({ file }) => await handleUpload(file)}
             content="Drag and drop or click to upload screenshots"
             disabled={!canManageApp || screenshots.length >= 4}
+            maxFileSizeMB={2}
           />
         </div>
 
