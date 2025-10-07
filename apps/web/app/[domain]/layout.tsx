@@ -12,6 +12,7 @@
 // }
 
 import { AnalyticInitializerComponent } from "@/lib/analytic-initializer/analytic-initializer.component.tsx";
+import { getSession } from '@/lib/auth';
 import { DomainClientProviders } from "@/ui/domain-client-providers";
 import { Footer } from "@/ui/landing/components/footer";
 import { Header } from "@/ui/landing/components/header.tsx";
@@ -20,11 +21,13 @@ import { getUserCookieService } from "core/services/cookie/user-session.service.
 
 const Layout = async ({ children }) => {
   const { sessionId } = await getUserCookieService();
+  const authSession = await getSession();
+  console.log("authSession", authSession);
 
   return (
     <DomainClientProviders>
       <div className="flex min-h-screen flex-col bg-neutral-50/80">
-        <Header sessionId={sessionId!} />
+        <Header sessionId={sessionId!} authSession={authSession} />
         {children}
         <Footer sessionId={sessionId!} />
       </div>

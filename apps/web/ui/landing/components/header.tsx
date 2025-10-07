@@ -1,5 +1,6 @@
 "use client";
 
+import { Session } from '@/lib/auth';
 import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
 import { Button } from "@dub/ui";
@@ -12,9 +13,10 @@ import { FC, useCallback, useEffect } from "react";
 
 interface IHeaderProps {
   sessionId: string;
+  authSession: Session;
 }
 
-export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
+export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) => {
   const { AuthModal, showModal } = useAuthModal({ sessionId });
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -76,20 +78,24 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={handleOpenLogin}
-              text="Log In"
-              className="text-base font-medium"
-            />
+            {!authSession?.user && (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleOpenLogin}
+                  text="Log In"
+                  className="text-base font-medium"
+                />
 
-            <Button
-              variant="primary"
-              color="blue"
-              onClick={handleScrollToQRGenerationBlock}
-              text="Create QR code"
-              className="hidden text-base font-medium sm:block"
-            />
+                <Button
+                  variant="primary"
+                  color="blue"
+                  onClick={handleScrollToQRGenerationBlock}
+                  text="Create QR code"
+                  className="hidden text-base font-medium sm:block"
+                />
+              </>
+            )}
           </div>
         </nav>
       </header>
