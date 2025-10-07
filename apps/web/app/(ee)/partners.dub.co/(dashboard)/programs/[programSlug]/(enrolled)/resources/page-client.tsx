@@ -98,7 +98,6 @@ export function ResourcesPageClient() {
                   }
                   title={link.name}
                   description={link.url}
-                  visitUrl={link.url}
                   copyText={link.url}
                 />
               ))}
