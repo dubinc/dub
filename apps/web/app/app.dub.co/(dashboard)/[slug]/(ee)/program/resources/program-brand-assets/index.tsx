@@ -184,7 +184,7 @@ export function ProgramBrandAssets() {
                           <div className="flex size-full items-center justify-center bg-neutral-50">
                             <img
                               src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
-                              alt="favicon"
+                              alt={link.name}
                               className="size-6 rounded-full object-contain"
                             />
                           </div>
