@@ -189,10 +189,6 @@ export function QrBuilderProvider({
         fileId: (formData as any)?.fileId || initialState.fileId,
       };
 
-      console.log("=== onSave in context ===");
-      console.log("customizationData being saved:", customizationData);
-      console.log("customizationData.logo:", customizationData.logo);
-
       await onSaveProp(builderData, initialQrData);
     } catch (error) {
       console.error("Error saving QR:", error);

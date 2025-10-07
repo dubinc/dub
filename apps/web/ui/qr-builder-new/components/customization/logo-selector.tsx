@@ -3,7 +3,7 @@ import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 
-import { SUGGESTED_LOGOS } from "../../constants/customization/logos";
+import { getSortedLogos } from "../../constants/customization/logos";
 import { useQrBuilderContext } from "../../context";
 import { useFileUpload } from "../../hooks/use-file-upload";
 import { ILogoData } from "../../types/customization";
@@ -29,7 +29,7 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
   disabled = false,
   isMobile = false,
 }) => {
-  const { setIsFileUploading } = useQrBuilderContext();
+  const { setIsFileUploading, selectedQrType } = useQrBuilderContext();
 
   const methods = useForm<LogoFormValues>({
     defaultValues: {
@@ -146,6 +146,11 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
     return "logo-none";
   }, [logoData]);
 
+  // Sort logos based on the selected QR type
+  const sortedLogos = useMemo(() => {
+    return getSortedLogos(selectedQrType);
+  }, [selectedQrType]);
+
   // const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
   //   const files = Array.from(e.target.files || []);
   //   methods.setValue(FILE_UPLOAD_FIELD_NAME, files);
@@ -160,7 +165,7 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
     >
       <StylePicker
         label="Select a logo"
-        styleOptions={SUGGESTED_LOGOS}
+        styleOptions={sortedLogos}
         value={selectedStyle}
         onSelect={handleSuggestedLogoSelect}
         optionsWrapperClassName={`${

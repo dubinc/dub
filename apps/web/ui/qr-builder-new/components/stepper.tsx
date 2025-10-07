@@ -57,7 +57,7 @@ export default function Stepper({
                   className={cn(
                     "relative z-10 flex h-full w-full items-center justify-center rounded-full text-sm font-medium",
                     {
-                      "text-primary bg-primary-100": isCompleted,
+                      "bg-green-100 text-green-700": isCompleted,
                       "text-primary bg-white": isActive && !isCompleted,
                       "bg-white text-neutral-500": !isActive && !isCompleted,
                     },

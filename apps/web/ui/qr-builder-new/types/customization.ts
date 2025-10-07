@@ -48,6 +48,7 @@ export interface IStyleOption {
   type: string;
   icon: any; // React component or image
   defaultTextColor?: string;
+  relevantFor?: string[]; // QR types this logo is most relevant for
   extension?: (
     qr: SVGSVGElement,
     options: {

@@ -15,6 +15,7 @@ interface StylePickerProps {
   iconSize?: number;
   styleButtonClassName?: string;
   disabled?: boolean;
+  applyBlackFilter?: boolean;
 }
 
 export const StylePicker: FC<StylePickerProps> = ({
@@ -27,6 +28,7 @@ export const StylePicker: FC<StylePickerProps> = ({
   iconSize,
   styleButtonClassName,
   disabled = false,
+  applyBlackFilter = false,
 }) => {
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
@@ -49,6 +51,7 @@ export const StylePicker: FC<StylePickerProps> = ({
                 iconSize={iconSize}
                 className={cn("shrink-0", styleButtonClassName)}
                 disabled={disabled}
+                applyBlackFilter={applyBlackFilter}
               />
             ))}
           </div>

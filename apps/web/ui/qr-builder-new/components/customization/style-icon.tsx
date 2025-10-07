@@ -19,7 +19,7 @@ export const StyleIcon: FC<StyleIconProps> = ({
       alt="Style icon"
       width={size}
       height={size}
-      className={cn("object-contain", className)}
+      className={cn("object-contain transition-all", className)}
     />
   );
 };

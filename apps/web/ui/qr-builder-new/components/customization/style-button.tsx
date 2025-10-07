@@ -10,6 +10,7 @@ interface StyleButtonProps {
   iconSize?: number;
   className?: string;
   disabled?: boolean;
+  applyBlackFilter?: boolean;
 }
 
 export const StyleButton: FC<StyleButtonProps> = ({
@@ -19,13 +20,14 @@ export const StyleButton: FC<StyleButtonProps> = ({
   iconSize = 40,
   className,
   disabled = false,
+  applyBlackFilter = false,
 }) => {
   return (
     <button
       className={cn(
         "rounded-md border p-4 transition",
         selected
-          ? "border-secondary bg-[#F5FAFF]"
+          ? "border-secondary bg-blue-100"
           : "border-border-300 hover:border-secondary bg-white",
         {
           "cursor-not-allowed opacity-50": disabled,
@@ -35,7 +37,11 @@ export const StyleButton: FC<StyleButtonProps> = ({
       onClick={onClick}
       disabled={disabled}
     >
-      <StyleIcon src={icon} size={iconSize} />
+      <StyleIcon
+        src={icon}
+        size={iconSize}
+        className={cn({ "brightness-0": applyBlackFilter && !disabled })}
+      />
     </button>
   );
 };

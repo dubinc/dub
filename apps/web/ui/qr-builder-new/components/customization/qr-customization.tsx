@@ -115,7 +115,7 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
     />
   );
 
-  return isMobile || !homepageDemo ? (
+  return (
     <Tabs.Root
       value={activeTab}
       onValueChange={onTabChange}
@@ -154,17 +154,5 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
         </Tabs.Content>
       ))}
     </Tabs.Root>
-  ) : (
-    <div className="text-neutral flex w-full flex-col gap-8">
-      {QR_STYLES_OPTIONS.map((tab) => (
-        <div key={tab.id} className="flex w-full flex-col gap-4">
-          <h3 className="text-lg font-medium">{tab.label}</h3>
-          {tab.id === "frame" && frameSelector}
-          {tab.id === "style" && styleSelector}
-          {tab.id === "shape" && shapeSelector}
-          {tab.id === "logo" && logoSelector}
-        </div>
-      ))}
-    </div>
   );
 };
