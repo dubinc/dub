@@ -103,9 +103,9 @@ function AddLinkModalInner({ setShowAddLinkModal }: AddLinkModalProps) {
               <input
                 id="url"
                 type="url"
-                placeholder="https://getacme.link"
+                placeholder="https://yoursite.com/brand"
                 className={cn(
-                  "block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm",
+                  "block w-full rounded-md border-neutral-300 placeholder-neutral-400 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm",
                   errors.url &&
                     "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500",
                 )}
@@ -132,7 +132,7 @@ function AddLinkModalInner({ setShowAddLinkModal }: AddLinkModalProps) {
                 type="text"
                 placeholder="Brand guidelines"
                 className={cn(
-                  "block w-full rounded-md border-neutral-300 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm",
+                  "block w-full rounded-md border-neutral-300 placeholder-neutral-400 shadow-sm focus:border-neutral-500 focus:ring-neutral-500 sm:text-sm",
                   errors.name &&
                     "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500",
                 )}
@@ -145,7 +145,7 @@ function AddLinkModalInner({ setShowAddLinkModal }: AddLinkModalProps) {
                 </p>
               ) : (
                 <p className="mt-2 text-xs text-neutral-500">
-                  The name that shows to partners
+                  The display name that is shown to partners
                 </p>
               )}
             </div>
