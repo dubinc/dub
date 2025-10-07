@@ -13,7 +13,6 @@ import {
   Text,
 } from "@react-email/components";
 import { Footer } from "../components/footer";
-import { PaymentMethod } from "../types";
 
 // Send this email when the payout is confirmed when payment is send using ACH
 export default function PartnerPayoutConfirmed({
@@ -42,7 +41,7 @@ export default function PartnerPayoutConfirmed({
     amount: number;
     startDate?: Date | null;
     endDate?: Date | null;
-    paymentMethod: PaymentMethod;
+    paymentMethod: string;
   };
 }) {
   const saleAmountInDollars = currencyFormatter(payout.amount / 100);

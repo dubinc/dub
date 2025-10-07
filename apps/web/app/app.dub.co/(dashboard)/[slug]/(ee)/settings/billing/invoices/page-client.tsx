@@ -1,6 +1,6 @@
 "use client";
 
-import { PAYMENT_METHODS } from "@/lib/payment-methods";
+import { INVOICE_PAYMENT_METHODS } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { InvoiceProps } from "@/lib/types";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
@@ -108,11 +108,11 @@ const InvoiceCard = ({
   invoice: InvoiceProps;
   displayPaymentMethod: boolean;
 }) => {
-  const paymentMethod =
-    PAYMENT_METHODS[invoice.paymentMethod ?? "us_bank_account"];
+  const invoicePaymentMethod =
+    INVOICE_PAYMENT_METHODS[invoice.invoicePaymentMethod ?? "ach"];
 
   return (
-    <div className="px-4 py-6 sm:px-12">
+    <div className="px-3 py-4 sm:px-12">
       {/* Mobile layout */}
       <div className="block sm:hidden">
         <div className="mb-4 flex items-start justify-between">
@@ -179,17 +179,17 @@ const InvoiceCard = ({
           {displayPaymentMethod && (
             <div className="text-left text-sm">
               <div className="font-medium">Method</div>
-              {paymentMethod ? (
+              {invoicePaymentMethod ? (
                 <div className="flex items-center gap-1.5 text-neutral-500">
                   <div className="text-content-subtle text-sm font-medium">
-                    {paymentMethod.label}
+                    {invoicePaymentMethod.label}
                   </div>
                   <StatusBadge
                     icon={null}
                     variant="neutral"
                     className="rounded-md py-0.5 text-xs font-semibold text-neutral-700"
                   >
-                    {paymentMethod.duration}
+                    {invoicePaymentMethod.duration}
                   </StatusBadge>
                 </div>
               ) : (
@@ -238,17 +238,17 @@ const InvoiceCard = ({
         {displayPaymentMethod && (
           <div className="text-left text-sm sm:col-span-1 lg:block">
             <div className="font-medium">Method</div>
-            {paymentMethod ? (
+            {invoicePaymentMethod ? (
               <div className="flex items-center gap-1.5 text-neutral-500">
                 <div className="text-content-subtle text-sm font-medium">
-                  {paymentMethod.label}
+                  {invoicePaymentMethod.label}
                 </div>
                 <StatusBadge
                   icon={null}
                   variant="neutral"
                   className="rounded-md py-0.5 text-xs font-semibold text-neutral-700"
                 >
-                  {paymentMethod.duration}
+                  {invoicePaymentMethod.duration}
                 </StatusBadge>
               </div>
             ) : (

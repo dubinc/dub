@@ -67,6 +67,29 @@ export const PAYMENT_METHOD_TYPES: Stripe.PaymentMethod.Type[] = [
   ...DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
 ];
 
+export const INVOICE_PAYMENT_METHODS = Object.freeze({
+  card: {
+    label: "Card",
+    duration: "Instantly",
+  },
+  ach: {
+    label: "ACH",
+    duration: "4 business days",
+  },
+  ach_fast: {
+    label: "Fast ACH",
+    duration: "2 business days",
+  },
+  sepa: {
+    label: "SEPA Debit",
+    duration: "5 business days",
+  },
+  acss: {
+    label: "ACSS Debit",
+    duration: "5 business days",
+  },
+});
+
 export const PROGRAM_IMPORT_SOURCES = [
   {
     id: "rewardful",

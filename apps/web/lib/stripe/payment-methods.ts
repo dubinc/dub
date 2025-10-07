@@ -1,6 +1,6 @@
 import { CreditCard, GreekTemple } from "@dub/ui";
 import Stripe from "stripe";
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "./partners/constants";
+import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "../partners/constants";
 
 export const calculatePayoutFeeForMethod = ({
   paymentMethod,
@@ -24,7 +24,7 @@ export const calculatePayoutFeeForMethod = ({
   throw new Error(`Unsupported payment method ${paymentMethod}.`);
 };
 
-export const PAYMENT_METHODS = Object.freeze({
+export const STRIPE_PAYMENT_METHODS = Object.freeze({
   link: {
     label: "Link",
     type: "link",
@@ -54,11 +54,5 @@ export const PAYMENT_METHODS = Object.freeze({
     type: "sepa_debit",
     icon: GreekTemple,
     duration: "5 business days",
-  },
-  ach_fast: {
-    label: "Fast ACH",
-    type: "ach",
-    icon: GreekTemple,
-    duration: "2 business days",
   },
 });

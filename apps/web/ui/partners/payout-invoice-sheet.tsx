@@ -11,8 +11,8 @@ import {
 } from "@/lib/partners/cutoff-period";
 import {
   calculatePayoutFeeForMethod,
-  PAYMENT_METHODS,
-} from "@/lib/payment-methods";
+  STRIPE_PAYMENT_METHODS,
+} from "@/lib/stripe/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
@@ -52,7 +52,7 @@ import Stripe from "stripe";
 import useSWR from "swr";
 
 type SelectPaymentMethod =
-  (typeof PAYMENT_METHODS)[keyof typeof PAYMENT_METHODS] & {
+  (typeof STRIPE_PAYMENT_METHODS)[keyof typeof STRIPE_PAYMENT_METHODS] & {
     id: string;
     fee: number;
     fastSettlement: boolean;
@@ -113,7 +113,7 @@ function PayoutInvoiceSheetContent() {
     if (!paymentMethods) return undefined;
 
     const methods = paymentMethods.flatMap((pm) => {
-      const paymentMethod = PAYMENT_METHODS[pm.type];
+      const paymentMethod = STRIPE_PAYMENT_METHODS[pm.type];
 
       const base = {
         ...paymentMethod,
@@ -128,7 +128,7 @@ function PayoutInvoiceSheetContent() {
       if (pm.link) {
         return {
           ...base,
-          title: `Link – ${truncate(pm.link.email, 16)}`,
+          title: `Link – ${truncate(pm.link.email, 24)}`,
         };
       }
 
@@ -639,14 +639,14 @@ function FastAchPayoutToggle() {
 
       {!fastDirectDebitPayouts && (
         <div className="flex items-center gap-0.5">
-          <Button
-            variant="secondary"
-            text="Contact sales to enable"
-            className="border-border-subtle h-7 w-fit whitespace-nowrap rounded-lg bg-white px-2.5 py-2 text-sm"
-            onClick={() => {
-              window.open("https://dub.co/enterprise", "_blank");
-            }}
-          />
+          <a href="https://dub.co/contact/sales" target="_blank">
+            <Button
+              variant="secondary"
+              text="Contact sales to enable"
+              className="border-border-subtle h-7 w-fit whitespace-nowrap rounded-lg bg-white px-2.5 py-2 text-sm"
+            />
+          </a>
+
           <button
             onClick={() => setIsVisible(false)}
             className="text-content-emphasis p-1"
