@@ -18,6 +18,8 @@ import {
   Bolt,
   Button,
   buttonVariants,
+  Combobox,
+  ComboboxOption,
   DynamicTooltipWrapper,
   Gear,
   GreekTemple,
@@ -164,6 +166,24 @@ function PayoutInvoiceSheetContent() {
     return methods;
   }, [paymentMethods, payoutFee, fasterAchPayouts]);
 
+  const paymentMethodOptions = useMemo(() => {
+    return finalPaymentMethods?.map((method) => ({
+      value: method.id,
+      label: method.title,
+      icon: method.icon,
+    }));
+  }, [finalPaymentMethods]);
+
+  const selectedPaymentMethodOption = useMemo(() => {
+    if (!selectedPaymentMethod) return null;
+
+    const option = paymentMethodOptions?.find(
+      (option) => option.value === selectedPaymentMethod.id,
+    );
+
+    return option || null;
+  }, [selectedPaymentMethod, paymentMethodOptions]);
+
   useEffect(() => {
     if (
       !selectedPaymentMethod &&
@@ -194,28 +214,36 @@ function PayoutInvoiceSheetContent() {
       {
         key: "Method",
         value: (
-          <div className="flex items-center gap-2 pr-6">
+          <div className="w- flex w-full items-center justify-between gap-2 pr-6">
             {paymentMethodsLoading ? (
-              <div className="h-[26px] w-40 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-[30px] w-full animate-pulse rounded-md bg-neutral-200" />
             ) : (
-              <select
-                className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
-                value={selectedPaymentMethod?.id || ""}
-                onChange={(e) => {
-                  const selectedMethod = finalPaymentMethods?.find(
-                    (pm) => pm.id === e.target.value,
-                  );
+              <div className="flex-1">
+                <Combobox
+                  options={paymentMethodOptions}
+                  selected={selectedPaymentMethodOption}
+                  setSelected={(option: ComboboxOption) => {
+                    if (!option) {
+                      return;
+                    }
 
-                  setSelectedPaymentMethod(selectedMethod || null);
-                }}
-              >
-                {finalPaymentMethods?.map(({ id, title }) => (
-                  <option key={id} value={id}>
-                    {title}
-                  </option>
-                ))}
-              </select>
+                    const selectedMethod = finalPaymentMethods?.find(
+                      (pm) => pm.id === option.value,
+                    );
+
+                    setSelectedPaymentMethod(selectedMethod || null);
+                  }}
+                  placeholder="Select payment method"
+                  buttonProps={{
+                    className:
+                      "h-auto border border-neutral-200 px-3 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600",
+                  }}
+                  matchTriggerWidth
+                  hideSearch
+                />
+              </div>
             )}
+
             <a
               href={`/${slug}/settings/billing`}
               className={cn(
