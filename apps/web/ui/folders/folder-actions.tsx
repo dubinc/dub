@@ -33,7 +33,6 @@ export const FolderActions = ({
   onDelete?: () => void;
   className?: string;
 }) => {
-  console.log(folder);
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
   const { slug: workspaceSlug, defaultFolderId } = useWorkspace();

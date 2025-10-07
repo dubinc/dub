@@ -67,12 +67,14 @@ export function FolderInfoPanel() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <SectionHeader>Owner</SectionHeader>
-        <div className="flex flex-wrap items-center gap-3">
-          <UserList users={owners} />
+      {Boolean(isLoadingUsers || owners?.length) && (
+        <div className="flex flex-col gap-2">
+          <SectionHeader>Owner</SectionHeader>
+          <div className="flex flex-wrap items-center gap-3">
+            <UserList users={owners} />
+          </div>
         </div>
-      </div>
+      )}
 
       {Boolean(isLoadingUsers || editors?.length) && (
         <div className="flex flex-col gap-2">
