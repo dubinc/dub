@@ -8,8 +8,9 @@ import {
   convertQrStorageDataToBuilder,
 } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
-import { useRouterStuff, useToastWithUndo } from "@dub/ui";
+import { useToastWithUndo } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
+import { useNewQrContext } from 'app/app.dub.co/(dashboard)/[slug]/helpers/new-qr-context';
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { useParams } from "next/navigation";
@@ -22,7 +23,7 @@ export const useQrOperations = () => {
   const { id: workspaceId } = useWorkspace();
   const { user } = useUserCache();
   const toastWithUndo = useToastWithUndo();
-  const { queryParams } = useRouterStuff();
+  const { setNewQrId } = useNewQrContext();
 
   const createQr = useCallback(
     async (qrBuilderData: QRBuilderData) => {
@@ -51,11 +52,7 @@ export const useQrOperations = () => {
           const responseData = await res.json();
           const createdQrId = responseData?.createdQr?.id;
 
-          queryParams({
-            set: {
-              qrId: createdQrId,
-            },
-          });
+          setNewQrId?.(createdQrId);
 
           await mutatePrefix(["/api/qrs", "/api/links"]);
 
@@ -91,7 +88,7 @@ export const useQrOperations = () => {
         return false;
       }
     },
-    [workspaceId, slug, user, queryParams],
+    [workspaceId, slug, user, setNewQrId],
   );
 
   const updateQrWithOriginal = useCallback(
