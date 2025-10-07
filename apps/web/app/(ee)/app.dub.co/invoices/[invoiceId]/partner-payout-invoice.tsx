@@ -1,3 +1,4 @@
+import { FAST_ACH_FEE_CENTS } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import {
@@ -146,8 +147,8 @@ export async function PartnerPayoutInvoice({
     ...(invoice.paymentMethod === "ach_fast"
       ? [
           {
-            label: "Fast ACH fees",
-            value: "$25.00",
+            label: "Fast ACH fee",
+            value: currencyFormatter(FAST_ACH_FEE_CENTS / 100),
           },
         ]
       : []),

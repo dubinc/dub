@@ -1,7 +1,10 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { exceededLimitError } from "@/lib/api/errors";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
+import {
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  FAST_ACH_FEE_CENTS,
+} from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
@@ -171,7 +174,9 @@ function PayoutInvoiceSheetContent() {
       value: method.id,
       label: method.title,
       icon: method.icon,
-      ...(method.fastSettlement && { meta: "+$25" }),
+      ...(method.fastSettlement && {
+        meta: `+ ${currencyFormatter(FAST_ACH_FEE_CENTS / 100)}`,
+      }),
     }));
   }, [finalPaymentMethods]);
 
@@ -214,14 +219,25 @@ function PayoutInvoiceSheetContent() {
       return acc + payout.amount;
     }, 0);
 
-    const fee =
-      amount === undefined
-        ? undefined
-        : amount * (selectedPaymentMethod?.fee ?? 0);
-    const total =
-      amount !== undefined && fee !== undefined ? amount + fee : undefined;
+    if (amount === undefined || selectedPaymentMethod === null) {
+      return {
+        amount: undefined,
+        fee: undefined,
+        total: undefined,
+      };
+    }
 
-    return { amount, fee, total };
+    const fee = amount * selectedPaymentMethod.fee;
+    const fastAchFee = selectedPaymentMethod.fastSettlement
+      ? FAST_ACH_FEE_CENTS
+      : 0;
+    const total = amount + fee + fastAchFee;
+
+    return {
+      amount,
+      fee,
+      total,
+    };
   }, [includedPayouts, selectedPaymentMethod]);
 
   const invoiceData = useMemo(() => {
@@ -335,7 +351,7 @@ function PayoutInvoiceSheetContent() {
           ),
       },
       {
-        key: "Fee",
+        key: "Platform Fee",
         value:
           selectedPaymentMethod && fee !== undefined ? (
             currencyFormatter(fee / 100)
@@ -350,6 +366,16 @@ function PayoutInvoiceSheetContent() {
           />
         ) : undefined,
       },
+
+      ...(selectedPaymentMethod?.fastSettlement
+        ? [
+            {
+              key: "Fast ACH Fee",
+              value: currencyFormatter(FAST_ACH_FEE_CENTS / 100),
+            },
+          ]
+        : []),
+
       {
         key: "Transfer Time",
         value: selectedPaymentMethod ? (
@@ -522,7 +548,7 @@ function PayoutInvoiceSheetContent() {
           <FastAchPayoutToggle />
         </div>
 
-        <div className="p-6">
+        <div className="px-6 py-3">
           <Table {...table} />
         </div>
       </div>
