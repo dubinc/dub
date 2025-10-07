@@ -1,7 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { calculateSimilarityForProgram } from "@/lib/api/network/calculate-program-similarities";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { NextRequest } from "next/server";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
@@ -11,18 +10,22 @@ const schema = z.object({
   programId: z.string(),
 });
 
+interface RequestParams {
+  params: Promise<{ programId: string }>;
+}
+
 // POST /api/cron/calculate-program-similarities/[programId]
 // Calculate similarities for a specific program against other programs that come after it in the sorted list
-export async function POST(req: NextRequest) {
+export async function POST(req: Request, { params }: RequestParams) {
   try {
+    const { programId } = await params;
+
     const rawBody = await req.text();
 
     await verifyQstashSignature({
       req,
       rawBody,
     });
-
-    const { programId } = schema.parse(JSON.parse(rawBody));
 
     await calculateSimilarityForProgram(programId);
 
