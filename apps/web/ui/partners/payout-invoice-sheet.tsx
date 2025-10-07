@@ -262,7 +262,19 @@ function PayoutInvoiceSheetContent() {
                   }}
                   matchTriggerWidth
                   hideSearch
-                />
+                  caret
+                >
+                  <div className="flex items-center gap-2">
+                    {selectedPaymentMethodOption ? (
+                      <>
+                        <selectedPaymentMethodOption.icon className="size-4" />
+                        {selectedPaymentMethodOption.label}
+                      </>
+                    ) : (
+                      <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+                    )}
+                  </div>
+                </Combobox>
               </div>
             )}
 
@@ -300,6 +312,7 @@ function PayoutInvoiceSheetContent() {
               }}
               matchTriggerWidth
               hideSearch
+              caret
             />
           </div>
         ),
