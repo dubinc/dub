@@ -133,9 +133,9 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
 
       const observer = new MutationObserver(() => {
         setTimeout(() => {
+          renderSVGToCanvas();
           console.log("onCanvasReady");
           onCanvasReady?.();
-          renderSVGToCanvas();
         }, 50);
       });
 
