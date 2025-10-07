@@ -214,7 +214,7 @@ function PayoutInvoiceSheetContent() {
     }
   }, [finalPaymentMethods, selectedPaymentMethod]);
 
-  const { amount, fee, total } = useMemo(() => {
+  const { amount, fee, total, fastAchFee } = useMemo(() => {
     const amount = includedPayouts?.reduce((acc, payout) => {
       return acc + payout.amount;
     }, 0);
@@ -224,6 +224,7 @@ function PayoutInvoiceSheetContent() {
         amount: undefined,
         fee: undefined,
         total: undefined,
+        fastAchFee: undefined,
       };
     }
 
@@ -237,6 +238,7 @@ function PayoutInvoiceSheetContent() {
       amount,
       fee,
       total,
+      fastAchFee,
     };
   }, [includedPayouts, selectedPaymentMethod]);
 
@@ -266,7 +268,7 @@ function PayoutInvoiceSheetContent() {
                   }}
                   optionRight={(option) => {
                     return option.meta ? (
-                      <span className="rounded-md bg-neutral-100 p-1 text-xs font-semibold text-neutral-700">
+                      <span className="rounded-md bg-neutral-100 px-1 py-0.5 text-xs font-semibold text-neutral-700">
                         {option.meta}
                       </span>
                     ) : null;
@@ -367,11 +369,11 @@ function PayoutInvoiceSheetContent() {
         ) : undefined,
       },
 
-      ...(selectedPaymentMethod?.fastSettlement
+      ...(fastAchFee
         ? [
             {
               key: "Fast ACH Fee",
-              value: currencyFormatter(FAST_ACH_FEE_CENTS / 100),
+              value: currencyFormatter(fastAchFee / 100),
             },
           ]
         : []),
