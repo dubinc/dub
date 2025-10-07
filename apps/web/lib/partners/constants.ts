@@ -67,6 +67,14 @@ export const PAYMENT_METHOD_TYPES: Stripe.PaymentMethod.Type[] = [
   ...DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
 ];
 
+export const STRIPE_PAYMENT_METHOD_NORMALIZATION = {
+  card: "card",
+  link: "card",
+  us_bank_account: "ach",
+  acss_debit: "acss",
+  sepa_debit: "sepa",
+} as const;
+
 export const INVOICE_PAYMENT_METHODS = Object.freeze({
   card: {
     label: "Card",
@@ -89,6 +97,12 @@ export const INVOICE_PAYMENT_METHODS = Object.freeze({
     duration: "5 business days",
   },
 });
+
+export const INVOICE_AVAILABLE_PAYOUT_STATUSES = [
+  "processed",
+  "sent",
+  "completed",
+];
 
 export const PROGRAM_IMPORT_SOURCES = [
   {
@@ -116,17 +130,3 @@ export const PROGRAM_IMPORT_SOURCES = [
     helpUrl: "https://dub.co/help/article/migrating-from-firstpromoter",
   },
 ] as const;
-
-export const INVOICE_AVAILABLE_PAYOUT_STATUSES = [
-  "processed",
-  "sent",
-  "completed",
-];
-
-export const STRIPE_PAYMENT_METHOD_NORMALIZATION = {
-  card: "card",
-  link: "card",
-  us_bank_account: "ach",
-  acss_debit: "acss",
-  sepa_debit: "sepa",
-} as const;
