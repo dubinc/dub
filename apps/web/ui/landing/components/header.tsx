@@ -67,6 +67,10 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
     showModal("login");
   }, [showModal, router]);
 
+  const handleOpenMyQRCodes = useCallback(() => {
+    router.push('/workspaces');
+  }, [router]);
+
   return (
     <>
       <header className="border-border sticky left-0 right-0 top-0 z-50 h-[52px] border-b bg-white backdrop-blur-lg md:h-16">
@@ -78,7 +82,7 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
           </div>
 
           <div className="flex items-center gap-3">
-            {!authSession?.user && (
+            {!authSession?.user ? (
               <>
                 <Button
                   variant="outline"
@@ -95,6 +99,14 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
                   className="hidden text-base font-medium sm:block"
                 />
               </>
+            ) : (
+              <Button
+                variant="primary"
+                color="blue"
+                onClick={handleOpenMyQRCodes}
+                text="My QR Codes"
+                className="text-base font-medium"
+              />
             )}
           </div>
         </nav>
