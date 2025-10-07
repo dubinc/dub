@@ -6,21 +6,28 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramResourceType } from "@/lib/zod/schemas/program-resources";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { AnimatedSizeContainer, Button, FileContent } from "@dub/ui";
-import { capitalize, formatFileSize } from "@dub/utils";
+import {
+  capitalize,
+  formatFileSize,
+  getApexDomain,
+  getPrettyUrl,
+  GOOGLE_FAVICON_URL,
+} from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { toast } from "sonner";
 import { SettingsRow } from "../../program-settings-row";
 import { useAddColorModal } from "./add-color-modal";
 import { useAddFileModal } from "./add-file-modal";
+import { useAddLinkModal } from "./add-link-modal";
 import { useAddLogoModal } from "./add-logo-modal";
 
 export function ProgramBrandAssets() {
   const { id: workspaceId } = useWorkspace();
-
-  const { resources, mutate, isLoading, isValidating } = useProgramResources();
+  const { resources, mutate, isLoading } = useProgramResources();
   const { setShowAddLogoModal, AddLogoModal } = useAddLogoModal();
   const { setShowAddColorModal, AddColorModal } = useAddColorModal();
   const { setShowAddFileModal, AddFileModal } = useAddFileModal();
+  const { setShowAddLinkModal, AddLinkModal } = useAddLinkModal();
 
   const { executeAsync } = useAction(deleteProgramResourceAction, {
     onSuccess: ({ input }) => {
@@ -52,6 +59,7 @@ export function ProgramBrandAssets() {
       <AddLogoModal />
       <AddColorModal />
       <AddFileModal />
+      <AddLinkModal />
       <div className="rounded-lg border border-neutral-200 bg-white">
         <div className="p-6">
           <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
@@ -142,6 +150,51 @@ export function ProgramBrandAssets() {
                         description={color.color.toUpperCase()}
                         copyText={color.color.toUpperCase()}
                         onDelete={() => handleDelete("color", color.id)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </AnimatedSizeContainer>
+            </div>
+          </SettingsRow>
+
+          <SettingsRow
+            heading="Links"
+            description="Provide any additional links helpful to your partners"
+          >
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-end">
+                <Button
+                  text="Add Link"
+                  className="h-8 w-fit px-3"
+                  onClick={() => setShowAddLinkModal(true)}
+                  loading={isLoading}
+                />
+              </div>
+              <AnimatedSizeContainer
+                height
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+              >
+                {resources?.links && resources.links.length > 0 && (
+                  <div className="grid gap-2">
+                    {resources?.links?.map((link) => (
+                      <ResourceCard
+                        key={link.id}
+                        resourceType="link"
+                        icon={
+                          <div className="flex size-full items-center justify-center bg-neutral-50">
+                            <img
+                              src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
+                              alt={link.name}
+                              className="size-6 rounded-full object-contain"
+                            />
+                          </div>
+                        }
+                        title={link.name}
+                        description={getPrettyUrl(link.url)}
+                        visitUrl={link.url}
+                        copyText={link.url}
+                        onDelete={() => handleDelete("link", link.id)}
                       />
                     ))}
                   </div>
