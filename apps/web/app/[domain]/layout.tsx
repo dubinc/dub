@@ -22,7 +22,6 @@ import { getUserCookieService } from "core/services/cookie/user-session.service.
 const Layout = async ({ children }) => {
   const { sessionId } = await getUserCookieService();
   const authSession = await getSession();
-  console.log("authSession", authSession);
 
   return (
     <DomainClientProviders>
