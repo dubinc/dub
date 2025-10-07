@@ -4,30 +4,30 @@ import { ACME_PROGRAM_ID } from "@dub/utils";
 
 interface ImprovedRankingParams {
   programId: string;
-  programIndustryInterests: string[];
   partnerIds?: string[];
   status?: "discover" | "invited" | "recruited";
   country?: string;
   starred?: boolean | null;
-  industryInterests?: string[];
-  salesChannels?: string[];
-  preferredEarningStructures?: string[];
   page: number;
   pageSize: number;
+  programCategories?: string[];
+  categories?: string[];
+  salesChannels?: string[];
+  preferredEarningStructures?: string[];
 }
 
 export async function getImprovedPartnerRanking({
   programId,
-  programIndustryInterests,
   partnerIds,
   status,
   country,
   starred,
-  industryInterests,
-  salesChannels,
-  preferredEarningStructures,
   page,
   pageSize,
+  programCategories,
+  categories,
+  salesChannels,
+  preferredEarningStructures,
 }: ImprovedRankingParams) {
   const partners = (await prisma.$queryRaw`
     SELECT 

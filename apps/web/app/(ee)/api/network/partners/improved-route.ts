@@ -21,18 +21,19 @@ export const GET = withWorkspace(
         id: programId,
       },
       include: {
-        industryInterests: true,
+        categories: true,
       },
     });
 
-    if (!program.partnerNetworkEnabledAt)
+    if (!program.partnerNetworkEnabledAt) {
       throw new DubApiError({
         code: "forbidden",
         message: "Partner network is not enabled for this program.",
       });
+    }
 
-    const programIndustryInterests = program.industryInterests.map(
-      (interest) => interest.industryInterest,
+    const programCategories = program.categories.map(
+      ({ category }) => category,
     );
 
     const {
@@ -42,7 +43,7 @@ export const GET = withWorkspace(
       pageSize,
       country,
       starred,
-      industryInterests,
+      categories,
       salesChannels,
       preferredEarningStructures,
     } = getNetworkPartnersQuerySchema.parse(searchParams);
@@ -50,12 +51,12 @@ export const GET = withWorkspace(
     // Use the improved ranking algorithm
     const partners = await getImprovedPartnerRanking({
       programId,
-      programIndustryInterests,
       partnerIds,
       status,
       country,
       starred,
-      industryInterests,
+      categories,
+      programCategories,
       salesChannels,
       preferredEarningStructures,
       page,

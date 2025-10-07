@@ -4,29 +4,28 @@ import { ACME_PROGRAM_ID } from "@dub/utils";
 interface ProgramSimilarityData {
   programId: string;
   similarProgramId: string;
-  industryOverlapScore: number;
+  categoryOverlapScore: number;
   partnerOverlapScore: number;
   performancePatternScore: number;
   combinedSimilarityScore: number;
   sharedPartnerCount: number;
-  sharedIndustryCount: number;
+  sharedCategoryCount: number;
 }
 
 // Calculate similarity scores between all programs
-// This should be run periodically (e.g., daily) to update similarity data
+// This should be run periodically to update similarity data
 export async function calculateProgramSimilarities() {
-  console.log("Starting program similarity calculation...");
-
-  // Get all programs with their industry interests
   const programs = await prisma.program.findMany({
     where: {
-      id: { not: ACME_PROGRAM_ID }, // Exclude test program
-      industryInterests: {
+      id: {
+        not: ACME_PROGRAM_ID,
+      },
+      categories: {
         some: {},
       },
     },
     include: {
-      industryInterests: true,
+      categories: true,
     },
   });
 
@@ -44,27 +43,27 @@ export async function calculateProgramSimilarities() {
         `Calculating similarity between ${program1.name} and ${program2.name}`,
       );
 
-      // 1. Industry Overlap Score (0-1)
-      const program1Industries = new Set(
-        program1.industryInterests.map((ii) => ii.industryInterest),
+      // 1. Category Overlap Score (0-1)
+      const program1Categories = new Set(
+        program1.categories.map((ii) => ii.category),
       );
 
-      const program2Industries = new Set(
-        program2.industryInterests.map((ii) => ii.industryInterest),
+      const program2Categories = new Set(
+        program2.categories.map((ii) => ii.category),
       );
 
-      const sharedIndustries = new Set(
-        [...program1Industries].filter((x) => program2Industries.has(x)),
+      const sharedCategories = new Set(
+        [...program1Categories].filter((x) => program2Categories.has(x)),
       );
 
-      const totalUniqueIndustries = new Set([
-        ...program1Industries,
-        ...program2Industries,
+      const totalUniqueCategories = new Set([
+        ...program1Categories,
+        ...program2Categories,
       ]);
 
-      const industryOverlapScore =
-        totalUniqueIndustries.size > 0
-          ? sharedIndustries.size / totalUniqueIndustries.size
+      const categoryOverlapScore =
+        totalUniqueCategories.size > 0
+          ? sharedCategories.size / totalUniqueCategories.size
           : 0;
 
       // 2. Partner Overlap Score (0-1)
@@ -137,7 +136,7 @@ export async function calculateProgramSimilarities() {
 
       // 4. Combined Similarity Score (weighted average)
       const combinedSimilarityScore =
-        industryOverlapScore * 0.4 + // Industry overlap is most important
+        categoryOverlapScore * 0.4 + // Category overlap is most important
         partnerOverlapScore * 0.35 + // Partner overlap is second most important
         performancePatternScore * 0.25; // Performance patterns are supporting evidence
 
@@ -146,24 +145,24 @@ export async function calculateProgramSimilarities() {
         similarities.push({
           programId: program1.id,
           similarProgramId: program2.id,
-          industryOverlapScore,
+          categoryOverlapScore,
           partnerOverlapScore,
           performancePatternScore,
           combinedSimilarityScore,
           sharedPartnerCount: sharedCount,
-          sharedIndustryCount: sharedIndustries.size,
+          sharedCategoryCount: sharedCategories.size,
         });
 
         // Add reverse relationship
         similarities.push({
           programId: program2.id,
           similarProgramId: program1.id,
-          industryOverlapScore,
+          categoryOverlapScore,
           partnerOverlapScore,
           performancePatternScore,
           combinedSimilarityScore,
           sharedPartnerCount: sharedCount,
-          sharedIndustryCount: sharedIndustries.size,
+          sharedCategoryCount: sharedCategories.size,
         });
       }
     }

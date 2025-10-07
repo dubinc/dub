@@ -46,28 +46,18 @@ model DiscoveredPartner {
 
 // Program similarity tracking for better partner matching
 model ProgramSimilarity {
-  id String @id @default(cuid())
+  id                      String   @id @default(cuid())
+  programId               String
+  similarProgramId        String
+  categoryOverlapScore    Float    @default(0) // Based on shared categories
+  partnerOverlapScore     Float    @default(0) // Based on shared successful partners
+  performancePatternScore Float    @default(0) // Based on similar conversion rates, AOV, etc.
+  combinedSimilarityScore Float    @default(0) // Combined similarity score (weighted average)
+  sharedPartnerCount      Int      @default(0) // Number of partners working with both programs
+  sharedCategoryCount     Int      @default(0) // Number of shared categories
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 
-  // The two programs being compared
-  programId        String
-  similarProgramId String
-
-  // Similarity scores (0-1 scale)
-  industryOverlapScore    Float @default(0) // Based on shared industry interests
-  partnerOverlapScore     Float @default(0) // Based on shared successful partners
-  performancePatternScore Float @default(0) // Based on similar conversion rates, AOV, etc.
-
-  // Combined similarity score (weighted average)
-  combinedSimilarityScore Float @default(0)
-
-  // Metadata
-  sharedPartnerCount  Int @default(0) // Number of partners working with both programs
-  sharedIndustryCount Int @default(0) // Number of shared industry interests
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
   program        Program @relation("ProgramSimilarities", fields: [programId], references: [id], onDelete: Cascade)
   similarProgram Program @relation("SimilarPrograms", fields: [similarProgramId], references: [id], onDelete: Cascade)
 
@@ -78,8 +68,7 @@ model ProgramSimilarity {
 
 // Enhanced program-level partner performance tracking
 model PartnerProgramPerformance {
-  id String @id @default(cuid())
-
+  id        String @id @default(cuid())
   partnerId String
   programId String
 
@@ -103,12 +92,10 @@ model PartnerProgramPerformance {
   performanceScore Float @default(0) // Wilson score + volume adjustments
   consistencyScore Float @default(0) // Based on conversion timing patterns
 
-  // Metadata
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   lastCalculatedAt DateTime @default(now())
 
-  // Relations
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 

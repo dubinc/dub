@@ -1,4 +1,5 @@
 import {
+  Category,
   IndustryInterest,
   PreferredEarningStructure,
   SalesChannel,
@@ -47,10 +48,10 @@ export const getNetworkPartnersQuerySchema = z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
-    industryInterests: z
+    categories: z
       .preprocess(
         (v) => (typeof v === "string" ? v.split(",") : v),
-        z.array(z.nativeEnum(IndustryInterest)),
+        z.array(z.nativeEnum(Category)),
       )
       .optional(),
     salesChannels: z
