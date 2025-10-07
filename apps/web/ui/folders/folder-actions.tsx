@@ -21,7 +21,7 @@ import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { useDefaultFolderModal } from "../modals/set-default-folder-modal";
 import { Delete, ThreeDots } from "../shared/icons";
-import { useFolderPermissionsPanel } from "./folder-permissions-panel";
+import { useEditFolderPanel } from "./edit-folder-panel";
 import { isDefaultFolder } from "./utils";
 
 export const FolderActions = ({
@@ -33,6 +33,7 @@ export const FolderActions = ({
   onDelete?: () => void;
   className?: string;
 }) => {
+  console.log(folder);
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
   const { slug: workspaceSlug, defaultFolderId } = useWorkspace();
@@ -50,8 +51,10 @@ export const FolderActions = ({
       folder,
     });
 
-  const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
-    useFolderPermissionsPanel(folder);
+  const {
+    editFolderPanel: folderPermissionsPanel,
+    setShowEditFolderPanel: setShowFolderPermissionsPanel,
+  } = useEditFolderPanel(folder);
 
   const copyFolderId = () => {
     toast.promise(copyToClipboard(folder.id), {
@@ -216,7 +219,7 @@ export const FolderActions = ({
             className,
           )}
           onClick={() => setOpenPopover(true)}
-          icon={<ThreeDots className="size-4 shrink-0 text-neutral-500" />}
+          icon={<ThreeDots className="size-4 shrink-0 text-neutral-600" />}
         />
       </Popover>
     </>

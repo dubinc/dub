@@ -85,7 +85,8 @@ export function PageContentWithSidePanel({
             className={cn(
               "absolute right-0 top-0 h-full min-h-0 w-0 overflow-hidden bg-white shadow-lg transition-[width]",
               "@[960px]/page-content:shadow-none @[960px]/page-content:relative",
-              isSidePanelOpen && "w-full sm:w-[340px]",
+              isSidePanelOpen &&
+                "@[960px]/page-content:z-auto z-10 w-full sm:w-[340px]",
             )}
           >
             <div className="border-border-subtle flex size-full min-h-0 w-full flex-col border-l sm:w-[340px]">

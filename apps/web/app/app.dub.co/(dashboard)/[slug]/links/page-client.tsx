@@ -87,7 +87,7 @@ export function WorkspaceLinksPageControls() {
     <>
       <LinkBuilder />
       <div className="hidden sm:block">
-        <CreateLinkButton />
+        <CreateLinkButton className="h-9" />
       </div>
     </>
   );
