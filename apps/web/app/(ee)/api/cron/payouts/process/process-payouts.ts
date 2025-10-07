@@ -137,11 +137,11 @@ export async function processPayouts({
     },
   });
 
-  const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
-  const totalFee = Math.round(payoutAmount * payoutFee);
   const fastAchFee =
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
-  const total = payoutAmount + totalFee + fastAchFee;
+  const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
+  const totalFee = Math.round(payoutAmount * payoutFee) + fastAchFee;
+  const total = payoutAmount + totalFee;
   let convertedTotal = total;
 
   // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit

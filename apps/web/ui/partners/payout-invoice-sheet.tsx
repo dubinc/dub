@@ -228,11 +228,12 @@ function PayoutInvoiceSheetContent() {
       };
     }
 
-    const fee = amount * selectedPaymentMethod.fee;
     const fastAchFee = selectedPaymentMethod.fastSettlement
       ? FAST_ACH_FEE_CENTS
       : 0;
-    const total = amount + fee + fastAchFee;
+
+    const fee = amount * selectedPaymentMethod.fee + fastAchFee;
+    const total = amount + fee;
 
     return {
       amount,
@@ -353,7 +354,7 @@ function PayoutInvoiceSheetContent() {
           ),
       },
       {
-        key: "Platform Fee",
+        key: "Fee",
         value:
           selectedPaymentMethod && fee !== undefined ? (
             currencyFormatter(fee / 100)
@@ -362,22 +363,12 @@ function PayoutInvoiceSheetContent() {
           ),
         tooltipContent: selectedPaymentMethod ? (
           <SimpleTooltipContent
-            title={`${selectedPaymentMethod.fee * 100}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
+            title={`${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter((fastAchFee ?? 0) / 100)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
             cta="Learn more"
             href="https://d.to/payouts"
           />
         ) : undefined,
       },
-
-      ...(fastAchFee
-        ? [
-            {
-              key: "Fast ACH Fee",
-              value: currencyFormatter(fastAchFee / 100),
-            },
-          ]
-        : []),
-
       {
         key: "Transfer Time",
         value: selectedPaymentMethod ? (

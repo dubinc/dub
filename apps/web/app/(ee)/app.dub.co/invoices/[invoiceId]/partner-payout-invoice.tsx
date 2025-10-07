@@ -135,20 +135,23 @@ export async function PartnerPayoutInvoice({
         })})`
       : "";
 
+  const fastAchFee =
+    invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
+
   const invoiceSummaryDetails = [
     {
       label: "Invoice amount",
       value: currencyFormatter(invoice.amount / 100),
     },
     {
-      label: `Platform fees (${Math.round((invoice.fee / invoice.amount) * 100)}%)`,
-      value: `${currencyFormatter(invoice.fee / 100)}`,
+      label: `Platform fees (${Math.round(((invoice.fee - fastAchFee) / invoice.amount) * 100)}%)`,
+      value: `${currencyFormatter((invoice.fee - fastAchFee) / 100)}`,
     },
-    ...(invoice.paymentMethod === "ach_fast"
+    ...(fastAchFee > 0
       ? [
           {
-            label: "Fast ACH fee",
-            value: currencyFormatter(FAST_ACH_FEE_CENTS / 100),
+            label: "Fast ACH fees",
+            value: currencyFormatter(fastAchFee / 100),
           },
         ]
       : []),
