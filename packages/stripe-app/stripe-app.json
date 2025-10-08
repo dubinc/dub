@@ -1,6 +1,6 @@
 {
   "id": "dub.co",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "name": "Dub Partners",
   "icon": "./stripe-icon.png",
   "permissions": [
