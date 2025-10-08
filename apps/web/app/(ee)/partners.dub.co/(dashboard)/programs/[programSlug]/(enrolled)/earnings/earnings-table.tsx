@@ -207,12 +207,8 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               icon={null}
               variant={badge.variant}
               tooltip={badge.tooltip({
-                name: programEnrollment?.program.name ?? "Support",
-                slug: programEnrollment?.program.slug ?? "support",
-                holdingPeriodDays:
-                  programEnrollment?.program.holdingPeriodDays ?? 0,
-                minPayoutAmount:
-                  programEnrollment?.program.minPayoutAmount ?? 0,
+                program: programEnrollment?.program,
+                variant: "partner",
               })}
             >
               {badge.label}

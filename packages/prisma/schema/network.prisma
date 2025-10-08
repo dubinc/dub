@@ -1,5 +1,5 @@
 model DiscoveredPartner {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   programId String
   partnerId String
 
@@ -16,7 +16,6 @@ model DiscoveredPartner {
   @@unique([programId, partnerId])
   @@index(partnerId)
 }
-
 
 enum IndustryInterest {
   SaaS

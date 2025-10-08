@@ -5,6 +5,7 @@ export const verifyVercelSignature = async (req: Request) => {
   // if (process.env.VERCEL !== "1") {
   //   return;
   // }
+
   const authHeader = req.headers.get("authorization");
 
   if (

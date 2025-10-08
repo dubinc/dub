@@ -42,14 +42,16 @@ model Project {
   allowedHostnames Json?
   publishableKey   String? @unique // for the client-side publishable key
 
-  conversionEnabled Boolean   @default(false) // Whether to enable conversion tracking for links by default
-  webhookEnabled    Boolean   @default(false)
-  dotLinkClaimed    Boolean   @default(false)
-  ssoEmailDomain    String?   @unique
-  ssoEnforcedAt     DateTime?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  usageLastChecked  DateTime  @default(now())
+  conversionEnabled      Boolean @default(false) // Whether to enable conversion tracking for links by default
+  webhookEnabled         Boolean @default(false)
+  dotLinkClaimed         Boolean @default(false)
+  fastDirectDebitPayouts Boolean @default(false)
+
+  ssoEmailDomain   String?   @unique
+  ssoEnforcedAt    DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  usageLastChecked DateTime  @default(now())
 
   users                 ProjectUsers[]
   invites               ProjectInvite[]
