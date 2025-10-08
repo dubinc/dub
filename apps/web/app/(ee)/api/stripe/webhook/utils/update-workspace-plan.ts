@@ -91,7 +91,7 @@ export async function updateWorkspacePlan({
                 id: workspace.defaultProgramId,
               },
               data: {
-                messagingEnabledAt: getPlanCapabilities(workspace.plan)
+                messagingEnabledAt: getPlanCapabilities(newPlanName)
                   .canMessagePartners
                   ? new Date()
                   : null,
