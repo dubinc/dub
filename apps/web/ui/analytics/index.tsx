@@ -15,7 +15,6 @@ import AnalyticsProvider, {
 import Devices from "./devices";
 import Locations from "./locations";
 import Main from "./main";
-import Referer from "./referer";
 import Toggle from "./toggle";
 import TopLinks from "./top-links";
 
@@ -63,7 +62,7 @@ function StatsGrid() {
       {!dashboardProps && <TopLinks />}
       <Locations />
       <Devices />
-      <Referer />
+      {/* <Referer /> */}
       {/* <Feedback /> */}
     </div>
   );

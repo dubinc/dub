@@ -1,19 +1,23 @@
+import { useSearchParams } from 'next/navigation';
 import QRCodeStyling from "qr-code-styling";
 import { forwardRef, RefObject, useEffect, useRef, useState } from "react";
 
 interface QRCanvasProps {
   qrCode: QRCodeStyling | null;
+  qrCodeId?: string;
   width?: number;
   height?: number;
   maxWidth?: number;
   minWidth?: number;
+  onCanvasReady?: () => void;
 }
 
 export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
-  ({ qrCode, width = 200, height = 200, maxWidth, minWidth = 100 }, ref) => {
+  ({ qrCode, qrCodeId, width = 200, height = 200, maxWidth, minWidth = 100, onCanvasReady }, ref) => {
     const internalCanvasRef = useRef<HTMLCanvasElement>(null);
     const svgContainerRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
+    const searchParams = useSearchParams();
 
     const initialSize = Math.max(width, height);
     const [canvasSize, setCanvasSize] = useState({
@@ -114,6 +118,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
             );
             ctx.drawImage(img, 0, 0, canvasSize.width, canvasSize.height);
             ctx.restore();
+            // Ensure the canvas has painted before notifying callers
           };
           img.onerror = (e) => {
             console.error("Failed to load QR image:", e);
@@ -127,7 +132,11 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
       const initialRenderTimeout = setTimeout(renderSVGToCanvas, 100);
 
       const observer = new MutationObserver(() => {
-        setTimeout(renderSVGToCanvas, 50);
+        setTimeout(() => {
+          renderSVGToCanvas();
+          console.log("onCanvasReady");
+          onCanvasReady?.();
+        }, 50);
       });
 
       observer.observe(svgContainerRef.current, {
@@ -141,7 +150,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
         observer.disconnect();
         svgContainerRef.current?.replaceChildren();
       };
-    }, [qrCode, canvasRef, canvasSize.width, canvasSize.height]);
+    }, [qrCode, canvasRef, canvasSize.width, canvasSize.height, onCanvasReady]);
 
     return (
       <div ref={containerRef} className="flex w-full flex-col gap-4">

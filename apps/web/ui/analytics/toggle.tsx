@@ -30,7 +30,6 @@ import {
   MapPosition,
   MobilePhone,
   OfficeBuilding,
-  ReferredVia,
   // Tag,
   Window,
 } from "@dub/ui/icons";
@@ -63,7 +62,6 @@ import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
 import EventsOptions from "./events/events-options";
-import RefererIcon from "./referer-icon";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Toggle({
@@ -391,34 +389,34 @@ export default function Toggle({
             right: nFormatter(count, { full: true }),
           })) ?? null,
       },
-      {
-        key: "referer",
-        icon: ReferredVia,
-        label: "Referer",
-        getOptionIcon: (value, props) => (
-          <RefererIcon display={value} className="h-4 w-4" />
-        ),
-        options:
-          referers?.map(({ referer, count }) => ({
-            value: referer,
-            label: referer,
-            right: nFormatter(count, { full: true }),
-          })) ?? null,
-      },
-      {
-        key: "refererUrl",
-        icon: ReferredVia,
-        label: "Referrer URL",
-        getOptionIcon: (value, props) => (
-          <RefererIcon display={value} className="h-4 w-4" />
-        ),
-        options:
-          refererUrls?.map(({ refererUrl, count }) => ({
-            value: refererUrl,
-            label: refererUrl,
-            right: nFormatter(count, { full: true }),
-          })) ?? null,
-      },
+      // {
+      //   key: "referer",
+      //   icon: ReferredVia,
+      //   label: "Referer",
+      //   getOptionIcon: (value, props) => (
+      //     <RefererIcon display={value} className="h-4 w-4" />
+      //   ),
+      //   options:
+      //     referers?.map(({ referer, count }) => ({
+      //       value: referer,
+      //       label: referer,
+      //       right: nFormatter(count, { full: true }),
+      //     })) ?? null,
+      // },
+      // {
+      //   key: "refererUrl",
+      //   icon: ReferredVia,
+      //   label: "Referrer URL",
+      //   getOptionIcon: (value, props) => (
+      //     <RefererIcon display={value} className="h-4 w-4" />
+      //   ),
+      //   options:
+      //     refererUrls?.map(({ refererUrl, count }) => ({
+      //       value: refererUrl,
+      //       label: refererUrl,
+      //       right: nFormatter(count, { full: true }),
+      //     })) ?? null,
+      // },
       {
         key: "url",
         icon: LinkBroken,

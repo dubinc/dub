@@ -223,7 +223,7 @@ export const POST = withSession(
         },
       });
 
-      const loginUrl = await createAutoLoginURL(user.id);
+      const loginUrl = await createAutoLoginURL(user.id, `/?qrId=${firstQr?.id}`);
 
       await Promise.all([
         prisma.user.update({
