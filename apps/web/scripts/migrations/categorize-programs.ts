@@ -137,13 +137,12 @@ async function main() {
       url: {
         not: null,
       },
-      workspace: {
-        plan: {
-          notIn: ["free", "pro"],
-        },
-      },
+      // workspace: {
+      //   plan: {
+      //     in: ["advanced", "enterprise"],
+      //   },
+      // },
     },
-    take: 2,
   });
 
   console.log(`Found ${programs.length} programs to categorize`);

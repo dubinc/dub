@@ -85,7 +85,10 @@ export async function calculateSimilarityForProgram(programId: string) {
       AND p2.conversions > 0
     `;
 
-    const { sharedCount, total1, total2 } = sharedPartnersData[0];
+    const sharedCount = Number(sharedPartnersData[0].sharedCount);
+    const total1 = Number(sharedPartnersData[0].total1);
+    const total2 = Number(sharedPartnersData[0].total2);
+
     const totalUniquePartners = total1 + total2 - sharedCount;
     const partnerOverlapScore =
       totalUniquePartners > 0 ? sharedCount / totalUniquePartners : 0;
