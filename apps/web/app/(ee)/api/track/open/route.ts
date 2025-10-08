@@ -3,6 +3,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { DeepLinkClickData } from "@/lib/middleware/utils/cache-deeplink-click-data";
 import { getLinkViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
@@ -25,6 +26,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     );
 
     const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    const identityHash = await getIdentityHash(req);
 
     if (!deepLinkUrl) {
       if (ip) {
@@ -70,7 +72,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
     let [cachedClickId, cachedLink] = await redis.mget<
       [string, RedisLinkProps, string[]]
     >([
-      recordClickCache._createKey({ domain, key, ip }),
+      recordClickCache._createKey({ domain, key, identityHash }),
       linkCache._createKey({ domain, key }),
     ]);
 
