@@ -1,6 +1,6 @@
 import { getConversionScore } from "@/lib/actions/partners/get-conversion-score";
 import { DubApiError } from "@/lib/api/errors";
-import { getImprovedPartnerRanking } from "@/lib/api/network/improved-partner-ranking";
+import { getImprovedPartnerRanking2 } from "@/lib/api/network/improved-partner-ranking";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -43,8 +43,7 @@ export const GET = withWorkspace(
       preferredEarningStructures,
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
-    // Use the improved ranking algorithm
-    const partners = await getImprovedPartnerRanking({
+    const partners = await getImprovedPartnerRanking2({
       programId,
       partnerIds,
       status,
@@ -55,21 +54,6 @@ export const GET = withWorkspace(
       page,
       pageSize,
     });
-
-    console.table(partners, [
-      "name",
-      "email",
-      "totalClicks",
-      "totalLeads",
-      "totalConversions",
-      "conversionRate",
-      "totalSaleAmount",
-      "totalCommissions",
-      "avgPartnerOverlapScore",
-      "avgPerformancePatternScore",
-      "avgCategoryOverlapScore",
-      "enhancedCombinedScore",
-    ]);
 
     return NextResponse.json(
       z.array(NetworkPartnerSchema).parse(
@@ -82,12 +66,6 @@ export const GET = withWorkspace(
           starredAt: partner.starredAt ? new Date(partner.starredAt) : null,
           ignoredAt: partner.ignoredAt ? new Date(partner.ignoredAt) : null,
           invitedAt: partner.invitedAt ? new Date(partner.invitedAt) : null,
-          // Enhanced scoring fields
-          programSimilarityScore: partner.programSimilarityScore || 0,
-          avgPartnerOverlapScore: partner.avgPartnerOverlapScore || 0,
-          avgPerformancePatternScore: partner.avgPerformancePatternScore || 0,
-          avgCategoryOverlapScore: partner.avgCategoryOverlapScore || 0,
-          enhancedCombinedScore: partner.enhancedCombinedScore || 0,
         })),
       ),
     );
