@@ -79,10 +79,19 @@ export function PartnerRewardsTooltip({ group }: PartnerRewardsTooltipProps) {
           : ` for ${maxDuration} month${maxDuration > 1 ? "s" : ""}`;
     }
 
-    const prefix = group.saleReward.type === "percentage" ? "Up to " : "";
+    let text = "";
+    if (maxDuration === 0) {
+      // For first sale only, use "earn" instead of "per sale"
+      text = `Earn ${amount}${durationText}`;
+    } else {
+      // For recurring sales, use "per sale" with prefix
+      const prefix = group.saleReward.type === "percentage" ? "Up to " : "";
+      text = `${prefix}${amount} per sale${durationText}`;
+    }
+
     rewards.push({
       icon: InvoiceDollar,
-      text: `${prefix}${amount} per sale${durationText}`,
+      text,
     });
   }
 

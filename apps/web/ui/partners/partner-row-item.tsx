@@ -28,8 +28,10 @@ export function PartnerRowItem({
   const showPayoutsEnabled = "payoutsEnabledAt" in partner;
 
   // Get groups data to find partner's group and their rewards
-  const { groups } = useGroups();
-  const partnerGroup = groups?.find((group) => group.id === partner.groupId);
+  const { groups } = useGroups({ enabled: showRewardsTooltip });
+  const partnerGroup = showRewardsTooltip
+    ? groups?.find((group) => group.id === partner.groupId)
+    : undefined;
 
   return (
     <div className="flex items-center gap-2">
