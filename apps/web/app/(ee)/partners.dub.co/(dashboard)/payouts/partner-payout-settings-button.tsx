@@ -15,12 +15,15 @@ export function PartnerPayoutSettingsButton() {
     <>
       <PartnerPayoutSettingsSheet />
 
-      {!partner?.payoutsEnabledAt && <ConnectPayoutButton />}
+      {!partner?.payoutsEnabledAt && (
+        <ConnectPayoutButton className="h-9 px-3" />
+      )}
 
       <Button
         type="button"
         text="Payout settings"
         variant="secondary"
+        className="h-9 px-3"
         onClick={() => setShowPartnerPayoutSettingsSheet(true)}
       />
     </>

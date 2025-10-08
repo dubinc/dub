@@ -2,10 +2,11 @@ import { allowedHostnamesCache } from "@/lib/analytics/allowed-hostnames-cache";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
-import { prefixWorkspaceId } from "@/lib/api/workspace-id";
-import { deleteWorkspace } from "@/lib/api/workspaces";
+import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
+import { jackson } from "@/lib/jackson";
 import { storage } from "@/lib/storage";
 import z from "@/lib/zod";
 import {
@@ -32,6 +33,7 @@ const updateWorkspaceSchema = createWorkspaceSchema
         z.null(),
       ])
       .optional(),
+    enforceSAML: z.boolean().nullish(),
   })
   .partial();
 
@@ -75,7 +77,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     const {
       name,
       slug,
@@ -83,6 +85,7 @@ export const PATCH = withWorkspace(
       conversionEnabled,
       allowedHostnames,
       publishableKey,
+      enforceSAML,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
@@ -103,6 +106,29 @@ export const PATCH = withWorkspace(
         )
       : null;
 
+    if (enforceSAML) {
+      if (workspace.plan !== "enterprise") {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "SAML SSO is only available on enterprise plans.",
+        });
+      }
+
+      const { apiController } = await jackson();
+
+      const connections = await apiController.getConnections({
+        tenant: workspace.id,
+        product: "Dub",
+      });
+
+      if (connections.length === 0) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "SAML SSO is not configured for this workspace.",
+        });
+      }
+    }
+
     try {
       const response = await prisma.project.update({
         where: {
@@ -117,6 +143,9 @@ export const PATCH = withWorkspace(
             allowedHostnames: validHostnames,
           }),
           ...(publishableKey !== undefined && { publishableKey }),
+          ...(enforceSAML !== undefined && {
+            ssoEnforcedAt: enforceSAML ? new Date() : null,
+          }),
         },
         include: {
           domains: {

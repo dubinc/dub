@@ -2,7 +2,12 @@
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ExistingOAuthApp, NewOAuthApp, OAuthAppProps } from "@/lib/types";
+import {
+  NewOAuthApp,
+  OAuthAppProps,
+  OAuthAppWithClientSecret,
+} from "@/lib/types";
+import { useOAuthAppCreatedModal } from "@/ui/modals/oauth-app-created-modal";
 import {
   Button,
   FileUpload,
@@ -13,8 +18,8 @@ import {
 } from "@dub/ui";
 import { cn, nanoid } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { Reorder } from "framer-motion";
 import { Paperclip, Trash2 } from "lucide-react";
+import { Reorder } from "motion/react";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
@@ -43,9 +48,14 @@ export default function AddOAuthAppForm({
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const { slug: workspaceSlug, id: workspaceId, role } = useWorkspace();
+
+  const [createdAppData, setCreatedAppData] =
+    useState<OAuthAppWithClientSecret | null>(null);
+
   const [urls, setUrls] = useState<{ id: string; value: string }[]>([
     { id: nanoid(), value: "" },
   ]);
+
   const [screenshots, setScreenshots] = useState<
     {
       file?: File;
@@ -54,9 +64,14 @@ export default function AddOAuthAppForm({
     }[]
   >([]);
 
-  const [data, setData] = useState<NewOAuthApp | ExistingOAuthApp>(
+  const [data, setData] = useState<NewOAuthApp | OAuthAppProps>(
     oAuthApp || defaultValues,
   );
+
+  const { OAuthAppCreatedModal, setShowOAuthAppCreatedModal } =
+    useOAuthAppCreatedModal({
+      oAuthApp: createdAppData,
+    });
 
   const { error: permissionsError } = clientAccessCheck({
     action: "oauth_apps.write",
@@ -132,11 +147,12 @@ export default function AddOAuthAppForm({
       toast.success(endpoint.successMessage);
 
       if (endpoint.method === "POST") {
-        const url = `/${workspaceSlug}/settings/oauth-apps/${result.id}${
-          result.clientSecret ? `?client_secret=${result.clientSecret}` : ""
-        }`;
-
-        router.push(url);
+        if (result.clientSecret) {
+          setCreatedAppData(result);
+          setShowOAuthAppCreatedModal(true);
+        } else {
+          router.push(`/${workspaceSlug}/settings/oauth-apps/${result.id}`);
+        }
       }
     } else {
       toast.error(result.error.message);
@@ -206,6 +222,7 @@ export default function AddOAuthAppForm({
 
   return (
     <>
+      <OAuthAppCreatedModal />
       <form
         ref={formRef}
         onSubmit={onSubmit}
@@ -388,6 +405,7 @@ export default function AddOAuthAppForm({
             onChange={async ({ file }) => await handleUpload(file)}
             content="Drag and drop or click to upload screenshots"
             disabled={!canManageApp || screenshots.length >= 4}
+            maxFileSizeMB={2}
           />
         </div>
 

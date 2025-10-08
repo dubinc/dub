@@ -1,14 +1,16 @@
 import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
+import { linkCache } from "@/lib/api/links/cache";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { isBlacklistedEmail } from "@/lib/edge-config/is-blacklisted-email";
+import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
-import { redis } from "@/lib/upstash";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { FREE_PLAN, log } from "@dub/utils";
+import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendCancellationFeedback } from "./utils";
+import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
+import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
 export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const subscriptionDeleted = event.data.object as Stripe.Subscription;
@@ -24,8 +26,11 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     select: {
       id: true,
       slug: true,
-      domains: true,
+      plan: true,
       foldersUsage: true,
+      paymentFailedAt: true,
+      payoutsLimit: true,
+      defaultProgramId: true,
       links: {
         where: {
           key: "_root",
@@ -71,23 +76,32 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
+  // Check if the customer has another active subscription
+  const { data: activeSubscriptions } = await stripe.subscriptions.list({
+    customer: stripeId,
+    status: "active",
+  });
+
+  if (activeSubscriptions.length > 0) {
+    const activeSubscription = activeSubscriptions[0];
+    const priceId = activeSubscription.items.data[0].price.id;
+    const plan = getPlanFromPriceId(priceId);
+
+    await updateWorkspacePlan({
+      workspace,
+      plan,
+      priceId,
+    });
+
+    return NextResponse.json({ received: true });
+  }
+
   const workspaceLinks = workspace.links;
   const workspaceUsers = workspace.users.map(({ user }) => user);
 
   const isBlacklistedCancellation = await isBlacklistedEmail(
     workspaceUsers.filter(({ email }) => email).map(({ email }) => email!),
   );
-
-  const pipeline = redis.pipeline();
-  // remove root domain redirect for all domains from Redis
-  workspaceLinks.forEach(({ id, domain }) => {
-    pipeline.hset(domain.toLowerCase(), {
-      _root: {
-        id,
-        projectId: workspace.id,
-      },
-    });
-  });
 
   await Promise.allSettled([
     prisma.project.update({
@@ -104,6 +118,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         tagsLimit: FREE_PLAN.limits.tags!,
         foldersLimit: FREE_PLAN.limits.folders!,
         groupsLimit: FREE_PLAN.limits.groups!,
+        networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
         usersLimit: FREE_PLAN.limits.users!,
         paymentFailedAt: null,
         foldersUsage: 0,
@@ -152,7 +167,8 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
 
-    pipeline.exec(),
+    // expire root domain link cache from Redis
+    linkCache.expireMany(workspaceLinks),
 
     // record root domain link for all domains from Tinybird
     recordLink(

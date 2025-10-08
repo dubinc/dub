@@ -1,4 +1,5 @@
-import { LinkifyTooltipContent, SimpleTooltipContent } from "@dub/ui";
+import { Program } from "@dub/prisma/client";
+import { SimpleTooltipContent } from "@dub/ui";
 import {
   CircleCheck,
   CircleHalfDottedClock,
@@ -6,12 +7,17 @@ import {
   Duplicate,
   ShieldAlert,
 } from "@dub/ui/icons";
-import { currencyFormatter } from "@dub/utils";
+import { currencyFormatter, PARTNERS_DOMAIN } from "@dub/utils";
 
 interface CommissionTooltipDataProps {
-  holdingPeriodDays: number;
-  minPayoutAmount: number;
-  supportEmail: string;
+  program?: Pick<
+    Program,
+    "name" | "slug" | "holdingPeriodDays" | "minPayoutAmount"
+  >;
+  workspace?: {
+    slug?: string;
+  };
+  variant: "partner" | "workspace";
 }
 
 export const CommissionStatusBadges = {
@@ -22,7 +28,7 @@ export const CommissionStatusBadges = {
     icon: CircleHalfDottedClock,
     tooltip: (data: CommissionTooltipDataProps) => (
       <SimpleTooltipContent
-        title={`This commission is pending and will be eligible for payout after the program's ${data.holdingPeriodDays}-day holding period.`}
+        title={`This commission is pending and will be eligible for payout after ${data.variant === "partner" ? "the" : "your"} program's ${data.program?.holdingPeriodDays}-day holding period.`}
         cta="Learn more."
         href="https://dub.co/help/article/receiving-payouts"
       />
@@ -35,9 +41,15 @@ export const CommissionStatusBadges = {
     icon: CircleHalfDottedClock,
     tooltip: (data: CommissionTooltipDataProps) => (
       <SimpleTooltipContent
-        title={`This commission has been processed and will be paid out once your payout total reaches the program's minimum payout amount of ${currencyFormatter(data.minPayoutAmount / 100)}.`}
-        cta="Learn more."
-        href="https://dub.co/help/article/receiving-payouts"
+        title={`This commission has been processed and ${data.variant === "partner" && data.program?.minPayoutAmount ? `will be paid out once your payout total reaches the program's minimum payout amount of ${currencyFormatter(data.program?.minPayoutAmount / 100)}` : "is now eligible for payout"}.`}
+        cta={
+          data.variant === "partner" ? "Learn more." : "View pending payouts."
+        }
+        href={
+          data.variant === "partner"
+            ? "https://dub.co/help/article/receiving-payouts"
+            : `/${data.workspace?.slug}/program/payouts?status=pending&sortBy=amount`
+        }
       />
     ),
   },
@@ -54,10 +66,19 @@ export const CommissionStatusBadges = {
     className: "text-red-600 bg-red-100",
     icon: ShieldAlert,
     tooltip: (data: CommissionTooltipDataProps) => (
-      <LinkifyTooltipContent>
-        This commission was flagged as fraudulent. Reach out to{" "}
-        {data.supportEmail} if you believe this is incorrect.
-      </LinkifyTooltipContent>
+      <SimpleTooltipContent
+        title={`This commission was flagged as fraudulent.${data.variant === "partner" ? " If you believe this is incorrect, " : ""}`}
+        cta={
+          data.variant === "partner"
+            ? `reach out to the ${data.program?.name} team`
+            : undefined
+        }
+        href={
+          data.variant === "partner"
+            ? `${PARTNERS_DOMAIN}/messages/${data.program?.slug}`
+            : undefined
+        }
+      />
     ),
   },
   duplicate: {
@@ -66,10 +87,19 @@ export const CommissionStatusBadges = {
     className: "text-red-600 bg-red-100",
     icon: Duplicate,
     tooltip: (data: CommissionTooltipDataProps) => (
-      <LinkifyTooltipContent>
-        This commission was flagged as duplicate. Reach out to{" "}
-        {data.supportEmail} if you believe this is incorrect.
-      </LinkifyTooltipContent>
+      <SimpleTooltipContent
+        title={`This commission was flagged as duplicate.${data.variant === "partner" ? " If you believe this is incorrect, " : ""}`}
+        cta={
+          data.variant === "partner"
+            ? `reach out to the ${data.program?.name} team`
+            : undefined
+        }
+        href={
+          data.variant === "partner"
+            ? `${PARTNERS_DOMAIN}/messages/${data.program?.slug}`
+            : undefined
+        }
+      />
     ),
   },
   refunded: {
@@ -78,10 +108,19 @@ export const CommissionStatusBadges = {
     className: "text-red-600 bg-red-100",
     icon: CircleXmark,
     tooltip: (data: CommissionTooltipDataProps) => (
-      <LinkifyTooltipContent>
-        This commission was refunded. Reach out to {data.supportEmail} if you
-        believe this is incorrect.
-      </LinkifyTooltipContent>
+      <SimpleTooltipContent
+        title={`This commission was refunded.${data.variant === "partner" ? " If you believe this is incorrect, " : ""}`}
+        cta={
+          data.variant === "partner"
+            ? `reach out to the ${data.program?.name} team`
+            : undefined
+        }
+        href={
+          data.variant === "partner"
+            ? `${PARTNERS_DOMAIN}/messages/${data.program?.slug}`
+            : undefined
+        }
+      />
     ),
   },
   canceled: {
@@ -90,10 +129,19 @@ export const CommissionStatusBadges = {
     className: "text-gray-600 bg-gray-100",
     icon: CircleXmark,
     tooltip: (data: CommissionTooltipDataProps) => (
-      <LinkifyTooltipContent>
-        This commission was canceled. Reach out to {data.supportEmail} if you
-        believe this is incorrect.
-      </LinkifyTooltipContent>
+      <SimpleTooltipContent
+        title={`This commission was canceled.${data.variant === "partner" ? " If you believe this is incorrect, " : ""}`}
+        cta={
+          data.variant === "partner"
+            ? `reach out to the ${data.program?.name} team`
+            : undefined
+        }
+        href={
+          data.variant === "partner"
+            ? `${PARTNERS_DOMAIN}/messages/${data.program?.slug}`
+            : undefined
+        }
+      />
     ),
   },
 };

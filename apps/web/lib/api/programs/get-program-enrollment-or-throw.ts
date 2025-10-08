@@ -1,3 +1,4 @@
+import { PartnerGroupProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
@@ -6,21 +7,35 @@ export async function getProgramEnrollmentOrThrow({
   partnerId,
   programId,
   includePartner = false,
+  includeProgram = false,
   includeClickReward = false,
   includeLeadReward = false,
   includeSaleReward = false,
   includeDiscount = false,
+  includeDiscountCodes = false,
+  includeGroup = false,
+  includeWorkspace = false,
 }: {
   partnerId: string;
   programId: string;
   includePartner?: boolean;
+  includeProgram?: boolean;
   includeClickReward?: boolean;
   includeLeadReward?: boolean;
   includeSaleReward?: boolean;
   includeDiscount?: boolean;
+  includeDiscountCodes?: boolean;
+  includeGroup?: boolean;
+  includeWorkspace?: boolean;
 }) {
   const include: Prisma.ProgramEnrollmentInclude = {
-    program: true,
+    program: includeWorkspace
+      ? {
+          include: {
+            workspace: true,
+          },
+        }
+      : true,
     links: {
       orderBy: {
         createdAt: "asc",
@@ -28,6 +43,9 @@ export async function getProgramEnrollmentOrThrow({
     },
     ...(includePartner && {
       partner: true,
+    }),
+    ...(includeProgram && {
+      program: true,
     }),
     ...(includeClickReward && {
       clickReward: true,
@@ -40,6 +58,19 @@ export async function getProgramEnrollmentOrThrow({
     }),
     ...(includeDiscount && {
       discount: true,
+    }),
+    ...(includeDiscountCodes && {
+      discountCodes: {
+        where: {
+          // Omit soft deleted discount codes
+          discountId: {
+            not: null,
+          },
+        },
+      },
+    }),
+    ...(includeGroup && {
+      partnerGroup: true,
     }),
   };
 
@@ -71,5 +102,8 @@ export async function getProgramEnrollmentOrThrow({
     });
   }
 
-  return programEnrollment;
+  return {
+    ...programEnrollment,
+    group: programEnrollment.partnerGroup as PartnerGroupProps,
+  };
 }

@@ -1,9 +1,10 @@
+import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
-import { Badge, MoneyBills2, ShieldKeyhole, UserCheck } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { MoneyBills2, Msgs, UserCheck } from "@dub/ui";
+import { cn, nFormatter } from "@dub/utils";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -22,15 +23,15 @@ export function OverviewTasks() {
     status: "pending",
   });
 
+  const { count: unreadMessagesCount, isLoading: unreadMessagesLoading } =
+    usePartnerMessagesCount({
+      query: {
+        unread: true,
+      },
+    });
+
   const tasks = useMemo(
     () => [
-      {
-        icon: UserCheck,
-        label: "Review new applications",
-        count: partnersCount,
-        href: `/${slug}/program/partners/applications`,
-        loading: partnersCountLoading,
-      },
       {
         icon: MoneyBills2,
         label: "Confirm pending payouts",
@@ -39,19 +40,28 @@ export function OverviewTasks() {
         loading: eligiblePayoutsLoading,
       },
       {
-        icon: ShieldKeyhole,
-        label: "Fraud & Risk review",
-        count: 0,
-        href: `/${slug}/program/fraud`,
-        comingSoon: true,
+        icon: Msgs,
+        label: "Response to partners",
+        count: unreadMessagesCount,
+        href: `/${slug}/program/messages`,
+        loading: unreadMessagesLoading,
+      },
+      {
+        icon: UserCheck,
+        label: "Review new applications",
+        count: partnersCount,
+        href: `/${slug}/program/partners/applications`,
+        loading: partnersCountLoading,
       },
     ],
     [
       slug,
-      partnersCount,
-      partnersCountLoading,
       eligiblePayoutsCount,
       eligiblePayoutsLoading,
+      unreadMessagesCount,
+      unreadMessagesLoading,
+      partnersCount,
+      partnersCountLoading,
     ],
   );
 
@@ -70,23 +80,16 @@ export function OverviewTasks() {
               <span className="min-w-0 truncate">{task.label}</span>
             </div>
 
-            {task.comingSoon ? (
-              <div className="flex h-8 items-center">
-                <Badge variant="blueGradient" className="py-1">
-                  Coming soon
-                </Badge>
-              </div>
-            ) : (
-              <div
-                className={cn(
-                  "flex h-8 items-center rounded-lg bg-black/5 px-4 text-neutral-400",
-                  task.loading && "w-10 animate-pulse",
-                  task.count && task.count > 0 && "bg-blue-100 text-blue-600",
-                )}
-              >
-                {task.count ?? (task.loading ? "" : "-")}
-              </div>
-            )}
+            <div
+              className={cn(
+                "flex h-8 items-center rounded-lg bg-black/5 px-4 text-neutral-400",
+                task.loading && "w-10 animate-pulse",
+                task.count && task.count > 0 && "bg-blue-100 text-blue-600",
+              )}
+            >
+              {nFormatter(task.count, { full: true }) ??
+                (task.loading ? "" : "-")}
+            </div>
           </Link>
         ))}
       </div>

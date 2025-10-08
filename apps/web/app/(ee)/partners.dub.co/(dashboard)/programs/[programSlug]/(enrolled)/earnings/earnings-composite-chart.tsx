@@ -179,10 +179,7 @@ export function EarningsCompositeChart() {
                         })}
                       </p>
                       <p className="text-right leading-none text-neutral-500">
-                        {currencyFormatter((d.values.total || 0) / 100, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {currencyFormatter((d.values.total || 0) / 100)}
                       </p>
                     </div>
                     <div className="grid max-w-64 grid-cols-[minmax(0,1fr),min-content] gap-x-6 gap-y-2 px-4 py-3 text-xs">
@@ -204,10 +201,7 @@ export function EarningsCompositeChart() {
                               </span>
                             </div>
                             <p className="text-right text-neutral-500">
-                              {currencyFormatter(valueAccessor(d), {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2,
-                              })}
+                              {currencyFormatter(valueAccessor(d))}
                             </p>
                           </Fragment>
                         );

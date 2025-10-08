@@ -4,12 +4,13 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
-import { ipAddress, waitUntil } from "@vercel/functions";
+import { isValidUrl, nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 
@@ -33,10 +34,10 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       key = "_root";
     }
 
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    const identityHash = await getIdentityHash(req);
 
     let [clickId, cachedLink] = await redis.mget<[string, RedisLinkProps]>([
-      recordClickCache._createKey({ domain, key, ip }),
+      recordClickCache._createKey({ domain, key, identityHash }),
       linkCache._createKey({ domain, key }),
     ]);
 

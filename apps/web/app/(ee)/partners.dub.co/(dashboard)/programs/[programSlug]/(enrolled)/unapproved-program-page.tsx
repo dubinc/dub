@@ -6,6 +6,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { Button, StatusBadge } from "@dub/ui";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ReactNode } from "react";
 import { toast } from "sonner";
@@ -27,13 +28,17 @@ const states: Record<
       </>
     ),
   }),
-  rejected: () => ({
-    title: "Application rejected",
-    description: "Your application has been rejected.",
-  }),
   banned: () => ({
     title: "Program unavailable",
     description: "You have been banned from this program.",
+  }),
+  deactivated: () => ({
+    title: "Partnership deactivated",
+    description: "Your partnership has been deactivated.",
+  }),
+  rejected: () => ({
+    title: "Application rejected",
+    description: "Your application has been rejected.",
   }),
 };
 
@@ -83,21 +88,21 @@ export function UnapprovedProgramPage({
           <h2 className="text-content-default mt-4 text-base font-semibold">
             {title}
           </h2>
-          <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-sm font-medium [&_strong]:font-semibold">
-            {description}
-            {programEnrollment.program.supportEmail &&
-              ["rejected", "banned"].includes(programEnrollment.status) && (
-                <>
-                  Contact{" "}
-                  <a
-                    href={`mailto:${programEnrollment.program.supportEmail}`}
-                    className="text-neutral-500 underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
-                  >
-                    {programEnrollment.program.supportEmail}
-                  </a>{" "}
-                  to appeal.
-                </>
-              )}
+          <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-balance text-sm font-medium [&_strong]:font-semibold">
+            {description}{" "}
+            {["banned", "deactivated", "rejected"].includes(
+              programEnrollment.status,
+            ) && (
+              <>
+                <Link
+                  href={`/messages/${programEnrollment.program.slug}`}
+                  className="text-neutral-500 underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
+                >
+                  Reach out to the {programEnrollment.program.name} team
+                </Link>{" "}
+                if you have any questions.
+              </>
+            )}
           </p>
 
           {/* Withdraw button - only show for pending applications */}

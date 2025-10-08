@@ -1,10 +1,15 @@
 import { TrackSaleResponse } from "@/lib/types";
-import { randomId, randomSaleAmount } from "tests/utils/helpers";
+import {
+  randomCustomer,
+  randomId,
+  randomSaleAmount,
+} from "tests/utils/helpers";
 import {
   E2E_CUSTOMER_EXTERNAL_ID,
   E2E_CUSTOMER_EXTERNAL_ID_2,
   E2E_CUSTOMER_ID,
   E2E_REWARD,
+  E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
@@ -30,11 +35,6 @@ const expectValidSaleResponse = (
       invoiceId: sale.invoiceId,
       metadata: null,
     },
-    amount: sale.amount,
-    currency: sale.currency,
-    paymentProcessor: sale.paymentProcessor,
-    metadata: null,
-    invoiceId: sale.invoiceId,
   });
 };
 
@@ -81,7 +81,7 @@ describe("POST /track/sale", async () => {
     expectValidSaleResponse(response, sale);
   });
 
-  test("track a sale with an invoiceId that is already processed (should return null customer and sale) ", async () => {
+  test("track a sale with an invoiceId that is already processed (should return the same response as before) ", async () => {
     const response = await http.post<TrackSaleResponse>({
       path: "/track/sale",
       body: {
@@ -91,12 +91,8 @@ describe("POST /track/sale", async () => {
       },
     });
 
-    expect(response.status).toEqual(200);
-    expect(response.data).toStrictEqual({
-      eventName: "Subscription",
-      customer: null,
-      sale: null,
-    });
+    // should return the same response since it's idempotent
+    expectValidSaleResponse(response, sale);
   });
 
   test("track a sale with regular vs premium product ID (should create the right commission)", async () => {
@@ -225,5 +221,108 @@ describe("POST /track/sale", async () => {
     expect(response.data.sale?.currency).toEqual("usd");
     expect(response.data.sale?.amount).toBeGreaterThanOrEqual(900); // 900 cents
     expect(response.data.sale?.amount).toBeLessThanOrEqual(1100); // 1100 cents
+  });
+
+  test("track a sale with direct sale tracking", async () => {
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: E2E_TRACK_CLICK_HEADERS,
+      body: {
+        domain: "getacme.link",
+        key: "derek",
+      },
+    });
+    expect(clickResponse.status).toEqual(200);
+    expect(clickResponse.data.clickId).toStrictEqual(expect.any(String));
+    const trackedClickId = clickResponse.data.clickId;
+    const saleCustomer = randomCustomer();
+    const salePayload = {
+      ...sale,
+      eventName: "Purchase (no lead event)",
+      amount: randomSaleAmount(),
+      invoiceId: `INV_${randomId()}`,
+    };
+
+    const response = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...salePayload,
+        clickId: trackedClickId,
+        leadEventName: "Signup (auto lead tracking)",
+        customerExternalId: saleCustomer.externalId,
+        customerName: saleCustomer.name,
+        customerEmail: saleCustomer.email,
+        customerAvatar: saleCustomer.avatar,
+      },
+    });
+
+    expect(response.status).toEqual(200);
+    expect(response.data).toStrictEqual({
+      eventName: salePayload.eventName,
+      customer: {
+        id: expect.any(String),
+        ...saleCustomer,
+      },
+      sale: {
+        amount: salePayload.amount,
+        currency: salePayload.currency,
+        paymentProcessor: salePayload.paymentProcessor,
+        invoiceId: salePayload.invoiceId,
+        metadata: null,
+      },
+    });
+  });
+
+  test("track sales with different amounts (verifies sale amount is passed via context for reward conditions)", async () => {
+    // Test with a small sale amount
+    const smallSaleInvoiceId = `INV_${randomId()}`;
+    const smallSaleAmount = 10000; // $100.00
+
+    const response1 = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...sale,
+        amount: smallSaleAmount,
+        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
+        invoiceId: smallSaleInvoiceId,
+      },
+    });
+
+    expect(response1.status).toEqual(200);
+    expect(response1.data.sale?.amount).toEqual(smallSaleAmount);
+
+    // Test with a large sale amount
+    const largeSaleInvoiceId = `INV_${randomId()}`;
+    const largeSaleAmount = 20000; // $200.00
+
+    const response2 = await http.post<TrackSaleResponse>({
+      path: "/track/sale",
+      body: {
+        ...sale,
+        amount: largeSaleAmount,
+        customerExternalId: E2E_CUSTOMER_EXTERNAL_ID_2,
+        invoiceId: largeSaleInvoiceId,
+      },
+    });
+
+    expect(response2.status).toEqual(200);
+    expect(response2.data.sale?.amount).toEqual(largeSaleAmount);
+
+    // Pause for 2 seconds for data to be fully processed
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    await verifyCommission(
+      http,
+      smallSaleInvoiceId,
+      response1.data.sale?.amount!,
+      E2E_REWARD.amount,
+    );
+
+    await verifyCommission(
+      http,
+      largeSaleInvoiceId,
+      response2.data.sale?.amount!,
+      E2E_REWARD.modifiers[1].amount,
+    );
   });
 });

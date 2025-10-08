@@ -8,9 +8,8 @@ import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
-import { useBulkApprovePartnersModal } from "@/ui/partners/bulk-approve-partners-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
@@ -134,38 +133,6 @@ export function ProgramPartnersApplicationsPageClient() {
 
   const [pendingRejectIds, setPendingRejectIds] = useState<string[]>([]);
 
-  // const { executeAsync: approvePartners, isPending: isApprovingPartners } =
-  // useAction(bulkApprovePartnersAction, {
-  //   onError: ({ error }) => {
-  //     toast.error(error.serverError);
-  //   },
-  //   onSuccess: async ({ input }) => {
-  //     await mutatePrefix("/api/partners");
-  //     toast.success(
-  //       `${pluralize("Partner", input.partnerIds.length)} approved`,
-  //     );
-  //   },
-  // });
-
-  // Confirmation modals
-  // const {
-  //   setShowConfirmModal: setShowApproveModal,
-  //   confirmModal: approveModal,
-  // } = useConfirmModal({
-  //   title: "Approve Applications",
-  //   description: "Are you sure you want to approve these applications?",
-  //   confirmText: "Approve",
-  //   onConfirm: async () => {
-  //     if (pendingApproveIds.length > 0) {
-  //       await approvePartners({
-  //         workspaceId: workspaceId!,
-  //         partnerIds: pendingApproveIds,
-  //       });
-  //       setPendingApproveIds([]);
-  //     }
-  //   },
-  // });
-
   const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
     useBulkApprovePartnersModal({
       partners: pendingApprovePartners,
@@ -218,10 +185,17 @@ export function ProgramPartnersApplicationsPageClient() {
         enableHiding: false,
         minSize: 150,
         cell: ({ row }) => {
-          if (!groups) return "-";
-          const partnerGroup =
-            groups.find((g) => g.id === row.original.groupId) ??
-            DEFAULT_PARTNER_GROUP;
+          if (!groups || !row.original.groupId) {
+            return "-";
+          }
+
+          const partnerGroup = groups.find(
+            (g) => g.id === row.original.groupId,
+          );
+
+          if (!partnerGroup) {
+            return "-";
+          }
 
           return (
             <div className="flex items-center gap-2">
@@ -265,7 +239,6 @@ export function ProgramPartnersApplicationsPageClient() {
             <PartnerSocialColumn
               value={getDomainWithoutWWW(row.original.website) ?? "-"}
               verified={!!row.original.websiteVerifiedAt}
-              href={row.original.website}
             />
           );
         },
@@ -280,7 +253,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.youtube}
               verified={!!row.original.youtubeVerifiedAt}
-              href={`https://youtube.com/@${row.original.youtube}`}
             />
           );
         },
@@ -295,7 +267,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.twitter}
               verified={!!row.original.twitterVerifiedAt}
-              href={`https://x.com/${row.original.twitter}`}
             />
           );
         },
@@ -309,7 +280,6 @@ export function ProgramPartnersApplicationsPageClient() {
             <PartnerSocialColumn
               value={row.original.linkedin}
               verified={!!row.original.linkedinVerifiedAt}
-              href={`https://linkedin.com/in/${row.original.linkedin}`}
             />
           );
         },
@@ -324,7 +294,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.instagram}
               verified={!!row.original.instagramVerifiedAt}
-              href={`https://instagram.com/${row.original.instagram}`}
             />
           );
         },
@@ -339,7 +308,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.tiktok}
               verified={!!row.original.tiktokVerifiedAt}
-              href={`https://tiktok.com/@${row.original.tiktok}`}
             />
           );
         },
@@ -431,6 +399,20 @@ export function ProgramPartnersApplicationsPageClient() {
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
+  const [previousPartnerId, nextPartnerId] = useMemo(() => {
+    if (!partners || !detailsSheetState.partnerId) return [null, null];
+
+    const currentIndex = partners.findIndex(
+      ({ id }) => id === detailsSheetState.partnerId,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? partners[currentIndex - 1].id : null,
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+    ];
+  }, [partners, detailsSheetState.partnerId]);
+
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.partnerId && currentPartner && (
@@ -440,6 +422,24 @@ export function ProgramPartnersApplicationsPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          onPrevious={
+            previousPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: previousPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+          onNext={
+            nextPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: nextPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
         />
       )}
       <BulkApprovePartnersModal />

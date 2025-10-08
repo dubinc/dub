@@ -1,37 +1,30 @@
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
+import { DubApiError } from "@/lib/api/errors";
+import { getSession } from "@/lib/auth";
+import { bitlyOAuthProvider } from "@/lib/integrations/bitly/oauth";
 import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN, APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { APP_DOMAIN } from "@dub/utils";
 import { NextResponse } from "next/server";
 
+// GET /api/callback/bitly – bitly OAuth callback
 export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-
-  // get code and workspace id from query params
-  const code = searchParams.get("code") as string;
-  const state = searchParams.get("state") as string;
-
-  if (!code || !state) {
-    return NextResponse.redirect(APP_DOMAIN);
-  }
-
   try {
-    const stateJSON = JSON.parse(state);
-    let { workspaceId, folderId } = stateJSON;
+    const session = await getSession();
 
-    workspaceId = normalizeWorkspaceId(workspaceId);
+    if (!session?.user.id) {
+      throw new DubApiError({
+        code: "unauthorized",
+        message: "Unauthorized.",
+      });
+    }
 
-    // get access token from bitly
-    const response = await fetch(
-      "https://api-ssl.bitly.com/oauth/access_token",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `client_id=${process.env.NEXT_PUBLIC_BITLY_CLIENT_ID}&client_secret=${process.env.BITLY_CLIENT_SECRET}&code=${code}&redirect_uri=${APP_DOMAIN_WITH_NGROK}/api/callback/bitly`,
-      },
-    ).then((r) => r.text());
+    const {
+      token: response,
+      contextId: { workspaceId, folderId },
+    } = await bitlyOAuthProvider.exchangeCodeForToken<{
+      workspaceId: string;
+      folderId?: string;
+    }>(req);
 
     if (!response || response.includes("error")) {
       return NextResponse.redirect(APP_DOMAIN);
@@ -49,15 +42,24 @@ export async function GET(req: Request) {
           slug: true,
         },
       }),
+
       // store access token in redis
       redis.set(`import:bitly:${workspaceId}`, params.get("access_token")),
     ]);
 
-    // redirect to workspace page with import query param
-    return NextResponse.redirect(
-      `${APP_DOMAIN}${workspace ? `/${workspace.slug}?import=bitly${folderId ? `&folderId=${folderId}` : ""}` : ""}`,
-    );
+    const queryParams = new URLSearchParams({
+      import: "bitly",
+      ...(folderId ? { folderId } : {}),
+    });
+
+    const redirectUrl = workspace
+      ? `${APP_DOMAIN}/${workspace.slug}?${queryParams.toString()}`
+      : APP_DOMAIN;
+
+    return NextResponse.redirect(redirectUrl);
   } catch (error) {
+    console.error("[/api/callback/bitly]", error);
+
     return NextResponse.redirect(APP_DOMAIN);
   }
 }

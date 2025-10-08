@@ -35,7 +35,7 @@ export const sendWebhooks = async ({
   );
 };
 
-// Publish webhook event to QStash
+// publish webhook event to QStash
 const publishWebhookEventToQStash = async ({
   webhook,
   payload,
@@ -51,6 +51,9 @@ const publishWebhookEventToQStash = async ({
   const receiver = identifyWebhookReceiver(webhook.url);
   const finalPayload = transformPayload({ payload, receiver });
   const signature = await createWebhookSignature(webhook.secret, finalPayload);
+
+  // TODO:
+  // Add deduplicationId to the webhook
 
   const response = await qstash.publishJSON({
     url: webhook.url,

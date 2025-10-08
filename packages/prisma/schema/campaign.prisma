@@ -1,0 +1,45 @@
+enum CampaignType {
+  marketing
+  transactional
+}
+
+enum CampaignStatus {
+  draft
+  active
+  paused
+  sent
+}
+
+model Campaign {
+  id          String         @id @default(cuid())
+  programId   String
+  workflowId  String?        @unique
+  userId      String
+  type        CampaignType
+  status      CampaignStatus @default(draft)
+  name        String
+  subject     String
+  body        String         @db.Text
+  scheduledAt DateTime?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  program  Program             @relation(fields: [programId], references: [id])
+  workflow Workflow?           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  groups   CampaignGroup[]
+  emails   NotificationEmail[]
+
+  @@index(programId)
+}
+
+model CampaignGroup {
+  id         String @id @default(cuid())
+  campaignId String
+  groupId    String
+
+  campaign     Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  partnerGroup PartnerGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([campaignId, groupId])
+  @@index(groupId)
+}

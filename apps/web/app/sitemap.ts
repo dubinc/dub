@@ -5,7 +5,7 @@ import { MetadataRoute } from "next";
 import { headers } from "next/headers";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const headersList = headers();
+  const headersList = await headers();
   let domain = headersList.get("host") as string;
 
   if (domain === "dub.localhost:8888" || domain.endsWith(".vercel.app")) {
@@ -16,12 +16,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (PARTNERS_HOSTNAMES.has(domain)) {
     const programs = await prisma.program.findMany({
       where: {
-        landerData: {
-          not: Prisma.JsonNull,
+        groups: {
+          some: {
+            slug: "default",
+            landerData: {
+              not: Prisma.AnyNull,
+            },
+            landerPublishedAt: {
+              not: null,
+            },
+          },
         },
-        landerPublishedAt: {
-          not: null,
-        },
+      },
+      orderBy: {
+        slug: "asc",
       },
     });
 

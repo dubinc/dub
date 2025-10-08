@@ -5,7 +5,13 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
 import { PayoutInvoiceSheet } from "@/ui/partners/payout-invoice-sheet";
 import { PayoutStatus } from "@dub/prisma/client";
-import { Button, buttonVariants, Tooltip, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  buttonVariants,
+  Tooltip,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
@@ -51,6 +57,15 @@ export function PayoutStats() {
 
   const totalPaid = completedPayoutsAmount + processingPayoutsAmount;
 
+  useKeyboardShortcut("c", () => {
+    queryParams({
+      set: {
+        confirmPayouts: "true",
+      },
+      scroll: false,
+    });
+  });
+
   return (
     <>
       <PayoutInvoiceSheet />
@@ -62,6 +77,8 @@ export function PayoutStats() {
             </div>
             <Button
               text="Confirm payouts"
+              shortcut="C"
+              shortcutClassName="px-1 py-px"
               className="h-7 w-fit px-2"
               onClick={() => {
                 queryParams({
@@ -111,9 +128,7 @@ export function PayoutStats() {
                             {display}
                           </div>
                           <div className="text-sm text-neutral-500">
-                            {currencyFormatter(amount / 100, {
-                              maximumFractionDigits: 2,
-                            })}
+                            {currencyFormatter(amount / 100, {})}
                           </div>
                         </div>
                       ))}
@@ -126,9 +141,7 @@ export function PayoutStats() {
                     eligiblePendingPayouts?.amount
                       ? eligiblePendingPayouts.amount / 100
                       : 0,
-                    {
-                      maximumFractionDigits: 2,
-                    },
+                    {},
                   ) + " USD"}
                 </span>
               </Tooltip>
@@ -177,9 +190,7 @@ export function PayoutStats() {
                             {display}
                           </div>
                           <div className="text-sm text-neutral-500">
-                            {currencyFormatter(amount / 100, {
-                              maximumFractionDigits: 2,
-                            })}
+                            {currencyFormatter(amount / 100, {})}
                           </div>
                         </div>
                       ))}
@@ -188,9 +199,7 @@ export function PayoutStats() {
                 }
               >
                 <span className="underline decoration-dotted underline-offset-2">
-                  {currencyFormatter(totalPaid / 100, {
-                    maximumFractionDigits: 2,
-                  }) + " USD"}
+                  {currencyFormatter(totalPaid / 100, {}) + " USD"}
                 </span>
               </Tooltip>
             )}

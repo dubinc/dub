@@ -34,8 +34,9 @@ export const withAdmin =
   (handler: WithAdminHandler) =>
   async (
     req: Request,
-    { params = {} }: { params: Record<string, string> | undefined },
+    { params: initialParams }: { params: Promise<Record<string, string>> },
   ) => {
+    const params = (await initialParams) || {};
     const session = await getSession();
     if (!session?.user) {
       return new Response("Unauthorized: Login required.", { status: 401 });

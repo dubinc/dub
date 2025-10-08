@@ -79,7 +79,7 @@ export const GET = withWorkspace(
     return new Response(convertToCSV(formattedPartners), {
       headers: {
         "Content-Type": "text/csv",
-        "Content-Disposition": `attachment`,
+        "Content-Disposition": "attachment",
       },
     });
   },

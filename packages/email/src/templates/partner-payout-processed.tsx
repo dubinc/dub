@@ -41,10 +41,7 @@ export default function PartnerPayoutProcessed({
   };
   variant: "stripe" | "paypal";
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const saleAmountInDollars = currencyFormatter(payout.amount / 100);
 
   const startDate = payout.periodStart
     ? formatDate(payout.periodStart, {
@@ -86,7 +83,7 @@ export default function PartnerPayoutProcessed({
               {startDate && endDate ? (
                 <>
                   {" "}
-                  for affiliate sales made from{" "}
+                  for affiliate commissions made from{" "}
                   <strong className="text-black">{startDate}</strong> to{" "}
                   <strong className="text-black">{endDate}</strong>.
                 </>

@@ -19,6 +19,7 @@ import {
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
+import { publishClickEvent } from "../upstash/redis-streams";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
@@ -83,13 +84,17 @@ export async function recordClick({
     return null;
   }
 
-  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+  const identityHash = await getIdentityHash(req);
 
   // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
   // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
   if (!skipRatelimit) {
     // here, we check if the clickId is cached in Redis within the last hour
-    const cachedClickId = await recordClickCache.get({ domain, key, ip });
+    const cachedClickId = await recordClickCache.get({
+      domain,
+      key,
+      identityHash,
+    });
     if (cachedClickId) {
       return null;
     }
@@ -114,11 +119,10 @@ export async function recordClick({
   const geo =
     process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
 
+  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const referer = referrer || req.headers.get("referer");
-
-  const identityHash = await getIdentityHash(req);
 
   const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 
@@ -179,7 +183,7 @@ export async function recordClick({
         ).then((res) => res.json()),
 
         // cache the recorded click for the corresponding IP address in Redis for 1 hour
-        recordClickCache.set({ domain, key, ip, clickId }),
+        recordClickCache.set({ domain, key, identityHash, clickId }),
 
         // increment the click count for the link (based on their ID)
         // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
@@ -187,13 +191,21 @@ export async function recordClick({
           "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
           [linkId],
         ),
-        // if the link has a destination URL, increment the usage count for the workspace
-        // and then we have a cron that will reset it at the start of new billing cycle
-        url &&
-          conn.execute(
-            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
-            [linkId],
-          ),
+        // if the link is associated with a workspace + has a destination URL
+        // increment the usage count for the workspace
+        workspaceId &&
+          url &&
+          publishClickEvent({
+            linkId,
+            workspaceId,
+            timestamp: clickData.timestamp,
+          }).catch(() => {
+            // Fallback on writing directly to the database
+            return conn.execute(
+              "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
+              [linkId],
+            );
+          }),
       ]);
 
       // Find the rejected promises and log them

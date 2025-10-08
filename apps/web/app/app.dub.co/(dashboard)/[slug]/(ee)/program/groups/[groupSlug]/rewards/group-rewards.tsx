@@ -20,7 +20,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -212,7 +212,7 @@ const RewardItem = ({
 
 const CopyDefaultRewardButton = ({ event }: { event: EventType }) => {
   const { group: defaultGroup } = useGroup({
-    slug: DEFAULT_PARTNER_GROUP.slug,
+    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
   });
 
   const defaultReward = defaultGroup?.[`${event}Reward`];
@@ -266,7 +266,7 @@ const Banner = () => {
       }
       initial={false}
       className="overflow-hidden"
-      {...(dismissedBanner && { inert: "" })}
+      inert={dismissedBanner}
     >
       <div className="pb-6">
         <div className="relative isolate overflow-hidden rounded-xl bg-neutral-100">

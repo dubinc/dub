@@ -1,5 +1,6 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
+import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
@@ -22,9 +23,10 @@ export const getReferralsEmbedData = async (token: string) => {
     includeLeadReward: true,
     includeSaleReward: true,
     includeDiscount: true,
+    includeGroup: true,
   });
 
-  if (!programEnrollment) {
+  if (!programEnrollment || !programEnrollment.partnerGroup) {
     notFound();
   }
 
@@ -50,7 +52,11 @@ export const getReferralsEmbedData = async (token: string) => {
     clickReward,
     leadReward,
     saleReward,
+    group,
   } = programEnrollment;
+
+  const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
+    aggregatePartnerLinksStats(links);
 
   return {
     program,
@@ -76,10 +82,16 @@ export const getReferralsEmbedData = async (token: string) => {
       paid: commissions.find((c) => c.status === "paid")?._sum.earnings ?? 0,
     },
     stats: {
-      clicks: links.reduce((acc, link) => acc + link.clicks, 0),
-      leads: links.reduce((acc, link) => acc + link.leads, 0),
-      sales: links.reduce((acc, link) => acc + link.sales, 0),
-      saleAmount: links.reduce((acc, link) => acc + link.saleAmount, 0),
+      clicks: totalClicks,
+      leads: totalLeads,
+      sales: totalSales,
+      saleAmount: totalSaleAmount,
+    },
+    group: {
+      id: group.id,
+      additionalLinks: group.additionalLinks,
+      maxPartnerLinks: group.maxPartnerLinks,
+      linkStructure: group.linkStructure,
     },
   };
 };

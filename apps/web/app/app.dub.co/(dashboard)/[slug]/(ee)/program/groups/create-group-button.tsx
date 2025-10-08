@@ -3,10 +3,11 @@
 import useGroupsCount from "@/lib/swr/use-groups-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
-import { Button, useKeyboardShortcut } from "@dub/ui";
+import { Button, useKeyboardShortcut, useMediaQuery } from "@dub/ui";
 import { useCreateGroupModal } from "./create-group-modal";
 
 export function CreateGroupButton() {
+  const { isMobile } = useMediaQuery();
   const { groupsLimit, nextPlan } = useWorkspace();
   const { groupsCount } = useGroupsCount();
 
@@ -37,7 +38,8 @@ export function CreateGroupButton() {
       <Button
         type="button"
         onClick={handleCreateGroup}
-        text="Create group"
+        text={`Create${isMobile ? "" : " group"}`}
+        className="h-8 px-3 sm:h-9"
         shortcut={!disabled ? "C" : undefined}
         disabled={disabled}
       />

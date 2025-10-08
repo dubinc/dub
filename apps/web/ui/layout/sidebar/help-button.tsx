@@ -3,7 +3,7 @@
 import { X } from "@/ui/shared/icons";
 import { CircleQuestion, Popover } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import posthog from "posthog-js";
 import { useState } from "react";
 import { HelpArticle, HelpContext } from "../help";

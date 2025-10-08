@@ -7,7 +7,7 @@ import {
   AnimatedSizeContainer,
   BlurImage,
   Popover,
-  useScrollProgress,
+  ScrollContainer,
 } from "@dub/ui";
 import { Check2, GridIcon, Magnifier } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
@@ -15,13 +15,7 @@ import { Command } from "cmdk";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import {
-  PropsWithChildren,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export function PartnerProgramDropdown() {
   const { programSlug } = useParams() as { programSlug?: string };
@@ -137,28 +131,6 @@ function PartnerDropdownPlaceholder() {
   );
 }
 
-function ScrollContainer({ children }: PropsWithChildren) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-
-  return (
-    <div className="relative w-full">
-      <div
-        ref={scrollRef}
-        onScroll={updateScrollProgress}
-        className="relative max-h-[min(260px,calc(100vh-300px))] space-y-0.5 overflow-auto rounded-lg bg-white"
-      >
-        {children}
-      </div>
-      {/* Bottom scroll fade */}
-      <div
-        className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0"
-        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-      />
-    </div>
-  );
-}
-
 function ProgramList({
   programs,
   selectedProgram,
@@ -190,7 +162,7 @@ function ProgramList({
             placeholder="Find program..."
           />
         </label>
-        <ScrollContainer>
+        <ScrollContainer className="max-h-[min(260px,calc(100vh-300px))]">
           <div className="p-2">
             <div className="flex items-center justify-between py-2">
               <p className="px-1 text-xs font-medium text-neutral-500">

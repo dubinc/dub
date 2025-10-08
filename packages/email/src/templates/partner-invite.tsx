@@ -64,7 +64,7 @@ export default function PartnerInvite({
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href={`https://partners.dub.co/${program.slug}/register?email=${encodeURIComponent(email)}`}
+                href={`https://partners.dub.co/${program.slug}/register?email=${encodeURIComponent(email)}&next=/programs/${program.slug}`}
               >
                 Accept Invite
               </Link>

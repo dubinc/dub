@@ -1,24 +1,37 @@
 import { fetcher } from "@dub/utils";
 import { useParams } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { SWRConfiguration } from "swr";
 import { GroupProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useGroup({ slug: slugProp }: { slug?: string } = {}) {
+export default function useGroup<T = GroupProps>(
+  {
+    groupIdOrSlug: groupIdOrSlugProp,
+    query,
+  }: {
+    groupIdOrSlug?: string;
+    query?: Record<string, any>;
+  } = {},
+  swrOpts?: SWRConfiguration,
+) {
   const { id: workspaceId } = useWorkspace();
   const { groupSlug: groupSlugParam } = useParams<{ groupSlug: string }>();
 
-  const groupSlug = slugProp ?? groupSlugParam;
+  const groupIdOrSlug = groupIdOrSlugProp ?? groupSlugParam;
 
   const {
     data: group,
     error,
     mutate: mutateGroup,
-  } = useSWR<GroupProps>(
-    workspaceId && groupSlug
-      ? `/api/groups/${groupSlug}?workspaceId=${workspaceId}`
-      : undefined,
+  } = useSWR<T>(
+    workspaceId && groupIdOrSlug
+      ? `/api/groups/${groupIdOrSlug}?${new URLSearchParams({ workspaceId, ...query }).toString()}`
+      : null,
     fetcher,
+    {
+      keepPreviousData: true,
+      ...swrOpts,
+    },
   );
 
   return {

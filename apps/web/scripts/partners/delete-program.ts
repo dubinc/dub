@@ -11,13 +11,17 @@ async function main() {
   });
 
   if (program.defaultFolderId) {
-    const deletedFolder = await prisma.folder.delete({
-      where: {
-        id: program.defaultFolderId,
-      },
-    });
+    try {
+      const deletedFolder = await prisma.folder.delete({
+        where: {
+          id: program.defaultFolderId,
+        },
+      });
 
-    console.log("Deleted folder", deletedFolder);
+      console.log("Deleted folder", deletedFolder);
+    } catch (error) {
+      console.error("Failed to delete folder", error);
+    }
   }
 
   const deletedRewards = await prisma.reward.deleteMany({

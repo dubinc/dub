@@ -39,18 +39,18 @@ import {
   truncate,
 } from "@dub/utils";
 import { Command } from "cmdk";
-import { motion } from "framer-motion";
 import { Package } from "lucide-react";
+import { motion } from "motion/react";
 import { Fragment, useContext, useEffect, useState } from "react";
 import { useFieldArray, useWatch } from "react-hook-form";
-import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
   InlineBadgePopoverInput,
   InlineBadgePopoverInputs,
   InlineBadgePopoverMenu,
-} from "./inline-badge-popover";
+} from "../../shared/inline-badge-popover";
+import { useAddEditRewardForm } from "./add-edit-reward-sheet";
 import { RewardIconSquare } from "./reward-icon-square";
 
 export const REWARD_TYPES = [
@@ -254,12 +254,9 @@ const formatValue = (
   if (["number", "currency"].includes(type)) {
     return type === "number"
       ? value!.toString()
-      : currencyFormatter(
-          Number(value),
-          Number(value) % 1 !== 0
-            ? { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-            : undefined,
-        );
+      : currencyFormatter(Number(value), {
+          trailingZeroDisplay: "stripIfInteger",
+        });
   }
 
   return truncate(value!.toString(), 20);

@@ -1,6 +1,9 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
+import { isGenericEmail } from "@/lib/is-generic-email";
 import { jackson, samlAudience } from "@/lib/jackson";
 import z from "@/lib/zod";
+import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { NextResponse } from "next/server";
 
@@ -51,9 +54,19 @@ export const GET = withWorkspace(
 
 // POST /api/workspaces/[idOrSlug]/saml – create a new SAML connection
 export const POST = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     const { metadataUrl, encodedRawMetadata } =
       createSAMLConnectionSchema.parse(await req.json());
+
+    const ssoEmailDomain = session.user.email.split("@")[1].toLocaleLowerCase();
+
+    if (isGenericEmail(ssoEmailDomain)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "SAML configuration requires you to be logged in with your organization’s work email.",
+      });
+    }
 
     const { apiController } = await jackson();
 
@@ -66,6 +79,15 @@ export const POST = withWorkspace(
       product: "Dub",
     });
 
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        ssoEmailDomain,
+      },
+    });
+
     return NextResponse.json(data);
   },
   {
@@ -76,7 +98,7 @@ export const POST = withWorkspace(
 
 // DELETE /api/workspaces/[idOrSlug]/saml – delete all SAML connections
 export const DELETE = withWorkspace(
-  async ({ searchParams }) => {
+  async ({ searchParams, workspace }) => {
     const { clientID, clientSecret } =
       deleteSAMLConnectionSchema.parse(searchParams);
 
@@ -87,7 +109,19 @@ export const DELETE = withWorkspace(
       clientSecret,
     });
 
-    return NextResponse.json({ response: "removed SAML connection" });
+    await prisma.project.update({
+      where: {
+        id: workspace.id,
+      },
+      data: {
+        ssoEmailDomain: null,
+        ssoEnforcedAt: null,
+      },
+    });
+
+    return NextResponse.json({
+      response: "Successfully removed SAML connection",
+    });
   },
   {
     requiredPermissions: ["workspaces.write"],

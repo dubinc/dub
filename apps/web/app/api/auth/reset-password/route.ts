@@ -1,6 +1,6 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { parseRequestBody, ratelimitOrThrow } from "@/lib/api/utils";
-import { hashPassword } from "@/lib/auth/password";
+import { hashPassword, validatePassword } from "@/lib/auth/password";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
 import { sendEmail } from "@dub/email";
 import PasswordUpdated from "@dub/email/templates/password-updated";
@@ -46,8 +46,25 @@ export async function POST(req: NextRequest) {
       },
       select: {
         emailVerified: true,
+        passwordHash: true,
       },
     });
+
+    // Check if the new password is the same as the current password
+    if (user.passwordHash) {
+      const isSamePassword = await validatePassword({
+        password,
+        passwordHash: user.passwordHash,
+      });
+
+      if (isSamePassword) {
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message:
+            "Your new password cannot be the same as your current password.",
+        });
+      }
+    }
 
     await prisma.$transaction([
       // Delete the token
@@ -74,7 +91,7 @@ export async function POST(req: NextRequest) {
     waitUntil(
       sendEmail({
         subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} account password has been reset`,
-        email: identifier,
+        to: identifier,
         react: PasswordUpdated({
           email: identifier,
           verb: "reset",

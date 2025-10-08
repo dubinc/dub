@@ -14,5 +14,7 @@ export const getPlanCapabilities = (
     canExportAuditLogs: !!plan && ["enterprise"].includes(plan),
     canUseAdvancedRewardLogic:
       !!plan && ["enterprise", "advanced"].includes(plan),
+    canMessagePartners: !!plan && ["enterprise", "advanced"].includes(plan),
+    canDiscoverPartners: !!plan && ["enterprise"].includes(plan),
   };
 };

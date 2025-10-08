@@ -18,11 +18,12 @@ export const metadata = constructMetadata({
 });
 
 // OAuth app consent page
-export default async function Authorize({
-  searchParams,
-}: {
-  searchParams?: z.infer<typeof authorizeRequestSchema>;
-}) {
+export default async function Authorize(
+  props: {
+    searchParams?: Promise<z.infer<typeof authorizeRequestSchema>>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const session = await getSession();
 
   if (!session) {

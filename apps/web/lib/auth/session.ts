@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
+import { headers } from "next/headers";
 import { hashToken } from "./hash-token";
 import { Session, getSession } from "./utils";
 
@@ -25,13 +26,16 @@ export const withSession = (handler: WithSessionHandler) =>
   withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      const params = (await initialParams) || {};
+      let requestHeaders = await headers();
+      let responseHeaders = new Headers();
+
       try {
         let session: Session | undefined;
-        let headers = {};
 
-        const authorizationHeader = req.headers.get("Authorization");
+        const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
           if (!authorizationHeader.includes("Bearer ")) {
             throw new DubApiError({
@@ -71,17 +75,15 @@ export const withSession = (handler: WithSessionHandler) =>
             "1 m",
           ).limit(apiKey);
 
-          headers = {
-            "Retry-After": reset.toString(),
-            "X-RateLimit-Limit": limit.toString(),
-            "X-RateLimit-Remaining": remaining.toString(),
-            "X-RateLimit-Reset": reset.toString(),
-          };
+          responseHeaders.set("Retry-After", reset.toString());
+          responseHeaders.set("X-RateLimit-Limit", limit.toString());
+          responseHeaders.set("X-RateLimit-Remaining", remaining.toString());
+          responseHeaders.set("X-RateLimit-Reset", reset.toString());
 
           if (!success) {
-            return new Response("Too many requests.", {
-              status: 429,
-              headers,
+            throw new DubApiError({
+              code: "rate_limit_exceeded",
+              message: "Too many requests.",
             });
           }
           waitUntil(
@@ -129,7 +131,7 @@ export const withSession = (handler: WithSessionHandler) =>
         return await handler({ req, params, searchParams, session });
       } catch (error) {
         req.log.error(error);
-        return handleAndReturnErrorResponse(error);
+        return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
   );

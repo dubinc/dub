@@ -200,31 +200,29 @@ export default function PlanUsage() {
             href={`/${slug}/settings/people`}
           />
         </div>
-        {defaultProgramId && (
-          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
-            <UsageCategory
-              title="Partners"
-              icon={Users6}
-              usage={partnersCount}
-              usageLimit={INFINITY_NUMBER}
-              href={`/${slug}/program/partners`}
-            />
-            <UsageCategory
-              title="Partner payouts"
-              icon={CreditCard}
-              usage={payoutsUsage}
-              usageLimit={payoutsLimit}
-              unit="$"
-              href={`/${slug}/program/payouts`}
-            />
-            <UsageCategory
-              title="Payout fees"
-              icon={CirclePercentage}
-              usage={plan && payoutFee && `${payoutFee * 100}%`}
-              href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
-            />
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
+          <UsageCategory
+            title="Partners"
+            icon={Users6}
+            usage={partnersCount ?? 0}
+            usageLimit={INFINITY_NUMBER}
+            href={`/${slug}/program/partners`}
+          />
+          <UsageCategory
+            title="Partner payouts"
+            icon={CreditCard}
+            usage={payoutsUsage}
+            usageLimit={payoutsLimit}
+            unit="$"
+            href={`/${slug}/program/payouts`}
+          />
+          <UsageCategory
+            title="Payout fees"
+            icon={CirclePercentage}
+            usage={plan && payoutFee && `${payoutFee * 100}%`}
+            href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
+          />
+        </div>
       </div>
     </div>
   );

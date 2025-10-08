@@ -6,8 +6,8 @@ import {
   useEnterSubmit,
   useMediaQuery,
 } from "@dub/ui";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, Paperclip, Trash2 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { Dispatch, SetStateAction, useRef, useState } from "react";
 import TextareaAutosize from "react-textarea-autosize";
 import { toast } from "sonner";

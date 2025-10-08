@@ -29,45 +29,45 @@ async function main() {
     const deleteLinkCaches = await bulkDeleteLinks(links);
     console.log("Deleted link caches", deleteLinkCaches);
 
-    const deleteCustomers = await prisma.customer.deleteMany({
+    const deletedCustomers = await prisma.customer.deleteMany({
       where: {
         linkId: {
           in: links.map((link) => link.id),
         },
       },
     });
-    console.log("Deleted customers", deleteCustomers);
+    console.log("Deleted customers", deletedCustomers);
 
-    const deleteSales = await prisma.commission.deleteMany({
+    const deletedSales = await prisma.commission.deleteMany({
       where: {
         partnerId: partner.id,
       },
     });
-    console.log("Deleted sales", deleteSales);
+    console.log("Deleted sales", deletedSales);
 
-    const deletePayouts = await prisma.payout.deleteMany({
+    const deletedPayouts = await prisma.payout.deleteMany({
       where: {
         partnerId: partner.id,
       },
     });
-    console.log("Deleted payouts", deletePayouts);
+    console.log("Deleted payouts", deletedPayouts);
 
-    const deleteLinks = await prisma.link.deleteMany({
+    const deletedLinks = await prisma.link.deleteMany({
       where: {
         id: {
           in: links.map((link) => link.id),
         },
       },
     });
-    console.log("Deleted links", deleteLinks);
+    console.log("Deleted links", deletedLinks);
   }
 
-  const deletePartner = await prisma.partner.delete({
+  const deletedPartner = await prisma.partner.delete({
     where: {
       id: partner.id,
     },
   });
-  console.log("Deleted partner", deletePartner);
+  console.log("Deleted partner", deletedPartner);
 
   if (partner.stripeConnectId) {
     const res = await stripeConnectClient.accounts.del(partner.stripeConnectId);

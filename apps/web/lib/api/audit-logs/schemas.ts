@@ -1,5 +1,9 @@
+import {
+  BountySchema,
+  BountySubmissionSchema,
+} from "@/lib/zod/schemas/bounties";
 import { CommissionSchema } from "@/lib/zod/schemas/commissions";
-import { DiscountSchema } from "@/lib/zod/schemas/discount";
+import { DiscountCodeSchema, DiscountSchema } from "@/lib/zod/schemas/discount";
 import { GroupSchema } from "@/lib/zod/schemas/groups";
 import { PartnerSchema } from "@/lib/zod/schemas/partners";
 import { PayoutSchema } from "@/lib/zod/schemas/payouts";
@@ -38,6 +42,8 @@ const actionSchema = z.enum([
   "discount.created",
   "discount.updated",
   "discount.deleted",
+  "discount_code.created",
+  "discount_code.deleted",
 
   // Partner applications
   "partner_application.approved",
@@ -46,12 +52,15 @@ const actionSchema = z.enum([
   // Partner enrollments
   "partner.created",
   "partner.archived",
-  "partner.banned",
-  "partner.unbanned",
   "partner.invited",
   "partner.approved",
   "partner.invite_deleted",
   "partner.invite_resent",
+  "partner.enrollment_updated",
+  "partner.deactivated",
+  "partner.reactivated",
+  "partner.banned",
+  "partner.unbanned",
 
   // Auto approve partners
   "auto_approve_partner.enabled",
@@ -73,6 +82,14 @@ const actionSchema = z.enum([
   "group.created",
   "group.updated",
   "group.deleted",
+
+  // Bounties
+  "bounty.created",
+  "bounty.updated",
+  "bounty.deleted",
+  "bounty_submission.approved",
+  "bounty_submission.rejected",
+  "bounty_submission.reopened",
 ]);
 
 export const auditLogTarget = z.union([
@@ -89,6 +106,7 @@ export const auditLogTarget = z.union([
       holdingPeriodDays: true,
       minPayoutAmount: true,
       autoApprovePartnersEnabledAt: true,
+      messagingEnabledAt: true,
     }).optional(),
   }),
 
@@ -112,6 +130,12 @@ export const auditLogTarget = z.union([
       maxDuration: true,
       couponId: true,
     }),
+  }),
+
+  z.object({
+    type: z.literal("discount_code"),
+    id: z.string(),
+    metadata: DiscountCodeSchema,
   }),
 
   z.object({
@@ -155,6 +179,18 @@ export const auditLogTarget = z.union([
       saleRewardId: z.string().nullish(),
       discountId: z.string().nullish(),
     }),
+  }),
+
+  z.object({
+    type: z.literal("bounty"),
+    id: z.string(),
+    metadata: BountySchema,
+  }),
+
+  z.object({
+    type: z.literal("bounty_submission"),
+    id: z.string(),
+    metadata: BountySubmissionSchema,
   }),
 ]);
 

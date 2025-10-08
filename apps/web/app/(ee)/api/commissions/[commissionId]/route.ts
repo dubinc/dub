@@ -91,7 +91,7 @@ export const PATCH = withWorkspace(
         includeSaleReward: true,
       });
 
-      const reward = await determinePartnerReward({
+      const reward = determinePartnerReward({
         event: "sale",
         programEnrollment,
       });
@@ -166,29 +166,27 @@ export const PATCH = withWorkspace(
     }
 
     waitUntil(
-      (async () => {
-        await Promise.allSettled([
-          syncTotalCommissions({
-            partnerId: commission.partnerId,
-            programId: commission.programId,
-          }),
+      Promise.allSettled([
+        syncTotalCommissions({
+          partnerId: commission.partnerId,
+          programId: commission.programId,
+        }),
 
-          recordAuditLog({
-            workspaceId: workspace.id,
-            programId,
-            action: "commission.updated",
-            description: `Commission ${commissionId} updated`,
-            actor: session.user,
-            targets: [
-              {
-                type: "commission",
-                id: commission.id,
-                metadata: updatedCommission,
-              },
-            ],
-          }),
-        ]);
-      })(),
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "commission.updated",
+          description: `Commission ${commissionId} updated`,
+          actor: session.user,
+          targets: [
+            {
+              type: "commission",
+              id: commission.id,
+              metadata: updatedCommission,
+            },
+          ],
+        }),
+      ]),
     );
 
     return NextResponse.json(CommissionEnrichedSchema.parse(updatedCommission));

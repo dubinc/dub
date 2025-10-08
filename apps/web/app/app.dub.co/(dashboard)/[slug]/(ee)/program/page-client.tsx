@@ -56,11 +56,12 @@ export default function ProgramOverviewPageClient() {
     ...(interval && { interval: interval.toString() }),
   }).toString();
 
-  const { data: totalEvents } = useSWR<{
+  const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     `/api/analytics?${editQueryString(queryString, {
       event: "composite",
+      saleType: "new",
     })}`,
     fetcher,
     {
@@ -83,6 +84,7 @@ export default function ProgramOverviewPageClient() {
           end: end ? new Date(end) : undefined,
           interval: interval as string | undefined,
           totalEvents,
+          totalEventsLoading,
         }}
       >
         <div className="@4xl:grid-cols-[minmax(0,1fr)_400px] grid grid-cols-1 gap-6 rounded-2xl bg-neutral-100 p-4">

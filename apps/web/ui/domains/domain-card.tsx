@@ -38,8 +38,8 @@ import {
   nFormatter,
 } from "@dub/utils";
 import { isPast } from "date-fns";
-import { motion } from "framer-motion";
 import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useMemo, useRef, useState } from "react";

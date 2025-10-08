@@ -4,6 +4,7 @@ enum ProgramEnrollmentStatus {
   rejected // program rejected the partner
   invited // partner who has been invited
   declined // partner declined the invite
+  deactivated // partner is deactivated by the program
   banned // partner is banned from the program
   archived // partner is archived by the program
 }
@@ -15,12 +16,6 @@ enum PartnerBannedReason {
   fraud
   spam
   brand_abuse
-}
-
-enum PartnerLinkStructure {
-  short
-  query
-  path
 }
 
 enum PartnerUrlValidationMode {
@@ -48,28 +43,41 @@ model Program {
   holdingPeriodDays            Int                      @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount              Int                      @default(0) // Default minimum payout amount of $0
   embedData                    Json?                    @db.Json
-  landerData                   Json?                    @db.Json
-  landerPublishedAt            DateTime?
+  landerData                   Json?                    @db.Json // TODO: drop this column after PR #2893 merges
+  landerPublishedAt            DateTime? // TODO: drop this column after PR #2893 merges
+  applicationFormData          Json?                    @db.Json // TODO: drop this column after PR #2893 merges
   resources                    Json?                    @db.Json
   termsUrl                     String?                  @db.Text
   helpUrl                      String?                  @db.Text
   supportEmail                 String?
   ageVerification              Int?
   autoApprovePartnersEnabledAt DateTime?
+  messagingEnabledAt           DateTime?
+  partnerNetworkEnabledAt      DateTime?
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
 
-  workspace     Project              @relation(fields: [workspaceId], references: [id])
-  primaryDomain Domain?              @relation(fields: [domain], references: [slug], onUpdate: Cascade)
-  partners      ProgramEnrollment[]
-  payouts       Payout[]
-  invoices      Invoice[]
-  applications  ProgramApplication[]
-  links         Link[]
-  commissions   Commission[]
-  rewards       Reward[]
-  discounts     Discount[]           @relation("ProgramDiscounts")
-  groups        PartnerGroup[]
+  workspace                Project                   @relation(fields: [workspaceId], references: [id])
+  primaryDomain            Domain?                   @relation(fields: [domain], references: [slug], onUpdate: Cascade)
+  partners                 ProgramEnrollment[]
+  payouts                  Payout[]
+  invoices                 Invoice[]
+  applications             ProgramApplication[]
+  links                    Link[]
+  commissions              Commission[]
+  rewards                  Reward[]
+  discounts                Discount[]                @relation("ProgramDiscounts")
+  groups                   PartnerGroup[]
+  partnerGroupDefaultLinks PartnerGroupDefaultLink[]
+  bounties                 Bounty[]
+  bountySubmissions        BountySubmission[]
+  workflows                Workflow[]
+  messages                 Message[]
+  comments                 PartnerComment[]
+  discountCodes            DiscountCode[]
+  campaigns                Campaign[]
+  discoveredPartners       DiscoveredPartner[]
+  industryInterests        ProgramIndustryInterest[]
 
   @@index(workspaceId)
   @@index(domain)
@@ -93,15 +101,17 @@ model ProgramEnrollment {
   bannedAt         DateTime?
   bannedReason     PartnerBannedReason?
 
-  partner      Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  program      Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  links        Link[]
-  partnerGroup PartnerGroup?       @relation(fields: [groupId], references: [id])
-  application  ProgramApplication? @relation(fields: [applicationId], references: [id])
-  clickReward  Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
-  leadReward   Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
-  saleReward   Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
-  discount     Discount?           @relation(fields: [discountId], references: [id])
+  partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  links             Link[]
+  partnerGroup      PartnerGroup?       @relation(fields: [groupId], references: [id])
+  application       ProgramApplication? @relation(fields: [applicationId], references: [id])
+  clickReward       Reward?             @relation("ClickRewardEnrollments", fields: [clickRewardId], references: [id])
+  leadReward        Reward?             @relation("LeadRewardEnrollments", fields: [leadRewardId], references: [id])
+  saleReward        Reward?             @relation("SaleRewardEnrollments", fields: [saleRewardId], references: [id])
+  discount          Discount?           @relation(fields: [discountId], references: [id])
+  bountySubmissions BountySubmission[]
+  discountCodes     DiscountCode[]
 
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
@@ -119,9 +129,16 @@ model ProgramApplication {
   groupId   String?
   name      String
   email     String
-  proposal  String?  @db.Text
+  country   String?
+  proposal  String?  @db.Text // TODO: drop this column after PR #2893 merges
   website   String?  @db.Text
-  comments  String?  @db.Text
+  youtube   String?  @db.Text
+  twitter   String?  @db.Text
+  linkedin  String?  @db.Text
+  instagram String?  @db.Text
+  tiktok    String?  @db.Text
+  comments  String?  @db.Text // TODO: drop this column after PR #2893 merges
+  formData  Json?    @db.Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -131,4 +148,14 @@ model ProgramApplication {
 
   @@index(programId)
   @@index(groupId)
+  @@index(email)
+}
+
+model ProgramIndustryInterest {
+  programId        String
+  industryInterest IndustryInterest
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, industryInterest])
 }

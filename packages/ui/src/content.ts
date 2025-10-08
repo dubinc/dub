@@ -11,7 +11,7 @@ import {
   FeatherFill,
   Github,
   Go,
-  LifeRing,
+  LifeRingFill,
   LinkedIn,
   MicrophoneFill,
   Php,
@@ -139,7 +139,7 @@ export const SOLUTIONS: NavItemChildren = [
 
 export const RESOURCES = [
   {
-    icon: LifeRing,
+    icon: LifeRingFill,
     title: "Help Center",
     description: "Answers to your questions",
     href: "/help",
@@ -196,13 +196,14 @@ export const COMPARE_PAGES = [
 ];
 
 export const LEGAL_PAGES = [
-  { name: "Privacy Policy", slug: "privacy" },
-  { name: "Terms of Service", slug: "terms" },
-  { name: "Partner Terms", slug: "partners" },
   { name: "Affiliate Program Terms", slug: "affiliates" },
   { name: "DPA", slug: "dpa" },
-  { name: "Subprocessors", slug: "subprocessors" },
+  { name: "Partner Terms", slug: "partners" },
+  { name: "Privacy Policy", slug: "privacy" },
   { name: "Report Abuse", slug: "abuse" },
+  { name: "SLA", slug: "sla" },
+  { name: "Subprocessors", slug: "subprocessors" },
+  { name: "Terms of Service", slug: "terms" },
 ];
 
 export const SOCIAL_LINKS = [

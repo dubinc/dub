@@ -1,12 +1,15 @@
 import { stripe } from "@/lib/stripe";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
 import { withAxiom } from "next-axiom";
 import Stripe from "stripe";
 import { accountApplicationDeauthorized } from "./account-application-deauthorized";
 import { chargeRefunded } from "./charge-refunded";
 import { checkoutSessionCompleted } from "./checkout-session-completed";
+import { couponDeleted } from "./coupon-deleted";
 import { customerCreated } from "./customer-created";
 import { customerUpdated } from "./customer-updated";
 import { invoicePaid } from "./invoice-paid";
+import { promotionCodeUpdated } from "./promotion-code-updated";
 
 const relevantEvents = new Set([
   "customer.created",
@@ -15,6 +18,8 @@ const relevantEvents = new Set([
   "invoice.paid",
   "charge.refunded",
   "account.application.deauthorized",
+  "coupon.deleted",
+  "promotion_code.updated",
 ]);
 
 // POST /api/stripe/integration/webhook – listen to Stripe webhooks (for Stripe Integration)
@@ -74,9 +79,13 @@ export const POST = withAxiom(async (req: Request) => {
     case "account.application.deauthorized":
       response = await accountApplicationDeauthorized(event);
       break;
+    case "coupon.deleted":
+      response = await couponDeleted(event);
+      break;
+    case "promotion_code.updated":
+      response = await promotionCodeUpdated(event);
+      break;
   }
 
-  return new Response(response, {
-    status: 200,
-  });
+  return logAndRespond(`[${event.type}]: ${response}`);
 });

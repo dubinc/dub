@@ -11,12 +11,13 @@ model Domain {
   logo                    String?
   appleAppSiteAssociation Json?
   assetLinks              Json?
-  linkRetentionDays       Int? // default is null (links are retained forever)
-  
-  createdAt               DateTime @default(now())
-  updatedAt               DateTime @updatedAt
+  deepviewData            Json?    @default("{}")
 
-  projectId               String?
+  linkRetentionDays Int? // default is null (links are retained forever)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  projectId        String?
   project          Project?          @relation(fields: [projectId], references: [id], onDelete: Cascade)
   links            Link[]
   registeredDomain RegisteredDomain?

@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -28,7 +29,9 @@ export const banPartnerAction = authActionClient
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
+      includeProgram: true,
       includePartner: true,
+      includeDiscountCodes: true,
     });
 
     if (programEnrollment.status === "banned") {
@@ -65,10 +68,7 @@ export const banPartnerAction = authActionClient
       }),
 
       prisma.commission.updateMany({
-        where: {
-          ...where,
-          status: "pending",
-        },
+        where,
         data: {
           status: "canceled",
         },
@@ -83,51 +83,67 @@ export const banPartnerAction = authActionClient
           status: "canceled",
         },
       }),
+
+      prisma.bountySubmission.updateMany({
+        where: {
+          ...where,
+          status: {
+            not: "approved",
+          },
+        },
+        data: {
+          status: "rejected",
+        },
+      }),
+
+      prisma.discountCode.updateMany({
+        where,
+        data: {
+          discountId: null,
+        },
+      }),
     ]);
 
     waitUntil(
       (async () => {
-        // sync total commissions
+        // Sync total commissions
         await syncTotalCommissions({ partnerId, programId });
 
-        const { program, partner } = programEnrollment;
-
-        if (!partner.email) {
-          console.error("Partner has no email address.");
-          return;
-        }
-
-        const supportEmail = program.supportEmail || "support@dub.co";
-
-        // Delete links from cache
+        // Expire links from cache
         const links = await prisma.link.findMany({
           where,
           select: {
             domain: true,
             key: true,
+            discountCode: true,
           },
         });
 
-        await linkCache.deleteMany(links);
+        const { program, partner, discountCodes } = programEnrollment;
 
         await Promise.allSettled([
-          sendEmail({
-            subject: `You've been banned from the ${program.name} Partner Program`,
-            email: partner.email,
-            replyTo: supportEmail,
-            react: PartnerBanned({
-              partner: {
-                name: partner.name,
-                email: partner.email,
-              },
-              program: {
-                name: program.name,
-                supportEmail,
-              },
-              bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+          linkCache.expireMany(links),
+
+          queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
+
+          partner.email &&
+            sendEmail({
+              subject: `You've been banned from the ${program.name} Partner Program`,
+              to: partner.email,
+              replyTo: program.supportEmail || "support@dub.co",
+              react: PartnerBanned({
+                partner: {
+                  name: partner.name,
+                  email: partner.email,
+                },
+                program: {
+                  name: program.name,
+                  slug: program.slug,
+                },
+                bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+              }),
+              variant: "notifications",
             }),
-            variant: "notifications",
-          }),
 
           recordAuditLog({
             workspaceId: workspace.id,

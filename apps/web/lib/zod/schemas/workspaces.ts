@@ -68,6 +68,9 @@ export const WorkspaceSchema = z
     foldersUsage: z.number().describe("The folders usage of the workspace."),
     foldersLimit: z.number().describe("The folders limit of the workspace."),
     groupsLimit: z.number().describe("The groups limit of the workspace."),
+    networkInvitesLimit: z
+      .number()
+      .describe("The weekly network invites limit of the workspace."),
     usersLimit: z.number().describe("The users limit of the workspace."),
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),
@@ -122,6 +125,8 @@ export const WorkspaceSchema = z
       .nullable()
       .describe("Specifies hostnames permitted for client-side click tracking.")
       .openapi({ example: ["dub.sh"] }),
+    ssoEmailDomain: z.string().nullable(),
+    ssoEnforcedAt: z.date().nullable(),
   })
   .openapi({
     title: "Workspace",
@@ -150,6 +155,8 @@ export const notificationTypes = z.enum([
   "domainConfigurationUpdates",
   "newPartnerSale",
   "newPartnerApplication",
+  "newBountySubmitted",
+  "newMessageFromPartner",
 ]);
 
 export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
@@ -165,6 +172,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
     }),
   ),
   publishableKey: z.string().nullable(),
+  fastDirectDebitPayouts: z.boolean().default(false),
 });
 
 export const OnboardingUsageSchema = z.object({

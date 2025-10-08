@@ -4,7 +4,7 @@ import { Group } from "@visx/group";
 import { ParentSize } from "@visx/responsive";
 import { scaleLinear, scaleUtc } from "@visx/scale";
 import { Area, AreaClosed } from "@visx/shape";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useId, useMemo } from "react";
 
 const defaultPadding = { top: 8, right: 2, bottom: 2, left: 2 };

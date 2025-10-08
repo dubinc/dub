@@ -1,10 +1,9 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import ConnectPayoutReminder from "@dub/email/templates/connect-payout-reminder";
 import { prisma } from "@dub/prisma";
-import { chunk, log } from "@dub/utils";
+import { ACME_PROGRAM_ID, chunk } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +20,9 @@ export async function GET(req: Request) {
       by: ["partnerId", "programId"],
       where: {
         status: "pending",
+        programId: {
+          not: ACME_PROGRAM_ID,
+        },
         partner: {
           payoutsEnabledAt: null,
           OR: [
@@ -64,19 +66,6 @@ export async function GET(req: Request) {
         },
       }),
     ]);
-
-    if (!resend) {
-      await log({
-        message: "Resend is not configured, skipping email sending.",
-        type: "errors",
-      });
-
-      console.warn("Resend is not configured, skipping email sending.");
-
-      return NextResponse.json(
-        "Resend is not configured, skipping email sending.",
-      );
-    }
 
     const partnerProgramMap = new Map<
       string,
@@ -130,9 +119,8 @@ export async function GET(req: Request) {
     const connectPayoutsLastRemindedAt = new Date();
 
     for (const partnerProgramsChunk of partnerProgramsChunks) {
-      await resend.batch.send(
+      await sendBatchEmail(
         partnerProgramsChunk.map(({ partner, programs }) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
           to: partner.email,
           subject: "Connect your payout details on Dub Partners",
           variant: "notifications",

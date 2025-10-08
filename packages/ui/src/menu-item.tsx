@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { Icon } from "./icons";
+import { DynamicTooltipWrapper } from "./tooltip";
 
 export const menuItemVariants = cva(
   [
@@ -21,6 +22,9 @@ export const menuItemVariants = cva(
         default: "text-content-default hover:bg-bg-subtle",
         danger: "text-content-error hover:bg-bg-error",
       },
+      disabled: {
+        true: "opacity-50 cursor-default text-content-disabled hover:bg-bg-default",
+      },
     },
   },
 );
@@ -33,6 +37,7 @@ type MenuItemProps<T extends ElementType> = PropsWithChildren<
   variant?: "default" | "danger";
   icon?: Icon | ReactNode;
   shortcut?: string;
+  disabledTooltip?: string | ReactNode;
 };
 
 export function MenuItem<T extends ElementType>({
@@ -42,30 +47,41 @@ export function MenuItem<T extends ElementType>({
   icon: Icon,
   shortcut,
   className,
+  disabledTooltip,
   ...rest
 }: MenuItemProps<T>) {
   const Component = as || "button";
 
   return (
-    <Component
-      {...(as === "button" ? { type: "button" } : {})}
-      className={cn(menuItemVariants({ variant }), className)}
-      {...rest}
+    <DynamicTooltipWrapper
+      tooltipProps={{
+        content: disabledTooltip,
+      }}
     >
-      <div className="flex grow items-center gap-2">
-        {Icon && (isReactNode(Icon) ? Icon : <Icon className="size-4" />)}
-        {children}
-      </div>
-      {shortcut && (
-        <kbd
-          className={cn(
-            "bg-bg-inverted/5 group-hover:bg-bg-inverted/10 hidden rounded px-2 py-0.5 text-xs font-light transition-all duration-75 md:block",
-          )}
-        >
-          {shortcut}
-        </kbd>
-      )}
-    </Component>
+      <Component
+        {...(as === "button" ? { type: "button" } : {})}
+        className={cn(
+          menuItemVariants({ variant, disabled: !!disabledTooltip }),
+          className,
+        )}
+        disabled={disabledTooltip ? true : rest.disabled}
+        {...rest}
+      >
+        <div className="flex grow items-center gap-2">
+          {Icon && (isReactNode(Icon) ? Icon : <Icon className="size-4" />)}
+          {children}
+        </div>
+        {shortcut && (
+          <kbd
+            className={cn(
+              "bg-bg-inverted/5 group-hover:bg-bg-inverted/10 hidden rounded px-2 py-0.5 text-xs font-light transition-all duration-75 md:block",
+            )}
+          >
+            {shortcut}
+          </kbd>
+        )}
+      </Component>
+    </DynamicTooltipWrapper>
   );
 }
 

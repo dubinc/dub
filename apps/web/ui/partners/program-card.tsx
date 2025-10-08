@@ -4,7 +4,6 @@ import { ProgramEnrollmentProps } from "@/lib/types";
 import { BlurImage, Link4, MiniAreaChart } from "@dub/ui";
 import { formatDate, getPrettyUrl, OG_AVATAR_URL } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import Linkify from "linkify-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
@@ -33,9 +32,16 @@ export function ProgramCard({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
-  const { program, status, createdAt } = programEnrollment;
+  const { program, status, createdAt, group } = programEnrollment;
 
   const defaultLink = programEnrollment.links?.[0];
+
+  const statusDescriptions = {
+    banned: "You're banned from this program.",
+    rejected: "Your application has been rejected.",
+    deactivated: "Your partnership has been deactivated.",
+  };
+  const statusDescription = statusDescriptions[status];
 
   return (
     <Link
@@ -59,10 +65,10 @@ export function ProgramCard({
             <span className="text-sm font-medium">
               {getPrettyUrl(
                 constructPartnerLink({
-                  program,
-                  linkKey: defaultLink?.key,
+                  group,
+                  link: defaultLink,
                 }),
-              )}
+              ) || program.domain}
             </span>
           </div>
         </div>
@@ -73,23 +79,17 @@ export function ProgramCard({
         <div className="mt-4 flex h-20 items-center justify-center text-balance rounded-md border border-neutral-200 bg-neutral-50 p-5 text-center text-sm text-neutral-500">
           {status === "pending" ? (
             `Applied ${formatDate(createdAt)}`
-          ) : status === "banned" || status === "rejected" ? (
-            <Linkify
-              as="p"
-              options={{
-                target: "_blank",
-                rel: "noopener noreferrer nofollow",
-                className:
-                  "underline underline-offset-2 decoration-dotted text-neutral-400 hover:text-neutral-700",
-              }}
-            >
-              {status === "banned"
-                ? "You're banned from this program."
-                : "Your application has been rejected."}
-              {program.supportEmail
-                ? ` Contact ${program.supportEmail} to appeal.`
-                : ""}
-            </Linkify>
+          ) : statusDescription ? (
+            <p>
+              {` ${statusDescription} `}
+              <Link
+                href={`/messages/${program.slug}`}
+                className="text-neutral-400 underline decoration-dotted underline-offset-2 hover:text-neutral-700"
+              >
+                Reach out to the {program.name} team
+              </Link>{" "}
+              if you have any questions.
+            </p>
           ) : null}
         </div>
       )}

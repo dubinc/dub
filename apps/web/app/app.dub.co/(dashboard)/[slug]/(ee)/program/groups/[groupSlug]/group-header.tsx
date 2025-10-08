@@ -1,27 +1,38 @@
 "use client";
 
 import useGroup from "@/lib/swr/use-group";
-import useProgram from "@/lib/swr/use-program";
+import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
+import { GroupSelector } from "@/ui/partners/groups/group-selector";
 import {
   ArrowUpRight2,
+  Brush,
   Button,
   ChevronRight,
   Discount,
   Gift,
-  Post,
+  Hyperlink,
   Sliders,
   Users,
 } from "@dub/ui";
-import { cn, PARTNERS_DOMAIN } from "@dub/utils";
+import { cn } from "@dub/utils";
 import Link from "next/link";
-import { redirect, useParams, usePathname } from "next/navigation";
+import {
+  redirect,
+  useParams,
+  usePathname,
+  useRouter,
+  useSearchParams,
+} from "next/navigation";
 
 export function GroupHeaderTitle() {
+  const router = useRouter();
+  const params = useParams<{ slug: string; groupSlug: string }>();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { group, loading } = useGroup();
+  const { groups } = useGroups();
   const { slug: workspaceSlug } = useWorkspace();
 
   if (loading) {
@@ -31,6 +42,18 @@ export function GroupHeaderTitle() {
   if (!group) {
     redirect(`/${workspaceSlug}/program/groups`);
   }
+
+  const switchToGroup = (groupId: string) => {
+    if (group.id === groupId) return;
+
+    // Find the group by ID to get the slug
+    const targetGroup = groups?.find((g) => g.id === groupId);
+    if (!targetGroup) return;
+
+    const url = `${pathname.replace(`/groups/${params.groupSlug}`, `/groups/${targetGroup.slug}`)}?${searchParams.toString()}`;
+
+    router.push(url);
+  };
 
   return (
     <div className="flex items-center gap-1.5">
@@ -43,12 +66,12 @@ export function GroupHeaderTitle() {
         <Users className="size-4" />
       </Link>
       <ChevronRight className="text-content-muted size-2.5 shrink-0 [&_*]:stroke-2" />
-      <div className="flex items-center gap-1.5">
-        <GroupColorCircle group={group} />
-        <span className="text-lg font-semibold leading-7 text-neutral-900">
-          {group.name}
-        </span>
-      </div>
+
+      <GroupSelector
+        selectedGroupId={group.id}
+        setSelectedGroupId={switchToGroup}
+        variant="header"
+      />
     </div>
   );
 }
@@ -56,7 +79,6 @@ export function GroupHeaderTitle() {
 export function GroupHeaderTabs() {
   const pathname = usePathname();
   const { slug } = useParams<{ slug: string }>();
-  const { program } = useProgram();
   const { group, loading } = useGroup();
 
   const GROUP_NAVIGATION_TABS = [
@@ -69,20 +91,28 @@ export function GroupHeaderTabs() {
         `/${slug}/program/groups/${group.slug}/rewards`,
     },
     {
-      id: "discount",
-      label: "Discount",
+      id: "discounts",
+      label: "Discounts",
       icon: Discount,
       external: false,
       getHref: (group: GroupProps) =>
-        `/${slug}/program/groups/${group.slug}/discount`,
+        `/${slug}/program/groups/${group.slug}/discounts`,
     },
     {
-      id: "settings",
-      label: "Settings",
-      icon: Sliders,
+      id: "links",
+      label: "Links",
+      icon: Hyperlink,
       external: false,
       getHref: (group: GroupProps) =>
-        `/${slug}/program/groups/${group.slug}/settings`,
+        `/${slug}/program/groups/${group.slug}/links`,
+    },
+    {
+      id: "branding",
+      label: "Branding",
+      icon: Brush,
+      external: false,
+      getHref: (group: GroupProps) =>
+        `/${slug}/program/groups/${group.slug}/branding`,
     },
     {
       id: "partners",
@@ -93,16 +123,12 @@ export function GroupHeaderTabs() {
         `/${slug}/program/partners?groupId=${group.id}`,
     },
     {
-      id: "landing",
-      label: "Landing page",
-      icon: Post,
-      external: true,
+      id: "settings",
+      label: "Settings",
+      icon: Sliders,
+      external: false,
       getHref: (group: GroupProps) =>
-        `${PARTNERS_DOMAIN}/${program?.slug}${
-          group.slug === DEFAULT_PARTNER_GROUP.slug
-            ? ""
-            : `/${group.slug}/apply`
-        }`,
+        `/${slug}/program/groups/${group.slug}/settings`,
     },
   ];
 

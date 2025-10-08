@@ -1,11 +1,9 @@
-import { deleteWorkspaceFolders } from "@/lib/api/folders/delete-workspace-folders";
-import { tokenCache } from "@/lib/auth/token-cache";
-import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { getPlanFromPriceId, LEGACY_PRICE_IDS } from "@dub/utils";
+import { getPlanFromPriceId } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendCancellationFeedback } from "./utils";
+import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
+import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
 export async function customerSubscriptionUpdated(event: Stripe.Event) {
   const subscriptionUpdated = event.data.object as Stripe.Subscription;
@@ -32,6 +30,7 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
       paymentFailedAt: true,
       payoutsLimit: true,
       foldersUsage: true,
+      defaultProgramId: true,
       users: {
         select: {
           user: {
@@ -65,113 +64,11 @@ export async function customerSubscriptionUpdated(event: Stripe.Event) {
     return NextResponse.json({ received: true });
   }
 
-  const newPlanName = plan.name.toLowerCase();
-  const shouldDisableWebhooks = newPlanName === "free" || newPlanName === "pro";
-  const shouldDeleteFolders =
-    newPlanName === "free" && workspace.foldersUsage > 0;
-
-  // If a workspace upgrades/downgrades their subscription
-  // or if the payouts limit changes and the new plan is not a legacy plan
-  // update their usage limit in the database
-  if (
-    workspace.plan !== newPlanName ||
-    (workspace.payoutsLimit !== plan.limits.payouts &&
-      !LEGACY_PRICE_IDS.includes(priceId))
-  ) {
-    await Promise.allSettled([
-      prisma.project.update({
-        where: {
-          stripeId,
-        },
-        data: {
-          plan: newPlanName,
-          usageLimit: plan.limits.clicks!,
-          linksLimit: plan.limits.links!,
-          payoutsLimit: plan.limits.payouts!,
-          domainsLimit: plan.limits.domains!,
-          aiLimit: plan.limits.ai!,
-          tagsLimit: plan.limits.tags!,
-          foldersLimit: plan.limits.folders!,
-          groupsLimit: plan.limits.groups!,
-          usersLimit: plan.limits.users!,
-          paymentFailedAt: null,
-          ...(shouldDeleteFolders && { foldersUsage: 0 }),
-        },
-      }),
-
-      prisma.restrictedToken.updateMany({
-        where: {
-          projectId: workspace.id,
-        },
-        data: {
-          rateLimit: plan.limits.api,
-        },
-      }),
-
-      // expire tokens cache
-      tokenCache.expireMany({
-        hashedKeys: workspace.restrictedTokens.map(
-          ({ hashedKey }) => hashedKey,
-        ),
-      }),
-    ]);
-
-    // Disable the webhooks if the new plan does not support webhooks
-    if (shouldDisableWebhooks) {
-      await Promise.all([
-        prisma.project.update({
-          where: {
-            id: workspace.id,
-          },
-          data: {
-            webhookEnabled: false,
-          },
-        }),
-
-        prisma.webhook.updateMany({
-          where: {
-            projectId: workspace.id,
-          },
-          data: {
-            disabledAt: new Date(),
-          },
-        }),
-      ]);
-
-      // Update the webhooks cache
-      const webhooks = await prisma.webhook.findMany({
-        where: {
-          projectId: workspace.id,
-        },
-        select: {
-          id: true,
-          url: true,
-          secret: true,
-          triggers: true,
-          disabledAt: true,
-        },
-      });
-
-      await webhookCache.mset(webhooks);
-    }
-
-    // Delete the folders if the new plan is free
-    // For downgrade from Business → Pro, it should be fine since we're accounting that to make sure all folders get write access.
-    if (shouldDeleteFolders) {
-      await deleteWorkspaceFolders({
-        workspaceId: workspace.id,
-      });
-    }
-  } else if (workspace.paymentFailedAt) {
-    await prisma.project.update({
-      where: {
-        id: workspace.id,
-      },
-      data: {
-        paymentFailedAt: null,
-      },
-    });
-  }
+  await updateWorkspacePlan({
+    workspace,
+    plan,
+    priceId,
+  });
 
   const subscriptionCanceled =
     subscriptionUpdated.status === "active" &&

@@ -61,7 +61,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     return {
       Partner: (
         <ConditionalLink
-          href={`/${slug}/program/partners?partnerId=${payout.partner.id}`}
+          href={`/${slug}/program/partners/${payout.partner.id}`}
           target="_blank"
         >
           <img
@@ -83,10 +83,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         </StatusBadge>
       ),
 
-      Total: currencyFormatter(payout.amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      Total: currencyFormatter(payout.amount / 100),
 
       ...(payout.invoiceId && {
         Invoice: (
@@ -165,11 +162,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         minSize: 100,
         size: 120,
         maxSize: 150,
-        cell: ({ row }) =>
-          currencyFormatter(row.original.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => currencyFormatter(row.original.earnings / 100),
       },
       // Menu
       {

@@ -27,8 +27,9 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
   return withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      const params = (await initialParams) || {};
       try {
         const session = await getSession();
 
@@ -57,7 +58,13 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
             },
           },
           include: {
-            partner: true,
+            partner: {
+              include: {
+                industryInterests: true,
+                preferredEarningStructures: true,
+                salesChannels: true,
+              },
+            },
           },
         });
 
@@ -69,12 +76,30 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
           });
         }
 
+        const {
+          industryInterests,
+          preferredEarningStructures,
+          salesChannels,
+          ...partner
+        } = partnerUser.partner;
+
         return await handler({
           req,
           params,
           searchParams,
           session,
-          partner: partnerUser.partner as PartnerProps,
+          partner: {
+            ...partner,
+            industryInterests: industryInterests.map(
+              ({ industryInterest }) => industryInterest,
+            ),
+            preferredEarningStructures: preferredEarningStructures.map(
+              ({ preferredEarningStructure }) => preferredEarningStructure,
+            ),
+            salesChannels: salesChannels.map(
+              ({ salesChannel }) => salesChannel,
+            ),
+          } as PartnerProps,
         });
       } catch (error) {
         req.log.error(error);

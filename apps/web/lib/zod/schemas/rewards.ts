@@ -19,7 +19,7 @@ export const CONDITION_ENTITIES = ["customer", "sale", "partner"] as const;
 
 export const CONDITION_CUSTOMER_ATTRIBUTES = ["country"] as const;
 
-export const CONDITION_SALE_ATTRIBUTES = ["productId"] as const;
+export const CONDITION_SALE_ATTRIBUTES = ["productId", "amount"] as const;
 
 export const CONDITION_PARTNER_ATTRIBUTES = [
   "totalClicks",
@@ -53,6 +53,9 @@ export const ENTITY_ATTRIBUTE_TYPES: Partial<
     totalSaleAmount: "currency",
     totalCommissions: "currency",
   },
+  sale: {
+    amount: "currency",
+  },
 };
 
 export const CONDITION_OPERATORS = [
@@ -84,6 +87,7 @@ export const NUMBER_CONDITION_OPERATORS: (typeof CONDITION_OPERATORS)[number][] 
 export const ATTRIBUTE_LABELS = {
   country: "Country",
   productId: "Product ID",
+  amount: "Amount",
   totalClicks: "Total clicks",
   totalLeads: "Total leads",
   totalConversions: "Total conversions",
@@ -139,7 +143,6 @@ export const RewardSchema = z.object({
   type: z.nativeEnum(RewardStructure),
   amount: z.number(),
   maxDuration: z.number().nullish(),
-  maxAmount: z.number().nullish(),
   modifiers: z.any().nullish(), // TODO: Fix this
 });
 
@@ -150,6 +153,7 @@ export const createOrUpdateRewardSchema = z.object({
   amount: z.number().min(0),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
+  description: z.string().max(100).nullish(),
   groupId: z.string(),
 });
 
@@ -199,6 +203,7 @@ export const rewardContextSchema = z.object({
   sale: z
     .object({
       productId: z.string().nullish(),
+      amount: z.number().nullish(),
     })
     .optional(),
 

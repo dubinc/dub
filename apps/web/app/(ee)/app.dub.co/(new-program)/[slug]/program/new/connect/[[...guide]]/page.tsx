@@ -5,14 +5,21 @@ import { guides, IntegrationGuide } from "@/ui/guides/integrations";
 import { redirect } from "next/navigation";
 import { StepPage } from "../../step-page";
 
-export default async function ConnectGuidesPage({
-  params: { slug, guide },
-}: {
-  params: {
-    slug: string;
-    guide?: string[];
-  };
-}) {
+export default async function ConnectGuidesPage(
+  props: {
+    params: Promise<{
+      slug: string;
+      guide?: string[];
+    }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    slug,
+    guide
+  } = params;
+
   let selectedGuide: IntegrationGuide | null = null;
   let markdownContent: string | null = null;
 

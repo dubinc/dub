@@ -10,8 +10,8 @@ import {
   Tooltip,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -51,6 +51,7 @@ export type NavGroupType = {
   popup?: ComponentType<{
     referenceElement: HTMLElement | null;
   }>;
+  badge?: ReactNode;
 
   description: string;
   learnMoreHref?: string;
@@ -304,6 +305,7 @@ function NavGroupItem({
     icon: Icon,
     href,
     active,
+    badge,
     onClick,
     popup: Popup,
   },
@@ -328,7 +330,7 @@ function NavGroupItem({
             onPointerLeave={() => setHovered(false)}
             onClick={onClick}
             className={cn(
-              "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
+              "relative flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
               "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
               active
                 ? "bg-white"
@@ -339,6 +341,11 @@ function NavGroupItem({
               className="text-content-default size-5"
               data-hovered={hovered}
             />
+            {badge && (
+              <div className="absolute right-0.5 top-0.5 flex size-3.5 items-center justify-center rounded-full bg-blue-600 text-[0.625rem] font-semibold text-white">
+                {badge}
+              </div>
+            )}
           </Link>
         </div>
       </NavGroupTooltip>
@@ -373,16 +380,16 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
       <Link
         href={locked ? "#" : href}
         data-active={isActive}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => setHovered(false)}
+        onPointerEnter={() => !locked && setHovered(true)}
+        onPointerLeave={() => !locked && setHovered(false)}
         className={cn(
           "text-content-default group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive && !items
             ? "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100"
-            : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
-
-          locked && "pointer-events-none",
+            : locked
+              ? "cursor-not-allowed opacity-75"
+              : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
         )}
         aria-disabled={locked}
       >
@@ -468,7 +475,7 @@ export function Area({
             ),
       )}
       aria-hidden={!visible ? "true" : undefined}
-      {...{ inert: !visible ? "" : undefined }}
+      inert={!visible}
     >
       {children}
     </div>

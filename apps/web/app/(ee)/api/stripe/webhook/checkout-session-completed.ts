@@ -1,12 +1,12 @@
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { inviteUser } from "@/lib/api/users";
 import { tokenCache } from "@/lib/auth/token-cache";
-import { limiter } from "@/lib/cron/limiter";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { stripe } from "@/lib/stripe";
 import { WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { Invite } from "@/lib/zod/schemas/invites";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail } from "@dub/email";
 import UpgradeEmail from "@dub/email/templates/upgrade-email";
 import { prisma } from "@dub/prisma";
 import { User } from "@dub/prisma/client";
@@ -69,10 +69,13 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
       tagsLimit: plan.limits.tags!,
       foldersLimit: plan.limits.folders!,
       groupsLimit: plan.limits.groups!,
+      networkInvitesLimit: plan.limits.networkInvites!,
       usersLimit: plan.limits.users!,
       paymentFailedAt: null,
     },
     select: {
+      plan: true,
+      defaultProgramId: true,
       users: {
         select: {
           user: {
@@ -105,21 +108,19 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 
   await Promise.allSettled([
     completeOnboarding({ users, workspaceId }),
-    ...users.map((user) => {
-      limiter.schedule(() =>
-        sendEmail({
+    sendBatchEmail(
+      users.map((user) => ({
+        to: user.email as string,
+        replyTo: "steven.tey@dub.co",
+        subject: `Thank you for upgrading to Dub ${plan.name}!`,
+        react: UpgradeEmail({
+          name: user.name,
           email: user.email as string,
-          replyTo: "steven.tey@dub.co",
-          subject: `Thank you for upgrading to Dub ${plan.name}!`,
-          react: UpgradeEmail({
-            name: user.name,
-            email: user.email as string,
-            plan: plan.name,
-          }),
-          variant: "marketing",
+          plan: plan.name,
         }),
-      );
-    }),
+        variant: "marketing",
+      })),
+    ),
     // update rate limits for restricted tokens for the workspace
     prisma.restrictedToken.updateMany({
       where: {
@@ -142,6 +143,21 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     tokenCache.expireMany({
       hashedKeys: workspace.restrictedTokens.map(({ hashedKey }) => hashedKey),
     }),
+
+    // enable program messaging if available
+    ...(workspace.defaultProgramId &&
+    getPlanCapabilities(workspace.plan).canMessagePartners
+      ? [
+          prisma.program.update({
+            where: {
+              id: workspace.defaultProgramId,
+            },
+            data: {
+              messagingEnabledAt: new Date(),
+            },
+          }),
+        ]
+      : []),
   ]);
 }
 

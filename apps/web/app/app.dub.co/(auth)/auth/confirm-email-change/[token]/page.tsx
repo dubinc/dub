@@ -14,8 +14,8 @@ import { Suspense } from "react";
 import ConfirmEmailChangePageClient from "./page-client";
 
 interface PageProps {
-  params: { token: string };
-  searchParams: { cancel?: string };
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ cancel?: string }>;
 }
 
 export default async function ConfirmEmailChangePage(props: PageProps) {
@@ -36,10 +36,9 @@ export default async function ConfirmEmailChangePage(props: PageProps) {
   );
 }
 
-const VerifyEmailChange = async ({
-  params: { token },
-  searchParams,
-}: PageProps) => {
+const VerifyEmailChange = async ({ params, searchParams }: PageProps) => {
+  const { token } = await params;
+
   const tokenFound = await prisma.verificationToken.findUnique({
     where: {
       token: await hashToken(token, { secret: true }),
@@ -57,7 +56,7 @@ const VerifyEmailChange = async ({
   }
 
   // Cancel the email change request (?cancel=true)
-  const { cancel } = searchParams;
+  const { cancel } = await searchParams;
 
   if (cancel && cancel === "true") {
     await deleteRequest(tokenFound);
@@ -152,10 +151,11 @@ const VerifyEmailChange = async ({
 
       sendEmail({
         subject: "Your email address has been changed",
-        email: data.email,
+        to: data.email,
         react: EmailUpdated({
           oldEmail: data.email,
           newEmail: data.newEmail,
+          isPartnerProfile: !!data.isPartnerProfile,
         }),
       }),
     ]),

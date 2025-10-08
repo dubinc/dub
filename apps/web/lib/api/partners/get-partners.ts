@@ -10,7 +10,7 @@ const sortColumnsMap = {
   conversions: "totalConversions",
   sales: "totalSales",
   saleAmount: "totalSaleAmount",
-  commissions: "totalCommissions",
+  totalCommissions: "totalCommissions",
   netRevenue: "netRevenue",
 };
 
@@ -22,7 +22,7 @@ const sortColumnExtraMap = {
   conversions: "totalSaleAmount",
   sales: "totalClicks",
   saleAmount: "totalClicks",
-  commissions: "totalSaleAmount",
+  totalCommissions: "totalSaleAmount",
   netRevenue: "totalSaleAmount",
 };
 
@@ -35,6 +35,7 @@ export async function getPartners(filters: PartnerFilters) {
     status,
     country,
     search,
+    email,
     tenantId,
     partnerIds,
     page,
@@ -133,12 +134,13 @@ export async function getPartners(filters: PartnerFilters) {
     WHERE 
       pe.programId = ${programId}
       ${status ? Prisma.sql`AND pe.status = ${status}` : Prisma.sql`AND pe.status IN ('approved', 'invited')`}
-      ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : Prisma.sql``}
+      ${tenantId ? Prisma.sql`AND pe.tenantId = ${tenantId}` : email ? Prisma.sql`AND p.email = ${email}` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
       ${
         search
           ? Prisma.sql`AND (
-        LOWER(p.name) LIKE LOWER(${`%${search}%`}) 
+        LOWER(p.id) LIKE LOWER(${`%${search}%`})
+        OR LOWER(p.name) LIKE LOWER(${`%${search}%`}) 
         OR LOWER(p.email) LIKE LOWER(${`%${search}%`})
         OR EXISTS (
           SELECT 1 FROM Link searchLink 
@@ -166,6 +168,6 @@ export async function getPartners(filters: PartnerFilters) {
     saleAmount: Number(partner.totalSaleAmount),
     totalCommissions: Number(partner.totalCommissions),
     netRevenue: Number(partner.netRevenue),
-    links: partner.links.filter((link: any) => link !== null),
+    links: partner.links.filter((link: any) => link !== null && !!link.url),
   }));
 }

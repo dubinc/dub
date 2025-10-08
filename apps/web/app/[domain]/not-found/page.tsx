@@ -6,7 +6,7 @@ import { Hero } from "@/ui/placeholders/hero";
 import { GlobeSearch } from "@dub/ui";
 import { cn, constructMetadata, createHref } from "@dub/utils";
 
-export const runtime = "edge";
+export const revalidate = false; // cache indefinitely
 
 export const metadata = constructMetadata({
   title: "Link Not Found",
@@ -21,11 +21,12 @@ const UTM_PARAMS = {
   utm_medium: "Link Not Found Page",
 };
 
-export default function NotFoundLinkPage({
-  params,
-}: {
-  params: { domain: string };
-}) {
+export default async function NotFoundLinkPage(
+  props: {
+    params: Promise<{ domain: string }>;
+  }
+) {
+  const params = await props.params;
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <Hero>
