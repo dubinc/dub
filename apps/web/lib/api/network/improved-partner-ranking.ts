@@ -166,41 +166,36 @@ export async function getImprovedPartnerRanking({
     LEFT JOIN ProgramEnrollment pe ON pe.partnerId = p.id AND pe.programId = ${programId}
     LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
     
-    -- Global partner metrics (across all programs)
+    -- Global partner metrics (across all programs) - OPTIMIZED!
     LEFT JOIN (
       SELECT 
         partnerId,
         MAX(lastConversionAt) as lastConversionAt,
-        SUM(clicks) as totalClicks,
-        SUM(leads) as totalLeads,
-        SUM(conversions) as totalConversions,
-        SUM(saleAmount) as totalSaleAmount,
-        COALESCE(SUM(conversions) / NULLIF(SUM(clicks), 0), 0) as conversionRate
-      FROM Link
-      WHERE programId IS NOT NULL
-      AND programId != ${ACME_PROGRAM_ID}
-      AND partnerId IS NOT NULL
+        SUM(totalClicks) as totalClicks,
+        SUM(totalLeads) as totalLeads,
+        SUM(totalConversions) as totalConversions,
+        SUM(totalSaleAmount) as totalSaleAmount,
+        COALESCE(SUM(totalConversions) / NULLIF(SUM(totalClicks), 0), 0) as conversionRate
+      FROM PartnerProgramPerformance
       GROUP BY partnerId
     ) globalMetrics ON globalMetrics.partnerId = p.id
     
-    -- Program-specific metrics (for similar programs) - NEW!
+    -- Program-specific metrics (for similar programs) - OPTIMIZED!
     LEFT JOIN (
       SELECT 
-        l.partnerId,
-        SUM(l.clicks) as programClicks,
-        SUM(l.conversions) as programConversions,
-        SUM(l.saleAmount) as programSaleAmount,
-        COALESCE(SUM(l.conversions) / NULLIF(SUM(l.clicks), 0), 0) as programConversionRate
-      FROM Link l
-      INNER JOIN ProgramSimilarity ps ON (ps.programId = ${programId} AND ps.similarProgramId = l.programId)
-        OR (ps.similarProgramId = ${programId} AND ps.programId = l.programId)
-      WHERE l.programId != ${ACME_PROGRAM_ID}
-      AND l.partnerId IS NOT NULL
-      AND ps.combinedSimilarityScore >= 0.3 -- Only include reasonably similar programs
-      GROUP BY l.partnerId
+        ppp.partnerId,
+        SUM(ppp.totalClicks) as programClicks,
+        SUM(ppp.totalConversions) as programConversions,
+        SUM(ppp.totalSaleAmount) as programSaleAmount,
+        COALESCE(SUM(ppp.totalConversions) / NULLIF(SUM(ppp.totalClicks), 0), 0) as programConversionRate
+      FROM PartnerProgramPerformance ppp
+      INNER JOIN ProgramSimilarity ps ON (ps.programId = ${programId} AND ps.similarProgramId = ppp.programId)
+        OR (ps.similarProgramId = ${programId} AND ps.programId = ppp.programId)
+      WHERE ps.combinedSimilarityScore >= 0.3 -- Only include reasonably similar programs
+      GROUP BY ppp.partnerId
     ) programMetrics ON programMetrics.partnerId = p.id
     
-    -- Enhanced program similarity scores
+    -- Enhanced program similarity scores - OPTIMIZED!
     LEFT JOIN (
       SELECT 
         partnerPrograms.partnerId,
@@ -212,10 +207,8 @@ export async function getImprovedPartnerRanking({
         COUNT(DISTINCT ps.similarProgramId) as similarProgramCount
       FROM (
         SELECT DISTINCT partnerId, programId
-        FROM Link 
-        WHERE programId IS NOT NULL 
-        AND programId != ${ACME_PROGRAM_ID}
-        AND conversions > 0 -- Only consider programs where partner had success
+        FROM PartnerProgramPerformance
+        WHERE totalConversions > 0 -- Only consider programs where partner had success
       ) partnerPrograms
       INNER JOIN ProgramSimilarity ps ON (
         (ps.programId = ${programId} AND ps.similarProgramId = partnerPrograms.programId)
@@ -249,16 +242,13 @@ export async function getImprovedPartnerRanking({
       GROUP BY partnerId
     ) commissions ON commissions.partnerId = p.id
     
-    -- Program diversity bonus
+    -- Program diversity bonus - OPTIMIZED!
     LEFT JOIN (
       SELECT 
         partnerId,
         COUNT(DISTINCT programId) as programsWithConversions
-      FROM Link
-      WHERE programId IS NOT NULL
-      AND programId != ${ACME_PROGRAM_ID}
-      AND partnerId IS NOT NULL
-      AND conversions > 0
+      FROM PartnerProgramPerformance
+      WHERE totalConversions > 0
       GROUP BY partnerId
     ) programDiversity ON programDiversity.partnerId = p.id
     
