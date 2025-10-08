@@ -35,7 +35,7 @@ function SignUpStep({ sessionId, authModal = false }) {
       >
         <h3 className="text-lg font-semibold">
           {authModal
-            ? "Create your free account to download your QR code instantly."
+            ? "Create your GetQR account to download your QR code instantly."
             : "Get started with GetQR"}
         </h3>
       </motion.div>

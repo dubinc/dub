@@ -12,12 +12,12 @@ export function QrCardType({ className, currentQrTypeInfo }: IQRCardType) {
   return (
     <div
       className={cn(
-        "flex flex-row items-center gap-1 lg:w-[100px] lg:justify-center",
+        "text-primary flex flex-row items-center gap-1 lg:w-[100px] lg:justify-center",
         className,
       )}
     >
-      <Icon icon={currentQrTypeInfo!.icon!} className="text-primary text-lg" />
-      <Text as="span" size="2" weight="bold" className="text-primary">
+      <Icon icon={currentQrTypeInfo!.icon!} className="text-lg" />
+      <Text as="span" size="2" weight="bold">
         {currentQrTypeInfo!.label!}
       </Text>
     </div>

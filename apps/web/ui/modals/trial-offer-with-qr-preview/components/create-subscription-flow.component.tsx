@@ -103,10 +103,11 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
   const handleOpenCardDetailsForm = () => {
     trackClientEvents({
-      event: EAnalyticEvents.PAGE_CLICKED,
+      event: EAnalyticEvents.ELEMENT_CLICKED,
       params: {
         page_name: pageName,
         content_value: "card",
+        element_name: "payment_modal",
         email: user?.email,
         event_category: "Authorized",
       },
@@ -116,7 +117,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       event: EAnalyticEvents.ELEMENT_OPENED,
       params: {
         page_name: pageName,
-        element_name: "CardDetails",
+        element_name: "card",
         email: user?.email,
         event_category: "Authorized",
       },

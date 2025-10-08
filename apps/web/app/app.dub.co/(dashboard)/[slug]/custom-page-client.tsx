@@ -19,6 +19,7 @@ import { ICustomerBody } from "core/integration/payment/config";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { NewQrProvider } from './helpers/new-qr-context';
 
 interface WorkspaceQRsClientProps {
   initialQrs: QrStorageData[];
@@ -35,19 +36,21 @@ export default function WorkspaceQRsClient({
 }: WorkspaceQRsClientProps) {
   return (
     <UserProvider user={user}>
-      <QrCodesDisplayProvider>
-        <WorkspaceQRs
-          initialQrs={initialQrs}
-          featuresAccess={featuresAccess}
-          user={user}
-        />
+      <NewQrProvider>
+        <QrCodesDisplayProvider>
+          <WorkspaceQRs
+            initialQrs={initialQrs}
+            featuresAccess={featuresAccess}
+            user={user}
+          />
 
-        <TrialOfferWithQRPreviewWrapper
-          initialQrs={initialQrs}
-          featuresAccess={featuresAccess}
-          user={cookieUser}
-        />
-      </QrCodesDisplayProvider>
+          <TrialOfferWithQRPreviewWrapper
+            initialQrs={initialQrs}
+            featuresAccess={featuresAccess}
+            user={cookieUser}
+          />
+        </QrCodesDisplayProvider>
+      </NewQrProvider>
     </UserProvider>
   );
 }
