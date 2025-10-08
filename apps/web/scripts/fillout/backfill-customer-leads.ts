@@ -1,3 +1,5 @@
+// @ts-nocheck some weird typing issues below
+
 import { createId } from "@/lib/api/create-id";
 import { generateRandomName } from "@/lib/names";
 import { prisma } from "@dub/prisma";
@@ -5,14 +7,17 @@ import { nanoid } from "@dub/utils";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
+import { recordLeadWithTimestamp } from "../../lib/tinybird/record-lead";
 
 let leadsToBackfill: {
   customerExternalId: string;
   partnerLinkKey: string;
-  stripeCustomerId: string;
+  stripeCustomerId: string | null;
   timestamp: string;
 }[] = [];
 
+// script to backfill customers + leads
+// we also use a batching logic for tinybird events ingestion
 async function main() {
   Papa.parse(fs.createReadStream("fillout-customers.csv", "utf-8"), {
     header: true,
@@ -28,14 +33,11 @@ async function main() {
       leadsToBackfill.push({
         customerExternalId: result.data.userId,
         partnerLinkKey: result.data.referral,
-        stripeCustomerId: result.data.stripeCustomerId,
+        stripeCustomerId: result.data.stripeCustomerId || null,
         timestamp: result.data.createdAt,
       });
     },
     complete: async () => {
-      console.log(`Found ${leadsToBackfill.length} leads to backfill`);
-      console.table(leadsToBackfill.slice(0, 10));
-
       const workspace = await prisma.project.findUniqueOrThrow({
         where: {
           id: "xxx",
@@ -51,66 +53,23 @@ async function main() {
         },
       });
 
-      const statsByLink = leadsToBackfill
-        .filter((lead) =>
-          partnerLinks.some(
-            (link) =>
-              link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
-          ),
-        )
-        .reduce(
-          (acc, lead) => {
-            const link = partnerLinks.find(
-              (link) =>
-                link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
-            )!;
-            acc[link.id] = {
-              clicks: (acc[link.id]?.clicks || 0) + 1,
-              leads: (acc[link.id]?.leads || 0) + 1,
-              conversions: (acc[link.id]?.conversions || 0) + 1,
-            };
-            return acc;
-          },
-          {} as Record<
-            string,
-            {
-              clicks: number;
-              leads: number;
-              conversions: number;
-            }
-          >,
-        );
-
-      console.log(
-        JSON.stringify(Object.entries(statsByLink).slice(0, 10), null, 2),
+      // filter out leads that are not associated with a partner link
+      const finalLeadsToBackfill = leadsToBackfill.filter((lead) =>
+        partnerLinks.some(
+          (link) =>
+            link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
+        ),
       );
 
-      //   for (const [linkId, stats] of Object.entries(statsByLink)) {
-      //     const res = await prisma.link.update({
-      //       where: { id: linkId },
-      //       data: {
-      //         clicks: {
-      //           increment: stats.clicks,
-      //         },
-      //         leads: {
-      //           increment: stats.leads,
-      //         },
-      //       },
-      //     });
-      //     console.log(
-      //       `Updated ${linkId} to ${res.clicks} clicks (+${stats.clicks} clicks), ${res.leads} leads (+${stats.leads} leads), ${res.conversions} conversions (+${stats.conversions} conversions)`,
-      //     );
-      //   }
+      console.log(`Found ${finalLeadsToBackfill.length} leads to backfill`);
+      console.table(finalLeadsToBackfill.slice(0, 10));
 
-      const clicksToCreate = leadsToBackfill
+      const clicksToCreate = finalLeadsToBackfill
         .map((lead) => {
           const link = partnerLinks.find(
             (link) =>
               link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
-          );
-          if (!link) {
-            return null;
-          }
+          )!; // coerce here cause we already filtered out leads that are not associated with a partner link above
 
           const clickId = nanoid(16);
 
@@ -148,23 +107,41 @@ async function main() {
         })
         .filter((c) => c !== null);
 
-      console.table(clicksToCreate.slice(0, 10));
+      // clickhouse only supports max 12 partitions (months) for a given event backfill
+      // so we need to transform this into a list of lists, one for each year
+      const clicksToCreateTB = clicksToCreate.reduce(
+        (acc, curr) => {
+          const year = new Date(curr.timestamp).getFullYear();
+          if (!acc[year]) {
+            acc[year] = [];
+          }
+          acc[year].push(curr);
+          return acc;
+        },
+        {} as Record<number, any[]>,
+      );
 
       // Record clicks
-      // const clickRes = await fetch(
-      //   `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
-      //   {
-      //     method: "POST",
-      //     headers: {
-      //       Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      //       "Content-Type": "application/x-ndjson",
-      //     },
-      //     body: clicksToCreate.map((d) => JSON.stringify(d)).join("\n"),
-      //   },
-      // ).then((res) => res.json());
-      // console.log("backfilled clicks", JSON.stringify(clickRes, null, 2));
+      Object.entries(clicksToCreateTB).forEach(async ([year, clicks]) => {
+        const clicksBatch = clicks as typeof clicksToCreate;
+        console.log(`backfilling ${clicksBatch.length} clicks for ${year}`);
+        const clickRes = await fetch(
+          `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+              "Content-Type": "application/x-ndjson",
+            },
+            body: (clicksBatch as typeof clicksToCreate)
+              .map((d) => JSON.stringify(d))
+              .join("\n"),
+          },
+        ).then((res) => res.json());
+        console.log("backfilled clicks", JSON.stringify(clickRes, null, 2));
+      });
 
-      const customersToCreate = leadsToBackfill
+      const customersToCreate = finalLeadsToBackfill
         .map((lead, idx) => {
           const clickData = clicksToCreate[idx];
           if (!clickData) {
@@ -188,21 +165,95 @@ async function main() {
 
       console.table(customersToCreate.slice(0, 10));
 
-      // const customerRes = await prisma.customer.createMany({
-      //   data: customersToCreate,
-      //   skipDuplicates: true,
-      // });
-      // console.log("backfilled customers", JSON.stringify(customerRes, null, 2));
+      const customerRes = await prisma.customer.createMany({
+        data: customersToCreate,
+        skipDuplicates: true,
+      });
+      console.log("backfilled customers", JSON.stringify(customerRes, null, 2));
 
-      // const leadsToCreate = clicksToCreate.map((clickData, idx) => ({
-      //   ...clickData,
-      //   event_id: nanoid(16),
-      //   event_name: "activated",
-      //   customer_id: customersToCreate[idx]!.id,
-      // }));
+      const leadsToCreate = clicksToCreate.map((clickData, idx) => ({
+        ...clickData,
+        event_id: nanoid(16),
+        event_name: "Sign up",
+        customer_id: customersToCreate[idx]!.id,
+      }));
 
-      // const leadRes = await recordLeadWithTimestamp(leadsToCreate);
-      // console.log("backfilled leads", JSON.stringify(leadRes, null, 2));
+      // same batching logic as above
+      const leadsToCreateTB = leadsToCreate.reduce(
+        (acc, curr) => {
+          const year = new Date(curr.timestamp).getFullYear();
+          if (!acc[year]) {
+            acc[year] = [];
+          }
+          acc[year].push(curr);
+          return acc;
+        },
+        {} as Record<number, any[]>,
+      );
+
+      Object.entries(leadsToCreateTB).forEach(async ([year, leads]) => {
+        const leadsBatch = leads as typeof leadsToCreate;
+        console.log(`backfilling ${leadsBatch.length} leads for ${year}`);
+        const leadRes = await recordLeadWithTimestamp(leadsBatch);
+        console.log("backfilled leads", JSON.stringify(leadRes, null, 2));
+      });
+
+      const statsByLink = finalLeadsToBackfill
+        .filter((lead) =>
+          partnerLinks.some(
+            (link) =>
+              link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
+          ),
+        )
+        .reduce(
+          (acc, lead) => {
+            const link = partnerLinks.find(
+              (link) =>
+                link.key.toLowerCase() === lead.partnerLinkKey.toLowerCase(),
+            )!;
+            const leadCreatedAt = new Date(lead.timestamp);
+            acc[link.id] = {
+              clicks: (acc[link.id]?.clicks || 0) + 1,
+              leads: (acc[link.id]?.leads || 0) + 1,
+              // if there is no lastLeadAt, or the leadCreatedAt is greater than the lastLeadAt, set the lastLeadAt to the leadCreatedAt
+              lastLeadAt:
+                leadCreatedAt > (acc[link.id]?.lastLeadAt ?? new Date(0))
+                  ? leadCreatedAt
+                  : acc[link.id]?.lastLeadAt,
+            };
+            return acc;
+          },
+          {} as Record<
+            string,
+            {
+              clicks: number;
+              leads: number;
+              lastLeadAt: Date | undefined;
+            }
+          >,
+        );
+
+      console.log(
+        JSON.stringify(Object.entries(statsByLink).slice(0, 10), null, 2),
+      );
+
+      for (const [linkId, stats] of Object.entries(statsByLink)) {
+        const res = await prisma.link.update({
+          where: { id: linkId },
+          data: {
+            clicks: {
+              increment: stats.clicks,
+            },
+            leads: {
+              increment: stats.leads,
+            },
+            lastLeadAt: stats.lastLeadAt,
+          },
+        });
+        console.log(
+          `Updated ${linkId} to ${res.clicks} clicks (+${stats.clicks} clicks), ${res.leads} leads (+${stats.leads} leads)`,
+        );
+      }
     },
   });
 }
