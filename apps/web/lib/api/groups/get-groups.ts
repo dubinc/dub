@@ -31,6 +31,7 @@ export async function getGroups(filters: GroupFilters) {
     includeExpandedFields,
   } = filters;
 
+  // First get the basic group data with metrics
   const groups = (await prisma.$queryRaw`
     SELECT
       pg.id,
@@ -94,6 +95,37 @@ export async function getGroups(filters: GroupFilters) {
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
   `) satisfies Array<any>;
 
+  // Get group IDs for fetching rewards
+  const groupIdsFromQuery = groups.map((group) => group.id);
+
+  // Fetch rewards for these groups
+  const groupsWithRewards = await prisma.partnerGroup.findMany({
+    where: {
+      id: {
+        in: groupIdsFromQuery,
+      },
+    },
+    include: {
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
+      discount: true,
+    },
+  });
+
+  // Create a map for quick lookup
+  const rewardsMap = new Map(
+    groupsWithRewards.map((group) => [
+      group.id,
+      {
+        clickReward: group.clickReward,
+        leadReward: group.leadReward,
+        saleReward: group.saleReward,
+        discount: group.discount,
+      },
+    ]),
+  );
+
   return groups.map((group) => ({
     ...group,
     partners: Number(group.partners),
@@ -104,5 +136,7 @@ export async function getGroups(filters: GroupFilters) {
     totalConversions: Number(group.totalConversions),
     totalCommissions: Number(group.totalCommissions),
     netRevenue: Number(group.netRevenue),
+    // Add reward data
+    ...rewardsMap.get(group.id),
   }));
 }

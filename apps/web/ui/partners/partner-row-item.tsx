@@ -1,4 +1,4 @@
-import { usePartnerRewardsAndDiscounts } from "@/lib/swr/use-partner-rewards-and-discounts";
+import useGroups from "@/lib/swr/use-groups";
 import { DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { OG_AVATAR_URL } from "@dub/utils/src/constants";
@@ -17,6 +17,7 @@ export function PartnerRowItem({
     name: string;
     image?: string | null;
     payoutsEnabledAt?: Date | null;
+    groupId?: string | null;
   };
   showPermalink?: boolean;
   showRewardsTooltip?: boolean;
@@ -26,10 +27,9 @@ export function PartnerRowItem({
 
   const showPayoutsEnabled = "payoutsEnabledAt" in partner;
 
-  // Fetch real reward data when showing rewards tooltip
-  const { rewardsAndDiscounts } = usePartnerRewardsAndDiscounts(
-    showRewardsTooltip ? partner.id : "",
-  );
+  // Get groups data to find partner's group and their rewards
+  const { groups } = useGroups();
+  const partnerGroup = groups?.find((group) => group.id === partner.groupId);
 
   return (
     <div className="flex items-center gap-2">
@@ -37,12 +37,7 @@ export function PartnerRowItem({
         tooltipProps={
           showRewardsTooltip
             ? {
-                content: (
-                  <PartnerRewardsTooltip
-                    rewards={rewardsAndDiscounts?.rewards || []}
-                    discount={rewardsAndDiscounts?.discount || undefined}
-                  />
-                ),
+                content: <PartnerRewardsTooltip group={partnerGroup} />,
                 delayDuration: 150,
               }
             : showPayoutsEnabled
