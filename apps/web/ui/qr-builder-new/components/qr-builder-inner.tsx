@@ -104,7 +104,11 @@ export const QRBuilderInner = () => {
           )}
 
           {isCustomizationStep && (
-            <div className="flex h-full w-full flex-col justify-between">
+            <div
+              className={cn("w-full", {
+                "flex h-full flex-col justify-between": !homepageDemo,
+              })}
+            >
               <QRCustomization
                 customizationData={customizationData}
                 onCustomizationChange={updateCustomizationData}
@@ -177,7 +181,10 @@ export const QRBuilderInner = () => {
 
         {isCustomizationStep && (
           <div className="center sticky top-20 flex h-max w-full flex-col gap-6">
-            <QRPreview customizationData={customizationData} />
+            <QRPreview
+              homepageDemo={homepageDemo}
+              customizationData={customizationData}
+            />
           </div>
         )}
       </div>
