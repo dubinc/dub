@@ -1,5 +1,6 @@
 import useDomains from "@/lib/swr/use-domains";
 import useGuide from "@/lib/swr/use-guide";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { useMemo } from "react";
 import { SWRConfiguration } from "swr";
@@ -10,6 +11,7 @@ export function useDynamicGuide(
 ) {
   const { guideMarkdown: guideMarkdownRaw, error } = useGuide(guide, swrOpts);
 
+  const { publishableKey } = useWorkspace();
   const { primaryDomain } = useDomains();
 
   const [siteVisitTrackingEnabled] = useWorkspaceStore<boolean>(
@@ -55,6 +57,18 @@ export function useDynamicGuide(
         );
     }
 
+    if (conversionTrackingEnabled && publishableKey) {
+      result = result
+        ?.replaceAll(
+          /^(\s+)(data-domains=.+)$/gm,
+          `$1$2\n$1data-publishable-key="${publishableKey}"`,
+        )
+        ?.replaceAll(
+          /^(\s+)(.+)(domainsConfig={{)/gm,
+          `$1$2publishableKey="${publishableKey}"\n$1  $3`,
+        );
+    }
+
     return result;
   }, [
     guideMarkdownRaw,
@@ -62,6 +76,7 @@ export function useDynamicGuide(
     siteVisitTrackingEnabled,
     domainTrackingEnabled,
     conversionTrackingEnabled,
+    publishableKey,
   ]);
 
   return {
