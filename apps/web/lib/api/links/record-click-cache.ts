@@ -6,7 +6,7 @@ const CACHE_EXPIRATION = 60 * 60;
 interface KeyProps {
   domain: string;
   key: string;
-  identityHash: string | undefined;
+  identityHash: string;
 }
 
 class RecordClickCache {
