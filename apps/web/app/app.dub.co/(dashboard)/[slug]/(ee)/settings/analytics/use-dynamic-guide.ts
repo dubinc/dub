@@ -1,0 +1,59 @@
+import useDomains from "@/lib/swr/use-domains";
+import useGuide from "@/lib/swr/use-guide";
+import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { useMemo } from "react";
+import { SWRConfiguration } from "swr";
+
+export function useDynamicGuide(
+  { guide }: { guide: string },
+  swrOpts?: SWRConfiguration,
+) {
+  const { guideMarkdown: guideMarkdownRaw, error } = useGuide(guide);
+
+  const { primaryDomain } = useDomains();
+
+  const [siteVisitTrackingEnabled] = useWorkspaceStore<boolean>(
+    "analyticsSettingsSiteVisitTrackingEnabled",
+  );
+  const [domainTrackingEnabled] = useWorkspaceStore<boolean>(
+    "analyticsSettingsOutboundDomainTrackingEnabled",
+  );
+  const [conversionTrackingEnabled] = useWorkspaceStore<boolean>(
+    "analyticsSettingsConversionTrackingEnabled",
+  );
+
+  const guideMarkdown = useMemo(() => {
+    let result = guideMarkdownRaw;
+
+    if (primaryDomain)
+      result = result?.replaceAll(/yourcompany\.link/g, primaryDomain);
+
+    const scriptComponents = [
+      siteVisitTrackingEnabled ? "site-visit" : null,
+      domainTrackingEnabled ? "outbound-domains" : null,
+      conversionTrackingEnabled ? "conversion-tracking" : null,
+    ]
+      .filter(Boolean)
+      .join(".");
+
+    if (scriptComponents.length)
+      result = result?.replaceAll(
+        /https\:\/\/www.dubcdn.com\/analytics\/script.js/g,
+        `https://www.dubcdn.com/analytics/script.${scriptComponents}.js`,
+      );
+
+    return result;
+  }, [
+    guideMarkdownRaw,
+    primaryDomain,
+    siteVisitTrackingEnabled,
+    domainTrackingEnabled,
+    conversionTrackingEnabled,
+  ]);
+
+  return {
+    guideMarkdown,
+    error,
+    loading: !guideMarkdown && !error,
+  };
+}

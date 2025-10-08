@@ -9,6 +9,9 @@ const OutboundDomainTrackingSection = () => {
 
   const [enabled, setEnabled, { loading }] = useWorkspaceStore<boolean>(
     "analyticsSettingsOutboundDomainTrackingEnabled",
+    {
+      mutateOnSet: true,
+    },
   );
 
   return (

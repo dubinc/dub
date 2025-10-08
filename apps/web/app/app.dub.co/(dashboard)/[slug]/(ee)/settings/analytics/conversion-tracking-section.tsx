@@ -14,6 +14,9 @@ const ConversionTrackingSection = () => {
 
   const [enabled, setEnabled, { loading }] = useWorkspaceStore<boolean>(
     "analyticsSettingsConversionTrackingEnabled",
+    {
+      mutateOnSet: true,
+    },
   );
 
   // Default to enabled if the workspace already has a publishable key

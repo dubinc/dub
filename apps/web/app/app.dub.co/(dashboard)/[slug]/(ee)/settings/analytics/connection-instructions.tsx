@@ -1,17 +1,19 @@
 "use client";
 
-import useGuide from "@/lib/swr/use-guide";
 import { GuideActionButton } from "@/ui/guides/guide-action-button";
 import { GuideSelector } from "@/ui/guides/guide-selector";
 import { guides as allGuides } from "@/ui/guides/integrations";
 import { GuidesMarkdown } from "@/ui/guides/markdown";
+import { useDynamicGuide } from "./use-dynamic-guide";
 import { useSelectedGuide } from "./use-selected-guide";
 
 const ConnectionInstructions = ({}: {}) => {
   const guides = allGuides.filter((guide) => guide.type === "client-sdk");
   const { selectedGuide, setSelectedGuide } = useSelectedGuide({ guides });
 
-  const { loading, error, guideMarkdown } = useGuide(selectedGuide.key);
+  const { loading, error, guideMarkdown } = useDynamicGuide({
+    guide: selectedGuide.key,
+  });
 
   let button;
   let content;
