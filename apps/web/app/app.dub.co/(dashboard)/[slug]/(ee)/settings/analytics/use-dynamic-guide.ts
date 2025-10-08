@@ -42,6 +42,19 @@ export function useDynamicGuide(
         `https://www.dubcdn.com/analytics/script.${scriptComponents}.js`,
       );
 
+    // Outbound domains
+    if (domainTrackingEnabled) {
+      result = result
+        ?.replaceAll(
+          /(data-domains='{[^}]+)(}')/g,
+          `$1, "outbound": ["example.com", "example.sh"]$2`,
+        )
+        ?.replaceAll(
+          /(domainsConfig={{\n)(\s+)([^\n]+)\n(\s+}})/gm,
+          `$1$2$3,\n$2outbound: ["example.com", "example.sh"]\n$4`,
+        );
+    }
+
     return result;
   }, [
     guideMarkdownRaw,
