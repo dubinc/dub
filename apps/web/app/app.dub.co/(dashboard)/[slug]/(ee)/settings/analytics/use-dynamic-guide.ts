@@ -65,7 +65,7 @@ export function useDynamicGuide(
         )
         ?.replaceAll(
           /^(\s+)(.+)(domainsConfig={{)/gm,
-          `$1$2publishableKey="${publishableKey}"\n$1  $3`,
+          `$1$2publishableKey="${publishableKey}" $3`,
         );
     }
 
