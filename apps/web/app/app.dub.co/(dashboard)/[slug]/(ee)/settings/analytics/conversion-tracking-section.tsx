@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { Switch } from "@dub/ui";
+import { LockSmall, Switch } from "@dub/ui";
 import { motion } from "motion/react";
 import { useEffect, useId } from "react";
 import { PublishableKeyForm } from "./publishable-key-form";
@@ -56,6 +56,17 @@ const ConversionTrackingSection = () => {
           thumbDimensions="size-3"
           thumbTranslate="translate-x-3"
           fn={setEnabled}
+          {...(publishableKey
+            ? {
+                disabledTooltip:
+                  "You need to revoke your current publishable key first before disabling conversion tracking.",
+                thumbIcon: (
+                  <div className="flex size-full items-center justify-center">
+                    <LockSmall className="size-[8px] text-black" />
+                  </div>
+                ),
+              }
+            : {})}
         />
       </div>
 

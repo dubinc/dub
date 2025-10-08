@@ -11,7 +11,7 @@ const ConnectionInstructions = ({}: {}) => {
   const guides = allGuides.filter((guide) => guide.type === "client-sdk");
   const { selectedGuide, setSelectedGuide } = useSelectedGuide({ guides });
 
-  const { loading, error, guideMarkdown } = useDynamicGuide({
+  const { loading, guideMarkdown } = useDynamicGuide({
     guide: selectedGuide.key,
   });
 

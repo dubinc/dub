@@ -4,8 +4,11 @@ import Link from "next/link";
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { useLocalStorage, useRouterStuff } from "@dub/ui";
-import { cn } from "@dub/utils";
+import {
+  AnimatedSizeContainer,
+  useLocalStorage,
+  useRouterStuff,
+} from "@dub/ui";
 import BaseScriptSection from "./base-script-section";
 import { CompleteStepButton } from "./complete-step-button";
 import ConnectionInstructions from "./connection-instructions";
@@ -39,40 +42,24 @@ const ConnectStep = ({
       expanded={expanded}
       toggleExpanded={toggleExpanded}
       complete={complete}
-      contentClassName="flex flex-col gap-8"
     >
-      <div
-        className={cn(
-          "transition-opacity",
-          guide === "shopify" && "cursor-not-allowed opacity-50",
-        )}
-      >
-        <div className="flex flex-col gap-3" inert={guide === "shopify"}>
-          <BaseScriptSection />
+      <AnimatedSizeContainer height>
+        {guide !== "shopify" && (
+          <div className="flex flex-col gap-3 pb-8">
+            <BaseScriptSection />
 
-          <ConversionTrackingSection />
+            <ConversionTrackingSection />
 
-          {flags?.analyticsSettingsSiteVisitTracking && (
-            <SiteVisitTrackingSection />
-          )}
+            {flags?.analyticsSettingsSiteVisitTracking && (
+              <SiteVisitTrackingSection />
+            )}
 
-          <OutboundDomainTrackingSection />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        <div>
-          <div className="font-semibold text-black">
-            Connection Instructions
+            <OutboundDomainTrackingSection />
           </div>
+        )}
+      </AnimatedSizeContainer>
 
-          <p className="text-content-subtle text-sm font-medium">
-            Select your integration method to show specific instructions
-          </p>
-        </div>
-
-        <ConnectionInstructions />
-      </div>
+      <ConnectionInstructions />
 
       {!complete && (
         <CompleteStepButton
