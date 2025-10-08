@@ -105,7 +105,6 @@ export const executeAwardBountyWorkflow = async ({
   const performanceCount = finalContext[condition.attribute] ?? 0;
 
   const updatedSubmission = await prisma.$transaction(async (tx) => {
-    // Get a row-level lock on the submission
     const existingSubmission = await tx.bountySubmission.findUnique({
       where: {
         bountyId_partnerId: {
