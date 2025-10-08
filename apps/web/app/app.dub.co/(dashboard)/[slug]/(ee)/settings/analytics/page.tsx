@@ -13,11 +13,18 @@ import OutboundDomainTrackingSection from "./outbound-domain-tracking-section";
 import Step, { BaseStepProps } from "./step";
 import TrackLeadsGuidesSection from "./track-lead-guides-section";
 import TrackSalesGuidesSection from "./track-sales-guides-section";
-import VerifyInstall from "./verify-install";
 
-const ConnectStep = ({ expanded, toggleExpanded }: BaseStepProps) => {
+const ConnectStep = ({
+  expanded,
+  toggleExpanded,
+  onComplete,
+}: BaseStepProps & { onComplete: () => void }) => {
   const { searchParams } = useRouterStuff();
   const guide = searchParams.get("guide");
+
+  const [complete, markComplete, { loading }] = useWorkspaceStore<boolean>(
+    "analyticsSettingsConnectionSetupComplete",
+  );
 
   return (
     <Step
@@ -27,6 +34,7 @@ const ConnectStep = ({ expanded, toggleExpanded }: BaseStepProps) => {
       subtitle="Select scripts to enable page, conversion, and outbound tracking"
       expanded={expanded}
       toggleExpanded={toggleExpanded}
+      complete={complete}
       contentClassName="flex flex-col gap-8"
     >
       <div
@@ -60,7 +68,16 @@ const ConnectStep = ({ expanded, toggleExpanded }: BaseStepProps) => {
         <ConnectionInstructions />
       </div>
 
-      <VerifyInstall />
+      {!complete && (
+        <CompleteStepButton
+          onClick={() => {
+            markComplete(true);
+            onComplete();
+          }}
+          loading={loading}
+        />
+      )}
+      {/* <VerifyInstall /> */}
     </Step>
   );
 };
@@ -175,6 +192,7 @@ export default function WorkspaceAnalytics() {
         <ConnectStep
           expanded={expandedStep === "connect"}
           toggleExpanded={() => toggleStep("connect")}
+          onComplete={() => closeStep("connect")}
         />
         <LeadEventsStep
           expanded={expandedStep === "lead"}
