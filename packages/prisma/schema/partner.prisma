@@ -23,22 +23,22 @@ enum MonthlyTraffic {
 }
 
 model Partner {
-  id                           String             @id @default(cuid())
+  id                           String                             @id @default(cuid())
   name                         String
   companyName                  String?
-  profileType                  PartnerProfileType @default(individual)
-  email                        String?            @unique
+  profileType                  PartnerProfileType                 @default(individual)
+  email                        String?                            @unique
   image                        String?
-  description                  String?            @db.Text
+  description                  String?                            @db.Text
   country                      String?
-  status                       PartnerStatus      @default(default)
-  paypalEmail                  String?            @unique
-  stripeConnectId              String?            @unique
+  status                       PartnerStatus                      @default(default)
+  paypalEmail                  String?                            @unique
+  stripeConnectId              String?                            @unique
   payoutsEnabledAt             DateTime?
-  minWithdrawalAmount          Int                @default(10000) // Default minimum withdrawal amount of $100
+  minWithdrawalAmount          Int                                @default(10000) // Default minimum withdrawal amount of $100
   connectPayoutsLastRemindedAt DateTime?
-  createdAt                    DateTime           @default(now())
-  updatedAt                    DateTime           @updatedAt
+  createdAt                    DateTime                           @default(now())
+  updatedAt                    DateTime                           @updatedAt
   discoverableAt               DateTime?
   website                      String?
   websiteTxtRecord             String?
@@ -46,9 +46,9 @@ model Partner {
   youtube                      String?
   youtubeChannelId             String?
   youtubeVerifiedAt            DateTime?
-  youtubeSubscriberCount       Int                @default(0)
-  youtubeVideoCount            Int                @default(0)
-  youtubeViewCount             Int                @default(0)
+  youtubeSubscriberCount       Int                                @default(0)
+  youtubeVideoCount            Int                                @default(0)
+  youtubeViewCount             Int                                @default(0)
   twitter                      String?
   twitterVerifiedAt            DateTime?
   linkedin                     String?
@@ -59,26 +59,21 @@ model Partner {
   tiktokVerifiedAt             DateTime?
   invoiceSettings              Json?
   monthlyTraffic               MonthlyTraffic?
-
-  programs          ProgramEnrollment[]
-  users             PartnerUser[]
-  invites           PartnerInvite[]
-  payouts           Payout[]
-  commissions       Commission[]
-  bountySubmissions BountySubmission[]
-  messages          Message[]
-  sentMessages      Message[]           @relation("SenderPartner")
-  comments          PartnerComment[]
-  discountCodes     DiscountCode[]
-
-  industryInterests          PartnerIndustryInterest[]
-  preferredEarningStructures PartnerPreferredEarningStructure[]
-  salesChannels              PartnerSalesChannel[]
-
-  discoveredByPrograms DiscoveredPartner[]
-  
-  // Program-level performance tracking
-  programPerformances PartnerProgramPerformance[]
+  programs                     ProgramEnrollment[]
+  users                        PartnerUser[]
+  invites                      PartnerInvite[]
+  payouts                      Payout[]
+  commissions                  Commission[]
+  bountySubmissions            BountySubmission[]
+  messages                     Message[]
+  sentMessages                 Message[]                          @relation("SenderPartner")
+  comments                     PartnerComment[]
+  discountCodes                DiscountCode[]
+  industryInterests            PartnerIndustryInterest[]
+  preferredEarningStructures   PartnerPreferredEarningStructure[]
+  salesChannels                PartnerSalesChannel[]
+  discoveredByPrograms         DiscoveredPartner[]
+  programPerformances          PartnerProgramPerformance[]
 
   @@index(discoverableAt)
 }
