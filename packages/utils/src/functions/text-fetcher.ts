@@ -15,7 +15,7 @@ export async function textFetcher(
   if (!res.ok) {
     let message = "An error occurred while fetching the data.";
     try {
-      message = (await res.json())?.error?.message;
+      message = (await res.json())?.error?.message || message;
     } catch (e) {}
     const error = new Error(message) as SWRError;
     error.info = message;
