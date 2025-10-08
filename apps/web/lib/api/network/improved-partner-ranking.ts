@@ -163,7 +163,6 @@ export async function getImprovedPartnerRanking({
       
     FROM 
       Partner p
-    -- Program enrollment data
     LEFT JOIN ProgramEnrollment pe ON pe.partnerId = p.id AND pe.programId = ${programId}
     LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
     
@@ -276,8 +275,8 @@ export async function getImprovedPartnerRanking({
     ) salesChannels ON salesChannels.partnerId = p.id
     
     WHERE 
-      p.discoverableAt IS NOT NULL
-      AND dp.ignoredAt IS NULL
+      -- p.discoverableAt IS NOT NULL AND
+      dp.ignoredAt IS NULL
       AND COALESCE(globalMetrics.conversionRate, 0) < 1 -- Exclude unrealistic conversion rates
       ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND p.id IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}

@@ -1,6 +1,6 @@
 import { getConversionScore } from "@/lib/actions/partners/get-conversion-score";
 import { DubApiError } from "@/lib/api/errors";
-import { getImprovedPartnerRanking2 } from "@/lib/api/network/improved-partner-ranking";
+import { getImprovedPartnerRanking } from "@/lib/api/network/improved-partner-ranking";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -43,7 +43,7 @@ export const GET = withWorkspace(
       preferredEarningStructures,
     } = getNetworkPartnersQuerySchema.parse(searchParams);
 
-    const partners = await getImprovedPartnerRanking2({
+    const partners = await getImprovedPartnerRanking({
       programId,
       partnerIds,
       status,
