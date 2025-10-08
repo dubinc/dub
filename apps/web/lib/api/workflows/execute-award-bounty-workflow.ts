@@ -137,9 +137,9 @@ export const executeAwardBountyWorkflow = async ({
         performanceCount,
       },
       update: {
-        performanceCount: existingSubmission
-          ? (existingSubmission.performanceCount ?? 0) + performanceCount
-          : performanceCount,
+        performanceCount: {
+          increment: performanceCount,
+        },
       },
     });
 
