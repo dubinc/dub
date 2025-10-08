@@ -25,14 +25,22 @@ export const folderUserRoleSchema = z
 export const FolderSchema = z.object({
   id: z.string().describe("The unique ID of the folder."),
   name: z.string().describe("The name of the folder."),
+  description: z.string().nullable().describe("The description of the folder."),
   type: z.enum(Object.keys(FolderType) as [FolderType, ...FolderType[]]),
   accessLevel: workspaceFolderAccess,
   createdAt: z.date().describe("The date the folder was created."),
   updatedAt: z.date().describe("The date the folder was updated."),
 });
 
+export const FOLDER_MAX_DESCRIPTION_LENGTH = 500;
+
 export const createFolderSchema = z.object({
   name: z.string().describe("The name of the folder.").max(190),
+  description: z
+    .string()
+    .max(FOLDER_MAX_DESCRIPTION_LENGTH)
+    .nullish()
+    .describe("The description of the folder."),
   accessLevel: workspaceFolderAccess,
 });
 
