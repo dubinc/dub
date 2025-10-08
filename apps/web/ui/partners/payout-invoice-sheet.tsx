@@ -175,7 +175,7 @@ function PayoutInvoiceSheetContent() {
       label: method.title,
       icon: method.icon,
       ...(method.fastSettlement && {
-        meta: `+ ${currencyFormatter(FAST_ACH_FEE_CENTS / 100)}`,
+        meta: `+ ${currencyFormatter(FAST_ACH_FEE_CENTS / 100, { trailingZeroDisplay: "stripIfInteger" })}`,
       }),
     }));
   }, [finalPaymentMethods]);
