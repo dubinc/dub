@@ -20,6 +20,10 @@ import { useAddColorModal } from "./add-color-modal";
 import { useAddFileModal } from "./add-file-modal";
 import { useAddLinkModal } from "./add-link-modal";
 import { useAddLogoModal } from "./add-logo-modal";
+import { useEditColorModal } from "./edit-color-modal";
+import { useEditFileModal } from "./edit-file-modal";
+import { useEditLinkModal } from "./edit-link-modal";
+import { useEditLogoModal } from "./edit-logo-modal";
 
 export function ProgramBrandAssets() {
   const { id: workspaceId } = useWorkspace();
@@ -28,6 +32,10 @@ export function ProgramBrandAssets() {
   const { setShowAddColorModal, AddColorModal } = useAddColorModal();
   const { setShowAddFileModal, AddFileModal } = useAddFileModal();
   const { setShowAddLinkModal, AddLinkModal } = useAddLinkModal();
+  const { openEditModal: openEditColorModal, EditColorModal } = useEditColorModal();
+  const { openEditModal: openEditFileModal, EditFileModal } = useEditFileModal();
+  const { openEditModal: openEditLinkModal, EditLinkModal } = useEditLinkModal();
+  const { openEditModal: openEditLogoModal, EditLogoModal } = useEditLogoModal();
 
   const { executeAsync } = useAction(deleteProgramResourceAction, {
     onSuccess: ({ input }) => {
@@ -60,6 +68,10 @@ export function ProgramBrandAssets() {
       <AddColorModal />
       <AddFileModal />
       <AddLinkModal />
+      <EditLogoModal />
+      <EditColorModal />
+      <EditFileModal />
+      <EditLinkModal />
       <div className="rounded-lg border border-neutral-200 bg-white">
         <div className="p-6">
           <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-neutral-900">
@@ -108,6 +120,7 @@ export function ProgramBrandAssets() {
                         title={logo.name || "Logo"}
                         description={formatFileSize(logo.size, 0)}
                         downloadUrl={logo.url}
+                        onEdit={() => openEditLogoModal(logo.id, logo.name || "Logo", logo.url, logo.extension)}
                         onDelete={() => handleDelete("logo", logo.id)}
                       />
                     ))}
@@ -149,6 +162,7 @@ export function ProgramBrandAssets() {
                         title={color.name || "Color"}
                         description={color.color.toUpperCase()}
                         copyText={color.color.toUpperCase()}
+                        onEdit={() => openEditColorModal(color.id, color.name || "Color", color.color)}
                         onDelete={() => handleDelete("color", color.id)}
                       />
                     ))}
@@ -194,6 +208,7 @@ export function ProgramBrandAssets() {
                         description={getPrettyUrl(link.url)}
                         visitUrl={link.url}
                         copyText={link.url}
+                        onEdit={() => openEditLinkModal(link.id, link.name, link.url)}
                         onDelete={() => handleDelete("link", link.id)}
                       />
                     ))}
@@ -234,6 +249,7 @@ export function ProgramBrandAssets() {
                         title={file.name || "File"}
                         description={formatFileSize(file.size, 0)}
                         downloadUrl={file.url}
+                        onEdit={() => openEditFileModal(file.id, file.name || "File", file.url, file.extension)}
                         onDelete={() => handleDelete("file", file.id)}
                       />
                     ))}

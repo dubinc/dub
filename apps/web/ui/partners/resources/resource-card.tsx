@@ -9,6 +9,7 @@ import {
   Copy,
   Download,
   LoadingSpinner,
+  PenWriting,
   Popover,
   Trash,
   useCopyToClipboard,
@@ -34,6 +35,7 @@ export function ResourceCard({
   title,
   description,
   icon,
+  onEdit,
   onDelete,
   downloadUrl,
   copyText,
@@ -43,6 +45,7 @@ export function ResourceCard({
   title: string;
   description: string;
   icon: ReactNode;
+  onEdit?: () => void;
   onDelete?: () => Promise<boolean>;
   downloadUrl?: string;
   copyText?: string;
@@ -69,10 +72,23 @@ export function ResourceCard({
         </div>
       </div>
       <div className="relative">
-        {onDelete || (downloadUrl && copyText && visitUrl) ? (
+        {onEdit || onDelete || (downloadUrl && copyText && visitUrl) ? (
           <Popover
             content={
               <div className="grid w-full grid-cols-1 gap-px p-2 sm:w-48">
+                {onEdit && (
+                  <Button
+                    text={`Edit ${resourceType}`}
+                    variant="outline"
+                    onClick={() => {
+                      setOpenPopover(false);
+                      onEdit();
+                    }}
+                    icon={<PenWriting className="size-4" />}
+                    className="h-9 justify-start px-2 font-medium"
+                  />
+                )}
+
                 {downloadUrl && (
                   <a
                     href={downloadUrl}
