@@ -267,7 +267,7 @@ export async function getImprovedPartnerRanking({
     WHERE 
       -- p.discoverableAt IS NOT NULL AND
       dp.ignoredAt IS NULL
-      AND COALESCE(globalMetrics.conversionRate, 0) < 1 -- Exclude unrealistic conversion rates
+      -- AND COALESCE(globalMetrics.conversionRate, 0) < 1 -- Exclude unrealistic conversion rates
       ${partnerIds && partnerIds.length > 0 ? Prisma.sql`AND p.id IN (${Prisma.join(partnerIds)})` : Prisma.sql``}
       ${country ? Prisma.sql`AND p.country = ${country}` : Prisma.sql``}
       ${
@@ -281,7 +281,7 @@ export async function getImprovedPartnerRanking({
       ${starred === false ? Prisma.sql`AND dp.starredAt IS NULL` : Prisma.sql``}
       ${salesChannels && salesChannels.length > 0 ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerSalesChannel WHERE partnerId = p.id AND salesChannel IN (${Prisma.join(salesChannels)}))` : Prisma.sql``}
       ${preferredEarningStructures && preferredEarningStructures.length > 0 ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerPreferredEarningStructure WHERE partnerId = p.id AND preferredEarningStructure IN (${Prisma.join(preferredEarningStructures)}))` : Prisma.sql``}
-    
+  
     ORDER BY 
       ${starred === true ? Prisma.sql`dp.starredAt DESC,` : Prisma.sql``} 
       enhancedCombinedScore DESC, 
