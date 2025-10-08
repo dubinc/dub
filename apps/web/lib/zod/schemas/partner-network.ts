@@ -1,6 +1,4 @@
 import {
-  Category,
-  IndustryInterest,
   PreferredEarningStructure,
   SalesChannel,
 } from "@dub/prisma/client";
@@ -48,12 +46,6 @@ export const getNetworkPartnersQuerySchema = z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional(),
-    categories: z
-      .preprocess(
-        (v) => (typeof v === "string" ? v.split(",") : v),
-        z.array(z.nativeEnum(Category)),
-      )
-      .optional(),
     salesChannels: z
       .preprocess(
         (v) => (typeof v === "string" ? v.split(",") : v),
@@ -93,12 +85,9 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
   image: true,
   description: true,
   createdAt: true,
-
   monthlyTraffic: true,
-  industryInterests: true,
   preferredEarningStructures: true,
   salesChannels: true,
-
   website: true,
   websiteVerifiedAt: true,
   youtube: true,
@@ -121,6 +110,12 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
     invitedAt: z.date().nullable(),
     ignoredAt: z.date().nullable(),
     recruitedAt: z.date().nullable(),
+    // Enhanced scoring fields
+    programSimilarityScore: z.number(),
+    avgPartnerOverlapScore: z.number(),
+    avgPerformancePatternScore: z.number(),
+    avgCategoryOverlapScore: z.number(),
+    enhancedCombinedScore: z.number(),
   }),
 );
 

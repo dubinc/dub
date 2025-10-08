@@ -10,8 +10,6 @@ interface ImprovedRankingParams {
   starred?: boolean | null;
   page: number;
   pageSize: number;
-  programCategories?: string[];
-  categories?: string[];
   salesChannels?: string[];
   preferredEarningStructures?: string[];
 }
@@ -24,15 +22,12 @@ export async function getImprovedPartnerRanking({
   starred,
   page,
   pageSize,
-  programCategories,
-  categories,
   salesChannels,
   preferredEarningStructures,
 }: ImprovedRankingParams) {
   const partners = (await prisma.$queryRaw`
     SELECT 
       p.*,
-      industryInterests.industryInterests,
       preferredEarningStructures.preferredEarningStructures,
       salesChannels.salesChannels,
       
@@ -62,22 +57,18 @@ export async function getImprovedPartnerRanking({
       
       -- ENHANCED SCORING SYSTEM --
       
-      -- 1. Industry Interest Match Score (0-1)
-      ${
-        programIndustryInterests.length > 0
-          ? Prisma.sql`(SELECT COUNT(1) FROM PartnerIndustryInterest WHERE partnerId = p.id AND industryInterest IN (${Prisma.join(programIndustryInterests)})) / ${programIndustryInterests.length}.0`
-          : Prisma.sql`0`
-      } as industryMatchScore,
-      
-      -- 2. Program Similarity Score (0-1) - NEW!
+      -- 1. Enhanced Program Similarity Scores (0-1)
       COALESCE(similarityScores.avgSimilarityScore, 0) as programSimilarityScore,
+      COALESCE(similarityScores.avgPartnerOverlapScore, 0) as avgPartnerOverlapScore,
+      COALESCE(similarityScores.avgPerformancePatternScore, 0) as avgPerformancePatternScore,
+      COALESCE(similarityScores.avgCategoryOverlapScore, 0) as avgCategoryOverlapScore,
       COALESCE(similarityScores.topSimilarityScore, 0) as topSimilarityScore,
       COALESCE(similarityScores.similarProgramCount, 0) as similarProgramCount,
       
-      -- 3. Program-Level Performance Score (0-1) - NEW!
+      -- 2. Program-Level Performance Score (0-1)
       COALESCE(programPerformance.performanceScore, 0) as programLevelPerformanceScore,
       
-      -- 4. Wilson Score for Global Performance (0-1)
+      -- 3. Wilson Score for Global Performance (0-1)
       CASE 
         WHEN COALESCE(globalMetrics.totalClicks, 0) = 0 THEN 0
         ELSE (
@@ -86,10 +77,10 @@ export async function getImprovedPartnerRanking({
         ) / (1 + 1.96*1.96/COALESCE(globalMetrics.totalClicks, 0))
       END as wilsonScore,
       
-      -- 5. Sample Size Confidence (0-1)
+      -- 4. Sample Size Confidence (0-1)
       LEAST(1.0, COALESCE(globalMetrics.totalClicks, 0) / 50.0) as sampleSizeMultiplier,
       
-      -- 6. Revenue Quality Score (0-1)
+      -- 5. Revenue Quality Score (0-1)
       CASE 
         WHEN COALESCE(globalMetrics.totalConversions, 0) = 0 OR COALESCE(globalMetrics.totalSaleAmount, 0) = 0 THEN 0
         ELSE LEAST(1.0, (
@@ -98,13 +89,13 @@ export async function getImprovedPartnerRanking({
         ) / 8)
       END as revenueScore,
       
-      -- 7. Program Diversity Bonus (1.0-2.0)
+      -- 6. Program Diversity Bonus (1.0-2.0)
       CASE 
         WHEN COALESCE(programDiversity.programsWithConversions, 0) <= 1 THEN 1.0
         ELSE LEAST(2.0, 1.0 + (COALESCE(programDiversity.programsWithConversions, 0) - 1) * 0.3)
       END as programDiversityBonus,
       
-      -- 8. Recency Bonus (0.5-1.0) - NEW!
+      -- 7. Recency Bonus (0.5-1.0)
       CASE 
         WHEN globalMetrics.lastConversionAt IS NULL THEN 0.5
         WHEN DATEDIFF(NOW(), globalMetrics.lastConversionAt) <= 30 THEN 1.0
@@ -114,9 +105,9 @@ export async function getImprovedPartnerRanking({
         ELSE 0.5
       END as recencyBonus,
       
-      -- FINAL COMBINED SCORE (0-100) - NEW WEIGHTED FORMULA!
+      -- FINAL COMBINED SCORE (0-100) - REBALANCED FORMULA!
       (
-        -- Base performance (30% weight)
+        -- Base performance (35% weight) - increased from 30%
         (
           CASE 
             WHEN COALESCE(globalMetrics.totalClicks, 0) = 0 THEN 0
@@ -126,19 +117,19 @@ export async function getImprovedPartnerRanking({
             ) / (1 + 1.96*1.96/COALESCE(globalMetrics.totalClicks, 0))
           END * 
           LEAST(1.0, COALESCE(globalMetrics.totalClicks, 0) / 50.0)
-        ) * 0.30 +
+        ) * 0.35 +
         
-        -- Program similarity (25% weight) - NEW!
-        COALESCE(similarityScores.avgSimilarityScore, 0) * 0.25 +
+        -- Enhanced program similarity (35% weight) - increased from 25%
+        (
+          -- Partner overlap (60% of similarity weight = 21% total) - proven success
+          COALESCE(similarityScores.avgPartnerOverlapScore, 0) * 0.21 +
+          -- Performance pattern (30% of similarity weight = 10.5% total) - similar business models
+          COALESCE(similarityScores.avgPerformancePatternScore, 0) * 0.105 +
+          -- Category overlap (10% of similarity weight = 3.5% total) - category alignment
+          COALESCE(similarityScores.avgCategoryOverlapScore, 0) * 0.035
+        ) +
         
-        -- Industry match (20% weight)
-        ${
-          programIndustryInterests.length > 0
-            ? Prisma.sql`((SELECT COUNT(1) FROM PartnerIndustryInterest WHERE partnerId = p.id AND industryInterest IN (${Prisma.join(programIndustryInterests)})) / ${programIndustryInterests.length}.0) * 0.20`
-            : Prisma.sql`0`
-        } +
-        
-        -- Revenue quality (15% weight)
+        -- Revenue quality (20% weight) - increased from 15%
         (
           CASE 
             WHEN COALESCE(globalMetrics.totalConversions, 0) = 0 OR COALESCE(globalMetrics.totalSaleAmount, 0) = 0 THEN 0
@@ -147,9 +138,9 @@ export async function getImprovedPartnerRanking({
               LN(COALESCE(globalMetrics.totalConversions, 0) + 1) * 0.6
             ) / 8)
           END
-        ) * 0.15 +
+        ) * 0.20 +
         
-        -- Program-level performance (10% weight) - NEW!
+        -- Program-level performance (10% weight) - unchanged
         COALESCE(programPerformance.performanceScore, 0) * 0.10
       ) * 
       -- Apply multipliers
@@ -210,11 +201,14 @@ export async function getImprovedPartnerRanking({
       GROUP BY l.partnerId
     ) programMetrics ON programMetrics.partnerId = p.id
     
-    -- Program similarity scores - NEW!
+    -- Enhanced program similarity scores
     LEFT JOIN (
       SELECT 
         partnerPrograms.partnerId,
         AVG(ps.combinedSimilarityScore) as avgSimilarityScore,
+        AVG(ps.partnerOverlapScore) as avgPartnerOverlapScore,
+        AVG(ps.performancePatternScore) as avgPerformancePatternScore,
+        AVG(ps.categoryOverlapScore) as avgCategoryOverlapScore,
         MAX(ps.combinedSimilarityScore) as topSimilarityScore,
         COUNT(DISTINCT ps.similarProgramId) as similarProgramCount
       FROM (
@@ -269,12 +263,7 @@ export async function getImprovedPartnerRanking({
       GROUP BY partnerId
     ) programDiversity ON programDiversity.partnerId = p.id
     
-    -- Profile field lists
-    LEFT JOIN (
-      SELECT partnerId, group_concat(industryInterest) AS industryInterests
-      FROM PartnerIndustryInterest
-      GROUP BY partnerId
-    ) industryInterests ON industryInterests.partnerId = p.id
+    -- Profile field lists (industryInterests removed as no longer used)
     LEFT JOIN (
       SELECT partnerId, group_concat(preferredEarningStructure) AS preferredEarningStructures
       FROM PartnerPreferredEarningStructure
@@ -301,14 +290,13 @@ export async function getImprovedPartnerRanking({
       }
       ${starred === true ? Prisma.sql`AND dp.starredAt IS NOT NULL` : Prisma.sql``}
       ${starred === false ? Prisma.sql`AND dp.starredAt IS NULL` : Prisma.sql``}
-      ${industryInterests && industryInterests.length > 0 ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerIndustryInterest WHERE partnerId = p.id AND industryInterest IN (${Prisma.join(industryInterests)}))` : Prisma.sql``}
       ${salesChannels && salesChannels.length > 0 ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerSalesChannel WHERE partnerId = p.id AND salesChannel IN (${Prisma.join(salesChannels)}))` : Prisma.sql``}
       ${preferredEarningStructures && preferredEarningStructures.length > 0 ? Prisma.sql`AND EXISTS (SELECT 1 FROM PartnerPreferredEarningStructure WHERE partnerId = p.id AND preferredEarningStructure IN (${Prisma.join(preferredEarningStructures)}))` : Prisma.sql``}
     
     ORDER BY 
       ${starred === true ? Prisma.sql`dp.starredAt DESC,` : Prisma.sql``} 
       enhancedCombinedScore DESC, 
-      programSimilarityScore DESC,
+      avgPartnerOverlapScore DESC,
       totalCommissions DESC
     
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
