@@ -7,7 +7,7 @@ import { guides as allGuides } from "@/ui/guides/integrations";
 import { GuidesMarkdown } from "@/ui/guides/markdown";
 import { useSelectedGuide } from "./use-selected-guide";
 
-const TrackSalesGuidesSection = ({}: {}) => {
+const TrackSalesGuidesSection = () => {
   const guides = allGuides.filter((guide) => guide.type === "track-sale");
   const { selectedGuide, setSelectedGuide } = useSelectedGuide({ guides });
 

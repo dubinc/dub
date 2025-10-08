@@ -93,7 +93,7 @@ const AddHostnameForm = ({
 
       <div className="flex items-center justify-between gap-2 border-t border-neutral-200 px-6 py-5">
         <div>{processing && <LoadingDots />}</div>
-        <div className="items-centerend flex gap-2">
+        <div className="flex items-center gap-2">
           <Button
             onClick={() => onCancel?.()}
             variant="secondary"

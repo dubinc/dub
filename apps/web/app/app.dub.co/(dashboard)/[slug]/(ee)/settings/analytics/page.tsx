@@ -12,7 +12,7 @@ import ConnectionInstructions from "./connection-instructions";
 import ConversionTrackingSection from "./conversion-tracking-section";
 import OutboundDomainTrackingSection from "./outbound-domain-tracking-section";
 import { SiteVisitTrackingSection } from "./site-visit-tracking-section";
-import Step, { BaseStepProps } from "./step";
+import Step, { BaseStepProps, type Step as StepType } from "./step";
 import TrackLeadsGuidesSection from "./track-lead-guides-section";
 import TrackSalesGuidesSection from "./track-sales-guides-section";
 
@@ -159,12 +159,12 @@ const SaleEventsStep = ({
 };
 
 export default function WorkspaceAnalytics() {
-  const [expandedStep, setExpandedStep] = useLocalStorage<Step | null>(
+  const [expandedStep, setExpandedStep] = useLocalStorage<StepType | null>(
     "analytics-settings",
     "connect",
   );
 
-  const toggleStep = (step: Step) => {
+  const toggleStep = (step: StepType) => {
     if (expandedStep === step) {
       setExpandedStep(null);
     } else {
@@ -172,7 +172,7 @@ export default function WorkspaceAnalytics() {
     }
   };
 
-  const closeStep = (step: Step) => {
+  const closeStep = (step: StepType) => {
     if (expandedStep === step) {
       setExpandedStep(null);
     }

@@ -8,7 +8,7 @@ export function useDynamicGuide(
   { guide }: { guide: string },
   swrOpts?: SWRConfiguration,
 ) {
-  const { guideMarkdown: guideMarkdownRaw, error } = useGuide(guide);
+  const { guideMarkdown: guideMarkdownRaw, error } = useGuide(guide, swrOpts);
 
   const { primaryDomain } = useDomains();
 

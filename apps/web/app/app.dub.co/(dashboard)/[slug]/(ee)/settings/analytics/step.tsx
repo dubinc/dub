@@ -7,7 +7,7 @@ import { cn, isClickOnInteractiveChild } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
 import { ReactNode } from "react";
 
-type Step = "connect" | "lead" | "sale";
+export type Step = "connect" | "lead" | "sale";
 
 export type BaseStepProps = {
   expanded?: boolean;
@@ -50,7 +50,7 @@ const Step = ({
               {title}
             </div>
             {subtitle && (
-              <div className="test-sm text-content-subtle font-medium">
+              <div className="text-content-subtle text-sm font-medium">
                 {subtitle}
               </div>
             )}

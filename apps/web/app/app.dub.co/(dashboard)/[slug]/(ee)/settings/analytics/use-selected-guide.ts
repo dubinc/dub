@@ -6,6 +6,9 @@ export function useSelectedGuide({ guides }: { guides: IntegrationGuide[] }) {
   const { searchParams, queryParams } = useRouterStuff();
   const paramGuide = searchParams.get("guide");
 
+  if (guides.length === 0)
+    throw new Error("useSelectedGuide requires a non-empty guides array");
+
   const [selectedGuide, setSelectedGuide] = useState<IntegrationGuide>(
     guides[0],
   );

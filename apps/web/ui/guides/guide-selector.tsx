@@ -67,7 +67,7 @@ export function GuideSelector({
       badge: guide.recommended ? "Recommended" : undefined,
       description: guide.subtitle,
     }));
-  }, [guides, value]);
+  }, [guides]);
 
   const selectedOption = useMemo(() => {
     if (!value) return null;

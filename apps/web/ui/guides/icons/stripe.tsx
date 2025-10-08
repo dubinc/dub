@@ -19,8 +19,8 @@ export function Stripe(props: SVGProps<SVGSVGElement>) {
         stroke="#E5E5E5"
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M9 11.8726L23 9V20.0943L9 23V11.9057V11.8726Z"
         fill="white"
       />
