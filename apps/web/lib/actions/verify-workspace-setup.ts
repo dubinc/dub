@@ -60,14 +60,16 @@ export const verifyWorkspaceSetup = authActionClient
       formats: ["rawHtml"],
       onlyMainContent: false,
       parsePDF: false,
-      includeTags: ["script"],
+      includeTags: ["head"],
       maxAge: 14400000,
-      waitFor: 2000,
+      waitFor: 5000,
     });
 
     if (!scrapeResult.success) {
       throw new Error("Failed to verify site");
     }
+
+    //console.log("RAW HTML: ", scrapeResult.rawHtml);
 
     console.log(`result: `, {
       hasDataAttribute: scrapeResult.rawHtml?.includes(

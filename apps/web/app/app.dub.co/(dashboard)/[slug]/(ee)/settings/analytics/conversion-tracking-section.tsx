@@ -1,17 +1,25 @@
 "use client";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Switch } from "@dub/ui";
 import { motion } from "motion/react";
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { PublishableKeyForm } from "./publishable-key-form";
 
 const ConversionTrackingSection = () => {
   const id = useId();
 
+  const { publishableKey } = useWorkspace();
+
   const [enabled, setEnabled, { loading }] = useWorkspaceStore<boolean>(
     "analyticsSettingsConversionTrackingEnabled",
   );
+
+  // Default to enabled if the workspace already has a publishable key
+  useEffect(() => {
+    if (publishableKey && enabled === undefined) setEnabled(true);
+  }, [publishableKey, enabled]);
 
   return (
     <div className="flex flex-1 flex-col rounded-lg border border-neutral-200 bg-neutral-50">
