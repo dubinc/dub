@@ -16,7 +16,7 @@ export function useSelectedGuide({ guides }: { guides: IntegrationGuide[] }) {
   useEffect(() => {
     if (!paramGuide) return;
 
-    const guide = guides.find((g) => g.title.toLowerCase() === paramGuide);
+    const guide = guides.find((g) => g.key === paramGuide);
     if (!guide) return;
 
     setSelectedGuide(guide);
@@ -25,6 +25,6 @@ export function useSelectedGuide({ guides }: { guides: IntegrationGuide[] }) {
   return {
     selectedGuide,
     setSelectedGuide: (guide: IntegrationGuide) =>
-      queryParams({ set: { guide: guide.title.toLowerCase() }, scroll: false }),
+      queryParams({ set: { guide: guide.key }, scroll: false }),
   };
 }

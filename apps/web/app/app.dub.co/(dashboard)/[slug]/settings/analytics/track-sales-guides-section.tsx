@@ -3,15 +3,16 @@
 import useGuide from "@/lib/swr/use-guide";
 import { GuideActionButton } from "@/ui/guides/guide-action-button";
 import { GuideSelector } from "@/ui/guides/guide-selector";
+import { InstallStripeIntegrationButton } from "@/ui/guides/install-stripe-integration-button";
 import { guides as allGuides } from "@/ui/guides/integrations";
 import { GuidesMarkdown } from "@/ui/guides/markdown";
 import { useSelectedGuide } from "./use-selected-guide";
 
-const TrackLeadsGuidesSection = ({}: {}) => {
-  const guides = allGuides.filter((guide) => guide.type === "track-lead");
+const TrackSalesGuidesSection = () => {
+  const guides = allGuides.filter((guide) => guide.type === "track-sale");
   const { selectedGuide, setSelectedGuide } = useSelectedGuide({ guides });
 
-  const { loading, error, guideMarkdown } = useGuide(selectedGuide.key);
+  const { loading, guideMarkdown } = useGuide(selectedGuide.key);
 
   let button;
   let content;
@@ -29,7 +30,14 @@ const TrackLeadsGuidesSection = ({}: {}) => {
       <div className="h-8 w-24 animate-pulse rounded-md bg-neutral-200" />
     );
   } else if (guideMarkdown) {
-    content = <GuidesMarkdown>{guideMarkdown}</GuidesMarkdown>;
+    content = (
+      <div className="space-y-6">
+        {selectedGuide.key.startsWith("stripe") && (
+          <InstallStripeIntegrationButton />
+        )}
+        <GuidesMarkdown>{guideMarkdown}</GuidesMarkdown>
+      </div>
+    );
     button = (
       <GuideActionButton guide={selectedGuide} markdown={guideMarkdown} />
     );
@@ -61,4 +69,4 @@ const TrackLeadsGuidesSection = ({}: {}) => {
   );
 };
 
-export default TrackLeadsGuidesSection;
+export default TrackSalesGuidesSection;

@@ -7,11 +7,11 @@ import { guides as allGuides } from "@/ui/guides/integrations";
 import { GuidesMarkdown } from "@/ui/guides/markdown";
 import { useSelectedGuide } from "./use-selected-guide";
 
-const TrackSalesGuidesSection = () => {
-  const guides = allGuides.filter((guide) => guide.type === "track-sale");
+const TrackLeadsGuidesSection = ({}: {}) => {
+  const guides = allGuides.filter((guide) => guide.type === "track-lead");
   const { selectedGuide, setSelectedGuide } = useSelectedGuide({ guides });
 
-  const { loading, error, guideMarkdown } = useGuide(selectedGuide.key);
+  const { loading, guideMarkdown } = useGuide(selectedGuide.key);
 
   let button;
   let content;
@@ -61,4 +61,4 @@ const TrackSalesGuidesSection = () => {
   );
 };
 
-export default TrackSalesGuidesSection;
+export default TrackLeadsGuidesSection;

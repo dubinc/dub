@@ -1,14 +1,8 @@
 "use client";
 
-import Link from "next/link";
-
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import {
-  AnimatedSizeContainer,
-  useLocalStorage,
-  useRouterStuff,
-} from "@dub/ui";
+import { AnimatedSizeContainer, useRouterStuff } from "@dub/ui";
 import BaseScriptSection from "./base-script-section";
 import { CompleteStepButton } from "./complete-step-button";
 import ConnectionInstructions from "./connection-instructions";
@@ -45,7 +39,7 @@ const ConnectStep = ({
     >
       <AnimatedSizeContainer height>
         {guide !== "shopify" && (
-          <div className="flex flex-col gap-3 pb-8">
+          <div className="grid gap-3 pb-8">
             <BaseScriptSection />
 
             <ConversionTrackingSection />
@@ -62,13 +56,15 @@ const ConnectStep = ({
       <ConnectionInstructions />
 
       {!complete && (
-        <CompleteStepButton
-          onClick={() => {
-            markComplete(true);
-            onComplete();
-          }}
-          loading={loading}
-        />
+        <div className="mt-5">
+          <CompleteStepButton
+            onClick={() => {
+              markComplete(true);
+              onComplete();
+            }}
+            loading={loading}
+          />
+        </div>
       )}
       {/* <VerifyInstall /> */}
     </Step>
@@ -93,7 +89,7 @@ const LeadEventsStep = ({
       expanded={expanded}
       toggleExpanded={toggleExpanded}
       complete={complete}
-      contentClassName="flex flex-col gap-5"
+      contentClassName="grid gap-5"
     >
       <TrackLeadsGuidesSection />
 
@@ -128,7 +124,7 @@ const SaleEventsStep = ({
       expanded={expanded}
       toggleExpanded={toggleExpanded}
       complete={complete}
-      contentClassName="flex flex-col gap-5"
+      contentClassName="grid gap-5"
     >
       <TrackSalesGuidesSection />
 
@@ -145,59 +141,53 @@ const SaleEventsStep = ({
   );
 };
 
-export default function WorkspaceAnalytics() {
-  const [expandedStep, setExpandedStep] = useLocalStorage<StepType | null>(
-    "analytics-settings",
-    "connect",
-  );
+export default function WorkspaceAnalyticsPageClient() {
+  const { searchParams, queryParams } = useRouterStuff();
+  const expandedStep = (searchParams.get("step") as StepType) || "connect";
 
   const toggleStep = (step: StepType) => {
     if (expandedStep === step) {
-      setExpandedStep(null);
+      queryParams({
+        del: ["step", "guide"],
+        scroll: false,
+      });
     } else {
-      setExpandedStep(step);
+      queryParams({
+        del: "guide",
+        set: {
+          step,
+        },
+        scroll: false,
+      });
     }
   };
 
   const closeStep = (step: StepType) => {
     if (expandedStep === step) {
-      setExpandedStep(null);
+      queryParams({
+        del: ["step", "guide"],
+        scroll: false,
+      });
     }
   };
 
   return (
-    <div className="mx-auto flex h-full w-full max-w-[800px] flex-col gap-8 overflow-hidden">
-      <div className="flex flex-wrap justify-between gap-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-black">
-          Analytics
-        </h1>
-        <div className="flex w-full items-center gap-3 sm:w-auto">
-          <Link
-            href={"/docs"}
-            className="text-content-emphasis border-border-subtle rounded-lg border px-3 py-1.5 text-sm font-medium"
-          >
-            Docs ↗
-          </Link>
-        </div>
-      </div>
-
-      <div className="flex flex-1 flex-col gap-8 overflow-hidden">
-        <ConnectStep
-          expanded={expandedStep === "connect"}
-          toggleExpanded={() => toggleStep("connect")}
-          onComplete={() => closeStep("connect")}
-        />
-        <LeadEventsStep
-          expanded={expandedStep === "lead"}
-          toggleExpanded={() => toggleStep("lead")}
-          onComplete={() => closeStep("lead")}
-        />
-        <SaleEventsStep
-          expanded={expandedStep === "sale"}
-          toggleExpanded={() => toggleStep("sale")}
-          onComplete={() => closeStep("sale")}
-        />
-      </div>
+    <div className="flex flex-1 flex-col gap-8 overflow-hidden">
+      <ConnectStep
+        expanded={expandedStep === "connect"}
+        toggleExpanded={() => toggleStep("connect")}
+        onComplete={() => closeStep("connect")}
+      />
+      <LeadEventsStep
+        expanded={expandedStep === "lead"}
+        toggleExpanded={() => toggleStep("lead")}
+        onComplete={() => closeStep("lead")}
+      />
+      <SaleEventsStep
+        expanded={expandedStep === "sale"}
+        toggleExpanded={() => toggleStep("sale")}
+        onComplete={() => closeStep("sale")}
+      />
     </div>
   );
 }
