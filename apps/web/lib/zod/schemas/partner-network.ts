@@ -1,7 +1,4 @@
-import {
-  PreferredEarningStructure,
-  SalesChannel,
-} from "@dub/prisma/client";
+import { PreferredEarningStructure, SalesChannel } from "@dub/prisma/client";
 import { z } from "zod";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { PartnerSchema } from "./partners";
@@ -110,12 +107,6 @@ export const NetworkPartnerSchema = PartnerSchema.pick({
     invitedAt: z.date().nullable(),
     ignoredAt: z.date().nullable(),
     recruitedAt: z.date().nullable(),
-    // Enhanced scoring fields
-    programSimilarityScore: z.number(),
-    avgPartnerOverlapScore: z.number(),
-    avgPerformancePatternScore: z.number(),
-    avgCategoryOverlapScore: z.number(),
-    enhancedCombinedScore: z.number(),
   }),
 );
 
