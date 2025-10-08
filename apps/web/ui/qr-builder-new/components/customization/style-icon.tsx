@@ -19,7 +19,12 @@ export const StyleIcon: FC<StyleIconProps> = ({
       alt="Style icon"
       width={size}
       height={size}
+      quality={100}
       className={cn("object-contain transition-all", className)}
+      style={{
+        imageRendering: "crisp-edges",
+        filter: className?.includes("brightness-0") ? "brightness(0)" : "contrast(3) brightness(0.8)"
+      }}
     />
   );
 };

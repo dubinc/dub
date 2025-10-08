@@ -104,7 +104,7 @@ export const QRBuilderInner = () => {
           )}
 
           {isCustomizationStep && (
-            <div className="w-full">
+            <div className="flex h-full w-full flex-col justify-between">
               <QRCustomization
                 customizationData={customizationData}
                 onCustomizationChange={updateCustomizationData}

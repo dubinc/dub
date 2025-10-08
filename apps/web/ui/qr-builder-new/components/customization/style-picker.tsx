@@ -51,7 +51,6 @@ export const StylePicker: FC<StylePickerProps> = ({
                 iconSize={iconSize}
                 className={cn("shrink-0", styleButtonClassName)}
                 disabled={disabled}
-                applyBlackFilter={applyBlackFilter}
               />
             ))}
           </div>

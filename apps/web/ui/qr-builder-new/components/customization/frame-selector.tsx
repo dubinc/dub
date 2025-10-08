@@ -178,7 +178,6 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
         }`}
         styleButtonClassName="[&_img]:h-[60px] [&_img]:w-[60px] p-2"
         disabled={disabled}
-        applyBlackFilter={true}
       />
 
       <AnimatePresence>
