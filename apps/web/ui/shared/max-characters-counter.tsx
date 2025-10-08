@@ -15,7 +15,7 @@ export function MaxCharactersCounter({
   const value = useWatch({ control, name });
 
   return (
-    <span className={cn("text-content-subtle text-xs", className)}>
+    <span className={cn("text-content-subtle text-xs tabular-nums", className)}>
       {value?.toString().length || 0}/{maxLength}
     </span>
   );
