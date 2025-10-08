@@ -3,7 +3,8 @@
 import Link from "next/link";
 
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
-import { useLocalStorage } from "@dub/ui";
+import { useLocalStorage, useRouterStuff } from "@dub/ui";
+import { cn } from "@dub/utils";
 import BaseScriptSection from "./base-script-section";
 import { CompleteStepButton } from "./complete-step-button";
 import ConnectionInstructions from "./connection-instructions";
@@ -15,6 +16,9 @@ import TrackSalesGuidesSection from "./track-sales-guides-section";
 import VerifyInstall from "./verify-install";
 
 const ConnectStep = ({ expanded, toggleExpanded }: BaseStepProps) => {
+  const { searchParams } = useRouterStuff();
+  const guide = searchParams.get("guide");
+
   return (
     <Step
       id="connect"
@@ -25,14 +29,21 @@ const ConnectStep = ({ expanded, toggleExpanded }: BaseStepProps) => {
       toggleExpanded={toggleExpanded}
       contentClassName="flex flex-col gap-8"
     >
-      <div className="flex flex-col gap-3">
-        <BaseScriptSection />
+      <div
+        className={cn(
+          "transition-opacity",
+          guide === "shopify" && "cursor-not-allowed opacity-50",
+        )}
+      >
+        <div className="flex flex-col gap-3" inert={guide === "shopify"}>
+          <BaseScriptSection />
 
-        <ConversionTrackingSection />
+          <ConversionTrackingSection />
 
-        {/* TODO: Site visit tracking */}
+          {/* TODO: Site visit tracking */}
 
-        <OutboundDomainTrackingSection />
+          <OutboundDomainTrackingSection />
+        </div>
       </div>
 
       <div className="flex flex-col gap-3">

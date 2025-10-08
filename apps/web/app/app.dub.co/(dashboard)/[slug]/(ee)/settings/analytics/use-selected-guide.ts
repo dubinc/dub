@@ -22,6 +22,6 @@ export function useSelectedGuide({ guides }: { guides: IntegrationGuide[] }) {
   return {
     selectedGuide,
     setSelectedGuide: (guide: IntegrationGuide) =>
-      queryParams({ set: { guide: guide.title.toLowerCase() } }),
+      queryParams({ set: { guide: guide.title.toLowerCase() }, scroll: false }),
   };
 }
