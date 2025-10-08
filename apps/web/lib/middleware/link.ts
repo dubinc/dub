@@ -2,6 +2,7 @@ import {
   createResponseWithCookies,
   detectBot,
   getFinalUrl,
+  getIdentityHash,
   isSupportedCustomURIScheme,
   parse,
 } from "@/lib/middleware/utils";
@@ -12,13 +13,12 @@ import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
-  LOCALHOST_IP,
   isDubDomain,
   isUnsupportedKey,
   nanoid,
   punyEncode,
 } from "@dub/utils";
-import { geolocation, ipAddress } from "@vercel/functions";
+import { geolocation } from "@vercel/functions";
 import { cookies } from "next/headers";
 import {
   NextFetchEvent,
@@ -250,9 +250,10 @@ export default async function LinkMiddleware(
   if (!clickId) {
     // if we need to pass the clickId, check if clickId is cached in Redis
     if (shouldCacheClickId) {
-      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-
-      clickId = (await recordClickCache.get({ domain, key, ip })) || undefined;
+      const identityHash = await getIdentityHash(req);
+      clickId =
+        (await recordClickCache.get({ domain, key, identityHash })) ||
+        undefined;
     }
 
     // if there's still no clickId, generate a new one
