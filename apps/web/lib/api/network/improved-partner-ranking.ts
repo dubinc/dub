@@ -25,7 +25,7 @@ export async function getImprovedPartnerRanking({
   salesChannels,
   preferredEarningStructures,
 }: ImprovedRankingParams) {
-  const partners = (await prisma.$queryRaw`
+  const partners = await prisma.$queryRaw`
     SELECT 
       p.*,
       preferredEarningStructures.preferredEarningStructures,
@@ -300,7 +300,7 @@ export async function getImprovedPartnerRanking({
       totalCommissions DESC
     
     LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
-  `) satisfies Array<any>;
+  `;
 
-  return partners;
+  return partners as any[];
 }
