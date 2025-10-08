@@ -29,15 +29,12 @@ export function QRBuilderModal({
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleSaveQR = async (
-    data: any,
-    initialData?: TQrServerData | null,
-  ) => {
+  const handleSaveQR = async (data: any) => {
     setIsProcessing(true);
 
     try {
-      if (initialData) {
-        await updateQr(initialData, data);
+      if (qrData) {
+        await updateQr(qrData, data);
       } else {
         await createQr(data);
       }
@@ -73,11 +70,7 @@ export function QRBuilderModal({
         </button>
       </div>
       <Theme>
-        <QRBuilderNew
-          initialQrData={qrData}
-          isEdit={!!qrData}
-          onSave={handleSaveQR}
-        />
+        <QRBuilderNew initialQrData={qrData} onSave={handleSaveQR} />
       </Theme>
     </div>
   );

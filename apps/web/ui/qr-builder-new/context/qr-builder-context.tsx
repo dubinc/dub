@@ -41,11 +41,7 @@ interface QrBuilderProviderProps {
   isEdit?: boolean;
   homepageDemo?: boolean;
   sessionId?: string;
-  onDownload?: (data: TNewQRBuilderData) => Promise<void>;
-  onSave?: (
-    builderData: TNewQRBuilderData,
-    originalQrData?: TQrServerData | null,
-  ) => Promise<any>;
+  onSave?: (builderData: TNewQRBuilderData) => Promise<any>;
 }
 
 // Provider component
@@ -55,12 +51,12 @@ export function QrBuilderProvider({
   isEdit = false,
   homepageDemo = false,
   sessionId,
-  onDownload,
   onSave: onSaveProp,
 }: QrBuilderProviderProps) {
   const getInitializedProps = useCallback(() => {
     if (initialQrData) {
       const builderData = convertServerQRToNewBuilder(initialQrData);
+
       return {
         qrTitle: builderData.title || "",
         selectedQrType: builderData.qrType,
@@ -69,6 +65,7 @@ export function QrBuilderProvider({
         fileId: builderData.fileId,
       };
     }
+
     return {
       qrTitle: "",
       selectedQrType: null,
@@ -193,7 +190,7 @@ export function QrBuilderProvider({
       console.log("customizationData being saved:", customizationData);
       console.log("customizationData.logo:", customizationData.logo);
 
-      await onSaveProp(builderData, initialQrData);
+      await onSaveProp(builderData);
     } catch (error) {
       console.error("Error saving QR:", error);
     } finally {
@@ -205,30 +202,16 @@ export function QrBuilderProvider({
     customizationData,
     initialState.qrTitle,
     initialState.fileId,
-    initialQrData,
     onSaveProp,
   ]);
 
   const handleContinue = useCallback(async () => {
-    if (isCustomizationStep && homepageDemo && onDownload) {
+    if (isCustomizationStep) {
       if (!selectedQrType || !formData) {
         toast.error("Please complete all required fields");
         return;
       }
 
-      const builderData: TNewQRBuilderData = {
-        qrType: selectedQrType,
-        formData,
-        customizationData,
-        title: initialState.qrTitle || `${selectedQrType} QR Code`,
-        fileId: (formData as any)?.fileId || initialState.fileId,
-      };
-
-      await onDownload(builderData);
-      return;
-    }
-
-    if (isCustomizationStep && !homepageDemo) {
       await onSave();
       return;
     }
@@ -254,8 +237,6 @@ export function QrBuilderProvider({
   }, [
     isContentStep,
     isCustomizationStep,
-    homepageDemo,
-    onDownload,
     selectedQrType,
     formData,
     customizationData,
@@ -301,7 +282,6 @@ export function QrBuilderProvider({
 
     // Methods
     onSave,
-    onDownload,
     handleNextStep,
     handleChangeStep,
     handleSelectQRType,

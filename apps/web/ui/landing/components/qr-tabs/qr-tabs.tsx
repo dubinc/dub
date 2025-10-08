@@ -119,7 +119,7 @@ export const QRTabs: FC<
             <QRBuilderNew
               homepageDemo={true}
               sessionId={sessionId}
-              onDownload={handleNewBuilderDownload}
+              onSave={handleNewBuilderDownload}
             />
           )}
 

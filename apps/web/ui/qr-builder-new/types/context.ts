@@ -62,7 +62,6 @@ export interface IQrBuilderContextType {
 
   // Methods
   onSave: () => Promise<void>;
-  onDownload?: (data: any) => Promise<void>;
   handleNextStep: () => void;
   handleChangeStep: (step: number) => void;
   handleSelectQRType: (type: EQRType) => void;
