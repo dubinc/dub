@@ -168,14 +168,14 @@ async function handler(req: Request) {
         totalConversions,
         totalSales,
         totalSaleAmount,
-        conversionRate,
-        averageLifetimeValue,
-        leadConversionRate,
         lastConversionAt,
         daysSinceLastConversion,
-        performanceScore,
-        consistencyScore,
         lastCalculatedAt: new Date(),
+        conversionRate: Number(conversionRate.toFixed(4)),
+        averageLifetimeValue: Number(averageLifetimeValue.toFixed(4)),
+        leadConversionRate: Number(leadConversionRate.toFixed(4)),
+        performanceScore: Number(performanceScore.toFixed(4)),
+        consistencyScore,
       });
     }
 
