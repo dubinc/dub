@@ -40,7 +40,7 @@ export const HostnameSection = ({ className }: { className?: string }) => {
     <>
       <div className={cn("flex flex-col gap-2 p-3", className)}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1">
             <h2 className="text-content-emphasis flex-1 text-sm font-semibold">
               Allowed hostnames
             </h2>

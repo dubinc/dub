@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 
+import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { useLocalStorage, useRouterStuff } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -10,6 +11,7 @@ import { CompleteStepButton } from "./complete-step-button";
 import ConnectionInstructions from "./connection-instructions";
 import ConversionTrackingSection from "./conversion-tracking-section";
 import OutboundDomainTrackingSection from "./outbound-domain-tracking-section";
+import { SiteVisitTrackingSection } from "./site-visit-tracking-section";
 import Step, { BaseStepProps } from "./step";
 import TrackLeadsGuidesSection from "./track-lead-guides-section";
 import TrackSalesGuidesSection from "./track-sales-guides-section";
@@ -19,6 +21,8 @@ const ConnectStep = ({
   toggleExpanded,
   onComplete,
 }: BaseStepProps & { onComplete: () => void }) => {
+  const { flags } = useWorkspace();
+
   const { searchParams } = useRouterStuff();
   const guide = searchParams.get("guide");
 
@@ -48,7 +52,9 @@ const ConnectStep = ({
 
           <ConversionTrackingSection />
 
-          {/* TODO: Site visit tracking */}
+          {flags?.analyticsSettingsSiteVisitTracking && (
+            <SiteVisitTrackingSection />
+          )}
 
           <OutboundDomainTrackingSection />
         </div>

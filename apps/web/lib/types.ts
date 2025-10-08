@@ -126,7 +126,6 @@ import {
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
-import { workspaceStoreKeys } from "./zod/schemas/workspaces";
 
 export type LinkProps = Link;
 
@@ -194,7 +193,10 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "abTesting";
+export type BetaFeatures =
+  | "noDubLink"
+  | "abTesting"
+  | "analyticsSettingsSiteVisitTracking";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;

@@ -91,7 +91,7 @@ export const PublishableKeyForm = ({ className }: { className?: string }) => {
   return (
     <div className={cn("flex flex-col gap-2 p-3", className)}>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center gap-1">
           <h2 className="text-content-emphasis flex-1 text-sm font-semibold">
             Publishable key
           </h2>
@@ -101,7 +101,7 @@ export const PublishableKeyForm = ({ className }: { className?: string }) => {
         {!publishableKey && (
           <Button
             text="Generate"
-            className="w-fit rounded-lg px-2.5 py-1 text-sm font-medium h-7"
+            className="h-7 w-fit rounded-lg px-2.5 py-1 text-sm font-medium"
             onClick={() => setShowGenerateModal(true)}
             loading={processing}
             disabledTooltip={permissionsError || undefined}
