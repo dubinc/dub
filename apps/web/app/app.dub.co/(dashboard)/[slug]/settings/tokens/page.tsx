@@ -4,6 +4,8 @@ import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import { scopesToName } from "@/lib/api/tokens/scopes";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { TokenProps } from "@/lib/types";
+import { PageContent } from "@/ui/layout/page-content";
+import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useAddEditTokenModal } from "@/ui/modals/add-edit-token-modal";
 import { useDeleteTokenModal } from "@/ui/modals/delete-token-modal";
 import { useTokenCreatedModal } from "@/ui/modals/token-created-modal";
@@ -27,7 +29,7 @@ import { Command } from "cmdk";
 import { useState } from "react";
 import useSWR from "swr";
 
-export default function TokensPageClient() {
+export default function TokensPage() {
   const { id: workspaceId, role } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const [createdToken, setCreatedToken] = useState<string | null>(null);
@@ -67,6 +69,21 @@ export default function TokensPageClient() {
     role,
     customPermissionDescription: "update or delete API keys",
   }).error;
+
+  const TokenEmptyState = () => (
+    <AnimatedEmptyState
+      title="No tokens found"
+      description="No tokens have been created for this workspace yet."
+      cardContent={() => (
+        <>
+          <Key className="size-4 text-neutral-700" />
+          <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
+        </>
+      )}
+      addButton={<AddTokenButton />}
+      learnMoreHref="https://dub.co/docs/api-reference/tokens"
+    />
+  );
 
   const { table, ...tableProps } = useTable({
     data: tokens || [],
@@ -164,63 +181,35 @@ export default function TokensPageClient() {
           setSelectedToken(row.original);
           setShowAddEditTokenModal(true);
         },
-    emptyState: (
-      <AnimatedEmptyState
-        title="No tokens found"
-        description="No tokens have been created for this workspace yet."
-        cardContent={() => (
-          <>
-            <Key className="size-4 text-neutral-700" />
-            <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-          </>
-        )}
-        addButton={<AddTokenButton />}
-        learnMoreHref="https://dub.co/docs/api-reference/tokens"
-      />
-    ),
+    emptyState: <TokenEmptyState />,
     resourceName: (plural) => `token${plural ? "s" : ""}`,
   });
 
   return (
-    <div className="grid grid-cols-1">
+    <>
       <TokenCreatedModal />
       <AddEditTokenModal />
 
-      <h1 className="text-2xl font-semibold tracking-tight text-black">
-        Secret keys
-      </h1>
-      <p className="mb-2 mt-2 text-base text-neutral-600">
-        These API keys allow other apps to access your workspace. Use it with
-        caution – do not share your API key with others, or expose it in the
-        browser or other client-side code.{" "}
-        <a
-          href="https://dub.co/docs/api-reference/tokens"
-          target="_blank"
-          className="font-medium underline underline-offset-4 hover:text-black"
-        >
-          Learn more
-        </a>
-      </p>
-
-      <div className="flex w-full items-center justify-end pb-4">
-        <AddTokenButton />
-      </div>
-
-      {tokens?.length !== 0 ? (
-        <Table {...tableProps} table={table} />
-      ) : (
-        <AnimatedEmptyState
-          title="No tokens found"
-          description="No tokens have been created for this workspace yet."
-          cardContent={() => (
-            <>
-              <Key className="size-4 text-neutral-700" />
-              <div className="h-2.5 w-24 min-w-0 rounded-sm bg-neutral-200" />
-            </>
-          )}
-        />
-      )}
-    </div>
+      <PageContent
+        title="Secret keys"
+        titleInfo={{
+          title:
+            " These API keys allow other apps to access your workspace. Use it with caution – do not share your API key with others, or expose it in the browser or other client-side code.",
+          href: "https://dub.co/docs/api-reference/tokens",
+        }}
+        controls={<AddTokenButton />}
+      >
+        <PageWidthWrapper>
+          <div className="grid grid-cols-1">
+            {tokens?.length !== 0 ? (
+              <Table {...tableProps} table={table} />
+            ) : (
+              <TokenEmptyState />
+            )}
+          </div>
+        </PageWidthWrapper>
+      </PageContent>
+    </>
   );
 }
 
