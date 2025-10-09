@@ -53,7 +53,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     // HS send multiple events in the same request
     // so we need to process each event individually
-    await Promise.allSettled(payload.map(processWebhookEvent));
+    await Promise.allSettled(payload.reverse().map(processWebhookEvent));
 
     return NextResponse.json({ message: "Webhook received." });
   } catch (error) {
@@ -102,38 +102,59 @@ async function processWebhookEvent(event: any) {
     return;
   }
 
-  const integrationSettings = hubSpotSettingsSchema.parse(
-    installation.settings ?? {},
-  );
+  const settings = hubSpotSettingsSchema.parse(installation.settings ?? {});
 
-  console.log("[HubSpot] Integration settings", integrationSettings);
+  console.log("[HubSpot] Event", event);
+  console.log("[HubSpot] Integration settings", settings);
 
-  // Track a deferred lead event
+  // Contact events
   if (objectTypeId === "0-1") {
-    await trackHubSpotLeadEvent({
-      payload: event,
-      workspace,
-      authToken,
-    });
-  }
-
-  if (objectTypeId === "0-3") {
-    // Track the final lead event
+    // Track a deferred lead event
     if (subscriptionType === "object.creation") {
       await trackHubSpotLeadEvent({
         payload: event,
         workspace,
         authToken,
+        settings,
+      });
+    }
+
+    // Track the final lead event
+    else if (
+      subscriptionType === "object.propertyChange" &&
+      settings.leadTriggerEvent === "lifecycleStageReached"
+    ) {
+      await trackHubSpotLeadEvent({
+        payload: event,
+        workspace,
+        authToken,
+        settings,
+      });
+    }
+  }
+
+  // Deal event
+  if (objectTypeId === "0-3") {
+    // Track the final lead event
+    if (
+      subscriptionType === "object.creation" &&
+      settings.leadTriggerEvent === "dealCreated"
+    ) {
+      await trackHubSpotLeadEvent({
+        payload: event,
+        workspace,
+        authToken,
+        settings,
       });
     }
 
     // Track the sale event when deal is closed won
-    if (subscriptionType === "object.propertyChange") {
+    else if (subscriptionType === "object.propertyChange") {
       await trackHubSpotSaleEvent({
         payload: event,
         workspace,
         authToken,
-        closedWonDealStageId: integrationSettings?.closedWonDealStageId,
+        settings,
       });
     }
   }

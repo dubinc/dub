@@ -47,6 +47,7 @@ export const hubSpotContactSchema = z.object({
     dub_id: z.string().nullish(),
     dub_link: z.string().nullish(),
     dub_partner_email: z.string().nullish(),
+    lifecyclestage: z.string().nullish(),
   }),
 });
 
@@ -78,7 +79,7 @@ export const hubSpotWebhookSchema = z.object({
 
 export const hubSpotLeadEventSchema = z.object({
   objectId: z.number(),
-  subscriptionType: z.literal("object.creation"),
+  subscriptionType: z.enum(["object.propertyChange", "object.creation"]),
   objectTypeId: z.enum(HUBSPOT_OBJECT_TYPE_IDS),
 });
 
