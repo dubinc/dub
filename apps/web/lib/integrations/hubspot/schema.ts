@@ -2,6 +2,7 @@ import z from "@/lib/zod";
 import {
   HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
   HUBSPOT_OBJECT_TYPE_IDS,
+  LEAD_TRIGGER_EVENT_OPTIONS,
 } from "./constants";
 
 // Authentication
@@ -17,7 +18,7 @@ export const hubSpotAuthTokenSchema = z.object({
 // Integration settings
 export const hubSpotSettingsSchema = z.object({
   leadTriggerEvent: z
-    .enum(["lifecycleStageReached", "dealCreated"])
+    .enum(LEAD_TRIGGER_EVENT_OPTIONS)
     .nullish()
     .default("dealCreated")
     .describe(

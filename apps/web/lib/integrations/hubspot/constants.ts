@@ -3,7 +3,18 @@ export const HUBSPOT_OBJECT_TYPE_IDS = [
   "0-3", // deal
 ] as const;
 
+// Reomve this
 export const HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID = "closedwon";
+
+export const HUBSPOT_DEFAULT_SETTINGS = {
+  leadTriggerEvent: "dealCreated",
+  closedWonDealStageId: HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
+};
+
+export const LEAD_TRIGGER_EVENT_OPTIONS = [
+  "lifecycleStageReached",
+  "dealCreated",
+] as const;
 
 export const HUBSPOT_DUB_CONTACT_PROPERTIES = [
   {

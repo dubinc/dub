@@ -102,6 +102,12 @@ async function processWebhookEvent(event: any) {
     return;
   }
 
+  const integrationSettings = hubSpotSettingsSchema.parse(
+    installation.settings ?? {},
+  );
+
+  console.log("[HubSpot] Integration settings", integrationSettings);
+
   // Track a deferred lead event
   if (objectTypeId === "0-1") {
     await trackHubSpotLeadEvent({
@@ -123,13 +129,11 @@ async function processWebhookEvent(event: any) {
 
     // Track the sale event when deal is closed won
     if (subscriptionType === "object.propertyChange") {
-      const settings = hubSpotSettingsSchema.parse(installation.settings ?? {});
-
       await trackHubSpotSaleEvent({
         payload: event,
         workspace,
         authToken,
-        closedWonDealStageId: settings?.closedWonDealStageId,
+        closedWonDealStageId: integrationSettings?.closedWonDealStageId,
       });
     }
   }
