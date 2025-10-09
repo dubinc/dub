@@ -77,7 +77,7 @@
     }
   },
   "post_install_action": {
-    "type": "onboarding"
+    "type": "settings"
   },
   "allowed_redirect_uris": [
     "https://app.dub.co/api/stripe/integration/callback",
