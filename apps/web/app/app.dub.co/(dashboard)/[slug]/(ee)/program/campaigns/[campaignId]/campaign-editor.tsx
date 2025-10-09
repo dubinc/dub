@@ -186,7 +186,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             ? {
                 title: "Metrics",
                 content: (
-                  <div className="flex flex-col gap-4">
+                  <div className="flex grow flex-col gap-4">
                     <CampaignMetrics />
                     <CampaignEvents />
                   </div>

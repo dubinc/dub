@@ -15,6 +15,8 @@ export type EventStatus = "delivered" | "opened" | "bounced";
 
 export type CampaignEvent = z.infer<typeof campaignEventSchema>;
 
+const MAX_EVENTS = 3; // TODO: Change to 10
+
 export function CampaignEvents() {
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
@@ -31,7 +33,7 @@ export function CampaignEvents() {
       ? buildUrl(`/api/campaigns/${campaignId}/events`, {
           workspaceId,
           status,
-          pageSize: 10,
+          pageSize: MAX_EVENTS,
         })
       : null,
     fetcher,
@@ -60,6 +62,7 @@ export function CampaignEvents() {
     thClassName: "hidden",
     tdClassName: "border-l-0",
     resourceName: () => "event",
+    emptyState: "No data yet",
     loading: isLoading,
     error: error ? "Failed to load events" : undefined,
   });
@@ -87,8 +90,8 @@ export function CampaignEvents() {
         />
       </div>
 
-      <div className="group relative z-0 min-h-80 overflow-hidden rounded-lg border border-neutral-200 bg-white">
-        <div className="max-h-96 overflow-hidden">
+      <div className="group relative z-0 max-h-[530px] min-h-32 grow overflow-hidden rounded-lg border border-neutral-200 bg-white">
+        <div className="overflow-hidden">
           <Table
             {...tableProps}
             table={table}
@@ -97,15 +100,15 @@ export function CampaignEvents() {
           />
         </div>
 
-        {events && events.length >= 10 && (
+        {events && events.length >= MAX_EVENTS && (
           <div className="absolute bottom-0 left-0 z-10 flex w-full items-end">
             <div className="pointer-events-none absolute bottom-0 left-0 h-48 w-full bg-gradient-to-t from-white" />
             <button
               onClick={() => setShowModal(true)}
-              className="group relative flex w-full items-center justify-center py-4"
+              className="group/button relative flex w-full items-center justify-center py-4"
             >
-              <div className="rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-sm text-neutral-950 group-hover:bg-neutral-100 group-active:border-neutral-300">
-                View All
+              <div className="rounded-md border border-neutral-200 bg-white px-2.5 py-1 text-sm text-neutral-950 group-hover/button:bg-neutral-100 group-active/button:border-neutral-300">
+                View all
               </div>
             </button>
           </div>
