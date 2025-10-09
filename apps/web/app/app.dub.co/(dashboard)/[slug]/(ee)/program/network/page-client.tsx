@@ -11,8 +11,8 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
 import { PARTNER_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partner-network";
 import { ConversionScoreIcon } from "@/ui/partners/conversion-score-icon";
-import { NetworkPartnerSheet } from "@/ui/partners/network-partner-sheet";
 import { ConversionScoreTooltip } from "@/ui/partners/partner-network/conversion-score-tooltip";
+import { NetworkPartnerSheet } from "@/ui/partners/partner-network/network-partner-sheet";
 import {
   AnimatedSizeContainer,
   BadgeCheck2Fill,

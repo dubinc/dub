@@ -1,20 +1,28 @@
 import { confirmPayoutsAction } from "@/lib/actions/partners/confirm-payouts";
 import { exceededLimitError } from "@/lib/api/errors";
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
-import { DIRECT_DEBIT_PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
+import {
+  DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  FAST_ACH_FEE_CENTS,
+} from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
+import {
+  calculatePayoutFeeForMethod,
+  STRIPE_PAYMENT_METHODS,
+} from "@/lib/stripe/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
+  Bolt,
   Button,
   buttonVariants,
-  CreditCard,
+  Combobox,
+  ComboboxOption,
   DynamicTooltipWrapper,
   Gear,
   GreekTemple,
@@ -43,43 +51,11 @@ import { toast } from "sonner";
 import Stripe from "stripe";
 import useSWR from "swr";
 
-const PAYMENT_METHODS = Object.freeze({
-  link: {
-    label: "link",
-    type: "link",
-    icon: CreditCard,
-    duration: "Instantly",
-  },
-  card: {
-    label: "card",
-    type: "card",
-    icon: CreditCard,
-    duration: "Instantly",
-  },
-  us_bank_account: {
-    label: "ACH",
-    type: "us_bank_account",
-    icon: GreekTemple,
-    duration: "4 business days",
-  },
-  acss_debit: {
-    label: "ACSS Debit",
-    type: "acss_debit",
-    icon: GreekTemple,
-    duration: "5 business days",
-  },
-  sepa_debit: {
-    label: "SEPA Debit",
-    type: "sepa_debit",
-    icon: GreekTemple,
-    duration: "5 business days",
-  },
-});
-
 type SelectPaymentMethod =
-  (typeof PAYMENT_METHODS)[keyof typeof PAYMENT_METHODS] & {
+  (typeof STRIPE_PAYMENT_METHODS)[keyof typeof STRIPE_PAYMENT_METHODS] & {
     id: string;
     fee: number;
+    fastSettlement: boolean;
   };
 
 function PayoutInvoiceSheetContent() {
@@ -93,6 +69,7 @@ function PayoutInvoiceSheetContent() {
     payoutsUsage,
     payoutsLimit,
     payoutFee,
+    fastDirectDebitPayouts,
   } = useWorkspace();
 
   const { paymentMethods, loading: paymentMethodsLoading } =
@@ -132,41 +109,100 @@ function PayoutInvoiceSheetContent() {
     },
   });
 
-  const finalPaymentMethods = useMemo(
-    () =>
-      paymentMethods?.map((pm) => {
-        const paymentMethod = PAYMENT_METHODS[pm.type];
+  const finalPaymentMethods = useMemo(() => {
+    if (!paymentMethods) return undefined;
 
-        const base = {
-          ...paymentMethod,
-          id: pm.id,
-          fee: calculatePayoutFeeForMethod({
-            paymentMethod: pm.type,
-            payoutFee,
-          }),
-        };
+    const methods = paymentMethods.flatMap((pm) => {
+      const paymentMethod = STRIPE_PAYMENT_METHODS[pm.type];
 
-        if (pm.link) {
-          return {
-            ...base,
-            title: `Link – ${truncate(pm.link.email, 16)}`,
-          };
-        }
+      const base = {
+        ...paymentMethod,
+        id: pm.id,
+        fastSettlement: false,
+        fee: calculatePayoutFeeForMethod({
+          paymentMethod: pm.type,
+          payoutFee,
+        }),
+      };
 
-        if (pm.card) {
-          return {
-            ...base,
-            title: `${capitalize(pm.card.brand)} **** ${pm.card.last4}`,
-          };
-        }
-
+      if (pm.link) {
         return {
           ...base,
-          title: `${paymentMethod.label} **** ${pm[paymentMethod.type]?.last4}`,
+          title: `Link – ${truncate(pm.link.email, 24)}`,
         };
+      }
+
+      if (pm.card) {
+        return {
+          ...base,
+          title: `${capitalize(pm.card.brand)} **** ${pm.card.last4}`,
+        };
+      }
+
+      if (paymentMethod.type === "us_bank_account") {
+        const methods = [
+          {
+            ...base,
+            title: `ACH **** ${pm[paymentMethod.type]?.last4}`,
+          },
+        ];
+
+        if (fastDirectDebitPayouts) {
+          methods.unshift({
+            ...base,
+            id: `${pm.id}-fast`,
+            title: `Fast ACH **** ${pm[paymentMethod.type]?.last4}`,
+            duration: "2 business days",
+            fastSettlement: true,
+          });
+        }
+
+        return methods;
+      }
+
+      return {
+        ...base,
+        title: `${paymentMethod.label} **** ${pm[paymentMethod.type]?.last4}`,
+      };
+    });
+
+    return methods;
+  }, [paymentMethods, payoutFee, fastDirectDebitPayouts]);
+
+  const paymentMethodOptions = useMemo(() => {
+    return finalPaymentMethods?.map((method) => ({
+      value: method.id,
+      label: method.title,
+      icon: method.icon,
+      ...(method.fastSettlement && {
+        meta: `+ ${currencyFormatter(FAST_ACH_FEE_CENTS / 100, { trailingZeroDisplay: "stripIfInteger" })}`,
       }),
-    [paymentMethods, plan],
-  );
+    }));
+  }, [finalPaymentMethods]);
+
+  const selectedPaymentMethodOption = useMemo(() => {
+    if (!selectedPaymentMethod) return null;
+
+    const option = paymentMethodOptions?.find(
+      (option) => option.value === selectedPaymentMethod.id,
+    );
+
+    return option || null;
+  }, [selectedPaymentMethod, paymentMethodOptions]);
+
+  const cutoffPeriodOptions = useMemo(() => {
+    return CUTOFF_PERIOD.map(({ id, label, value }) => ({
+      value: id,
+      label: `${label} (${formatDate(value)})`,
+    }));
+  }, []);
+
+  const selectedCutoffPeriodOption = useMemo(() => {
+    return (
+      cutoffPeriodOptions.find((option) => option.value === cutoffPeriod) ||
+      null
+    );
+  }, [cutoffPeriod, cutoffPeriodOptions]);
 
   useEffect(() => {
     if (
@@ -178,19 +214,33 @@ function PayoutInvoiceSheetContent() {
     }
   }, [finalPaymentMethods, selectedPaymentMethod]);
 
-  const { amount, fee, total } = useMemo(() => {
+  const { amount, fee, total, fastAchFee } = useMemo(() => {
     const amount = includedPayouts?.reduce((acc, payout) => {
       return acc + payout.amount;
     }, 0);
 
-    const fee =
-      amount === undefined
-        ? undefined
-        : amount * (selectedPaymentMethod?.fee ?? 0);
-    const total =
-      amount !== undefined && fee !== undefined ? amount + fee : undefined;
+    if (amount === undefined || selectedPaymentMethod === null) {
+      return {
+        amount: undefined,
+        fee: undefined,
+        total: undefined,
+        fastAchFee: undefined,
+      };
+    }
 
-    return { amount, fee, total };
+    const fastAchFee = selectedPaymentMethod.fastSettlement
+      ? FAST_ACH_FEE_CENTS
+      : 0;
+
+    const fee = Math.round(amount * selectedPaymentMethod.fee + fastAchFee);
+    const total = amount + fee;
+
+    return {
+      amount,
+      fee,
+      total,
+      fastAchFee,
+    };
   }, [includedPayouts, selectedPaymentMethod]);
 
   const invoiceData = useMemo(() => {
@@ -198,28 +248,55 @@ function PayoutInvoiceSheetContent() {
       {
         key: "Method",
         value: (
-          <div className="flex items-center gap-2 pr-6">
+          <div className="flex w-full items-center justify-between gap-2">
             {paymentMethodsLoading ? (
-              <div className="h-[26px] w-40 animate-pulse rounded-md bg-neutral-200" />
+              <div className="h-[30px] w-full animate-pulse rounded-md bg-neutral-200" />
             ) : (
-              <select
-                className="h-auto flex-1 rounded-md border border-neutral-200 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600"
-                value={selectedPaymentMethod?.id || ""}
-                onChange={(e) =>
-                  setSelectedPaymentMethod(
-                    finalPaymentMethods?.find(
-                      (pm) => pm.id === e.target.value,
-                    ) || null,
-                  )
-                }
-              >
-                {finalPaymentMethods?.map(({ id, title }) => (
-                  <option key={id} value={id}>
-                    {title}
-                  </option>
-                ))}
-              </select>
+              <div className="flex-1">
+                <Combobox
+                  options={paymentMethodOptions}
+                  selected={selectedPaymentMethodOption}
+                  setSelected={(option: ComboboxOption) => {
+                    if (!option) {
+                      return;
+                    }
+
+                    const selectedMethod = finalPaymentMethods?.find(
+                      (pm) => pm.id === option.value,
+                    );
+
+                    setSelectedPaymentMethod(selectedMethod || null);
+                  }}
+                  optionRight={(option) => {
+                    return option.meta ? (
+                      <span className="rounded-md bg-neutral-100 px-1 py-0.5 text-xs font-semibold text-neutral-700">
+                        {option.meta}
+                      </span>
+                    ) : null;
+                  }}
+                  placeholder="Select payment method"
+                  buttonProps={{
+                    className:
+                      "h-auto border border-neutral-200 px-3 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600",
+                  }}
+                  matchTriggerWidth
+                  hideSearch
+                  caret
+                >
+                  <div className="flex items-center gap-2">
+                    {selectedPaymentMethodOption ? (
+                      <>
+                        <selectedPaymentMethodOption.icon className="size-4" />
+                        {selectedPaymentMethodOption.label}
+                      </>
+                    ) : (
+                      <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+                    )}
+                  </div>
+                </Combobox>
+              </div>
             )}
+
             <a
               href={`/${slug}/settings/billing`}
               className={cn(
@@ -236,17 +313,27 @@ function PayoutInvoiceSheetContent() {
       {
         key: "Cutoff Period",
         value: (
-          <select
-            value={cutoffPeriod}
-            className="h-auto w-fit rounded-md border border-neutral-200 py-1 text-xs focus:border-neutral-600 focus:ring-neutral-600"
-            onChange={(e) => setCutoffPeriod(e.target.value)}
-          >
-            {CUTOFF_PERIOD.map(({ id, label, value }) => (
-              <option key={id} value={id}>
-                {label} ({formatDate(value)})
-              </option>
-            ))}
-          </select>
+          <div className="w-full">
+            <Combobox
+              options={cutoffPeriodOptions}
+              selected={selectedCutoffPeriodOption}
+              setSelected={(option: ComboboxOption) => {
+                if (!option) {
+                  return;
+                }
+
+                setCutoffPeriod(option.value as CUTOFF_PERIOD_TYPES);
+              }}
+              placeholder="Select cutoff period"
+              buttonProps={{
+                className:
+                  "h-auto border border-neutral-200 px-3 py-1.5 text-xs focus:border-neutral-600 focus:ring-neutral-600",
+              }}
+              matchTriggerWidth
+              hideSearch
+              caret
+            />
+          </div>
         ),
         tooltipContent:
           "Cutoff period in UTC. If set, only commissions accrued up to the cutoff period will be included in the payout invoice.",
@@ -276,7 +363,7 @@ function PayoutInvoiceSheetContent() {
           ),
         tooltipContent: selectedPaymentMethod ? (
           <SimpleTooltipContent
-            title={`${selectedPaymentMethod.fee * 100}% processing fee. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
+            title={`${selectedPaymentMethod.fee * 100}% processing fee${(fastAchFee ?? 0) > 0 ? ` + ${currencyFormatter((fastAchFee ?? 0) / 100)} Fast ACH fee` : ""}. ${!DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(selectedPaymentMethod.type as Stripe.PaymentMethod.Type) ? " Switch to Direct Debit for a reduced fee." : ""}`}
             cta="Learn more"
             href="https://d.to/payouts"
           />
@@ -300,7 +387,14 @@ function PayoutInvoiceSheetContent() {
           ),
       },
     ];
-  }, [amount, paymentMethods, selectedPaymentMethod, cutoffPeriod]);
+  }, [
+    amount,
+    paymentMethods,
+    selectedPaymentMethod,
+    cutoffPeriod,
+    cutoffPeriodOptions,
+    selectedCutoffPeriodOption,
+  ]);
 
   const partnerColumn = useMemo(
     () => ({
@@ -443,7 +537,11 @@ function PayoutInvoiceSheetContent() {
           </div>
         </div>
 
-        <div className="p-6 pt-2">
+        <div className="px-6">
+          <FastAchPayoutToggle />
+        </div>
+
+        <div className="px-6 py-3">
           <Table {...table} />
         </div>
       </div>
@@ -457,7 +555,8 @@ function PayoutInvoiceSheetContent() {
 
             const result = await confirmPayouts({
               workspaceId,
-              paymentMethodId: selectedPaymentMethod.id,
+              paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
+              fastSettlement: selectedPaymentMethod.fastSettlement,
               cutoffPeriod,
               excludedPayoutIds,
               amount: amount ?? 0,
@@ -508,6 +607,55 @@ function PayoutInvoiceSheetContent() {
           }
         />
       </div>
+    </div>
+  );
+}
+
+function FastAchPayoutToggle() {
+  const { fastDirectDebitPayouts } = useWorkspace();
+  const [isVisible, setIsVisible] = useState(true);
+
+  if (!isVisible || fastDirectDebitPayouts) {
+    return null;
+  }
+
+  return (
+    <div className="flex h-12 items-center gap-2 rounded-lg bg-neutral-100 px-4 py-2">
+      <div className="relative flex size-8 items-center justify-center rounded-md border border-neutral-200 p-2 text-neutral-200">
+        <GreekTemple className="text-content-emphasis size-4" />
+        <div className="absolute left-1/2 top-1 flex size-2 translate-x-[3px] items-center justify-center rounded-sm">
+          <Bolt className="size-2.5 fill-amber-500 text-amber-500" />
+        </div>
+      </div>
+
+      <div className="flex-1">
+        <div className="text-content-emphasis text-xs font-semibold">
+          Fast ACH
+        </div>
+        <div className="text-content-default text-xs font-medium">
+          Send ACH payouts in 2 days.
+        </div>
+      </div>
+
+      {!fastDirectDebitPayouts && (
+        <div className="flex items-center gap-0.5">
+          <a href="https://dub.co/contact/sales" target="_blank">
+            <Button
+              variant="secondary"
+              text="Contact sales to enable"
+              className="border-border-subtle h-7 w-fit whitespace-nowrap rounded-lg bg-white px-2.5 py-2 text-sm"
+            />
+          </a>
+
+          <button
+            onClick={() => setIsVisible(false)}
+            className="text-content-emphasis p-1"
+            aria-label="Close"
+          >
+            <X className="size-3" />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

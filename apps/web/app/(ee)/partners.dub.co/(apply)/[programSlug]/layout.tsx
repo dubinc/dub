@@ -10,17 +10,12 @@ import { notFound } from "next/navigation";
 import Script from "next/script";
 import { PropsWithChildren } from "react";
 
-export async function generateMetadata(
-  props: {
-    params: Promise<{ programSlug: string; groupSlug?: string }>;
-  }
-) {
+export async function generateMetadata(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
+}) {
   const params = await props.params;
 
-  const {
-    programSlug,
-    groupSlug
-  } = params;
+  const { programSlug, groupSlug } = params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
@@ -57,16 +52,14 @@ export async function generateStaticParams() {
   }));
 }
 
-export default async function ApplyLayout(props: PropsWithChildren<{ params: Promise<{ programSlug: string }> }>) {
+export default async function ApplyLayout(
+  props: PropsWithChildren<{ params: Promise<{ programSlug: string }> }>,
+) {
   const params = await props.params;
 
-  const {
-    programSlug
-  } = params;
+  const { programSlug } = params;
 
-  const {
-    children
-  } = props;
+  const { children } = props;
 
   const program = await getProgram({ slug: programSlug });
 
@@ -77,12 +70,22 @@ export default async function ApplyLayout(props: PropsWithChildren<{ params: Pro
   return (
     <>
       {program.slug === "perplexity" && (
-        <Script
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', '1340891577378510');fbq('track', 'PageView');`,
-          }}
-        />
+        <>
+          {/* Meta script */}
+          <Script
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window, document,'script','https://connect.facebook.net/en_US/fbevents.js');fbq('init', '1340891577378510');fbq('track', 'PageView');`,
+            }}
+          />
+          {/* LinkedIn script */}
+          <Script
+            strategy="beforeInteractive"
+            dangerouslySetInnerHTML={{
+              __html: `_linkedin_partner_id = "8071818";window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];window._linkedin_data_partner_ids.push(_linkedin_partner_id);(function(l) {if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])};window.lintrk.q=[]}var s = document.getElementsByTagName("script")[0];var b = document.createElement("script");b.type = "text/javascript";b.async = true;b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";s.parentNode.insertBefore(b, s);})(window.lintrk);`,
+            }}
+          />
+        </>
       )}
       <div className="relative">
         <div className="relative z-10 mx-auto min-h-screen w-full max-w-screen-sm bg-white">

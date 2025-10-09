@@ -46,12 +46,14 @@ export function NetworkEmptyState({
         </div>
       )}
       addButton={
-        <Button
-          type="button"
-          text="Clear all filters"
-          className="h-9 rounded-lg"
-          onClick={onClearAllFilters}
-        />
+        isFiltered || isStarred ? (
+          <Button
+            type="button"
+            text="Clear all filters"
+            className="h-9 rounded-lg"
+            onClick={onClearAllFilters}
+          />
+        ) : undefined
       }
     />
   );

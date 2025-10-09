@@ -543,7 +543,10 @@ export type FolderWithPermissions = {
   permissions: FolderPermission[];
 };
 
-export type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
+export type FolderSummary = Pick<
+  Folder,
+  "id" | "name" | "description" | "accessLevel"
+>;
 
 export type RewardProps = z.infer<typeof RewardSchema>;
 

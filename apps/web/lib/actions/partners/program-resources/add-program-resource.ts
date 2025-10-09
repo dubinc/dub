@@ -7,6 +7,7 @@ import { uploadedImageAllowSVGSchema } from "@/lib/zod/schemas/misc";
 import {
   programResourceColorSchema,
   programResourceFileSchema,
+  programResourceLinkSchema,
 } from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
@@ -40,11 +41,18 @@ const colorResourceSchema = baseResourceSchema.extend({
   color: z.string(), // Hex color code
 });
 
+// Schema for link resources
+const linkResourceSchema = baseResourceSchema.extend({
+  resourceType: z.literal("link"),
+  url: z.string().url(),
+});
+
 // Combined schema that can handle any resource type
 const addResourceSchema = z.discriminatedUnion("resourceType", [
   logoResourceSchema,
   fileResourceSchema,
   colorResourceSchema,
+  linkResourceSchema,
 ]);
 
 export const addProgramResourceAction = authActionClient
@@ -72,6 +80,7 @@ export const addProgramResourceAction = authActionClient
       logos: [],
       colors: [],
       files: [],
+      links: [],
     };
 
     const updatedResources = { ...currentResources };
@@ -137,6 +146,16 @@ export const addProgramResourceAction = authActionClient
         ...(updatedResources.colors || []),
         newResource,
       ];
+    } else if (resourceType === "link") {
+      const { url } = parsedInput;
+
+      const newResource = programResourceLinkSchema.parse({
+        id: createId({ prefix: "pgr_" }),
+        name,
+        url,
+      });
+
+      updatedResources.links = [...(updatedResources.links || []), newResource];
     } else {
       throw new Error("Invalid resource type");
     }
