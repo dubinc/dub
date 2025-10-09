@@ -62,7 +62,7 @@ export async function processPayouts({
     where: {
       ...(selectedPayoutId
         ? { id: selectedPayoutId }
-        : excludedPayoutIds
+        : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
       programId: program.id,

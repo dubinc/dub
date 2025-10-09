@@ -83,7 +83,7 @@ function ConfirmPayoutsSheetContent() {
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  const selectedPayoutId = searchParamsObj.selectedPayoutId;
+  const selectedPayoutId = searchParamsObj.selectedPayoutId || undefined;
 
   const {
     data: eligiblePayouts,
@@ -93,7 +93,7 @@ function ConfirmPayoutsSheetContent() {
     `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
       workspaceId,
       cutoffPeriod,
-      selectedPayoutId,
+      ...(selectedPayoutId && { selectedPayoutId }),
     } as Record<string, any>).toString()}`,
     fetcher,
   );
