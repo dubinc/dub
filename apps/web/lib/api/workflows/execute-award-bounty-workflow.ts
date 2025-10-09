@@ -1,4 +1,3 @@
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendEmail } from "@dub/email";
@@ -88,12 +87,16 @@ export const executeAwardBountyWorkflow = async ({
     }
   }
 
-  // Check if the partner's submission has already been approved
-  if (submissions.length > 0 && submissions[0].status === "approved") {
-    console.log(
-      `Partner ${partnerId} has already been awarded this bounty (bountyId: ${bounty.id}, submissionId: ${submissions[0].id}).`,
-    );
-    return;
+  if (submissions.length > 0) {
+    const submission = submissions[0];
+
+    if (submission.status === "submitted" || submission.status === "approved") {
+      console.log(
+        `Partner ${partnerId} has already ${submission.status === "submitted" ? "finished" : "been awarded"} this bounty (bountyId: ${bounty.id}, submissionId: ${submissions[0].id}).`,
+      );
+
+      return;
+    }
   }
 
   console.log(
@@ -157,32 +160,14 @@ export const executeAwardBountyWorkflow = async ({
     return;
   }
 
-  // Create the commission for the partner
-  const { commission } = await createPartnerCommission({
-    event: "custom",
-    partnerId,
-    programId: bounty.programId,
-    amount: bounty.rewardAmount,
-    quantity: 1,
-    description: `Commission for successfully completed "${bounty.name}" bounty.`,
-    skipWorkflow: true,
-  });
-
-  if (!commission) {
-    console.error(
-      `Failed to create commission for partner ${partnerId} in program ${bounty.programId} for bounty ${bounty.id}.`,
-    );
-    return;
-  }
-
-  // Update the bounty submission
+  // Mark the bounty as submitted
   const { partner } = await prisma.bountySubmission.update({
     where: {
       id: bountySubmission.id,
+      status: "draft",
     },
     data: {
-      commissionId: commission.id,
-      status: "approved",
+      status: "submitted",
     },
     include: {
       partner: true,
