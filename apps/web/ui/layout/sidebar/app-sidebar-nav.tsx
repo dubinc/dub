@@ -385,11 +385,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/integrations`,
           },
           {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/settings/analytics`,
-          },
-          {
             name: "Security",
             icon: ShieldCheck,
             href: `/${slug}/settings/security`,
@@ -399,6 +394,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         name: "Developer",
         items: [
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/${slug}/settings/analytics`,
+          },
           {
             name: "API Keys",
             icon: Key,
