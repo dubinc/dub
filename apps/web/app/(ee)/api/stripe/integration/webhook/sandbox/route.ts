@@ -1,5 +1,5 @@
 /*
-    POST /api/stripe/integration/webhook/test – listen to Stripe test mode connect webhooks (for Stripe Integration)
+    POST /api/stripe/integration/webhook/sandbox – listen to Stripe test mode connect webhooks (for Stripe Integration)
 
     We need a separate route for test webhooks because of how Stripe webhooks behave:
     - Live mode only: When a connected account is connected only in live mode to your platform, 
