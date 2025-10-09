@@ -66,7 +66,6 @@ export const refreshAccessToken = async (
     });
   }
 
-
   if (!oAuthApp.pkce) {
     if (!clientSecret) {
       throw new DubApiError({
@@ -83,10 +82,7 @@ export const refreshAccessToken = async (
     }
   }
 
-  console.log(`${oAuthApp.integration?.name} is refreshing the access token.`, {
-    
-  });
-
+  console.log(`${oAuthApp.integration?.name} is refreshing the access token.`);
 
   const refreshTokenRecord = await prisma.oAuthRefreshToken.findUnique({
     where: {
