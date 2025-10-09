@@ -128,7 +128,7 @@ export default function ProgramWelcome({
               3. <span className="font-medium">Set up conversion tracking</span>
               :{" "}
               <Link
-                href={`${workspaceUrlPrefix}/guides`}
+                href={`${workspaceUrlPrefix}/settings/analytics`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 Follow our quickstart guide

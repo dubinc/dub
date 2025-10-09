@@ -166,6 +166,8 @@ export const exchangeAuthCodeForToken = async (
 
   const { userId, projectId, scopes } = accessCode;
 
+  console.log(`${app.integrationId} is exchanging the code for a token.`);
+
   // Install the app
   // We only support one token per client per user per workspace at a time
   const installation = await installIntegration({
