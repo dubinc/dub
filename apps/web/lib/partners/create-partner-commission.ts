@@ -49,6 +49,7 @@ const constructWebhookPartner = (
 ) => {
   return {
     ...programEnrollment.partner,
+    groupId: programEnrollment.groupId,
     ...aggregatePartnerLinksStats(programEnrollment.links),
     totalCommissions: totalCommissions || programEnrollment.totalCommissions,
   };
