@@ -60,7 +60,10 @@ export const POST = withWorkspace(
           status: CampaignStatus.draft,
           name: `${campaign.name} (copy)`,
           subject: campaign.subject,
-          body: campaign.body,
+          body: campaign.body ?? {
+            type: "doc",
+            content: [],
+          },
           type: campaign.type,
         },
       });
