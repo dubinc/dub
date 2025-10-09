@@ -38,7 +38,7 @@ export function CampaignGroupsSelector({
   return (
     <Popover
       content={
-        <div className="min-w-[440px] p-3">
+        <div className="w-full p-3 sm:w-[440px]">
           <GroupsMultiSelect
             selectedGroupIds={selectedGroupIds}
             setSelectedGroupIds={setSelectedGroupIds}
