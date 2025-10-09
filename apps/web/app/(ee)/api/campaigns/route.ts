@@ -1,7 +1,9 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns";
 import { getCampaigns } from "@/lib/api/campaigns/get-campaigns";
 import { createId } from "@/lib/api/create-id";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -16,6 +18,16 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
+    if (!program.campaignsEnabledAt)
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Campaigns are not enabled for this program.",
+      });
 
     const campaigns = await getCampaigns({
       ...getCampaignsQuerySchema.parse(searchParams),
@@ -33,6 +45,16 @@ export const GET = withWorkspace(
 export const POST = withWorkspace(
   async ({ workspace, session, req }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
+    if (!program.campaignsEnabledAt)
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Campaigns are not enabled for this program.",
+      });
 
     const { type } = createCampaignSchema.parse(await parseRequestBody(req));
 

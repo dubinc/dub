@@ -35,6 +35,7 @@ export const ProgramSchema = z.object({
   autoApprovePartnersEnabledAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
+  campaignsEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string(),

@@ -70,6 +70,7 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
+  campaignsEnabled?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -203,6 +204,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     partnerNetworkEnabled,
+    campaignsEnabled,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -298,12 +300,16 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         name: "Engagement",
         items: [
-          {
-            name: "Email Campaigns",
-            icon: PaperPlane,
-            href: `/${slug}/program/campaigns`,
-            badge: "New",
-          },
+          ...(campaignsEnabled
+            ? [
+                {
+                  name: "Email Campaigns",
+                  icon: PaperPlane,
+                  href: `/${slug}/program/campaigns` as `/${string}`,
+                  badge: "New",
+                },
+              ]
+            : []),
           {
             name: "Bounties",
             icon: Trophy,
@@ -558,6 +564,7 @@ export function AppSidebarNav({
         showConversionGuides: canTrackConversions && customersCount === 0,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
+        campaignsEnabled: program && program.campaignsEnabledAt !== null,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}

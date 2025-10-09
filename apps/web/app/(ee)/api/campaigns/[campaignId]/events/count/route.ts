@@ -1,4 +1,6 @@
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getCampaignEventsCountQuerySchema } from "@/lib/zod/schemas/campaigns";
 import { prisma } from "@dub/prisma";
@@ -10,6 +12,16 @@ export const GET = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
+    if (!program.campaignsEnabledAt)
+      throw new DubApiError({
+        code: "forbidden",
+        message: "Campaigns are not enabled for this program.",
+      });
+
     await prisma.campaign.findUniqueOrThrow({
       where: {
         id: campaignId,
@@ -17,7 +29,8 @@ export const GET = withWorkspace(
       },
     });
 
-    const { status, search } = getCampaignEventsCountQuerySchema.parse(searchParams);
+    const { status, search } =
+      getCampaignEventsCountQuerySchema.parse(searchParams);
 
     const count = await prisma.notificationEmail.count({
       where: {
