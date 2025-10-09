@@ -170,6 +170,7 @@ export const executeCompleteBountyWorkflow = async ({
     },
     data: {
       status: "submitted",
+      completedAt: new Date(),
     },
     include: {
       partner: true,
