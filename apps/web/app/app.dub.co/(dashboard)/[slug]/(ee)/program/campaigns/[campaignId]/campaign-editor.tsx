@@ -63,7 +63,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     watch,
     getValues,
     reset,
-    formState: { isDirty, dirtyFields },
+    formState: { dirtyFields },
   } = form;
 
   const handleSaveCampaign = useCallback(
@@ -110,19 +110,21 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         });
       }
     },
-    [getValues, dirtyFields, saveDraftCampaign, campaign.id, reset],
+    [
+      isSavingDraftCampaign,
+      getValues,
+      dirtyFields,
+      saveDraftCampaign,
+      campaign.id,
+      reset,
+    ],
   );
 
-  // Autosave draft campaign changes
-  const handleSaveDraftCampaign = useCallback(
-    useDebouncedCallback(async () => {
-      if (campaign.status !== CampaignStatus.draft) {
-        return;
-      }
-      await handleSaveCampaign(true, false);
-    }, 1000),
-    [handleSaveCampaign, campaign.status],
-  );
+  // Debounced auto-save for draft campaigns
+  const handleSaveDraftCampaign = useDebouncedCallback(async () => {
+    if (campaign.status !== CampaignStatus.draft) return;
+    await handleSaveCampaign(true, false);
+  }, 1000);
 
   // Manual save for non-draft campaigns
   const handleManualSave = useCallback(async () => {
@@ -132,13 +134,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   // Watch for form changes and trigger autosave (only for draft campaigns)
   useEffect(() => {
     const { unsubscribe } = watch(() => {
-      if (isDirty && campaign.status === CampaignStatus.draft) {
-        handleSaveDraftCampaign();
-      }
+      if (campaign.status !== CampaignStatus.draft) return;
+
+      handleSaveDraftCampaign();
     });
 
     return () => unsubscribe();
-  }, [watch, isDirty, handleSaveDraftCampaign, campaign.status]);
+  }, [watch, campaign.status]);
 
   const { executeAsync: executeImageUpload } = useAction(
     uploadEmailImageAction,
@@ -254,10 +256,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   ref={editorRef}
                   editorClassName="-m-2 min-h-[200px] p-2"
                   initialValue={field.value}
-                  onChange={(editor) => {
-                    field.onChange(editor.getJSON());
-                    handleSaveDraftCampaign();
-                  }}
+                  onChange={(editor) => field.onChange(editor.getJSON())}
                   variables={EMAIL_TEMPLATE_VARIABLES}
                   uploadImage={async (file) => {
                     try {

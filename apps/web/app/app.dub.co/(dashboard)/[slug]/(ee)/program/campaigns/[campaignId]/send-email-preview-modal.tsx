@@ -6,6 +6,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
+import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useCampaignFormContext } from "./campaign-form-context";
 
@@ -23,10 +24,10 @@ function SendEmailPreviewModal({
   const { user } = useUser();
   const { isMobile } = useMediaQuery();
   const { id: workspaceId } = useWorkspace();
-  const { watch } = useCampaignFormContext();
+  const { control } = useCampaignFormContext();
   const [emailAddresses, setEmailAddresses] = useState(user?.email ?? "");
 
-  const [subject, body] = watch(["subject", "body"]);
+  const [subject, body] = useWatch({ control, name: ["subject", "body"] });
 
   const { executeAsync: sendEmailPreview, isPending } = useAction(
     sendCampaignPreviewEmail,

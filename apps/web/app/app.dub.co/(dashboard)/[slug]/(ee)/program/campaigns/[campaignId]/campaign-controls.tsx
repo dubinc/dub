@@ -18,6 +18,7 @@ import {
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
+import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useDeleteCampaignModal } from "../delete-campaign-modal";
 import { useCampaignFormContext } from "./campaign-form-context";
@@ -31,7 +32,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
   const router = useRouter();
   const { slug: workspaceSlug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
-  const { watch, getValues } = useCampaignFormContext();
+  const { control, getValues } = useCampaignFormContext();
 
   const { makeRequest, isSubmitting: isUpdatingCampaign } =
     useApiMutation<Campaign>();
@@ -49,14 +50,10 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
   const { DeleteCampaignModal, setShowDeleteCampaignModal } =
     useDeleteCampaignModal(campaign);
 
-  const [name, subject, groupIds, body, status, triggerCondition] = watch([
-    "name",
-    "subject",
-    "groupIds",
-    "body",
-    "status",
-    "triggerCondition",
-  ]);
+  const [name, subject, groupIds, body, status, triggerCondition] = useWatch({
+    control,
+    name: ["name", "subject", "groupIds", "body", "status", "triggerCondition"],
+  });
 
   // Form validation
   const validationError = useMemo(() => {
