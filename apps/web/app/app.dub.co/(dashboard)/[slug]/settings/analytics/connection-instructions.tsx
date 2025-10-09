@@ -7,7 +7,7 @@ import { GuidesMarkdown } from "@/ui/guides/markdown";
 import { useDynamicGuide } from "./use-dynamic-guide";
 import { useSelectedGuide } from "./use-selected-guide";
 
-const ConnectionInstructions = ({}: {}) => {
+const ConnectionInstructions = () => {
   const guides = allGuides.filter((guide) => guide.type === "client-sdk");
   const { selectedGuide, setSelectedGuide } = useSelectedGuide({ guides });
 
