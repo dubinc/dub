@@ -85,6 +85,6 @@ export const hubSpotLeadEventSchema = z.object({
 export const hubSpotSaleEventSchema = z.object({
   objectId: z.number(),
   subscriptionType: z.literal("object.propertyChange"),
-  propertyName: z.enum(["lifecyclestage", "dealstage"]),
-  propertyValue: z.string(),
+  propertyName: z.literal("dealstage"),
+  propertyValue: z.string(), // eg: closedwon
 });
