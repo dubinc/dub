@@ -7,27 +7,11 @@ import {
   InlineBadgePopoverMenu,
 } from "@/ui/shared/inline-badge-popover";
 import { pluralize } from "@dub/utils";
-import { useEffect } from "react";
 import { Controller } from "react-hook-form";
 import { useCampaignFormContext } from "./campaign-form-context";
 
 export function TransactionalCampaignLogic() {
-  const { control, watch, setValue } = useCampaignFormContext();
-
-  const [attribute, value] = watch([
-    "triggerCondition.attribute",
-    "triggerCondition.value",
-  ]);
-
-  useEffect(() => {
-    if (!attribute) {
-      setValue("triggerCondition.attribute", "partnerEnrolledDays");
-    }
-
-    if (value === undefined || value === null) {
-      setValue("triggerCondition.value", 1);
-    }
-  }, [attribute, value, setValue]);
+  const { control } = useCampaignFormContext();
 
   return (
     <div className="flex h-8 w-full items-center px-2">
@@ -64,33 +48,34 @@ export function TransactionalCampaignLogic() {
             control={control}
             name="triggerCondition.value"
             render={({ field }) => (
-              <InlineBadgePopover
-                text={
-                  field.value !== undefined && field.value !== null
-                    ? String(field.value)
-                    : "1"
-                }
-                invalid={field.value === undefined || field.value === null}
-              >
-                <InlineBadgePopoverMenu
-                  selectedValue={
+              <>
+                <InlineBadgePopover
+                  text={
                     field.value !== undefined && field.value !== null
                       ? String(field.value)
                       : "1"
                   }
-                  onSelect={(val) => field.onChange(Number(val))}
-                  items={ALLOWED_ATTRIBUTE_VALUES_IN_DAYS.filter(
-                    (days) => days !== 0,
-                  ).map((days) => ({
-                    text: String(days),
-                    value: String(days),
-                  }))}
-                />
-              </InlineBadgePopover>
+                  invalid={field.value === undefined || field.value === null}
+                >
+                  <InlineBadgePopoverMenu
+                    selectedValue={
+                      field.value !== undefined && field.value !== null
+                        ? String(field.value)
+                        : "1"
+                    }
+                    onSelect={(val) => field.onChange(Number(val))}
+                    items={ALLOWED_ATTRIBUTE_VALUES_IN_DAYS.filter(
+                      (days) => days !== 0,
+                    ).map((days) => ({
+                      text: String(days),
+                      value: String(days),
+                    }))}
+                  />
+                </InlineBadgePopover>
+                {pluralize("day", field.value || 1)}
+              </>
             )}
           />
-
-          {pluralize("day", value || 1)}
         </div>
       </span>
     </div>

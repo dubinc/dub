@@ -17,7 +17,7 @@ import {
 } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -43,14 +43,33 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     isSubmitting: isSavingDraftCampaign,
   } = useApiMutation<Campaign>();
 
+  useEffect(() => {
+    console.log({
+      defaultValues: {
+        type: campaign.type,
+        name: campaign.name,
+        subject: campaign.subject,
+        body: campaign.body,
+        groupIds: campaign.groups.map(({ id }) => id),
+        triggerCondition: campaign.triggerCondition ?? {
+          attribute: "partnerEnrolledDays",
+          value: 1,
+        },
+      },
+    });
+  }, []);
+
   const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
-      type: campaign?.type,
-      name: campaign?.name,
-      subject: campaign?.subject,
-      body: campaign?.body,
+      type: campaign.type,
+      name: campaign.name,
+      subject: campaign.subject,
+      body: campaign.body,
       groupIds: campaign.groups.map(({ id }) => id),
-      triggerCondition: campaign.triggerCondition,
+      triggerCondition: campaign.triggerCondition ?? {
+        attribute: "partnerEnrolledDays",
+        value: 1,
+      },
     },
   });
 
@@ -62,6 +81,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     reset,
     formState: { isDirty, dirtyFields },
   } = form;
+
+  console.log({ isDirty, dirtyFields, values: getValues() });
 
   const handleSaveCampaign = useCallback(
     async (isDraft: boolean = false, showSuccessToast: boolean = false) => {
@@ -142,6 +163,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   );
 
   const statusBadge = CAMPAIGN_STATUS_BADGES[campaign.status];
+
+  const editorRef = useRef<{ setContent: (content: any) => void }>(null);
 
   return (
     <FormProvider {...form}>
@@ -246,6 +269,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               name="body"
               render={({ field }) => (
                 <RichTextArea
+                  ref={editorRef}
                   editorClassName="-m-2 min-h-[200px] p-2"
                   initialValue={field.value}
                   onChange={(editor) => {
@@ -318,6 +342,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
           campaignStatus={campaign.status}
           onSave={handleManualSave}
           isSaving={isSavingDraftCampaign}
+          onReset={() => {
+            editorRef.current?.setContent(getValues("body"));
+          }}
         />
       </PageContentWithSidePanel>
     </FormProvider>

@@ -8,6 +8,7 @@ import { useCampaignFormContext } from "./campaign-form-context";
 interface CampaignActionBarProps extends PropsWithChildren {
   onSave?: () => void;
   isSaving?: boolean;
+  onReset?: () => void;
   campaignStatus: Campaign["status"];
 }
 
@@ -15,6 +16,7 @@ export function CampaignActionBar({
   children,
   onSave,
   isSaving = false,
+  onReset,
   campaignStatus,
 }: CampaignActionBarProps) {
   const { control, reset } = useCampaignFormContext();
@@ -54,7 +56,10 @@ export function CampaignActionBar({
             text="Discard"
             variant="secondary"
             className="hidden h-7 px-2.5 text-xs lg:flex"
-            onClick={() => reset()}
+            onClick={() => {
+              reset();
+              onReset?.();
+            }}
             disabled={isSubmitting || isSaving}
           />
           <Button
