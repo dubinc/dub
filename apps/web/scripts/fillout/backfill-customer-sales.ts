@@ -1,3 +1,5 @@
+// @ts-nocheck some weird typing issues below
+
 import { createId } from "@/lib/api/create-id";
 import { saleEventSchemaTB } from "@/lib/zod/schemas/sales";
 import { prisma } from "@dub/prisma";
