@@ -51,11 +51,6 @@ export const refreshAccessToken = async (
       pkce: true,
       integrationId: true,
       hashedClientSecret: true,
-      integration: {
-        select: {
-          name: true,
-        },
-      },
     },
   });
 
@@ -82,7 +77,7 @@ export const refreshAccessToken = async (
     }
   }
 
-  console.log(`${oAuthApp.integration?.name} is refreshing the access token.`);
+  console.log(`${oAuthApp.integrationId} is refreshing the access token.`);
 
   const refreshTokenRecord = await prisma.oAuthRefreshToken.findUnique({
     where: {
