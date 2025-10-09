@@ -107,7 +107,7 @@ const HostnameCard = ({ hostname }: { hostname: string }) => {
     <CardList.Card
       key={hostname}
       innerClassName={cn(
-        "flex items-center justify-between gap-5 sm:gap-8 md:gap-12 text-sm transition-opacity shadow-xs",
+        "flex items-center justify-between gap-5 sm:gap-8 md:gap-12 text-sm transition-opacity",
         processing && "opacity-50",
       )}
       hoverStateEnabled={false}

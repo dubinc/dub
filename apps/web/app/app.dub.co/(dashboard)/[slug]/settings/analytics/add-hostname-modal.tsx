@@ -3,7 +3,7 @@
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { X } from "@/ui/shared/icons";
-import { Button, LoadingDots, Modal } from "@dub/ui";
+import { Button, LoadingDots, Modal, useMediaQuery } from "@dub/ui";
 import { cn, validDomainRegex } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -69,6 +69,8 @@ const AddHostnameForm = ({
     setHostname("");
   };
 
+  const { isMobile } = useMediaQuery();
+
   return (
     <form
       className="bg-neutral-50"
@@ -84,6 +86,7 @@ const AddHostnameForm = ({
           value={hostname}
           onChange={(e) => setHostname(e.target.value)}
           autoComplete="off"
+          autoFocus={!isMobile}
           placeholder="example.com or *.example.com"
           className={cn(
             "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
