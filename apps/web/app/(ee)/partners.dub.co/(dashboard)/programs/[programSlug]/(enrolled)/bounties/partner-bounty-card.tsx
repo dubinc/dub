@@ -119,19 +119,9 @@ function renderSubmissionStatus({
     case "submitted":
       return (
         <StatusBadge variant="new" icon={null}>
-          {bounty.type === "performance" ? (
-            <>
-              Completed{" "}
-              {submission.completedAt &&
-                formatDate(submission.completedAt, { month: "short" })}
-            </>
-          ) : (
-            <>
-              Submitted{" "}
-              {submission.createdAt &&
-                formatDate(submission.createdAt, { month: "short" })}
-            </>
-          )}
+          {bounty.type === "performance" ? "Completed" : "Submitted"}{" "}
+          {submission.completedAt &&
+            formatDate(submission.completedAt, { month: "short" })}
         </StatusBadge>
       );
 

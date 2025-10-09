@@ -336,17 +336,15 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                             }
                           >
                             {submission.status === "submitted" ? (
-                              bounty.type === "performance" ? (
-                                <>
-                                  Completed{" "}
-                                  {submission.completedAt &&
-                                    formatDate(submission.completedAt, {
-                                      month: "short",
-                                    })}
-                                </>
-                              ) : (
-                                `Submitted ${formatDate(submission.createdAt, { month: "short" })}`
-                              )
+                              <>
+                                {bounty.type === "performance"
+                                  ? "Completed"
+                                  : "Submitted"}{" "}
+                                {submission.completedAt &&
+                                  formatDate(submission.completedAt, {
+                                    month: "short",
+                                  })}
+                              </>
                             ) : submission.status === "approved" ? (
                               <>
                                 Confirmed{" "}
