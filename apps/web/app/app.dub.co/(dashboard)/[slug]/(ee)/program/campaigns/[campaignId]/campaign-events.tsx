@@ -15,7 +15,7 @@ export type EventStatus = "delivered" | "opened" | "bounced";
 
 export type CampaignEvent = z.infer<typeof campaignEventSchema>;
 
-const MAX_EVENTS = 3; // TODO: Change to 10
+const MAX_EVENTS = 10;
 
 export function CampaignEvents() {
   const router = useRouter();

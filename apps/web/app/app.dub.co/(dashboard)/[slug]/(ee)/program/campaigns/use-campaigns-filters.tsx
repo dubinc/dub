@@ -1,12 +1,11 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CampaignStatus, CampaignType } from "@dub/prisma/client";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, Sliders } from "@dub/ui/icons";
+import { CircleDotted } from "@dub/ui/icons";
 import { nFormatter } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { useMemo } from "react";
 import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
-import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
 import useCampaignsCount from "./use-campaigns-count";
 
 interface CampaignsCountByType {
@@ -59,28 +58,28 @@ export function useCampaignsFilters() {
             };
           }) ?? [],
       },
-      {
-        key: "type",
-        icon: Sliders,
-        label: "Type",
-        options:
-          countByType?.map(({ type, _count }) => {
-            const {
-              label,
-              icon: Icon,
-              iconClassName,
-            } = CAMPAIGN_TYPE_BADGES[type];
+      // {
+      //   key: "type",
+      //   icon: Sliders,
+      //   label: "Type",
+      //   options:
+      //     countByType?.map(({ type, _count }) => {
+      //       const {
+      //         label,
+      //         icon: Icon,
+      //         iconClassName,
+      //       } = CAMPAIGN_TYPE_BADGES[type];
 
-            return {
-              label,
-              value: type,
-              icon: (
-                <Icon className={cn(iconClassName, "size-4 bg-transparent")} />
-              ),
-              right: nFormatter(_count || 0, { full: true }),
-            };
-          }) ?? [],
-      },
+      //       return {
+      //         label,
+      //         value: type,
+      //         icon: (
+      //           <Icon className={cn(iconClassName, "size-4 bg-transparent")} />
+      //         ),
+      //         right: nFormatter(_count || 0, { full: true }),
+      //       };
+      //     }) ?? [],
+      // },
     ],
     [countByType, countByStatus],
   );
