@@ -16,6 +16,7 @@ const processPayoutsCronSchema = z.object({
   invoiceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutId: z.string().optional(),
   excludedPayoutIds: z.array(z.string()).optional(),
 });
 
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
       invoiceId,
       paymentMethodId,
       cutoffPeriod,
+      selectedPayoutId,
       excludedPayoutIds,
     } = processPayoutsCronSchema.parse(JSON.parse(rawBody));
 
@@ -53,6 +55,7 @@ export async function POST(req: Request) {
       await splitPayouts({
         program,
         cutoffPeriod,
+        selectedPayoutId,
         excludedPayoutIds,
       });
     }
@@ -64,6 +67,7 @@ export async function POST(req: Request) {
       invoiceId,
       paymentMethodId,
       cutoffPeriod,
+      selectedPayoutId,
       excludedPayoutIds,
     });
 

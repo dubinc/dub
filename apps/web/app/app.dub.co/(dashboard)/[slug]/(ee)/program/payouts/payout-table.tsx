@@ -68,7 +68,7 @@ const PayoutTableInner = memo(
         ? `/api/programs/${defaultProgramId}/payouts${getQueryString(
             { workspaceId },
             {
-              exclude: ["payoutId"],
+              include: ["partnerId", "status", "sortBy", "sortOrder"],
             },
           )}`
         : undefined,

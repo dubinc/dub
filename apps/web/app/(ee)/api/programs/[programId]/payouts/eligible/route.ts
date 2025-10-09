@@ -10,8 +10,9 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import z from "zod";
 
-const confirmPayoutsQuerySchema = z.object({
+const eligiblePayoutsQuerySchema = z.object({
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutId: z.string().optional(),
 });
 
 /*
@@ -28,7 +29,8 @@ const confirmPayoutsQuerySchema = z.object({
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const { cutoffPeriod } = confirmPayoutsQuerySchema.parse(searchParams);
+  const { cutoffPeriod, selectedPayoutId } =
+    eligiblePayoutsQuerySchema.parse(searchParams);
 
   const { minPayoutAmount } = await getProgramOrThrow({
     workspaceId: workspace.id,
@@ -41,6 +43,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   let payouts = await prisma.payout.findMany({
     where: {
+      ...(selectedPayoutId && { id: selectedPayoutId }),
       programId,
       status: "pending",
       amount: {
