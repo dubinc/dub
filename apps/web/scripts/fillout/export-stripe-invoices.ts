@@ -14,7 +14,7 @@ const customersToImport: {
 
 // script to export stripe invoices based on the customer's stripeCustomerId
 async function main() {
-  Papa.parse(fs.createReadStream("fillout-customers.csv", "utf-8"), {
+  Papa.parse(fs.createReadStream("fillout-customers-updated.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
     step: (result: {
@@ -78,7 +78,7 @@ async function main() {
           ]);
 
           fs.appendFileSync(
-            "fillout-invoices.csv",
+            "fillout-invoices-updated.csv",
             Papa.unparse(invoicesToBackfill, { header: false }) + "\n",
           );
         }
