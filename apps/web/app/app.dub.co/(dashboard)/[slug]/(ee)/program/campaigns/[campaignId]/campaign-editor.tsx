@@ -4,9 +4,8 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
-import { NavButton } from "@/ui/layout/page-content/nav-button";
+import { PageContentWithSidePanel } from "@/ui/layout/page-content/page-content-with-side-panel";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { ToggleSidePanelButton } from "@/ui/messages/toggle-side-panel-button";
 import { CampaignStatus } from "@dub/prisma/client";
 import {
   Button,
@@ -18,14 +17,16 @@ import {
 } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { Dispatch, SetStateAction, useCallback, useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
 import { CAMPAIGN_STATUS_BADGES } from "../campaign-status-badges";
 import { CampaignActionBar } from "./campaign-action-bar";
 import { CampaignControls } from "./campaign-controls";
+import { CampaignEvents } from "./campaign-events";
 import { CampaignGroupsSelector } from "./campaign-groups-selector";
+import { CampaignMetrics } from "./campaign-metrics";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 
 const inputClassName =
@@ -33,15 +34,7 @@ const inputClassName =
 
 const labelClassName = "text-sm font-medium text-content-subtle";
 
-export function CampaignEditor({
-  campaign,
-  isRightPanelOpen,
-  setIsRightPanelOpen,
-}: {
-  campaign: Campaign;
-  isRightPanelOpen: boolean;
-  setIsRightPanelOpen: Dispatch<SetStateAction<boolean>>;
-}) {
+export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
 
@@ -152,45 +145,48 @@ export function CampaignEditor({
 
   return (
     <FormProvider {...form}>
-      <div className="flex min-h-[calc(100vh-8px)] flex-col bg-white">
-        {/* Header */}
-        <div className="border-border-subtle flex h-12 shrink-0 items-center justify-between gap-4 border-b px-4 sm:h-16 sm:px-6">
-          <div className="flex min-w-0 items-center gap-4">
-            <NavButton />
-            <div className="flex items-center gap-1.5">
-              <div className="flex items-center gap-1">
-                <Link
-                  href={`/${workspaceSlug}/program/campaigns`}
-                  className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
-                >
-                  <PaperPlane className="text-content-default size-4" />
-                </Link>
-                <ChevronRight className="text-content-subtle size-2.5 shrink-0 [&_*]:stroke-2" />
-              </div>
+      <PageContentWithSidePanel
+        title={
+          <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
+              <Link
+                href={`/${workspaceSlug}/program/campaigns`}
+                className="bg-bg-subtle hover:bg-bg-emphasis flex size-8 shrink-0 items-center justify-center rounded-lg transition-[transform,background-color] duration-150 active:scale-95"
+              >
+                <PaperPlane className="text-content-default size-4" />
+              </Link>
+              <ChevronRight className="text-content-subtle size-2.5 shrink-0 [&_*]:stroke-2" />
+            </div>
 
-              <div className="flex items-center gap-1.5">
-                <span className="text-lg font-semibold leading-7 text-neutral-900">
-                  {campaign.status === CampaignStatus.draft
-                    ? "New transactional email"
-                    : "Transactional email"}
-                </span>
-                <StatusBadge variant={statusBadge.variant} icon={null}>
-                  {statusBadge.label}
-                </StatusBadge>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <span className="text-lg font-semibold leading-7 text-neutral-900">
+                {campaign.status === CampaignStatus.draft
+                  ? "New transactional email"
+                  : "Transactional email"}
+              </span>
+              <StatusBadge variant={statusBadge.variant} icon={null}>
+                {statusBadge.label}
+              </StatusBadge>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <CampaignControls campaign={campaign} />
-            {campaign.status !== CampaignStatus.draft && (
-              <ToggleSidePanelButton
-                isOpen={isRightPanelOpen}
-                onClick={() => setIsRightPanelOpen((o) => !o)}
-              />
-            )}
-          </div>
-        </div>
-
+        }
+        controls={<CampaignControls campaign={campaign} />}
+        sidePanel={
+          campaign.status !== CampaignStatus.draft
+            ? {
+                title: "Metrics",
+                content: (
+                  <div className="flex flex-col gap-4">
+                    <CampaignMetrics />
+                    <CampaignEvents />
+                  </div>
+                ),
+              }
+            : undefined
+        }
+        individualScrolling
+        contentWrapperClassName="flex flex-col"
+      >
         {/* Content */}
         <PageWidthWrapper className="mb-8 mt-6 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
@@ -305,7 +301,6 @@ export function CampaignEditor({
             End of email
           </div>
         </PageWidthWrapper>
-
         {/* Spacer to push action bar to bottom */}
         <div className="grow" />
 
@@ -314,7 +309,7 @@ export function CampaignEditor({
           onSave={handleManualSave}
           isSaving={isSavingDraftCampaign}
         />
-      </div>
+      </PageContentWithSidePanel>
     </FormProvider>
   );
 }
