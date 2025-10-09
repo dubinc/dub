@@ -84,15 +84,14 @@ export const HubSpotSettings = ({
             <CardSelector
               options={[
                 {
-                  key: "lifecycleStageReached",
-                  label: "Lifecycle Stage Reached",
-                  description:
-                    "Track leads when a contact reaches a specific lifecycle stage",
-                },
-                {
                   key: "dealCreated",
                   label: "New Deal Created",
-                  description: "Track leads when a deal is created in HubSpot",
+                  description: "Track leads when deals are created",
+                },
+                {
+                  key: "lifecycleStageReached",
+                  label: "Lifecycle Stage Reached",
+                  description: "Track leads at specific lifecycle stages",
                 },
               ]}
               value={leadTriggerEvent ?? undefined}
@@ -134,7 +133,7 @@ export const HubSpotSettings = ({
             </div>
           )}
 
-          <div>
+          <div className="border-t border-neutral-200 pt-6">
             <label className="mb-2 block text-sm font-semibold text-neutral-700">
               Closed Won Deal Stage ID
             </label>
