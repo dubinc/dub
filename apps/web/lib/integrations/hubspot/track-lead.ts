@@ -98,10 +98,27 @@ export const trackHubSpotLeadEvent = async ({
       return;
     }
 
+    const customer = await prisma.customer.findFirst({
+      where: {
+        projectId: workspace.id,
+        OR: [
+          { externalId: contactInfo.id },
+          { externalId: contactInfo.properties.email },
+        ],
+      },
+    });
+
+    if (!customer) {
+      console.error(
+        `[HubSpot] No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`,
+      );
+      return;
+    }
+
     const trackLeadResult = await trackLead({
       clickId: "",
       eventName: `Deal ${properties.dealstage}`,
-      customerExternalId: contactInfo.properties.email,
+      customerExternalId: customer.externalId!,
       customerName: `${contactInfo.properties.firstname} ${contactInfo.properties.lastname}`,
       customerEmail: contactInfo.properties.email,
       mode: "async",
@@ -156,10 +173,27 @@ export const trackHubSpotLeadEvent = async ({
       return;
     }
 
+    const customer = await prisma.customer.findFirst({
+      where: {
+        projectId: workspace.id,
+        OR: [
+          { externalId: contactInfo.id },
+          { externalId: contactInfo.properties.email },
+        ],
+      },
+    });
+
+    if (!customer) {
+      console.error(
+        `[HubSpot] No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`,
+      );
+      return;
+    }
+
     const trackLeadResult = await trackLead({
       clickId: "",
       eventName: `Contact ${properties.lifecyclestage}`,
-      customerExternalId: contactInfo.properties.email,
+      customerExternalId: customer.externalId!,
       customerName: `${contactInfo.properties.firstname} ${contactInfo.properties.lastname}`,
       customerEmail: contactInfo.properties.email,
       mode: "async",

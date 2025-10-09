@@ -1,5 +1,6 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { WorkspaceProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { HubSpotAuthToken } from "../types";
 import { HubSpotApi } from "./api";
@@ -71,8 +72,25 @@ export const trackHubSpotSaleEvent = async ({
     return;
   }
 
+  const customer = await prisma.customer.findFirst({
+    where: {
+      projectId: workspace.id,
+      OR: [
+        { externalId: contactInfo.id },
+        { externalId: contactInfo.properties.email },
+      ],
+    },
+  });
+
+  if (!customer) {
+    console.error(
+      `[HubSpot] No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`,
+    );
+    return;
+  }
+
   return await trackSale({
-    customerExternalId: contactInfo.properties.email,
+    customerExternalId: customer.externalId!,
     amount: Number(properties.amount) * 100,
     eventName: `${properties.dealname} ${properties.dealstage}`,
     paymentProcessor: "custom",
