@@ -119,9 +119,9 @@ function renderSubmissionStatus({
     case "submitted":
       return (
         <StatusBadge variant="new" icon={null}>
-          Submitted{" "}
-          {submission.createdAt &&
-            formatDate(submission.createdAt, { month: "short" })}
+          {bounty.type === "performance" ? "Completed" : "Submitted"}{" "}
+          {submission.completedAt &&
+            formatDate(submission.completedAt, { month: "short" })}
         </StatusBadge>
       );
 
@@ -136,17 +136,9 @@ function renderSubmissionStatus({
     default:
       return (
         <StatusBadge variant="success">
-          {bounty.type === "performance" ? (
-            <>
-              Completed {formatDate(submission.createdAt, { month: "short" })}
-            </>
-          ) : (
-            <>
-              Confirmed{" "}
-              {submission.reviewedAt &&
-                formatDate(submission.reviewedAt, { month: "short" })}
-            </>
-          )}
+          Confirmed{" "}
+          {submission.reviewedAt &&
+            formatDate(submission.reviewedAt, { month: "short" })}
         </StatusBadge>
       );
   }
