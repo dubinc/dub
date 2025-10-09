@@ -129,6 +129,11 @@ export const trackHubSpotLeadEvent = async ({
     subscriptionType === "object.propertyChange" &&
     settings.leadTriggerEvent === "lifecycleStageReached"
   ) {
+    if (!settings.leadLifecycleStageId) {
+      console.error(`[HubSpot] leadLifecycleStageId is not set.`);
+      return;
+    }
+
     const contactInfo = await hubSpotApi.getContact(objectId);
 
     if (!contactInfo) {
