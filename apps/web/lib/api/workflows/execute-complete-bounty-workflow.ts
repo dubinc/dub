@@ -1,14 +1,16 @@
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
+import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import { prisma } from "@dub/prisma";
-import { Workflow } from "@dub/prisma/client";
+import { Role, Workflow } from "@dub/prisma/client";
 import { createId } from "../create-id";
+import { getWorkspaceUsers } from "../get-workspace-users";
 import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
-export const executeAwardBountyWorkflow = async ({
+export const executeCompleteBountyWorkflow = async ({
   workflow,
   context,
 }: {
@@ -191,5 +193,41 @@ export const executeAwardBountyWorkflow = async ({
         },
       }),
     });
+
+    // Send email to the program owners
+    // TODO: combine with what we're doing on createBountySubmissionAction maybe?
+    const { users, program, ...workspace } = await getWorkspaceUsers({
+      programId: bounty.programId,
+      role: Role.owner,
+      notificationPreference: "newBountySubmitted",
+    });
+
+    if (users.length > 0) {
+      await sendBatchEmail(
+        users.map((user) => ({
+          variant: "notifications",
+          to: user.email,
+          subject: "New bounty submission",
+          react: NewBountySubmission({
+            email: user.email,
+            workspace: {
+              slug: workspace.slug,
+            },
+            bounty: {
+              id: bounty.id,
+              name: bounty.name,
+            },
+            partner: {
+              name: partner.name,
+              image: partner.image,
+              email: partner.email!,
+            },
+            submission: {
+              id: bountySubmission.id,
+            },
+          }),
+        })),
+      );
+    }
   }
 };
