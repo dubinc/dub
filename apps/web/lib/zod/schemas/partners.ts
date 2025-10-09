@@ -441,6 +441,7 @@ export const WebhookPartnerSchema = PartnerSchema.pick({
   country: true,
 }).merge(
   z.object({
+    groupId: z.string().nullish(),
     totalClicks: z.number(),
     totalLeads: z.number(),
     totalConversions: z.number(),
