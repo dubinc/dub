@@ -21,11 +21,7 @@ export const stripeAppClient = ({ mode = "live" }: { mode?: StripeMode }) => {
     appSecretKey = process.env.STRIPE_APP_SECRET_KEY;
   }
 
-  if (!appSecretKey) {
-    throw new Error("Stripe app secret key is not set.");
-  }
-
-  return new Stripe(appSecretKey, {
+  return new Stripe(appSecretKey!, {
     apiVersion: "2025-05-28.basil",
     appInfo: {
       name: "Dub.co",
