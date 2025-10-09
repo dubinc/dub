@@ -104,86 +104,78 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     });
   };
 
-  const renderActionButton = () => {
+  const actionButton = (() => {
     switch (campaign.status) {
       case CampaignStatus.draft:
-        return (
-          <Button
-            text="Publish"
-            disabled={!!validationError}
-            disabledTooltip={validationError}
-            onClick={async () => {
-              await updateCampaign(
-                {
-                  ...getValues(),
-                  status: CampaignStatus.active,
-                },
-                () => {
-                  toast.success("Email campaign published!");
-                  router.push(`/${workspaceSlug}/program/campaigns`);
-                },
-              );
-            }}
-            loading={isUpdatingCampaign}
-            className="h-9 px-4"
-            variant="secondary"
-          />
-        );
-
+        return {
+          text: "Publish",
+          icon: PaperPlane,
+          onClick: async () => {
+            await updateCampaign(
+              {
+                ...getValues(),
+                status: CampaignStatus.active,
+              },
+              () => {
+                toast.success("Email campaign published!");
+                router.push(`/${workspaceSlug}/program/campaigns`);
+              },
+            );
+          },
+          loading: isUpdatingCampaign,
+        };
       case CampaignStatus.active:
-        return (
-          <Button
-            text="Pause"
-            disabled={!!validationError}
-            disabledTooltip={validationError}
-            onClick={async () => {
-              await updateCampaign(
-                {
-                  status: CampaignStatus.paused,
-                },
-                () => {
-                  toast.success("Email campaign paused!");
-                },
-              );
-            }}
-            loading={isUpdatingCampaign}
-            className="h-9 px-4"
-            icon={<MediaPause className="size-4" />}
-            variant="secondary"
-          />
-        );
-
+        return {
+          text: "Pause",
+          icon: MediaPause,
+          onClick: async () => {
+            await updateCampaign(
+              {
+                status: CampaignStatus.paused,
+              },
+              () => {
+                toast.success("Email campaign paused!");
+              },
+            );
+          },
+          loading: isUpdatingCampaign,
+        };
       case CampaignStatus.paused:
-        return (
-          <Button
-            text="Resume"
-            disabled={!!validationError}
-            disabledTooltip={validationError}
-            className="h-9 px-4"
-            icon={<MediaPlay className="size-4" />}
-            variant="secondary"
-            loading={isUpdatingCampaign}
-            onClick={async () => {
-              await updateCampaign(
-                {
-                  status: CampaignStatus.active,
-                },
-                () => {
-                  toast.success("Email campaign resumed!");
-                },
-              );
-            }}
-          />
-        );
+        return {
+          text: "Resume",
+          icon: MediaPlay,
+          onClick: async () => {
+            await updateCampaign(
+              {
+                status: CampaignStatus.active,
+              },
+              () => {
+                toast.success("Email campaign resumed!");
+              },
+            );
+          },
+          loading: isUpdatingCampaign,
+        };
       default:
         return null;
     }
-  };
+  })();
 
   return (
     <>
       <div className="flex items-center gap-2">
-        {renderActionButton()}
+        {actionButton && (
+          <Button
+            text={actionButton.text}
+            icon={<actionButton.icon className="size-4" />}
+            disabled={!!validationError}
+            disabledTooltip={validationError}
+            onClick={actionButton.onClick}
+            loading={actionButton.loading}
+            className="hidden h-9 px-4 sm:flex"
+            variant="secondary"
+          />
+        )}
 
         <Popover
           openPopover={openPopover}
@@ -192,6 +184,20 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
           content={
             <Command tabIndex={0} loop className="focus:outline-none">
               <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
+                {actionButton && (
+                  <MenuItem
+                    as={Command.Item}
+                    icon={actionButton.icon}
+                    disabled={!!validationError || actionButton.loading}
+                    disabledTooltip={validationError}
+                    onSelect={() => {
+                      setOpenPopover(false);
+                      actionButton.onClick();
+                    }}
+                  >
+                    {actionButton.text}
+                  </MenuItem>
+                )}
                 <MenuItem
                   as={Command.Item}
                   icon={PaperPlane}

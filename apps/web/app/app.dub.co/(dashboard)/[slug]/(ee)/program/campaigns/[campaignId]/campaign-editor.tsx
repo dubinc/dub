@@ -158,11 +158,21 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               <ChevronRight className="text-content-subtle size-2.5 shrink-0 [&_*]:stroke-2" />
             </div>
 
-            <div className="flex items-center gap-1.5">
-              <span className="text-lg font-semibold leading-7 text-neutral-900">
-                {campaign.status === CampaignStatus.draft
-                  ? "New transactional email"
-                  : "Transactional email"}
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="min-w-0 truncate text-lg font-semibold leading-7 text-neutral-900">
+                {campaign.status === CampaignStatus.draft ? (
+                  <>
+                    New <span className="hidden sm:inline">transactional</span>{" "}
+                    email
+                  </>
+                ) : (
+                  <>
+                    <span className="hidden sm:inline">
+                      Transactional email
+                    </span>
+                    <span className="inline sm:hidden">Email</span>
+                  </>
+                )}
               </span>
               <StatusBadge variant={statusBadge.variant} icon={null}>
                 {statusBadge.label}
