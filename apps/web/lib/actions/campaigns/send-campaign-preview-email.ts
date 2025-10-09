@@ -1,22 +1,28 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { CampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
-const sendPreviewEmailSchema = z.object({
-  campaignId: z.string(),
-  workspaceId: z.string(),
-  subject: z.string().min(1, "Email subject is required."),
-  body: z.string().min(1, "Email body is required."),
-  emailAddresses: z
-    .array(z.string().email())
-    .min(1)
-    .max(10, "Maximum 10 email addresses allowed."),
-});
+const sendPreviewEmailSchema = z
+  .object({
+    campaignId: z.string(),
+    workspaceId: z.string(),
+    subject: z.string().min(1, "Email subject is required."),
+    emailAddresses: z
+      .array(z.string().email())
+      .min(1)
+      .max(10, "Maximum 10 email addresses allowed."),
+  })
+  .merge(
+    CampaignSchema.pick({
+      body: true,
+    }),
+  );
 
 export const sendCampaignPreviewEmail = authActionClient
   .schema(sendPreviewEmailSchema)
@@ -24,7 +30,7 @@ export const sendCampaignPreviewEmail = authActionClient
     const { workspace } = ctx;
     const { campaignId, subject, body, emailAddresses } = parsedInput;
 
-    console.log({campaignId, subject, body, emailAddresses})
+    console.log({ campaignId, subject, body, emailAddresses });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -49,5 +55,5 @@ export const sendCampaignPreviewEmail = authActionClient
       })),
     );
 
-    console.log(response)
+    console.log(response);
   });

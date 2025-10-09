@@ -1,3 +1,4 @@
+import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns";
 import { getCampaigns } from "@/lib/api/campaigns/get-campaigns";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -43,10 +44,7 @@ export const POST = withWorkspace(
         status: CampaignStatus.draft,
         name: "Untitled",
         subject: "",
-        body: {
-          type: "doc",
-          content: [],
-        },
+        body: DEFAULT_CAMPAIGN_BODY,
         type,
       },
     });

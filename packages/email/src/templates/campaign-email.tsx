@@ -13,12 +13,15 @@ import {
 export default function CampaignEmail({
   campaign = {
     subject: "Test Subject",
-    body: "<p>This is a test email body.</p>",
+    body: {
+      type: "doc",
+      content: [],
+    },
   },
 }: {
   campaign?: {
     subject: string;
-    body: string;
+    body: Record<string, any>;
   };
 }) {
   return (
@@ -33,7 +36,8 @@ export default function CampaignEmail({
             </Section>
 
             <Section className="my-6">
-              <div dangerouslySetInnerHTML={{ __html: campaign.body }} />
+              {/* TODO: Render email body */}
+              <div dangerouslySetInnerHTML={{ __html: "WIP" }} />
             </Section>
           </Container>
         </Body>
