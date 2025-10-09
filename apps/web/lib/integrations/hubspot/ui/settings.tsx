@@ -8,7 +8,6 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
-  HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
   HUBSPOT_DEFAULT_SETTINGS,
   LEAD_TRIGGER_EVENT_OPTIONS,
 } from "../constants";
@@ -147,7 +146,7 @@ export const HubSpotSettings = ({
             <div className="relative rounded-md shadow-sm">
               <input
                 className="w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
-                placeholder={HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID}
+                placeholder="closedwon"
                 type="text"
                 autoComplete="off"
                 name="closedWonDealStageId"

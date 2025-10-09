@@ -1,6 +1,5 @@
 import z from "@/lib/zod";
 import {
-  HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
   HUBSPOT_OBJECT_TYPE_IDS,
   LEAD_TRIGGER_EVENT_OPTIONS,
 } from "./constants";
@@ -33,7 +32,7 @@ export const hubSpotSettingsSchema = z.object({
   closedWonDealStageId: z
     .string()
     .nullish()
-    .default(HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID)
+    .default("closedwon")
     .describe("The ID of the deal stage that represents a closed won deal."),
 });
 
