@@ -98,7 +98,8 @@ function ConfirmPayoutsSheetContent() {
     fetcher,
   );
 
-  const excludedPayoutIds = searchParamsObj.excludedPayoutIds?.split(",") || [];
+  const excludedPayoutIds =
+    searchParamsObj.excludedPayoutIds?.split(",").filter(Boolean) || [];
 
   const finalEligiblePayouts = useMemo(() => {
     // if there's a selected payout id, return the payout directly
@@ -437,38 +438,40 @@ function ConfirmPayoutsSheetContent() {
             <div className="relative">
               <span
                 className={cn(
-                  "group-hover/row:opacity-0",
+                  !selectedPayoutId && "group-hover/row:opacity-0",
                   excludedPayoutIds.includes(row.original.id) && "line-through",
                 )}
               >
                 {currencyFormatter(row.original.amount / 100)}
               </span>
-              <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
-                <Button
-                  variant="secondary"
-                  text={
-                    excludedPayoutIds.includes(row.original.id)
-                      ? "Include"
-                      : "Exclude"
-                  }
-                  className="h-6 w-fit px-2"
-                  onClick={() =>
-                    // Toggle excluded
-                    queryParams({
-                      set: {
-                        excludedPayoutIds: excludedPayoutIds.includes(
-                          row.original.id,
-                        )
-                          ? excludedPayoutIds.filter(
-                              (id) => id !== row.original.id,
-                            )
-                          : [...excludedPayoutIds, row.original.id],
-                      },
-                      replace: true,
-                    })
-                  }
-                />
-              </div>
+              {!selectedPayoutId && (
+                <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
+                  <Button
+                    variant="secondary"
+                    text={
+                      excludedPayoutIds.includes(row.original.id)
+                        ? "Include"
+                        : "Exclude"
+                    }
+                    className="h-6 w-fit px-2"
+                    onClick={() =>
+                      // Toggle excluded
+                      queryParams({
+                        set: {
+                          excludedPayoutIds: excludedPayoutIds.includes(
+                            row.original.id,
+                          )
+                            ? excludedPayoutIds.filter(
+                                (id) => id !== row.original.id,
+                              )
+                            : [...excludedPayoutIds, row.original.id],
+                        },
+                        replace: true,
+                      })
+                    }
+                  />
+                </div>
+              )}
             </div>
           </>
         ),
