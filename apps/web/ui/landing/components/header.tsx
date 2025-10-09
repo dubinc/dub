@@ -1,19 +1,22 @@
 "use client";
 
+import { Session } from '@/lib/auth';
 import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
 import { Button } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { getSession } from 'next-auth/react';
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useCallback, useEffect } from "react";
 
 interface IHeaderProps {
   sessionId: string;
+  authSession: Session;
 }
 
-export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
+export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) => {
   const { AuthModal, showModal } = useAuthModal({ sessionId });
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -54,6 +57,20 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
     }
   }, [scrollToBuilder, handleScrollToQRGenerationBlock]);
 
+  const handleOpenLogin = useCallback(async () => {
+    const existingSession = await getSession();
+    console.log("existingSession", existingSession);
+    if (existingSession?.user) {
+      router.push('/workspaces');
+      return;
+    }
+    showModal("login");
+  }, [showModal, router]);
+
+  const handleOpenMyQRCodes = useCallback(() => {
+    router.push('/workspaces');
+  }, [router]);
+
   return (
     <>
       <header className="border-border sticky left-0 right-0 top-0 z-50 h-[52px] border-b bg-white backdrop-blur-lg md:h-16">
@@ -65,20 +82,32 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId }) => {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => showModal("login")}
-              text="Log In"
-              className="text-base font-medium"
-            />
+            {!authSession?.user ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={handleOpenLogin}
+                  text="Log In"
+                  className="text-base font-medium"
+                />
 
-            <Button
-              variant="primary"
-              color="blue"
-              onClick={handleScrollToQRGenerationBlock}
-              text="Create QR code"
-              className="hidden text-base font-medium sm:block"
-            />
+                <Button
+                  variant="primary"
+                  color="blue"
+                  onClick={handleScrollToQRGenerationBlock}
+                  text="Create QR code"
+                  className="hidden text-base font-medium sm:block"
+                />
+              </>
+            ) : (
+              <Button
+                variant="primary"
+                color="blue"
+                onClick={handleOpenMyQRCodes}
+                text="My QR Codes"
+                className="text-base font-medium"
+              />
+            )}
           </div>
         </nav>
       </header>

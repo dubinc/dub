@@ -196,7 +196,8 @@ export const VALID_ANALYTICS_FILTERS = [
 
 export const TRIGGER_DISPLAY = {
   qr: "QR Scan",
-  link: "Link Click",
+  // link: "Link Click",
+  link: "QR Scan",
 };
 export const TRIGGER_TYPES = ["qr", "link"] as const;
 
