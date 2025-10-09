@@ -48,7 +48,7 @@ async function main() {
 
       for (const customer of customersToImport) {
         const invoices = await stripeAppClient({
-          livemode: true,
+          mode: "live",
         }).invoices.list(
           {
             customer: customer.stripeCustomerId,
