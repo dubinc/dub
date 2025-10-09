@@ -44,7 +44,7 @@ export const HostnameSection = ({ className }: { className?: string }) => {
             <h2 className="text-content-emphasis flex-1 text-sm font-semibold">
               Allowed hostnames
             </h2>
-            <InfoTooltip content="Add additional domains you own to track clicks to." />
+            <InfoTooltip content="Allowlist domains that you want to allow client-side click tracking on." />
           </div>
 
           <Button

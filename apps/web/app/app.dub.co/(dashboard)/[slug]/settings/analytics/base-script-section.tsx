@@ -4,7 +4,7 @@ import { LockSmall, Switch } from "@dub/ui";
 import { useId } from "react";
 import { HostnameSection } from "./hostname-section";
 
-const BaseScriptSection = () => {
+export function BaseScriptSection() {
   const id = useId();
 
   return (
@@ -42,6 +42,4 @@ const BaseScriptSection = () => {
       <HostnameSection className="border-t border-neutral-200" />
     </div>
   );
-};
-
-export default BaseScriptSection;
+}

@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { useId } from "react";
 import { toast } from "sonner";
 
-export const SiteVisitTrackingSection = () => {
+export function SiteVisitTrackingSection() {
   const id = useId();
 
   const [enabled, setEnabled, { loading }] = useWorkspaceStore<boolean>(
@@ -104,4 +104,4 @@ export const SiteVisitTrackingSection = () => {
       </motion.div>
     </div>
   );
-};
+}

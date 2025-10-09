@@ -7,14 +7,14 @@ import { guides as allGuides } from "@/ui/guides/integrations";
 import { GuidesMarkdown } from "@/ui/guides/markdown";
 import { useSelectedGuide } from "./use-selected-guide";
 
-const TrackLeadsGuidesSection = () => {
+export function TrackLeadsGuidesSection() {
   const guides = allGuides.filter((guide) => guide.type === "track-lead");
   const { selectedGuide, setSelectedGuide } = useSelectedGuide({ guides });
 
   const { loading, guideMarkdown } = useGuide(selectedGuide.key);
 
-  let button;
-  let content;
+  let button: React.ReactNode;
+  let content: React.ReactNode;
 
   if (loading) {
     content = (
@@ -59,6 +59,4 @@ const TrackLeadsGuidesSection = () => {
       </div>
     </div>
   );
-};
-
-export default TrackLeadsGuidesSection;
+}

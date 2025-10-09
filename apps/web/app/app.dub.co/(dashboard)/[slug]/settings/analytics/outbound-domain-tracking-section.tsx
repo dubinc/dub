@@ -4,7 +4,7 @@ import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { Switch } from "@dub/ui";
 import { useId } from "react";
 
-const OutboundDomainTrackingSection = () => {
+export function OutboundDomainTrackingSection() {
   const id = useId();
 
   const [enabled, setEnabled, { loading }] = useWorkspaceStore<boolean>(
@@ -50,6 +50,4 @@ const OutboundDomainTrackingSection = () => {
       </div>
     </div>
   );
-};
-
-export default OutboundDomainTrackingSection;
+}

@@ -7,7 +7,7 @@ import { motion } from "motion/react";
 import { useEffect, useId } from "react";
 import { PublishableKeyForm } from "./publishable-key-form";
 
-const ConversionTrackingSection = () => {
+export function ConversionTrackingSection() {
   const id = useId();
 
   const { publishableKey } = useWorkspace();
@@ -84,6 +84,4 @@ const ConversionTrackingSection = () => {
       </motion.div>
     </div>
   );
-};
-
-export default ConversionTrackingSection;
+}

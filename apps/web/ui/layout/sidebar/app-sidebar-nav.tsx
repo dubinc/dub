@@ -478,12 +478,7 @@ export function AppSidebarNav({
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : // hacky fix for guides because slug is undefined at render time
-          // TODO: remove when we migrate to Next.js 15 + PPR
-          pathname.endsWith("/guides") ||
-            pathname.includes("/guides/") ||
-            pathname.includes("/program/messages/") ||
-            // this one is for the payout success page
+        : pathname.includes("/program/messages/") ||
             pathname.endsWith("/program/payouts/success")
           ? null
           : pathname.startsWith(`/${slug}/program`)

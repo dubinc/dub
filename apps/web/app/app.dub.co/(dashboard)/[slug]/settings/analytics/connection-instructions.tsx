@@ -7,7 +7,7 @@ import { GuidesMarkdown } from "@/ui/guides/markdown";
 import { useDynamicGuide } from "./use-dynamic-guide";
 import { useSelectedGuide } from "./use-selected-guide";
 
-const ConnectionInstructions = () => {
+export function ConnectionInstructions() {
   const guides = allGuides.filter((guide) => guide.type === "client-sdk");
   const { selectedGuide, setSelectedGuide } = useSelectedGuide({ guides });
 
@@ -15,8 +15,8 @@ const ConnectionInstructions = () => {
     guide: selectedGuide.key,
   });
 
-  let button;
-  let content;
+  let button: React.ReactNode;
+  let content: React.ReactNode;
 
   if (loading) {
     content = (
@@ -61,6 +61,4 @@ const ConnectionInstructions = () => {
       </div>
     </div>
   );
-};
-
-export default ConnectionInstructions;
+}

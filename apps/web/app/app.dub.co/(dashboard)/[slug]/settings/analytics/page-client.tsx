@@ -3,15 +3,15 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { AnimatedSizeContainer, useRouterStuff } from "@dub/ui";
-import BaseScriptSection from "./base-script-section";
+import { BaseScriptSection } from "./base-script-section";
 import { CompleteStepButton } from "./complete-step-button";
-import ConnectionInstructions from "./connection-instructions";
-import ConversionTrackingSection from "./conversion-tracking-section";
-import OutboundDomainTrackingSection from "./outbound-domain-tracking-section";
+import { ConnectionInstructions } from "./connection-instructions";
+import { ConversionTrackingSection } from "./conversion-tracking-section";
+import { OutboundDomainTrackingSection } from "./outbound-domain-tracking-section";
 import { SiteVisitTrackingSection } from "./site-visit-tracking-section";
 import Step, { BaseStepProps, type Step as StepType } from "./step";
-import TrackLeadsGuidesSection from "./track-lead-guides-section";
-import TrackSalesGuidesSection from "./track-sales-guides-section";
+import { TrackLeadsGuidesSection } from "./track-lead-guides-section";
+import { TrackSalesGuidesSection } from "./track-sales-guides-section";
 
 const ConnectStep = ({
   expanded,
