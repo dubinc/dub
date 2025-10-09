@@ -1,15 +1,16 @@
-import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { WorkflowConditionAttribute, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
+import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import { prisma } from "@dub/prisma";
-import { Workflow } from "@dub/prisma/client";
+import { Role, Workflow } from "@dub/prisma/client";
 import { createId } from "../create-id";
+import { getWorkspaceUsers } from "../get-workspace-users";
 import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
-export const executeAwardBountyWorkflow = async ({
+export const executeCompleteBountyWorkflow = async ({
   workflow,
   context,
 }: {
@@ -88,12 +89,16 @@ export const executeAwardBountyWorkflow = async ({
     }
   }
 
-  // Check if the partner's submission has already been approved
-  if (submissions.length > 0 && submissions[0].status === "approved") {
-    console.log(
-      `Partner ${partnerId} has already been awarded this bounty (bountyId: ${bounty.id}, submissionId: ${submissions[0].id}).`,
-    );
-    return;
+  if (submissions.length > 0) {
+    const submission = submissions[0];
+
+    if (submission.status === "submitted" || submission.status === "approved") {
+      console.log(
+        `Partner ${partnerId} has already ${submission.status === "submitted" ? "finished" : "been awarded"} this bounty (bountyId: ${bounty.id}, submissionId: ${submissions[0].id}).`,
+      );
+
+      return;
+    }
   }
 
   console.log(
@@ -157,32 +162,14 @@ export const executeAwardBountyWorkflow = async ({
     return;
   }
 
-  // Create the commission for the partner
-  const { commission } = await createPartnerCommission({
-    event: "custom",
-    partnerId,
-    programId: bounty.programId,
-    amount: bounty.rewardAmount,
-    quantity: 1,
-    description: `Commission for successfully completed "${bounty.name}" bounty.`,
-    skipWorkflow: true,
-  });
-
-  if (!commission) {
-    console.error(
-      `Failed to create commission for partner ${partnerId} in program ${bounty.programId} for bounty ${bounty.id}.`,
-    );
-    return;
-  }
-
-  // Update the bounty submission
+  // Mark the bounty as submitted
   const { partner } = await prisma.bountySubmission.update({
     where: {
       id: bountySubmission.id,
+      status: "draft",
     },
     data: {
-      commissionId: commission.id,
-      status: "approved",
+      status: "submitted",
     },
     include: {
       partner: true,
@@ -206,5 +193,41 @@ export const executeAwardBountyWorkflow = async ({
         },
       }),
     });
+
+    // Send email to the program owners
+    // TODO: combine with what we're doing on createBountySubmissionAction maybe?
+    const { users, program, ...workspace } = await getWorkspaceUsers({
+      programId: bounty.programId,
+      role: Role.owner,
+      notificationPreference: "newBountySubmitted",
+    });
+
+    if (users.length > 0) {
+      await sendBatchEmail(
+        users.map((user) => ({
+          variant: "notifications",
+          to: user.email,
+          subject: "New bounty submission",
+          react: NewBountySubmission({
+            email: user.email,
+            workspace: {
+              slug: workspace.slug,
+            },
+            bounty: {
+              id: bounty.id,
+              name: bounty.name,
+            },
+            partner: {
+              name: partner.name,
+              image: partner.image,
+              email: partner.email!,
+            },
+            submission: {
+              id: bountySubmission.id,
+            },
+          }),
+        })),
+      );
+    }
   }
 };
