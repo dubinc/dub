@@ -1,5 +1,8 @@
 import z from "@/lib/zod";
-import { HUBSPOT_OBJECT_TYPE_IDS } from "./constants";
+import {
+  HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID,
+  HUBSPOT_OBJECT_TYPE_IDS,
+} from "./constants";
 
 // Authentication
 export const hubSpotAuthTokenSchema = z.object({
@@ -13,9 +16,23 @@ export const hubSpotAuthTokenSchema = z.object({
 
 // Integration settings
 export const hubSpotSettingsSchema = z.object({
+  leadTriggerEvent: z
+    .enum(["lifecycleStageReached", "dealCreated"])
+    .nullish()
+    .default("dealCreated")
+    .describe(
+      "Indicates which event should trigger the final lead tracking for the contact.",
+    ),
+  leadLifecycleStageId: z
+    .string()
+    .nullish()
+    .describe(
+      "The ID of the contact lifecycle stage that represents a lead. Applicable only if leadTrackingTrigger is 'lifecycleStageReached'.",
+    ),
   closedWonDealStageId: z
     .string()
     .nullish()
+    .default(HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID)
     .describe("The ID of the deal stage that represents a closed won deal."),
 });
 
@@ -67,6 +84,6 @@ export const hubSpotLeadEventSchema = z.object({
 export const hubSpotSaleEventSchema = z.object({
   objectId: z.number(),
   subscriptionType: z.literal("object.propertyChange"),
-  propertyName: z.literal("dealstage"),
-  propertyValue: z.string(), // eg: closedwon
+  propertyName: z.enum(["lifecyclestage", "dealstage"]),
+  propertyValue: z.string(),
 });
