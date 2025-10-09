@@ -107,6 +107,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         content_value: "card",
+        content_group: "my_qr_codes",
         element_name: "payment_modal",
         email: user?.email,
         event_category: "Authorized",
@@ -118,6 +119,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         element_name: "card",
+        content_group: "my_qr_codes",
         email: user?.email,
         event_category: "Authorized",
       },
