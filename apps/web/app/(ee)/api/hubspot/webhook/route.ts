@@ -53,7 +53,7 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
 
     // HS send multiple events in the same request
     // so we need to process each event individually
-    await Promise.allSettled(payload.reverse().map(processWebhookEvent));
+    await Promise.allSettled(payload.map(processWebhookEvent));
 
     return NextResponse.json({ message: "Webhook received." });
   } catch (error) {
