@@ -43,22 +43,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     isSubmitting: isSavingDraftCampaign,
   } = useApiMutation<Campaign>();
 
-  useEffect(() => {
-    console.log({
-      defaultValues: {
-        type: campaign.type,
-        name: campaign.name,
-        subject: campaign.subject,
-        body: campaign.body,
-        groupIds: campaign.groups.map(({ id }) => id),
-        triggerCondition: campaign.triggerCondition ?? {
-          attribute: "partnerEnrolledDays",
-          value: 1,
-        },
-      },
-    });
-  }, []);
-
   const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
       type: campaign.type,
@@ -81,8 +65,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     reset,
     formState: { isDirty, dirtyFields },
   } = form;
-
-  console.log({ isDirty, dirtyFields, values: getValues() });
 
   const handleSaveCampaign = useCallback(
     async (isDraft: boolean = false, showSuccessToast: boolean = false) => {
