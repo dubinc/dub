@@ -312,7 +312,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
           </div>
         </PageWidthWrapper>
         {/* Spacer to push action bar to bottom */}
-        <div className="grow" />
+        <div className="min-h-16 grow" />
 
         <CampaignActionBar
           campaignStatus={campaign.status}
