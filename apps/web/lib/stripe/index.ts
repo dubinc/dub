@@ -9,17 +9,15 @@ export const stripe = new Stripe(`${process.env.STRIPE_SECRET_KEY}`, {
   },
 });
 
-// Stripe Integration App client
-export const stripeAppClient = ({ mode = "live" }: { mode?: StripeMode }) => {
-  let appSecretKey: string | undefined;
+const secretMap: Record<StripeMode, string | undefined> = {
+  live: process.env.STRIPE_APP_SECRET_KEY,
+  test: process.env.STRIPE_APP_SECRET_KEY_TEST,
+  sandbox: process.env.STRIPE_APP_SECRET_KEY_SANDBOX,
+};
 
-  if (mode === "test") {
-    appSecretKey = process.env.STRIPE_APP_SECRET_KEY_TEST;
-  } else if (mode === "sandbox") {
-    appSecretKey = process.env.STRIPE_APP_SECRET_KEY_SANDBOX;
-  } else {
-    appSecretKey = process.env.STRIPE_APP_SECRET_KEY;
-  }
+// Stripe Integration App client
+export const stripeAppClient = ({ mode }: { mode?: StripeMode }) => {
+  const appSecretKey = secretMap[mode ?? "test"];
 
   return new Stripe(appSecretKey!, {
     apiVersion: "2025-05-28.basil",
