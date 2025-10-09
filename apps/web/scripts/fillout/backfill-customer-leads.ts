@@ -19,7 +19,7 @@ let leadsToBackfill: {
 // script to backfill customers + leads
 // we also use a batching logic for tinybird events ingestion
 async function main() {
-  Papa.parse(fs.createReadStream("fillout-customers.csv", "utf-8"), {
+  Papa.parse(fs.createReadStream("fillout-customers-updated.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
     step: (result: {
