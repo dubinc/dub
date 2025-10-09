@@ -651,3 +651,5 @@ export type BountySubmissionsQueryFilters = z.infer<
 >;
 
 export type Message = z.infer<typeof MessageSchema>;
+
+export type StripeMode = "test" | "sandbox" | "live";

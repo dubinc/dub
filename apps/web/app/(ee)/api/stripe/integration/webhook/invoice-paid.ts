@@ -4,7 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
-import { WebhookPartner } from "@/lib/types";
+import { StripeMode, WebhookPartner } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
@@ -16,7 +16,7 @@ import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
-export async function invoicePaid(event: Stripe.Event) {
+export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
   const invoice = event.data.object as Stripe.Invoice;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string;
@@ -34,7 +34,7 @@ export async function invoicePaid(event: Stripe.Event) {
     const connectedCustomer = await getConnectedCustomer({
       stripeCustomerId,
       stripeAccountId,
-      livemode: event.livemode,
+      mode,
     });
 
     const dubCustomerExternalId = connectedCustomer?.metadata.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
