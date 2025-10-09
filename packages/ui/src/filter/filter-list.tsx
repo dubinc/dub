@@ -14,6 +14,7 @@ type FilterListProps = {
   }[];
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onRemoveAll: () => void;
+  onSelect?: (arg1: Filter['key']) => void;
   className?: string;
 };
 
@@ -22,6 +23,7 @@ export function FilterList({
   activeFilters,
   onRemove,
   onRemoveAll,
+  onSelect,
   className,
 }: FilterListProps) {
   useKeyboardShortcut("Escape", onRemoveAll, { priority: 1 });
@@ -89,6 +91,7 @@ export function FilterList({
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center divide-x rounded-md border border-neutral-200 bg-white text-sm text-black"
+                    onClick={() => onSelect?.(filter.key)}
                   >
                     {/* Filter */}
                     <div className="flex items-center gap-2.5 px-3 py-2">
