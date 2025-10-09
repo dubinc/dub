@@ -13,6 +13,9 @@ export default function useCampaign() {
       ? `/api/campaigns/${campaignId}?workspaceId=${workspaceId}`
       : undefined,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   return {
