@@ -3,9 +3,10 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { CampaignList } from "@/lib/types";
+import { Campaign, CampaignList } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
+import { CampaignStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
   Button,
@@ -33,6 +34,7 @@ import { Command } from "cmdk";
 import { Mail, Pause, Play } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
 import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
 import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
@@ -300,6 +302,9 @@ function RowMenuButton({
     isSubmitting: isDuplicatingCampaign,
   } = useApiMutation<{ id: string }>();
 
+  const { makeRequest: updateCampaign, isSubmitting: isUpdatingCampaign } =
+    useApiMutation<Campaign>();
+
   const handleCampaignDuplication = async () => {
     await duplicateCampaign(`/api/campaigns/${campaign.id}/duplicate`, {
       method: "POST",
@@ -310,7 +315,24 @@ function RowMenuButton({
     });
   };
 
+  const handlePauseResume = async () => {
+    const newStatus = isPaused ? CampaignStatus.active : CampaignStatus.paused;
+    const actionText = isPaused ? "resumed" : "paused";
+
+    await updateCampaign(`/api/campaigns/${campaign.id}`, {
+      method: "PATCH",
+      body: {
+        status: newStatus,
+      },
+      onSuccess: async () => {
+        await mutatePrefix("/api/campaigns");
+        toast.success(`Email campaign ${actionText}!`);
+      },
+    });
+  };
+
   const isPaused = campaign.status === "paused";
+  const isDraft = campaign.status === "draft";
 
   return (
     <>
@@ -330,19 +352,18 @@ function RowMenuButton({
                 Duplicate
               </MenuItem>
 
-              <MenuItem
-                icon={isPaused ? Play : Pause}
-                variant="default"
-                onClick={() => {
-                  // TODO: Implement pause/resume functionality
-                  console.log(
-                    `${isPaused ? "Resume" : "Pause"} campaign:`,
-                    campaign.id,
-                  );
-                }}
-              >
-                {isPaused ? "Resume" : "Pause"}
-              </MenuItem>
+              {!isDraft && (
+                <MenuItem
+                  icon={
+                    isUpdatingCampaign ? LoadingCircle : isPaused ? Play : Pause
+                  }
+                  variant="default"
+                  onClick={handlePauseResume}
+                  disabled={isUpdatingCampaign || isDuplicatingCampaign}
+                >
+                  {isPaused ? "Resume" : "Pause"}
+                </MenuItem>
+              )}
 
               <MenuItem
                 icon={Trash}
