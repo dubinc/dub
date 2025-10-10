@@ -203,7 +203,8 @@ export type RoleProps = (typeof roles)[number];
 export type BetaFeatures =
   | "noDubLink"
   | "abTesting"
-  | "analyticsSettingsSiteVisitTracking";
+  | "analyticsSettingsSiteVisitTracking"
+  | "emailCampaigns";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;

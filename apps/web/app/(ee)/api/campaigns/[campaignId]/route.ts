@@ -1,8 +1,6 @@
 import { createId } from "@/lib/api/create-id";
-import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { withWorkspace } from "@/lib/auth";
@@ -28,16 +26,6 @@ export const GET = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-    if (!program.campaignsEnabledAt)
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Campaigns are not enabled for this program.",
-      });
-
     const campaign = await prisma.campaign.findUniqueOrThrow({
       where: {
         id: campaignId,
@@ -59,6 +47,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    featureFlag: "emailCampaigns",
   },
 );
 
@@ -67,16 +56,6 @@ export const PATCH = withWorkspace(
   async ({ workspace, params, req }) => {
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-    if (!program.campaignsEnabledAt)
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Campaigns are not enabled for this program.",
-      });
 
     const { type, name, subject, status, body, groupIds, triggerCondition } =
       updateCampaignSchema.parse(await parseRequestBody(req));
@@ -208,6 +187,7 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    featureFlag: "emailCampaigns",
   },
 );
 
@@ -216,16 +196,6 @@ export const DELETE = withWorkspace(
   async ({ workspace, params }) => {
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-    if (!program.campaignsEnabledAt)
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Campaigns are not enabled for this program.",
-      });
 
     const campaign = await prisma.campaign.findUniqueOrThrow({
       where: {
@@ -278,5 +248,6 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    featureFlag: "emailCampaigns",
   },
 );

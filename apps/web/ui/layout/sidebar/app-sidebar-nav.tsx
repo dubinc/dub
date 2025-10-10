@@ -70,7 +70,7 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
-  campaignsEnabled?: boolean;
+  emailCampaignsEnabled?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -204,7 +204,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     partnerNetworkEnabled,
-    campaignsEnabled,
+    emailCampaignsEnabled,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -300,7 +300,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         name: "Engagement",
         items: [
-          ...(campaignsEnabled
+          ...(emailCampaignsEnabled
             ? [
                 {
                   name: "Email Campaigns",
@@ -484,7 +484,7 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { plan, defaultProgramId } = useWorkspace();
+  const { plan, defaultProgramId, flags } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
@@ -558,7 +558,7 @@ export function AppSidebarNav({
         showConversionGuides: canTrackConversions && customersCount === 0,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
-        campaignsEnabled: program && program.campaignsEnabledAt !== null,
+        emailCampaignsEnabled: flags?.emailCampaigns,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}

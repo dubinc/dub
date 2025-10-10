@@ -54,7 +54,6 @@ model Program {
   autoApprovePartnersEnabledAt DateTime?
   messagingEnabledAt           DateTime?
   partnerNetworkEnabledAt      DateTime?
-  campaignsEnabledAt           DateTime?
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
 

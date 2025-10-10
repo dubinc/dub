@@ -1,8 +1,6 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns";
 import { createId } from "@/lib/api/create-id";
-import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { withWorkspace } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
@@ -14,16 +12,6 @@ export const POST = withWorkspace(
   async ({ workspace, session, params }) => {
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-    if (!program.campaignsEnabledAt)
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Campaigns are not enabled for this program.",
-      });
 
     const campaign = await prisma.campaign.findUniqueOrThrow({
       where: {
@@ -83,5 +71,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    featureFlag: "emailCampaigns",
   },
 );

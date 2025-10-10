@@ -1,7 +1,6 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns";
 import { getCampaigns } from "@/lib/api/campaigns/get-campaigns";
 import { createId } from "@/lib/api/create-id";
-import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -19,16 +18,6 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-    if (!program.campaignsEnabledAt)
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Campaigns are not enabled for this program.",
-      });
-
     const campaigns = await getCampaigns({
       ...getCampaignsQuerySchema.parse(searchParams),
       programId,
@@ -38,6 +27,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    featureFlag: "emailCampaigns",
   },
 );
 
@@ -50,11 +40,6 @@ export const POST = withWorkspace(
       workspaceId: workspace.id,
       programId,
     });
-    if (!program.campaignsEnabledAt)
-      throw new DubApiError({
-        code: "forbidden",
-        message: "Campaigns are not enabled for this program.",
-      });
 
     const { type } = createCampaignSchema.parse(await parseRequestBody(req));
 
@@ -77,5 +62,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    featureFlag: "emailCampaigns",
   },
 );
