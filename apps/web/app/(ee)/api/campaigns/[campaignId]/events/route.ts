@@ -1,8 +1,8 @@
 import { getCampaignEvents } from "@/lib/api/campaigns/get-campaign-events";
+import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { getCampaignsEventsQuerySchema } from "@/lib/zod/schemas/campaigns";
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/campaigns/[campaignId]/events
@@ -11,11 +11,9 @@ export const GET = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await prisma.campaign.findUniqueOrThrow({
-      where: {
-        id: campaignId,
-        programId,
-      },
+    await getCampaignOrThrow({
+      programId,
+      campaignId,
     });
 
     const events = await getCampaignEvents({

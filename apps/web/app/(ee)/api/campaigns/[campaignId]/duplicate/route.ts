@@ -1,4 +1,5 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns/constants";
+import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
@@ -13,15 +14,11 @@ export const POST = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const campaign = await prisma.campaign.findUniqueOrThrow({
-      where: {
-        id: campaignId,
-        programId,
-      },
-      include: {
-        workflow: true,
-        groups: true,
-      },
+    const campaign = await getCampaignOrThrow({
+      programId,
+      campaignId,
+      includeWorkflow: true,
+      includeGroups: true,
     });
 
     const duplicatedCampaign = await prisma.$transaction(async (tx) => {

@@ -1,3 +1,4 @@
+import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -21,15 +22,11 @@ export const GET = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const campaign = await prisma.campaign.findUniqueOrThrow({
-      where: {
-        id: campaignId,
-        programId,
-      },
-      include: {
-        groups: true,
-        workflow: true,
-      },
+    const campaign = await getCampaignOrThrow({
+      programId,
+      campaignId,
+      includeWorkflow: true,
+      includeGroups: true,
     });
 
     const parsedCampaign = CampaignSchema.parse({
@@ -55,15 +52,11 @@ export const PATCH = withWorkspace(
     const { name, subject, status, bodyJson, groupIds, triggerCondition } =
       updateCampaignSchema.parse(await parseRequestBody(req));
 
-    const campaign = await prisma.campaign.findUniqueOrThrow({
-      where: {
-        id: campaignId,
-        programId,
-      },
-      include: {
-        groups: true,
-        workflow: true,
-      },
+    const campaign = await getCampaignOrThrow({
+      programId,
+      campaignId,
+      includeWorkflow: true,
+      includeGroups: true,
     });
 
     // if groupIds is provided and is different from the current groupIds, update the groups
@@ -153,14 +146,10 @@ export const DELETE = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const campaign = await prisma.campaign.findUniqueOrThrow({
-      where: {
-        id: campaignId,
-        programId,
-      },
-      include: {
-        workflow: true,
-      },
+    const campaign = await getCampaignOrThrow({
+      programId,
+      campaignId,
+      includeWorkflow: true,
     });
 
     await prisma.$transaction(async (tx) => {
