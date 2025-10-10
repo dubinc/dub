@@ -46,8 +46,6 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
 
   const [clientToken, setClientToken] = useState<string | null>(null);
 
-  const [isRedirecting, setIsRedirecting] = useState(false);
-
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const memoizedQrData = useMemo(() => {
     return firstQr
@@ -143,7 +141,6 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
     });
 
     showMessage("Account created! Redirecting to dashboard...", "success");
-    setIsRedirecting(true);
 
     const response = await signIn("credentials", {
       email: user?.email,
@@ -152,7 +149,9 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
     });
 
     if (response?.ok) {
-      router.push(`/${slugify(user!.email!)}?onboarded=true`);
+      router.push(
+        `/${slugify(user!.email!)}?onboarded=true${firstQr ? "&displayFirstQr=true" : ""}`,
+      );
     } else {
       showMessage(
         "Failed to sign in with credentials. Please try again or contact support.",
