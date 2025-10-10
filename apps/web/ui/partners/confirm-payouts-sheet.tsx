@@ -58,7 +58,7 @@ type SelectPaymentMethod =
     fastSettlement: boolean;
   };
 
-function PayoutInvoiceSheetContent() {
+function ConfirmPayoutsSheetContent() {
   const router = useRouter();
   const {
     id: workspaceId,
@@ -81,6 +81,10 @@ function PayoutInvoiceSheetContent() {
   const [cutoffPeriod, setCutoffPeriod] =
     useState<CUTOFF_PERIOD_TYPES>("today");
 
+  const { queryParams, searchParamsObj } = useRouterStuff();
+
+  const selectedPayoutId = searchParamsObj.selectedPayoutId || undefined;
+
   const {
     data: eligiblePayouts,
     error: eligiblePayoutsError,
@@ -89,19 +93,23 @@ function PayoutInvoiceSheetContent() {
     `/api/programs/${defaultProgramId}/payouts/eligible?${new URLSearchParams({
       workspaceId,
       cutoffPeriod,
+      ...(selectedPayoutId && { selectedPayoutId }),
     } as Record<string, any>).toString()}`,
     fetcher,
   );
 
-  const [excludedPayoutIds, setExcludedPayoutIds] = useState<string[]>([]);
+  const excludedPayoutIds =
+    searchParamsObj.excludedPayoutIds?.split(",").filter(Boolean) || [];
 
-  const includedPayouts = useMemo(
-    () =>
-      eligiblePayouts?.filter(
-        (payout) => !excludedPayoutIds.includes(payout.id),
-      ),
-    [eligiblePayouts, excludedPayoutIds],
-  );
+  const finalEligiblePayouts = useMemo(() => {
+    // if there's a selected payout id, return the payout directly
+    if (selectedPayoutId) return eligiblePayouts;
+
+    // else, we need to filter out the excluded payout ids (if specified)
+    return eligiblePayouts?.filter(
+      (payout) => !excludedPayoutIds.includes(payout.id),
+    );
+  }, [eligiblePayouts, selectedPayoutId, excludedPayoutIds]);
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
     onError({ error }) {
@@ -215,7 +223,7 @@ function PayoutInvoiceSheetContent() {
   }, [finalPaymentMethods, selectedPaymentMethod]);
 
   const { amount, fee, total, fastAchFee } = useMemo(() => {
-    const amount = includedPayouts?.reduce((acc, payout) => {
+    const amount = finalEligiblePayouts?.reduce((acc, payout) => {
       return acc + payout.amount;
     }, 0);
 
@@ -241,7 +249,7 @@ function PayoutInvoiceSheetContent() {
       total,
       fastAchFee,
     };
-  }, [includedPayouts, selectedPaymentMethod]);
+  }, [finalEligiblePayouts, selectedPaymentMethod]);
 
   const invoiceData = useMemo(() => {
     return [
@@ -430,31 +438,40 @@ function PayoutInvoiceSheetContent() {
             <div className="relative">
               <span
                 className={cn(
-                  "group-hover/row:opacity-0",
+                  !selectedPayoutId && "group-hover/row:opacity-0",
                   excludedPayoutIds.includes(row.original.id) && "line-through",
                 )}
               >
                 {currencyFormatter(row.original.amount / 100)}
               </span>
-              <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
-                <Button
-                  variant="secondary"
-                  text={
-                    excludedPayoutIds.includes(row.original.id)
-                      ? "Include"
-                      : "Exclude"
-                  }
-                  className="h-6 w-fit px-2"
-                  onClick={() =>
-                    // Toggle excluded
-                    setExcludedPayoutIds((ids) =>
-                      ids.includes(row.original.id)
-                        ? ids.filter((id) => id !== row.original.id)
-                        : [...ids, row.original.id],
-                    )
-                  }
-                />
-              </div>
+              {!selectedPayoutId && (
+                <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
+                  <Button
+                    variant="secondary"
+                    text={
+                      excludedPayoutIds.includes(row.original.id)
+                        ? "Include"
+                        : "Exclude"
+                    }
+                    className="h-6 w-fit px-2"
+                    onClick={() =>
+                      // Toggle excluded
+                      queryParams({
+                        set: {
+                          excludedPayoutIds: excludedPayoutIds.includes(
+                            row.original.id,
+                          )
+                            ? excludedPayoutIds.filter(
+                                (id) => id !== row.original.id,
+                              )
+                            : [...excludedPayoutIds, row.original.id],
+                        },
+                        replace: true,
+                      })
+                    }
+                  />
+                </div>
+              )}
             </div>
           </>
         ),
@@ -558,6 +575,7 @@ function PayoutInvoiceSheetContent() {
               paymentMethodId: selectedPaymentMethod.id.replace("-fast", ""),
               fastSettlement: selectedPaymentMethod.fastSettlement,
               cutoffPeriod,
+              selectedPayoutId,
               excludedPayoutIds,
               amount: amount ?? 0,
               fee: fee ?? 0,
@@ -660,7 +678,7 @@ function FastAchPayoutToggle() {
   );
 }
 
-export function PayoutInvoiceSheet() {
+export function ConfirmPayoutsSheet() {
   const { queryParams } = useRouterStuff();
   const [isOpen, setIsOpen] = useState(false);
   const { searchParams } = useRouterStuff();
@@ -681,11 +699,11 @@ export function PayoutInvoiceSheet() {
       onOpenChange={setIsOpen}
       onClose={() => {
         queryParams({
-          del: "confirmPayouts",
+          del: ["confirmPayouts", "selectedPayoutId", "excludedPayoutIds"],
         });
       }}
     >
-      <PayoutInvoiceSheetContent />
+      <ConfirmPayoutsSheetContent />
     </Sheet>
   );
 }
