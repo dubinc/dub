@@ -78,31 +78,56 @@ export const SUGGESTED_LOGOS: IStyleOption[] = [
     id: "logo-website-1",
     type: "website",
     icon: WebsiteIcon1,
-    relevantFor: [EQRType.WEBSITE, EQRType.SOCIAL, EQRType.APP_LINK, EQRType.FEEDBACK],
+    relevantFor: [
+      EQRType.WEBSITE,
+      EQRType.SOCIAL,
+      EQRType.APP_LINK,
+      EQRType.FEEDBACK,
+    ],
   },
   {
     id: "logo-website-2",
     type: "website",
     icon: WebsiteIcon2,
-    relevantFor: [EQRType.WEBSITE, EQRType.SOCIAL, EQRType.APP_LINK, EQRType.FEEDBACK],
+    relevantFor: [
+      EQRType.WEBSITE,
+      EQRType.SOCIAL,
+      EQRType.APP_LINK,
+      EQRType.FEEDBACK,
+    ],
   },
   {
     id: "logo-website-3",
     type: "website",
     icon: WebsiteIcon3,
-    relevantFor: [EQRType.WEBSITE, EQRType.SOCIAL, EQRType.APP_LINK, EQRType.FEEDBACK],
+    relevantFor: [
+      EQRType.WEBSITE,
+      EQRType.SOCIAL,
+      EQRType.APP_LINK,
+      EQRType.FEEDBACK,
+    ],
   },
   {
     id: "logo-website-4",
     type: "website",
     icon: WebsiteIcon4,
-    relevantFor: [EQRType.WEBSITE, EQRType.SOCIAL, EQRType.APP_LINK, EQRType.FEEDBACK],
+    relevantFor: [
+      EQRType.WEBSITE,
+      EQRType.SOCIAL,
+      EQRType.APP_LINK,
+      EQRType.FEEDBACK,
+    ],
   },
   {
     id: "logo-link",
     type: "link",
     icon: LinkLogoIcon,
-    relevantFor: [EQRType.WEBSITE, EQRType.SOCIAL, EQRType.APP_LINK, EQRType.FEEDBACK],
+    relevantFor: [
+      EQRType.WEBSITE,
+      EQRType.SOCIAL,
+      EQRType.APP_LINK,
+      EQRType.FEEDBACK,
+    ],
   },
   // PDF logos
   {
@@ -393,10 +418,7 @@ export function getSortedLogos(qrType: EQRType | null): IStyleOption[] {
   const others: IStyleOption[] = [];
 
   SUGGESTED_LOGOS.forEach((logo) => {
-    // Always keep "none" at the beginning
-    if (logo.id === "logo-none") {
-      relevant.unshift(logo);
-    } else if (logo.relevantFor && logo.relevantFor.includes(qrType)) {
+    if (logo.relevantFor && logo.relevantFor.includes(qrType)) {
       relevant.push(logo);
     } else {
       others.push(logo);

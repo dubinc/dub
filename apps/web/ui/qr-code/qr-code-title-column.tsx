@@ -1,5 +1,6 @@
 "use client";
 
+import { Session } from "@/lib/auth";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
@@ -10,11 +11,10 @@ import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import { Tooltip, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { cn, formatDateTime, timeAgo } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
+import { useSearchParams } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useEffect, useRef } from "react";
 import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
-import { Session } from '@/lib/auth';
-import { useSearchParams } from 'next/navigation';
 
 interface QrCodeTitleColumnProps {
   user: Session["user"];
@@ -41,14 +41,15 @@ export function QrCodeTitleColumn({
   const { queryParams } = useRouterStuff();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
-    canvasRef,
-    qrCode: builtQrCodeObject,
-    qrCodeId: qrCode.id,
-    width: isMobile ? 300 : 200,
-    height: isMobile ? 300 : 200,
-    user,
-  });
+  const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } =
+    useQRPreviewModal({
+      canvasRef,
+      qrCode: builtQrCodeObject,
+      qrCodeId: qrCode.id,
+      width: isMobile ? 300 : 200,
+      height: isMobile ? 300 : 200,
+      user,
+    });
 
   useEffect(() => {
     if (qrCode.id === searchParams.get("qrId")) {

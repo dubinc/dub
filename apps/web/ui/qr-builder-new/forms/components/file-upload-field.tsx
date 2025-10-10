@@ -14,7 +14,7 @@ import {
   FileUploadItemPreview,
   FileUploadItemProgress,
   FileUploadList,
-} from "../../components/file-upload/file-upload";
+} from "../../components/file-upload";
 import { useFileUpload as useFileUploadHook } from "../../hooks/use-file-upload";
 
 interface FileUploadFieldProps {

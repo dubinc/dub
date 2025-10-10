@@ -23,7 +23,9 @@ export const StyleIcon: FC<StyleIconProps> = ({
       className={cn("object-contain transition-all", className)}
       style={{
         imageRendering: "crisp-edges",
-        filter: className?.includes("brightness-0") ? "brightness(0)" : "contrast(3) brightness(0.8)"
+        filter: className?.includes("brightness-0")
+          ? "brightness(0)"
+          : "contrast(3) brightness(0.8)",
       }}
     />
   );

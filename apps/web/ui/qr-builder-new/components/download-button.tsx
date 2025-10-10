@@ -61,7 +61,11 @@ export const DownloadButton = ({
 
   const buttonText = getButtonText();
   const isDisabled =
-    disabled || isProcessing || isFileUploading || isFileProcessing || hasUploadedLogoWithoutFileId;
+    disabled ||
+    isProcessing ||
+    isFileUploading ||
+    isFileProcessing ||
+    hasUploadedLogoWithoutFileId;
 
   return (
     <Button

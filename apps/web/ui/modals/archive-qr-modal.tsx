@@ -1,7 +1,9 @@
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
+import { X } from "@/ui/shared/icons";
 import { Button, Modal } from "@dub/ui";
 import { Flex, Text, Theme } from "@radix-ui/themes";
+import { CircleAlert } from "lucide-react";
 import {
   Dispatch,
   MouseEvent,
@@ -10,8 +12,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { X } from "@/ui/shared/icons";
-import { CircleAlert } from 'lucide-react';
 
 type ArchiveQRModalProps = {
   showArchiveQRModal: boolean;
@@ -19,7 +19,11 @@ type ArchiveQRModalProps = {
   props: QrStorageData;
 };
 
-function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: ArchiveQRModalProps) {
+function ArchiveQRModal({
+  showArchiveQRModal,
+  setShowArchiveQRModal,
+  props,
+}: ArchiveQRModalProps) {
   const { archiveQr } = useQrOperations();
   const [archiving, setArchiving] = useState(false);
 
@@ -53,7 +57,10 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
           <div className="flex w-full items-center justify-between gap-2 px-6 py-4">
             <div className="flex items-center gap-2">
               <h3 className="!mt-0 max-w-xs text-lg font-medium">
-                {props.archived ? "Are you sure you want to unpause" : "Are you sure you want to pause"} "{props.title}"?
+                {props.archived
+                  ? "Are you sure you want to unpause"
+                  : "Are you sure you want to pause"}{" "}
+                "{props.title}"?
               </h3>
             </div>
             <button
@@ -74,14 +81,17 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
                   align="center"
                   justify="center"
                   gap={{ initial: "2", lg: "3" }}
-                  className="bg-amber-50 rounded-lg p-3 lg:p-3.5"
+                  className="rounded-lg bg-amber-50 p-3 lg:p-3.5"
                 >
                   <Flex
                     direction="row"
                     align="center"
                     className="w-full gap-1.5"
                   >
-                    <CircleAlert className="text-amber-800 h-[18px] w-[18px]" strokeWidth={2} />
+                    <CircleAlert
+                      className="h-[18px] w-[18px] text-amber-800"
+                      strokeWidth={2}
+                    />
                     <Text
                       as="span"
                       size={{ initial: "1", lg: "2" }}
@@ -95,7 +105,10 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
                     align="center"
                     className="w-full gap-1.5"
                   >
-                    <CircleAlert className="text-amber-800 h-[18px] w-[18px]" strokeWidth={2} />
+                    <CircleAlert
+                      className="h-[18px] w-[18px] text-amber-800"
+                      strokeWidth={2}
+                    />
                     <Text
                       as="span"
                       size={{ initial: "1", lg: "2" }}
@@ -109,7 +122,10 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
                     align="center"
                     className="w-full gap-1.5"
                   >
-                    <CircleAlert className="text-amber-800 h-[18px] w-[18px]" strokeWidth={2} />
+                    <CircleAlert
+                      className="h-[18px] w-[18px] text-amber-800"
+                      strokeWidth={2}
+                    />
                     <Text
                       as="span"
                       size={{ initial: "1", lg: "2" }}

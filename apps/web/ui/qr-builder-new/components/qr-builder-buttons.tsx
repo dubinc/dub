@@ -48,9 +48,8 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
 
   // Check if logo upload is incomplete (on customization step)
   const isCustomizationStep = step === 3;
-  const hasUploadedLogoWithoutFileId = isCustomizationStep &&
-    logoData?.type === "uploaded" &&
-    !logoData?.fileId;
+  const hasUploadedLogoWithoutFileId =
+    isCustomizationStep && logoData?.type === "uploaded" && !logoData?.fileId;
 
   const getButtonText = useCallback(() => {
     if (isFileUploading) return "Uploading...";
@@ -95,7 +94,11 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         className="grow basis-3/4"
         onClick={onContinue}
         disabled={
-          isProcessing || isFileUploading || isFileProcessing || isTitleEmpty || hasUploadedLogoWithoutFileId
+          isProcessing ||
+          isFileUploading ||
+          isFileProcessing ||
+          isTitleEmpty ||
+          hasUploadedLogoWithoutFileId
         }
         loading={isProcessing || isFileUploading || isFileProcessing}
         text={buttonText}

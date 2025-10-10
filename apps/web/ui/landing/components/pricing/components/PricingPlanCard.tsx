@@ -3,7 +3,7 @@ import { Check } from "@dub/ui/icons";
 import { cn } from "@dub/utils/src";
 import { Card, Flex, Heading, Text } from "@radix-ui/themes";
 import { FC } from "react";
-import { PricingPlan } from '../config';
+import { PricingPlan } from "../config";
 
 interface IPricingPlanCardProps {
   plan: PricingPlan;

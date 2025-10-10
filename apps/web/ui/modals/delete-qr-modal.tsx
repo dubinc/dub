@@ -1,5 +1,6 @@
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { useQrOperations } from "@/ui/qr-code/hooks/use-qr-operations";
+import { X } from "@/ui/shared/icons";
 import { Button, Modal } from "@dub/ui";
 import { Flex, Text, Theme } from "@radix-ui/themes";
 import {
@@ -9,7 +10,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { X } from "@/ui/shared/icons";
 
 type DeleteQRModalProps = {
   showDeleteQRModal: boolean;
@@ -17,7 +17,11 @@ type DeleteQRModalProps = {
   props: QrStorageData;
 };
 
-function DeleteQRModal({ showDeleteQRModal, setShowDeleteQRModal, props }: DeleteQRModalProps) {
+function DeleteQRModal({
+  showDeleteQRModal,
+  setShowDeleteQRModal,
+  props,
+}: DeleteQRModalProps) {
   const { deleteQr } = useQrOperations();
   const [deleting, setDeleting] = useState(false);
 
@@ -69,14 +73,10 @@ function DeleteQRModal({ showDeleteQRModal, setShowDeleteQRModal, props }: Delet
                 align="center"
                 justify="center"
                 gap={{ initial: "2", lg: "3" }}
-                className="bg-red-100 rounded-lg p-3 lg:p-3.5"
+                className="rounded-lg bg-red-100 p-3 lg:p-3.5"
               >
-                <Flex
-                  direction="row"
-                  align="center"
-                  className="w-full gap-1.5"
-                >
-                  <X className="text-red-800 h-[18px] w-[18px]"/>
+                <Flex direction="row" align="center" className="w-full gap-1.5">
+                  <X className="h-[18px] w-[18px] text-red-800" />
                   <Text
                     as="span"
                     size={{ initial: "1", lg: "2" }}
@@ -85,12 +85,8 @@ function DeleteQRModal({ showDeleteQRModal, setShowDeleteQRModal, props }: Delet
                     This permanently removes the QR code.
                   </Text>
                 </Flex>
-                <Flex
-                  direction="row"
-                  align="center"
-                  className="w-full gap-1.5"
-                >
-                  <X className="text-red-800 h-[18px] w-[18px]"/>
+                <Flex direction="row" align="center" className="w-full gap-1.5">
+                  <X className="h-[18px] w-[18px] text-red-800" />
                   <Text
                     as="span"
                     size={{ initial: "1", lg: "2" }}
@@ -99,12 +95,8 @@ function DeleteQRModal({ showDeleteQRModal, setShowDeleteQRModal, props }: Delet
                     Future scans will not work.
                   </Text>
                 </Flex>
-                <Flex
-                  direction="row"
-                  align="center"
-                  className="w-full gap-1.5"
-                >
-                  <X className="text-red-800 h-[18px] w-[18px]"/>
+                <Flex direction="row" align="center" className="w-full gap-1.5">
+                  <X className="h-[18px] w-[18px] text-red-800" />
                   <Text
                     as="span"
                     size={{ initial: "1", lg: "2" }}

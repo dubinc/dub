@@ -21,7 +21,7 @@ import {
   updateUserCookieService,
 } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
-import { format, differenceInCalendarDays } from "date-fns";
+import { differenceInCalendarDays, format } from "date-fns";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
