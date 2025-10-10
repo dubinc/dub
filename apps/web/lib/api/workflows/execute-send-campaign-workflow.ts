@@ -6,7 +6,7 @@ import { prisma } from "@dub/prisma";
 import { richTextAreaExtensions } from "@dub/ui";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Workflow } from "@prisma/client";
-import { generateHTML } from "@tiptap/html";
+import { generateHTML } from "@tiptap/html/server";
 import { subDays } from "date-fns";
 import { createId } from "../create-id";
 import { parseWorkflowConfig } from "./parse-workflow-config";

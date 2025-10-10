@@ -41,6 +41,7 @@
     "@stripe/stripe-js": "^7.3.1",
     "@tanstack/react-table": "^8.17.3",
     "@team-plain/typescript-sdk": "^5.9.0",
+    "@tiptap/extension-image": "^3.0.9",
     "@tiptap/extension-mention": "^3.0.9",
     "@tiptap/html": "^3.6.5",
     "@tiptap/starter-kit": "^3.0.9",
