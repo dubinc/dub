@@ -8,7 +8,7 @@ import { workflowConditionSchema } from "./workflows";
 
 export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30];
 
-export const EMAIL_TEMPLATE_VARIABLES = ["PartnerName", "PartnerEmail"];
+export const EMAIL_TEMPLATE_VARIABLES = ["PartnerName", "PartnerEmail"] as const;
 
 export const CAMPAIGN_WORKFLOW_ATTRIBUTES = ["partnerEnrolledDays"] as const;
 

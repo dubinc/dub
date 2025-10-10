@@ -1,15 +1,11 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { renderEmailTemplate } from "@/lib/api/workflows/render-email-template";
+import { generateCampaignEmailHTML } from "@/lib/api/workflows/generate-campaign-email-html";
 import { CampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
-import Image from "@tiptap/extension-image";
-import Mention from "@tiptap/extension-mention";
-import { generateHTML } from "@tiptap/html/server";
-import StarterKit from "@tiptap/starter-kit";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -44,50 +40,15 @@ export const sendCampaignPreviewEmail = authActionClient
       },
     });
 
-    const bodyHtml = renderEmailTemplate({
-      template: generateHTML(bodyJson, [
-        StarterKit.configure({
-          heading: {
-            levels: [1, 2],
-          },
-        }),
-        Image,
-        Mention.extend({
-          renderHTML({ node }: { node: any }) {
-            return [
-              "span",
-              {
-                class:
-                  "px-1 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold",
-                "data-type": "mention",
-                "data-id": node.attrs.id,
-              },
-              `{{${node.attrs.id}}}`,
-            ];
-          },
-          renderText({ node }: { node: any }) {
-            return `{{${node.attrs.id}}}`;
-          },
-        }).configure({
-          suggestion: {
-            items: ({ query }: { query: string }) => {
-              const variables = ["PartnerName", "PartnerEmail"];
-              return variables
-                .filter((item) =>
-                  item.toLowerCase().startsWith(query.toLowerCase()),
-                )
-                .slice(0, 5);
-            },
-          },
-        }),
-      ]),
+    const bodyHtml = generateCampaignEmailHTML({
+      bodyJson,
       variables: {
         PartnerName: "Partner",
         PartnerEmail: "partner@acme.com",
       },
     });
 
-    const response = await sendBatchEmail(
+    await sendBatchEmail(
       emailAddresses.map((email) => ({
         variant: "notifications",
         to: email,
@@ -100,6 +61,4 @@ export const sendCampaignPreviewEmail = authActionClient
         }),
       })),
     );
-
-    console.log(JSON.stringify(response, null, 2));
   });

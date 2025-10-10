@@ -1,4 +1,4 @@
-import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
+import { EmailTemplateVariables } from "@/lib/types";
 
 /**
  * Renders an email template by replacing variable placeholders with actual values.
@@ -25,12 +25,7 @@ export function renderEmailTemplate({
   variables,
 }: {
   template: string;
-  variables: Partial<
-    Record<
-      (typeof EMAIL_TEMPLATE_VARIABLES)[number],
-      string | number | null | undefined
-    >
-  >;
+  variables: Partial<EmailTemplateVariables>;
 }): string {
   return template.replace(
     /{{\s*([\w.]+)(?:\|([^}]+))?\s*}}/g,

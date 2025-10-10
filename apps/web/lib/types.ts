@@ -38,6 +38,7 @@ import {
   CampaignListSchema,
   CampaignSchema,
   campaignSummarySchema,
+  EMAIL_TEMPLATE_VARIABLES,
   updateCampaignSchema,
 } from "./zod/schemas/campaigns";
 import {
@@ -672,3 +673,8 @@ export type CampaignWorkflowAttribute =
 export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
 
 export type StripeMode = "test" | "sandbox" | "live";
+
+export type EmailTemplateVariables = Record<
+  (typeof EMAIL_TEMPLATE_VARIABLES)[number],
+  string | null | undefined
+>;

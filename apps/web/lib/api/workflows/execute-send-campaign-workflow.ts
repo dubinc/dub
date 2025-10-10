@@ -3,14 +3,12 @@ import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import NewMessageFromProgram from "@dub/email/templates/new-message-from-program";
 import { prisma } from "@dub/prisma";
-import { richTextAreaExtensions } from "@dub/ui";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Workflow } from "@prisma/client";
-import { generateHTML } from "@tiptap/html/server";
 import { subDays } from "date-fns";
 import { createId } from "../create-id";
+import { generateCampaignEmailHTML } from "./generate-campaign-email-html";
 import { parseWorkflowConfig } from "./parse-workflow-config";
-import { renderEmailTemplate } from "./render-email-template";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
@@ -146,13 +144,11 @@ export const executeSendCampaignWorkflow = async ({
         senderUserId: campaign.userId,
         type: "campaign",
         subject: campaign.subject,
-        text: renderEmailTemplate({
-          template: generateHTML(
-            campaign.bodyJson as any,
-            richTextAreaExtensions,
-          ),
+        text: generateCampaignEmailHTML({
+          bodyJson: campaign.bodyJson as any,
           variables: {
             PartnerName: programEnrollment.partner.name,
+            PartnerEmail: programEnrollment.partner.email,
           },
         }),
       })),
@@ -176,13 +172,11 @@ export const executeSendCampaignWorkflow = async ({
           },
           messages: [
             {
-              text: renderEmailTemplate({
-                template: generateHTML(
-                  campaign.bodyJson as any,
-                  richTextAreaExtensions,
-                ),
+              text: generateCampaignEmailHTML({
+                bodyJson: campaign.bodyJson as any,
                 variables: {
                   PartnerName: partnerUser.partner.name,
+                  PartnerEmail: partnerUser.partner.email,
                 },
               }),
               createdAt: new Date(),

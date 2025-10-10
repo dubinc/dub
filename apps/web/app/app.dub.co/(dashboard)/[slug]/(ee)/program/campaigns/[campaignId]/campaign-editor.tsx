@@ -268,7 +268,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   editorClassName="-m-2 min-h-[200px] p-2"
                   initialValue={field.value}
                   onChange={(editor) => field.onChange(editor.getJSON())}
-                  variables={EMAIL_TEMPLATE_VARIABLES}
+                  variables={[...EMAIL_TEMPLATE_VARIABLES]}
                   uploadImage={async (file) => {
                     try {
                       const result = await executeImageUpload({
