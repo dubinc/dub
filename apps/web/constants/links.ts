@@ -24,8 +24,6 @@ export const LEGAL_LINKS = [
 
 export const GENERAL_LINKS = [
   { href: "/help", text: "Help", page_name_code: "help" },
-  // { href: "/reviews", text: "Reviews" },
-  // { href: "https://hint.app/pricing", text: "Pricing" },
 ];
 
 export const ALLOWED_REGIONS = ["au", "ca", "eu", "uk", "us"];
@@ -39,4 +37,5 @@ export const PUBLIC_ROUTES = [
   "/cookie-policy",
   "/qr-disabled",
   "/qr-complete-setup",
+  "/paywall",
 ];

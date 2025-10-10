@@ -3,10 +3,7 @@ import { Links } from "@/ui/landing/components/footer/components/links.tsx";
 import { Payments } from "@/ui/landing/components/footer/components/payments.tsx";
 import { SocialMedia } from "@/ui/landing/components/footer/components/social-media.tsx";
 import { Logo } from "@/ui/shared/logo.tsx";
-import {
-  GENERAL_LINKS,
-  LEGAL_LINKS,
-} from "app/[domain]/(public)/constants/types";
+import { GENERAL_LINKS, LEGAL_LINKS } from "constants/links";
 import { FC } from "react";
 
 interface IFooterProps {
