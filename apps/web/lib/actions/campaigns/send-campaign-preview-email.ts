@@ -39,7 +39,7 @@ export const sendCampaignPreviewEmail = authActionClient
       },
     });
 
-    const response = await sendBatchEmail(
+    await sendBatchEmail(
       emailAddresses.map((email) => ({
         variant: "notifications",
         to: email,
@@ -52,6 +52,4 @@ export const sendCampaignPreviewEmail = authActionClient
         }),
       })),
     );
-
-    console.log(response);
   });
