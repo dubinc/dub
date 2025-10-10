@@ -17,6 +17,7 @@ interface QueryResult {
   delivered: number;
   bounced: number;
   opened: number;
+  groups: { id: string }[];
 }
 
 interface GetCampaignsParams extends z.infer<typeof getCampaignsQuerySchema> {
@@ -69,7 +70,15 @@ export const getCampaigns = async ({
       COALESCE(metrics.sent, 0) AS sent,
       COALESCE(metrics.delivered, 0) AS delivered,
       COALESCE(metrics.opened, 0) AS opened,
-      COALESCE(metrics.bounced, 0) AS bounced
+      COALESCE(metrics.bounced, 0) AS bounced,
+      COALESCE(
+        (
+          SELECT JSON_ARRAYAGG(JSON_OBJECT('id', cg.groupId))
+          FROM CampaignGroup cg
+          WHERE cg.campaignId = c.id
+        ),
+        JSON_ARRAY()
+      ) AS groups
     FROM Campaign c
     LEFT JOIN (${metricsSubquery}) metrics ON c.id = metrics.campaignId
     WHERE
@@ -88,11 +97,11 @@ export const getCampaigns = async ({
     status: result.status,
     createdAt: result.createdAt,
     updatedAt: result.updatedAt,
-    partners: 0, // TODO: Fix it
     sent: Number(result.sent),
     delivered: Number(result.delivered),
     bounced: Number(result.bounced),
     opened: Number(result.opened),
+    groups: result.groups || [],
   }));
 
   return z.array(CampaignListSchema).parse(campaigns);

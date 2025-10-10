@@ -8,7 +8,10 @@ import { workflowConditionSchema } from "./workflows";
 
 export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30];
 
-export const EMAIL_TEMPLATE_VARIABLES = ["PartnerName", "PartnerEmail"] as const;
+export const EMAIL_TEMPLATE_VARIABLES = [
+  "PartnerName",
+  "PartnerEmail",
+] as const;
 
 export const CAMPAIGN_WORKFLOW_ATTRIBUTES = ["partnerEnrolledDays"] as const;
 
@@ -38,13 +41,13 @@ export const CampaignListSchema = z.object({
   name: z.string(),
   type: z.nativeEnum(CampaignType),
   status: z.nativeEnum(CampaignStatus),
-  partners: z.number(),
   delivered: z.number(),
   sent: z.number(),
   bounced: z.number(),
   opened: z.number(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  groups: z.array(GroupSchema.pick({ id: true })),
 });
 
 export const createCampaignSchema = z.object({
