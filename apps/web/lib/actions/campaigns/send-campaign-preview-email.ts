@@ -20,7 +20,7 @@ const sendPreviewEmailSchema = z
   })
   .merge(
     CampaignSchema.pick({
-      body: true,
+      bodyJson: true,
     }),
   );
 
@@ -28,9 +28,9 @@ export const sendCampaignPreviewEmail = authActionClient
   .schema(sendPreviewEmailSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { campaignId, subject, body, emailAddresses } = parsedInput;
+    const { campaignId, subject, bodyJson, emailAddresses } = parsedInput;
 
-    console.log({ campaignId, subject, body, emailAddresses });
+    console.log({ campaignId, subject, bodyJson, emailAddresses });
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -49,7 +49,7 @@ export const sendCampaignPreviewEmail = authActionClient
         react: CampaignEmail({
           campaign: {
             subject,
-            body,
+            bodyJson,
           },
         }),
       })),

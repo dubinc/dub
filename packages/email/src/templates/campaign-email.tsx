@@ -13,7 +13,7 @@ import {
 export default function CampaignEmail({
   campaign = {
     subject: "Test Subject",
-    body: {
+    bodyJson: {
       type: "doc",
       content: [],
     },
@@ -21,7 +21,7 @@ export default function CampaignEmail({
 }: {
   campaign?: {
     subject: string;
-    body: Record<string, any>;
+    bodyJson: Record<string, any>;
   };
 }) {
   return (

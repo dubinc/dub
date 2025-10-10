@@ -3,7 +3,7 @@
 import { sendCampaignPreviewEmail } from "@/lib/actions/campaigns/send-campaign-preview-email";
 import useUser from "@/lib/swr/use-user";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { Button, Modal, useEnterSubmit, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { Dispatch, SetStateAction, useState } from "react";
 import { useWatch } from "react-hook-form";
@@ -27,7 +27,10 @@ function SendEmailPreviewModal({
   const { control } = useCampaignFormContext();
   const [emailAddresses, setEmailAddresses] = useState(user?.email ?? "");
 
-  const [subject, body] = useWatch({ control, name: ["subject", "body"] });
+  const [subject, bodyJson] = useWatch({
+    control,
+    name: ["subject", "bodyJson"],
+  });
 
   const { executeAsync: sendEmailPreview, isPending } = useAction(
     sendCampaignPreviewEmail,
@@ -43,6 +46,8 @@ function SendEmailPreviewModal({
     },
   );
 
+  const { handleKeyDown } = useEnterSubmit();
+
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -55,7 +60,7 @@ function SendEmailPreviewModal({
       return;
     }
 
-    if (!subject || !body) {
+    if (!subject || !bodyJson) {
       toast.error(
         "Please ensure both subject and body are filled in the campaign form.",
       );
@@ -76,7 +81,7 @@ function SendEmailPreviewModal({
       workspaceId,
       campaignId,
       subject,
-      body,
+      bodyJson,
       emailAddresses: emails,
     });
   };
@@ -105,6 +110,7 @@ function SendEmailPreviewModal({
                 required
                 value={emailAddresses}
                 onChange={(e) => setEmailAddresses(e.target.value)}
+                onKeyDown={handleKeyDown}
                 rows={3}
                 className="border-border-subtle focus:border-border-emphasis focus:ring-border-emphasis block w-full resize-none rounded-md shadow-sm sm:text-sm"
               />
