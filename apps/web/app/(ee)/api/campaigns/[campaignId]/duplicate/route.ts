@@ -20,6 +20,7 @@ export const POST = withWorkspace(
       },
       include: {
         workflow: true,
+        groups: true,
       },
     });
 
@@ -46,6 +47,7 @@ export const POST = withWorkspace(
                 },
               },
             ],
+            disabledAt: new Date(),
           },
         });
 
@@ -63,6 +65,13 @@ export const POST = withWorkspace(
           subject: campaign.subject,
           bodyJson: campaign.bodyJson ?? DEFAULT_CAMPAIGN_BODY,
           type: campaign.type,
+          groups: {
+            createMany: {
+              data: campaign.groups.map(({ groupId }) => ({
+                groupId,
+              })),
+            },
+          },
         },
       });
     });
