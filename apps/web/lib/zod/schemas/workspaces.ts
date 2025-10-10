@@ -172,6 +172,7 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
     }),
   ),
   publishableKey: z.string().nullable(),
+  fastDirectDebitPayouts: z.boolean().default(false),
 });
 
 export const OnboardingUsageSchema = z.object({
@@ -187,4 +188,10 @@ export const workspaceStoreKeys = z.enum([
   "conversionsOnboarding", // boolean
   "dubPartnersPopupDismissed", // boolean
   "dotLinkOfferDismissed", // string
+  "analyticsSettingsConversionTrackingEnabled", // boolean
+  "analyticsSettingsSiteVisitTrackingEnabled", // boolean
+  "analyticsSettingsOutboundDomainTrackingEnabled", // boolean
+  "analyticsSettingsConnectionSetupComplete", // boolean
+  "analyticsSettingsLeadTrackingSetupComplete", // boolean
+  "analyticsSettingsSaleTrackingSetupComplete", // boolean
 ]);

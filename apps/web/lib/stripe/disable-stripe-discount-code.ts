@@ -1,7 +1,7 @@
 import { stripeAppClient } from ".";
 
 const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { livemode: true }),
+  ...(process.env.VERCEL_ENV && { mode: "live" }),
 });
 
 export async function disableStripeDiscountCode({

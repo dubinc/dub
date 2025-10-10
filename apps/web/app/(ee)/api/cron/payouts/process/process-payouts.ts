@@ -2,15 +2,16 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
+  FAST_ACH_FEE_CENTS,
   FOREX_MARKUP_RATE,
 } from "@/lib/partners/constants";
 import {
   CUTOFF_PERIOD,
   CUTOFF_PERIOD_TYPES,
 } from "@/lib/partners/cutoff-period";
-import { calculatePayoutFeeForMethod } from "@/lib/payment-methods";
 import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
+import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { PlanProps } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import { resend } from "@dub/email/resend";
@@ -32,6 +33,7 @@ export async function processPayouts({
   invoiceId,
   paymentMethodId,
   cutoffPeriod,
+  selectedPayoutId,
   excludedPayoutIds,
 }: {
   workspace: Pick<
@@ -49,6 +51,7 @@ export async function processPayouts({
   invoiceId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
+  selectedPayoutId?: string;
   excludedPayoutIds?: string[];
 }) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
@@ -57,6 +60,11 @@ export async function processPayouts({
 
   const payouts = await prisma.payout.findMany({
     where: {
+      ...(selectedPayoutId
+        ? { id: selectedPayoutId }
+        : excludedPayoutIds && excludedPayoutIds.length > 0
+          ? { id: { notIn: excludedPayoutIds } }
+          : {}),
       programId: program.id,
       status: "pending",
       invoiceId: null,
@@ -81,7 +89,6 @@ export async function processPayouts({
           },
         ],
       }),
-      ...(excludedPayoutIds && { id: { notIn: excludedPayoutIds } }),
     },
     select: {
       id: true,
@@ -130,8 +137,16 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
+  let invoice = await prisma.invoice.findUniqueOrThrow({
+    where: {
+      id: invoiceId,
+    },
+  });
+
+  const fastAchFee =
+    invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
   const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
-  const totalFee = Math.round(payoutAmount * payoutFee);
+  const totalFee = Math.round(payoutAmount * payoutFee) + fastAchFee;
   const total = payoutAmount + totalFee;
   let convertedTotal = total;
 
@@ -161,7 +176,7 @@ export async function processPayouts({
   }
 
   // Update the invoice with the finalized payout amount, fee, and total
-  const invoice = await prisma.invoice.update({
+  invoice = await prisma.invoice.update({
     where: {
       id: invoiceId,
     },
@@ -177,6 +192,14 @@ export async function processPayouts({
     customer: workspace.stripeId!,
     payment_method_types: [paymentMethod.type],
     payment_method: paymentMethod.id,
+    ...(paymentMethod.type === "us_bank_account" && {
+      payment_method_options: {
+        us_bank_account: {
+          preferred_settlement_speed:
+            invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+        },
+      },
+    }),
     currency,
     confirmation_method: "automatic",
     confirm: true,
@@ -249,6 +272,7 @@ export async function processPayouts({
               amount: payout.amount,
               startDate: payout.periodStart,
               endDate: payout.periodEnd,
+              paymentMethod: invoice.paymentMethod ?? "ach",
             },
           }),
         })),

@@ -1,13 +1,14 @@
 import { stripeAppClient } from "@/lib/stripe";
+import { StripeMode } from "@/lib/types";
 
 export async function getConnectedCustomer({
   stripeCustomerId,
   stripeAccountId,
-  livemode = true,
+  mode,
 }: {
   stripeCustomerId?: string | null;
   stripeAccountId?: string | null;
-  livemode?: boolean;
+  mode: StripeMode;
 }) {
   // if stripeCustomerId or stripeAccountId is not provided, return null
   if (!stripeCustomerId || !stripeAccountId) {
@@ -15,7 +16,7 @@ export async function getConnectedCustomer({
   }
 
   const connectedCustomer = await stripeAppClient({
-    livemode,
+    mode,
   }).customers.retrieve(stripeCustomerId, {
     stripeAccount: stripeAccountId,
   });

@@ -103,7 +103,7 @@ export function GroupSelector({
             buttonProps: {
               disabled,
               className:
-                "w-full justify-start px-3 transition-none max-md:bg-bg-subtle hover:bg-bg-emphasis md:hover:bg-neutral-50 border-none",
+                "w-full justify-start px-2 py-1 h-8 transition-none max-md:bg-bg-subtle hover:bg-bg-subtle md:hover:bg-subtle border-none rounded-lg",
             },
           }
         : {

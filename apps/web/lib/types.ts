@@ -193,7 +193,10 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "abTesting";
+export type BetaFeatures =
+  | "noDubLink"
+  | "abTesting"
+  | "analyticsSettingsSiteVisitTracking";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -536,7 +539,10 @@ export type FolderWithPermissions = {
   permissions: FolderPermission[];
 };
 
-export type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
+export type FolderSummary = Pick<
+  Folder,
+  "id" | "name" | "description" | "accessLevel"
+>;
 
 export type RewardProps = z.infer<typeof RewardSchema>;
 
@@ -645,3 +651,5 @@ export type BountySubmissionsQueryFilters = z.infer<
 >;
 
 export type Message = z.infer<typeof MessageSchema>;
+
+export type StripeMode = "test" | "sandbox" | "live";

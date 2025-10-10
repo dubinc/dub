@@ -202,11 +202,11 @@ export function BountySubmissionsTable() {
               id: "completedAt",
               header: "Completed",
               accessorFn: (d: BountySubmissionProps) => {
-                if (!d.commission) {
+                if (!d.completedAt) {
                   return "-";
                 }
 
-                return formatDate(d.commission.createdAt, { month: "short" });
+                return formatDate(d.completedAt, { month: "short" });
               },
             },
           ]

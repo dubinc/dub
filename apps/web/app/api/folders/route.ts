@@ -48,7 +48,7 @@ export const GET = withWorkspace(
 // POST /api/folders - create a folder for a workspace
 export const POST = withWorkspace(
   async ({ req, workspace, headers, session }) => {
-    const { name, accessLevel } = createFolderSchema.parse(
+    const { name, description, accessLevel } = createFolderSchema.parse(
       await parseRequestBody(req),
     );
 
@@ -87,6 +87,7 @@ export const POST = withWorkspace(
               id: createId({ prefix: "fold_" }),
               projectId: workspace.id,
               name,
+              description,
               accessLevel,
               users: {
                 create: {

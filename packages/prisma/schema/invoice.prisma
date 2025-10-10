@@ -9,22 +9,31 @@ enum InvoiceType {
   domainRenewal
 }
 
+enum PaymentMethod {
+  card
+  ach
+  ach_fast
+  sepa
+  acss
+}
+
 model Invoice {
-  id                   String        @id @default(cuid())
+  id                   String         @id @default(cuid())
   programId            String?
   workspaceId          String
-  number               String?       @unique // This starts with the customer’s unique invoicePrefix
-  status               InvoiceStatus @default(processing)
-  type                 InvoiceType   @default(partnerPayout)
-  amount               Int           @default(0) // amount in usd cents
-  fee                  Int           @default(0) // fee in usd cents
-  total                Int           @default(0) // amount + fee in usd cents
-  receiptUrl           String?       @db.Text
-  failedReason         String?       @db.Text
-  registeredDomains    Json?         @db.Json // Array of RegisteredDomain
-  stripeChargeMetadata Json?         @db.Json // Stripe charge metadata
-  failedAttempts       Int           @default(0) // number of failed attempts to charge the invoice
-  createdAt            DateTime      @default(now())
+  number               String?        @unique // This starts with the customer's unique invoicePrefix
+  status               InvoiceStatus  @default(processing)
+  type                 InvoiceType    @default(partnerPayout)
+  paymentMethod        PaymentMethod?
+  amount               Int            @default(0) // amount in usd cents
+  fee                  Int            @default(0) // fee in usd cents
+  total                Int            @default(0) // amount + fee in usd cents
+  receiptUrl           String?        @db.Text
+  failedReason         String?        @db.Text
+  registeredDomains    Json?          @db.Json // Array of RegisteredDomain
+  stripeChargeMetadata Json?          @db.Json // Stripe charge metadata
+  failedAttempts       Int            @default(0) // number of failed attempts to charge the invoice
+  createdAt            DateTime       @default(now())
   paidAt               DateTime?
 
   payouts   Payout[]

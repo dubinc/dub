@@ -3,7 +3,10 @@
 import { createId } from "@/lib/api/create-id";
 import { exceededLimitError } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
-import { PAYMENT_METHOD_TYPES } from "@/lib/partners/constants";
+import {
+  PAYMENT_METHOD_TYPES,
+  STRIPE_PAYMENT_METHOD_NORMALIZATION,
+} from "@/lib/partners/constants";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
@@ -15,7 +18,9 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutId: z.string().optional(),
   excludedPayoutIds: z.array(z.string()).optional(),
+  fastSettlement: z.boolean().optional().default(false),
   amount: z.number(),
   fee: z.number(),
   total: z.number(),
@@ -29,7 +34,9 @@ export const confirmPayoutsAction = authActionClient
     const {
       paymentMethodId,
       cutoffPeriod,
+      selectedPayoutId,
       excludedPayoutIds,
+      fastSettlement,
       amount,
       fee,
       total,
@@ -45,6 +52,12 @@ export const confirmPayoutsAction = authActionClient
 
     if (!workspace.stripeId) {
       throw new Error("Workspace does not have a valid Stripe ID.");
+    }
+
+    if (fastSettlement && !workspace.fastDirectDebitPayouts) {
+      throw new Error(
+        "Fast settlement is not enabled for this program. Contact sales to enable it.",
+      );
     }
 
     // if workspace's payouts usage + the current invoice amount
@@ -79,6 +92,10 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
+    if (fastSettlement && paymentMethod.type !== "us_bank_account") {
+      throw new Error("Fast settlement is only supported for ACH payment.");
+    }
+
     const invoice = await prisma.$transaction(async (tx) => {
       // Generate the next invoice number by counting the number of invoices for the workspace
       const totalInvoices = await tx.invoice.count({
@@ -86,6 +103,7 @@ export const confirmPayoutsAction = authActionClient
           workspaceId: workspace.id,
         },
       });
+
       const paddedNumber = String(totalInvoices + 1).padStart(4, "0");
       const invoiceNumber = `${workspace.invoicePrefix}-${paddedNumber}`;
 
@@ -101,6 +119,9 @@ export const confirmPayoutsAction = authActionClient
           amount,
           fee,
           total,
+          paymentMethod: fastSettlement
+            ? "ach_fast"
+            : STRIPE_PAYMENT_METHOD_NORMALIZATION[paymentMethod.type],
         },
       });
     });
@@ -114,6 +135,7 @@ export const confirmPayoutsAction = authActionClient
         invoiceId: invoice.id,
         paymentMethodId,
         cutoffPeriod,
+        selectedPayoutId,
         excludedPayoutIds,
       },
     });

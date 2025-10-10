@@ -68,6 +68,7 @@ type SidebarNavData = {
   submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   showConversionGuides?: boolean;
+  partnerNetworkEnabled?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -200,6 +201,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     applicationsCount,
     submittedBountiesCount,
     unreadMessagesCount,
+    partnerNetworkEnabled,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -244,20 +246,22 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/program/partners`,
             isActive: (pathname: string, href: string) =>
               pathname.startsWith(href) &&
-              ["applications", "network"].every(
-                (p) => !pathname.startsWith(`${href}/${p}`),
-              ),
+              !pathname.startsWith(`${href}/applications`),
           },
           {
             name: "Groups",
             icon: Users6,
             href: `/${slug}/program/groups`,
           },
-          {
-            name: "Partner Network",
-            icon: UserPlus,
-            href: `/${slug}/program/network` as `/${string}`,
-          },
+          ...(partnerNetworkEnabled
+            ? [
+                {
+                  name: "Partner Network",
+                  icon: UserPlus,
+                  href: `/${slug}/program/network` as `/${string}`,
+                },
+              ]
+            : []),
           {
             name: "Applications",
             icon: UserCheck,
@@ -381,11 +385,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/integrations`,
           },
           {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/settings/analytics`,
-          },
-          {
             name: "Security",
             icon: ShieldCheck,
             href: `/${slug}/settings/security`,
@@ -395,6 +394,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         name: "Developer",
         items: [
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/${slug}/settings/analytics`,
+          },
           {
             name: "API Keys",
             icon: Key,
@@ -474,12 +478,7 @@ export function AppSidebarNav({
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : // hacky fix for guides because slug is undefined at render time
-          // TODO: remove when we migrate to Next.js 15 + PPR
-          pathname.endsWith("/guides") ||
-            pathname.includes("/guides/") ||
-            pathname.includes("/program/messages/") ||
-            // this one is for the payout success page
+        : pathname.includes("/program/messages/") ||
             pathname.endsWith("/program/payouts/success")
           ? null
           : pathname.startsWith(`/${slug}/program`)
@@ -543,6 +542,8 @@ export function AppSidebarNav({
         submittedBountiesCount,
         unreadMessagesCount,
         showConversionGuides: canTrackConversions && customersCount === 0,
+        partnerNetworkEnabled:
+          program && program.partnerNetworkEnabledAt !== null,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}

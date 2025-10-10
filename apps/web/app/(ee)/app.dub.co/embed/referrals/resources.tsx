@@ -2,7 +2,7 @@ import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { ResourceSection } from "@/ui/partners/resources/resource-section";
 import { FileContent, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/ui";
-import { formatFileSize } from "@dub/utils";
+import { formatFileSize, getApexDomain, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { motion } from "motion/react";
 import { z } from "zod";
 
@@ -38,6 +38,30 @@ export function ReferralsEmbedResources({
           ))}
         </ResourceSection>
       )}
+
+      {!!resources?.links?.length && (
+        <ResourceSection resource="link" title="Links">
+          {resources?.links?.map((link) => (
+            <ResourceCard
+              key={link.id}
+              resourceType="link"
+              icon={
+                <div className="flex size-full items-center justify-center bg-neutral-50">
+                  <img
+                    src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
+                    alt={link.name}
+                    className="size-6 rounded-full object-contain"
+                  />
+                </div>
+              }
+              title={link.name}
+              description={link.url}
+              copyText={link.url}
+            />
+          ))}
+        </ResourceSection>
+      )}
+
       {!!resources?.colors?.length && (
         <ResourceSection resource="color" title="Colors">
           {resources?.colors?.map((color) => (
@@ -57,6 +81,7 @@ export function ReferralsEmbedResources({
           ))}
         </ResourceSection>
       )}
+
       {!!resources?.files?.length && (
         <ResourceSection resource="file" title="Additional files">
           {resources?.files?.map((file) => (

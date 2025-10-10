@@ -1,7 +1,9 @@
+import { Copy } from "@dub/ui";
 import { cn } from "@dub/utils";
 import ReactMarkdown from "react-markdown";
 import "react-medium-image-zoom/dist/styles.css";
 import remarkGfm from "remark-gfm";
+import { toast } from "sonner";
 import { ZoomImage } from "../shared/zoom-image";
 
 export function GuidesMarkdown({
@@ -27,7 +29,7 @@ export function GuidesMarkdown({
         "prose-strong:text-gray-900 prose-strong:font-semibold",
         "prose-em:text-gray-700 prose-em:italic",
         "prose-code:text-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-code:font-mono",
-        "prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-lg prose-pre:p-3 prose-pre:overflow-x-auto",
+        "prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-lg prose-pre:pr-9 prose-pre:pl-3 prose-pre:py-3 prose-pre:overflow-x-auto",
         "prose-pre:code:bg-transparent prose-pre:code:p-0 prose-pre:code:text-sm",
         "prose-blockquote:border-l-4 prose-blockquote:border-gray-300 prose-blockquote:pl-4 prose-blockquote:italic prose-blockquote:text-gray-600",
         "prose-ul:list-disc prose-ul:pl-6 prose-ul:text-gray-700",
@@ -45,6 +47,33 @@ export function GuidesMarkdown({
           <a {...props} target="_blank" rel="noopener noreferrer" />
         ),
         img: ({ node, ...props }) => <ZoomImage {...props} />,
+        pre: ({ node, ...props }) => {
+          const code = (node?.children?.[0] as any)?.children?.[0]?.value;
+          return code ? (
+            <div className="relative">
+              <pre {...props}>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      await navigator.clipboard.writeText(code);
+                      toast.success("Copied to clipboard");
+                    } catch (error) {
+                      console.error("Failed to copy: ", error);
+                      toast.error("Failed to copy code");
+                    }
+                  }}
+                  className="border-border-subtle text-content-default absolute right-2 top-2 flex size-7 items-center justify-center rounded-lg border bg-white transition-transform duration-100 active:scale-95"
+                >
+                  <Copy />
+                </button>
+                {props.children}
+              </pre>
+            </div>
+          ) : (
+            <pre {...props} />
+          );
+        },
         ...components,
       }}
       remarkPlugins={[remarkGfm] as any}
