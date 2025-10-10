@@ -32,7 +32,7 @@ async function main() {
 
   for (const customer of customers) {
     const stripeCustomers = await stripeAppClient({
-      livemode: true,
+      mode: "test",
     }).customers.search(
       {
         query: `email:'${customer.email}'`,

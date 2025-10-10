@@ -3,7 +3,7 @@
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
-import { PayoutInvoiceSheet } from "@/ui/partners/payout-invoice-sheet";
+import { ConfirmPayoutsSheet } from "@/ui/partners/confirm-payouts-sheet";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
@@ -68,7 +68,7 @@ export function PayoutStats() {
 
   return (
     <>
-      <PayoutInvoiceSheet />
+      <ConfirmPayoutsSheet />
       <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
         <div className="flex flex-col p-4">
           <div className="flex justify-between gap-5">

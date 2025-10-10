@@ -60,18 +60,10 @@ export default function BountyCompleted({
               <BountyThumbnailImage type={bounty.type} />
             </Section>
 
-            {bounty.type === "submission" ? (
-              <Text className="text-sm leading-5 text-neutral-600">
-                Once <strong>{program.name}</strong> has confirmed your bounty,
-                you will receive an email with the commission details.
-              </Text>
-            ) : (
-              <Text className="text-sm leading-5 text-neutral-600">
-                The commission from the bounty has been added to your upcoming
-                payout, and will be sent to your bank account when{" "}
-                <strong>{program.name}</strong> processes their next payout.
-              </Text>
-            )}
+            <Text className="text-sm leading-5 text-neutral-600">
+              Once <strong>{program.name}</strong> has confirmed your bounty,
+              you will receive an email with the commission details.
+            </Text>
 
             <Text className="text-sm leading-5 text-neutral-600">
               If you have any questions, please don't hesitate to{" "}

@@ -33,6 +33,7 @@ export async function processPayouts({
   invoiceId,
   paymentMethodId,
   cutoffPeriod,
+  selectedPayoutId,
   excludedPayoutIds,
 }: {
   workspace: Pick<
@@ -50,6 +51,7 @@ export async function processPayouts({
   invoiceId: string;
   paymentMethodId: string;
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
+  selectedPayoutId?: string;
   excludedPayoutIds?: string[];
 }) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
@@ -58,6 +60,11 @@ export async function processPayouts({
 
   const payouts = await prisma.payout.findMany({
     where: {
+      ...(selectedPayoutId
+        ? { id: selectedPayoutId }
+        : excludedPayoutIds && excludedPayoutIds.length > 0
+          ? { id: { notIn: excludedPayoutIds } }
+          : {}),
       programId: program.id,
       status: "pending",
       invoiceId: null,
@@ -82,7 +89,6 @@ export async function processPayouts({
           },
         ],
       }),
-      ...(excludedPayoutIds && { id: { notIn: excludedPayoutIds } }),
     },
     select: {
       id: true,

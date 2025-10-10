@@ -9,7 +9,7 @@ import {
 } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { WorkflowTrigger } from "@dub/prisma/client";
-import { executeAwardBountyWorkflow } from "./execute-award-bounty-workflow";
+import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
@@ -74,7 +74,7 @@ export async function executeWorkflows({
 
     switch (action.type) {
       case WORKFLOW_ACTION_TYPES.AwardBounty:
-        await executeAwardBountyWorkflow({
+        await executeCompleteBountyWorkflow({
           workflow,
           context: workflowContext,
         });
