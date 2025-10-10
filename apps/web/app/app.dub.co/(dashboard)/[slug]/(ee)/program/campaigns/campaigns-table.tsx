@@ -2,6 +2,7 @@
 
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, CampaignList } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -42,11 +43,22 @@ import { CreateCampaignButton } from "./create-campaign-button";
 import { useDeleteCampaignModal } from "./delete-campaign-modal";
 import { useCampaignsFilters } from "./use-campaigns-filters";
 
+interface PartnersCountByGroup {
+  groupId: string;
+  _count: number;
+}
+
 export function CampaignsTable() {
   const router = useRouter();
   const { id: workspaceId, slug } = useWorkspace();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
+
+  const { partnersCount: groupCount } = usePartnersCount<
+    PartnersCountByGroup[] | undefined
+  >({
+    groupBy: "groupId",
+  });
 
   const {
     filters,
@@ -132,7 +144,18 @@ export function CampaignsTable() {
       {
         id: "partners",
         header: "Partners",
-        accessorFn: (d) => d.partners,
+        cell: ({ row }) => {
+          const groupIds = row.original.groups.map((g) => g.id);
+
+          const partnersCount =
+            groupCount
+              ?.filter(
+                (g) => groupIds.length === 0 || groupIds.includes(g.groupId),
+              )
+              .reduce((acc, curr) => acc + curr._count, 0) || 0;
+
+          return nFormatter(partnersCount, { full: true });
+        },
       },
       {
         id: "delivered",

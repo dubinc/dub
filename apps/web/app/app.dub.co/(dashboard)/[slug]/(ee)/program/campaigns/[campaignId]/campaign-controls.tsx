@@ -15,6 +15,7 @@ import {
   PaperPlane,
   Popover,
   Trash,
+  useMediaQuery,
 } from "@dub/ui";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
@@ -30,6 +31,7 @@ interface CampaignControlsProps {
 }
 
 export function CampaignControls({ campaign }: CampaignControlsProps) {
+  const { isMobile } = useMediaQuery();
   const router = useRouter();
   const { slug: workspaceSlug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
@@ -192,7 +194,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
           content={
             <Command tabIndex={0} loop className="focus:outline-none">
               <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[150px]">
-                {actionButton && (
+                {actionButton && isMobile && (
                   <MenuItem
                     as={Command.Item}
                     icon={actionButton.icon}
@@ -206,6 +208,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
                     {actionButton.text}
                   </MenuItem>
                 )}
+
                 <MenuItem
                   as={Command.Item}
                   icon={Flask}
