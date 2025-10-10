@@ -47,7 +47,7 @@ export const sendCampaignPreviewEmail = authActionClient
         react: CampaignEmail({
           campaign: {
             subject,
-            bodyJson,
+            bodyJson: JSON.parse(JSON.stringify(bodyJson)),
           },
         }),
       })),
