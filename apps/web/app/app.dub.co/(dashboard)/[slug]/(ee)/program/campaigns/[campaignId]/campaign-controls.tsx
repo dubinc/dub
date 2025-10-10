@@ -7,6 +7,7 @@ import { CampaignStatus } from "@dub/prisma/client";
 import {
   Button,
   Duplicate,
+  Flask,
   LoadingCircle,
   MediaPause,
   MediaPlay,
@@ -50,10 +51,18 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
   const { DeleteCampaignModal, setShowDeleteCampaignModal } =
     useDeleteCampaignModal(campaign);
 
-  const [name, subject, groupIds, body, status, triggerCondition] = useWatch({
-    control,
-    name: ["name", "subject", "groupIds", "body", "status", "triggerCondition"],
-  });
+  const [name, subject, groupIds, bodyJson, status, triggerCondition] =
+    useWatch({
+      control,
+      name: [
+        "name",
+        "subject",
+        "groupIds",
+        "bodyJson",
+        "status",
+        "triggerCondition",
+      ],
+    });
 
   // Form validation
   const validationError = useMemo(() => {
@@ -69,10 +78,10 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       return "Please select the groups you want to send this campaign to.";
     }
 
-    if (!body?.content || !body.content.length) {
+    if (!bodyJson?.content || !bodyJson.content.length) {
       return "Please write the message you want to send to the partners.";
     }
-  }, [name, subject, groupIds, body, status, triggerCondition]);
+  }, [name, subject, groupIds, bodyJson, status, triggerCondition]);
 
   const updateCampaign = useCallback(
     async (
@@ -81,7 +90,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     ) => {
       await makeRequest(`/api/campaigns/${campaign.id}`, {
         method: "PATCH",
-        body: data,
+        body: { ...data, bodyJson },
         onSuccess: async (data) => {
           await mutatePrefix(`/api/campaigns/${campaign.id}`);
           onSuccess(data);
@@ -197,7 +206,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
                 )}
                 <MenuItem
                   as={Command.Item}
-                  icon={PaperPlane}
+                  icon={Flask}
                   disabled={!!validationError || isUpdatingCampaign}
                   disabledTooltip={validationError}
                   onSelect={() => {

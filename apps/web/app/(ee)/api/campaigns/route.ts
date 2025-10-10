@@ -2,7 +2,6 @@ import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns";
 import { getCampaigns } from "@/lib/api/campaigns/get-campaigns";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -36,11 +35,6 @@ export const POST = withWorkspace(
   async ({ workspace, session, req }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
-
     const { type } = createCampaignSchema.parse(await parseRequestBody(req));
 
     const campaign = await prisma.campaign.create({
@@ -51,7 +45,8 @@ export const POST = withWorkspace(
         status: CampaignStatus.draft,
         name: "Untitled",
         subject: "",
-        body: DEFAULT_CAMPAIGN_BODY,
+        body: "",
+        bodyJson: DEFAULT_CAMPAIGN_BODY,
         type,
       },
     });

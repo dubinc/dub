@@ -14,6 +14,7 @@ import {
   PaperPlane,
   RichTextArea,
   StatusBadge,
+  useKeyboardShortcut,
 } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -48,7 +49,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       type: campaign.type,
       name: campaign.name,
       subject: campaign.subject,
-      body: campaign.body,
+      bodyJson: campaign.bodyJson,
       groupIds: campaign.groups.map(({ id }) => id),
       triggerCondition: campaign.triggerCondition ?? {
         attribute: "partnerEnrolledDays",
@@ -141,6 +142,20 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
     return () => unsubscribe();
   }, [watch, campaign.status]);
+
+  // Override CMD/CTRL+S to show autosave toast
+  useKeyboardShortcut(
+    ["meta+s", "ctrl+s"],
+    () => {
+      if (campaign.status === CampaignStatus.draft) {
+        toast.success("Your content is automatically saved as you type!");
+      } else {
+        // For non-draft campaigns, trigger manual save
+        handleManualSave();
+      }
+    },
+    { enabled: true },
+  );
 
   const { executeAsync: executeImageUpload } = useAction(
     uploadEmailImageAction,
@@ -250,7 +265,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
           <div className="mt-6">
             <Controller
               control={control}
-              name="body"
+              name="bodyJson"
               render={({ field }) => (
                 <RichTextArea
                   ref={editorRef}
@@ -324,7 +339,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
           onSave={handleManualSave}
           isSaving={isSavingDraftCampaign}
           onReset={() => {
-            editorRef.current?.setContent(getValues("body"));
+            editorRef.current?.setContent(getValues("bodyJson"));
           }}
         />
       </PageContentWithSidePanel>

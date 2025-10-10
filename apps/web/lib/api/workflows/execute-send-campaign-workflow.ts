@@ -147,11 +147,12 @@ export const executeSendCampaignWorkflow = async ({
         type: "campaign",
         subject: campaign.subject,
         text: renderEmailTemplate({
-          template: campaign.body
-            ? generateHTML(campaign.body as any, richTextAreaExtensions)
-            : "",
+          template: generateHTML(
+            campaign.bodyJson as any,
+            richTextAreaExtensions,
+          ),
           variables: {
-            partnerName: programEnrollment.partner.name,
+            PartnerName: programEnrollment.partner.name,
           },
         }),
       })),
@@ -176,11 +177,12 @@ export const executeSendCampaignWorkflow = async ({
           messages: [
             {
               text: renderEmailTemplate({
-                template: campaign.body
-                  ? generateHTML(campaign.body as any, richTextAreaExtensions)
-                  : "",
+                template: generateHTML(
+                  campaign.bodyJson as any,
+                  richTextAreaExtensions,
+                ),
                 variables: {
-                  partnerName: partnerUser.partner.name,
+                  PartnerName: partnerUser.partner.name,
                 },
               }),
               createdAt: new Date(),

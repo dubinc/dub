@@ -13,8 +13,8 @@ import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
  *
  * @example
  * ```
- * const template = "Hello {{partnerName|Guest}}, welcome to the program!"
- * const variables = { partnerName: "John" };
+ * const template = "Hello {{PartnerName|Guest}}, welcome to the program!"
+ * const variables = { PartnerName: "John" };
  * const result = renderEmailTemplate({ template, variables });
  * // Result: "Hello John, welcome to the program!"
  * ```

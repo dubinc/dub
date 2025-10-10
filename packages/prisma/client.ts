@@ -5,6 +5,8 @@ export {
   BountySubmissionRejectionReason,
   BountySubmissionStatus,
   BountyType,
+  CampaignStatus,
+  CampaignType,
   CommissionStatus,
   CommissionType,
   EventType,
