@@ -46,6 +46,7 @@ export const ProgramSchema = z.object({
   ageVerification: z.number().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  startedAt: z.date().nullish(),
 });
 
 export const ProgramWithLanderDataSchema = ProgramSchema.extend({

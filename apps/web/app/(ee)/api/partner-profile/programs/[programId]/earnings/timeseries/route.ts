@@ -33,7 +33,7 @@ export const GET = withPartnerProfile(
       interval,
       start,
       end,
-      dataAvailableFrom: program.createdAt,
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 
     const { dateFormat, dateIncrement, startFunction, formatString } =

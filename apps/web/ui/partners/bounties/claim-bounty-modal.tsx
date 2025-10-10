@@ -337,6 +337,7 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                           >
                             {submission.status === "submitted" ? (
                               <>
+                                Pending Review |{" "}
                                 {bounty.type === "performance"
                                   ? "Completed"
                                   : "Submitted"}{" "}

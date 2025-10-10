@@ -40,7 +40,7 @@ export const GET = withPartnerProfile(
     const response = await getAnalytics({
       ...rest,
       ...(linkId ? { linkId } : { linkIds: links.map((link) => link.id) }),
-      dataAvailableFrom: program.createdAt,
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 
     return NextResponse.json(response);
