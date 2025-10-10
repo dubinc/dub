@@ -11,7 +11,7 @@ import {
 } from "@/lib/zod/schemas/campaigns";
 import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { arrayEqual } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -131,6 +131,33 @@ export const PATCH = withWorkspace(
       groups: updatedCampaign.groups.map(({ groupId }) => ({ id: groupId })),
       triggerCondition: updatedCampaign.workflow?.triggerConditions?.[0],
     });
+
+    waitUntil(
+      (async () => {
+        if (!campaign.workflow) {
+          return;
+        }
+
+        const { condition } = parseWorkflowConfig(campaign.workflow);
+
+        // Skip scheduling if the condition is not based on partnerEnrolledDays,
+        // or if the required enrolled days is 0 (immediate execution case)
+        if (
+          condition.attribute !== "partnerEnrolledDays" ||
+          condition.value === 0
+        ) {
+          return;
+        }
+
+        const qstashResponse = await qstash.schedules.create({
+          destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${campaign.workflow.id}`,
+          cron: "0 */12 * * *", // Every 12 hours
+          scheduleId: campaign.workflow.id,
+        });
+
+        console.log(qstashResponse);
+      })(),
+    );
 
     return NextResponse.json(response);
   },
