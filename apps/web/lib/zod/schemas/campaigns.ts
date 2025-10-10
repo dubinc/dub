@@ -53,7 +53,6 @@ export const createCampaignSchema = z.object({
 
 export const updateCampaignSchema = z
   .object({
-    type: z.nativeEnum(CampaignType),
     name: z.string().trim().max(100, "Name must be less than 100 characters."),
     subject: z
       .string()

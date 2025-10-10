@@ -1,4 +1,4 @@
-import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns";
+import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns/constants";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";

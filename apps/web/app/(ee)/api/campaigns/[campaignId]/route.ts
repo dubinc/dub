@@ -1,4 +1,3 @@
-import { createId } from "@/lib/api/create-id";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -9,12 +8,8 @@ import {
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
-import {
-  WORKFLOW_ACTION_TYPES,
-  WORKFLOW_ATTRIBUTE_TRIGGER,
-} from "@/lib/zod/schemas/workflows";
+import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { CampaignStatus, CampaignType, Workflow } from "@dub/prisma/client";
 import { arrayEqual } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -57,15 +52,8 @@ export const PATCH = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const {
-      type,
-      name,
-      subject,
-      status,
-      bodyJson,
-      groupIds,
-      triggerCondition,
-    } = updateCampaignSchema.parse(await parseRequestBody(req));
+    const { name, subject, status, bodyJson, groupIds, triggerCondition } =
+      updateCampaignSchema.parse(await parseRequestBody(req));
 
     const campaign = await prisma.campaign.findUniqueOrThrow({
       where: {
@@ -98,57 +86,22 @@ export const PATCH = withWorkspace(
       }
     }
 
-    // TODO
-    // When pausing we need to disable the workflow
-    // When resuming we need to enable the workflow
-    // Update the workflow
-
-    // validateCampaign({
-    //   ...campaign,
-    //   ...(type && { type }),
-    //   ...(name && { name }),
-    //   ...(subject && { subject }),
-    //   ...(status && { status }),
-    //   ...(bodyJson && { bodyJson }),
-    //   ...(triggerCondition && { triggerCondition }),
-    // });
-
     const updatedCampaign = await prisma.$transaction(async (tx) => {
-      let workflow: Workflow | null = null;
-
-      if (
-        status === CampaignStatus.draft &&
-        campaign.type === CampaignType.transactional &&
-        triggerCondition
-      ) {
-        const trigger = WORKFLOW_ATTRIBUTE_TRIGGER[triggerCondition.attribute];
-        const triggerConditions = [triggerCondition];
-        const actions = [
-          { type: WORKFLOW_ACTION_TYPES.SendCampaign, data: { campaignId } },
-        ];
-
-        if (campaign.workflowId) {
-          workflow = await tx.workflow.update({
-            where: {
-              id: campaign.workflowId,
-            },
-            data: {
-              triggerConditions,
-              trigger,
-              actions,
-            },
-          });
-        } else {
-          workflow = await tx.workflow.create({
-            data: {
-              id: createId({ prefix: "wf_" }),
-              programId,
-              triggerConditions,
-              trigger,
-              actions,
-            },
-          });
-        }
+      if (campaign.workflowId) {
+        await tx.workflow.update({
+          where: {
+            id: campaign.workflowId,
+          },
+          data: {
+            ...(triggerCondition && {
+              triggerConditions: [triggerCondition],
+              trigger: WORKFLOW_ATTRIBUTE_TRIGGER[triggerCondition.attribute],
+            }),
+            ...(status && {
+              disabledAt: status === "paused" ? new Date() : null,
+            }),
+          },
+        });
       }
 
       return await tx.campaign.update({
@@ -157,12 +110,10 @@ export const PATCH = withWorkspace(
           programId,
         },
         data: {
-          ...(type && { type }),
           ...(name && { name }),
           ...(subject && { subject }),
           ...(status && { status }),
           ...(bodyJson && { bodyJson }),
-          ...(workflow && { workflowId: workflow.id }),
           ...(shouldUpdateGroups && {
             groups: {
               deleteMany: {},
