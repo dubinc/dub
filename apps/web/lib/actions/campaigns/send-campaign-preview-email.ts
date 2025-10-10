@@ -30,8 +30,6 @@ export const sendCampaignPreviewEmail = authActionClient
     const { workspace } = ctx;
     const { campaignId, subject, bodyJson, emailAddresses } = parsedInput;
 
-    console.log({ campaignId, subject, bodyJson, emailAddresses });
-
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     await prisma.campaign.findUniqueOrThrow({
