@@ -8,7 +8,6 @@
     "dev": "email dev --dir ./src/templates -p 3333"
   },
   "dependencies": {
-    "@dub/ui": "workspace:*",
     "@dub/utils": "workspace:*",
     "@react-email/components": "^0.0.22",
     "lucide-react": "^0.462.0",
