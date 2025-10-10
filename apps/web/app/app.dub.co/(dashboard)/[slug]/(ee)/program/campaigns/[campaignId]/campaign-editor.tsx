@@ -46,15 +46,11 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
   const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
-      type: campaign.type,
       name: campaign.name,
       subject: campaign.subject,
       bodyJson: campaign.bodyJson,
       groupIds: campaign.groups.map(({ id }) => id),
-      triggerCondition: campaign.triggerCondition ?? {
-        attribute: "partnerEnrolledDays",
-        value: 1,
-      },
+      triggerCondition: campaign.triggerCondition,
     },
   });
 
