@@ -398,11 +398,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/integrations`,
           },
           {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/settings/analytics`,
-          },
-          {
             name: "Security",
             icon: ShieldCheck,
             href: `/${slug}/settings/security`,
@@ -412,6 +407,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         name: "Developer",
         items: [
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/${slug}/settings/analytics`,
+          },
           {
             name: "API Keys",
             icon: Key,
@@ -491,14 +491,8 @@ export function AppSidebarNav({
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : // hacky fix for guides because slug is undefined at render time
-          // TODO: remove when we migrate to Next.js 15 + PPR
-          pathname.endsWith("/guides") ||
-            pathname.includes("/guides/") ||
-            // for the email editor page
-            pathname.includes("/program/campaigns/") ||
+        : pathname.includes("/program/campaigns/") ||
             pathname.includes("/program/messages/") ||
-            // this one is for the payout success page
             pathname.endsWith("/program/payouts/success")
           ? null
           : pathname.startsWith(`/${slug}/program`)

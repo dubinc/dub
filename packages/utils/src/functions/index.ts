@@ -30,6 +30,7 @@ export * from "./regex-escape";
 export * from "./resize-image";
 export * from "./smart-truncate";
 export * from "./stable-sort";
+export * from "./text-fetcher";
 export * from "./time-ago";
 export * from "./trim";
 export * from "./truncate";

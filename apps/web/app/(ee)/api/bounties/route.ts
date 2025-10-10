@@ -73,7 +73,13 @@ export const GET = withWorkspace(
         },
         _count: {
           select: {
-            submissions: true,
+            submissions: {
+              where: {
+                status: {
+                  in: ["submitted", "approved"],
+                },
+              },
+            },
           },
         },
       },

@@ -200,7 +200,10 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "abTesting";
+export type BetaFeatures =
+  | "noDubLink"
+  | "abTesting"
+  | "analyticsSettingsSiteVisitTracking";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -666,3 +669,5 @@ export type CampaignWorkflowAttribute =
   (typeof CAMPAIGN_WORKFLOW_ATTRIBUTES)[number];
 
 export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
+
+export type StripeMode = "test" | "sandbox" | "live";

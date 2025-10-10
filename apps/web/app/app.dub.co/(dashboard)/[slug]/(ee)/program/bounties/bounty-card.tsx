@@ -51,6 +51,10 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
           {/* {bounty.pendingSubmissions > 0 ? (
             <SubmissionsCountBadge count={bounty.pendingSubmissions} />
           ) : null} */}
+
+          {bounty.endsAt && new Date(bounty.endsAt) < new Date() ? (
+            <BountyEndedBadge endsAt={bounty.endsAt} />
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -94,11 +98,22 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
               <span className="text-content-default">
                 {nFormatter(totalPartnersForBounty, { full: true })}
               </span>{" "}
-              {pluralize("partner", totalPartnersForBounty)} submitted
+              {pluralize("partner", totalPartnersForBounty)}{" "}
+              {bounty.type === "performance" ? "completed" : "submitted"}
             </div>
           </div>
         </div>
       </Link>
+    </div>
+  );
+}
+
+function BountyEndedBadge({ endsAt }: { endsAt: Date }) {
+  return (
+    <div className="absolute left-2 top-2 z-10">
+      <div className="flex h-5 items-center gap-1 rounded-md bg-neutral-200 px-2 py-1 text-xs font-semibold text-neutral-600">
+        Ended {formatDate(endsAt, { month: "short" })}
+      </div>
     </div>
   );
 }

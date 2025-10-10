@@ -27,7 +27,7 @@ async function main() {
       if (customer.stripeCustomerId) return;
 
       const stripeCustomer = await stripeAppClient({
-        livemode: false,
+        mode: "test",
       }).customers.list(
         {
           email: customer.email,
