@@ -272,8 +272,10 @@ function LinkDomain({
 
   // Delete link domain
   const deleteLinkDomain = async () => {
-    const updatedAdditionalLinks = additionalLinks.filter(
-      (existingLink) => existingLink.domain !== link.domain,
+    const updatedAdditionalLinks = additionalLinks.filter((existingLink) =>
+      link.validationMode === "exact"
+        ? existingLink.url !== link.url
+        : existingLink.domain !== link.domain,
     );
 
     // Update the parent form state instead of calling API directly
@@ -301,9 +303,13 @@ function LinkDomain({
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
             </div>
             <div className="relative z-10 p-2">
-              {link.domain ? (
+              {link.domain || link.url ? (
                 <LinkLogo
-                  apexDomain={getApexDomain(link.domain)}
+                  apexDomain={getApexDomain(
+                    (link.validationMode === "domain"
+                      ? link.domain
+                      : link.url)!,
+                  )}
                   className="size-4 sm:size-6"
                   imageProps={{
                     loading: "lazy",
@@ -315,7 +321,9 @@ function LinkDomain({
             </div>
           </div>
           <span className="text-content-default truncate text-sm font-semibold">
-            {getPrettyUrl(link.domain)}
+            {getPrettyUrl(
+              link.validationMode === "domain" ? link.domain : link.url,
+            )}
           </span>
         </div>
 
