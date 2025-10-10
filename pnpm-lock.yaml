@@ -519,9 +519,6 @@ importers:
 
   packages/email:
     dependencies:
-      '@dub/ui':
-        specifier: workspace:*
-        version: link:../ui
       '@dub/utils':
         specifier: workspace:*
         version: link:../utils
