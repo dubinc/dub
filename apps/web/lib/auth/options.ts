@@ -320,6 +320,7 @@ export const authOptions: NextAuthOptions = {
             invalidLoginAttempts: true,
             emailVerified: true,
             source: true,
+            paymentData: true,
           },
         });
 
@@ -366,6 +367,7 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           image: user.image,
           source: user.source,
+          paymentData: user.paymentData,
         };
       },
     }),

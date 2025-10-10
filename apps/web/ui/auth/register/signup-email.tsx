@@ -7,7 +7,7 @@ import { MessageType } from "@/ui/modals/auth-modal.tsx";
 import { Button, Input } from "@dub/ui";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import {
-  setPeopleAnalyticOnce,
+  setPeopleAnalytic,
   trackClientEvents,
 } from "core/integration/analytic/services/analytic.service.ts";
 import { useAction } from "next-safe-action/hooks";
@@ -36,34 +36,15 @@ export const SignUpEmail = ({
     handleSubmit,
     formState: { errors },
     getValues,
-  } = useForm<SignUpProps>({
-    // defaultValues: {
-    //   password: "defaultPassword12Secret",
-    // },
-  });
+  } = useForm<SignUpProps>({});
 
   const { executeAsync, isPending } = useAction(changePreSignupEmailAction, {
     async onSuccess() {
-      // const email = getValues("email");
-
-      // trackClientEvents({
-      //   event: EAnalyticEvents.EMAIL_SUBMITTED,
-      //   params: {
-      //     page_name: "landing",
-      //     auth_type: "signup",
-      //     auth_method: "email",
-      //     auth_origin: qrDataToCreate ? "qr" : "none",
-      //     email,
-      //     event_category: "Authorized",
-      //   },
-      //   sessionId,
-      // });
-
-      setPeopleAnalyticOnce({ signup_method: "email" });
+      setPeopleAnalytic({ signup_method: "email", $email: getValues("email") });
 
       setIsRedirecting(true);
 
-      router.push(`/paywall?email=${getValues("email")}`);
+      router.push("/paywall");
     },
     onError: ({ error }) => {
       showMessage(error.serverError, "error", authModal, setAuthModalMessage);
@@ -73,93 +54,6 @@ export const SignUpEmail = ({
   const handleSubmitAction = async () => {
     await executeAsync({ email: getValues("email") });
   };
-
-  // const { executeAsync, isPending } = useAction(createUserAccountAction, {
-  //   async onSuccess() {
-  //     const email = getValues("email");
-
-  //     trackClientEvents({
-  //       event: EAnalyticEvents.AUTH_SUCCESS,
-  //       params: {
-  //         page_name: "dashboard",
-  //         auth_type: "signup",
-  //         auth_method: "email",
-  //         auth_origin: qrDataToCreate ? "qr" : "none",
-  //         email,
-  //         event_category: "Authorized",
-  //       },
-  //       sessionId,
-  //     });
-  //     setPeopleAnalyticOnce({ signup_method: "email" });
-
-  //     showMessage(
-  //       "Account created! Redirecting to dashboard...",
-  //       "success",
-  //       authModal,
-  //       setAuthModalMessage,
-  //     );
-  //     setIsRedirecting(true);
-  //     setQrDataToCreate(null);
-  //     const response = await signIn("credentials", {
-  //       email,
-  //       password: getValues("password"),
-  //       redirect: false,
-  //     });
-
-  //     if (response?.ok) {
-  //       router.push(`/${slugify(email)}?onboarded=true`);
-  //     } else {
-  //       showMessage(
-  //         "Failed to sign in with credentials. Please try again or contact support.",
-  //         "error",
-  //         authModal,
-  //         setAuthModalMessage,
-  //       );
-  //     }
-  //   },
-  //   onError({ error }) {
-  //     const email = getValues("email");
-
-  //     const serverError = error.serverError || "";
-  //     const validationError = error.validationErrors?.code?.[0] || "";
-  //     const fullErrorMessage =
-  //       serverError || validationError || "An error occurred";
-
-  //     const codeMatch = fullErrorMessage.match(/^\[([^\]]+)\]/);
-  //     const errorCode = codeMatch ? codeMatch[1] : "unknown-error";
-  //     const errorMessage = codeMatch
-  //       ? fullErrorMessage.replace(/^\[[^\]]+\]\s*/, "")
-  //       : fullErrorMessage;
-
-  //     trackClientEvents({
-  //       event: EAnalyticEvents.AUTH_ERROR,
-  //       params: {
-  //         page_name: "landing",
-  //         auth_type: "signup",
-  //         auth_method: "email",
-  //         auth_origin: qrDataToCreate ? "qr" : "none",
-  //         email,
-  //         event_category: "nonAuthorized",
-  //         error_code: errorCode,
-  //         error_message: errorMessage,
-  //       },
-  //       sessionId,
-  //     });
-
-  //     console.error("Auth error:", { code: errorCode, message: errorMessage });
-
-  //     showMessage(errorMessage, "error", authModal, setAuthModalMessage);
-  //   },
-  // });
-
-  // const handleSubmitAction = async () => {
-  //   await executeAsync({
-  //     email: getValues("email"),
-  //     password: getValues("password"),
-  //     // code,
-  //     qrDataToCreate,
-  //   });
-  // };
 
   return (
     <form
@@ -175,18 +69,18 @@ export const SignUpEmail = ({
           sessionId,
         });
 
-        // trackClientEvents({
-        //   event: EAnalyticEvents.AUTH_ATTEMPT,
-        //   params: {
-        //     page_name: "landing",
-        //     auth_type: "signup",
-        //     auth_method: "email",
-        //     email: getValues("email"),
-        //     auth_origin: qrDataToCreate ? "qr" : "none",
-        //     event_category: "nonAuthorized",
-        //   },
-        //   sessionId,
-        // });
+        trackClientEvents({
+          event: EAnalyticEvents.AUTH_ATTEMPT,
+          params: {
+            page_name: "landing",
+            auth_type: "signup",
+            auth_method: "email",
+            email: getValues("email"),
+            auth_origin: "qr",
+            event_category: "nonAuthorized",
+          },
+          sessionId,
+        });
 
         await handleSubmitAction();
       })}

@@ -1,6 +1,6 @@
 "use client";
 
-import { QrStorageData } from "@/ui/qr-builder/types/types";
+import { QRBuilderData } from "@/ui/qr-builder/types/types";
 import { Modal, useMediaQuery } from "@dub/ui";
 import {
   setPeopleAnalyticOnce,
@@ -13,16 +13,24 @@ import { TrialOfferInner } from "./trial-offer-inner";
 
 interface ITrialOfferProps {
   user: ICustomerBody | null;
-  firstQr: QrStorageData | null;
+  firstQr: QRBuilderData | null;
+  isPaidTraffic: boolean;
 }
 
-export const TrialOffer: FC<Readonly<ITrialOfferProps>> = ({
+export const TrialOfferModal: FC<Readonly<ITrialOfferProps>> = ({
   user,
   firstQr,
+  isPaidTraffic,
 }) => {
   const { isMobile } = useMediaQuery();
 
-  const innerComponent = <TrialOfferInner user={user} firstQr={firstQr} />;
+  const innerComponent = (
+    <TrialOfferInner
+      user={user}
+      firstQr={firstQr}
+      isPaidTraffic={isPaidTraffic}
+    />
+  );
 
   useEffect(() => {
     trackClientEvents({

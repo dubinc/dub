@@ -1,18 +1,24 @@
 "use client";
 
+import { createUserAccountAction } from "@/lib/actions/create-user-account";
+import { showMessage } from "@/ui/auth/helpers";
 import { AvatarsComponent } from "@/ui/modals/trial-offer-with-qr-preview/components/avatars.component";
 import { CreateSubscriptionFlow } from "@/ui/modals/trial-offer-with-qr-preview/components/create-subscription-flow.component";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
-import { QrStorageData } from "@/ui/qr-builder/types/types";
+import { QRBuilderData, QrStorageData } from "@/ui/qr-builder/types/types";
 import { FiveStarsComponent } from "@/ui/shared/five-stars.component";
 import { Button, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
+import slugify from "@sindresorhus/slugify";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ICustomerBody } from "core/integration/payment/config";
 import { Check, Gift } from "lucide-react";
+import { signIn } from "next-auth/react";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
 import { FC, useMemo, useRef, useState } from "react";
 import { MOCK_QR } from "../constants/mock-qr";
 
@@ -26,18 +32,23 @@ const FEATURES = [
 
 interface ITrialOfferProps {
   user: ICustomerBody | null;
-  firstQr: QrStorageData | null;
+  firstQr: QRBuilderData | null;
+  isPaidTraffic: boolean;
 }
 
 export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
   user,
   firstQr,
+  isPaidTraffic,
 }) => {
+  const router = useRouter();
   const { isMobile } = useMediaQuery();
 
   const [clientToken, setClientToken] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
+  const [isRedirecting, setIsRedirecting] = useState(false);
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
   const memoizedQrData = useMemo(() => {
     return firstQr
       ? ({
@@ -47,18 +58,66 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
               ? `${process.env.NEXT_PUBLIC_APP_DOMAIN}`
               : "http://localhost:8888",
           },
-        } as QrStorageData)
+        } as QRBuilderData)
       : MOCK_QR;
   }, [firstQr]);
 
   const { qrCode: demoBuiltQrCodeObject } = useQrCustomization(
-    memoizedQrData,
+    memoizedQrData as QrStorageData,
     true,
   );
 
-  const isPaidTraffic = user?.isPaidUser || false;
+  const { executeAsync } = useAction(createUserAccountAction, {
+    onError({ error }) {
+      const serverError = error.serverError || "";
+      // @ts-ignore
+      const validationError = error.validationErrors?.code?.[0] || "";
+      const fullErrorMessage =
+        serverError || validationError || "An error occurred";
 
-  const onSubcriptionCreated = () => {
+      const codeMatch = fullErrorMessage.match(/^\[([^\]]+)\]/);
+      const errorCode = codeMatch ? codeMatch[1] : "unknown-error";
+      const errorMessage = codeMatch
+        ? fullErrorMessage.replace(/^\[[^\]]+\]\s*/, "")
+        : fullErrorMessage;
+
+      trackClientEvents({
+        event: EAnalyticEvents.AUTH_ERROR,
+        params: {
+          page_name: "landing",
+          auth_type: "signup",
+          auth_method: "email",
+          auth_origin: firstQr ? "qr" : "none",
+          email: user?.email,
+          event_category: "nonAuthorized",
+          error_code: errorCode,
+          error_message: errorMessage,
+        },
+        sessionId: user?.id,
+      });
+
+      console.error("Auth error:", { code: errorCode, message: errorMessage });
+
+      showMessage(errorMessage, "error");
+    },
+  });
+
+  const onScrollToPaymentBlock = () => {
+    const paymentBlock = document.getElementById("payment-block");
+    if (paymentBlock) {
+      paymentBlock.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const onSubscriptionCreating = async () => {
+    await executeAsync({
+      email: user!.email!,
+      password: "defaultPassword12Secret",
+      qrDataToCreate: firstQr,
+    });
+  };
+
+  const onSubcriptionCreated = async () => {
     trackClientEvents({
       event: EAnalyticEvents.PAGE_VIEWED,
       params: {
@@ -69,12 +128,36 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
       },
       sessionId: user?.id,
     });
-  };
 
-  const onScrollToPaymentBlock = () => {
-    const paymentBlock = document.getElementById("payment-block");
-    if (paymentBlock) {
-      paymentBlock.scrollIntoView({ behavior: "smooth" });
+    trackClientEvents({
+      event: EAnalyticEvents.AUTH_SUCCESS,
+      params: {
+        page_name: "dashboard",
+        auth_type: "signup",
+        auth_method: "email",
+        auth_origin: firstQr ? "qr" : "none",
+        email: user?.email,
+        event_category: "Authorized",
+      },
+      sessionId: user?.id,
+    });
+
+    showMessage("Account created! Redirecting to dashboard...", "success");
+    setIsRedirecting(true);
+
+    const response = await signIn("credentials", {
+      email: user?.email,
+      password: "defaultPassword12Secret",
+      redirect: false,
+    });
+
+    if (response?.ok) {
+      router.push(`/${slugify(user!.email!)}?onboarded=true`);
+    } else {
+      showMessage(
+        "Failed to sign in with credentials. Please try again or contact support.",
+        "error",
+      );
     }
   };
 
@@ -171,6 +254,7 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
                 ...user!,
                 paymentInfo: { ...user!.paymentInfo, clientToken },
               }}
+              onSubscriptionCreating={onSubscriptionCreating}
               onSubcriptionCreated={onSubcriptionCreated}
             />
           )}

@@ -29,6 +29,7 @@ import { toast } from "sonner";
 interface ICreateSubscriptionProps {
   user: ICustomerBody;
   isPaidTraffic: boolean;
+  onSubscriptionCreating: () => Promise<void>;
   onSubcriptionCreated: () => void;
 }
 
@@ -39,6 +40,7 @@ const subPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   user,
   isPaidTraffic,
+  onSubscriptionCreating,
   onSubcriptionCreated,
 }) => {
   const router = useRouter();
@@ -136,6 +138,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
   const handlePaymentSuccess = async (data: ICheckoutFormSuccess) => {
     setIsSubscriptionCreation(true);
+
+    await onSubscriptionCreating?.();
 
     const res = await triggerCreateSubscription({
       payment: {
