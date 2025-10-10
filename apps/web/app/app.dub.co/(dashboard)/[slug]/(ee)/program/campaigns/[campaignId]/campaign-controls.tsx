@@ -90,7 +90,9 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     ) => {
       await makeRequest(`/api/campaigns/${campaign.id}`, {
         method: "PATCH",
-        body: { ...data, bodyJson },
+        body: {
+          ...data,
+        },
         onSuccess: async (data) => {
           await mutatePrefix(`/api/campaigns/${campaign.id}`);
           onSuccess(data);

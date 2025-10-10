@@ -7,17 +7,17 @@ import { useCampaignFormContext } from "./campaign-form-context";
 
 interface CampaignActionBarProps extends PropsWithChildren {
   onSave?: () => void;
-  isSaving?: boolean;
   onReset?: () => void;
+  isSaving?: boolean;
   campaignStatus: Campaign["status"];
 }
 
 export function CampaignActionBar({
   children,
   onSave,
-  isSaving = false,
   onReset,
   campaignStatus,
+  isSaving = false,
 }: CampaignActionBarProps) {
   const { control, reset } = useCampaignFormContext();
   const { isDirty, isSubmitting } = useFormState({

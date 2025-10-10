@@ -331,7 +331,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             End of email
           </div>
         </PageWidthWrapper>
-        {/* Spacer to push action bar to bottom */}
+
         <div className="min-h-16 grow" />
 
         <CampaignActionBar

@@ -128,7 +128,6 @@ export const PATCH = withWorkspace(
         ];
 
         if (campaign.workflowId) {
-          // Update existing workflow
           workflow = await tx.workflow.update({
             where: {
               id: campaign.workflowId,
@@ -140,7 +139,6 @@ export const PATCH = withWorkspace(
             },
           });
         } else {
-          // Create new workflow
           workflow = await tx.workflow.create({
             data: {
               id: createId({ prefix: "wf_" }),
