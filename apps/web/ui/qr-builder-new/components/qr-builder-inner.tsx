@@ -37,6 +37,7 @@ export const QRBuilderInner = () => {
     isProcessing,
     isFileUploading,
     isFileProcessing,
+    isEditMode,
   } = useQrBuilderContext();
 
   const logoData = customizationData.logo;
@@ -92,7 +93,7 @@ export const QRBuilderInner = () => {
                 step={builderStep || 1}
                 onBack={handleBack}
                 onContinue={handleContinue}
-                isEdit={false}
+                isEdit={isEditMode}
                 isProcessing={isProcessing}
                 isFileUploading={isFileUploading}
                 isFileProcessing={isFileProcessing}
@@ -123,7 +124,7 @@ export const QRBuilderInner = () => {
                     step={builderStep || 1}
                     onBack={handleBack}
                     onContinue={handleContinue}
-                    isEdit={false}
+                    isEdit={isEditMode}
                     isProcessing={isProcessing}
                     isFileUploading={isFileUploading}
                     isFileProcessing={isFileProcessing}

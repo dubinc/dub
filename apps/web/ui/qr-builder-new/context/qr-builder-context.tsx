@@ -1,6 +1,7 @@
 "use client";
 
 import { QRContentStepRef } from "@/ui/qr-builder-new/components/qr-content-step.tsx";
+import { linkConstructor } from "@dub/utils";
 import {
   createContext,
   ReactNode,
@@ -90,7 +91,19 @@ export function QrBuilderProvider({
   );
   const [currentFormValues, setCurrentFormValues] = useState<
     Record<string, any>
-  >({});
+  >(() => {
+    const initialValues: Record<string, any> = {};
+
+    if (initialState.qrTitle) {
+      initialValues.qrName = initialState.qrTitle;
+    }
+
+    if (initialState.formData) {
+      Object.assign(initialValues, initialState.formData);
+    }
+
+    return initialValues;
+  });
 
   // Processing states
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -117,6 +130,25 @@ export function QrBuilderProvider({
         : selectedQrType
       : selectedQrType;
   }, [isTypeStep, hoveredQRType, selectedQrType]);
+
+  const shortLink = useMemo(() => {
+    // Use shortLink from initialQrData if available (edit mode)
+    if (initialQrData?.link?.shortLink) {
+      return initialQrData.link.shortLink;
+    }
+
+    // Compute shortLink if we have key and domain (edit mode without precomputed shortLink)
+    const key = initialQrData?.link?.key;
+    const domain = initialQrData?.link?.domain;
+
+    if (!key || !domain) return undefined;
+
+    return linkConstructor({
+      key,
+      domain,
+      pretty: true,
+    });
+  }, [initialQrData]);
 
   const handleNextStep = useCallback(() => {
     // @ts-ignore
@@ -257,9 +289,11 @@ export function QrBuilderProvider({
     selectedQrType,
     hoveredQRType,
     currentQRType,
+    shortLink,
     typeSelectionError,
     formData,
     currentFormValues,
+    initialQrData,
     // Processing states
     isProcessing,
     isFileUploading,

@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { forwardRef, useEffect, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { EQRType } from "../../constants/get-qr-config";
 import {
@@ -45,14 +45,6 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
       resolver: zodResolver(websiteQRSchema),
       defaultValues: formDefaults,
     });
-
-    // Reset form when initialData changes
-    useEffect(() => {
-      if (initialData) {
-        const newDefaults = getDefaultValues(defaultValues);
-        form.reset(newDefaults);
-      }
-    }, [initialData, getDefaultValues, defaultValues, form]);
 
     useImperativeHandle(ref, () => ({
       validate: async () => {

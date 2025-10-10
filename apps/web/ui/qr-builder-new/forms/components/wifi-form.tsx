@@ -7,7 +7,7 @@ import { WIFI_ENCRYPTION_TYPES } from "@/ui/qr-builder/constants/wifi-encryption
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Flex, Text } from "@radix-ui/themes";
 import { Info } from "lucide-react";
-import { forwardRef, useEffect, useImperativeHandle } from "react";
+import { forwardRef, useImperativeHandle } from "react";
 import {
   Controller,
   FormProvider,
@@ -62,14 +62,6 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
 
     const watchEncryption = form.watch("networkEncryption");
     const showPassword = watchEncryption !== "none";
-
-    // Reset form when initialData changes
-    useEffect(() => {
-      if (initialData) {
-        const newDefaults = getDefaultValues(defaultValues);
-        form.reset(newDefaults);
-      }
-    }, [initialData, getDefaultValues, defaultValues, form]);
 
     useImperativeHandle(ref, () => ({
       validate: async () => {

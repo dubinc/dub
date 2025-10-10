@@ -62,6 +62,7 @@ export async function getQrs(
       archived: true,
       styles: true,
       frameOptions: true,
+      logoOptions: true,
       linkId: true,
       fileId: true,
       userId: true,

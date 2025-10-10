@@ -21,6 +21,7 @@ import {
   TWifiQRFormData,
 } from "../validation/schemas";
 import { IQRCustomizationData } from "./customization";
+import { TQrServerData } from "../helpers/data-converters";
 
 export type TQRFormData =
   | TWebsiteQRFormData
@@ -40,9 +41,11 @@ export interface IQrBuilderContextType {
   selectedQrType: TQrType;
   hoveredQRType: EQRType | null;
   currentQRType: EQRType | null;
+  shortLink?: string;
   typeSelectionError: string;
   formData: TQRFormData | null;
   currentFormValues: Record<string, any>;
+  initialQrData?: TQrServerData | null;
 
   // Processing states
   isProcessing: boolean;

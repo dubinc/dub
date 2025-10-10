@@ -45,7 +45,6 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
   // File upload hook
   const { uploadFile, isUploading, uploadProgress } = useFileUpload({
     onFileIdReceived: (fileId) => {
-      console.log("=== Logo fileId received ===", fileId);
       // Update logo data with fileId
       const lastFile = uploadedLogoFiles?.[uploadedLogoFiles.length - 1];
       if (lastFile) {
@@ -53,6 +52,7 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
           type: "uploaded" as const,
           fileId,
           file: lastFile, // Keep file for preview
+          id: undefined, // Clear suggested logo id
         };
         console.log("Updating logo with:", logoData);
         onLogoChange(logoData);
@@ -93,10 +93,11 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
           return;
         }
 
-        // Set file temporarily (for preview)
+        // Set file temporarily (for preview) and reset suggested logo selection
         onLogoChange({
           type: "uploaded",
           file: lastFile,
+          id: undefined, // Clear suggested logo id
         });
 
         // Upload file to get fileId
@@ -143,6 +144,8 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
     if (logoData.type === "suggested" && logoData.id) {
       return logoData.id;
     }
+
+    console.log("No logo selected, returning logo-none");
     return "logo-none";
   }, [logoData]);
 
@@ -192,19 +195,32 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
                     isUploading && "border-blue-500 bg-blue-50",
                   )}
                 >
-                  {value.length > 0 ? (
+                  {value.length > 0 || (logoData.type === "uploaded" && logoData.fileId) ? (
                     <div className="flex flex-col items-center gap-2">
                       <img
-                        src={URL.createObjectURL(value[0])}
+                        src={
+                          value.length > 0
+                            ? URL.createObjectURL(value[0])
+                            : `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL || "https://dev-assets.getqr.com"}/qrs-content/${logoData.fileId}`
+                        }
                         alt="Uploaded logo"
                         className="h-16 w-16 object-contain"
                       />
-                      <p className="text-sm text-gray-700">{value[0].name}</p>
+                      {value.length > 0 && (
+                        <p className="text-sm text-gray-700">{value[0].name}</p>
+                      )}
                       <button
                         type="button"
                         onClick={() => {
                           onChange([]);
                           trigger(FILE_UPLOAD_FIELD_NAME);
+                          // Reset logo to none
+                          onLogoChange({
+                            type: "none",
+                            id: undefined,
+                            file: undefined,
+                            fileId: undefined,
+                          });
                         }}
                         disabled={isUploading}
                         className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"

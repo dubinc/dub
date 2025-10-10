@@ -28,42 +28,37 @@ export const useQRFormData = ({
   const parsedInitialData = useMemo(() => {
     if (!initialData) return {};
 
-    // TODO QR_BUILDER_NEW: finish handling initialData when we start implementing existing QR editing.
-    // We'll most likely pass initialData.link.url instead of initialData.data to parseQRData
+    try {
+      const parsed = parseQRData(qrType, initialData.data);
 
-    // try {
-    //   const parsed = parseQRData(qrType, initialData.data);
-    //
-    //   // For link-based QR types, include URL data
-    //   if (initialData.link?.url) {
-    //     switch (qrType) {
-    //       case EQRType.WEBSITE:
-    //         parsed.websiteLink = initialData.link.url;
-    //         break;
-    //       case EQRType.APP_LINK:
-    //         parsed.storeLink = initialData.link.url;
-    //         break;
-    //       case EQRType.SOCIAL:
-    //         parsed.socialLink = initialData.link.url;
-    //         break;
-    //       case EQRType.FEEDBACK:
-    //         parsed.link = initialData.link.url;
-    //         break;
-    //     }
-    //   }
-    //
-    //   // Include QR name from link title if available
-    //   if (initialData.link?.title) {
-    //     parsed.qrName = initialData.link.title;
-    //   }
-    //
-    //   return parsed;
-    // } catch (error) {
-    //   console.error('Error parsing initial data:', error);
-    //   return {};
-    // }
+      // For link-based QR types, include URL data
+      if (initialData.link?.url) {
+        switch (qrType) {
+          case EQRType.WEBSITE:
+            parsed.websiteLink = initialData.link.url;
+            break;
+          case EQRType.APP_LINK:
+            parsed.storeLink = initialData.link.url;
+            break;
+          case EQRType.SOCIAL:
+            parsed.socialLink = initialData.link.url;
+            break;
+          case EQRType.FEEDBACK:
+            parsed.link = initialData.link.url;
+            break;
+        }
+      }
 
-    return {};
+      // Include QR name from link title if available
+      if (initialData.link?.title) {
+        parsed.qrName = initialData.link.title;
+      }
+
+      return parsed;
+    } catch (error) {
+      console.error('Error parsing initial data:', error);
+      return {};
+    }
   }, [qrType, initialData]);
 
   const encodeFormData = useCallback(

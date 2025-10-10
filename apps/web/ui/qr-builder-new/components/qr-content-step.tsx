@@ -15,6 +15,7 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
     handleFormSubmit,
     formData,
     updateCurrentFormValues,
+    initialQrData,
   } = useQrBuilderContext();
   const formRef = useRef<QRFormRef>(null);
 
@@ -51,6 +52,16 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
       qrType={selectedQrType}
       onSubmit={handleFormSubmit}
       defaultValues={formData || undefined}
+      initialData={
+        initialQrData
+          ? {
+              qrType: initialQrData.qrType,
+              data: initialQrData.data,
+              link: initialQrData.link,
+              fileId: initialQrData.fileId,
+            }
+          : undefined
+      }
     />
   );
 });

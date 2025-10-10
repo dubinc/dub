@@ -59,15 +59,6 @@ export const VideoForm = forwardRef<VideoFormRef, VideoFormProps>(
       }
     }, [fileId, form]);
 
-    // Reset form when initialData changes
-    useEffect(() => {
-      if (initialData) {
-        const newDefaults = getDefaultValues(defaultValues);
-        form.reset(newDefaults);
-        setFileId(initialData?.fileId!);
-      }
-    }, [initialData, getDefaultValues, defaultValues, form]);
-
     useImperativeHandle(ref, () => ({
       validate: async () => {
         const result = await form.trigger();
