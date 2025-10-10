@@ -1,4 +1,5 @@
 import { EmailTemplateVariables } from "@/lib/types";
+import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import Image from "@tiptap/extension-image";
 import Mention from "@tiptap/extension-mention";
 import { generateHTML } from "@tiptap/html/server";
@@ -40,12 +41,9 @@ export function generateCampaignEmailHTML({
     }).configure({
       suggestion: {
         items: ({ query }: { query: string }) => {
-          const campaignVariables = ["PartnerName", "PartnerEmail"];
-          return campaignVariables
-            .filter((item) =>
-              item.toLowerCase().startsWith(query.toLowerCase()),
-            )
-            .slice(0, 5);
+          return EMAIL_TEMPLATE_VARIABLES.filter((item) =>
+            item.toLowerCase().startsWith(query.toLowerCase()),
+          ).slice(0, 5);
         },
       },
     }),
