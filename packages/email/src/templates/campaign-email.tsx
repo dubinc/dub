@@ -9,6 +9,7 @@ import {
   Section,
   Tailwind,
 } from "@react-email/components";
+import Mention from "@tiptap/extension-mention";
 import { generateHTML } from "@tiptap/html";
 import StarterKit from "@tiptap/starter-kit";
 
@@ -31,18 +32,47 @@ export default function CampaignEmail({
   campaign = {
     subject: "Test Subject",
     bodyJson,
+    variables: {},
   },
 }: {
   campaign?: {
     subject: string;
     bodyJson: any;
+    variables: Record<string, string>;
   };
 }) {
-  const bodyHtml = generateHTML(campaign.bodyJson, [
+  let bodyHtml = generateHTML(campaign.bodyJson, [
     StarterKit.configure({
-      heading: { levels: [1, 2] },
+      heading: {
+        levels: [1, 2],
+      },
+    }),
+    Mention.extend({
+      renderHTML({ node }: { node: any }) {
+        return [
+          "span",
+          {
+            class:
+              "px-1 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold",
+            "data-type": "mention",
+            "data-id": node.attrs.id,
+          },
+          `{{${node.attrs.id}}}`,
+        ];
+      },
+      renderText({ node }: { node: any }) {
+        return `{{${node.attrs.id}}}`;
+      },
     }),
   ]);
+
+  bodyHtml = bodyHtml.replace(
+    /{{\s*([\w.]+)(?:\|([^}]+))?\s*}}/g,
+    (_, key, fallback) => {
+      const value = campaign.variables[key];
+      return value != null ? String(value) : fallback ?? "";
+    },
+  );
 
   return (
     <Html>

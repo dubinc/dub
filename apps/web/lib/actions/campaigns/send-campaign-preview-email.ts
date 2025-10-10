@@ -39,6 +39,8 @@ export const sendCampaignPreviewEmail = authActionClient
       },
     });
 
+    console.log(JSON.stringify(bodyJson, null, 2));
+
     await sendBatchEmail(
       emailAddresses.map((email) => ({
         variant: "notifications",
@@ -48,6 +50,10 @@ export const sendCampaignPreviewEmail = authActionClient
           campaign: {
             subject,
             bodyJson: JSON.parse(JSON.stringify(bodyJson)),
+            variables: {
+              "PartnerName": "John Doe",
+              "PartnerEmail": "john.doe@example.com",
+            },
           },
         }),
       })),
