@@ -2,6 +2,7 @@ import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { OG_AVATAR_URL } from "@dub/utils";
+import { DubApiError } from "../api/errors";
 import { transformLink } from "../api/links";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
 import { generateRandomName } from "../names";
@@ -22,6 +23,7 @@ import {
   saleEventSchemaTBEndpoint,
 } from "../zod/schemas/sales";
 import { queryParser } from "./query-parser";
+import { ParsedQuery } from "./query-parser-utilts";
 import { EventsFilters } from "./types";
 import { getStartEndDates } from "./utils/get-start-end-dates";
 
@@ -76,7 +78,21 @@ export const getEvents = async (params: EventsFilters) => {
       }[eventType] ?? clickEventSchemaTBEndpoint,
   });
 
-  const filters = queryParser(query);
+  let parsedQuery: ParsedQuery | undefined;
+
+  try {
+    parsedQuery = queryParser(query);
+  } catch (error) {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        error instanceof Error
+          ? `We were unable to parse your search query. ${error.message}`
+          : `We were unable to parse your search query. Try using the format key:"value" to query for fields.`,
+    });
+  }
+
+  console.log(parsedQuery);
 
   const response = await pipe({
     ...params,
@@ -89,7 +105,10 @@ export const getEvents = async (params: EventsFilters) => {
     offset: (params.page - 1) * params.limit,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
-    filters: filters ? JSON.stringify(filters) : undefined,
+    ...(parsedQuery && {
+      filters: JSON.stringify(parsedQuery.filters),
+      logicalOperator: parsedQuery.logicalOperator,
+    }),
   });
 
   const [linksMap, customersMap] = await Promise.all([
