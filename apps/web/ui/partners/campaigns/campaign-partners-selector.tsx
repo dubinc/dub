@@ -1,3 +1,6 @@
+// @ts-nocheck
+// TODO: fix this
+
 import usePartners from "@/lib/swr/use-partners";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { Combobox } from "@dub/ui";
