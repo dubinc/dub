@@ -44,6 +44,7 @@ interface IQRPreviewModalProps {
   width?: number;
   height?: number;
   user: Session["user"];
+  onCanvasReady?: () => void;
 }
 
 function QRPreviewModal({
@@ -57,6 +58,7 @@ function QRPreviewModal({
   width = 200,
   height = 200,
   user,
+  onCanvasReady,
 }: IQRPreviewModalProps) {
   const { queryParams } = useRouterStuff();
   const searchParams = useSearchParams();
@@ -189,8 +191,10 @@ function QRPreviewModal({
                 <QRCanvas
                   ref={canvasRef}
                   qrCode={qrCode}
+                  qrCodeId={qrCodeId}
                   width={width}
                   height={height}
+                  onCanvasReady={onCanvasReady}
                 />
               </div>
 
@@ -267,8 +271,9 @@ export function useQRPreviewModal(data: {
   width?: number;
   height?: number;
   user: Session["user"];
+  onCanvasReady?: () => void;
 }) {
-  const { canvasRef, qrCode, qrCodeId, width = 200, height = 200, user } = data;
+  const { canvasRef, qrCode, qrCodeId, width = 200, height = 200, user, onCanvasReady } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
   const [isNewQr, setIsNewQr] = useState(false);
 
@@ -290,6 +295,7 @@ export function useQRPreviewModal(data: {
         setIsNewQr={setIsNewQr}
         isNewQr={isNewQr}
         user={user}
+        onCanvasReady={onCanvasReady}
       />
     );
   }, [width, height, showQRPreviewModal, qrCodeId]);

@@ -21,6 +21,7 @@ export default function TopLinks() {
 
   return (
     <AnalyticsCard
+      className="md:col-span-2"
       tabs={[
         { id: "links", label: "QR Name", icon: Hyperlink },
         { id: "urls", label: "Destination URLs", icon: Globe },

@@ -64,6 +64,7 @@ export type TQrServerData = {
     domain: string;
     tagId?: string | null;
     webhookIds?: string[];
+    shortLink?: string;
   };
 };
 

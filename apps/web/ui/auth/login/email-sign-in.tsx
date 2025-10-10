@@ -8,7 +8,7 @@ import { cn } from "@dub/utils";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { trackClientEvents } from "core/integration/analytic/services/analytic.service.ts";
 import { Mail } from "lucide-react";
-import { signIn } from "next-auth/react";
+import { getSession, signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -88,6 +88,15 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
 
           // Check if the user can enter a password, and if so display the field
           if (!showPasswordField) {
+            // If a session already exists, skip sign-in and redirect directly
+            const callbackUrl = next || redirectTo || `/workspaces`;
+            const existingSession = await getSession();
+            console.log("existingSession", existingSession);
+            if (existingSession?.user) {
+              router.push(callbackUrl);
+              return;
+            }
+
             const result = await executeAsync({ email });
 
             if (!result?.data) {
