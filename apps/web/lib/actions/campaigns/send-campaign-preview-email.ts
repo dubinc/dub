@@ -1,10 +1,13 @@
 "use server";
 
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { renderEmailTemplate } from "@/lib/api/workflows/render-email-template";
 import { CampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
+import { generateHTML } from "@tiptap/html/server";
+import StarterKit from "@tiptap/starter-kit";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
@@ -39,7 +42,19 @@ export const sendCampaignPreviewEmail = authActionClient
       },
     });
 
-    console.log(JSON.stringify(bodyJson, null, 2));
+    const bodyHtml = renderEmailTemplate({
+      template: generateHTML(bodyJson, [
+        StarterKit.configure({
+          heading: {
+            levels: [1, 2],
+          },
+        }),
+      ]),
+      variables: {
+        PartnerName: "Partner",
+        PartnerEmail: "partner@acme.com",
+      },
+    });
 
     await sendBatchEmail(
       emailAddresses.map((email) => ({
@@ -49,11 +64,7 @@ export const sendCampaignPreviewEmail = authActionClient
         react: CampaignEmail({
           campaign: {
             subject,
-            bodyJson: JSON.parse(JSON.stringify(bodyJson)),
-            variables: {
-              "PartnerName": "John Doe",
-              "PartnerEmail": "john.doe@example.com",
-            },
+            body: bodyHtml,
           },
         }),
       })),
