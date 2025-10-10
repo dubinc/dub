@@ -45,7 +45,6 @@ export const POST = withWorkspace(
         status: CampaignStatus.draft,
         name: "Untitled",
         subject: "",
-        body: "",
         bodyJson: DEFAULT_CAMPAIGN_BODY,
         type,
       },

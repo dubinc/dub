@@ -1,4 +1,3 @@
-import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns";
 import { createId } from "@/lib/api/create-id";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -40,7 +39,6 @@ export const GET = withWorkspace(
 
     const parsedCampaign = CampaignSchema.parse({
       ...campaign,
-      body: campaign.bodyJson || DEFAULT_CAMPAIGN_BODY,
       groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
       triggerCondition: campaign.workflow?.triggerConditions?.[0],
     });
@@ -111,7 +109,7 @@ export const PATCH = withWorkspace(
     //   ...(name && { name }),
     //   ...(subject && { subject }),
     //   ...(status && { status }),
-    //   ...(body && { body }),
+    //   ...(bodyJson && { bodyJson }),
     //   ...(triggerCondition && { triggerCondition }),
     // });
 
