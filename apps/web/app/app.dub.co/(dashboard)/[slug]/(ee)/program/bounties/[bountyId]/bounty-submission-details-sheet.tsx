@@ -152,13 +152,13 @@ function BountySubmissionDetailsSheetContent({
                   ),
                 },
                 {
-                  label: "Submitted",
-                  value: formatDate(submission.createdAt, {
-                    month: "short",
-                    day: "2-digit",
-                    year: "numeric",
-                    timeZone: "UTC",
-                  }),
+                  label:
+                    bounty?.type === "performance" ? "Completed" : "Submitted",
+                  value: submission.completedAt
+                    ? formatDate(submission.completedAt, {
+                        month: "short",
+                      })
+                    : "-",
                 },
                 ...(submission.status === "rejected"
                   ? [
