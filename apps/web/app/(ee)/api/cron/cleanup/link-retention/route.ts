@@ -2,7 +2,7 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
+import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { Domain } from "@prisma/client";
@@ -125,12 +125,7 @@ async function deleteOldLinks(
 
     // // Record the links deletion in Tinybird
     // // not 100% sure if we need this yet, maybe we should just delete the link completely from TB to save space?
-    await recordLinkTB(
-      links.map((link) => ({
-        ...transformLinkTB(link),
-        deleted: true,
-      })),
-    );
+    await recordLink(links, { deleted: true });
 
     console.log(
       `[Link retention cleanup] Deleted ${links.length} links for ${domain.slug} that are older than ${domain.linkRetentionDays} days!`,
