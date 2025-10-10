@@ -126,19 +126,13 @@ export const PATCH = withWorkspace(
       });
     });
 
-    const response = CampaignSchema.parse({
-      ...updatedCampaign,
-      groups: updatedCampaign.groups.map(({ groupId }) => ({ id: groupId })),
-      triggerCondition: updatedCampaign.workflow?.triggerConditions?.[0],
-    });
-
     waitUntil(
       (async () => {
-        if (!campaign.workflow) {
+        if (!updatedCampaign.workflow) {
           return;
         }
 
-        const { condition } = parseWorkflowConfig(campaign.workflow);
+        const { condition } = parseWorkflowConfig(updatedCampaign.workflow);
 
         // Skip scheduling if the condition is not based on partnerEnrolledDays,
         // or if the required enrolled days is 0 (immediate execution case)
@@ -149,15 +143,23 @@ export const PATCH = withWorkspace(
           return;
         }
 
-        const qstashResponse = await qstash.schedules.create({
-          destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${campaign.workflow.id}`,
-          cron: "0 */12 * * *", // Every 12 hours
-          scheduleId: campaign.workflow.id,
-        });
-
-        console.log(qstashResponse);
+        if (updatedCampaign.status === "active") {
+          await qstash.schedules.create({
+            destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
+            cron: "0 */12 * * *", // Every 12 hours
+            scheduleId: updatedCampaign.workflow.id,
+          });
+        } else {
+          await qstash.schedules.delete(updatedCampaign.workflow.id);
+        }
       })(),
     );
+
+    const response = CampaignSchema.parse({
+      ...updatedCampaign,
+      groups: updatedCampaign.groups.map(({ groupId }) => ({ id: groupId })),
+      triggerCondition: updatedCampaign.workflow?.triggerConditions?.[0],
+    });
 
     return NextResponse.json(response);
   },
