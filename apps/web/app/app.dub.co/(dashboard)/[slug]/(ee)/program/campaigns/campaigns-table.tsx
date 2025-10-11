@@ -117,12 +117,12 @@ export function CampaignsTable() {
         },
       },
       {
-        id: "updatedAt",
-        header: "Updated",
-        accessorFn: (d) => d.updatedAt,
+        id: "createdAt",
+        header: "Created",
+        accessorFn: (d) => d.createdAt,
         cell: ({ row }) => (
-          <p title={formatDateTime(row.original.updatedAt)}>
-            {formatDateTimeSmart(row.original.updatedAt)}
+          <p title={formatDateTime(row.original.createdAt)}>
+            {formatDateTimeSmart(row.original.createdAt)}
           </p>
         ),
       },
@@ -230,7 +230,7 @@ export function CampaignsTable() {
     },
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["updatedAt", "status", "delivered", "bounced", "opened"],
+    sortableColumns: ["createdAt", "status", "delivered", "bounced", "opened"],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
