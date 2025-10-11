@@ -144,7 +144,7 @@ export const executeSendCampaignWorkflow = async ({
         senderUserId: campaign.userId,
         type: "campaign",
         subject: campaign.subject,
-        text: tiptapToPlainText(campaign.bodyJson as TiptapNode, {
+        text: tiptapToPlainText(campaign.bodyJson as unknown as TiptapNode, {
           variables: {
             PartnerName: programEnrollment.partner.name,
             PartnerEmail: programEnrollment.partner.email,
@@ -176,7 +176,7 @@ export const executeSendCampaignWorkflow = async ({
             type: campaign.type,
             subject: campaign.subject,
             body: generateCampaignEmailHTML({
-              bodyJson: campaign.bodyJson as any,
+              bodyJson: campaign.bodyJson as unknown as TiptapNode,
               variables: {
                 PartnerName: partnerUser.partner.name,
                 PartnerEmail: partnerUser.partner.email,
