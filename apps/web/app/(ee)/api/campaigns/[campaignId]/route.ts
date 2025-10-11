@@ -143,13 +143,21 @@ export const PATCH = withWorkspace(
           return;
         }
 
-        if (updatedCampaign.status === "active") {
+        // Decide whether to schedule the workflow or delete the schedule
+        const shouldSchedule =
+          (campaign.status === "draft" || campaign.status === "paused") &&
+          updatedCampaign.status === "active";
+
+        const shouldDeleteSchedule =
+          campaign.status === "active" && updatedCampaign.status === "paused";
+
+        if (shouldSchedule) {
           await qstash.schedules.create({
             destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
             cron: "0 */12 * * *", // Every 12 hours
             scheduleId: updatedCampaign.workflow.id,
           });
-        } else {
+        } else if (shouldDeleteSchedule) {
           await qstash.schedules.delete(updatedCampaign.workflow.id);
         }
       })(),
