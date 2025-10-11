@@ -1,14 +1,15 @@
 import { WorkflowCondition, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
-import NewMessageFromProgram from "@dub/email/templates/new-message-from-program";
+import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Workflow } from "@prisma/client";
 import { subDays } from "date-fns";
 import { createId } from "../create-id";
+import { generateCampaignEmailHTML } from "./generate-campaign-email-html";
 import { parseWorkflowConfig } from "./parse-workflow-config";
-import { renderEmailTemplate } from "./render-email-template";
+import { TiptapNode, tiptapToPlainText } from "./tiptap-to-text";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
@@ -118,7 +119,6 @@ export const executeSendCampaignWorkflow = async ({
   const programEnrollmentsChunks = chunk(programEnrollments, 100);
 
   for (const programEnrollmentChunk of programEnrollmentsChunks) {
-    // Get partner users to notify
     const partnerUsers = programEnrollmentChunk.flatMap((enrollment) =>
       enrollment.partner.users
         .filter(({ user }) => user.email) // only include users with an email
@@ -144,10 +144,10 @@ export const executeSendCampaignWorkflow = async ({
         senderUserId: campaign.userId,
         type: "campaign",
         subject: campaign.subject,
-        text: renderEmailTemplate({
-          template: campaign.body,
+        text: tiptapToPlainText(campaign.bodyJson as unknown as TiptapNode, {
           variables: {
-            partnerName: programEnrollment.partner.name,
+            PartnerName: programEnrollment.partner.name,
+            PartnerEmail: programEnrollment.partner.email,
           },
         }),
       })),
@@ -157,34 +157,32 @@ export const executeSendCampaignWorkflow = async ({
       `Workflow ${workflow.id} created ${messages.count} messages for campaign ${campaignId}.`,
     );
 
+    const { program } = campaign;
+
     // Send emails
     const { data } = await sendBatchEmail(
       partnerUsers.map((partnerUser) => ({
         variant: "notifications",
         to: partnerUser.email!,
         subject: campaign.subject,
-        react: NewMessageFromProgram({
+        react: CampaignEmail({
           program: {
-            name: campaign.program.name,
-            logo: campaign.program.logo,
-            slug: campaign.program.slug,
+            name: program.name,
+            slug: program.slug,
+            logo: program.logo,
+            messagingEnabledAt: program.messagingEnabledAt,
           },
-          messages: [
-            {
-              text: renderEmailTemplate({
-                template: campaign.body,
-                variables: {
-                  partnerName: partnerUser.partner.name,
-                },
-              }),
-              createdAt: new Date(),
-              user: {
-                name: campaign.program.name,
-                image: campaign.program.logo,
+          campaign: {
+            type: campaign.type,
+            subject: campaign.subject,
+            body: generateCampaignEmailHTML({
+              bodyJson: campaign.bodyJson as unknown as TiptapNode,
+              variables: {
+                PartnerName: partnerUser.partner.name,
+                PartnerEmail: partnerUser.partner.email,
               },
-            },
-          ],
-          email: partnerUser.email!,
+            }),
+          },
         }),
         tags: [{ name: "type", value: "notification-email" }],
         headers: {

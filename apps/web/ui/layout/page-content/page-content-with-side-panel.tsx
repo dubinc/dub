@@ -30,6 +30,7 @@ export function PageContentWithSidePanel({
   sidePanel,
   children,
   controls,
+  individualScrolling,
   ...headerProps
 }: PropsWithChildren<
   {
@@ -40,6 +41,7 @@ export function PageContentWithSidePanel({
       content: ReactNode;
       controls?: ReactNode;
     };
+    individualScrolling?: boolean;
   } & PageContentHeaderProps
 >) {
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
@@ -50,11 +52,12 @@ export function PageContentWithSidePanel({
     >
       <div
         className={cn(
-          "@container/page-content relative grid min-h-[calc(100dvh-var(--page-top-margin)-1px)] grid-cols-[minmax(340px,1fr)_minmax(0,min-content)] rounded-t-[inherit] bg-neutral-100 md:bg-white",
+          "@container/page-content relative grid min-h-[var(--page-height)] grid-cols-[minmax(340px,1fr)_minmax(0,min-content)] rounded-t-[inherit] bg-neutral-100 [--page-height:calc(100dvh-var(--page-top-margin)-1px)] md:bg-white",
+          individualScrolling && "h-[var(--page-height)]",
           className,
         )}
       >
-        <div>
+        <div className="flex min-h-0 flex-col">
           <PageContentHeader
             {...headerProps}
             controls={
@@ -71,7 +74,8 @@ export function PageContentWithSidePanel({
           />
           <div
             className={cn(
-              "rounded-t-[inherit] bg-white pt-3 lg:pt-6",
+              "grow rounded-t-[inherit] bg-white pt-3 lg:pt-6",
+              individualScrolling && "scrollbar-hide min-h-0 overflow-y-auto",
               contentWrapperClassName,
             )}
           >

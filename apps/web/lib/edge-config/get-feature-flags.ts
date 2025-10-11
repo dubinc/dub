@@ -19,6 +19,7 @@ export const getFeatureFlags = async ({
     noDubLink: false,
     abTesting: false,
     analyticsSettingsSiteVisitTracking: false,
+    emailCampaigns: false,
   };
 
   if (!process.env.NEXT_PUBLIC_IS_DUB || !process.env.EDGE_CONFIG) {

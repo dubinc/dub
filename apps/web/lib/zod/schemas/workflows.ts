@@ -25,7 +25,7 @@ export const WORKFLOW_ATTRIBUTE_LABELS: Record<
   partnerEnrolledDays: "been in the program for",
 } as const;
 
-export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
+export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   WorkflowConditionAttribute,
   WorkflowTrigger
 > = {
@@ -62,7 +62,7 @@ export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 // Individual condition
 export const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_ATTRIBUTES),
-  operator: z.enum(WORKFLOW_COMPARISON_OPERATORS),
+  operator: z.enum(WORKFLOW_COMPARISON_OPERATORS).default("gte"),
   value: z.number(),
 });
 
