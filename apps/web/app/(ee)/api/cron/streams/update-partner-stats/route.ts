@@ -19,6 +19,7 @@ const processPartnerActivityStreamBatch = () =>
         return {
           success: true,
           updates: [],
+          processedEntryIds: [],
         };
       }
 
@@ -123,9 +124,11 @@ const processPartnerActivityStreamBatch = () =>
         ...value,
       }));
 
+      console.table(programEnrollmentsToUpdateArray);
+
       if (programEnrollmentsToUpdateArray.length === 0) {
         console.log("No program enrollments to update");
-        return { success: true, updates: [] };
+        return { success: true, updates: [], processedEntryIds: [] };
       }
 
       console.log(
@@ -148,20 +151,35 @@ const processPartnerActivityStreamBatch = () =>
 
       let totalProcessed = 0;
       const errors: { programId: string; partnerId: string; error: any }[] = [];
+      const processedEntryIds: string[] = [];
+
+      // Collect all entry IDs for tracking
+      entries.forEach((entry) => {
+        processedEntryIds.push(entry.id);
+      });
 
       for (const batch of batches) {
         await Promise.allSettled(
           batch.map(async (programEnrollment) => {
             const { programId, partnerId, ...stats } = programEnrollment;
+            const finalStatsToUpdate = Object.entries(stats).filter(
+              ([_, value]) => value !== undefined,
+            );
+
             try {
               // Update program enrollment stats
-              await conn.execute(
-                `UPDATE ProgramEnrollment WHERE programId = ${programId} AND partnerId = ${partnerId} SET ${Object.entries(
-                  stats,
-                )
-                  .map(([key, value]) => `${key} = ${value}`)
-                  .join(", ")}`,
-              );
+              if (finalStatsToUpdate.length > 0) {
+                await conn.execute(
+                  `UPDATE ProgramEnrollment SET ${finalStatsToUpdate
+                    .map(([key, _]) => `${key} = ?`)
+                    .join(", ")} WHERE programId = ? AND partnerId = ?`,
+                  [
+                    ...finalStatsToUpdate.map(([_, value]) => value),
+                    programId,
+                    partnerId,
+                  ],
+                );
+              }
               totalProcessed++;
             } catch (error) {
               console.error(
@@ -196,6 +214,7 @@ const processPartnerActivityStreamBatch = () =>
         updates: programEnrollmentsToUpdateArray,
         errors,
         totalProcessed,
+        processedEntryIds,
       };
     },
     {
@@ -212,7 +231,7 @@ export async function GET(req: Request) {
 
     console.log("Processing partner activity events from Redis stream...");
 
-    const { updates, errors, totalProcessed } =
+    const { updates, errors, totalProcessed, processedEntryIds } =
       await processPartnerActivityStreamBatch();
 
     if (!updates.length) {
