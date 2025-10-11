@@ -36,13 +36,11 @@ const inputClassName =
 const labelClassName = "text-sm font-medium text-content-subtle";
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { program } = useProgram();
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const {
-    makeRequest: saveDraftCampaign,
-    isSubmitting: isSavingDraftCampaign,
-  } = useApiMutation<Campaign>();
+  const { makeRequest, isSubmitting: isSavingCampaign } =
+    useApiMutation<Campaign>();
 
   const form = useForm<UpdateCampaignFormData>({
     defaultValues: {
@@ -63,12 +61,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     formState: { dirtyFields },
   } = form;
 
-  const handleSaveCampaign = useCallback(
-    async (isDraft: boolean = false, showSuccessToast: boolean = false) => {
-      if (isSavingDraftCampaign) {
-        return;
-      }
-
+  const saveCampaign = useCallback(
+    async ({ isDraft = false }: { isDraft?: boolean }) => {
       const allFormData = getValues();
 
       // Only send fields that have changed (PATCH)
@@ -90,12 +84,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             : null;
         }
 
-        await saveDraftCampaign(`/api/campaigns/${campaign.id}`, {
+        reset(allFormData, { keepValues: true, keepDirty: false });
+
+        await makeRequest(`/api/campaigns/${campaign.id}`, {
           method: "PATCH",
           body: changedFields,
           onSuccess: () => {
-            reset(allFormData, { keepValues: true });
-            if (showSuccessToast) {
+            if (!isDraft) {
               toast.success("Campaign saved successfully!");
             }
           },
@@ -108,32 +103,33 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       }
     },
     [
-      isSavingDraftCampaign,
+      isSavingCampaign,
       getValues,
       dirtyFields,
-      saveDraftCampaign,
+      watch,
+      makeRequest,
       campaign.id,
       reset,
     ],
   );
 
   // Debounced auto-save for draft campaigns
-  const handleSaveDraftCampaign = useDebouncedCallback(async () => {
-    if (campaign.status !== CampaignStatus.draft) return;
-    await handleSaveCampaign(true, false);
-  }, 1000);
+  const saveDraftCampaign = useDebouncedCallback(async () => {
+    if (campaign.status !== CampaignStatus.draft) {
+      return;
+    }
 
-  // Manual save for non-draft campaigns
-  const handleManualSave = useCallback(async () => {
-    await handleSaveCampaign(false, true);
-  }, [handleSaveCampaign]);
+    await saveCampaign({ isDraft: true });
+  }, 1000);
 
   // Watch for form changes and trigger autosave (only for draft campaigns)
   useEffect(() => {
     const { unsubscribe } = watch(() => {
-      if (campaign.status !== CampaignStatus.draft) return;
+      if (campaign.status !== CampaignStatus.draft) {
+        return;
+      }
 
-      handleSaveDraftCampaign();
+      saveDraftCampaign();
     });
 
     return () => unsubscribe();
@@ -147,7 +143,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         toast.success("Your content is automatically saved as you type!");
       } else {
         // For non-draft campaigns, trigger manual save
-        handleManualSave();
+        saveCampaign({ isDraft: false });
       }
     },
     { enabled: true },
@@ -215,7 +211,6 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         individualScrolling
         contentWrapperClassName="flex flex-col"
       >
-        {/* Content */}
         <PageWidthWrapper className="mb-8 mt-6 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
             <label className="contents">
@@ -332,8 +327,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
         <CampaignActionBar
           campaignStatus={campaign.status}
-          onSave={handleManualSave}
-          isSaving={isSavingDraftCampaign}
+          onSave={() => saveCampaign({ isDraft: false })}
+          isSaving={isSavingCampaign}
           onReset={() => {
             editorRef.current?.setContent(getValues("bodyJson"));
           }}
