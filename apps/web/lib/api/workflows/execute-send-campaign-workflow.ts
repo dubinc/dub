@@ -6,10 +6,10 @@ import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Workflow } from "@prisma/client";
 import { subDays } from "date-fns";
-import { TiptapNode, tiptapToPlainText } from "../campaigns/tiptap-to-text";
 import { createId } from "../create-id";
 import { generateCampaignEmailHTML } from "./generate-campaign-email-html";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+import { TiptapNode, tiptapToPlainText } from "./tiptap-to-text";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
