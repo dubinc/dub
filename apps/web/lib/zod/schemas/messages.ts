@@ -6,11 +6,7 @@ import { UserSchema } from "./users";
 
 export const MAX_MESSAGE_LENGTH = 2000;
 
-const messageTextSchema = z
-  .string()
-  .min(1)
-  .max(MAX_MESSAGE_LENGTH)
-  .transform((v) => v.replace(/<[^>]+>/g, "").trim());
+const messageTextSchema = z.string().min(1);
 
 export const MessageSchema = z.object({
   id: z.string(),
@@ -61,7 +57,7 @@ export const countMessagesQuerySchema = z.object({
 
 export const messagePartnerSchema = z.object({
   partnerId: z.string(),
-  text: messageTextSchema,
+  text: messageTextSchema.max(MAX_MESSAGE_LENGTH),
   createdAt: z.coerce
     .date()
     .refine(
@@ -95,7 +91,7 @@ export const getProgramMessagesQuerySchema = z.object({
 
 export const messageProgramSchema = z.object({
   programSlug: z.string(),
-  text: messageTextSchema,
+  text: messageTextSchema.max(MAX_MESSAGE_LENGTH),
   createdAt: z.coerce
     .date()
     .refine(
