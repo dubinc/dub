@@ -25,6 +25,7 @@ import {
 } from "@dub/ui/icons";
 import {
   cn,
+  getApexDomain,
   getDomainWithoutWWW,
   getPathnameFromUrl,
   // getPathnameFromUrl,
@@ -190,7 +191,12 @@ function PartnerLinkModalContent({
   }, [programEnrollment]);
 
   const destinationDomains = useMemo(
-    () => additionalLinks.map((link) => link.domain),
+    () =>
+      additionalLinks.map((link) =>
+        link.validationMode === "domain"
+          ? link.domain
+          : getDomainWithoutWWW(link.url!),
+      ),
     [additionalLinks],
   );
 
@@ -535,7 +541,7 @@ function DestinationDomainCombobox({
         punycode(domain).toLowerCase().includes(debouncedSearch.toLowerCase()),
       )
       .map((domain) => ({
-        value: domain,
+        value: getApexDomain(domain),
         label: punycode(domain),
       }));
   }, [selectedDomain, destinationDomains, debouncedSearch]);

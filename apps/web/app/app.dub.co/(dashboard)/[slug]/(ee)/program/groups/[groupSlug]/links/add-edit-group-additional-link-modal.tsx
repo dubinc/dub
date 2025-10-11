@@ -5,8 +5,8 @@ import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
 import { Badge, Button, Input, Modal } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
-import { Dispatch, SetStateAction, useState } from "react";
+import { cn, isValidUrl } from "@dub/utils";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
@@ -20,7 +20,7 @@ const URL_VALIDATION_MODES = [
   {
     value: "exact",
     label: "Single page",
-    description: "Restricts links to the homepage only",
+    description: "Restricts links to a specific page",
   },
 ];
 
@@ -48,53 +48,115 @@ function AddDestinationUrlModalContent({
   } = useForm<PartnerGroupAdditionalLink>({
     defaultValues: {
       domain: link?.domain || "",
+      url: link?.url || "",
       validationMode: link?.validationMode || "domain",
     },
   });
 
-  const [domain, validationMode] = watch(["domain", "validationMode"]);
+  const [domain, url, validationMode] = watch([
+    "domain",
+    "url",
+    "validationMode",
+  ]);
 
-  const onSubmit = async (data: PartnerGroupAdditionalLink) => {
-    const domainNormalized = data.domain.trim().toLowerCase();
+  useEffect(() => {
+    if (validationMode === "domain" && url) {
+      setValue("url", "");
+    } else if (validationMode === "exact" && domain) {
+      setValue("domain", "");
+    }
+  }, [validationMode, setValue, url, domain]);
 
-    if (!isValidDomainFormat(domainNormalized)) {
-      setError("domain", {
-        type: "manual",
-        message: "Please enter a valid domain (eg: acme.com).",
-      });
-      return;
+  const validateForm = (data: PartnerGroupAdditionalLink): boolean => {
+    // Domain mode validation
+    if (data.validationMode === "domain") {
+      if (!data.domain) {
+        return false;
+      }
+
+      const domainNormalized = data.domain.trim().toLowerCase();
+
+      if (!isValidDomainFormat(domainNormalized)) {
+        setError("domain", {
+          type: "manual",
+          message: "Please enter a valid domain (eg: acme.com).",
+        });
+        return false;
+      }
+
+      setValue("domain", domainNormalized, { shouldDirty: true });
+
+      const existingDomains = additionalLinks
+        .filter((l) => l.validationMode === "domain" && l.domain)
+        .map((l) => l.domain!);
+
+      if (
+        existingDomains.includes(domainNormalized) &&
+        domainNormalized !== link?.domain
+      ) {
+        setError("domain", {
+          type: "value",
+          message: `Domain ${domainNormalized} has already been added as a link domain`,
+        });
+        return false;
+      }
     }
 
-    setValue("domain", domainNormalized, { shouldDirty: true });
+    // Exact mode validation
+    else if (data.validationMode === "exact") {
+      const url = data.url?.trim();
 
-    const existingDomains = additionalLinks.map((l) => l.domain);
+      if (!url) {
+        return false;
+      }
 
-    if (
-      existingDomains.includes(domainNormalized) &&
-      domainNormalized !== link?.domain
-    ) {
-      setError("domain", {
-        type: "value",
-        message: `Domain ${domainNormalized} has already been added as a link domain`,
-      });
+      if (!isValidUrl(url)) {
+        setError("url", {
+          type: "manual",
+          message: "Please enter a valid URL (eg: https://acme.com/page).",
+        });
+        return false;
+      }
+
+      const existingUrls = additionalLinks
+        .filter((l) => l.validationMode === "exact" && l.url)
+        .map((l) => l.url!);
+
+      if (existingUrls.includes(url) && url !== link?.url) {
+        setError("url", {
+          type: "value",
+          message: "This URL has already been added as an exact link",
+        });
+        return false;
+      }
+    }
+
+    return true;
+  };
+
+  const onSubmit = async (data: PartnerGroupAdditionalLink) => {
+    data = {
+      validationMode: data.validationMode,
+      domain: data.validationMode === "domain" ? data.domain : undefined,
+      url: data.validationMode === "exact" ? data.url : undefined,
+    };
+
+    if (!validateForm(data)) {
       return;
     }
 
     let updatedAdditionalLinks: PartnerGroupAdditionalLink[];
 
     if (link) {
-      // Editing existing link - find and replace the specific link by domain
       updatedAdditionalLinks = additionalLinks.map((existingLink) => {
-        if (existingLink.domain === link.domain) {
-          return {
-            ...data,
-          };
-        }
+        const isMatch =
+          link.validationMode === "exact"
+            ? existingLink.url === link.url
+            : existingLink.domain === link.domain;
 
-        return existingLink;
+        return isMatch ? data : existingLink;
       });
     } else {
-      // Check if we're at the maximum number of additional links
       if (additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS) {
         toast.error(
           `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional link domains.`,
@@ -102,9 +164,9 @@ function AddDestinationUrlModalContent({
         return;
       }
 
-      // Creating new link
       updatedAdditionalLinks = [...additionalLinks, data];
     }
+
     // Update the parent form state instead of calling API directly
     onUpdateAdditionalLinks(updatedAdditionalLinks);
     setIsOpen(false);
@@ -129,28 +191,11 @@ function AddDestinationUrlModalContent({
 
       <div className="flex-1 overflow-y-auto">
         <div className="space-y-6 p-6">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-800">
-              Link domain
-            </label>
-            <Input
-              value={watch("domain") || ""}
-              onChange={(e) => {
-                setValue("domain", e.target.value);
-                clearErrors("domain");
-              }}
-              type="text"
-              placeholder="acme.com"
-              className="max-w-full"
-              error={errors.domain?.message}
-            />
-          </div>
-
           <div>
             <label className="text-sm font-medium text-neutral-800">
               Allowed link types
             </label>
-            <div className="mt-3 grid grid-cols-1 gap-3">
+            <div className="mt-2 grid grid-cols-1 gap-3">
               {URL_VALIDATION_MODES.map((type) => {
                 const isSelected = type.value === validationMode;
 
@@ -195,6 +240,38 @@ function AddDestinationUrlModalContent({
             </div>
           </div>
 
+          <div className="space-y-2">
+            <label className="block text-sm font-medium text-neutral-800">
+              {validationMode === "exact" ? "Link URL" : "Link domain"}
+            </label>
+
+            {validationMode === "exact" ? (
+              <Input
+                value={watch("url") || ""}
+                onChange={(e) => {
+                  setValue("url", e.target.value);
+                  clearErrors("url");
+                }}
+                type="text"
+                placeholder="https://acme.com/specific-page"
+                className="max-w-full"
+                error={errors.url?.message}
+              />
+            ) : (
+              <Input
+                value={watch("domain") || ""}
+                onChange={(e) => {
+                  setValue("domain", e.target.value);
+                  clearErrors("domain");
+                }}
+                type="text"
+                placeholder="acme.com"
+                className="max-w-full"
+                error={errors.domain?.message}
+              />
+            )}
+          </div>
+
           {!link && (
             <div className="flex items-start gap-2.5">
               <input
@@ -230,15 +307,19 @@ function AddDestinationUrlModalContent({
             variant="secondary"
             onClick={() => setIsOpen(false)}
             text="Cancel"
-            className="h-10 w-fit"
+            className="h-9 w-fit"
           />
 
           <Button
             type="submit"
             variant="primary"
             text={isEditing ? "Update link domain" : "Add link domain"}
-            className="h-10 w-fit"
-            disabled={!domain || !validationMode}
+            className="h-9 w-fit"
+            disabled={
+              !validationMode ||
+              (validationMode === "domain" && !domain) ||
+              (validationMode === "exact" && !url)
+            }
           />
         </div>
       </div>

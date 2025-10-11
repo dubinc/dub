@@ -1,4 +1,5 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { dedupeAdditionalLinks } from "@/lib/api/bounties/dedupe-additional-links";
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
@@ -104,13 +105,7 @@ export const PATCH = withWorkspace(
         })
       : null;
 
-    // Deduplicate additionalLinks by domain, keeping the first occurrence
-    const deduplicatedAdditionalLinks = additionalLinks
-      ? additionalLinks.filter(
-          (link, index, array) =>
-            array.findIndex((l) => l.domain === link.domain) === index,
-        )
-      : additionalLinks;
+    const deduplicatedAdditionalLinks = dedupeAdditionalLinks(additionalLinks);
 
     const additionalLinksInput = deduplicatedAdditionalLinks
       ? deduplicatedAdditionalLinks.length > 0
