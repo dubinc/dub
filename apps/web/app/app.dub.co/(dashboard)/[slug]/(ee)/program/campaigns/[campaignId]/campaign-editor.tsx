@@ -84,12 +84,11 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
             : null;
         }
 
-        reset(allFormData, { keepValues: true, keepDirty: false });
-
         await makeRequest(`/api/campaigns/${campaign.id}`, {
           method: "PATCH",
           body: changedFields,
           onSuccess: () => {
+            reset(allFormData, { keepValues: true, keepDirty: false });
             if (!isDraft) {
               toast.success("Campaign saved successfully!");
             }
