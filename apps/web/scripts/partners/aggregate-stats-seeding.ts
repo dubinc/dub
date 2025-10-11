@@ -1,8 +1,8 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-// import { publishPartnerActivityEvent } from "../../lib/upstash/redis-streams";
+import { publishPartnerActivityEvent } from "../../lib/upstash/redis-streams";
 
-// PoC script to test /api/cron/streams/update-partner-stats cron job
+// Seeding script to seed the partner stats with activity
 async function main() {
   const partnerLinksWithActivity = await prisma.link.groupBy({
     by: ["partnerId", "programId"],
@@ -44,17 +44,24 @@ async function main() {
     })),
   );
 
-  //   await Promise.all(
-  //     partnerLinksWithActivity.map(async (partnerLink) => {
-  //       const res = await publishPartnerActivityEvent({
-  //         partnerId: partnerLink.partnerId!,
-  //         programId: partnerLink.programId!,
-  //         eventType: "click",
-  //         timestamp: new Date().toISOString(),
-  //       });
-  //       console.log(res);
-  //     }),
-  //   );
+  const BATCH = 9;
+  const batchedPartnerLinksWithActivity = partnerLinksWithActivity.slice(
+    BATCH * 5000,
+    (BATCH + 1) * 5000,
+  );
+  await Promise.all(
+    batchedPartnerLinksWithActivity.map(async (partnerLink) => {
+      await publishPartnerActivityEvent({
+        partnerId: partnerLink.partnerId!,
+        programId: partnerLink.programId!,
+        eventType: "click",
+        timestamp: new Date().toISOString(),
+      });
+    }),
+  );
+  console.log(
+    `Seeded ${batchedPartnerLinksWithActivity.length} partner links with activity`,
+  );
 }
 
 main();

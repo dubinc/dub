@@ -54,7 +54,7 @@ export async function getProgramEnrollmentOrThrow<
         include: finalInclude,
       });
 
-  if (!programEnrollment || !(programEnrollment as any).program) {
+  if (!programEnrollment) {
     throw new DubApiError({
       code: "not_found",
       message: `Partner ${partnerId} is not enrolled in program ${programId}.`,
