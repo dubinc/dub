@@ -329,7 +329,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
           onSave={() => saveCampaign({ isDraft: false })}
           isSaving={isSavingCampaign}
           onReset={() => {
-            editorRef.current?.setContent(getValues("bodyJson"));
+            editorRef.current?.setContent(campaign.bodyJson);
           }}
         />
       </PageContentWithSidePanel>
