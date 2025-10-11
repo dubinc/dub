@@ -38,14 +38,6 @@ export const sendCampaignPreviewEmail = authActionClient
       campaignId,
     });
 
-    const bodyHtml = generateCampaignEmailHTML({
-      bodyJson,
-      variables: {
-        PartnerName: "Partner",
-        PartnerEmail: "partner@acme.com",
-      },
-    });
-
     await sendBatchEmail(
       emailAddresses.map((email) => ({
         variant: "notifications",
@@ -54,7 +46,13 @@ export const sendCampaignPreviewEmail = authActionClient
         react: CampaignEmail({
           campaign: {
             subject,
-            body: bodyHtml,
+            body: generateCampaignEmailHTML({
+              bodyJson,
+              variables: {
+                PartnerName: "Partner",
+                PartnerEmail: "partner@acme.com",
+              },
+            }),
           },
         }),
       })),

@@ -1,7 +1,7 @@
 import { WorkflowCondition, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
-import NewMessageFromProgram from "@dub/email/templates/new-message-from-program";
+import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Workflow } from "@prisma/client";
@@ -164,29 +164,17 @@ export const executeSendCampaignWorkflow = async ({
         variant: "notifications",
         to: partnerUser.email!,
         subject: campaign.subject,
-        react: NewMessageFromProgram({
-          program: {
-            name: campaign.program.name,
-            logo: campaign.program.logo,
-            slug: campaign.program.slug,
-          },
-          messages: [
-            {
-              text: generateCampaignEmailHTML({
-                bodyJson: campaign.bodyJson as any,
-                variables: {
-                  PartnerName: partnerUser.partner.name,
-                  PartnerEmail: partnerUser.partner.email,
-                },
-              }),
-              createdAt: new Date(),
-              user: {
-                name: campaign.program.name,
-                image: campaign.program.logo,
+        react: CampaignEmail({
+          campaign: {
+            subject: campaign.subject,
+            body: generateCampaignEmailHTML({
+              bodyJson: campaign.bodyJson as any,
+              variables: {
+                PartnerName: partnerUser.partner.name,
+                PartnerEmail: partnerUser.partner.email,
               },
-            },
-          ],
-          email: partnerUser.email!,
+            }),
+          },
         }),
         tags: [{ name: "type", value: "notification-email" }],
         headers: {
