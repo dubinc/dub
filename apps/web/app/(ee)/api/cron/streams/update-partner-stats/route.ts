@@ -4,7 +4,6 @@ import { conn } from "@/lib/planetscale";
 import {
   PartnerActivityEvent,
   partnerActivityStream,
-  workspaceUsageStream,
 } from "@/lib/upstash/redis-streams";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -126,7 +125,7 @@ const processPartnerActivityStreamBatch = () =>
 
       if (programEnrollmentsToUpdateArray.length === 0) {
         console.log("No program enrollments to update");
-        return { success: true, updates: [], processedEntryIds: [] };
+        return { success: true, updates: [] };
       }
 
       console.log(
@@ -205,8 +204,8 @@ const processPartnerActivityStreamBatch = () =>
     },
   );
 
-// This route is used to process aggregated workspace usage events from Redis streams
-// It runs every minute with a batch size of 10,000 to consume high-frequency usage updates
+// This route is used to process partner activity events from Redis streams
+// It runs every 5 minutes with a batch size of 10,000 to consume high-frequency partner activity updates
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
@@ -225,19 +224,19 @@ export async function GET(req: Request) {
     }
 
     // Get stream info for monitoring
-    const streamInfo = await workspaceUsageStream.getStreamInfo();
+    const streamInfo = await partnerActivityStream.getStreamInfo();
     const response = {
       success: true,
       processed: totalProcessed,
       errors: errors?.length || 0,
       streamInfo,
-      message: `Successfully processed ${totalProcessed} workspace usage updates`,
+      message: `Successfully processed ${totalProcessed} partner activity updates`,
     };
     console.log(response);
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Failed to process workspace usage updates:", error);
+    console.error("Failed to process partner activity updates:", error);
     return handleAndReturnErrorResponse(error);
   }
 }

@@ -2,7 +2,7 @@ import { PartnerActivityEvent } from "@/lib/upstash/redis-streams";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
 
-// PoC script to test /api/cron/usage/update-partner-stats cron job
+// PoC script to test /api/cron/streams/update-partner-stats cron job
 async function main() {
   const entries: { data: PartnerActivityEvent }[] = [
     {

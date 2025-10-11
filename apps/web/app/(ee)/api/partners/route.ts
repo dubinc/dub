@@ -1,5 +1,5 @@
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { getPartnersNew } from "@/lib/api/partners/get-partners-new";
+import { getPartners } from "@/lib/api/partners/get-partners";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -18,12 +18,12 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const parsedParams = getPartnersQuerySchemaExtended.parse(searchParams);
 
-    console.time("getPartnersNew");
-    const partners = await getPartnersNew({
+    console.time("getPartners");
+    const partners = await getPartners({
       ...parsedParams,
       programId,
     });
-    console.timeEnd("getPartnersNew");
+    console.timeEnd("getPartners");
 
     // polyfill deprecated fields for backward compatibility
     return NextResponse.json(
