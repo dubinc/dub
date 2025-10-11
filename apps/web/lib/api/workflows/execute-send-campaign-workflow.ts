@@ -118,7 +118,6 @@ export const executeSendCampaignWorkflow = async ({
   const programEnrollmentsChunks = chunk(programEnrollments, 100);
 
   for (const programEnrollmentChunk of programEnrollmentsChunks) {
-    // Get partner users to notify
     const partnerUsers = programEnrollmentChunk.flatMap((enrollment) =>
       enrollment.partner.users
         .filter(({ user }) => user.email) // only include users with an email
@@ -158,6 +157,8 @@ export const executeSendCampaignWorkflow = async ({
       `Workflow ${workflow.id} created ${messages.count} messages for campaign ${campaignId}.`,
     );
 
+    const { program } = campaign;
+
     // Send emails
     const { data } = await sendBatchEmail(
       partnerUsers.map((partnerUser) => ({
@@ -165,7 +166,14 @@ export const executeSendCampaignWorkflow = async ({
         to: partnerUser.email!,
         subject: campaign.subject,
         react: CampaignEmail({
+          program: {
+            name: program.name,
+            slug: program.slug,
+            logo: program.logo,
+            messagingEnabledAt: program.messagingEnabledAt,
+          },
           campaign: {
+            type: campaign.type,
             subject: campaign.subject,
             body: generateCampaignEmailHTML({
               bodyJson: campaign.bodyJson as any,
