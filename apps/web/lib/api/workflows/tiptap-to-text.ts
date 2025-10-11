@@ -30,7 +30,7 @@ const DEFAULTS: Required<Options> = {
   preserveNewlines: true,
   wordwrap: 0,
   preserveLinks: true,
-  preserveImages: true,
+  preserveImages: false,
   listIndent: "  ",
   variables: {},
 };
@@ -109,7 +109,15 @@ export function tiptapToPlainText(
         if (conf.preserveLinks && node.marks) {
           node.marks.forEach((mark) => {
             if (mark.type === "link" && mark.attrs?.href) {
-              text += ` (${mark.attrs.href})`;
+              let href = mark.attrs.href;
+              // Strip mailto: prefix for email links
+              if (href.startsWith("mailto:")) {
+                href = href.substring(7);
+              }
+              // Only append href if it's different from the text content
+              if (href !== text.trim()) {
+                text += ` ${href}`;
+              }
             }
           });
         }
@@ -166,9 +174,11 @@ export function tiptapToPlainText(
           else if (cur.type === "ordered")
             prefixParts.push(indent + `${cur.index}. `);
         }
+
         const inner = (node.content || [])
           .map((n) => walk(n, listState))
           .join("");
+
         // ensure lines within item are indented properly
         const innerLines = inner
           .split(/\n/)
@@ -180,6 +190,7 @@ export function tiptapToPlainText(
                 ) + l,
           )
           .join("\n");
+
         return prefixParts.join("") + innerLines;
       }
 
@@ -246,7 +257,19 @@ export function tiptapToPlainText(
           .map((n) => walk(n, listState))
           .join("");
         const href = node.attrs && node.attrs.href;
-        if (conf.preserveLinks && href) return `${text} (${href})`;
+        if (conf.preserveLinks && href) {
+          let cleanHref = href;
+          // Strip mailto: prefix for email links
+          if (cleanHref.startsWith("mailto:")) {
+            cleanHref = cleanHref.substring(7);
+          }
+
+          // Only append href if it's different from the text content
+          if (cleanHref !== text.trim()) {
+            return `${text} ${cleanHref}`;
+          }
+          return text;
+        }
         return text;
       }
 
