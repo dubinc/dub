@@ -79,10 +79,13 @@ export const createPartnerCommission = async ({
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
-    ...(event === "click" && { includeClickReward: true }),
-    ...(event === "lead" && { includeLeadReward: true }),
-    ...(event === "sale" && { includeSaleReward: true }),
-    includePartner: true,
+    include: {
+      links: true,
+      partner: true,
+      ...(event === "click" && { clickReward: true }),
+      ...(event === "lead" && { leadReward: true }),
+      ...(event === "sale" && { saleReward: true }),
+    },
   });
 
   if (event === "custom") {
@@ -260,6 +263,7 @@ export const createPartnerCommission = async ({
     );
 
     const webhookPartner = constructWebhookPartner(programEnrollment, {
+      // check links metrics
       totalCommissions:
         programEnrollment.totalCommissions + commission.earnings,
     });

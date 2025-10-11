@@ -2,6 +2,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { referralsEmbedToken } from "@/lib/embed/referrals/token-class";
 import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
+import { PartnerGroupProps } from "@/lib/types";
 import { ReferralsEmbedLinkSchema } from "@/lib/zod/schemas/referrals-embed";
 import { prisma } from "@dub/prisma";
 import { Reward } from "@prisma/client";
@@ -18,12 +19,16 @@ export const getReferralsEmbedData = async (token: string) => {
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
-    includePartner: true,
-    includeClickReward: true,
-    includeLeadReward: true,
-    includeSaleReward: true,
-    includeDiscount: true,
-    includeGroup: true,
+    include: {
+      partner: true,
+      program: true,
+      links: true,
+      partnerGroup: true,
+      discount: true,
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
+    },
   });
 
   if (!programEnrollment || !programEnrollment.partnerGroup) {
@@ -52,7 +57,7 @@ export const getReferralsEmbedData = async (token: string) => {
     clickReward,
     leadReward,
     saleReward,
-    group,
+    partnerGroup: group,
   } = programEnrollment;
 
   const { totalClicks, totalLeads, totalSales, totalSaleAmount } =
@@ -92,6 +97,6 @@ export const getReferralsEmbedData = async (token: string) => {
       additionalLinks: group.additionalLinks,
       maxPartnerLinks: group.maxPartnerLinks,
       linkStructure: group.linkStructure,
-    },
+    } as PartnerGroupProps,
   };
 };

@@ -86,6 +86,7 @@ const partnersColumns = {
     "totalConversions",
     "totalSaleAmount",
     "totalCommissions",
+    "netRevenue",
   ],
 };
 
@@ -142,7 +143,7 @@ export function PartnersTable() {
   });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "partners-table-columns", // TODO: update to v2 once we add partner groups
+    "partners-table-columns-v2",
     partnersColumns,
   );
 

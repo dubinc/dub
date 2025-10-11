@@ -12,6 +12,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
+      include: {
+        program: true,
+        links: true,
+      },
     });
 
   const now = new Date();

@@ -14,11 +14,11 @@ const REWARD_EVENT_COLUMN_MAPPING = {
 };
 
 interface ProgramEnrollmentWithReward {
+  links: Link[] | null;
   totalCommissions: number;
   clickReward?: Reward | null;
   leadReward?: Reward | null;
   saleReward?: Reward | null;
-  links?: Link[] | null;
 }
 
 export const determinePartnerReward = ({

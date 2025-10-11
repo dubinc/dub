@@ -8,6 +8,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { program } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
+    include: {
+      program: true,
+    },
   });
 
   const resources = programResourcesSchema.parse(

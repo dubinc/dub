@@ -72,7 +72,10 @@ export const createManualCommissionAction = authActionClient
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
-        includePartner: true,
+        include: {
+          partner: true,
+          links: true,
+        },
       }),
 
       customerId

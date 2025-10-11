@@ -23,9 +23,12 @@ async function main() {
       const programEnrollment = await getProgramEnrollmentOrThrow({
         partnerId: commission.partnerId,
         programId: commission.programId,
-        includeClickReward: commission.type === "click",
-        includeLeadReward: commission.type === "lead",
-        includeSaleReward: commission.type === "sale",
+        include: {
+          links: true,
+          ...(commission.type === "click" && { clickReward: true }),
+          ...(commission.type === "lead" && { leadReward: true }),
+          ...(commission.type === "sale" && { saleReward: true }),
+        },
       });
 
       const reward = determinePartnerReward({
