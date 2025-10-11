@@ -1,7 +1,6 @@
 import { createManualCommissionAction } from "@/lib/actions/partners/create-manual-commission";
 import { handleMoneyKeyDown } from "@/lib/form-utils";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerActivityResponse } from "@/lib/types";
 import { createCommissionSchema } from "@/lib/zod/schemas/commissions";
@@ -50,7 +49,6 @@ function CreateCommissionSheetContent({
   const { id: workspaceId, defaultProgramId, slug } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
   const [hasProductId, setHasProductId] = useState(false);
-  const { rewards, loading: rewardsLoading } = useRewards();
 
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
@@ -171,10 +169,6 @@ function CreateCommissionSheetContent({
       useExistingEvents,
     });
   };
-
-  const rewardEventTypes = useMemo(() => {
-    return rewards?.map((reward) => reward.event);
-  }, [rewards]);
 
   // Filter events based on commission type
   const filteredEvents = useMemo(() => {
@@ -339,31 +333,20 @@ function CreateCommissionSheetContent({
                         Commission type
                       </h2>
                     </label>
-                    {!rewardsLoading ? (
-                      <ToggleGroup
-                        className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
-                        optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
-                        indicatorClassName="bg-white"
-                        options={[
-                          { value: "custom", label: "One-time" },
-                          ...(rewardEventTypes?.includes("sale")
-                            ? [{ value: "sale", label: "Sale" }]
-                            : []),
-                          ...(rewardEventTypes?.includes("lead")
-                            ? [{ value: "lead", label: "Lead" }]
-                            : []),
-                        ]}
-                        selected={commissionType}
-                        selectAction={(id: CommissionType) =>
-                          setCommissionType(id)
-                        }
-                      />
-                    ) : (
-                      <div className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1">
-                        <div className="h-8 flex-1 animate-pulse rounded-md bg-neutral-200" />
-                        <div className="h-8 flex-1 animate-pulse rounded-md bg-neutral-200" />
-                      </div>
-                    )}
+                    <ToggleGroup
+                      className="mt-2 flex w-full items-center gap-1 rounded-md border border-neutral-200 bg-neutral-50 p-1"
+                      optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm"
+                      indicatorClassName="bg-white"
+                      options={[
+                        { value: "custom", label: "One-time" },
+                        { value: "lead", label: "Lead" },
+                        { value: "sale", label: "Sale" },
+                      ]}
+                      selected={commissionType}
+                      selectAction={(id: CommissionType) =>
+                        setCommissionType(id)
+                      }
+                    />
                   </div>
 
                   {commissionType !== "custom" && (
