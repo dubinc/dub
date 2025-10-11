@@ -1,30 +1,27 @@
-// Small, secure converter from Tiptap JSON -> plain text.
-// Features:
-//  - preserveNewlines: keep paragraph/heading line breaks as \n\n
-//  - wordwrap: number of columns to wrap lines at (0 = disabled)
-//  - preserveLinks: include URLs after link text like "text (https://...)" or keep only text
-//  - preserveImages: include image alt text or a placeholder like "[image: alt]"
-//  - listSupport: render bullet/ordered lists with bullets or numbers, support nested lists
-//  - safe handling: does NOT execute any HTML/etc — operates only on structured JSON
-
 import { EmailTemplateVariables } from "@/lib/types";
 
-export type TiptapNode = {
+export interface TiptapNode {
   type: string;
   text?: string;
   attrs?: Record<string, any>;
   content?: TiptapNode[];
-  marks?: { type: string; attrs?: Record<string, any> }[];
-};
+  marks?: Array<{ type: string; attrs?: Record<string, any> }>;
+}
 
-export type Options = {
-  preserveNewlines?: boolean; // default true
-  wordwrap?: number; // default 0 (no wrap)
-  preserveLinks?: boolean; // default true
-  preserveImages?: boolean; // default true
-  listIndent?: string; // default two spaces per level
+export interface Options {
+  /** Keep paragraph/heading line breaks as \n\n (default: true) */
+  preserveNewlines?: boolean;
+  /** Number of columns to wrap lines at (0 = disabled, default: 0) */
+  wordwrap?: number;
+  /** Include URLs after link text like "text (https://...)" (default: true) */
+  preserveLinks?: boolean;
+  /** Include image alt text or placeholder (default: false) */
+  preserveImages?: boolean;
+  /** Indentation string per list level (default: "  ") */
+  listIndent?: string;
+  /** Template variables for replacement (default: {}) */
   variables?: Partial<EmailTemplateVariables>;
-};
+}
 
 const DEFAULTS: Required<Options> = {
   preserveNewlines: true,
@@ -67,16 +64,57 @@ function escapeText(t: string): string {
   return t.replace(/\u0000/g, "");
 }
 
+// Replace template variables
+function replaceVariables(
+  text: string,
+  variables: Partial<EmailTemplateVariables>,
+): string {
+  if (!variables || Object.keys(variables).length === 0) {
+    return text;
+  }
+
+  return text.replace(/{{\s*([\w\d_]+)\s*}}/g, (_, key) => {
+    return variables[key] ?? `{{${key}}}`;
+  });
+}
+
+// Process link href, stripping mailto: prefix and checking if it differs from text
+function processLinkHref(href: string, text: string): string | null {
+  let cleanHref = href;
+  // Strip mailto: prefix for email links
+  if (cleanHref.startsWith("mailto:")) {
+    cleanHref = cleanHref.substring(7);
+  }
+
+  // Only return href if it's different from the text content
+  return cleanHref !== text.trim() ? cleanHref : null;
+}
+
 // Render marks like bold/italic — we do not preserve formatting as markup, but may preserve as-is
 function renderMarks(text: string, marks?: TiptapNode["marks"]): string {
   // For plain text messages we typically keep the raw text. Optionally we could add * or _ markers.
   return text;
 }
 
+/**
+ * Small, secure converter from Tiptap JSON -> plain text.
+ *
+ * Features:
+ *  - preserveNewlines: keep paragraph/heading line breaks as \n\n
+ *  - wordwrap: number of columns to wrap lines at (0 = disabled)
+ *  - preserveLinks: include URLs after link text like "text (https://...)" or keep only text
+ *  - preserveImages: include image alt text or a placeholder like "[image: alt]"
+ *  - listSupport: render bullet/ordered lists with bullets or numbers, support nested lists
+ *  - safe handling: does NOT execute any HTML/etc — operates only on structured JSON
+ */
 export function tiptapToPlainText(
   doc: TiptapNode | TiptapNode[],
   opts?: Options,
 ): string {
+  if (!doc) {
+    throw new Error("Document cannot be null or undefined");
+  }
+
   const conf = { ...DEFAULTS, ...(opts || {}) };
 
   const roots: TiptapNode[] = Array.isArray(doc) ? doc : [doc];
@@ -85,7 +123,16 @@ export function tiptapToPlainText(
     node: TiptapNode,
     listState: { type?: string; index?: number; level?: number }[] = [],
   ): string {
-    if (!node) return "";
+    if (!node) {
+      return "";
+    }
+
+    // Handle malformed nodes gracefully
+    if (typeof node !== "object" || !node.type) {
+      console.warn("Encountered malformed node:", node);
+      return "";
+    }
+
     switch (node.type) {
       case "doc":
         return (node.content || [])
@@ -95,27 +142,18 @@ export function tiptapToPlainText(
       case "paragraph":
         return (node.content || []).map((n) => walk(n, listState)).join("");
 
-      case "text":
+      case "text": {
         let text = renderMarks(escapeText(node.text || ""), node.marks);
 
         // Replace template variables if any
-        if (conf.variables) {
-          text = text.replace(/{{\s*([\w\d_]+)\s*}}/g, (_, key) => {
-            return conf.variables?.[key] ?? `{{${key}}}`;
-          });
-        }
+        text = replaceVariables(text, conf.variables || {});
 
         // Process link marks
         if (conf.preserveLinks && node.marks) {
           node.marks.forEach((mark) => {
             if (mark.type === "link" && mark.attrs?.href) {
-              let href = mark.attrs.href;
-              // Strip mailto: prefix for email links
-              if (href.startsWith("mailto:")) {
-                href = href.substring(7);
-              }
-              // Only append href if it's different from the text content
-              if (href !== text.trim()) {
+              const href = processLinkHref(mark.attrs.href, text);
+              if (href) {
                 text += ` ${href}`;
               }
             }
@@ -123,6 +161,7 @@ export function tiptapToPlainText(
         }
 
         return text;
+      }
 
       case "heading": {
         const text = (node.content || [])
@@ -232,9 +271,6 @@ export function tiptapToPlainText(
         return `\`${text}\``;
       }
 
-      case "paragraph":
-        return (node.content || []).map((n) => walk(n, listState)).join("");
-
       case "hard_break":
         return "\n";
 
@@ -243,8 +279,8 @@ export function tiptapToPlainText(
         const id = node.attrs?.id;
         const label = node.attrs?.label;
 
-        if (conf.variables && id && conf.variables[id]) {
-          return conf.variables[id];
+        if (conf.variables && id && conf.variables[id] !== undefined) {
+          return conf.variables[id] ?? "";
         }
 
         return label || (id ? `@${id}` : "@mention");
@@ -256,19 +292,12 @@ export function tiptapToPlainText(
         const text = (node.content || [])
           .map((n) => walk(n, listState))
           .join("");
-        const href = node.attrs && node.attrs.href;
+        const href = node.attrs?.href;
         if (conf.preserveLinks && href) {
-          let cleanHref = href;
-          // Strip mailto: prefix for email links
-          if (cleanHref.startsWith("mailto:")) {
-            cleanHref = cleanHref.substring(7);
+          const processedHref = processLinkHref(href, text);
+          if (processedHref) {
+            return `${text} ${processedHref}`;
           }
-
-          // Only append href if it's different from the text content
-          if (cleanHref !== text.trim()) {
-            return `${text} ${cleanHref}`;
-          }
-          return text;
         }
         return text;
       }
