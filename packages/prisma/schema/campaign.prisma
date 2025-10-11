@@ -25,7 +25,7 @@ model Campaign {
   name        String
   subject     String
   body        String?             @db.Text // TODO: Remove after migration complete
-  bodyJson    Json?               @db.Json // TODO: Make this required before merging this PR
+  bodyJson    Json                @db.Json
   scheduledAt DateTime?
   createdAt   DateTime            @default(now())
   updatedAt   DateTime            @updatedAt
