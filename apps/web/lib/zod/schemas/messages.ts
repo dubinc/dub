@@ -1,12 +1,16 @@
+import { MessageType } from "@prisma/client";
 import { z } from "zod";
 import { PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 import { UserSchema } from "./users";
-import { MessageType } from "@prisma/client";
 
 export const MAX_MESSAGE_LENGTH = 2000;
 
-const messageTextSchema = z.string().min(1).max(MAX_MESSAGE_LENGTH);
+const messageTextSchema = z
+  .string()
+  .min(1)
+  .max(MAX_MESSAGE_LENGTH)
+  .transform((v) => v.replace(/<[^>]+>/g, "").trim());
 
 export const MessageSchema = z.object({
   id: z.string(),
