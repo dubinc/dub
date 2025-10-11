@@ -4,6 +4,7 @@ import Image from "@tiptap/extension-image";
 import Mention from "@tiptap/extension-mention";
 import { generateHTML } from "@tiptap/html/server";
 import StarterKit from "@tiptap/starter-kit";
+import sanitizeHtml from "sanitize-html";
 import { renderEmailTemplate } from "./render-email-template";
 
 // This function configures the proper TipTap extensions (StarterKit, Image, Mention)
@@ -50,7 +51,19 @@ export function generateCampaignEmailHTML({
   ]);
 
   return renderEmailTemplate({
-    template: html,
+    template: sanitizeHtmlBody(html),
     variables,
   });
 }
+
+const sanitizeHtmlBody = (body: string) => {
+  return sanitizeHtml(body, {
+    allowedTags: ["p", "strong", "em", "ul", "li", "a", "h1", "h2", "img"],
+    allowedAttributes: {
+      a: ["href", "name", "target", "rel"],
+      img: ["src", "alt", "title"],
+      "*": ["class"],
+    },
+    allowedSchemes: ["http", "https", "mailto"],
+  });
+};
