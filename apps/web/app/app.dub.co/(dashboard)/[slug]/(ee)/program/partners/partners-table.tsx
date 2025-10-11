@@ -69,11 +69,11 @@ const partnersColumns = {
     "createdAt",
     "status",
     "location",
-    "clicks",
-    "leads",
-    "conversions",
-    "sales",
-    "saleAmount",
+    "totalClicks",
+    "totalLeads",
+    "totalConversions",
+    "totalSales",
+    "totalSaleAmount",
     "totalCommissions",
     "netRevenue",
   ],
@@ -81,10 +81,10 @@ const partnersColumns = {
     "partner",
     "group",
     "location",
-    "clicks",
-    "leads",
-    "conversions",
-    "saleAmount",
+    "totalClicks",
+    "totalLeads",
+    "totalConversions",
+    "totalSaleAmount",
     "totalCommissions",
   ],
 };
@@ -102,7 +102,7 @@ export function PartnersTable() {
   const router = useRouter();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "totalSaleAmount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
@@ -224,29 +224,29 @@ export function PartnersTable() {
           },
         },
         {
-          id: "clicks",
+          id: "totalClicks",
           header: "Clicks",
-          accessorFn: (d) => nFormatter(d.clicks),
+          accessorFn: (d) => nFormatter(d.totalClicks),
         },
         {
-          id: "leads",
+          id: "totalLeads",
           header: "Leads",
-          accessorFn: (d) => nFormatter(d.leads),
+          accessorFn: (d) => nFormatter(d.totalLeads),
         },
         {
-          id: "conversions",
+          id: "totalConversions",
           header: "Conversions",
-          accessorFn: (d) => nFormatter(d.conversions),
+          accessorFn: (d) => nFormatter(d.totalConversions),
         },
         {
-          id: "sales",
+          id: "totalSales",
           header: "Sales",
-          accessorFn: (d) => nFormatter(d.sales),
+          accessorFn: (d) => nFormatter(d.totalSales),
         },
         {
-          id: "saleAmount",
+          id: "totalSaleAmount",
           header: "Revenue",
-          accessorFn: (d) => currencyFormatter(d.saleAmount / 100),
+          accessorFn: (d) => currencyFormatter(d.totalSaleAmount / 100),
         },
         {
           id: "totalCommissions",
@@ -304,13 +304,13 @@ export function PartnersTable() {
     onColumnVisibilityChange: setColumnVisibility,
     sortableColumns: [
       "createdAt",
-      "clicks",
-      "leads",
-      "conversions",
-      "sales",
-      "saleAmount",
+      "totalClicks",
+      "totalLeads",
+      "totalConversions",
+      "totalSales",
+      "totalSaleAmount",
       "totalCommissions",
-      "netRevenue",
+      // "netRevenue", // add back when we can sort by this again
     ],
     sortBy,
     sortOrder,
@@ -393,7 +393,7 @@ export function PartnersTable() {
             onRemove={onRemove}
           />
           <SearchBoxPersisted
-            placeholder="Search by ID, name, email, or link"
+            placeholder="Search by ID, name, or email"
             inputClassName="md:w-[19rem]"
           />
         </div>

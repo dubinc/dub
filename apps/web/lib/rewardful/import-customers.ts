@@ -3,6 +3,7 @@ import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { logImportError } from "../tinybird/log-import-error";
 import { recordClick } from "../tinybird/record-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
@@ -220,7 +221,7 @@ async function createCustomer({
     },
   });
 
-  await Promise.all([
+  await Promise.allSettled([
     recordLeadWithTimestamp({
       ...clickEvent,
       event_id: nanoid(16),
@@ -239,5 +240,15 @@ async function createCustomer({
         }),
       },
     }),
+    // partner links should always have a partnerId and programId, but we're doing this to make TS happy
+    ...(link.partnerId && link.programId
+      ? [
+          syncPartnerLinksStats({
+            partnerId: link.partnerId,
+            programId: link.programId,
+            eventType: "lead",
+          }),
+        ]
+      : []),
   ]);
 }
