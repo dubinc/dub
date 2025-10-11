@@ -1,24 +1,22 @@
 import { trackSale } from "@/lib/api/conversions/track-sale";
 import { WorkspaceProps } from "@/lib/types";
+import { prisma } from "@dub/prisma";
+import { z } from "zod";
 import { HubSpotAuthToken } from "../types";
 import { HubSpotApi } from "./api";
-import { HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID } from "./constants";
-import { hubSpotSaleEventSchema } from "./schema";
+import { hubSpotSaleEventSchema, hubSpotSettingsSchema } from "./schema";
 
 export const trackHubSpotSaleEvent = async ({
   payload,
   workspace,
   authToken,
-  closedWonDealStageId,
+  settings,
 }: {
   payload: Record<string, any>;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   authToken: HubSpotAuthToken;
-  closedWonDealStageId?: string | null;
+  settings: z.infer<typeof hubSpotSettingsSchema>;
 }) => {
-  closedWonDealStageId =
-    closedWonDealStageId ?? HUBSPOT_DEFAULT_CLOSED_WON_DEAL_STAGE_ID;
-
   const { objectId, subscriptionType, propertyName, propertyValue } =
     hubSpotSaleEventSchema.parse(payload);
 
@@ -34,9 +32,9 @@ export const trackHubSpotSaleEvent = async ({
     return;
   }
 
-  if (propertyValue !== closedWonDealStageId) {
+  if (propertyValue !== settings.closedWonDealStageId) {
     console.error(
-      `[HubSpot] Unknown propertyValue ${propertyValue}. Expected ${closedWonDealStageId}.`,
+      `[HubSpot] Unknown propertyValue ${propertyValue}. Expected ${settings.closedWonDealStageId}.`,
     );
     return;
   }
@@ -74,8 +72,25 @@ export const trackHubSpotSaleEvent = async ({
     return;
   }
 
+  const customer = await prisma.customer.findFirst({
+    where: {
+      projectId: workspace.id,
+      OR: [
+        { externalId: contactInfo.id },
+        { externalId: contactInfo.properties.email },
+      ],
+    },
+  });
+
+  if (!customer) {
+    console.error(
+      `[HubSpot] No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`,
+    );
+    return;
+  }
+
   return await trackSale({
-    customerExternalId: contactInfo.properties.email,
+    customerExternalId: customer.externalId!,
     amount: Number(properties.amount) * 100,
     eventName: `${properties.dealname} ${properties.dealstage}`,
     paymentProcessor: "custom",

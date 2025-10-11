@@ -7,17 +7,16 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { hubSpotSettingsSchema } from "./schema";
 
-const schema = hubSpotSettingsSchema
-  .pick({ closedWonDealStageId: true })
-  .extend({
-    workspaceId: z.string(),
-  });
+const schema = hubSpotSettingsSchema.extend({
+  workspaceId: z.string(),
+});
 
 export const updateHubSpotSettingsAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { closedWonDealStageId } = parsedInput;
+    const { leadTriggerEvent, leadLifecycleStageId, closedWonDealStageId } =
+      parsedInput;
 
     const installedIntegration = await prisma.installedIntegration.findFirst({
       where: {
@@ -41,6 +40,8 @@ export const updateHubSpotSettingsAction = authActionClient
       data: {
         settings: {
           ...current,
+          leadTriggerEvent,
+          leadLifecycleStageId,
           closedWonDealStageId,
         },
       },

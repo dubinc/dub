@@ -2,27 +2,31 @@ import { trackLead } from "@/lib/api/conversions/track-lead";
 import { TrackLeadResponse, WorkspaceProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
+import { z } from "zod";
 import { HubSpotAuthToken, HubSpotContact } from "../types";
 import { HubSpotApi } from "./api";
-import { hubSpotLeadEventSchema } from "./schema";
+import { hubSpotLeadEventSchema, hubSpotSettingsSchema } from "./schema";
 
 export const trackHubSpotLeadEvent = async ({
   payload,
   workspace,
   authToken,
+  settings,
 }: {
   payload: Record<string, any>;
   workspace: Pick<WorkspaceProps, "id" | "stripeConnectId" | "webhookEnabled">;
   authToken: HubSpotAuthToken;
+  settings: z.infer<typeof hubSpotSettingsSchema>;
 }) => {
-  const { objectId, objectTypeId } = hubSpotLeadEventSchema.parse(payload);
-
   const hubSpotApi = new HubSpotApi({
     token: authToken.access_token,
   });
 
+  const { objectId, objectTypeId, subscriptionType } =
+    hubSpotLeadEventSchema.parse(payload);
+
   // A new contact is created (deferred lead tracking)
-  if (objectTypeId === "0-1") {
+  if (objectTypeId === "0-1" && subscriptionType === "object.creation") {
     const contactInfo = await hubSpotApi.getContact(objectId);
 
     if (!contactInfo) {
@@ -64,8 +68,13 @@ export const trackHubSpotLeadEvent = async ({
     return trackLeadResult;
   }
 
-  // A deal is created for the contact (Eg: lead is tracked)
-  if (objectTypeId === "0-3") {
+  // Track the final lead event
+  // Case 1: A deal is created for the contact
+  if (
+    objectTypeId === "0-3" &&
+    subscriptionType === "object.creation" &&
+    settings.leadTriggerEvent === "dealCreated"
+  ) {
     const deal = await hubSpotApi.getDeal(objectId);
 
     if (!deal) {
@@ -89,10 +98,102 @@ export const trackHubSpotLeadEvent = async ({
       return;
     }
 
+    const customer = await prisma.customer.findFirst({
+      where: {
+        projectId: workspace.id,
+        OR: [
+          { externalId: contactInfo.id },
+          { externalId: contactInfo.properties.email },
+        ],
+      },
+    });
+
+    if (!customer) {
+      console.error(
+        `[HubSpot] No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`,
+      );
+      return;
+    }
+
     const trackLeadResult = await trackLead({
       clickId: "",
       eventName: `Deal ${properties.dealstage}`,
-      customerExternalId: contactInfo.properties.email,
+      customerExternalId: customer.externalId!,
+      customerName: `${contactInfo.properties.firstname} ${contactInfo.properties.lastname}`,
+      customerEmail: contactInfo.properties.email,
+      mode: "async",
+      workspace,
+      rawBody: payload,
+    });
+
+    if (trackLeadResult) {
+      waitUntil(
+        _updateHubSpotContact({
+          contact: contactInfo,
+          trackLeadResult,
+          hubSpotApi,
+        }),
+      );
+    }
+
+    return trackLeadResult;
+  }
+
+  // Track the final lead event
+  // Case 2: When the contact's lifecycle stage is changed to a qualified lead
+  if (
+    objectTypeId === "0-1" &&
+    subscriptionType === "object.propertyChange" &&
+    settings.leadTriggerEvent === "lifecycleStageReached"
+  ) {
+    if (!settings.leadLifecycleStageId) {
+      console.error(`[HubSpot] leadLifecycleStageId is not set.`);
+      return;
+    }
+
+    const contactInfo = await hubSpotApi.getContact(objectId);
+
+    if (!contactInfo) {
+      return;
+    }
+
+    if (
+      contactInfo.properties.lifecyclestage !== settings.leadLifecycleStageId
+    ) {
+      console.error(
+        `[HubSpot] Unknown contact lifecyclestage ${contactInfo.properties.lifecyclestage}. Expected ${settings.leadLifecycleStageId}.`,
+      );
+      return;
+    }
+
+    const { properties } = contactInfo;
+
+    if (!properties.dub_id) {
+      console.error(`[HubSpot] No dub_id found for contact ${objectId}.`);
+      return;
+    }
+
+    const customer = await prisma.customer.findFirst({
+      where: {
+        projectId: workspace.id,
+        OR: [
+          { externalId: contactInfo.id },
+          { externalId: contactInfo.properties.email },
+        ],
+      },
+    });
+
+    if (!customer) {
+      console.error(
+        `[HubSpot] No customer found for contact ID ${contactInfo.id} or email ${contactInfo.properties.email}.`,
+      );
+      return;
+    }
+
+    const trackLeadResult = await trackLead({
+      clickId: "",
+      eventName: `Contact ${properties.lifecyclestage}`,
+      customerExternalId: customer.externalId!,
       customerName: `${contactInfo.properties.firstname} ${contactInfo.properties.lastname}`,
       customerEmail: contactInfo.properties.email,
       mode: "async",
