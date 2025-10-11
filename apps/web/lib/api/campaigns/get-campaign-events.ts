@@ -10,9 +10,13 @@ interface GetCampaignEventsParams
   campaignId: string;
 }
 
-export const getCampaignEvents = async (params: GetCampaignEventsParams) => {
-  const { campaignId, status, page, pageSize, search } = params;
-
+export const getCampaignEvents = async ({
+  campaignId,
+  status,
+  page,
+  pageSize,
+  search,
+}: GetCampaignEventsParams) => {
   const results = await prisma.notificationEmail.findMany({
     where: {
       campaignId,
@@ -21,10 +25,7 @@ export const getCampaignEvents = async (params: GetCampaignEventsParams) => {
       ...(status === "bounced" && { bouncedAt: { not: null } }),
       ...(search && {
         partner: {
-          OR: [
-            { name: { contains: search } },
-            { email: { contains: search } },
-          ],
+          OR: [{ name: { contains: search } }, { email: { contains: search } }],
         },
       }),
     },
