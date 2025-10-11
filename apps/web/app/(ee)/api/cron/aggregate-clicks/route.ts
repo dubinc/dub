@@ -137,7 +137,6 @@ export async function GET(req: Request) {
       ({ clickEnrollments }) => clickEnrollments,
     );
 
-    console.time("syncTotalCommissions");
     for (const { partnerId, programId } of commissionsToCreate) {
       // Sync total commissions for each partner that we created commissions for
       await syncTotalCommissions({
@@ -145,9 +144,8 @@ export async function GET(req: Request) {
         programId,
       });
     }
-    console.timeEnd("syncTotalCommissions");
     console.log(
-      `Updated total commissions count for ${commissionsToCreate.length} partners`,
+      `Synced total commissions count for ${commissionsToCreate.length} partners`,
     );
 
     return NextResponse.json("OK");

@@ -88,9 +88,9 @@ async function main() {
             finalResults.push({
               name: res.name,
               email: res.email ?? "",
-              clicks: res.clicks,
-              leads: res.leads,
-              sales: res.sales,
+              clicks: res.totalClicks,
+              leads: res.totalLeads,
+              sales: res.totalSales,
             });
 
             // remove row from csv

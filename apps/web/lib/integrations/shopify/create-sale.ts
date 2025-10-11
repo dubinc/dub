@@ -1,5 +1,6 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
@@ -153,17 +154,24 @@ export async function createShopifySale({
     webhookPartner = createdCommission?.webhookPartner;
 
     waitUntil(
-      executeWorkflows({
-        trigger: WorkflowTrigger.saleRecorded,
-        context: {
-          programId: link.programId,
-          partnerId: link.partnerId,
-          current: {
-            saleAmount: saleData.amount,
-            conversions: firstConversionFlag ? 1 : 0,
+      Promise.allSettled([
+        executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
           },
-        },
-      }),
+        }),
+        syncPartnerLinksStats({
+          partnerId: link.partnerId,
+          programId: link.programId,
+          eventType: "sale",
+        }),
+      ]),
     );
   }
 

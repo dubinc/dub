@@ -259,14 +259,9 @@ export const createPartnerCommission = async ({
       `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings / 100, { currency: commission.currency })}) for ${partnerId}: ${JSON.stringify(commission)}`,
     );
 
-    // Make sure totalCommissions is up to date before firing the webhook & executing workflows
-    const { totalCommissions } = await syncTotalCommissions({
-      partnerId,
-      programId,
-    });
-
     const webhookPartner = constructWebhookPartner(programEnrollment, {
-      totalCommissions,
+      totalCommissions:
+        programEnrollment.totalCommissions + commission.earnings,
     });
 
     waitUntil(
@@ -305,6 +300,11 @@ export const createPartnerCommission = async ({
               ...commission,
               partner: webhookPartner,
             }),
+          }),
+
+          syncTotalCommissions({
+            partnerId,
+            programId,
           }),
 
           !isClawback &&

@@ -1,5 +1,6 @@
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -135,18 +136,25 @@ export async function createNewCustomer(event: Stripe.Event) {
         }),
       }),
 
-      link.programId &&
-        link.partnerId &&
-        executeWorkflows({
-          trigger: WorkflowTrigger.leadRecorded,
-          context: {
-            programId: link.programId,
-            partnerId: link.partnerId,
-            current: {
-              leads: 1,
-            },
-          },
-        }),
+      ...(link.programId && link.partnerId
+        ? [
+            executeWorkflows({
+              trigger: WorkflowTrigger.leadRecorded,
+              context: {
+                programId: link.programId,
+                partnerId: link.partnerId,
+                current: {
+                  leads: 1,
+                },
+              },
+            }),
+            syncPartnerLinksStats({
+              partnerId: link.partnerId,
+              programId: link.programId,
+              eventType: "lead",
+            }),
+          ]
+        : []),
     ]),
   );
 

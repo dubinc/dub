@@ -1,5 +1,5 @@
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { getPartners } from "@/lib/api/partners/get-partners";
+import { getPartnersNew } from "@/lib/api/partners/get-partners-new";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -18,12 +18,36 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const parsedParams = getPartnersQuerySchemaExtended.parse(searchParams);
 
-    const partners = await getPartners({
+    console.time("getPartnersNew");
+    const partners = await getPartnersNew({
       ...parsedParams,
       programId,
     });
+    console.timeEnd("getPartnersNew");
 
-    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
+    // polyfill deprecated fields for backward compatibility
+    return NextResponse.json(
+      z
+        .array(
+          EnrolledPartnerSchema.extend({
+            clicks: z.number().default(0),
+            leads: z.number().default(0),
+            conversions: z.number().default(0),
+            sales: z.number().default(0),
+            saleAmount: z.number().default(0),
+          }),
+        )
+        .parse(
+          partners.map((partner) => ({
+            ...partner,
+            clicks: partner.totalClicks,
+            leads: partner.totalLeads,
+            conversions: partner.totalConversions,
+            sales: partner.totalSales,
+            saleAmount: partner.totalSaleAmount,
+          })),
+        ),
+    );
   },
   {
     requiredPlan: [
