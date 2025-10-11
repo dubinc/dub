@@ -77,8 +77,6 @@ export const refreshAccessToken = async (
     }
   }
 
-  console.log(`${oAuthApp.integrationId} is refreshing the access token.`);
-
   const refreshTokenRecord = await prisma.oAuthRefreshToken.findUnique({
     where: {
       hashedRefreshToken: await hashToken(refresh_token),
