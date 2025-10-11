@@ -1,22 +1,3 @@
-model DiscoveredPartner {
-  id        String @id @default(cuid())
-  programId String
-  partnerId String
-
-  starredAt DateTime?
-  ignoredAt DateTime?
-  invitedAt DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-
-  @@unique([programId, partnerId])
-  @@index(partnerId)
-}
-
 enum IndustryInterest {
   SaaS
   DevTool
@@ -42,4 +23,84 @@ enum IndustryInterest {
   Entertainment_And_Media
   Sports
   Science_And_Engineering
+}
+
+model DiscoveredPartner {
+  id        String @id @default(cuid())
+  programId String
+  partnerId String
+
+  starredAt DateTime?
+  ignoredAt DateTime?
+  invitedAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, partnerId])
+  @@index(partnerId)
+}
+
+// Program similarity tracking for better partner matching
+model ProgramSimilarity {
+  id                      String   @id @default(cuid())
+  programId               String
+  similarProgramId        String
+  categoryOverlapScore    Float    @default(0) // Based on shared categories
+  partnerOverlapScore     Float    @default(0) // Based on shared successful partners
+  performancePatternScore Float    @default(0) // Based on similar conversion rates, AOV, etc.
+  combinedSimilarityScore Float    @default(0) // Combined similarity score (weighted average)
+  sharedPartnerCount      Int      @default(0) // Number of partners working with both programs
+  sharedCategoryCount     Int      @default(0) // Number of shared categories
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  program        Program @relation("ProgramSimilarities", fields: [programId], references: [id], onDelete: Cascade)
+  similarProgram Program @relation("SimilarPrograms", fields: [similarProgramId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, similarProgramId])
+  @@index([programId, combinedSimilarityScore])
+  @@index([similarProgramId, combinedSimilarityScore])
+}
+
+// Enhanced program-level partner performance tracking
+model PartnerProgramPerformance {
+  id        String @id @default(cuid())
+  partnerId String
+  programId String
+
+  // Performance metrics (aggregated from Link table)
+  totalClicks      Int @default(0)
+  totalLeads       Int @default(0)
+  totalConversions Int @default(0)
+  totalSales       Int @default(0)
+  totalSaleAmount  Int @default(0) // in cents
+
+  // Calculated metrics
+  conversionRate       Float @default(0) // conversions / clicks
+  averageLifetimeValue Float @default(0) // totalSaleAmount / totalConversions
+  leadConversionRate   Float @default(0) // conversions / leads
+
+  // Time-based metrics
+  lastConversionAt        DateTime?
+  daysSinceLastConversion Int?
+
+  // Performance scoring (0-100 scale)
+  performanceScore Float @default(0) // Wilson score + volume adjustments
+  consistencyScore Float @default(0) // Based on conversion timing patterns
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  lastCalculatedAt DateTime @default(now())
+
+  partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([partnerId, programId])
+  @@index([programId, performanceScore])
+  @@index([partnerId, performanceScore])
+  @@index([lastCalculatedAt]) // For batch updates
 }

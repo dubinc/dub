@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 export function logAndRespond(
   message: string,
   {
@@ -9,5 +11,11 @@ export function logAndRespond(
   } = {},
 ) {
   console[logLevel](message);
-  return new Response(message, { status });
+
+  return NextResponse.json(
+    {
+      message,
+    },
+    { status },
+  );
 }
