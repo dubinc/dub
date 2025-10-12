@@ -51,8 +51,14 @@ export async function getPartnerForProgram({
         ? link.lastConversionAt
         : acc;
     }, undefined),
-    industryInterests: partner.industryInterests,
-    preferredEarningStructures: partner.preferredEarningStructures,
-    salesChannels: partner.salesChannels,
+    industryInterests: partner.industryInterests.map(
+      ({ industryInterest }) => industryInterest,
+    ),
+    preferredEarningStructures: partner.preferredEarningStructures.map(
+      ({ preferredEarningStructure }) => preferredEarningStructure,
+    ),
+    salesChannels: partner.salesChannels.map(
+      ({ salesChannel }) => salesChannel,
+    ),
   };
 }

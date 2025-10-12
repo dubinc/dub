@@ -118,11 +118,6 @@ export const getPartnersQuerySchema = z
     sortBy: z
       .enum([
         "createdAt",
-        // "clicks",
-        // "leads",
-        // "conversions",
-        // "sales",
-        // "saleAmount",
         "totalClicks",
         "totalLeads",
         "totalConversions",
