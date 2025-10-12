@@ -6,6 +6,18 @@ type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
   programId: string;
 };
 
+// secondary sort column
+const secondarySortColumnMap = {
+  createdAt: "totalClicks",
+  totalClicks: "totalLeads",
+  totalLeads: "totalConversions",
+  totalConversions: "totalSaleAmount",
+  totalSales: "totalSaleAmount",
+  totalSaleAmount: "totalLeads",
+  totalCommissions: "totalSaleAmount",
+  netRevenue: "totalSaleAmount",
+};
+
 export async function getPartners(filters: PartnerFilters) {
   const {
     status,
@@ -25,17 +37,17 @@ export async function getPartners(filters: PartnerFilters) {
   const partners = await prisma.programEnrollment.findMany({
     where: {
       programId,
-      status,
+      ...(partnerIds && {
+        partnerId: {
+          in: partnerIds,
+        },
+      }),
       tenantId,
+      status: status ?? "approved",
       groupId,
-      ...(country || search || email || partnerIds
+      ...(country || search || email
         ? {
             partner: {
-              ...(partnerIds && {
-                id: {
-                  in: partnerIds,
-                },
-              }),
               country,
               ...(search && {
                 OR: [
@@ -55,9 +67,14 @@ export async function getPartners(filters: PartnerFilters) {
     },
     take: pageSize,
     skip: (page - 1) * pageSize,
-    orderBy: {
-      [sortBy]: sortOrder,
-    },
+    orderBy: [
+      {
+        [sortBy]: sortOrder,
+      },
+      {
+        [secondarySortColumnMap[sortBy]]: "desc",
+      },
+    ],
   });
 
   return partners.map(({ partner, links, ...programEnrollment }) => ({
