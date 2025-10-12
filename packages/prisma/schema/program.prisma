@@ -23,6 +23,20 @@ enum PartnerUrlValidationMode {
   exact // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
 }
 
+enum Category {
+  Artificial_Intelligence
+  Development
+  Design
+  Productivity
+  Finance
+  Marketing
+  Ecommerce
+  Security
+  Education
+  Health
+  Consumer
+}
+
 model Program {
   id                           String                   @id @default(cuid())
   workspaceId                  String
@@ -79,36 +93,38 @@ model Program {
   campaigns                Campaign[]
   discoveredPartners       DiscoveredPartner[]
   industryInterests        ProgramIndustryInterest[]
+  similarPrograms          ProgramSimilarity[]
+  categories               ProgramCategory[]
 
   @@index(workspaceId)
   @@index(domain)
 }
 
 model ProgramEnrollment {
-  id               String                  @id @default(cuid())
-  partnerId        String
-  programId        String
-  tenantId         String?
-  groupId          String?
-  applicationId    String?                 @unique
-  clickRewardId    String?
-  leadRewardId     String?
-  saleRewardId     String?
-  discountId       String?
-  status           ProgramEnrollmentStatus @default(pending)
-  
-  // partner stats
-  totalClicks        Int                     @default(0) // total clicks
-  totalLeads         Int                     @default(0) // total leads
-  totalConversions   Int                     @default(0) // total conversions
-  totalSales         Int                     @default(0) // total sales
-  totalSaleAmount    Int                     @default(0) // total sale amount (in cents)
-  totalCommissions   Int                     @default(0) // total commissions earned by the partner (in cents)
+  id            String                  @id @default(cuid())
+  partnerId     String
+  programId     String
+  tenantId      String?
+  groupId       String?
+  applicationId String?                 @unique
+  clickRewardId String?
+  leadRewardId  String?
+  saleRewardId  String?
+  discountId    String?
+  status        ProgramEnrollmentStatus @default(pending)
 
-  createdAt        DateTime                @default(now())
-  updatedAt        DateTime                @updatedAt
-  bannedAt         DateTime?
-  bannedReason     PartnerBannedReason?
+  // partner stats
+  totalClicks      Int @default(0) // total clicks
+  totalLeads       Int @default(0) // total leads
+  totalConversions Int @default(0) // total conversions
+  totalSales       Int @default(0) // total sales
+  totalSaleAmount  Int @default(0) // total sale amount (in cents)
+  totalCommissions Int @default(0) // total commissions earned by the partner (in cents)
+
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  bannedAt     DateTime?
+  bannedReason PartnerBannedReason?
 
   partner           Partner             @relation(fields: [partnerId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   program           Program             @relation(fields: [programId], references: [id], onUpdate: Cascade, onDelete: Cascade)
@@ -167,4 +183,13 @@ model ProgramIndustryInterest {
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
   @@unique([programId, industryInterest])
+}
+
+model ProgramCategory {
+  programId String
+  category  Category
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@unique([programId, category])
 }
