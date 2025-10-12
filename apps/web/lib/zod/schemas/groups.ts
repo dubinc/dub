@@ -127,7 +127,7 @@ export const getGroupsQuerySchema = z
     sortBy: z
       .enum([
         "createdAt",
-        "partners",
+        "totalPartners",
         "totalClicks",
         "totalLeads",
         "totalSales",

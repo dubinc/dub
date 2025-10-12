@@ -179,10 +179,15 @@ export const publishPartnerActivityEvent = async (
   event: PartnerActivityEvent,
 ) => {
   const { programId, partnerId, timestamp, eventType } = event;
-  return await redis.xadd(PARTNER_ACTIVITY_STREAM_KEY, "*", {
-    programId,
-    partnerId,
-    timestamp,
-    eventType,
-  });
+  try {
+    return await redis.xadd(PARTNER_ACTIVITY_STREAM_KEY, "*", {
+      programId,
+      partnerId,
+      timestamp,
+      eventType,
+    });
+  } catch (error) {
+    console.error("Failed to publish partner activity event to stream:", error);
+    throw error;
+  }
 };

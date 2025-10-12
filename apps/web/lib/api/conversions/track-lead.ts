@@ -330,7 +330,7 @@ export const trackLead = async ({
               syncPartnerLinksStats({
                 partnerId: link.partnerId,
                 programId: link.programId,
-                eventType: "sale",
+                eventType: "lead",
               }),
             ]);
           }

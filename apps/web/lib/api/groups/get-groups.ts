@@ -31,6 +31,17 @@ export async function getGroups(filters: GroupFilters) {
           OR: [{ name: { contains: search } }, { slug: { contains: search } }],
         }),
       },
+      ...(sortBy === "createdAt"
+        ? {
+            orderBy: {
+              createdAt: sortOrder,
+            },
+          }
+        : {}),
+      ...(!includeExpandedFields && {
+        take: pageSize,
+        skip: (page - 1) * pageSize,
+      }),
     }),
     includeExpandedFields &&
       prisma.programEnrollment.groupBy({
@@ -50,7 +61,7 @@ export async function getGroups(filters: GroupFilters) {
           totalCommissions: true,
         },
         orderBy:
-          sortBy === "partners"
+          sortBy === "totalPartners"
             ? { _count: { partnerId: sortOrder } }
             : {
                 _sum: {
