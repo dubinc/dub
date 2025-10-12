@@ -1,9 +1,22 @@
 import { getGroupsQuerySchema } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
 
 type GroupFilters = z.infer<typeof getGroupsQuerySchema> & {
   programId: string;
+};
+
+// secondary sort column
+const secondarySortColumnMap = {
+  createdAt: "totalClicks",
+  totalClicks: "totalLeads",
+  totalLeads: "totalConversions",
+  totalConversions: "totalSaleAmount",
+  totalSales: "totalSaleAmount",
+  totalSaleAmount: "totalLeads",
+  totalCommissions: "totalSaleAmount",
+  netRevenue: "totalSaleAmount",
 };
 
 export async function getGroups(filters: GroupFilters) {
@@ -18,82 +31,69 @@ export async function getGroups(filters: GroupFilters) {
     includeExpandedFields,
   } = filters;
 
-  const [groups, programEnrollments] = await Promise.all([
-    prisma.partnerGroup.findMany({
-      where: {
-        programId,
-        ...(groupIds && {
-          id: {
-            in: groupIds,
-          },
-        }),
-        ...(search && {
-          OR: [{ name: { contains: search } }, { slug: { contains: search } }],
-        }),
-      },
-      ...(sortBy === "createdAt"
-        ? {
-            orderBy: {
-              createdAt: sortOrder,
-            },
-          }
-        : {}),
-      ...(!includeExpandedFields && {
-        take: pageSize,
-        skip: (page - 1) * pageSize,
-      }),
-    }),
-    includeExpandedFields &&
-      prisma.programEnrollment.groupBy({
-        by: ["groupId"],
-        where: {
-          programId,
-        },
-        _count: {
-          partnerId: true,
-        },
-        _sum: {
-          totalClicks: true,
-          totalLeads: true,
-          totalSales: true,
-          totalSaleAmount: true,
-          totalConversions: true,
-          totalCommissions: true,
-        },
-        orderBy:
-          sortBy === "totalPartners"
-            ? { _count: { partnerId: sortOrder } }
-            : {
-                _sum: {
-                  [sortBy]: sortOrder,
-                },
-              },
-        take: pageSize,
-        skip: (page - 1) * pageSize,
-      }),
-  ]);
+  const groups = (await prisma.$queryRaw`
+    SELECT
+      pg.id,
+      pg.programId,
+      pg.name,
+      pg.slug,
+      pg.color,
+      pg.clickRewardId,
+      pg.leadRewardId,
+      pg.saleRewardId,
+      pg.discountId,
+      pg.additionalLinks,
+      pg.maxPartnerLinks,
+      pg.linkStructure,
+      pg.applicationFormData,
+      pg.applicationFormPublishedAt,
+      pg.landerData,
+      pg.landerPublishedAt,
+      pg.utmTemplateId,
+      pg.createdAt,
+      pg.updatedAt,
+      ${
+        includeExpandedFields
+          ? Prisma.sql`
+        COUNT(DISTINCT pe.partnerId) as totalPartners,
+        COALESCE(SUM(pe.totalClicks), 0) as totalClicks,
+        COALESCE(SUM(pe.totalLeads), 0) as totalLeads,
+        COALESCE(SUM(pe.totalSales), 0) as totalSales,
+        COALESCE(SUM(pe.totalSaleAmount), 0) as totalSaleAmount,
+        COALESCE(SUM(pe.totalConversions), 0) as totalConversions,
+        COALESCE(SUM(pe.totalCommissions), 0) as totalCommissions,
+        COALESCE(SUM(pe.totalSaleAmount), 0) - COALESCE(SUM(pe.totalCommissions), 0) as netRevenue
+        `
+          : Prisma.sql`
+        0 as totalPartners,
+        0 as totalClicks,
+        0 as totalLeads,
+        0 as totalSales,
+        0 as totalSaleAmount,
+        0 as totalConversions,
+        0 as totalCommissions,
+        0 as netRevenue
+        `
+      }
+    FROM PartnerGroup pg
+    LEFT JOIN ProgramEnrollment pe ON pe.groupId = pg.id AND pe.status = 'approved'
+    WHERE pg.programId = ${programId}
+    ${search ? Prisma.sql`AND (pg.name LIKE ${`%${search}%`} OR pg.slug LIKE ${`%${search}%`})` : Prisma.sql``}
+    ${groupIds && groupIds.length > 0 ? Prisma.sql`AND pg.id IN (${Prisma.join(groupIds)})` : Prisma.sql``}
+    GROUP BY pg.id
+    ORDER BY ${Prisma.raw(sortBy === "createdAt" ? "pg.createdAt" : sortBy)} ${Prisma.raw(sortOrder)}, ${Prisma.raw(secondarySortColumnMap[sortBy])} ${Prisma.raw(sortOrder)}
+    LIMIT ${pageSize} OFFSET ${(page - 1) * pageSize}
+  `) satisfies Array<any>;
 
-  if (includeExpandedFields && programEnrollments) {
-    return programEnrollments
-      .map((programEnrollment) => {
-        const { groupId, _sum, _count } = programEnrollment;
-        const group = groups.find((group) => group.id === groupId);
-        if (!group) return null;
-        return {
-          ...group,
-          totalPartners: Number(_count.partnerId),
-          totalClicks: Number(_sum.totalClicks),
-          totalLeads: Number(_sum.totalLeads),
-          totalSales: Number(_sum.totalSales),
-          totalSaleAmount: Number(_sum.totalSaleAmount),
-          totalConversions: Number(_sum.totalConversions),
-          totalCommissions: Number(_sum.totalCommissions),
-          netRevenue:
-            Number(_sum.totalSaleAmount) - Number(_sum.totalCommissions),
-        };
-      })
-      .filter((group) => group !== null);
-  }
-
-  return groups;
+  return groups.map((group) => ({
+    ...group,
+    totalPartners: Number(group.totalPartners),
+    totalClicks: Number(group.totalClicks),
+    totalLeads: Number(group.totalLeads),
+    totalSales: Number(group.totalSales),
+    totalSaleAmount: Number(group.totalSaleAmount),
+    totalConversions: Number(group.totalConversions),
+    totalCommissions: Number(group.totalCommissions),
+    netRevenue: Number(group.netRevenue),
+  }));
 }
