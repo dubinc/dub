@@ -29,9 +29,12 @@ export const banPartnerAction = authActionClient
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
-      includeProgram: true,
-      includePartner: true,
-      includeDiscountCodes: true,
+      include: {
+        program: true,
+        partner: true,
+        links: true,
+        discountCodes: true,
+      },
     });
 
     if (programEnrollment.status === "banned") {
@@ -109,17 +112,7 @@ export const banPartnerAction = authActionClient
         // Sync total commissions
         await syncTotalCommissions({ partnerId, programId });
 
-        // Expire links from cache
-        const links = await prisma.link.findMany({
-          where,
-          select: {
-            domain: true,
-            key: true,
-            discountCode: true,
-          },
-        });
-
-        const { program, partner, discountCodes } = programEnrollment;
+        const { program, partner, links, discountCodes } = programEnrollment;
 
         await Promise.allSettled([
           linkCache.expireMany(links),

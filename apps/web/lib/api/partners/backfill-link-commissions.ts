@@ -26,7 +26,11 @@ export const backfillLinkCommissions = async (link: {
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId: link.partnerId,
     programId: link.programId,
-    includeSaleReward: true,
+    include: {
+      program: true,
+      links: true,
+      saleReward: true,
+    },
   });
 
   const reward = determinePartnerReward({

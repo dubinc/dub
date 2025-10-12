@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { GroupColorCircle } from "../partners/groups/group-color-circle";
 
 interface DeleteGroupModalProps {
-  group: Pick<GroupExtendedProps, "id" | "name" | "color" | "partners">;
+  group: Pick<GroupExtendedProps, "id" | "name" | "color" | "totalPartners">;
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onDelete?: () => void;
@@ -60,7 +60,8 @@ const DeleteGroupModal = ({
               <div className="flex items-center gap-2">
                 <Users className="size-4" />
                 <span className="text-content-default text-sm font-medium">
-                  {group.partners} {pluralize("partner", group.partners)}
+                  {group.totalPartners}{" "}
+                  {pluralize("partner", group.totalPartners)}
                 </span>
               </div>
             </div>
@@ -72,7 +73,7 @@ const DeleteGroupModal = ({
                 <li>Rewards created for this group will be deleted.</li>
                 <li>Discount created for this group will be deleted.</li>
 
-                {group.partners && group.partners > 0 ? (
+                {group.totalPartners && group.totalPartners > 0 ? (
                   <>
                     <li>
                       Partners in this group will be moved to your{" "}
@@ -145,7 +146,7 @@ const DeleteGroupModal = ({
 };
 
 export function useDeleteGroupModal(
-  group: Pick<GroupExtendedProps, "id" | "name" | "color" | "partners">,
+  group: Pick<GroupExtendedProps, "id" | "name" | "color" | "totalPartners">,
   onDelete?: () => void,
 ) {
   const [showDeleteGroupModal, setShowDeleteGroupModal] = useState(false);

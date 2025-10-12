@@ -21,6 +21,7 @@ export const createPartnerCommentAction = authActionClient
     await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
+      include: {},
     });
 
     const comment = await prisma.partnerComment.create({

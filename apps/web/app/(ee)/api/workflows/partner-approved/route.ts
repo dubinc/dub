@@ -57,7 +57,11 @@ export const { POST } = serve<Payload>(
       await getProgramEnrollmentOrThrow({
         programId,
         partnerId,
-        includePartner: true,
+        include: {
+          program: true,
+          partner: true,
+          links: true,
+        },
       });
 
     const { groupId } = programEnrollment;

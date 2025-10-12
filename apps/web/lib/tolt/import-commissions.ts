@@ -7,6 +7,7 @@ import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvents } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
@@ -374,6 +375,12 @@ async function createCommission({
           },
         }),
       },
+    }),
+
+    syncPartnerLinksStats({
+      partnerId: customerFound.link.partnerId,
+      programId: program.id,
+      eventType: "sale",
     }),
 
     // update customer stats (if sale amount is greater than 0)

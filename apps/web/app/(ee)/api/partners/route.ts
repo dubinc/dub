@@ -18,12 +18,36 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const parsedParams = getPartnersQuerySchemaExtended.parse(searchParams);
 
+    console.time("getPartners");
     const partners = await getPartners({
       ...parsedParams,
       programId,
     });
+    console.timeEnd("getPartners");
 
-    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
+    // polyfill deprecated fields for backward compatibility
+    return NextResponse.json(
+      z
+        .array(
+          EnrolledPartnerSchema.extend({
+            clicks: z.number().default(0),
+            leads: z.number().default(0),
+            conversions: z.number().default(0),
+            sales: z.number().default(0),
+            saleAmount: z.number().default(0),
+          }),
+        )
+        .parse(
+          partners.map((partner) => ({
+            ...partner,
+            clicks: partner.totalClicks,
+            leads: partner.totalLeads,
+            conversions: partner.totalConversions,
+            sales: partner.totalSales,
+            saleAmount: partner.totalSaleAmount,
+          })),
+        ),
+    );
   },
   {
     requiredPlan: [

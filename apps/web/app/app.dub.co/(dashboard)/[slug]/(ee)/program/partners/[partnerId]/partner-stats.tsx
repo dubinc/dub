@@ -8,30 +8,30 @@ const stats: {
   {
     label: "Clicks",
     value: (partner) =>
-      Number.isNaN(partner.clicks)
+      Number.isNaN(partner.totalClicks)
         ? "-"
-        : nFormatter(partner.clicks, { full: true }),
+        : nFormatter(partner.totalClicks, { full: true }),
   },
   {
     label: "Leads",
     value: (partner) =>
-      Number.isNaN(partner.leads)
+      Number.isNaN(partner.totalLeads)
         ? "-"
-        : nFormatter(partner.leads, { full: true }),
+        : nFormatter(partner.totalLeads, { full: true }),
   },
   {
     label: "Conversions",
     value: (partner) =>
-      Number.isNaN(partner.conversions)
+      Number.isNaN(partner.totalConversions)
         ? "-"
-        : nFormatter(partner.conversions, { full: true }),
+        : nFormatter(partner.totalConversions, { full: true }),
   },
   {
     label: "Revenue",
     value: (partner) =>
-      Number.isNaN(partner.saleAmount)
+      Number.isNaN(partner.totalSaleAmount)
         ? "-"
-        : currencyFormatter((partner.saleAmount ?? 0) / 100, {
+        : currencyFormatter((partner.totalSaleAmount ?? 0) / 100, {
             trailingZeroDisplay: "stripIfInteger",
           }),
   },
