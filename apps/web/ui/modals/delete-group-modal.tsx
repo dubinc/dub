@@ -1,6 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupExtendedProps } from "@/lib/types";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { pluralize } from "@dub/utils";
@@ -22,7 +21,6 @@ const DeleteGroupModal = ({
   setShowModal,
   onDelete,
 }: DeleteGroupModalProps) => {
-  const workspace = useWorkspace();
   const { isMobile } = useMediaQuery();
   const { makeRequest: deleteGroup, isSubmitting } = useApiMutation();
 
@@ -32,9 +30,9 @@ const DeleteGroupModal = ({
     await deleteGroup(`/api/groups/${group.id}`, {
       method: "DELETE",
       onSuccess: async () => {
-        toast.success(`Group deleted successfully!`);
-        await mutatePrefix(`/api/groups?workspaceId=${workspace.id}`);
         setShowModal(false);
+        await mutatePrefix("/api/groups");
+        toast.success("Group deleted successfully!");
         onDelete?.();
       },
     });

@@ -23,6 +23,8 @@ const processPartnerActivityStreamBatch = () =>
         };
       }
 
+      console.log(`Aggregating ${entries.length} partner activity events`);
+
       const programEnrollmentActivity = entries.reduce(
         (acc, entry) => {
           const { programId, partnerId, eventType } = entry.data;
