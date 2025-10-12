@@ -10,6 +10,7 @@ type GroupFilters = z.infer<typeof getGroupsQuerySchema> & {
 // secondary sort column
 const secondarySortColumnMap = {
   createdAt: "totalClicks",
+  totalPartners: "totalSaleAmount",
   totalClicks: "totalLeads",
   totalLeads: "totalConversions",
   totalConversions: "totalSaleAmount",
