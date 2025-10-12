@@ -9,6 +9,7 @@ import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -28,6 +29,8 @@ function CreateClawbackSheetContent(
   const { setIsOpen } = props;
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
+  const params = useParams() as { partnerId: string };
+
   const {
     control,
     handleSubmit,
@@ -37,6 +40,7 @@ function CreateClawbackSheetContent(
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>({
     defaultValues: {
+      partnerId: params.partnerId,
       description: "",
     },
   });

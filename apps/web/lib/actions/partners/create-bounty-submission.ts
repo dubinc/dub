@@ -45,6 +45,7 @@ export const createBountySubmissionAction = authPartnerActionClient
       getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId,
+        include: {},
       }),
 
       prisma.bounty.findUniqueOrThrow({

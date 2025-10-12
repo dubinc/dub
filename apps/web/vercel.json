@@ -13,8 +13,12 @@
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/cron/usage/update-workspace-clicks",
+      "path": "/api/cron/streams/update-workspace-clicks",
       "schedule": "* * * * *"
+    },
+    {
+      "path": "/api/cron/streams/update-partner-stats",
+      "schedule": "*/5 * * * *"
     },
     {
       "path": "/api/cron/usage",

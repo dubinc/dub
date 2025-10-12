@@ -23,6 +23,9 @@ export const GET = withPartnerProfile(
     const { program } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
+      include: {
+        program: true,
+      },
     });
 
     let { linkId, domain, key, ...rest } =

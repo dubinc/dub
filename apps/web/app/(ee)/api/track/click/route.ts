@@ -136,6 +136,8 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         domain,
         key,
         url: finalUrl,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         workspaceId: cachedLink.projectId,
         skipRatelimit: true,
         ...(referrer && { referrer }),

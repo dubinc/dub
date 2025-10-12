@@ -88,7 +88,10 @@ export const PATCH = withWorkspace(
       const programEnrollment = await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId,
-        includeSaleReward: true,
+        include: {
+          links: true,
+          saleReward: true,
+        },
       });
 
       const reward = determinePartnerReward({
