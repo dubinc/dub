@@ -29,6 +29,7 @@ import { cn, currencyFormatter, fetcher, formatDateTime } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -37,14 +38,12 @@ import { z } from "zod";
 
 interface CreateCommissionSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  partnerId?: string;
 }
 
 type FormData = z.infer<typeof createCommissionSchema>;
 
 function CreateCommissionSheetContent({
   setIsOpen,
-  partnerId: initialPartnerId,
 }: CreateCommissionSheetProps) {
   const { id: workspaceId, defaultProgramId, slug } = useWorkspace();
   const [hasInvoiceId, setHasInvoiceId] = useState(false);
@@ -65,6 +64,8 @@ function CreateCommissionSheetContent({
     "partner-and-type",
   ]);
 
+  const params = useParams() as { partnerId: string };
+
   const {
     register,
     handleSubmit,
@@ -74,7 +75,7 @@ function CreateCommissionSheetContent({
     control,
   } = useForm<FormData>({
     defaultValues: {
-      partnerId: initialPartnerId,
+      partnerId: params.partnerId,
     },
   });
 

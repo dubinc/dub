@@ -22,6 +22,7 @@ import {
   InvoiceDollar,
   Msgs,
   PenWriting,
+  Refresh2,
   UserCheck,
   UserDelete,
   Users,
@@ -36,6 +37,7 @@ import {
   useSearchParams,
 } from "next/navigation";
 import { ReactNode, useState } from "react";
+import { useCreateClawbackSheet } from "../../commissions/create-clawback-sheet";
 import { useCreateCommissionSheet } from "../../commissions/create-commission-sheet";
 import { PartnerNav } from "./partner-nav";
 import { PartnerStats } from "./partner-stats";
@@ -117,10 +119,12 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
   const { createCommissionSheet, setIsOpen: setCreateCommissionSheetOpen } =
     useCreateCommissionSheet({
       nested: true,
-      partnerId: partner.id,
     });
 
   useKeyboardShortcut("c", () => setCreateCommissionSheetOpen(true));
+
+  const { createClawbackSheet, setIsOpen: setClawbackSheetOpen } =
+    useCreateClawbackSheet({});
 
   const [isOpen, setIsOpen] = useState(false);
 
@@ -150,6 +154,7 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
   return (
     <>
       {createCommissionSheet}
+      {createClawbackSheet}
       <PartnerAdvancedSettingsModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
@@ -199,6 +204,15 @@ function PageControls({ partner }: { partner: EnrolledPartnerProps }) {
               className="md:hidden"
             >
               Create commission
+            </MenuItem>
+            <MenuItem
+              icon={Refresh2}
+              onClick={() => {
+                setClawbackSheetOpen(true);
+                setIsOpen(false);
+              }}
+            >
+              Create clawback
             </MenuItem>
             <MenuItem
               icon={PenWriting}
