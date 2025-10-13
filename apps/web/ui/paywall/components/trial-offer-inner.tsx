@@ -149,9 +149,7 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
     });
 
     if (response?.ok) {
-      router.push(
-        `/${slugify(user!.email!)}?onboarded=true${firstQr ? "&displayFirstQr=true" : ""}`,
-      );
+      router.push(`/${slugify(user!.email!)}?onboarded=true`);
     } else {
       showMessage(
         "Failed to sign in with credentials. Please try again or contact support.",

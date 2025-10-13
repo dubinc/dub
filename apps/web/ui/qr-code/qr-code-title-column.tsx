@@ -3,6 +3,7 @@
 import { Session } from "@/lib/auth";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
@@ -48,6 +49,9 @@ export function QrCodeTitleColumn({
     setIsPreviewCanvasReady(true);
   }, []);
 
+  // Create separate QRCodeStyling instance for the small preview canvas
+  const { qrCode: previewQrCodeObject } = useQrCustomization(qrCode);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } =
     useQRPreviewModal({
@@ -60,13 +64,13 @@ export function QrCodeTitleColumn({
     });
 
   useEffect(() => {
-    if (searchParams.get("displayFirstQr")) {
+    if (searchParams.get("onboarded")) {
       handleOpenNewQr();
       queryParams({
-        del: ["displayFirstQr"],
+        del: ["onboarded"],
       });
     }
-  }, [searchParams.get("displayFirstQr"), handleOpenNewQr, queryParams]);
+  }, [searchParams.get("onboarded"), handleOpenNewQr, queryParams]);
 
   useEffect(() => {
     if (qrCode.id === searchParams.get("qrId") && isPreviewCanvasReady) {
@@ -107,7 +111,7 @@ export function QrCodeTitleColumn({
             <QRCanvas
               ref={previewCanvasRef}
               qrCodeId={qrCode.id}
-              qrCode={builtQrCodeObject}
+              qrCode={previewQrCodeObject}
               width={100}
               height={100}
               onCanvasReady={handleTitleCanvasReady}
