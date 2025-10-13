@@ -4,11 +4,16 @@ import { SidebarPlug } from "@/ui/paywall/components/sidebar-plug";
 import { TrialOfferModal } from "@/ui/paywall/components/trial-offer-modal";
 import { QRBuilderData } from "@/ui/qr-builder/types/types";
 import { getUserCookieService } from "core/services/cookie/user-session.service";
+import { redirect } from "next/navigation";
 
 const PaywallPage = async () => {
   const { sessionId, user, isPaidTraffic } = await getUserCookieService();
 
   const { qrData: firstQr } = await getQrDataFromRedis(sessionId!);
+
+  if (!user?.email) {
+    return redirect("/");
+  }
 
   return (
     <>
