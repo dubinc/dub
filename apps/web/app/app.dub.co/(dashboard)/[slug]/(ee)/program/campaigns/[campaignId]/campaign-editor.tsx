@@ -29,6 +29,7 @@ import { CampaignEvents } from "./campaign-events";
 import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { CampaignMetrics } from "./campaign-metrics";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
+import { isValidTriggerCondition } from "./utils";
 
 const inputClassName =
   "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
@@ -82,6 +83,17 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
           changedFields.groupIds = Array.isArray(changedFields.groupIds)
             ? changedFields.groupIds
             : null;
+        }
+
+        // Remove invalid triggerCondition when saving a draft to prevent API validation errors
+        if (isDraft && "triggerCondition" in changedFields) {
+          if (!isValidTriggerCondition(changedFields.triggerCondition)) {
+            delete changedFields.triggerCondition;
+          }
+        }
+
+        if (Object.keys(changedFields).length === 0) {
+          return;
         }
 
         await makeRequest(`/api/campaigns/${campaign.id}`, {

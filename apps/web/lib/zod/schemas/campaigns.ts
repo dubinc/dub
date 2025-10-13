@@ -1,4 +1,7 @@
-import { CampaignWorkflowAttribute } from "@/lib/types";
+import {
+  WorkflowAttribute,
+  CampaignWorkflowAttributeConfig,
+} from "@/lib/types";
 import { CampaignStatus, CampaignType } from "@dub/prisma/client";
 import { z } from "zod";
 import { GroupSchema } from "./groups";
@@ -6,35 +9,49 @@ import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { workflowConditionSchema } from "./workflows";
 
-export const ALLOWED_ATTRIBUTE_VALUES_IN_DAYS = [0, 1, 3, 7, 14, 30];
-
 export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerName",
   "PartnerEmail",
 ] as const;
 
-export const CAMPAIGN_WORKFLOW_ATTRIBUTES = [
-  "totalClicks",
-  "totalLeads",
-  "totalConversions",
-  "totalSales",
-  "totalSaleAmount",
-  "totalCommissions",
-  "partnerEnrolledDays",
-] as const;
-
-export const CAMPAIGN_WORKFLOW_ATTRIBUTE_LABELS: Record<
-  CampaignWorkflowAttribute,
-  string
+export const CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG: Record<
+  WorkflowAttribute,
+  CampaignWorkflowAttributeConfig
 > = {
-  totalClicks: "Clicks",
-  totalLeads: "Leads",
-  totalConversions: "Conversions",
-  totalSales: "Sales",
-  totalSaleAmount: "Revenue",
-  totalCommissions: "Commissions",
-  partnerEnrolledDays: "days since enrollment",
-} as const;
+  totalClicks: {
+    label: "clicks",
+    inputType: "number",
+  },
+  totalLeads: {
+    label: "leads",
+    inputType: "number",
+  },
+  totalConversions: {
+    label: "conversions",
+    inputType: "number",
+  },
+  totalSales: {
+    label: "sales",
+    inputType: "number",
+  },
+  totalSaleAmount: {
+    label: "revenue",
+    inputType: "currency",
+  },
+  totalCommissions: {
+    label: "commissions",
+    inputType: "currency",
+  },
+  partnerEnrolledDays: {
+    label: "enrollment duration",
+    inputType: "dropdown",
+    dropdownValues: [1, 3, 7, 14, 30],
+  },
+  partnerJoined: {
+    label: "joins the program",
+    inputType: "none",
+  },
+};
 
 export const CampaignSchema = z.object({
   id: z.string(),

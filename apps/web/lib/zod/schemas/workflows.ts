@@ -14,6 +14,7 @@ export const WORKFLOW_ATTRIBUTES = [
   "totalSaleAmount",
   "totalCommissions",
   "partnerEnrolledDays",
+  "partnerJoined",
 ] as const;
 
 export const WORKFLOW_ATTRIBUTE_LABELS: Record<
@@ -27,6 +28,7 @@ export const WORKFLOW_ATTRIBUTE_LABELS: Record<
   totalSaleAmount: "Revenue",
   totalCommissions: "Commissions",
   partnerEnrolledDays: "days since enrollment",
+  partnerJoined: "joins the program",
 } as const;
 
 export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
@@ -40,6 +42,7 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   totalSaleAmount: WorkflowTrigger.saleRecorded,
   totalCommissions: WorkflowTrigger.commissionEarned,
   partnerEnrolledDays: WorkflowTrigger.partnerEnrolled,
+  partnerJoined: WorkflowTrigger.partnerEnrolled,
 } as const;
 
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
@@ -69,7 +72,7 @@ export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 export const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_ATTRIBUTES),
   operator: z.enum(WORKFLOW_COMPARISON_OPERATORS).default("gte"),
-  value: z.number(),
+  value: z.number().nullish().describe("value is optional for none inputType"),
 });
 
 // Array of conditions with AND operator

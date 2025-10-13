@@ -34,7 +34,6 @@ import {
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
 import {
-  CAMPAIGN_WORKFLOW_ATTRIBUTES,
   CampaignListSchema,
   CampaignSchema,
   campaignSummarySchema,
@@ -667,9 +666,6 @@ export type Campaign = z.infer<typeof CampaignSchema>;
 
 export type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;
 
-export type CampaignWorkflowAttribute =
-  (typeof CAMPAIGN_WORKFLOW_ATTRIBUTES)[number];
-
 export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
 
 export type StripeMode = "test" | "sandbox" | "live";
@@ -686,3 +682,11 @@ export interface TiptapNode {
   content?: TiptapNode[];
   marks?: Array<{ type: string; attrs?: Record<string, any> }>;
 }
+
+export interface CampaignWorkflowAttributeConfig {
+  label: string;
+  inputType: "number" | "currency" | "dropdown" | "none";
+  dropdownValues?: number[];
+}
+
+export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
