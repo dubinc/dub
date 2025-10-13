@@ -92,9 +92,11 @@ export async function GET(req: Request) {
           status: "canceled",
         },
       });
-      console.log(
-        `Updated ${updatedBannedCommissions.count} banned commissions for program ${name} to canceled`,
-      );
+      if (updatedBannedCommissions.count > 0) {
+        console.log(
+          `Updated ${updatedBannedCommissions.count} banned commissions for program ${name} to canceled`,
+        );
+      }
 
       // Find all pending commissions
       const pendingCommissionsForProgram = await prisma.commission.findMany({
