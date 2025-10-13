@@ -15,6 +15,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { program, links } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: programId,
+    include: {
+      program: true,
+      links: true,
+    },
   });
 
   const customer = await prisma.customer.findUnique({

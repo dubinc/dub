@@ -25,10 +25,12 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const parsedInput = getGroupsQuerySchema.parse(searchParams);
 
+    console.time("getGroups");
     const groups = await getGroups({
       ...parsedInput,
       programId,
     });
+    console.timeEnd("getGroups");
 
     return NextResponse.json(z.array(GroupSchemaExtended).parse(groups));
   },

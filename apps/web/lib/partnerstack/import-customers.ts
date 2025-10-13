@@ -3,6 +3,7 @@ import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
 import { redis } from "../upstash";
@@ -92,6 +93,8 @@ export async function importCustomers(payload: PartnerStackImportPayload) {
               key: true,
               domain: true,
               url: true,
+              partnerId: true,
+              programId: true,
               lastLeadAt: true,
             },
           },
@@ -163,7 +166,10 @@ async function createCustomer({
   importId,
 }: {
   workspace: Pick<Project, "id" | "stripeConnectId">;
-  links: Pick<Link, "id" | "key" | "domain" | "url" | "lastLeadAt">[];
+  links: Pick<
+    Link,
+    "id" | "key" | "domain" | "url" | "partnerId" | "programId" | "lastLeadAt"
+  >[];
   customer: PartnerStackCustomer;
   latestLeadAt: Date;
   importId: string;
@@ -285,6 +291,17 @@ async function createCustomer({
           }),
         },
       }),
+
+      // partner links should always have a partnerId and programId, but we're doing this to make TS happy
+      ...(link.partnerId && link.programId
+        ? [
+            syncPartnerLinksStats({
+              partnerId: link.partnerId,
+              programId: link.programId,
+              eventType: "lead",
+            }),
+          ]
+        : []),
     ]);
   } catch (error) {
     console.error("Error creating customer", customer, error);

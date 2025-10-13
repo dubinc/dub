@@ -22,6 +22,7 @@ export const messageProgramAction = authPartnerActionClient
     const enrollment = await getProgramEnrollmentOrThrow({
       programId: programSlug,
       partnerId: partner.id,
+      include: {},
     });
 
     const message = await prisma.message.create({

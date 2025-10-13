@@ -28,7 +28,9 @@ export const updatePartnerEnrollmentAction = authActionClient
     const { partner } = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
-      includePartner: true,
+      include: {
+        partner: true,
+      },
     });
 
     const where = {

@@ -61,8 +61,9 @@ export default function BountyCompleted({
             </Section>
 
             <Text className="text-sm leading-5 text-neutral-600">
-              Once <strong>{program.name}</strong> has confirmed your bounty,
-              you will receive an email with the commission details.
+              What happens next? <strong>{program.name}</strong> will review
+              your bounty submission. After their approval, you will receive an
+              email with the commission details.
             </Text>
 
             <Text className="text-sm leading-5 text-neutral-600">

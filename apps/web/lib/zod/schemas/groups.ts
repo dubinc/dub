@@ -96,7 +96,7 @@ export const GroupWithFormDataSchema = GroupSchema.extend({
 });
 
 export const GroupSchemaExtended = GroupSchema.extend({
-  partners: z.number().default(0),
+  totalPartners: z.number().default(0),
   totalClicks: z.number().default(0),
   totalLeads: z.number().default(0),
   totalSales: z.number().default(0),
@@ -104,7 +104,6 @@ export const GroupSchemaExtended = GroupSchema.extend({
   totalConversions: z.number().default(0),
   totalCommissions: z.number().default(0),
   netRevenue: z.number().default(0),
-  partnersCount: z.number().default(0),
 });
 
 export const createOrUpdateDefaultLinkSchema = z.object({
@@ -163,14 +162,14 @@ export const getGroupsQuerySchema = z
     sortBy: z
       .enum([
         "createdAt",
-        "partners",
+        "totalPartners",
         "totalClicks",
         "totalLeads",
         "totalSales",
         "totalSaleAmount",
         "totalConversions",
         "totalCommissions",
-        "netRevenue",
+        // "netRevenue", // TODO: add back when we can sort by this again
       ])
       .default("totalSaleAmount"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),

@@ -12,7 +12,10 @@ async function main() {
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
-    includeClickReward: true,
+    include: {
+      links: true,
+      clickReward: true,
+    },
   });
 
   const reward = determinePartnerReward({

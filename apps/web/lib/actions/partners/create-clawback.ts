@@ -17,6 +17,7 @@ export const createClawbackAction = authActionClient
     await getProgramEnrollmentOrThrow({
       programId,
       partnerId,
+      include: {},
     });
 
     await createPartnerCommission({

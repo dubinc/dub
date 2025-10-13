@@ -426,7 +426,9 @@ function BrandedChart({
                     interval,
                     start,
                     end,
-                    dataAvailableFrom: programEnrollment?.program.createdAt,
+                    dataAvailableFrom:
+                      programEnrollment?.program.startedAt ??
+                      programEnrollment?.program.createdAt,
                   })}
                 </span>
                 <p className="text-right text-neutral-500">

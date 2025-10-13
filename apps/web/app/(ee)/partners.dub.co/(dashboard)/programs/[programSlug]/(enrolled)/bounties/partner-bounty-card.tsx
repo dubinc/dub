@@ -119,6 +119,7 @@ function renderSubmissionStatus({
     case "submitted":
       return (
         <StatusBadge variant="new" icon={null}>
+          Pending Review |{" "}
           {bounty.type === "performance" ? "Completed" : "Submitted"}{" "}
           {submission.completedAt &&
             formatDate(submission.completedAt, { month: "short" })}

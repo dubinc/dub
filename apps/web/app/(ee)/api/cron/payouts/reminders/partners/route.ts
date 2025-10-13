@@ -118,7 +118,12 @@ export async function GET(req: Request) {
     const partnerProgramsChunks = chunk(partnerPrograms, 100);
     const connectPayoutsLastRemindedAt = new Date();
 
+    console.log(
+      `Processing ConnectPayoutReminder for ${partnerPrograms.length} partners in ${partnerProgramsChunks.length} chunks`,
+    );
+
     for (const partnerProgramsChunk of partnerProgramsChunks) {
+      console.time("sendBatchEmail");
       await sendBatchEmail(
         partnerProgramsChunk.map(({ partner, programs }) => ({
           to: partner.email,
@@ -130,8 +135,11 @@ export async function GET(req: Request) {
           }),
         })),
       );
+      console.timeEnd("sendBatchEmail");
 
-      console.info(partnerProgramsChunk);
+      console.log(
+        `Sent ConnectPayoutReminder emails to ${partnerProgramsChunk.length} partners`,
+      );
 
       await prisma.partner.updateMany({
         where: {

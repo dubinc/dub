@@ -8,7 +8,6 @@ export function CreateCommissionButton() {
   const { createCommissionSheet, setIsOpen: setShowCreateCommissionSheet } =
     useCreateCommissionSheet({
       nested: false,
-      partnerId: "",
     });
 
   useKeyboardShortcut("c", () => setShowCreateCommissionSheet(true));
