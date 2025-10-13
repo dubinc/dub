@@ -25,11 +25,22 @@ export function TransactionalCampaignLogic() {
   // Reset value when attribute changes
   useEffect(() => {
     if (prevAttributeRef.current && prevAttributeRef.current !== attribute) {
-      setValue("triggerCondition.value", null as any);
+      // Set value to 0 for partnerJoined, null for others
+      setValue(
+        "triggerCondition.value",
+        attribute === "partnerJoined" ? 0 : (null as any),
+      );
     }
 
     prevAttributeRef.current = attribute;
   }, [attribute, setValue]);
+
+  // Ensure partnerJoined always has value 0
+  useEffect(() => {
+    if (attribute === "partnerJoined" && value !== 0) {
+      setValue("triggerCondition.value", 0);
+    }
+  }, [attribute, value, setValue]);
 
   return (
     <div className="flex h-8 w-full items-center px-2">
