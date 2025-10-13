@@ -40,7 +40,7 @@ type Payload = z.infer<typeof payloadSchema>;
  *
  * 4. **Trigger Draft Bounty Submission Creation**: Triggers the creation of
  *    draft bounty submissions for the partner if they are eligible for performance bounties.
- * 
+ *
  * 5. **Execute Dub Workflows**: Executes Dub workflows using the “partnerEnrolled” trigger.
  */
 

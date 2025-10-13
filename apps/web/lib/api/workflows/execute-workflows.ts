@@ -71,22 +71,28 @@ export async function executeWorkflows({
 
   // Execute each workflow for the program
   for (const workflow of workflows) {
-    const { action } = parseWorkflowConfig(workflow);
+    const { action, condition } = parseWorkflowConfig(workflow);
 
     switch (action.type) {
-      case WORKFLOW_ACTION_TYPES.AwardBounty:
+      case WORKFLOW_ACTION_TYPES.AwardBounty: {
         await executeCompleteBountyWorkflow({
           workflow,
           context: workflowContext,
         });
-        break;
 
-      case WORKFLOW_ACTION_TYPES.SendCampaign:
-        await executeSendCampaignWorkflow({
-          workflow,
-          context: workflowContext,
-        });
         break;
+      }
+
+      case WORKFLOW_ACTION_TYPES.SendCampaign: {
+        if (["partnerJoined"].includes(condition.attribute)) {
+          await executeSendCampaignWorkflow({
+            workflow,
+            context: workflowContext,
+          });
+        }
+
+        break;
+      }
     }
   }
 }

@@ -48,8 +48,6 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
-  console.log(context, buildEnrollmentWhere(condition));
-
   let programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
@@ -73,6 +71,7 @@ export const executeSendCampaignWorkflow = async ({
         },
       },
     },
+    take: 50,
   });
 
   if (programEnrollments.length === 0) {
