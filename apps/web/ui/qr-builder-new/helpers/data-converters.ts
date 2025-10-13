@@ -4,6 +4,7 @@ import { FRAMES } from "../constants/customization/frames";
 import { EQRType } from "../constants/get-qr-config";
 import { TQRFormData } from "../types/context";
 import { IFrameData, IQRCustomizationData } from "../types/customization";
+import { TQrStorageData } from "../types/database";
 import { encodeQRData, parseQRData } from "./qr-data-handlers";
 import {
   getCornerDotType,
@@ -397,12 +398,12 @@ export async function convertNewQRBuilderDataToServer(
  * Convert server QR data back to new builder format
  */
 export function convertServerQRToNewBuilder(
-  serverData: TQrServerData,
+  serverData: TQrServerData | TQrStorageData,
 ): TNewQRBuilderData {
 
   // Parse QR data to form data using qr-data-handlers
   const sourceData = serverData.link?.url || serverData.data;
-  const formData = parseQRData(serverData.qrType, sourceData) as TQRFormData;
+  const formData = parseQRData(serverData.qrType as EQRType, sourceData) as TQRFormData;
 
   // Add qrName from title to formData
   if (serverData.title) {
@@ -411,17 +412,17 @@ export function convertServerQRToNewBuilder(
 
   // Extract customization data from styles, frame options, and logo options
   const customizationData = extractCustomizationData(
-    serverData.styles,
+    (serverData.styles || {}) as Options,
     serverData.frameOptions,
-    serverData.logoOptions,
+    serverData.logoOptions || undefined,
   );
 
   return {
-    qrType: serverData.qrType,
+    qrType: serverData.qrType as EQRType,
     formData,
     customizationData,
-    title: serverData.title,
-    fileId: serverData.fileId,
+    title: serverData.title ?? "",
+    fileId: serverData.fileId ?? undefined,
   };
 }
 
@@ -463,7 +464,6 @@ export function convertNewBuilderToStorageFormat(
 
 import { UpdateQrProps } from "@/lib/types";
 import { FILE_QR_TYPES } from "../constants/get-qr-config";
-import { TQrStorageData } from "../types/database";
 import { TQRUpdateResult } from "../types/update";
 
 /**

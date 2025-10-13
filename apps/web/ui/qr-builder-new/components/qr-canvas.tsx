@@ -1,20 +1,35 @@
 import QRCodeStyling from "qr-code-styling";
-import { useEffect, useRef, useState } from "react";
+import { forwardRef, RefObject, useEffect, useRef, useState } from "react";
 
 interface QRCanvasProps {
   qrCode: QRCodeStyling | null;
+  qrCodeId?: string;
   width?: number;
   height?: number;
+  maxWidth?: number;
+  minWidth?: number;
+  onCanvasReady?: () => void;
 }
 
-export const QRCanvas: React.FC<QRCanvasProps> = ({
-  qrCode,
-  width = 300,
-  height = 300,
-}) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const svgContainerRef = useRef<HTMLDivElement>(null);
-  const [containerSize, setContainerSize] = useState({ width, height });
+export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
+  (
+    {
+      qrCode,
+      qrCodeId,
+      width = 300,
+      height = 300,
+      maxWidth,
+      minWidth = 100,
+      onCanvasReady,
+    },
+    ref,
+  ) => {
+    const internalCanvasRef = useRef<HTMLCanvasElement>(null);
+    const svgContainerRef = useRef<HTMLDivElement>(null);
+    const [containerSize, setContainerSize] = useState({ width, height });
+
+    const canvasRef =
+      (ref as RefObject<HTMLCanvasElement>) || internalCanvasRef;
 
   const maxSize = Math.min(containerSize.width, containerSize.height);
   const actualSize = Math.max(300, Math.min(maxSize - 32, 600));
@@ -154,4 +169,7 @@ export const QRCanvas: React.FC<QRCanvasProps> = ({
       <div ref={svgContainerRef} style={{ display: "none" }} />
     </>
   );
-};
+  },
+);
+
+QRCanvas.displayName = "QRCanvas";
