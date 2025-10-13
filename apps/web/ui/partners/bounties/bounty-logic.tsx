@@ -67,7 +67,15 @@ export function BountyLogic({ className }: { className?: string }) {
                 <InlineBadgePopoverMenu
                   selectedValue={field.value}
                   onSelect={field.onChange}
-                  items={WORKFLOW_ATTRIBUTES.map((attribute) => ({
+                  items={WORKFLOW_ATTRIBUTES.filter(
+                    (attr) =>
+                      ![
+                        "totalClicks",
+                        "totalSales",
+                        "partnerEnrolledDays",
+                        "partnerJoined",
+                      ].includes(attr),
+                  ).map((attribute) => ({
                     text: WORKFLOW_ATTRIBUTE_LABELS[attribute].toLowerCase(),
                     value: attribute,
                   }))}
