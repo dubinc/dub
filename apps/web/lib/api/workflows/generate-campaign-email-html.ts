@@ -58,7 +58,18 @@ export function generateCampaignEmailHTML({
 
 const sanitizeHtmlBody = (body: string) => {
   return sanitizeHtml(body, {
-    allowedTags: ["p", "strong", "em", "ul", "li", "a", "h1", "h2", "img"],
+    allowedTags: [
+      "p",
+      "strong",
+      "em",
+      "ul",
+      "ol",
+      "li",
+      "a",
+      "h1",
+      "h2",
+      "img",
+    ],
     allowedAttributes: {
       a: ["href", "name", "target", "rel"],
       img: ["src", "alt", "title"],
