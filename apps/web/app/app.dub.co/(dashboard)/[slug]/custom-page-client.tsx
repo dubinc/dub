@@ -6,7 +6,7 @@ import useQrs from "@/lib/swr/use-qrs.ts";
 import { UserProvider } from "@/ui/contexts/user";
 import { CreateQRButton, QRBuilderModal } from "@/ui/modals/qr-builder-new";
 import { useTrialOfferWithQRPreviewModal } from "@/ui/modals/trial-offer-with-qr-preview";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
 import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.tsx";
@@ -22,7 +22,7 @@ import { useEffect, useState } from "react";
 import { NewQrProvider } from "./helpers/new-qr-context";
 
 interface WorkspaceQRsClientProps {
-  initialQrs: QrStorageData[];
+  initialQrs: TQrStorageData[];
   featuresAccess: FeaturesAccess;
   user: Session["user"];
   cookieUser: ICustomerBody | null;
@@ -60,7 +60,7 @@ function WorkspaceQRs({
   featuresAccess,
   user,
 }: {
-  initialQrs: QrStorageData[];
+  initialQrs: TQrStorageData[];
   featuresAccess: FeaturesAccess;
   user: Session["user"];
 }) {
@@ -166,7 +166,7 @@ function TrialOfferWithQRPreviewWrapper({
   featuresAccess,
   user,
 }: {
-  initialQrs: QrStorageData[];
+  initialQrs: TQrStorageData[];
   featuresAccess: FeaturesAccess;
   user: ICustomerBody | null;
 }) {

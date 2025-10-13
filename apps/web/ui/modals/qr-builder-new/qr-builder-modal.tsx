@@ -2,7 +2,7 @@
 
 import { useKeyboardShortcut, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Drawer } from "vaul";
 
 import { QRBuilderNew } from "@/ui/qr-builder-new";
@@ -12,6 +12,9 @@ import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Modal } from "@dub/ui";
 import { LoaderCircle } from "lucide-react";
+import { useUser } from "@/ui/contexts/user";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 
 interface QRBuilderModalProps {
   qrData?: TQrServerData;
@@ -26,8 +29,25 @@ export function QRBuilderModal({
 }: QRBuilderModalProps) {
   const { createQr, updateQr } = useNewQrOperations();
   const { isMobile } = useMediaQuery();
+  const user = useUser();
 
   const [isProcessing, setIsProcessing] = useState(false);
+
+  useEffect(() => {
+    if (showModal) {
+      trackClientEvents({
+        event: EAnalyticEvents.ELEMENT_OPENED,
+        params: {
+          page_name: "dashboard",
+          element_name: "qr_builder_modal",
+          content_value: qrData ? "edit" : "create",
+          email: user?.email,
+          event_category: "Authorized",
+        },
+        sessionId: user?.id,
+      });
+    }
+  }, [showModal, qrData, user]);
 
   const handleSaveQR = async (data: any) => {
     setIsProcessing(true);

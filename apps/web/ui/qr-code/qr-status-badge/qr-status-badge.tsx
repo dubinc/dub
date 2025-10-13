@@ -1,9 +1,9 @@
-import { QrStorageData } from "@/ui/qr-builder/types/types";
+import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import { QRCardAnalyticsBadge } from "./qr-code-card-analytics-badge";
 import { QRCardStatus } from "./qr-code-card-status";
 
 interface IQRStatusBadge {
-  qrCode: QrStorageData;
+  qrCode: TQrStorageData;
   featuresAccess?: boolean;
   className?: string;
 }

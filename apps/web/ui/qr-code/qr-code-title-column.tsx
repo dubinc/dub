@@ -1,9 +1,9 @@
 "use client";
 
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
-import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { QRType } from "@/ui/qr-builder-new/constants/get-qr-config";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
 import { QRCardTitle } from "@/ui/qr-code/qr-code-card-title.tsx";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
@@ -17,9 +17,9 @@ import { Session } from '@/lib/auth';
 import { useSearchParams } from 'next/navigation';
 import { useNewQrContext } from 'app/app.dub.co/(dashboard)/[slug]/helpers/new-qr-context';
 
-interface QrCodeTitleColumnProps {
+interface IQrCodeTitleColumnProps {
   user: Session["user"];
-  qrCode: QrStorageData;
+  qrCode: TQrStorageData;
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
   featuresAccess?: boolean;
@@ -33,7 +33,7 @@ export function QrCodeTitleColumn({
   currentQrTypeInfo,
   featuresAccess,
   setShowTrialExpiredModal,
-}: QrCodeTitleColumnProps) {
+}: IQrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, title } = qrCode?.link ?? {};
   const { isMobile, width } = useMediaQuery();
   const [isPreviewCanvasReady, setIsPreviewCanvasReady] = useState<boolean>(false);

@@ -20,6 +20,7 @@ export const QRBuilderWrapper = () => {
     currentFormValues,
     customizationData,
     isEditMode,
+    qrBuilderContentWrapperRef,
   } = useQrBuilderContext();
 
   const logoData = customizationData.logo;
@@ -28,6 +29,7 @@ export const QRBuilderWrapper = () => {
 
   return (
     <div
+      ref={qrBuilderContentWrapperRef}
       className={cn(
         "border-border-500 mx-auto flex h-full w-full flex-col justify-between rounded-lg border bg-white",
       )}

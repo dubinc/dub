@@ -1,6 +1,9 @@
 import { cn } from "@dub/utils";
 import * as Tabs from "@radix-ui/react-tabs";
 import { FC, useCallback } from "react";
+import { useUser } from "@/ui/contexts/user";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 
 import { QR_STYLES_OPTIONS } from "../../constants/customization/qr-styles-options";
 import {
@@ -34,8 +37,28 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
   isMobile = false,
   homepageDemo = false,
 }) => {
+  const user = useUser();
 
   const isFrameSelected = customizationData.frame.id !== "frame-none";
+
+  const handleTabChange = useCallback(
+    (tab: string) => {
+      onTabChange(tab);
+
+      trackClientEvents({
+        event: EAnalyticEvents.ELEMENT_CLICKED,
+        params: {
+          page_name: homepageDemo ? "landing" : "dashboard",
+          element_name: "customization_tabs",
+          content_value: tab.toLowerCase(),
+          email: user?.email,
+          event_category: homepageDemo ? "nonAuthorized" : "Authorized",
+        },
+        sessionId: user?.id,
+      });
+    },
+    [onTabChange, homepageDemo, user],
+  );
 
   const handleFrameChange = useCallback(
     (frameData: IFrameData) => {
@@ -119,7 +142,7 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
   return (
     <Tabs.Root
       value={activeTab}
-      onValueChange={onTabChange}
+      onValueChange={handleTabChange}
       className="text-neutral flex w-full flex-col items-center justify-center gap-4"
     >
       <Tabs.List className="flex w-full items-center gap-1 overflow-x-auto rounded-lg">

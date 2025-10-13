@@ -12,6 +12,10 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
+import { useUser } from "@/ui/contexts/user";
+import { useMediaQuery } from "@dub/ui";
 import { EQRType } from "../constants/get-qr-config.ts";
 import {
   convertServerQRToNewBuilder,
@@ -54,6 +58,9 @@ export function QrBuilderProvider({
   sessionId,
   onSave: onSaveProp,
 }: QrBuilderProviderProps) {
+  const user = useUser();
+  const { isMobile } = useMediaQuery();
+
   const getInitializedProps = useCallback(() => {
     if (initialQrData) {
       const builderData = convertServerQRToNewBuilder(initialQrData);
@@ -118,10 +125,22 @@ export function QrBuilderProvider({
 
   const contentStepRef = useRef<QRContentStepRef>(null);
   const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
+  const qrBuilderContentWrapperRef = useRef<HTMLDivElement>(null);
 
   const isTypeStep = builderStep === 1;
   const isContentStep = builderStep === 2;
   const isCustomizationStep = builderStep === 3;
+
+  // Mobile scroll handler
+  const handleScroll = useCallback(() => {
+    if (isMobile && qrBuilderContentWrapperRef.current) {
+      qrBuilderContentWrapperRef.current.style.scrollMargin = "60px";
+      qrBuilderContentWrapperRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [isMobile]);
 
   const currentQRType = useMemo(() => {
     return isTypeStep
@@ -164,16 +183,45 @@ export function QrBuilderProvider({
 
       setTypeSelectionError("");
       setBuilderStep(newStep as TStepState);
+
+      // Track step navigation via stepper
+      trackClientEvents({
+        event: EAnalyticEvents.PAGE_CLICKED,
+        params: {
+          page_name: homepageDemo ? "landing" : "dashboard",
+          content_group: "step_navigation",
+          content_value: `step_${newStep}`,
+          email: user?.email,
+          event_category: homepageDemo ? "nonAuthorized" : "Authorized",
+        },
+        sessionId: sessionId || user?.id,
+      });
     },
-    [selectedQrType],
+    [selectedQrType, homepageDemo, user, sessionId],
   );
 
   const handleSelectQRType = useCallback(
     (type: EQRType) => {
       setSelectedQrType(type);
       handleNextStep();
+
+      // Track QR type selection
+      trackClientEvents({
+        event: EAnalyticEvents.PAGE_CLICKED,
+        params: {
+          page_name: homepageDemo ? "landing" : "dashboard",
+          content_group: "choose_type",
+          content_value: type,
+          email: user?.email,
+          event_category: homepageDemo ? "nonAuthorized" : "Authorized",
+        },
+        sessionId: sessionId || user?.id,
+      });
+
+      // Scroll on mobile
+      handleScroll();
     },
-    [handleNextStep],
+    [handleNextStep, homepageDemo, user, sessionId, handleScroll],
   );
 
   const handleHoverQRType = useCallback((type: EQRType | null) => {
@@ -191,8 +239,25 @@ export function QrBuilderProvider({
 
   const handleBack = useCallback(() => {
     const newStep = Math.max((builderStep || 1) - 1, 1);
+
+    // Track back button click
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_CLICKED,
+      params: {
+        page_name: homepageDemo ? "landing" : "dashboard",
+        content_group: "navigation",
+        content_value: "back",
+        email: user?.email,
+        event_category: homepageDemo ? "nonAuthorized" : "Authorized",
+      },
+      sessionId: sessionId || user?.id,
+    });
+
     handleChangeStep(newStep);
-  }, [builderStep, handleChangeStep]);
+
+    // Scroll on mobile
+    handleScroll();
+  }, [builderStep, handleChangeStep, homepageDemo, user, sessionId, handleScroll]);
 
   // Methods
   const onSave = useCallback(async () => {
@@ -240,6 +305,18 @@ export function QrBuilderProvider({
         return;
       }
 
+      trackClientEvents({
+        event: EAnalyticEvents.PAGE_CLICKED,
+        params: {
+          page_name: homepageDemo ? "landing" : "dashboard",
+          content_group: "customize_qr",
+          content_value: homepageDemo ? "download" : (isEdit ? "save" : "create"),
+          email: user?.email,
+          event_category: homepageDemo ? "nonAuthorized" : "Authorized",
+        },
+        sessionId: sessionId || user?.id,
+      });
+
       await onSave();
       return;
     }
@@ -249,6 +326,18 @@ export function QrBuilderProvider({
       if (!isValid) {
         return;
       }
+
+      trackClientEvents({
+        event: EAnalyticEvents.PAGE_CLICKED,
+        params: {
+          page_name: homepageDemo ? "landing" : "dashboard",
+          content_group: "complete_content",
+          content_value: "continue",
+          email: user?.email,
+          event_category: homepageDemo ? "nonAuthorized" : "Authorized",
+        },
+        sessionId: sessionId || user?.id,
+      });
 
       // Save the current form values to formData state before moving to next step
       if (currentFormValues && Object.keys(currentFormValues).length > 0) {
@@ -260,8 +349,10 @@ export function QrBuilderProvider({
       }
     }
 
-    // Move to next step
     handleNextStep();
+
+    // Scroll on mobile
+    handleScroll();
   }, [
     isContentStep,
     isCustomizationStep,
@@ -271,6 +362,11 @@ export function QrBuilderProvider({
     onSave,
     handleNextStep,
     currentFormValues,
+    homepageDemo,
+    isEdit,
+    user,
+    sessionId,
+    handleScroll,
   ]);
 
   const updateCurrentFormValues = useCallback((values: Record<string, any>) => {
@@ -337,6 +433,7 @@ export function QrBuilderProvider({
     // Refs
     contentStepRef,
     qrBuilderButtonsWrapperRef,
+    qrBuilderContentWrapperRef,
   };
 
   return (
