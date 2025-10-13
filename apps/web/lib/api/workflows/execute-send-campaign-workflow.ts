@@ -48,6 +48,8 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
+  console.log(context, buildEnrollmentWhere(condition));
+
   let programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       programId,
@@ -217,13 +219,24 @@ export const executeSendCampaignWorkflow = async ({
 };
 
 function buildEnrollmentWhere(condition: WorkflowCondition) {
-  const thresholdDate = subDays(new Date(), condition.value);
+  switch (condition.attribute) {
+    case "totalClicks":
+    case "totalLeads":
+    case "totalConversions":
+    case "totalSales":
+    case "totalSaleAmount":
+    case "totalCommissions":
+      return {
+        [condition.attribute]: {
+          gte: condition.value,
+        },
+      };
 
-  switch (condition.operator) {
-    case "gte":
+    case "partnerEnrolledDays": // @deprecated
+    case "partnerJoined":
       return {
         createdAt: {
-          lte: thresholdDate,
+          lte: subDays(new Date(), condition.value),
         },
       };
   }

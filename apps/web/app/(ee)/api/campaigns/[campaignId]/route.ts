@@ -134,12 +134,8 @@ export const PATCH = withWorkspace(
 
         const { condition } = parseWorkflowConfig(updatedCampaign.workflow);
 
-        // Skip scheduling if the condition is not based on partnerEnrolledDays,
-        // or if the required enrolled days is 0 (immediate execution case)
-        if (
-          condition.attribute !== "partnerEnrolledDays" ||
-          condition.value === 0
-        ) {
+        // Skip scheduling if the condition is based on partnerJoined which will run immediately
+        if (condition.attribute === "partnerJoined") {
           return;
         }
 
@@ -213,12 +209,7 @@ export const DELETE = withWorkspace(
 
         const { condition } = parseWorkflowConfig(campaign.workflow);
 
-        // Skip scheduling if the condition is not based on partnerEnrolledDays,
-        // or if the required enrolled days is 0 (immediate execution case)
-        if (
-          condition.attribute !== "partnerEnrolledDays" ||
-          condition.value === 0
-        ) {
+        if (condition.attribute === "partnerJoined") {
           return;
         }
 

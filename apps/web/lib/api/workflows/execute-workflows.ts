@@ -27,6 +27,7 @@ export async function executeWorkflows({
     where: {
       programId,
       trigger,
+      disabledAt: null,
     },
   });
 

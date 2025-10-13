@@ -61,12 +61,12 @@ export const POST = withWorkspace(
       });
 
       if (type === "transactional") {
-        const trigger = WORKFLOW_ATTRIBUTE_TRIGGER["partnerEnrolledDays"];
+        const trigger = WORKFLOW_ATTRIBUTE_TRIGGER["partnerJoined"];
 
         const triggerCondition: WorkflowCondition = {
-          attribute: "partnerEnrolledDays",
+          attribute: "partnerJoined",
           operator: "gte",
-          value: 1,
+          value: 0,
         };
 
         const action: WorkflowAction = {
