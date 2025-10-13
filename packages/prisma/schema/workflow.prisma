@@ -1,4 +1,5 @@
 enum WorkflowTrigger {
+  clickRecorded
   leadRecorded
   saleRecorded
   commissionEarned
