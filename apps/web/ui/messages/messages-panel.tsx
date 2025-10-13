@@ -451,7 +451,7 @@ function CampaignMessage({
             <div
               className={cn(
                 "max-w-lg overflow-hidden",
-                isExpanded ? "px-4 py-2.5" : "max-h-0 px-4 py-0",
+                isExpanded ? "px-2 py-2.5" : "max-h-0 px-2 py-0",
               )}
             >
               <MessageMarkdown invert={isMySide}>
