@@ -1,3 +1,4 @@
+import { handleApiError } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
@@ -14,7 +15,7 @@ const schema = z.object({
   startingAfter: z.string().optional(),
 });
 
-const PROGRAMS_PER_BATCH = 5; // 10 pairs of programs will be calculated per batch
+const PROGRAMS_PER_BATCH = 5; // 10 pairs of programs
 const SIMILARITY_SCORE_THRESHOLD = 0.05;
 
 // GET /api/cron/calculate-program-similarities - Initial cron request from Vercel
@@ -23,8 +24,9 @@ export async function GET(req: Request) {
     await verifyVercelSignature(req);
 
     return await computeProgramSimilarity();
-  } catch (error) {
-    //
+  } catch (err) {
+    const { error, status } = handleApiError(err);
+    return logAndRespond(error.message, { status });
   }
 }
 
@@ -43,8 +45,9 @@ export async function POST(req: Request) {
     return await computeProgramSimilarity({
       startingAfter,
     });
-  } catch (error) {
-    //
+  } catch (err) {
+    const { error, status } = handleApiError(err);
+    return logAndRespond(error.message, { status });
   }
 }
 
@@ -167,5 +170,5 @@ async function computeProgramSimilarity({
     });
   }
 
-  return logAndRespond("Finished calculating program similarities");
+  return logAndRespond("Finished calculating program similarities.");
 }
