@@ -98,7 +98,7 @@
     "embla-carousel-react": "^8.1.7",
     "js-cookie": "^3.0.5",
     "js-sha256": "^0.11.0",
-    "linkify-react": "^4.1.3",
+    "linkify-react": "^4.3.2",
     "linkifyjs": "^4.1.3",
     "lucide-react": "^0.462.0",
     "motion": "^12.23.22",

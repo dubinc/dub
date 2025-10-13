@@ -252,8 +252,8 @@ importers:
         specifier: ^3.10.1
         version: 3.10.1
       linkify-react:
-        specifier: ^4.1.3
-        version: 4.1.3(linkifyjs@4.3.2)(react@19.1.1)
+        specifier: 4.3.2
+        version: 4.3.2(linkifyjs@4.3.2)(react@19.1.1)
       lucide-react:
         specifier: ^0.462.0
         version: 0.462.0(react@19.1.1)
@@ -848,8 +848,8 @@ importers:
         specifier: ^0.11.0
         version: 0.11.0
       linkify-react:
-        specifier: ^4.1.3
-        version: 4.1.3(linkifyjs@4.1.3)(react@19.1.1)
+        specifier: ^4.3.2
+        version: 4.3.2(linkifyjs@4.1.3)(react@19.1.1)
       linkifyjs:
         specifier: ^4.1.3
         version: 4.1.3
@@ -9821,8 +9821,8 @@ packages:
   linkify-it@5.0.0:
     resolution: {integrity: sha512-5aHCbzQRADcdP+ATqnDuhhJ/MRIqDkZX5pyjFHRRysS8vZ5AbqGEoFIb6pYHPZ+L/OC2Lc+xT8uHVVR5CAK/wQ==}
 
-  linkify-react@4.1.3:
-    resolution: {integrity: sha512-rhI3zM/fxn5BfRPHfi4r9N7zgac4vOIxub1wHIWXLA5ENTMs+BGaIaFO1D1PhmxgwhIKmJz3H7uCP0Dg5JwSlA==}
+  linkify-react@4.3.2:
+    resolution: {integrity: sha512-mi744h1hf+WDsr+paJgSBBgYNLMWNSHyM9V9LVUo03RidNGdw1VpI7Twnt+K3pEh3nIzB4xiiAgZxpd61ItKpQ==}
     peerDependencies:
       linkifyjs: ^4.0.0
       react: '>= 15.0.0'
@@ -24968,12 +24968,12 @@ snapshots:
     dependencies:
       uc.micro: 2.1.0
 
-  linkify-react@4.1.3(linkifyjs@4.1.3)(react@19.1.1):
+  linkify-react@4.3.2(linkifyjs@4.1.3)(react@19.1.1):
     dependencies:
       linkifyjs: 4.1.3
       react: 19.1.1
 
-  linkify-react@4.1.3(linkifyjs@4.3.2)(react@19.1.1):
+  linkify-react@4.3.2(linkifyjs@4.3.2)(react@19.1.1):
     dependencies:
       linkifyjs: 4.3.2
       react: 19.1.1
