@@ -13,7 +13,7 @@ export function dedupeAdditionalLinks(
     const key =
       link.validationMode === "domain"
         ? link.domain?.toLowerCase()
-        : link.url?.toLowerCase();
+        : `${link.domain?.toLowerCase()}${link.path || ""}`;
 
     if (!key || seen.has(key)) {
       return false;

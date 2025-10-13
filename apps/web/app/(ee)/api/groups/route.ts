@@ -1,7 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { dedupeAdditionalLinks } from "@/lib/api/bounties/dedupe-additional-links";
 import { createId } from "@/lib/api/create-id";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { dedupeAdditionalLinks } from "@/lib/api/groups/dedupe-additional-links";
 import { getGroups } from "@/lib/api/groups/get-groups";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";

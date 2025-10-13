@@ -1,8 +1,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
-import { dedupeAdditionalLinks } from "@/lib/api/bounties/dedupe-additional-links";
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
+import { dedupeAdditionalLinks } from "@/lib/api/groups/dedupe-additional-links";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
