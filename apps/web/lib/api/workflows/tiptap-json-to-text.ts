@@ -4,7 +4,7 @@ const DEFAULTS: Required<Options> = {
   preserveNewlines: true,
   wordwrap: 0,
   preserveLinks: true,
-  preserveImages: false,
+  preserveImages: true,
   listIndent: "  ",
   variables: {},
 };
@@ -111,17 +111,7 @@ function renderMarks(text: string, marks?: TiptapNode["marks"]): string {
   return text;
 }
 
-/**
- * Small, secure converter from Tiptap JSON -> plain text.
- *
- * Features:
- *  - preserveNewlines: keep paragraph/heading line breaks as \n\n
- *  - wordwrap: number of columns to wrap lines at (0 = disabled)
- *  - preserveLinks: include URLs after link text like "text (https://...)" or keep only text
- *  - preserveImages: include image alt text or a placeholder like "[image: alt]"
- *  - listSupport: render bullet/ordered lists with bullets or numbers, support nested lists
- *  - safe handling: does NOT execute any HTML/etc — operates only on structured JSON
- */
+// Small, secure converter from Tiptap JSON -> plain text.
 export function tiptapToPlainText(
   doc: TiptapNode | TiptapNode[],
   opts?: Options,
@@ -259,7 +249,7 @@ export function tiptapToPlainText(
         const alt =
           node.attrs && (node.attrs.alt || node.attrs.title || "image");
         const src = node.attrs && node.attrs.src;
-        // Do not include raw URLs unless preserveImages==true and config wants it. We'll include alt and optionally src in parens.
+
         return alt
           ? `[image: ${alt}]${conf.preserveLinks && src ? ` (${src})` : ""}`
           : conf.preserveLinks && src
