@@ -17,7 +17,7 @@ export function renderCampaignEmailMarkdown({
     throw new Error("Document cannot be null or undefined");
   }
 
-  const markdown = renderToMarkdown({
+  let markdown = renderToMarkdown({
     extensions: [
       StarterKit.configure({
         heading: {
@@ -45,5 +45,11 @@ export function renderCampaignEmailMarkdown({
     },
   });
 
-  return interpolateEmailTemplate({ text: markdown, variables });
+
+  markdown = markdown.replace(/^[\s\n]+|[\s\n]+$/g, "");
+
+  return interpolateEmailTemplate({ 
+    text: markdown, 
+    variables 
+  });
 }
