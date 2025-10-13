@@ -1,5 +1,13 @@
 import { prisma } from "@dub/prisma";
 
+const METRIC_KEYS = [
+  "totalClicks",
+  "totalLeads",
+  "totalConversions",
+  "totalSales",
+  "totalSaleAmount",
+] as const;
+
 // Calculate performance similarity using Cosine similarity
 export async function calculatePerformanceSimilarity(
   program1Id: string,
@@ -33,17 +41,7 @@ export async function calculatePerformanceSimilarity(
     }),
   ]);
 
-  const METRIC_KEYS = [
-    "totalClicks",
-    "totalLeads",
-    "totalConversions",
-    "totalSales",
-    "totalSaleAmount",
-    "totalCommissions",
-  ] as const;
-
   const program1Vector = METRIC_KEYS.map((key) => performance1._avg[key] ?? 0);
-
   const program2Vector = METRIC_KEYS.map((key) => performance2._avg[key] ?? 0);
 
   const dotProduct = program1Vector.reduce(
@@ -59,10 +57,9 @@ export async function calculatePerformanceSimilarity(
     program2Vector.reduce((sum, val) => sum + val ** 2, 0),
   );
 
-  const performanceSimilarityScore =
-    magnitude1 > 0 && magnitude2 > 0
-      ? dotProduct / (magnitude1 * magnitude2)
-      : 0;
+  if (magnitude1 === 0 || magnitude2 === 0) {
+    return 0;
+  }
 
-  return performanceSimilarityScore;
+  return dotProduct / (magnitude1 * magnitude2);
 }

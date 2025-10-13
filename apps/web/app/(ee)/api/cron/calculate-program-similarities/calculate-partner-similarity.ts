@@ -24,11 +24,19 @@ export async function calculatePartnerSimilarity(
       e1.programId = ${program1Id} AND e2.programId = ${program2Id}
   `;
 
-  const partnerSimilarityScore =
-    result.sharedPartnersCount > 0
-      ? result.sharedPartnersCount /
-        Math.max(result.program1PartnersCount, result.program2PartnersCount)
-      : 0;
+  const { sharedPartnersCount, program1PartnersCount, program2PartnersCount } =
+    result ?? {
+      sharedPartnersCount: 0,
+      program1PartnersCount: 0,
+      program2PartnersCount: 0,
+    };
 
-  return partnerSimilarityScore;
+  const unionCount =
+    program1PartnersCount + program2PartnersCount - sharedPartnersCount;
+
+  if (unionCount === 0) {
+    return 0;
+  }
+
+  return sharedPartnersCount / unionCount;
 }

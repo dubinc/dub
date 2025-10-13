@@ -26,18 +26,18 @@ export async function calculateCategorySimilarity(
   ]);
 
   const categories1Set = new Set(categories1.map(({ category }) => category));
-
   const categories2Set = new Set(categories2.map(({ category }) => category));
 
-  const sharedCategories = [...categories1Set].filter((c) =>
+  const sharedCount = [...categories1Set].filter((c) =>
     categories2Set.has(c),
-  );
+  ).length;
 
-  const categorySimilarityScore =
-    sharedCategories.length > 0
-      ? sharedCategories.length /
-        Math.max(categories1Set.size, categories2Set.size)
-      : 0;
+  const totalUniqueCount =
+    categories1Set.size + categories2Set.size - sharedCount;
 
-  return categorySimilarityScore;
+  if (totalUniqueCount === 0) {
+    return 0;
+  }
+
+  return sharedCount / totalUniqueCount;
 }
