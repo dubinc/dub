@@ -20,14 +20,14 @@ import { EmailTemplateVariables } from "@/lib/types";
  * ```
  */
 
-export function renderEmailTemplate({
-  template,
+export function interpolateEmailTemplate({
+  text,
   variables,
 }: {
-  template: string;
+  text: string;
   variables: Partial<EmailTemplateVariables>;
 }): string {
-  return template.replace(
+  return text.replace(
     /{{\s*([\w.]+)(?:\|([^}]+))?\s*}}/g,
     (_, key, fallback) => {
       const value = variables[key];

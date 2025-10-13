@@ -5,7 +5,7 @@ import Mention from "@tiptap/extension-mention";
 import { generateHTML } from "@tiptap/html/server";
 import StarterKit from "@tiptap/starter-kit";
 import sanitizeHtml from "sanitize-html";
-import { renderEmailTemplate } from "./render-email-template";
+import { interpolateEmailTemplate } from "./interpolate-email-template";
 
 // This function configures the proper TipTap extensions (StarterKit, Image, Mention)
 // and renders the campaign body with variable placeholders replaced.
@@ -50,8 +50,8 @@ export function generateCampaignEmailHTML({
     }),
   ]);
 
-  return renderEmailTemplate({
-    template: sanitizeHtmlBody(html),
+  return interpolateEmailTemplate({
+    text: sanitizeHtmlBody(html),
     variables,
   });
 }

@@ -70,6 +70,19 @@ export function MessageMarkdown({
           <a {...props} target="_blank" rel="noopener noreferrer" />
         ),
         img: ({ node, ...props }) => <ZoomImage {...props} />,
+        p: ({ node, children, ...props }) => {
+          // Check if paragraph only contains images (which render as divs via ZoomImage)
+          // to avoid invalid <p><div></div></p> nesting
+          const hasOnlyImages = node?.children?.every(
+            (child: any) => child.tagName === "img",
+          );
+
+          if (hasOnlyImages) {
+            return <div {...props}>{children}</div>;
+          }
+
+          return <p {...props}>{children}</p>;
+        },
         ...components,
       }}
     >

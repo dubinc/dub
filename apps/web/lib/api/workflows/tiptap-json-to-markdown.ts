@@ -1,4 +1,5 @@
 import { EmailTemplateVariables } from "@/lib/types";
+import { interpolateEmailTemplate } from "./interpolate-email-template";
 
 export interface TiptapNode {
   type: string;
@@ -10,19 +11,6 @@ export interface TiptapNode {
 
 interface Options {
   variables?: Partial<EmailTemplateVariables>;
-}
-
-function replaceVariables(
-  text: string,
-  variables: Partial<EmailTemplateVariables>,
-): string {
-  if (!variables || Object.keys(variables).length === 0) {
-    return text;
-  }
-
-  return text.replace(/{{\s*([\w\d_]+)\s*}}/g, (_, key) => {
-    return variables[key] ?? `{{${key}}}`;
-  });
 }
 
 // Convert TipTap JSON to Markdown (for in-app Messages)
@@ -56,7 +44,10 @@ export function tiptapToMarkdown(
       case "text": {
         let text = node.text || "";
 
-        text = replaceVariables(text, variables);
+        text = interpolateEmailTemplate({
+          text,
+          variables,
+        });
 
         if (node.marks) {
           node.marks.forEach((mark) => {
