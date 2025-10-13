@@ -72,7 +72,7 @@ export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 export const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_ATTRIBUTES),
   operator: z.enum(WORKFLOW_COMPARISON_OPERATORS).default("gte"),
-  value: z.number().nullish().describe("value is optional for none inputType"),
+  value: z.number()
 });
 
 // Array of conditions with AND operator
