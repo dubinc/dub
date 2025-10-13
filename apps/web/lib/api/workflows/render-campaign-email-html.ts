@@ -48,8 +48,22 @@ export function renderCampaignEmailHTML({
     }),
   ]);
 
+  const htmlWithListStyles = html
+    .replace(
+      /<ul([^>]*)>/g,
+      '<ul$1 style="padding-left: 30px; margin-left: 0;">',
+    )
+    .replace(
+      /<ol([^>]*)>/g,
+      '<ol$1 style="padding-left: 30px; margin-left: 0;">',
+    )
+    .replace(
+      /<li([^>]*)>/g,
+      '<li$1 style="margin-left: 0; padding-left: 4px; margin-top: 0px; margin-bottom: 0px; line-height:1;">',
+    );
+
   return interpolateEmailTemplate({
-    text: sanitizeHtmlBody(html),
+    text: sanitizeHtmlBody(htmlWithListStyles),
     variables,
   });
 }
@@ -71,6 +85,9 @@ const sanitizeHtmlBody = (body: string) => {
     allowedAttributes: {
       a: ["href", "name", "target", "rel"],
       img: ["src", "alt", "title"],
+      ul: ["style"],
+      ol: ["style"],
+      li: ["style"],
       "*": ["class"],
     },
     allowedSchemes: ["http", "https", "mailto"],
