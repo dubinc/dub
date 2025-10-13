@@ -9,7 +9,7 @@ import { subDays } from "date-fns";
 import { createId } from "../create-id";
 import { generateCampaignEmailHTML } from "./generate-campaign-email-html";
 import { parseWorkflowConfig } from "./parse-workflow-config";
-import { TiptapNode, tiptapToPlainText } from "./tiptap-to-text";
+import { TiptapNode, tiptapToPlainText } from "./tiptap-json-to-text";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
