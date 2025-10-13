@@ -42,6 +42,11 @@ export const additionalPartnerLinkSchema = z.object({
   ]),
 });
 
+export const additionalPartnerLinkSchemaOptionalPath =
+  additionalPartnerLinkSchema.extend({
+    path: z.string().optional(),
+  });
+
 // This is the standard response we send for all /api/groups/** endpoints
 export const GroupSchema = z.object({
   id: z.string(),

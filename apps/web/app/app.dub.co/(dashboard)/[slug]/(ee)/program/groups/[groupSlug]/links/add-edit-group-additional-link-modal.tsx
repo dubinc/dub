@@ -3,26 +3,91 @@
 import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { MAX_ADDITIONAL_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
-import { Badge, Button, Input, Modal } from "@dub/ui";
+import {
+  AnimatedSizeContainer,
+  Badge,
+  Button,
+  Input,
+  Modal,
+  useMediaQuery,
+} from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
 import { cn, isValidUrl } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+// Form input types (different from backend schema for better UX)
+type AdditionalLinkFormData = {
+  validationMode: "domain" | "exact";
+  domain?: string;
+  url?: string; // For exact mode - will be parsed into domain + path on submission
+};
+
 const URL_VALIDATION_MODES = [
   {
     value: "domain",
-    label: "Any page",
+    label: "Any URL",
     description: "Allows links to any page on this domain",
     recommended: true,
+    placeholder: "acme.com",
   },
   {
     value: "exact",
-    label: "Single page",
+    label: "Single URL",
     description: "Restricts links to a specific page",
+    recommended: false,
+    placeholder: "https://acme.com/specific-page",
   },
-];
+] as const;
+
+// Helper functions to convert between form data and backend schema
+function partnerLinkToFormData(
+  link: PartnerGroupAdditionalLink,
+): AdditionalLinkFormData {
+  if (link.validationMode === "exact") {
+    // Reconstruct URL from domain + path
+    const url = link.path
+      ? `https://${link.domain}${link.path}`
+      : `https://${link.domain}`;
+    return {
+      validationMode: "exact",
+      url,
+    };
+  }
+  return {
+    validationMode: "domain",
+    domain: link.domain,
+  };
+}
+
+function formDataToPartnerLink(
+  formData: AdditionalLinkFormData,
+): PartnerGroupAdditionalLink {
+  if (formData.validationMode === "exact" && formData.url) {
+    // Parse URL into domain + path
+    try {
+      const urlObj = new URL(formData.url);
+      return {
+        validationMode: "exact",
+        domain: urlObj.hostname,
+        path: urlObj.pathname + urlObj.search + urlObj.hash,
+      };
+    } catch {
+      // Fallback if URL parsing fails
+      return {
+        validationMode: "exact",
+        domain: formData.url,
+        path: "",
+      };
+    }
+  }
+  return {
+    validationMode: "domain",
+    domain: formData.domain || "",
+    path: "",
+  };
+}
 
 interface AddDestinationUrlModalProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -45,12 +110,14 @@ function AddDestinationUrlModalContent({
     setError,
     clearErrors,
     formState: { errors },
-  } = useForm<PartnerGroupAdditionalLink>({
-    defaultValues: {
-      domain: link?.domain || "",
-      url: link?.url || "",
-      validationMode: link?.validationMode || "domain",
-    },
+  } = useForm<AdditionalLinkFormData>({
+    defaultValues: link
+      ? partnerLinkToFormData(link)
+      : {
+          validationMode: "domain",
+          domain: "",
+          url: "",
+        },
   });
 
   const [domain, url, validationMode] = watch([
@@ -67,7 +134,7 @@ function AddDestinationUrlModalContent({
     }
   }, [validationMode, setValue, url, domain]);
 
-  const validateForm = (data: PartnerGroupAdditionalLink): boolean => {
+  const validateForm = (data: AdditionalLinkFormData): boolean => {
     // Domain mode validation
     if (data.validationMode === "domain") {
       if (!data.domain) {
@@ -86,6 +153,7 @@ function AddDestinationUrlModalContent({
 
       setValue("domain", domainNormalized, { shouldDirty: true });
 
+      // Check for duplicate domains
       const existingDomains = additionalLinks
         .filter((l) => l.validationMode === "domain" && l.domain)
         .map((l) => l.domain!);
@@ -104,13 +172,13 @@ function AddDestinationUrlModalContent({
 
     // Exact mode validation
     else if (data.validationMode === "exact") {
-      const url = data.url?.trim();
-
-      if (!url) {
+      if (!data.url) {
         return false;
       }
 
-      if (!isValidUrl(url)) {
+      const urlTrimmed = data.url.trim();
+
+      if (!isValidUrl(urlTrimmed)) {
         setError("url", {
           type: "manual",
           message: "Please enter a valid URL (eg: https://acme.com/page).",
@@ -118,14 +186,28 @@ function AddDestinationUrlModalContent({
         return false;
       }
 
-      const existingUrls = additionalLinks
-        .filter((l) => l.validationMode === "exact" && l.url)
-        .map((l) => l.url!);
+      setValue("url", urlTrimmed, { shouldDirty: true });
 
-      if (existingUrls.includes(url) && url !== link?.url) {
+      // Convert to backend format for duplicate checking
+      const backendData = formDataToPartnerLink(data);
+      const existingExactLinks = additionalLinks.filter(
+        (l) => l.validationMode === "exact" && l.domain && l.path,
+      );
+
+      const isDuplicate = existingExactLinks.some((l) => {
+        const isCurrentLink =
+          link && l.domain === link.domain && l.path === link.path;
+        return (
+          !isCurrentLink &&
+          l.domain === backendData.domain &&
+          l.path === backendData.path
+        );
+      });
+
+      if (isDuplicate) {
         setError("url", {
           type: "value",
-          message: "This URL has already been added as an exact link",
+          message: "This URL has already been added",
         });
         return false;
       }
@@ -134,16 +216,13 @@ function AddDestinationUrlModalContent({
     return true;
   };
 
-  const onSubmit = async (data: PartnerGroupAdditionalLink) => {
-    data = {
-      validationMode: data.validationMode,
-      domain: data.validationMode === "domain" ? data.domain : undefined,
-      url: data.validationMode === "exact" ? data.url : undefined,
-    };
-
-    if (!validateForm(data)) {
+  const onSubmit = async (formData: AdditionalLinkFormData) => {
+    if (!validateForm(formData)) {
       return;
     }
+
+    // Convert form data to backend schema
+    const backendData = formDataToPartnerLink(formData);
 
     let updatedAdditionalLinks: PartnerGroupAdditionalLink[];
 
@@ -151,10 +230,12 @@ function AddDestinationUrlModalContent({
       updatedAdditionalLinks = additionalLinks.map((existingLink) => {
         const isMatch =
           link.validationMode === "exact"
-            ? existingLink.url === link.url
-            : existingLink.domain === link.domain;
+            ? existingLink.domain === link.domain &&
+              existingLink.path === link.path
+            : existingLink.domain === link.domain &&
+              existingLink.validationMode === "domain";
 
-        return isMatch ? data : existingLink;
+        return isMatch ? backendData : existingLink;
       });
     } else {
       if (additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS) {
@@ -164,7 +245,7 @@ function AddDestinationUrlModalContent({
         return;
       }
 
-      updatedAdditionalLinks = [...additionalLinks, data];
+      updatedAdditionalLinks = [...additionalLinks, backendData];
     }
 
     // Update the parent form state instead of calling API directly
@@ -173,6 +254,8 @@ function AddDestinationUrlModalContent({
   };
 
   const isEditing = !!link;
+
+  const { isMobile } = useMediaQuery();
 
   return (
     <form
@@ -200,76 +283,91 @@ function AddDestinationUrlModalContent({
                 const isSelected = type.value === validationMode;
 
                 return (
-                  <label
+                  <div
                     key={type.value}
                     className={cn(
-                      "relative flex w-full cursor-pointer items-start gap-0.5 rounded-md border border-neutral-200 bg-white p-3 text-neutral-600",
-                      "transition-all duration-150 hover:bg-neutral-50",
+                      "relative w-full rounded-md border border-neutral-200 bg-white text-neutral-600",
+                      "overflow-hidden transition-all duration-150",
                       isSelected &&
                         "border-black bg-neutral-50 text-neutral-900 ring-1 ring-black",
                     )}
                   >
-                    <input
-                      type="radio"
-                      value={type.value}
-                      className="hidden"
-                      {...register("validationMode")}
-                    />
-
-                    <div className="flex grow flex-col whitespace-nowrap text-sm">
-                      <span className="font-medium">{type.label}</span>
-                      <span className="text-neutral-600">
-                        {type.description}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-end gap-1">
-                      {type.recommended && (
-                        <Badge variant="blueGradient">Recommended</Badge>
+                    <label
+                      className={cn(
+                        "flex w-full cursor-pointer items-start gap-0.5 p-3",
+                        "transition-all duration-150 hover:bg-neutral-50",
+                        isSelected && "bg-neutral-50",
                       )}
-                      <CircleCheckFill
-                        className={cn(
-                          "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
-                          isSelected && "scale-100 opacity-100",
-                        )}
+                    >
+                      <input
+                        type="radio"
+                        value={type.value}
+                        className="hidden"
+                        {...register("validationMode")}
                       />
-                    </div>
-                  </label>
+
+                      <div className="flex grow flex-col whitespace-nowrap text-sm">
+                        <span className="font-medium">{type.label}</span>
+                        <span className="text-neutral-600">
+                          {type.description}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-end gap-1">
+                        {type.recommended && (
+                          <Badge variant="blueGradient">Recommended</Badge>
+                        )}
+                        <CircleCheckFill
+                          className={cn(
+                            "-mr-px -mt-px flex size-4 scale-75 items-center justify-center rounded-full opacity-0 transition-[transform,opacity] duration-150",
+                            isSelected && "scale-100 opacity-100",
+                          )}
+                        />
+                      </div>
+                    </label>
+
+                    <AnimatedSizeContainer height>
+                      {isSelected && (
+                        <div className="border-t border-neutral-200 p-3">
+                          <div>
+                            <label className="mb-2 block text-sm font-medium text-neutral-800">
+                              {type.value === "exact" ? "URL" : "Domain"}
+                            </label>
+                            {type.value === "exact" ? (
+                              <Input
+                                value={watch("url") || ""}
+                                onChange={(e) => {
+                                  setValue("url", e.target.value);
+                                  clearErrors("url");
+                                }}
+                                type="text"
+                                placeholder={type.placeholder}
+                                className="max-w-full"
+                                autoFocus={!isMobile}
+                                error={errors.url?.message}
+                              />
+                            ) : (
+                              <Input
+                                value={watch("domain") || ""}
+                                onChange={(e) => {
+                                  setValue("domain", e.target.value);
+                                  clearErrors("domain");
+                                }}
+                                type="text"
+                                placeholder={type.placeholder}
+                                className="max-w-full"
+                                autoFocus={!isMobile}
+                                error={errors.domain?.message}
+                              />
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </AnimatedSizeContainer>
+                  </div>
                 );
               })}
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-neutral-800">
-              {validationMode === "exact" ? "Link URL" : "Link domain"}
-            </label>
-
-            {validationMode === "exact" ? (
-              <Input
-                value={watch("url") || ""}
-                onChange={(e) => {
-                  setValue("url", e.target.value);
-                  clearErrors("url");
-                }}
-                type="text"
-                placeholder="https://acme.com/specific-page"
-                className="max-w-full"
-                error={errors.url?.message}
-              />
-            ) : (
-              <Input
-                value={watch("domain") || ""}
-                onChange={(e) => {
-                  setValue("domain", e.target.value);
-                  clearErrors("domain");
-                }}
-                type="text"
-                placeholder="acme.com"
-                className="max-w-full"
-                error={errors.domain?.message}
-              />
-            )}
           </div>
 
           {!link && (
@@ -284,8 +382,8 @@ function AddDestinationUrlModalContent({
                 htmlFor="conversionTracking"
                 className="text-sm text-neutral-600"
               >
-                I confirm that conversion tracking has been set up on this
-                domain.{" "}
+                I confirm that conversion tracking has been set up on this{" "}
+                {validationMode === "domain" ? "domain" : "URL"}.{" "}
                 <a
                   href="https://dub.co/docs/partners/quickstart"
                   target="_blank"

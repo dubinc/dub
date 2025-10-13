@@ -48,7 +48,7 @@ import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
-  additionalPartnerLinkSchema,
+  additionalPartnerLinkSchemaOptionalPath,
   GroupSchema,
   GroupSchemaExtended,
   GroupWithFormDataSchema,
@@ -594,7 +594,7 @@ export type PartnerGroupDefaultLink = z.infer<
 >;
 
 export type PartnerGroupAdditionalLink = z.infer<
-  typeof additionalPartnerLinkSchema
+  typeof additionalPartnerLinkSchemaOptionalPath
 >;
 
 export type PartnerGroupProps = PartnerGroup & {

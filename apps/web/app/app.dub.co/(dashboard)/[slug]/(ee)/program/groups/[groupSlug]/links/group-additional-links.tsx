@@ -20,7 +20,7 @@ import {
   Switch,
 } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import { cn, getPrettyUrl } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -274,7 +274,7 @@ function LinkDomain({
   const deleteLinkDomain = async () => {
     const updatedAdditionalLinks = additionalLinks.filter((existingLink) =>
       link.validationMode === "exact"
-        ? existingLink.url !== link.url
+        ? existingLink.path !== link.path
         : existingLink.domain !== link.domain,
     );
 
@@ -303,13 +303,9 @@ function LinkDomain({
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
             </div>
             <div className="relative z-10 p-2">
-              {link.domain || link.url ? (
+              {link.domain || link.path ? (
                 <LinkLogo
-                  apexDomain={getApexDomain(
-                    (link.validationMode === "domain"
-                      ? link.domain
-                      : link.url)!,
-                  )}
+                  apexDomain={link.domain}
                   className="size-4 sm:size-6"
                   imageProps={{
                     loading: "lazy",
@@ -321,9 +317,9 @@ function LinkDomain({
             </div>
           </div>
           <span className="text-content-default truncate text-sm font-semibold">
-            {getPrettyUrl(
-              link.validationMode === "domain" ? link.domain : link.url,
-            )}
+            {link.validationMode === "domain"
+              ? link.domain
+              : `${link.domain}${link.path}`}
           </span>
         </div>
 
