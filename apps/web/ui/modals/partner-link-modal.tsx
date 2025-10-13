@@ -174,14 +174,14 @@ function PartnerLinkModalContent({
   const isCreatingLink = !link;
 
   const { programSlug } = useParams();
-  const { programEnrollment } = useProgramEnrollment();
+  const { isMobile } = useMediaQuery();
+  const formRef = useRef<HTMLFormElement>(null);
+  const [, copyToClipboard] = useCopyToClipboard();
+  const { handleKeyDown } = useEnterSubmit(formRef);
   const [lockKey, setLockKey] = useState(isEditingLink);
   const [isLoading, setIsLoading] = useState(false);
-  const [isExactMode, setIsExactMode] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
-  const { handleKeyDown } = useEnterSubmit(formRef);
-  const { isMobile } = useMediaQuery();
-  const [, copyToClipboard] = useCopyToClipboard();
+
+  const { programEnrollment } = useProgramEnrollment();
 
   const { shortLinkDomain, additionalLinks } = useMemo(() => {
     return {
@@ -192,11 +192,9 @@ function PartnerLinkModalContent({
 
   const destinationDomains = useMemo(
     () =>
-      additionalLinks.map((link) =>
-        link.validationMode === "domain"
-          ? link.domain
-          : getDomainWithoutWWW(link.url!),
-      ),
+      additionalLinks
+        .map((link) => link.domain)
+        .filter((d): d is string => d != null),
     [additionalLinks],
   );
 
@@ -206,13 +204,23 @@ function PartnerLinkModalContent({
       : destinationDomains?.[0] ?? null,
   );
 
-  useEffect(() => {
-    const additionalLink = additionalLinks.find(
-      (link) => link.domain === destinationDomain,
-    );
+  const selectedAdditionalLink = useMemo(
+    () => additionalLinks.find((link) => link.domain === destinationDomain),
+    [destinationDomain, additionalLinks],
+  );
 
-    setIsExactMode(additionalLink?.validationMode === "exact");
-  }, [destinationDomain, additionalLinks]);
+  const isExactMode = useMemo(
+    () => selectedAdditionalLink?.validationMode === "exact",
+    [selectedAdditionalLink],
+  );
+
+  useEffect(() => {
+    if (!isExactMode || !selectedAdditionalLink) {
+      return;
+    }
+
+    setValue("pathname", selectedAdditionalLink.path, { shouldDirty: true });
+  }, [selectedAdditionalLink]);
 
   const {
     register,
@@ -512,7 +520,7 @@ function DestinationDomainCombobox({
   destinationDomains,
   disabled = false,
 }: {
-  selectedDomain?: string;
+  selectedDomain?: string | null;
   setSelectedDomain: (domain: string) => void;
   destinationDomains: string[];
   disabled?: boolean;
@@ -541,7 +549,7 @@ function DestinationDomainCombobox({
         punycode(domain).toLowerCase().includes(debouncedSearch.toLowerCase()),
       )
       .map((domain) => ({
-        value: getApexDomain(domain),
+        value: getApexDomain(domain!),
         label: punycode(domain),
       }));
   }, [selectedDomain, destinationDomains, debouncedSearch]);
@@ -551,7 +559,7 @@ function DestinationDomainCombobox({
       selected={
         selectedDomain
           ? {
-              value: selectedDomain,
+              value: selectedDomain!,
               label: punycode(selectedDomain),
             }
           : null

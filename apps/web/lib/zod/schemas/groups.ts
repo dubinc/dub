@@ -1,7 +1,7 @@
 import { isValidDomainFormat } from "@/lib/api/domains/is-valid-domain";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { PartnerLinkStructure } from "@dub/prisma/client";
-import { isValidUrl, validSlugRegex } from "@dub/utils";
+import { validSlugRegex } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
@@ -24,53 +24,23 @@ export const MAX_ADDITIONAL_PARTNER_LINKS = 20;
 
 export const GROUPS_MAX_PAGE_SIZE = 100;
 
-export const additionalPartnerLinkSchema = z
-  .object({
-    domain: z
-      .string()
-      .refine((v) => isValidDomainFormat(v), {
-        message: "Please enter a valid domain (eg: acme.com).",
-      })
-      .transform((v) => v.toLowerCase())
-      .optional(),
-    url: z
-      .string()
-      .refine((v) => isValidUrl(v), {
-        message: "Please enter a valid URL (eg: https://acme.com/page)",
-      })
-      .transform((v) => v.toLowerCase())
-      .optional(),
-    validationMode: z.enum([
-      "domain", // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
-      "exact", // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
-    ]),
-  })
-  .refine(
-    (data) => {
-      if (data.validationMode === "domain") {
-        return data.domain && data.domain.trim().length > 0;
-      }
-
-      return true;
-    },
-    {
-      message: "Domain is required when validation mode is domain.",
-      path: ["domain"],
-    },
-  )
-  .refine(
-    (data) => {
-      if (data.validationMode === "exact") {
-        return data.url && data.url.trim().length > 0;
-      }
-
-      return true;
-    },
-    {
-      message: "URL is required when validation mode is exact.",
-      path: ["url"],
-    },
-  );
+export const additionalPartnerLinkSchema = z.object({
+  domain: z
+    .string()
+    .refine((v) => isValidDomainFormat(v), {
+      message: "Please enter a valid domain (eg: acme.com).",
+    })
+    .transform((v) => v.toLowerCase()),
+  path: z
+    .string()
+    .transform((v) => v.toLowerCase())
+    .optional()
+    .default(""),
+  validationMode: z.enum([
+    "domain", // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
+    "exact", // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
+  ]),
+});
 
 // This is the standard response we send for all /api/groups/** endpoints
 export const GroupSchema = z.object({

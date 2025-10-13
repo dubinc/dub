@@ -23,7 +23,8 @@ export const validatePartnerLinkUrl = ({
     });
   }
 
-  const { hostname: urlHostname } = getUrlObjFromString(url) ?? {};
+  const { hostname: urlHostname, pathname: urlPathname } =
+    getUrlObjFromString(url) ?? {};
 
   // Find matching additional link based on its domain
   const additionalLink = additionalLinks.find((additionalLink) => {
@@ -37,24 +38,18 @@ export const validatePartnerLinkUrl = ({
     });
   }
 
-  // Check the validation mode
-  if (additionalLink.validationMode === "exact") {
-    // For exact mode, compare the full URL
-    if (additionalLink.url && url !== additionalLink.url) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL does not match the exact URL configured for this program: ${additionalLink.url}`,
-      });
-    } else if (!additionalLink.url) {
-      // Legacy support: if no URL is set but mode is exact, only allow domain root
-      const { pathname: urlPathname } = getUrlObjFromString(url) ?? {};
-      if (urlPathname && urlPathname.slice(1).length > 0) {
-        throw new DubApiError({
-          code: "bad_request",
-          message: `The provided URL is not an exact match for the program's link domain (${additionalLink.domain}).`,
-        });
-      }
-    }
+  if (additionalLink.validationMode === "domain") {
+    return true;
+  }
+
+  if (
+    additionalLink.domain !== urlHostname ||
+    additionalLink.path !== urlPathname
+  ) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `The provided URL does not match the URL configured for this program.`,
+    });
   }
 
   return true;
