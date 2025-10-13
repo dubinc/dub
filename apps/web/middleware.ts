@@ -10,10 +10,7 @@ import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
 import { supportedWellKnownFiles } from "@/lib/well-known.ts";
 import { API_HOSTNAMES, APP_HOSTNAMES, isValidUrl } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
-import {
-  ALLOWED_REGIONS,
-  PUBLIC_ROUTES,
-} from "./app/[domain]/(public)/constants/types.ts";
+import { ALLOWED_REGIONS, PUBLIC_ROUTES } from "./constants/links.ts";
 import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
 import { getUserCountry } from "./lib/middleware/utils/get-user-country.ts";
 

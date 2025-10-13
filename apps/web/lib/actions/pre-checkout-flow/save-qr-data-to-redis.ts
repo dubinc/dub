@@ -2,8 +2,8 @@
 
 import { redis } from "@/lib/upstash";
 import { ERedisArg } from "core/interfaces/redis.interface.ts";
-import z from "../zod";
-import { actionClient } from "./safe-action";
+import z from "../../zod";
+import { actionClient } from "../safe-action";
 
 // schema for qr data
 const schema = z.object({
@@ -39,10 +39,11 @@ export const saveQrDataToRedisAction = actionClient
     const { sessionId, qrData } = parsedInput;
 
     const key = `${ERedisArg.QR_DATA_REG}:${sessionId}`;
+    console.log("saveQrDataToRedisAction key", key);
 
     await redis
       .set(key, JSON.stringify(qrData), {
-        ex: 60 * 10, // 10 minutes
+        ex: 60 * 60 * 24 * 10, // 10 days
       })
       .catch((error) => {
         console.error("Error saving QR data to redis in background:", error);

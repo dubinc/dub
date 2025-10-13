@@ -1,44 +1,26 @@
 "use client";
 
+import { createUserAccountAction } from "@/lib/actions/create-user-account";
+import { showMessage } from "@/ui/auth/helpers";
+import { AvatarsComponent } from "@/ui/modals/trial-offer-with-qr-preview/components/avatars.component";
+import { CreateSubscriptionFlow } from "@/ui/modals/trial-offer-with-qr-preview/components/create-subscription-flow.component";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
-import { QrStorageData } from "@/ui/qr-builder/types/types";
+import { QRBuilderData, QrStorageData } from "@/ui/qr-builder/types/types";
 import { FiveStarsComponent } from "@/ui/shared/five-stars.component";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { Button, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
-import {
-  setPeopleAnalyticOnce,
-  trackClientEvents,
-} from "core/integration/analytic";
+import slugify from "@sindresorhus/slugify";
+import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { ClientSessionComponent } from "core/integration/payment/client/client-session";
 import { ICustomerBody } from "core/integration/payment/config";
 import { Check, Gift } from "lucide-react";
-import QRCodeStyling from "qr-code-styling";
-import {
-  Dispatch,
-  RefObject,
-  SetStateAction,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { MOCK_QR } from "../../paywall/constants/mock-qr";
-import { useQRPreviewModal } from "../qr-preview-modal";
-import { AvatarsComponent } from "./components/avatars.component";
-import { CreateSubscriptionFlow } from "./components/create-subscription-flow.component";
-
-interface IQRPreviewModalProps {
-  canvasRef: RefObject<HTMLCanvasElement>;
-  qrCode: QRCodeStyling | null;
-  showTrialOfferModal: boolean;
-  setShowTrialOfferModal: Dispatch<SetStateAction<boolean>>;
-  setShowQRPreviewModal: Dispatch<SetStateAction<boolean>>;
-  firstQr: QrStorageData | null;
-  user: ICustomerBody | null;
-}
+import { signIn } from "next-auth/react";
+import { useAction } from "next-safe-action/hooks";
+import { useRouter } from "next/navigation";
+import { FC, useMemo, useRef, useState } from "react";
+import { MOCK_QR } from "../constants/mock-qr";
 
 const FEATURES = [
   "Download your QR code in PNG, JPG, or SVG",
@@ -48,89 +30,92 @@ const FEATURES = [
   "Customize with colors, logos & frames",
 ];
 
-function TrialOfferWithQRPreview({
-  canvasRef,
-  qrCode,
-  showTrialOfferModal,
-  setShowTrialOfferModal,
-  setShowQRPreviewModal,
-  user,
-  firstQr,
-}: IQRPreviewModalProps) {
-  const { isMobile } = useMediaQuery();
-
-  const innerComponent = (
-    <TrialOfferWithQRPreviewInner
-      canvasRef={canvasRef}
-      qrCode={qrCode}
-      setShowTrialOfferModal={setShowTrialOfferModal}
-      setShowQRPreviewModal={setShowQRPreviewModal}
-      user={user}
-      firstQr={firstQr}
-    />
-  );
-
-  useEffect(() => {
-    if (showTrialOfferModal) {
-      trackClientEvents({
-        event: EAnalyticEvents.ELEMENT_OPENED,
-        params: {
-          page_name: "dashboard",
-          element_name: "payment_modal",
-          content_group: "my_qr_codes",
-          email: user?.email,
-          event_category: "Authorized",
-        },
-        sessionId: user?.id,
-      });
-    }
-  }, [showTrialOfferModal]);
-
-  useEffect(() => {
-    if (user?.isPaidUser) {
-      setPeopleAnalyticOnce({ acquisition_type: "paid" });
-    } else {
-      setPeopleAnalyticOnce({ acquisition_type: null });
-    }
-  }, []);
-
-  return (
-    <>
-      {!isMobile && (
-        <Modal
-          showModal={showTrialOfferModal}
-          setShowModal={setShowTrialOfferModal}
-          preventDefaultClose
-          className="max-w-4xl border-gray-300"
-        >
-          {innerComponent}
-        </Modal>
-      )}
-
-      {showTrialOfferModal && isMobile && (
-        <div className="fixed left-0 top-0 flex h-full w-full items-center justify-center overflow-y-auto bg-white">
-          <div className="h-full w-full max-w-4xl">{innerComponent}</div>
-        </div>
-      )}
-    </>
-  );
+interface ITrialOfferProps {
+  user: ICustomerBody | null;
+  firstQr: QRBuilderData | null;
+  isPaidTraffic: boolean;
 }
 
-function TrialOfferWithQRPreviewInner({
-  canvasRef,
-  qrCode,
-  setShowTrialOfferModal,
-  setShowQRPreviewModal,
+export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
   user,
   firstQr,
-}: Omit<IQRPreviewModalProps, "showTrialOfferModal">) {
+  isPaidTraffic,
+}) => {
+  const router = useRouter();
   const { isMobile } = useMediaQuery();
 
   const [clientToken, setClientToken] = useState<string | null>(null);
 
-  const isPaidTraffic = user?.isPaidUser || false;
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const memoizedQrData = useMemo(() => {
+    return firstQr
+      ? ({
+          ...firstQr,
+          link: {
+            shortLink: process.env.NEXT_PUBLIC_APP_DOMAIN
+              ? `${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+              : "http://localhost:8888",
+          },
+        } as QRBuilderData)
+      : MOCK_QR;
+  }, [firstQr]);
 
-  const onSubcriptionCreated = () => {
+  const { qrCode: demoBuiltQrCodeObject } = useQrCustomization(
+    memoizedQrData as QrStorageData,
+    true,
+  );
+
+  const { executeAsync } = useAction(createUserAccountAction, {
+    onError({ error }) {
+      const serverError = error.serverError || "";
+      // @ts-ignore
+      const validationError = error.validationErrors?.code?.[0] || "";
+      const fullErrorMessage =
+        serverError || validationError || "An error occurred";
+
+      const codeMatch = fullErrorMessage.match(/^\[([^\]]+)\]/);
+      const errorCode = codeMatch ? codeMatch[1] : "unknown-error";
+      const errorMessage = codeMatch
+        ? fullErrorMessage.replace(/^\[[^\]]+\]\s*/, "")
+        : fullErrorMessage;
+
+      trackClientEvents({
+        event: EAnalyticEvents.AUTH_ERROR,
+        params: {
+          page_name: "landing",
+          auth_type: "signup",
+          auth_method: "email",
+          auth_origin: firstQr ? "qr" : "none",
+          email: user?.email,
+          event_category: "nonAuthorized",
+          error_code: errorCode,
+          error_message: errorMessage,
+        },
+        sessionId: user?.id,
+      });
+
+      console.error("Auth error:", { code: errorCode, message: errorMessage });
+
+      showMessage(errorMessage, "error");
+    },
+  });
+
+  const onScrollToPaymentBlock = () => {
+    const paymentBlock = document.getElementById("payment-block");
+    if (paymentBlock) {
+      paymentBlock.scrollIntoView({ behavior: "smooth" });
+    }
+  };
+
+  const onSubscriptionCreating = async () => {
+    await executeAsync({
+      email: user!.email!,
+      password: "defaultPassword12Secret",
+      qrDataToCreate: firstQr,
+    });
+  };
+
+  const onSubcriptionCreated = async () => {
     trackClientEvents({
       event: EAnalyticEvents.PAGE_VIEWED,
       params: {
@@ -142,23 +127,42 @@ function TrialOfferWithQRPreviewInner({
       sessionId: user?.id,
     });
 
-    if (firstQr) {
-      setShowQRPreviewModal(true);
-    }
+    trackClientEvents({
+      event: EAnalyticEvents.AUTH_SUCCESS,
+      params: {
+        page_name: "dashboard",
+        auth_type: "signup",
+        auth_method: "email",
+        auth_origin: firstQr ? "qr" : "none",
+        email: user?.email,
+        event_category: "Authorized",
+      },
+      sessionId: user?.id,
+    });
 
-    setShowTrialOfferModal(false);
-  };
+    showMessage("Account created! Redirecting to dashboard...", "success");
 
-  const onScrollToPaymentBlock = () => {
-    const paymentBlock = document.getElementById("payment-block");
-    if (paymentBlock) {
-      paymentBlock.scrollIntoView({ behavior: "smooth" });
+    const response = await signIn("credentials", {
+      email: user?.email,
+      password: "defaultPassword12Secret",
+      redirect: false,
+    });
+
+    if (response?.ok) {
+      router.push(
+        `/${slugify(user!.email!)}?onboarded=true${firstQr ? "&displayFirstQr=true" : ""}`,
+      );
+    } else {
+      showMessage(
+        "Failed to sign in with credentials. Please try again or contact support.",
+        "error",
+      );
     }
   };
 
   return (
     <Theme>
-      <div className="flex w-full flex-col sm:flex-row">
+      <div className="flex w-full flex-col overflow-y-auto sm:flex-row">
         <div className="flex grow flex-col items-center gap-4 bg-neutral-50 p-6">
           <div className="flex flex-col gap-2 text-center">
             {firstQr && (
@@ -171,7 +175,7 @@ function TrialOfferWithQRPreviewInner({
           <div className="relative flex w-full max-w-[300px] flex-col justify-center gap-2">
             <QRCanvas
               ref={canvasRef}
-              qrCode={qrCode}
+              qrCode={demoBuiltQrCodeObject}
               width={300}
               height={300}
             />
@@ -249,6 +253,7 @@ function TrialOfferWithQRPreviewInner({
                 ...user!,
                 paymentInfo: { ...user!.paymentInfo, clientToken },
               }}
+              onSubscriptionCreating={onSubscriptionCreating}
               onSubcriptionCreated={onSubcriptionCreated}
             />
           )}
@@ -256,54 +261,4 @@ function TrialOfferWithQRPreviewInner({
       </div>
     </Theme>
   );
-}
-
-export function useTrialOfferWithQRPreviewModal(data: {
-  firstQr: QrStorageData | null;
-  user: ICustomerBody | null;
-}) {
-  const { firstQr, user } = data;
-  const [showTrialOfferModal, setShowTrialOfferModal] = useState(false);
-
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const { qrCode: demoBuiltQrCodeObject } = useQrCustomization(
-    firstQr || MOCK_QR,
-    true,
-  );
-  const { qrCode: builtQrCodeObject } = useQrCustomization(firstQr || MOCK_QR);
-
-  const { QRPreviewModal, setShowQRPreviewModal } = useQRPreviewModal({
-    canvasRef,
-    qrCode: builtQrCodeObject,
-    width: 200,
-    height: 200,
-    ...(firstQr ? { qrCodeId: firstQr.id } : {}),
-    user,
-  });
-
-  const ModalCallback = useCallback(() => {
-    return (
-      <>
-        <TrialOfferWithQRPreview
-          user={user}
-          firstQr={firstQr}
-          canvasRef={canvasRef}
-          qrCode={demoBuiltQrCodeObject}
-          showTrialOfferModal={showTrialOfferModal}
-          setShowTrialOfferModal={setShowTrialOfferModal}
-          setShowQRPreviewModal={setShowQRPreviewModal}
-        />
-
-        <QRPreviewModal />
-      </>
-    );
-  }, [showTrialOfferModal, QRPreviewModal]);
-
-  return useMemo(
-    () => ({
-      TrialOfferWithQRPreviewModal: ModalCallback,
-      setShowTrialOfferModal,
-    }),
-    [ModalCallback],
-  );
-}
+};

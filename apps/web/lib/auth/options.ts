@@ -1,21 +1,13 @@
-import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
-import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
 import { convertSessionUserToCustomerBody, Session } from "@/lib/auth/utils.ts";
 import { isBlacklistedEmail } from "@/lib/edge-config";
-import jackson from "@/lib/jackson";
 import { isStored, storage } from "@/lib/storage";
-import { NewQrProps, UserProps } from "@/lib/types";
-import { ratelimit, redis } from "@/lib/upstash";
-import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { UserProps } from "@/lib/types";
+import { ratelimit } from "@/lib/upstash";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
-import { PrismaClient } from "@prisma/client/extension";
 import { waitUntil } from "@vercel/functions";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
-import { ERedisArg } from "core/interfaces/redis.interface.ts";
-import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import {
   applyUserSession,
   getUserCookieService,
@@ -28,12 +20,7 @@ import EmailProvider from "next-auth/providers/email";
 import GithubProvider from "next-auth/providers/github";
 import GoogleProvider from "next-auth/providers/google";
 import { cookies } from "next/headers";
-import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
-import { trackMixpanelApiService } from "../../core/integration/analytic/services/track-mixpanel-api.service.ts";
-import { createQrWithLinkUniversal } from "../api/qrs/create-qr-with-link-universal";
-import { createId } from "../api/utils";
 import { completeProgramApplications } from "../partners/complete-program-applications";
-import { FRAMER_API_HOST } from "./constants";
 import {
   exceededLoginAttemptsThreshold,
   incrementLoginAttempts,
@@ -41,77 +28,6 @@ import {
 import { validatePassword } from "./password";
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
-
-const CustomPrismaAdapter = (p: PrismaClient) => {
-  return {
-    ...PrismaAdapter(p),
-    createUser: async (data: any) => {
-      const { sessionId } = await getUserCookieService();
-
-      const generatedUserId = sessionId ?? createId({ prefix: "user_" });
-
-      const qrDataToCreate: NewQrProps | null = await redis.get(
-        `${ERedisArg.QR_DATA_REG}:${generatedUserId}`,
-      );
-
-      const { user, workspace } = await verifyAndCreateUser({
-        userId: generatedUserId,
-        email: data.email,
-        name: data?.name,
-        image: data?.image,
-      });
-
-      if (qrDataToCreate) {
-        try {
-          const linkUrl = qrDataToCreate?.fileId
-            ? `${process.env.STORAGE_BASE_URL}/qrs-content/${qrDataToCreate.fileId}`
-            : qrDataToCreate.styles?.data;
-
-          const qrCreateResponse = await createQrWithLinkUniversal({
-            qrData: {
-              data: qrDataToCreate.styles?.data || linkUrl,
-              qrType: qrDataToCreate.qrType,
-              title: qrDataToCreate.title,
-              styles: qrDataToCreate.styles,
-              frameOptions: qrDataToCreate.frameOptions,
-              fileId: qrDataToCreate.fileId,
-              link: { url: linkUrl },
-            },
-            linkData: { url: linkUrl },
-            workspace: workspace as any,
-            userId: generatedUserId,
-          });
-
-          const trackingParams = createQRTrackingParams(
-            convertQrStorageDataToBuilder(
-              qrCreateResponse.createdQr as QrStorageData,
-            ),
-            qrCreateResponse.createdQr.id,
-          );
-
-          await trackMixpanelApiService({
-            event: EAnalyticEvents.QR_CREATED,
-            email: data.email,
-            userId: generatedUserId,
-            params: {
-              ...trackingParams,
-              link_url: qrCreateResponse.createdLink?.shortLink,
-              link_id: qrCreateResponse.createdLink?.id,
-              target_url: qrCreateResponse.createdLink?.url,
-            },
-          });
-          console.log("createUser: QR successfully created");
-        } catch (error) {
-          console.error("Error processing QR data from redis:", error);
-        }
-      }
-
-      waitUntil(redis.set(`onboarding-step:${generatedUserId}`, "completed"));
-
-      return user;
-    },
-  };
-};
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -156,130 +72,6 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
       allowDangerousEmailAccountLinking: true,
     }),
-    {
-      id: "saml",
-      name: "BoxyHQ",
-      type: "oauth",
-      version: "2.0",
-      checks: ["pkce", "state"],
-      authorization: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/authorize`,
-        params: {
-          scope: "",
-          response_type: "code",
-          provider: "saml",
-        },
-      },
-      token: {
-        url: `${process.env.NEXTAUTH_URL}/api/auth/saml/token`,
-        params: { grant_type: "authorization_code" },
-      },
-      userinfo: `${process.env.NEXTAUTH_URL}/api/auth/saml/userinfo`,
-      profile: async (profile) => {
-        let existingUser = await prisma.user.findUnique({
-          where: { email: profile.email },
-        });
-
-        // user is authorized but doesn't have a Dub account, create one for them
-        if (!existingUser) {
-          existingUser = await prisma.user.create({
-            data: {
-              id: createId({ prefix: "user_" }),
-              email: profile.email,
-              name: `${profile.firstName || ""} ${
-                profile.lastName || ""
-              }`.trim(),
-            },
-          });
-        }
-
-        const { id, name, email, image } = existingUser;
-
-        return {
-          id,
-          name,
-          email,
-          image,
-        };
-      },
-      options: {
-        clientId: "dummy",
-        clientSecret: process.env.NEXTAUTH_SECRET as string,
-      },
-      allowDangerousEmailAccountLinking: true,
-    },
-    CredentialsProvider({
-      id: "saml-idp",
-      name: "IdP Login",
-      credentials: {
-        code: {},
-      },
-      async authorize(credentials) {
-        if (!credentials) {
-          return null;
-        }
-
-        const { code } = credentials;
-
-        console.log("credentials");
-        console.log(credentials);
-
-        if (!code) {
-          return null;
-        }
-
-        const { oauthController } = await jackson();
-
-        // Fetch access token
-        const { access_token } = await oauthController.token({
-          code,
-          grant_type: "authorization_code",
-          redirect_uri: process.env.NEXTAUTH_URL as string,
-          client_id: "dummy",
-          client_secret: process.env.NEXTAUTH_SECRET as string,
-        });
-
-        if (!access_token) {
-          return null;
-        }
-
-        // Fetch user info
-        const userInfo = await oauthController.userInfo(access_token);
-
-        if (!userInfo) {
-          return null;
-        }
-
-        let existingUser = await prisma.user.findUnique({
-          where: { email: userInfo.email },
-        });
-
-        // user is authorized but doesn't have a Dub account, create one for them
-        if (!existingUser) {
-          existingUser = await prisma.user.create({
-            data: {
-              id: createId({ prefix: "user_" }),
-              email: userInfo.email,
-              name: `${userInfo.firstName || ""} ${
-                userInfo.lastName || ""
-              }`.trim(),
-            },
-          });
-        }
-
-        const { id, name, email, image } = existingUser;
-
-        return {
-          id,
-          email,
-          name,
-          email_verified: true,
-          image,
-          // adding profile here so we can access it in signIn callback
-          profile: userInfo,
-        };
-      },
-    }),
 
     // Sign in with email and password
     CredentialsProvider({
@@ -320,6 +112,7 @@ export const authOptions: NextAuthOptions = {
             invalidLoginAttempts: true,
             emailVerified: true,
             source: true,
+            paymentData: true,
           },
         });
 
@@ -366,33 +159,13 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           image: user.image,
           source: user.source,
+          paymentData: user.paymentData,
         };
       },
     }),
-
-    // Framer
-    {
-      id: "framer",
-      name: "Framer",
-      type: "oauth",
-      clientId: process.env.FRAMER_CLIENT_ID,
-      clientSecret: process.env.FRAMER_CLIENT_SECRET,
-      checks: ["state"],
-      authorization: `${FRAMER_API_HOST}/auth/oauth/authorize`,
-      token: `${FRAMER_API_HOST}/auth/oauth/token`,
-      userinfo: `${FRAMER_API_HOST}/auth/oauth/profile`,
-      profile({ sub, email, name, picture }) {
-        return {
-          id: sub,
-          name,
-          email,
-          image: picture,
-        };
-      },
-    },
   ],
   // @ts-ignore
-  adapter: CustomPrismaAdapter(prisma),
+  adapter: PrismaAdapter(prisma),
   session: { strategy: "jwt" },
   cookies: {
     sessionToken: {
@@ -432,7 +205,13 @@ export const authOptions: NextAuthOptions = {
           where: { email: user.email },
           select: { id: true, name: true, image: true },
         });
-        if (!userExists || !profile) {
+
+        // don't allow account linking for non-existing users
+        if (!userExists) {
+          return false;
+        }
+
+        if (!profile) {
           return true;
         }
         // if the user already exists via email,
@@ -461,85 +240,8 @@ export const authOptions: NextAuthOptions = {
             },
           });
         }
-      } else if (
-        account?.provider === "saml" ||
-        account?.provider === "saml-idp"
-      ) {
-        let samlProfile;
-
-        if (account?.provider === "saml-idp") {
-          // @ts-ignore
-          samlProfile = user.profile;
-          if (!samlProfile) {
-            return true;
-          }
-        } else {
-          samlProfile = profile;
-        }
-
-        if (!samlProfile?.requested?.tenant) {
-          return false;
-        }
-        const workspace = await prisma.project.findUnique({
-          where: {
-            id: samlProfile.requested.tenant,
-          },
-        });
-        if (workspace) {
-          await Promise.allSettled([
-            // add user to workspace
-            prisma.projectUsers.upsert({
-              where: {
-                userId_projectId: {
-                  projectId: workspace.id,
-                  userId: user.id,
-                },
-              },
-              update: {},
-              create: {
-                projectId: workspace.id,
-                userId: user.id,
-              },
-            }),
-            // delete any pending invites for this user
-            prisma.projectInvite.delete({
-              where: {
-                email_projectId: {
-                  email: user.email,
-                  projectId: workspace.id,
-                },
-              },
-            }),
-          ]);
-        }
-        // Login with Framer
-      } else if (account?.provider === "framer") {
-        const userFound = await prisma.user.findUnique({
-          where: {
-            email: user.email,
-          },
-          include: {
-            accounts: true,
-          },
-        });
-
-        // account doesn't exist, let the user sign in
-        if (!userFound) {
-          return true;
-        }
-
-        const otherAccounts = userFound?.accounts.filter(
-          (account) => account.provider !== "framer",
-        );
-
-        // we don't allow account linking for Framer partners
-        // so redirect to the standard login page
-        if (otherAccounts && otherAccounts.length > 0) {
-          throw new Error("framer-account-linking-not-allowed");
-        }
-
-        return true;
       }
+
       return true;
     },
     jwt: async ({
@@ -617,66 +319,7 @@ export const authOptions: NextAuthOptions = {
           // process.env.NEXT_PUBLIC_IS_DUB
         ) {
           if (message?.account?.provider === "google") {
-            const qrDataToCreate: NewQrProps | null = await redis.get(
-              `${ERedisArg.QR_DATA_REG}:${user.id}`,
-            );
-
-            cookieStore.set(
-              ECookieArg.OAUTH_FLOW,
-              JSON.stringify({
-                flow: "signup",
-                provider: "google",
-                email,
-                userId: user.id,
-                signupOrigin: qrDataToCreate ? "qr" : "none",
-              }),
-              {
-                httpOnly: true,
-                maxAge: 20,
-              },
-            );
-
-            // const loginUrl = await createAutoLoginURL(user.id);
-
-            waitUntil(
-              CustomerIOClient.identify(user.id, {
-                email,
-              }),
-            );
           }
-
-          //   waitUntil(
-          //     Promise.all([
-          //       CustomerIOClient.identify(user.id, {
-          //         email,
-          //       }),
-          //       qrDataToCreate
-          //         ? sendEmail({
-          //             email: email,
-          //             subject: "Welcome to GetQR",
-          //             template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-          //             messageData: {
-          //               qr_name: qrDataToCreate?.title || "Untitled QR",
-          //               qr_type:
-          //                 QR_TYPES.find(
-          //                   (item) => item.id === qrDataToCreate?.qrType,
-          //                 )!.label || "Undefined type",
-          //               url: loginUrl,
-          //             },
-          //             customerId: user.id,
-          //           })
-          //         : sendEmail({
-          //             email: email,
-          //             subject: "Welcome to GetQR",
-          //             template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
-          //             messageData: {
-          //               url: loginUrl,
-          //             },
-          //             customerId: user.id,
-          //           }),
-          //     ]),
-          //   );
-          // }
         }
       } else {
         const hasOauthFlowCookie = !!cookieStore.get(ECookieArg.OAUTH_FLOW)

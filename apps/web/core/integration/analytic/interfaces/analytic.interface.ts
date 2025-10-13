@@ -28,6 +28,8 @@ export enum EAnalyticEvents {
   IDENTIFY_EVENT = "identifyEvent",
 
   THRESHOLD_PASSED = "thresholdPassed",
+
+  EMAIL_SUBMITTED = "emailSubmitted",
 }
 
 // purchase related events
