@@ -13,13 +13,27 @@ export const EMAIL_TEMPLATE_VARIABLES = [
   "PartnerEmail",
 ] as const;
 
-export const CAMPAIGN_WORKFLOW_ATTRIBUTES = ["partnerEnrolledDays"] as const;
+export const CAMPAIGN_WORKFLOW_ATTRIBUTES = [
+  "totalClicks",
+  "totalLeads",
+  "totalConversions",
+  "totalSales",
+  "totalSaleAmount",
+  "totalCommissions",
+  "partnerEnrolledDays",
+] as const;
 
 export const CAMPAIGN_WORKFLOW_ATTRIBUTE_LABELS: Record<
   CampaignWorkflowAttribute,
   string
 > = {
-  partnerEnrolledDays: "been in the program for",
+  totalClicks: "Clicks",
+  totalLeads: "Leads",
+  totalConversions: "Conversions",
+  totalSales: "Sales",
+  totalSaleAmount: "Revenue",
+  totalCommissions: "Commissions",
+  partnerEnrolledDays: "days since enrollment",
 } as const;
 
 export const CampaignSchema = z.object({

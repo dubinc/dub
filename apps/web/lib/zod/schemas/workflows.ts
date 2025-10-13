@@ -7,8 +7,10 @@ import { WorkflowTrigger } from "@dub/prisma/client";
 import { z } from "zod";
 
 export const WORKFLOW_ATTRIBUTES = [
+  "totalClicks",
   "totalLeads",
   "totalConversions",
+  "totalSales",
   "totalSaleAmount",
   "totalCommissions",
   "partnerEnrolledDays",
@@ -18,19 +20,23 @@ export const WORKFLOW_ATTRIBUTE_LABELS: Record<
   WorkflowConditionAttribute,
   string
 > = {
+  totalClicks: "Clicks",
   totalLeads: "Leads",
   totalConversions: "Conversions",
+  totalSales: "Sales",
   totalSaleAmount: "Revenue",
   totalCommissions: "Commissions",
-  partnerEnrolledDays: "been in the program for",
+  partnerEnrolledDays: "days since enrollment",
 } as const;
 
 export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   WorkflowConditionAttribute,
   WorkflowTrigger
 > = {
+  totalClicks: WorkflowTrigger.clickRecorded,
   totalLeads: WorkflowTrigger.leadRecorded,
   totalConversions: WorkflowTrigger.saleRecorded,
+  totalSales: WorkflowTrigger.saleRecorded,
   totalSaleAmount: WorkflowTrigger.saleRecorded,
   totalCommissions: WorkflowTrigger.commissionEarned,
   partnerEnrolledDays: WorkflowTrigger.partnerEnrolled,
