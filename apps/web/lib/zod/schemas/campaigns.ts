@@ -1,8 +1,12 @@
 import {
-  WorkflowAttribute,
   CampaignWorkflowAttributeConfig,
+  WorkflowAttribute,
 } from "@/lib/types";
-import { CampaignStatus, CampaignType } from "@dub/prisma/client";
+import {
+  CampaignStatus,
+  CampaignType,
+  WorkflowTrigger,
+} from "@dub/prisma/client";
 import { z } from "zod";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
@@ -51,6 +55,16 @@ export const CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG: Record<
     label: "joins the program",
     inputType: "none",
   },
+};
+
+export const CAMPAIGN_WORKFLOW_SCHEDULES: Partial<
+  Record<WorkflowTrigger, string>
+> = {
+  clickRecorded: "*/5 * * * *", // every 5 minutes
+  leadRecorded: "*/5 * * * *", // every 5 minutes
+  saleRecorded: "*/5 * * * *", // every 5 minutes
+  commissionEarned: "*/5 * * * *", // every 5 minutes
+  partnerEnrolled: "0 */12 * * *", // every 12 hours
 };
 
 export const CampaignSchema = z.object({

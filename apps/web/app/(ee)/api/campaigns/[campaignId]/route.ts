@@ -6,6 +6,7 @@ import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import {
+  CAMPAIGN_WORKFLOW_SCHEDULES,
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
@@ -147,10 +148,19 @@ export const PATCH = withWorkspace(
         const shouldDeleteSchedule =
           campaign.status === "active" && updatedCampaign.status === "paused";
 
+        const cronSchedule =
+          CAMPAIGN_WORKFLOW_SCHEDULES[updatedCampaign.workflow.trigger];
+
+        if (!cronSchedule) {
+          throw new Error(
+            `Cron schedule not found for trigger ${updatedCampaign.workflow.trigger}`,
+          );
+        }
+
         if (shouldSchedule) {
           await qstash.schedules.create({
             destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
-            cron: "0 */12 * * *", // Every 12 hours
+            cron: cronSchedule,
             scheduleId: updatedCampaign.workflow.id,
           });
         } else if (shouldDeleteSchedule) {
