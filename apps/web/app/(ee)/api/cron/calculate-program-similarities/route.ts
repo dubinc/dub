@@ -15,8 +15,8 @@ const schema = z.object({
   startingAfter: z.string().optional(),
 });
 
-const PROGRAMS_PER_BATCH = 5; // 10 pairs of programs
-const SIMILARITY_SCORE_THRESHOLD = 0.05;
+const PROGRAMS_PER_BATCH = 10;
+const SIMILARITY_SCORE_THRESHOLD = 0.5;
 
 // GET /api/cron/calculate-program-similarities - Initial cron request from Vercel
 export async function GET(req: Request) {
@@ -125,15 +125,6 @@ async function computeProgramSimilarity({
         results.push({
           programId: program1.id,
           similarProgramId: program2.id,
-          similarityScore,
-          categorySimilarityScore,
-          partnerSimilarityScore,
-          performanceSimilarityScore,
-        });
-
-        results.push({
-          programId: program2.id,
-          similarProgramId: program1.id,
           similarityScore,
           categorySimilarityScore,
           partnerSimilarityScore,
