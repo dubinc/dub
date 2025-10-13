@@ -1,4 +1,4 @@
-import { WorkflowCondition, WorkflowContext } from "@/lib/types";
+import { TiptapNode, WorkflowCondition, WorkflowContext } from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
@@ -7,9 +7,9 @@ import { chunk } from "@dub/utils";
 import { NotificationEmailType, Workflow } from "@prisma/client";
 import { subDays } from "date-fns";
 import { createId } from "../create-id";
-import { generateCampaignEmailHTML } from "./generate-campaign-email-html";
 import { parseWorkflowConfig } from "./parse-workflow-config";
-import { TiptapNode, tiptapToPlainText } from "./tiptap-json-to-text";
+import { renderCampaignEmailHTML } from "./render-campaign-email-html";
+import { renderCampaignEmailMarkdown } from "./render-campaign-email-markdown";
 
 export const executeSendCampaignWorkflow = async ({
   workflow,
@@ -144,7 +144,8 @@ export const executeSendCampaignWorkflow = async ({
         senderUserId: campaign.userId,
         type: "campaign",
         subject: campaign.subject,
-        text: tiptapToPlainText(campaign.bodyJson as unknown as TiptapNode, {
+        text: renderCampaignEmailMarkdown({
+          content: campaign.bodyJson as unknown as TiptapNode,
           variables: {
             PartnerName: programEnrollment.partner.name,
             PartnerEmail: programEnrollment.partner.email,
@@ -175,8 +176,8 @@ export const executeSendCampaignWorkflow = async ({
           campaign: {
             type: campaign.type,
             subject: campaign.subject,
-            body: generateCampaignEmailHTML({
-              bodyJson: campaign.bodyJson as unknown as TiptapNode,
+            body: renderCampaignEmailHTML({
+              content: campaign.bodyJson as unknown as TiptapNode,
               variables: {
                 PartnerName: partnerUser.partner.name,
                 PartnerEmail: partnerUser.partner.email,

@@ -1,4 +1,4 @@
-import { EmailTemplateVariables } from "@/lib/types";
+import { EmailTemplateVariables, TiptapNode } from "@/lib/types";
 import { EMAIL_TEMPLATE_VARIABLES } from "@/lib/zod/schemas/campaigns";
 import Image from "@tiptap/extension-image";
 import Mention from "@tiptap/extension-mention";
@@ -7,16 +7,14 @@ import StarterKit from "@tiptap/starter-kit";
 import sanitizeHtml from "sanitize-html";
 import { interpolateEmailTemplate } from "./interpolate-email-template";
 
-// This function configures the proper TipTap extensions (StarterKit, Image, Mention)
-// and renders the campaign body with variable placeholders replaced.
-export function generateCampaignEmailHTML({
-  bodyJson,
+export function renderCampaignEmailHTML({
+  content,
   variables,
 }: {
-  bodyJson: any;
+  content: TiptapNode | TiptapNode[];
   variables: Partial<EmailTemplateVariables>;
 }): string {
-  const html = generateHTML(bodyJson, [
+  const html = generateHTML(content, [
     StarterKit.configure({
       heading: {
         levels: [1, 2],

@@ -45,6 +45,7 @@
     "@tiptap/extension-mention": "^3.0.9",
     "@tiptap/html": "^3.6.5",
     "@tiptap/starter-kit": "^3.0.9",
+    "@tiptap/static-renderer": "^3.6.6",
     "@types/base-x": "^3.0.10",
     "@types/bcryptjs": "^2.4.6",
     "@types/buffer-crc32": "0.2.0",

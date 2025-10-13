@@ -3,7 +3,8 @@
 import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
-import { generateCampaignEmailHTML } from "@/lib/api/workflows/generate-campaign-email-html";
+import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
+import { TiptapNode } from "@/lib/types";
 import { CampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
@@ -61,8 +62,8 @@ export const sendCampaignPreviewEmail = authActionClient
           campaign: {
             type: campaign.type,
             subject,
-            body: generateCampaignEmailHTML({
-              bodyJson,
+            body: renderCampaignEmailHTML({
+              content: bodyJson as unknown as TiptapNode,
               variables: {
                 PartnerName: "Partner",
                 PartnerEmail: "partner@acme.com",

@@ -678,3 +678,11 @@ export type EmailTemplateVariables = Record<
   (typeof EMAIL_TEMPLATE_VARIABLES)[number],
   string | null | undefined
 >;
+
+export interface TiptapNode {
+  type: string;
+  text?: string;
+  attrs?: Record<string, any>;
+  content?: TiptapNode[];
+  marks?: Array<{ type: string; attrs?: Record<string, any> }>;
+}
