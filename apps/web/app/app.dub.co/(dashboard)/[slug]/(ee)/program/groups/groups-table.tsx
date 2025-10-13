@@ -100,9 +100,9 @@ export function GroupsTable() {
         ),
       },
       {
-        id: "partners",
+        id: "totalPartners",
         header: "Partners",
-        accessorFn: (d) => nFormatter(d.partners, { full: true }),
+        accessorFn: (d) => nFormatter(d.totalPartners, { full: true }),
       },
       {
         id: "totalClicks",
@@ -161,13 +161,13 @@ export function GroupsTable() {
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: [
-      "partners",
+      "totalPartners",
       "totalClicks",
       "totalLeads",
       "totalConversions",
       "totalSaleAmount",
       "totalCommissions",
-      "netRevenue",
+      // "netRevenue", // TODO: add back when we can sort by this again
     ],
     sortBy,
     sortOrder,

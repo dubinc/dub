@@ -19,6 +19,7 @@ import { Link, WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
+import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
 
 type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
@@ -315,16 +316,23 @@ export const trackLead = async ({
             });
             webhookPartner = createdCommission?.webhookPartner;
 
-            await executeWorkflows({
-              trigger: WorkflowTrigger.leadRecorded,
-              context: {
-                programId: link.programId,
-                partnerId: link.partnerId,
-                current: {
-                  leads: 1,
+            await Promise.allSettled([
+              executeWorkflows({
+                trigger: WorkflowTrigger.leadRecorded,
+                context: {
+                  programId: link.programId,
+                  partnerId: link.partnerId,
+                  current: {
+                    leads: 1,
+                  },
                 },
-              },
-            });
+              }),
+              syncPartnerLinksStats({
+                partnerId: link.partnerId,
+                programId: link.programId,
+                eventType: "lead",
+              }),
+            ]);
           }
 
           await sendWorkspaceWebhook({

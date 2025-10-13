@@ -23,8 +23,11 @@ export const deactivatePartnerAction = authActionClient
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
-      includePartner: true,
-      includeDiscountCodes: true,
+      include: {
+        partner: true,
+        links: true,
+        discountCodes: true,
+      },
     });
 
     if (programEnrollment.status === "deactivated") {
@@ -56,23 +59,12 @@ export const deactivatePartnerAction = authActionClient
 
     waitUntil(
       (async () => {
-        // Expire links from cache
-        const links = await prisma.link.findMany({
-          where,
-          select: {
-            domain: true,
-            key: true,
-          },
-        });
+        const { links, discountCodes } = programEnrollment;
 
         await Promise.allSettled([
           // TODO send email to partner
           linkCache.expireMany(links),
-
-          queueDiscountCodeDeletion(
-            programEnrollment.discountCodes.map(({ id }) => id),
-          ),
-
+          queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
           recordAuditLog({
             workspaceId: workspace.id,
             programId,

@@ -1,14 +1,5 @@
 import { redis } from "./redis";
 
-// Stream key constants
-export const WORKSPACE_USAGE_UPDATES_STREAM_KEY = "workspace:usage:updates";
-
-export interface ClickEvent {
-  linkId: string;
-  workspaceId: string;
-  timestamp: string;
-}
-
 export type RedisStreamEntry<T> = {
   id: string;
   data: T;
@@ -147,24 +138,56 @@ export class RedisStream {
   }
 }
 
+/* Workspace Usage Stream */
+const WORKSPACE_USAGE_UPDATES_STREAM_KEY = "workspace:usage:updates";
 export const workspaceUsageStream = new RedisStream(
   WORKSPACE_USAGE_UPDATES_STREAM_KEY,
 );
-
+export interface ClickEvent {
+  linkId: string;
+  workspaceId: string;
+  timestamp: string;
+}
 // Publishes a click event to any relevant streams in a single transaction
 export const publishClickEvent = async (event: ClickEvent) => {
-  const { linkId, timestamp, workspaceId } = event;
-  const entry = { linkId, timestamp, workspaceId };
-
+  const { linkId, workspaceId, timestamp } = event;
   try {
-    // TODO: - Uncomment when we handle click updates
-    // const pipeline = redis.pipeline();
-    // pipeline.xadd(LINK_CLICK_UPDATES_STREAM_KEY, "*", entry);
-    // pipeline.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", entry);
-    // return await pipeline.exec();
-    return await redis.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", entry);
+    return await redis.xadd(WORKSPACE_USAGE_UPDATES_STREAM_KEY, "*", {
+      linkId,
+      workspaceId,
+      timestamp,
+    });
   } catch (error) {
     console.error("Failed to publish click update to streams:", error);
+    throw error;
+  }
+};
+
+/* Partner Stats Stream */
+const PARTNER_ACTIVITY_STREAM_KEY = "partner:activity:updates";
+export const partnerActivityStream = new RedisStream(
+  PARTNER_ACTIVITY_STREAM_KEY,
+);
+export interface PartnerActivityEvent {
+  programId: string;
+  partnerId: string;
+  timestamp: string;
+  eventType: "click" | "lead" | "sale" | "commission";
+}
+// Publishes a partner activity event to the stream
+export const publishPartnerActivityEvent = async (
+  event: PartnerActivityEvent,
+) => {
+  const { programId, partnerId, timestamp, eventType } = event;
+  try {
+    return await redis.xadd(PARTNER_ACTIVITY_STREAM_KEY, "*", {
+      programId,
+      partnerId,
+      timestamp,
+      eventType,
+    });
+  } catch (error) {
+    console.error("Failed to publish partner activity event to stream:", error);
     throw error;
   }
 };

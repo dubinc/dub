@@ -64,13 +64,17 @@ export const GET = withWorkspace(
       const result = {};
 
       columns.forEach((column) => {
-        if (column === "payoutsEnabledAt" || column === "createdAt") {
-          result[columnIdToLabel[column]] = partner[column]
-            ? new Date(partner[column]).toISOString()
-            : "";
-        } else {
-          result[columnIdToLabel[column]] = partner[column] || "";
+        let value = partner[column] || "";
+
+        // Handle date fields - convert to ISO string format
+        if (
+          (column === "createdAt" || column === "payoutsEnabledAt") &&
+          value instanceof Date
+        ) {
+          value = value.toISOString();
         }
+
+        result[columnIdToLabel[column]] = value;
       });
 
       return z.object(schemaFields).parse(result);

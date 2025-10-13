@@ -21,13 +21,20 @@ export const PATCH = withPartnerProfile(
 
     const { programId, linkId } = params;
 
-    const { program, links, status, group } = await getProgramEnrollmentOrThrow(
-      {
-        partnerId: partner.id,
-        programId,
-        includeGroup: true,
+    const {
+      program,
+      links,
+      status,
+      partnerGroup: group,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId,
+      include: {
+        program: true,
+        links: true,
+        partnerGroup: true,
       },
-    );
+    });
 
     if (["banned", "deactivated"].includes(status)) {
       throw new DubApiError({

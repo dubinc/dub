@@ -38,7 +38,9 @@ export const GET = withWorkspace(
       ? await getProgramEnrollmentOrThrow({
           partnerId,
           programId,
-          includeProgram: true,
+          include: {
+            program: true,
+          },
         })
       : null;
 
