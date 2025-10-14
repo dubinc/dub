@@ -182,6 +182,10 @@ export function PayoutStats() {
     }
   }, [partner, router]);
 
+  if (partner && !hasPermission(partner.role, "payouts.read")) {
+    return null;
+  }
+
   return (
     <>
       {/* Mobile: 3 on top, 2 on bottom */}
