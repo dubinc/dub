@@ -29,11 +29,17 @@ export const GET = withPartnerProfile(async ({ partner }) => {
       include: {
         user: true,
       },
+      orderBy: {
+        createdAt: "desc",
+      },
     }),
 
     prisma.partnerInvite.findMany({
       where: {
         partnerId: partner.id,
+      },
+      orderBy: {
+        createdAt: "desc",
       },
     }),
   ]);
