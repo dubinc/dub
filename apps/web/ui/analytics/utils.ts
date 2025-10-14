@@ -1,3 +1,4 @@
+import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { fetcher } from "@dub/utils";
@@ -47,11 +48,25 @@ export function useAnalyticsFilterOption(
 
   const { data, isLoading } = useSWR<Record<string, any>[]>(
     enabled
-      ? `${baseApiPath}?${editQueryString(queryString, {
-          ...(typeof groupByOrParams === "string"
-            ? { groupBy: groupByOrParams }
-            : groupByOrParams),
-        })}`
+      ? `${baseApiPath}?${editQueryString(
+          queryString,
+          {
+            ...(typeof groupByOrParams === "string"
+              ? {
+                  groupBy: groupByOrParams,
+                }
+              : groupByOrParams),
+          },
+          // when there is a groupBy, we need to remove the filter for that groupBy param
+          groupByOrParams &&
+            SINGULAR_ANALYTICS_ENDPOINTS[
+              groupByOrParams as AnalyticsGroupByOptions
+            ]
+            ? SINGULAR_ANALYTICS_ENDPOINTS[
+                groupByOrParams as AnalyticsGroupByOptions
+              ]
+            : undefined,
+        )}`
       : null,
     fetcher,
     {

@@ -646,7 +646,7 @@ export function useAnalyticsFilters({
           <img
             alt={value}
             src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-            className="h-2.5 w-4"
+            className="size-4 shrink-0"
           />
         ),
         getOptionLabel: (value) => COUNTRIES[value],

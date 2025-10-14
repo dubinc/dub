@@ -373,6 +373,7 @@ export function BountySubmissionsTable() {
                       },
                     ]}
                     activeFilters={activeFilters}
+                    onSelect={onSelect}
                     onRemove={onRemove}
                     onRemoveAll={onRemoveAll}
                   />
