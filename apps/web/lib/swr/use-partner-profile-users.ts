@@ -11,7 +11,7 @@ export type PartnerUserProps = {
   email: string;
   role: PartnerRole;
   image: string | null;
-  createdAt?: Date; // for invites
+  createdAt: Date;
 };
 
 const partialQuerySchema = getPartnerUsersQuerySchema.partial();

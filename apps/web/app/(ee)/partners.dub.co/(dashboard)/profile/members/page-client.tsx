@@ -67,7 +67,9 @@ export function ProfileMembersPageClient() {
               <Avatar user={user} />
               <div className="flex flex-col">
                 <h3 className="text-sm font-medium">
-                  {user.name || user.email}
+                  {user.id === null
+                    ? `Invited ${timeAgo(user.createdAt)}`
+                    : user.name || user.email}
                 </h3>
                 <p className="text-xs text-neutral-500">{user.email}</p>
                 {user.id === null && user.createdAt && (
@@ -181,7 +183,7 @@ export function ProfileMembersPageClient() {
               inputClassName="w-full md:w-[16rem]"
             />
             <select
-              className="rounded-md border border-neutral-200 px-3 py-2 text-sm focus:border-neutral-600 focus:ring-neutral-600 w-28"
+              className="w-28 rounded-md border border-neutral-200 px-3 py-2 text-sm focus:border-neutral-600 focus:ring-neutral-600"
               value={role || ""}
               onChange={(e) => {
                 const newRole = e.target.value || null;

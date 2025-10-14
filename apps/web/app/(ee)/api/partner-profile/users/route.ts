@@ -13,6 +13,7 @@ const partnerUserSchema = z.array(
     email: z.string(),
     role: z.nativeEnum(PartnerRole),
     image: z.string().nullable(),
+    createdAt: z.date(),
   }),
 );
 
@@ -65,14 +66,16 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       image: user.image,
       email: user.email,
       role,
+      createdAt: user.createdAt,
     })),
 
-    ...partnerInvites.map(({ email, role }) => ({
+    ...partnerInvites.map(({ email, createdAt, role }) => ({
       id: null,
       name: null,
       image: null,
       email,
       role,
+      createdAt,
     })),
   ]);
 
