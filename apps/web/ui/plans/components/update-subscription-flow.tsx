@@ -1,5 +1,6 @@
 "use client";
 
+import { FeaturesAccess } from '@/lib/actions/check-features-access-auth-less';
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import { IPricingPlan } from "@/ui/plans/constants";
 import { Button } from "@dub/ui";
@@ -26,6 +27,7 @@ import { mutate } from "swr";
 
 interface IUpdateSubscriptionProps {
   user: ICustomerBody;
+  featuresAccess: FeaturesAccess;
   currentSubscriptionPlan: string | undefined;
   selectedPlan: IPricingPlan;
   isProcessing: boolean;
@@ -34,6 +36,7 @@ interface IUpdateSubscriptionProps {
 
 export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
   user,
+  featuresAccess,
   selectedPlan,
   currentSubscriptionPlan,
   isProcessing,
@@ -50,6 +53,8 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
 
   const buttonText = useMemo(() => {
     switch (true) {
+      case !featuresAccess.isSubscribed:
+        return "Reactivate subscription";
       case selectedPlan.paymentPlan === currentSubscriptionPlan:
         return "Your Active Plan";
       case subscriptionPlansWeight[selectedPlan.paymentPlan] <
@@ -178,7 +183,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
       className="block"
       loading={isProcessing}
       disabled={
-        currentSubscriptionPlan === selectedPlan.paymentPlan || isProcessing
+        !featuresAccess.isSubscribed || currentSubscriptionPlan === selectedPlan.paymentPlan || isProcessing
       }
       onClick={handleUpdatePlan}
       text={isProcessing ? null : buttonText}
