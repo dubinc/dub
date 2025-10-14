@@ -214,14 +214,6 @@ function PartnerLinkModalContent({
     [selectedAdditionalLink],
   );
 
-  useEffect(() => {
-    if (!isExactMode || !selectedAdditionalLink) {
-      return;
-    }
-
-    setValue("pathname", selectedAdditionalLink.path, { shouldDirty: true });
-  }, [selectedAdditionalLink]);
-
   const {
     register,
     watch,
@@ -237,6 +229,18 @@ function PartnerLinkModalContent({
         }
       : undefined,
   });
+
+  useEffect(() => {
+    if (!selectedAdditionalLink) {
+      return;
+    }
+
+    if (isExactMode) {
+      setValue("pathname", selectedAdditionalLink.path, { shouldDirty: true });
+    } else {
+      setValue("pathname", "", { shouldDirty: true });
+    }
+  }, [selectedAdditionalLink, isExactMode]);
 
   const [key, pathname] = watch(["key", "pathname"]);
 
