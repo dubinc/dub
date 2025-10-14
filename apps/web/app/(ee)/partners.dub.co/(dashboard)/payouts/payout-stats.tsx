@@ -16,8 +16,6 @@ import {
   PAYPAL_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 function PayoutStatsCard({
   label,
@@ -96,7 +94,6 @@ function PayoutStatsCard({
 }
 
 export function PayoutStats() {
-  const router = useRouter();
   const { partner } = usePartnerProfile();
 
   const { payoutsCount, error } = usePartnerPayoutsCount<PayoutsCount[]>({
@@ -175,12 +172,6 @@ export function PayoutStats() {
   // Split payoutStats for mobile layout
   const topRowStats = payoutStats.slice(0, 3);
   const bottomRowStats = payoutStats.slice(3);
-
-  useEffect(() => {
-    if (partner && !hasPermission(partner.role, "payouts.read")) {
-      router.replace("/");
-    }
-  }, [partner, router]);
 
   if (partner && !hasPermission(partner.role, "payouts.read")) {
     return null;
