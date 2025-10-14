@@ -22,7 +22,7 @@ const removeUserSchema = z.object({
 
 // GET /api/partner-profile/users - list of users + invites
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { search, sortBy, sortOrder } =
+  const { search, role, sortBy, sortOrder } =
     getPartnerUsersQuerySchema.parse(searchParams);
 
   const [partnerUsers, partnerInvites] = await Promise.all([
@@ -35,6 +35,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             { user: { name: { contains: search } } },
           ],
         }),
+        ...(role && { role }),
       },
       include: {
         user: true,
@@ -49,6 +50,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         ...(search && {
           email: { contains: search },
         }),
+        ...(role && { role }),
       },
       orderBy: {
         [sortBy === "name" ? "email" : "role"]: sortOrder,

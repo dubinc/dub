@@ -164,6 +164,7 @@ export const invitePartnerMemberSchema = z.object({
 
 export const getPartnerUsersQuerySchema = z.object({
   search: z.string().optional(),
+  role: z.nativeEnum(PartnerRole).optional(),
   sortBy: z.enum(["name", "role"]).optional().default("name"),
   sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
 });

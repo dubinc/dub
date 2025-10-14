@@ -9,6 +9,7 @@ import { useEditPartnerUserModal } from "@/ui/modals/edit-partner-user-modal";
 import { useInvitePartnerMemberModal } from "@/ui/modals/invite-partner-member-modal";
 import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal";
 import { useRevokePartnerInviteModal } from "@/ui/modals/revoke-partner-invite-modal";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PartnerRole } from "@dub/prisma/client";
 import {
   Avatar,
@@ -34,11 +35,15 @@ export function ProfileMembersPageClient() {
 
   const sortBy = (searchParams.get("sortBy") || "name") as "name" | "role";
   const sortOrder = (searchParams.get("sortOrder") || "asc") as "asc" | "desc";
+  const role = searchParams.get("role") as PartnerRole | null;
+  const search = searchParams.get("search") || undefined;
 
   const { users, loading, error } = usePartnerProfileUsers({
     query: {
-      sortBy,
-      sortOrder,
+      ...(search && { search }),
+      ...(sortBy && { sortBy }),
+      ...(sortOrder && { sortOrder }),
+      ...(role && { role }),
     },
   });
 
@@ -170,6 +175,30 @@ export function ProfileMembersPageClient() {
         }
       >
         <PageWidthWrapper className="mb-20 flex flex-col gap-6">
+          <div className="flex gap-3">
+            <SearchBoxPersisted
+              placeholder="Search by name or email"
+              inputClassName="w-full md:w-[16rem]"
+            />
+            <select
+              className="rounded-md border border-neutral-200 px-3 py-2 text-sm focus:border-neutral-600 focus:ring-neutral-600 w-28"
+              value={role || ""}
+              onChange={(e) => {
+                const newRole = e.target.value || null;
+                queryParams({
+                  set: {
+                    ...(newRole && { role: newRole }),
+                  },
+                  del: newRole ? [] : ["role", "page"],
+                  scroll: false,
+                });
+              }}
+            >
+              <option value="">All</option>
+              <option value="owner">Owner</option>
+              <option value="member">Member</option>
+            </select>
+          </div>
           <Table {...tableProps} table={table} />
         </PageWidthWrapper>
       </PageContent>
