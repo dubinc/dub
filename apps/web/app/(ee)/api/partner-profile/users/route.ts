@@ -1,5 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { getPartnerUsersQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
@@ -20,26 +21,37 @@ const removeUserSchema = z.object({
 });
 
 // GET /api/partner-profile/users - list of users + invites
-export const GET = withPartnerProfile(async ({ partner }) => {
+export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
+  const { search, sortBy, sortOrder } =
+    getPartnerUsersQuerySchema.parse(searchParams);
+
   const [partnerUsers, partnerInvites] = await Promise.all([
     prisma.partnerUser.findMany({
       where: {
         partnerId: partner.id,
+        ...(search && {
+          OR: [
+            { user: { email: { contains: search } } },
+            { user: { name: { contains: search } } },
+          ],
+        }),
       },
       include: {
         user: true,
       },
-      orderBy: {
-        createdAt: "desc",
-      },
+      orderBy:
+        sortBy === "name" ? { user: { name: sortOrder } } : { role: sortOrder },
     }),
 
     prisma.partnerInvite.findMany({
       where: {
         partnerId: partner.id,
+        ...(search && {
+          email: { contains: search },
+        }),
       },
       orderBy: {
-        createdAt: "desc",
+        [sortBy === "name" ? "email" : "role"]: sortOrder,
       },
     }),
   ]);

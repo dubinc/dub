@@ -161,3 +161,9 @@ export const invitePartnerMemberSchema = z.object({
     .email("Please enter a valid email."),
   role: z.nativeEnum(PartnerRole),
 });
+
+export const getPartnerUsersQuerySchema = z.object({
+  search: z.string().optional(),
+  sortBy: z.enum(["name", "role"]).optional().default("name"),
+  sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
+});

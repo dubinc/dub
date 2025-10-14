@@ -73,10 +73,9 @@ function RevokePartnerInviteModal({
           <div className="flex items-center gap-2">
             <Avatar user={invite} className="size-10" />
             <div className="flex flex-col">
-              <p className="text-sm font-medium text-neutral-900">
-                {invite.name || invite.email}
+              <p className="text-content-subtle text-sm font-medium">
+                {invite.email}
               </p>
-              <p className="text-xs text-neutral-500">{invite.email}</p>
             </div>
           </div>
         </div>

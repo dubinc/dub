@@ -28,17 +28,22 @@ import { useSession } from "next-auth/react";
 import { useMemo, useState } from "react";
 
 export function ProfileMembersPageClient() {
+  const { data: session } = useSession();
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
-  const { data: session } = useSession();
-  const { users, loading, error } = usePartnerProfileUsers();
+  const sortBy = (searchParams.get("sortBy") || "name") as "name" | "role";
+  const sortOrder = (searchParams.get("sortOrder") || "asc") as "asc" | "desc";
+
+  const { users, loading, error } = usePartnerProfileUsers({
+    query: {
+      sortBy,
+      sortOrder,
+    },
+  });
 
   const { InvitePartnerMemberModal, setShowInvitePartnerMemberModal } =
     useInvitePartnerMemberModal();
-
-  const sortBy = searchParams.get("sortBy") || "name";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const columns = useMemo<ColumnDef<PartnerUserProps>[]>(
     () => [
