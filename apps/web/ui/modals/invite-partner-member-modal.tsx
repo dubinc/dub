@@ -63,7 +63,7 @@ function InvitePartnerMemberModal({
         throw new Error(error.message);
       }
 
-      await mutatePrefix("/api/partner-profile/users");
+      await mutatePrefix("/api/partner-profile/invites");
       toast.success(
         `${pluralize("Invitation", invites.length)} sent successfully!`,
       );

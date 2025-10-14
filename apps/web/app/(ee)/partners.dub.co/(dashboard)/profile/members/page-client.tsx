@@ -1,8 +1,6 @@
 "use client";
 
-import usePartnerProfileUsers, {
-  PartnerUserProps,
-} from "@/lib/swr/use-partner-profile-users";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useInvitePartnerMemberModal } from "@/ui/modals/invite-partner-member-modal";
@@ -15,45 +13,68 @@ import {
   Button,
   Popover,
   Table,
+  ToggleGroup,
+  useKeyboardShortcut,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { Dots, Icon } from "@dub/ui/icons";
-import { cn, timeAgo } from "@dub/utils";
+import { cn, fetcher, timeAgo } from "@dub/utils";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
+import useSWR from "swr";
+
+type PartnerUserProps = {
+  id: string | null; // null for invites
+  name: string | null;
+  email: string;
+  role: PartnerRole;
+  image: string | null;
+  createdAt: Date;
+};
 
 export function ProfileMembersPageClient() {
+  const { partner } = usePartnerProfile();
   const { data: session } = useSession();
+  const defaultPartnerId = session?.user?.["defaultPartnerId"];
+
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
-  const sortBy = (searchParams.get("sortBy") || "name") as "name" | "role";
-  const sortOrder = (searchParams.get("sortOrder") || "asc") as "asc" | "desc";
+  const type = searchParams.get("type") || "users";
   const role = searchParams.get("role") as PartnerRole | null;
   const search = searchParams.get("search") || undefined;
+  const sortBy = (searchParams.get("sortBy") || "name") as "name" | "role";
+  const sortOrder = (searchParams.get("sortOrder") || "asc") as "asc" | "desc";
 
-  const { users, loading, error } = usePartnerProfileUsers({
-    query: {
-      ...(search && { search }),
-      ...(sortBy && { sortBy }),
-      ...(sortOrder && { sortOrder }),
-      ...(role && { role }),
+  const {
+    data: users,
+    error,
+    isLoading: loading,
+  } = useSWR<PartnerUserProps[]>(
+    defaultPartnerId &&
+      `/api/partner-profile/${type || "users"}?${new URLSearchParams({
+        ...(search && { search }),
+        ...(sortBy && { sortBy }),
+        ...(sortOrder && { sortOrder }),
+        ...(role && { role }),
+      } as Record<string, any>).toString()}`,
+    fetcher,
+    {
+      keepPreviousData: true,
     },
-  });
+  );
 
-  const currentUserRole = useMemo(() => {
-    return users?.find((u) => u.email === session?.user?.email)?.role;
-  }, [users, session?.user?.email]);
-
-  const isCurrentUserOwner = currentUserRole === "owner";
+  const isCurrentUserOwner = partner?.role === "owner";
 
   const { InvitePartnerMemberModal, setShowInvitePartnerMemberModal } =
     useInvitePartnerMemberModal();
+
+  useKeyboardShortcut("m", () => setShowInvitePartnerMemberModal(true));
 
   const columns = useMemo<ColumnDef<PartnerUserProps>[]>(
     () => [
@@ -131,7 +152,8 @@ export function ProfileMembersPageClient() {
       }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) => `member${p ? "s" : ""}`,
+    resourceName: (p) =>
+      `${type === "users" ? "member" : "invite"}${p ? "s" : ""}`,
     rowCount: users?.length || 0,
     loading,
     error: error ? "Failed to load members" : undefined,
@@ -147,6 +169,7 @@ export function ProfileMembersPageClient() {
             <Button
               text="Invite member"
               className="h-9 w-fit"
+              shortcut="M"
               onClick={() => setShowInvitePartnerMemberModal(true)}
             />
           )
@@ -176,6 +199,22 @@ export function ProfileMembersPageClient() {
               <option value="owner">Owner</option>
               <option value="member">Member</option>
             </select>
+            <ToggleGroup
+              options={[
+                { value: "users", label: "Active" },
+                { value: "invites", label: "Invited" },
+              ]}
+              selected={type}
+              selectAction={(newType) => {
+                queryParams({
+                  set: {
+                    type: newType,
+                  },
+                  del: "page",
+                  scroll: false,
+                });
+              }}
+            />
           </div>
           <Table {...tableProps} table={table} />
         </PageWidthWrapper>
@@ -199,11 +238,12 @@ function RoleCell({
     setRole(user.role);
   }, [user.role]);
 
-  const { UpdateUserModal, setShowUpdateUserModal } =
-    useUpdatePartnerUserModal({
+  const { UpdateUserModal, setShowUpdateUserModal } = useUpdatePartnerUserModal(
+    {
       user,
       role,
-    });
+    },
+  );
 
   const isDisabled =
     !isCurrentUserOwner || // Only owners can change roles

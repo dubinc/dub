@@ -55,7 +55,7 @@ function RemovePartnerUserModal({
         return;
       }
 
-      await mutatePrefix("/api/partner-profile/users");
+      await mutatePrefix("/api/partner-profile/invites");
       setShowRemovePartnerUserModal(false);
       toast.success(
         isInvite

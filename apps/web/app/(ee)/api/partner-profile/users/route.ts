@@ -2,90 +2,65 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
-import { getPartnerUsersQuerySchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  getPartnerUsersQuerySchema,
+  partnerUserSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
-import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-
-const partnerUserSchema = z.array(
-  z.object({
-    id: z.string().nullable(),
-    name: z.string().nullable(),
-    email: z.string(),
-    role: z.nativeEnum(PartnerRole),
-    image: z.string().nullable(),
-    createdAt: z.date(),
-  }),
-);
-
-const updateRoleSchema = z.object({
-  userId: z.string(),
-  role: z.nativeEnum(PartnerRole),
-});
-
-const removeUserSchema = z.object({
-  userId: z.string(),
-});
 
 // GET /api/partner-profile/users - list of users + invites
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { search, role, sortBy, sortOrder } =
     getPartnerUsersQuerySchema.parse(searchParams);
 
-  // Build WHERE conditions
-  const searchCondition = search
-    ? Prisma.sql`AND (u.email LIKE ${`%${search}%`} OR u.name LIKE ${`%${search}%`})`
-    : Prisma.empty;
+  const users = await prisma.partnerUser.findMany({
+    where: {
+      partnerId: partner.id,
+      role,
+      ...(search && {
+        OR: [
+          {
+            user: {
+              name: {
+                contains: search,
+              },
+            },
+          },
+          {
+            user: {
+              email: {
+                contains: search,
+              },
+            },
+          },
+        ],
+      }),
+    },
+    include: {
+      user: true,
+    },
+    orderBy:
+      sortBy === "role"
+        ? { role: sortOrder }
+        : { user: { [sortBy]: sortOrder } },
+  });
 
-  const searchConditionInvites = search
-    ? Prisma.sql`AND pi.email LIKE ${`%${search}%`}`
-    : Prisma.empty;
+  const parsedUsers = partnerUserSchema.parse(
+    users.map(({ user, ...rest }) => ({
+      ...rest,
+      ...user,
+    })),
+  );
 
-  const roleCondition = role ? Prisma.sql`AND pu.role = ${role}` : Prisma.empty;
+  return NextResponse.json(parsedUsers);
+});
 
-  const roleConditionInvites = role
-    ? Prisma.sql`AND pi.role = ${role}`
-    : Prisma.empty;
-
-  const sortColumn = sortBy === "name" ? "sort_name" : "role";
-  const sortDirection = sortOrder === "desc" ? "DESC" : "ASC";
-
-  const results = await prisma.$queryRaw(Prisma.sql`
-    SELECT 
-      u.id,
-      u.name,
-      u.email,
-      pu.role,
-      u.image,
-      pu.createdAt,
-      COALESCE(u.name, u.email) as sort_name
-    FROM PartnerUser pu
-    INNER JOIN User u ON pu.userId = u.id
-    WHERE pu.partnerId = ${partner.id}
-      ${searchCondition}
-      ${roleCondition}
-
-    UNION ALL
-
-    SELECT 
-      NULL as id,
-      NULL as name,
-      pi.email,
-      pi.role,
-      NULL as image,
-      pi.createdAt,
-      pi.email as sort_name
-    FROM PartnerInvite pi
-    WHERE pi.partnerId = ${partner.id}
-      ${searchConditionInvites}
-      ${roleConditionInvites}
-
-    ORDER BY ${Prisma.raw(sortColumn)} ${Prisma.raw(sortDirection)}, createdAt ASC, email ASC
-  `);
-
-  return NextResponse.json(partnerUserSchema.parse(results));
+const updateRoleSchema = z.object({
+  userId: z.string(),
+  role: z.nativeEnum(PartnerRole),
 });
 
 // PATCH /api/partner-profile/users - update a user's role
@@ -162,6 +137,10 @@ export const PATCH = withPartnerProfile(
     return NextResponse.json(response);
   },
 );
+
+const removeUserSchema = z.object({
+  userId: z.string(),
+});
 
 // DELETE /api/partner-profile/users?userId={userId} - remove a user
 export const DELETE = withPartnerProfile(

@@ -7,20 +7,42 @@ import {
   MAX_INVITES_PER_REQUEST,
   MAX_PARTNER_USERS,
 } from "@/lib/partners/constants";
-import { invitePartnerMemberSchema } from "@/lib/zod/schemas/partner-profile";
+import {
+  getPartnerUsersQuerySchema,
+  invitePartnerMemberSchema,
+  partnerUserSchema,
+} from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
 import { isRejected, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import z from "zod";
 
-const updateInviteRoleSchema = z.object({
-  email: z.string().email(),
-  role: z.nativeEnum(PartnerRole),
-});
+// GET /api/partner-profile/invites - get all invites for a partner profile
+export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
+  const { search, role, sortBy, sortOrder } =
+    getPartnerUsersQuerySchema.parse(searchParams);
 
-const removeInviteSchema = z.object({
-  email: z.string().email(),
+  const invites = await prisma.partnerInvite.findMany({
+    where: {
+      partnerId: partner.id,
+      role,
+      ...(search && {
+        email: { contains: search },
+      }),
+    },
+    orderBy: sortBy === "role" ? { role: sortOrder } : { email: sortOrder },
+  });
+
+  const parsedInvites = partnerUserSchema.parse(
+    invites.map((invite) => ({
+      ...invite,
+      id: null,
+      name: invite.email,
+    })),
+  );
+
+  return NextResponse.json(parsedInvites);
 });
 
 // POST /api/partner-profile/invites - invite team members
@@ -45,10 +67,10 @@ export const POST = withPartnerProfile(
     const emails = Array.from(new Set([...invites.map(({ email }) => email)]));
 
     const [
-      invitesCount,
+      partnerInvitesCount,
       partnerUsersCount,
       existingPartnerUsers,
-      existingInvites,
+      existingPartnerInvites,
     ] = await Promise.all([
       prisma.partnerInvite.count({
         where: {
@@ -64,7 +86,6 @@ export const POST = withPartnerProfile(
 
       prisma.partnerUser.findMany({
         where: {
-          partnerId: partner.id,
           user: {
             email: {
               in: emails,
@@ -78,7 +99,6 @@ export const POST = withPartnerProfile(
 
       prisma.partnerInvite.findMany({
         where: {
-          partnerId: partner.id,
           email: {
             in: emails,
           },
@@ -94,12 +114,14 @@ export const POST = withPartnerProfile(
     if (existingPartnerUsersEmails.length > 0) {
       throw new DubApiError({
         code: "bad_request",
-        message: `${pluralize("User", existingPartnerUsersEmails.length)} ${existingPartnerUsersEmails.join(", ")} already ${pluralize("exists", existingPartnerUsersEmails.length, { plural: "exist" })} in this partner profile.`,
+        message: `${pluralize("User", existingPartnerUsersEmails.length)} ${existingPartnerUsersEmails.join(", ")} already ${existingPartnerUsersEmails.length > 1 ? "have" : "has"} associated partner profiles.`,
       });
     }
 
     // Check for pending invites
-    const existingInviteEmails = existingInvites.map(({ email }) => email);
+    const existingInviteEmails = existingPartnerInvites.map(
+      ({ email }) => email,
+    );
 
     if (existingInviteEmails.length > 0) {
       throw new DubApiError({
@@ -108,7 +130,10 @@ export const POST = withPartnerProfile(
       });
     }
 
-    if (invitesCount + partnerUsersCount + invites.length > MAX_PARTNER_USERS) {
+    if (
+      partnerInvitesCount + partnerUsersCount + invites.length >
+      MAX_PARTNER_USERS
+    ) {
       throw new DubApiError({
         code: "exceeded_limit",
         message: `You can only have ${MAX_PARTNER_USERS} members in this partner profile.`,
@@ -138,6 +163,11 @@ export const POST = withPartnerProfile(
     return NextResponse.json({ message: "Invite(s) sent" });
   },
 );
+
+const updateInviteRoleSchema = z.object({
+  email: z.string().email(),
+  role: z.nativeEnum(PartnerRole),
+});
 
 // PATCH /api/partner-profile/invites - update an invite's role
 export const PATCH = withPartnerProfile(
@@ -182,6 +212,10 @@ export const PATCH = withPartnerProfile(
     return NextResponse.json(response);
   },
 );
+
+const removeInviteSchema = z.object({
+  email: z.string().email(),
+});
 
 // DELETE /api/partner-profile/invites?email={email} - remove an invite
 export const DELETE = withPartnerProfile(

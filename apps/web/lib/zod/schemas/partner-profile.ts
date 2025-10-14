@@ -168,3 +168,14 @@ export const getPartnerUsersQuerySchema = z.object({
   sortBy: z.enum(["name", "role"]).optional().default("name"),
   sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
 });
+
+export const partnerUserSchema = z.array(
+  z.object({
+    id: z.string().nullable(),
+    name: z.string().nullable(),
+    email: z.string(),
+    role: z.nativeEnum(PartnerRole),
+    image: z.string().nullish(),
+    createdAt: z.date(),
+  }),
+);
