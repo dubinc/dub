@@ -4,23 +4,39 @@ import { withWorkspace } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
+import {
+  getWorkspaceUsersQuerySchema,
+  workspaceUserSchema,
+} from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
+    const { search, role, sortBy, sortOrder } =
+      getWorkspaceUsersQuerySchema.parse(searchParams);
+
     const invites = await prisma.projectInvite.findMany({
       where: {
         projectId: workspace.id,
+        role,
+        ...(search && {
+          email: { contains: search },
+        }),
       },
-      select: {
-        email: true,
-        role: true,
-        createdAt: true,
-      },
+      orderBy: sortBy === "role" ? { role: sortOrder } : { email: sortOrder },
     });
-    return NextResponse.json(invites);
+
+    const parsedInvites = invites.map((invite) =>
+      workspaceUserSchema.parse({
+        ...invite,
+        id: null,
+        name: invite.email,
+      }),
+    );
+
+    return NextResponse.json(parsedInvites);
   },
   {
     requiredPermissions: ["workspaces.read"],

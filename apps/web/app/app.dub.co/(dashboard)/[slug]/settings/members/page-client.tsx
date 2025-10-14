@@ -1,12 +1,14 @@
 "use client";
 
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerUserProps } from "@/lib/types";
+import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import useWorkspace from "@/lib/swr/use-workspace";
+import { WorkspaceUserProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { useInvitePartnerMemberModal } from "@/ui/modals/invite-partner-member-modal";
-import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal";
-import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
+import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
+import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
+import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
+import { useRemoveTeammateModal } from "@/ui/modals/remove-teammate-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PartnerRole } from "@dub/prisma/client";
 import {
@@ -26,27 +28,34 @@ import {
   Dots,
   EnvelopeArrowRight,
   Icon,
+  Link4 as LinkIcon,
   User,
+  UserCheck,
   UserCrown,
 } from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { UserMinus, UserPlus } from "lucide-react";
+import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import useSWR from "swr";
 
-export function ProfileMembersPageClient() {
-  const { partner } = usePartnerProfile();
+export default function WorkspacePeopleClient() {
+  const { setShowInviteTeammateModal, InviteTeammateModal } =
+    useInviteTeammateModal({ showSavedInvites: true });
+
+  const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
+
+  const { role } = useWorkspace();
   const { data: session } = useSession();
-  const defaultPartnerId = session?.user?.["defaultPartnerId"];
+  const { id: workspaceId } = useWorkspace();
 
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
   const status = searchParams.get("status") as "active" | "invited" | null;
-  const role = searchParams.get("role") as PartnerRole | null;
+  const roleFilter = searchParams.get("role") as PartnerRole | null;
   const search = searchParams.get("search") || undefined;
   const sortBy = (searchParams.get("sortBy") || "name") as "name" | "role";
   const sortOrder = (searchParams.get("sortOrder") || "asc") as "asc" | "desc";
@@ -55,14 +64,14 @@ export function ProfileMembersPageClient() {
     data: users,
     error,
     isLoading: loading,
-  } = useSWR<PartnerUserProps[]>(
-    defaultPartnerId &&
-      `/api/partner-profile/${status === "invited" ? "invites" : "users"}?${new URLSearchParams(
+  } = useSWR<WorkspaceUserProps[]>(
+    workspaceId &&
+      `/api/workspaces/${workspaceId}/${status === "invited" ? "invites" : "users"}?${new URLSearchParams(
         {
           ...(search && { search }),
           ...(sortBy && { sortBy }),
           ...(sortOrder && { sortOrder }),
-          ...(role && { role }),
+          ...(roleFilter && { role: roleFilter }),
         } as Record<string, any>,
       ).toString()}`,
     fetcher,
@@ -71,17 +80,14 @@ export function ProfileMembersPageClient() {
     },
   );
 
-  const isCurrentUserOwner = partner?.role === "owner";
-
-  const { InvitePartnerMemberModal, setShowInvitePartnerMemberModal } =
-    useInvitePartnerMemberModal();
+  const isCurrentUserOwner = role === "owner";
 
   // Combined filter configuration
   const filters = useMemo(
     () => [
       {
         key: "role",
-        icon: UserPlus,
+        icon: UserCheck,
         label: "Role",
         options: [
           { value: "owner", label: "Owner", icon: UserCrown },
@@ -119,15 +125,15 @@ export function ProfileMembersPageClient() {
     if (status) {
       filters.push({ key: "status", value: status });
     }
-    if (role) {
-      filters.push({ key: "role", value: role });
+    if (roleFilter) {
+      filters.push({ key: "role", value: roleFilter });
     }
     return filters;
-  }, [status, role]);
+  }, [status, roleFilter]);
 
-  useKeyboardShortcut("m", () => setShowInvitePartnerMemberModal(true));
+  useKeyboardShortcut("m", () => setShowInviteTeammateModal(true));
 
-  const columns = useMemo<ColumnDef<PartnerUserProps>[]>(
+  const columns = useMemo<ColumnDef<WorkspaceUserProps>[]>(
     () => [
       {
         id: "name",
@@ -232,17 +238,40 @@ export function ProfileMembersPageClient() {
 
   return (
     <>
-      <InvitePartnerMemberModal />
+      <InviteTeammateModal />
+      <InviteCodeModal />
       <PageContent
         title="Members"
         controls={
           isCurrentUserOwner && (
-            <Button
-              text="Invite member"
-              className="h-9 w-fit"
-              shortcut="M"
-              onClick={() => setShowInvitePartnerMemberModal(true)}
-            />
+            <div className="flex space-x-2">
+              <Button
+                text="Invite member"
+                onClick={() => setShowInviteTeammateModal(true)}
+                className="h-9 w-fit"
+                shortcut="M"
+                disabledTooltip={
+                  clientAccessCheck({
+                    action: "workspaces.write",
+                    role,
+                    customPermissionDescription: "invite new teammates",
+                  }).error || undefined
+                }
+              />
+              <Button
+                icon={<LinkIcon className="h-4 w-4 text-neutral-800" />}
+                variant="secondary"
+                onClick={() => setShowInviteCodeModal(true)}
+                className="h-9 space-x-0"
+                disabledTooltip={
+                  clientAccessCheck({
+                    action: "workspaces.write",
+                    role,
+                    customPermissionDescription: "generate invite links",
+                  }).error || undefined
+                }
+              />
+            </div>
           )
         }
       >
@@ -278,22 +307,26 @@ function RoleCell({
   isCurrentUser,
   isCurrentUserOwner,
 }: {
-  user: PartnerUserProps;
+  user: WorkspaceUserProps;
   isCurrentUser: boolean;
   isCurrentUserOwner: boolean;
 }) {
   const [role, setRole] = useState<PartnerRole>(user.role);
 
-  useEffect(() => {
-    setRole(user.role);
-  }, [user.role]);
-
-  const { UpdateUserModal, setShowUpdateUserModal } = useUpdatePartnerUserModal(
-    {
-      user,
-      role,
+  const { EditRoleModal, setShowEditRoleModal } = useEditRoleModal({
+    user: {
+      id: user.id || "",
+      name: user.name || "",
+      email: user.email || "",
+      image: user.image || "",
+      createdAt: user.createdAt,
+      source: null,
+      isMachine: false,
+      hasPassword: false,
+      provider: null,
     },
-  );
+    role: role as "owner" | "member",
+  });
 
   const isDisabled =
     !isCurrentUserOwner || // Only owners can change roles
@@ -301,7 +334,7 @@ function RoleCell({
 
   return (
     <>
-      <UpdateUserModal />
+      <EditRoleModal />
       <select
         className={cn(
           "rounded-md border border-neutral-200 text-xs text-neutral-500 focus:border-neutral-600 focus:ring-neutral-600",
@@ -314,7 +347,7 @@ function RoleCell({
         onChange={(e) => {
           const newRole = e.target.value as PartnerRole;
           setRole(newRole);
-          setShowUpdateUserModal(true);
+          setShowEditRoleModal(true);
         }}
         title={
           !isCurrentUserOwner
@@ -335,7 +368,7 @@ function RowMenuButton({
   row,
   isCurrentUserOwner,
 }: {
-  row: Row<PartnerUserProps>;
+  row: Row<WorkspaceUserProps>;
   isCurrentUserOwner: boolean;
 }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -344,9 +377,20 @@ function RowMenuButton({
   const user = row.original;
   const isInvite = user.id === null;
 
-  const { RemovePartnerUserModal, setShowRemovePartnerUserModal } =
-    useRemovePartnerUserModal({
-      user,
+  const { RemoveTeammateModal, setShowRemoveTeammateModal } =
+    useRemoveTeammateModal({
+      user: {
+        id: user.id || "",
+        name: user.name || "",
+        email: user.email || "",
+        image: user.image || "",
+        createdAt: user.createdAt,
+        source: null,
+        isMachine: false,
+        hasPassword: false,
+        provider: null,
+      },
+      invite: isInvite,
     });
 
   const isCurrentUser = session?.user?.email === user.email;
@@ -358,7 +402,7 @@ function RowMenuButton({
 
   return (
     <>
-      <RemovePartnerUserModal />
+      <RemoveTeammateModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -370,14 +414,14 @@ function RowMenuButton({
                   icon={UserMinus}
                   label={
                     isCurrentUser
-                      ? "Leave partner profile"
+                      ? "Leave workspace"
                       : isInvite
                         ? "Revoke invitation"
                         : "Remove member"
                   }
                   variant="danger"
                   onSelect={() => {
-                    setShowRemovePartnerUserModal(true);
+                    setShowRemoveTeammateModal(true);
                     setIsOpen(false);
                   }}
                 />

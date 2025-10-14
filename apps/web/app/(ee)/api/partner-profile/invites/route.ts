@@ -34,12 +34,12 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     orderBy: sortBy === "role" ? { role: sortOrder } : { email: sortOrder },
   });
 
-  const parsedInvites = partnerUserSchema.parse(
-    invites.map((invite) => ({
+  const parsedInvites = invites.map((invite) =>
+    partnerUserSchema.parse({
       ...invite,
       id: null,
       name: invite.email,
-    })),
+    }),
   );
 
   return NextResponse.json(parsedInvites);

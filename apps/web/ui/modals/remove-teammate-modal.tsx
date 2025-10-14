@@ -149,7 +149,7 @@ function RemoveTeammateModal({
             <Avatar user={user} className="size-10" />
             <div className="flex flex-col">
               <p className="text-sm font-medium text-neutral-900">
-                {user.name}
+                {user.name || user.email}
               </p>
               <p className="text-xs text-neutral-500">{user.email}</p>
             </div>

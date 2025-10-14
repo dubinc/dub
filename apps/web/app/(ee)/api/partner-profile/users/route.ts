@@ -48,11 +48,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         : { user: { [sortBy]: sortOrder } },
   });
 
-  const parsedUsers = partnerUserSchema.parse(
-    users.map(({ user, ...rest }) => ({
+  const parsedUsers = users.map(({ user, ...rest }) =>
+    partnerUserSchema.parse({
       ...rest,
       ...user,
-    })),
+    }),
   );
 
   return NextResponse.json(parsedUsers);

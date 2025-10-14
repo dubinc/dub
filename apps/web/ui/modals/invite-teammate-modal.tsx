@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Invite } from "@/lib/zod/schemas/invites";
-import { BlurImage, Logo, Modal } from "@dub/ui";
+import { Modal } from "@dub/ui";
 import { LoadingSpinner } from "@dub/ui/icons";
 import { fetcher } from "@dub/utils";
 import {
@@ -41,20 +41,9 @@ function InviteTeammateModal({
       setShowModal={setShowInviteTeammateModal}
       className="max-h-[95dvh]"
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
-        {logo ? (
-          <BlurImage
-            src={logo}
-            alt="Invite Teammates"
-            className="h-10 w-10 rounded-full"
-            width={20}
-            height={20}
-          />
-        ) : (
-          <Logo />
-        )}
+      <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">Invite Teammates</h3>
-        <p className="text-center text-sm text-neutral-500">
+        <p className="text-sm text-neutral-500">
           Invite teammates with{" "}
           <a
             href="https://dub.co/help/article/workspace-roles"
@@ -73,7 +62,7 @@ function InviteTeammateModal({
       ) : (
         <InviteTeammatesForm
           onSuccess={() => setShowInviteTeammateModal(false)}
-          className="bg-neutral-50 px-4 py-8 sm:px-16"
+          className="bg-neutral-50 px-4 py-4 sm:px-6"
           invites={invites}
         />
       )}

@@ -4,6 +4,7 @@ import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
+  partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
@@ -127,6 +128,7 @@ import {
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
+import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
 export type LinkProps = Link;
 
@@ -231,6 +233,8 @@ export interface ExtendedWorkspaceProps extends WorkspaceProps {
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
 
+export type WorkspaceUserProps = z.infer<typeof workspaceUserSchema>;
+
 export interface UserProps {
   id: string;
   name: string;
@@ -243,10 +247,6 @@ export interface UserProps {
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
-}
-
-export interface WorkspaceUserProps extends UserProps {
-  role: RoleProps;
 }
 
 export type DomainVerificationStatusProps =
@@ -446,6 +446,8 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
   role: PartnerRole;
   userId: string;
 };
+
+export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
 
 export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
 
