@@ -65,6 +65,7 @@ const AddPartnerLinkModal = ({
   const { group: partnerGroup } = useGroup({
     groupIdOrSlug: partner.groupId ?? DEFAULT_PARTNER_GROUP.slug,
   });
+
   const additionalLinks = partnerGroup?.additionalLinks ?? [];
 
   const destinationDomains = useMemo(
