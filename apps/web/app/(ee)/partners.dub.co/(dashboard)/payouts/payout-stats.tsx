@@ -17,6 +17,7 @@ import {
 } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 function PayoutStatsCard({
   label,
@@ -175,10 +176,11 @@ export function PayoutStats() {
   const topRowStats = payoutStats.slice(0, 3);
   const bottomRowStats = payoutStats.slice(3);
 
-  if (partner && !hasPermission(partner.role, "payouts.read")) {
-    router.replace("/");
-    return null;
-  }
+  useEffect(() => {
+    if (partner && !hasPermission(partner.role, "payouts.read")) {
+      router.replace("/");
+    }
+  }, [partner, router]);
 
   return (
     <>
