@@ -2,7 +2,11 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { CommissionType, ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  CommissionType,
+  PartnerRole,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { z } from "zod";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import { BountySchema, BountySubmissionSchema } from "./bounties";
@@ -148,4 +152,12 @@ export const PartnerBountySchema = BountySchema.omit({
     totalSaleAmount: z.number(),
     totalCommissions: z.number(),
   }),
+});
+
+export const invitePartnerMemberSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required.")
+    .email("Please enter a valid email."),
+  role: z.nativeEnum(PartnerRole),
 });
