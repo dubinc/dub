@@ -5,10 +5,10 @@ import usePartnerProfileUsers, {
 } from "@/lib/swr/use-partner-profile-users";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
 import { useInvitePartnerMemberModal } from "@/ui/modals/invite-partner-member-modal";
 import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal";
 import { useRevokePartnerInviteModal } from "@/ui/modals/revoke-partner-invite-modal";
+import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PartnerRole } from "@dub/prisma/client";
 import {
@@ -46,6 +46,12 @@ export function ProfileMembersPageClient() {
       ...(role && { role }),
     },
   });
+
+  const currentUserRole = useMemo(() => {
+    return users?.find((u) => u.email === session?.user?.email)?.role;
+  }, [users, session?.user?.email]);
+
+  const isCurrentUserOwner = currentUserRole === "owner";
 
   const { InvitePartnerMemberModal, setShowInvitePartnerMemberModal } =
     useInvitePartnerMemberModal();
@@ -95,6 +101,10 @@ export function ProfileMembersPageClient() {
               role,
             });
 
+          const isDisabled =
+            !isCurrentUserOwner || // Only owners can change roles
+            isCurrentUser; // Can't change your own role
+
           return (
             <>
               <UpdateUserModal />
@@ -102,16 +112,23 @@ export function ProfileMembersPageClient() {
                 className={cn(
                   "rounded-md border border-neutral-200 text-xs text-neutral-500 focus:border-neutral-600 focus:ring-neutral-600",
                   {
-                    "cursor-not-allowed bg-neutral-100": isCurrentUser,
+                    "cursor-not-allowed bg-neutral-100": isDisabled,
                   },
                 )}
                 value={role}
-                disabled={isCurrentUser}
+                disabled={isDisabled}
                 onChange={(e) => {
                   const newRole = e.target.value as PartnerRole;
                   setRole(newRole);
                   setShowUpdateUserModal(true);
                 }}
+                title={
+                  !isCurrentUserOwner
+                    ? "Only owners can change member roles"
+                    : isCurrentUser
+                      ? "You cannot change your own role"
+                      : undefined
+                }
               >
                 <option value="owner">Owner</option>
                 <option value="member">Member</option>
@@ -127,10 +144,12 @@ export function ProfileMembersPageClient() {
         size: 43,
         maxSize: 43,
         header: () => null,
-        cell: ({ row }) => <RowMenuButton row={row} />,
+        cell: ({ row }) => (
+          <RowMenuButton row={row} isCurrentUserOwner={isCurrentUserOwner} />
+        ),
       },
     ],
-    [session?.user?.email],
+    [session?.user?.email, isCurrentUserOwner],
   );
 
   const { table, ...tableProps } = useTable({
@@ -164,11 +183,13 @@ export function ProfileMembersPageClient() {
       <PageContent
         title="Members"
         controls={
-          <Button
-            text="Invite member"
-            className="h-9 w-fit"
-            onClick={() => setShowInvitePartnerMemberModal(true)}
-          />
+          isCurrentUserOwner && (
+            <Button
+              text="Invite member"
+              className="h-9 w-fit"
+              onClick={() => setShowInvitePartnerMemberModal(true)}
+            />
+          )
         }
       >
         <PageWidthWrapper className="mb-20 flex flex-col gap-6">
@@ -203,7 +224,13 @@ export function ProfileMembersPageClient() {
   );
 }
 
-function RowMenuButton({ row }: { row: Row<PartnerUserProps> }) {
+function RowMenuButton({
+  row,
+  isCurrentUserOwner,
+}: {
+  row: Row<PartnerUserProps>;
+  isCurrentUserOwner: boolean;
+}) {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
 
@@ -221,6 +248,11 @@ function RowMenuButton({ row }: { row: Row<PartnerUserProps> }) {
     });
 
   const isCurrentUser = session?.user?.email === user.email;
+
+  // Only show menu if user is owner OR they're removing themselves
+  if (!isCurrentUserOwner && !isCurrentUser) {
+    return null;
+  }
 
   return (
     <>
