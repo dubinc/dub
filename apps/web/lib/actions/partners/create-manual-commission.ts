@@ -453,10 +453,12 @@ export const createManualCommissionAction = authActionClient
           finalCommissionsToTransferEventIds,
         );
 
-        const firstConversionFlag = isFirstConversion({
-          customer,
-          linkId,
-        });
+        const firstConversionFlag =
+          commissionType === "sale" &&
+          isFirstConversion({
+            customer,
+            linkId,
+          });
 
         const updatedRes = await Promise.all([
           // update link stats
@@ -465,14 +467,18 @@ export const createManualCommissionAction = authActionClient
               id: link.id,
             },
             data: {
+              // we'll always create click + lead events, so need to increment the stats
+              clicks: {
+                increment: 1,
+              },
+              leads: {
+                increment: 1,
+              },
+              lastLeadAt: updateLinkStatsForImporter({
+                currentTimestamp: link.lastLeadAt,
+                newTimestamp: leadEventTimestamp || new Date(),
+              }),
               ...(firstConversionFlag && {
-                leads: {
-                  increment: 1,
-                },
-                lastLeadAt: updateLinkStatsForImporter({
-                  currentTimestamp: link.lastLeadAt,
-                  newTimestamp: leadEventTimestamp || new Date(),
-                }),
                 conversions: {
                   increment: 1,
                 },
@@ -481,12 +487,14 @@ export const createManualCommissionAction = authActionClient
                   newTimestamp: saleEventTimestamp || new Date(),
                 }),
               }),
-              sales: {
-                increment: saleAmount ? 1 : totalSales,
-              },
-              saleAmount: {
-                increment: saleAmount ?? totalSaleAmount,
-              },
+              ...(commissionType === "sale" && {
+                sales: {
+                  increment: saleAmount ? 1 : totalSales,
+                },
+                saleAmount: {
+                  increment: saleAmount ?? totalSaleAmount,
+                },
+              }),
             },
           }),
 

@@ -16,7 +16,7 @@ import {
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
-import { DiscountCode, Prisma } from "@prisma/client";
+import { DiscountCode } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -94,6 +94,22 @@ export const PATCH = withWorkspace(
       }
     }
 
+    if (additionalLinks) {
+      // check for duplicate link formats
+      const linkFormatDomains = additionalLinks.reduce((acc, link) => {
+        acc.add(link.domain);
+        return acc;
+      }, new Set<string>());
+
+      if (linkFormatDomains.size !== additionalLinks.length) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "Duplicate link formats found. Please make sure all link formats have unique domains.",
+        });
+      }
+    }
+
     // Find the UTM template
     const utmTemplate = utmTemplateId
       ? await prisma.utmTemplate.findUniqueOrThrow({
@@ -104,20 +120,6 @@ export const PATCH = withWorkspace(
         })
       : null;
 
-    // Deduplicate additionalLinks by domain, keeping the first occurrence
-    const deduplicatedAdditionalLinks = additionalLinks
-      ? additionalLinks.filter(
-          (link, index, array) =>
-            array.findIndex((l) => l.domain === link.domain) === index,
-        )
-      : additionalLinks;
-
-    const additionalLinksInput = deduplicatedAdditionalLinks
-      ? deduplicatedAdditionalLinks.length > 0
-        ? deduplicatedAdditionalLinks
-        : Prisma.DbNull
-      : undefined;
-
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: group.id,
@@ -126,10 +128,10 @@ export const PATCH = withWorkspace(
         name,
         slug,
         color,
-        ...(additionalLinksInput && { additionalLinks: additionalLinksInput }),
+        additionalLinks,
         maxPartnerLinks,
-        utmTemplateId,
         linkStructure,
+        utmTemplateId,
         applicationFormData,
         landerData,
       },

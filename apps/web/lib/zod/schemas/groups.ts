@@ -19,6 +19,7 @@ export const DEFAULT_PARTNER_GROUP = {
 } as const;
 
 export const MAX_DEFAULT_PARTNER_LINKS = 5;
+
 export const MAX_ADDITIONAL_PARTNER_LINKS = 20;
 
 export const GROUPS_MAX_PAGE_SIZE = 100;
@@ -26,16 +27,25 @@ export const GROUPS_MAX_PAGE_SIZE = 100;
 export const additionalPartnerLinkSchema = z.object({
   domain: z
     .string()
-    .min(1, "domain is required")
     .refine((v) => isValidDomainFormat(v), {
       message: "Please enter a valid domain (eg: acme.com).",
     })
     .transform((v) => v.toLowerCase()),
+  path: z
+    .string()
+    .transform((v) => v.toLowerCase())
+    .optional()
+    .default(""),
   validationMode: z.enum([
     "domain", // domain match (e.g. if URL is example.com/path, example.com and example.com/another-path are allowed)
     "exact", // exact match (e.g. if URL is example.com/path, only example.com/path is allowed)
   ]),
 });
+
+export const additionalPartnerLinkSchemaOptionalPath =
+  additionalPartnerLinkSchema.extend({
+    path: z.string().optional(),
+  });
 
 // This is the standard response we send for all /api/groups/** endpoints
 export const GroupSchema = z.object({

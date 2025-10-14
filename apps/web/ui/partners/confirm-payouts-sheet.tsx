@@ -18,14 +18,12 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
 import {
-  Bolt,
   Button,
   buttonVariants,
   Combobox,
   ComboboxOption,
   DynamicTooltipWrapper,
   Gear,
-  GreekTemple,
   PaperPlane,
   Sheet,
   ShimmerDots,
@@ -554,10 +552,6 @@ function ConfirmPayoutsSheetContent() {
           </div>
         </div>
 
-        <div className="px-6">
-          <FastAchPayoutToggle />
-        </div>
-
         <div className="px-6 py-3">
           <Table {...table} />
         </div>
@@ -625,55 +619,6 @@ function ConfirmPayoutsSheetContent() {
           }
         />
       </div>
-    </div>
-  );
-}
-
-function FastAchPayoutToggle() {
-  const { fastDirectDebitPayouts } = useWorkspace();
-  const [isVisible, setIsVisible] = useState(true);
-
-  if (!isVisible || fastDirectDebitPayouts) {
-    return null;
-  }
-
-  return (
-    <div className="flex h-12 items-center gap-2 rounded-lg bg-neutral-100 px-4 py-2">
-      <div className="relative flex size-8 items-center justify-center rounded-md border border-neutral-200 p-2 text-neutral-200">
-        <GreekTemple className="text-content-emphasis size-4" />
-        <div className="absolute left-1/2 top-1 flex size-2 translate-x-[3px] items-center justify-center rounded-sm">
-          <Bolt className="size-2.5 fill-amber-500 text-amber-500" />
-        </div>
-      </div>
-
-      <div className="flex-1">
-        <div className="text-content-emphasis text-xs font-semibold">
-          Fast ACH
-        </div>
-        <div className="text-content-default text-xs font-medium">
-          Send ACH payouts in 2 days.
-        </div>
-      </div>
-
-      {!fastDirectDebitPayouts && (
-        <div className="flex items-center gap-0.5">
-          <a href="https://dub.co/contact/sales" target="_blank">
-            <Button
-              variant="secondary"
-              text="Contact sales to enable"
-              className="border-border-subtle h-7 w-fit whitespace-nowrap rounded-lg bg-white px-2.5 py-2 text-sm"
-            />
-          </a>
-
-          <button
-            onClick={() => setIsVisible(false)}
-            className="text-content-emphasis p-1"
-            aria-label="Close"
-          >
-            <X className="size-3" />
-          </button>
-        </div>
-      )}
     </div>
   );
 }
