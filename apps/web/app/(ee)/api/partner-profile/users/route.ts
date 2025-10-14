@@ -39,14 +39,15 @@ export const GET = withPartnerProfile(async ({ partner }) => {
     ...partnerUsers.map(({ user, role }) => ({
       id: user.id,
       name: user.name,
-      email: user.email,
       image: user.image,
+      email: user.email,
       role,
     })),
 
     ...partnerInvites.map(({ email, role }) => ({
       id: null,
       name: null,
+      image: null,
       email,
       role,
     })),
