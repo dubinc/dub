@@ -2,8 +2,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/swr/use-partner-profile-users";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 
 import {
   Dispatch,
@@ -23,7 +22,6 @@ function RemovePartnerUserModal({
   setShowRemovePartnerUserModal: Dispatch<SetStateAction<boolean>>;
   user: PartnerUserProps;
 }) {
-  const router = useRouter();
   const { isMobile } = useMediaQuery();
   const { data: session } = useSession();
   const [removing, setRemoving] = useState(false);
@@ -51,20 +49,18 @@ function RemovePartnerUserModal({
         throw new Error(error.message);
       }
 
-      await mutatePrefix("/api/partner-profile/users");
-
       if (self) {
-        router.push("/");
-      } else {
-        setShowRemovePartnerUserModal(false);
+        toast.success("You have left the partner profile!");
+        await signOut({ callbackUrl: "/" });
+        return;
       }
 
+      await mutatePrefix("/api/partner-profile/users");
+      setShowRemovePartnerUserModal(false);
       toast.success(
         isInvite
           ? "Successfully revoked invitation!"
-          : self
-            ? "You have left the partner profile!"
-            : "Successfully removed partner member!",
+          : "Successfully removed partner member!",
       );
     } catch (error) {
       toast.error(
