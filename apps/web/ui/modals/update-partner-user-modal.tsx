@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 
 function UpdatePartnerUserModal({
   showUpdateUserModal,
@@ -40,26 +41,25 @@ function UpdatePartnerUserModal({
         }),
       });
 
-      if (!response.ok) {
+      if (response.ok) {
+        await mutatePrefix("/api/partner-profile/users");
+        setShowUpdateUserModal(false);
+        toast.success(
+          `Successfully changed ${name || email}'s role to ${role}.`,
+        );
+      } else {
         const { error } = await response.json();
-        throw new Error(error.message);
+        toast.error(error.message);
       }
-
-      await mutatePrefix("/api/partner-profile/users");
-      setShowUpdateUserModal(false);
-      toast.success(`Successfully updated the role to ${role}.`);
     } catch (error) {
-      toast.error(error.message || "Failed to update role");
+      toast.error("Failed to update role");
     } finally {
       setUpdating(false);
     }
   };
 
   return (
-    <Modal
-      showModal={showUpdateUserModal}
-      setShowModal={setShowUpdateUserModal}
-    >
+    <Modal showModal={showUpdateUserModal} setShowModal={setShowUpdateUserModal}>
       <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
         {partner?.image ? (
           <BlurImage
@@ -123,3 +123,4 @@ export function useUpdatePartnerUserModal({
     [setShowUpdateUserModal, UpdateUserModalCallback],
   );
 }
+

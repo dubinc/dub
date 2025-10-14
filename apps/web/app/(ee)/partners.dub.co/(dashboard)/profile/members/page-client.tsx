@@ -5,7 +5,7 @@ import usePartnerProfileUsers, {
 } from "@/lib/swr/use-partner-profile-users";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { useEditPartnerUserModal } from "@/ui/modals/edit-partner-user-modal";
+import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
 import { useInvitePartnerMemberModal } from "@/ui/modals/invite-partner-member-modal";
 import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal";
 import { useRevokePartnerInviteModal } from "@/ui/modals/revoke-partner-invite-modal";
@@ -72,11 +72,6 @@ export function ProfileMembersPageClient() {
                     : user.name || user.email}
                 </h3>
                 <p className="text-xs text-neutral-500">{user.email}</p>
-                {user.id === null && user.createdAt && (
-                  <p className="text-xs text-neutral-400">
-                    Invited {timeAgo(user.createdAt)}
-                  </p>
-                )}
               </div>
             </div>
           );
@@ -94,15 +89,15 @@ export function ProfileMembersPageClient() {
           const isCurrentUser = session?.user?.email === user.email;
           const [role, setRole] = useState<PartnerRole>(user.role);
 
-          const { EditUserModal, setShowEditUserModal } =
-            useEditPartnerUserModal({
+          const { UpdateUserModal, setShowUpdateUserModal } =
+            useUpdatePartnerUserModal({
               user,
               role,
             });
 
           return (
             <>
-              <EditUserModal />
+              <UpdateUserModal />
               <select
                 className={cn(
                   "rounded-md border border-neutral-200 text-xs text-neutral-500 focus:border-neutral-600 focus:ring-neutral-600",
@@ -115,7 +110,7 @@ export function ProfileMembersPageClient() {
                 onChange={(e) => {
                   const newRole = e.target.value as PartnerRole;
                   setRole(newRole);
-                  setShowEditUserModal(true);
+                  setShowUpdateUserModal(true);
                 }}
               >
                 <option value="owner">Owner</option>
