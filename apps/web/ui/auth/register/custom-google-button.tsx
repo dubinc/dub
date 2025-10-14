@@ -48,29 +48,16 @@ export const CustomGoogleButton = ({
           throw new Error("No email found in Google account");
         }
 
-        // Трекинг успешной авторизации
-        trackClientEvents({
-          event: EAnalyticEvents.AUTH_SUCCESS,
-          params: {
-            page_name: "landing",
-            auth_type: "signup",
-            auth_method: "google_custom",
-            event_category: "nonAuthorized",
-          },
-          sessionId,
-        });
-
         onEmailReceived(email);
       } catch (error) {
         console.error("Error getting user info:", error);
 
-        // Трекинг ошибки
         trackClientEvents({
           event: EAnalyticEvents.AUTH_ERROR,
           params: {
             page_name: "landing",
             auth_type: "signup",
-            auth_method: "google_custom",
+            auth_method: "google",
             event_category: "nonAuthorized",
             error_code: "google-userinfo-failed",
             error_message:
@@ -95,7 +82,7 @@ export const CustomGoogleButton = ({
         params: {
           page_name: "landing",
           auth_type: "signup",
-          auth_method: "google_custom",
+          auth_method: "google",
           event_category: "nonAuthorized",
           error_code: "google-login-failed",
           error_message: "Google login failed",
@@ -107,28 +94,16 @@ export const CustomGoogleButton = ({
         onError(error);
       }
     },
-    scope: "email profile", // Запрашиваем только email и базовую информацию профиля
+    scope: "email profile",
   });
 
   const handleClick = async () => {
-    // Трекинг клика по кнопке
     trackClientEvents({
       event: EAnalyticEvents.ELEMENT_CLICKED,
       params: {
         page_name: "landing",
         element_name: "signup",
         content_value: "google_custom",
-        event_category: "nonAuthorized",
-      },
-      sessionId,
-    });
-
-    trackClientEvents({
-      event: EAnalyticEvents.AUTH_ATTEMPT,
-      params: {
-        page_name: "landing",
-        auth_type: "signup",
-        auth_method: "google_custom",
         event_category: "nonAuthorized",
       },
       sessionId,

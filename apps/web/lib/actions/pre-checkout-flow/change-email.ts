@@ -37,7 +37,7 @@ export const changePreSignupEmailAction = actionClient
   .action(async ({ parsedInput }) => {
     const { email, signupMethod } = parsedInput;
 
-    const { sessionId, user, isPaidTraffic } = await getUserCookieService();
+    const { sessionId, isPaidTraffic } = await getUserCookieService();
 
     const dbUser = await prisma.user.findUnique({
       where: {

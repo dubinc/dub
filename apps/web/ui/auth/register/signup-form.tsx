@@ -1,6 +1,7 @@
 "use client";
 
 import { changePreSignupEmailAction } from "@/lib/actions/pre-checkout-flow/change-email";
+import { useLocalStorage } from "@dub/ui";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import {
   setPeopleAnalytic,
@@ -30,6 +31,11 @@ export const SignUpForm = ({
     message: string | null;
     method: "email" | "google" | null;
   }>({ message: null, method: null });
+
+  const [_, setSignupMethod] = useLocalStorage<"email" | "google" | null>(
+    "signup-method",
+    null,
+  );
 
   const { executeAsync, isPending } = useAction(changePreSignupEmailAction, {
     async onSuccess() {
@@ -68,7 +74,7 @@ export const SignUpForm = ({
         auth_type: "signup",
         auth_method: signupMethod,
         email: email,
-        auth_origin: signupMethod === "google" ? "none" : "qr",
+        auth_origin: "qr",
         event_category: "nonAuthorized",
       },
       sessionId,
@@ -79,6 +85,39 @@ export const SignUpForm = ({
 
       if (result?.serverError) {
         const errorMessage = result.serverError.replace(/^\[.*?\]\s*/, "");
+
+        if (errorMessage === "email-exists") {
+          trackClientEvents({
+            event: EAnalyticEvents.AUTH_ERROR,
+            params: {
+              page_name: "landing",
+              auth_type: "signup",
+              auth_method: signupMethod,
+              email: email,
+              error_code: "email-exists",
+              error_message: "User with this email already exists",
+              auth_origin: "qr",
+              event_category: "nonAuthorized",
+            },
+            sessionId,
+          });
+        } else {
+          trackClientEvents({
+            event: EAnalyticEvents.AUTH_ERROR,
+            params: {
+              page_name: "landing",
+              auth_type: "signup",
+              auth_method: signupMethod,
+              email: email,
+              error_code: "signup-error",
+              error_message: "Something went wrong with signup",
+              auth_origin: "qr",
+              event_category: "nonAuthorized",
+            },
+            sessionId,
+          });
+        }
+
         setErrorState({ message: errorMessage, method: signupMethod });
       } else if (result?.data) {
         const { signupMethod, email, userToken } = result.data;
@@ -86,8 +125,13 @@ export const SignUpForm = ({
           signup_method: signupMethod,
           $email: email,
         });
+
         if (userToken) {
           setPeopleAnalyticOnce({ user_token: userToken });
+        }
+
+        if (signupMethod) {
+          setSignupMethod(signupMethod);
         }
       }
     } finally {

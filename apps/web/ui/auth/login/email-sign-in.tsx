@@ -14,7 +14,6 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useContext, useState } from "react";
 import { errorCodes, LoginFormContext } from "./login-form";
-import { CUSTOMER_IO_TEMPLATES } from 'node_modules/@dub/email/src/constants';
 
 interface IEmailSignInProps {
   sessionId: string;
@@ -80,7 +79,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
               page_name: "landing",
               auth_type: "login",
               auth_method: "email",
-              auth_origin: qrDataToCreate ? "qr" : "none",
+              auth_origin: "none",
               email: email,
               event_category: "nonAuthorized",
             },
@@ -121,7 +120,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
                   page_name: "landing",
                   auth_type: "login",
                   auth_method: "email",
-                  auth_origin: qrDataToCreate ? "qr" : "none",
+                  auth_origin: "none",
                   email: email,
                   event_category: "nonAuthorized",
                   error_code: "user-not-found",
@@ -159,7 +158,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
                 page_name: "landing",
                 auth_type: "login",
                 auth_method: "email",
-                auth_origin: qrDataToCreate ? "qr" : "none",
+                auth_origin: "none",
                 email: email,
                 event_category: "nonAuthorized",
                 error_code: "user-not-found",
@@ -213,7 +212,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
                 page_name: "landing",
                 auth_type: "login",
                 auth_method: "email",
-                auth_origin: qrDataToCreate ? "qr" : "none",
+                auth_origin: "none",
                 email: email,
                 event_category: "nonAuthorized",
                 error_code: response.error,

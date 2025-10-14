@@ -8,7 +8,7 @@ import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas";
 import { QRBuilderData, QrStorageData } from "@/ui/qr-builder/types/types";
 import { FiveStarsComponent } from "@/ui/shared/five-stars.component";
-import { Button, useMediaQuery } from "@dub/ui";
+import { Button, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { Theme } from "@radix-ui/themes";
 import slugify from "@sindresorhus/slugify";
 import { trackClientEvents } from "core/integration/analytic";
@@ -45,6 +45,9 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
   const { isMobile } = useMediaQuery();
 
   const [clientToken, setClientToken] = useState<string | null>(null);
+  const [signupMethod, setSignupMethod] = useLocalStorage<
+    "email" | "google" | null
+  >("signup-method", null);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const memoizedQrData = useMemo(() => {
@@ -84,8 +87,8 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
         params: {
           page_name: "landing",
           auth_type: "signup",
-          auth_method: "email",
-          auth_origin: firstQr ? "qr" : "none",
+          auth_method: signupMethod ?? "email",
+          auth_origin: "qr",
           email: user?.email,
           event_category: "nonAuthorized",
           error_code: errorCode,
@@ -117,25 +120,25 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
 
   const onSubcriptionCreated = async () => {
     trackClientEvents({
+      event: EAnalyticEvents.AUTH_SUCCESS,
+      params: {
+        page_name: "dashboard",
+        auth_type: "signup",
+        auth_method: signupMethod ?? "email",
+        auth_origin: "qr",
+        email: user?.email,
+        event_category: "Authorized",
+      },
+      sessionId: user?.id,
+    });
+
+    trackClientEvents({
       event: EAnalyticEvents.PAGE_VIEWED,
       params: {
         page_name: "dashboard",
         content_group: "my_qr_codes",
         event_category: "Authorized",
         email: user?.email,
-      },
-      sessionId: user?.id,
-    });
-
-    trackClientEvents({
-      event: EAnalyticEvents.AUTH_SUCCESS,
-      params: {
-        page_name: "dashboard",
-        auth_type: "signup",
-        auth_method: "email",
-        auth_origin: firstQr ? "qr" : "none",
-        email: user?.email,
-        event_category: "Authorized",
       },
       sessionId: user?.id,
     });
