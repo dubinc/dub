@@ -1,4 +1,5 @@
 import { DubApiError } from "@/lib/api/errors";
+import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { getPartnerUsersQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
@@ -16,6 +17,11 @@ const partnerUserSchema = z.array(
     createdAt: z.date(),
   }),
 );
+
+const updateRoleSchema = z.object({
+  userId: z.string(),
+  role: z.nativeEnum(PartnerRole),
+});
 
 const removeUserSchema = z.object({
   userId: z.string(),
@@ -82,6 +88,84 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   return NextResponse.json(response);
 });
 
+// PATCH /api/partner-profile/users - update a user's role
+export const PATCH = withPartnerProfile(async ({ req, partner, session }) => {
+  const { userId, role } = updateRoleSchema.parse(await parseRequestBody(req));
+
+  if (userId === session.user.id) {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "You cannot change your own role.",
+    });
+  }
+
+  const [currentUser, partnerUser, totalOwners] = await Promise.all([
+    prisma.partnerUser.findUniqueOrThrow({
+      where: {
+        userId_partnerId: {
+          userId: session.user.id,
+          partnerId: partner.id,
+        },
+      },
+      select: {
+        role: true,
+      },
+    }),
+
+    prisma.partnerUser.findUnique({
+      where: {
+        userId_partnerId: {
+          userId,
+          partnerId: partner.id,
+        },
+      },
+    }),
+
+    prisma.partnerUser.count({
+      where: {
+        partnerId: partner.id,
+        role: "owner",
+      },
+    }),
+  ]);
+
+  if (currentUser.role !== "owner") {
+    throw new DubApiError({
+      code: "forbidden",
+      message: "Only owners can change member roles.",
+    });
+  }
+
+  if (!partnerUser) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "The user you're trying to update was not found.",
+    });
+  }
+
+  if (totalOwners === 1 && partnerUser.role === "owner" && role !== "owner") {
+    throw new DubApiError({
+      code: "bad_request",
+      message:
+        "Cannot change the role of the last owner. Please assign another owner first.",
+    });
+  }
+
+  const response = await prisma.partnerUser.update({
+    where: {
+      userId_partnerId: {
+        userId,
+        partnerId: partner.id,
+      },
+    },
+    data: {
+      role,
+    },
+  });
+
+  return NextResponse.json(response);
+});
+
 // DELETE /api/partner-profile/users?email={email} - remove an invite
 export const DELETE = withPartnerProfile(
   async ({ searchParams, partner, session }) => {
@@ -112,14 +196,11 @@ export const DELETE = withPartnerProfile(
       });
     }
 
-    if (
-      (totalOwners === 1 && partnerUser.role === "owner",
-      userId === session.user.id)
-    ) {
+    if (totalOwners === 1 && partnerUser.role === "owner") {
       throw new DubApiError({
         code: "bad_request",
         message:
-          "Cannot remove owner from partner profile. Please transfer ownership to another user first.",
+          "Cannot remove the last owner from partner profile. Please assign another owner first.",
       });
     }
 
