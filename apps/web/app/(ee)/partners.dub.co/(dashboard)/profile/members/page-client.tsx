@@ -89,52 +89,13 @@ export function ProfileMembersPageClient() {
         minSize: 120,
         size: 150,
         maxSize: 200,
-        cell: ({ row }) => {
-          const user = row.original;
-          const isCurrentUser = session?.user?.email === user.email;
-          const [role, setRole] = useState<PartnerRole>(user.role);
-
-          const { UpdateUserModal, setShowUpdateUserModal } =
-            useUpdatePartnerUserModal({
-              user,
-              role,
-            });
-
-          const isDisabled =
-            !isCurrentUserOwner || // Only owners can change roles
-            isCurrentUser; // Can't change your own role
-
-          return (
-            <>
-              <UpdateUserModal />
-              <select
-                className={cn(
-                  "rounded-md border border-neutral-200 text-xs text-neutral-500 focus:border-neutral-600 focus:ring-neutral-600",
-                  {
-                    "cursor-not-allowed bg-neutral-100": isDisabled,
-                  },
-                )}
-                value={role}
-                disabled={isDisabled}
-                onChange={(e) => {
-                  const newRole = e.target.value as PartnerRole;
-                  setRole(newRole);
-                  setShowUpdateUserModal(true);
-                }}
-                title={
-                  !isCurrentUserOwner
-                    ? "Only owners can change member roles"
-                    : isCurrentUser
-                      ? "You cannot change your own role"
-                      : undefined
-                }
-              >
-                <option value="owner">Owner</option>
-                <option value="member">Member</option>
-              </select>
-            </>
-          );
-        },
+        cell: ({ row }) => (
+          <RoleCell
+            user={row.original}
+            isCurrentUser={session?.user?.email === row.original.email}
+            isCurrentUserOwner={isCurrentUserOwner}
+          />
+        ),
       },
       {
         id: "menu",
@@ -219,6 +180,59 @@ export function ProfileMembersPageClient() {
           <Table {...tableProps} table={table} />
         </PageWidthWrapper>
       </PageContent>
+    </>
+  );
+}
+
+function RoleCell({
+  user,
+  isCurrentUser,
+  isCurrentUserOwner,
+}: {
+  user: PartnerUserProps;
+  isCurrentUser: boolean;
+  isCurrentUserOwner: boolean;
+}) {
+  const [role, setRole] = useState<PartnerRole>(user.role);
+
+  const { UpdateUserModal, setShowUpdateUserModal } =
+    useUpdatePartnerUserModal({
+      user,
+      role,
+    });
+
+  const isDisabled =
+    !isCurrentUserOwner || // Only owners can change roles
+    isCurrentUser; // Can't change your own role
+
+  return (
+    <>
+      <UpdateUserModal />
+      <select
+        className={cn(
+          "rounded-md border border-neutral-200 text-xs text-neutral-500 focus:border-neutral-600 focus:ring-neutral-600",
+          {
+            "cursor-not-allowed bg-neutral-100": isDisabled,
+          },
+        )}
+        value={role}
+        disabled={isDisabled}
+        onChange={(e) => {
+          const newRole = e.target.value as PartnerRole;
+          setRole(newRole);
+          setShowUpdateUserModal(true);
+        }}
+        title={
+          !isCurrentUserOwner
+            ? "Only owners can change member roles"
+            : isCurrentUser
+              ? "You cannot change your own role"
+              : undefined
+        }
+      >
+        <option value="owner">Owner</option>
+        <option value="member">Member</option>
+      </select>
     </>
   );
 }
