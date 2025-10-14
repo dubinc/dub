@@ -9,9 +9,15 @@ import {
 } from "@/lib/partners/constants";
 import { invitePartnerMemberSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
+import { PartnerRole } from "@dub/prisma/client";
 import { isRejected, pluralize } from "@dub/utils";
 import { NextResponse } from "next/server";
 import z from "zod";
+
+const updateInviteRoleSchema = z.object({
+  email: z.string().email(),
+  role: z.nativeEnum(PartnerRole),
+});
 
 const removeInviteSchema = z.object({
   email: z.string().email(),
@@ -130,6 +136,50 @@ export const POST = withPartnerProfile(
     }
 
     return NextResponse.json({ message: "Invite(s) sent" });
+  },
+);
+
+// PATCH /api/partner-profile/invites - update an invite's role
+export const PATCH = withPartnerProfile(
+  async ({ req, partner, partnerUser }) => {
+    const { email, role } = updateInviteRoleSchema.parse(
+      await parseRequestBody(req),
+    );
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "user_invites.update",
+    });
+
+    const invite = await prisma.partnerInvite.findUnique({
+      where: {
+        email_partnerId: {
+          email,
+          partnerId: partner.id,
+        },
+      },
+    });
+
+    if (!invite) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "The invitation you're trying to update was not found.",
+      });
+    }
+
+    const response = await prisma.partnerInvite.update({
+      where: {
+        email_partnerId: {
+          email,
+          partnerId: partner.id,
+        },
+      },
+      data: {
+        role,
+      },
+    });
+
+    return NextResponse.json(response);
   },
 );
 

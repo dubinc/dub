@@ -8,6 +8,7 @@ const PERMISSIONS = [
   "users.update",
   "user_invites.create",
   "user_invites.delete",
+  "user_invites.update",
   "payouts.read",
   "payout_settings.update",
 ] as const;
@@ -17,6 +18,7 @@ const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
     "users.update",
     "user_invites.create",
     "user_invites.delete",
+    "user_invites.update",
     "payouts.read",
     "payout_settings.update",
   ],

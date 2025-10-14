@@ -26,19 +26,24 @@ function UpdatePartnerUserModal({
   const [updating, setUpdating] = useState(false);
   const { id: userId, name, email } = user;
 
+  // Check if this is an invite (id is null) or a user
+  const isInvite = userId === null;
+
   const updateRole = async () => {
     setUpdating(true);
 
     try {
-      const response = await fetch("/api/partner-profile/users", {
+      const endpoint = isInvite
+        ? "/api/partner-profile/invites"
+        : "/api/partner-profile/users";
+      const body = isInvite ? { email, role } : { userId, role };
+
+      const response = await fetch(endpoint, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          userId,
-          role,
-        }),
+        body: JSON.stringify(body),
       });
 
       if (!response.ok) {
@@ -50,7 +55,7 @@ function UpdatePartnerUserModal({
       setShowUpdateUserModal(false);
       toast.success(`Successfully updated the role to ${role}.`);
     } catch (error) {
-      toast.error(error.message || "Failed to update role");
+      toast.error(error.message || "Failed to update role.");
     } finally {
       setUpdating(false);
     }
@@ -63,7 +68,9 @@ function UpdatePartnerUserModal({
       className="max-w-md"
     >
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
-        <h3 className="text-lg font-medium">Update Member Role</h3>
+        <h3 className="text-lg font-medium">
+          {isInvite ? "Update Invitation Role" : "Update Member Role"}
+        </h3>
         <p className="text-sm text-neutral-500">
           This will change{" "}
           <span className="font-semibold text-black">{name || email}</span>
