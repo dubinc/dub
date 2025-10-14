@@ -166,12 +166,7 @@ export const DELETE = withPartnerProfile(
   async ({ searchParams, partner, partnerUser }) => {
     const { userId } = removeUserSchema.parse(searchParams);
 
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "users.delete",
-    });
-
-    const [partnerUserFound, totalOwners] = await Promise.all([
+    const [userToRemove, totalOwners] = await Promise.all([
       prisma.partnerUser.findUnique({
         where: {
           userId_partnerId: {
@@ -189,24 +184,34 @@ export const DELETE = withPartnerProfile(
       }),
     ]);
 
-    if (!partnerUserFound) {
+    if (!userToRemove) {
       throw new DubApiError({
         code: "not_found",
-        message: "The user you're trying to remove was not found.",
+        message:
+          "The user you're trying to remove was not found in this partner profile.",
       });
     }
 
-    if (totalOwners === 1 && partnerUserFound.role === "owner") {
+    const isSelfRemoval = userToRemove.userId === partnerUser.userId;
+
+    if (!isSelfRemoval) {
+      throwIfNoPermission({
+        role: partnerUser.role,
+        permission: "users.delete",
+      });
+    }
+
+    if (totalOwners === 1 && userToRemove.role === "owner") {
       throw new DubApiError({
         code: "bad_request",
         message:
-          "Cannot remove the last owner from partner profile. Please assign another owner first.",
+          "You can't remove the only owner from this partner profile. Please assign another owner before removing this one.",
       });
     }
 
     const response = await prisma.partnerUser.delete({
       where: {
-        id: partnerUserFound.id,
+        id: userToRemove.id,
       },
     });
 
