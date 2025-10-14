@@ -2,8 +2,9 @@ import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { fetcher } from "@dub/utils";
+import { useSearchParams } from "next/navigation";
 import { ContextType, useContext } from "react";
-import useSWR, { useSWRConfig } from "swr";
+import useSWR from "swr";
 import { AnalyticsContext } from "./analytics-provider";
 
 type AnalyticsFilterResult = {
@@ -24,50 +25,44 @@ export function useAnalyticsFilterOption(
     | AnalyticsGroupByOptions
     | ({ groupBy: AnalyticsGroupByOptions } & Record<string, any>),
   options?: {
-    cacheOnly?: boolean;
+    disabled?: boolean;
+    omitGroupByFilterKey?: boolean; // for Filter.Select and Filter.List, we need to show all options by default, so we need to omit the groupBy filter key
     context?: Pick<
       ContextType<typeof AnalyticsContext>,
       "baseApiPath" | "queryString" | "selectedTab" | "requiresUpgrade"
     >;
   },
 ): AnalyticsFilterResult {
-  const { cache } = useSWRConfig();
+  const searchParams = useSearchParams();
 
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     options?.context ?? useContext(AnalyticsContext);
 
-  const enabled =
-    !options?.cacheOnly ||
-    [...cache.keys()].includes(
-      `${baseApiPath}?${editQueryString(queryString, {
-        ...(typeof groupByOrParams === "string"
-          ? { groupBy: groupByOrParams }
-          : groupByOrParams),
-      })}`,
-    );
+  const groupBy =
+    typeof groupByOrParams === "string"
+      ? groupByOrParams
+      : groupByOrParams?.groupBy;
 
   const { data, isLoading } = useSWR<Record<string, any>[]>(
-    enabled
-      ? `${baseApiPath}?${editQueryString(
-          queryString,
-          {
-            ...(typeof groupByOrParams === "string"
-              ? {
-                  groupBy: groupByOrParams,
-                }
-              : groupByOrParams),
-          },
-          // when there is a groupBy, we need to remove the filter for that groupBy param
-          groupByOrParams &&
-            SINGULAR_ANALYTICS_ENDPOINTS[
-              groupByOrParams as AnalyticsGroupByOptions
-            ]
-            ? SINGULAR_ANALYTICS_ENDPOINTS[
-                groupByOrParams as AnalyticsGroupByOptions
-              ]
-            : undefined,
-        )}`
-      : null,
+    !options?.disabled &&
+      `${baseApiPath}?${editQueryString(
+        queryString,
+        {
+          ...(groupBy && { groupBy }),
+          ...(!options?.omitGroupByFilterKey &&
+            groupBy === "top_links" &&
+            !searchParams.get("root") && { root: "false" }),
+        },
+        // if theres no groupBy or we're not omitting the groupBy filter, skip
+        // else, we need to remove the filter for that groupBy param
+        (() => {
+          if (!groupBy || !options?.omitGroupByFilterKey) return undefined;
+          if (groupBy === "top_links") return ["domain", "key"];
+          return SINGULAR_ANALYTICS_ENDPOINTS[groupBy]
+            ? SINGULAR_ANALYTICS_ENDPOINTS[groupBy]
+            : undefined;
+        })(),
+      )}`,
     fetcher,
     {
       shouldRetryOnError: !requiresUpgrade,

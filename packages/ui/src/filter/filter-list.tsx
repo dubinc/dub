@@ -172,7 +172,6 @@ export function FilterList({
                           }}
                           options={
                             filter.options?.map((opt): ComboboxOption => {
-                              console.log({ opt });
                               const optionIcon =
                                 opt.icon ??
                                 filter.getOptionIcon?.(opt.value, {
