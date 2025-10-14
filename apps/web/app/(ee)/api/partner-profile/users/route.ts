@@ -5,6 +5,7 @@ import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
 import { getPartnerUsersQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
+import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -33,60 +34,58 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { search, role, sortBy, sortOrder } =
     getPartnerUsersQuerySchema.parse(searchParams);
 
-  const [partnerUsers, partnerInvites] = await Promise.all([
-    prisma.partnerUser.findMany({
-      where: {
-        partnerId: partner.id,
-        ...(search && {
-          OR: [
-            { user: { email: { contains: search } } },
-            { user: { name: { contains: search } } },
-          ],
-        }),
-        ...(role && { role }),
-      },
-      include: {
-        user: true,
-      },
-      orderBy:
-        sortBy === "name" ? { user: { name: sortOrder } } : { role: sortOrder },
-    }),
+  // Build WHERE conditions
+  const searchCondition = search
+    ? Prisma.sql`AND (u.email LIKE ${`%${search}%`} OR u.name LIKE ${`%${search}%`})`
+    : Prisma.empty;
 
-    prisma.partnerInvite.findMany({
-      where: {
-        partnerId: partner.id,
-        ...(search && {
-          email: { contains: search },
-        }),
-        ...(role && { role }),
-      },
-      orderBy: {
-        [sortBy === "name" ? "email" : "role"]: sortOrder,
-      },
-    }),
-  ]);
+  const searchConditionInvites = search
+    ? Prisma.sql`AND pi.email LIKE ${`%${search}%`}`
+    : Prisma.empty;
 
-  const response = partnerUserSchema.parse([
-    ...partnerUsers.map(({ user, role }) => ({
-      id: user.id,
-      name: user.name,
-      image: user.image,
-      email: user.email,
-      role,
-      createdAt: user.createdAt,
-    })),
+  const roleCondition = role ? Prisma.sql`AND pu.role = ${role}` : Prisma.empty;
 
-    ...partnerInvites.map(({ email, createdAt, role }) => ({
-      id: null,
-      name: null,
-      image: null,
-      email,
-      role,
-      createdAt,
-    })),
-  ]);
+  const roleConditionInvites = role
+    ? Prisma.sql`AND pi.role = ${role}`
+    : Prisma.empty;
 
-  return NextResponse.json(response);
+  const sortColumn = sortBy === "name" ? "sort_name" : "role";
+  const sortDirection = sortOrder === "desc" ? "DESC" : "ASC";
+
+  const results = await prisma.$queryRaw(Prisma.sql`
+    SELECT 
+      u.id,
+      u.name,
+      u.email,
+      pu.role,
+      u.image,
+      pu.createdAt,
+      COALESCE(u.name, u.email) as sort_name
+    FROM PartnerUser pu
+    INNER JOIN User u ON pu.userId = u.id
+    WHERE pu.partnerId = ${partner.id}
+      ${searchCondition}
+      ${roleCondition}
+
+    UNION ALL
+
+    SELECT 
+      NULL as id,
+      NULL as name,
+      pi.email,
+      pi.role,
+      NULL as image,
+      pi.createdAt,
+      pi.email as sort_name
+    FROM PartnerInvite pi
+    WHERE pi.partnerId = ${partner.id}
+      ${searchConditionInvites}
+      ${roleConditionInvites}
+
+    ORDER BY ${Prisma.raw(sortColumn)} ${Prisma.raw(sortDirection)}, createdAt ASC, email ASC
+  `);
+
+  return NextResponse.json(partnerUserSchema.parse(results));
 });
 
 // PATCH /api/partner-profile/users - update a user's role
