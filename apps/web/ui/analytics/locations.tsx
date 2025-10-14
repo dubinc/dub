@@ -58,8 +58,8 @@ export default function Locations() {
                       ) : (
                         <img
                           alt={d.country}
-                          src={`https://flag.vercel.app/m/${d.country}.svg`}
-                          className="h-3 w-5"
+                          src={`https://hatscripts.github.io/circle-flags/flags/${d.country.toLowerCase()}.svg`}
+                          className="size-4 shrink-0"
                         />
                       ),
                     title:

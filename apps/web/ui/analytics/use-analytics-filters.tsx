@@ -668,8 +668,8 @@ export function useAnalyticsFilters({
             icon: (
               <img
                 alt={country}
-                src={`https://flag.vercel.app/m/${country}.svg`}
-                className="h-2.5 w-4"
+                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                className="size-4 shrink-0"
               />
             ),
             right: getFilterOptionTotal(rest),
@@ -686,8 +686,8 @@ export function useAnalyticsFilters({
             icon: (
               <img
                 alt={country}
-                src={`https://flag.vercel.app/m/${country}.svg`}
-                className="h-2.5 w-4"
+                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                className="size-4 shrink-0"
               />
             ),
             right: getFilterOptionTotal(rest),
