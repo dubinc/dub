@@ -11,16 +11,15 @@ import { PartnerRole } from "@dub/prisma/client";
 import {
   Avatar,
   Button,
-  MenuItem,
   Popover,
   Table,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots } from "@dub/ui/icons";
+import { Dots, Icon } from "@dub/ui/icons";
 import { cn, timeAgo } from "@dub/utils";
-import { ColumnDef } from "@tanstack/react-table";
+import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
@@ -156,10 +155,11 @@ export function ProfileMembersPageClient() {
   );
 }
 
-function RowMenuButton({ row }: { row: any }) {
+function RowMenuButton({ row }: { row: Row<PartnerUserProps> }) {
   const [isOpen, setIsOpen] = useState(false);
   const { data: session } = useSession();
-  const user = row.original as PartnerUserProps;
+
+  const user = row.original;
 
   const { RemovePartnerUserModal, setShowRemovePartnerUserModal } =
     useRemovePartnerUserModal({
@@ -188,6 +188,7 @@ function RowMenuButton({ row }: { row: any }) {
                         ? "Revoke invitation"
                         : "Remove member"
                   }
+                  variant="danger"
                   onSelect={() => {
                     setShowRemovePartnerUserModal(true);
                     setIsOpen(false);
@@ -207,5 +208,32 @@ function RowMenuButton({ row }: { row: any }) {
         />
       </Popover>
     </>
+  );
+}
+
+function MenuItem({
+  icon: IconComp,
+  label,
+  onSelect,
+  variant = "default",
+}: {
+  icon: Icon;
+  label: string;
+  onSelect: () => void;
+  variant?: "default" | "danger";
+}) {
+  return (
+    <Command.Item
+      onSelect={onSelect}
+      className={cn(
+        "flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm",
+        variant === "danger"
+          ? "text-red-600 hover:bg-red-50"
+          : "text-neutral-700 hover:bg-neutral-100",
+      )}
+    >
+      <IconComp className="size-4 shrink-0" />
+      {label}
+    </Command.Item>
   );
 }

@@ -1,10 +1,11 @@
+import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const schema = z.array(
+const partnerUserSchema = z.array(
   z.object({
     id: z.string().nullable(),
     name: z.string().nullable(),
@@ -13,6 +14,10 @@ const schema = z.array(
     image: z.string().nullable(),
   }),
 );
+
+const removeUserSchema = z.object({
+  userId: z.string(),
+});
 
 // GET /api/partner-profile/users - list of users + invites
 export const GET = withPartnerProfile(async ({ partner }) => {
@@ -33,9 +38,7 @@ export const GET = withPartnerProfile(async ({ partner }) => {
     }),
   ]);
 
-  console.log(partnerUsers);
-
-  const response = schema.parse([
+  const response = partnerUserSchema.parse([
     ...partnerUsers.map(({ user, role }) => ({
       id: user.id,
       name: user.name,
@@ -55,3 +58,54 @@ export const GET = withPartnerProfile(async ({ partner }) => {
 
   return NextResponse.json(response);
 });
+
+// DELETE /api/partner-profile/users?email={email} - remove an invite
+export const DELETE = withPartnerProfile(
+  async ({ searchParams, partner, session }) => {
+    const { userId } = removeUserSchema.parse(searchParams);
+
+    const [partnerUser, totalOwners] = await Promise.all([
+      prisma.partnerUser.findUnique({
+        where: {
+          userId_partnerId: {
+            userId,
+            partnerId: partner.id,
+          },
+        },
+      }),
+
+      prisma.partnerUser.count({
+        where: {
+          partnerId: partner.id,
+          role: "owner",
+        },
+      }),
+    ]);
+
+    if (!partnerUser) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "The user you're trying to remove was not found.",
+      });
+    }
+
+    if (
+      (totalOwners === 1 && partnerUser.role === "owner",
+      userId === session.user.id)
+    ) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Cannot remove owner from partner profile. Please transfer ownership to another user first.",
+      });
+    }
+
+    const response = await prisma.partnerUser.delete({
+      where: {
+        id: partnerUser.id,
+      },
+    });
+
+    return NextResponse.json(response);
+  },
+);

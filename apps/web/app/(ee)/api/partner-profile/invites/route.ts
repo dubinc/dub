@@ -11,6 +11,10 @@ import z from "zod";
 const MAX_INVITES = 5;
 const MAX_PARTNER_USERS = 25;
 
+const removeInviteSchema = z.object({
+  email: z.string().email(),
+});
+
 // POST /api/partner-profile/invites - invite team members
 export const POST = withPartnerProfile(async ({ partner, req, session }) => {
   const invites = z
@@ -92,4 +96,20 @@ export const POST = withPartnerProfile(async ({ partner, req, session }) => {
   }
 
   return NextResponse.json({ message: "Invite(s) sent" });
+});
+
+// DELETE /api/partner-profile/invites?email={email} - remove an invite
+export const DELETE = withPartnerProfile(async ({ searchParams, partner }) => {
+  const { email } = removeInviteSchema.parse(searchParams);
+
+  const response = await prisma.partnerInvite.delete({
+    where: {
+      email_partnerId: {
+        email,
+        partnerId: partner.id,
+      },
+    },
+  });
+
+  return NextResponse.json(response);
 });
