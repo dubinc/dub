@@ -1,7 +1,9 @@
 "use client";
 
+import { Session } from "@/lib/auth";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { QRType } from "@/ui/qr-builder-new/constants/get-qr-config";
+import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
 import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
@@ -10,12 +12,11 @@ import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import { Tooltip, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { cn, formatDateTime, timeAgo } from "@dub/utils";
 import { Text } from "@radix-ui/themes";
+import { useNewQrContext } from "app/app.dub.co/(dashboard)/[slug]/helpers/new-qr-context";
+import { useSearchParams } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
-import { RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
-import { Session } from '@/lib/auth';
-import { useSearchParams } from 'next/navigation';
-import { useNewQrContext } from 'app/app.dub.co/(dashboard)/[slug]/helpers/new-qr-context';
 
 interface IQrCodeTitleColumnProps {
   user: Session["user"];
@@ -36,7 +37,8 @@ export function QrCodeTitleColumn({
 }: IQrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, title } = qrCode?.link ?? {};
   const { isMobile, width } = useMediaQuery();
-  const [isPreviewCanvasReady, setIsPreviewCanvasReady] = useState<boolean>(false);
+  const [isPreviewCanvasReady, setIsPreviewCanvasReady] =
+    useState<boolean>(false);
   const previewCanvasRef = useRef<HTMLCanvasElement>(null);
   const modalCanvasRef = useRef<HTMLCanvasElement>(null);
   const { newQrId, setNewQrId } = useNewQrContext();
@@ -47,15 +49,28 @@ export function QrCodeTitleColumn({
     setIsPreviewCanvasReady(true);
   }, []);
 
+  // Create separate QRCodeStyling instance for the small preview canvas
+  const { qrCode: previewQrCodeObject } = useQrCustomization(qrCode);
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } = useQRPreviewModal({
-    canvasRef: modalCanvasRef,
-    qrCode: builtQrCodeObject,
-    qrCodeId: qrCode.id,
-    width: isMobile ? 300 : 200,
-    height: isMobile ? 300 : 200,
-    user,
-  });
+  const { QRPreviewModal, setShowQRPreviewModal, handleOpenNewQr } =
+    useQRPreviewModal({
+      canvasRef: modalCanvasRef,
+      qrCode: builtQrCodeObject,
+      qrCodeId: qrCode.id,
+      width: isMobile ? 300 : 200,
+      height: isMobile ? 300 : 200,
+      user,
+    });
+
+  useEffect(() => {
+    if (searchParams.get("onboarded")) {
+      handleOpenNewQr();
+      queryParams({
+        del: ["onboarded"],
+      });
+    }
+  }, [searchParams.get("onboarded"), handleOpenNewQr, queryParams]);
 
   useEffect(() => {
     if (qrCode.id === searchParams.get("qrId") && isPreviewCanvasReady) {
@@ -64,7 +79,13 @@ export function QrCodeTitleColumn({
         del: ["qrId"],
       });
     }
-  }, [qrCode.id, searchParams.get("qrId"), handleOpenNewQr, queryParams, isPreviewCanvasReady]);
+  }, [
+    qrCode.id,
+    searchParams.get("qrId"),
+    handleOpenNewQr,
+    queryParams,
+    isPreviewCanvasReady,
+  ]);
 
   useEffect(() => {
     if (qrCode.id === newQrId && isPreviewCanvasReady) {
@@ -90,7 +111,7 @@ export function QrCodeTitleColumn({
             <QRCanvas
               ref={previewCanvasRef}
               qrCodeId={qrCode.id}
-              qrCode={builtQrCodeObject}
+              qrCode={previewQrCodeObject}
               width={100}
               height={100}
               onCanvasReady={handleTitleCanvasReady}

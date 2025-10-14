@@ -13,13 +13,13 @@ import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.t
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Button, MaxWidthWrapper } from "@dub/ui";
 import { ShieldAlert } from "@dub/ui/icons";
-import { trackClientEvents } from "core/integration/analytic";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { ICustomerBody } from "core/integration/payment/config";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NewQrProvider } from "./helpers/new-qr-context";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 
 interface WorkspaceQRsClientProps {
   initialQrs: TQrStorageData[];
@@ -32,7 +32,6 @@ export default function WorkspaceQRsClient({
   initialQrs,
   featuresAccess,
   user,
-  cookieUser,
 }: WorkspaceQRsClientProps) {
   return (
     <UserProvider user={user}>
@@ -42,12 +41,6 @@ export default function WorkspaceQRsClient({
             initialQrs={initialQrs}
             featuresAccess={featuresAccess}
             user={user}
-          />
-
-          <TrialOfferWithQRPreviewWrapper
-            initialQrs={initialQrs}
-            featuresAccess={featuresAccess}
-            user={cookieUser}
           />
         </QrCodesDisplayProvider>
       </NewQrProvider>
@@ -160,7 +153,6 @@ function WorkspaceQRs({
     </>
   );
 }
-
 function TrialOfferWithQRPreviewWrapper({
   initialQrs,
   featuresAccess,

@@ -2,7 +2,6 @@
 
 import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
 import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
-import { createAutoLoginURL } from "@/lib/auth/jwt-signin.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit, redis } from "@/lib/upstash";
 import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
@@ -131,13 +130,6 @@ export const createUserAccountAction = actionClient
         "Failed to create user account. Please try again.",
       );
     }
-
-    console.log("loginUrl creation started");
-
-    const loginUrl = await createAutoLoginURL(generatedUserId);
-
-    console.log("loginUrl", loginUrl);
-    console.log("qrDataToCreate", qrDataToCreate);
 
     waitUntil(
       Promise.all([
