@@ -123,7 +123,7 @@ export const PATCH = withPartnerProfile(
 
     throwIfNoPermission({
       role: partnerUser.role,
-      permission: "user.update",
+      permission: "users.update",
     });
 
     if (!partnerUserFound) {

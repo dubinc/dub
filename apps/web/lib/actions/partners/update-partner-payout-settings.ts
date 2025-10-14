@@ -17,7 +17,7 @@ export const updatePartnerPayoutSettingsAction = authPartnerActionClient
 
     throwIfNoPermission({
       role: partnerUser.role,
-      permission: "payout.update",
+      permission: "payout_settings.update",
     });
 
     const invoiceSettings = {

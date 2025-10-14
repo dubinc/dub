@@ -26,7 +26,7 @@ export const POST = withPartnerProfile(
 
     throwIfNoPermission({
       role: partnerUser.role,
-      permission: "user.invite",
+      permission: "user_invites.create",
     });
 
     if (invites.length > MAX_INVITES_PER_REQUEST) {
@@ -134,25 +134,32 @@ export const POST = withPartnerProfile(
 );
 
 // DELETE /api/partner-profile/invites?email={email} - remove an invite
-export const DELETE = withPartnerProfile(async ({ searchParams, partner }) => {
-  const { email } = removeInviteSchema.parse(searchParams);
+export const DELETE = withPartnerProfile(
+  async ({ searchParams, partner, partnerUser }) => {
+    const { email } = removeInviteSchema.parse(searchParams);
 
-  await prisma.$transaction([
-    prisma.partnerInvite.delete({
-      where: {
-        email_partnerId: {
-          email,
-          partnerId: partner.id,
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "user_invites.delete",
+    });
+
+    await prisma.$transaction([
+      prisma.partnerInvite.delete({
+        where: {
+          email_partnerId: {
+            email,
+            partnerId: partner.id,
+          },
         },
-      },
-    }),
+      }),
 
-    prisma.verificationToken.deleteMany({
-      where: {
-        identifier: email,
-      },
-    }),
-  ]);
+      prisma.verificationToken.deleteMany({
+        where: {
+          identifier: email,
+        },
+      }),
+    ]);
 
-  return NextResponse.json({ email });
-});
+    return NextResponse.json({ email });
+  },
+);

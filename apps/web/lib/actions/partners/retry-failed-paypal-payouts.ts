@@ -21,7 +21,7 @@ export const retryFailedPaypalPayoutsAction = authPartnerActionClient
 
     throwIfNoPermission({
       role: partnerUser.role,
-      permission: "payout.update",
+      permission: "payout_settings.update",
     });
 
     if (!partner.payoutsEnabledAt) {
