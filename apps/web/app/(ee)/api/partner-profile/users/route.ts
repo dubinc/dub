@@ -124,7 +124,6 @@ export const PATCH = withPartnerProfile(
     throwIfNoPermission({
       role: partnerUser.role,
       permission: "user.update",
-      message: "Only owners can change member roles.",
     });
 
     if (!partnerUserFound) {

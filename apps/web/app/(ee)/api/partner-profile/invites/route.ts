@@ -27,7 +27,6 @@ export const POST = withPartnerProfile(
     throwIfNoPermission({
       role: partnerUser.role,
       permission: "user.invite",
-      message: "Only owners can invite users.",
     });
 
     if (invites.length > MAX_INVITES_PER_REQUEST) {

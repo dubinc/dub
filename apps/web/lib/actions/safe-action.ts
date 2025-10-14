@@ -97,6 +97,17 @@ export const authPartnerActionClient = actionClient.use(async ({ next }) => {
         some: { userId: session.user.id },
       },
     },
+    include: {
+      users: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          role: true,
+          userId: true,
+        },
+      },
+    },
   });
 
   if (!partner) {
@@ -107,6 +118,7 @@ export const authPartnerActionClient = actionClient.use(async ({ next }) => {
     ctx: {
       user: session.user,
       partner,
+      partnerUser: partner.users[0],
     },
   });
 });

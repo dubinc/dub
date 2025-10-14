@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
@@ -15,8 +16,13 @@ const retryFailedPaypalPayoutSchema = z.object({
 export const retryFailedPaypalPayoutsAction = authPartnerActionClient
   .schema(retryFailedPaypalPayoutSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
     const { payoutId } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "payout.update",
+    });
 
     if (!partner.payoutsEnabledAt) {
       throw new Error(

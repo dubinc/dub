@@ -4,10 +4,10 @@ import { DubApiError } from "../api/errors";
 type Permission = (typeof PERMISSIONS)[number];
 type Role = PartnerUser["role"];
 
-const PERMISSIONS = ["user.update", "user.invite"] as const;
+const PERMISSIONS = ["user.update", "user.invite", "payout.update"] as const;
 
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
-  owner: ["user.update", "user.invite"],
+  owner: ["user.update", "user.invite", "payout.update"],
   member: [],
 } as const;
 
