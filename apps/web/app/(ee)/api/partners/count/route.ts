@@ -35,7 +35,7 @@ export const GET = withWorkspace(
               }),
             },
             every: {
-              status: status || "approved",
+              status,
             },
           },
           ...commonWhere,
@@ -100,7 +100,7 @@ export const GET = withWorkspace(
             }),
             ...commonWhere,
           },
-          status: status || "approved",
+          status,
         },
         _count: true,
         orderBy: {
@@ -117,7 +117,7 @@ export const GET = withWorkspace(
     const count = await prisma.programEnrollment.count({
       where: {
         programId,
-        status: status || "approved",
+        status,
         ...(groupId && {
           groupId,
         }),

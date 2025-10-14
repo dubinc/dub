@@ -23,6 +23,12 @@
           "propertyName": "dealstage",
           "objectType": "deal",
           "active": true
+        },
+        {
+          "subscriptionType": "object.propertyChange",
+          "propertyName": "lifecyclestage",
+          "objectType": "contact",
+          "active": true
         }
       ]
     }

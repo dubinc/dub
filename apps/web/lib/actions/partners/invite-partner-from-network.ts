@@ -7,7 +7,7 @@ import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-u
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
 import { sendEmail } from "@dub/email";
-import PartnerInvite from "@dub/email/templates/partner-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -89,7 +89,7 @@ export const invitePartnerFromNetworkAction = authActionClient
           subject: `${program.name} invited you to join on Dub Partners`,
           variant: "notifications",
           to: partner.email,
-          react: PartnerInvite({
+          react: ProgramInvite({
             email: partner.email,
             program: {
               name: program.name,

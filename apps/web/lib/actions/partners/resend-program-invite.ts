@@ -3,7 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sendEmail } from "@dub/email";
-import PartnerInvite from "@dub/email/templates/partner-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
@@ -54,7 +54,7 @@ export const resendProgramInviteAction = authActionClient
         subject: `${program.name} invited you to join Dub Partners`,
         variant: "notifications",
         to: partner.email!,
-        react: PartnerInvite({
+        react: ProgramInvite({
           email: partner.email!,
           program: {
             name: program.name,
