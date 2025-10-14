@@ -1,14 +1,211 @@
 "use client";
 
+import usePartnerProfileUsers, {
+  PartnerUserProps,
+} from "@/lib/swr/use-partner-profile-users";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { useEditPartnerUserModal } from "@/ui/modals/edit-partner-user-modal";
+import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal";
+import { PartnerRole } from "@dub/prisma/client";
+import {
+  Avatar,
+  Button,
+  MenuItem,
+  Popover,
+  Table,
+  usePagination,
+  useRouterStuff,
+  useTable,
+} from "@dub/ui";
+import { Dots } from "@dub/ui/icons";
+import { cn, timeAgo } from "@dub/utils";
+import { ColumnDef } from "@tanstack/react-table";
+import { Command } from "cmdk";
+import { UserMinus } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useMemo, useState } from "react";
 
 export function ProfileMembersPageClient() {
+  const { queryParams, searchParams } = useRouterStuff();
+  const { pagination, setPagination } = usePagination();
+
+  const { data: session } = useSession();
+  const { users, loading, error } = usePartnerProfileUsers();
+
+  const sortBy = searchParams.get("sortBy") || "name";
+  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+
+  const columns = useMemo<ColumnDef<PartnerUserProps>[]>(
+    () => [
+      {
+        id: "name",
+        header: "Name",
+        accessorFn: (row) => row.name || row.email,
+        minSize: 360,
+        size: 870,
+        maxSize: 900,
+        cell: ({ row }) => {
+          const user = row.original;
+
+          return (
+            <div className="flex items-center space-x-3">
+              <Avatar user={user} />
+              <div className="flex flex-col">
+                <h3 className="text-sm font-medium">
+                  {user.name || user.email}
+                </h3>
+                <p className="text-xs text-neutral-500">{user.email}</p>
+                {user.id === null && user.createdAt && (
+                  <p className="text-xs text-neutral-400">
+                    Invited {timeAgo(user.createdAt)}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        id: "role",
+        header: "Role",
+        accessorFn: (row) => row.role,
+        minSize: 120,
+        size: 150,
+        maxSize: 200,
+        cell: ({ row }) => {
+          const user = row.original;
+          const isCurrentUser = session?.user?.email === user.email;
+          const [role, setRole] = useState<PartnerRole>(user.role);
+
+          const { EditUserModal, setShowEditUserModal } =
+            useEditPartnerUserModal({
+              user,
+              role,
+            });
+
+          return (
+            <>
+              <EditUserModal />
+              <select
+                className={cn(
+                  "rounded-md border border-neutral-200 text-xs text-neutral-500 focus:border-neutral-600 focus:ring-neutral-600",
+                  {
+                    "cursor-not-allowed bg-neutral-100": isCurrentUser,
+                  },
+                )}
+                value={role}
+                disabled={isCurrentUser}
+                onChange={(e) => {
+                  const newRole = e.target.value as PartnerRole;
+                  setRole(newRole);
+                  setShowEditUserModal(true);
+                }}
+              >
+                <option value="owner">Owner</option>
+                <option value="member">Member</option>
+              </select>
+            </>
+          );
+        },
+      },
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        header: () => null,
+        cell: ({ row }) => <RowMenuButton row={row} />,
+      },
+    ],
+    [session?.user?.email],
+  );
+
+  const { table, ...tableProps } = useTable({
+    data: users || [],
+    columns,
+    pagination,
+    onPaginationChange: setPagination,
+    sortableColumns: ["name", "role"],
+    sortBy,
+    sortOrder,
+    onSortChange: ({ sortBy, sortOrder }) =>
+      queryParams({
+        set: {
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
+        },
+        del: "page",
+        scroll: false,
+      }),
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+    resourceName: (p) => `member${p ? "s" : ""}`,
+    rowCount: users?.length || 0,
+    loading,
+    error: error ? "Failed to load members" : undefined,
+  });
+
   return (
     <PageContent title="Members">
       <PageWidthWrapper className="mb-20 flex flex-col gap-6">
-        ProfileMembersPageClient
+        <Table {...tableProps} table={table} />
       </PageWidthWrapper>
     </PageContent>
+  );
+}
+
+function RowMenuButton({ row }: { row: any }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const { data: session } = useSession();
+  const user = row.original as PartnerUserProps;
+
+  const { RemovePartnerUserModal, setShowRemovePartnerUserModal } =
+    useRemovePartnerUserModal({
+      user,
+    });
+
+  const isCurrentUser = session?.user?.email === user.email;
+  const isInvite = user.id === null;
+
+  return (
+    <>
+      <RemovePartnerUserModal />
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <Command tabIndex={0} loop className="focus:outline-none">
+            <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+              <Command.Group className="grid gap-px p-1.5">
+                <MenuItem
+                  icon={UserMinus}
+                  label={
+                    isCurrentUser
+                      ? "Leave partner profile"
+                      : isInvite
+                        ? "Revoke invitation"
+                        : "Remove member"
+                  }
+                  onSelect={() => {
+                    setShowRemovePartnerUserModal(true);
+                    setIsOpen(false);
+                  }}
+                />
+              </Command.Group>
+            </Command.List>
+          </Command>
+        }
+        align="end"
+      >
+        <Button
+          type="button"
+          className="h-8 whitespace-nowrap px-2 disabled:border-transparent disabled:bg-transparent"
+          variant="outline"
+          icon={<Dots className="h-4 w-4 shrink-0" />}
+        />
+      </Popover>
+    </>
   );
 }
