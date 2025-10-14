@@ -45,6 +45,7 @@ export const createBountySubmissionAction = authPartnerActionClient
       getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId,
+        include: {},
       }),
 
       prisma.bounty.findUniqueOrThrow({
@@ -157,6 +158,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           ...(requireImage && { files }),
           ...(requireUrl && { urls }),
           status: isDraft ? "draft" : "submitted",
+          ...(isDraft ? {} : { completedAt: new Date() }),
         },
       });
     }
@@ -172,6 +174,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           ...(requireImage && { files }),
           ...(requireUrl && { urls }),
           status: isDraft ? "draft" : "submitted",
+          ...(isDraft ? {} : { completedAt: new Date() }),
         },
       });
     }

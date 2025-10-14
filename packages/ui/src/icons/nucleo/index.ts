@@ -194,6 +194,7 @@ export * from "./shield-keyhole";
 export * from "./shield-slash";
 export * from "./shield-user";
 export * from "./shuffle";
+export * from "./sitemap";
 export * from "./sliders";
 export * from "./sparkle3";
 export * from "./square-chart";

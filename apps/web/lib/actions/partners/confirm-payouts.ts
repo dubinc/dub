@@ -18,6 +18,7 @@ const confirmPayoutsSchema = z.object({
   workspaceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutId: z.string().optional(),
   excludedPayoutIds: z.array(z.string()).optional(),
   fastSettlement: z.boolean().optional().default(false),
   amount: z.number(),
@@ -33,6 +34,7 @@ export const confirmPayoutsAction = authActionClient
     const {
       paymentMethodId,
       cutoffPeriod,
+      selectedPayoutId,
       excludedPayoutIds,
       fastSettlement,
       amount,
@@ -133,6 +135,7 @@ export const confirmPayoutsAction = authActionClient
         invoiceId: invoice.id,
         paymentMethodId,
         cutoffPeriod,
+        selectedPayoutId,
         excludedPayoutIds,
       },
     });

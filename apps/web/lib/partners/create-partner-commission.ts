@@ -49,6 +49,7 @@ const constructWebhookPartner = (
 ) => {
   return {
     ...programEnrollment.partner,
+    groupId: programEnrollment.groupId,
     ...aggregatePartnerLinksStats(programEnrollment.links),
     totalCommissions: totalCommissions || programEnrollment.totalCommissions,
   };
@@ -78,10 +79,13 @@ export const createPartnerCommission = async ({
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
-    ...(event === "click" && { includeClickReward: true }),
-    ...(event === "lead" && { includeLeadReward: true }),
-    ...(event === "sale" && { includeSaleReward: true }),
-    includePartner: true,
+    include: {
+      links: true,
+      partner: true,
+      ...(event === "click" && { clickReward: true }),
+      ...(event === "lead" && { leadReward: true }),
+      ...(event === "sale" && { saleReward: true }),
+    },
   });
 
   if (event === "custom") {
@@ -258,14 +262,10 @@ export const createPartnerCommission = async ({
       `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings / 100, { currency: commission.currency })}) for ${partnerId}: ${JSON.stringify(commission)}`,
     );
 
-    // Make sure totalCommissions is up to date before firing the webhook & executing workflows
-    const { totalCommissions } = await syncTotalCommissions({
-      partnerId,
-      programId,
-    });
-
     const webhookPartner = constructWebhookPartner(programEnrollment, {
-      totalCommissions,
+      // check links metrics
+      totalCommissions:
+        programEnrollment.totalCommissions + commission.earnings,
     });
 
     waitUntil(
@@ -304,6 +304,11 @@ export const createPartnerCommission = async ({
               ...commission,
               partner: webhookPartner,
             }),
+          }),
+
+          syncTotalCommissions({
+            partnerId,
+            programId,
           }),
 
           !isClawback &&

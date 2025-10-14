@@ -52,10 +52,6 @@ export const approveBountySubmissionAction = authActionClient
       throw new Error("Bounty submission already approved.");
     }
 
-    if (bounty.type === "performance") {
-      throw new Error("Performance based bounties cannot be approved.");
-    }
-
     // Find the reward amount
     const finalRewardAmount = bounty.rewardAmount ?? rewardAmount;
 

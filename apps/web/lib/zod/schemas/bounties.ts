@@ -124,6 +124,7 @@ export const BountySubmissionSchema = z.object({
   performanceCount: z.number().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
+  completedAt: z.date().nullable(),
   reviewedAt: z.date().nullable(),
   rejectionReason: z.string().nullable(),
   rejectionNote: z.string().nullable(),

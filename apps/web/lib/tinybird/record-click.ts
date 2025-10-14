@@ -19,7 +19,10 @@ import {
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
-import { publishClickEvent } from "../upstash/redis-streams";
+import {
+  publishClickEvent,
+  publishPartnerActivityEvent,
+} from "../upstash/redis-streams";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
@@ -34,6 +37,8 @@ export async function recordClick({
   domain,
   key,
   url,
+  programId,
+  partnerId,
   webhookIds,
   workspaceId,
   skipRatelimit,
@@ -48,6 +53,8 @@ export async function recordClick({
   domain: string;
   key: string;
   url?: string;
+  programId?: string;
+  partnerId?: string;
   webhookIds?: string[];
   workspaceId: string | undefined;
   skipRatelimit?: boolean;
@@ -206,6 +213,33 @@ export async function recordClick({
               [linkId],
             );
           }),
+
+        programId &&
+          partnerId &&
+          publishPartnerActivityEvent({
+            programId,
+            partnerId,
+            eventType: "click",
+            timestamp: new Date().toISOString(),
+          }).catch(() => {
+            // Fallback on writing directly to the database
+            return conn.execute(
+              "UPDATE ProgramEnrollment SET totalClicks = totalClicks + 1 WHERE programId = ? AND partnerId = ?",
+              [programId, partnerId],
+            );
+          }),
+
+        // TODO: Remove after Tinybird migration
+        fetchWithRetry(
+          `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_NEW}`,
+            },
+            body: JSON.stringify(clickData),
+          },
+        ).then((res) => res.json()),
       ]);
 
       // Find the rejected promises and log them
@@ -218,6 +252,7 @@ export async function recordClick({
                 "recordClickCache set",
                 "Link clicks increment",
                 "Workspace usage increment",
+                "Program enrollment totalClicks increment",
               ];
               return {
                 operation: operations[index] || `Operation ${index}`,

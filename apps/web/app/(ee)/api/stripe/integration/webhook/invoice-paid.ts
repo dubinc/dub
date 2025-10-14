@@ -1,10 +1,11 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
-import { WebhookPartner } from "@/lib/types";
+import { StripeMode, WebhookPartner } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
@@ -16,7 +17,7 @@ import type Stripe from "stripe";
 import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
-export async function invoicePaid(event: Stripe.Event) {
+export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
   const invoice = event.data.object as Stripe.Invoice;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string;
@@ -34,7 +35,7 @@ export async function invoicePaid(event: Stripe.Event) {
     const connectedCustomer = await getConnectedCustomer({
       stripeCustomerId,
       stripeAccountId,
-      livemode: event.livemode,
+      mode,
     });
 
     const dubCustomerExternalId = connectedCustomer?.metadata.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
@@ -231,17 +232,24 @@ export async function invoicePaid(event: Stripe.Event) {
     webhookPartner = createdCommission?.webhookPartner;
 
     waitUntil(
-      executeWorkflows({
-        trigger: WorkflowTrigger.saleRecorded,
-        context: {
-          programId: link.programId,
-          partnerId: link.partnerId,
-          current: {
-            saleAmount: saleData.amount,
-            conversions: firstConversionFlag ? 1 : 0,
+      Promise.allSettled([
+        executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
           },
-        },
-      }),
+        }),
+        syncPartnerLinksStats({
+          partnerId: link.partnerId,
+          programId: link.programId,
+          eventType: "sale",
+        }),
+      ]),
     );
   }
 

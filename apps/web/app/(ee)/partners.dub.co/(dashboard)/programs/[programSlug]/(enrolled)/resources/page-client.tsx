@@ -56,31 +56,6 @@ export function ResourcesPageClient() {
             </ResourceSection>
           )}
 
-          {(isLoading || !!resources?.colors?.length) && (
-            <ResourceSection
-              resource="color"
-              title="Colors"
-              isLoading={isLoading}
-              isValidating={isValidating}
-            >
-              {resources?.colors?.map((color) => (
-                <ResourceCard
-                  key={color.id}
-                  resourceType="color"
-                  icon={
-                    <div
-                      className="size-full"
-                      style={{ backgroundColor: color.color }}
-                    />
-                  }
-                  title={color.name || "Color"}
-                  description={color.color.toUpperCase()}
-                  copyText={color.color.toUpperCase()}
-                />
-              ))}
-            </ResourceSection>
-          )}
-
           {(isLoading || !!resources?.links?.length) && (
             <ResourceSection
               resource="link"
@@ -104,6 +79,31 @@ export function ResourcesPageClient() {
                   title={link.name}
                   description={getPrettyUrl(link.url)}
                   visitUrl={link.url}
+                />
+              ))}
+            </ResourceSection>
+          )}
+
+          {(isLoading || !!resources?.colors?.length) && (
+            <ResourceSection
+              resource="color"
+              title="Colors"
+              isLoading={isLoading}
+              isValidating={isValidating}
+            >
+              {resources?.colors?.map((color) => (
+                <ResourceCard
+                  key={color.id}
+                  resourceType="color"
+                  icon={
+                    <div
+                      className="size-full"
+                      style={{ backgroundColor: color.color }}
+                    />
+                  }
+                  title={color.name || "Color"}
+                  description={color.color.toUpperCase()}
+                  copyText={color.color.toUpperCase()}
                 />
               ))}
             </ResourceSection>

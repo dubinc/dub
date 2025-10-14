@@ -336,24 +336,24 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                             }
                           >
                             {submission.status === "submitted" ? (
-                              `Submitted ${formatDate(submission.createdAt, { month: "short" })}`
-                            ) : submission.status === "approved" ? (
-                              bounty.type === "performance" ? (
-                                <>
-                                  Completed{" "}
-                                  {formatDate(submission.createdAt, {
+                              <>
+                                Pending Review |{" "}
+                                {bounty.type === "performance"
+                                  ? "Completed"
+                                  : "Submitted"}{" "}
+                                {submission.completedAt &&
+                                  formatDate(submission.completedAt, {
                                     month: "short",
                                   })}
-                                </>
-                              ) : (
-                                <>
-                                  Confirmed{" "}
-                                  {submission.reviewedAt &&
-                                    formatDate(submission.reviewedAt, {
-                                      month: "short",
-                                    })}
-                                </>
-                              )
+                              </>
+                            ) : submission.status === "approved" ? (
+                              <>
+                                Confirmed{" "}
+                                {submission.reviewedAt &&
+                                  formatDate(submission.reviewedAt, {
+                                    month: "short",
+                                  })}
+                              </>
                             ) : (
                               "Rejected"
                             )}

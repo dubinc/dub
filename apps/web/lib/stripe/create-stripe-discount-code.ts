@@ -3,7 +3,7 @@ import { stripeAppClient } from ".";
 import { DiscountProps } from "../types";
 
 const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { livemode: true }),
+  ...(process.env.VERCEL_ENV && { mode: "live" }),
 });
 
 const MAX_ATTEMPTS = 3;

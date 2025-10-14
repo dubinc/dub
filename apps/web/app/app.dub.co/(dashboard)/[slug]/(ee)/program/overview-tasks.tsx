@@ -41,7 +41,7 @@ export function OverviewTasks() {
       },
       {
         icon: Msgs,
-        label: "Response to partners",
+        label: "Respond to partners",
         count: unreadMessagesCount,
         href: `/${slug}/program/messages`,
         loading: unreadMessagesLoading,

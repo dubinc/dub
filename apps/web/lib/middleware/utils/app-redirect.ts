@@ -36,6 +36,11 @@ export const appRedirect = async (path: string) => {
   if (upgradeRegex.test(path))
     return path.replace(upgradeRegex, "/$1/settings/billing/upgrade");
 
+  // Redirect "/[slug]/guides" and all child paths to "/[slug]/settings/analytics"
+  const guidesRegex = /^\/([^\/]+)\/guides(?:\/(.*))?$/;
+  if (guidesRegex.test(path))
+    return path.replace(guidesRegex, "/$1/settings/analytics");
+
   // Redirect "/[slug]/settings/library/:path*" to "/[slug]/links/:path*"
   const libraryRegex = /^\/([^\/]+)\/settings\/library\/(.*)$/;
   if (libraryRegex.test(path))

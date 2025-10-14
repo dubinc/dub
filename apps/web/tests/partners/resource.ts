@@ -27,6 +27,7 @@ export const partnerLink = {
 
 export const normalizedPartnerDateFields = z.object({
   createdAt: z.string(),
+  bannedAt: z.string().nullish(),
   payoutsEnabledAt: z.string().nullish(),
   websiteVerifiedAt: z.string().nullish(),
   youtubeVerifiedAt: z.string().nullish(),

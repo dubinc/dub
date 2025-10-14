@@ -16,11 +16,11 @@ model PartnerGroup {
   discountId                 String?              @unique
   linkStructure              PartnerLinkStructure @default(short)
   additionalLinks            Json?                @db.Json
+  maxPartnerLinks            Int                  @default(0)
   applicationFormData        Json?                @db.Json
   applicationFormPublishedAt DateTime?
   landerData                 Json?                @db.Json
   landerPublishedAt          DateTime?
-  maxPartnerLinks            Int                  @default(0)
   utmTemplateId              String?              @unique
   createdAt                  DateTime             @default(now())
   updatedAt                  DateTime             @updatedAt

@@ -290,6 +290,7 @@ export default function Toggle({
         <Filter.List
           filters={filters}
           activeFilters={activeFiltersWithStreaming}
+          onSelect={onSelect}
           onRemove={onRemove}
           onRemoveAll={onRemoveAll}
         />

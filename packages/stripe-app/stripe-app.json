@@ -1,6 +1,6 @@
 {
   "id": "dub.co",
-  "version": "0.0.12",
+  "version": "0.0.18",
   "name": "Dub Partners",
   "icon": "./stripe-icon.png",
   "permissions": [
@@ -57,6 +57,7 @@
       "purpose": "Allows Dub to read promotion codes for an account."
     }
   ],
+  "connect_permissions": null,
   "ui_extension": {
     "views": [
       {
@@ -76,13 +77,13 @@
     }
   },
   "post_install_action": {
-    "type": "settings",
-    "url": ""
+    "type": "settings"
   },
   "allowed_redirect_uris": [
     "https://app.dub.co/api/stripe/integration/callback",
     "https://preview.dub.co/api/stripe/integration/callback"
   ],
   "stripe_api_access_type": "oauth",
-  "distribution_type": "public"
+  "distribution_type": "public",
+  "sandbox_install_compatible": true
 }

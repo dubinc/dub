@@ -34,6 +34,7 @@ import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { createId } from "../create-id";
+import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
 type TrackSaleParams = z.input<typeof trackSaleRequestSchema> & {
   rawBody: any;
@@ -367,16 +368,23 @@ const _trackLead = async ({
           },
         });
 
-        await executeWorkflows({
-          trigger: WorkflowTrigger.leadRecorded,
-          context: {
-            programId: link.programId,
-            partnerId: link.partnerId,
-            current: {
-              leads: 1,
+        await Promise.allSettled([
+          executeWorkflows({
+            trigger: WorkflowTrigger.leadRecorded,
+            context: {
+              programId: link.programId,
+              partnerId: link.partnerId,
+              current: {
+                leads: 1,
+              },
             },
-          },
-        });
+          }),
+          syncPartnerLinksStats({
+            partnerId: link.partnerId,
+            programId: link.programId,
+            eventType: "lead",
+          }),
+        ]);
       }
 
       // Send workspace webhook
@@ -540,17 +548,24 @@ const _trackSale = async ({
 
         webhookPartner = createdCommission?.webhookPartner;
 
-        await executeWorkflows({
-          trigger: WorkflowTrigger.saleRecorded,
-          context: {
-            programId: link.programId,
-            partnerId: link.partnerId,
-            current: {
-              saleAmount: saleData.amount,
-              conversions: firstConversionFlag ? 1 : 0,
+        await Promise.allSettled([
+          executeWorkflows({
+            trigger: WorkflowTrigger.saleRecorded,
+            context: {
+              programId: link.programId,
+              partnerId: link.partnerId,
+              current: {
+                saleAmount: saleData.amount,
+                conversions: firstConversionFlag ? 1 : 0,
+              },
             },
-          },
-        });
+          }),
+          syncPartnerLinksStats({
+            partnerId: link.partnerId,
+            programId: link.programId,
+            eventType: "sale",
+          }),
+        ]);
       }
 
       // Send workspace webhook

@@ -22,7 +22,9 @@ export function BountyInfo() {
   });
 
   const totalSubmissions = useMemo(() => {
-    return submissionsCount?.reduce((acc, curr) => acc + curr.count, 0);
+    return submissionsCount
+      ?.filter((s) => s.status === "submitted" || s.status === "approved")
+      ?.reduce((acc, curr) => acc + curr.count, 0);
   }, [submissionsCount]);
 
   if (loading) {
@@ -76,7 +78,8 @@ export function BountyInfo() {
             <span className="font-medium text-neutral-700">
               {nFormatter(bounty.partnersCount, { full: true })}
             </span>{" "}
-            {pluralize("partner", bounty.partnersCount ?? 0)} submitted
+            {pluralize("partner", bounty.partnersCount ?? 0)}{" "}
+            {bounty.type === "performance" ? "completed" : "submitted"}
           </div>
         </div>
       </div>

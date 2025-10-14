@@ -38,7 +38,9 @@ export const GET = withWorkspace(
       ? await getProgramEnrollmentOrThrow({
           partnerId,
           programId,
-          includeProgram: true,
+          include: {
+            program: true,
+          },
         })
       : null;
 
@@ -73,7 +75,13 @@ export const GET = withWorkspace(
         },
         _count: {
           select: {
-            submissions: true,
+            submissions: {
+              where: {
+                status: {
+                  in: ["submitted", "approved"],
+                },
+              },
+            },
           },
         },
       },

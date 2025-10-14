@@ -6,7 +6,6 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
-  additionalPartnerLinkSchema,
   createGroupSchema,
   DEFAULT_PARTNER_GROUP,
   getGroupsQuerySchema,
@@ -24,10 +23,12 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const parsedInput = getGroupsQuerySchema.parse(searchParams);
 
+    console.time("getGroups");
     const groups = await getGroups({
       ...parsedInput,
       programId,
     });
+    console.timeEnd("getGroups");
 
     return NextResponse.json(z.array(GroupSchemaExtended).parse(groups));
   },
@@ -115,17 +116,6 @@ export const POST = withWorkspace(
         landerData,
       } = program.groups[0];
 
-      // Deduplicate additionalLinks by domain, keeping the first occurrence
-      const deduplicatedAdditionalLinks =
-        additionalLinks && Array.isArray(additionalLinks)
-          ? (
-              additionalLinks as z.infer<typeof additionalPartnerLinkSchema>[]
-            ).filter(
-              (link, index, array) =>
-                array.findIndex((l) => l.domain === link.domain) === index,
-            )
-          : additionalLinks;
-
       return await tx.partnerGroup.create({
         data: {
           id: createId({ prefix: "grp_" }),
@@ -133,9 +123,7 @@ export const POST = withWorkspace(
           name,
           slug,
           color,
-          ...(deduplicatedAdditionalLinks && {
-            additionalLinks: deduplicatedAdditionalLinks,
-          }),
+          ...(additionalLinks && { additionalLinks }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
           ...(applicationFormData && { applicationFormData }),

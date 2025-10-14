@@ -3,6 +3,7 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { updateLinkStatsForImporter } from "@/lib/api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
@@ -71,7 +72,10 @@ export const createManualCommissionAction = authActionClient
       getProgramEnrollmentOrThrow({
         programId,
         partnerId,
-        includePartner: true,
+        include: {
+          partner: true,
+          links: true,
+        },
       }),
 
       customerId
@@ -449,10 +453,12 @@ export const createManualCommissionAction = authActionClient
           finalCommissionsToTransferEventIds,
         );
 
-        const firstConversionFlag = isFirstConversion({
-          customer,
-          linkId,
-        });
+        const firstConversionFlag =
+          commissionType === "sale" &&
+          isFirstConversion({
+            customer,
+            linkId,
+          });
 
         const updatedRes = await Promise.all([
           // update link stats
@@ -461,14 +467,18 @@ export const createManualCommissionAction = authActionClient
               id: link.id,
             },
             data: {
+              // we'll always create click + lead events, so need to increment the stats
+              clicks: {
+                increment: 1,
+              },
+              leads: {
+                increment: 1,
+              },
+              lastLeadAt: updateLinkStatsForImporter({
+                currentTimestamp: link.lastLeadAt,
+                newTimestamp: leadEventTimestamp || new Date(),
+              }),
               ...(firstConversionFlag && {
-                leads: {
-                  increment: 1,
-                },
-                lastLeadAt: updateLinkStatsForImporter({
-                  currentTimestamp: link.lastLeadAt,
-                  newTimestamp: leadEventTimestamp || new Date(),
-                }),
                 conversions: {
                   increment: 1,
                 },
@@ -477,12 +487,14 @@ export const createManualCommissionAction = authActionClient
                   newTimestamp: saleEventTimestamp || new Date(),
                 }),
               }),
-              sales: {
-                increment: saleAmount ? 1 : totalSales,
-              },
-              saleAmount: {
-                increment: saleAmount ?? totalSaleAmount,
-              },
+              ...(commissionType === "sale" && {
+                sales: {
+                  increment: saleAmount ? 1 : totalSales,
+                },
+                saleAmount: {
+                  increment: saleAmount ?? totalSaleAmount,
+                },
+              }),
             },
           }),
 
@@ -517,21 +529,28 @@ export const createManualCommissionAction = authActionClient
 
         // execute workflows
         if (["lead", "sale"].includes(commissionType)) {
-          await executeWorkflows({
-            trigger:
-              commissionType === "lead"
-                ? WorkflowTrigger.leadRecorded
-                : WorkflowTrigger.saleRecorded,
-            context: {
-              programId,
-              partnerId,
-              current: {
-                leads: commissionType === "lead" ? 1 : 0,
-                saleAmount: saleAmount ?? totalSaleAmount,
-                conversions: firstConversionFlag ? 1 : 0,
+          await Promise.allSettled([
+            executeWorkflows({
+              trigger:
+                commissionType === "lead"
+                  ? WorkflowTrigger.leadRecorded
+                  : WorkflowTrigger.saleRecorded,
+              context: {
+                programId,
+                partnerId,
+                current: {
+                  leads: commissionType === "lead" ? 1 : 0,
+                  saleAmount: saleAmount ?? totalSaleAmount,
+                  conversions: firstConversionFlag ? 1 : 0,
+                },
               },
-            },
-          });
+            }),
+            syncPartnerLinksStats({
+              partnerId,
+              programId,
+              eventType: commissionType as "lead" | "sale",
+            }),
+          ]);
         }
       })(),
     );

@@ -49,14 +49,17 @@ export const clientAccessCheck = ({
 }) => {
   const permission = ROLE_PERMISSIONS.find((p) => p.action === action)!;
   const allowedRoles = permission.roles;
+  const allowed = allowedRoles.includes(role);
 
-  if (allowedRoles.includes(role)) {
+  if (allowed) {
     return {
+      allowed,
       error: false,
     };
   }
 
   return {
+    allowed,
     error: `Only workspace ${combineWords(allowedRoles.map((r) => `${r}s`))} can ${customPermissionDescription || permission.description}.`,
   };
 };

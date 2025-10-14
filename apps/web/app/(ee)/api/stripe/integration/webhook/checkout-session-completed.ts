@@ -2,6 +2,7 @@ import { convertCurrency } from "@/lib/analytics/convert-currency";
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { createId } from "@/lib/api/create-id";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
@@ -12,7 +13,12 @@ import {
   recordSale,
 } from "@/lib/tinybird";
 import { recordFakeClick } from "@/lib/tinybird/record-fake-click";
-import { ClickEventTB, LeadEventTB, WebhookPartner } from "@/lib/types";
+import {
+  ClickEventTB,
+  LeadEventTB,
+  StripeMode,
+  WebhookPartner,
+} from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -30,7 +36,10 @@ import { getSubscriptionProductId } from "./utils/get-subscription-product-id";
 import { updateCustomerWithStripeCustomerId } from "./utils/update-customer-with-stripe-customer-id";
 
 // Handle event "checkout.session.completed"
-export async function checkoutSessionCompleted(event: Stripe.Event) {
+export async function checkoutSessionCompleted(
+  event: Stripe.Event,
+  mode: StripeMode,
+) {
   let charge = event.data.object as Stripe.Checkout.Session;
   let dubCustomerExternalId = charge.metadata?.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
   const clientReferenceId = charge.client_reference_id;
@@ -180,7 +189,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           const promoCodeResponse = await attributeViaPromoCode({
             promotionCodeId,
             stripeAccountId,
-            livemode: event.livemode,
+            mode,
             charge,
           });
           if (promoCodeResponse) {
@@ -207,7 +216,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         const connectedCustomer = await getConnectedCustomer({
           stripeCustomerId,
           stripeAccountId,
-          livemode: event.livemode,
+          mode,
         });
 
         if (connectedCustomer?.metadata.dubCustomerId) {
@@ -224,7 +233,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
           const promoCodeResponse = await attributeViaPromoCode({
             promotionCodeId,
             stripeAccountId,
-            livemode: event.livemode,
+            mode,
             charge,
           });
           if (promoCodeResponse) {
@@ -405,7 +414,7 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
     const productId = await getSubscriptionProductId({
       stripeSubscriptionId: charge.subscription as string,
       stripeAccountId,
-      livemode: event.livemode,
+      mode,
     });
 
     const createdCommission = await createPartnerCommission({
@@ -443,6 +452,11 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
               conversions: firstConversionFlag ? 1 : 0,
             },
           },
+        }),
+        syncPartnerLinksStats({
+          partnerId: link.partnerId,
+          programId: link.programId,
+          eventType: "sale",
         }),
         // same logic as lead.created webhook below:
         // if the clickEvent variable exists and there was no existing customer before,
@@ -504,19 +518,19 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
 async function attributeViaPromoCode({
   promotionCodeId,
   stripeAccountId,
-  livemode,
+  mode,
   charge,
 }: {
   promotionCodeId: string;
   stripeAccountId: string;
-  livemode: boolean;
+  mode: StripeMode;
   charge: Stripe.Checkout.Session;
 }) {
   // Find the promotion code for the promotion code id
   const promotionCode = await getPromotionCode({
     promotionCodeId,
     stripeAccountId,
-    livemode,
+    mode,
   });
 
   if (!promotionCode) {

@@ -19,7 +19,7 @@ import { Stripe } from "stripe";
 import { authActionClient } from "../safe-action";
 
 const stripe = stripeAppClient({
-  ...(process.env.VERCEL_ENV && { livemode: true }),
+  ...(process.env.VERCEL_ENV && { mode: "live" }),
 });
 
 export const createDiscountAction = authActionClient

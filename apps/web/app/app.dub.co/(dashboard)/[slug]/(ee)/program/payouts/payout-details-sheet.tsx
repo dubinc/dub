@@ -251,12 +251,12 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         {payout.status === "pending" ? (
           <Button
             type="button"
-            variant="secondary"
-            text="Confirm all pending payouts"
+            text="Confirm payout"
             onClick={() => {
               queryParams({
                 set: {
                   confirmPayouts: "true",
+                  selectedPayoutId: payout.id,
                 },
                 del: "payoutId",
                 scroll: false,

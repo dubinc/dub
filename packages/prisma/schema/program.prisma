@@ -56,6 +56,7 @@ model Program {
   partnerNetworkEnabledAt      DateTime?
   createdAt                    DateTime                 @default(now())
   updatedAt                    DateTime                 @updatedAt
+  startedAt                    DateTime?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
   primaryDomain            Domain?                   @relation(fields: [domain], references: [slug], onUpdate: Cascade)
@@ -95,7 +96,15 @@ model ProgramEnrollment {
   saleRewardId     String?
   discountId       String?
   status           ProgramEnrollmentStatus @default(pending)
-  totalCommissions Int                     @default(0) // total commissions earned by the partner (in cents)
+  
+  // partner stats
+  totalClicks        Int                     @default(0) // total clicks
+  totalLeads         Int                     @default(0) // total leads
+  totalConversions   Int                     @default(0) // total conversions
+  totalSales         Int                     @default(0) // total sales
+  totalSaleAmount    Int                     @default(0) // total sale amount (in cents)
+  totalCommissions   Int                     @default(0) // total commissions earned by the partner (in cents)
+
   createdAt        DateTime                @default(now())
   updatedAt        DateTime                @updatedAt
   bannedAt         DateTime?

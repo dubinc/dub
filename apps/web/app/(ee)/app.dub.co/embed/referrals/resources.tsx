@@ -38,25 +38,6 @@ export function ReferralsEmbedResources({
           ))}
         </ResourceSection>
       )}
-      {!!resources?.colors?.length && (
-        <ResourceSection resource="color" title="Colors">
-          {resources?.colors?.map((color) => (
-            <ResourceCard
-              key={color.id}
-              resourceType="color"
-              icon={
-                <div
-                  className="size-full"
-                  style={{ backgroundColor: color.color }}
-                />
-              }
-              title={color.name || "Color"}
-              description={color.color.toUpperCase()}
-              copyText={color.color.toUpperCase()}
-            />
-          ))}
-        </ResourceSection>
-      )}
 
       {!!resources?.links?.length && (
         <ResourceSection resource="link" title="Links">
@@ -76,6 +57,26 @@ export function ReferralsEmbedResources({
               title={link.name}
               description={link.url}
               copyText={link.url}
+            />
+          ))}
+        </ResourceSection>
+      )}
+
+      {!!resources?.colors?.length && (
+        <ResourceSection resource="color" title="Colors">
+          {resources?.colors?.map((color) => (
+            <ResourceCard
+              key={color.id}
+              resourceType="color"
+              icon={
+                <div
+                  className="size-full"
+                  style={{ backgroundColor: color.color }}
+                />
+              }
+              title={color.name || "Color"}
+              description={color.color.toUpperCase()}
+              copyText={color.color.toUpperCase()}
             />
           ))}
         </ResourceSection>

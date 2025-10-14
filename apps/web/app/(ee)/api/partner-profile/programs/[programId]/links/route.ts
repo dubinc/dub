@@ -16,7 +16,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { links, discountCodes } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
-    includeDiscountCodes: true,
+    include: {
+      links: true,
+      discountCodes: true,
+    },
   });
 
   // Add discount code to the links
@@ -43,12 +46,21 @@ export const POST = withPartnerProfile(
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId, status, group } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-        includeGroup: true,
-      });
+    const {
+      program,
+      links,
+      tenantId,
+      status,
+      partnerGroup: group,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+      include: {
+        program: true,
+        links: true,
+        partnerGroup: true,
+      },
+    });
 
     if (["banned", "deactivated", "rejected"].includes(status)) {
       throw new DubApiError({

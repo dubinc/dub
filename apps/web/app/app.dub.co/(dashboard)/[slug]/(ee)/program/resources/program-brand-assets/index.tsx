@@ -118,47 +118,6 @@ export function ProgramBrandAssets() {
           </SettingsRow>
 
           <SettingsRow
-            heading="Colors"
-            description="Provide affiliates with official colors"
-          >
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center justify-end">
-                <Button
-                  text="Add Color"
-                  className="h-8 w-fit px-3"
-                  onClick={() => setShowAddColorModal(true)}
-                  loading={isLoading}
-                />
-              </div>
-              <AnimatedSizeContainer
-                height
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-              >
-                {resources?.colors && resources.colors.length > 0 && (
-                  <div className="grid gap-2">
-                    {resources?.colors?.map((color) => (
-                      <ResourceCard
-                        key={color.id}
-                        resourceType="color"
-                        icon={
-                          <div
-                            className="size-full"
-                            style={{ backgroundColor: color.color }}
-                          />
-                        }
-                        title={color.name || "Color"}
-                        description={color.color.toUpperCase()}
-                        copyText={color.color.toUpperCase()}
-                        onDelete={() => handleDelete("color", color.id)}
-                      />
-                    ))}
-                  </div>
-                )}
-              </AnimatedSizeContainer>
-            </div>
-          </SettingsRow>
-
-          <SettingsRow
             heading="Links"
             description="Provide any additional links helpful to your partners"
           >
@@ -195,6 +154,47 @@ export function ProgramBrandAssets() {
                         visitUrl={link.url}
                         copyText={link.url}
                         onDelete={() => handleDelete("link", link.id)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </AnimatedSizeContainer>
+            </div>
+          </SettingsRow>
+
+          <SettingsRow
+            heading="Colors"
+            description="Provide affiliates with official colors"
+          >
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-end">
+                <Button
+                  text="Add Color"
+                  className="h-8 w-fit px-3"
+                  onClick={() => setShowAddColorModal(true)}
+                  loading={isLoading}
+                />
+              </div>
+              <AnimatedSizeContainer
+                height
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+              >
+                {resources?.colors && resources.colors.length > 0 && (
+                  <div className="grid gap-2">
+                    {resources?.colors?.map((color) => (
+                      <ResourceCard
+                        key={color.id}
+                        resourceType="color"
+                        icon={
+                          <div
+                            className="size-full"
+                            style={{ backgroundColor: color.color }}
+                          />
+                        }
+                        title={color.name || "Color"}
+                        description={color.color.toUpperCase()}
+                        copyText={color.color.toUpperCase()}
+                        onDelete={() => handleDelete("color", color.id)}
                       />
                     ))}
                   </div>

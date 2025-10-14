@@ -75,14 +75,14 @@ export function GroupSelector({
       }}
       selected={selectedOption}
       icon={
-        !selectedOption?.icon ? (
+        variant === "header" && !selectedOption?.icon ? (
           <div className="size-5 flex-none animate-pulse rounded-full bg-neutral-200" />
         ) : (
           selectedOption?.icon
         )
       }
       caret={true}
-      placeholder={selectedGroupsLoading ? "" : "Select group"}
+      placeholder={variant === "header" ? "" : "Select group"}
       searchPlaceholder="Search groups..."
       onSearchChange={setSearch}
       shouldFilter={!useAsync}
@@ -103,7 +103,7 @@ export function GroupSelector({
             buttonProps: {
               disabled,
               className:
-                "w-full justify-start px-3 transition-none max-md:bg-bg-subtle hover:bg-bg-emphasis md:hover:bg-neutral-50 border-none",
+                "w-full justify-start px-2 py-1 h-8 transition-none max-md:bg-bg-subtle hover:bg-bg-subtle md:hover:bg-subtle border-none rounded-lg",
             },
           }
         : {
@@ -118,10 +118,10 @@ export function GroupSelector({
           })}
       {...rest}
     >
-      {!selectedOption?.label ? (
+      {variant === "header" && !selectedOption?.label ? (
         <div className="h-6 w-[120px] animate-pulse rounded bg-neutral-100" />
       ) : (
-        selectedOption.label
+        selectedOption?.label
       )}
     </Combobox>
   );

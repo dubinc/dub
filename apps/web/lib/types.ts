@@ -48,7 +48,7 @@ import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
-  additionalPartnerLinkSchema,
+  additionalPartnerLinkSchemaOptionalPath,
   GroupSchema,
   GroupSchemaExtended,
   GroupWithFormDataSchema,
@@ -193,7 +193,10 @@ export type PlanProps = (typeof plans)[number];
 
 export type RoleProps = (typeof roles)[number];
 
-export type BetaFeatures = "noDubLink" | "abTesting";
+export type BetaFeatures =
+  | "noDubLink"
+  | "abTesting"
+  | "analyticsSettingsSiteVisitTracking";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -591,7 +594,7 @@ export type PartnerGroupDefaultLink = z.infer<
 >;
 
 export type PartnerGroupAdditionalLink = z.infer<
-  typeof additionalPartnerLinkSchema
+  typeof additionalPartnerLinkSchemaOptionalPath
 >;
 
 export type PartnerGroupProps = PartnerGroup & {
@@ -648,3 +651,5 @@ export type BountySubmissionsQueryFilters = z.infer<
 >;
 
 export type Message = z.infer<typeof MessageSchema>;
+
+export type StripeMode = "test" | "sandbox" | "live";

@@ -30,7 +30,7 @@ export const CommissionStatusBadges = {
       <SimpleTooltipContent
         title={`This commission is pending and will be eligible for payout after ${data.variant === "partner" ? "the" : "your"} program's ${data.program?.holdingPeriodDays}-day holding period.`}
         cta="Learn more."
-        href="https://dub.co/help/article/receiving-payouts"
+        href="https://dub.co/help/article/commissions-payouts"
       />
     ),
   },
@@ -47,7 +47,7 @@ export const CommissionStatusBadges = {
         }
         href={
           data.variant === "partner"
-            ? "https://dub.co/help/article/receiving-payouts"
+            ? "https://dub.co/help/article/commissions-payouts"
             : `/${data.workspace?.slug}/program/payouts?status=pending&sortBy=amount`
         }
       />

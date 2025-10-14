@@ -4,7 +4,7 @@ import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { isStored, storage } from "@/lib/storage";
-import { getClickEvent, recordLead, recordLeadSync } from "@/lib/tinybird";
+import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
 import { ClickEventTB, WebhookPartner, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
@@ -19,6 +19,7 @@ import { Link, WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
+import { syncPartnerLinksStats } from "../partners/sync-partner-links-stats";
 import { executeWorkflows } from "../workflows/execute-workflows";
 
 type TrackLeadParams = z.input<typeof trackLeadRequestSchema> & {
@@ -214,9 +215,6 @@ export const trackLead = async ({
         : leadEventPayload;
 
       await Promise.all([
-        // Use recordLeadSync which waits for the operation to complete
-        recordLeadSync(leadEventPayload),
-
         // Cache the latest lead event for 5 minutes because the ingested event is not available immediately on Tinybird
         // we're setting two keys because we want to support the use case where the customer has multiple lead events
         redis.set(`leadCache:${customer.id}`, cacheLeadEventPayload, {
@@ -235,9 +233,8 @@ export const trackLead = async ({
 
     waitUntil(
       (async () => {
-        // for async mode, record the lead event in the background
-        // for deferred mode, defer the lead event creation to a subsequent request
-        if (mode === "async") {
+        // for deferred mode, we defer the lead event creation to a subsequent request
+        if (mode !== "deferred") {
           await recordLead(createLeadEventPayload(customer.id));
         }
 
@@ -319,16 +316,23 @@ export const trackLead = async ({
             });
             webhookPartner = createdCommission?.webhookPartner;
 
-            await executeWorkflows({
-              trigger: WorkflowTrigger.leadRecorded,
-              context: {
-                programId: link.programId,
-                partnerId: link.partnerId,
-                current: {
-                  leads: 1,
+            await Promise.allSettled([
+              executeWorkflows({
+                trigger: WorkflowTrigger.leadRecorded,
+                context: {
+                  programId: link.programId,
+                  partnerId: link.partnerId,
+                  current: {
+                    leads: 1,
+                  },
                 },
-              },
-            });
+              }),
+              syncPartnerLinksStats({
+                partnerId: link.partnerId,
+                programId: link.programId,
+                eventType: "lead",
+              }),
+            ]);
           }
 
           await sendWorkspaceWebhook({

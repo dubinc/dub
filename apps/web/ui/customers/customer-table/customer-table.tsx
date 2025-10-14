@@ -293,6 +293,7 @@ export function CustomerTable() {
                 <Filter.List
                   filters={filters}
                   activeFilters={activeFilters}
+                  onSelect={onSelect}
                   onRemove={onRemove}
                   onRemoveAll={onRemoveAll}
                 />
@@ -367,7 +368,7 @@ export function CustomerTable() {
               : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
           }
           {...(!isFiltered && {
-            learnMoreHref: `/${workspaceSlug}/guides`,
+            learnMoreHref: `/${workspaceSlug}/settings/analytics`,
             learnMoreTarget: "_self",
             learnMoreText: "Read the guides",
           })}

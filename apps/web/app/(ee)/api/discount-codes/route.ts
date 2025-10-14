@@ -25,7 +25,9 @@ export const GET = withWorkspace(
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
-      includeDiscountCodes: true,
+      include: {
+        discountCodes: true,
+      },
     });
 
     const response = DiscountCodeSchema.array().parse(
@@ -66,11 +68,16 @@ export const POST = withWorkspace(
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
-      includeDiscount: true,
-      includeDiscountCodes: true,
+      include: {
+        links: true,
+        discount: true,
+        discountCodes: true,
+      },
     });
 
-    const link = programEnrollment.links.find((link) => link.id === linkId);
+    const { links, discount } = programEnrollment;
+
+    const link = links.find((link) => link.id === linkId);
 
     if (!link) {
       throw new DubApiError({
@@ -78,8 +85,6 @@ export const POST = withWorkspace(
         message: "Partner link not found.",
       });
     }
-
-    const { discount } = programEnrollment;
 
     if (!discount) {
       throw new DubApiError({

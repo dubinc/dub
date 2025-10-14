@@ -1,5 +1,5 @@
 import { storage } from "@/lib/storage";
-import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
+import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { R2_URL } from "@dub/utils";
 import { linkCache } from "./cache";
@@ -15,12 +15,7 @@ export async function bulkDeleteLinks(links: ExpandedLink[]) {
     linkCache.deleteMany(links),
 
     // Record the links deletion in Tinybird
-    recordLinkTB(
-      links.map((link) => ({
-        ...transformLinkTB(link),
-        deleted: true,
-      })),
-    ),
+    recordLink(links, { deleted: true }),
 
     // For links that have an image, delete the image from R2
     links

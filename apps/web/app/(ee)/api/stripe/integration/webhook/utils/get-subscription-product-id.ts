@@ -1,13 +1,14 @@
 import { stripeAppClient } from "@/lib/stripe";
+import { StripeMode } from "@/lib/types";
 
 export async function getSubscriptionProductId({
   stripeSubscriptionId,
   stripeAccountId,
-  livemode = true,
+  mode,
 }: {
   stripeSubscriptionId?: string | null;
   stripeAccountId?: string | null;
-  livemode?: boolean;
+  mode: StripeMode;
 }) {
   if (!stripeAccountId || !stripeSubscriptionId) {
     return null;
@@ -15,10 +16,11 @@ export async function getSubscriptionProductId({
 
   try {
     const subscription = await stripeAppClient({
-      livemode,
+      mode,
     }).subscriptions.retrieve(stripeSubscriptionId, {
       stripeAccount: stripeAccountId,
     });
+
     return subscription.items.data[0].price.product as string;
   } catch (error) {
     console.log("Failed to get subscription price ID:", error);
