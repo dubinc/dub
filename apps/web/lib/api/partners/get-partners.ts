@@ -43,7 +43,7 @@ export async function getPartners(filters: PartnerFilters) {
         },
       }),
       tenantId,
-      status: status ?? "approved",
+      status,
       groupId,
       ...(country || search || email
         ? {
