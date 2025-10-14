@@ -86,9 +86,9 @@ export const SidebarPlug = () => {
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     className="lucide lucide-chevron-left size-4 text-neutral-500 transition-transform duration-100"
                   >
                     <path d="m15 18-6-6 6-6"></path>
@@ -112,9 +112,9 @@ export const SidebarPlug = () => {
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
-                    stroke-width="1.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                     className="lucide lucide-circle-user-round size-6 border-none text-neutral-500 duration-75 sm:size-6"
                   >
                     <path d="M18 20a6 6 0 0 0-12 0"></path>
@@ -145,9 +145,9 @@ export const SidebarPlug = () => {
                           <path
                             fill="none"
                             stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
                             d="M9.433 5.833h-2.7a.9.9 0 0 0-.9.9v2.7a.9.9 0 0 0 .9.9h2.7a.9.9 0 0 0 .9-.9v-2.7a.9.9 0 0 0-.9-.9m0 7.815h-2.7a.9.9 0 0 0-.9.9v2.7a.9.9 0 0 0 .9.9h2.7a.9.9 0 0 0 .9-.9v-2.7a.9.9 0 0 0-.9-.9m7.834-7.815h-2.7a.9.9 0 0 0-.9.9v2.7a.9.9 0 0 0 .9.9h2.7a.9.9 0 0 0 .9-.9v-2.7a.9.9 0 0 0-.9-.9m0 7.834h-2.7a.9.9 0 0 0-.9.9v2.7a.9.9 0 0 0 .9.9h2.7a.9.9 0 0 0 .9-.9v-2.7a.9.9 0 0 0-.9-.9m3.983-4.75V5.833a3.083 3.083 0 0 0-3.083-3.083h-3.084m0 18.5h3.084a3.083 3.083 0 0 0 3.083-3.083v-3.084m-18.5 0v3.084a3.083 3.083 0 0 0 3.083 3.083h3.084m0-18.5H5.833A3.083 3.083 0 0 0 2.75 5.833v3.084"
                           ></path>
                         </svg>
@@ -171,8 +171,8 @@ export const SidebarPlug = () => {
                           <g
                             fill="none"
                             stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
                           >
                             <path d="M.5.5v13h13"></path>
                             <path d="M3.5 6.5L6 9l4-6l3.5 2.5"></path>
@@ -208,9 +208,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="6.25"
                               x2="9"
                               y1="4.237"
@@ -219,9 +219,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="6.25"
                               x2="9"
                               y1="13.764"
@@ -230,9 +230,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="14.5"
                               x2="9"
                               y1="9"
@@ -241,9 +241,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="9"
                               x2="9"
                               y1="1.75"
@@ -252,9 +252,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="2.721"
                               x2="4.237"
                               y1="5.375"
@@ -263,9 +263,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="1.75"
                               x2="3.5"
                               y1="9"
@@ -274,9 +274,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="16.25"
                               x2="14.5"
                               y1="9"
@@ -285,9 +285,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="2.721"
                               x2="4.237"
                               y1="12.625"
@@ -296,9 +296,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="9"
                               x2="9"
                               y1="16.25"
@@ -307,9 +307,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="12.625"
                               x2="11.75"
                               y1="15.279"
@@ -318,9 +318,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="5.375"
                               x2="6.25"
                               y1="15.279"
@@ -329,9 +329,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="15.279"
                               x2="13.763"
                               y1="12.625"
@@ -340,9 +340,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="15.279"
                               x2="13.763"
                               y1="5.375"
@@ -351,9 +351,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="12.625"
                               x2="11.75"
                               y1="2.721"
@@ -362,9 +362,9 @@ export const SidebarPlug = () => {
                             <line
                               fill="none"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                               x1="5.375"
                               x2="6.25"
                               y1="2.721"
@@ -376,9 +376,9 @@ export const SidebarPlug = () => {
                               fill="none"
                               r="5.5"
                               stroke="currentColor"
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="1.5"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth="1.5"
                             ></circle>
                           </g>
                         </svg>
@@ -406,17 +406,17 @@ export const SidebarPlug = () => {
                             y="96"
                             fill="none"
                             stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="32"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="32"
                             rx="56"
                             ry="56"
                           ></rect>
                           <path
                             fill="none"
                             stroke="currentColor"
-                            stroke-linejoin="round"
-                            stroke-width="60"
+                            strokeLinejoin="round"
+                            strokeWidth="60"
                             d="M48 192h416M128 300h48v20h-48z"
                           ></path>
                         </svg>
@@ -440,9 +440,9 @@ export const SidebarPlug = () => {
                           <g
                             fill="none"
                             stroke="currentColor"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="1.5"
                           >
                             <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2S2 6.477 2 12s4.477 10 10 10"></path>
                             <path d="M9 9c0-3.5 5.5-3.5 5.5 0c0 2.5-2.5 2-2.5 5m0 4.01l.01-.011"></path>

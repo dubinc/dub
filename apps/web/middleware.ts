@@ -52,7 +52,10 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
     }
 
     const response = NextResponse.rewrite(
-      new URL(`/${domain}${path}`, req.url),
+      new URL(
+        `/${domain}${path}${req.nextUrl.searchParams.toString() ? `?${req.nextUrl.searchParams.toString()}` : ""}`,
+        req.url,
+      ),
     );
 
     // Set country cookie

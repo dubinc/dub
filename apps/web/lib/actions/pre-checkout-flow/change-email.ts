@@ -4,7 +4,11 @@ import { actionClient } from "@/lib/actions/safe-action";
 import z from "@/lib/zod";
 import { emailSchema } from "@/lib/zod/schemas/auth";
 import { prisma } from "@dub/prisma";
-import { updateUserCookieService } from "core/services/cookie/user-session.service";
+import {
+  getUserCookieService,
+  updateUserCookieService,
+} from "core/services/cookie/user-session.service";
+import { encodeUserMarketingToken } from "core/services/user-marketing-token.service";
 import { flattenValidationErrors } from "next-safe-action";
 import { throwIfAuthenticated } from "../auth/throw-if-authenticated";
 
@@ -20,6 +24,7 @@ class AuthError extends Error {
 
 const schema = z.object({
   email: emailSchema,
+  signupMethod: z.enum(["email", "google"]).optional(),
 });
 
 // Sign up a new user using email and password
@@ -30,9 +35,11 @@ export const changePreSignupEmailAction = actionClient
   })
   .use(throwIfAuthenticated)
   .action(async ({ parsedInput }) => {
-    const { email } = parsedInput;
+    const { email, signupMethod } = parsedInput;
 
-    const user = await prisma.user.findUnique({
+    const { sessionId, user, isPaidTraffic } = await getUserCookieService();
+
+    const dbUser = await prisma.user.findUnique({
       where: {
         email,
       },
@@ -41,7 +48,7 @@ export const changePreSignupEmailAction = actionClient
       },
     });
 
-    if (user) {
+    if (dbUser) {
       throw new AuthError(
         "email-exists",
         "User with this email already exists",
@@ -50,7 +57,13 @@ export const changePreSignupEmailAction = actionClient
 
     await updateUserCookieService({ email });
 
-    return { success: true };
+    const userToken = encodeUserMarketingToken({
+      id: sessionId!,
+      email,
+      isPaidUser: isPaidTraffic || false,
+    });
+
+    return { success: true, userToken, signupMethod, email };
 
     // CustomerIOClient.identify(generatedUserId, {
     //     email,

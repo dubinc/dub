@@ -4,6 +4,7 @@ import { changePreSignupEmailAction } from "@/lib/actions/pre-checkout-flow/chan
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import {
   setPeopleAnalytic,
+  setPeopleAnalyticOnce,
   trackClientEvents,
 } from "core/integration/analytic/services/analytic.service.ts";
 import { useAction } from "next-safe-action/hooks";
@@ -74,14 +75,20 @@ export const SignUpForm = ({
     });
 
     try {
-      const result = await executeAsync({ email });
+      const result = await executeAsync({ email, signupMethod });
 
       if (result?.serverError) {
-        // Извлекаем только сообщение, убирая код ошибки
         const errorMessage = result.serverError.replace(/^\[.*?\]\s*/, "");
         setErrorState({ message: errorMessage, method: signupMethod });
       } else if (result?.data) {
-        setPeopleAnalytic({ signup_method: signupMethod, $email: email });
+        const { signupMethod, email, userToken } = result.data;
+        setPeopleAnalytic({
+          signup_method: signupMethod,
+          $email: email,
+        });
+        if (userToken) {
+          setPeopleAnalyticOnce({ user_token: userToken });
+        }
       }
     } finally {
       setLoadingState((prev) => ({ ...prev, [signupMethod]: false }));
