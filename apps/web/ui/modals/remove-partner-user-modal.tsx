@@ -1,8 +1,6 @@
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/swr/use-partner-profile-users";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
-import { TriangleWarning } from "@dub/ui/icons";
-import { timeAgo } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 
@@ -31,45 +29,40 @@ function RemovePartnerUserModal({
   const [removing, setRemoving] = useState(false);
   const { partner } = usePartnerProfile();
 
-  const isInvite = user.id === null;
   const self = session?.user?.email === user.email;
 
   const removePartnerUser = async () => {
     setRemoving(true);
 
-    try {
-      const url = isInvite
-        ? `/api/partner-profile/invites?email=${encodeURIComponent(user.email)}`
-        : `/api/partner-profile/users?userId=${user.id}`;
-
-      const response = await fetch(url, {
+    const response = await fetch(
+      `/api/partner-profile/users?userId=${user.id}`,
+      {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
-      });
+      },
+    );
 
-      if (response.ok) {
-        await mutate("/api/partner-profile/users");
-
-        if (self) {
-          // If user is removing themselves, redirect to home
-          router.push("/");
-        } else {
-          setShowRemovePartnerUserModal(false);
-        }
-
-        toast.success(
-          self
-            ? "You have left the partner profile!"
-            : isInvite
-              ? "Successfully revoked invitation!"
-              : "Successfully removed partner member!",
-        );
-      } else {
+    try {
+      if (!response.ok) {
         const { error } = await response.json();
-        toast.error(error.message);
+        throw new Error(error.message);
       }
+
+      await mutate("/api/partner-profile/users");
+
+      if (self) {
+        router.push("/");
+      } else {
+        setShowRemovePartnerUserModal(false);
+      }
+
+      toast.success(
+        self
+          ? "You have left the partner profile!"
+          : "Successfully removed partner member!",
+      );
     } catch (error) {
-      toast.error("Failed to remove partner user");
+      toast.error(error.message || "Failed to remove partner member.");
     } finally {
       setRemoving(false);
     }
@@ -83,26 +76,16 @@ function RemovePartnerUserModal({
     >
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">
-          {isInvite
-            ? "Revoke Invitation"
-            : self
-              ? "Leave Partner Profile"
-              : "Remove Partner Member"}
+          {self ? "Leave Partner Profile" : "Remove Partner Member"}
         </h3>
         <p className="text-sm text-neutral-500">
-          {isInvite
-            ? "This will revoke "
-            : self
-              ? "You're about to leave "
-              : "This will remove "}
+          {self ? "You're about to leave " : "This will remove "}
           <span className="font-semibold text-black">
             {self ? partner?.name : user.name || user.email}
           </span>
-          {isInvite
-            ? "'s invitation to join your partner profile. "
-            : self
-              ? ". You will lose all access to this partner profile. "
-              : " from your partner profile. "}
+          {self
+            ? ". You will lose all access to this partner profile. "
+            : " from your partner profile. "}
           Are you sure you want to continue?
         </p>
       </div>
@@ -137,7 +120,8 @@ export function useRemovePartnerUserModal({
 }: {
   user: PartnerUserProps;
 }) {
-  const [showRemovePartnerUserModal, setShowRemovePartnerUserModal] = useState(false);
+  const [showRemovePartnerUserModal, setShowRemovePartnerUserModal] =
+    useState(false);
 
   const RemovePartnerUserModalCallback = useCallback(() => {
     return (

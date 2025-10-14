@@ -6,7 +6,9 @@ import usePartnerProfileUsers, {
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useEditPartnerUserModal } from "@/ui/modals/edit-partner-user-modal";
+import { useInvitePartnerMemberModal } from "@/ui/modals/invite-partner-member-modal";
 import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal";
+import { useRevokePartnerInviteModal } from "@/ui/modals/revoke-partner-invite-modal";
 import { PartnerRole } from "@dub/prisma/client";
 import {
   Avatar,
@@ -31,6 +33,9 @@ export function ProfileMembersPageClient() {
 
   const { data: session } = useSession();
   const { users, loading, error } = usePartnerProfileUsers();
+
+  const { InvitePartnerMemberModal, setShowInvitePartnerMemberModal } =
+    useInvitePartnerMemberModal();
 
   const sortBy = searchParams.get("sortBy") || "name";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -147,11 +152,23 @@ export function ProfileMembersPageClient() {
   });
 
   return (
-    <PageContent title="Members">
-      <PageWidthWrapper className="mb-20 flex flex-col gap-6">
-        <Table {...tableProps} table={table} />
-      </PageWidthWrapper>
-    </PageContent>
+    <>
+      <InvitePartnerMemberModal />
+      <PageContent
+        title="Members"
+        controls={
+          <Button
+            text="Invite member"
+            className="h-9 w-fit"
+            onClick={() => setShowInvitePartnerMemberModal(true)}
+          />
+        }
+      >
+        <PageWidthWrapper className="mb-20 flex flex-col gap-6">
+          <Table {...tableProps} table={table} />
+        </PageWidthWrapper>
+      </PageContent>
+    </>
   );
 }
 
@@ -160,18 +177,23 @@ function RowMenuButton({ row }: { row: Row<PartnerUserProps> }) {
   const { data: session } = useSession();
 
   const user = row.original;
+  const isInvite = user.id === null;
 
   const { RemovePartnerUserModal, setShowRemovePartnerUserModal } =
     useRemovePartnerUserModal({
       user,
     });
 
+  const { RevokePartnerInviteModal, setShowRevokePartnerInviteModal } =
+    useRevokePartnerInviteModal({
+      invite: user,
+    });
+
   const isCurrentUser = session?.user?.email === user.email;
-  const isInvite = user.id === null;
 
   return (
     <>
-      <RemovePartnerUserModal />
+      {isInvite ? <RevokePartnerInviteModal /> : <RemovePartnerUserModal />}
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -190,7 +212,11 @@ function RowMenuButton({ row }: { row: Row<PartnerUserProps> }) {
                   }
                   variant="danger"
                   onSelect={() => {
-                    setShowRemovePartnerUserModal(true);
+                    if (isInvite) {
+                      setShowRevokePartnerInviteModal(true);
+                    } else {
+                      setShowRemovePartnerUserModal(true);
+                    }
                     setIsOpen(false);
                   }}
                 />
