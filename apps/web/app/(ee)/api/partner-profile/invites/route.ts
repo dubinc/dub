@@ -129,14 +129,22 @@ export const POST = withPartnerProfile(async ({ partner, req, session }) => {
 export const DELETE = withPartnerProfile(async ({ searchParams, partner }) => {
   const { email } = removeInviteSchema.parse(searchParams);
 
-  const response = await prisma.partnerInvite.delete({
-    where: {
-      email_partnerId: {
-        email,
-        partnerId: partner.id,
+  await prisma.$transaction([
+    prisma.partnerInvite.delete({
+      where: {
+        email_partnerId: {
+          email,
+          partnerId: partner.id,
+        },
       },
-    },
-  });
+    }),
 
-  return NextResponse.json(response);
+    prisma.verificationToken.deleteMany({
+      where: {
+        identifier: email,
+      },
+    }),
+  ]);
+
+  return NextResponse.json({ email });
 });
