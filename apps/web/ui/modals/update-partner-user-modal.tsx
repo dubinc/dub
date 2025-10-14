@@ -84,8 +84,18 @@ function UpdatePartnerUserModal({
           <div className="flex items-center gap-2">
             <Avatar user={user} className="size-10" />
             <div className="flex flex-col">
-              <p className="text-sm font-medium">{name || email}</p>
-              <p className="text-content-subtle text-sm">{email}</p>
+              {isInvite ? (
+                <p className="text-content-subtle text-sm font-medium">
+                  {user.email}
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-neutral-900">
+                    {user.name || user.email}
+                  </p>
+                  <p className="text-xs text-neutral-500">{user.email}</p>
+                </>
+              )}
             </div>
           </div>
         </div>
