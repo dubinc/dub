@@ -25,7 +25,7 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export function ProfileMembersPageClient() {
   const { data: session } = useSession();
@@ -194,6 +194,10 @@ function RoleCell({
   isCurrentUserOwner: boolean;
 }) {
   const [role, setRole] = useState<PartnerRole>(user.role);
+
+  useEffect(() => {
+    setRole(user.role);
+  }, [user.role]);
 
   const { UpdateUserModal, setShowUpdateUserModal } =
     useUpdatePartnerUserModal({
