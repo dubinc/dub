@@ -109,21 +109,13 @@ async function processWebhookEvent(event: any) {
 
   // Contact events
   if (objectTypeId === "0-1") {
-    // Track a deferred lead event
-    if (subscriptionType === "object.creation") {
-      await trackHubSpotLeadEvent({
-        payload: event,
-        workspace,
-        authToken,
-        settings,
-      });
-    }
+    const isContactCreated = subscriptionType === "object.creation";
 
-    // Track the final lead event
-    else if (
+    const isLifecycleStageChanged =
       subscriptionType === "object.propertyChange" &&
-      settings.leadTriggerEvent === "lifecycleStageReached"
-    ) {
+      settings.leadTriggerEvent === "lifecycleStageReached";
+
+    if (isContactCreated || isLifecycleStageChanged) {
       await trackHubSpotLeadEvent({
         payload: event,
         workspace,
@@ -135,11 +127,14 @@ async function processWebhookEvent(event: any) {
 
   // Deal event
   if (objectTypeId === "0-3") {
-    // Track the final lead event
-    if (
+    const isDealCreated =
       subscriptionType === "object.creation" &&
-      settings.leadTriggerEvent === "dealCreated"
-    ) {
+      settings.leadTriggerEvent === "dealCreated";
+
+    const isDealUpdated = subscriptionType === "object.propertyChange";
+
+    // Track the final lead event
+    if (isDealCreated) {
       await trackHubSpotLeadEvent({
         payload: event,
         workspace,
@@ -149,7 +144,7 @@ async function processWebhookEvent(event: any) {
     }
 
     // Track the sale event when deal is closed won
-    else if (subscriptionType === "object.propertyChange") {
+    else if (isDealUpdated) {
       await trackHubSpotSaleEvent({
         payload: event,
         workspace,
