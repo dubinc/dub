@@ -6,6 +6,7 @@ type Role = PartnerUser["role"];
 
 const PERMISSIONS = [
   "users.update",
+  "users.delete",
   "user_invites.create",
   "user_invites.delete",
   "user_invites.update",
@@ -16,6 +17,7 @@ const PERMISSIONS = [
 const ROLE_PERMISSIONS: Record<Role, Permission[]> = {
   owner: [
     "users.update",
+    "users.delete",
     "user_invites.create",
     "user_invites.delete",
     "user_invites.update",

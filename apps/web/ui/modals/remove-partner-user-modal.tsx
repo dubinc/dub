@@ -30,12 +30,15 @@ function RemovePartnerUserModal({
   const { partner } = usePartnerProfile();
 
   const self = session?.user?.email === user.email;
+  const isInvite = user.id === null;
 
   const removePartnerUser = async () => {
     setRemoving(true);
 
     const response = await fetch(
-      `/api/partner-profile/users?userId=${user.id}`,
+      isInvite
+        ? `/api/partner-profile/invites?email=${encodeURIComponent(user.email)}`
+        : `/api/partner-profile/users?userId=${user.id}`,
       {
         method: "DELETE",
         headers: { "Content-Type": "application/json" },
@@ -57,12 +60,19 @@ function RemovePartnerUserModal({
       }
 
       toast.success(
-        self
-          ? "You have left the partner profile!"
-          : "Successfully removed partner member!",
+        isInvite
+          ? "Successfully revoked invitation!"
+          : self
+            ? "You have left the partner profile!"
+            : "Successfully removed partner member!",
       );
     } catch (error) {
-      toast.error(error.message || "Failed to remove partner member.");
+      toast.error(
+        error.message ||
+          (isInvite
+            ? "Failed to revoke invitation."
+            : "Failed to remove partner member."),
+      );
     } finally {
       setRemoving(false);
     }
@@ -76,17 +86,34 @@ function RemovePartnerUserModal({
     >
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">
-          {self ? "Leave Partner Profile" : "Remove Partner Member"}
+          {isInvite
+            ? "Revoke Invitation"
+            : self
+              ? "Leave Partner Profile"
+              : "Remove Partner Member"}
         </h3>
         <p className="text-sm text-neutral-500">
-          {self ? "You're about to leave " : "This will remove "}
-          <span className="font-semibold text-black">
-            {self ? partner?.name : user.name || user.email}
-          </span>
-          {self
-            ? ". You will lose all access to this partner profile. "
-            : " from your partner profile. "}
-          Are you sure you want to continue?
+          {isInvite ? (
+            <>
+              This will revoke{" "}
+              <span className="font-semibold text-black">
+                {user.name || user.email}
+              </span>
+              's invitation to join your partner profile. Are you sure you want
+              to continue?
+            </>
+          ) : (
+            <>
+              {self ? "You're about to leave " : "This will remove "}
+              <span className="font-semibold text-black">
+                {self ? partner?.name : user.name || user.email}
+              </span>
+              {self
+                ? ". You will lose all access to this partner profile. "
+                : " from your partner profile. "}
+              Are you sure you want to continue?
+            </>
+          )}
         </p>
       </div>
 
@@ -95,16 +122,24 @@ function RemovePartnerUserModal({
           <div className="flex items-center gap-2">
             <Avatar user={user} className="size-10" />
             <div className="flex flex-col">
-              <p className="text-sm font-medium text-neutral-900">
-                {user.name || user.email}
-              </p>
-              <p className="text-xs text-neutral-500">{user.email}</p>
+              {isInvite ? (
+                <p className="text-content-subtle text-sm font-medium">
+                  {user.email}
+                </p>
+              ) : (
+                <>
+                  <p className="text-sm font-medium text-neutral-900">
+                    {user.name || user.email}
+                  </p>
+                  <p className="text-xs text-neutral-500">{user.email}</p>
+                </>
+              )}
             </div>
           </div>
         </div>
 
         <Button
-          text={self ? "Leave" : "Remove"}
+          text={isInvite ? "Revoke" : self ? "Leave" : "Remove"}
           variant="danger"
           autoFocus={!isMobile}
           loading={removing}

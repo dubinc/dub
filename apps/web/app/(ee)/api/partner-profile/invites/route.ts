@@ -38,7 +38,7 @@ export const POST = withPartnerProfile(
     if (invites.length > MAX_INVITES_PER_REQUEST) {
       throw new DubApiError({
         code: "bad_request",
-        message: "You can only invite up to 10 members at a time.",
+        message: "You can only invite up to 5 members at a time.",
       });
     }
 

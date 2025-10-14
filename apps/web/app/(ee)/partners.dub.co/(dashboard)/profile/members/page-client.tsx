@@ -7,7 +7,6 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useInvitePartnerMemberModal } from "@/ui/modals/invite-partner-member-modal";
 import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal";
-import { useRevokePartnerInviteModal } from "@/ui/modals/revoke-partner-invite-modal";
 import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PartnerRole } from "@dub/prisma/client";
@@ -242,11 +241,6 @@ function RowMenuButton({
       user,
     });
 
-  const { RevokePartnerInviteModal, setShowRevokePartnerInviteModal } =
-    useRevokePartnerInviteModal({
-      invite: user,
-    });
-
   const isCurrentUser = session?.user?.email === user.email;
 
   // Only show menu if user is owner OR they're removing themselves
@@ -256,7 +250,7 @@ function RowMenuButton({
 
   return (
     <>
-      {isInvite ? <RevokePartnerInviteModal /> : <RemovePartnerUserModal />}
+      <RemovePartnerUserModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -275,11 +269,7 @@ function RowMenuButton({
                   }
                   variant="danger"
                   onSelect={() => {
-                    if (isInvite) {
-                      setShowRevokePartnerInviteModal(true);
-                    } else {
-                      setShowRemovePartnerUserModal(true);
-                    }
+                    setShowRemovePartnerUserModal(true);
                     setIsOpen(false);
                   }}
                 />

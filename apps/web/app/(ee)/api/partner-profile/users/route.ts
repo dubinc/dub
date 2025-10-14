@@ -161,48 +161,55 @@ export const PATCH = withPartnerProfile(
   },
 );
 
-// DELETE /api/partner-profile/users?email={email} - remove an invite
-export const DELETE = withPartnerProfile(async ({ searchParams, partner }) => {
-  const { userId } = removeUserSchema.parse(searchParams);
+// DELETE /api/partner-profile/users?userId={userId} - remove a user
+export const DELETE = withPartnerProfile(
+  async ({ searchParams, partner, partnerUser }) => {
+    const { userId } = removeUserSchema.parse(searchParams);
 
-  const [partnerUser, totalOwners] = await Promise.all([
-    prisma.partnerUser.findUnique({
-      where: {
-        userId_partnerId: {
-          userId,
-          partnerId: partner.id,
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "users.delete",
+    });
+
+    const [partnerUserFound, totalOwners] = await Promise.all([
+      prisma.partnerUser.findUnique({
+        where: {
+          userId_partnerId: {
+            userId,
+            partnerId: partner.id,
+          },
         },
-      },
-    }),
+      }),
 
-    prisma.partnerUser.count({
+      prisma.partnerUser.count({
+        where: {
+          partnerId: partner.id,
+          role: "owner",
+        },
+      }),
+    ]);
+
+    if (!partnerUserFound) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "The user you're trying to remove was not found.",
+      });
+    }
+
+    if (totalOwners === 1 && partnerUserFound.role === "owner") {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "Cannot remove the last owner from partner profile. Please assign another owner first.",
+      });
+    }
+
+    const response = await prisma.partnerUser.delete({
       where: {
-        partnerId: partner.id,
-        role: "owner",
+        id: partnerUserFound.id,
       },
-    }),
-  ]);
-
-  if (!partnerUser) {
-    throw new DubApiError({
-      code: "not_found",
-      message: "The user you're trying to remove was not found.",
     });
-  }
 
-  if (totalOwners === 1 && partnerUser.role === "owner") {
-    throw new DubApiError({
-      code: "bad_request",
-      message:
-        "Cannot remove the last owner from partner profile. Please assign another owner first.",
-    });
-  }
-
-  const response = await prisma.partnerUser.delete({
-    where: {
-      id: partnerUser.id,
-    },
-  });
-
-  return NextResponse.json(response);
-});
+    return NextResponse.json(response);
+  },
+);
