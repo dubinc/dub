@@ -176,7 +176,8 @@ export function PayoutStats() {
   const bottomRowStats = payoutStats.slice(3);
 
   if (partner && !hasPermission(partner.role, "payouts.read")) {
-    return router.replace("/");
+    router.replace("/");
+    return null;
   }
 
   return (
