@@ -102,58 +102,61 @@ export const PATCH = withPartnerProfile(
       });
     }
 
-    const [partnerUserFound, totalOwners] = await Promise.all([
-      prisma.partnerUser.findUnique({
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "users.update",
+    });
+
+    // Wrap read and mutation in a transaction to prevent TOCTOU race conditions
+    const response = await prisma.$transaction(async (tx) => {
+      const [partnerUserFound, totalOwners] = await Promise.all([
+        tx.partnerUser.findUnique({
+          where: {
+            userId_partnerId: {
+              userId,
+              partnerId: partner.id,
+            },
+          },
+        }),
+
+        tx.partnerUser.count({
+          where: {
+            partnerId: partner.id,
+            role: "owner",
+          },
+        }),
+      ]);
+
+      if (!partnerUserFound) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "The user you're trying to update was not found.",
+        });
+      }
+
+      if (
+        totalOwners === 1 &&
+        partnerUserFound.role === "owner" &&
+        role !== "owner"
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "Cannot change the role of the last owner. Please assign another owner first.",
+        });
+      }
+
+      return tx.partnerUser.update({
         where: {
           userId_partnerId: {
             userId,
             partnerId: partner.id,
           },
         },
-      }),
-
-      prisma.partnerUser.count({
-        where: {
-          partnerId: partner.id,
-          role: "owner",
+        data: {
+          role,
         },
-      }),
-    ]);
-
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "users.update",
-    });
-
-    if (!partnerUserFound) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "The user you're trying to update was not found.",
       });
-    }
-
-    if (
-      totalOwners === 1 &&
-      partnerUserFound.role === "owner" &&
-      role !== "owner"
-    ) {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "Cannot change the role of the last owner. Please assign another owner first.",
-      });
-    }
-
-    const response = await prisma.partnerUser.update({
-      where: {
-        userId_partnerId: {
-          userId,
-          partnerId: partner.id,
-        },
-      },
-      data: {
-        role,
-      },
     });
 
     return NextResponse.json(response);
@@ -165,53 +168,56 @@ export const DELETE = withPartnerProfile(
   async ({ searchParams, partner, partnerUser }) => {
     const { userId } = removeUserSchema.parse(searchParams);
 
-    const [userToRemove, totalOwners] = await Promise.all([
-      prisma.partnerUser.findUnique({
-        where: {
-          userId_partnerId: {
-            userId,
-            partnerId: partner.id,
+    // Wrap read and mutation in a transaction to prevent TOCTOU race conditions
+    const response = await prisma.$transaction(async (tx) => {
+      const [userToRemove, totalOwners] = await Promise.all([
+        tx.partnerUser.findUnique({
+          where: {
+            userId_partnerId: {
+              userId,
+              partnerId: partner.id,
+            },
           },
-        },
-      }),
+        }),
 
-      prisma.partnerUser.count({
+        tx.partnerUser.count({
+          where: {
+            partnerId: partner.id,
+            role: "owner",
+          },
+        }),
+      ]);
+
+      if (!userToRemove) {
+        throw new DubApiError({
+          code: "not_found",
+          message:
+            "The user you're trying to remove was not found in this partner profile.",
+        });
+      }
+
+      const isSelfRemoval = userToRemove.userId === partnerUser.userId;
+
+      if (!isSelfRemoval) {
+        throwIfNoPermission({
+          role: partnerUser.role,
+          permission: "users.delete",
+        });
+      }
+
+      if (totalOwners === 1 && userToRemove.role === "owner") {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "You can't remove the only owner from this partner profile. Please assign another owner before removing this one.",
+        });
+      }
+
+      return tx.partnerUser.delete({
         where: {
-          partnerId: partner.id,
-          role: "owner",
+          id: userToRemove.id,
         },
-      }),
-    ]);
-
-    if (!userToRemove) {
-      throw new DubApiError({
-        code: "not_found",
-        message:
-          "The user you're trying to remove was not found in this partner profile.",
       });
-    }
-
-    const isSelfRemoval = userToRemove.userId === partnerUser.userId;
-
-    if (!isSelfRemoval) {
-      throwIfNoPermission({
-        role: partnerUser.role,
-        permission: "users.delete",
-      });
-    }
-
-    if (totalOwners === 1 && userToRemove.role === "owner") {
-      throw new DubApiError({
-        code: "bad_request",
-        message:
-          "You can't remove the only owner from this partner profile. Please assign another owner before removing this one.",
-      });
-    }
-
-    const response = await prisma.partnerUser.delete({
-      where: {
-        id: userToRemove.id,
-      },
     });
 
     return NextResponse.json(response);
