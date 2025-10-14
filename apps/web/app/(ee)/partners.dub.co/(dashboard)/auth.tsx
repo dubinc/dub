@@ -1,9 +1,10 @@
 "use client";
 
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useRefreshSession from "@/lib/swr/use-refresh-session";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { redirect, useSearchParams } from "next/navigation";
+import { redirect, usePathname, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -18,6 +19,7 @@ const ERROR_CODES = {
 } as const;
 
 export function PartnerProfileAuth({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { loading: sessionLoading } = useRefreshSession("defaultPartnerId");
   const { partner, error } = usePartnerProfile();
@@ -38,6 +40,14 @@ export function PartnerProfileAuth({ children }: { children: ReactNode }) {
 
   if (!loading && error && error.status === 404) {
     redirect("/onboarding");
+  }
+
+  const canAccessPayouts = partner
+    ? hasPermission(partner.role, "payouts.read")
+    : undefined;
+
+  if (pathname.endsWith("/payouts") && canAccessPayouts === false) {
+    redirect("/");
   }
 
   return children;
