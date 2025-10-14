@@ -1,5 +1,6 @@
 "use client";
 
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
@@ -15,6 +16,7 @@ import {
   PAYPAL_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 function PayoutStatsCard({
   label,
@@ -93,6 +95,7 @@ function PayoutStatsCard({
 }
 
 export function PayoutStats() {
+  const router = useRouter();
   const { partner } = usePartnerProfile();
 
   const { payoutsCount, error } = usePartnerPayoutsCount<PayoutsCount[]>({
@@ -171,6 +174,10 @@ export function PayoutStats() {
   // Split payoutStats for mobile layout
   const topRowStats = payoutStats.slice(0, 3);
   const bottomRowStats = payoutStats.slice(3);
+
+  if (partner && !hasPermission(partner.role, "payouts.read")) {
+    return router.replace("/");
+  }
 
   return (
     <>

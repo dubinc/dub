@@ -1,5 +1,6 @@
 "use client";
 
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
@@ -22,6 +23,10 @@ export const PayoutStats = memo(() => {
   const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });
+
+  if (partner && !hasPermission(partner.role, "payouts.read")) {
+    return null;
+  }
 
   return (
     <AnimatedSizeContainer height>

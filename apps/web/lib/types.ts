@@ -11,6 +11,7 @@ import {
   FolderUserRole,
   Link,
   PartnerGroup,
+  PartnerRole,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
@@ -441,7 +442,10 @@ export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
-export type PartnerProps = z.infer<typeof PartnerSchema>;
+export type PartnerProps = z.infer<typeof PartnerSchema> & {
+  role: PartnerRole;
+  userId: string;
+};
 
 export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
 

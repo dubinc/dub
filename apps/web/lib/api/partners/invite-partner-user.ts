@@ -16,7 +16,7 @@ export async function invitePartnerUser({
 }: {
   email: string;
   role: PartnerRole;
-  partner: PartnerProps;
+  partner: Omit<PartnerProps, "role" | "userId">;
   session: Session;
 }) {
   const token = randomBytes(32).toString("hex");

@@ -21,7 +21,7 @@ interface WithPartnerProfileHandler {
     searchParams: Record<string, string>;
     headers?: Record<string, string>;
     session: Session;
-    partner: PartnerProps;
+    partner: Omit<PartnerProps, "role" | "userId">;
     partnerUser: Pick<PartnerUser, "userId" | "role">;
   }): Promise<Response>;
 }
@@ -102,7 +102,7 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
             salesChannels: salesChannels.map(
               ({ salesChannel }) => salesChannel,
             ),
-          } as PartnerProps,
+          } as Omit<PartnerProps, "role" | "userId">,
           partnerUser: {
             userId: partnerUser.userId,
             role: partnerUser.role,
