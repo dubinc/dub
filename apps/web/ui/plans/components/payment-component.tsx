@@ -108,6 +108,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
             selectedPlan={selectedPlan}
             isProcessing={isProcessing}
             setIsProcessing={setIsProcessing}
+            featuresAccess={featuresAccess}
           />
         </div>
 
