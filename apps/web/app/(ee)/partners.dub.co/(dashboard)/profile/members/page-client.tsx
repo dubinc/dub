@@ -11,19 +11,27 @@ import { PartnerRole } from "@dub/prisma/client";
 import {
   Avatar,
   Button,
+  Filter,
   Popover,
   Table,
-  ToggleGroup,
   useKeyboardShortcut,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { Dots, Icon } from "@dub/ui/icons";
+import {
+  CircleCheck,
+  CircleDotted,
+  Dots,
+  EnvelopeArrowRight,
+  Icon,
+  User,
+  UserCrown,
+} from "@dub/ui/icons";
 import { cn, fetcher, timeAgo } from "@dub/utils";
 import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
-import { UserMinus } from "lucide-react";
+import { UserMinus, UserPlus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
@@ -45,7 +53,7 @@ export function ProfileMembersPageClient() {
   const { queryParams, searchParams } = useRouterStuff();
   const { pagination, setPagination } = usePagination();
 
-  const type = searchParams.get("type") || "users";
+  const status = searchParams.get("status") as "active" | "invited" | null;
   const role = searchParams.get("role") as PartnerRole | null;
   const search = searchParams.get("search") || undefined;
   const sortBy = (searchParams.get("sortBy") || "name") as "name" | "role";
@@ -57,12 +65,14 @@ export function ProfileMembersPageClient() {
     isLoading: loading,
   } = useSWR<PartnerUserProps[]>(
     defaultPartnerId &&
-      `/api/partner-profile/${type || "users"}?${new URLSearchParams({
-        ...(search && { search }),
-        ...(sortBy && { sortBy }),
-        ...(sortOrder && { sortOrder }),
-        ...(role && { role }),
-      } as Record<string, any>).toString()}`,
+      `/api/partner-profile/${status === "invited" ? "invites" : "users"}?${new URLSearchParams(
+        {
+          ...(search && { search }),
+          ...(sortBy && { sortBy }),
+          ...(sortOrder && { sortOrder }),
+          ...(role && { role }),
+        } as Record<string, any>,
+      ).toString()}`,
     fetcher,
     {
       keepPreviousData: true,
@@ -73,6 +83,55 @@ export function ProfileMembersPageClient() {
 
   const { InvitePartnerMemberModal, setShowInvitePartnerMemberModal } =
     useInvitePartnerMemberModal();
+
+  // Combined filter configuration
+  const filters = useMemo(
+    () => [
+      {
+        key: "role",
+        icon: UserPlus,
+        label: "Role",
+        options: [
+          { value: "owner", label: "Owner", icon: UserCrown },
+          { value: "member", label: "Member", icon: User },
+        ],
+      },
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options: [
+          {
+            value: "active",
+            label: "Active",
+            icon: (
+              <CircleCheck className="size-4 bg-green-100 bg-transparent text-green-600" />
+            ),
+          },
+          {
+            value: "invited",
+            label: "Invited",
+            icon: (
+              <EnvelopeArrowRight className="size-4 bg-blue-100 bg-transparent text-blue-600" />
+            ),
+          },
+        ],
+      },
+    ],
+    [],
+  );
+
+  // Active filters state
+  const activeFilters = useMemo(() => {
+    const filters: { key: string; value: any }[] = [];
+    if (status) {
+      filters.push({ key: "status", value: status });
+    }
+    if (role) {
+      filters.push({ key: "role", value: role });
+    }
+    return filters;
+  }, [status, role]);
 
   useKeyboardShortcut("m", () => setShowInvitePartnerMemberModal(true));
 
@@ -153,11 +212,31 @@ export function ProfileMembersPageClient() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) =>
-      `${type === "users" ? "member" : "invite"}${p ? "s" : ""}`,
+      `${status === "invited" ? "invite" : "member"}${p ? "s" : ""}`,
     rowCount: users?.length || 0,
     loading,
     error: error ? "Failed to load members" : undefined,
   });
+
+  const onSelect = (key: string, value: any) => {
+    queryParams({
+      set: {
+        [key]: value,
+      },
+    });
+  };
+
+  const onRemove = (key: string) => {
+    queryParams({
+      del: [key, "page"],
+    });
+  };
+
+  const onRemoveAll = () => {
+    queryParams({
+      del: ["role", "status", "page"],
+    });
+  };
 
   return (
     <>
@@ -175,47 +254,26 @@ export function ProfileMembersPageClient() {
           )
         }
       >
-        <PageWidthWrapper className="mb-20 flex flex-col gap-6">
-          <div className="flex gap-3">
+        <PageWidthWrapper className="mb-20 flex flex-col gap-4">
+          <div className="flex justify-between gap-3">
+            <Filter.Select
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
             <SearchBoxPersisted
               placeholder="Search by name or email"
-              inputClassName="w-full md:w-[16rem]"
-            />
-            <select
-              className="w-28 rounded-md border border-neutral-200 px-3 py-2 text-sm focus:border-neutral-600 focus:ring-neutral-600"
-              value={role || ""}
-              onChange={(e) => {
-                const newRole = e.target.value || null;
-                queryParams({
-                  set: {
-                    ...(newRole && { role: newRole }),
-                  },
-                  del: newRole ? [] : ["role", "page"],
-                  scroll: false,
-                });
-              }}
-            >
-              <option value="">All</option>
-              <option value="owner">Owner</option>
-              <option value="member">Member</option>
-            </select>
-            <ToggleGroup
-              options={[
-                { value: "users", label: "Active" },
-                { value: "invites", label: "Invited" },
-              ]}
-              selected={type}
-              selectAction={(newType) => {
-                queryParams({
-                  set: {
-                    type: newType,
-                  },
-                  del: "page",
-                  scroll: false,
-                });
-              }}
+              inputClassName="w-full md:w-[20rem]"
             />
           </div>
+          <Filter.List
+            filters={filters}
+            activeFilters={activeFilters}
+            onSelect={onSelect}
+            onRemove={onRemove}
+            onRemoveAll={onRemoveAll}
+          />
           <Table {...tableProps} table={table} />
         </PageWidthWrapper>
       </PageContent>
