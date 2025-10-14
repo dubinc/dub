@@ -12,7 +12,7 @@ const response = z
   .nullable();
 
 // GET /api/partner-profile/payouts/settings
-export const GET = withPartnerProfile(async ({ partner, partnerUser }) => {
+export const GET = withPartnerProfile(async ({ partner }) => {
   if (!partner.stripeConnectId) {
     return NextResponse.json({});
   }
