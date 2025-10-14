@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/swr/use-partner-profile-users";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
@@ -12,7 +13,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 function RemovePartnerUserModal({
   showRemovePartnerUserModal,
@@ -48,7 +48,7 @@ function RemovePartnerUserModal({
         throw new Error(error.message);
       }
 
-      await mutate("/api/partner-profile/users");
+      await mutatePrefix("/api/partner-profile/users");
 
       if (self) {
         router.push("/");

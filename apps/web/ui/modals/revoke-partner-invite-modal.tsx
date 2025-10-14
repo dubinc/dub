@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerUserProps } from "@/lib/swr/use-partner-profile-users";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
 
@@ -9,7 +10,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 function RevokePartnerInviteModal({
   showRevokePartnerInviteModal,
@@ -40,7 +40,7 @@ function RevokePartnerInviteModal({
         throw new Error(error.message);
       }
 
-      await mutate("/api/partner-profile/users");
+      await mutatePrefix("/api/partner-profile/users");
       setShowRevokePartnerInviteModal(false);
       toast.success("Successfully revoked invitation!");
     } catch (error) {

@@ -1,7 +1,7 @@
 import { MAX_INVITES_PER_REQUEST } from "@/lib/partners/constants";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { invitePartnerMemberSchema } from "@/lib/zod/schemas/partner-profile";
-import { PartnerRole } from "@dub/prisma/client";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, pluralize } from "@dub/utils";
@@ -15,14 +15,11 @@ import {
 } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { z } from "zod";
 
 type FormData = {
   invites: z.infer<typeof invitePartnerMemberSchema>[];
 };
-
-const partnerRoles: PartnerRole[] = ["owner", "member"];
 
 function InvitePartnerMemberModal({
   showInvitePartnerMemberModal,
@@ -66,7 +63,7 @@ function InvitePartnerMemberModal({
         throw new Error(error.message);
       }
 
-      await mutate("/api/partner-profile/users");
+      await mutatePrefix("/api/partner-profile/users");
       toast.success(
         `${pluralize("Invitation", invites.length)} sent successfully!`,
       );
@@ -123,7 +120,7 @@ function InvitePartnerMemberModal({
                     defaultValue="member"
                     className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                   >
-                    {partnerRoles.map((role) => (
+                    {["owner", "member"].map((role) => (
                       <option key={role} value={role}>
                         {capitalize(role)}
                       </option>
