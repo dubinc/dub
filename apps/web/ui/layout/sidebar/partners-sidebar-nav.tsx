@@ -19,6 +19,7 @@ import {
   SquareUserSparkle2,
   Trophy,
   UserCheck,
+  Users2,
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
@@ -104,6 +105,30 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             icon: UserCheck,
             href: "/programs/invitations",
             badge: invitationsCount || undefined,
+          },
+        ],
+      },
+    ],
+  }),
+
+  profile: () => ({
+    title: "Partner profile",
+    direction: "left",
+    content: [
+      {
+        items: [
+          {
+            name: "Profile",
+            icon: SquareUserSparkle2,
+            href: "/profile",
+            isActive: (pathname, href) =>
+              pathname.startsWith(href) &&
+              !pathname.startsWith(`${href}/members`),
+          },
+          {
+            name: "Members",
+            icon: Users2,
+            href: "/profile/members",
           },
         ],
       },
@@ -265,13 +290,13 @@ export function PartnersSidebarNav({
       ? "userSettings"
       : pathname.startsWith("/settings")
         ? "partnerSettings"
-        : ["/payouts", "/profile", "/messages"].some((p) =>
-              pathname.startsWith(p),
-            )
-          ? null
-          : isEnrolledProgramPage
-            ? "program"
-            : "programs";
+        : pathname.startsWith("/profile")
+          ? "profile"
+          : ["/payouts", "/messages"].some((p) => pathname.startsWith(p))
+            ? null
+            : isEnrolledProgramPage
+              ? "program"
+              : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
   const { count: invitationsCount } = useProgramEnrollmentsCount({
