@@ -36,7 +36,7 @@ export const TrialOfferModal: FC<Readonly<ITrialOfferProps>> = ({
     trackClientEvents({
       event: EAnalyticEvents.ELEMENT_OPENED,
       params: {
-        page_name: "dashboard",
+        page_name: "paywall",
         element_name: "payment_modal",
         content_group: "my_qr_codes",
         email: user?.email,

@@ -33,7 +33,7 @@ interface ICreateSubscriptionProps {
   onSubcriptionCreated: () => void;
 }
 
-const pageName = "dashboard";
+const pageName = "paywall";
 const trialPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
 const subPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 

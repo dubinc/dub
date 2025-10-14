@@ -85,7 +85,7 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
       trackClientEvents({
         event: EAnalyticEvents.AUTH_ERROR,
         params: {
-          page_name: "landing",
+          page_name: "paywall",
           auth_type: "signup",
           auth_method: signupMethod ?? "email",
           auth_origin: "qr",
@@ -128,17 +128,6 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
         auth_origin: "qr",
         email: user?.email,
         event_category: "Authorized",
-      },
-      sessionId: user?.id,
-    });
-
-    trackClientEvents({
-      event: EAnalyticEvents.PAGE_VIEWED,
-      params: {
-        page_name: "dashboard",
-        content_group: "my_qr_codes",
-        event_category: "Authorized",
-        email: user?.email,
       },
       sessionId: user?.id,
     });
