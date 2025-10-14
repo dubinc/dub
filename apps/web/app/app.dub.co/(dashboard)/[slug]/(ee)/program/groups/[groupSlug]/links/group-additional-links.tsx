@@ -20,7 +20,7 @@ import {
   Switch,
 } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
-import { cn, getPrettyUrl } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -152,7 +152,7 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
               <div className="flex flex-col gap-2">
                 {additionalLinks.length > 0 ? (
                   additionalLinks.map((link, index) => (
-                    <LinkDomain
+                    <LinkFormat
                       key={index}
                       link={link}
                       additionalLinks={additionalLinks}
@@ -254,7 +254,7 @@ function SettingsRow({
   );
 }
 
-function LinkDomain({
+function LinkFormat({
   link,
   additionalLinks,
   onUpdateAdditionalLinks,
@@ -272,11 +272,10 @@ function LinkDomain({
   });
 
   // Delete link format
-  const deleteLinkDomain = async () => {
-    const updatedAdditionalLinks = additionalLinks.filter((existingLink) =>
-      link.validationMode === "exact"
-        ? existingLink.path !== link.path
-        : existingLink.domain !== link.domain,
+  const deleteLinkFormat = async () => {
+    const updatedAdditionalLinks = additionalLinks.filter(
+      (existingLink) =>
+        existingLink.domain !== link.domain && existingLink.path !== link.path,
     );
 
     // Update the parent form state instead of calling API directly
@@ -286,9 +285,10 @@ function LinkDomain({
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
     title: "Delete link format",
-    description: `Are you sure you want to delete "${getPrettyUrl(link.domain)}"? This will prevent partners from creating links with this domain or URL.`,
+    description:
+      "Are you sure you want to delete this link format? This will prevent partners from creating links with this domain or URL.",
     confirmText: "Delete",
-    onConfirm: deleteLinkDomain,
+    onConfirm: deleteLinkFormat,
   });
 
   return (
@@ -304,23 +304,18 @@ function LinkDomain({
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
             </div>
             <div className="relative z-10 p-2">
-              {link.domain || link.path ? (
-                <LinkLogo
-                  apexDomain={link.domain}
-                  className="size-4 sm:size-6"
-                  imageProps={{
-                    loading: "lazy",
-                  }}
-                />
-              ) : (
-                <div className="size-4 rounded-full bg-neutral-200 sm:size-6" />
-              )}
+              <LinkLogo
+                apexDomain={link.domain}
+                className="size-4 sm:size-6"
+                imageProps={{
+                  loading: "lazy",
+                }}
+              />
             </div>
           </div>
           <span className="text-content-default min-w-0 truncate text-sm font-semibold">
-            {link.validationMode === "domain"
-              ? link.domain
-              : `${link.domain}${link.path}`}
+            {link.domain}
+            {link.path === "/" ? "" : link.path}
           </span>
         </div>
 

@@ -2,7 +2,6 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
 import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
-import { dedupeAdditionalLinks } from "@/lib/api/groups/dedupe-additional-links";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -17,7 +16,7 @@ import {
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
-import { DiscountCode, Prisma } from "@prisma/client";
+import { DiscountCode } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -95,6 +94,22 @@ export const PATCH = withWorkspace(
       }
     }
 
+    if (additionalLinks) {
+      // check for duplicate link formats
+      const linkFormatDomains = additionalLinks.reduce((acc, link) => {
+        acc.add(link.domain);
+        return acc;
+      }, new Set<string>());
+
+      if (linkFormatDomains.size !== additionalLinks.length) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "Duplicate link formats found. Please make sure all link formats have unique domains.",
+        });
+      }
+    }
+
     // Find the UTM template
     const utmTemplate = utmTemplateId
       ? await prisma.utmTemplate.findUniqueOrThrow({
@@ -105,14 +120,6 @@ export const PATCH = withWorkspace(
         })
       : null;
 
-    const deduplicatedAdditionalLinks = dedupeAdditionalLinks(additionalLinks);
-
-    const additionalLinksInput = deduplicatedAdditionalLinks
-      ? deduplicatedAdditionalLinks.length > 0
-        ? deduplicatedAdditionalLinks
-        : Prisma.DbNull
-      : undefined;
-
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: group.id,
@@ -121,10 +128,10 @@ export const PATCH = withWorkspace(
         name,
         slug,
         color,
-        ...(additionalLinksInput && { additionalLinks: additionalLinksInput }),
+        additionalLinks,
         maxPartnerLinks,
-        utmTemplateId,
         linkStructure,
+        utmTemplateId,
         applicationFormData,
         landerData,
       },

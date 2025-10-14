@@ -12,7 +12,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { CircleCheckFill } from "@dub/ui/icons";
-import { cn, isValidUrl } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -109,7 +109,8 @@ function AddDestinationUrlModalContent({
     setValue,
     setError,
     clearErrors,
-    formState: { errors },
+    reset,
+    formState: { errors, isDirty },
   } = useForm<AdditionalLinkFormData>({
     defaultValues: link
       ? partnerLinkToFormData(link)
@@ -126,103 +127,58 @@ function AddDestinationUrlModalContent({
     "validationMode",
   ]);
 
+  // Reset form state when switching between validation modes
   useEffect(() => {
-    if (validationMode === "domain" && url) {
-      setValue("url", "");
-    } else if (validationMode === "exact" && domain) {
-      setValue("domain", "");
+    if (validationMode === "domain") {
+      // Clear URL field and errors when switching to domain mode
+      setValue("url", "", { shouldDirty: false });
+      clearErrors("url");
+    } else if (validationMode === "exact") {
+      // Clear domain field and errors when switching to exact mode
+      setValue("domain", "", { shouldDirty: false });
+      clearErrors("domain");
     }
-  }, [validationMode, setValue, url, domain]);
+  }, [validationMode, setValue, clearErrors]);
 
-  const validateForm = (data: AdditionalLinkFormData): boolean => {
-    // Domain mode validation
-    if (data.validationMode === "domain") {
-      if (!data.domain) {
-        return false;
-      }
+  const validateForm = (data: PartnerGroupAdditionalLink): boolean => {
+    const domainNormalized = data.domain.trim().toLowerCase();
 
-      const domainNormalized = data.domain.trim().toLowerCase();
-
-      if (!isValidDomainFormat(domainNormalized)) {
-        setError("domain", {
-          type: "manual",
-          message: "Please enter a valid domain (eg: acme.com).",
-        });
-        return false;
-      }
-
-      setValue("domain", domainNormalized, { shouldDirty: true });
-
-      // Check for duplicate domains
-      const existingDomains = additionalLinks
-        .filter((l) => l.validationMode === "domain" && l.domain)
-        .map((l) => l.domain!);
-
-      if (
-        existingDomains.includes(domainNormalized) &&
-        domainNormalized !== link?.domain
-      ) {
-        setError("domain", {
-          type: "value",
-          message: `Domain ${domainNormalized} has already been added as a link format`,
-        });
-        return false;
-      }
-    }
-
-    // Exact mode validation
-    else if (data.validationMode === "exact") {
-      if (!data.url) {
-        return false;
-      }
-
-      const urlTrimmed = data.url.trim();
-
-      if (!isValidUrl(urlTrimmed)) {
-        setError("url", {
-          type: "manual",
-          message: "Please enter a valid URL (eg: https://acme.com/page).",
-        });
-        return false;
-      }
-
-      setValue("url", urlTrimmed, { shouldDirty: true });
-
-      // Convert to backend format for duplicate checking
-      const backendData = formDataToPartnerLink(data);
-      const existingExactLinks = additionalLinks.filter(
-        (l) => l.validationMode === "exact" && l.domain && l.path,
-      );
-
-      const isDuplicate = existingExactLinks.some((l) => {
-        const isCurrentLink =
-          link && l.domain === link.domain && l.path === link.path;
-        return (
-          !isCurrentLink &&
-          l.domain === backendData.domain &&
-          l.path === backendData.path
-        );
+    if (!isValidDomainFormat(domainNormalized)) {
+      const errorField = data.validationMode === "exact" ? "url" : "domain";
+      setError(errorField, {
+        type: "manual",
+        message:
+          data.validationMode === "exact"
+            ? "Please enter a valid URL (e.g., https://acme.com/page)."
+            : "Please enter a valid domain (e.g., acme.com).",
       });
-
-      if (isDuplicate) {
-        setError("url", {
-          type: "value",
-          message: "This URL has already been added",
-        });
-        return false;
-      }
+      return false;
     }
 
+    // Check for duplicate domain - regardless of validation mode
+    const duplicateDomain = additionalLinks.find(
+      (l) => l.domain === domainNormalized,
+    );
+
+    if (duplicateDomain && !link) {
+      // Don't check duplicates when editing
+      const errorField = data.validationMode === "exact" ? "url" : "domain";
+      setError(errorField, {
+        type: "value",
+        message: `You've already added "${domainNormalized}" as a link format. Choose a different domain to proceed.`,
+      });
+      return false;
+    }
     return true;
   };
 
   const onSubmit = async (formData: AdditionalLinkFormData) => {
-    if (!validateForm(formData)) {
-      return;
-    }
-
     // Convert form data to backend schema
     const backendData = formDataToPartnerLink(formData);
+
+    if (!validateForm(backendData)) {
+      return;
+    }
 
     let updatedAdditionalLinks: PartnerGroupAdditionalLink[];
 
@@ -250,6 +206,9 @@ function AddDestinationUrlModalContent({
 
     // Update the parent form state instead of calling API directly
     onUpdateAdditionalLinks(updatedAdditionalLinks);
+
+    // Reset form state after successful submission
+    reset();
     setIsOpen(false);
   };
 
@@ -303,7 +262,14 @@ function AddDestinationUrlModalContent({
                         type="radio"
                         value={type.value}
                         className="hidden"
-                        {...register("validationMode")}
+                        checked={validationMode === type.value}
+                        onChange={(e) => {
+                          setValue(
+                            "validationMode",
+                            e.target.value as "domain" | "exact",
+                            { shouldDirty: true },
+                          );
+                        }}
                       />
 
                       <div className="flex grow flex-col whitespace-nowrap text-sm">
@@ -337,10 +303,12 @@ function AddDestinationUrlModalContent({
                               <Input
                                 value={watch("url") || ""}
                                 onChange={(e) => {
-                                  setValue("url", e.target.value);
+                                  setValue("url", e.target.value, {
+                                    shouldDirty: true,
+                                  });
                                   clearErrors("url");
                                 }}
-                                type="text"
+                                type="url"
                                 placeholder={type.placeholder}
                                 className="max-w-full"
                                 autoFocus={!isMobile}
@@ -350,7 +318,9 @@ function AddDestinationUrlModalContent({
                               <Input
                                 value={watch("domain") || ""}
                                 onChange={(e) => {
-                                  setValue("domain", e.target.value);
+                                  setValue("domain", e.target.value, {
+                                    shouldDirty: true,
+                                  });
                                   clearErrors("domain");
                                 }}
                                 type="text"
@@ -415,8 +385,9 @@ function AddDestinationUrlModalContent({
             className="h-9 w-fit"
             disabled={
               !validationMode ||
-              (validationMode === "domain" && !domain) ||
-              (validationMode === "exact" && !url)
+              (validationMode === "domain" &&
+                (!domain || domain.trim() === "")) ||
+              (validationMode === "exact" && (!url || url.trim() === ""))
             }
           />
         </div>
