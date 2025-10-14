@@ -30,19 +30,17 @@ export const POST = withSession(async ({ session }) => {
 
   const partner = invite.partner;
 
-  const existingPartnerUser = await prisma.partnerUser.findUnique({
+  const existingPartnerMembership = await prisma.partnerUser.count({
     where: {
-      userId_partnerId: {
-        userId: session.user.id,
-        partnerId: partner.id,
-      },
+      userId: session.user.id,
     },
   });
 
-  if (existingPartnerUser) {
+  if (existingPartnerMembership > 0) {
     throw new DubApiError({
       code: "conflict",
-      message: "You are already a member of this partner profile.",
+      message:
+        "You’re already associated with another partner profile. A user can only belong to one partner profile at a time.",
     });
   }
 
