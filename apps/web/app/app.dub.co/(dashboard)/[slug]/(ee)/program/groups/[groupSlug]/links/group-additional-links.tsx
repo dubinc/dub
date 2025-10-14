@@ -273,13 +273,12 @@ function LinkFormat({
 
   // Delete link format
   const deleteLinkFormat = async () => {
-    const updatedAdditionalLinks = additionalLinks.filter(
-      (existingLink) =>
-        existingLink.domain !== link.domain && existingLink.path !== link.path,
-    );
-
     // Update the parent form state instead of calling API directly
-    onUpdateAdditionalLinks(updatedAdditionalLinks);
+    onUpdateAdditionalLinks(
+      additionalLinks.filter(
+        (existingLink) => existingLink.domain !== link.domain,
+      ),
+    );
     setOpenPopover(false);
   };
 

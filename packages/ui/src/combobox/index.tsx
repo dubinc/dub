@@ -404,7 +404,7 @@ function Option({
               )}
             </div>
           )}
-          <div className="flex min-w-0 grow items-center gap-1">
+          <div className="flex min-w-0 grow items-center gap-2">
             {option.icon && (
               <span className="shrink-0 text-neutral-600">
                 {isReactNode(option.icon) ? (

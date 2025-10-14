@@ -101,8 +101,8 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
         getOptionIcon: (value) => (
           <img
             alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
-            className="h-2.5 w-4"
+            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
+            className="size-4 shrink-0"
           />
         ),
         getOptionLabel: (value) => COUNTRIES[value],
