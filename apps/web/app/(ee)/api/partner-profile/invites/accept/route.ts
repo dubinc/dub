@@ -5,9 +5,7 @@ import { NextResponse } from "next/server";
 
 // POST /api/partner-profile/invites/accept – accept a partner invite
 export const POST = withSession(async ({ session }) => {
-  // Use a transaction to prevent race conditions when accepting invites
   await prisma.$transaction(async (tx) => {
-    // Re-fetch and validate the invite inside the transaction
     const invite = await tx.partnerInvite.findFirst({
       where: {
         email: session.user.email,
@@ -33,7 +31,6 @@ export const POST = withSession(async ({ session }) => {
 
     const partner = invite.partner;
 
-    // Re-check for existing membership inside the transaction
     const existingPartnerMembership = await tx.partnerUser.count({
       where: {
         userId: session.user.id,
@@ -48,7 +45,6 @@ export const POST = withSession(async ({ session }) => {
       });
     }
 
-    // Create the partner user
     await tx.partnerUser.create({
       data: {
         userId: session.user.id,
@@ -60,7 +56,6 @@ export const POST = withSession(async ({ session }) => {
       },
     });
 
-    // Delete the invite
     await tx.partnerInvite.delete({
       where: {
         email_partnerId: {
@@ -70,8 +65,6 @@ export const POST = withSession(async ({ session }) => {
       },
     });
 
-    // Conditionally update defaultPartnerId only if it's still null
-    // Fetch current user state inside transaction to ensure atomicity
     if (session.user["defaultPartnerId"] === null) {
       const currentUser = await tx.user.findUnique({
         where: {
