@@ -20,7 +20,7 @@ const ERROR_CODES = {
 export function PartnerProfileAuth({ children }: { children: ReactNode }) {
   const searchParams = useSearchParams();
   const { loading: sessionLoading } = useRefreshSession("defaultPartnerId");
-  const { partner, error } = usePartnerProfile();
+  const { partner, loading: partnerLoading } = usePartnerProfile();
 
   useEffect(() => {
     const error = searchParams?.get("error");
@@ -30,15 +30,16 @@ export function PartnerProfileAuth({ children }: { children: ReactNode }) {
     }
   }, [searchParams]);
 
-  const loading = sessionLoading || (!partner && !error);
+  const loading = sessionLoading || partnerLoading;
 
   if (loading) {
     return <LayoutLoader />;
   }
 
-  if (!loading && error && error.status === 404) {
+  // Redirect to onboarding if no partner profile
+  if (!loading && !partner) {
     redirect("/onboarding");
   }
 
-  return children;
+  return <>{children}</>;
 }

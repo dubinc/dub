@@ -3,7 +3,7 @@ import { PartnerProps } from "@/lib/types";
 import { sendEmail } from "@dub/email";
 import PartnerUserInvited from "@dub/email/templates/partner-user-invited";
 import { prisma } from "@dub/prisma";
-import { TWO_WEEKS_IN_SECONDS } from "@dub/utils";
+import { PARTNERS_DOMAIN, TWO_WEEKS_IN_SECONDS } from "@dub/utils";
 import { PartnerRole } from "@prisma/client";
 import { randomBytes } from "crypto";
 import { DubApiError } from "../errors";
@@ -49,12 +49,12 @@ export async function invitePartnerUser({
   });
 
   const params = new URLSearchParams({
-    callbackUrl: `${process.env.NEXTAUTH_URL}?invite=1`,
+    callbackUrl: `${PARTNERS_DOMAIN}/invite`,
     email,
     token,
   });
 
-  const url = `${process.env.NEXTAUTH_URL}/api/auth/callback/email?${params}`;
+  const url = `${PARTNERS_DOMAIN}/api/auth/callback/email?${params}`;
 
   return await sendEmail({
     subject: `You've been invited to join a partner profile on Dub Partners.`,
