@@ -16,11 +16,32 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const parsedParams = getPartnersQuerySchemaExtended.parse(searchParams);
+    const { sortBy: sortByWithOldFields, ...parsedParams } =
+      getPartnersQuerySchemaExtended
+        .merge(
+          z.object({
+            // add old fields for backward compatibility (clicks, leads, conversions, sales, saleAmount)
+            sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
+              z.enum(["clicks", "leads", "conversions", "sales", "saleAmount"]),
+            ),
+          }),
+        )
+        .parse(searchParams);
+
+    // get the final sortBy field (replace old fields with new fields)
+    const sortBy =
+      {
+        clicks: "totalClicks",
+        leads: "totalLeads",
+        conversions: "totalConversions",
+        sales: "totalSales",
+        saleAmount: "totalSaleAmount",
+      }[sortByWithOldFields] || sortByWithOldFields;
 
     console.time("getPartners");
     const partners = await getPartners({
       ...parsedParams,
+      sortBy,
       programId,
     });
     console.timeEnd("getPartners");

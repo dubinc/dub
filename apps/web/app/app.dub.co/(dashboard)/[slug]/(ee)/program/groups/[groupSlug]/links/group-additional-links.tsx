@@ -20,7 +20,7 @@ import {
   Switch,
 } from "@dub/ui";
 import { PenWriting, Trash } from "@dub/ui/icons";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { PropsWithChildren, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -145,14 +145,14 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
           </SettingsRow>
 
           <SettingsRow
-            heading="Link domains"
-            description="Restrict partner links to specific domains"
+            heading="Link formats"
+            description="Specify the domains or URLs partners can create additional links on"
           >
             <div>
               <div className="flex flex-col gap-2">
                 {additionalLinks.length > 0 ? (
                   additionalLinks.map((link, index) => (
-                    <LinkDomain
+                    <LinkFormat
                       key={index}
                       link={link}
                       additionalLinks={additionalLinks}
@@ -168,13 +168,14 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
                   ))
                 ) : (
                   <div className="border-border-subtle text-content-subtle flex h-16 items-center gap-3 rounded-xl border bg-white p-4 text-sm">
-                    No additional link domains
+                    No link formats configured – partners won't be able to
+                    create additional links.
                   </div>
                 )}
               </div>
 
               <Button
-                text="Add link domain"
+                text="Add link format"
                 variant="secondary"
                 className="mt-4 h-8 w-fit rounded-lg px-3"
                 onClick={() => setIsOpen(true)}
@@ -183,7 +184,7 @@ export function GroupAdditionalLinksForm({ group }: { group: GroupProps }) {
                 }
                 disabledTooltip={
                   additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS
-                    ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional link domains.`
+                    ? `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional link formats.`
                     : undefined
                 }
               />
@@ -253,7 +254,7 @@ function SettingsRow({
   );
 }
 
-function LinkDomain({
+function LinkFormat({
   link,
   additionalLinks,
   onUpdateAdditionalLinks,
@@ -270,22 +271,23 @@ function LinkDomain({
     onUpdateAdditionalLinks,
   });
 
-  // Delete link domain
-  const deleteLinkDomain = async () => {
-    const updatedAdditionalLinks = additionalLinks.filter(
-      (existingLink) => existingLink.domain !== link.domain,
-    );
-
+  // Delete link format
+  const deleteLinkFormat = async () => {
     // Update the parent form state instead of calling API directly
-    onUpdateAdditionalLinks(updatedAdditionalLinks);
+    onUpdateAdditionalLinks(
+      additionalLinks.filter(
+        (existingLink) => existingLink.domain !== link.domain,
+      ),
+    );
     setOpenPopover(false);
   };
 
   const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Delete link domain",
-    description: `Are you sure you want to delete "${getPrettyUrl(link.domain)}"? This will prevent partners from creating links with this domain.`,
+    title: "Delete link format",
+    description:
+      "Are you sure you want to delete this link format? This will prevent partners from creating links with this domain or URL.",
     confirmText: "Delete",
-    onConfirm: deleteLinkDomain,
+    onConfirm: deleteLinkFormat,
   });
 
   return (
@@ -293,7 +295,7 @@ function LinkDomain({
       {confirmModal}
       <div className="border-border-subtle group relative flex h-16 cursor-pointer items-center gap-3 rounded-xl border bg-white p-4 transition-all hover:border-neutral-300 hover:shadow-sm">
         <div
-          className="flex flex-1 items-center gap-3"
+          className="flex min-w-0 flex-1 items-center gap-3"
           onClick={() => setIsOpen(true)}
         >
           <div className="relative flex shrink-0 items-center">
@@ -301,21 +303,18 @@ function LinkDomain({
               <div className="h-full w-full rounded-full border border-white bg-gradient-to-t from-neutral-100" />
             </div>
             <div className="relative z-10 p-2">
-              {link.domain ? (
-                <LinkLogo
-                  apexDomain={getApexDomain(link.domain)}
-                  className="size-4 sm:size-6"
-                  imageProps={{
-                    loading: "lazy",
-                  }}
-                />
-              ) : (
-                <div className="size-4 rounded-full bg-neutral-200 sm:size-6" />
-              )}
+              <LinkLogo
+                apexDomain={link.domain}
+                className="size-4 sm:size-6"
+                imageProps={{
+                  loading: "lazy",
+                }}
+              />
             </div>
           </div>
-          <span className="text-content-default truncate text-sm font-semibold">
-            {getPrettyUrl(link.domain)}
+          <span className="text-content-default min-w-0 truncate text-sm font-semibold">
+            {link.domain}
+            {link.path === "/" ? "" : link.path}
           </span>
         </div>
 
