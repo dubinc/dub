@@ -260,75 +260,93 @@ export function useAnalyticsFilters({
   );
 
   const { data: links } = useAnalyticsFilterOption("top_links", {
-    cacheOnly: !isRequested("link"),
+    disabled: !isRequested("link"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: partners } = useAnalyticsFilterOption("top_partners", {
-    cacheOnly: !isRequested("partnerId"),
+    disabled: !isRequested("partnerId"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: countries } = useAnalyticsFilterOption("countries", {
-    cacheOnly: !isRequested("country"),
+    disabled: !isRequested("country"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: regions } = useAnalyticsFilterOption("regions", {
-    cacheOnly: !isRequested("region"),
+    disabled: !isRequested("region"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: cities } = useAnalyticsFilterOption("cities", {
-    cacheOnly: !isRequested("city"),
+    disabled: !isRequested("city"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: continents } = useAnalyticsFilterOption("continents", {
-    cacheOnly: !isRequested("continent"),
+    disabled: !isRequested("continent"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: devices } = useAnalyticsFilterOption("devices", {
-    cacheOnly: !isRequested("device"),
+    disabled: !isRequested("device"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: browsers } = useAnalyticsFilterOption("browsers", {
-    cacheOnly: !isRequested("browser"),
+    disabled: !isRequested("browser"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: os } = useAnalyticsFilterOption("os", {
-    cacheOnly: !isRequested("os"),
+    disabled: !isRequested("os"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: triggers } = useAnalyticsFilterOption("triggers", {
-    cacheOnly: !isRequested("trigger"),
+    disabled: !isRequested("trigger"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: referers } = useAnalyticsFilterOption("referers", {
-    cacheOnly: !isRequested("referer"),
+    disabled: !isRequested("referer"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: refererUrls } = useAnalyticsFilterOption("referer_urls", {
-    cacheOnly: !isRequested("refererUrl"),
+    disabled: !isRequested("refererUrl"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: urls } = useAnalyticsFilterOption("top_urls", {
-    cacheOnly: !isRequested("url"),
+    disabled: !isRequested("url"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: utmSources } = useAnalyticsFilterOption("utm_sources", {
-    cacheOnly: !isRequested("utm_source"),
+    disabled: !isRequested("utm_source"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: utmMediums } = useAnalyticsFilterOption("utm_mediums", {
-    cacheOnly: !isRequested("utm_medium"),
+    disabled: !isRequested("utm_medium"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: utmCampaigns } = useAnalyticsFilterOption("utm_campaigns", {
-    cacheOnly: !isRequested("utm_campaign"),
+    disabled: !isRequested("utm_campaign"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: utmTerms } = useAnalyticsFilterOption("utm_terms", {
-    cacheOnly: !isRequested("utm_term"),
+    disabled: !isRequested("utm_term"),
+    omitGroupByFilterKey: true,
     context,
   });
   const { data: utmContents } = useAnalyticsFilterOption("utm_contents", {
-    cacheOnly: !isRequested("utm_content"),
+    disabled: !isRequested("utm_content"),
+    omitGroupByFilterKey: true,
     context,
   });
 
@@ -646,7 +664,7 @@ export function useAnalyticsFilters({
           <img
             alt={value}
             src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
-            className="h-2.5 w-4"
+            className="size-4 shrink-0"
           />
         ),
         getOptionLabel: (value) => COUNTRIES[value],
@@ -668,8 +686,8 @@ export function useAnalyticsFilters({
             icon: (
               <img
                 alt={country}
-                src={`https://flag.vercel.app/m/${country}.svg`}
-                className="h-2.5 w-4"
+                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                className="size-4 shrink-0"
               />
             ),
             right: getFilterOptionTotal(rest),
@@ -686,8 +704,8 @@ export function useAnalyticsFilters({
             icon: (
               <img
                 alt={country}
-                src={`https://flag.vercel.app/m/${country}.svg`}
-                className="h-2.5 w-4"
+                src={`https://hatscripts.github.io/circle-flags/flags/${country.toLowerCase()}.svg`}
+                className="size-4 shrink-0"
               />
             ),
             right: getFilterOptionTotal(rest),
