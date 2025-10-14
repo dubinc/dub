@@ -23,8 +23,11 @@ export const validatePartnerLinkUrl = ({
     });
   }
 
-  const { hostname: urlHostname, pathname: urlPathname } =
-    getUrlObjFromString(url) ?? {};
+  const {
+    hostname: urlHostname,
+    pathname: urlPathname,
+    search: urlSearch,
+  } = getUrlObjFromString(url) ?? {};
 
   // Find matching additional link based on its domain
   const additionalLink = additionalLinks.find((additionalLink) => {
@@ -38,14 +41,13 @@ export const validatePartnerLinkUrl = ({
     });
   }
 
+  // for domain mode, we only need to check if the domain matches
   if (additionalLink.validationMode === "domain") {
     return true;
   }
 
-  if (
-    additionalLink.domain !== urlHostname ||
-    additionalLink.path !== urlPathname
-  ) {
+  // else, for exact mode, we need to check if the path matches too
+  if (additionalLink.path !== `${urlPathname}${urlSearch}`) {
     throw new DubApiError({
       code: "bad_request",
       message: `The provided URL does not match the URL configured for this program.`,

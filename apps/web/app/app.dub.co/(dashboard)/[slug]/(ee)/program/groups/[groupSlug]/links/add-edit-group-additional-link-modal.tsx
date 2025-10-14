@@ -35,7 +35,7 @@ const URL_VALIDATION_MODES = [
   {
     value: "exact",
     label: "Single URL",
-    description: "Restricts links to a specific page",
+    description: "Restricts links to a specific page only",
     recommended: false,
     placeholder: "https://acme.com/specific-page",
   },
@@ -164,7 +164,7 @@ function AddDestinationUrlModalContent({
       ) {
         setError("domain", {
           type: "value",
-          message: `Domain ${domainNormalized} has already been added as a link domain`,
+          message: `Domain ${domainNormalized} has already been added as a link format`,
         });
         return false;
       }
@@ -240,7 +240,7 @@ function AddDestinationUrlModalContent({
     } else {
       if (additionalLinks.length >= MAX_ADDITIONAL_PARTNER_LINKS) {
         toast.error(
-          `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional link domains.`,
+          `You can only create up to ${MAX_ADDITIONAL_PARTNER_LINKS} additional link formats.`,
         );
         return;
       }
@@ -267,7 +267,7 @@ function AddDestinationUrlModalContent({
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
         <div className="flex h-16 items-center justify-between px-6 py-4">
           <h2 className="text-lg font-semibold">
-            {isEditing ? "Edit link domain" : "Add link domain"}
+            {isEditing ? "Edit link format" : "Add link format"}
           </h2>
         </div>
       </div>
@@ -411,7 +411,7 @@ function AddDestinationUrlModalContent({
           <Button
             type="submit"
             variant="primary"
-            text={isEditing ? "Update link domain" : "Add link domain"}
+            text={isEditing ? "Update link format" : "Add link format"}
             className="h-9 w-fit"
             disabled={
               !validationMode ||
