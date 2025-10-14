@@ -153,24 +153,9 @@ export function FilterList({
                           <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
                         </div>
                       ) : onSelect ? (
-                        <Combobox
-                          selected={
-                            filter.options.find((opt) =>
-                              typeof opt.value === "string" &&
-                              typeof value === "string"
-                                ? opt.value.toLowerCase() ===
-                                  value.toLowerCase()
-                                : opt.value === value,
-                            ) ?? null
-                          }
-                          setSelected={(newOption: ComboboxOption | null) => {
-                            if (newOption && newOption.value !== value) {
-                              // Remove the current value and add the new one
-                              onRemove(key, value);
-                              onSelect(key, newOption.value);
-                            }
-                          }}
-                          options={
+                        (() => {
+                          // Precompute options array once
+                          const options: ComboboxOption[] =
                             filter.options?.map((opt): ComboboxOption => {
                               const optionIcon =
                                 opt.icon ??
@@ -187,35 +172,63 @@ export function FilterList({
                                     key: filter.key,
                                     option: opt,
                                   }) ??
-                                  opt.value,
-                                value: opt.value,
+                                  String(opt.value),
+                                value: String(opt.value),
                                 icon: optionIcon,
                               };
-                            }) ?? []
-                          }
-                          optionRight={(option) => {
-                            if (option.value === value) {
-                              return;
-                            }
-                            const filterOption = filter.options?.find((opt) =>
-                              typeof opt.value === "string" &&
-                              typeof option.value === "string"
-                                ? opt.value.toLowerCase() ===
-                                  option.value.toLowerCase()
-                                : opt.value === option.value,
-                            );
-                            return filterOption ? (
-                              <span className="ml-2 text-neutral-500">
-                                {filterOption.right}
-                              </span>
-                            ) : null;
-                          }}
-                          placeholder={truncate(optionLabel, 30)}
-                          caret={false}
-                          trigger={OptionDisplay({
-                            className: "cursor-pointer hover:bg-neutral-50",
-                          })}
-                        />
+                            }) ?? [];
+
+                          // Find selected option from precomputed array
+                          const selectedOption = options.find((opt) =>
+                            typeof opt.value === "string" &&
+                            typeof value === "string"
+                              ? opt.value.toLowerCase() ===
+                                String(value).toLowerCase()
+                              : opt.value === String(value),
+                          );
+
+                          return (
+                            <Combobox
+                              selected={selectedOption ?? null}
+                              setSelected={(
+                                newOption: ComboboxOption | null,
+                              ) => {
+                                if (
+                                  newOption &&
+                                  newOption.value !== String(value)
+                                ) {
+                                  // Remove the current value and add the new one
+                                  onRemove(key, value);
+                                  onSelect(key, newOption.value);
+                                }
+                              }}
+                              options={options}
+                              optionRight={(option) => {
+                                if (option.value === String(value)) {
+                                  return;
+                                }
+                                const filterOption = filter.options?.find(
+                                  (opt) =>
+                                    typeof String(opt.value) === "string" &&
+                                    typeof option.value === "string"
+                                      ? String(opt.value).toLowerCase() ===
+                                        option.value.toLowerCase()
+                                      : String(opt.value) === option.value,
+                                );
+                                return filterOption ? (
+                                  <span className="ml-2 text-neutral-500">
+                                    {filterOption.right}
+                                  </span>
+                                ) : null;
+                              }}
+                              placeholder={truncate(optionLabel, 30)}
+                              caret={false}
+                              trigger={OptionDisplay({
+                                className: "cursor-pointer hover:bg-neutral-50",
+                              })}
+                            />
+                          );
+                        })()
                       ) : (
                         OptionDisplay({})
                       )}
