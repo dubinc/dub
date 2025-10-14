@@ -5,7 +5,7 @@ import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-par
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import PartnerInvite from "@dub/email/templates/partner-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -74,7 +74,7 @@ export const invitePartnerAction = authActionClient
           subject: `${program.name} invited you to join Dub Partners`,
           variant: "notifications",
           to: email,
-          react: PartnerInvite({
+          react: ProgramInvite({
             email,
             program: {
               name: program.name,
