@@ -1,11 +1,9 @@
 "use client";
 
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
-import { PartnerProps } from "@/lib/types";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -36,7 +34,6 @@ import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 type SidebarNavData = {
   pathname: string;
   queryString?: string;
-  partner?: PartnerProps;
   programSlug?: string;
   isUnapproved: boolean;
   invitationsCount?: number;
@@ -46,7 +43,6 @@ type SidebarNavData = {
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
   pathname,
-  partner,
   unreadMessagesCount,
 }) => [
   {
@@ -57,26 +53,22 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
     href: "/programs",
     active: pathname.startsWith("/programs"),
   },
-  ...(partner?.role === "member"
-    ? []
-    : [
-        {
-          name: "Payouts",
-          description:
-            "View all your upcoming and previous payouts for all your programs.",
-          icon: MoneyBills2,
-          href: "/payouts",
-          active: pathname.startsWith("/payouts"),
-        },
-        {
-          name: "Partner profile",
-          description:
-            "Build a great partner profile and get noticed in our partner network.",
-          icon: SquareUserSparkle2,
-          href: "/profile",
-          active: pathname.startsWith("/profile"),
-        },
-      ]),
+  {
+    name: "Payouts",
+    description:
+      "View all your upcoming and previous payouts for all your programs.",
+    icon: MoneyBills2,
+    href: "/payouts",
+    active: pathname.startsWith("/payouts"),
+  },
+  {
+    name: "Partner profile",
+    description:
+      "Build a great partner profile and get noticed in our partner network.",
+    icon: SquareUserSparkle2,
+    href: "/profile",
+    active: pathname.startsWith("/profile"),
+  },
   {
     name: "Messages",
     description: "Chat with programs you're enrolled in",
@@ -282,7 +274,6 @@ export function PartnersSidebarNav({
   toolContent?: ReactNode;
   newsContent?: ReactNode;
 }) {
-  const { partner } = usePartnerProfile();
   const { programSlug } = useParams() as {
     programSlug?: string;
   };
@@ -331,7 +322,6 @@ export function PartnersSidebarNav({
       data={{
         pathname,
         queryString: getQueryString(),
-        partner,
         programSlug: programSlug || "",
         isUnapproved:
           !!programEnrollment && programEnrollment.status !== "approved",

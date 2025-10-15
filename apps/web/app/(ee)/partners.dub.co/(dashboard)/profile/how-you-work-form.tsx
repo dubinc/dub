@@ -1,4 +1,5 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import { PartnerProps } from "@/lib/types";
 import { Button, Check2 } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
@@ -21,6 +22,9 @@ type HowYouWorkFormData = {
 };
 
 export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
+  const disabled = partner
+    ? !hasPermission(partner.role, "partner_profile.update")
+    : true;
   const {
     control,
     handleSubmit,
@@ -86,14 +90,19 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
                     {preferredEarningStructures.map((earningStructure) => (
                       <label
                         key={earningStructure.id}
-                        className="ring-border-subtle hover:bg-bg-muted flex cursor-pointer select-none items-center gap-2.5 rounded-full bg-white px-4 py-3 ring-1 transition-all duration-100 ease-out"
+                        className={cn(
+                          "ring-border-subtle hover:bg-bg-muted flex cursor-pointer select-none items-center gap-2.5 rounded-full bg-white px-4 py-3 ring-1 transition-all duration-100 ease-out",
+                          disabled && "cursor-not-allowed opacity-50",
+                        )}
                       >
                         <input
                           type="checkbox"
                           className="sr-only"
+                          disabled={disabled}
                           checked={field.value.includes(earningStructure.id)}
                           onChange={(e) =>
-                            e.target.checked
+                            !disabled &&
+                            (e.target.checked
                               ? field.onChange([
                                   ...field.value,
                                   earningStructure.id,
@@ -102,7 +111,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
                                   field.value.filter(
                                     (id) => id !== earningStructure.id,
                                   ),
-                                )
+                                ))
                           }
                         />
                         <div
@@ -147,14 +156,19 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
                     {salesChannels.map((salesChannel) => (
                       <label
                         key={salesChannel.id}
-                        className="ring-border-subtle hover:bg-bg-muted flex cursor-pointer select-none items-center gap-2.5 rounded-full bg-white px-4 py-3 ring-1 transition-all duration-100 ease-out"
+                        className={cn(
+                          "ring-border-subtle hover:bg-bg-muted flex cursor-pointer select-none items-center gap-2.5 rounded-full bg-white px-4 py-3 ring-1 transition-all duration-100 ease-out",
+                          disabled && "cursor-not-allowed opacity-50",
+                        )}
                       >
                         <input
                           type="checkbox"
                           className="sr-only"
+                          disabled={disabled}
                           checked={field.value.includes(salesChannel.id)}
                           onChange={(e) =>
-                            e.target.checked
+                            !disabled &&
+                            (e.target.checked
                               ? field.onChange([
                                   ...field.value,
                                   salesChannel.id,
@@ -163,7 +177,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
                                   field.value.filter(
                                     (id) => id !== salesChannel.id,
                                   ),
-                                )
+                                ))
                           }
                         />
                         <div
@@ -197,6 +211,7 @@ export function HowYouWorkForm({ partner }: { partner?: PartnerProps }) {
           <Button
             text="Save changes"
             className="h-8 w-fit px-2.5"
+            disabled={disabled}
             loading={isSubmitting}
           />
         </div>

@@ -1,21 +1,18 @@
 import { useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
+import { useSession } from "next-auth/react";
 import useSWR from "swr";
-import { hasPermission } from "../auth/partner-user-permissions";
 import { PayoutsCount } from "../types";
-import usePartnerProfile from "./use-partner-profile";
 
 export default function usePartnerPayoutsCount<T>(
   opts?: Record<string, string>,
 ) {
-  const { partner } = usePartnerProfile();
-
+  const { data: session } = useSession();
+  const partnerId = session?.user?.["defaultPartnerId"];
   const { getQueryString } = useRouterStuff();
 
   const { data: payoutsCount, error } = useSWR<PayoutsCount[]>(
-    partner &&
-      partner.id &&
-      hasPermission(partner.role, "payouts.read") &&
+    partnerId &&
       `/api/partner-profile/payouts/count${getQueryString(opts, {
         include: ["programId"],
       })}`,

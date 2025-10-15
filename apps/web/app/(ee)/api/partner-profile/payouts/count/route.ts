@@ -1,5 +1,4 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
 import { payoutsCountQuerySchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { PayoutStatus, Prisma } from "@dub/prisma/client";
@@ -10,11 +9,6 @@ export const GET = withPartnerProfile(
   async ({ partner, searchParams, partnerUser }) => {
     const { programId, groupBy, status } =
       payoutsCountQuerySchema.parse(searchParams);
-
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "payouts.read",
-    });
 
     const where: Prisma.PayoutWhereInput = {
       partnerId: partner.id,

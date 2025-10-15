@@ -296,7 +296,7 @@ export const validateScopesForWorkspaceRole = (
 };
 
 // Get the scopes for a role
-export const getScopesForWorkspaceRole = (role: WorkspaceRole) => {
+export const getScopesForRole = (role: WorkspaceRole) => {
   return ROLE_SCOPES_MAP[role];
 };
 

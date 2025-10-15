@@ -9,7 +9,7 @@ const PERMISSIONS = [
   "user_invites.create",
   "user_invites.delete",
   "user_invites.update",
-  "payouts.read",
+  "partner_profile.update",
   "payout_settings.update",
 ] as const;
 
@@ -20,7 +20,7 @@ const ROLE_PERMISSIONS: Record<PartnerRole, Permission[]> = {
     "user_invites.create",
     "user_invites.delete",
     "user_invites.update",
-    "payouts.read",
+    "partner_profile.update",
     "payout_settings.update",
   ],
   member: [],
