@@ -1,9 +1,9 @@
 import { prisma } from "@dub/prisma";
 
 interface PartnerSimilarityResult {
-  sharedPartnersCount: number;
-  program1PartnersCount: number;
-  program2PartnersCount: number;
+  sharedPartnersCount: bigint;
+  program1PartnersCount: bigint;
+  program2PartnersCount: bigint;
 }
 
 // Calculate partner similarity using Jaccard similarity
@@ -26,17 +26,19 @@ export async function calculatePartnerSimilarity(
 
   const { sharedPartnersCount, program1PartnersCount, program2PartnersCount } =
     result ?? {
-      sharedPartnersCount: 0,
-      program1PartnersCount: 0,
-      program2PartnersCount: 0,
+      sharedPartnersCount: BigInt(0),
+      program1PartnersCount: BigInt(0),
+      program2PartnersCount: BigInt(0),
     };
 
   const unionCount =
-    program1PartnersCount + program2PartnersCount - sharedPartnersCount;
+    Number(program1PartnersCount) +
+    Number(program2PartnersCount) -
+    Number(sharedPartnersCount);
 
   if (unionCount === 0) {
     return 0;
   }
 
-  return sharedPartnersCount / unionCount;
+  return Number(sharedPartnersCount) / unionCount;
 }

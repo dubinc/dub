@@ -12,10 +12,17 @@ import { calculatePartnerSimilarity } from "./calculate-partner-similarity";
 import { calculatePerformanceSimilarity } from "./calculate-performance-similarity";
 
 const payloadSchema = z.object({
-  startingAfter: z.string().optional(),
+  currentProgramId: z
+    .string()
+    .optional()
+    .describe("Current program being compared."),
+  comparisonBatchCursor: z
+    .string()
+    .optional()
+    .describe("Cursor for programs to compare against."),
 });
 
-const SIMILARITY_SCORE_THRESHOLD = 0.5;
+const SIMILARITY_SCORE_THRESHOLD = 0.1;
 
 const PROGRAMS_PER_BATCH = 5;
 
@@ -41,10 +48,13 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { startingAfter } = payloadSchema.parse(JSON.parse(rawBody));
+    const { currentProgramId, comparisonBatchCursor } = payloadSchema.parse(
+      JSON.parse(rawBody),
+    );
 
     return await calculateProgramSimilarity({
-      startingAfter,
+      currentProgramId,
+      comparisonBatchCursor,
     });
   } catch (err) {
     const { error, status } = handleApiError(err);
@@ -53,45 +63,66 @@ export async function POST(req: Request) {
 }
 
 async function calculateProgramSimilarity({
-  startingAfter,
+  currentProgramId,
+  comparisonBatchCursor,
 }: z.infer<typeof payloadSchema> = {}) {
+  const currentProgram = await findNextProgram({
+    programId: currentProgramId,
+  });
+
+  if (!currentProgram) {
+    return logAndRespond("No current program found. Skipping...");
+  }
+
   const programs = await prisma.program.findMany({
-    ...(startingAfter && {
+    where: {
+      workspace: {
+        plan: {
+          in: ["enterprise"],
+        },
+      },
+      id: {
+        gt: currentProgramId,
+      },
+    },
+    ...(comparisonBatchCursor && {
       cursor: {
-        id: startingAfter,
+        id: comparisonBatchCursor,
       },
     }),
+    skip: comparisonBatchCursor ? 1 : 0,
     orderBy: {
       id: "asc",
     },
     take: PROGRAMS_PER_BATCH,
-    skip: startingAfter ? 1 : 0,
+    select: {
+      id: true,
+      name: true,
+    },
   });
 
-  if (programs.length === 0) {
-    return logAndRespond("No more programs found. Stopping...");
-  }
+  console.log(
+    `Found ${programs.length} programs to compare against ${currentProgram.name}`,
+  );
 
-  const results: Pick<
-    ProgramSimilarity,
-    | "programId"
-    | "similarProgramId"
-    | "similarityScore"
-    | "categorySimilarityScore"
-    | "partnerSimilarityScore"
-    | "performanceSimilarityScore"
-  >[] = [];
+  if (programs.length > 0) {
+    const results: Pick<
+      ProgramSimilarity,
+      | "programId"
+      | "similarProgramId"
+      | "similarityScore"
+      | "categorySimilarityScore"
+      | "partnerSimilarityScore"
+      | "performanceSimilarityScore"
+    >[] = [];
 
-  for (let i = 0; i < programs.length; i++) {
-    for (let j = i + 1; j < programs.length; j++) {
-      const program1 = programs[i];
-      const program2 = programs[j];
+    for (const program of programs) {
+      const program1 = currentProgram;
+      const program2 = program;
 
-      console.log(
-        "Calculating similarities for program",
-        program1.name,
-        program2.name,
-      );
+      if (program1.id === program2.id) {
+        continue;
+      }
 
       const [
         categorySimilarityScore,
@@ -109,9 +140,7 @@ async function calculateProgramSimilarity({
         performanceSimilarityScore * 0.2;
 
       console.log(
-        "Calculated similarities for program",
-        program1.name,
-        program2.name,
+        `Calculated similarities between ${program1.name} <> ${program2.name}`,
         {
           categorySimilarityScore,
           partnerSimilarityScore,
@@ -131,34 +160,95 @@ async function calculateProgramSimilarity({
         });
       }
     }
+
+    await prisma.$transaction(async (tx) => {
+      const programIds = programs.map((program) => program.id);
+
+      await tx.programSimilarity.deleteMany({
+        where: {
+          programId: {
+            in: programIds,
+          },
+        },
+      });
+
+      await tx.programSimilarity.createMany({
+        data: results,
+        skipDuplicates: true,
+      });
+    });
   }
 
-  await prisma.$transaction(async (tx) => {
-    const programIds = programs.map((program) => program.id);
-
-    await tx.programSimilarity.deleteMany({
-      where: {
-        programId: {
-          in: programIds,
-        },
-      },
+  // If we have more programs to compare against the current program, continue with the next batch
+  // Otherwise, move to the next current program and start comparing from the beginning
+  if (programs.length === PROGRAMS_PER_BATCH) {
+    currentProgramId = currentProgram.id;
+    comparisonBatchCursor = programs[programs.length - 1].id;
+  } else {
+    const program = await findNextProgram({
+      afterProgramId: currentProgramId,
     });
 
-    await tx.programSimilarity.createMany({
-      data: results,
-      skipDuplicates: true,
-    });
+    if (!program) {
+      return logAndRespond("No more programs to compare.");
+    }
+
+    currentProgramId = program.id;
+    comparisonBatchCursor = undefined;
+  }
+
+  await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/calculate-program-similarities`,
+    method: "POST",
+    body: {
+      currentProgramId,
+      comparisonBatchCursor,
+    },
   });
 
-  if (programs.length === PROGRAMS_PER_BATCH) {
-    await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/calculate-program-similarities`,
-      method: "POST",
-      body: {
-        startingAfter: programs[programs.length - 1].id,
+  return logAndRespond("Scheduled next batch calculation.");
+}
+
+async function findNextProgram({
+  programId,
+  afterProgramId,
+}: {
+  programId?: string;
+  afterProgramId?: string;
+}) {
+  // If a specific programId is provided, find that program
+  if (programId) {
+    return await prisma.program.findUnique({
+      where: {
+        id: programId,
+      },
+      select: {
+        id: true,
+        name: true,
       },
     });
   }
 
-  return logAndRespond("Finished calculating program similarities.");
+  // Otherwise, find the first/next program
+  return await prisma.program.findFirst({
+    where: {
+      ...(afterProgramId && {
+        id: {
+          gt: afterProgramId,
+        },
+      }),
+      workspace: {
+        plan: {
+          in: ["enterprise"],
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: {
+      id: "asc",
+    },
+  });
 }
