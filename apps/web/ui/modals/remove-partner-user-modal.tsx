@@ -3,6 +3,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/types";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
 import { signOut, useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 
 import {
   Dispatch,
@@ -28,7 +29,9 @@ function RemovePartnerUserModal({
   const { partner } = usePartnerProfile();
 
   const self = session?.user?.email === user.email;
-  const isInvite = user.id === null;
+
+  const searchParams = useSearchParams();
+  const isInvite = searchParams.get("status") === "invited";
 
   const removePartnerUser = async () => {
     setRemoving(true);
@@ -55,14 +58,14 @@ function RemovePartnerUserModal({
         return;
       }
 
-      await mutatePrefix(
-        `/api/partner-profile/${isInvite ? "invites" : "users"}`,
-      );
       setShowRemovePartnerUserModal(false);
       toast.success(
         isInvite
           ? "Successfully revoked invitation!"
           : "Successfully removed partner member!",
+      );
+      await mutatePrefix(
+        `/api/partner-profile/${isInvite ? "invites" : "users"}`,
       );
     } catch (error) {
       toast.error(

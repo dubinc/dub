@@ -34,6 +34,7 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus, UserPlus } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
@@ -329,7 +330,8 @@ function RowMenuButton({
   const { data: session } = useSession();
 
   const user = row.original;
-  const isInvite = user.id === null;
+  const searchParams = useSearchParams();
+  const isInvite = searchParams.get("status") === "invited";
 
   const { RemovePartnerUserModal, setShowRemovePartnerUserModal } =
     useRemovePartnerUserModal({

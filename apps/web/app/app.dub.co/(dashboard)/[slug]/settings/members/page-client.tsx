@@ -7,7 +7,7 @@ import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
 import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
-import { useRemoveTeammateModal } from "@/ui/modals/remove-teammate-modal";
+import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-modal";
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PartnerRole } from "@dub/prisma/client";
@@ -38,6 +38,7 @@ import { ColumnDef, Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 import useSWR from "swr";
 
@@ -365,10 +366,11 @@ function RowMenuButton({
   const { data: session } = useSession();
 
   const user = row.original;
-  const isInvite = user.id === null;
+  const searchParams = useSearchParams();
+  const isInvite = searchParams.get("status") === "invited";
 
-  const { RemoveTeammateModal, setShowRemoveTeammateModal } =
-    useRemoveTeammateModal({
+  const { RemoveWorkspaceUserModal, setShowRemoveWorkspaceUserModal } =
+    useRemoveWorkspaceUserModal({
       user: {
         id: user.id || "",
         name: user.name || "",
@@ -392,7 +394,7 @@ function RowMenuButton({
 
   return (
     <>
-      <RemoveTeammateModal />
+      <RemoveWorkspaceUserModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
@@ -411,7 +413,7 @@ function RowMenuButton({
                   }
                   variant="danger"
                   onSelect={() => {
-                    setShowRemoveTeammateModal(true);
+                    setShowRemoveWorkspaceUserModal(true);
                     setIsOpen(false);
                   }}
                 />
