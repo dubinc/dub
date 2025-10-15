@@ -310,7 +310,6 @@ function BasicInfoForm({
                 value={field.value || ""}
                 onChange={field.onChange}
                 error={errors.country ? true : false}
-                disabled={disabled || completedPayoutsCount > 0}
                 disabledTooltip={
                   disabled
                     ? "You don't have permission to update this field"

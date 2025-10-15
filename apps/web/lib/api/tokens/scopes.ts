@@ -283,10 +283,7 @@ export const scopesToName = (scopes: string[]) => {
   };
 };
 
-export const validateScopesForWorkspaceRole = (
-  scopes: Scope[],
-  role: WorkspaceRole,
-) => {
+export const validateScopesForRole = (scopes: Scope[], role: WorkspaceRole) => {
   const allowedScopes = ROLE_SCOPES_MAP[role];
   const invalidScopes = scopes.filter(
     (scope) => !allowedScopes.includes(scope),

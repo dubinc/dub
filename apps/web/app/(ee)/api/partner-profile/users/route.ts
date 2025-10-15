@@ -47,6 +47,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     partnerUserSchema.parse({
       ...rest,
       ...user,
+      createdAt: rest.createdAt, // preserve the createdAt field from PartnerUser
     }),
   );
 

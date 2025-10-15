@@ -37,6 +37,7 @@ export const GET = withWorkspace(
       workspaceUserSchema.parse({
         ...rest,
         ...user,
+        createdAt: rest.createdAt, // preserve the createdAt field from ProjectUsers
       }),
     );
 
