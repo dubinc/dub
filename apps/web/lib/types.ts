@@ -101,7 +101,6 @@ import {
   ProgramMetricsSchema,
   ProgramPartnerLinkSchema,
   ProgramSchema,
-  ProgramWithLanderDataSchema,
 } from "./zod/schemas/programs";
 import {
   rewardConditionsArraySchema,
@@ -471,10 +470,6 @@ export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramLanderData = z.infer<typeof programLanderSchema>;
-
-export type ProgramWithLanderDataProps = z.infer<
-  typeof ProgramWithLanderDataSchema
->;
 
 export type ProgramApplicationFormData = z.infer<
   typeof programApplicationFormSchema

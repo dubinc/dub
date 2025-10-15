@@ -1,3 +1,5 @@
+// @ts-nocheck - old migration script
+
 import { ProgramProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma, ProgramApplication } from "@dub/prisma/client";

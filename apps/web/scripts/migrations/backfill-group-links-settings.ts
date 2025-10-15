@@ -1,4 +1,4 @@
-// @ts-ignore - old migration script
+// @ts-nocheck - old migration script
 
 import { createId } from "@/lib/api/create-id";
 import { PartnerGroupAdditionalLink } from "@/lib/types";

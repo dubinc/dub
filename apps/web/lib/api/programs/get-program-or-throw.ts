@@ -1,25 +1,15 @@
 import { ProgramProps } from "@/lib/types";
-import {
-  ProgramSchema,
-  ProgramWithLanderDataSchema,
-} from "@/lib/zod/schemas/programs";
+import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
-export const getProgramOrThrow = async (
-  {
-    workspaceId,
-    programId,
-  }: {
-    workspaceId: string;
-    programId: string;
-  },
-  {
-    includeLanderData = false,
-  }: {
-    includeLanderData?: boolean;
-  } = {},
-) => {
+export const getProgramOrThrow = async ({
+  workspaceId,
+  programId,
+}: {
+  workspaceId: string;
+  programId: string;
+}) => {
   const program = (await prisma.program.findUnique({
     where: {
       id: programId,
@@ -34,7 +24,5 @@ export const getProgramOrThrow = async (
     });
   }
 
-  return (
-    includeLanderData ? ProgramWithLanderDataSchema : ProgramSchema
-  ).parse(program);
+  return ProgramSchema.parse(program);
 };

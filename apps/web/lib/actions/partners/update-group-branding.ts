@@ -4,15 +4,19 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { isStored, storage } from "@/lib/storage";
+import { ProgramLanderData } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programApplicationFormSchema } from "@/lib/zod/schemas/program-application-form";
-import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
+import {
+  programLanderImageBlockSchema,
+  programLanderSchema,
+} from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
-import { nanoid, R2_URL } from "@dub/utils";
+import { isFulfilled, isRejected, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { ProgramWithLanderDataSchema } from "../../zod/schemas/programs";
+import { ProgramSchema } from "../../zod/schemas/programs";
 import { authActionClient } from "../safe-action";
 
 const schema = z.object({
@@ -64,6 +68,10 @@ export const updateGroupBrandingAction = authActionClient
         : null,
     ]);
 
+    const landerData = landerDataInput
+      ? await uploadLanderDataImages({ landerData: landerDataInput, programId })
+      : landerDataInput;
+
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: groupId,
@@ -75,8 +83,8 @@ export const updateGroupBrandingAction = authActionClient
         applicationFormPublishedAt: applicationFormDataInput
           ? new Date()
           : undefined,
-        landerData: landerDataInput ? landerDataInput : undefined,
-        landerPublishedAt: landerDataInput ? new Date() : undefined,
+        landerData: landerData ? landerData : undefined,
+        landerPublishedAt: landerData ? new Date() : undefined,
       },
     });
 
@@ -109,11 +117,12 @@ export const updateGroupBrandingAction = authActionClient
          - wordmark
          - brand color
          - lander data
+         - application form data
         */
           ...(logoUpdated ||
           wordmarkUpdated ||
           brandColorUpdated ||
-          landerDataInput ||
+          landerData ||
           applicationFormDataInput
             ? [
                 revalidatePath(`/partners.dub.co/${program.slug}`),
@@ -145,7 +154,7 @@ export const updateGroupBrandingAction = authActionClient
         );
 
         if (updatedGroup.slug === DEFAULT_PARTNER_GROUP.slug) {
-          if (landerDataInput) {
+          if (landerData) {
             console.log(
               "Default lander data updated, updating other groups (that don't have a custom data)...",
             );
@@ -155,7 +164,7 @@ export const updateGroupBrandingAction = authActionClient
                 landerPublishedAt: null,
               },
               data: {
-                landerData: landerDataInput,
+                landerData,
               },
             });
             console.log(
@@ -190,6 +199,67 @@ export const updateGroupBrandingAction = authActionClient
         updatedGroup.applicationFormData,
       ),
       landerData: programLanderSchema.parse(updatedGroup.landerData),
-      program: ProgramWithLanderDataSchema.parse(updatedProgram),
+      program: ProgramSchema.parse(updatedProgram),
     };
   });
+
+/**
+ * Uploads any foreign images from the lander data to R2 and updates the URLs in the lander data.
+ */
+async function uploadLanderDataImages({
+  landerData: landerDataParam,
+  programId,
+}: {
+  landerData: ProgramLanderData;
+  programId: string;
+}) {
+  // Clone object to avoid mutating the original
+  const landerData = JSON.parse(JSON.stringify(landerDataParam));
+
+  const foreignImageUrls = (
+    landerData.blocks.filter((block) => block.type === "image") as z.infer<
+      typeof programLanderImageBlockSchema
+    >[]
+  )
+    .map((block) => block.data.url)
+    .filter(
+      (url) => !url.startsWith(`${R2_URL}/programs/${programId}/lander/`),
+    );
+
+  if (foreignImageUrls.length <= 0) return landerData;
+
+  // Upload images
+  const results = await Promise.allSettled(
+    foreignImageUrls.map(async (url) => ({
+      url,
+      uploadedUrl: (
+        await storage.upload(
+          `programs/${programId}/lander/image_${nanoid(7)}`,
+          url,
+        )
+      ).url,
+    })),
+  );
+
+  // Log failed uploads
+  results.filter(isRejected).map((result) => {
+    console.error("Failed to upload lander image", result.reason);
+  });
+
+  const fulfilled = results.filter(isFulfilled);
+  if (fulfilled.length <= 0) return landerData;
+
+  // Update URLs in the lander data
+  landerData.blocks.forEach((block) => {
+    if (block.type === "image") {
+      const result = fulfilled.find(
+        (result) => result.value.url === block.data.url,
+      );
+      if (result) {
+        block.data.url = result.value.uploadedUrl;
+      }
+    }
+  });
+
+  return landerData;
+}
