@@ -222,7 +222,7 @@ export const mapScopesToPermissions = (scopes: Scope[]) => {
 };
 
 // Get SCOPES_BY_RESOURCE based on user role in a workspace
-export const getScopesByResourceForWorkspaceRole = (role: WorkspaceRole) => {
+export const getScopesByResourceForRole = (role: WorkspaceRole) => {
   const groupedByResource = {};
 
   const allowedScopes = RESOURCE_SCOPES.map((scope) => {
