@@ -2,10 +2,6 @@
 
 import { updateDiscoveredPartnerAction } from "@/lib/actions/partners/update-discovered-partner";
 import { ONLINE_PRESENCE_FIELDS } from "@/lib/partners/online-presence";
-import {
-  industryInterestsMap,
-  salesChannelsMap,
-} from "@/lib/partners/partner-profile";
 import useNetworkPartnersCount from "@/lib/swr/use-network-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NetworkPartnerProps } from "@/lib/types";
@@ -523,48 +519,6 @@ function PartnerCard({
                     className="size-6 rounded-full bg-neutral-100"
                   />
                 ))}
-          </div>
-        </div>
-
-        {/* Partner profile selections */}
-        <div className="mt-5 flex flex-col gap-5">
-          {/* Industry interests */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-xs font-semibold">
-              Industry interests
-            </h3>
-            <ListRow
-              className={cn(!partner && "animate-pulse")}
-              items={
-                partner
-                  ? partner.industryInterests
-                      ?.map((interest) => industryInterestsMap[interest])
-                      .filter(
-                        (item): item is { icon: Icon; label: string } =>
-                          item !== undefined,
-                      ) ?? []
-                  : undefined
-              }
-            />
-          </div>
-
-          {/* Sales channels */}
-          <div className="flex flex-col gap-2">
-            <h3 className="text-content-emphasis text-xs font-semibold">
-              Sales channels
-            </h3>
-            <ListRow
-              className={cn(!partner && "animate-pulse")}
-              items={
-                partner
-                  ? partner.salesChannels
-                      ?.map((salesChannel) => salesChannelsMap[salesChannel])
-                      .filter(
-                        (item): item is { label: string } => item !== undefined,
-                      ) ?? []
-                  : undefined
-              }
-            />
           </div>
         </div>
       </div>
