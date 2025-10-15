@@ -56,6 +56,9 @@ export const GET = withWorkspace(
           starredAt: partner.starredAt ? new Date(partner.starredAt) : null,
           ignoredAt: partner.ignoredAt ? new Date(partner.ignoredAt) : null,
           invitedAt: partner.invitedAt ? new Date(partner.invitedAt) : null,
+          categories: partner.categories
+            ? partner.categories.split(",").map((c: string) => c.trim())
+            : [],
         })),
       ),
     );

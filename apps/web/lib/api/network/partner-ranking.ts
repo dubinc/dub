@@ -97,6 +97,7 @@ export async function calculatePartnerRanking({
       dp.ignoredAt,
       dp.invitedAt,
       CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
+      partnerCategories.categories as categories,
 
       -- Individual metric scores for reference
       COALESCE(pe.consistencyScore, 50) as consistencyScore,
@@ -253,6 +254,17 @@ export async function calculatePartnerRanking({
         AND ps3.similarityScore > 0.3
       GROUP BY pe4.partnerId
     ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id
+
+    -- CATEGORIES: Get all categories from programs the partner is enrolled in
+    LEFT JOIN (
+      SELECT 
+        pe5.partnerId,
+        GROUP_CONCAT(DISTINCT pc.category ORDER BY pc.category SEPARATOR ',') as categories
+      FROM ProgramEnrollment pe5
+      JOIN ProgramCategory pc ON pc.programId = pe5.programId
+      WHERE pe5.status = 'approved'
+      GROUP BY pe5.partnerId
+    ) partnerCategories ON partnerCategories.partnerId = p.id
 
     WHERE ${whereClause}
     ORDER BY ${orderByClause}

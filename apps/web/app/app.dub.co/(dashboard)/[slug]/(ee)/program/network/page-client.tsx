@@ -373,6 +373,16 @@ function PartnerCard({
     [partner],
   );
 
+  const categoriesData = useMemo(
+    () =>
+      partner
+        ? partner.categories.map((category) => ({
+            label: category.replace(/_/g, " "),
+          }))
+        : null,
+    [partner],
+  );
+
   return (
     <div
       className={cn(partner?.id && "cursor-pointer hover:drop-shadow-sm")}
@@ -520,6 +530,11 @@ function PartnerCard({
                   />
                 ))}
           </div>
+
+          {/* Categories */}
+          {categoriesData && categoriesData.length > 0 && (
+            <ListRow items={categoriesData} />
+          )}
         </div>
       </div>
     </div>
