@@ -45,10 +45,9 @@ export async function calculatePartnerRanking({
   pageSize,
   status = "discover",
 }: PartnerRankingParams) {
-  // Build WHERE clause conditions
   const conditions: Prisma.Sql[] = [
-    Prisma.sql`p.discoverableAt IS NOT NULL`,
-    Prisma.sql`dp.ignoredAt IS NULL`,
+    // Removed discoverableAt requirement to show all partners
+    Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`, // Allow partners not yet discovered
     Prisma.sql`COALESCE(pe.conversionRate, 0) < 1`,
   ];
 
@@ -75,7 +74,7 @@ export async function calculatePartnerRanking({
   if (starred === true) {
     conditions.push(Prisma.sql`dp.starredAt IS NOT NULL`);
   } else if (starred === false) {
-    conditions.push(Prisma.sql`dp.starredAt IS NULL`);
+    conditions.push(Prisma.sql`(dp.starredAt IS NULL OR dp.id IS NULL)`);
   }
 
   const whereClause = Prisma.join(conditions, " AND ");
@@ -243,7 +242,6 @@ export async function calculatePartnerRanking({
       SELECT 
         pe4.partnerId,
         MAX(pe4.lastConversionAt) as lastConversionAt,
-        -- Calculate weighted average conversion rate
         SUM(COALESCE(pe4.conversionRate, 0) * ps3.similarityScore) / NULLIF(SUM(ps3.similarityScore), 0) as avgConversionRate
       FROM ProgramSimilarity ps3
       JOIN ProgramEnrollment pe4 
