@@ -170,6 +170,7 @@ export interface UserProps {
   hasPassword: boolean;
   provider: string | null;
   paymentData?: any;
+  showNPS: boolean;
 }
 
 export interface WorkspaceUserProps extends UserProps {

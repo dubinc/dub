@@ -8,6 +8,7 @@ import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, R2_URL, nanoid, trim } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { PaymentService } from "core/integration/payment/server";
 import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -18,7 +19,10 @@ const updateUserSchema = z.object({
   image: z.string().url().optional(),
   source: z.preprocess(trim, z.string().min(1).max(32)).optional(),
   defaultWorkspace: z.preprocess(trim, z.string().min(1)).optional(),
+  hasRated: z.boolean().optional(),
 });
+
+const paymentService = new PaymentService();
 
 // GET /api/user – get a specific user
 export const GET = withSession(async ({ session }) => {
@@ -40,6 +44,7 @@ export const GET = withSession(async ({ session }) => {
         passwordHash: true,
         paymentData: true,
         createdAt: true,
+        hasRated: true,
       } as any,
     }),
 
@@ -53,17 +58,41 @@ export const GET = withSession(async ({ session }) => {
     }),
   ]);
 
+  const hasMoreThan30QRScans = await prisma.link.findFirst({
+    where: {
+      userId: session.user.id,
+      clicks: { gte: 30 },
+    },
+    select: { id: true },
+  });
+
+  const { subscriptions } =
+    await paymentService.getClientSubscriptionDataByEmail({
+      email: (user?.email as any as string) || session.user.email,
+    });
+  const activeSubscription = subscriptions.find(
+    (subscription) => subscription.status === "active",
+  );
+
+  const passed7DaysAfterSubscription =
+    activeSubscription?.plan.createdAt &&
+    Date.now() - new Date(activeSubscription?.plan.createdAt).getTime() >=
+      7 * 24 * 60 * 60 * 1000;
+  const showNPS =
+    !user?.hasRated && (hasMoreThan30QRScans || passed7DaysAfterSubscription);
+
   return NextResponse.json({
     ...user,
     provider: account?.provider,
     hasPassword: user?.passwordHash !== null,
     passwordHash: undefined,
+    showNPS,
   });
 });
 
 // PATCH /api/user – edit a specific user
 export const PATCH = withSession(async ({ req, session }) => {
-  let { name, email, image, source, defaultWorkspace } =
+  let { name, email, image, source, defaultWorkspace, hasRated } =
     await updateUserSchema.parseAsync(await req.json());
 
   if (image) {
@@ -162,6 +191,7 @@ export const PATCH = withSession(async ({ req, session }) => {
       ...(name && { name }),
       ...(image && { image }),
       ...(source && { source }),
+      ...(hasRated && { hasRated }),
       ...(defaultWorkspace && { defaultWorkspace }),
     },
   });
