@@ -9,7 +9,7 @@ import {
 } from "@/lib/partners/constants";
 import {
   getPartnerUsersQuerySchema,
-  invitePartnerMemberSchema,
+  invitePartnerUserSchema,
   partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
@@ -47,7 +47,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 export const POST = withPartnerProfile(
   async ({ partner, req, session, partnerUser }) => {
     const invites = z
-      .array(invitePartnerMemberSchema)
+      .array(invitePartnerUserSchema)
       .parse(await parseRequestBody(req));
 
     throwIfNoPermission({
