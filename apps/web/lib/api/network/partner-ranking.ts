@@ -28,11 +28,13 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
  *    - Commissions: 10 points
  *
  * 2. Similarity Score (0-50 points): Performance in similar programs
- *    - Calculates weighted performance across top 10 similar programs
- *    - Each program's performance weighted by similarity score
+ *    - Sums weighted performance across similar programs (similarityScore > 0.3)
+ *    - Each program's performance weighted by its similarity score
+ *    - Partners with more similar programs score higher (capped at 50)
  *
  * 3. Program Match Score (0-15 points): Count of similar programs
  *    - Rewards partners enrolled in many similar programs
+ *    - 2 points per similar program (capped at 15)
  *
  * Final Score = Base + Similarity + Match (0-100 points)
  */
@@ -138,10 +140,10 @@ export async function calculatePartnerRanking({
       ) as baseScore,
       
       -- 2. SIMILARITY SCORE (0-50 points): Performance in similar programs
-      COALESCE(similarProgramPerf.similarityScore, 0) as similarityScore,
+      COALESCE(similarProgramMetrics.similarityScore, 0) as similarityScore,
       
       -- 3. PROGRAM MATCH SCORE (0-15 points): Count of similar programs
-      COALESCE(programMatchPerf.programMatchScore, 0) as programMatchScore,
+      COALESCE(similarProgramMetrics.programMatchScore, 0) as programMatchScore,
       
       -- FINAL SCORE (0-100 points): Additive model
       (
@@ -166,10 +168,10 @@ export async function calculatePartnerRanking({
         ) +
         
         -- Similarity score (0-50)
-        COALESCE(similarProgramPerf.similarityScore, 0) +
+        COALESCE(similarProgramMetrics.similarityScore, 0) +
         
         -- Program match score (0-15)
-        COALESCE(programMatchPerf.programMatchScore, 0)
+        COALESCE(similarProgramMetrics.programMatchScore, 0)
       ) as finalScore
     FROM Partner p
    
@@ -182,15 +184,14 @@ export async function calculatePartnerRanking({
     -- Discovered partner metadata
     LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
    
-    -- 2. SIMILARITY SCORE: Performance in similar programs weighted by similarity
+    -- 2 & 3. CONSOLIDATED SIMILAR PROGRAM METRICS: Performance, match score, and aggregate metrics
     LEFT JOIN (
       SELECT 
         pe2.partnerId,
-        -- Calculate weighted performance across similar programs
-        -- For each similar program, calculate score and weight by similarityScore
-        SUM(
+        -- Similarity score: Sum weighted performance (0-50 points, no averaging)
+        LEAST(50, SUM(
           (
-            -- Individual program performance score (0-0.5 range)
+            -- Individual program performance score (0-1 range per program)
             (COALESCE(pe2.consistencyScore, 50) / 100 * 0.20) +
             (CASE 
               WHEN COALESCE(pe2.conversionRate, 0) <= 0 THEN 0
@@ -207,10 +208,14 @@ export async function calculatePartnerRanking({
               WHEN COALESCE(pe2.totalCommissions, 0) >= 100000 THEN 0.05
               ELSE (LOG10(COALESCE(pe2.totalCommissions, 0) + 1) * 22 / 100) * 0.05
             END)
-          ) * ps.similarityScore -- Weight by program similarity
-        ) / NULLIF(COUNT(*), 0) * 50 as similarityScore -- Normalize to 0-50 points
+          ) * ps.similarityScore * 50 -- Weight by similarity, scale to 0-50 range
+        )) as similarityScore,
+        -- Program match score: Count of similar programs (0-15 points)
+        LEAST(15, COUNT(DISTINCT ps.similarProgramId) * 2) as programMatchScore,
+        -- Aggregate metrics for display purposes
+        MAX(pe2.lastConversionAt) as lastConversionAt,
+        SUM(COALESCE(pe2.conversionRate, 0) * ps.similarityScore) / NULLIF(SUM(ps.similarityScore), 0) as avgConversionRate
       FROM ProgramSimilarity ps
-
       JOIN ProgramEnrollment pe2 
         ON pe2.programId = ps.similarProgramId 
         AND pe2.status = 'approved'
@@ -219,40 +224,6 @@ export async function calculatePartnerRanking({
       WHERE ps.programId = ${programId}
         AND ps.similarityScore > 0.3
       GROUP BY pe2.partnerId
-      HAVING COUNT(*) > 0
-      ORDER BY similarityScore DESC
-    ) similarProgramPerf ON similarProgramPerf.partnerId = p.id
-    
-    -- 3. PROGRAM MATCH SCORE: Count of similar programs
-    LEFT JOIN (
-      SELECT 
-        pe3.partnerId,
-        LEAST(15, COUNT(DISTINCT ps2.similarProgramId) * 2) as programMatchScore
-      FROM ProgramSimilarity ps2
-      JOIN ProgramEnrollment pe3 
-        ON pe3.programId = ps2.similarProgramId 
-        AND pe3.status = 'approved'
-        AND pe3.programId != ${ACME_PROGRAM_ID}
-      WHERE ps2.programId = ${programId}
-        AND ps2.similarityScore > 0.3
-      GROUP BY pe3.partnerId
-    ) programMatchPerf ON programMatchPerf.partnerId = p.id
-
-    -- AGGREGATE METRICS FROM SIMILAR PROGRAMS: For discovered partners
-    LEFT JOIN (
-      SELECT 
-        pe4.partnerId,
-        MAX(pe4.lastConversionAt) as lastConversionAt,
-        SUM(COALESCE(pe4.conversionRate, 0) * ps3.similarityScore) / NULLIF(SUM(ps3.similarityScore), 0) as avgConversionRate
-      FROM ProgramSimilarity ps3
-      JOIN ProgramEnrollment pe4 
-        ON pe4.programId = ps3.similarProgramId 
-        AND pe4.status = 'approved'
-        AND pe4.totalConversions > 0
-        AND pe4.programId != ${ACME_PROGRAM_ID}
-      WHERE ps3.programId = ${programId}
-        AND ps3.similarityScore > 0.3
-      GROUP BY pe4.partnerId
     ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id
 
     -- CATEGORIES: Get all categories from programs the partner is enrolled in
@@ -270,8 +241,6 @@ export async function calculatePartnerRanking({
     ORDER BY ${orderByClause}
     LIMIT ${pageSize} OFFSET ${offset}
   `;
-
-  console.log("top partners", partners[0], partners[1]);
 
   return partners;
 }

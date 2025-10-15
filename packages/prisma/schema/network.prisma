@@ -56,4 +56,6 @@ model ProgramSimilarity {
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
   @@unique([programId, similarProgramId])
+  @@index([programId, similarityScore])
+  @@index(similarProgramId)
 }
