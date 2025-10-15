@@ -24,8 +24,8 @@ model Campaign {
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
 
-  program  Program             @relation(fields: [programId], references: [id])
-  workflow Workflow?           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  program  Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
+  workflow Workflow?           @relation(fields: [workflowId], references: [id])
   groups   CampaignGroup[]
   emails   NotificationEmail[]
 

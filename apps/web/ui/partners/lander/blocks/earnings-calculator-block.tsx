@@ -1,7 +1,7 @@
 "use client";
 
 import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
-import { ProgramWithLanderDataProps } from "@/lib/types";
+import { ProgramProps } from "@/lib/types";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
@@ -17,7 +17,7 @@ export function EarningsCalculatorBlock({
   showTitleAndDescription = true,
 }: {
   block: z.infer<typeof programLanderEarningsCalculatorBlockSchema>;
-  program: ProgramWithLanderDataProps;
+  program: ProgramProps;
   showTitleAndDescription?: boolean;
 }) {
   const id = useId();

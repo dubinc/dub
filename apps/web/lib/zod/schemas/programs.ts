@@ -13,7 +13,6 @@ import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
 import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
-import { programLanderSchema } from "./program-lander";
 import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
@@ -28,7 +27,6 @@ export const ProgramSchema = z.object({
   brandColor: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  cookieLength: z.number(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
   landerPublishedAt: z.date().nullish(),
@@ -49,14 +47,8 @@ export const ProgramSchema = z.object({
   startedAt: z.date().nullish(),
 });
 
-export const ProgramWithLanderDataSchema = ProgramSchema.extend({
-  landerData: programLanderSchema.nullish(),
-  landerPublishedAt: z.date().nullish(),
-});
-
 export const updateProgramSchema = z.object({
   name: z.string(),
-  cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
   holdingPeriodDays: z.coerce
@@ -144,10 +136,6 @@ export const ProgramInviteSchema = z.object({
   email: z.string(),
   shortLink: z.string(),
   createdAt: z.date(),
-});
-
-export const getProgramQuerySchema = z.object({
-  includeLanderData: z.coerce.boolean().optional(),
 });
 
 export const getProgramMetricsQuerySchema = z.object({
