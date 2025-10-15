@@ -1,72 +1,66 @@
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
-import { roles } from "@/lib/types";
+import { generateRandomName } from "@/lib/names";
 import z from "@/lib/zod";
+import {
+  getWorkspaceUsersQuerySchema,
+  workspaceUserSchema,
+} from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
+import { WorkspaceRole } from "@prisma/client";
 import { NextResponse } from "next/server";
-
-const updateRoleSchema = z.object({
-  userId: z.string().min(1),
-  role: z.enum(roles, {
-    errorMap: () => ({
-      message: `Role must be either "owner" or "member".`,
-    }),
-  }),
-});
-
-const removeUserSchema = z.object({
-  userId: z.string().min(1),
-});
 
 // GET /api/workspaces/[idOrSlug]/users – get users for a specific workspace
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
+    const { search, role } = getWorkspaceUsersQuerySchema.parse(searchParams);
+
     const users = await prisma.projectUsers.findMany({
       where: {
         projectId: workspace.id,
-      },
-      select: {
-        role: true,
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            image: true,
-            isMachine: true,
-            restrictedTokens: {
-              select: {
-                name: true,
-                lastUsed: true,
-              },
-              where: {
-                projectId: workspace.id,
-                lastUsed: {
-                  not: null,
-                },
-              },
-            },
+        role,
+        ...(search && {
+          user: {
+            OR: [
+              { name: { contains: search } },
+              { email: { contains: search } },
+            ],
           },
-        },
-        createdAt: true,
+        }),
+      },
+      include: {
+        user: true,
       },
     });
 
-    return NextResponse.json(
-      users.map((u) => ({
-        ...u.user,
-        role: u.role,
-      })),
+    const parsedUsers = users.map(({ user, ...rest }) =>
+      workspaceUserSchema.parse({
+        ...rest,
+        ...user,
+        name: user.name || user.email || generateRandomName(),
+        createdAt: rest.createdAt, // preserve the createdAt field from ProjectUsers
+      }),
     );
+
+    return NextResponse.json(parsedUsers);
   },
   {
     requiredPermissions: ["workspaces.read"],
   },
 );
 
-// PUT /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
-export const PUT = withWorkspace(
+const updateRoleSchema = z.object({
+  userId: z.string().min(1),
+  role: z.nativeEnum(WorkspaceRole, {
+    errorMap: () => ({
+      message: `Role must be either "owner" or "member".`,
+    }),
+  }),
+});
+
+// PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
+export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { userId, role } = updateRoleSchema.parse(await req.json());
     const response = await prisma.projectUsers.update({
@@ -89,6 +83,10 @@ export const PUT = withWorkspace(
     requiredPermissions: ["workspaces.write"],
   },
 );
+
+const removeUserSchema = z.object({
+  userId: z.string().min(1),
+});
 
 // DELETE /api/workspaces/[idOrSlug]/users – remove a user from a workspace or leave a workspace
 export const DELETE = withWorkspace(

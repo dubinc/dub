@@ -1,5 +1,6 @@
 "use client";
 
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { Button } from "@dub/ui";
@@ -10,6 +11,10 @@ export function PartnerPayoutSettingsButton() {
 
   const { PartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet } =
     usePartnerPayoutSettingsSheet();
+
+  if (partner && !hasPermission(partner.role, "payout_settings.update")) {
+    return null;
+  }
 
   return (
     <>

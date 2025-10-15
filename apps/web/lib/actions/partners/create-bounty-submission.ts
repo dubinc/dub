@@ -13,7 +13,7 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import BountySubmitted from "@dub/email/templates/bounty-submitted";
 import { prisma } from "@dub/prisma";
-import { BountySubmission, Role } from "@prisma/client";
+import { BountySubmission, WorkspaceRole } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { formatDistanceToNow } from "date-fns";
 import { z } from "zod";
@@ -188,7 +188,7 @@ export const createBountySubmissionAction = authPartnerActionClient
         // Send email to the program owners
         const { users, program, ...workspace } = await getWorkspaceUsers({
           programId,
-          role: Role.owner,
+          role: WorkspaceRole.owner,
           notificationPreference: "newBountySubmitted",
         });
 

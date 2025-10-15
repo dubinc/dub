@@ -2,6 +2,7 @@
 
 import { generatePaypalOAuthUrl } from "@/lib/actions/partners/generate-paypal-oauth-url";
 import { generateStripeAccountLink } from "@/lib/actions/partners/generate-stripe-account-link";
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { Button, ButtonProps, TooltipContent } from "@dub/ui";
 import {
@@ -83,6 +84,10 @@ export function ConnectPayoutButton(props: ButtonProps) {
           : undefined,
     [partner?.country],
   );
+
+  if (partner && !hasPermission(partner.role, "payout_settings.update")) {
+    return null;
+  }
 
   return (
     <Button

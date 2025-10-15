@@ -8,7 +8,7 @@ import {
 import { PayoutResponseSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import z from "zod";
+import { z } from "zod";
 
 const eligiblePayoutsQuerySchema = z.object({
   cutoffPeriod: CUTOFF_PERIOD_ENUM,

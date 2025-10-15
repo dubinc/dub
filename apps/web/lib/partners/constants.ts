@@ -14,6 +14,9 @@ export const FAST_ACH_FEE_CENTS = 2500; // $25
 export const ALLOWED_MIN_WITHDRAWAL_AMOUNTS = [1000, 2500, 5000, 7500, 10000];
 export const ALLOWED_MIN_PAYOUT_AMOUNTS = [0, 2000, 5000, 10000];
 
+export const MAX_INVITES_PER_REQUEST = 5;
+export const MAX_PARTNER_USERS = 10;
+
 // Direct debit payment types for Partner payout
 export const DIRECT_DEBIT_PAYMENT_TYPES_INFO: {
   type: Stripe.PaymentMethod.Type;

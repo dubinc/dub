@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
 import { stripe } from "@/lib/stripe";
 import { createConnectedAccount } from "@/lib/stripe/create-connected-account";
 import { prisma } from "@dub/prisma";
@@ -12,7 +13,12 @@ import { authPartnerActionClient } from "../safe-action";
 
 export const generateStripeAccountLink = authPartnerActionClient.action(
   async ({ ctx }) => {
-    let { partner } = ctx;
+    const { partner, partnerUser } = ctx;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "payout_settings.update",
+    });
 
     if (!partner.stripeConnectId) {
       // this should never happen

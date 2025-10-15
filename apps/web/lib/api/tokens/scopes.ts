@@ -1,4 +1,4 @@
-import { Role } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { PermissionAction } from "../rbac/permissions";
 import { ResourceKey } from "../rbac/resources";
 
@@ -27,7 +27,7 @@ export type Scope = (typeof SCOPES)[number];
 // Scopes available for Workspace API keys
 export const RESOURCE_SCOPES: {
   scope: Scope;
-  roles: Role[];
+  roles: WorkspaceRole[];
   permissions: PermissionAction[];
   type?: "read" | "write";
   resource?: ResourceKey;
@@ -195,7 +195,7 @@ export const SCOPE_PERMISSIONS_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   return acc;
 }, {});
 
-// Role to scopes mapping
+// WorkspaceRole to scopes mapping
 export const ROLE_SCOPES_MAP = RESOURCE_SCOPES.reduce((acc, scope) => {
   scope.roles.forEach((role) => {
     if (!acc[role]) {
@@ -222,7 +222,7 @@ export const mapScopesToPermissions = (scopes: Scope[]) => {
 };
 
 // Get SCOPES_BY_RESOURCE based on user role in a workspace
-export const getScopesByResourceForRole = (role: Role) => {
+export const getScopesByResourceForRole = (role: WorkspaceRole) => {
   const groupedByResource = {};
 
   const allowedScopes = RESOURCE_SCOPES.map((scope) => {
@@ -283,7 +283,7 @@ export const scopesToName = (scopes: string[]) => {
   };
 };
 
-export const validateScopesForRole = (scopes: Scope[], role: Role) => {
+export const validateScopesForRole = (scopes: Scope[], role: WorkspaceRole) => {
   const allowedScopes = ROLE_SCOPES_MAP[role];
   const invalidScopes = scopes.filter(
     (scope) => !allowedScopes.includes(scope),
@@ -293,7 +293,7 @@ export const validateScopesForRole = (scopes: Scope[], role: Role) => {
 };
 
 // Get the scopes for a role
-export const getScopesForRole = (role: Role) => {
+export const getScopesForRole = (role: WorkspaceRole) => {
   return ROLE_SCOPES_MAP[role];
 };
 

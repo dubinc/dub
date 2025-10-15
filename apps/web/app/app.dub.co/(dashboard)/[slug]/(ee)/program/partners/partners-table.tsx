@@ -52,6 +52,7 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
@@ -103,6 +104,8 @@ export function PartnersTable() {
   const router = useRouter();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
+  const status = (searchParams.get("status") ||
+    "approved") as ProgramEnrollmentStatus;
   const sortBy = searchParams.get("sortBy") || "totalSaleAmount";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
@@ -113,9 +116,11 @@ export function PartnersTable() {
     onRemove,
     onRemoveAll,
     isFiltered,
-  } = usePartnerFilters({ sortBy, sortOrder });
+  } = usePartnerFilters({ sortBy, sortOrder, status });
 
-  const { partnersCount, error: countError } = usePartnersCount<number>();
+  const { partnersCount, error: countError } = usePartnersCount<number>({
+    status,
+  });
 
   const {
     data: partners,
@@ -124,7 +129,7 @@ export function PartnersTable() {
   } = useSWR<EnrolledPartnerProps[]>(
     `/api/partners${getQueryString({
       workspaceId,
-      includeExpandedFields: true,
+      status,
     })}`,
     fetcher,
     {

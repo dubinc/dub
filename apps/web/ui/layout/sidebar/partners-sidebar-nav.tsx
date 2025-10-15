@@ -8,7 +8,6 @@ import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
   CircleDollar,
-  CircleInfo,
   ColorPalette2,
   Gauge6,
   Gear2,
@@ -19,6 +18,7 @@ import {
   SquareUserSparkle2,
   Trophy,
   UserCheck,
+  Users2,
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
@@ -110,6 +110,38 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
+  profile: () => ({
+    title: "Partner profile",
+    direction: "left",
+    content: [
+      {
+        items: [
+          {
+            name: "Profile",
+            icon: SquareUserSparkle2,
+            href: "/profile",
+            exact: true,
+          },
+          {
+            name: "Members",
+            icon: Users2,
+            href: "/profile/members",
+          },
+        ],
+      },
+      {
+        name: "Account",
+        items: [
+          {
+            name: "Notifications",
+            icon: Bell,
+            href: "/profile/notifications",
+          },
+        ],
+      },
+    ],
+  }),
+
   program: ({
     programSlug,
     isUnapproved,
@@ -193,25 +225,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
-  // Partner settings
-  partnerSettings: () => ({
-    title: "Settings",
-    direction: "left",
-    content: [
-      {
-        name: "Account",
-        items: [
-          {
-            name: "Notifications",
-            icon: CircleInfo,
-            href: "/settings/notifications",
-            exact: true,
-          },
-        ],
-      },
-    ],
-  }),
-
   // User settings
   userSettings: () => ({
     title: "Settings",
@@ -230,11 +243,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Security",
             icon: ShieldCheck,
             href: "/account/settings/security",
-          },
-          {
-            name: "Notifications",
-            icon: Bell,
-            href: "/account/settings/notifications",
           },
         ],
       },
@@ -263,11 +271,9 @@ export function PartnersSidebarNav({
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
-      : pathname.startsWith("/settings")
-        ? "partnerSettings"
-        : ["/payouts", "/profile", "/messages"].some((p) =>
-              pathname.startsWith(p),
-            )
+      : pathname.startsWith("/profile")
+        ? "profile"
+        : ["/payouts", "/messages"].some((p) => pathname.startsWith(p))
           ? null
           : isEnrolledProgramPage
             ? "program"

@@ -27,8 +27,8 @@ export {
   Prisma,
   ProgramEnrollmentStatus,
   RewardStructure,
-  Role,
   SalesChannel,
   WebhookReceiver,
   WorkflowTrigger,
+  WorkspaceRole,
 } from "@prisma/client";
