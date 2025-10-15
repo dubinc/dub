@@ -93,63 +93,17 @@ export async function calculatePartnerRanking({
   const partners = await prisma.$queryRaw<Array<any>>`
     SELECT 
       p.*,
-      pe.totalCommissions,
       COALESCE(pe.lastConversionAt, similarProgramMetrics.lastConversionAt) as lastConversionAt,
       COALESCE(pe.conversionRate, similarProgramMetrics.avgConversionRate) as conversionRate,
-      pe.averageLifetimeValue,
       dp.starredAt,
       dp.ignoredAt,
       dp.invitedAt,
       CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
       partnerCategories.categories as categories,
-
-      -- Individual metric scores for reference
-      COALESCE(pe.consistencyScore, 50) as consistencyScore,
-      CASE 
-        WHEN COALESCE(pe.conversionRate, 0) <= 0 THEN 0
-        WHEN COALESCE(pe.conversionRate, 0) >= 0.1 THEN 100
-        ELSE LEAST(100, GREATEST(0, SQRT(LOG10(COALESCE(pe.conversionRate, 0) * 1000 + 1)) * 40))
-      END as conversionRateScore,
-      CASE 
-        WHEN COALESCE(pe.averageLifetimeValue, 0) <= 0 THEN 0
-        WHEN COALESCE(pe.averageLifetimeValue, 0) >= 10000 THEN 100
-        ELSE LEAST(100, GREATEST(0, LOG10(COALESCE(pe.averageLifetimeValue, 0) + 1) * 25))
-      END as lifetimeValueScore,
-      CASE 
-        WHEN COALESCE(pe.totalCommissions, 0) <= 0 THEN 0
-        WHEN COALESCE(pe.totalCommissions, 0) >= 100000 THEN 100
-        ELSE LEAST(100, GREATEST(0, LOG10(COALESCE(pe.totalCommissions, 0) + 1) * 22))
-      END as commissionsScore,
       
-      -- 1. BASE SCORE (0-35 points): Current program performance
+      -- FINAL SCORE (0-100 points): Additive model for ranking
       (
-        (COALESCE(pe.consistencyScore, 50) / 100 * 10) +
-        (CASE 
-          WHEN COALESCE(pe.conversionRate, 0) <= 0 THEN 0
-          WHEN COALESCE(pe.conversionRate, 0) >= 0.1 THEN 5
-          ELSE (SQRT(LOG10(COALESCE(pe.conversionRate, 0) * 1000 + 1)) * 40 / 100) * 5
-        END) +
-        (CASE 
-          WHEN COALESCE(pe.averageLifetimeValue, 0) <= 0 THEN 0
-          WHEN COALESCE(pe.averageLifetimeValue, 0) >= 10000 THEN 10
-          ELSE (LOG10(COALESCE(pe.averageLifetimeValue, 0) + 1) * 25 / 100) * 10
-        END) +
-        (CASE 
-          WHEN COALESCE(pe.totalCommissions, 0) <= 0 THEN 0
-          WHEN COALESCE(pe.totalCommissions, 0) >= 100000 THEN 10
-          ELSE (LOG10(COALESCE(pe.totalCommissions, 0) + 1) * 22 / 100) * 10
-        END)
-      ) as baseScore,
-      
-      -- 2. SIMILARITY SCORE (0-50 points): Performance in similar programs
-      COALESCE(similarProgramMetrics.similarityScore, 0) as similarityScore,
-      
-      -- 3. PROGRAM MATCH SCORE (0-15 points): Count of similar programs
-      COALESCE(similarProgramMetrics.programMatchScore, 0) as programMatchScore,
-      
-      -- FINAL SCORE (0-100 points): Additive model
-      (
-        -- Base score (0-35)
+        -- Base score (0-35): Current program performance
         (
           (COALESCE(pe.consistencyScore, 50) / 100 * 10) +
           (CASE 
@@ -169,10 +123,10 @@ export async function calculatePartnerRanking({
           END)
         ) +
         
-        -- Similarity score (0-50)
+        -- Similarity score (0-50): Performance in similar programs
         COALESCE(similarProgramMetrics.similarityScore, 0) +
         
-        -- Program match score (0-15)
+        -- Program match score (0-15): Count of similar programs
         COALESCE(similarProgramMetrics.programMatchScore, 0)
       ) as finalScore
     FROM Partner p
