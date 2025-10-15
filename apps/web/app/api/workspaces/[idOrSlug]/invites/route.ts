@@ -29,7 +29,7 @@ export const GET = withWorkspace(
     const parsedInvites = invites.map((invite) =>
       workspaceUserSchema.parse({
         ...invite,
-        id: null,
+        id: `${workspace.id}-${invite.email}`, // workspace ID + invite email for the dummy invite
         name: invite.email,
       }),
     );
