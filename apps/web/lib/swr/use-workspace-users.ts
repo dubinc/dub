@@ -10,14 +10,12 @@ type UserWithTokens = WorkspaceUserProps & {
   }[];
 };
 
-export default function useUsers<T extends boolean = false>({
+export default function useWorkspaceUsers({
   invites,
-}: { invites?: T } = {}) {
+}: { invites?: boolean } = {}) {
   const { id } = useWorkspace();
 
-  const { data: users, error } = useSWR<
-    T extends true ? WorkspaceUserProps[] : UserWithTokens[]
-  >(
+  const { data: users, error } = useSWR<WorkspaceUserProps[]>(
     id &&
       (invites
         ? `/api/workspaces/${id}/invites`

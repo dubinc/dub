@@ -1,4 +1,5 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import {
   industryInterests,
   monthlyTrafficAmounts,
@@ -25,6 +26,9 @@ type AboutYouFormData = {
 };
 
 export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
+  const disabled = partner
+    ? !hasPermission(partner.role, "partner_profile.update")
+    : true;
   const {
     register,
     control,
@@ -92,6 +96,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
             <ReactTextareaAutosize
               className={cn(
                 "block w-full rounded-md focus:outline-none sm:text-sm",
+                disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
                 errors.description
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                   : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -100,6 +105,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
               minRows={3}
               maxRows={10}
               maxLength={MAX_PARTNER_DESCRIPTION_LENGTH}
+              disabled={disabled}
               onKeyDown={handleKeyDown}
               {...register("description")}
             />
@@ -155,7 +161,10 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
                 </div>
                 <Button
                   text={`${field.value.length ? "Edit" : "Add"} interests`}
-                  onClick={() => setShowIndustryInterestsModal(true)}
+                  onClick={() =>
+                    !disabled && setShowIndustryInterestsModal(true)
+                  }
+                  disabled={disabled}
                   variant="secondary"
                   className="h-8 w-fit rounded-lg px-3"
                 />
@@ -174,7 +183,8 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
             render={({ field }) => (
               <RadioGroup
                 value={field.value}
-                onValueChange={(value) => field.onChange(value)}
+                onValueChange={(value) => !disabled && field.onChange(value)}
+                disabled={disabled}
                 className="flex flex-col gap-4"
               >
                 {monthlyTrafficAmounts.map(({ id, label }) => (
@@ -197,6 +207,7 @@ export function AboutYouForm({ partner }: { partner?: PartnerProps }) {
           <Button
             text="Save changes"
             className="h-8 w-fit px-2.5"
+            disabled={disabled}
             loading={isSubmitting}
           />
         </div>

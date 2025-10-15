@@ -19,6 +19,7 @@ import { memo } from "react";
 
 export const PayoutStats = memo(() => {
   const { partner } = usePartnerProfile();
+
   const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
     groupBy: "status",
   });

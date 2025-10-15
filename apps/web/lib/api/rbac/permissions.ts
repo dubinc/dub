@@ -1,4 +1,4 @@
-import { Role } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 
 export const PERMISSION_ACTIONS = [
   "workspaces.read",
@@ -32,7 +32,7 @@ export type PermissionAction = (typeof PERMISSION_ACTIONS)[number];
 export const ROLE_PERMISSIONS: {
   action: PermissionAction;
   description: string;
-  roles: Role[];
+  roles: WorkspaceRole[];
 }[] = [
   {
     action: "links.read",
@@ -157,7 +157,7 @@ export const ROLE_PERMISSIONS: {
 ];
 
 // Get permissions for a role
-export const getPermissionsByRole = (role: Role) => {
+export const getPermissionsByRole = (role: WorkspaceRole) => {
   return ROLE_PERMISSIONS.filter(({ roles }) => roles.includes(role)).map(
     ({ action }) => action,
   );

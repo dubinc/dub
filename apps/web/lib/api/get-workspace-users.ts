@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Role } from "@prisma/client";
+import { WorkspaceRole } from "@prisma/client";
 import { z } from "zod";
 import { notificationTypes } from "../zod/schemas/workspaces";
 
@@ -7,13 +7,13 @@ type GetWorkspaceUsersParams =
   | {
       workspaceId: string;
       programId?: never;
-      role: Role;
+      role: WorkspaceRole;
       notificationPreference?: z.infer<typeof notificationTypes>;
     }
   | {
       programId: string;
       workspaceId?: never;
-      role: Role;
+      role: WorkspaceRole;
       notificationPreference?: z.infer<typeof notificationTypes>;
     };
 

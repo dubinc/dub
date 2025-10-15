@@ -1,4 +1,4 @@
-import { Role } from "@dub/prisma/client";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { combineWords } from "@dub/utils";
 import { DubApiError } from "../errors";
 import { PermissionAction, ROLE_PERMISSIONS } from "../rbac/permissions";
@@ -44,12 +44,12 @@ export const clientAccessCheck = ({
   customPermissionDescription,
 }: {
   action: PermissionAction;
-  role: Role;
+  role: WorkspaceRole;
   customPermissionDescription?: string;
 }) => {
   const permission = ROLE_PERMISSIONS.find((p) => p.action === action)!;
-  const allowedRoles = permission.roles;
-  const allowed = allowedRoles.includes(role);
+  const allowedWorkspaceRoles = permission.roles;
+  const allowed = allowedWorkspaceRoles.includes(role);
 
   if (allowed) {
     return {
@@ -60,6 +60,6 @@ export const clientAccessCheck = ({
 
   return {
     allowed,
-    error: `Only workspace ${combineWords(allowedRoles.map((r) => `${r}s`))} can ${customPermissionDescription || permission.description}.`,
+    error: `Only workspace ${combineWords(allowedWorkspaceRoles.map((r) => `${r}s`))} can ${customPermissionDescription || permission.description}.`,
   };
 };

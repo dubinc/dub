@@ -46,6 +46,11 @@ export const appRedirect = async (path: string) => {
   if (libraryRegex.test(path))
     return path.replace(libraryRegex, "/$1/links/$2");
 
+  // Redirect "/[slug]/settings/people" to "/[slug]/settings/members"
+  const peopleRegex = /^\/([^\/]+)\/settings\/people$/;
+  if (peopleRegex.test(path))
+    return path.replace(peopleRegex, "/$1/settings/members");
+
   // Redirect "/[slug]/programs/prog_[id]/:path*" to "/[slug]/program/:path*"
   const oldProgramPagesRegex = /^\/([^\/]+)\/programs\/prog_[^\/]+\/(.*)$/;
   if (oldProgramPagesRegex.test(path))

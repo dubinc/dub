@@ -1,6 +1,7 @@
 "use server";
 
 import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
+import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
 import { qstash } from "@/lib/cron";
 import { getPartnerDiscoveryRequirements } from "@/lib/partners/discoverability";
 import { storage } from "@/lib/storage";
@@ -45,7 +46,13 @@ const updatePartnerProfileSchema = z
 export const updatePartnerProfileAction = authPartnerActionClient
   .schema(updatePartnerProfileSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "partner_profile.update",
+    });
+
     const {
       name,
       email: newEmail,

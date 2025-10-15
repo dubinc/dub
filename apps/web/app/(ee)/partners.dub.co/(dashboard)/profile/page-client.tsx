@@ -1,6 +1,7 @@
 "use client";
 
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
@@ -77,6 +78,10 @@ function Controls({
     },
   );
 
+  const disabled = partner
+    ? !hasPermission(partner.role, "partner_profile.update")
+    : true;
+
   const [isOpen, setIsOpen] = useState(false);
 
   const { MergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
@@ -131,8 +136,9 @@ function Controls({
             <span className="text-sm font-medium">Discoverable</span>
             <Switch
               checked={!!partner.discoverableAt}
+              disabled={disabled}
               fn={(checked: boolean) => {
-                if (!partner) return;
+                if (!partner || disabled) return;
 
                 update(
                   () =>
@@ -159,10 +165,18 @@ function Controls({
           <div className="w-full p-2 md:w-56">
             <button
               onClick={() => {
-                setShowMergePartnerAccountsModal(true);
-                setIsOpen(false);
+                if (!disabled) {
+                  setShowMergePartnerAccountsModal(true);
+                  setIsOpen(false);
+                }
               }}
-              className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200"
+              disabled={disabled}
+              className={cn(
+                "w-full rounded-md p-2",
+                disabled
+                  ? "cursor-not-allowed bg-neutral-50 text-neutral-400"
+                  : "hover:bg-neutral-100 active:bg-neutral-200",
+              )}
             >
               <div className="flex items-center gap-2 text-left">
                 <Users2 className="size-4 shrink-0" />
