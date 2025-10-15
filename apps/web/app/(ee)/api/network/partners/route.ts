@@ -20,6 +20,16 @@ export const GET = withWorkspace(
       where: {
         id: programId,
       },
+      include: {
+        similarPrograms: {
+          where: {
+            similarityScore: {
+              gt: 0.3,
+            },
+          },
+          take: 5,
+        },
+      },
     });
 
     if (!program.partnerNetworkEnabledAt) {
@@ -29,23 +39,23 @@ export const GET = withWorkspace(
       });
     }
 
-    const {
-      partnerIds,
-      status,
-      page,
-      pageSize,
-      country,
-      starred,
-    } = getNetworkPartnersQuerySchema.parse(searchParams);
+    const { partnerIds, status, page, pageSize, country, starred } =
+      getNetworkPartnersQuerySchema.parse(searchParams);
+
+    const similarPrograms = program.similarPrograms.map((sp) => ({
+      programId: sp.similarProgramId,
+      similarityScore: sp.similarityScore,
+    }));
 
     const partners = await calculatePartnerRanking({
       programId,
       partnerIds,
       status,
       country,
-      starred: starred ?? undefined,
       page,
       pageSize,
+      starred: starred ?? undefined,
+      similarPrograms,
     });
 
     return NextResponse.json(

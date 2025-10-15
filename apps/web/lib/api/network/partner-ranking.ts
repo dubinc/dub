@@ -13,6 +13,7 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
   programId: string;
   page: number;
   pageSize: number;
+  similarPrograms?: Array<{ programId: string; similarityScore: number }>;
 }
 
 /**
@@ -46,6 +47,7 @@ export async function calculatePartnerRanking({
   page,
   pageSize,
   status = "discover",
+  similarPrograms = [],
 }: PartnerRankingParams) {
   const conditions: Prisma.Sql[] = [
     // Removed discoverableAt requirement to show all partners
@@ -183,9 +185,10 @@ export async function calculatePartnerRanking({
    
     -- Discovered partner metadata
     LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
-   
-    -- 2 & 3. CONSOLIDATED SIMILAR PROGRAM METRICS: Performance, match score, and aggregate metrics
-    LEFT JOIN (
+
+    ${
+      similarPrograms.length > 0
+        ? Prisma.sql`LEFT JOIN (
       SELECT 
         pe2.partnerId,
         -- Similarity score: Sum weighted performance (0-50 points, no averaging)
@@ -208,25 +211,48 @@ export async function calculatePartnerRanking({
               WHEN COALESCE(pe2.totalCommissions, 0) >= 100000 THEN 0.05
               ELSE (LOG10(COALESCE(pe2.totalCommissions, 0) + 1) * 22 / 100) * 0.05
             END)
-          ) * ps.similarityScore * 50 -- Weight by similarity, scale to 0-50 range
+          ) * (CASE pe2.programId
+            ${Prisma.join(
+              similarPrograms.map(
+                (sp) =>
+                  Prisma.sql`WHEN ${sp.programId} THEN ${sp.similarityScore}`,
+              ),
+              " ",
+            )}
+            ELSE 0 END) * 50 -- Weight by similarity, scale to 0-50 range
         )) as similarityScore,
         -- Program match score: Count of similar programs (0-15 points)
-        LEAST(15, COUNT(DISTINCT ps.similarProgramId) * 2) as programMatchScore,
+        LEAST(15, COUNT(DISTINCT pe2.programId) * 2) as programMatchScore,
         -- Aggregate metrics for display purposes
         MAX(pe2.lastConversionAt) as lastConversionAt,
-        SUM(COALESCE(pe2.conversionRate, 0) * ps.similarityScore) / NULLIF(SUM(ps.similarityScore), 0) as avgConversionRate
-      FROM ProgramSimilarity ps
-      JOIN ProgramEnrollment pe2 
-        ON pe2.programId = ps.similarProgramId 
+        SUM(COALESCE(pe2.conversionRate, 0) * (CASE pe2.programId
+          ${Prisma.join(
+            similarPrograms.map(
+              (sp) =>
+                Prisma.sql`WHEN ${sp.programId} THEN ${sp.similarityScore}`,
+            ),
+            " ",
+          )}
+          ELSE 0 END)) / NULLIF(SUM(CASE pe2.programId
+          ${Prisma.join(
+            similarPrograms.map(
+              (sp) =>
+                Prisma.sql`WHEN ${sp.programId} THEN ${sp.similarityScore}`,
+            ),
+            " ",
+          )}
+          ELSE 0 END), 0) as avgConversionRate
+      FROM ProgramEnrollment pe2
+      WHERE pe2.programId IN (${Prisma.join(similarPrograms.map((sp) => sp.programId))})
         AND pe2.status = 'approved'
         AND pe2.totalConversions > 0
         AND pe2.programId != ${ACME_PROGRAM_ID}
-      WHERE ps.programId = ${programId}
-        AND ps.similarityScore > 0.3
       GROUP BY pe2.partnerId
-    ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id
+    ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
+        : Prisma.sql`LEFT JOIN (SELECT NULL as partnerId, NULL as similarityScore, NULL as programMatchScore, NULL as lastConversionAt, NULL as avgConversionRate WHERE FALSE) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
+    }
 
-    -- CATEGORIES: Get all categories from programs the partner is enrolled in
+    -- Get all categories from programs the partner is enrolled in
     LEFT JOIN (
       SELECT 
         pe5.partnerId,
