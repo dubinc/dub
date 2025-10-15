@@ -11,19 +11,20 @@ import { calculateCategorySimilarity } from "./calculate-category-similarity";
 import { calculatePartnerSimilarity } from "./calculate-partner-similarity";
 import { calculatePerformanceSimilarity } from "./calculate-performance-similarity";
 
-const schema = z.object({
+const payloadSchema = z.object({
   startingAfter: z.string().optional(),
 });
 
-const PROGRAMS_PER_BATCH = 10;
 const SIMILARITY_SCORE_THRESHOLD = 0.5;
+
+const PROGRAMS_PER_BATCH = 5;
 
 // GET /api/cron/calculate-program-similarities - Initial cron request from Vercel
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    return await computeProgramSimilarity();
+    return await calculateProgramSimilarity();
   } catch (err) {
     const { error, status } = handleApiError(err);
     return logAndRespond(error.message, { status });
@@ -40,9 +41,9 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { startingAfter } = schema.parse(JSON.parse(rawBody));
+    const { startingAfter } = payloadSchema.parse(JSON.parse(rawBody));
 
-    return await computeProgramSimilarity({
+    return await calculateProgramSimilarity({
       startingAfter,
     });
   } catch (err) {
@@ -51,11 +52,9 @@ export async function POST(req: Request) {
   }
 }
 
-async function computeProgramSimilarity({
+async function calculateProgramSimilarity({
   startingAfter,
-}: z.infer<typeof schema> = {}) {
-  console.log("calculateProgramSimilarities", { startingAfter });
-
+}: z.infer<typeof payloadSchema> = {}) {
   const programs = await prisma.program.findMany({
     ...(startingAfter && {
       cursor: {
