@@ -291,6 +291,7 @@ const CommissionTableInner = memo(
                         },
                       ]}
                       activeFilters={activeFilters}
+                      onSelect={onSelect}
                       onRemove={onRemove}
                       onRemoveAll={onRemoveAll}
                     />

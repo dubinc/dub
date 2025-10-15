@@ -4,6 +4,7 @@ import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { ReactNode, isValidElement } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
+import { Combobox, ComboboxOption } from "../combobox";
 import { useKeyboardShortcut } from "../hooks";
 import { Filter, FilterOption } from "./types";
 
@@ -15,6 +16,7 @@ type FilterListProps = {
   }[];
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onRemoveAll: () => void;
+  onSelect?: (key: string, value: FilterOption["value"]) => void;
   className?: string;
 };
 
@@ -23,6 +25,7 @@ export function FilterList({
   activeFilters,
   onRemove,
   onRemoveAll,
+  onSelect,
   className,
 }: FilterListProps) {
   useKeyboardShortcut("Escape", onRemoveAll, { priority: 1 });
@@ -89,6 +92,38 @@ export function FilterList({
                   filter.getOptionPermalink?.(value) ??
                   null;
 
+                const OptionDisplay = ({
+                  className,
+                }: {
+                  className?: string;
+                }) => (
+                  <div
+                    className={cn(
+                      "flex items-center gap-2.5 px-3 py-2",
+                      className,
+                    )}
+                  >
+                    <span className="shrink-0 text-neutral-600">
+                      {isReactNode(OptionIcon) ? (
+                        OptionIcon
+                      ) : (
+                        <OptionIcon className="h-4 w-4" />
+                      )}
+                    </span>
+                    {optionPermalink ? (
+                      <Link
+                        href={optionPermalink}
+                        target="_blank"
+                        className="cursor-alias decoration-dotted underline-offset-2 hover:underline"
+                      >
+                        {truncate(optionLabel, 30)}
+                      </Link>
+                    ) : (
+                      truncate(optionLabel, 30)
+                    )}
+                  </div>
+                );
+
                 return (
                   <motion.div
                     key={`${key}-${value}`}
@@ -112,30 +147,90 @@ export function FilterList({
                     <div className="px-3 py-2 text-neutral-500">is</div>
 
                     {/* Option */}
-                    <div className="flex items-center gap-2.5 px-3 py-2">
-                      {filter.options ? (
-                        <>
-                          <span className="shrink-0 text-neutral-600">
-                            {isReactNode(OptionIcon) ? (
-                              OptionIcon
-                            ) : (
-                              <OptionIcon className="h-4 w-4" />
-                            )}
-                          </span>
-                          {optionPermalink ? (
-                            <Link
-                              href={optionPermalink}
-                              target="_blank"
-                              className="cursor-alias decoration-dotted underline-offset-2 hover:underline"
-                            >
-                              {truncate(optionLabel, 30)}
-                            </Link>
-                          ) : (
-                            truncate(optionLabel, 30)
-                          )}
-                        </>
+                    <div className="flex items-center">
+                      {!filter.options ? (
+                        <div className="flex items-center gap-2.5 px-3 py-2">
+                          <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
+                        </div>
+                      ) : onSelect ? (
+                        (() => {
+                          // Precompute options array once
+                          const options: ComboboxOption[] =
+                            filter.options?.map((opt): ComboboxOption => {
+                              const optionIcon =
+                                opt.icon ??
+                                filter.getOptionIcon?.(opt.value, {
+                                  key: filter.key,
+                                  option: opt,
+                                }) ??
+                                filter.icon;
+
+                              return {
+                                label:
+                                  opt.label ??
+                                  filter.getOptionLabel?.(opt.value, {
+                                    key: filter.key,
+                                    option: opt,
+                                  }) ??
+                                  String(opt.value),
+                                value: String(opt.value),
+                                icon: optionIcon,
+                              };
+                            }) ?? [];
+
+                          // Find selected option from precomputed array
+                          const selectedOption = options.find((opt) =>
+                            typeof opt.value === "string" &&
+                            typeof value === "string"
+                              ? opt.value.toLowerCase() ===
+                                String(value).toLowerCase()
+                              : opt.value === String(value),
+                          );
+
+                          return (
+                            <Combobox
+                              selected={selectedOption ?? null}
+                              setSelected={(
+                                newOption: ComboboxOption | null,
+                              ) => {
+                                if (
+                                  newOption &&
+                                  newOption.value !== String(value)
+                                ) {
+                                  // Remove the current value and add the new one
+                                  onRemove(key, value);
+                                  onSelect(key, newOption.value);
+                                }
+                              }}
+                              options={options}
+                              optionRight={(option) => {
+                                if (option.value === String(value)) {
+                                  return;
+                                }
+                                const filterOption = filter.options?.find(
+                                  (opt) =>
+                                    typeof String(opt.value) === "string" &&
+                                    typeof option.value === "string"
+                                      ? String(opt.value).toLowerCase() ===
+                                        option.value.toLowerCase()
+                                      : String(opt.value) === option.value,
+                                );
+                                return filterOption ? (
+                                  <span className="ml-2 text-neutral-500">
+                                    {filterOption.right}
+                                  </span>
+                                ) : null;
+                              }}
+                              placeholder={truncate(optionLabel, 30)}
+                              caret={false}
+                              trigger={OptionDisplay({
+                                className: "cursor-pointer hover:bg-neutral-50",
+                              })}
+                            />
+                          );
+                        })()
                       ) : (
-                        <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
+                        OptionDisplay({})
                       )}
                     </div>
 

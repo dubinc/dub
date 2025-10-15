@@ -129,6 +129,7 @@ export function ProgramAnalyticsPageClient() {
           <Filter.List
             filters={filters}
             activeFilters={activeFiltersWithStreaming}
+            onSelect={onSelect}
             onRemove={onRemove}
             onRemoveAll={onRemoveAll}
           />
