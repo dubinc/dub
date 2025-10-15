@@ -148,7 +148,7 @@ const processPartnerActivityStreamBatch = () =>
         // Calculate average lifetime value (totalSaleAmount / totalConversions)
         if (totalConversions && totalConversions > 0 && totalSaleAmount) {
           enrollment.averageLifetimeValue = totalSaleAmount / totalConversions;
-        } 
+        }
 
         // Calculate lead conversion rate (totalConversions / totalLeads)
         if (totalLeads && totalLeads > 0 && totalConversions) {
@@ -295,6 +295,7 @@ const processPartnerActivityStreamBatch = () =>
 
 // This route is used to process partner activity events from Redis streams
 // It runs every 5 minutes with a batch size of 10,000 to consume high-frequency partner activity updates
+// GET /api/cron/streams/update-partner-stats
 export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
