@@ -71,6 +71,10 @@
     {
       "path": "/api/cron/cleanup/link-retention",
       "schedule": "0 */12 * * *"
+    },
+    {
+      "path": "/api/cron/calculate-program-similarities",
+      "schedule": "0 */12 * * *"
     }
   ],
   "functions": {
