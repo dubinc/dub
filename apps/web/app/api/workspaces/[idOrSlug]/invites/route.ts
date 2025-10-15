@@ -14,8 +14,7 @@ import { NextResponse } from "next/server";
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { search, role, sortBy, sortOrder } =
-      getWorkspaceUsersQuerySchema.parse(searchParams);
+    const { search, role } = getWorkspaceUsersQuerySchema.parse(searchParams);
 
     const invites = await prisma.projectInvite.findMany({
       where: {
@@ -25,7 +24,6 @@ export const GET = withWorkspace(
           email: { contains: search },
         }),
       },
-      orderBy: sortBy === "role" ? { role: sortOrder } : { email: sortOrder },
     });
 
     const parsedInvites = invites.map((invite) =>

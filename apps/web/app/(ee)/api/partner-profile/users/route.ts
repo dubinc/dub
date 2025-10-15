@@ -13,8 +13,7 @@ import { z } from "zod";
 
 // GET /api/partner-profile/users - list of users + invites
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { search, role, sortBy, sortOrder } =
-    getPartnerUsersQuerySchema.parse(searchParams);
+  const { search, role } = getPartnerUsersQuerySchema.parse(searchParams);
 
   const users = await prisma.partnerUser.findMany({
     where: {
@@ -42,10 +41,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     include: {
       user: true,
     },
-    orderBy:
-      sortBy === "role"
-        ? { role: sortOrder }
-        : { user: { [sortBy]: sortOrder } },
   });
 
   const parsedUsers = users.map(({ user, ...rest }) =>

@@ -201,8 +201,6 @@ export const workspaceStoreKeys = z.enum([
 export const getWorkspaceUsersQuerySchema = z.object({
   search: z.string().optional(),
   role: z.enum(roles).optional(),
-  sortBy: z.enum(["name", "role"]).optional().default("name"),
-  sortOrder: z.enum(["asc", "desc"]).optional().default("asc"),
 });
 
 export const workspaceUserSchema = z.object({

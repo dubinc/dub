@@ -47,9 +47,7 @@ export function ProfileMembersPageClient() {
 
   const status = searchParams.get("status") as "active" | "invited" | null;
   const role = searchParams.get("role") as PartnerRole | null;
-  const search = searchParams.get("search") || undefined;
-  const sortBy = (searchParams.get("sortBy") || "name") as "name" | "role";
-  const sortOrder = (searchParams.get("sortOrder") || "asc") as "asc" | "desc";
+  const search = searchParams.get("search");
 
   const {
     data: users,
@@ -60,8 +58,6 @@ export function ProfileMembersPageClient() {
       `/api/partner-profile/${status === "invited" ? "invites" : "users"}?${new URLSearchParams(
         {
           ...(search && { search }),
-          ...(sortBy && { sortBy }),
-          ...(sortOrder && { sortOrder }),
           ...(role && { role }),
         } as Record<string, any>,
       ).toString()}`,
@@ -189,18 +185,6 @@ export function ProfileMembersPageClient() {
     columns,
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["name", "role"],
-    sortBy,
-    sortOrder,
-    onSortChange: ({ sortBy, sortOrder }) =>
-      queryParams({
-        set: {
-          ...(sortBy && { sortBy }),
-          ...(sortOrder && { sortOrder }),
-        },
-        del: "page",
-        scroll: false,
-      }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) =>

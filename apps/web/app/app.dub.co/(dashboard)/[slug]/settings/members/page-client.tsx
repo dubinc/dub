@@ -56,9 +56,7 @@ export default function WorkspacePeopleClient() {
 
   const status = searchParams.get("status") as "active" | "invited" | null;
   const roleFilter = searchParams.get("role") as PartnerRole | null;
-  const search = searchParams.get("search") || undefined;
-  const sortBy = (searchParams.get("sortBy") || "name") as "name" | "role";
-  const sortOrder = (searchParams.get("sortOrder") || "asc") as "asc" | "desc";
+  const search = searchParams.get("search");
 
   const {
     data: users,
@@ -69,8 +67,6 @@ export default function WorkspacePeopleClient() {
       `/api/workspaces/${workspaceId}/${status === "invited" ? "invites" : "users"}?${new URLSearchParams(
         {
           ...(search && { search }),
-          ...(sortBy && { sortBy }),
-          ...(sortOrder && { sortOrder }),
           ...(roleFilter && { role: roleFilter }),
         } as Record<string, any>,
       ).toString()}`,
@@ -195,18 +191,6 @@ export default function WorkspacePeopleClient() {
     columns,
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["name", "role"],
-    sortBy,
-    sortOrder,
-    onSortChange: ({ sortBy, sortOrder }) =>
-      queryParams({
-        set: {
-          ...(sortBy && { sortBy }),
-          ...(sortOrder && { sortOrder }),
-        },
-        del: "page",
-        scroll: false,
-      }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) =>

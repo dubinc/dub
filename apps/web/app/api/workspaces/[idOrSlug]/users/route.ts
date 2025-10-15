@@ -13,8 +13,7 @@ import { NextResponse } from "next/server";
 // GET /api/workspaces/[idOrSlug]/users – get users for a specific workspace
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
-    const { search, role, sortBy, sortOrder } =
-      getWorkspaceUsersQuerySchema.parse(searchParams);
+    const { search, role } = getWorkspaceUsersQuerySchema.parse(searchParams);
 
     const users = await prisma.projectUsers.findMany({
       where: {
@@ -32,10 +31,6 @@ export const GET = withWorkspace(
       include: {
         user: true,
       },
-      orderBy:
-        sortBy === "role"
-          ? { role: sortOrder }
-          : { user: { [sortBy]: sortOrder } },
     });
 
     const parsedUsers = users.map(({ user, ...rest }) =>

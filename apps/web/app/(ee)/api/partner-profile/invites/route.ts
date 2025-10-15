@@ -20,8 +20,7 @@ import z from "zod";
 
 // GET /api/partner-profile/invites - get all invites for a partner profile
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { search, role, sortBy, sortOrder } =
-    getPartnerUsersQuerySchema.parse(searchParams);
+  const { search, role } = getPartnerUsersQuerySchema.parse(searchParams);
 
   const invites = await prisma.partnerInvite.findMany({
     where: {
@@ -31,7 +30,6 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         email: { contains: search },
       }),
     },
-    orderBy: sortBy === "role" ? { role: sortOrder } : { email: sortOrder },
   });
 
   const parsedInvites = invites.map((invite) =>
