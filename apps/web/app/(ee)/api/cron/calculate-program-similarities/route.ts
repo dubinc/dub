@@ -78,7 +78,7 @@ async function calculateProgramSimilarity({
     where: {
       workspace: {
         plan: {
-          in: ["enterprise"],
+          in: ["advanced", "enterprise"],
         },
       },
       id: {
@@ -239,7 +239,7 @@ async function findNextProgram({
       }),
       workspace: {
         plan: {
-          in: ["enterprise"],
+          in: ["advanced", "enterprise"],
         },
       },
     },
