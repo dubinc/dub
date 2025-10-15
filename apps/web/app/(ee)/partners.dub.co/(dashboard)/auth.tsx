@@ -3,7 +3,7 @@
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useRefreshSession from "@/lib/swr/use-refresh-session";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { redirect, usePathname, useSearchParams } from "next/navigation";
+import { redirect, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 import { toast } from "sonner";
 
@@ -18,7 +18,6 @@ const ERROR_CODES = {
 } as const;
 
 export function PartnerProfileAuth({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const { loading: sessionLoading } = useRefreshSession("defaultPartnerId");
   const { partner, error } = usePartnerProfile();
