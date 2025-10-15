@@ -6,7 +6,7 @@ import { WorkspaceUserProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
-import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
+import { useInviteWorkspaceUserModal } from "@/ui/modals/invite-workspace-user-modal";
 import { useRemoveWorkspaceUserModal } from "@/ui/modals/remove-workspace-user-modal";
 import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -43,8 +43,8 @@ import { useMemo, useState } from "react";
 import useSWR from "swr";
 
 export default function WorkspacePeopleClient() {
-  const { setShowInviteTeammateModal, InviteTeammateModal } =
-    useInviteTeammateModal({ showSavedInvites: true });
+  const { setShowInviteWorkspaceUserModal, InviteWorkspaceUserModal } =
+    useInviteWorkspaceUserModal({ showSavedInvites: true });
 
   const { setShowInviteCodeModal, InviteCodeModal } = useInviteCodeModal();
 
@@ -128,7 +128,7 @@ export default function WorkspacePeopleClient() {
     return filters;
   }, [status, roleFilter]);
 
-  useKeyboardShortcut("m", () => setShowInviteTeammateModal(true));
+  useKeyboardShortcut("m", () => setShowInviteWorkspaceUserModal(true));
 
   const columns = useMemo<ColumnDef<WorkspaceUserProps>[]>(
     () => [
@@ -228,7 +228,7 @@ export default function WorkspacePeopleClient() {
 
   return (
     <>
-      <InviteTeammateModal />
+      <InviteWorkspaceUserModal />
       <InviteCodeModal />
       <PageContent
         title="Members"
@@ -237,7 +237,7 @@ export default function WorkspacePeopleClient() {
             <div className="flex space-x-2">
               <Button
                 text="Invite member"
-                onClick={() => setShowInviteTeammateModal(true)}
+                onClick={() => setShowInviteWorkspaceUserModal(true)}
                 className="h-9 w-fit"
                 shortcut="M"
                 disabledTooltip={

@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
+import { generateRandomName } from "@/lib/names";
 import z from "@/lib/zod";
 import {
   getWorkspaceUsersQuerySchema,
@@ -37,6 +38,7 @@ export const GET = withWorkspace(
       workspaceUserSchema.parse({
         ...rest,
         ...user,
+        name: user.name || user.email || generateRandomName(),
         createdAt: rest.createdAt, // preserve the createdAt field from ProjectUsers
       }),
     );

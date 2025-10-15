@@ -1,7 +1,7 @@
 import { MAX_INVITES_PER_REQUEST } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { invitePartnerMemberSchema } from "@/lib/zod/schemas/partner-profile";
+import { invitePartnerUserSchema } from "@/lib/zod/schemas/partner-profile";
 import { Button, Modal, useMediaQuery } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, pluralize } from "@dub/utils";
@@ -18,15 +18,15 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 type FormData = {
-  invites: z.infer<typeof invitePartnerMemberSchema>[];
+  invites: z.infer<typeof invitePartnerUserSchema>[];
 };
 
-function InvitePartnerMemberModal({
-  showInvitePartnerMemberModal,
-  setShowInvitePartnerMemberModal,
+function InvitePartnerUserModal({
+  showInvitePartnerUserModal,
+  setShowInvitePartnerUserModal,
 }: {
-  showInvitePartnerMemberModal: boolean;
-  setShowInvitePartnerMemberModal: Dispatch<SetStateAction<boolean>>;
+  showInvitePartnerUserModal: boolean;
+  setShowInvitePartnerUserModal: Dispatch<SetStateAction<boolean>>;
 }) {
   const { isMobile } = useMediaQuery();
   const { partner } = usePartnerProfile();
@@ -67,7 +67,7 @@ function InvitePartnerMemberModal({
       toast.success(
         `${pluralize("Invitation", invites.length)} sent successfully!`,
       );
-      setShowInvitePartnerMemberModal(false);
+      setShowInvitePartnerUserModal(false);
     } catch (error) {
       toast.error(error.message || "Failed to send invitations.");
     } finally {
@@ -77,16 +77,16 @@ function InvitePartnerMemberModal({
 
   return (
     <Modal
-      showModal={showInvitePartnerMemberModal}
-      setShowModal={setShowInvitePartnerMemberModal}
+      showModal={showInvitePartnerUserModal}
+      setShowModal={setShowInvitePartnerUserModal}
       className="max-w-md"
     >
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
-        <h3 className="text-lg font-medium">Invite Partner Members</h3>
+        <h3 className="text-lg font-medium">Invite Teammates</h3>
         <p className="text-sm text-neutral-500">
-          Invite team members to{" "}
-          <span className="font-semibold text-black">{partner?.name}</span>.
-          Invitations will be valid for 14 days.
+          Invite members to join your{" "}
+          <span className="font-semibold text-black">{partner?.name}</span>{" "}
+          partner team . Invitations will be valid for 14 days.
         </p>
       </div>
 
@@ -161,24 +161,24 @@ function InvitePartnerMemberModal({
   );
 }
 
-export function useInvitePartnerMemberModal() {
-  const [showInvitePartnerMemberModal, setShowInvitePartnerMemberModal] =
+export function useInvitePartnerUserModal() {
+  const [showInvitePartnerUserModal, setShowInvitePartnerUserModal] =
     useState(false);
 
-  const InvitePartnerMemberModalCallback = useCallback(() => {
+  const InvitePartnerUserModalCallback = useCallback(() => {
     return (
-      <InvitePartnerMemberModal
-        showInvitePartnerMemberModal={showInvitePartnerMemberModal}
-        setShowInvitePartnerMemberModal={setShowInvitePartnerMemberModal}
+      <InvitePartnerUserModal
+        showInvitePartnerUserModal={showInvitePartnerUserModal}
+        setShowInvitePartnerUserModal={setShowInvitePartnerUserModal}
       />
     );
-  }, [showInvitePartnerMemberModal, setShowInvitePartnerMemberModal]);
+  }, [showInvitePartnerUserModal, setShowInvitePartnerUserModal]);
 
   return useMemo(
     () => ({
-      setShowInvitePartnerMemberModal,
-      InvitePartnerMemberModal: InvitePartnerMemberModalCallback,
+      setShowInvitePartnerUserModal,
+      InvitePartnerUserModal: InvitePartnerUserModalCallback,
     }),
-    [setShowInvitePartnerMemberModal, InvitePartnerMemberModalCallback],
+    [setShowInvitePartnerUserModal, InvitePartnerUserModalCallback],
   );
 }

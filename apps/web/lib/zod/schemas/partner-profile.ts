@@ -154,7 +154,7 @@ export const PartnerBountySchema = BountySchema.omit({
   }),
 });
 
-export const invitePartnerMemberSchema = z.object({
+export const invitePartnerUserSchema = z.object({
   email: z
     .string()
     .min(1, "Email is required.")

@@ -4,7 +4,7 @@ import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerUserProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { useInvitePartnerMemberModal } from "@/ui/modals/invite-partner-member-modal";
+import { useInvitePartnerUserModal } from "@/ui/modals/invite-partner-user-modal";
 import { useRemovePartnerUserModal } from "@/ui/modals/remove-partner-user-modal";
 import { useUpdatePartnerUserModal } from "@/ui/modals/update-partner-user-modal";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -70,8 +70,8 @@ export function ProfileMembersPageClient() {
 
   const isCurrentUserOwner = partner?.role === "owner";
 
-  const { InvitePartnerMemberModal, setShowInvitePartnerMemberModal } =
-    useInvitePartnerMemberModal();
+  const { InvitePartnerUserModal, setShowInvitePartnerUserModal } =
+    useInvitePartnerUserModal();
 
   // Combined filter configuration
   const filters = useMemo(
@@ -122,7 +122,7 @@ export function ProfileMembersPageClient() {
     return filters;
   }, [status, role]);
 
-  useKeyboardShortcut("m", () => setShowInvitePartnerMemberModal(true));
+  useKeyboardShortcut("m", () => setShowInvitePartnerUserModal(true));
 
   const columns = useMemo<ColumnDef<PartnerUserProps>[]>(
     () => [
@@ -220,7 +220,7 @@ export function ProfileMembersPageClient() {
 
   return (
     <>
-      <InvitePartnerMemberModal />
+      <InvitePartnerUserModal />
       <PageContent
         title="Members"
         controls={
@@ -229,7 +229,7 @@ export function ProfileMembersPageClient() {
               text="Invite member"
               className="h-9 w-fit"
               shortcut="M"
-              onClick={() => setShowInvitePartnerMemberModal(true)}
+              onClick={() => setShowInvitePartnerUserModal(true)}
             />
           )
         }

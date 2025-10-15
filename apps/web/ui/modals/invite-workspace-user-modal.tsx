@@ -13,13 +13,13 @@ import {
 import useSWR from "swr";
 import { InviteTeammatesForm } from "../workspaces/invite-teammates-form";
 
-function InviteTeammateModal({
-  showInviteTeammateModal,
-  setShowInviteTeammateModal,
+function InviteWorkspaceUserModal({
+  showInviteWorkspaceUserModal,
+  setShowInviteWorkspaceUserModal,
   showSavedInvites,
 }: {
-  showInviteTeammateModal: boolean;
-  setShowInviteTeammateModal: Dispatch<SetStateAction<boolean>>;
+  showInviteWorkspaceUserModal: boolean;
+  setShowInviteWorkspaceUserModal: Dispatch<SetStateAction<boolean>>;
   showSavedInvites: boolean;
 }) {
   const { id: workspaceId, plan, logo } = useWorkspace();
@@ -27,7 +27,7 @@ function InviteTeammateModal({
   // we only need to fetch saved invites if the workspace is on the free plan
   // (or else we would've already sent the invites)
   const { data: invites, isLoading } = useSWR<Invite[]>(
-    showInviteTeammateModal &&
+    showInviteWorkspaceUserModal &&
       workspaceId &&
       plan === "free" &&
       showSavedInvites &&
@@ -37,8 +37,8 @@ function InviteTeammateModal({
 
   return (
     <Modal
-      showModal={showInviteTeammateModal}
-      setShowModal={setShowInviteTeammateModal}
+      showModal={showInviteWorkspaceUserModal}
+      setShowModal={setShowInviteWorkspaceUserModal}
       className="max-h-[95dvh]"
     >
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
@@ -61,7 +61,7 @@ function InviteTeammateModal({
         </div>
       ) : (
         <InviteTeammatesForm
-          onSuccess={() => setShowInviteTeammateModal(false)}
+          onSuccess={() => setShowInviteWorkspaceUserModal(false)}
           className="bg-neutral-50 px-4 py-4 sm:px-6"
           invites={invites}
         />
@@ -70,28 +70,33 @@ function InviteTeammateModal({
   );
 }
 
-export function useInviteTeammateModal({
+export function useInviteWorkspaceUserModal({
   showSavedInvites = false,
 }: {
   showSavedInvites?: boolean;
 } = {}) {
-  const [showInviteTeammateModal, setShowInviteTeammateModal] = useState(false);
+  const [showInviteWorkspaceUserModal, setShowInviteWorkspaceUserModal] =
+    useState(false);
 
-  const InviteTeammateModalCallback = useCallback(() => {
+  const InviteWorkspaceUserModalCallback = useCallback(() => {
     return (
-      <InviteTeammateModal
-        showInviteTeammateModal={showInviteTeammateModal}
-        setShowInviteTeammateModal={setShowInviteTeammateModal}
+      <InviteWorkspaceUserModal
+        showInviteWorkspaceUserModal={showInviteWorkspaceUserModal}
+        setShowInviteWorkspaceUserModal={setShowInviteWorkspaceUserModal}
         showSavedInvites={showSavedInvites}
       />
     );
-  }, [showInviteTeammateModal, setShowInviteTeammateModal, showSavedInvites]);
+  }, [
+    showInviteWorkspaceUserModal,
+    setShowInviteWorkspaceUserModal,
+    showSavedInvites,
+  ]);
 
   return useMemo(
     () => ({
-      setShowInviteTeammateModal,
-      InviteTeammateModal: InviteTeammateModalCallback,
+      setShowInviteWorkspaceUserModal,
+      InviteWorkspaceUserModal: InviteWorkspaceUserModalCallback,
     }),
-    [setShowInviteTeammateModal, InviteTeammateModalCallback],
+    [setShowInviteWorkspaceUserModal, InviteWorkspaceUserModalCallback],
   );
 }
