@@ -140,11 +140,13 @@ export function ProfileMembersPageClient() {
               <Avatar user={user} />
               <div className="flex flex-col">
                 <h3 className="text-sm font-medium">
-                  {user.id === null
-                    ? `Invited ${timeAgo(user.createdAt)}`
-                    : user.name || user.email}
+                  {user.name || user.email}
                 </h3>
-                <p className="text-xs text-neutral-500">{user.email}</p>
+                <p className="text-xs text-neutral-500">
+                  {status === "invited"
+                    ? `Invited ${timeAgo(user.createdAt)}`
+                    : user.email}
+                </p>
               </div>
             </div>
           );
@@ -177,7 +179,7 @@ export function ProfileMembersPageClient() {
         ),
       },
     ],
-    [session?.user?.email, isCurrentUserOwner],
+    [session?.user?.email, isCurrentUserOwner, status],
   );
 
   const { table, ...tableProps } = useTable({

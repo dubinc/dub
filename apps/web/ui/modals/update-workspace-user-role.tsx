@@ -2,6 +2,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
+import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -11,24 +12,24 @@ import {
 } from "react";
 import { toast } from "sonner";
 
-function EditRoleModal({
-  showEditRoleModal,
-  setShowEditRoleModal,
+function WorkspaceUserRoleModal({
+  showWorkspaceUserRoleModal,
+  setShowWorkspaceUserRoleModal,
   user,
   role,
 }: {
-  showEditRoleModal: boolean;
-  setShowEditRoleModal: Dispatch<SetStateAction<boolean>>;
+  showWorkspaceUserRoleModal: boolean;
+  setShowWorkspaceUserRoleModal: Dispatch<SetStateAction<boolean>>;
   user: UserProps;
   role: "owner" | "member";
 }) {
   const [editing, setEditing] = useState(false);
-  const { id, name: workspaceName } = useWorkspace();
+  const { id } = useWorkspace();
   const { id: userId, name, email } = user;
   const { isMobile } = useMediaQuery();
 
-  // Check if this is an invite (id is null) or a user
-  const isInvite = userId === "";
+  const searchParams = useSearchParams();
+  const isInvite = searchParams.get("status") === "invited";
 
   const updateRole = async () => {
     setEditing(true);
@@ -55,7 +56,7 @@ function EditRoleModal({
       await mutatePrefix(
         `/api/workspaces/${id}/${isInvite ? "invites" : "users"}`,
       );
-      setShowEditRoleModal(false);
+      setShowWorkspaceUserRoleModal(false);
       toast.success(`Successfully updated the role to ${role}.`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "An error occurred");
@@ -66,8 +67,8 @@ function EditRoleModal({
 
   return (
     <Modal
-      showModal={showEditRoleModal}
-      setShowModal={setShowEditRoleModal}
+      showModal={showWorkspaceUserRoleModal}
+      setShowModal={setShowWorkspaceUserRoleModal}
       className="max-w-md"
     >
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
@@ -114,31 +115,32 @@ function EditRoleModal({
   );
 }
 
-export function useEditRoleModal({
+export function useWorkspaceUserRoleModal({
   user,
   role,
 }: {
   user: UserProps;
   role: "owner" | "member";
 }) {
-  const [showEditRoleModal, setShowEditRoleModal] = useState(false);
+  const [showWorkspaceUserRoleModal, setShowWorkspaceUserRoleModal] =
+    useState(false);
 
-  const EditRoleModalCallback = useCallback(() => {
+  const WorkspaceUserRoleModalCallback = useCallback(() => {
     return (
-      <EditRoleModal
-        showEditRoleModal={showEditRoleModal}
-        setShowEditRoleModal={setShowEditRoleModal}
+      <WorkspaceUserRoleModal
+        showWorkspaceUserRoleModal={showWorkspaceUserRoleModal}
+        setShowWorkspaceUserRoleModal={setShowWorkspaceUserRoleModal}
         user={user}
         role={role}
       />
     );
-  }, [showEditRoleModal, setShowEditRoleModal]);
+  }, [showWorkspaceUserRoleModal, setShowWorkspaceUserRoleModal]);
 
   return useMemo(
     () => ({
-      setShowEditRoleModal,
-      EditRoleModal: EditRoleModalCallback,
+      setShowWorkspaceUserRoleModal,
+      WorkspaceUserRoleModal: WorkspaceUserRoleModalCallback,
     }),
-    [setShowEditRoleModal, EditRoleModalCallback],
+    [setShowWorkspaceUserRoleModal, WorkspaceUserRoleModalCallback],
   );
 }

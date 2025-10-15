@@ -33,17 +33,17 @@ function RemovePartnerUserModal({
   const removePartnerUser = async () => {
     setRemoving(true);
 
-    const response = await fetch(
-      isInvite
-        ? `/api/partner-profile/invites?email=${encodeURIComponent(user.email)}`
-        : `/api/partner-profile/users?userId=${user.id}`,
-      {
-        method: "DELETE",
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-
     try {
+      const response = await fetch(
+        isInvite
+          ? `/api/partner-profile/invites?email=${encodeURIComponent(user.email)}`
+          : `/api/partner-profile/users?userId=${user.id}`,
+        {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+
       if (!response.ok) {
         const { error } = await response.json();
         throw new Error(error.message);
@@ -66,7 +66,7 @@ function RemovePartnerUserModal({
       );
     } catch (error) {
       toast.error(
-        error.message ||
+        error?.message ||
           (isInvite
             ? "Failed to revoke invitation."
             : "Failed to remove partner member."),

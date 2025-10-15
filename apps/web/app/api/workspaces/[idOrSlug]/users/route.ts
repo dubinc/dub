@@ -57,8 +57,8 @@ const updateRoleSchema = z.object({
   }),
 });
 
-// PUT /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
-export const PUT = withWorkspace(
+// PATCH /api/workspaces/[idOrSlug]/users – update a user's role for a specific workspace
+export const PATCH = withWorkspace(
   async ({ req, workspace }) => {
     const { userId, role } = updateRoleSchema.parse(await req.json());
     const response = await prisma.projectUsers.update({

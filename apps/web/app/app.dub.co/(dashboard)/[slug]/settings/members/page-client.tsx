@@ -5,10 +5,10 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { WorkspaceUserProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { useEditRoleModal } from "@/ui/modals/edit-role-modal";
 import { useInviteCodeModal } from "@/ui/modals/invite-code-modal";
 import { useInviteTeammateModal } from "@/ui/modals/invite-teammate-modal";
 import { useRemoveTeammateModal } from "@/ui/modals/remove-teammate-modal";
+import { useWorkspaceUserRoleModal } from "@/ui/modals/update-workspace-user-role";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { PartnerRole } from "@dub/prisma/client";
 import {
@@ -146,11 +146,13 @@ export default function WorkspacePeopleClient() {
               <Avatar user={user} />
               <div className="flex flex-col">
                 <h3 className="text-sm font-medium">
-                  {user.id === null
-                    ? `Invited ${timeAgo(user.createdAt)}`
-                    : user.name || user.email}
+                  {user.name || user.email}
                 </h3>
-                <p className="text-xs text-neutral-500">{user.email}</p>
+                <p className="text-xs text-neutral-500">
+                  {status === "invited"
+                    ? `Invited ${timeAgo(user.createdAt)}`
+                    : user.email}
+                </p>
               </div>
             </div>
           );
@@ -184,7 +186,7 @@ export default function WorkspacePeopleClient() {
         ),
       },
     ],
-    [session?.user?.email, isCurrentUserOwner],
+    [session?.user?.email, isCurrentUserOwner, status],
   );
 
   const { table, ...tableProps } = useTable({
@@ -300,20 +302,21 @@ function RoleCell({
 }) {
   const [role, setRole] = useState<PartnerRole>(user.role);
 
-  const { EditRoleModal, setShowEditRoleModal } = useEditRoleModal({
-    user: {
-      id: user.id || "",
-      name: user.name || "",
-      email: user.email || "",
-      image: user.image || "",
-      createdAt: user.createdAt,
-      source: null,
-      isMachine: false,
-      hasPassword: false,
-      provider: null,
-    },
-    role: role as "owner" | "member",
-  });
+  const { WorkspaceUserRoleModal, setShowWorkspaceUserRoleModal } =
+    useWorkspaceUserRoleModal({
+      user: {
+        id: user.id || "",
+        name: user.name || "",
+        email: user.email || "",
+        image: user.image || "",
+        createdAt: user.createdAt,
+        source: null,
+        isMachine: false,
+        hasPassword: false,
+        provider: null,
+      },
+      role: role as "owner" | "member",
+    });
 
   const isDisabled =
     !isCurrentUserOwner || // Only owners can change roles
@@ -321,7 +324,7 @@ function RoleCell({
 
   return (
     <>
-      <EditRoleModal />
+      <WorkspaceUserRoleModal />
       <select
         className={cn(
           "rounded-md border border-neutral-200 text-xs text-neutral-500 focus:border-neutral-600 focus:ring-neutral-600",
@@ -334,7 +337,7 @@ function RoleCell({
         onChange={(e) => {
           const newRole = e.target.value as PartnerRole;
           setRole(newRole);
-          setShowEditRoleModal(true);
+          setShowWorkspaceUserRoleModal(true);
         }}
         title={
           !isCurrentUserOwner

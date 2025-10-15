@@ -2,6 +2,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { PartnerUserProps } from "@/lib/types";
 import { PartnerRole } from "@dub/prisma/client";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
+import { useSearchParams } from "next/navigation";
 import {
   Dispatch,
   SetStateAction,
@@ -26,8 +27,8 @@ function UpdatePartnerUserModal({
   const [updating, setUpdating] = useState(false);
   const { id: userId, name, email } = user;
 
-  // Check if this is an invite (id is null) or a user
-  const isInvite = userId === null;
+  const searchParams = useSearchParams();
+  const isInvite = searchParams.get("status") === "invited";
 
   const updateRole = async () => {
     setUpdating(true);
