@@ -37,7 +37,7 @@ model Invoice {
   paidAt               DateTime?
 
   payouts   Payout[]
-  program   Program? @relation(fields: [programId], references: [id], onDelete: Cascade)
+  program   Program? @relation(fields: [programId], references: [id])
   workspace Project  @relation(fields: [workspaceId], references: [id])
 
   @@index(programId)

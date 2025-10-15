@@ -11,7 +11,7 @@ model Discount {
   updatedAt    DateTime        @updatedAt
 
   programEnrollments ProgramEnrollment[]
-  program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  program            Program             @relation("ProgramDiscounts", fields: [programId], references: [id])
   partnerGroup       PartnerGroup?
   discountCodes      DiscountCode[]
 

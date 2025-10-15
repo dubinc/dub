@@ -140,7 +140,7 @@ model ProgramApplication {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  program      Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
+  program      Program            @relation(fields: [programId], references: [id])
   partnerGroup PartnerGroup?      @relation(fields: [groupId], references: [id])
   enrollment   ProgramEnrollment?
 
