@@ -51,7 +51,9 @@ function UpdatePartnerUserModal({
         throw new Error(error.message);
       }
 
-      await mutatePrefix("/api/partner-profile/users");
+      await mutatePrefix(
+        `/api/partner-profile/${isInvite ? "invites" : "users"}`,
+      );
       setShowUpdateUserModal(false);
       toast.success(`Successfully updated the role to ${role}.`);
     } catch (error) {

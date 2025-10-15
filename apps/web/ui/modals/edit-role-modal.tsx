@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
@@ -9,7 +10,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 function EditRoleModal({
   showEditRoleModal,
@@ -52,7 +52,9 @@ function EditRoleModal({
         throw new Error(error.message);
       }
 
-      await mutate(`/api/workspaces/${id}/users`);
+      await mutatePrefix(
+        `/api/workspaces/${id}/${isInvite ? "invites" : "users"}`,
+      );
       setShowEditRoleModal(false);
       toast.success(`Successfully updated the role to ${role}.`);
     } catch (error) {

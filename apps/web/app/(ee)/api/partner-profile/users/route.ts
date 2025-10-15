@@ -11,7 +11,7 @@ import { PartnerRole } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-// GET /api/partner-profile/users - list of users + invites
+// GET /api/partner-profile/users - list of users
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { search, role } = getPartnerUsersQuerySchema.parse(searchParams);
 
