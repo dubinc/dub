@@ -36,7 +36,7 @@ model Commission {
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
 
-  program          Program           @relation(fields: [programId], references: [id])
+  program          Program           @relation(fields: [programId], references: [id], onDelete: Cascade)
   partner          Partner           @relation(fields: [partnerId], references: [id])
   payout           Payout?           @relation(fields: [payoutId], references: [id])
   link             Link?             @relation(fields: [linkId], references: [id])

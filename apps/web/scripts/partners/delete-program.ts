@@ -6,31 +6,87 @@ import { storage } from "../../lib/storage";
 async function main() {
   const program = await prisma.program.findUniqueOrThrow({
     where: {
-      id: "prog_1JWPV1GFN7K4XEYZHZ3DS5VTG",
+      id: "prog_xxx",
     },
   });
 
-  if (program.defaultFolderId) {
-    try {
-      const deletedFolder = await prisma.folder.delete({
+  await prisma.$transaction(
+    async (tx) => {
+      const deletedCommissions = await tx.commission.deleteMany({
+        where: {
+          programId: program.id,
+        },
+      });
+      console.log("Deleted commissions", deletedCommissions);
+
+      const deletedPayouts = await tx.payout.deleteMany({
+        where: {
+          programId: program.id,
+        },
+      });
+      console.log("Deleted payouts", deletedPayouts);
+
+      const deletedRewards = await tx.reward.deleteMany({
+        where: {
+          programId: program.id,
+        },
+      });
+      console.log("Deleted rewards", deletedRewards);
+
+      const deletedDiscounts = await tx.discount.deleteMany({
+        where: {
+          programId: program.id,
+        },
+      });
+
+      console.log("Deleted discounts", deletedDiscounts);
+
+      const deletedPartnerGroups = await tx.partnerGroup.deleteMany({
+        where: {
+          programId: program.id,
+        },
+      });
+      console.log("Deleted partner groups", deletedPartnerGroups);
+
+      const deletedProgramEnrollments = await tx.programEnrollment.deleteMany({
+        where: {
+          programId: program.id,
+        },
+      });
+      console.log("Deleted program enrollments", deletedProgramEnrollments);
+
+      const deletedFolder = await tx.folder.delete({
         where: {
           id: program.defaultFolderId,
         },
       });
-
       console.log("Deleted folder", deletedFolder);
-    } catch (error) {
-      console.error("Failed to delete folder", error);
-    }
-  }
 
-  const deletedRewards = await prisma.reward.deleteMany({
-    where: {
-      programId: program.id,
+      const updatedLinks = await tx.link.updateMany({
+        where: {
+          programId: program.id,
+        },
+        data: {
+          programId: null,
+        },
+      });
+      console.log("Updated links", updatedLinks);
+
+      const updatedProject = await prisma.project.update({
+        where: {
+          id: program.workspaceId,
+        },
+        data: {
+          defaultProgramId: null,
+        },
+      });
+      console.log("Updated project", updatedProject);
     },
-  });
-
-  console.log("Deleted rewards", deletedRewards);
+    {
+      maxWait: 10000, // default: 2000
+      timeout: 20000, // default: 5000
+    },
+  );
 
   if (program.logo) {
     const deletedLogo = await storage.delete(
@@ -39,23 +95,6 @@ async function main() {
 
     console.log("Deleted logo", deletedLogo);
   }
-
-  await prisma.project.update({
-    where: {
-      id: program.workspaceId,
-    },
-    data: {
-      defaultProgramId: null,
-    },
-  });
-
-  const deletedProgram = await prisma.program.delete({
-    where: {
-      id: program.id,
-    },
-  });
-
-  console.log("Deleted program", deletedProgram);
 }
 
 main();

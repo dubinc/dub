@@ -47,7 +47,6 @@ export const updateProgramAction = authActionClient
       termsUrl,
       holdingPeriodDays,
       minPayoutAmount,
-      cookieLength,
       messagingEnabledAt,
     } = parsedInput;
 
@@ -90,7 +89,6 @@ export const updateProgramAction = authActionClient
         supportEmail,
         helpUrl,
         termsUrl,
-        cookieLength,
         holdingPeriodDays,
         minPayoutAmount,
         ...(messagingEnabledAt !== undefined &&

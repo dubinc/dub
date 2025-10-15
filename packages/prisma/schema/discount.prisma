@@ -28,7 +28,7 @@ model DiscountCode {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  program           Program            @relation(fields: [programId], references: [id])
+  program           Program            @relation(fields: [programId], references: [id], onDelete: Cascade)
   discount          Discount?          @relation(fields: [discountId], references: [id], onDelete: SetNull)
   partner           Partner            @relation(fields: [partnerId], references: [id])
   link              Link               @relation(fields: [linkId], references: [id])

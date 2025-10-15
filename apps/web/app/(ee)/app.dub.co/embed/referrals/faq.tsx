@@ -39,7 +39,7 @@ export function ReferralsEmbedFAQ({
 
     {
       title: "What counts as a successful conversion?",
-      content: `New customers that sign up for a paid plan within ${program.cookieLength} days of using your referral link will be counted as a successful conversion. Attributions are done on a last-click basis, so your link must be the last link clicked before the customer signs up for an account on ${program.name}.`,
+      content: `New customers that sign up for a paid plan within 90 days of using your referral link will be counted as a successful conversion. Attributions are done on a last-click basis, so your link must be the last link clicked before the customer signs up for an account on ${program.name}.`,
     },
     {
       title: "How should I promote the program?",

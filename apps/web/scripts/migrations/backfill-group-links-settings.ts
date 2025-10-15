@@ -1,3 +1,5 @@
+// @ts-ignore - old migration script
+
 import { createId } from "@/lib/api/create-id";
 import { PartnerGroupAdditionalLink } from "@/lib/types";
 import { prisma } from "@dub/prisma";

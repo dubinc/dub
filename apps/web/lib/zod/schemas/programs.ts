@@ -28,7 +28,6 @@ export const ProgramSchema = z.object({
   brandColor: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  cookieLength: z.number(),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
   landerPublishedAt: z.date().nullish(),
@@ -56,7 +55,6 @@ export const ProgramWithLanderDataSchema = ProgramSchema.extend({
 
 export const updateProgramSchema = z.object({
   name: z.string(),
-  cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
   holdingPeriodDays: z.coerce
