@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Role, roles } from "@/lib/types";
 import { Invite } from "@/lib/zod/schemas/invites";
+import { WorkspaceRole } from "@dub/prisma/client";
 import { Button, useMediaQuery } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
@@ -16,7 +16,7 @@ import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 type FormData = {
   teammates: {
     email: string;
-    role: Role;
+    role: WorkspaceRole;
   }[];
 };
 
@@ -134,7 +134,7 @@ export function InviteTeammatesForm({
                   defaultValue="member"
                   className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                 >
-                  {roles.map((role) => (
+                  {["owner", "member"].map((role) => (
                     <option key={role} value={role}>
                       {capitalize(role)}
                     </option>

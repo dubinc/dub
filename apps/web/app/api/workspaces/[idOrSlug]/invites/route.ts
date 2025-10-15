@@ -4,23 +4,38 @@ import { withWorkspace } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
 import z from "@/lib/zod";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
+import {
+  getWorkspaceUsersQuerySchema,
+  workspaceUserSchema,
+} from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
+import { PartnerRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
 export const GET = withWorkspace(
-  async ({ workspace }) => {
+  async ({ workspace, searchParams }) => {
+    const { search, role } = getWorkspaceUsersQuerySchema.parse(searchParams);
+
     const invites = await prisma.projectInvite.findMany({
       where: {
         projectId: workspace.id,
-      },
-      select: {
-        email: true,
-        role: true,
-        createdAt: true,
+        role,
+        ...(search && {
+          email: { contains: search },
+        }),
       },
     });
-    return NextResponse.json(invites);
+
+    const parsedInvites = invites.map((invite) =>
+      workspaceUserSchema.parse({
+        ...invite,
+        id: `${workspace.id}-${invite.email}`, // workspace ID + invite email for the dummy invite
+        name: invite.email,
+      }),
+    );
+
+    return NextResponse.json(parsedInvites);
   },
   {
     requiredPermissions: ["workspaces.read"],
@@ -113,6 +128,51 @@ export const POST = withWorkspace(
     }
 
     return NextResponse.json({ message: "Invite(s) sent" });
+  },
+  {
+    requiredPermissions: ["workspaces.write"],
+  },
+);
+
+const updateInviteRoleSchema = z.object({
+  email: z.string().email(),
+  role: z.nativeEnum(PartnerRole),
+});
+
+// PATCH /api/workspaces/[idOrSlug]/invites - update an invite's role
+export const PATCH = withWorkspace(
+  async ({ req, workspace }) => {
+    const { email, role } = updateInviteRoleSchema.parse(await req.json());
+
+    const invite = await prisma.projectInvite.findUnique({
+      where: {
+        email_projectId: {
+          email,
+          projectId: workspace.id,
+        },
+      },
+    });
+
+    if (!invite) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "The invitation you're trying to update was not found.",
+      });
+    }
+
+    const response = await prisma.projectInvite.update({
+      where: {
+        email_projectId: {
+          email,
+          projectId: workspace.id,
+        },
+      },
+      data: {
+        role,
+      },
+    });
+
+    return NextResponse.json(response);
   },
   {
     requiredPermissions: ["workspaces.write"],

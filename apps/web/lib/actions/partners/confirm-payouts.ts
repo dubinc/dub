@@ -11,7 +11,7 @@ import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import z from "zod";
+import { z } from "zod";
 import { authActionClient } from "../safe-action";
 
 const confirmPayoutsSchema = z.object({

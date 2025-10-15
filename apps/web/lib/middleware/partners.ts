@@ -13,12 +13,14 @@ const AUTHENTICATED_PATHS = [
   "/messages",
   "/payouts",
   "/account",
+  "/invite",
 ];
 
 export default async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
   const user = await getUserViaToken(req);
+  const isPartnerInvite = req.nextUrl.pathname.endsWith("/invite");
 
   const isAuthenticatedPath = AUTHENTICATED_PATHS.some(
     (p) => path === "/" || path.startsWith(p),
@@ -29,7 +31,7 @@ export default async function PartnersMiddleware(req: NextRequest) {
   );
 
   if (!user && isAuthenticatedPath) {
-    if (path.startsWith(`/programs/`)) {
+    if (path.startsWith("/programs/")) {
       const programSlug = path.split("/")[2];
       return NextResponse.redirect(new URL(`/${programSlug}/login`, req.url));
     }
@@ -43,7 +45,11 @@ export default async function PartnersMiddleware(req: NextRequest) {
   } else if (user && (isAuthenticatedPath || isLoginPath)) {
     const defaultPartnerId = await getDefaultPartnerId(user);
 
-    if (!defaultPartnerId && !path.startsWith("/onboarding")) {
+    if (
+      !defaultPartnerId &&
+      !isPartnerInvite &&
+      !path.startsWith("/onboarding")
+    ) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
 

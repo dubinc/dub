@@ -90,7 +90,7 @@ model PartnerInvite {
   partner Partner @relation(fields: [partnerId], references: [id], onDelete: Cascade)
 
   @@unique([email, partnerId])
-  @@index([partnerId])
+  @@index(partnerId)
 }
 
 model PartnerUser {
@@ -107,7 +107,7 @@ model PartnerUser {
   notificationPreferences PartnerNotificationPreferences?
 
   @@unique([userId, partnerId])
-  @@index([partnerId])
+  @@index(partnerId)
 }
 
 model PartnerIndustryInterest {

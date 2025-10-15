@@ -1,4 +1,5 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerProps, PayoutsCount } from "@/lib/types";
@@ -41,6 +42,9 @@ type BasicInfoFormData = {
 };
 
 export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
+  const disabled = partner
+    ? !hasPermission(partner.role, "partner_profile.update")
+    : true;
   const basicInfoFormRef = useRef<HTMLFormElement>(null);
   const onlinePresenceFormRef = useRef<HTMLFormElement>(null);
 
@@ -87,7 +91,11 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
         description="Your core details, and information that's required to set up your Dub Partner account."
       >
         <FormProvider {...basicInfoForm}>
-          <BasicInfoForm partner={partner} formRef={basicInfoFormRef} />
+          <BasicInfoForm
+            partner={partner}
+            formRef={basicInfoFormRef}
+            disabled={disabled}
+          />
         </FormProvider>
       </SettingsRow>
 
@@ -108,11 +116,14 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
         <Button
           text="Save changes"
           className="h-8 w-fit px-2.5"
+          disabled={disabled}
           loading={
             basicInfoForm.formState.isSubmitting ||
             onlinePresenceForm.formState.isSubmitting
           }
           onClick={() => {
+            if (disabled) return;
+
             if (
               partner?.stripeConnectId &&
               (basicInfoForm.formState.dirtyFields.country ||
@@ -134,9 +145,11 @@ export function ProfileDetailsForm({ partner }: { partner?: PartnerProps }) {
 function BasicInfoForm({
   partner,
   formRef,
+  disabled,
 }: {
   partner?: PartnerProps;
   formRef: RefObject<HTMLFormElement | null>;
+  disabled: boolean;
 }) {
   const {
     register,
@@ -223,6 +236,7 @@ function BasicInfoForm({
                   variant="plain"
                   imageSrc={field.value || `${OG_AVATAR_URL}${partner?.name}`}
                   readFile
+                  disabled={disabled}
                   onChange={({ src }) => field.onChange(src)}
                   content={null}
                   maxFileSizeMB={2}
@@ -252,8 +266,10 @@ function BasicInfoForm({
           <div>
             <input
               type="text"
+              disabled={disabled}
               className={cn(
                 "block w-full rounded-md focus:outline-none sm:text-sm",
+                disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
                 errors.name
                   ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                   : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -269,8 +285,10 @@ function BasicInfoForm({
           <span className="text-sm font-medium text-neutral-800">Email</span>
           <input
             type="email"
+            disabled={disabled}
             className={cn(
               "block w-full rounded-md focus:outline-none sm:text-sm",
+              disabled && "cursor-not-allowed bg-neutral-50 text-neutral-400",
               errors.email
                 ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -293,9 +311,11 @@ function BasicInfoForm({
                 onChange={field.onChange}
                 error={errors.country ? true : false}
                 disabledTooltip={
-                  completedPayoutsCount > 0
-                    ? "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support."
-                    : undefined
+                  disabled
+                    ? "You don't have permission to update this field"
+                    : completedPayoutsCount > 0
+                      ? "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support."
+                      : undefined
                 }
               />
             )}
@@ -308,12 +328,16 @@ function BasicInfoForm({
           </span>
           <DynamicTooltipWrapper
             tooltipProps={
-              completedPayoutsCount > 0
+              disabled
                 ? {
-                    content:
-                      "Since you've already received payouts on Dub, you cannot change your profile type. If you need to update your profile type, please contact support.",
+                    content: "You don't have permission to update this field",
                   }
-                : undefined
+                : completedPayoutsCount > 0
+                  ? {
+                      content:
+                        "Since you've already received payouts on Dub, you cannot change your profile type. If you need to update your profile type, please contact support.",
+                    }
+                  : undefined
             }
           >
             <LayoutGroup>
@@ -331,17 +355,18 @@ function BasicInfoForm({
                   ]}
                   selected={profileType}
                   selectAction={(option: "individual" | "company") => {
-                    if (completedPayoutsCount === 0) {
+                    if (!disabled && completedPayoutsCount === 0) {
                       setValue("profileType", option);
                     }
                   }}
                   className={cn(
                     "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                    completedPayoutsCount > 0 && "cursor-not-allowed",
+                    (disabled || completedPayoutsCount > 0) &&
+                      "cursor-not-allowed",
                   )}
                   optionClassName={cn(
                     "h-9 flex items-center justify-center rounded-lg flex-1",
-                    completedPayoutsCount > 0 &&
+                    (disabled || completedPayoutsCount > 0) &&
                       "pointer-events-none text-neutral-400",
                   )}
                   indicatorClassName="bg-white"
@@ -374,13 +399,15 @@ function BasicInfoForm({
                 <div>
                   <input
                     type="text"
+                    disabled={disabled || completedPayoutsCount > 0}
                     className={cn(
                       "block w-full rounded-md focus:outline-none sm:text-sm",
+                      (disabled || completedPayoutsCount > 0) &&
+                        "cursor-not-allowed bg-neutral-50 text-neutral-400",
                       errors.companyName
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                     )}
-                    disabled={completedPayoutsCount > 0}
                     {...register("companyName", {
                       required: profileType === "company",
                     })}
