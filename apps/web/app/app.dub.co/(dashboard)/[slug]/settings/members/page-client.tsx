@@ -39,7 +39,7 @@ import { Command } from "cmdk";
 import { UserMinus } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
 export default function WorkspacePeopleClient() {
@@ -302,6 +302,10 @@ function RoleCell({
   isCurrentUserOwner: boolean;
 }) {
   const [role, setRole] = useState<PartnerRole>(user.role);
+
+  useEffect(() => {
+    setRole(user.role);
+  }, [user.role]);
 
   const { WorkspaceUserRoleModal, setShowWorkspaceUserRoleModal } =
     useWorkspaceUserRoleModal({

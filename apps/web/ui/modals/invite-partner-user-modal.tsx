@@ -86,7 +86,7 @@ function InvitePartnerUserModal({
         <p className="text-sm text-neutral-500">
           Invite members to join your{" "}
           <span className="font-semibold text-black">{partner?.name}</span>{" "}
-          partner team . Invitations will be valid for 14 days.
+          partner team. Invitations will be valid for 14 days.
         </p>
       </div>
 

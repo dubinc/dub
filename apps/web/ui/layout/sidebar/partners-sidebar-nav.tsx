@@ -8,7 +8,6 @@ import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
   CircleDollar,
-  CircleInfo,
   ColorPalette2,
   Gauge6,
   Gear2,
@@ -226,25 +225,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     ],
   }),
 
-  // Partner settings
-  partnerSettings: () => ({
-    title: "Settings",
-    direction: "left",
-    content: [
-      {
-        name: "Account",
-        items: [
-          {
-            name: "Notifications",
-            icon: CircleInfo,
-            href: "/settings/notifications",
-            exact: true,
-          },
-        ],
-      },
-    ],
-  }),
-
   // User settings
   userSettings: () => ({
     title: "Settings",
@@ -263,11 +243,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Security",
             icon: ShieldCheck,
             href: "/account/settings/security",
-          },
-          {
-            name: "Notifications",
-            icon: Bell,
-            href: "/account/settings/notifications",
           },
         ],
       },
@@ -296,15 +271,13 @@ export function PartnersSidebarNav({
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
-      : pathname.startsWith("/settings")
-        ? "partnerSettings"
-        : pathname.startsWith("/profile")
-          ? "profile"
-          : ["/payouts", "/messages"].some((p) => pathname.startsWith(p))
-            ? null
-            : isEnrolledProgramPage
-              ? "program"
-              : "programs";
+      : pathname.startsWith("/profile")
+        ? "profile"
+        : ["/payouts", "/messages"].some((p) => pathname.startsWith(p))
+          ? null
+          : isEnrolledProgramPage
+            ? "program"
+            : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
 
   const { count: invitationsCount } = useProgramEnrollmentsCount({
