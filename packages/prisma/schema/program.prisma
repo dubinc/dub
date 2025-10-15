@@ -121,6 +121,14 @@ model ProgramEnrollment {
   totalSaleAmount  Int @default(0) // total sale amount (in cents)
   totalCommissions Int @default(0) // total commissions earned by the partner (in cents)
 
+  // calculated stats
+  conversionRate          Float? // totalConversions / totalClicks
+  averageLifetimeValue    Float? // totalSaleAmount / totalConversions (in cents)
+  leadConversionRate      Float? // totalConversions / totalLeads
+  lastConversionAt        DateTime? // latest conversion from partner's links
+  daysSinceLastConversion Int? // days since lastConversionAt
+  consistencyScore        Int? // based on daysSinceLastConversion
+
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
   bannedAt     DateTime?
