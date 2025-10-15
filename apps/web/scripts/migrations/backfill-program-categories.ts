@@ -140,13 +140,13 @@ async function main() {
       categories: {
         none: {},
       },
-      // workspace: {
-      //   plan: {
-      //     in: ["advanced", "enterprise"],
-      //   },
-      // },
+      workspace: {
+        plan: {
+          in: ["advanced", "enterprise"],
+        },
+      },
     },
-    take: 10
+    take: 10,
   });
 
   console.log(`Found ${programs.length} programs to categorize`);
