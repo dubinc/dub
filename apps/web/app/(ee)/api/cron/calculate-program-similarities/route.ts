@@ -4,7 +4,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { ProgramSimilarity } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { ACME_PROGRAM_ID, APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../utils";
 import { calculateCategorySimilarity } from "./calculate-category-similarity";
@@ -83,6 +83,7 @@ async function calculateProgramSimilarity({
       },
       id: {
         gt: currentProgramId,
+        notIn: [ACME_PROGRAM_ID],
       },
     },
     ...(comparisonBatchCursor && {
@@ -235,6 +236,7 @@ async function findNextProgram({
       ...(afterProgramId && {
         id: {
           gt: afterProgramId,
+          notIn: [ACME_PROGRAM_ID],
         },
       }),
       workspace: {
