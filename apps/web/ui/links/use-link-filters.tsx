@@ -2,7 +2,7 @@ import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useUsers from "@/lib/swr/use-users";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
@@ -263,7 +263,7 @@ function useDomainFilterOptions({ folderId }: { folderId: string }) {
 }
 
 function useUserFilterOptions({ folderId }: { folderId: string }) {
-  const { users } = useUsers();
+  const { users } = useWorkspaceUsers();
   const { showArchived } = useContext(LinksDisplayContext);
 
   const { data: usersCount } = useLinksCount<

@@ -2,8 +2,8 @@
 
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
@@ -61,7 +61,7 @@ export default function PlanUsage() {
   });
 
   const { data: tags } = useTagsCount();
-  const { users } = useUsers();
+  const { users } = useWorkspaceUsers();
 
   const [billingStart, billingEnd] = useMemo(() => {
     if (billingCycleStart) {

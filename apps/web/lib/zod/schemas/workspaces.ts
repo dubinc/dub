@@ -207,7 +207,8 @@ export const workspaceUserSchema = z.object({
   id: z.string().nullable(),
   name: z.string().nullable(),
   email: z.string().nullish(),
-  role: z.nativeEnum(PartnerRole),
   image: z.string().nullish(),
+  role: z.nativeEnum(PartnerRole),
+  isMachine: z.boolean().default(false),
   createdAt: z.date(),
 });

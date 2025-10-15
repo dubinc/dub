@@ -185,6 +185,7 @@ export function ProfileMembersPageClient() {
     columns,
     pagination,
     onPaginationChange: setPagination,
+    getRowId: (row) => `${row.id || row.email}-${status}-${role || "all"}`,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) =>

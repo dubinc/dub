@@ -10,7 +10,7 @@ type UserWithTokens = WorkspaceUserProps & {
   }[];
 };
 
-export default function useUsers<T extends boolean = false>({
+export default function useWorkspaceUsers<T extends boolean = false>({
   invites,
 }: { invites?: T } = {}) {
   const { id } = useWorkspace();

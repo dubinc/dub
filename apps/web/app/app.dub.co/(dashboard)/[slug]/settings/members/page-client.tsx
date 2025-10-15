@@ -163,13 +163,14 @@ export default function WorkspacePeopleClient() {
         minSize: 120,
         size: 150,
         maxSize: 200,
-        cell: ({ row }) => (
-          <RoleCell
-            user={row.original}
-            isCurrentUser={session?.user?.email === row.original.email}
-            isCurrentUserOwner={isCurrentUserOwner}
-          />
-        ),
+        cell: ({ row }) =>
+          !row.original.isMachine && (
+            <RoleCell
+              user={row.original}
+              isCurrentUser={session?.user?.email === row.original.email}
+              isCurrentUserOwner={isCurrentUserOwner}
+            />
+          ),
       },
       {
         id: "menu",
@@ -191,6 +192,8 @@ export default function WorkspacePeopleClient() {
     columns,
     pagination,
     onPaginationChange: setPagination,
+    getRowId: (row) =>
+      `${row.id || row.email}-${status}-${roleFilter || "all"}`,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) =>
