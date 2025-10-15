@@ -86,7 +86,12 @@ export const RichTextArea = forwardRef<RichTextAreaRef, RichTextAreaProps>(
         // Images
         ...(uploadImage
           ? [
-              Image,
+              Image.configure({
+                inline: false,
+                HTMLAttributes: {
+                  class: "rounded-lg max-w-full h-auto",
+                },
+              }),
               FileHandler.configure({
                 allowedMimeTypes: [
                   "image/png",
@@ -140,6 +145,7 @@ export const RichTextArea = forwardRef<RichTextAreaRef, RichTextAreaProps>(
         attributes: {
           class: cn(
             "prose prose-sm prose-neutral max-w-none focus:outline-none",
+            "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500 [&_.ProseMirror-selectednode]:outline-offset-2",
             editorClassName,
           ),
         },
