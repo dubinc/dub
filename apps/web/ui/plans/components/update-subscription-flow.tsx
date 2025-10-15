@@ -65,6 +65,8 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     }
   }, [selectedPlan, currentSubscriptionPlan]);
 
+  const isDisabled = (currentSubscriptionPlan === selectedPlan.paymentPlan && featuresAccess.isSubscribed ) || isProcessing
+
   const handleUpdatePlan = async () => {
     setIsProcessing(true);
 
@@ -182,9 +184,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     <Button
       className="block"
       loading={isProcessing}
-      disabled={
-        !featuresAccess.isSubscribed || currentSubscriptionPlan === selectedPlan.paymentPlan || isProcessing
-      }
+      disabled={isDisabled}
       onClick={handleUpdatePlan}
       text={isProcessing ? null : buttonText}
     />
