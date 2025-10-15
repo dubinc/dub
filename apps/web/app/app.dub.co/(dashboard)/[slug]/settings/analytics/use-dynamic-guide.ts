@@ -1,5 +1,5 @@
-import useDomains from "@/lib/swr/use-domains";
 import useGuide from "@/lib/swr/use-guide";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { useMemo } from "react";
@@ -12,7 +12,7 @@ export function useDynamicGuide(
   const { guideMarkdown: guideMarkdownRaw, error } = useGuide(guide, swrOpts);
 
   const { publishableKey } = useWorkspace();
-  const { primaryDomain } = useDomains();
+  const { program } = useProgram();
 
   const [siteVisitTrackingEnabled] = useWorkspaceStore<boolean>(
     "analyticsSettingsSiteVisitTrackingEnabled",
@@ -27,8 +27,8 @@ export function useDynamicGuide(
   const guideMarkdown = useMemo(() => {
     let result = guideMarkdownRaw;
 
-    if (primaryDomain)
-      result = result?.replaceAll(/yourcompany\.link/g, primaryDomain);
+    if (program?.domain)
+      result = result?.replaceAll(/yourcompany\.link/g, program.domain);
 
     const scriptComponents = [
       siteVisitTrackingEnabled ? "site-visit" : null,
@@ -72,7 +72,7 @@ export function useDynamicGuide(
     return result;
   }, [
     guideMarkdownRaw,
-    primaryDomain,
+    program?.domain,
     siteVisitTrackingEnabled,
     domainTrackingEnabled,
     conversionTrackingEnabled,

@@ -1,3 +1,5 @@
+// @ts-nocheck -- contains old schema types
+
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
