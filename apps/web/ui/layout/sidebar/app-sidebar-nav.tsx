@@ -337,13 +337,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             arrow: true,
             isActive: () => false,
           },
-          {
-            name: "Discounts",
-            icon: Discount,
-            href: `/${slug}/program/groups/default/discounts`,
-            arrow: true,
-            isActive: () => false,
-          },
+          ...(!emailCampaignsEnabled
+            ? [
+                {
+                  name: "Discounts",
+                  icon: Discount,
+                  href: `/${slug}/program/groups/default/discounts` as `/${string}`,
+                  arrow: true,
+                  isActive: () => false,
+                },
+              ]
+            : []),
           {
             name: "Links",
             icon: Sliders,
