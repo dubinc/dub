@@ -30,7 +30,7 @@ export const GET = withWorkspace(
       getNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const commonWhere = {
-      discoverableAt: { not: null },
+      // Removed discoverableAt filter to show all partners
       ...(partnerIds && {
         id: { in: partnerIds },
       }),
@@ -42,12 +42,18 @@ export const GET = withWorkspace(
     const statusWheres = {
       discover: {
         programs: { none: { programId } },
-        discoveredByPrograms: {
-          none: { programId, ignoredAt: { not: null } },
-          ...(starred === true && {
-            some: { programId, starredAt: { not: null } },
-          }),
-        },
+        // Allow partners with no DiscoveredPartner record OR not ignored
+        OR: starred === true 
+          ? [{ discoveredByPrograms: { some: { programId, starredAt: { not: null } } } }]
+          : starred === false
+          ? [
+              { discoveredByPrograms: { none: { programId } } }, // No record yet
+              { discoveredByPrograms: { some: { programId, starredAt: null, ignoredAt: null } } }, // Not starred and not ignored
+            ]
+          : [
+              { discoveredByPrograms: { none: { programId } } }, // No record yet
+              { discoveredByPrograms: { some: { programId, ignoredAt: null } } }, // Has record but not ignored
+            ],
       },
       invited: {
         programs: { some: { programId, status: "invited" } },
