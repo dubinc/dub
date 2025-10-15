@@ -121,14 +121,22 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Profile",
             icon: SquareUserSparkle2,
             href: "/profile",
-            isActive: (pathname, href) =>
-              pathname.startsWith(href) &&
-              !pathname.startsWith(`${href}/members`),
+            exact: true,
           },
           {
             name: "Members",
             icon: Users2,
             href: "/profile/members",
+          },
+        ],
+      },
+      {
+        name: "Account",
+        items: [
+          {
+            name: "Notifications",
+            icon: Bell,
+            href: "/profile/notifications",
           },
         ],
       },

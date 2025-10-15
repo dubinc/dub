@@ -85,7 +85,7 @@ function RemovePartnerUserModal({
           {isInvite
             ? "Revoke Invitation"
             : self
-              ? "Leave Partner Profile"
+              ? "Leave Partner Team"
               : "Remove Partner Member"}
         </h3>
         <p className="text-sm text-neutral-500">

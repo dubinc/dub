@@ -355,7 +355,7 @@ function RowMenuButton({
                   icon={UserMinus}
                   label={
                     isCurrentUser
-                      ? "Leave partner profile"
+                      ? "Leave partner team"
                       : isInvite
                         ? "Revoke invitation"
                         : "Remove member"
