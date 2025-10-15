@@ -20,6 +20,7 @@ import {
   User,
   UtmTemplate,
   Webhook,
+  WorkspaceRole,
 } from "@dub/prisma/client";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
@@ -194,8 +195,6 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 
 export type PlanProps = (typeof plans)[number];
 
-export type RoleProps = (typeof roles)[number];
-
 export type BetaFeatures =
   | "noDubLink"
   | "abTesting"
@@ -210,7 +209,7 @@ export interface WorkspaceProps extends Project {
     verified: boolean;
   }[];
   users: {
-    role: RoleProps;
+    role: WorkspaceRole;
     defaultFolderId: string | null;
   }[];
   flags?: {
@@ -328,10 +327,6 @@ export const plans = [
   "advanced",
   "enterprise",
 ] as const;
-
-export const roles = ["owner", "member"] as const;
-
-export type Role = (typeof roles)[number];
 
 export type DashboardProps = z.infer<typeof dashboardSchema>;
 

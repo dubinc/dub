@@ -1,13 +1,13 @@
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
-import { roles } from "@/lib/types";
 import z from "@/lib/zod";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
+import { WorkspaceRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 
 // GET /api/workspaces/[idOrSlug]/users – get users for a specific workspace
@@ -49,7 +49,7 @@ export const GET = withWorkspace(
 
 const updateRoleSchema = z.object({
   userId: z.string().min(1),
-  role: z.enum(roles, {
+  role: z.nativeEnum(WorkspaceRole, {
     errorMap: () => ({
       message: `Role must be either "owner" or "member".`,
     }),

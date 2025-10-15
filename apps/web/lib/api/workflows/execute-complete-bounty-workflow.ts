@@ -4,7 +4,7 @@ import { sendBatchEmail, sendEmail } from "@dub/email";
 import BountyCompleted from "@dub/email/templates/bounty-completed";
 import NewBountySubmission from "@dub/email/templates/bounty-new-submission";
 import { prisma } from "@dub/prisma";
-import { Role, Workflow } from "@dub/prisma/client";
+import { Workflow, WorkspaceRole } from "@dub/prisma/client";
 import { createId } from "../create-id";
 import { getWorkspaceUsers } from "../get-workspace-users";
 import { evaluateWorkflowCondition } from "./execute-workflows";
@@ -199,7 +199,7 @@ export const executeCompleteBountyWorkflow = async ({
     // TODO: combine with what we're doing on createBountySubmissionAction maybe?
     const { users, program, ...workspace } = await getWorkspaceUsers({
       programId: bounty.programId,
-      role: Role.owner,
+      role: WorkspaceRole.owner,
       notificationPreference: "newBountySubmitted",
     });
 

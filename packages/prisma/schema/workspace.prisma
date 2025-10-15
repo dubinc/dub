@@ -77,7 +77,7 @@ model Project {
   @@index(usageLastChecked(sort: Asc))
 }
 
-enum Role {
+enum WorkspaceRole {
   owner
   member
 }
@@ -85,10 +85,10 @@ enum Role {
 model ProjectInvite {
   email     String
   expires   DateTime
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project   Project       @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId String
-  role      Role     @default(member)
-  createdAt DateTime @default(now())
+  role      WorkspaceRole @default(member)
+  createdAt DateTime      @default(now())
 
   @@unique([email, projectId])
   @@index([projectId])
@@ -96,7 +96,7 @@ model ProjectInvite {
 
 model ProjectUsers {
   id                     String                  @id @default(cuid())
-  role                   Role                    @default(member)
+  role                   WorkspaceRole           @default(member)
   userId                 String
   projectId              String
   notificationPreference NotificationPreference?

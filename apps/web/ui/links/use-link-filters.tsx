@@ -83,10 +83,9 @@ export function useLinkFilters() {
         icon: User,
         label: "Creator",
         options:
-          // @ts-expect-error
-          users?.map(({ id, name, email, image, count }) => ({
+          users?.map(({ id, name, image, count }) => ({
             value: id,
-            label: name || email,
+            label: name,
             icon: (
               <Avatar
                 user={{
@@ -290,13 +289,7 @@ function useUserFilterOptions({ folderId }: { folderId: string }) {
                 0,
             }))
             .sort((a, b) => b.count - a.count)
-        : usersCount
-          ? usersCount.map(({ userId, _count }) => ({
-              id: userId,
-              name: userId,
-              count: _count,
-            }))
-          : null,
+        : null,
     [users, usersCount],
   );
 }
