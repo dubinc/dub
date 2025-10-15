@@ -17,27 +17,25 @@ export interface PartnerRankingParams extends PartnerRankingFilters {
 }
 
 /**
- * Enhanced Partner Ranking Algorithm
- * Additive scoring model prioritizing similarity matching over raw performance.
+ * Partner Ranking Algorithm for Discovery
+ * Ranks partners based on performance in similar programs only.
  *
- * Scoring Breakdown (0-100 points):
+ * Scoring Breakdown (0-65 points):
  *
- * 1. Base Score (0-35 points): Current program performance
- *    - Consistency: 10 points
- *    - Conversion Rate: 5 points
- *    - Lifetime Value: 10 points
- *    - Commissions: 10 points
- *
- * 2. Similarity Score (0-50 points): Performance in similar programs
+ * 1. Similarity Score (0-50 points): Performance in similar programs
  *    - Sums weighted performance across similar programs (similarityScore > 0.3)
  *    - Each program's performance weighted by its similarity score
  *    - Partners with more similar programs score higher (capped at 50)
+ *    - Includes: consistency (20%), conversion rate (10%), LTV (15%), commissions (5%)
  *
- * 3. Program Match Score (0-15 points): Count of similar programs
+ * 2. Program Match Score (0-15 points): Count of similar programs
  *    - Rewards partners enrolled in many similar programs
  *    - 2 points per similar program (capped at 15)
  *
- * Final Score = Base + Similarity + Match (0-100 points)
+ * Final Score = Similarity + Match (0-65 points)
+ *
+ * Note: Ranking is primarily used for the "discover" tab. For "invited" and "recruited"
+ * tabs, partners are sorted by date (most recent first).
  */
 export async function calculatePartnerRanking({
   programId,
@@ -51,7 +49,7 @@ export async function calculatePartnerRanking({
 }: PartnerRankingParams) {
   const conditions: Prisma.Sql[] = [
     // Removed discoverableAt requirement to show all partners
-    Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`, // Allow partners not yet discovered
+    Prisma.sql`(dp.ignoredAt IS NULL OR dp.id IS NULL)`,
     Prisma.sql`COALESCE(pe.conversionRate, 0) < 1`,
   ];
 
@@ -84,65 +82,19 @@ export async function calculatePartnerRanking({
   const whereClause = Prisma.join(conditions, " AND ");
 
   const orderByClause =
-    starred === true
-      ? Prisma.sql`dp.starredAt DESC, finalScore DESC, p.id ASC`
-      : Prisma.sql`finalScore DESC, p.id ASC`;
+    status === "discover"
+      ? starred === true
+        ? Prisma.sql`dp.starredAt DESC, finalScore DESC, p.id ASC`
+        : Prisma.sql`finalScore DESC, p.id ASC`
+      : status === "invited"
+        ? Prisma.sql`dp.invitedAt DESC, p.id ASC`
+        : Prisma.sql`enrolled.createdAt DESC, p.id ASC`;
 
   const offset = (page - 1) * pageSize;
 
-  const partners = await prisma.$queryRaw<Array<any>>`
-    SELECT 
-      p.*,
-      COALESCE(pe.lastConversionAt, similarProgramMetrics.lastConversionAt) as lastConversionAt,
-      COALESCE(pe.conversionRate, similarProgramMetrics.avgConversionRate) as conversionRate,
-      dp.starredAt,
-      dp.ignoredAt,
-      dp.invitedAt,
-      CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
-      partnerCategories.categories as categories,
-      
-      -- FINAL SCORE (0-100 points): Additive model for ranking
-      (
-        -- Base score (0-35): Current program performance
-        (
-          (COALESCE(pe.consistencyScore, 50) / 100 * 10) +
-          (CASE 
-            WHEN COALESCE(pe.conversionRate, 0) <= 0 THEN 0
-            WHEN COALESCE(pe.conversionRate, 0) >= 0.1 THEN 5
-            ELSE (SQRT(LOG10(COALESCE(pe.conversionRate, 0) * 1000 + 1)) * 40 / 100) * 5
-          END) +
-          (CASE 
-            WHEN COALESCE(pe.averageLifetimeValue, 0) <= 0 THEN 0
-            WHEN COALESCE(pe.averageLifetimeValue, 0) >= 10000 THEN 10
-            ELSE (LOG10(COALESCE(pe.averageLifetimeValue, 0) + 1) * 25 / 100) * 10
-          END) +
-          (CASE 
-            WHEN COALESCE(pe.totalCommissions, 0) <= 0 THEN 0
-            WHEN COALESCE(pe.totalCommissions, 0) >= 100000 THEN 10
-            ELSE (LOG10(COALESCE(pe.totalCommissions, 0) + 1) * 22 / 100) * 10
-          END)
-        ) +
-        
-        -- Similarity score (0-50): Performance in similar programs
-        COALESCE(similarProgramMetrics.similarityScore, 0) +
-        
-        -- Program match score (0-15): Count of similar programs
-        COALESCE(similarProgramMetrics.programMatchScore, 0)
-      ) as finalScore
-    FROM Partner p
-   
-    -- Current program enrollment (if exists)
-    LEFT JOIN ProgramEnrollment pe ON pe.partnerId = p.id AND pe.programId = ${programId}
-   
-    -- Enrollment status for the current program
-    LEFT JOIN ProgramEnrollment enrolled ON enrolled.partnerId = p.id AND enrolled.programId = ${programId}
-   
-    -- Discovered partner metadata
-    LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
-
-    ${
-      similarPrograms.length > 0
-        ? Prisma.sql`LEFT JOIN (
+  const similarProgramMetricsJoin =
+    similarPrograms.length > 0
+      ? Prisma.sql`LEFT JOIN (
       SELECT 
         pe2.partnerId,
         -- Similarity score: Sum weighted performance (0-50 points, no averaging)
@@ -199,12 +151,47 @@ export async function calculatePartnerRanking({
       FROM ProgramEnrollment pe2
       WHERE pe2.programId IN (${Prisma.join(similarPrograms.map((sp) => sp.programId))})
         AND pe2.status = 'approved'
-        AND pe2.totalConversions > 0
         AND pe2.programId != ${ACME_PROGRAM_ID}
       GROUP BY pe2.partnerId
     ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
-        : Prisma.sql`LEFT JOIN (SELECT NULL as partnerId, NULL as similarityScore, NULL as programMatchScore, NULL as lastConversionAt, NULL as avgConversionRate WHERE FALSE) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`
-    }
+      : Prisma.sql`LEFT JOIN (
+          SELECT 
+            NULL as partnerId, 
+            NULL as similarityScore, 
+            NULL as programMatchScore, 
+            NULL as lastConversionAt, 
+            NULL as avgConversionRate 
+            WHERE FALSE
+        ) similarProgramMetrics ON similarProgramMetrics.partnerId = p.id`;
+
+  const partners = await prisma.$queryRaw<Array<any>>`
+    SELECT 
+      p.*,
+      COALESCE(pe.lastConversionAt, similarProgramMetrics.lastConversionAt) as lastConversionAt,
+      COALESCE(pe.conversionRate, similarProgramMetrics.avgConversionRate) as conversionRate,
+      dp.starredAt,
+      dp.ignoredAt,
+      dp.invitedAt,
+      partnerCategories.categories as categories,
+      CASE WHEN enrolled.status = 'approved' THEN enrolled.createdAt ELSE NULL END as recruitedAt,
+
+      -- FINAL SCORE (0-65 points): Similarity-based ranking for discovery
+      (
+        COALESCE(similarProgramMetrics.similarityScore, 0) +
+        COALESCE(similarProgramMetrics.programMatchScore, 0)
+      ) as finalScore
+    FROM Partner p
+   
+    -- Current program enrollment (for display metrics and filtering)
+    LEFT JOIN ProgramEnrollment pe ON pe.partnerId = p.id AND pe.programId = ${programId}
+   
+    -- Enrollment status for the current program
+    LEFT JOIN ProgramEnrollment enrolled ON enrolled.partnerId = p.id AND enrolled.programId = ${programId}
+   
+    -- Discovered partner metadata
+    LEFT JOIN DiscoveredPartner dp ON dp.partnerId = p.id AND dp.programId = ${programId}
+
+    ${similarProgramMetricsJoin}
 
     -- Get all categories from programs the partner is enrolled in
     LEFT JOIN (
