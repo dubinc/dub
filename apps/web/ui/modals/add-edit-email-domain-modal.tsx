@@ -36,34 +36,39 @@ function AddEditEmailDomainModalContent({
   } = useForm<FormData>({
     defaultValues: {
       slug: emailDomain?.slug || "",
-      fromAddress: emailDomain?.fromAddress || "",
+      fromAddress: emailDomain?.fromAddress
+        ? emailDomain.fromAddress.split("@")[0]
+        : "",
     },
   });
 
   const onSubmit = async (data: FormData) => {
-    if (emailDomain) {
-      // Update existing email domain
-      await updateEmailDomain(`/api/email-domains/${emailDomain.slug}`, {
-        method: "PATCH",
-        body: data,
-        onSuccess: async () => {
-          toast.success("Email domain updated successfully");
-          setIsOpen(false);
-          await mutatePrefix("/api/email-domains");
-        },
-      });
-    } else {
-      // Create new email domain
-      await createEmailDomain("/api/email-domains", {
+    const requestData = {
+      ...data,
+      fromAddress: `${data.fromAddress}@${data.slug}`,
+    };
+
+    if (!emailDomain) {
+      return await createEmailDomain("/api/email-domains", {
         method: "POST",
-        body: data,
+        body: requestData,
         onSuccess: async () => {
-          toast.success("Email domain created successfully");
+          toast.success("Email domain created successfully!");
           setIsOpen(false);
           await mutatePrefix("/api/email-domains");
         },
       });
     }
+
+    return await updateEmailDomain(`/api/email-domains/${emailDomain.slug}`, {
+      method: "PATCH",
+      body: requestData,
+      onSuccess: async () => {
+        toast.success("Email domain updated successfully!");
+        setIsOpen(false);
+        await mutatePrefix("/api/email-domains");
+      },
+    });
   };
 
   const [slug, fromAddress] = watch(["slug", "fromAddress"]);
@@ -99,6 +104,20 @@ function AddEditEmailDomainModalContent({
                 )}
                 {...register("slug", {
                   required: "Domain is required",
+                  validate: (value) => {
+                    if (!value) {
+                      return "Domain is required";
+                    }
+
+                    const domainRegex =
+                      /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+                    if (!domainRegex.test(value)) {
+                      return "Please enter a valid domain";
+                    }
+
+                    return true;
+                  },
                 })}
                 placeholder="dub.co"
               />
@@ -118,23 +137,49 @@ function AddEditEmailDomainModalContent({
               From address
             </label>
             <div className="mt-1.5">
-              <input
-                type="email"
-                id="fromAddress"
-                className={cn(
-                  "block w-full rounded-md border border-neutral-300 px-3 py-2 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                  errors.fromAddress &&
-                    "border-red-600 focus:border-red-500 focus:ring-red-600",
-                )}
-                {...register("fromAddress", {
-                  required: "From address is required",
-                  pattern: {
-                    value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                    message: "Please enter a valid email address",
-                  },
-                })}
-                placeholder="noreply@dub.co"
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  id="fromAddress"
+                  className={cn(
+                    "block w-full rounded-md border border-neutral-300 px-3 py-2 pr-20 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
+                    errors.fromAddress &&
+                      "border-red-600 focus:border-red-500 focus:ring-red-600",
+                  )}
+                  {...register("fromAddress", {
+                    required: "From address is required",
+                    validate: (value) => {
+                      if (!value) return "From address is required";
+
+                      // Check if the local part is valid (no @ symbols, spaces, etc.)
+                      const localPartRegex = /^[a-zA-Z0-9._-]+$/;
+                      if (!localPartRegex.test(value)) {
+                        return "From address can only contain letters, numbers, dots, underscores, and hyphens";
+                      }
+
+                      // Check if it's a valid email format when combined with domain
+                      const domain = watch("slug");
+                      if (!domain) {
+                        return "Please enter a domain first";
+                      }
+
+                      const fullEmail = `${value}@${domain}`;
+                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      if (!emailRegex.test(fullEmail)) {
+                        return "Please enter a valid email address";
+                      }
+
+                      return true;
+                    },
+                  })}
+                  placeholder="partners"
+                />
+                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                  <span className="text-sm text-neutral-500">
+                    @{watch("slug") || "dub.co"}
+                  </span>
+                </div>
+              </div>
               {errors.fromAddress && (
                 <p className="mt-1 text-sm text-red-600">
                   {errors.fromAddress.message}
