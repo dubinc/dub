@@ -1,4 +1,8 @@
+import { stripe } from "@/lib/stripe";
+import { sendEmail } from "@dub/email";
+import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
 import { prisma } from "@dub/prisma";
+import { log } from "@dub/utils";
 import Stripe from "stripe";
 
 export async function accountUpdated(event: Stripe.Event) {
@@ -8,6 +12,9 @@ export async function accountUpdated(event: Stripe.Event) {
 
   const partner = await prisma.partner.findUnique({
     select: {
+      id: true,
+      stripeConnectId: true,
+      email: true,
       payoutsEnabledAt: true,
     },
     where: {
@@ -22,17 +29,80 @@ export async function accountUpdated(event: Stripe.Event) {
     return;
   }
 
-  await prisma.partner.update({
-    where: {
-      stripeConnectId: account.id,
-    },
-    data: {
-      country,
-      payoutsEnabledAt: payouts_enabled
-        ? partner.payoutsEnabledAt
+  if (!payouts_enabled) {
+    await prisma.partner.update({
+      where: {
+        id: partner.id,
+      },
+      data: {
+        payoutsEnabledAt: null,
+        payoutMethodHash: null,
+      },
+    });
+    console.log(
+      `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt and payoutMethodHash null`,
+    );
+    return;
+  }
+
+  const { data: externalAccounts } = await stripe.accounts.listExternalAccounts(
+    partner.stripeConnectId!,
+  );
+
+  const defaultExternalAccount = externalAccounts.find(
+    (account) => account.default_for_currency,
+  );
+
+  if (!defaultExternalAccount) {
+    // this should never happen, but just in case
+    await log({
+      message: `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`,
+      type: "errors",
+    });
+    return;
+  }
+
+  try {
+    await prisma.partner.update({
+      where: {
+        stripeConnectId: account.id,
+      },
+      data: {
+        country,
+        payoutsEnabledAt: partner.payoutsEnabledAt
           ? undefined // Don't update if already set
-          : new Date()
-        : null,
-    },
-  });
+          : new Date(),
+        payoutMethodHash: defaultExternalAccount.fingerprint,
+      },
+    });
+  } catch (error) {
+    if (
+      error.code === "P2002" &&
+      defaultExternalAccount.object === "bank_account"
+    ) {
+      const res = await sendEmail({
+        variant: "notifications",
+        subject: "Duplicate payout method detected",
+        to: partner.email!,
+        react: DuplicatePayoutMethod({
+          email: partner.email!,
+          payoutMethod: {
+            account_holder_name: defaultExternalAccount.account_holder_name,
+            bank_name: defaultExternalAccount.bank_name,
+            last4: defaultExternalAccount.last4,
+            routing_number: defaultExternalAccount.routing_number,
+          },
+        }),
+      });
+      console.log(
+        `Notified partner ${partner.email} (${partner.stripeConnectId}) about duplicate payout method`,
+        res,
+      );
+      return;
+    }
+    await log({
+      message: `Error updating partner ${partner.email} (${partner.stripeConnectId}): ${error}`,
+      type: "errors",
+    });
+  }
 }

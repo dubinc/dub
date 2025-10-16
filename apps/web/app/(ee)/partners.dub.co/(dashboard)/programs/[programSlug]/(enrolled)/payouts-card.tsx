@@ -43,7 +43,7 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           </span>
           {payouts?.length ? (
             <Link
-              href={`/settings/payouts?programId=${programId}`}
+              href={`/payouts?programId=${programId}`}
               className="text-sm font-medium leading-none text-neutral-500 hover:text-neutral-600"
             >
               {payouts.length} of {payoutsCount} results
