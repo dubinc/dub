@@ -3,6 +3,7 @@ import { z } from "zod";
 export const rewardfulImportSteps = z.enum([
   "import-campaigns",
   "import-partners",
+  "import-affiliate-coupons",
   "import-customers",
   "import-commissions",
 ]);

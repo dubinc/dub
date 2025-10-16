@@ -101,6 +101,15 @@ export interface RewardfulCommission {
   sale: RewardfulCommissionSale;
 }
 
+export interface RewardfulAffiliateCoupon {
+  id: string;
+  external_id: string;
+  archived: boolean;
+  archived_at: string;
+  token: string;
+  affiliate_id: string;
+}
+
 export type RewardfulImportPayload = z.infer<
   typeof rewardfulImportPayloadSchema
 >;

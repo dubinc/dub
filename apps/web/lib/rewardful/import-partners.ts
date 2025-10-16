@@ -4,6 +4,7 @@ import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { logImportError } from "../tinybird/log-import-error";
+import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
@@ -72,7 +73,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
-      await Promise.all(
+      const partners = await Promise.all(
         activeAffiliates.map((affiliate) => {
           const groupId = campaignIdToGroupMap[affiliate.campaign.id];
           const group = program.groups.find((group) => group.id === groupId);
@@ -103,6 +104,15 @@ export async function importPartners(payload: RewardfulImportPayload) {
           });
         }),
       );
+
+      await redis.hset(
+        `rewardful:affiliates:${program.id}`,
+        Object.fromEntries(
+          partners
+            .filter((p): p is NonNullable<typeof p> => p !== undefined)
+            .map((p) => [p.rewardfulAffiliateId, p.dubPartnerId]),
+        ),
+      );
     }
 
     if (notImportedAffiliates.length > 0) {
@@ -120,7 +130,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
     processedBatches++;
   }
 
-  const action = hasMore ? "import-partners" : "import-customers";
+  const action = hasMore ? "import-partners" : "import-affiliate-coupons";
 
   await rewardfulImporter.queue({
     ...payload,
@@ -207,4 +217,9 @@ async function createPartnerAndLinks({
       partnerGroupDefaultLinkId: idx === 0 ? partnerGroupDefaultLinkId : null,
     })),
   });
+
+  return {
+    rewardfulAffiliateId: affiliate.id,
+    dubPartnerId: partner.id,
+  };
 }
