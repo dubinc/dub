@@ -4,33 +4,20 @@ import { EventType, RewardStructure } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
-import { stripeAppClient } from "../stripe";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
 
-const stripe = stripeAppClient({
-  mode: "live",
-});
-
 export async function importCampaigns(payload: RewardfulImportPayload) {
   const { programId, campaignIds } = payload;
 
-  const { workspace } = await prisma.program.findUniqueOrThrow({
+  const { workspaceId } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
-    include: {
-      workspace: {
-        select: {
-          id: true,
-          stripeConnectId: true,
-        },
-      },
-    },
   });
 
-  const { token } = await rewardfulImporter.getCredentials(workspace.id);
+  const { token } = await rewardfulImporter.getCredentials(workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
