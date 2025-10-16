@@ -47,7 +47,7 @@ function SignUpStep({ sessionId, authModal = false }) {
           "px-0 py-0 sm:px-0": authModal,
         })}
       >
-        <SignUpForm sessionId={sessionId} authModal={authModal} />
+        <SignUpForm sessionId={sessionId} methods={["email", "google"]} />
       </motion.div>
     </>
   );
@@ -100,7 +100,6 @@ function RegisterContent({
   authModal = false,
   setAuthModalMessage,
   onStepChange,
-  switchAuthType,
 }) {
   const { step } = useRegisterContext();
 

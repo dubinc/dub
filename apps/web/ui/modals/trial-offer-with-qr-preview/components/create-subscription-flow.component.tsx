@@ -31,6 +31,7 @@ interface ICreateSubscriptionProps {
   isPaidTraffic: boolean;
   onSubscriptionCreating: () => Promise<void>;
   onSubcriptionCreated: () => void;
+  onSignupError: (error: any) => void;
 }
 
 const pageName = "paywall";
@@ -42,6 +43,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   isPaidTraffic,
   onSubscriptionCreating,
   onSubcriptionCreated,
+  onSignupError,
 }) => {
   const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
@@ -160,12 +162,19 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       setIsSubscriptionCreation(false);
       toast.error("Subscription creation failed!");
 
+
+      const errorData = {
+        code: "SUBSCRIPTION_CREATION_FAILED",
+        message: "Subscription creation failed!",
+      };
+
+      onSignupError(errorData)
+
       return generateCheckoutFormPaymentEvents({
         user,
         data: {
           ...data,
-          code: "SUBSCRIPTION_CREATION_FAILED",
-          message: "Subscription creation failed!",
+          ...errorData,
           ...res,
         },
         planCode: subPaymentPlan,
@@ -217,6 +226,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     };
 
     setIsSubscriptionCreation(false);
+
+    onSignupError(eventData)
 
     generateCheckoutFormPaymentEvents({
       user,
