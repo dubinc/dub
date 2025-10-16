@@ -1,5 +1,4 @@
 import { Session } from "@/lib/auth/utils";
-import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
@@ -9,9 +8,7 @@ import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
 import {
   Button,
-  CardList,
   Popover,
-  useKeyboardShortcut,
   useMediaQuery,
 } from "@dub/ui";
 import { Download } from "@dub/ui/icons";
@@ -19,7 +16,7 @@ import { cn } from "@dub/utils";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { ArrowRightLeft, ChartNoAxesColumn, CirclePause, Copy, Palette, Play, RotateCcw, Trash2 } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useContext } from "react";
 import { ThreeDots } from "../shared/icons";
@@ -42,10 +39,7 @@ export function QrCodeControls({
   user,
 }: QrCodeControlsProps) {
   const { domain, key } = qrCode.link;
-  const { slug, plan } = useWorkspace();
-  
-  const { hovered } = useContext(CardList.Card.Context);
-  const searchParams = useSearchParams();
+  const { slug } = useWorkspace();
 
   const { isMobile } = useMediaQuery();
   const router = useRouter();
@@ -87,31 +81,6 @@ export function QrCodeControls({
     props: qrCode,
     initialStep: 3, // design customization
   });
-
-  const folderId = qrCode.link.folderId || searchParams.get("folderId");
-
-  const canManageLink = useCheckFolderPermission(
-    folderId,
-    "folders.links.write",
-  );
-
-  useKeyboardShortcut(
-    ["e", "a", "x", "b"],
-    (e) => {
-      setOpenPopover(false);
-      switch (e.key) {
-        case "a":
-          canManageLink && setShowArchiveQRModal(true);
-          break;
-        case "x":
-          canManageLink && setShowDeleteQRModal(true);
-          break;
-      }
-    },
-    {
-      enabled: openPopover || (hovered && openMenuQrCodeId === null),
-    },
-  );
 
   const onDownloadButtonClick = () => {
     trackClientEvents({
@@ -208,13 +177,12 @@ export function QrCodeControls({
                 text="View Statistics"
                 variant="outline"
                 onClick={() => {
-                  router.push(`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`)
+                  router.push(`/${slug}/analytics?domain=${domain}&key=${key}&interval=all`)
                 }}
                 icon={<ChartNoAxesColumn className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
               />
               <Button
-                href={`/${slug}/analytics?domain=${domain}&key=${key}&interval=${plan === "free" ? "30d" : plan === "pro" ? "1y" : "all"}`}
                 text="Duplicate"
                 variant="outline"
                 onClick={() => {
@@ -242,11 +210,6 @@ export function QrCodeControls({
                 icon={qrCode.archived ? <Play className="size-4" /> : <CirclePause className="size-4" />}
                 shortcut="A"
                 className="h-9 w-full justify-start px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to archive this link."
-                    : undefined
-                }
               />
             </div>
             <div className="w-full px-6" >
@@ -268,11 +231,6 @@ export function QrCodeControls({
                 }}
                 icon={<ArrowRightLeft className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to update this link."
-                    : undefined
-                }
               />
               <Button
                 text="Customize QR"
@@ -291,11 +249,6 @@ export function QrCodeControls({
                 }}
                 icon={<Palette className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to update this link."
-                    : undefined
-                }
               />
               <Button
                 text="Reset scans"
