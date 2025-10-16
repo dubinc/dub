@@ -16,17 +16,13 @@ export const GET = withWorkspace(
   async ({ workspace }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const emailDomain = await prisma.emailDomain.findUnique({
+    const emailDomains = await prisma.emailDomain.findMany({
       where: {
         programId,
       },
     });
 
-    const response = emailDomain
-      ? z.array(EmailDomainSchema).parse([emailDomain])
-      : [];
-
-    return NextResponse.json(response);
+    return NextResponse.json(z.array(EmailDomainSchema).parse(emailDomains));
   },
   {
     requiredPlan: ["advanced", "enterprise"],

@@ -3,6 +3,7 @@ import z from "@/lib/zod";
 export const EmailDomainSchema = z.object({
   id: z.string(),
   slug: z.string(),
+  fromAddress: z.string(),
   verified: z.boolean(),
   lastChecked: z.date(),
   createdAt: z.date(),
