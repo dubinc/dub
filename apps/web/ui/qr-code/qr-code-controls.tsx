@@ -247,7 +247,7 @@ export function QrCodeControls({
             <div className="border-t border-neutral-200/10" />
             <div className="grid gap-1 p-2">
               <Button
-                text={qrCode.archived ? "Unpause" : "Pause"}
+                text={qrCode.archived ? "Activate" : "Pause"}
                 variant="outline"
                 onClick={() => {
                   onActionClick("pause");
