@@ -12,9 +12,14 @@ export const isDaysAttribute = (activity: WorkflowConditionAttribute) =>
 export const isScheduledWorkflow = (workflow: Workflow) => {
   const { condition } = parseWorkflowConfig(workflow);
 
-  if (condition.attribute === "partnerJoined") {
+  const shouldSchedule = SCHEDULED_WORKFLOW_TRIGGERS.includes(workflow.trigger);
+
+  if (
+    !shouldSchedule ||
+    (shouldSchedule && condition.attribute === "partnerJoined")
+  ) {
     return false;
   }
 
-  return SCHEDULED_WORKFLOW_TRIGGERS.includes(workflow.trigger);
+  return true;
 };
