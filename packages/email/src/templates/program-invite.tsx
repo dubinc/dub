@@ -75,7 +75,7 @@ export default function PartnerInvite({
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              {name && <>Hi {name}, </>}
+              {name && !name.includes("@") && <>Hi {name}, </>}
               {program.name} invited you to join their program on Dub Partners.
             </Text>
 
@@ -101,14 +101,14 @@ export default function PartnerInvite({
               </Link>
             </Section>
 
-            {(rewards?.length || bounties?.length) && (
+            {Boolean(rewards?.length || bounties?.length) && (
               <>
                 <Text className="text-sm leading-6 text-neutral-600">
                   If you accept the invite, you're immediately eligible for the
                   following:
                 </Text>
                 <Section className="rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-5 py-4">
-                  {rewards?.length && (
+                  {rewards && Boolean(rewards.length) && (
                     <>
                       <Text className="my-0 text-base font-semibold text-black">
                         Rewards
@@ -127,7 +127,7 @@ export default function PartnerInvite({
                       ))}
                     </>
                   )}
-                  {bounties?.length && (
+                  {bounties && Boolean(bounties.length) && (
                     <>
                       <Text
                         className={`mb-0 text-base font-semibold text-black ${rewards?.length ? "mt-5" : "mt-0"}`}
