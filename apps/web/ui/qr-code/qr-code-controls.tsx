@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useContext } from "react";
 import { ThreeDots } from "../shared/icons";
+import { useResetScansModal } from '../modals/reset-scans-modal';
 
 interface QrCodeControlsProps {
   qrCode: QrStorageData;
@@ -51,6 +52,9 @@ export function QrCodeControls({
     setOpenMenuQrCodeId(open ? qrCode.id : null);
   };
 
+  const { handleToggleModal: setShowResetScansModal, ResetScansModal } = useResetScansModal({
+    props: qrCode,
+  });
   const { setShowArchiveQRModal, ArchiveQRModal } = useArchiveQRModal({
     props: qrCode,
   });
@@ -145,6 +149,7 @@ export function QrCodeControls({
 
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
+      <ResetScansModal />
       <QRPreviewModal />
       <QRChangeTypeModal />
       <QRCustomizeModal />
@@ -250,15 +255,24 @@ export function QrCodeControls({
                 icon={<Palette className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
               />
-              {/* <Button
+              <Button
                 text="Reset scans"
                 variant="outline"
                 onClick={() => {
-                  // TODO GETQR-261
+                  onActionClick("reset_scans");
+
+                  setOpenPopover(false);
+
+                  if (!featuresAccess) {
+                    setShowTrialExpiredModal?.(true);
+                    return;
+                  }
+
+                  setShowResetScansModal(true);
                 }}
                 icon={<RotateCcw className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-              /> */}
+              />
             </div>
             <div className="w-full px-6" >
               <div className="border-t border-neutral-200 w-full" />
