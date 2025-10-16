@@ -22,7 +22,7 @@ function InviteWorkspaceUserModal({
   setShowInviteWorkspaceUserModal: Dispatch<SetStateAction<boolean>>;
   showSavedInvites: boolean;
 }) {
-  const { id: workspaceId, plan, logo } = useWorkspace();
+  const { id: workspaceId, plan } = useWorkspace();
 
   // we only need to fetch saved invites if the workspace is on the free plan
   // (or else we would've already sent the invites)
