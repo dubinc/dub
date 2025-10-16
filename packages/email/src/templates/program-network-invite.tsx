@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerInvite({
+export default function ProgramNetworkInvite({
   email = "panic@thedis.co",
   name = "John Doe",
   program = {
@@ -47,25 +47,13 @@ export default function PartnerInvite({
             </Section>
 
             <Heading className="bt-5 mx-0 mt-10 p-0 text-lg font-medium text-black">
-              You've been invited
+              You're getting noticed!
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
               {name && <>Hi {name}, </>}
-              {program.name} invited you to join their program on Dub Partners.
-            </Text>
-
-            <Text className="text-sm leading-6 text-neutral-600">
-              {program.name} uses{" "}
-              <Link
-                href="https://dub.co/partners"
-                target="_blank"
-                className="font-semibold text-neutral-800 underline underline-offset-2"
-              >
-                Dub Partners
-              </Link>{" "}
-              to power their partner program and wants to work with great people
-              like you!
+              {program.name} found you on the Dub Network and invited you to
+              join their partner program.
             </Text>
 
             <Section className="mb-12 mt-8">
