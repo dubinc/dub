@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { WorkspaceRole } from "@dub/prisma/client";
-import { Button, useMediaQuery } from "@dub/ui";
+import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
@@ -33,6 +33,7 @@ export function InviteTeammatesForm({
 }) {
   const { id, slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
+  const { queryParams } = useRouterStuff();
 
   const maxTeammates = saveOnly ? 4 : 10;
 
@@ -78,6 +79,11 @@ export function InviteTeammatesForm({
             );
           } else {
             toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
+            queryParams({
+              set: {
+                status: "invited",
+              },
+            });
 
             teammates.forEach(({ email }) =>
               posthog.capture("teammate_invited", {

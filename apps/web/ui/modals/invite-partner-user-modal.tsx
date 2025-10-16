@@ -2,7 +2,7 @@ import { MAX_INVITES_PER_REQUEST } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { invitePartnerUserSchema } from "@/lib/zod/schemas/partner-profile";
-import { Button, Modal, useMediaQuery } from "@dub/ui";
+import { Button, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
@@ -31,6 +31,7 @@ function InvitePartnerUserModal({
   const { isMobile } = useMediaQuery();
   const { partner } = usePartnerProfile();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { queryParams } = useRouterStuff();
 
   const { control, register, handleSubmit } = useForm<FormData>({
     defaultValues: {
@@ -64,6 +65,11 @@ function InvitePartnerUserModal({
       }
 
       await mutatePrefix("/api/partner-profile/invites");
+      queryParams({
+        set: {
+          status: "invited",
+        },
+      });
       toast.success(
         `${pluralize("Invitation", invites.length)} sent successfully!`,
       );
