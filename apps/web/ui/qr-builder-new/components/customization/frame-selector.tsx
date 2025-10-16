@@ -75,10 +75,6 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
 
   const handleFrameSelect = useCallback(
     (frameId: string) => {
-      console.log("=== handleFrameSelect called ===");
-      console.log("Selected frameId:", frameId);
-      console.log("Current frameData:", frameData);
-
       // If switching to "no frame", clear all settings
       if (frameId === "frame-none") {
         const newFrameData: IFrameData = {
@@ -87,14 +83,12 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
           textColor: undefined,
           text: undefined,
         };
-        console.log("Clearing frame, sending:", newFrameData);
         onFrameChange(newFrameData);
         return;
       }
 
       // If re-selecting the same frame, preserve existing settings from frameData
       if (frameId === frameData.id) {
-        console.log("Re-selecting same frame, no change");
         return;
       }
 
@@ -110,7 +104,6 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
         text: frameText,
       };
 
-      console.log("Selecting new frame, sending:", newFrameData);
       onFrameChange(newFrameData);
     },
     [frameColor, frameText, onFrameChange, frameData],

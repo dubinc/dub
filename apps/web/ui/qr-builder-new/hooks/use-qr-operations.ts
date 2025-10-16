@@ -117,6 +117,8 @@ export const useNewQrOperations = () => {
             JSON.stringify(originalQR.styles) ||
           JSON.stringify(newServerData.frameOptions) !==
             JSON.stringify(originalQR.frameOptions) ||
+          JSON.stringify(newServerData.logoOptions) !==
+            JSON.stringify(originalQR.logoOptions) ||
           newServerData.fileId !== originalQR.fileId;
 
         if (!hasChanges) {

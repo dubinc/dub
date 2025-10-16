@@ -39,6 +39,11 @@ export type TQRBuilderDataForStorage = {
     textColor: string;
     text: string;
   };
+  logoOptions?: {
+    type: "suggested" | "uploaded";
+    id?: string;
+    fileId?: string;
+  };
   qrType: EQRType;
   fileId?: string;
 };
@@ -58,9 +63,15 @@ export type TQrServerData = {
     textColor?: string;
     text?: string;
   };
+  logoOptions?: {
+    type: "suggested" | "uploaded";
+    id?: string;
+    fileId?: string;
+  };
   fileId?: string;
   link?: {
     url: string;
+    key: string;
     domain: string;
     tagId?: string | null;
     webhookIds?: string[];
@@ -153,17 +164,68 @@ function buildFrameOptions(frameData: IFrameData) {
   return result;
 }
 
+/**
+ * Converts logo data to logo options object
+ */
+function buildLogoOptions(
+  logoData: IQRCustomizationData["logo"],
+): TQrServerData["logoOptions"] {
+  if (logoData.type === "none") {
+    return undefined;
+  }
+
+  if (logoData.type === "suggested") {
+    return {
+      type: "suggested",
+      id: logoData.id,
+    };
+  }
+
+  if (logoData.type === "uploaded") {
+    return {
+      type: "uploaded",
+      fileId: logoData.fileId,
+    };
+  }
+
+  return undefined;
+}
+
 // ============================================================================
 // HELPER FUNCTIONS - EXTRACT/PARSE DATA
 // ============================================================================
 
-function extractLogoData(styles: Options): {
+function extractLogoData(
+  logoOptions?: TQrServerData["logoOptions"],
+  styles?: Options,
+): {
   type: "none" | "suggested" | "uploaded";
   id?: string;
   iconSrc?: string;
   fileId?: string;
 } {
-  if (!styles.image) {
+  // Prioritize logoOptions if available (new format)
+  if (logoOptions) {
+    console.log("Using logoOptions");
+    if (logoOptions.type === "suggested") {
+      const iconSrc = logoOptions.id
+        ? getSuggestedLogoSrc(logoOptions.id)
+        : undefined;
+      return {
+        type: "suggested",
+        id: logoOptions.id,
+        iconSrc,
+      };
+    } else if (logoOptions.type === "uploaded") {
+      return {
+        type: "uploaded",
+        fileId: logoOptions.fileId,
+      };
+    }
+  }
+
+  // Fallback to styles.image for backward compatibility with old QRs
+  if (!styles?.image) {
     return { type: "none" };
   }
 
@@ -249,12 +311,13 @@ function getCornerDotStyleId(type: any): string {
 }
 
 /**
- * Extract customization data from server styles and frame options
+ * Extract customization data from server styles, frame options, and logo options
  * IMPORTANT: Storage has frame TYPE (e.g., "card"), but we need ID (e.g., "frame-card")
  */
 function extractCustomizationData(
   styles: Options,
   frameOptions: any,
+  logoOptions?: TQrServerData["logoOptions"],
 ): IQRCustomizationData {
   // Convert frame TYPE to ID by finding the frame in FRAMES array
   const frameType = frameOptions?.id || "none";
@@ -279,7 +342,7 @@ function extractCustomizationData(
       ),
       cornerDotStyle: getCornerDotStyleId(styles.cornersDotOptions?.type),
     },
-    logo: extractLogoData(styles),
+    logo: extractLogoData(logoOptions, styles),
   };
 }
 
@@ -303,6 +366,8 @@ export async function convertNewQRBuilderDataToServer(
 
   const frameOptions = buildFrameOptions(customizationData.frame);
 
+  const logoOptions = buildLogoOptions(customizationData.logo);
+
   const qrTitle =
     title || `${qrType.charAt(0).toUpperCase() + qrType.slice(1)} QR Code`;
 
@@ -315,7 +380,8 @@ export async function convertNewQRBuilderDataToServer(
     title: qrTitle,
     styles,
     frameOptions,
-    fileId,
+    logoOptions,
+    fileId: fileId || undefined,
     link: {
       url: linkUrl,
       domain,
@@ -333,14 +399,21 @@ export async function convertNewQRBuilderDataToServer(
 export function convertServerQRToNewBuilder(
   serverData: TQrServerData,
 ): TNewQRBuilderData {
+
   // Parse QR data to form data using qr-data-handlers
   const sourceData = serverData.link?.url || serverData.data;
   const formData = parseQRData(serverData.qrType, sourceData) as TQRFormData;
 
-  // Extract customization data from styles and frame options
+  // Add qrName from title to formData
+  if (serverData.title) {
+    (formData as any).qrName = serverData.title;
+  }
+
+  // Extract customization data from styles, frame options, and logo options
   const customizationData = extractCustomizationData(
     serverData.styles,
     serverData.frameOptions,
+    serverData.logoOptions,
   );
 
   return {
@@ -369,11 +442,15 @@ export function convertNewBuilderToStorageFormat(
   // Build frame options
   const frameOptions = buildFrameOptions(customizationData.frame);
 
+  // Build logo options
+  const logoOptions = buildLogoOptions(customizationData.logo);
+
   const result = {
     title:
       title || `${qrType.charAt(0).toUpperCase() + qrType.slice(1)} QR Code`,
     styles,
     frameOptions,
+    logoOptions,
     qrType,
     fileId, // For PDF/Image/Video content files only
   };

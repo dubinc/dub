@@ -2,7 +2,7 @@ import { Session } from "@/lib/auth/utils";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
-import { useQRBuilder } from "@/ui/modals/qr-builder";
+import { QRBuilderModal } from "@/ui/modals/qr-builder-new";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal.tsx";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
@@ -17,10 +17,10 @@ import { BoxArchive, Download } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
-import { Delete, Palette, RefreshCw } from "lucide-react";
+import { Delete, Palette } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
-import { RefObject, useContext } from "react";
+import { RefObject, useContext, useState } from "react";
 import { ThreeDots } from "../shared/icons";
 
 interface QrCodeControlsProps {
@@ -67,21 +67,7 @@ export function QrCodeControls({
     user,
   });
 
-  const {
-    setShowQRBuilderModal: setShowQRTypeModal,
-    QRBuilderModal: QRChangeTypeModal,
-  } = useQRBuilder({
-    props: qrCode,
-    initialStep: 1,
-  });
-
-  const {
-    setShowQRBuilderModal: setShowQRCustomizeModal,
-    QRBuilderModal: QRCustomizeModal,
-  } = useQRBuilder({
-    props: qrCode,
-    initialStep: 3, // design customization
-  });
+  const [showQRCustomizeModal, setShowQRCustomizeModal] = useState(false);
 
   const folderId = qrCode.link.folderId || searchParams.get("folderId");
 
@@ -172,8 +158,11 @@ export function QrCodeControls({
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
       <QRPreviewModal />
-      <QRChangeTypeModal />
-      <QRCustomizeModal />
+      <QRBuilderModal
+        qrData={qrCode as any}
+        showModal={showQRCustomizeModal}
+        setShowModal={setShowQRCustomizeModal}
+      />
       <ArchiveQRModal />
       <DeleteLinkModal />
       {canvasRef && (
@@ -199,7 +188,8 @@ export function QrCodeControls({
         content={
           <div className="w-full sm:w-48">
             <div className="grid gap-1 p-2">
-              <Button
+              {/* TODO: Implement Change QR Type functionality with new builder */}
+              {/* <Button
                 text="Change QR Type"
                 variant="outline"
                 onClick={() => {
@@ -210,7 +200,7 @@ export function QrCodeControls({
                     setShowTrialExpiredModal?.(true);
                     return;
                   }
-                  setShowQRTypeModal(true);
+                  // setShowQRTypeModal(true);
                 }}
                 icon={<RefreshCw className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
@@ -219,7 +209,7 @@ export function QrCodeControls({
                     ? "You don't have permission to update this link."
                     : undefined
                 }
-              />
+              /> */}
               <Button
                 text="Customize QR"
                 variant="outline"

@@ -19,6 +19,7 @@ export const QRBuilderWrapper = () => {
     isFileProcessing,
     currentFormValues,
     customizationData,
+    isEditMode,
   } = useQrBuilderContext();
 
   const logoData = customizationData.logo;
@@ -46,7 +47,7 @@ export const QRBuilderWrapper = () => {
             step={builderStep || 1}
             onBack={handleBack}
             onContinue={handleContinue}
-            isEdit={false}
+            isEdit={isEditMode}
             isProcessing={isProcessing}
             isFileUploading={isFileUploading}
             isFileProcessing={isFileProcessing}

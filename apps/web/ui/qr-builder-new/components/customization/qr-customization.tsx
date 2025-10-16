@@ -34,6 +34,7 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
   isMobile = false,
   homepageDemo = false,
 }) => {
+
   const isFrameSelected = customizationData.frame.id !== "frame-none";
 
   const handleFrameChange = useCallback(

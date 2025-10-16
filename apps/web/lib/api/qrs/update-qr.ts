@@ -11,6 +11,7 @@ export async function updateQr(
     description,
     styles,
     frameOptions,
+    logoOptions,
     archived,
     fileId,
   }: Partial<NewQrProps>,
@@ -30,6 +31,8 @@ export async function updateQr(
       description,
       styles,
       frameOptions,
+      // Always update logoOptions - if undefined/null, it will clear the logo
+      logoOptions: logoOptions === undefined ? null : logoOptions,
       archived: archived || false,
       fileId,
     },

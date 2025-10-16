@@ -407,23 +407,28 @@ export const SUGGESTED_LOGOS: IStyleOption[] = [
 
 /**
  * Sort logos by relevance to a specific QR type
- * Logos relevant to the QR type appear first, followed by others
+ * Order: logo-none (first), relevant logos, other logos
  */
 export function getSortedLogos(qrType: EQRType | null): IStyleOption[] {
   if (!qrType) {
     return SUGGESTED_LOGOS;
   }
 
+  const noLogo: IStyleOption[] = [];
   const relevant: IStyleOption[] = [];
   const others: IStyleOption[] = [];
 
   SUGGESTED_LOGOS.forEach((logo) => {
-    if (logo.relevantFor && logo.relevantFor.includes(qrType)) {
+    // Always keep "logo-none" at the beginning
+    if (logo.id === "logo-none") {
+      noLogo.push(logo);
+    } else if (logo.relevantFor && logo.relevantFor.includes(qrType)) {
       relevant.push(logo);
     } else {
       others.push(logo);
     }
   });
 
-  return [...relevant, ...others];
+  // Return with logo-none first, then relevant, then others
+  return [...noLogo, ...relevant, ...others];
 }
