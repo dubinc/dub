@@ -1,6 +1,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
 import { validateBounty } from "@/lib/api/bounties/validate-bounty";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
@@ -15,7 +16,6 @@ import {
   BountySchemaExtended,
   updateBountySchema,
 } from "@/lib/zod/schemas/bounties";
-import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
 import { PartnerGroup, Prisma } from "@prisma/client";
@@ -124,7 +124,7 @@ export const PATCH = withWorkspace(
       ) {
         throw new DubApiError({
           code: "bad_request",
-          message: `You cannot change the performance condition from "${WORKFLOW_ATTRIBUTE_LABELS[currentCondition.attribute].toLowerCase()}" to "${WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute].toLowerCase()}" because the bounty has submissions.`,
+          message: `You cannot change the performance condition from "${PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[currentCondition.attribute].toLowerCase()}" to "${PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute].toLowerCase()}" because the bounty has submissions.`,
         });
       }
     }

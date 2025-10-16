@@ -222,6 +222,8 @@ async function getProgramEnrollments({
   groupIds: string[];
   condition: WorkflowCondition;
 }) {
+  const { attribute } = condition;
+
   if (partnerId) {
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {

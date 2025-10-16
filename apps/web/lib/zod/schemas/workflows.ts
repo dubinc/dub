@@ -7,38 +7,22 @@ import { WorkflowTrigger } from "@dub/prisma/client";
 import { z } from "zod";
 
 export const WORKFLOW_ATTRIBUTES = [
-  "totalClicks",
+  // "totalClicks",
   "totalLeads",
   "totalConversions",
-  "totalSales",
   "totalSaleAmount",
   "totalCommissions",
   "partnerEnrolledDays",
   "partnerJoined",
 ] as const;
 
-export const WORKFLOW_ATTRIBUTE_LABELS: Record<
-  WorkflowConditionAttribute,
-  string
-> = {
-  totalClicks: "Clicks",
-  totalLeads: "Leads",
-  totalConversions: "Conversions",
-  totalSales: "Sales",
-  totalSaleAmount: "Revenue",
-  totalCommissions: "Commissions",
-  partnerEnrolledDays: "days since enrollment",
-  partnerJoined: "joins the program",
-} as const;
-
 export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   WorkflowConditionAttribute,
   WorkflowTrigger
 > = {
-  totalClicks: WorkflowTrigger.clickRecorded,
+  // totalClicks: WorkflowTrigger.clickRecorded,
   totalLeads: WorkflowTrigger.leadRecorded,
   totalConversions: WorkflowTrigger.saleRecorded,
-  totalSales: WorkflowTrigger.saleRecorded,
   totalSaleAmount: WorkflowTrigger.saleRecorded,
   totalCommissions: WorkflowTrigger.commissionEarned,
   partnerEnrolledDays: WorkflowTrigger.partnerEnrolled,
@@ -48,14 +32,12 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
 
 export const SCHEDULED_WORKFLOW_TRIGGERS: WorkflowTrigger[] = [
-  "clickRecorded",
-  "commissionEarned",
+  // "clickRecorded",
   "partnerEnrolled",
 ];
 
 export const WORKFLOW_SCHEDULES: Partial<Record<WorkflowTrigger, string>> = {
-  clickRecorded: "*/5 * * * *", // every 5 minutes
-  commissionEarned: "*/5 * * * *", // every 5 minutes
+  // clickRecorded: "*/5 * * * *", // every 5 minutes
   partnerEnrolled: "0 */12 * * *", // every 12 hours
 };
 
