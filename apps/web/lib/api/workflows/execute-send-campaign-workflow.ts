@@ -9,9 +9,9 @@ import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
+import { NotificationEmailType, Prisma, Workflow } from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
-import { NotificationEmailType, Workflow } from "@prisma/client";
-import { differenceInDays, subDays } from "date-fns";
+import { addHours, differenceInDays, subDays } from "date-fns";
 import { createId } from "../create-id";
 import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
@@ -67,13 +67,16 @@ export const executeSendCampaignWorkflow = async ({
     condition,
   });
 
+  if (programEnrollments.length === 0) {
+    console.log(
+      `Workflow ${workflow.id} no program enrollments found to send campaign emails to, skipping...`,
+    );
+    return;
+  }
+
   console.log(
     `Found ${programEnrollments.length} program enrollments to send campaign emails to.`,
   );
-
-  if (programEnrollments.length === 0) {
-    return;
-  }
 
   // Fetch already-sent campaign emails for these partners to prevent duplicates
   const alreadySentEmails = await prisma.notificationEmail.findMany({
@@ -211,6 +214,18 @@ export const executeSendCampaignWorkflow = async ({
   }
 };
 
+const includePartnerUsers = {
+  partner: {
+    include: {
+      users: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  },
+} satisfies Prisma.ProgramEnrollmentInclude;
+
 async function getProgramEnrollments({
   programId,
   partnerId,
@@ -222,9 +237,15 @@ async function getProgramEnrollments({
   groupIds: string[];
   condition: WorkflowCondition;
 }) {
-  const { attribute } = condition;
-
   if (partnerId) {
+    const { attribute } = condition;
+
+    const isPartnerLinkStatsAttribute = [
+      "totalLeads",
+      "totalConversions",
+      "totalSaleAmount",
+    ].includes(attribute);
+
     const programEnrollment = await prisma.programEnrollment.findUnique({
       where: {
         partnerId_programId: {
@@ -239,24 +260,8 @@ async function getProgramEnrollments({
         }),
       },
       include: {
-        partner: {
-          include: {
-            users: {
-              include: {
-                user: true,
-              },
-            },
-          },
-        },
-        links: {
-          select: {
-            clicks: true,
-            leads: true,
-            conversions: true,
-            sales: true,
-            saleAmount: true,
-          },
-        },
+        ...includePartnerUsers,
+        ...(isPartnerLinkStatsAttribute ? { links: true } : {}),
       },
     });
 
@@ -266,11 +271,33 @@ async function getProgramEnrollments({
 
     const context: Partial<Record<WorkflowConditionAttribute, number | null>> =
       {
-        ...aggregatePartnerLinksStats(programEnrollment.links),
-        partnerJoined: differenceInDays(
-          new Date(),
-          programEnrollment.createdAt,
-        ),
+        ...(isPartnerLinkStatsAttribute
+          ? aggregatePartnerLinksStats(programEnrollment.links)
+          : {}),
+        ...(attribute === "totalCommissions"
+          ? {
+              totalCommissions:
+                (
+                  await prisma.commission.aggregate({
+                    where: {
+                      earnings: { not: 0 },
+                      programId,
+                      partnerId,
+                      status: { in: ["pending", "processed", "paid"] },
+                    },
+                    _sum: { earnings: true },
+                  })
+                )._sum.earnings || 0,
+            }
+          : {}),
+        ...(attribute === "partnerJoined"
+          ? {
+              partnerJoined: differenceInDays(
+                new Date(),
+                programEnrollment.createdAt,
+              ),
+            }
+          : {}),
       };
 
     const shouldExecute = evaluateWorkflowCondition({
@@ -287,6 +314,10 @@ async function getProgramEnrollments({
     return [programEnrollment];
   }
 
+  const startDate = subDays(new Date(), condition.value);
+  // add 12 hours to the start date since we run the partnerEnrolled workflow every 12 hours
+  const endDate = addHours(startDate, 12);
+
   // We need to get all program enrollments that match the condition for the scheduled workflows
   return await prisma.programEnrollment.findMany({
     where: {
@@ -297,42 +328,12 @@ async function getProgramEnrollments({
           in: groupIds,
         },
       }),
-      ...buildEnrollmentWhere(condition),
-    },
-    include: {
-      partner: {
-        include: {
-          users: {
-            include: {
-              user: true,
-            },
-          },
-        },
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
       },
     },
-    take: 50,
+    include: includePartnerUsers,
+    take: 1000, // rough estimate that a program cannot get more than 1000 enrollments every 12 hours
   });
-}
-
-function buildEnrollmentWhere(condition: WorkflowCondition) {
-  switch (condition.attribute) {
-    case "totalClicks":
-    case "totalLeads":
-    case "totalConversions":
-    case "totalSales":
-    case "totalSaleAmount":
-    case "totalCommissions":
-      return {
-        [condition.attribute]: {
-          gte: condition.value,
-        },
-      };
-    case "partnerEnrolledDays":
-    case "partnerJoined":
-      return {
-        createdAt: {
-          lte: subDays(new Date(), condition.value),
-        },
-      };
-  }
 }
