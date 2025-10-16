@@ -29,7 +29,8 @@ SCHEMA >
     `referer_url` String `json:$.referer_url`,
     `ip` String `json:$.ip`,
     `qr` UInt8 `json:$.qr`,
-    `metadata` String `json:$.metadata`
+    `metadata` String `json:$.metadata`,
+    `stats_deleted` UInt8 DEFAULT 0
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

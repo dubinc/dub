@@ -41,6 +41,7 @@ SQL >
     WHERE
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+        AND stats_deleted = 0
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
             AND link_id IN (SELECT link_id FROM workspace_links)
@@ -90,6 +91,7 @@ SQL >
     WHERE
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+        AND stats_deleted = 0
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
         {% elif defined(customerId) %} AND customer_id = {{ String(customerId) }}
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
@@ -131,6 +133,7 @@ SQL >
     WHERE
         timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
         AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+        AND stats_deleted = 0
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }}
         {% elif defined(customerId) %} AND customer_id = {{ String(customerId) }}
         {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}

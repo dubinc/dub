@@ -40,6 +40,7 @@ SQL >
         {% end %}
     WHERE
         true
+        AND stats_deleted = 0
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -74,6 +75,7 @@ SQL >
         {% end %}
     WHERE
         true
+        AND stats_deleted = 0
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -113,6 +115,7 @@ SQL >
           {% end %}
       WHERE
           true
+          AND stats_deleted = 0
           {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
           {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
           {% if defined(continent) %} AND continent = {{ continent }} {% end %}

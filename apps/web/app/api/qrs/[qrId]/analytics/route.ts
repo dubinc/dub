@@ -4,9 +4,16 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { verifyFolderAccess } from '@/lib/folder/permissions';
 
-async function executeTinybirdDatasourceDelete(datasource: string, deleteCondition: string) {
-  const url = `${process.env.TINYBIRD_API_URL}/v0/datasources/${datasource}/delete`;
-  const body = new URLSearchParams({ delete_condition: deleteCondition });
+async function executeTinybirdDatasourceSoftDelete(
+  datasource: string,
+  updateCondition: string,
+) {
+  // Use the Tinybird datasources update endpoint to mark rows as deleted
+  const url = `${process.env.TINYBIRD_API_URL}/v0/datasources/${datasource}/update`;
+  const body = new URLSearchParams({
+    update_expression: "stats_deleted = 1",
+    update_condition: updateCondition,
+  });
 
   const res = await fetch(url, {
     method: "POST",
@@ -20,7 +27,7 @@ async function executeTinybirdDatasourceDelete(datasource: string, deleteConditi
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`Tinybird delete failed: ${text || res.statusText}`);
+    throw new Error(`Tinybird update failed: ${text || res.statusText}`);
   }
 
   return true;
@@ -49,12 +56,12 @@ export const DELETE = withWorkspace(
     }
 
     const escapedLinkId = linkId.replace(/'/g, "''");
-    const deleteCondition = `(link_id='${escapedLinkId}')`;
+    const updateCondition = `(link_id='${escapedLinkId}')`;
 
     await Promise.all([
-      executeTinybirdDatasourceDelete("dub_click_events", deleteCondition),
-      executeTinybirdDatasourceDelete("dub_lead_events", deleteCondition),
-      executeTinybirdDatasourceDelete("dub_sale_events", deleteCondition),
+      executeTinybirdDatasourceSoftDelete("dub_click_events", updateCondition),
+      executeTinybirdDatasourceSoftDelete("dub_lead_events", updateCondition),
+      executeTinybirdDatasourceSoftDelete("dub_sale_events", updateCondition),
     ]);
 
     await prisma.link.update({

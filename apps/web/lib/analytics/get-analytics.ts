@@ -98,6 +98,8 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     workspaceId,
     tagIds,
     qr,
+    // Exclude soft-deleted analytics rows by default
+    stats_deleted: false,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
     granularity,

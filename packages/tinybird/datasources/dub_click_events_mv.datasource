@@ -20,7 +20,8 @@ SCHEMA >
     `referer` String,
     `referer_url` String,
     `qr` UInt8,
-    `ip` String
+    `ip` String,
+    `stats_deleted` UInt8
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
