@@ -17,6 +17,7 @@ export async function accountUpdated(event: Stripe.Event) {
       stripeConnectId: true,
       email: true,
       payoutsEnabledAt: true,
+      payoutMethodHash: true,
     },
     where: {
       stripeConnectId: account.id,
@@ -28,16 +29,19 @@ export async function accountUpdated(event: Stripe.Event) {
   }
 
   if (!payouts_enabled) {
-    await prisma.partner.update({
-      where: {
-        id: partner.id,
-      },
-      data: {
-        payoutsEnabledAt: null,
-        payoutMethodHash: null,
-      },
-    });
-    return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt and payoutMethodHash null`;
+    if (partner.payoutsEnabledAt || partner.payoutMethodHash) {
+      await prisma.partner.update({
+        where: {
+          id: partner.id,
+        },
+        data: {
+          payoutsEnabledAt: null,
+          payoutMethodHash: null,
+        },
+      });
+      return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt and payoutMethodHash null`;
+    }
+    return `No change in payout status for ${partner.email} (${partner.stripeConnectId}), skipping...`;
   }
 
   const { data: externalAccounts } = await stripe.accounts.listExternalAccounts(
