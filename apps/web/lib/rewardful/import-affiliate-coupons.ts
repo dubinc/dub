@@ -93,6 +93,10 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
     processedBatches++;
   }
 
+  if (!hasMore) {
+    await redis.del(`rewardful:affiliates:${program.id}`);
+  }
+
   const action = hasMore ? "import-affiliate-coupons" : "import-customers";
 
   await rewardfulImporter.queue({
