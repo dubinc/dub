@@ -71,7 +71,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       event: EAnalyticEvents.ELEMENT_CLICKED,
       params: {
         page_name: pageName,
-        content_group: "my_qr_codes",
         content_value: paymentMethodType,
         element_name: "payment_modal",
         email: user?.email,
@@ -92,7 +91,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       event: EAnalyticEvents.ELEMENT_OPENED,
       params: {
         page_name: pageName,
-        content_group: "my_qr_codes",
         element_name: paymentMethodType,
         email: user?.email,
         event_category: "Authorized",
@@ -107,7 +105,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         content_value: "card",
-        content_group: "my_qr_codes",
         element_name: "payment_modal",
         email: user?.email,
         event_category: "Authorized",
@@ -119,7 +116,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       params: {
         page_name: pageName,
         element_name: "card",
-        content_group: "my_qr_codes",
         email: user?.email,
         event_category: "Authorized",
       },
