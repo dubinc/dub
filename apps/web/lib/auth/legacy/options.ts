@@ -15,7 +15,6 @@ import { PrismaClient } from "@prisma/client/extension";
 import { waitUntil } from "@vercel/functions";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { ERedisArg } from "core/interfaces/redis.interface.ts";
-import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import {
   applyUserSession,
   getUserCookieService,
@@ -620,12 +619,11 @@ export const authOptions: NextAuthOptions = {
         ) {
           if (message?.account?.provider === "google") {
             // const loginUrl = await createAutoLoginURL(user.id);
-
-            waitUntil(
-              CustomerIOClient.identify(user.id, {
-                email,
-              }),
-            );
+            // waitUntil(
+            //   CustomerIOClient.identify(user.id, {
+            //     email,
+            //   }),
+            // );
           }
         }
       } else if (

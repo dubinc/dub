@@ -8,7 +8,6 @@ import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-conv
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { flattenValidationErrors } from "next-safe-action";
 import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
@@ -187,9 +186,9 @@ export const createUserAccountAction = actionClient
 
         // Set onboarding step to completed (outside transaction as it's Redis)
         redis.set(`onboarding-step:${generatedUserId}`, "completed"),
-        CustomerIOClient.identify(generatedUserId, {
-          email,
-        }),
+        // CustomerIOClient.identify(generatedUserId, {
+        //   email,
+        // }),
         // sendEmail({
         //   email: email,
         //   subject: "Welcome to GetQR",

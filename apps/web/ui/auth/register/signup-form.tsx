@@ -10,16 +10,18 @@ import {
 } from "core/integration/analytic/services/analytic.service.ts";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
 
-export const SignUpForm = ({
-  sessionId,
-  methods = ["email", "google"],
-}: {
+interface ISignUpFormProps {
   sessionId: string;
   methods?: ("email" | "google")[];
+}
+
+export const SignUpForm: FC<Readonly<ISignUpFormProps>> = ({
+  sessionId,
+  methods = ["email", "google"],
 }) => {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);

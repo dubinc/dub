@@ -25,7 +25,7 @@ const PaywallPage: NextPage<IPaywallPageProps> = async ({ searchParams }) => {
 
   if (user_token) {
     const decodedUserData = decodeUserMarketingToken(user_token);
-    console.log("PaywallPage decodedUserData", decodedUserData);
+
     return (
       <UserTokenReadingComponent
         id={decodedUserData.id}
