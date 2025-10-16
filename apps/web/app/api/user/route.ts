@@ -58,12 +58,16 @@ export const GET = withSession(async ({ session }) => {
     }),
   ]);
 
-  const hasMoreThan30QRScans = await prisma.link.findFirst({
+  const mostScannedLink = await prisma.link.findFirst({
     where: {
       userId: session.user.id,
-      clicks: { gte: 30 },
     },
-    select: { id: true },
+    orderBy: {
+      clicks: 'desc',
+    },
+    select: {
+      clicks: true,
+    },
   });
 
   const { subscriptions } =
@@ -79,14 +83,16 @@ export const GET = withSession(async ({ session }) => {
     Date.now() - new Date(activeSubscription?.plan.createdAt).getTime() >=
       7 * 24 * 60 * 60 * 1000;
   const showNPS =
-    !user?.hasRated && (hasMoreThan30QRScans || passed7DaysAfterSubscription);
+    !user?.hasRated && (mostScannedLink?.clicks as number > 30 || passed7DaysAfterSubscription);
+
+  const trigger = showNPS ? passed7DaysAfterSubscription ? 'sub_active_days' : 'scans' : null;
 
   return NextResponse.json({
     ...user,
     provider: account?.provider,
     hasPassword: user?.passwordHash !== null,
     passwordHash: undefined,
-    showNPS,
+    nps: {show: showNPS, trigger },
   });
 });
 

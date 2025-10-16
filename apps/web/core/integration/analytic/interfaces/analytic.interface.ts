@@ -31,8 +31,7 @@ export enum EAnalyticEvents {
 
   EMAIL_SUBMITTED = "emailSubmitted",
 
-  NPS_FEEDBACK = "npsFeedback",
-  NPS_RATING = "npsRating"
+  NPS_FEEDBACK = "userFeedback",
 }
 
 // purchase related events

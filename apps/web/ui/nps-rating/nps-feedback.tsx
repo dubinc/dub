@@ -1,17 +1,18 @@
 "use client"
 
-import { FC, useState } from "react"
+import { FC, useEffect, useState } from "react"
 import { X } from "lucide-react"
 import { Button } from "@dub/ui"
 import { TextArea } from "@radix-ui/themes"
 
 interface INpsFeedback {
-  rating: number
-  handleFeedbackAnswer: (arg1?: string) => void
-  closeFeedback: () => void
+  rating: number;
+  handleFeedbackAnswer: (arg1?: string) => void;
+  closeFeedback: () => void;
+  fireOpenEvent: (element_no: number) => void;
 }
 
-export const NpsFeedback: FC<INpsFeedback> = ({ rating, handleFeedbackAnswer, closeFeedback }) => {
+export const NpsFeedback: FC<INpsFeedback> = ({ rating, handleFeedbackAnswer, closeFeedback, fireOpenEvent }) => {
   const [feedback, setFeedback] = useState("")
 
   const getFeedbackText = (rating: number) => {
@@ -25,6 +26,10 @@ export const NpsFeedback: FC<INpsFeedback> = ({ rating, handleFeedbackAnswer, cl
 
     handleFeedbackAnswer(feedback)
   }
+
+  useEffect(() => {
+    fireOpenEvent(2)
+  }, [])
  
   return (
     <div className="fixed bottom-4 right-0 w-fit max-w-2xl z-50">

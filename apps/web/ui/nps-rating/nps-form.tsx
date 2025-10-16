@@ -3,6 +3,7 @@
 import useUser from "@/lib/swr/use-user.ts";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useFeedback } from "./hooks/use-nps-feedback";
@@ -15,12 +16,19 @@ export function NpsForm() {
   const [hasClosed, setHasClosed] = useState(false);
   const { user } = useUser();
   const { leaveFeedback } = useFeedback();
+  const pathname = usePathname();
+  const profilePaths = ["/account/settings", "/account/plans"];
+  const pageName = profilePaths.includes(pathname) ? "profile" : "dashboard";
 
   const handleFeedbackAnswer = async (feedback?: string) => {
     trackClientEvents({
       event: EAnalyticEvents.NPS_FEEDBACK,
       params: {
-        feedback,
+        page_name: pageName,
+        flow_type: "nps",
+        content_value: feedback,
+        content_group: 2,
+        trigger: user?.nps.trigger,
       },
       sessionId: user?.id,
     });
@@ -29,17 +37,48 @@ export function NpsForm() {
 
   const handleRatingClick = async (selectedRating: number) => {
     setRating(selectedRating);
-    const success = await leaveFeedback(selectedRating, user?.id);
-    if (!success) {
+    const success = await leaveFeedback();
+    if (success) {
+      trackClientEvents({
+        event: EAnalyticEvents.NPS_FEEDBACK,
+        params: {
+          page_name: pageName,
+          flow_type: "nps",
+          content_value: selectedRating.toString(),
+          content_group: 1,
+          trigger: user?.nps.trigger,
+        },
+        sessionId: user?.id,
+      });
+      setShowFeedback(true);
+    } else {
       setHasClosed(true);
       toast.error("Failed to leave a feedback");
     }
-    setShowFeedback(true);
   };
 
-  if (!user?.showNPS || hasClosed) return null;
+  const fireOpenEvent = (element_no: number) => {
+    trackClientEvents({
+      event: EAnalyticEvents.ELEMENT_OPENED,
+      params: {
+        page_name: pageName,
+        element_name: "nps",
+        element_no,
+        trigger: user?.nps.trigger,
+      },
+      sessionId: user?.id,
+    });
+  };
 
-  if (!rating) return <NpsRating handleRatingClick={handleRatingClick} />;
+  if (!user?.nps.show || hasClosed) return null;
+
+  if (!rating)
+    return (
+      <NpsRating
+        handleRatingClick={handleRatingClick}
+        fireOpenEvent={fireOpenEvent}
+      />
+    );
 
   if (showFeedback)
     return (
@@ -47,6 +86,7 @@ export function NpsForm() {
         rating={rating}
         handleFeedbackAnswer={handleFeedbackAnswer}
         closeFeedback={() => setHasClosed(true)}
+        fireOpenEvent={fireOpenEvent}
       />
     );
 

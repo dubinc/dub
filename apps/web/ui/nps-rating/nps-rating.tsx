@@ -1,12 +1,20 @@
 "use client";
 
-import { FC } from "react";
+import { FC, useEffect } from "react";
 
 interface INpsRatingProps {
   handleRatingClick: (rating: number) => void;
+  fireOpenEvent: (element_no: number) => void;
 }
 
-export const NpsRating: FC<INpsRatingProps> = ({ handleRatingClick }) => {
+export const NpsRating: FC<INpsRatingProps> = ({
+  handleRatingClick,
+  fireOpenEvent,
+}) => {
+  useEffect(() => {
+    fireOpenEvent(1);
+  }, []);
+
   return (
     <div className="fixed bottom-4 right-0 z-50 w-min max-w-full md:bottom-6 md:right-6">
       <div className="w-full px-4">
