@@ -14,6 +14,7 @@ import {
   PaperPlane,
   RichTextArea,
   StatusBadge,
+  Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
@@ -34,11 +35,47 @@ import { isValidTriggerCondition } from "./utils";
 const inputClassName =
   "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
 
+const getInputClassName = (disabled: boolean) =>
+  disabled
+    ? "h-8 w-full rounded-md border border-transparent px-1.5 py-0 pr-8 text-sm cursor-not-allowed"
+    : inputClassName;
+
 const labelClassName = "text-sm font-medium text-content-subtle";
+
+const DisabledInputWrapper = ({
+  children,
+  tooltip,
+  disabled = false,
+  hideIcon = false,
+}: {
+  children: React.ReactNode;
+  tooltip: string;
+  disabled?: boolean;
+  hideIcon?: boolean;
+}) => {
+  if (!disabled) {
+    return <>{children}</>;
+  }
+
+  return (
+    <Tooltip content={tooltip}>
+      <div className="relative">
+        <div className="pointer-events-none select-none opacity-80">
+          {children}
+        </div>
+        {!hideIcon && (
+          <Lock className="absolute right-2 top-1/2 size-3 -translate-y-1/2 text-neutral-400" />
+        )}
+      </div>
+    </Tooltip>
+  );
+};
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+
+  const isActive = campaign.status === CampaignStatus.active;
 
   const { makeRequest, isSubmitting: isSavingCampaign } =
     useApiMutation<Campaign>();
@@ -239,27 +276,42 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               control={control}
               name="groupIds"
               render={({ field }) => (
-                <CampaignGroupsSelector
-                  selectedGroupIds={field.value ?? null}
-                  setSelectedGroupIds={field.onChange}
-                />
+                <DisabledInputWrapper
+                  tooltip="Cannot change recipients while campaign is active. Pause the campaign to make changes."
+                  disabled={isActive}
+                >
+                  <CampaignGroupsSelector
+                    selectedGroupIds={field.value ?? null}
+                    setSelectedGroupIds={field.onChange}
+                  />
+                </DisabledInputWrapper>
               )}
             />
 
             <label className="contents">
               <span className={labelClassName}>Subject</span>
-              <input
-                type="text"
-                placeholder="Enter a subject..."
-                className={inputClassName}
-                {...register("subject")}
-              />
+              <DisabledInputWrapper
+                tooltip="Cannot change subject while campaign is active. Pause the campaign to make changes."
+                disabled={isActive}
+              >
+                <input
+                  type="text"
+                  placeholder="Enter a subject..."
+                  className={getInputClassName(isActive)}
+                  {...register("subject")}
+                />
+              </DisabledInputWrapper>
             </label>
 
             {campaign.type === "transactional" && (
               <>
                 <span className={labelClassName}>Logic</span>
-                <TransactionalCampaignLogic />
+                <DisabledInputWrapper
+                  tooltip="Cannot change trigger logic while campaign is active. Pause the campaign to make changes."
+                  disabled={isActive}
+                >
+                  <TransactionalCampaignLogic />
+                </DisabledInputWrapper>
               </>
             )}
           </div>
@@ -269,46 +321,52 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               control={control}
               name="bodyJson"
               render={({ field }) => (
-                <RichTextArea
-                  ref={editorRef}
-                  editorClassName="-m-2 min-h-[200px] p-2"
-                  initialValue={field.value}
-                  onChange={(editor) => field.onChange(editor.getJSON())}
-                  variables={[...EMAIL_TEMPLATE_VARIABLES]}
-                  uploadImage={async (file) => {
-                    try {
-                      const result = await executeImageUpload({
-                        workspaceId: workspaceId!,
-                      });
+                <DisabledInputWrapper
+                  tooltip="Cannot change email content while campaign is active. Pause the campaign to make changes."
+                  disabled={isActive}
+                  hideIcon
+                >
+                  <RichTextArea
+                    ref={editorRef}
+                    editorClassName="-m-2 min-h-[200px] p-2"
+                    initialValue={field.value}
+                    onChange={(editor) => field.onChange(editor.getJSON())}
+                    variables={[...EMAIL_TEMPLATE_VARIABLES]}
+                    uploadImage={async (file) => {
+                      try {
+                        const result = await executeImageUpload({
+                          workspaceId: workspaceId!,
+                        });
 
-                      if (!result?.data) {
-                        throw new Error("Failed to get signed upload URL");
+                        if (!result?.data) {
+                          throw new Error("Failed to get signed upload URL");
+                        }
+
+                        const { signedUrl, destinationUrl } = result.data;
+
+                        const uploadResponse = await fetch(signedUrl, {
+                          method: "PUT",
+                          body: file,
+                          headers: {
+                            "Content-Type": file.type,
+                            "Content-Length": file.size.toString(),
+                          },
+                        });
+
+                        if (!uploadResponse.ok) {
+                          throw new Error("Failed to upload to signed URL");
+                        }
+
+                        return destinationUrl;
+                      } catch (e) {
+                        console.error("Failed to upload image", e);
+                        toast.error("Failed to upload image");
                       }
 
-                      const { signedUrl, destinationUrl } = result.data;
-
-                      const uploadResponse = await fetch(signedUrl, {
-                        method: "PUT",
-                        body: file,
-                        headers: {
-                          "Content-Type": file.type,
-                          "Content-Length": file.size.toString(),
-                        },
-                      });
-
-                      if (!uploadResponse.ok) {
-                        throw new Error("Failed to upload to signed URL");
-                      }
-
-                      return destinationUrl;
-                    } catch (e) {
-                      console.error("Failed to upload image", e);
-                      toast.error("Failed to upload image");
-                    }
-
-                    return null;
-                  }}
-                />
+                      return null;
+                    }}
+                  />
+                </DisabledInputWrapper>
               )}
             />
           </div>
