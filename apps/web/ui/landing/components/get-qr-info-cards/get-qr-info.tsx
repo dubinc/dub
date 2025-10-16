@@ -15,30 +15,35 @@ const GET_QR_CARDS_IMGS = [
 
 export const GetQRInfoCardsSection: FC = () => {
   return (
-    <section className="mx-auto flex max-w-[1172px] flex-col items-center justify-between gap-6 px-3 py-10 lg:gap-10 lg:py-14">
-      <SectionTitle
-        titleFirstPart={"Create Your"}
-        highlightedTitlePart={"QR Code"}
-        titleSecondPart={"in Three Simple Steps"}
-      />
-      <div className="gap flex flex-col items-stretch justify-center gap-4 md:flex-row md:gap-6">
-        {GET_QR_CARDS.map((card, idx) => (
-          <InfoCard
-            key={idx}
-            title={card.title}
-            content={card.content}
-            img={
-              <Image
-                className="w-full self-center"
-                height={138}
-                width={122}
-                src={GET_QR_CARDS_IMGS[idx]}
-                alt="Get QR Info Card"
-              />
-            }
-            cardNumber={idx + 1}
+    <section className="py-8 sm:py-16 lg:py-24">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-12 flex flex-col items-center justify-center gap-6 sm:mb-16 lg:mb-24 lg:gap-10">
+          <SectionTitle
+            titleFirstPart={"Create Your"}
+            highlightedTitlePart={"QR Code"}
+            titleSecondPart={"in Three Simple Steps"}
           />
-        ))}
+        </div>
+
+        <div className="flex flex-col items-stretch justify-center gap-6 md:flex-row">
+          {GET_QR_CARDS.map((card, idx) => (
+            <InfoCard
+              key={idx}
+              title={card.title}
+              content={card.content}
+              img={
+                <Image
+                  className="w-full self-center"
+                  height={138}
+                  width={122}
+                  src={GET_QR_CARDS_IMGS[idx]}
+                  alt="Get QR Info Card"
+                />
+              }
+              cardNumber={idx + 1}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

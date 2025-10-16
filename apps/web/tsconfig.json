@@ -10,7 +10,9 @@
       "@/pages/*": ["pages/*"],
       "@/styles/*": ["styles/*"],
       "@/ui/*": ["ui/*"],
-      "@/lib/*": ["lib/*"]
+      "@/lib/*": ["lib/*"],
+      "@/components/*": ["components/*"],
+      "@/hooks/*": ["hooks/*"]
     },
     "downlevelIteration": true,
     "forceConsistentCasingInFileNames": true,

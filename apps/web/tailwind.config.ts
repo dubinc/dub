@@ -1,13 +1,15 @@
 import sharedConfig from "@dub/tailwind-config/tailwind.config";
 import type { Config } from "tailwindcss";
 
-const config: Pick<Config, "presets"> = {
+const config: Pick<Config, "presets" | "plugins"> = {
+  plugins: [require("tailwindcss-animate")],
   presets: [
     {
       ...sharedConfig,
       content: [
         "./app/**/*.{js,ts,jsx,tsx}",
         "./ui/**/*.{js,ts,jsx,tsx}",
+        "./components/**/*.{js,ts,jsx,tsx}",
         "../../packages/ui/src/**/*{.js,.ts,.jsx,.tsx}",
         "../../packages/blocks/src/**/*{.js,.ts,.jsx,.tsx}",
       ],
@@ -21,6 +23,7 @@ const config: Pick<Config, "presets"> = {
               200: "#F2F7F7",
               300: "#DBF2F2",
               800: "#004D4D",
+              foreground: "hsl(var(--primary-foreground))",
             },
             secondary: {
               DEFAULT: "#0066CC",
@@ -28,6 +31,7 @@ const config: Pick<Config, "presets"> = {
               800: "#0052A3",
               text: "#1E293B",
               textMuted: "#2C3345",
+              foreground: "hsl(var(--secondary-foreground))",
             },
             neutral: {
               DEFAULT: "#212121",
@@ -48,6 +52,41 @@ const config: Pick<Config, "presets"> = {
             background: {
               DEFAULT: "#FAFAFA",
             },
+            foreground: "hsl(var(--foreground))",
+            card: {
+              DEFAULT: "hsl(var(--card))",
+              foreground: "hsl(var(--card-foreground))",
+            },
+            popover: {
+              DEFAULT: "hsl(var(--popover))",
+              foreground: "hsl(var(--popover-foreground))",
+            },
+            muted: {
+              DEFAULT: "hsl(var(--muted))",
+              foreground: "hsl(var(--muted-foreground))",
+            },
+            accent: {
+              DEFAULT: "hsl(var(--accent))",
+              foreground: "hsl(var(--accent-foreground))",
+            },
+            destructive: {
+              DEFAULT: "hsl(var(--destructive))",
+              foreground: "hsl(var(--destructive-foreground))",
+            },
+            input: "hsl(var(--input))",
+            ring: "hsl(var(--ring))",
+            chart: {
+              "1": "hsl(var(--chart-1))",
+              "2": "hsl(var(--chart-2))",
+              "3": "hsl(var(--chart-3))",
+              "4": "hsl(var(--chart-4))",
+              "5": "hsl(var(--chart-5))",
+            },
+          },
+          borderRadius: {
+            lg: "var(--radius)",
+            md: "calc(var(--radius) - 2px)",
+            sm: "calc(var(--radius) - 4px)",
           },
           backgroundImage: {
             "qr-gradient":
@@ -61,6 +100,8 @@ const config: Pick<Config, "presets"> = {
               "scrolling-banner var(--duration) linear infinite",
             "scrolling-banner-vertical":
               "scrolling-banner-vertical var(--duration) linear infinite",
+            "marquee-horizontal": "marquee-horizontal var(--marquee-duration, 40s) linear infinite",
+            "marquee-vertical": "marquee-vertical var(--marquee-duration, 40s) linear infinite",
             "text-appear": "text-appear 0.15s ease",
             "table-pinned-shadow":
               "table-pinned-shadow cubic-bezier(0, 0, 1, 0)",
@@ -112,6 +153,14 @@ const config: Pick<Config, "presets"> = {
             "gradient-move": {
               "0%": { backgroundPosition: "0% 50%" },
               "100%": { backgroundPosition: "200% 50%" },
+            },
+            "marquee-horizontal": {
+              from: { transform: "translateX(0)" },
+              to: { transform: "translateX(calc(-100% - var(--marquee-gap, 1rem)))" },
+            },
+            "marquee-vertical": {
+              from: { transform: "translateY(0)" },
+              to: { transform: "translateY(calc(-100% - var(--marquee-gap, 1rem)))" },
             },
           },
         },
