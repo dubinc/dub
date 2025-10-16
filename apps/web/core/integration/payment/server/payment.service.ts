@@ -17,9 +17,11 @@ import {
   ICheckSystemSubscriptionStatusBody,
   ICreateSystemTokenOnboardingBody,
   IGetSystemUserDataBody,
+  IReactivateSystemSubscriptionBody,
   IUpdateSystemPaymentMethodBody,
   IUpdateSystemSubscriptionBody,
   IUpdateUserSystemDataBody,
+  reactivateSystemSubscription,
   updateSystemSubscriptionPaymentMethod,
   updateSystemSubscriptionStatus,
   updateUserSystemData,
@@ -86,6 +88,14 @@ export class PaymentService {
     body: ICheckSystemSubscriptionStatusBody,
   ) {
     return await checkSystemSubscriptionStatus(body);
+  }
+
+  // reactivate client subscription
+  public async reactivateClientSubscription(
+    id: string,
+    body: IReactivateSystemSubscriptionBody,
+  ) {
+    return await reactivateSystemSubscription(id, body);
   }
 
   // create client one time payment

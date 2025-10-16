@@ -16,6 +16,7 @@ interface IAnalyticInitializerProps {
 }
 
 export const AnalyticInitializerComponent = ({
+  sessionId,
   authSession,
 }: IAnalyticInitializerProps) => {
   const { searchParams, changeQuery } = useQuerySearchParams();
@@ -25,7 +26,7 @@ export const AnalyticInitializerComponent = ({
     startSessionRecording();
 
     if (!authSession || !authSession?.user) {
-      // initPeopleAnalytic(sessionId);
+      initPeopleAnalytic(sessionId);
 
       if (fromEmailQuery && fromEmailQuery === "true") {
         localStorage.setItem("fromEmailQuery", "true");

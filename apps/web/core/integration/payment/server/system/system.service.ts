@@ -10,6 +10,8 @@ import {
   IGetSystemUserDataBody,
   IGetSystemUserDataRes,
   IGetSystemUserProcessorRes,
+  IReactivateSystemSubscriptionBody,
+  IReactivateSystemSubscriptionRes,
   IUpdateSystemPaymentMethodBody,
   IUpdateSystemSubscriptionBody,
   IUpdateSystemSubscriptionRes,
@@ -79,6 +81,34 @@ export const updateSystemSubscriptionStatus = async (
       text: "updateSystemSubscriptionStatus error",
       value: errorMsg,
     });
+    throw new Error(errorMsg);
+  }
+};
+
+// reactivate system subscription
+export const reactivateSystemSubscription = async (
+  id: string,
+  body: IReactivateSystemSubscriptionBody,
+) => {
+  try {
+    const res = await ky.post<IReactivateSystemSubscriptionRes>(
+      `${systemUrl}/subscriptions/${id}/reactivate`,
+      {
+        headers: systemHeaders,
+        json: body,
+      },
+    );
+    const data = await res.json();
+    debugUtil({ text: "reactivateSystemSubscription", value: data });
+
+    return data;
+  } catch (error: any) {
+    const errorMsg =
+      error?.response?.body?.error?.message ||
+      error?.message ||
+      "Something went wrong";
+
+    debugUtil({ text: "reactivateSystemSubscription error", value: errorMsg });
     throw new Error(errorMsg);
   }
 };

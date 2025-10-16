@@ -21,7 +21,7 @@ import {
   updateUserCookieService,
 } from "core/services/cookie/user-session.service.ts";
 import { getUserIp } from "core/util/user-ip.util.ts";
-import { format, differenceInCalendarDays } from "date-fns";
+import { differenceInCalendarDays, format } from "date-fns";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -176,13 +176,18 @@ export const POST = withSession(
         },
       );
 
+      if (subscription.status === "cancelled") {
+        await paymentService.reactivateClientSubscription(
+          subscription?.id || paymentData?.paymentInfo?.subscriptionId || "",
+          { skipFirstPayment: true, skipTrial: true },
+        );
+      }
+
       const subDataAfterUpdate =
         await paymentService.getClientSubscriptionDataByEmail({ email: email });
       const newSubData = subDataAfterUpdate.subscriptions.at(
         -1,
       ) as IGetSystemUserDataRes["subscriptions"][0];
-
-      console.log("sub data after update", newSubData);
 
       const carryoverDays = subscription?.nextBillingDate
         ? differenceInCalendarDays(

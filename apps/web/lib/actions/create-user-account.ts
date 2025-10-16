@@ -2,16 +2,12 @@
 
 import { verifyAndCreateUser } from "@/lib/actions/verify-and-create-user.ts";
 import { createQRTrackingParams } from "@/lib/analytic/create-qr-tracking-data.helper.ts";
-import { createAutoLoginURL } from "@/lib/auth/jwt-signin.ts";
 import { WorkspaceProps } from "@/lib/types.ts";
 import { ratelimit, redis } from "@/lib/upstash";
-import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { convertQrStorageDataToBuilder } from "@/ui/qr-builder/helpers/data-converters.ts";
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
-import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 import { flattenValidationErrors } from "next-safe-action";
 import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
@@ -134,13 +130,6 @@ export const createUserAccountAction = actionClient
       );
     }
 
-    console.log("loginUrl creation started");
-
-    const loginUrl = await createAutoLoginURL(generatedUserId);
-
-    console.log("loginUrl", loginUrl);
-    console.log("qrDataToCreate", qrDataToCreate);
-
     waitUntil(
       Promise.all([
         ...(qrDataToCreate
@@ -197,14 +186,9 @@ export const createUserAccountAction = actionClient
 
         // Set onboarding step to completed (outside transaction as it's Redis)
         redis.set(`onboarding-step:${generatedUserId}`, "completed"),
-        CustomerIOClient.identify(generatedUserId, {
-          email,
-          env:
-            !process.env.NEXT_PUBLIC_APP_ENV ||
-            process.env.NEXT_PUBLIC_APP_ENV === "dev"
-              ? "development"
-              : undefined,
-        }),
+        // CustomerIOClient.identify(generatedUserId, {
+        //   email,
+        // }),
         // sendEmail({
         //   email: email,
         //   subject: "Welcome to GetQR",

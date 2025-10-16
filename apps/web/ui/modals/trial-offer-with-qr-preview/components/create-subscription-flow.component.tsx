@@ -21,33 +21,33 @@ import {
   TPaymentPlan,
 } from "core/integration/payment/config";
 import { generateCheckoutFormPaymentEvents } from "core/services/events/checkout-form-events.service.ts";
-import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FC, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { mutate } from "swr";
 
 interface ICreateSubscriptionProps {
   user: ICustomerBody;
   isPaidTraffic: boolean;
+  onSubscriptionCreating: () => Promise<void>;
   onSubcriptionCreated: () => void;
+  onSignupError: (error: any) => void;
 }
 
-const pageName = "dashboard";
+const pageName = "paywall";
 const trialPaymentPlan: TPaymentPlan = "PRICE_TRIAL_MONTH_PLAN";
 const subPaymentPlan: TPaymentPlan = "PRICE_MONTH_PLAN";
 
 export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   user,
   isPaidTraffic,
+  onSubscriptionCreating,
   onSubcriptionCreated,
+  onSignupError,
 }) => {
   const router = useRouter();
   const paymentTypeRef = useRef<string | null>(null);
   const [isSubscriptionCreation, setIsSubscriptionCreation] = useState(false);
-
-  const { update: updateSession } = useSession();
 
   const { trigger: triggerCreateSubscription } =
     useCreateSubscriptionMutation();
@@ -141,6 +141,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
   const handlePaymentSuccess = async (data: ICheckoutFormSuccess) => {
     setIsSubscriptionCreation(true);
 
+    await onSubscriptionCreating?.();
+
     const res = await triggerCreateSubscription({
       payment: {
         id: data.payment.id,
@@ -160,12 +162,19 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       setIsSubscriptionCreation(false);
       toast.error("Subscription creation failed!");
 
+
+      const errorData = {
+        code: "SUBSCRIPTION_CREATION_FAILED",
+        message: "Subscription creation failed!",
+      };
+
+      onSignupError(errorData)
+
       return generateCheckoutFormPaymentEvents({
         user,
         data: {
           ...data,
-          code: "SUBSCRIPTION_CREATION_FAILED",
-          message: "Subscription creation failed!",
+          ...errorData,
           ...res,
         },
         planCode: subPaymentPlan,
@@ -198,10 +207,6 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       toxic: res?.data?.toxic,
     });
 
-    // Force session update with trigger to refresh user data from DB
-    await updateSession();
-    await mutate("/api/user");
-
     router.refresh();
 
     onSubcriptionCreated?.();
@@ -221,6 +226,8 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     };
 
     setIsSubscriptionCreation(false);
+
+    onSignupError(eventData)
 
     generateCheckoutFormPaymentEvents({
       user,
