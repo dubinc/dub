@@ -1,4 +1,5 @@
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
+import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
@@ -33,7 +34,7 @@ import {
   ToggleGroup,
   useRouterStuff,
 } from "@dub/ui";
-import { cn, formatDate } from "@dub/utils";
+import { cn, formatDate, nFormatter } from "@dub/utils";
 import { Dispatch, SetStateAction, useMemo, useState } from "react";
 import {
   Controller,
@@ -384,8 +385,8 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     }
 
     // Description validation
-    if (description && description.length > 500) {
-      return "Description must be 500 characters or less.";
+    if (description && description.length > BOUNTY_DESCRIPTION_MAX_LENGTH) {
+      return `Description must be ${BOUNTY_DESCRIPTION_MAX_LENGTH} characters or less.`;
     }
 
     return null;
@@ -800,7 +801,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         <textarea
                           id="description"
                           rows={3}
-                          maxLength={500}
+                          maxLength={BOUNTY_DESCRIPTION_MAX_LENGTH}
                           className={cn(
                             "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                             errors.description &&
@@ -814,7 +815,10 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
                         />
                         <div className="mt-1 text-left">
                           <span className="text-xs text-neutral-400">
-                            {description?.length || 0}/500
+                            {description?.length || 0} /{" "}
+                            {nFormatter(BOUNTY_DESCRIPTION_MAX_LENGTH, {
+                              full: true,
+                            })}
                           </span>
                         </div>
                       </div>
