@@ -1,5 +1,6 @@
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@dub/email";
+import ConnectedPayoutMethod from "@dub/email/templates/connected-payout-method";
 import DuplicatePayoutMethod from "@dub/email/templates/duplicate-payout-method";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
@@ -56,6 +57,7 @@ export async function accountUpdated(event: Stripe.Event) {
     return `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`;
   }
 
+  let duplicatePayoutMethod = false;
   try {
     await prisma.partner.update({
       where: {
@@ -71,31 +73,40 @@ export async function accountUpdated(event: Stripe.Event) {
     });
     return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${defaultExternalAccount.fingerprint}`;
   } catch (error) {
-    if (
-      error.code === "P2002" &&
-      defaultExternalAccount.object === "bank_account"
-    ) {
-      const res = await sendEmail({
-        variant: "notifications",
-        subject: "Duplicate payout method detected",
-        to: partner.email!,
-        react: DuplicatePayoutMethod({
-          email: partner.email!,
-          payoutMethod: {
-            account_holder_name: defaultExternalAccount.account_holder_name,
-            bank_name: defaultExternalAccount.bank_name,
-            last4: defaultExternalAccount.last4,
-            routing_number: defaultExternalAccount.routing_number,
-          },
-        }),
+    if (error.code === "P2002") {
+      duplicatePayoutMethod = true;
+    } else {
+      await log({
+        message: `Error updating partner ${partner.email} (${partner.stripeConnectId}): ${error}`,
+        type: "errors",
       });
-      console.log(res);
-      return `Notified partner ${partner.email} (${partner.stripeConnectId}) about duplicate payout method`;
+      return `Error updating partner ${partner.email} (${partner.stripeConnectId}): ${error}`;
     }
-    await log({
-      message: `Error updating partner ${partner.email} (${partner.stripeConnectId}): ${error}`,
-      type: "errors",
+  }
+
+  if (defaultExternalAccount.object === "bank_account") {
+    const EmailTemplate = duplicatePayoutMethod
+      ? DuplicatePayoutMethod
+      : ConnectedPayoutMethod;
+
+    const res = await sendEmail({
+      variant: "notifications",
+      subject: duplicatePayoutMethod
+        ? "Duplicate payout method detected"
+        : "Successfully connected payout method",
+      to: partner.email!,
+      react: EmailTemplate({
+        email: partner.email!,
+        payoutMethod: {
+          account_holder_name: defaultExternalAccount.account_holder_name,
+          bank_name: defaultExternalAccount.bank_name,
+          last4: defaultExternalAccount.last4,
+          routing_number: defaultExternalAccount.routing_number,
+        },
+      }),
     });
-    return `Error updating partner ${partner.email} (${partner.stripeConnectId}): ${error}`;
+    console.log(res);
+
+    return `Notified partner ${partner.email} (${partner.stripeConnectId}) about ${duplicatePayoutMethod ? "duplicate" : "connected"} payout method`;
   }
 }

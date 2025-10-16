@@ -16,7 +16,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function DuplicatePayoutMethod({
+export default function ConnectedPayoutMethod({
   email = "panic@thedis.co",
   payoutMethod = {
     account_holder_name: "Brendon Urie",
@@ -36,9 +36,7 @@ export default function DuplicatePayoutMethod({
   return (
     <Html>
       <Head />
-      <Preview>
-        Your payout method is already connected to another account
-      </Preview>
+      <Preview>Your payout method has been successfully connected</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -47,18 +45,18 @@ export default function DuplicatePayoutMethod({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-800">
-              Duplicate payout method detected
+              Successfully connected payout method
             </Heading>
 
             <Text className="mb-6 text-sm leading-6 text-neutral-600">
-              We've detected that the payout method you're trying to connect is
-              already associated with another Dub Partners account.
+              Great news! Your bank account has been successfully connected to
+              your Dub partner account. You're all set to receive payouts.
             </Text>
 
             {/* Payout Method Details Card */}
             <Section className="mb-6 rounded-lg border border-solid border-neutral-200 bg-neutral-50 p-4 pt-0">
               <Text className="mb-3 text-sm font-semibold text-neutral-800">
-                Payout method details
+                Connected payout method
               </Text>
 
               {payoutMethod.account_holder_name && (
@@ -104,65 +102,57 @@ export default function DuplicatePayoutMethod({
               )}
             </Section>
 
-            {/* What This Means Section */}
-            <Section className="mb-6 rounded-lg border border-solid border-blue-200 bg-blue-50 px-4 py-2">
-              <Text className="mb-3 text-sm font-semibold text-blue-800">
-                What does this mean?
-              </Text>
-              <Text className="text-sm leading-6 text-blue-700">
-                For security reasons, each payout method can only be connected
-                to one Dub partner account at a time. This helps us prevent
-                fraud and ensure payments reach the correct recipient.
-              </Text>
-            </Section>
-
-            {/* Next Steps */}
-            <Section className="mb-6">
-              <Text className="mb-3 text-base font-semibold text-neutral-800">
-                Next Steps
-              </Text>
-              <Text className="mb-3 text-sm leading-6 text-neutral-600">
-                <strong>1. Check your other accounts:</strong> This payout
-                method might already be connected to another Dub partner account
-                using a different email address.
-              </Text>
-              <Text className="mb-3 text-sm leading-6 text-neutral-600">
-                <strong>2. Merge your partner accounts:</strong> If you have
-                multiple partner accounts and need to consolidate them, you can
-                easily{" "}
-                <Link
-                  href="https://dub.co/help/article/merging-partner-accounts"
-                  className="font-semibold text-black underline"
-                >
-                  merge them in your Profile Settings
-                </Link>
-                .
-              </Text>
-              <Text className="mb-3 text-sm leading-6 text-neutral-600">
-                <strong>3. Connect a different payout method:</strong> If this
-                partner account is for a different entity, you can{" "}
-                <Link
-                  href="https://dub.co/help/article/receiving-payouts"
-                  className="font-semibold text-black underline"
-                >
-                  connect a different payout method
-                </Link>{" "}
-                to this account.
-              </Text>
-            </Section>
-
             {/* Action Buttons */}
             <Section className="mb-6">
               <Link
                 href="https://partners.dub.co/payouts"
                 className="box-border block w-full rounded-md bg-black px-0 py-3 text-center text-sm font-medium leading-none text-white no-underline"
               >
-                Update payout method
+                View payouts dashboard
               </Link>
-              {/* Additional Info */}
-              <Text className="text-xs leading-5 text-neutral-500">
-                If you believe this is an error or need help resolving this
-                issue, simply reply to this email and we'd be happy to help.
+            </Section>
+
+            {/* Next Steps */}
+            <Section>
+              <Text className="mb-3 text-base font-semibold text-neutral-800">
+                What's next?
+              </Text>
+              <Text className="mb-4 text-sm leading-6 text-gray-600">
+                <strong className="font-medium text-black">
+                  1. Complete your partner profile
+                </strong>
+                : If you haven't already,{" "}
+                <Link
+                  href="https://ship.dub.co/partner-profile"
+                  className="font-semibold text-black underline underline-offset-4"
+                >
+                  complete your partner profile
+                </Link>
+                . This will help you stand out from other partners in our
+                partner network.
+              </Text>
+
+              <Text className="mb-4 text-sm leading-6 text-gray-600">
+                <strong className="font-medium text-black">
+                  2. Join a program
+                </strong>
+                : If you haven't already, join an affiliate program and start
+                earning commissions for your referrals
+              </Text>
+
+              <Text className="mb-4 text-sm leading-6 text-gray-600">
+                <strong className="font-medium text-black">
+                  3. Start sharing your links
+                </strong>
+                : Once you've joined a program, you can start sharing and
+                creating additional referral links.
+              </Text>
+
+              <Text className="text-sm leading-6 text-gray-600">
+                <strong className="font-medium text-black">
+                  4. Track your performance
+                </strong>
+                : Monitor traffic and earnings with real-time analytics
               </Text>
             </Section>
 
