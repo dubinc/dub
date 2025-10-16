@@ -23,10 +23,7 @@ export async function accountUpdated(event: Stripe.Event) {
   });
 
   if (!partner) {
-    console.error(
-      `Partner not found by stripeConnectId ${account.id} in accountUpdated`,
-    );
-    return;
+    return `Partner with stripeConnectId ${account.id} not found, skipping...`;
   }
 
   if (!payouts_enabled) {
@@ -39,10 +36,7 @@ export async function accountUpdated(event: Stripe.Event) {
         payoutMethodHash: null,
       },
     });
-    console.log(
-      `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt and payoutMethodHash null`,
-    );
-    return;
+    return `Payouts disabled, updated partner ${partner.email} (${partner.stripeConnectId}) with payoutsEnabledAt and payoutMethodHash null`;
   }
 
   const { data: externalAccounts } = await stripe.accounts.listExternalAccounts(
@@ -59,7 +53,7 @@ export async function accountUpdated(event: Stripe.Event) {
       message: `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`,
       type: "errors",
     });
-    return;
+    return `Expected at least 1 external account for partner ${partner.email} (${partner.stripeConnectId}), none found`;
   }
 
   try {
@@ -75,6 +69,7 @@ export async function accountUpdated(event: Stripe.Event) {
         payoutMethodHash: defaultExternalAccount.fingerprint,
       },
     });
+    return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${defaultExternalAccount.fingerprint}`;
   } catch (error) {
     if (
       error.code === "P2002" &&
@@ -94,15 +89,13 @@ export async function accountUpdated(event: Stripe.Event) {
           },
         }),
       });
-      console.log(
-        `Notified partner ${partner.email} (${partner.stripeConnectId}) about duplicate payout method`,
-        res,
-      );
-      return;
+      console.log(res);
+      return `Notified partner ${partner.email} (${partner.stripeConnectId}) about duplicate payout method`;
     }
     await log({
       message: `Error updating partner ${partner.email} (${partner.stripeConnectId}): ${error}`,
       type: "errors",
     });
+    return `Error updating partner ${partner.email} (${partner.stripeConnectId}): ${error}`;
   }
 }

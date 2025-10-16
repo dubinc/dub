@@ -1,12 +1,14 @@
 import { stripe } from "@/lib/stripe";
 import { log } from "@dub/utils";
-import { NextResponse } from "next/server";
+import { logAndRespond } from "app/(ee)/api/cron/utils";
 import Stripe from "stripe";
+import { accountApplicationDeauthorized } from "./account-application-deauthorized";
 import { accountUpdated } from "./account-updated";
 import { balanceAvailable } from "./balance-available";
 import { payoutPaid } from "./payout-paid";
 
 const relevantEvents = new Set([
+  "account.application.deauthorized",
   "account.updated",
   "balance.available",
   "payout.paid",
@@ -36,16 +38,20 @@ export const POST = async (req: Request) => {
     });
   }
 
+  let response = "OK";
   try {
     switch (event.type) {
+      case "account.application.deauthorized":
+        response = await accountApplicationDeauthorized(event);
+        break;
       case "account.updated":
-        await accountUpdated(event);
+        response = await accountUpdated(event);
         break;
       case "balance.available":
-        await balanceAvailable(event);
+        response = await balanceAvailable(event);
         break;
       case "payout.paid":
-        await payoutPaid(event);
+        response = await payoutPaid(event);
         break;
     }
   } catch (error) {
@@ -59,5 +65,5 @@ export const POST = async (req: Request) => {
     });
   }
 
-  return NextResponse.json({ received: true });
+  return logAndRespond(`[${event.type}]: ${response}`);
 };
