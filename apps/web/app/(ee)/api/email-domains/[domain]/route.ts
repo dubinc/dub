@@ -1,4 +1,4 @@
-import { DubApiError } from "@/lib/api/errors";
+import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
@@ -15,25 +15,7 @@ export const GET = withWorkspace(
     const { domain } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const emailDomain = await prisma.emailDomain.findUnique({
-      where: {
-        slug: domain,
-      },
-    });
-
-    if (!emailDomain) {
-      throw new DubApiError({
-        message: `Email domain (${domain}) not found.`,
-        code: "not_found",
-      });
-    }
-
-    if (emailDomain.programId !== programId) {
-      throw new DubApiError({
-        message: `Email domain (${domain}) is not associated with the program.`,
-        code: "forbidden",
-      });
-    }
+    const emailDomain = await getEmailDomainOrThrow({ programId, domain });
 
     return NextResponse.json(EmailDomainSchema.parse(emailDomain));
   },
@@ -68,25 +50,7 @@ export const DELETE = withWorkspace(
     const { domain } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const emailDomain = await prisma.emailDomain.findUnique({
-      where: {
-        slug: domain,
-      },
-    });
-
-    if (!emailDomain) {
-      throw new DubApiError({
-        message: `Email domain (${domain}) not found.`,
-        code: "bad_request",
-      });
-    }
-
-    if (emailDomain.programId !== programId) {
-      throw new DubApiError({
-        message: `Email domain (${domain}) is not associated with the program.`,
-        code: "bad_request",
-      });
-    }
+    const emailDomain = await getEmailDomainOrThrow({ programId, domain });
 
     await prisma.emailDomain.delete({
       where: {
