@@ -2,6 +2,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { CampaignStatus } from "@dub/prisma/client";
 import {
@@ -52,6 +53,72 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
 
   const { DeleteCampaignModal, setShowDeleteCampaignModal } =
     useDeleteCampaignModal(campaign);
+
+  // Confirmation modals
+  const {
+    confirmModal: publishConfirmModal,
+    setShowConfirmModal: setShowPublishModal,
+  } = useConfirmModal({
+    title: "Publish Campaign",
+    description:
+      "Are you sure you want to publish this email campaign? It will be sent to all selected partner groups.",
+    onConfirm: async () => {
+      await updateCampaign(
+        {
+          ...getValues(),
+          status: CampaignStatus.active,
+        },
+        () => {
+          toast.success("Email campaign published!");
+          router.push(`/${workspaceSlug}/program/campaigns`);
+        },
+      );
+    },
+    confirmText: "Publish",
+    confirmShortcut: "Enter",
+  });
+
+  const {
+    confirmModal: pauseConfirmModal,
+    setShowConfirmModal: setShowPauseModal,
+  } = useConfirmModal({
+    title: "Pause Campaign",
+    description:
+      "Are you sure you want to pause this email campaign? It will stop sending emails to new recipients.",
+    onConfirm: async () => {
+      await updateCampaign(
+        {
+          status: CampaignStatus.paused,
+        },
+        () => {
+          toast.success("Email campaign paused!");
+        },
+      );
+    },
+    confirmText: "Pause",
+    confirmShortcut: "Enter",
+  });
+
+  const {
+    confirmModal: resumeConfirmModal,
+    setShowConfirmModal: setShowResumeModal,
+  } = useConfirmModal({
+    title: "Resume Campaign",
+    description:
+      "Are you sure you want to resume this email campaign? It will continue sending emails to remaining recipients.",
+    onConfirm: async () => {
+      await updateCampaign(
+        {
+          status: CampaignStatus.active,
+        },
+        () => {
+          toast.success("Email campaign resumed!");
+        },
+      );
+    },
+    confirmText: "Resume",
+    confirmShortcut: "Enter",
+  });
 
   const [name, subject, groupIds, bodyJson, status, triggerCondition] =
     useWatch({
@@ -120,17 +187,8 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return {
           text: "Publish",
           icon: PaperPlane,
-          onClick: async () => {
-            await updateCampaign(
-              {
-                ...getValues(),
-                status: CampaignStatus.active,
-              },
-              () => {
-                toast.success("Email campaign published!");
-                router.push(`/${workspaceSlug}/program/campaigns`);
-              },
-            );
+          onClick: () => {
+            setShowPublishModal(true);
           },
           loading: isUpdatingCampaign,
         };
@@ -138,15 +196,8 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return {
           text: "Pause",
           icon: MediaPause,
-          onClick: async () => {
-            await updateCampaign(
-              {
-                status: CampaignStatus.paused,
-              },
-              () => {
-                toast.success("Email campaign paused!");
-              },
-            );
+          onClick: () => {
+            setShowPauseModal(true);
           },
           loading: isUpdatingCampaign,
         };
@@ -154,15 +205,8 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return {
           text: "Resume",
           icon: MediaPlay,
-          onClick: async () => {
-            await updateCampaign(
-              {
-                status: CampaignStatus.active,
-              },
-              () => {
-                toast.success("Email campaign resumed!");
-              },
-            );
+          onClick: () => {
+            setShowResumeModal(true);
           },
           loading: isUpdatingCampaign,
         };
@@ -260,6 +304,11 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
 
       <SendEmailPreviewModal />
       <DeleteCampaignModal />
+
+      {/* Confirmation Modals */}
+      {publishConfirmModal}
+      {pauseConfirmModal}
+      {resumeConfirmModal}
     </>
   );
 }

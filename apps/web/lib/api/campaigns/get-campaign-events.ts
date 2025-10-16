@@ -29,12 +29,7 @@ export const getCampaignEvents = async ({
         },
       }),
     },
-    select: {
-      id: true,
-      createdAt: true,
-      openedAt: true,
-      bouncedAt: true,
-      deliveredAt: true,
+    include: {
       partner: {
         select: {
           id: true,
