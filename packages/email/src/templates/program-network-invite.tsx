@@ -1,6 +1,7 @@
 import { DUB_WORDMARK } from "@dub/utils";
 import {
   Body,
+  Column,
   Container,
   Head,
   Heading,
@@ -8,6 +9,7 @@ import {
   Img,
   Link,
   Preview,
+  Row,
   Section,
   Tailwind,
   Text,
@@ -22,6 +24,26 @@ export default function ProgramNetworkInvite({
     slug: "acme",
     logo: DUB_WORDMARK,
   },
+  rewards = [
+    {
+      icon: "https://assets.dub.co/email-assets/icons/invoice-dollar.png",
+      label: "Earn up to 65% per sale for 1 year",
+    },
+    {
+      icon: "https://assets.dub.co/email-assets/icons/gift.png",
+      label: "New users get 20% off for 3 months",
+    },
+  ],
+  bounties = [
+    {
+      icon: "https://assets.dub.co/email-assets/icons/heart.png",
+      label: "Create a YouTube video about Acme",
+    },
+    {
+      icon: "https://assets.dub.co/email-assets/icons/trophy.png",
+      label: "Earn $100 after generating $1,000 in revenue",
+    },
+  ],
 }: {
   email: string;
   name?: string;
@@ -30,6 +52,8 @@ export default function ProgramNetworkInvite({
     slug: string;
     logo: string | null;
   };
+  rewards: { icon: string; label: string }[] | null;
+  bounties: { icon: string; label: string }[] | null;
 }) {
   return (
     <Html>
@@ -46,7 +70,7 @@ export default function ProgramNetworkInvite({
               />
             </Section>
 
-            <Heading className="bt-5 mx-0 mt-10 p-0 text-lg font-medium text-black">
+            <Heading className="mx-0 mt-10 p-0 text-lg font-medium text-black">
               You're getting noticed!
             </Heading>
 
@@ -56,7 +80,7 @@ export default function ProgramNetworkInvite({
               join their partner program.
             </Text>
 
-            <Section className="mb-12 mt-8">
+            <Section className="my-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
                 href={`https://partners.dub.co/${program.slug}/register?email=${encodeURIComponent(email)}&next=/programs/${program.slug}`}
@@ -64,6 +88,57 @@ export default function ProgramNetworkInvite({
                 Accept Invite
               </Link>
             </Section>
+
+            {(rewards?.length || bounties?.length) && (
+              <>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  If you accept the invite, you're immediately eligible for the
+                  following:
+                </Text>
+                <Section className="rounded-xl border border-solid border-neutral-200 bg-neutral-50 px-5 py-4">
+                  {rewards?.length && (
+                    <>
+                      <Text className="my-0 text-base font-semibold text-black">
+                        Rewards
+                      </Text>
+                      {rewards.map((reward) => (
+                        <Row key={reward.label} className="mb-0 mt-2">
+                          <Column className="align-center">
+                            <Img src={reward.icon} height="16" alt="" />
+                          </Column>
+                          <Column className="w-full pl-2">
+                            <Text className="my-0 text-sm font-medium text-neutral-600">
+                              {reward.label}
+                            </Text>
+                          </Column>
+                        </Row>
+                      ))}
+                    </>
+                  )}
+                  {bounties?.length && (
+                    <>
+                      <Text
+                        className={`mb-0 text-base font-semibold text-black ${rewards?.length ? "mt-5" : "mt-0"}`}
+                      >
+                        Bounties
+                      </Text>
+                      {bounties.map((bounty) => (
+                        <Row key={bounty.label} className="mb-0 mt-2">
+                          <Column className="align-center">
+                            <Img src={bounty.icon} height="16" alt="" />
+                          </Column>
+                          <Column className="w-full pl-2">
+                            <Text className="my-0 text-sm font-medium text-neutral-600">
+                              {bounty.label}
+                            </Text>
+                          </Column>
+                        </Row>
+                      ))}
+                    </>
+                  )}
+                </Section>
+              </>
+            )}
             <Footer email={email} />
           </Container>
         </Body>
