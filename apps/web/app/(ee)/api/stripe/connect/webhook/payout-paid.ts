@@ -7,10 +7,7 @@ export async function payoutPaid(event: Stripe.Event) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {
-    console.error(
-      `Stripe connect account ${stripeAccount} not found. Skipping...`,
-    );
-    return;
+    return "No stripeConnectId found in event. Skipping...";
   }
 
   const partner = await prisma.partner.findUnique({
@@ -20,10 +17,7 @@ export async function payoutPaid(event: Stripe.Event) {
   });
 
   if (!partner) {
-    console.error(
-      `Partner not found with Stripe connect account ${stripeAccount}. Skipping...`,
-    );
-    return;
+    return `Partner not found with Stripe connect account ${stripeAccount}. Skipping...`;
   }
 
   const stripePayout = event.data.object as Stripe.Payout;
@@ -37,10 +31,6 @@ export async function payoutPaid(event: Stripe.Event) {
       status: "completed",
     },
   });
-
-  console.log(
-    `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to "completed" status`,
-  );
 
   if (partner.email) {
     const sentEmail = await sendEmail({
@@ -65,4 +55,6 @@ export async function payoutPaid(event: Stripe.Event) {
       `Sent email to partner ${partner.email} (${stripeAccount}): ${JSON.stringify(sentEmail, null, 2)}`,
     );
   }
+
+  return `Updated ${updatedPayouts.count} payouts for partner ${partner.email} (${stripeAccount}) to "completed" status`;
 }
