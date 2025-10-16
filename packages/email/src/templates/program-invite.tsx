@@ -46,7 +46,7 @@ export default function PartnerInvite({
   ],
 }: {
   email: string;
-  name?: string;
+  name: string | null;
   program: {
     name: string;
     slug: string;

@@ -269,6 +269,7 @@ async function invitePartner({
         to: partner.email,
         react: ProgramInvite({
           email: partner.email,
+          name: null,
           program: {
             name: program.name,
             slug: program.slug,

@@ -46,7 +46,7 @@ export default function ProgramNetworkInvite({
   ],
 }: {
   email: string;
-  name?: string;
+  name: string | null;
   program: {
     name: string;
     slug: string;
