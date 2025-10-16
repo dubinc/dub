@@ -77,7 +77,7 @@ export async function getGroups(filters: GroupFilters) {
         `
       }
     FROM PartnerGroup pg
-    LEFT JOIN ProgramEnrollment pe ON pe.groupId = pg.id AND pe.status = 'approved'
+    ${includeExpandedFields ? Prisma.sql`LEFT JOIN ProgramEnrollment pe ON pe.groupId = pg.id AND pe.status = 'approved'` : Prisma.sql``}
     WHERE pg.programId = ${programId}
     ${search ? Prisma.sql`AND (pg.name LIKE ${`%${search}%`} OR pg.slug LIKE ${`%${search}%`})` : Prisma.sql``}
     ${groupIds && groupIds.length > 0 ? Prisma.sql`AND pg.id IN (${Prisma.join(groupIds)})` : Prisma.sql``}
