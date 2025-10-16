@@ -4,20 +4,37 @@ import { EventType, RewardStructure } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
+import { stripeAppClient } from "../stripe";
+import {
+  stripeCouponToDubDiscount,
+  validateStripeCouponForDubDiscount,
+} from "../stripe/coupon-discount-converter";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
 
+const stripe = stripeAppClient({
+  mode: "live",
+});
+
 export async function importCampaigns(payload: RewardfulImportPayload) {
   const { programId, campaignIds } = payload;
 
-  const { workspaceId } = await prisma.program.findUniqueOrThrow({
+  const { workspace } = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
+    include: {
+      workspace: {
+        select: {
+          id: true,
+          stripeConnectId: true,
+        },
+      },
+    },
   });
 
-  const { token } = await rewardfulImporter.getCredentials(workspaceId);
+  const { token } = await rewardfulImporter.getCredentials(workspace.id);
 
   const rewardfulApi = new RewardfulApi({ token });
 
@@ -35,7 +52,10 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       max_commission_period_months,
       days_until_commissions_are_due,
       reward_type,
+      stripe_coupon_id: stripeCouponId,
     } = campaign;
+
+    console.log({ campaignId, stripeCouponId });
 
     const groupSlug = `rewardful-${campaignId}`;
     const createdGroup = await prisma.partnerGroup.upsert({
@@ -63,6 +83,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       new Date(),
       createdGroup.createdAt,
     );
+
     console.log(
       `This group was created ${createdSecondsAgo} seconds ago (most likely ${createdSecondsAgo < 10 ? "created" : "upserted"})`,
     );
@@ -109,10 +130,44 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         `Updated program ${programId} with min payout amount ${minimum_payout_cents} and holding period days ${days_until_commissions_are_due}`,
       );
     }
+
+    // Create a Discount for the program if a stripe_coupon_id exists for the campaign
+    if (stripeCouponId && workspace.stripeConnectId) {
+      // TODO:
+      // Will invalid coupon throws error or return null
+
+      const stripeCoupon = await stripe.coupons.retrieve(stripeCouponId, {
+        stripeAccount: workspace.stripeConnectId,
+      });
+
+      const validation = validateStripeCouponForDubDiscount(stripeCoupon);
+
+      if (!validation.isValid) {
+        console.warn(`Invalid Stripe coupon: ${validation.errors.join(", ")}`);
+        continue;
+      }
+
+      const dubDiscountAttrs = stripeCouponToDubDiscount(stripeCoupon);
+
+      const discount = await prisma.discount.create({
+        data: {
+          id: createId({ prefix: "disc_" }),
+          programId,
+          couponId: stripeCouponId,
+          amount: dubDiscountAttrs.amount,
+          type: dubDiscountAttrs.type,
+          maxDuration: dubDiscountAttrs.maxDuration,
+        },
+      });
+
+      console.log(
+        `Created discount ${discount.id} for campaign ${campaign.name} (${campaignId})`,
+      );
+    }
   }
 
-  return await rewardfulImporter.queue({
-    ...payload,
-    action: "import-partners",
-  });
+  // return await rewardfulImporter.queue({
+  //   ...payload,
+  //   action: "import-partners",
+  // });
 }

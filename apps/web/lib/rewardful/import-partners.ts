@@ -76,6 +76,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
         activeAffiliates.map((affiliate) => {
           const groupId = campaignIdToGroupMap[affiliate.campaign.id];
           const group = program.groups.find((group) => group.id === groupId);
+
           if (!group) {
             console.error(
               `Group not found for campaign ${affiliate.campaign.id}`,

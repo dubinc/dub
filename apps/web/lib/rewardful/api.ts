@@ -32,6 +32,8 @@ export class RewardfulApi {
       },
     });
 
+    console.log( `Basic ${Buffer.from(`${this.token}:`).toString("base64")}`)
+
     if (!response.ok) {
       const error = await response.text();
       console.log("Rewardful API Error:", error);
