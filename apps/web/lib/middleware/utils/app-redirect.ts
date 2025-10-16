@@ -1,5 +1,5 @@
-import { getDubProductFromCookie } from "@/lib/middleware/utils/get-dub-product-from-cookie";
 import { RESERVED_SLUGS } from "@dub/utils";
+import { getWorkspaceProduct } from "./get-workspace-product";
 
 const APP_REDIRECTS = {
   "/account": "/account/settings",
@@ -27,7 +27,7 @@ export const appRedirect = async (path: string) => {
   // Redirect "/[slug]" to "/[slug]/[product]"
   const rootRegex = /^\/([^\/]+)$/;
   if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
-    const product = await getDubProductFromCookie(path.split("/")[1]);
+    const product = await getWorkspaceProduct(path.split("/")[1]);
     return path.replace(rootRegex, `/$1/${product}`);
   }
 
