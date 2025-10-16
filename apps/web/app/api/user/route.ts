@@ -63,7 +63,7 @@ export const GET = withSession(async ({ session }) => {
       userId: session.user.id,
     },
     orderBy: {
-      clicks: 'desc',
+      clicks: "desc",
     },
     select: {
       clicks: true,
@@ -83,16 +83,21 @@ export const GET = withSession(async ({ session }) => {
     Date.now() - new Date(activeSubscription?.plan.createdAt).getTime() >=
       7 * 24 * 60 * 60 * 1000;
   const showNPS =
-    !user?.hasRated && (mostScannedLink?.clicks as number > 30 || passed7DaysAfterSubscription);
+    !user?.hasRated &&
+    ((mostScannedLink?.clicks as number) > 30 || passed7DaysAfterSubscription);
 
-  const trigger = showNPS ? passed7DaysAfterSubscription ? 'sub_active_days' : 'scans' : null;
+  const trigger = showNPS
+    ? passed7DaysAfterSubscription
+      ? "sub_active_days"
+      : "scans"
+    : null;
 
   return NextResponse.json({
     ...user,
     provider: account?.provider,
     hasPassword: user?.passwordHash !== null,
     passwordHash: undefined,
-    nps: {show: showNPS, trigger },
+    nps: { show: showNPS, trigger },
   });
 });
 
