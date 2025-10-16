@@ -170,7 +170,7 @@ function ArchiveQRModal({ showArchiveQRModal, setShowArchiveQRModal, props }: Ar
                   variant={props.archived ? "primary" : "warning"}
                   onClick={handleArchiveRequest}
                   loading={archiving}
-                  text={props.archived ? "Confirm unpause" : "Confirm pause"}
+                  text={props.archived ? "Confirm activation" : "Confirm pause"}
                 />
               </div>
             </div>

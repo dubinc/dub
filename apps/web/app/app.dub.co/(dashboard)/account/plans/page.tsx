@@ -19,9 +19,9 @@ const PlansPage: NextPage = async () => {
 
   const featuresAccess = await checkFeaturesAccessAuthLess(sessionUser.id);
 
-  if (!featuresAccess.isSubscribed) {
-    redirect("/");
-  }
+  // if (!featuresAccess.isSubscribed) {
+  //   redirect("/");
+  // }
 
   const mostScannedQR = await getMostScannedQr(sessionUser.id);
 

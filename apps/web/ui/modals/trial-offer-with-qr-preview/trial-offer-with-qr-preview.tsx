@@ -25,10 +25,10 @@ import {
   useRef,
   useState,
 } from "react";
+import { MOCK_QR } from "../../paywall/constants/mock-qr";
 import { useQRPreviewModal } from "../qr-preview-modal";
 import { AvatarsComponent } from "./components/avatars.component";
 import { CreateSubscriptionFlow } from "./components/create-subscription-flow.component";
-import { MOCK_QR } from "./constants/mock-qr";
 
 interface IQRPreviewModalProps {
   canvasRef: RefObject<HTMLCanvasElement>;

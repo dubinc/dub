@@ -92,6 +92,8 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
   const [nationIdError, setNationIdError] = useState<boolean>(false);
   const [isSubmitButton, setIsSubmitButton] = useState<boolean>(false);
 
+  const [isLoading, setIsLoading] = useState(false);
+
   const [isChecked, setIsChecked] = useState(false);
   const isCheckedRef = useRef(false);
 
@@ -107,7 +109,6 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
     setError(error);
   };
 
-  const [isLoading, setIsLoading] = useState(false);
   const handleSubmit = async () => {
     setIsLoading(true);
 
@@ -148,7 +149,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
       vault: { visible: false },
       submitButton: {
         useBuiltInButton: false,
-        onLoading: () => setIsLoading(true),
+        // onLoading: () => setIsLoading(true),
         onVisible: (isVisible: boolean) => {
           if (isVisible && handleOpenCardDetailsForm) {
             handleOpenCardDetailsForm();
@@ -507,7 +508,8 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
 
             <Button
               id="primer-checkout-credit-card-button"
-              // disabled={isLoading && !error?.isActive}
+              disabled={isLoading && !error?.isActive}
+              loading={isLoading}
               onClick={handleSubmit}
               className="min-h-[48px] w-full text-white"
               text={submitBtn?.text || "Pay"}
@@ -524,6 +526,7 @@ const CheckoutFormComponent: FC<ICheckoutFormComponentProps> = (props) => {
         <div className="group flex gap-2">
           <Checkbox
             id="terms-and-conditions"
+            disabled={isLoading}
             checked={isChecked}
             onCheckedChange={(checked: boolean) => {
               setIsChecked(checked);

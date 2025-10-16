@@ -24,12 +24,17 @@ export const getUserCookieService = async () => {
   );
 
   const sessionId = cookieStore.get(ECookieArg.SESSION_ID)?.value;
+  const trafficSource = cookieStore.get(ECookieArg.SOURCE)?.value;
 
   if (!user?.id) {
-    return { user: null, sessionId };
+    return { user: null, sessionId, isPaidTraffic: false };
   }
 
-  return { user, sessionId };
+  return {
+    user,
+    sessionId,
+    isPaidTraffic: user?.isPaidUser || trafficSource === "paid" || false,
+  };
 };
 
 // update user cookie

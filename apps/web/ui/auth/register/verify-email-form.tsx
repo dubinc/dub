@@ -12,11 +12,7 @@ import {
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
-import {
-  setPeopleAnalyticOnce,
-  trackClientEvents,
-} from "core/integration/analytic/services/analytic.service.ts";
+import { setPeopleAnalyticOnce } from "core/integration/analytic/services/analytic.service.ts";
 import { OTPInput } from "input-otp";
 import { signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
@@ -46,18 +42,6 @@ export const VerifyEmailForm = ({
 
   const { executeAsync, isPending } = useAction(createUserAccountAction, {
     async onSuccess() {
-      trackClientEvents({
-        event: EAnalyticEvents.AUTH_SUCCESS,
-        params: {
-          page_name: "dashboard",
-          auth_type: "signup",
-          auth_method: "email",
-          auth_origin: qrDataToCreate ? "qr" : "none",
-          email,
-          event_category: "Authorized",
-        },
-        sessionId,
-      });
       setPeopleAnalyticOnce({ signup_method: "email" });
 
       showMessage(
@@ -96,21 +80,6 @@ export const VerifyEmailForm = ({
       const errorMessage = codeMatch
         ? fullErrorMessage.replace(/^\[[^\]]+\]\s*/, "")
         : fullErrorMessage;
-
-      trackClientEvents({
-        event: EAnalyticEvents.AUTH_ERROR,
-        params: {
-          page_name: "landing",
-          auth_type: "signup",
-          auth_method: "email",
-          auth_origin: qrDataToCreate ? "qr" : "none",
-          email,
-          event_category: "nonAuthorized",
-          error_code: errorCode,
-          error_message: errorMessage,
-        },
-        sessionId,
-      });
 
       console.error("Auth error:", { code: errorCode, message: errorMessage });
 

@@ -2,8 +2,16 @@ import { NextRequest } from "next/server";
 
 import { createId } from "@/lib/api/utils.ts";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
+import { decodeUserMarketingToken } from "../user-marketing-token.service";
 
 export const userSessionIdInit = (request: NextRequest, forceId?: string) => {
+  const userToken = request.nextUrl.searchParams.get("user_token");
+  if (userToken && !forceId) {
+    const decodedUserData = decodeUserMarketingToken(userToken);
+
+    return userSessionIdInit(request, decodedUserData.id);
+  }
+
   let needsUpdate = false;
   let sessionId = "";
   let needsSourceCookie = false;
@@ -17,13 +25,6 @@ export const userSessionIdInit = (request: NextRequest, forceId?: string) => {
       request.cookies.set(ECookieArg.SOURCE, "paid");
     }
   }
-
-  // const cookieSettings = {
-  //   httpOnly: true,
-  //   secure: process.env.NODE_ENV === "production",
-  //   path: "/",
-  //   sameSite: "strict" as const,
-  // };
 
   if (forceId) {
     const currentSessionId = request.cookies.get(ECookieArg.SESSION_ID)?.value;

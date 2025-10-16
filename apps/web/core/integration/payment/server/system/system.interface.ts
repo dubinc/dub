@@ -238,3 +238,12 @@ export interface IGetSystemUserProcessorRes {
     hint_stripe_uk_custom_descriptor?: string;
   };
 }
+
+export interface IReactivateSystemSubscriptionBody {
+  skipFirstPayment: boolean;
+  skipTrial?: boolean;
+}
+
+export interface IReactivateSystemSubscriptionRes {
+  success: boolean;
+}

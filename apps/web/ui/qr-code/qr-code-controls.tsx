@@ -192,7 +192,7 @@ export function QrCodeControls({
                 className="h-9 w-full justify-start px-2 font-medium"
               />
               <Button
-                text={qrCode.archived ? "Unpause" : "Pause"}
+                text={qrCode.archived ? "Activate" : "Pause"}
                 variant="outline"
                 onClick={() => {
                   onActionClick("pause");

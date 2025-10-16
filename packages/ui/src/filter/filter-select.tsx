@@ -27,6 +27,7 @@ type FilterSelectProps = {
   onOpenFilter?: (key: string) => void;
   onSearchChange?: (search: string) => void;
   onSelectedFilterChange?: (key: string | null) => void;
+  resetDefaultStates?: () => void;
   activeFilters?: {
     key: Filter["key"];
     value: FilterOption["value"];
@@ -34,6 +35,8 @@ type FilterSelectProps = {
   askAI?: boolean;
   children?: ReactNode;
   emptyState?: ReactNode | Record<string, ReactNode>;
+  defaultIsOpen?: boolean;
+  defaultSelectedFilterKey?: Filter['key'];
   className?: string;
 };
 
@@ -44,10 +47,13 @@ export function FilterSelect({
   onOpenFilter,
   onSearchChange,
   onSelectedFilterChange,
+  resetDefaultStates,
   activeFilters,
   askAI,
   children,
   emptyState,
+  defaultIsOpen,
+  defaultSelectedFilterKey,
   className,
 }: FilterSelectProps) {
   const { isMobile } = useMediaQuery();
@@ -73,6 +79,7 @@ export function FilterSelect({
   const reset = useCallback(() => {
     setSearch("");
     setSelectedFilterKey(null);
+    resetDefaultStates?.()
   }, []);
 
   // Reset state when closed
@@ -150,6 +157,15 @@ export function FilterSelect({
       };
     }
   }, [selectedFilter?.options]);
+
+  useEffect(() => {
+    if(defaultIsOpen) {
+      setIsOpen(true)
+      if(!!defaultSelectedFilterKey) {
+        setSelectedFilterKey(defaultSelectedFilterKey)
+      }
+    }
+  }, [defaultIsOpen, defaultSelectedFilterKey])
 
   return (
     <Popover

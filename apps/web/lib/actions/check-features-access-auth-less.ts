@@ -9,6 +9,16 @@ export type FeaturesAccess = {
   isSubscribed: boolean;
   subscriptionNotPaid: boolean;
   subscriptionId: string | null;
+  status:
+    | "active"
+    | "inactive"
+    | "trial"
+    | "dunning"
+    | "pre_active"
+    | "pre_renew"
+    | "scheduled_for_cancellation"
+    | "cancelled"
+    | null;
 };
 
 export const checkFeaturesAccessAuthLess = async (
@@ -25,14 +35,15 @@ export const checkFeaturesAccessAuthLess = async (
   if (!userData) {
     return {
       featuresAccess: false,
-      isTrialOver: true,
+      isTrialOver: false,
       isSubscribed: false,
       subscriptionNotPaid: false,
       subscriptionId: null,
-    };
+      status: null,
+    } as FeaturesAccess;
   }
 
-  const { isSubscribed, subscriptionId } =
+  const { isSubscribed, subscriptionId, status } =
     await checkSubscriptionStatusAuthLess(userData.email);
 
   // const totalClicks = userData.totalUserClicks || 0;
@@ -56,9 +67,10 @@ export const checkFeaturesAccessAuthLess = async (
 
   return {
     featuresAccess: isSubscribed,
-    isTrialOver: false,
+    isTrialOver: status !== "trial" || !status,
     isSubscribed,
     subscriptionNotPaid: !!subscriptionId && !isSubscribed,
     subscriptionId,
+    status,
   } as FeaturesAccess;
 };
