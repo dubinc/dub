@@ -1,9 +1,9 @@
 enum WorkflowTrigger {
-  clickRecorded
+  partnerEnrolled // scheduled
+  clickRecorded // scheduled
+  commissionEarned // scheduled
   leadRecorded
   saleRecorded
-  commissionEarned
-  partnerEnrolled
 }
 
 model Workflow {

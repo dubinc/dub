@@ -1,12 +1,19 @@
-import { TiptapNode, WorkflowCondition, WorkflowContext } from "@/lib/types";
+import { aggregatePartnerLinksStats } from "@/lib/partners/aggregate-partner-links-stats";
+import {
+  TiptapNode,
+  WorkflowCondition,
+  WorkflowConditionAttribute,
+  WorkflowContext,
+} from "@/lib/types";
 import { WORKFLOW_ACTION_TYPES } from "@/lib/zod/schemas/workflows";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
 import { chunk } from "@dub/utils";
 import { NotificationEmailType, Workflow } from "@prisma/client";
-import { subDays } from "date-fns";
+import { differenceInDays, subDays } from "date-fns";
 import { createId } from "../create-id";
+import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 import { renderCampaignEmailHTML } from "./render-campaign-email-html";
 import { renderCampaignEmailMarkdown } from "./render-campaign-email-markdown";
@@ -48,36 +55,20 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
-  let programEnrollments = await prisma.programEnrollment.findMany({
-    where: {
-      programId,
-      partnerId,
-      status: "approved",
-      ...(campaign.groups.length > 0 && {
-        groupId: {
-          in: campaign.groups.map(({ groupId }) => groupId),
-        },
-      }),
-      ...buildEnrollmentWhere(condition),
-    },
-    include: {
-      partner: {
-        include: {
-          users: {
-            include: {
-              user: true,
-            },
-          },
-        },
-      },
-    },
-    take: 50,
+  if (campaign.status !== "active") {
+    console.log(`Campaign ${campaignId} is not active.`);
+    return;
+  }
+
+  let programEnrollments = await getProgramEnrollments({
+    programId,
+    partnerId,
+    groupIds: campaign.groups.map(({ groupId }) => groupId),
+    condition,
   });
 
   if (programEnrollments.length === 0) {
-    console.log(
-      `Workflow ${workflow.id} no program enrollments found for campaign ${campaignId}.`,
-    );
+    console.log(`Found no program enrollments for campaign ${campaignId}.`);
     return;
   }
 
@@ -217,6 +208,106 @@ export const executeSendCampaignWorkflow = async ({
   }
 };
 
+async function getProgramEnrollments({
+  programId,
+  partnerId,
+  groupIds,
+  condition,
+}: {
+  programId: string;
+  partnerId?: string;
+  groupIds: string[];
+  condition: WorkflowCondition;
+}) {
+  if (partnerId) {
+    const programEnrollment = await prisma.programEnrollment.findUnique({
+      where: {
+        partnerId_programId: {
+          partnerId,
+          programId,
+        },
+        status: "approved",
+        ...(groupIds.length > 0 && {
+          groupId: {
+            in: groupIds,
+          },
+        }),
+      },
+      include: {
+        partner: {
+          include: {
+            users: {
+              include: {
+                user: true,
+              },
+            },
+          },
+        },
+        links: {
+          select: {
+            clicks: true,
+            leads: true,
+            conversions: true,
+            sales: true,
+            saleAmount: true,
+          },
+        },
+      },
+    });
+
+    if (!programEnrollment) {
+      return [];
+    }
+
+    const context: Partial<Record<WorkflowConditionAttribute, number | null>> =
+      {
+        ...aggregatePartnerLinksStats(programEnrollment.links),
+        partnerJoined: differenceInDays(
+          new Date(),
+          programEnrollment.createdAt,
+        ),
+      };
+
+    const shouldExecute = evaluateWorkflowCondition({
+      condition,
+      attributes: {
+        [condition.attribute]: context[condition.attribute],
+      },
+    });
+
+    if (!shouldExecute) {
+      return [];
+    }
+
+    return [programEnrollment];
+  }
+
+  return await prisma.programEnrollment.findMany({
+    where: {
+      programId,
+      status: "approved",
+      ...(groupIds.length > 0 && {
+        groupId: {
+          in: groupIds,
+        },
+      }),
+      ...buildEnrollmentWhere(condition),
+    },
+    include: {
+      partner: {
+        include: {
+          users: {
+            include: {
+              user: true,
+            },
+          },
+        },
+      },
+    },
+    take: 50,
+  });
+}
+
 function buildEnrollmentWhere(condition: WorkflowCondition) {
   switch (condition.attribute) {
     case "totalClicks":
@@ -230,8 +321,7 @@ function buildEnrollmentWhere(condition: WorkflowCondition) {
           gte: condition.value,
         },
       };
-
-    case "partnerEnrolledDays": // @deprecated
+    case "partnerEnrolledDays":
     case "partnerJoined":
       return {
         createdAt: {

@@ -12,6 +12,7 @@ import { WorkflowTrigger } from "@dub/prisma/client";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+import { isScheduledWorkflow } from "./utils";
 
 export async function executeWorkflows({
   trigger,
@@ -71,7 +72,7 @@ export async function executeWorkflows({
 
   // Execute each workflow for the program
   for (const workflow of workflows) {
-    const { action, condition } = parseWorkflowConfig(workflow);
+    const { action } = parseWorkflowConfig(workflow);
 
     switch (action.type) {
       case WORKFLOW_ACTION_TYPES.AwardBounty: {
@@ -84,7 +85,7 @@ export async function executeWorkflows({
       }
 
       case WORKFLOW_ACTION_TYPES.SendCampaign: {
-        if (["partnerJoined"].includes(condition.attribute)) {
+        if (!isScheduledWorkflow(workflow)) {
           await executeSendCampaignWorkflow({
             workflow,
             context: workflowContext,
@@ -120,7 +121,8 @@ export function evaluateWorkflowCondition({
   const attributeValue = attributes[condition.attribute];
 
   // If the attribute is not provided in context, return false
-  if (!attributeValue) {
+  if (attributeValue === undefined || attributeValue === null) {
+    console.error(`${condition.attribute} doesn't exist in the context.`);
     return false;
   }
 

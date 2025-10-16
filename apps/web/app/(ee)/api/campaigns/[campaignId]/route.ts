@@ -3,14 +3,17 @@ import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
+import { isScheduledWorkflow } from "@/lib/api/workflows/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import {
-  CAMPAIGN_WORKFLOW_SCHEDULES,
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
-import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
+import {
+  WORKFLOW_ATTRIBUTE_TRIGGER,
+  WORKFLOW_SCHEDULES,
+} from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
 import { PartnerGroup } from "@prisma/client";
@@ -129,14 +132,10 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       (async () => {
-        if (!updatedCampaign.workflow) {
-          return;
-        }
-
-        const { condition } = parseWorkflowConfig(updatedCampaign.workflow);
-
-        // Skip scheduling if the condition is based on partnerJoined which will run immediately
-        if (condition.attribute === "partnerJoined") {
+        if (
+          !updatedCampaign.workflow ||
+          !isScheduledWorkflow(updatedCampaign.workflow)
+        ) {
           return;
         }
 
@@ -149,7 +148,7 @@ export const PATCH = withWorkspace(
           campaign.status === "active" && updatedCampaign.status === "paused";
 
         const cronSchedule =
-          CAMPAIGN_WORKFLOW_SCHEDULES[updatedCampaign.workflow.trigger];
+          WORKFLOW_SCHEDULES[updatedCampaign.workflow.trigger];
 
         if (!cronSchedule) {
           throw new Error(

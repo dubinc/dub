@@ -47,6 +47,11 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
 
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
 
+export const WORKFLOW_SCHEDULES: Partial<Record<WorkflowTrigger, string>> = {
+  clickRecorded: "*/5 * * * *", // every 5 minutes
+  partnerEnrolled: "0 */12 * * *", // every 12 hours
+};
+
 export const OPERATOR_FUNCTIONS: Record<
   WorkflowComparisonOperator,
   OperatorFn
@@ -72,7 +77,7 @@ export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 export const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_ATTRIBUTES),
   operator: z.enum(WORKFLOW_COMPARISON_OPERATORS).default("gte"),
-  value: z.number()
+  value: z.number(),
 });
 
 // Array of conditions with AND operator

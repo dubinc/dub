@@ -57,16 +57,6 @@ export const CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG: Record<
   },
 };
 
-export const CAMPAIGN_WORKFLOW_SCHEDULES: Partial<
-  Record<WorkflowTrigger, string>
-> = {
-  clickRecorded: "*/5 * * * *", // every 5 minutes
-  leadRecorded: "*/5 * * * *", // every 5 minutes
-  saleRecorded: "*/5 * * * *", // every 5 minutes
-  commissionEarned: "*/5 * * * *", // every 5 minutes
-  partnerEnrolled: "0 */12 * * *", // every 12 hours
-};
-
 export const CampaignSchema = z.object({
   id: z.string(),
   name: z.string(),
