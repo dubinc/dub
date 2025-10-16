@@ -71,7 +71,6 @@ export async function accountUpdated(event: Stripe.Event) {
         payoutMethodHash: defaultExternalAccount.fingerprint,
       },
     });
-    return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${defaultExternalAccount.fingerprint}`;
   } catch (error) {
     if (error.code === "P2002") {
       duplicatePayoutMethod = true;
@@ -106,7 +105,8 @@ export async function accountUpdated(event: Stripe.Event) {
       }),
     });
     console.log(res);
-
     return `Notified partner ${partner.email} (${partner.stripeConnectId}) about ${duplicatePayoutMethod ? "duplicate" : "connected"} payout method`;
   }
+
+  return `Updated partner ${partner.email} (${partner.stripeConnectId}) with country ${country}, payoutsEnabledAt set, payoutMethodHash ${defaultExternalAccount.fingerprint}`;
 }
