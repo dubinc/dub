@@ -35,11 +35,6 @@ import { isValidTriggerCondition } from "./utils";
 const inputClassName =
   "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
 
-const getInputClassName = (disabled: boolean) =>
-  disabled
-    ? "h-8 w-full rounded-md border border-transparent px-1.5 py-0 pr-8 text-sm cursor-not-allowed"
-    : inputClassName;
-
 const labelClassName = "text-sm font-medium text-content-subtle";
 
 const DisabledInputWrapper = ({
@@ -290,17 +285,12 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
             <label className="contents">
               <span className={labelClassName}>Subject</span>
-              <DisabledInputWrapper
-                tooltip="Cannot change subject while campaign is active. Pause the campaign to make changes."
-                disabled={isActive}
-              >
-                <input
-                  type="text"
-                  placeholder="Enter a subject..."
-                  className={getInputClassName(isActive)}
-                  {...register("subject")}
-                />
-              </DisabledInputWrapper>
+              <input
+                type="text"
+                placeholder="Enter a subject..."
+                className={inputClassName}
+                {...register("subject")}
+              />
             </label>
 
             {campaign.type === "transactional" && (
@@ -321,52 +311,46 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               control={control}
               name="bodyJson"
               render={({ field }) => (
-                <DisabledInputWrapper
-                  tooltip="Cannot change email content while campaign is active. Pause the campaign to make changes."
-                  disabled={isActive}
-                  hideIcon
-                >
-                  <RichTextArea
-                    ref={editorRef}
-                    editorClassName="-m-2 min-h-[200px] p-2"
-                    initialValue={field.value}
-                    onChange={(editor) => field.onChange(editor.getJSON())}
-                    variables={[...EMAIL_TEMPLATE_VARIABLES]}
-                    uploadImage={async (file) => {
-                      try {
-                        const result = await executeImageUpload({
-                          workspaceId: workspaceId!,
-                        });
+                <RichTextArea
+                  ref={editorRef}
+                  editorClassName="-m-2 min-h-[200px] p-2"
+                  initialValue={field.value}
+                  onChange={(editor) => field.onChange(editor.getJSON())}
+                  variables={[...EMAIL_TEMPLATE_VARIABLES]}
+                  uploadImage={async (file) => {
+                    try {
+                      const result = await executeImageUpload({
+                        workspaceId: workspaceId!,
+                      });
 
-                        if (!result?.data) {
-                          throw new Error("Failed to get signed upload URL");
-                        }
-
-                        const { signedUrl, destinationUrl } = result.data;
-
-                        const uploadResponse = await fetch(signedUrl, {
-                          method: "PUT",
-                          body: file,
-                          headers: {
-                            "Content-Type": file.type,
-                            "Content-Length": file.size.toString(),
-                          },
-                        });
-
-                        if (!uploadResponse.ok) {
-                          throw new Error("Failed to upload to signed URL");
-                        }
-
-                        return destinationUrl;
-                      } catch (e) {
-                        console.error("Failed to upload image", e);
-                        toast.error("Failed to upload image");
+                      if (!result?.data) {
+                        throw new Error("Failed to get signed upload URL");
                       }
 
-                      return null;
-                    }}
-                  />
-                </DisabledInputWrapper>
+                      const { signedUrl, destinationUrl } = result.data;
+
+                      const uploadResponse = await fetch(signedUrl, {
+                        method: "PUT",
+                        body: file,
+                        headers: {
+                          "Content-Type": file.type,
+                          "Content-Length": file.size.toString(),
+                        },
+                      });
+
+                      if (!uploadResponse.ok) {
+                        throw new Error("Failed to upload to signed URL");
+                      }
+
+                      return destinationUrl;
+                    } catch (e) {
+                      console.error("Failed to upload image", e);
+                      toast.error("Failed to upload image");
+                    }
+
+                    return null;
+                  }}
+                />
               )}
             />
           </div>
