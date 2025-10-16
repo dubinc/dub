@@ -7,7 +7,7 @@ export async function payoutPaid(event: Stripe.Event) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {
-    return `Stripe connect account ${stripeAccount} not found. Skipping...`;
+    return "No stripeConnectId found in event. Skipping...";
   }
 
   const partner = await prisma.partner.findUnique({

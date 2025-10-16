@@ -83,7 +83,13 @@ export async function accountUpdated(event: Stripe.Event) {
     }
   }
 
-  if (defaultExternalAccount.object === "bank_account") {
+  // only notify if partner has an email + payouts were not already enabled before
+  // and the default external account is a bank account
+  if (
+    partner.email &&
+    !partner.payoutsEnabledAt &&
+    defaultExternalAccount.object === "bank_account"
+  ) {
     const EmailTemplate = duplicatePayoutMethod
       ? DuplicatePayoutMethod
       : ConnectedPayoutMethod;
@@ -93,9 +99,9 @@ export async function accountUpdated(event: Stripe.Event) {
       subject: duplicatePayoutMethod
         ? "Duplicate payout method detected"
         : "Successfully connected payout method",
-      to: partner.email!,
+      to: partner.email,
       react: EmailTemplate({
-        email: partner.email!,
+        email: partner.email,
         payoutMethod: {
           account_holder_name: defaultExternalAccount.account_holder_name,
           bank_name: defaultExternalAccount.bank_name,
@@ -104,7 +110,7 @@ export async function accountUpdated(event: Stripe.Event) {
         },
       }),
     });
-    console.log(res);
+    console.log(`Resend response: ${JSON.stringify(res, null, 2)}`);
     return `Notified partner ${partner.email} (${partner.stripeConnectId}) about ${duplicatePayoutMethod ? "duplicate" : "connected"} payout method`;
   }
 

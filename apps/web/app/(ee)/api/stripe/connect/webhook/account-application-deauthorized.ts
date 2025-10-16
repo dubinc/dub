@@ -2,16 +2,20 @@ import { prisma } from "@dub/prisma";
 import type Stripe from "stripe";
 
 export async function accountApplicationDeauthorized(event: Stripe.Event) {
-  const account = event.data.object as Stripe.Account;
+  const stripeAccount = event.account;
+
+  if (!stripeAccount) {
+    return "No stripeConnectId found in event. Skipping...";
+  }
 
   const partner = await prisma.partner.findUnique({
     where: {
-      stripeConnectId: account.id,
+      stripeConnectId: stripeAccount,
     },
   });
 
   if (!partner) {
-    return `Partner with stripeConnectId ${account.id} not found, skipping...`;
+    return `Partner with stripeConnectId ${stripeAccount} not found, skipping...`;
   }
 
   await prisma.partner.update({

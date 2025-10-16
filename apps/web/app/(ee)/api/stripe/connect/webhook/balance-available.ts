@@ -10,7 +10,7 @@ export async function balanceAvailable(event: Stripe.Event) {
   const stripeAccount = event.account;
 
   if (!stripeAccount) {
-    return `Stripe connect account ${stripeAccount} not found. Skipping...`;
+    return "No stripeConnectId found in event. Skipping...";
   }
 
   await queue.upsert({
