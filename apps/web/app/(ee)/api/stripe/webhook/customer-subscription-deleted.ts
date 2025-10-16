@@ -6,7 +6,7 @@ import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
+import { capitalize, FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
@@ -182,7 +182,9 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       message:
         ":cry: Workspace *`" +
         workspace.slug +
-        "`* deleted their subscription" +
+        "`* deleted their *`" +
+        capitalize(workspace.plan) +
+        "`* subscription" +
         (isBlacklistedCancellation ? " (blacklisted / banned)" : ""),
       type: "cron",
       mention: true,

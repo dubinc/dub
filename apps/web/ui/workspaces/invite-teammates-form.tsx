@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Role, roles } from "@/lib/types";
 import { Invite } from "@/lib/zod/schemas/invites";
-import { Button, useMediaQuery } from "@dub/ui";
+import { WorkspaceRole } from "@dub/prisma/client";
+import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
@@ -16,7 +16,7 @@ import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 type FormData = {
   teammates: {
     email: string;
-    role: Role;
+    role: WorkspaceRole;
   }[];
 };
 
@@ -33,6 +33,7 @@ export function InviteTeammatesForm({
 }) {
   const { id, slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
+  const { queryParams } = useRouterStuff();
 
   const maxTeammates = saveOnly ? 4 : 10;
 
@@ -78,6 +79,11 @@ export function InviteTeammatesForm({
             );
           } else {
             toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
+            queryParams({
+              set: {
+                status: "invited",
+              },
+            });
 
             teammates.forEach(({ email }) =>
               posthog.capture("teammate_invited", {
@@ -134,7 +140,7 @@ export function InviteTeammatesForm({
                   defaultValue="member"
                   className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                 >
-                  {roles.map((role) => (
+                  {["owner", "member"].map((role) => (
                     <option key={role} value={role}>
                       {capitalize(role)}
                     </option>

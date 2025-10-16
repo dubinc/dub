@@ -186,10 +186,6 @@ function Preview({
 
   const { rewards } = useRewards();
   const { discounts } = useDiscounts();
-  const landerData = useWatch({
-    control: brandingFormControl,
-    name: "landerData",
-  });
 
   if (!program) return null;
 
@@ -203,7 +199,7 @@ function Preview({
             Math.min(Math.max(productPrice || 0, 0), MAX_PRODUCT_PRICE) * 100,
         },
       }}
-      program={{ ...program, brandColor, rewards, discounts, landerData }}
+      program={{ ...program, brandColor, rewards, discounts }}
       showTitleAndDescription={false}
     />
   );

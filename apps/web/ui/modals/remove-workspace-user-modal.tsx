@@ -1,10 +1,11 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { UserProps } from "@/lib/types";
 import { Avatar, Button, Modal, useMediaQuery } from "@dub/ui";
 import { TriangleWarning } from "@dub/ui/icons";
 import { timeAgo } from "@dub/utils";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   Dispatch,
@@ -16,16 +17,14 @@ import {
 import { toast } from "sonner";
 import { mutate } from "swr";
 
-function RemoveTeammateModal({
-  showRemoveTeammateModal,
-  setShowRemoveTeammateModal,
+function RemoveWorkspaceUserModal({
+  showRemoveWorkspaceUserModal,
+  setShowRemoveWorkspaceUserModal,
   user,
-  invite,
 }: {
-  showRemoveTeammateModal: boolean;
-  setShowRemoveTeammateModal: Dispatch<SetStateAction<boolean>>;
+  showRemoveWorkspaceUserModal: boolean;
+  setShowRemoveWorkspaceUserModal: Dispatch<SetStateAction<boolean>>;
   user: UserProps & { restrictedTokens?: { name: string; lastUsed: Date }[] };
-  invite?: boolean;
 }) {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
@@ -33,12 +32,15 @@ function RemoveTeammateModal({
   const [removing, setRemoving] = useState(false);
   const { id: workspaceId, name: workspaceName } = useWorkspace();
 
-  const removeTeammate = async () => {
+  const searchParams = useSearchParams();
+  const isInvite = searchParams.get("status") === "invited";
+
+  const RemoveWorkspaceUser = async () => {
     setRemoving(true);
 
     const response = await fetch(
       `/api/workspaces/${workspaceId}/${
-        invite
+        isInvite
           ? `invites?email=${encodeURIComponent(user.email)}`
           : `users?userId=${user.id}`
       }`,
@@ -49,21 +51,20 @@ function RemoveTeammateModal({
     );
 
     if (response.status === 200) {
-      await mutate(
-        `/api/workspaces/${workspaceId}/${invite ? "invites" : "users"}`,
-      );
-
       if (session?.user?.email === user.email) {
         await mutate("/api/workspaces");
         router.push("/");
       } else {
-        setShowRemoveTeammateModal(false);
+        setShowRemoveWorkspaceUserModal(false);
+        await mutatePrefix(
+          `/api/workspaces/${workspaceId}/${isInvite ? "invites" : "users"}`,
+        );
       }
 
       toast.success(
         session?.user?.email === user.email
           ? "You have left the workspace!"
-          : invite
+          : isInvite
             ? "Successfully revoked invitation!"
             : "Successfully removed teammate!",
       );
@@ -79,20 +80,20 @@ function RemoveTeammateModal({
 
   return (
     <Modal
-      showModal={showRemoveTeammateModal}
-      setShowModal={setShowRemoveTeammateModal}
+      showModal={showRemoveWorkspaceUserModal}
+      setShowModal={setShowRemoveWorkspaceUserModal}
       className="max-w-md"
     >
       <div className="space-y-2 border-b border-neutral-200 px-4 py-4 sm:px-6">
         <h3 className="text-lg font-medium">
-          {invite
+          {isInvite
             ? "Revoke Invitation"
             : self
               ? "Leave Workspace"
               : "Remove Teammate"}
         </h3>
         <p className="text-sm text-neutral-500">
-          {invite
+          {isInvite
             ? "This will revoke "
             : self
               ? "You're about to leave "
@@ -100,7 +101,7 @@ function RemoveTeammateModal({
           <span className="font-semibold text-black">
             {self ? workspaceName : user.name || user.email}
           </span>
-          {invite
+          {isInvite
             ? "'s invitation to join your workspace. "
             : self
               ? ". You will lose all access to this workspace. "
@@ -149,7 +150,7 @@ function RemoveTeammateModal({
             <Avatar user={user} className="size-10" />
             <div className="flex flex-col">
               <p className="text-sm font-medium text-neutral-900">
-                {user.name}
+                {user.name || user.email}
               </p>
               <p className="text-xs text-neutral-500">{user.email}</p>
             </div>
@@ -161,38 +162,38 @@ function RemoveTeammateModal({
           variant="danger"
           autoFocus={!isMobile}
           loading={removing}
-          onClick={removeTeammate}
+          onClick={RemoveWorkspaceUser}
         />
       </div>
     </Modal>
   );
 }
 
-export function useRemoveTeammateModal({
+export function useRemoveWorkspaceUserModal({
   user,
   invite,
 }: {
   user: UserProps & { restrictedTokens?: { name: string; lastUsed: Date }[] };
   invite?: boolean;
 }) {
-  const [showRemoveTeammateModal, setShowRemoveTeammateModal] = useState(false);
+  const [showRemoveWorkspaceUserModal, setShowRemoveWorkspaceUserModal] =
+    useState(false);
 
-  const RemoveTeammateModalCallback = useCallback(() => {
+  const RemoveWorkspaceUserModalCallback = useCallback(() => {
     return (
-      <RemoveTeammateModal
-        showRemoveTeammateModal={showRemoveTeammateModal}
-        setShowRemoveTeammateModal={setShowRemoveTeammateModal}
+      <RemoveWorkspaceUserModal
+        showRemoveWorkspaceUserModal={showRemoveWorkspaceUserModal}
+        setShowRemoveWorkspaceUserModal={setShowRemoveWorkspaceUserModal}
         user={user}
-        invite={invite}
       />
     );
-  }, [showRemoveTeammateModal, setShowRemoveTeammateModal]);
+  }, [showRemoveWorkspaceUserModal, setShowRemoveWorkspaceUserModal, user]);
 
   return useMemo(
     () => ({
-      setShowRemoveTeammateModal,
-      RemoveTeammateModal: RemoveTeammateModalCallback,
+      setShowRemoveWorkspaceUserModal,
+      RemoveWorkspaceUserModal: RemoveWorkspaceUserModalCallback,
     }),
-    [setShowRemoveTeammateModal, RemoveTeammateModalCallback],
+    [setShowRemoveWorkspaceUserModal, RemoveWorkspaceUserModalCallback],
   );
 }

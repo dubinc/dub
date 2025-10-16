@@ -1,8 +1,8 @@
 "use client";
 
 import useDomainsCount from "@/lib/swr/use-domains-count";
-import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { CheckCircleFill, ThreeDots } from "@/ui/shared/icons";
 import { Button, Popover, useLocalStorage, useMediaQuery } from "@dub/ui";
 import { CircleDotted, ExpandingArrow } from "@dub/ui/icons";
@@ -34,8 +34,8 @@ function OnboardingButtonInner({
   const { data: domainsCount, loading: domainsLoading } = useDomainsCount({
     ignoreParams: true,
   });
-  const { users, loading: usersLoading } = useUsers();
-  const { users: invites, loading: invitesLoading } = useUsers({
+  const { users, loading: usersLoading } = useWorkspaceUsers();
+  const { users: invites, loading: invitesLoading } = useWorkspaceUsers({
     invites: true,
   });
 

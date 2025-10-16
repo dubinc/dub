@@ -102,34 +102,54 @@ async function processWebhookEvent(event: any) {
     return;
   }
 
-  // Track a deferred lead event
-  if (objectTypeId === "0-1") {
-    await trackHubSpotLeadEvent({
-      payload: event,
-      workspace,
-      authToken,
-    });
-  }
+  const settings = hubSpotSettingsSchema.parse(installation.settings ?? {});
 
-  if (objectTypeId === "0-3") {
-    // Track the final lead event
-    if (subscriptionType === "object.creation") {
+  console.log("[HubSpot] Event", event);
+  console.log("[HubSpot] Integration settings", settings);
+
+  // Contact events
+  if (objectTypeId === "0-1") {
+    const isContactCreated = subscriptionType === "object.creation";
+
+    const isLifecycleStageChanged =
+      subscriptionType === "object.propertyChange" &&
+      settings.leadTriggerEvent === "lifecycleStageReached";
+
+    if (isContactCreated || isLifecycleStageChanged) {
       await trackHubSpotLeadEvent({
         payload: event,
         workspace,
         authToken,
+        settings,
+      });
+    }
+  }
+
+  // Deal event
+  if (objectTypeId === "0-3") {
+    const isDealCreated =
+      subscriptionType === "object.creation" &&
+      settings.leadTriggerEvent === "dealCreated";
+
+    const isDealUpdated = subscriptionType === "object.propertyChange";
+
+    // Track the final lead event
+    if (isDealCreated) {
+      await trackHubSpotLeadEvent({
+        payload: event,
+        workspace,
+        authToken,
+        settings,
       });
     }
 
     // Track the sale event when deal is closed won
-    if (subscriptionType === "object.propertyChange") {
-      const settings = hubSpotSettingsSchema.parse(installation.settings ?? {});
-
+    else if (isDealUpdated) {
       await trackHubSpotSaleEvent({
         payload: event,
         workspace,
         authToken,
-        closedWonDealStageId: settings?.closedWonDealStageId,
+        settings,
       });
     }
   }

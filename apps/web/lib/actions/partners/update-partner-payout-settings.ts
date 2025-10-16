@@ -1,5 +1,6 @@
 "use server";
 
+import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
@@ -11,8 +12,13 @@ import { authPartnerActionClient } from "../safe-action";
 export const updatePartnerPayoutSettingsAction = authPartnerActionClient
   .schema(partnerPayoutSettingsSchema)
   .action(async ({ ctx, parsedInput }) => {
-    const { partner } = ctx;
+    const { partner, partnerUser } = ctx;
     const { companyName, address, taxId, minWithdrawalAmount } = parsedInput;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "payout_settings.update",
+    });
 
     const invoiceSettings = {
       address: address || undefined,

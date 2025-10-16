@@ -33,7 +33,6 @@ export const GET = withWorkspace(
       page: 1,
       pageSize: 5000,
       programId,
-      includeExpandedFields,
     });
 
     const columnOrderMap = exportPartnerColumns.reduce((acc, column, index) => {

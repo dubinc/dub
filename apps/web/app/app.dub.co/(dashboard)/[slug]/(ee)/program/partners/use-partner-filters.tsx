@@ -6,11 +6,14 @@ import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
 import { CircleDotted, FlagWavy, Users6 } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { useMemo } from "react";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
   const { id: workspaceId, slug } = useWorkspace();
+  const status = (searchParamsObj.status ||
+    "approved") as ProgramEnrollmentStatus;
 
   const { groups } = useGroups();
 
@@ -22,6 +25,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     | undefined
   >({
     groupBy: "country",
+    status,
   });
 
   const { partnersCount: statusCount } = usePartnersCount<
@@ -31,7 +35,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
       }[]
     | undefined
   >({
-    groupBy: "status",
+    groupBy: "status", // here we include all statuses to get the groupBy count
   });
 
   const { partnersCount: groupsCount } = usePartnersCount<
@@ -42,6 +46,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     | undefined
   >({
     groupBy: "groupId",
+    status,
   });
 
   const filters = useMemo(

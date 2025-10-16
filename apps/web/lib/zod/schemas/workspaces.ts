@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";
 import { planSchema, roleSchema, uploadedImageSchema } from "./misc";
@@ -195,3 +196,18 @@ export const workspaceStoreKeys = z.enum([
   "analyticsSettingsLeadTrackingSetupComplete", // boolean
   "analyticsSettingsSaleTrackingSetupComplete", // boolean
 ]);
+
+export const getWorkspaceUsersQuerySchema = z.object({
+  search: z.string().optional(),
+  role: z.nativeEnum(WorkspaceRole).optional(),
+});
+
+export const workspaceUserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().nullish(),
+  image: z.string().nullish(),
+  role: z.nativeEnum(WorkspaceRole),
+  isMachine: z.boolean().default(false),
+  createdAt: z.date(),
+});

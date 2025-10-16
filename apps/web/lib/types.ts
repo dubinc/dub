@@ -4,6 +4,7 @@ import {
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
+  partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
@@ -11,6 +12,7 @@ import {
   FolderUserRole,
   Link,
   PartnerGroup,
+  PartnerRole,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
@@ -18,6 +20,7 @@ import {
   User,
   UtmTemplate,
   Webhook,
+  WorkspaceRole,
 } from "@dub/prisma/client";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
@@ -98,7 +101,6 @@ import {
   ProgramMetricsSchema,
   ProgramPartnerLinkSchema,
   ProgramSchema,
-  ProgramWithLanderDataSchema,
 } from "./zod/schemas/programs";
 import {
   rewardConditionsArraySchema,
@@ -126,6 +128,7 @@ import {
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
+import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
 export type LinkProps = Link;
 
@@ -191,8 +194,6 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 
 export type PlanProps = (typeof plans)[number];
 
-export type RoleProps = (typeof roles)[number];
-
 export type BetaFeatures =
   | "noDubLink"
   | "abTesting"
@@ -207,7 +208,7 @@ export interface WorkspaceProps extends Project {
     verified: boolean;
   }[];
   users: {
-    role: RoleProps;
+    role: WorkspaceRole;
     defaultFolderId: string | null;
   }[];
   flags?: {
@@ -230,6 +231,8 @@ export interface ExtendedWorkspaceProps extends WorkspaceProps {
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
 
+export type WorkspaceUserProps = z.infer<typeof workspaceUserSchema>;
+
 export interface UserProps {
   id: string;
   name: string;
@@ -242,10 +245,6 @@ export interface UserProps {
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
-}
-
-export interface WorkspaceUserProps extends UserProps {
-  role: RoleProps;
 }
 
 export type DomainVerificationStatusProps =
@@ -327,10 +326,6 @@ export const plans = [
   "advanced",
   "enterprise",
 ] as const;
-
-export const roles = ["owner", "member"] as const;
-
-export type Role = (typeof roles)[number];
 
 export type DashboardProps = z.infer<typeof dashboardSchema>;
 
@@ -441,7 +436,12 @@ export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
-export type PartnerProps = z.infer<typeof PartnerSchema>;
+export type PartnerProps = z.infer<typeof PartnerSchema> & {
+  role: PartnerRole;
+  userId: string;
+};
+
+export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
 
 export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
 
@@ -470,10 +470,6 @@ export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramLanderData = z.infer<typeof programLanderSchema>;
-
-export type ProgramWithLanderDataProps = z.infer<
-  typeof ProgramWithLanderDataSchema
->;
 
 export type ProgramApplicationFormData = z.infer<
   typeof programApplicationFormSchema
