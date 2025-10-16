@@ -29,7 +29,7 @@ export const PayoutStats = memo(() => {
       <div className="border-border-default grid gap-3 border-t p-3">
         <Link
           className="group flex items-center justify-between gap-2"
-          href="/settings/payouts"
+          href="/payouts"
         >
           <div className="text-content-default flex items-center gap-2 text-sm font-semibold">
             <MoneyBills2 className="size-4" />

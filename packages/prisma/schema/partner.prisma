@@ -35,6 +35,7 @@ model Partner {
   paypalEmail                  String?            @unique
   stripeConnectId              String?            @unique
   payoutsEnabledAt             DateTime?
+  payoutMethodHash             String?            @unique
   minWithdrawalAmount          Int                @default(10000) // Default minimum withdrawal amount of $100
   connectPayoutsLastRemindedAt DateTime?
   createdAt                    DateTime           @default(now())

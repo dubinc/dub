@@ -68,18 +68,18 @@ export const PATCH = withPartnerProfile(
       });
     }
 
-    if (link.partnerGroupDefaultLinkId) {
-      const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
+    const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
 
-      if (linkUrlChanged) {
+    if (linkUrlChanged) {
+      if (link.partnerGroupDefaultLinkId) {
         throw new DubApiError({
           code: "forbidden",
           message:
             "You cannot update the destination URL of your default link.",
         });
+      } else {
+        validatePartnerLinkUrl({ group, url });
       }
-    } else {
-      validatePartnerLinkUrl({ group, url });
     }
 
     // check if the group has a UTM template
