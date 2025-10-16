@@ -1,4 +1,5 @@
 import { WorkflowConditionAttribute } from "@/lib/types";
+import { SCHEDULED_WORKFLOW_TRIGGERS } from "@/lib/zod/schemas/workflows";
 import { Workflow } from "@dub/prisma/client";
 import { parseWorkflowConfig } from "./parse-workflow-config";
 
@@ -9,13 +10,11 @@ export const isDaysAttribute = (activity: WorkflowConditionAttribute) =>
   activity === "partnerEnrolledDays";
 
 export const isScheduledWorkflow = (workflow: Workflow) => {
-  const workflowAttributes: WorkflowConditionAttribute[] = [
-    "partnerEnrolledDays",
-    "totalClicks",
-    "totalCommissions",
-  ];
-
   const { condition } = parseWorkflowConfig(workflow);
 
-  return workflowAttributes.includes(condition.attribute);
+  if (condition.attribute === "partnerJoined") {
+    return false;
+  }
+
+  return SCHEDULED_WORKFLOW_TRIGGERS.includes(workflow.trigger);
 };

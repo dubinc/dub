@@ -47,8 +47,15 @@ export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
 
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
 
+export const SCHEDULED_WORKFLOW_TRIGGERS: WorkflowTrigger[] = [
+  "clickRecorded",
+  "commissionEarned",
+  "partnerEnrolled",
+];
+
 export const WORKFLOW_SCHEDULES: Partial<Record<WorkflowTrigger, string>> = {
   clickRecorded: "*/5 * * * *", // every 5 minutes
+  commissionEarned: "*/5 * * * *", // every 5 minutes
   partnerEnrolled: "0 */12 * * *", // every 12 hours
 };
 

@@ -67,8 +67,11 @@ export const executeSendCampaignWorkflow = async ({
     condition,
   });
 
+  console.log(
+    `Found ${programEnrollments.length} program enrollments to send campaign emails to.`,
+  );
+
   if (programEnrollments.length === 0) {
-    console.log(`Found no program enrollments for campaign ${campaignId}.`);
     return;
   }
 
@@ -282,6 +285,7 @@ async function getProgramEnrollments({
     return [programEnrollment];
   }
 
+  // We need to get all program enrollments that match the condition for the scheduled workflows
   return await prisma.programEnrollment.findMany({
     where: {
       programId,
