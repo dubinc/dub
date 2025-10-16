@@ -182,7 +182,7 @@ export function QrCodeControls({
                 icon={<ChartNoAxesColumn className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
               />
-              <Button
+              {/* <Button
                 text="Duplicate"
                 variant="outline"
                 onClick={() => {
@@ -190,7 +190,7 @@ export function QrCodeControls({
                 }}
                 icon={<Copy className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-              />
+              /> */}
               <Button
                 text={qrCode.archived ? "Activate" : "Pause"}
                 variant="outline"
@@ -250,7 +250,7 @@ export function QrCodeControls({
                 icon={<Palette className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
               />
-              <Button
+              {/* <Button
                 text="Reset scans"
                 variant="outline"
                 onClick={() => {
@@ -258,7 +258,7 @@ export function QrCodeControls({
                 }}
                 icon={<RotateCcw className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-              />
+              /> */}
             </div>
             <div className="w-full px-6" >
               <div className="border-t border-neutral-200 w-full" />
