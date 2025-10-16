@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useContext } from "react";
 import { ThreeDots } from "../shared/icons";
+import { useDuplicateQRModal } from '../modals/duplicate-qr-modal';
 
 interface QrCodeControlsProps {
   qrCode: QrStorageData;
@@ -51,6 +52,9 @@ export function QrCodeControls({
     setOpenMenuQrCodeId(open ? qrCode.id : null);
   };
 
+  const { handleToggleModal: setShowDuplicateQRModal, DuplicateQRModal } = useDuplicateQRModal({
+    props: qrCode,
+  });
   const { setShowArchiveQRModal, ArchiveQRModal } = useArchiveQRModal({
     props: qrCode,
   });
@@ -145,6 +149,7 @@ export function QrCodeControls({
 
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
+      <DuplicateQRModal />
       <QRPreviewModal />
       <QRChangeTypeModal />
       <QRCustomizeModal />
@@ -182,15 +187,25 @@ export function QrCodeControls({
                 icon={<ChartNoAxesColumn className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
               />
-              {/* <Button
+              <Button
                 text="Duplicate"
                 variant="outline"
                 onClick={() => {
-                  // TODO GETQR-260
+                  onActionClick("duplicate");
+
+                  setOpenPopover(false);
+
+                  if (!featuresAccess) {
+                    setShowTrialExpiredModal?.(true);
+                    setOpenPopover(false);
+                    return;
+                  }
+
+                  setShowDuplicateQRModal(true);
                 }}
                 icon={<Copy className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-              /> */}
+              />
               <Button
                 text={qrCode.archived ? "Activate" : "Pause"}
                 variant="outline"
