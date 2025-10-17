@@ -40,11 +40,14 @@ export function PageContentWithSidePanel({
       title: ReactNode;
       content: ReactNode;
       controls?: ReactNode;
+      defaultOpen?: boolean;
     };
     individualScrolling?: boolean;
   } & PageContentHeaderProps
 >) {
-  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false);
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(
+    sidePanel?.defaultOpen ?? false,
+  );
 
   return (
     <PageContentWithSidePanelContext.Provider
