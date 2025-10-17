@@ -16,6 +16,7 @@ import {
   ProgressCircle,
   StatusBadge,
   Table,
+  TimestampTooltip,
   usePagination,
   useRouterStuff,
   useTable,
@@ -185,12 +186,21 @@ export function BountySubmissionsTable() {
             {
               id: "createdAt",
               header: "Submitted",
-              accessorFn: (d: BountySubmissionProps) => {
-                if (!d.createdAt || d.status === "draft") {
+              cell: ({ row }) => {
+                if (!row.original.createdAt || row.original.status === "draft")
                   return "-";
-                }
 
-                return formatDate(d.createdAt, { month: "short" });
+                return (
+                  <TimestampTooltip
+                    timestamp={row.original.createdAt}
+                    side="left"
+                    delayDuration={150}
+                  >
+                    <span>
+                      {formatDate(row.original.createdAt, { month: "short" })}
+                    </span>
+                  </TimestampTooltip>
+                );
               },
             },
           ]

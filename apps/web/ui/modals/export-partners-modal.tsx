@@ -62,6 +62,7 @@ function ExportPartnersModal({
       const params = {
         workspaceId,
         programId: program.id,
+        status: "approved",
         ...(data.columns.length
           ? { columns: data.columns.join(",") }
           : undefined),

@@ -13,8 +13,8 @@ const columnIdToLabel = exportPartnerColumns.reduce((acc, column) => {
   return acc;
 }, {});
 
-const expandedColumns = exportPartnerColumns
-  .filter((column) => column.expanded)
+const numericColumns = exportPartnerColumns
+  .filter((column) => column.numeric)
   .map((column) => column.id);
 
 // GET /api/partners/export – export partners to CSV
@@ -24,14 +24,10 @@ export const GET = withWorkspace(
 
     let { columns, ...filters } = partnersExportQuerySchema.parse(searchParams);
 
-    const includeExpandedFields = expandedColumns.some((column) =>
-      columns.includes(column),
-    );
-
     const partners = await getPartners({
       ...filters,
       page: 1,
-      pageSize: 5000,
+      pageSize: 10000,
       programId,
     });
 
@@ -46,7 +42,7 @@ export const GET = withWorkspace(
 
     const schemaFields = {};
     columns.forEach((column) => {
-      if (expandedColumns.includes(column)) {
+      if (numericColumns.includes(column)) {
         schemaFields[columnIdToLabel[column]] = z.coerce
           .number()
           .optional()

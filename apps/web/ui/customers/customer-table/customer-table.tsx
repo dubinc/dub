@@ -19,6 +19,7 @@ import {
   MenuItem,
   Popover,
   Table,
+  TimestampTooltip,
   useColumnVisibility,
   useCopyToClipboard,
   usePagination,
@@ -171,7 +172,18 @@ export function CustomerTable() {
         {
           id: "createdAt",
           header: "Created",
-          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+          cell: ({ row }) => (
+            <TimestampTooltip
+              timestamp={row.original.createdAt}
+              rows={["local"]}
+              side="left"
+              delayDuration={150}
+            >
+              <span>
+                {formatDate(row.original.createdAt, { month: "short" })}
+              </span>
+            </TimestampTooltip>
+          ),
         },
         {
           id: "link",
