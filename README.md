@@ -1,3 +1,4 @@
+### DUB - URL SHORTNER
 <a href="https://dub.co">
   <img alt="Dub.co is the open-source link management infrastructure for modern marketing teams." src="https://github.com/dubinc/dub/assets/28986134/3815d859-afaa-48f9-a9b3-c09964e4d404">
 </a>
@@ -80,3 +81,4 @@ We love our contributors! Here's how you can contribute:
 ## License
 
 Inspired by [Plausible](https://plausible.io/), Dub is open-source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. You can [find it here](https://github.com/dubinc/dub/blob/main/LICENSE.md).
+
