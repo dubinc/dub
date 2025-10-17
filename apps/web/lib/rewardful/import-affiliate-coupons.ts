@@ -12,6 +12,13 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
     where: {
       id: programId,
     },
+    select: {
+      id: true,
+      workspaceId: true,
+      domain: true,
+      url: true,
+      defaultFolderId: true,
+    },
   });
 
   const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
