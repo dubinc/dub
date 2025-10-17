@@ -121,7 +121,7 @@ function TimestampTooltipContent({
 
             unix: {
               label: "UNIX Timestamp",
-              value: date.getTime().toString(),
+              value: (date.getTime() / 1000).toString(),
               valueMono: true,
             },
           })[key]!,
