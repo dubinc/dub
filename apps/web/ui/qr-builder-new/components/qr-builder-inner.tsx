@@ -143,10 +143,11 @@ export const QRBuilderInner = () => {
         className={cn(
           "bg-background relative h-auto shrink-0 basis-2/5 rounded-lg px-6 pb-0 pt-3 md:p-6 [&_svg]:h-[200px] md:[&_svg]:h-full",
           {
-            "hidden md:flex": isTypeStep,
+            "hidden md:flex": isTypeStep && !homepageDemo,
+            "!hidden": isTypeStep && homepageDemo,
             "flex items-center justify-center": isContentStep,
             "flex items-start justify-center pb-3": isCustomizationStep,
-            "md:flex md:items-start md:justify-center": !isContentStep,
+            "md:flex md:items-start md:justify-center": !isContentStep && !(isTypeStep && homepageDemo),
           },
         )}
       >

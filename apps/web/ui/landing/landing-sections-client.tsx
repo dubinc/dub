@@ -1,5 +1,6 @@
 "use client";
 
+import { HeroSection } from "@/ui/landing/components/hero/hero-section.tsx";
 import { PricingSection } from "@/ui/landing/components/pricing/pricing-plans.tsx";
 import { QrTabsDetailed } from "@/ui/landing/components/qr-tabs-detailed/qr-tabs-detailed.tsx";
 import { QRTabs } from "@/ui/landing/components/qr-tabs/qr-tabs.tsx";
@@ -49,6 +50,11 @@ export const LandingSectionsClient: FC<
 
   return (
     <>
+      <HeroSection
+        sessionId={sessionId}
+        onCreateQRClick={() => handleScrollButtonClick("1")}
+      />
+
       <section
         id="qr-generation-block"
         ref={qrGenerationBlockRef}

@@ -1,16 +1,20 @@
 "use client";
 
-import { saveQrDataToRedisAction } from "@/lib/actions/pre-checkout-flow/save-qr-data-to-redis.ts";
 import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { QrBuilder } from "@/ui/qr-builder/qr-builder.tsx";
+import {
+  convertNewBuilderToStorageFormat,
+  TNewQRBuilderData,
+  TQRBuilderDataForStorage,
+} from "@/ui/qr-builder-new/helpers/data-converters";
+import { QRBuilderNew } from "@/ui/qr-builder-new/index.tsx";
+import { EQRType } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
-import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { Rating } from "@/ui/qr-rating/rating.tsx";
 import { useLocalStorage, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
-import { FC, forwardRef, Ref, useEffect } from "react";
+import { FC, forwardRef, Ref, useEffect, useState } from "react";
 import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
+import { saveQrDataToRedisAction } from "@/lib/actions/pre-checkout-flow/save-qr-data-to-redis.ts";
 
 interface IQRTabsProps {
   sessionId: string;
@@ -30,7 +34,9 @@ export const QRTabs: FC<
     );
 
     const [qrDataToCreate, setQrDataToCreate] =
-      useLocalStorage<QRBuilderData | null>(`qr-data-to-create`, null);
+      useLocalStorage<TQRBuilderDataForStorage | null>(`qr-data-to-create`, null);
+
+    const [isProcessingSignup, setIsProcessingSignup] = useState(false);
 
     const { isMobile } = useMediaQuery();
 
@@ -60,16 +66,26 @@ export const QRTabs: FC<
       };
     }, [isMobile]);
 
-    const handleSaveQR = async (data: QRBuilderData) => {
-      const newDataJSON = JSON.stringify(data);
-      const qrDataToCreateJSON = JSON.stringify(qrDataToCreate) ?? "{}";
+    const handleNewBuilderDownload = async (data: TNewQRBuilderData) => {
+      if (isProcessingSignup) return;
+      setIsProcessingSignup(true);
 
-      if (newDataJSON !== qrDataToCreateJSON) {
-        setQrDataToCreate(data);
-        saveQrDataToRedis({ sessionId, qrData: data });
+      try {
+        const storageData = convertNewBuilderToStorageFormat(data);
+        setQrDataToCreate(storageData);
+
+        await saveQrDataToRedis({
+          sessionId,
+          qrData: storageData,
+        });
+
+        showModal("signup");
+      } catch (error) {
+        console.error("❌ Error saving new builder QR data:", error);
+        showModal("signup"); // Still show signup even if save fails
+      } finally {
+        setTimeout(() => setIsProcessingSignup(false), 1000);
       }
-
-      showModal("signup");
     };
 
     return (
@@ -79,13 +95,11 @@ export const QRTabs: FC<
           ref={ref}
         >
           <QrTabsTitle />
-
-          <QrBuilder
+          <QRBuilderNew
+            homepageDemo={true}
             sessionId={sessionId}
-            handleSaveQR={handleSaveQR}
-            homepageDemo
+            onSave={handleNewBuilderDownload}
             typeToScrollTo={typeToScrollTo}
-            key={typeToScrollTo}
             handleResetTypeToScrollTo={handleResetTypeToScrollTo}
           />
 

@@ -10,7 +10,7 @@ export const PRICING_PLANS: PricingPlan[] = [
   {
     badge: "7-Day Trial",
     title: "Get Started",
-    plan: "$0.99/ 7 days",
+    plan: "$0.99/7 days",
     planFeatures: [
       "Unlimited QR codes",
       "Advanced analytics",

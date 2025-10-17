@@ -13,14 +13,9 @@ const payments = [
 ];
 
 export const Payments = () => (
-  <ul className="flex gap-1.5">
+  <div className="flex flex-wrap items-center gap-4">
     {payments.map(({ icon: Icon, alt }) => (
-      <li
-        key={alt}
-        className="flex h-8 w-[52px] items-center justify-center rounded-lg border border-zinc-200 bg-white"
-      >
-        <Icon className="h-6 w-[80%]" aria-label={alt} />
-      </li>
+      <Icon key={alt} className="h-5" aria-label={alt} />
     ))}
-  </ul>
+  </div>
 );

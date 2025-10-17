@@ -3,6 +3,7 @@ import { Links } from "@/ui/landing/components/footer/components/links.tsx";
 import { Payments } from "@/ui/landing/components/footer/components/payments.tsx";
 import { SocialMedia } from "@/ui/landing/components/footer/components/social-media.tsx";
 import { Logo } from "@/ui/shared/logo.tsx";
+import { Separator } from "@/components/ui/separator";
 import { GENERAL_LINKS, LEGAL_LINKS } from "constants/links";
 import { FC } from "react";
 
@@ -11,42 +12,46 @@ interface IFooterProps {
 }
 
 export const Footer: FC<Readonly<IFooterProps>> = ({ sessionId }) => (
-  <footer className="mt-auto w-full">
-    <div className="border-t-border-300 bg-primary-100 w-full border-t py-6 lg:py-12">
-      <div className="mx-auto flex w-full max-w-7xl flex-col max-[1320px]:px-6 max-md:px-4">
-        <div className="flex flex-col items-start justify-end md:flex-row">
-          <div className="mr-auto flex flex-col justify-start gap-4">
-            <Logo />
-            <SocialMedia />
-          </div>
+  <footer>
+    <Separator />
+    <div className="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-16 md:py-24 lg:flex-row lg:justify-between lg:gap-12">
+      {/* Logo and Social Media */}
+      <div className="flex flex-col items-start gap-4 lg:max-w-sm">
+        <Logo />
+        <p className="text-muted-foreground text-balance">
+          Create your own QR codes and promote your business or idea.
+        </p>
+        <SocialMedia />
+      </div>
+
+      {/* Right side columns with equal spacing */}
+      <div className="flex flex-col gap-8 sm:flex-row sm:gap-12 lg:gap-16">
+        {/* Customer Support */}
+        <div className="flex flex-col w-max">
           <CustomerSupport sessionId={sessionId} />
-          <div className="flex flex-col gap-4 max-md:mt-6 md:flex-row md:gap-20">
-            <div>
-              <Links title="Legal" links={LEGAL_LINKS} sessionId={sessionId} />
-            </div>
-            <div>
-              <Links
-                title="About Us"
-                links={GENERAL_LINKS}
-                sessionId={sessionId}
-              />
-            </div>
-          </div>
         </div>
-        <hr className="my-6 bg-gray-500" />
-        <div className="flex w-full flex-col justify-between gap-4">
-          <div className="flex flex-col">
-            <p className="text-left text-sm text-neutral-200">
-              © GetQR - {new Date().getFullYear()}. All rights reserved. Create
-              your own QR codes and promote your business or idea.
-            </p>
-            {/*<p className="text-left text-sm text-neutral-200">*/}
-            {/*  30 N Gould St Ste R Sheridan, WY 82801 USA*/}
-            {/*</p>*/}
-          </div>
-          <Payments />
+
+        {/* Legal Links */}
+        <div className="flex flex-col w-max">
+          <Links title="Legal" links={LEGAL_LINKS} sessionId={sessionId} />
+        </div>
+
+        {/* About Us Links */}
+        <div className="flex flex-col w-max">
+          <Links title="About Us" links={GENERAL_LINKS} sessionId={sessionId} />
         </div>
       </div>
+    </div>
+
+    <Separator />
+
+    {/* Copyright and Payments */}
+    <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-6 sm:px-6">
+      <p className="font-medium text-sm sm:text-base">
+        © GetQR - {new Date().getFullYear()}. All rights reserved.
+      </p>
+
+      <Payments />
     </div>
   </footer>
 );

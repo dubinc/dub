@@ -61,7 +61,7 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
       {withButton && (
         <Button
           text="Start Trial"
-          className="mt-4"
+          className="hidden bg-secondary hover:bg-secondary/90 sm:inline-flex mt-4"
           onClick={() => handleScrollButtonClick("2")}
         />
       )}

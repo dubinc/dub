@@ -16,19 +16,18 @@ const socialMediaLinks = [
 ];
 
 export const SocialMedia = () => (
-  <ul className="flex gap-4">
+  <div className="flex items-center gap-4">
     {socialMediaLinks.map(({ href, icon: Icon, label }) => (
-      <li key={label}>
-        <Link
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block transition-colors hover:text-gray-100"
-          aria-label={`Follow us on ${label}`}
-        >
-          <Icon className="h-6 w-6" />
-        </Link>
-      </li>
+      <Link
+        key={label}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="transition-opacity hover:opacity-70"
+        aria-label={`Follow us on ${label}`}
+      >
+        <Icon className="size-5" />
+      </Link>
     ))}
-  </ul>
+  </div>
 );

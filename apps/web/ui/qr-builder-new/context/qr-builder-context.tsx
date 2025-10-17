@@ -7,6 +7,7 @@ import {
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -47,6 +48,8 @@ interface QrBuilderProviderProps {
   homepageDemo?: boolean;
   sessionId?: string;
   onSave?: (builderData: TNewQRBuilderData) => Promise<any>;
+  typeToScrollTo?: EQRType | null;
+  handleResetTypeToScrollTo?: () => void;
 }
 
 // Provider component
@@ -57,6 +60,8 @@ export function QrBuilderProvider({
   homepageDemo = false,
   sessionId,
   onSave: onSaveProp,
+  typeToScrollTo,
+  handleResetTypeToScrollTo,
 }: QrBuilderProviderProps) {
   const user = useUser();
   const { isMobile } = useMediaQuery();
@@ -377,6 +382,14 @@ export function QrBuilderProvider({
   const updateCustomizationData = useCallback((data: IQRCustomizationData) => {
     setCustomizationData(data);
   }, []);
+
+  // Handle typeToScrollTo from landing page buttons
+  useEffect(() => {
+    if (typeToScrollTo && homepageDemo) {
+      handleSelectQRType(typeToScrollTo);
+      handleResetTypeToScrollTo?.();
+    }
+  }, [typeToScrollTo, homepageDemo, handleSelectQRType, handleResetTypeToScrollTo]);
 
   const contextValue: IQrBuilderContextType = {
     // States

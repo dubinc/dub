@@ -7,7 +7,6 @@ import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
-import { getSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useCallback, useEffect } from "react";
@@ -61,15 +60,9 @@ export const Header: FC<Readonly<IHeaderProps>> = ({
     }
   }, [scrollToBuilder, handleScrollToQRGenerationBlock]);
 
-  const handleOpenLogin = useCallback(async () => {
-    const existingSession = await getSession();
-    console.log("existingSession", existingSession);
-    if (existingSession?.user) {
-      router.push("/workspaces");
-      return;
-    }
+  const handleOpenLogin = useCallback(() => {
     showModal("login");
-  }, [showModal, router]);
+  }, [showModal]);
 
   const handleOpenMyQRCodes = useCallback(() => {
     router.push("/workspaces");

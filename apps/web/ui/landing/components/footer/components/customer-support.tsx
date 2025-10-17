@@ -26,26 +26,36 @@ export const CustomerSupport: FC<Readonly<ICustomerSupportProps>> = ({
   };
 
   return (
-    <div className="text-neutral mr-20 max-md:mt-6">
-      <p className="mb-4 text-lg font-semibold">Customer Support</p>
-      <Link
-        className="text-neutral text-base font-medium"
-        href="/help/cancel-my-subscription"
-        target="_blank"
-        onClick={() => onClickHandler("how_to_cancel")}
-      >
-        How to Cancel
-      </Link>
-      <Link
-        className="my-3 flex h-[44px] w-full items-center justify-center gap-3 rounded-full border border-black px-4 py-2 text-sm font-medium"
-        href="/help"
-        target="_blank"
-        onClick={() => onClickHandler("customer_support")}
-      >
-        <HelpPhone className="h-6 w-6" />
-        Customer Support <br />
-        24/7/365
-      </Link>
+    <div className="flex flex-col gap-5">
+      <div className="text-lg font-medium">Customer Support</div>
+      <ul className="text-muted-foreground space-y-3">
+        <li>
+          <Link
+            href="/help/cancel-my-subscription"
+            target="_blank"
+            onClick={() => onClickHandler("how_to_cancel")}
+            className="transition-colors hover:text-foreground"
+          >
+            How to Cancel
+          </Link>
+        </li>
+        <li>
+          <Link
+            className="group inline-flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-sm font-medium transition-all hover:border-primary hover:bg-primary/5"
+            href="/help"
+            target="_blank"
+            onClick={() => onClickHandler("customer_support")}
+          >
+            <div className="rounded-full bg-primary/10 p-2 transition-colors group-hover:bg-primary/20">
+              <HelpPhone className="h-5 w-5 text-primary" />
+            </div>
+            <div className="flex flex-col items-start">
+              <span className="text-foreground font-semibold">Customer Support</span>
+              <span className="text-muted-foreground text-xs">24/7/365</span>
+            </div>
+          </Link>
+        </li>
+      </ul>
     </div>
   );
 };
