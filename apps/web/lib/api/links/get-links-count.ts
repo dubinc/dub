@@ -1,7 +1,7 @@
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
-import z from "@/lib/zod";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
+import { z } from "zod";
 
 export async function getLinksCount({
   searchParams,

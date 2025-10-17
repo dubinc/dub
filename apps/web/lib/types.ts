@@ -1,4 +1,3 @@
-import z from "@/lib/zod";
 import {
   PartnerBountySchema,
   PartnerEarningsSchema,
@@ -22,6 +21,7 @@ import {
   Webhook,
   WorkspaceRole,
 } from "@dub/prisma/client";
+import { z } from "zod";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
   FOLDER_PERMISSIONS,

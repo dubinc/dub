@@ -9,7 +9,6 @@ import {
   ProgramApplicationFormDataWithValues,
   ProgramProps,
 } from "@/lib/types";
-import z from "@/lib/zod";
 import {
   programApplicationFormFieldSchema,
   programApplicationFormLongTextFieldWithValueSchema,
@@ -27,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import { CountryCombobox } from "../../../country-combobox";
 import { ProgramApplicationFormField } from "./fields";
 import { FormControlRequiredBadge } from "./fields/form-control";
