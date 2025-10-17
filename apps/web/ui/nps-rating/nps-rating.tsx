@@ -1,5 +1,6 @@
 "use client";
 
+import { Button } from "@dub/ui";
 import { FC, useEffect } from "react";
 
 interface INpsRatingProps {
@@ -24,16 +25,15 @@ export const NpsRating: FC<INpsRatingProps> = ({
             colleagues?
           </h2>
           <div className="w-full space-y-4 md:space-y-6">
-            <div className="flex w-min max-w-full gap-1.5 overflow-auto md:gap-2">
+            <div className="flex max-w-full gap-1.5 md:gap-2 overflow-auto dub-scrollbar">
               {Array.from({ length: 10 }, (_, i) => i + 1).map((rating) => {
                 return (
-                  <button
+                  <Button
                     key={rating}
                     onClick={() => handleRatingClick(rating)}
-                    className="bg-secondary/50 border-border hover:border-primary/50 hover:bg-secondary flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold text-neutral-700 hover:text-neutral-800 md:h-10 md:w-10"
-                  >
-                    <span className="relative z-10">{rating}</span>
-                  </button>
+                    className="bg-secondary/50 border-border hover:border-primary/50 hover:bg-secondary h-9 min-w-9 w-9 rounded-full border-2 text-sm font-semibold text-neutral-700 hover:text-neutral-800 md:h-10 md:min-w-10 hover:ring-0 hover:outline-none px-0"
+                    text={rating}
+                  />
                 );
               })}
             </div>

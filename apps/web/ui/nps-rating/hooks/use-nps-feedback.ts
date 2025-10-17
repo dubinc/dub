@@ -1,7 +1,7 @@
 export const useFeedback = () => {
   const leaveFeedback = async () => {
     try {
-      await fetch("/api/guguesfd", {
+      await fetch("/api/user", {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
