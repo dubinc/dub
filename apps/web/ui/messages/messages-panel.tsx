@@ -12,6 +12,7 @@ import Linkify from "linkify-react";
 import { ChevronRight } from "lucide-react";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { MessageInput } from "../shared/message-input";
+import { MessageMarkdown } from "./message-markdown";
 
 interface Sender {
   name: string | null;
@@ -449,20 +450,13 @@ function CampaignMessage({
           <AnimatedSizeContainer height>
             <div
               className={cn(
-                "max-w-lg overflow-hidden whitespace-pre-wrap",
-                isExpanded ? "max-h-[1000px] px-4 py-2.5" : "max-h-0 px-4 py-0",
+                "max-w-lg overflow-hidden",
+                isExpanded ? "px-2 py-2.5" : "max-h-0 px-2 py-0",
               )}
             >
-              <Linkify
-                as="div"
-                options={{
-                  target: "_blank",
-                  rel: "noopener noreferrer nofollow",
-                  className: "underline underline-offset-4",
-                }}
-              >
+              <MessageMarkdown invert={isMySide}>
                 {message.text}
-              </Linkify>
+              </MessageMarkdown>
             </div>
           </AnimatedSizeContainer>
         </div>

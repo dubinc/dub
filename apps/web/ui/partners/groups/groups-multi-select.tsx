@@ -20,11 +20,13 @@ import { GroupColorCircle } from "./group-color-circle";
 interface GroupSelectorProps {
   selectedGroupIds: string[] | null;
   setSelectedGroupIds: (groupIds: string[] | null) => void;
+  className?: string;
 }
 
 export function GroupsMultiSelect({
   selectedGroupIds,
   setSelectedGroupIds,
+  className,
 }: GroupSelectorProps) {
   const [selectedMode, setSelectedMode] = useState<"all" | "select">(
     selectedGroupIds?.length ? "select" : "all",
@@ -105,8 +107,9 @@ export function GroupsMultiSelect({
   useEffect(() => setShouldSortGroups(true), [groups]);
 
   return (
-    <div>
+    <div className={className}>
       <ToggleGroup
+        layout={false}
         className="flex w-full items-center gap-1 rounded-lg border-none bg-neutral-100 p-1"
         optionClassName="h-8 flex items-center justify-center flex-1 text-sm normal-case"
         indicatorClassName="bg-white"

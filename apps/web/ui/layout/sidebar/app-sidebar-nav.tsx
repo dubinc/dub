@@ -29,6 +29,7 @@ import {
   LinesY as LinesYStatic,
   MoneyBills2,
   Msgs,
+  PaperPlane,
   Receipt2,
   ShieldCheck,
   Sliders,
@@ -69,6 +70,7 @@ type SidebarNavData = {
   unreadMessagesCount?: number;
   showConversionGuides?: boolean;
   partnerNetworkEnabled?: boolean;
+  emailCampaignsEnabled?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -202,6 +204,7 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     submittedBountiesCount,
     unreadMessagesCount,
     partnerNetworkEnabled,
+    emailCampaignsEnabled,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -305,8 +308,18 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
               ? submittedBountiesCount > 99
                 ? "99+"
                 : submittedBountiesCount
-              : "New",
+              : "",
           },
+          ...(emailCampaignsEnabled
+            ? [
+                {
+                  name: "Email Campaigns",
+                  icon: PaperPlane,
+                  href: `/${slug}/program/campaigns` as `/${string}`,
+                  badge: "New",
+                },
+              ]
+            : []),
           {
             name: "Resources",
             icon: LifeRing,
@@ -324,13 +337,17 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             arrow: true,
             isActive: () => false,
           },
-          {
-            name: "Discounts",
-            icon: Discount,
-            href: `/${slug}/program/groups/default/discounts`,
-            arrow: true,
-            isActive: () => false,
-          },
+          ...(!emailCampaignsEnabled
+            ? [
+                {
+                  name: "Discounts",
+                  icon: Discount,
+                  href: `/${slug}/program/groups/default/discounts` as `/${string}`,
+                  arrow: true,
+                  isActive: () => false,
+                },
+              ]
+            : []),
           {
             name: "Links",
             icon: Sliders,
@@ -471,14 +488,15 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { plan, defaultProgramId } = useWorkspace();
+  const { plan, defaultProgramId, flags } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : pathname.includes("/program/messages/") ||
+        : pathname.includes("/program/campaigns/") ||
+            pathname.includes("/program/messages/") ||
             pathname.endsWith("/program/payouts/success")
           ? null
           : pathname.startsWith(`/${slug}/program`)
@@ -544,6 +562,7 @@ export function AppSidebarNav({
         showConversionGuides: canTrackConversions && customersCount === 0,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
+        emailCampaignsEnabled: flags?.emailCampaigns,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}

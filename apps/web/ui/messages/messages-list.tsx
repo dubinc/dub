@@ -11,7 +11,7 @@ export function MessagesList({
         id: string;
         name: string;
         image: string | null;
-        messages: { text: string; createdAt: Date }[];
+        messages: { text: string; subject: string | null; createdAt: Date }[];
         href: string;
         unread?: boolean;
       }[]
@@ -58,7 +58,7 @@ export function MessagesList({
                     )}
                   </div>
                   <span className="text-content-subtle block truncate text-sm font-medium">
-                    {lastMessage?.text}
+                    {lastMessage?.subject || lastMessage?.text}
                   </span>
                 </div>
               </Link>
