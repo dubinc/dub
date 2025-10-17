@@ -64,7 +64,7 @@ export const GET = withSession(async ({ session, params }) => {
   return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="Dub-invoice-${invoice.number}.pdf"`,
+      "Content-Disposition": `inline; filename="dub-invoice-${invoice.number}.pdf"`,
     },
   });
 });
