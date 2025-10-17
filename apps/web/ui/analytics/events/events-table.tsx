@@ -191,9 +191,9 @@ export default function EventsTable({
               rows={["local", "utc", "unix"]}
               interactive
             >
-              <div className="w-full select-none truncate">
+              <span className="select-none truncate">
                 {formatDateTimeSmart(getValue())}
-              </div>
+              </span>
             </TimestampTooltip>
           ),
         },

@@ -2,7 +2,7 @@
 
 import { cn } from "@dub/utils";
 import { formatDuration, intervalToDuration } from "date-fns";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Tooltip, TooltipProps } from "./tooltip";
 
@@ -25,24 +25,35 @@ function getLocalTimeZone(): string {
   return "Local";
 }
 
-export function TimestampTooltip(props: TimestampTooltipProps) {
-  if (
-    !props.timestamp ||
-    new Date(props.timestamp).toString() === "Invalid Date"
-  )
-    return props.children;
+export function TimestampTooltip({
+  timestamp,
+  rows,
+  interactive,
+  ...tooltipProps
+}: TimestampTooltipProps) {
+  if (!timestamp || new Date(timestamp).toString() === "Invalid Date")
+    return tooltipProps.children;
 
-  return <TimestampTooltipContent {...props} />;
+  return (
+    <Tooltip
+      content={
+        <TimestampTooltipContent
+          timestamp={timestamp}
+          rows={rows}
+          interactive={interactive}
+        />
+      }
+      disableHoverableContent={!interactive}
+      {...tooltipProps}
+    />
+  );
 }
 
 function TimestampTooltipContent({
   timestamp,
-  children,
   rows = ["local", "utc"],
   interactive = false,
-  className,
-  ...tooltipProps
-}: TimestampTooltipProps) {
+}: Pick<TimestampTooltipProps, "timestamp" | "rows" | "interactive">) {
   if (!timestamp)
     throw new Error("Falsy timestamp not permitted in TimestampTooltipContent");
 
@@ -120,63 +131,64 @@ function TimestampTooltipContent({
 
   const shortLabels = items.every(({ shortLabel }) => shortLabel);
 
+  // Re-render every second to update the relative time
+  const [_, setRenderCount] = useState(0);
+  useEffect(() => {
+    const interval = setInterval(() => setRenderCount((c) => c + 1), 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
-    <Tooltip
-      content={
-        <div className="flex max-w-[360px] flex-col gap-2 px-2.5 py-2 text-left text-xs">
-          <span className="text-content-subtle cursor-default">{relative}</span>
-          <table>
-            {items.map((row, idx) => (
-              <tr
-                key={idx}
+    <div className="flex max-w-[360px] flex-col gap-2 px-2.5 py-2 text-left text-xs">
+      {diff > 0 && (
+        <span className="text-content-subtle cursor-default">{relative}</span>
+      )}
+      <table>
+        {items.map((row, idx) => (
+          <tr
+            key={idx}
+            className={cn(
+              interactive &&
+                "before:bg-bg-emphasis relative select-none before:absolute before:-inset-x-1 before:inset-y-0 before:rounded before:opacity-0 before:content-[''] hover:cursor-pointer hover:before:opacity-60 active:before:opacity-100",
+            )}
+            onClick={
+              interactive
+                ? async () => {
+                    try {
+                      await navigator.clipboard.writeText(row.value);
+                      toast.success("Copied to clipboard");
+                    } catch (e) {
+                      toast.error("Failed to copy to clipboard");
+                      console.error("Failed to copy to clipboard", e);
+                    }
+                  }
+                : undefined
+            }
+          >
+            <td className="relative py-0.5">
+              <span
                 className={cn(
-                  interactive &&
-                    "before:bg-bg-emphasis relative select-none before:absolute before:-inset-x-1 before:inset-y-0 before:rounded before:opacity-0 before:content-[''] hover:cursor-pointer hover:before:opacity-60 active:before:opacity-100",
+                  "text-content-subtle truncate",
+                  shortLabels && "bg-bg-inverted/10 rounded px-1 font-mono",
                 )}
-                onClick={
-                  interactive
-                    ? async () => {
-                        try {
-                          await navigator.clipboard.writeText(row.value);
-                          toast.success("Copied to clipboard");
-                        } catch (e) {
-                          toast.error("Failed to copy to clipboard");
-                          console.error("Failed to copy to clipboard", e);
-                        }
-                      }
-                    : undefined
-                }
+                title={shortLabels ? row.label : undefined}
               >
-                <td className="relative py-0.5">
-                  <span
-                    className={cn(
-                      "text-content-subtle truncate",
-                      shortLabels && "bg-bg-inverted/10 rounded px-1 font-mono",
-                    )}
-                    title={shortLabels ? row.label : undefined}
-                  >
-                    {shortLabels ? row.shortLabel : row.label}
-                  </span>
-                </td>
-                <td
-                  className={cn(
-                    "text-content-default relative whitespace-nowrap py-0.5 pl-3",
-                    shortLabels && "pl-2",
-                    row.valueMono && "font-mono",
-                  )}
-                >
-                  {row.value}
-                </td>
-              </tr>
-            ))}
-          </table>
-        </div>
-      }
-      disableHoverableContent={!interactive}
-      {...tooltipProps}
-    >
-      {children}
-    </Tooltip>
+                {shortLabels ? row.shortLabel : row.label}
+              </span>
+            </td>
+            <td
+              className={cn(
+                "text-content-default relative whitespace-nowrap py-0.5 pl-3",
+                shortLabels && "pl-2",
+                row.valueMono && "font-mono",
+              )}
+            >
+              {row.value}
+            </td>
+          </tr>
+        ))}
+      </table>
+    </div>
   );
 }
 
