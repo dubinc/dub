@@ -75,9 +75,9 @@ export function GuideList() {
                 </p>
 
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
-                  {(guidesByType[section.type] || []).map((guide) => (
+                  {(guidesByType[section.type] || []).map((guide, idx) => (
                     <Link
-                      key={guide.title}
+                      key={idx}
                       href={`${pathname}/${guide.key}`}
                       className="group relative flex h-[140px] cursor-pointer flex-col items-center justify-center gap-3 rounded-lg bg-neutral-100 px-2 py-4 text-center transition-colors hover:bg-neutral-200/75"
                     >

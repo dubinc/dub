@@ -36,8 +36,8 @@ export default function WelcomeEmailPartner({
               Welcome {name || "to Dub Partners"}!
             </Heading>
             <Text className="mb-8 text-sm leading-6 text-gray-600">
-              You're officially a Dub Partner – time to start earning rewards by
-              referring your audience to the brands you work with.
+              We're excited to have you onboard. Time to start earning rewards
+              by referring your audience to the brands you work with.
             </Text>
 
             <Hr />
@@ -48,52 +48,69 @@ export default function WelcomeEmailPartner({
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
-                1. Join a program
+                1. Complete your partner profile
               </strong>
-              : If you haven't already, join an affiliate program, or enroll in
-              our own{" "}
+              : Start by{" "}
               <Link
-                href="https://partners.dub.co/programs/dub/apply"
+                href="https://ship.dub.co/partner-profile"
                 className="font-semibold text-black underline underline-offset-4"
               >
-                Dub Affiliate Program
-              </Link>{" "}
-              to earn 30% for every sale you refer.
+                completing your partner profile
+              </Link>
+              . This will help you stand out from other partners in our partner
+              network.
             </Text>
 
             <Text className="mb-4 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
-                2. Create referral links
+                2. Set up payouts
+              </strong>
+              :{" "}
+              <Link
+                href="https://ship.dub.co/connect-payouts"
+                className="font-semibold text-black underline underline-offset-4"
+              >
+                Connect a payout method
+              </Link>{" "}
+              to get paid for your referrals. Your payout bank account must
+              match your local currency for compliance reasons. E.g. if you're
+              based in the UK, you will need to connect a GBP bank account to
+              receive payouts.{" "}
+              <Link
+                href="https://ship.dub.co/payouts-guide"
+                className="font-semibold text-black underline underline-offset-4"
+              >
+                Learn more ↗
+              </Link>
+            </Text>
+
+            <Text className="mb-4 text-sm leading-6 text-gray-600">
+              <strong className="font-medium text-black">
+                3. Join a program
+              </strong>
+              : If you haven't already, join an affiliate program and start
+              earning commissions for your referrals
+            </Text>
+
+            <Text className="mb-4 text-sm leading-6 text-gray-600">
+              <strong className="font-medium text-black">
+                4. Start sharing your links
               </strong>
               : Once you've joined a program, you can start sharing and creating
               additional referral links.
             </Text>
 
-            <Text className="mb-4 text-sm leading-6 text-gray-600">
-              <strong className="font-medium text-black">
-                3. Track your performance
-              </strong>
-              : Monitor traffic and earnings with real-time analytics
-            </Text>
-
             <Text className="mb-8 text-sm leading-6 text-gray-600">
               <strong className="font-medium text-black">
-                4. Set up payouts
+                5. Track your performance
               </strong>
-              :{" "}
-              <Link
-                href="https://partners.dub.co/payouts"
-                className="font-semibold text-black underline underline-offset-4"
-              >
-                Connect a payout method
-              </Link>{" "}
-              to get paid for your referrals.
+              : Monitor traffic and earnings with real-time analytics
             </Text>
 
             <Section className="mb-8">
               <Link
                 className="rounded-lg bg-black px-6 py-3 text-center text-[12px] font-semibold text-white no-underline"
-                href="https://partners.dub.co"
+                href="https://ship.dub.co/partners-dashboard"
               >
                 Go to your dashboard
               </Link>

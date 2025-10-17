@@ -23,6 +23,9 @@ export const GET = withPartnerProfile(
     const { program } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
+      include: {
+        program: true,
+      },
     });
 
     let { linkId, domain, key, ...rest } =
@@ -50,7 +53,7 @@ export const GET = withPartnerProfile(
       linkId,
       programId: program.id,
       partnerId: partner.id,
-      dataAvailableFrom: program.createdAt,
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 
     const response = events.map((event) => {

@@ -1,6 +1,5 @@
-import { useRouterStuff } from "@dub/ui";
+import { useCurrentSubdomain, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useEffect, useState } from "react";
 import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
 import { ExpandedLinkProps, UserProps } from "../types";
@@ -18,12 +17,7 @@ export default function useLinks(
   const { getQueryString } = useRouterStuff();
   const { isMegaFolder } = useIsMegaFolder();
 
-  const [admin, setAdmin] = useState(false);
-  useEffect(() => {
-    if (window.location.host.startsWith("admin.")) {
-      setAdmin(true);
-    }
-  }, []);
+  const { subdomain } = useCurrentSubdomain();
 
   const {
     data: links,
@@ -62,7 +56,7 @@ export default function useLinks(
             ],
           },
         )}`
-      : admin
+      : subdomain === "admin"
         ? `/api/admin/links${getQueryString(opts)}`
         : null,
     fetcher,

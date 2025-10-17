@@ -1,32 +1,43 @@
 import { getProgram } from "@/lib/fetchers/get-program";
-import { getProgramApplicationRewardsAndDiscount } from "@/lib/partners/get-program-application-rewards";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { CSSProperties } from "react";
 import { ApplyButton } from "./apply-button";
-import { Header } from "./header";
+import { ApplyHeader } from "./header";
 
-export default async function ApplyPage({
-  params: { programSlug },
-}: {
-  params: { programSlug: string };
+export default async function ApplyPage(props: {
+  params: Promise<{ programSlug: string; groupSlug?: string }>;
 }) {
+  const params = await props.params;
+
+  const { programSlug, groupSlug } = params;
+
+  const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
+
   const program = await getProgram({
     slug: programSlug,
-    include: ["allRewards", "allDiscounts"],
+    groupSlug: partnerGroupSlug,
   });
 
-  if (!program || !program.landerData || !program.landerPublishedAt) {
-    notFound();
+  if (
+    !program ||
+    !program.group ||
+    !program.group.landerData ||
+    !program.group.landerPublishedAt
+  ) {
+    // throw 404 if it's the default group, else redirect to the default group page
+    if (partnerGroupSlug === DEFAULT_PARTNER_GROUP.slug) {
+      notFound();
+    } else {
+      redirect(`/${programSlug}`);
+    }
   }
 
-  const landerData = programLanderSchema.parse(program.landerData);
-
-  const { rewards, discount } =
-    getProgramApplicationRewardsAndDiscount(program);
+  const landerData = programLanderSchema.parse(program.group.landerData || {});
 
   return (
     <div
@@ -38,17 +49,20 @@ export default async function ApplyPage({
         } as CSSProperties
       }
     >
-      <Header program={program} />
+      <ApplyHeader program={program} />
       <div className="p-6">
         <LanderHero program={program} landerData={landerData} />
 
         {/* Program details grid */}
-        <LanderRewards className="mt-4" rewards={rewards} discount={discount} />
+        <LanderRewards
+          className="mt-4"
+          rewards={program.rewards}
+          discount={program.discount}
+        />
 
         {/* Buttons */}
         <div className="animate-scale-in-fade mt-10 flex flex-col gap-2 [animation-delay:400ms] [animation-fill-mode:both]">
-          <ApplyButton programSlug={programSlug} />
-          {/* <Button type="button" variant="secondary" text="Learn more" /> */}
+          <ApplyButton programSlug={programSlug} groupSlug={partnerGroupSlug} />
         </div>
 
         {/* Content blocks */}

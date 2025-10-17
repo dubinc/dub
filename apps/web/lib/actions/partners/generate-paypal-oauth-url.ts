@@ -1,12 +1,18 @@
 "use server";
 
-import { paypalOAuth } from "@/lib/paypal/oauth";
+import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
+import { paypalOAuthProvider } from "@/lib/paypal/oauth";
 import { COUNTRIES, PAYPAL_SUPPORTED_COUNTRIES } from "@dub/utils";
 import { authPartnerActionClient } from "../safe-action";
 
 export const generatePaypalOAuthUrl = authPartnerActionClient.action(
   async ({ ctx }) => {
-    let { partner, user } = ctx;
+    const { partner, user, partnerUser } = ctx;
+
+    throwIfNoPermission({
+      role: partnerUser.role,
+      permission: "payout_settings.update",
+    });
 
     if (!partner.country) {
       throw new Error(
@@ -20,12 +26,8 @@ export const generatePaypalOAuthUrl = authPartnerActionClient.action(
       );
     }
 
-    const url = await paypalOAuth.getAuthorizationUrl({
-      dubUserId: user.id,
-    });
-
     return {
-      url,
+      url: await paypalOAuthProvider.generateAuthUrl(user.id),
     };
   },
 );

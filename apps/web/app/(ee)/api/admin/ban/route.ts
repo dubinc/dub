@@ -1,4 +1,4 @@
-import { deleteWorkspaceAdmin } from "@/lib/api/workspaces";
+import { deleteWorkspaceAdmin } from "@/lib/api/workspaces/delete-workspace";
 import { withAdmin } from "@/lib/auth";
 import { updateConfig } from "@/lib/edge-config";
 import { isStored, storage } from "@/lib/storage";

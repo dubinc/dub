@@ -23,9 +23,9 @@ export default function DomainRenewalReminder({
     slug: "getacme.link",
     renewalFee: 1200,
     expiresAt: new Date("2025-08-19"),
-    chargeAt: new Date("2025-08-16"),
     reminderWindow: 30,
-    chargeInText: "2 weeks",
+    chargeAt: new Date("2025-08-05"),
+    chargeAtInText: "2 weeks",
   },
 }: {
   email: string;
@@ -38,7 +38,7 @@ export default function DomainRenewalReminder({
     renewalFee: number;
     chargeAt: Date;
     reminderWindow: number;
-    chargeInText: string;
+    chargeAtInText: string;
   };
 }) {
   return (
@@ -70,7 +70,7 @@ export default function DomainRenewalReminder({
               </span>
               . We will attempt to charge your card on file{" "}
               {currencyFormatter(domain.renewalFee / 100)} in{" "}
-              {domain.chargeInText} on {formatDate(domain.chargeAt)}.
+              {domain.chargeAtInText} on {formatDate(domain.chargeAt)}.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">

@@ -36,7 +36,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         ? await getProgramOrThrow({
             workspaceId: workspace.id,
             programId,
-          }).then((program) => program.createdAt)
+          }).then((program) => program.startedAt ?? program.createdAt)
         : undefined,
   });
 

@@ -23,6 +23,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     groupBy,
     workspaceId,
     linkId,
+    linkIds,
     interval,
     start,
     end,
@@ -39,13 +40,13 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const tagIds = combineTagIds(params);
 
   // get all-time clicks count if:
-  // 1. linkId is defined
+  // 1. linkId or linkIds is defined
   // 2. type is count
   // 3. interval is all
   // 4. no custom start or end date is provided
   // 5. no other dimensional filters are applied
   if (
-    linkId &&
+    (linkId || linkIds) &&
     groupBy === "count" &&
     interval === "all" &&
     !start &&
@@ -61,12 +62,33 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
           ? `sales, saleAmount`
           : `${event}`;
 
-    const response = await conn.execute(
-      `SELECT ${columns} FROM Link WHERE id = ?`,
-      [linkId],
-    );
+    // Handle single linkId
+    if (linkId) {
+      const response = await conn.execute(
+        `SELECT ${columns} FROM Link WHERE id = ?`,
+        [linkId],
+      );
 
-    return response.rows[0];
+      return analyticsResponse["count"].parse(response.rows[0]);
+    }
+
+    // Handle multiple linkIds with aggregation
+    if (linkIds && linkIds.length > 0) {
+      const linkIdsToFilter = linkIds.map(() => "?").join(",");
+      const aggregateColumns =
+        event === "composite"
+          ? `SUM(clicks) as clicks, SUM(leads) as leads, SUM(sales) as sales, SUM(saleAmount) as saleAmount`
+          : event === "sales"
+            ? `SUM(sales) as sales, SUM(saleAmount) as saleAmount`
+            : `SUM(${event}) as ${event}`;
+
+      const response = await conn.execute(
+        `SELECT ${aggregateColumns} FROM Link WHERE id IN (${linkIdsToFilter})`,
+        linkIds,
+      );
+
+      return analyticsResponse["count"].parse(response.rows[0]);
+    }
   }
 
   if (groupBy === "trigger") {

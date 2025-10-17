@@ -64,6 +64,18 @@ export const getFinalUrl = (
     urlObj.searchParams.set("ip", ip ?? "");
   }
 
+  // Polyfill wpcn & wpcl params for Singular integration
+  const wpcn = urlObj.searchParams.get("wpcn");
+  const wpcl = urlObj.searchParams.get("wpcl");
+
+  if (wpcn && wpcn === "{via}") {
+    urlObj.searchParams.set("wpcn", via ?? "");
+  }
+
+  if (wpcl && wpcl === "{dub_id}") {
+    urlObj.searchParams.set("wpcl", clickId ?? "");
+  }
+
   // for Google Play Store links
   if (isGooglePlayStoreUrl(url)) {
     const { shortLink } = parse(req);
@@ -90,6 +102,11 @@ export const getFinalUrl = (
   // remove qr param from the final url if the value is "1" (only used for detectQr function)
   if (urlObj.searchParams.get("qr") === "1") {
     urlObj.searchParams.delete("qr");
+  }
+
+  // remove skip_deeplink_preview param from the final url (only used for internal redirection behavior)
+  if (urlObj.searchParams.get("skip_deeplink_preview") === "1") {
+    urlObj.searchParams.delete("skip_deeplink_preview");
   }
 
   return urlObj.toString();

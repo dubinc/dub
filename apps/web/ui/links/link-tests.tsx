@@ -1,7 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ABTestVariantsSchema } from "@/lib/zod/schemas/links";
 import { fetcher } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { memo, useMemo } from "react";
 import useSWR from "swr";
 import { LinkAnalyticsBadge } from "./link-analytics-badge";

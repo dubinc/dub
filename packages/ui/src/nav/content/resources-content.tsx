@@ -3,7 +3,7 @@ import { Link as NavigationMenuLink } from "@radix-ui/react-navigation-menu";
 import Link from "next/link";
 import { RESOURCES } from "../../content";
 import { Grid } from "../../grid";
-import { Book2Fill, LifeRing } from "../../icons";
+import { Book2Fill, LifeRingFill } from "../../icons";
 import {
   ContentLinkCard,
   contentHeadingClassName,
@@ -12,7 +12,7 @@ import {
 
 const mainLinks = [
   {
-    icon: LifeRing,
+    icon: LifeRingFill,
     title: "Help Center",
     description: "Answers to your questions",
     thumbnail: "https://assets.dub.co/misc/help-thumbnail.jpg", // TODO: Update

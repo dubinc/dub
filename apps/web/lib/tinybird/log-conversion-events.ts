@@ -1,5 +1,6 @@
+import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
-import { tb } from "./client";
+import { tb, tbNew } from "./client";
 
 const schema = z.object({
   workspace_id: z.string(),
@@ -10,7 +11,18 @@ const schema = z.object({
 });
 
 // Log the conversion events for debugging purposes
-export const logConversionEvent = tb.buildIngestEndpoint({
+export const logConversionEventTB = tb.buildIngestEndpoint({
   datasource: "dub_conversion_events_log",
   event: schema,
 });
+
+// TODO: Remove after Tinybird migration
+export const logConversionEventTBNew = tbNew.buildIngestEndpoint({
+  datasource: "dub_conversion_events_log",
+  event: schema,
+});
+
+export const logConversionEvent = async (payload: any) => {
+  waitUntil(logConversionEventTBNew(payload));
+  return await logConversionEventTB(payload);
+};

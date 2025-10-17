@@ -2,8 +2,8 @@
 
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useUsers from "@/lib/swr/use-users";
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
@@ -49,9 +49,9 @@ export default function PlanUsage() {
     domainsLimit,
     foldersUsage,
     foldersLimit,
+    groupsLimit,
     tagsLimit,
     usersLimit,
-    partnersEnabled,
     billingCycleStart,
   } = useWorkspace();
 
@@ -61,7 +61,7 @@ export default function PlanUsage() {
   });
 
   const { data: tags } = useTagsCount();
-  const { users } = useUsers();
+  const { users } = useWorkspaceUsers();
 
   const [billingStart, billingEnd] = useMemo(() => {
     if (billingCycleStart) {
@@ -114,7 +114,7 @@ export default function PlanUsage() {
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
           <h2 className="text-xl font-medium">
-            {plan && isLegacyBusinessPlan(plan, payoutsLimit ?? 0)
+            {plan && isLegacyBusinessPlan({ plan, payoutsLimit })
               ? "Business (Legacy)"
               : capitalize(plan)}{" "}
             Plan
@@ -169,7 +169,6 @@ export default function PlanUsage() {
           className={cn(
             "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
             "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
-            !partnersEnabled && "rounded-b-lg",
           )}
         >
           <UsageCategory
@@ -201,31 +200,29 @@ export default function PlanUsage() {
             href={`/${slug}/settings/people`}
           />
         </div>
-        {partnersEnabled && defaultProgramId && (
-          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
-            <UsageCategory
-              title="Partners"
-              icon={Users6}
-              usage={partnersCount}
-              usageLimit={INFINITY_NUMBER}
-              href={`/${slug}/program/partners`}
-            />
-            <UsageCategory
-              title="Partner payouts"
-              icon={CreditCard}
-              usage={payoutsUsage}
-              usageLimit={payoutsLimit}
-              unit="$"
-              href={`/${slug}/program/payouts`}
-            />
-            <UsageCategory
-              title="Payout fees"
-              icon={CirclePercentage}
-              usage={plan && payoutFee && `${payoutFee * 100}%`}
-              href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
-            />
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
+          <UsageCategory
+            title="Partners"
+            icon={Users6}
+            usage={partnersCount ?? 0}
+            usageLimit={INFINITY_NUMBER}
+            href={`/${slug}/program/partners`}
+          />
+          <UsageCategory
+            title="Partner payouts"
+            icon={CreditCard}
+            usage={payoutsUsage}
+            usageLimit={payoutsLimit}
+            unit="$"
+            href={`/${slug}/program/payouts`}
+          />
+          <UsageCategory
+            title="Payout fees"
+            icon={CirclePercentage}
+            usage={plan && payoutFee && `${payoutFee * 100}%`}
+            href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
+          />
+        </div>
       </div>
     </div>
   );

@@ -98,7 +98,7 @@ export const onboardPartnerAction = authUserActionClient
     waitUntil(
       Promise.allSettled([
         // Complete any outstanding program application
-        completeProgramApplications(user.id),
+        completeProgramApplications(user.email),
         // Subscribe the partner to the partners.dub.co Resend audience
         subscribe({
           email: user.email,

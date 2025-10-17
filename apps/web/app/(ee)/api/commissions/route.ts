@@ -1,5 +1,6 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
@@ -14,13 +15,15 @@ import { z } from "zod";
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  const {
+  let {
     status,
     type,
     customerId,
     payoutId,
     partnerId,
+    tenantId,
     invoiceId,
+    groupId,
     page,
     pageSize,
     sortBy,
@@ -35,6 +38,27 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     start,
     end,
   });
+
+  if (tenantId && !partnerId) {
+    const partner = await prisma.programEnrollment.findUnique({
+      where: {
+        tenantId_programId: {
+          tenantId,
+          programId,
+        },
+      },
+      select: {
+        partnerId: true,
+      },
+    });
+    if (!partner) {
+      throw new DubApiError({
+        code: "not_found",
+        message: `Partner with specified tenantId ${tenantId} not found.`,
+      });
+    }
+    partnerId = partner.partnerId;
+  }
 
   const commissions = await prisma.commission.findMany({
     where: invoiceId
@@ -56,6 +80,16 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
             gte: startDate.toISOString(),
             lte: endDate.toISOString(),
           },
+          ...(groupId && {
+            partner: {
+              programs: {
+                some: {
+                  programId,
+                  groupId,
+                },
+              },
+            },
+          }),
         },
     include: {
       customer: true,

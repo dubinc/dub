@@ -2,12 +2,14 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
-import { ToltAffiliate, ToltCustomer, ToltImportPayload } from "./types";
+import { ToltCustomer, ToltImportPayload } from "./types";
 
 export async function importCustomers(payload: ToltImportPayload) {
   let { importId, programId, toltProgramId, startingAfter } = payload;
@@ -70,6 +72,9 @@ export async function importCustomers(payload: ToltImportPayload) {
             key: true,
             domain: true,
             url: true,
+            partnerId: true,
+            programId: true,
+            lastLeadAt: true,
           },
         },
       },
@@ -88,13 +93,28 @@ export async function importCustomers(payload: ToltImportPayload) {
       partnerEmailToLinks.set(partner.email, links);
     }
 
+    // get the latest lead at for each partner link
+    const partnerEmailToLatestLeadAt = customers.reduce(
+      (acc, customer) => {
+        if (!customer.partner.email) {
+          return acc;
+        }
+        const existing = acc[customer.partner.email] ?? new Date(0);
+        if (new Date(customer.created_at) > existing) {
+          acc[customer.partner.email] = new Date(customer.created_at);
+        }
+        return acc;
+      },
+      {} as Record<string, Date>,
+    );
+
     await Promise.allSettled(
       customers.map(({ partner, ...customer }) =>
         createReferral({
           workspace,
           customer,
-          partner,
           links: partnerEmailToLinks.get(partner.email) ?? [],
+          latestLeadAt: partnerEmailToLatestLeadAt[partner.email],
           importId,
         }),
       ),
@@ -118,13 +138,16 @@ async function createReferral({
   customer,
   workspace,
   links,
-  partner,
+  latestLeadAt,
   importId,
 }: {
   customer: Omit<ToltCustomer, "partner">;
-  partner: ToltAffiliate;
   workspace: Pick<Project, "id" | "stripeConnectId">;
-  links: Pick<Link, "id" | "key" | "domain" | "url">[];
+  links: Pick<
+    Link,
+    "id" | "key" | "domain" | "url" | "partnerId" | "programId" | "lastLeadAt"
+  >[];
+  latestLeadAt: Date;
   importId: string;
 }) {
   const commonImportLogInputs = {
@@ -132,31 +155,35 @@ async function createReferral({
     import_id: importId,
     source: "tolt",
     entity: "customer",
-    entity_id: customer.customer_id,
+    entity_id: customer.customer_id || customer.email || customer.id,
   } as const;
 
   if (links.length === 0) {
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for customer ${customer.customer_id}`,
+      message: `Link not found for customer ${commonImportLogInputs.entity_id}`,
     });
 
     return;
   }
 
+  // if customer_id is null, use customer email or Tolt customer ID as the external ID
+  const customerExternalId =
+    customer.customer_id || customer.email || customer.id;
+
   const customerFound = await prisma.customer.findUnique({
     where: {
       projectId_externalId: {
         projectId: workspace.id,
-        externalId: customer.customer_id,
+        externalId: customerExternalId,
       },
     },
   });
 
   if (customerFound) {
     console.log(
-      `A customer already exists with customer_id ${customer.customer_id}`,
+      `A customer already exists with customerExternalId ${customerExternalId}`,
     );
     return;
   }
@@ -210,11 +237,11 @@ async function createReferral({
         country: clickEvent.country,
         clickedAt: new Date(customer.created_at),
         createdAt: new Date(customer.created_at),
-        externalId: customer.customer_id,
+        externalId: customerExternalId,
       },
     });
 
-    await Promise.all([
+    await Promise.allSettled([
       recordLeadWithTimestamp({
         ...clickEvent,
         event_id: nanoid(16),
@@ -231,8 +258,23 @@ async function createReferral({
           leads: {
             increment: 1,
           },
+          lastLeadAt: updateLinkStatsForImporter({
+            currentTimestamp: link.lastLeadAt,
+            newTimestamp: latestLeadAt,
+          }),
         },
       }),
+
+      // partner links should always have a partnerId and programId, but we're doing this to make TS happy
+      ...(link.partnerId && link.programId
+        ? [
+            syncPartnerLinksStats({
+              partnerId: link.partnerId,
+              programId: link.programId,
+              eventType: "lead",
+            }),
+          ]
+        : []),
     ]);
   } catch (error) {
     console.error("Error creating customer", customer, error);

@@ -300,6 +300,18 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
           body: dataArray.map((d) => JSON.stringify(d.clickData)).join("\n"),
         },
       ),
+      // TODO: Remove after Tinybird migration
+      fetch(
+        `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_NEW}`,
+            "Content-Type": "application/x-ndjson",
+          },
+          body: dataArray.map((d) => JSON.stringify(d.clickData)).join("\n"),
+        },
+      ),
 
       // Record leads
       recordLeadWithTimestamp(dataArray.map((d) => d.leadEventData)),
@@ -316,10 +328,10 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       // Cache the externalId:eventName pairs
       redis.sadd(
         CACHE_KEY,
-        ...dataArray.map(
+        ...(dataArray.map(
           ({ payload: { externalId, eventName } }) =>
             `${externalId}:${eventName}`,
-        ),
+        ) as [string]),
       ),
     ]);
 

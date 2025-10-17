@@ -2,7 +2,7 @@ import { UserProps } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 import { isValidInternalRedirect, parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
-import { getDubProductFromCookie } from "./utils/get-dub-product-from-cookie";
+import { getWorkspaceProduct } from "./utils/get-workspace-product";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 
 export default async function WorkspacesMiddleware(
@@ -30,8 +30,7 @@ export default async function WorkspacesMiddleware(
     }
 
     if (!redirectPath) {
-      // Determine product from cookie (default to links)
-      const product = getDubProductFromCookie(defaultWorkspace);
+      const product = await getWorkspaceProduct(defaultWorkspace);
       redirectPath = `/${product}`;
     }
 

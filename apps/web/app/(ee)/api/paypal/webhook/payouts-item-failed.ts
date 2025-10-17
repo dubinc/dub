@@ -72,7 +72,7 @@ export async function payoutsItemFailed(event: any) {
     payout.partner.email
       ? sendEmail({
           subject: `Your recent partner payout from ${payout.program.name} failed`,
-          email: payout.partner.email,
+          to: payout.partner.email,
           react: PartnerPaypalPayoutFailed({
             email: payout.partner.email,
             program: {

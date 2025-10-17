@@ -4,7 +4,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import { webhookCache } from "@/lib/webhook/cache";
-import { PARTNERS_WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
@@ -121,21 +120,6 @@ export const PATCH = withWorkspace(
           code: "bad_request",
           message:
             "Invalid link IDs provided. Please check the links you are adding the webhook to.",
-        });
-      }
-    }
-
-    if (triggers) {
-      const hasPartnersTriggers = PARTNERS_WEBHOOK_TRIGGERS.some((trigger) =>
-        triggers.includes(trigger),
-      );
-
-      if (hasPartnersTriggers && !workspace.partnersEnabled) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "Dub Partners is not enabled on this workspace, which is required to use the following webhook triggers: " +
-            PARTNERS_WEBHOOK_TRIGGERS.join(", "),
         });
       }
     }

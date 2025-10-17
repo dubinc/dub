@@ -1,15 +1,21 @@
 import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
 import { PartnerEarningsResponse } from "@/lib/types";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
-import { Gift, StatusBadge, Table, usePagination, useTable } from "@dub/ui";
+import {
+  Gift,
+  StatusBadge,
+  TAB_ITEM_ANIMATION_SETTINGS,
+  Table,
+  usePagination,
+  useTable,
+} from "@dub/ui";
 import {
   currencyFormatter,
   fetcher,
   formatDate,
   formatDateTime,
-  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import useSWR from "swr";
 import { useEmbedToken } from "../../embed/use-embed-token";
 
@@ -56,10 +62,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
         id: "amount",
         header: "Amount",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          return currencyFormatter(row.original.amount / 100);
         },
       },
       {
@@ -67,10 +70,7 @@ export function ReferralsEmbedEarnings({ salesCount }: { salesCount: number }) {
         header: "Earnings",
         accessorKey: "earnings",
         cell: ({ row }) => {
-          return currencyFormatter(row.original.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          });
+          return currencyFormatter(row.original.earnings / 100);
         },
       },
       {

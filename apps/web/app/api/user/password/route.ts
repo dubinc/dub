@@ -64,7 +64,7 @@ export const PATCH = withSession(async ({ req, session }) => {
   waitUntil(
     sendEmail({
       subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} account password has been updated`,
-      email: session.user.email,
+      to: session.user.email,
       react: PasswordUpdated({
         email: session.user.email,
       }),

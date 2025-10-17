@@ -1,7 +1,7 @@
 "use client";
 
 import { useResizeObserver } from "@dub/ui";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useRef, useState } from "react";
 import { ContactForm } from "./contact-form";
 import { HelpArticles } from "./help-articles";

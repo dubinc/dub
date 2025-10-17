@@ -82,9 +82,9 @@ export const programLanderRewardsSchema = z.object({
 });
 
 export const programLanderSchema = z.object({
+  label: z.string().optional(),
   title: z.string().optional(),
   description: z.string().optional(),
-  rewards: programLanderRewardsSchema.optional(),
   blocks: z.array(programLanderBlockSchema),
 });
 

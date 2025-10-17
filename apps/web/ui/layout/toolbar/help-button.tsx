@@ -1,8 +1,8 @@
 "use client";
 
 import { Popover } from "@dub/ui";
-import { AnimatePresence, motion } from "framer-motion";
 import { XIcon } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import posthog from "posthog-js";
 import { useState } from "react";
 import { HelpArticle, HelpContext } from "../help";

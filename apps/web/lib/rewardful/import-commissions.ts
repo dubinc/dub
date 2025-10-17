@@ -6,6 +6,8 @@ import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvents } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
@@ -25,7 +27,7 @@ const toDubStatus: Record<RewardfulCommission["state"], CommissionStatus> = {
 };
 
 export async function importCommissions(payload: RewardfulImportPayload) {
-  const { importId, programId, userId, campaignId, page = 1 } = payload;
+  const { importId, programId, userId, campaignIds, page = 1 } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -75,7 +77,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
         createCommission({
           commission,
           program,
-          campaignId,
+          campaignIds,
           fxRates,
           importId,
           customersData,
@@ -116,7 +118,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
 
   if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email: workspaceUser.user.email,
+      to: workspaceUser.user.email,
       subject: "Rewardful campaign imported",
       react: ProgramImported({
         email: workspaceUser.user.email,
@@ -133,7 +135,7 @@ export async function importCommissions(payload: RewardfulImportPayload) {
 async function createCommission({
   commission,
   program,
-  campaignId,
+  campaignIds,
   fxRates,
   importId,
   customersData,
@@ -141,7 +143,7 @@ async function createCommission({
 }: {
   commission: RewardfulCommission;
   program: Program;
-  campaignId: string;
+  campaignIds: string[];
   fxRates: Record<string, string> | null;
   importId: string;
   customersData: (Customer & { link: Link | null })[];
@@ -155,9 +157,9 @@ async function createCommission({
     entity_id: commission.id,
   } as const;
 
-  if (commission.campaign.id !== campaignId) {
+  if (commission.campaign.id && !campaignIds.includes(commission.campaign.id)) {
     console.log(
-      `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaign ${campaignId} (they're in ${commission.campaign.id}). Skipping...`,
+      `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaignIds (${campaignIds.join(", ")}) (they're in ${commission.campaign.id}). Skipping...`,
     );
 
     return;
@@ -358,10 +360,20 @@ async function createCommission({
           conversions: {
             increment: 1,
           },
+          lastConversionAt: updateLinkStatsForImporter({
+            currentTimestamp: customerFound.link.lastConversionAt,
+            newTimestamp: new Date(commission.created_at),
+          }),
         }),
         sales: { increment: 1 },
         saleAmount: { increment: amount },
       },
+    }),
+
+    syncPartnerLinksStats({
+      partnerId: customerFound.link.partnerId,
+      programId: program.id,
+      eventType: "sale",
     }),
 
     // update customer stats

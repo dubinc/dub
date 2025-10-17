@@ -1,5 +1,5 @@
 import { TagProps } from "@/lib/types";
-import { COLORS_LIST } from "@/ui/links/tag-badge";
+import { RESOURCE_COLORS_DATA } from "@/ui/colors";
 import { cn } from "@dub/utils";
 
 export function MultiTagsIcon({ tags }: { tags: Pick<TagProps, "color">[] }) {
@@ -12,7 +12,8 @@ export function MultiTagsIcon({ tags }: { tags: Pick<TagProps, "color">[] }) {
       className={cn(
         "size-4 shrink-0",
         tags.length > 0 &&
-          COLORS_LIST.find(({ color }) => color === tags[0].color)?.css,
+          RESOURCE_COLORS_DATA.find(({ color }) => color === tags[0].color)
+            ?.tagVariants,
         "bg-transparent",
         tags.length <= 1 && "-translate-y-px",
       )}
@@ -44,7 +45,8 @@ export function MultiTagsIcon({ tags }: { tags: Pick<TagProps, "color">[] }) {
             strokeLinejoin="round"
             strokeWidth="1.5"
             className={cn(
-              COLORS_LIST.find(({ color }) => color === tags[1].color)?.css,
+              RESOURCE_COLORS_DATA.find(({ color }) => color === tags[1].color)
+                ?.tagVariants,
               "bg-transparent",
             )}
           />

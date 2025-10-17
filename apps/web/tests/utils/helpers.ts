@@ -1,5 +1,5 @@
 import { generateRandomName } from "@/lib/names";
-import { OG_AVATAR_URL, nanoid } from "@dub/utils";
+import { OG_AVATAR_URL, nanoid, randomValue } from "@dub/utils";
 
 export const randomId = (length = 24) => nanoid(length);
 
@@ -26,4 +26,8 @@ export const randomEmail = ({
   domain?: string;
 } = {}) => {
   return `${generateRandomName().split(" ").join(".").toLowerCase()}@${domain}`;
+};
+
+export const randomSaleAmount = () => {
+  return randomValue([400, 900, 1900]);
 };

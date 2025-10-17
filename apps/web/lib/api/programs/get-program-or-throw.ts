@@ -1,50 +1,19 @@
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ProgramProps } from "@/lib/types";
-import {
-  ProgramSchema,
-  ProgramWithLanderDataSchema,
-} from "@/lib/zod/schemas/programs";
+import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
 
-export const getProgramOrThrow = async (
-  {
-    workspaceId,
-    programId,
-  }: {
-    workspaceId: string;
-    programId: string;
-  },
-  {
-    includeDefaultDiscount = false,
-    includeDefaultRewards = false,
-    includeLanderData = false,
-  }: {
-    includeDefaultRewards?: boolean;
-    includeDefaultDiscount?: boolean;
-    includeLanderData?: boolean;
-  } = {},
-) => {
+export const getProgramOrThrow = async ({
+  workspaceId,
+  programId,
+}: {
+  workspaceId: string;
+  programId: string;
+}) => {
   const program = (await prisma.program.findUnique({
     where: {
       id: programId,
       workspaceId,
-    },
-    include: {
-      ...(includeDefaultRewards && {
-        rewards: {
-          where: {
-            default: true,
-          },
-        },
-      }),
-      ...(includeDefaultDiscount && {
-        discounts: {
-          where: {
-            default: true,
-          },
-        },
-      }),
     },
   })) as ProgramProps | null;
 
@@ -55,15 +24,5 @@ export const getProgramOrThrow = async (
     });
   }
 
-  return (
-    includeLanderData ? ProgramWithLanderDataSchema : ProgramSchema
-  ).parse({
-    ...program,
-    ...(includeDefaultRewards && program.rewards?.length
-      ? { rewards: sortRewardsByEventOrder(program.rewards) }
-      : {}),
-    ...(includeDefaultDiscount && program.discounts?.length
-      ? { discounts: [program.discounts[0]] }
-      : {}),
-  });
+  return ProgramSchema.parse(program);
 };

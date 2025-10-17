@@ -1,12 +1,9 @@
-import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import useRewards from "@/lib/swr/use-rewards";
-import { DynamicTooltipWrapper, GreekTemple, StatusBadge } from "@dub/ui";
+import { DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useMemo } from "react";
 
 export function PartnerRowItem({
   partner,
@@ -17,31 +14,11 @@ export function PartnerRowItem({
     name: string;
     image?: string | null;
     payoutsEnabledAt?: Date | null;
-    saleRewardId?: string | null;
   };
   showPermalink?: boolean;
 }) {
   const { slug } = useParams();
   const As = showPermalink ? Link : "div";
-
-  const { rewards } = useRewards();
-
-  const displayedSaleReward = useMemo(() => {
-    // don't show sale reward if:
-    // - there's only one sale reward
-    // - the partner has no sale reward
-    if (
-      !rewards ||
-      rewards.filter((r) => r.event === "sale").length === 1 ||
-      !partner.saleRewardId
-    ) {
-      return null;
-    }
-
-    return rewards.find(
-      (r) => r.event === "sale" && r.id === partner.saleRewardId,
-    );
-  }, [rewards, partner.saleRewardId]);
 
   const showPayoutsEnabled = "payoutsEnabledAt" in partner;
 
@@ -98,7 +75,7 @@ export function PartnerRowItem({
         </div>
       </DynamicTooltipWrapper>
       <As
-        href={`/${slug}/program/partners?partnerId=${partner.id}`}
+        href={`/${slug}/program/partners/${partner.id}`}
         {...(showPermalink && { target: "_blank" })}
         className={cn(
           "min-w-0 truncate",
@@ -108,16 +85,6 @@ export function PartnerRowItem({
       >
         {partner.name}
       </As>
-      {displayedSaleReward && (
-        <Link
-          href={`/${slug}/program/rewards?rewardId=${displayedSaleReward.id}`}
-          target="_blank"
-        >
-          <StatusBadge variant="new" icon={null} className="px-1.5 py-0.5">
-            {constructRewardAmount(displayedSaleReward)}
-          </StatusBadge>
-        </Link>
-      )}
     </div>
   );
 }

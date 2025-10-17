@@ -28,7 +28,6 @@ export function DubPartnersPopup({
   const {
     plan,
     defaultProgramId,
-    partnersEnabled,
     loading: loadingWorkspace,
   } = useWorkspace({
     swrOpts: { keepPreviousData: true },
@@ -43,8 +42,6 @@ export function DubPartnersPopup({
     // Loading
     loadingWorkspace ||
     loadingDismissed ||
-    // hide if partners is not enabled
-    !partnersEnabled ||
     // hide if workspace can't create a program
     !canManageProgram ||
     // hide if there's already a default program
@@ -141,7 +138,7 @@ function DubPartnersPopupInner({
           </p>
           <div className="mt-4 grid w-full grid-cols-2 gap-2">
             <Link
-              href={`/${slug}/guides`}
+              href={`/${slug}/settings/analytics`}
               className="flex h-7 items-center justify-center whitespace-nowrap rounded-md bg-white/10 px-2.5 text-xs text-white transition-colors duration-150 hover:bg-white/15"
             >
               Quickstart guides

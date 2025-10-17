@@ -6,19 +6,20 @@ import UpdateSubscription from "@/ui/account/update-subscription";
 import UploadAvatar from "@/ui/account/upload-avatar";
 import UserId from "@/ui/account/user-id";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { Form } from "@dub/ui";
+import { Form, useCurrentSubdomain } from "@dub/ui";
 import { APP_NAME } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 export function SettingsPageClient() {
   const { data: session, update, status } = useSession();
+  const { subdomain } = useCurrentSubdomain();
 
   return (
     <PageWidthWrapper className="mb-8 grid gap-8">
       <Form
         title="Your Name"
-        description={`This will be your display name on ${APP_NAME}.`}
+        description={`This is your display name on ${APP_NAME}.`}
         inputAttrs={{
           name: "name",
           defaultValue:
@@ -76,7 +77,7 @@ export function SettingsPageClient() {
       />
       <UploadAvatar />
       <UserId />
-      <UpdateDefaultWorkspace />
+      {subdomain === "app" && <UpdateDefaultWorkspace />}
       <DeleteAccountSection />
     </PageWidthWrapper>
   );

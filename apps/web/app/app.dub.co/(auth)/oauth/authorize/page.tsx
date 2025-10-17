@@ -12,19 +12,18 @@ import { Suspense } from "react";
 import { AuthorizeForm } from "./authorize-form";
 import { ScopesRequested } from "./scopes-requested";
 
-export const runtime = "nodejs";
-
 export const metadata = constructMetadata({
   title: "Authorize API access | Dub",
   noIndex: true,
 });
 
 // OAuth app consent page
-export default async function Authorize({
-  searchParams,
-}: {
-  searchParams?: z.infer<typeof authorizeRequestSchema>;
-}) {
+export default async function Authorize(
+  props: {
+    searchParams?: Promise<z.infer<typeof authorizeRequestSchema>>;
+  }
+) {
+  const searchParams = await props.searchParams;
   const session = await getSession();
 
   if (!session) {

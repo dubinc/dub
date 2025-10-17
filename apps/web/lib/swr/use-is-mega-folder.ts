@@ -1,9 +1,8 @@
-import { useSearchParams } from "next/navigation";
+import useCurrentFolderId from "./use-current-folder-id";
 import useFolder from "./use-folder";
 
 export function useIsMegaFolder() {
-  const searchParams = useSearchParams();
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
   const { folder } = useFolder({
     folderId,
   });

@@ -1,3 +1,4 @@
+import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
 import { prisma } from "@dub/prisma";
@@ -19,11 +20,22 @@ async function main() {
 
   const updatedCommissions = await Promise.all(
     commissions.map(async (commission) => {
-      const reward = await determinePartnerReward({
-        event: commission.type as EventType,
+      const programEnrollment = await getProgramEnrollmentOrThrow({
         partnerId: commission.partnerId,
         programId: commission.programId,
+        include: {
+          links: true,
+          ...(commission.type === "click" && { clickReward: true }),
+          ...(commission.type === "lead" && { leadReward: true }),
+          ...(commission.type === "sale" && { saleReward: true }),
+        },
       });
+
+      const reward = determinePartnerReward({
+        event: commission.type as EventType,
+        programEnrollment,
+      });
+
       if (!reward) {
         return null;
       }

@@ -1,8 +1,8 @@
 import { prisma } from "@dub/prisma";
-import { Partner, Program, Reward } from "@dub/prisma/client";
+import { Partner, Program } from "@dub/prisma/client";
 import { createId } from "../api/create-id";
 import { logImportError } from "../tinybird/log-import-error";
-import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
+import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
 import { ToltApi } from "./api";
 import { MAX_BATCHES, toltImporter } from "./importer";
 import { ToltAffiliate, ToltImportPayload } from "./types";
@@ -15,13 +15,15 @@ export async function importPartners(payload: ToltImportPayload) {
       id: programId,
     },
     include: {
-      rewards: {
+      groups: {
         where: {
-          default: true,
+          slug: DEFAULT_PARTNER_GROUP.slug,
         },
       },
     },
   });
+
+  const defaultGroup = program.groups[0];
 
   const { token } = await toltImporter.getCredentials(program.workspaceId);
 
@@ -29,11 +31,6 @@ export async function importPartners(payload: ToltImportPayload) {
 
   let hasMore = true;
   let processedBatches = 0;
-
-  const saleReward = program.rewards.find((r) => r.event === "sale");
-  const leadReward = program.rewards.find((r) => r.event === "lead");
-  const clickReward = program.rewards.find((r) => r.event === "click");
-  const defaultReward = saleReward || leadReward || clickReward;
 
   const commonImportLogInputs = {
     workspace_id: program.workspaceId,
@@ -69,7 +66,13 @@ export async function importPartners(payload: ToltImportPayload) {
           createPartner({
             program,
             affiliate,
-            reward: defaultReward,
+            defaultGroupAttributes: {
+              groupId: defaultGroup.id,
+              saleRewardId: defaultGroup.saleRewardId,
+              leadRewardId: defaultGroup.leadRewardId,
+              clickRewardId: defaultGroup.clickRewardId,
+              discountId: defaultGroup.discountId,
+            },
           }),
         ),
       );
@@ -117,11 +120,17 @@ export async function importPartners(payload: ToltImportPayload) {
 async function createPartner({
   program,
   affiliate,
-  reward,
+  defaultGroupAttributes,
 }: {
   program: Program;
   affiliate: ToltAffiliate;
-  reward?: Pick<Reward, "id" | "event">;
+  defaultGroupAttributes: {
+    groupId: string;
+    saleRewardId: string | null;
+    leadRewardId: string | null;
+    clickRewardId: string | null;
+    discountId: string | null;
+  };
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -147,10 +156,11 @@ async function createPartner({
       },
     },
     create: {
+      id: createId({ prefix: "pge_" }),
       programId: program.id,
       partnerId: partner.id,
       status: "approved",
-      ...(reward && { [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id }),
+      ...defaultGroupAttributes,
     },
     update: {
       status: "approved",

@@ -1,14 +1,15 @@
-import { plans, roles } from "@/lib/types";
+import { plans } from "@/lib/types";
 import z from "@/lib/zod";
 import { GOOGLE_FAVICON_URL, R2_URL } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import { fileTypeFromBuffer } from "file-type";
 
-export const RECURRING_MAX_DURATIONS = [0, 3, 6, 12, 18, 24, 36];
+export const RECURRING_MAX_DURATIONS = [0, 1, 3, 6, 12, 18, 24, 36];
 
 export const planSchema = z.enum(plans).describe("The plan of the workspace.");
 
 export const roleSchema = z
-  .enum(roles)
+  .nativeEnum(WorkspaceRole)
   .describe("The role of the authenticated user in the workspace.");
 
 const allowedImageTypes = [

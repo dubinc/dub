@@ -1,3 +1,4 @@
+import { FAST_ACH_FEE_CENTS } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import {
@@ -129,37 +130,42 @@ export async function PartnerPayoutInvoice({
 
   const nonUsdTransactionDisplay =
     chargeAmount && chargeCurrency && chargeCurrency !== "usd"
-      ? ` (${currencyFormatter(
-          chargeAmount / 100,
-          {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          },
-          chargeCurrency.toUpperCase(),
-        )})`
+      ? ` (${currencyFormatter(chargeAmount / 100, {
+          currency: chargeCurrency.toUpperCase(),
+        })})`
       : "";
+
+  const fastAchFee =
+    invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
+
+  // guard against invalid invoice amounts
+  if (invoice.amount === 0) {
+    throw new Error("Invoice amount cannot be zero");
+  }
+  if (invoice.fee < fastAchFee) {
+    throw new Error("Invoice fee cannot be less than Fast ACH fee");
+  }
 
   const invoiceSummaryDetails = [
     {
       label: "Invoice amount",
-      value: currencyFormatter(invoice.amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      value: currencyFormatter(invoice.amount / 100),
     },
     {
-      label: `Platform fees (${Math.round((invoice.fee / invoice.amount) * 100)}%)`,
-      value: `${currencyFormatter(invoice.fee / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}`,
+      label: `Platform fees (${Math.round(((invoice.fee - fastAchFee) / invoice.amount) * 100)}%)`,
+      value: `${currencyFormatter((invoice.fee - fastAchFee) / 100)}`,
     },
+    ...(fastAchFee > 0
+      ? [
+          {
+            label: "Fast ACH fees",
+            value: currencyFormatter(fastAchFee / 100),
+          },
+        ]
+      : []),
     {
       label: "Invoice total",
-      value: `${currencyFormatter(invoice.total / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      })}${nonUsdTransactionDisplay}`,
+      value: `${currencyFormatter(invoice.total / 100)}${nonUsdTransactionDisplay}`,
     },
     // if customer is in EU or AU, add VAT/GST reverse charge note
     ...(EU_CUSTOMER || AU_CUSTOMER
@@ -290,10 +296,7 @@ export async function PartnerPayoutInvoice({
               Total
             </Text>
             <Text style={tw("text-neutral-800 font-medium text-[16px]")}>
-              {currencyFormatter(invoice.total / 100, {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              {currencyFormatter(invoice.total / 100)}
             </Text>
           </View>
         </View>
@@ -353,10 +356,7 @@ export async function PartnerPayoutInvoice({
                   )}
                 </Text>
                 <Text style={tw("w-1/6 p-3.5")}>
-                  {currencyFormatter(payout.amount / 100, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
+                  {currencyFormatter(payout.amount / 100)}
                 </Text>
               </View>
             ))}

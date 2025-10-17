@@ -6,7 +6,7 @@ describe("createId", () => {
     const ids: string[] = [];
 
     for (let i = 0; i < 10; i++) {
-      ids.push(createId({}));
+      ids.push(createId({ prefix: "link_" }));
 
       const now = Date.now();
       while (Date.now() - now < 10) {} // busy wait for 10ms

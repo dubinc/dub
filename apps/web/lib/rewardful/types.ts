@@ -17,6 +17,7 @@ export interface RewardfulCampaign {
   minimum_payout_cents: number;
   max_commission_period_months: number;
   days_until_commissions_are_due: number;
+  default: boolean;
   reward_type: "amount" | "percent";
   commission_percent: number;
   created_at: string;
@@ -51,12 +52,12 @@ export interface RewardfulAffiliate {
   created_at: string;
   updated_at: string;
   links: RewardfulLink[];
-  campaign?: RewardfulCampaign;
+  campaign: RewardfulCampaign;
 }
 
 export interface RewardfulReferral {
   id: string;
-  link: RewardfulLink;
+  link?: RewardfulLink; // could be null for coupon-based referrals
   customer: RewardfulCustomer;
   affiliate: RewardfulAffiliate;
   created_at: string;

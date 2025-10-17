@@ -1,6 +1,7 @@
 "use client";
 
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -99,7 +100,7 @@ function ImportCsvModal({
   const searchParams = useSearchParams();
   const { id: workspaceId } = useWorkspace();
 
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
 
   useEffect(
     () => setShowImportCsvModal(searchParams?.get("import") === "csv"),

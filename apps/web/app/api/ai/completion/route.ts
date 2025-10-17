@@ -1,6 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { throwIfAIUsageExceeded } from "@/lib/api/links/usage-checks";
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import z from "@/lib/zod";
 import { anthropic } from "@ai-sdk/anthropic";

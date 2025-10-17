@@ -1,5 +1,6 @@
 "use client";
 
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import {
   useCheckFolderPermission,
   useFolderPermissions,
@@ -8,7 +9,13 @@ import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
+import { FolderDropdown } from "@/ui/folders/folder-dropdown";
+import {
+  FolderInfoPanel,
+  FolderInfoPanelControls,
+} from "@/ui/folders/folder-info-panel";
 import { RequestFolderEditAccessButton } from "@/ui/folders/request-edit-button";
+import { PageContentWithSidePanel } from "@/ui/layout/page-content/page-content-with-side-panel";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import LinkDisplay from "@/ui/links/link-display";
 import LinksContainer from "@/ui/links/links-container";
@@ -37,6 +44,7 @@ import { ReactNode, useEffect, useState } from "react";
 
 export default function WorkspaceLinksClient() {
   const { data: session } = useSession();
+  const { folderId } = useCurrentFolderId();
 
   useEffect(() => {
     if (session?.user) {
@@ -48,9 +56,27 @@ export default function WorkspaceLinksClient() {
   }, [session?.user]);
 
   return (
-    <LinksDisplayProvider>
-      <WorkspaceLinks />
-    </LinksDisplayProvider>
+    <PageContentWithSidePanel
+      title={
+        <div className="-ml-2">
+          <FolderDropdown hideFolderIcon={true} />
+        </div>
+      }
+      controls={<WorkspaceLinksPageControls />}
+      sidePanel={
+        folderId
+          ? {
+              title: "Folder",
+              content: <FolderInfoPanel />,
+              controls: <FolderInfoPanelControls />,
+            }
+          : undefined
+      }
+    >
+      <LinksDisplayProvider>
+        <WorkspaceLinks />
+      </LinksDisplayProvider>
+    </PageContentWithSidePanel>
   );
 }
 
@@ -61,7 +87,7 @@ export function WorkspaceLinksPageControls() {
     <>
       <LinkBuilder />
       <div className="hidden sm:block">
-        <CreateLinkButton />
+        <CreateLinkButton className="h-9" />
       </div>
     </>
   );
@@ -85,7 +111,7 @@ function WorkspaceLinks() {
     setSelectedFilter,
   } = useLinkFilters();
 
-  const folderId = searchParams.get("folderId");
+  const { folderId } = useCurrentFolderId();
   const { isMegaFolder } = useIsMegaFolder();
 
   const { isLoading } = useFolderPermissions();
@@ -237,6 +263,7 @@ function WorkspaceLinks() {
           <Filter.List
             filters={filters}
             activeFilters={activeFilters}
+            onSelect={onSelect}
             onRemove={onRemove}
             onRemoveAll={onRemoveAll}
           />
@@ -393,9 +420,9 @@ function ImportOption({
   children: ReactNode;
   onClick: () => void;
 }) {
-  const { slug, exceededLinks, nextPlan } = useWorkspace();
+  const { slug, exceededLinks, plan, nextPlan } = useWorkspace();
 
-  return exceededLinks ? (
+  return exceededLinks && plan !== "enterprise" ? (
     <Tooltip
       content={
         <TooltipContent

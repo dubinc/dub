@@ -43,12 +43,6 @@ export class RewardfulApi {
     return data as T;
   }
 
-  async retrieveCampaign(campaignId: string) {
-    return this.fetch<RewardfulCampaign>(
-      `${this.baseUrl}/campaigns/${campaignId}`,
-    );
-  }
-
   async listCampaigns() {
     const { data } = await this.fetch<{ data: RewardfulCampaign[] }>(
       `${this.baseUrl}/campaigns`,
@@ -57,16 +51,10 @@ export class RewardfulApi {
     return data;
   }
 
-  async listPartners({
-    campaignId,
-    page = 1,
-  }: {
-    campaignId: string;
-    page?: number;
-  }) {
+  async listPartners({ page = 1 }: { page?: number }) {
     const searchParams = new URLSearchParams();
+    searchParams.append("expand[]", "campaign");
     searchParams.append("expand[]", "links");
-    searchParams.append("campaign_id", campaignId);
     searchParams.append("page", page.toString());
     searchParams.append("limit", PAGE_LIMIT.toString());
 

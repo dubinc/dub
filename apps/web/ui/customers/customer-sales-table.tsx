@@ -1,6 +1,6 @@
 import { CommissionResponse, SaleEvent } from "@/lib/types";
 import { StatusBadge } from "@dub/ui";
-import { currencyFormatter, formatDateTimeSmart } from "@dub/utils";
+import { currencyFormatter, formatDateTimeSmart, nFormatter } from "@dub/utils";
 import {
   flexRender,
   getCoreRowModel,
@@ -51,12 +51,7 @@ export function CustomerSalesTable({
         header: "Amount",
         accessorFn: (d) => ("saleAmount" in d ? d.saleAmount : d.amount),
         cell: ({ getValue }) => (
-          <span>
-            {currencyFormatter(getValue() / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </span>
+          <span>{currencyFormatter(getValue() / 100)}</span>
         ),
       },
       ...(sales?.length && "earnings" in sales?.[0]
@@ -65,12 +60,7 @@ export function CustomerSalesTable({
               header: "Earnings",
               accessorKey: "earnings",
               cell: ({ getValue }) => (
-                <span>
-                  {currencyFormatter(getValue() / 100, {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
-                  })}
-                </span>
+                <span>{currencyFormatter(getValue() / 100)}</span>
               ),
             },
             {
@@ -143,7 +133,9 @@ export function CustomerSalesTable({
               href={viewAllHref ?? "#"}
               className="flex items-center gap-1.5 font-medium text-neutral-700 hover:text-neutral-900"
             >
-              {totalSales ?? (
+              {totalSales ? (
+                nFormatter(totalSales, { full: true })
+              ) : (
                 <div className="size-3 animate-pulse rounded-md bg-neutral-100" />
               )}{" "}
               results

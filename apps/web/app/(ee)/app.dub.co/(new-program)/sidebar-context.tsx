@@ -2,7 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
-import { notFound, useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
 import { createContext, ReactNode, useContext, useState } from "react";
 
 interface SidebarContextType {
@@ -14,28 +14,22 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
-  const router = useRouter();
 
   const {
     slug: workspaceSlug,
     defaultProgramId,
-    partnersEnabled,
     loading: workspaceLoading,
     error: workspaceError,
   } = useWorkspace();
 
   if (workspaceError && workspaceError.status === 404) {
-    notFound();
+    redirect("/account/settings");
   } else if (workspaceLoading) {
     return <LayoutLoader />;
   }
 
-  if (!partnersEnabled) {
-    router.push(`/${workspaceSlug}`);
-  }
-
   if (defaultProgramId) {
-    router.push(`/${workspaceSlug}/program`);
+    redirect(`/${workspaceSlug}/program`);
   }
 
   return (

@@ -13,7 +13,11 @@ export function SaleTypeBlock() {
   const { slug: workspaceSlug } = useWorkspace();
 
   const { getQueryString } = useRouterStuff();
-  const { queryString, totalEvents } = useContext(AnalyticsContext);
+  const {
+    queryString,
+    totalEvents: newEvents,
+    totalEventsLoading: isLoadingNewEvents,
+  } = useContext(AnalyticsContext);
 
   const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
@@ -26,7 +30,6 @@ export function SaleTypeBlock() {
   }>(
     `/api/analytics?${editQueryString(queryString, {
       event: "sales",
-      groupBy: "count",
       saleType: "recurring",
     })}`,
     fetcher,
@@ -35,28 +38,34 @@ export function SaleTypeBlock() {
     },
   );
 
-  const isLoading = isLoadingRecurring || !totalEvents;
+  const isLoading = isLoadingRecurring || isLoadingNewEvents;
 
   const items = useMemo(() => {
-    if (!totalEvents || !recurringEvents) return [];
+    if (!newEvents || !recurringEvents) return [];
 
     return [
       {
         key: "new",
         label: "New",
-        count: totalEvents.sales - recurringEvents.sales,
-        fraction: 1 - recurringEvents.sales / (totalEvents.sales || 1),
+        count: newEvents.sales,
+        fraction: newEvents.sales / (newEvents.sales + recurringEvents.sales),
         colorClassName: "bg-violet-500",
       },
       {
         key: "recurring",
         label: "Recurring",
         count: recurringEvents.sales,
-        fraction: recurringEvents.sales / (totalEvents.sales || 1),
+        fraction:
+          recurringEvents.sales / (newEvents.sales + recurringEvents.sales),
         colorClassName: "bg-violet-100",
       },
     ].filter(({ fraction }) => fraction > 0);
-  }, [totalEvents, recurringEvents]);
+  }, [newEvents, recurringEvents]);
+
+  const totalEvents = useMemo(() => {
+    if (!newEvents || !recurringEvents) return 0;
+    return newEvents.sales + recurringEvents.sales;
+  }, [newEvents, recurringEvents]);
 
   return (
     <ProgramOverviewBlock
@@ -82,8 +91,8 @@ export function SaleTypeBlock() {
         ) : (
           <div className="flex size-full flex-col gap-6 px-6 pb-6">
             <span className="text-content-emphasis block text-xl font-medium">
-              {nFormatter(totalEvents?.sales, {
-                full: totalEvents?.sales < 99999,
+              {nFormatter(totalEvents, {
+                full: totalEvents < 99999,
               })}
             </span>
             <div className="mt-8 grid gap-4">

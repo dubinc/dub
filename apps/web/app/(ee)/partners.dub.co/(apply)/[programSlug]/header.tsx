@@ -5,9 +5,9 @@ import { Button, useScroll, Wordmark } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 
-export function Header({
+export function ApplyHeader({
   program,
   showLogin = true,
   showApply = true,
@@ -20,6 +20,10 @@ export function Header({
   const { data: session, status } = useSession();
 
   const scrolled = useScroll(0);
+
+  const { groupSlug } = useParams();
+
+  const partnerGroupSlug = groupSlug ? `/${groupSlug}` : "";
 
   return (
     <header
@@ -35,7 +39,10 @@ export function Header({
         )}
       />
 
-      <Link href={`/${program.slug}`} className="animate-fade-in my-0.5 block">
+      <Link
+        href={`/${program.slug}${partnerGroupSlug}`}
+        className="animate-fade-in my-0.5 block"
+      >
         {program.wordmark || program.logo ? (
           <img
             className="max-h-7 max-w-32"
@@ -58,7 +65,7 @@ export function Header({
           </Link>
         )}
         {showApply && (
-          <Link href={`/${program.slug}/apply`}>
+          <Link href={`/${program.slug}${partnerGroupSlug}/apply`}>
             <Button
               type="button"
               text="Apply"

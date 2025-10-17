@@ -7,7 +7,6 @@ import {
   DUB_WORDMARK,
   EU_COUNTRY_CODES,
   formatDate,
-  pluralize,
 } from "@dub/utils";
 import {
   Document,
@@ -44,11 +43,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           name: true,
           logo: true,
           supportEmail: true,
-        },
-      },
-      _count: {
-        select: {
-          commissions: true,
         },
       },
     },
@@ -115,14 +109,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       label: "Payout amount",
       value: (
         <Text style={tw("text-neutral-800 w-2/3")}>
-          {currencyFormatter(payout.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}{" "}
-          <Text style={tw("text-neutral-500")}>
-            ({payout._count.commissions}{" "}
-            {pluralize("commission", payout._count.commissions)})
-          </Text>
+          {currencyFormatter(payout.amount / 100)}
         </Text>
       ),
     },

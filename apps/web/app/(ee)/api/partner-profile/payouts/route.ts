@@ -5,7 +5,7 @@ import {
 } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import z from "zod";
+import { z } from "zod";
 
 // GET /api/partner-profile/payouts - get all payouts for a partner
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {

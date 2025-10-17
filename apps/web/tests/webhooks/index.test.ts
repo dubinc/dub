@@ -9,7 +9,8 @@ import {
   saleWebhookEventSchema,
 } from "@/lib/webhook/schemas";
 import z from "@/lib/zod";
-import { CommissionEnrichedSchema } from "@/lib/zod/schemas/commissions";
+import { BountySchema } from "@/lib/zod/schemas/bounties";
+import { CommissionWebhookSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
@@ -38,16 +39,21 @@ const enrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   createdAt: z.string(),
 });
 
-const commissionWebhookEventSchemaExtended = CommissionEnrichedSchema.extend({
+const commissionWebhookEventSchemaExtended = CommissionWebhookSchema.extend({
   createdAt: z.string().transform((str) => new Date(str)),
   updatedAt: z.string().transform((str) => new Date(str)),
-  partner: CommissionEnrichedSchema.shape.partner.extend({
+  partner: CommissionWebhookSchema.shape.partner.extend({
     payoutsEnabledAt: z
       .string()
       .transform((str) => (str ? new Date(str) : null))
       .nullable(),
   }),
   customer: customerSchemaExtended,
+});
+
+const bountyWebhookEventSchemaExtended = BountySchema.extend({
+  startsAt: z.string().transform((str) => new Date(str)),
+  endsAt: z.string().transform((str) => (str ? new Date(str) : null)),
 });
 
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
@@ -59,6 +65,8 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "sale.created": saleWebhookEventSchemaExtended,
   "partner.enrolled": enrolledPartnerSchemaExtended,
   "commission.created": commissionWebhookEventSchemaExtended,
+  "bounty.created": bountyWebhookEventSchemaExtended,
+  "bounty.updated": bountyWebhookEventSchemaExtended,
 };
 
 describe("Webhooks", () => {

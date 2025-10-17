@@ -90,13 +90,13 @@ export const UTMTags = [
 
 export const constructURLFromUTMParams = (
   url: string,
-  utmParams: Record<string, string>,
+  utmParams: Record<string, string | null>,
 ) => {
   if (!url) return "";
   try {
     const newURL = new URL(url);
     for (const [key, value] of Object.entries(utmParams)) {
-      if (value === "") {
+      if (!value) {
         newURL.searchParams.delete(key);
       } else {
         newURL.searchParams.set(key, value.replace("+", " "));
@@ -152,3 +152,49 @@ export const createHref = (
   }
   return url.toString();
 };
+
+export const getPathnameFromUrl = (url: string) => {
+  try {
+    const u = new URL(url, "https://dummy-base.local");
+
+    // Keep ?query intact
+    let pathname = u.pathname + u.search;
+
+    // Remove leading slash for relative-style URLs
+    pathname = pathname.startsWith("/") ? pathname.slice(1) : pathname;
+
+    return pathname;
+  } catch (e) {
+    return url;
+  }
+};
+
+// Helper function to normalize URL by removing query params
+export const normalizeUrl = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    return `https://${urlObj.hostname}${urlObj.pathname}`;
+  } catch {
+    return url;
+  }
+};
+
+export function buildUrl(
+  baseUrl: string,
+  params?: Record<string, string | number | boolean | null | undefined>,
+) {
+  const url = new URL(
+    baseUrl,
+    typeof window !== "undefined" ? window.location.origin : "http://localhost",
+  );
+
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        url.searchParams.append(key, String(value));
+      }
+    });
+  }
+
+  return url.toString();
+}

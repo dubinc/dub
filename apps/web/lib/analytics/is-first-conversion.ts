@@ -5,7 +5,7 @@ export const isFirstConversion = ({
   linkId,
 }: {
   customer: Pick<Customer, "sales" | "linkId">;
-  linkId: string;
+  linkId?: string;
 }) => {
   // if this is the first sale for the customer, it's a first conversion
   if (customer.sales === 0) {

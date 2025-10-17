@@ -4,55 +4,60 @@ import { updateNotificationPreference } from "@/lib/actions/update-notification-
 import useWorkspace from "@/lib/swr/use-workspace";
 import { notificationTypes } from "@/lib/zod/schemas/workspaces";
 import { Switch, useOptimisticUpdate } from "@dub/ui";
-import { Globe, Hyperlink, UserPlus } from "@dub/ui/icons";
-import { DollarSign } from "lucide-react";
+import { Globe, Hyperlink, Msgs, UserPlus } from "@dub/ui/icons";
+import { DollarSign, Trophy } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { useMemo } from "react";
 import { z } from "zod";
 
 type PreferenceType = z.infer<typeof notificationTypes>;
 type Preferences = Record<PreferenceType, boolean>;
 
 export default function NotificationsSettingsPageClient() {
-  const { id: workspaceId, partnersEnabled } = useWorkspace();
+  const { id: workspaceId } = useWorkspace();
   const { executeAsync } = useAction(updateNotificationPreference);
 
-  const notifications = useMemo(
-    () => [
-      {
-        type: "domainConfigurationUpdates",
-        icon: Globe,
-        title: "Domain configuration updates",
-        description: "Updates to your custom domain configuration.",
-      },
-      {
-        type: "linkUsageSummary",
-        icon: Hyperlink,
-        title: "Monthly links usage summary",
-        description:
-          "Monthly summary email of your top 5 links by usage & total links created.",
-      },
-      ...(partnersEnabled
-        ? [
-            {
-              type: "newPartnerApplication",
-              icon: UserPlus,
-              title: "New partner application",
-              description:
-                "Alert when a new partner application is made in your partner program.",
-            },
-            {
-              type: "newPartnerSale",
-              icon: DollarSign,
-              title: "New partner sale",
-              description:
-                "Alert when a new sale is made in your partner program.",
-            },
-          ]
-        : []),
-    ],
-    [partnersEnabled],
-  );
+  const notifications = [
+    {
+      type: "domainConfigurationUpdates",
+      icon: Globe,
+      title: "Domain configuration updates",
+      description: "Updates to your custom domain configuration.",
+    },
+    {
+      type: "linkUsageSummary",
+      icon: Hyperlink,
+      title: "Monthly links usage summary",
+      description:
+        "Monthly summary email of your top 5 links by usage & total links created.",
+    },
+    {
+      type: "newPartnerApplication",
+      icon: UserPlus,
+      title: "New partner application",
+      description:
+        "Alert when a new partner application is made in your partner program.",
+    },
+    {
+      type: "newPartnerSale",
+      icon: DollarSign,
+      title: "New partner sale",
+      description: "Alert when a new sale is made in your partner program.",
+    },
+    {
+      type: "newBountySubmitted",
+      icon: Trophy,
+      title: "New bounty submitted",
+      description:
+        "Alert when a new bounty is submitted in your partner program.",
+    },
+    {
+      type: "newMessageFromPartner",
+      icon: Msgs,
+      title: "New message from partner",
+      description:
+        "Alert when a new message is received from a partner in your partner program.",
+    },
+  ];
 
   const {
     data: preferences,

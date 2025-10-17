@@ -68,7 +68,7 @@ const PayoutTableInner = memo(
         ? `/api/programs/${defaultProgramId}/payouts${getQueryString(
             { workspaceId },
             {
-              exclude: ["payoutId"],
+              exclude: ["payoutId", "selectedPayoutId", "excludedPayoutIds"],
             },
           )}`
         : undefined,
@@ -266,6 +266,7 @@ const PayoutTableInner = memo(
                     <Filter.List
                       filters={filters}
                       activeFilters={activeFilters}
+                      onSelect={onSelect}
                       onRemove={onRemove}
                       onRemoveAll={onRemoveAll}
                     />
@@ -309,10 +310,7 @@ function AmountRowItem({
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
-  const display = currencyFormatter(amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const display = currencyFormatter(amount / 100);
 
   const minPayoutAmount = program?.minPayoutAmount || 0;
 

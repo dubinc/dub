@@ -8,15 +8,15 @@ import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const updateWorkspaceSchema = z.object({
-  shopifyStoreId: z.string().nullable(),
-});
-
 // PATCH /api/shopify/integration/callback – update a shopify store id
 export const PATCH = withWorkspace(
   async ({ req, workspace, session }) => {
     const body = await parseRequestBody(req);
-    const { shopifyStoreId } = updateWorkspaceSchema.parse(body);
+    const { shopifyStoreId } = z
+      .object({
+        shopifyStoreId: z.string().nullable(),
+      })
+      .parse(body);
 
     try {
       const response = await prisma.project.update({

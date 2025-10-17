@@ -30,7 +30,7 @@ import { Check, Copy, LoadingSpinner } from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -77,108 +77,113 @@ export default function ProgramPageClient() {
   const program = programEnrollment?.program;
   const defaultProgramLink = programEnrollment?.links?.[0];
 
-  if (!program || !defaultProgramLink) {
+  if (!program) {
     return null;
   }
 
   const partnerLink = constructPartnerLink({
-    program,
-    linkKey: defaultProgramLink.key,
+    group: programEnrollment.group,
+    link: defaultProgramLink,
   });
 
   return (
     <PageWidthWrapper className="pb-10">
-      <AnimatePresence mode="wait" initial={false}>
-        {!hideDetails && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{
-              type: "spring",
-              stiffness: 300,
-              damping: 30,
-              opacity: { duration: 0.2 },
-            }}
-            className="overflow-hidden"
-          >
-            <div className="relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6">
-              {program && (
-                <HeroBackground
-                  logo={program.logo}
-                  color={program.brandColor}
-                />
-              )}
-
-              <span className="text-base font-semibold text-neutral-800">
-                Referral link
-              </span>
-              <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 md:max-w-[50%]">
-                {partnerLink ? (
-                  <input
-                    type="text"
-                    readOnly
-                    value={getPrettyUrl(partnerLink)}
-                    className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+      {partnerLink && (
+        <AnimatePresence mode="wait" initial={false}>
+          {!hideDetails && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+                opacity: { duration: 0.2 },
+              }}
+              className="overflow-hidden"
+            >
+              <div className="relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6">
+                {program && (
+                  <HeroBackground
+                    logo={program.logo}
+                    color={program.brandColor}
                   />
-                ) : (
-                  <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
                 )}
-                <Button
-                  icon={
-                    <div className="relative size-4">
-                      <div
-                        className={cn(
-                          "absolute inset-0 transition-[transform,opacity]",
-                          copied && "translate-y-1 opacity-0",
-                        )}
-                      >
-                        <Copy className="size-4" />
+
+                <span className="text-base font-semibold text-neutral-800">
+                  Referral link
+                </span>
+                <div className="xs:flex-row xs:items-center relative mt-3 flex flex-col gap-2 md:max-w-[50%]">
+                  {partnerLink ? (
+                    <input
+                      type="text"
+                      readOnly
+                      value={getPrettyUrl(partnerLink)}
+                      className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+                    />
+                  ) : (
+                    <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
+                  )}
+                  <Button
+                    icon={
+                      <div className="relative size-4">
+                        <div
+                          className={cn(
+                            "absolute inset-0 transition-[transform,opacity]",
+                            copied && "translate-y-1 opacity-0",
+                          )}
+                        >
+                          <Copy className="size-4" />
+                        </div>
+                        <div
+                          className={cn(
+                            "absolute inset-0 transition-[transform,opacity]",
+                            !copied && "translate-y-1 opacity-0",
+                          )}
+                        >
+                          <Check className="size-4" />
+                        </div>
                       </div>
-                      <div
-                        className={cn(
-                          "absolute inset-0 transition-[transform,opacity]",
-                          !copied && "translate-y-1 opacity-0",
-                        )}
-                      >
-                        <Check className="size-4" />
-                      </div>
-                    </div>
-                  }
-                  text={copied ? "Copied link" : "Copy link"}
-                  className="xs:w-fit"
-                  onClick={() => {
-                    if (partnerLink) {
-                      copyToClipboard(partnerLink);
                     }
-                  }}
-                />
-              </div>
-
-              {program.linkStructure === "query" && (
-                <QueryLinkStructureHelpText
-                  program={program}
-                  linkKey={defaultProgramLink.key}
-                />
-              )}
-
-              <span className="mt-12 text-base font-semibold text-neutral-800">
-                Rewards
-              </span>
-              <div className="relative mt-2 text-lg text-neutral-900 md:max-w-[50%]">
-                {program && programEnrollment?.rewards ? (
-                  <ProgramRewardList
-                    rewards={programEnrollment?.rewards}
-                    discount={programEnrollment?.discount}
+                    text={copied ? "Copied link" : "Copy link"}
+                    className="xs:w-fit"
+                    onClick={() => {
+                      if (partnerLink) {
+                        copyToClipboard(partnerLink);
+                      }
+                    }}
                   />
-                ) : (
-                  <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
+                </div>
+
+                {programEnrollment.group?.linkStructure === "query" && (
+                  <QueryLinkStructureHelpText link={defaultProgramLink} />
+                )}
+
+                {((programEnrollment?.rewards &&
+                  programEnrollment?.rewards.length > 0) ||
+                  programEnrollment?.discount) && (
+                  <>
+                    <span className="mt-12 text-base font-semibold text-neutral-800">
+                      Rewards
+                    </span>
+                    <div className="relative mt-2 text-lg text-neutral-900 md:max-w-[50%]">
+                      {program && programEnrollment?.rewards ? (
+                        <ProgramRewardList
+                          rewards={programEnrollment?.rewards}
+                          discount={programEnrollment?.discount}
+                        />
+                      ) : (
+                        <div className="h-7 w-5/6 animate-pulse rounded-md bg-neutral-200" />
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
       <ProgramOverviewContext.Provider
         value={{
           start: start ? new Date(start) : undefined,
@@ -421,15 +426,14 @@ function BrandedChart({
                     interval,
                     start,
                     end,
-                    dataAvailableFrom: programEnrollment?.program.createdAt,
+                    dataAvailableFrom:
+                      programEnrollment?.program.startedAt ??
+                      programEnrollment?.program.createdAt,
                   })}
                 </span>
                 <p className="text-right text-neutral-500">
                   {currency
-                    ? currencyFormatter(d.values.main, {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })
+                    ? currencyFormatter(d.values.main)
                     : nFormatter(d.values.main)}
                 </p>
               </div>

@@ -1,17 +1,18 @@
 import AddEditIntegrationForm from "@/ui/oauth-apps/add-edit-integration-form";
 import { BackLink } from "@/ui/shared/back-link";
 import { MaxWidthWrapper } from "@dub/ui";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
-export default function NewIntegrationsPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function NewIntegrationsPage(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
   // this is only available for Dub workspace for now
   // we might open this up to other workspaces in the future
   if (params.slug !== "dub") {
-    notFound();
+    redirect(`/${params.slug}/settings/integrations`);
   }
   return (
     <MaxWidthWrapper className="grid max-w-screen-lg gap-8">

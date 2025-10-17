@@ -1,17 +1,21 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { redis } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
+import { chunk } from "@dub/utils";
 import { z } from "zod";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
 const schema = z.object({
-  programId: z.string(),
-  discountId: z.string(),
-  isDefault: z.boolean(),
-  action: z.enum(["discount-created", "discount-updated", "discount-deleted"]),
+  groupId: z.string(),
+  partnerIds: z
+    .array(z.string())
+    .optional()
+    .describe(
+      "If provided, only invalidate the cache for the given partner ids.",
+    ),
 });
 
 // This route is used to invalidate the partnerlink cache when a discount is created/updated/deleted.
@@ -21,106 +25,64 @@ export async function POST(req: Request) {
     const rawBody = await req.text();
     await verifyQstashSignature({ req, rawBody });
 
-    const body = schema.parse(JSON.parse(rawBody));
-    const { programId, discountId, isDefault, action } = body;
+    const { groupId, partnerIds } = schema.parse(JSON.parse(rawBody));
 
-    if (action === "discount-created" || action === "discount-updated") {
-      const discount = await prisma.discount.findUnique({
-        where: {
-          id: discountId,
-        },
+    // Find the group
+    const group = await prisma.partnerGroup.findUnique({
+      where: {
+        id: groupId,
+      },
+    });
+
+    if (!group) {
+      return logAndRespond(`Group ${groupId} not found.`, {
+        logLevel: "error",
       });
+    }
 
-      if (!discount) {
-        return new Response("Discount not found.");
-      }
-
-      let page = 0;
-      let total = 0;
-      const take = 1000;
-
-      while (true) {
-        const links = await prisma.link.findMany({
-          where: {
-            programEnrollment: { discountId },
+    // Find all the links of the partners in the group
+    const programEnrollments = await prisma.programEnrollment.findMany({
+      where: {
+        groupId,
+        ...(partnerIds && {
+          partnerId: {
+            in: partnerIds,
           },
+        }),
+      },
+      select: {
+        links: {
           select: {
             domain: true,
             key: true,
           },
-          take,
-          skip: page * take,
-        });
+        },
+      },
+    });
 
-        if (links.length === 0) {
-          break;
-        }
-
-        await linkCache.expireMany(links);
-
-        page += 1;
-        total += links.length;
-      }
-
-      return new Response(`Invalidated ${total} links.`);
+    if (programEnrollments.length === 0) {
+      return logAndRespond(
+        `No program enrollments found for group ${groupId}.`,
+      );
     }
 
-    if (action === "discount-deleted") {
-      let page = 0;
-      let total = 0;
-      const take = 1000;
+    const links = programEnrollments.flatMap((enrollment) => enrollment.links);
 
-      while (true) {
-        let partnerIds: string[] = [];
-
-        if (!isDefault) {
-          partnerIds =
-            (await redis.lpop<string[]>(
-              `discount-partners:${discountId}`,
-              take,
-            )) || [];
-
-          // There won't be any entries in Redis for the default discount
-          if (!partnerIds || partnerIds.length === 0) {
-            await redis.del(`discount-partners:${discountId}`);
-            break;
-          }
-        }
-
-        const links = await prisma.link.findMany({
-          where: {
-            programId,
-            programEnrollment: {
-              ...(partnerIds.length > 0 && {
-                partnerId: {
-                  in: partnerIds,
-                },
-              }),
-              discountId: null,
-            },
-          },
-          select: {
-            domain: true,
-            key: true,
-          },
-          take,
-          skip: page * take,
-        });
-
-        if (links.length === 0) {
-          break;
-        }
-
-        await linkCache.expireMany(links);
-
-        page += 1;
-        total += links.length;
-      }
-
-      return new Response(`Invalidated ${total} links.`);
+    if (links.length === 0) {
+      return logAndRespond(
+        `No links found for partners in the group ${groupId}.`,
+      );
     }
 
-    return new Response("OK");
+    const linkChunks = chunk(links, 100);
+
+    // Expire the cache for the links
+    for (const linkChunk of linkChunks) {
+      const toExpire = linkChunk.map(({ domain, key }) => ({ domain, key }));
+      await linkCache.expireMany(toExpire);
+    }
+
+    return logAndRespond(`Expired cache for ${links.length} links.`);
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

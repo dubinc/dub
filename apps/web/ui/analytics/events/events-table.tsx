@@ -13,6 +13,7 @@ import {
   LinkLogo,
   Table,
   Tooltip,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -44,7 +45,82 @@ import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
 import { MetadataViewer } from "./metadata-viewer";
 import { RowMenuButton } from "./row-menu-button";
-import { eventColumns, useColumnVisibility } from "./use-column-visibility";
+
+const eventColumns = {
+  clicks: {
+    all: [
+      "timestamp",
+      "trigger",
+      "link",
+      "url",
+      "country",
+      "city",
+      "region",
+      "continent",
+      "device",
+      "browser",
+      "os",
+      "referer",
+      "refererUrl",
+      "clickId",
+      "ip",
+    ],
+    defaultVisible: ["timestamp", "link", "referer", "country", "device"],
+  },
+  leads: {
+    all: [
+      "timestamp",
+      "event",
+      "link",
+      "url",
+      "customer",
+      "country",
+      "city",
+      "region",
+      "continent",
+      "device",
+      "browser",
+      "os",
+      "referer",
+      "refererUrl",
+      "ip",
+      "clickId",
+      "metadata",
+    ],
+    defaultVisible: ["timestamp", "event", "link", "customer", "referer"],
+  },
+  sales: {
+    all: [
+      "timestamp",
+      "saleAmount",
+      "event",
+      "customer",
+      "link",
+      "url",
+      "invoiceId",
+      "country",
+      "city",
+      "region",
+      "continent",
+      "device",
+      "browser",
+      "os",
+      "referer",
+      "refererUrl",
+      "ip",
+      "clickId",
+      "metadata",
+    ],
+    defaultVisible: [
+      "timestamp",
+      "saleAmount",
+      "event",
+      "customer",
+      "referer",
+      "link",
+    ],
+  },
+};
 
 export type EventDatum = ClickEvent | LeadEvent | SaleEvent;
 
@@ -73,7 +149,11 @@ export default function EventsTable({
   } = useContext(AnalyticsContext);
 
   const { programSlug } = useParams<{ programSlug: string }>();
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "events-table-columns",
+    eventColumns,
+  );
 
   const [persisted] = useWorkspacePreferences("linksDisplay");
 
@@ -131,8 +211,6 @@ export default function EventsTable({
             <div className="flex items-center gap-2">
               <span>
                 {currencyFormatter(getValue() / 100, {
-                  maximumFractionDigits: undefined,
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                   trailingZeroDisplay: "stripIfInteger",
                 })}
               </span>

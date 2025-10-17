@@ -1,4 +1,4 @@
-import { queueDomainDeletion } from "@/lib/api/domains/queue";
+import { queueDomainDeletion } from "@/lib/api/domains/queue-domain-update";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { limiter } from "@/lib/cron/limiter";

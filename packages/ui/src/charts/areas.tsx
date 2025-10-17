@@ -2,7 +2,7 @@ import { cn } from "@dub/utils";
 import { LinearGradient } from "@visx/gradient";
 import { Group } from "@visx/group";
 import { Area, AreaClosed, Circle } from "@visx/shape";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { useMemo } from "react";
 import { useChartContext, useChartTooltipContext } from "./chart-context";
 

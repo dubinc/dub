@@ -2,6 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
+import { PartnerUser } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { Session, getSession } from "./utils";
 
@@ -13,13 +14,15 @@ interface WithPartnerProfileHandler {
     headers,
     session,
     partner,
+    partnerUser,
   }: {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
     headers?: Record<string, string>;
     session: Session;
-    partner: PartnerProps;
+    partner: Omit<PartnerProps, "role" | "userId">;
+    partnerUser: Pick<PartnerUser, "userId" | "role">;
   }): Promise<Response>;
 }
 
@@ -27,8 +30,9 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
   return withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      const params = (await initialParams) || {};
       try {
         const session = await getSession();
 
@@ -57,7 +61,13 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
             },
           },
           include: {
-            partner: true,
+            partner: {
+              include: {
+                industryInterests: true,
+                preferredEarningStructures: true,
+                salesChannels: true,
+              },
+            },
           },
         });
 
@@ -69,12 +79,34 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
           });
         }
 
+        const {
+          industryInterests,
+          preferredEarningStructures,
+          salesChannels,
+          ...partner
+        } = partnerUser.partner;
+
         return await handler({
           req,
           params,
           searchParams,
           session,
-          partner: partnerUser.partner as PartnerProps,
+          partner: {
+            ...partner,
+            industryInterests: industryInterests.map(
+              ({ industryInterest }) => industryInterest,
+            ),
+            preferredEarningStructures: preferredEarningStructures.map(
+              ({ preferredEarningStructure }) => preferredEarningStructure,
+            ),
+            salesChannels: salesChannels.map(
+              ({ salesChannel }) => salesChannel,
+            ),
+          } as Omit<PartnerProps, "role" | "userId">,
+          partnerUser: {
+            userId: partnerUser.userId,
+            role: partnerUser.role,
+          },
         });
       } catch (error) {
         req.log.error(error);

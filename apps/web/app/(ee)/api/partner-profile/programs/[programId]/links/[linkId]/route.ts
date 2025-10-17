@@ -3,9 +3,13 @@ import { processLink, updateLink } from "@/lib/api/links";
 import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { NewLinkProps } from "@/lib/types";
+import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
+import { prisma } from "@dub/prisma";
+import { getPrettyUrl } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
@@ -17,15 +21,33 @@ export const PATCH = withPartnerProfile(
 
     const { programId, linkId } = params;
 
-    const { program, links, status } = await getProgramEnrollmentOrThrow({
+    const {
+      program,
+      links,
+      status,
+      partnerGroup: group,
+    } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId,
+      include: {
+        program: true,
+        links: true,
+        partnerGroup: true,
+      },
     });
 
-    if (status === "banned") {
+    if (["banned", "deactivated"].includes(status)) {
       throw new DubApiError({
         code: "forbidden",
         message: "You are banned from this program.",
+      });
+    }
+
+    if (!group) {
+      throw new DubApiError({
+        code: "forbidden",
+        message:
+          "You're not part of any group yet. Please reach out to the program owner to be added.",
       });
     }
 
@@ -46,7 +68,28 @@ export const PATCH = withPartnerProfile(
       });
     }
 
-    validatePartnerLinkUrl({ program, url });
+    const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
+
+    if (linkUrlChanged) {
+      if (link.partnerGroupDefaultLinkId) {
+        throw new DubApiError({
+          code: "forbidden",
+          message:
+            "You cannot update the destination URL of your default link.",
+        });
+      } else {
+        validatePartnerLinkUrl({ group, url });
+      }
+    }
+
+    // check if the group has a UTM template
+    const groupUtmTemplate = group.utmTemplateId
+      ? await prisma.utmTemplate.findUnique({
+          where: {
+            id: group.utmTemplateId,
+          },
+        })
+      : null;
 
     // if domain and key are the same, we don't need to check if the key exists
     const skipKeyChecks = link.key.toLowerCase() === key?.toLowerCase();
@@ -58,6 +101,7 @@ export const PATCH = withPartnerProfile(
     } = await processLink({
       payload: {
         ...link,
+        ...(groupUtmTemplate ? extractUtmParams(groupUtmTemplate) : {}),
         // coerce types
         expiresAt:
           link.expiresAt instanceof Date
@@ -106,6 +150,6 @@ export const PATCH = withPartnerProfile(
       updatedLink: processedLink,
     });
 
-    return NextResponse.json(partnerLink);
+    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));
   },
 );

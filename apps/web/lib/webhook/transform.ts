@@ -74,6 +74,7 @@ export const transformLeadEventData = (data: any) => {
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
     link: transformLink(lead.link as ExpandedLink),
+    metadata: lead.metadata ?? null,
   });
 };
 
@@ -102,6 +103,7 @@ export const transformSaleEventData = (data: any) => {
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
     link: transformLink(sale.link as ExpandedLink),
+    metadata: sale.metadata ?? null,
   });
 };
 

@@ -1,9 +1,12 @@
 import z from "@/lib/zod";
 import { clickEventSchema } from "../zod/schemas/clicks";
-import { CommissionEnrichedSchema } from "../zod/schemas/commissions";
+import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { CustomerSchema } from "../zod/schemas/customers";
 import { linkEventSchema } from "../zod/schemas/links";
-import { EnrolledPartnerSchema } from "../zod/schemas/partners";
+import {
+  EnrolledPartnerSchema,
+  WebhookPartnerSchema,
+} from "../zod/schemas/partners";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const webhookSaleSchema = z.object({
@@ -23,6 +26,8 @@ export const leadWebhookEventSchema = z.object({
   customer: CustomerSchema,
   click: clickEventSchema,
   link: linkEventSchema,
+  partner: WebhookPartnerSchema.nullish(),
+  metadata: z.record(z.unknown()).nullable().default(null),
 });
 
 export const saleWebhookEventSchema = z.object({
@@ -31,6 +36,8 @@ export const saleWebhookEventSchema = z.object({
   click: clickEventSchema,
   link: linkEventSchema,
   sale: webhookSaleSchema,
+  partner: WebhookPartnerSchema.nullish(),
+  metadata: z.record(z.unknown()).nullable().default(null),
 });
 
 // Schema of the payload sent to the webhook endpoint by Dub
@@ -117,7 +124,7 @@ export const webhookEventSchema = z
         id: z.string(),
         event: z.literal("commission.created"),
         createdAt: z.string(),
-        data: CommissionEnrichedSchema,
+        data: CommissionWebhookSchema,
       })
       .openapi({
         ref: "CommissionCreatedEvent",

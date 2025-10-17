@@ -3,7 +3,7 @@ import { nanoid } from "@dub/utils";
 import { randomId } from "tests/utils/helpers";
 import { afterAll, describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
-import { E2E_PARTNER, E2E_PROGRAM } from "../utils/resource";
+import { E2E_PARTNER, E2E_PARTNER_GROUP, E2E_PROGRAM } from "../utils/resource";
 import { partnerLink } from "./resource";
 
 describe.sequential("PUT /partners/links/upsert", async () => {
@@ -16,7 +16,7 @@ describe.sequential("PUT /partners/links/upsert", async () => {
     await h.deleteLink(createdLink.id);
   });
 
-  const randomUrl = `${E2E_PROGRAM.url}/${nanoid()}`;
+  const randomUrl = `${E2E_PARTNER_GROUP.url}/${nanoid()}`;
 
   test("New link", async () => {
     const { data, status } = await http.put<Link>({

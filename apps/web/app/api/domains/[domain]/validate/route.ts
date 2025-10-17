@@ -1,4 +1,5 @@
-import { domainExists, isValidDomain } from "@/lib/api/domains";
+import { isValidDomain } from "@/lib/api/domains/is-valid-domain";
+import { domainExists } from "@/lib/api/domains/utils";
 import { withSession } from "@/lib/auth";
 import dns from "dns/promises";
 import { NextResponse } from "next/server";

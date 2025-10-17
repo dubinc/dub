@@ -206,7 +206,7 @@ export const LinksToolbar = memo(
         {/* Leave room at bottom of list */}
         <div className="h-[90px]" />
 
-        <div className="fixed bottom-4 left-0 w-full sm:max-[1372px]:w-[calc(100%-150px)] md:left-[304px] md:w-[calc(100%-304px)] md:max-[1372px]:w-[calc(100%-304px-150px)]">
+        <div className="fixed bottom-4 left-0 z-10 w-full sm:max-[1372px]:w-[calc(100%-150px)] md:left-[304px] md:w-[calc(100%-304px)] md:max-[1372px]:w-[calc(100%-304px-150px)]">
           <div
             className={cn(
               "relative left-1/2 w-full max-w-[768px] -translate-x-1/2 px-5",

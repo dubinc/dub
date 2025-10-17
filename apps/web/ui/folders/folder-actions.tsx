@@ -5,11 +5,11 @@ import {
   Button,
   CircleCheck,
   Copy,
+  LinesY,
   PenWriting,
   Popover,
   useCopyToClipboard,
   useKeyboardShortcut,
-  Users,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Bookmark } from "lucide-react";
@@ -20,16 +20,18 @@ import { toast } from "sonner";
 import { useDeleteFolderModal } from "../modals/delete-folder-modal";
 import { useRenameFolderModal } from "../modals/rename-folder-modal";
 import { useDefaultFolderModal } from "../modals/set-default-folder-modal";
-import { Chart, Delete, ThreeDots } from "../shared/icons";
-import { useFolderPermissionsPanel } from "./folder-permissions-panel";
+import { Delete, ThreeDots } from "../shared/icons";
+import { useEditFolderPanel } from "./edit-folder-panel";
 import { isDefaultFolder } from "./utils";
 
 export const FolderActions = ({
   folder,
   onDelete,
+  className,
 }: {
   folder: FolderSummary;
   onDelete?: () => void;
+  className?: string;
 }) => {
   const router = useRouter();
   const [openPopover, setOpenPopover] = useState(false);
@@ -48,8 +50,10 @@ export const FolderActions = ({
       folder,
     });
 
-  const { folderPermissionsPanel, setShowFolderPermissionsPanel } =
-    useFolderPermissionsPanel(folder);
+  const {
+    editFolderPanel: folderPermissionsPanel,
+    setShowEditFolderPanel: setShowFolderPermissionsPanel,
+  } = useEditFolderPanel(folder);
 
   const copyFolderId = () => {
     toast.promise(copyToClipboard(folder.id), {
@@ -117,114 +121,89 @@ export const FolderActions = ({
       {folderPermissionsPanel}
       <Popover
         content={
-          <div className="grid w-full divide-y divide-neutral-200 sm:w-52">
-            <div className="grid gap-px p-2">
-              <Link
-                href={`/${workspaceSlug}/analytics${
-                  folder.id === "unsorted" ? "" : `?folderId=${folder.id}`
-                }`}
-              >
-                <Button
-                  text="Analytics"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                  }}
-                  icon={<Chart className="h-4 w-4" />}
-                  shortcut="A"
-                  className="h-9 px-2 font-medium"
-                />
-              </Link>
-
-              {!unsortedLinks && (
-                <Button
-                  text="Members"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowFolderPermissionsPanel(true);
-                  }}
-                  icon={<Users className="h-4 w-4" />}
-                  shortcut="M"
-                  className="h-9 px-2 font-medium"
-                />
-              )}
-            </div>
-
-            <div className="grid gap-px p-2">
-              {!unsortedLinks && (
-                <Button
-                  text="Copy Folder ID"
-                  variant="outline"
-                  onClick={() => copyFolderId()}
-                  icon={
-                    copiedFolderId ? (
-                      <CircleCheck className="h-4 w-4" />
-                    ) : (
-                      <Copy className="h-4 w-4" />
-                    )
-                  }
-                  shortcut="I"
-                  className="h-9 px-2 font-medium"
-                />
-              )}
-
+          <div className="grid w-full gap-px p-2 sm:w-52">
+            {!unsortedLinks && (
               <Button
-                text="Set as Default"
+                text="Edit"
                 variant="outline"
                 onClick={() => {
                   setOpenPopover(false);
-                  setShowDefaultFolderModal(true);
+                  setShowFolderPermissionsPanel(true);
                 }}
-                icon={<Bookmark className="h-4 w-4" />}
-                shortcut="D"
+                icon={<PenWriting className="h-4 w-4" />}
+                shortcut="M"
                 className="h-9 px-2 font-medium"
-                disabled={isDefault}
+              />
+            )}
+            <Link
+              href={`/${workspaceSlug}/analytics${
+                folder.id === "unsorted" ? "" : `?folderId=${folder.id}`
+              }`}
+            >
+              <Button
+                text="Analytics"
+                variant="outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                }}
+                icon={<LinesY className="h-4 w-4" />}
+                shortcut="A"
+                className="h-9 px-2 font-medium"
+              />
+            </Link>
+
+            {!unsortedLinks && (
+              <Button
+                text="Copy Folder ID"
+                variant="outline"
+                onClick={() => copyFolderId()}
+                icon={
+                  copiedFolderId ? (
+                    <CircleCheck className="h-4 w-4" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )
+                }
+                shortcut="I"
+                className="h-9 px-2 font-medium"
+              />
+            )}
+
+            <Button
+              text="Set as Default"
+              variant="outline"
+              onClick={() => {
+                setOpenPopover(false);
+                setShowDefaultFolderModal(true);
+              }}
+              icon={<Bookmark className="h-4 w-4" />}
+              shortcut="D"
+              className="h-9 px-2 font-medium"
+              disabled={isDefault}
+              disabledTooltip={
+                isDefault ? "This is your default folder." : undefined
+              }
+            />
+
+            {!unsortedLinks && (
+              <Button
+                text="Delete"
+                variant="danger-outline"
+                onClick={() => {
+                  setOpenPopover(false);
+                  setShowDeleteFolderModal(true);
+                }}
+                icon={<Delete className="h-4 w-4" />}
+                shortcut="X"
+                className="h-9 px-2 font-medium"
+                disabled={!canUpdateFolder}
                 disabledTooltip={
-                  isDefault ? "This is your default folder." : undefined
+                  !canUpdateFolder
+                    ? "Only folder owners can delete a folder."
+                    : undefined
                 }
               />
-
-              {!unsortedLinks && (
-                <>
-                  <Button
-                    text="Rename"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowRenameFolderModal(true);
-                    }}
-                    icon={<PenWriting className="h-4 w-4" />}
-                    shortcut="R"
-                    className="h-9 px-2 font-medium"
-                    disabled={!canUpdateFolder}
-                    disabledTooltip={
-                      !canUpdateFolder
-                        ? "Only folder owners can rename a folder."
-                        : undefined
-                    }
-                  />
-
-                  <Button
-                    text="Delete"
-                    variant="danger-outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowDeleteFolderModal(true);
-                    }}
-                    icon={<Delete className="h-4 w-4" />}
-                    shortcut="X"
-                    className="h-9 px-2 font-medium"
-                    disabled={!canUpdateFolder}
-                    disabledTooltip={
-                      !canUpdateFolder
-                        ? "Only folder owners can delete a folder."
-                        : undefined
-                    }
-                  />
-                </>
-              )}
-            </div>
+            )}
           </div>
         }
         align="start"
@@ -236,9 +215,10 @@ export const FolderActions = ({
           className={cn(
             "h-8 flex-1 bg-transparent px-1 outline-none transition-all duration-200",
             "border-transparent data-[state=open]:border-neutral-500 sm:group-hover/card:data-[state=closed]:border-neutral-200",
+            className,
           )}
           onClick={() => setOpenPopover(true)}
-          icon={<ThreeDots className="size-4 shrink-0 text-neutral-500" />}
+          icon={<ThreeDots className="size-4 shrink-0 text-neutral-600" />}
         />
       </Popover>
     </>

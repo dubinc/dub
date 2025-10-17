@@ -8,9 +8,9 @@ import { ZodOpenApiOperationObject } from "zod-openapi";
 export const createPartner: ZodOpenApiOperationObject = {
   operationId: "createPartner",
   "x-speakeasy-name-override": "create",
-  summary: "Create a partner",
+  summary: "Create or update a partner",
   description:
-    "Create a partner for a program. If partner exists, automatically enrolls them.",
+    "Creates or updates a partner record (upsert behavior). If a partner with the same email already exists, their program enrollment will be updated with the provided tenantId. If no existing partner is found, a new partner will be created using the supplied information.",
   requestBody: {
     content: {
       "application/json": {
@@ -20,7 +20,7 @@ export const createPartner: ZodOpenApiOperationObject = {
   },
   responses: {
     "201": {
-      description: "The created partner",
+      description: "The created or updated partner",
       content: {
         "application/json": {
           schema: EnrolledPartnerSchema,

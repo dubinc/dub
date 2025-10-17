@@ -11,7 +11,6 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
   const methods = useForm<ProgramData>({
     defaultValues: {
       linkStructure: "short",
-      programType: "new",
       defaultRewardType: "sale",
       type: "percentage",
       amount: null,
@@ -23,7 +22,6 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
           ...programOnboarding,
           linkStructure: programOnboarding.linkStructure ?? "short",
           defaultRewardType: programOnboarding.defaultRewardType ?? "sale",
-          programType: programOnboarding.programType ?? "new",
           type: programOnboarding.type ?? "percentage",
           amount:
             programOnboarding.type === "flat" && programOnboarding.amount

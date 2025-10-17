@@ -1,25 +1,20 @@
 import { verifyAnalyticsAllowedHostnames } from "@/lib/analytics/verify-analytics-allowed-hostnames";
+import { COMMON_CORS_HEADERS } from "@/lib/api/cors";
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { recordClickCache } from "@/lib/api/links/record-click-cache";
 import { parseRequestBody } from "@/lib/api/utils";
+import { getIdentityHash } from "@/lib/middleware/utils";
 import { getLinkViaEdge, getWorkspaceViaEdge } from "@/lib/planetscale";
 import { recordClick } from "@/lib/tinybird";
 import { RedisLinkProps } from "@/lib/types";
 import { formatRedisLink, redis } from "@/lib/upstash";
-import { isValidUrl, LOCALHOST_IP, nanoid } from "@dub/utils";
-import { ipAddress, waitUntil } from "@vercel/functions";
+import { isValidUrl, nanoid } from "@dub/utils";
+import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
-
-const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization",
-};
-
 // POST /api/track/visit – Track a visit event from the client-side
 export const POST = withAxiom(async (req: AxiomRequest) => {
   try {
@@ -39,16 +34,16 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
       key = "_root";
     }
 
-    const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+    const identityHash = await getIdentityHash(req);
 
     let [clickId, cachedLink] = await redis.mget<[string, RedisLinkProps]>([
-      recordClickCache._createKey({ domain, key, ip }),
+      recordClickCache._createKey({ domain, key, identityHash }),
       linkCache._createKey({ domain, key }),
     ]);
 
     // if the clickId is already cached in Redis, return it
     if (clickId) {
-      return NextResponse.json({ clickId }, { headers: CORS_HEADERS });
+      return NextResponse.json({ clickId }, { headers: COMMON_CORS_HEADERS });
     }
 
     // Otherwise, track the visit event
@@ -110,17 +105,17 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
         clickId,
       },
       {
-        headers: CORS_HEADERS,
+        headers: COMMON_CORS_HEADERS,
       },
     );
   } catch (error) {
-    return handleAndReturnErrorResponse(error, CORS_HEADERS);
+    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
   }
 });
 
 export const OPTIONS = () => {
   return new Response(null, {
     status: 204,
-    headers: CORS_HEADERS,
+    headers: COMMON_CORS_HEADERS,
   });
 };

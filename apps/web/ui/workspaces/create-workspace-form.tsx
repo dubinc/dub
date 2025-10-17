@@ -1,6 +1,6 @@
 "use client";
 
-import { isGenericEmail } from "@/lib/emails";
+import { isGenericEmail } from "@/lib/is-generic-email";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, buttonVariants, FileUpload, useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils";

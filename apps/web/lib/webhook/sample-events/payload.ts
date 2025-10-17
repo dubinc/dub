@@ -1,4 +1,6 @@
 import { WebhookTrigger } from "@/lib/types";
+import bountyCreated from "./bounty-created.json";
+import bountyUpdated from "./bounty-updated.json";
 import commissionCreated from "./commission-created.json";
 import leadCreated from "./lead-created.json";
 import linkClicked from "./link-clicked.json";
@@ -17,4 +19,6 @@ export const samplePayload: Record<WebhookTrigger, any> = {
   "sale.created": saleCreated,
   "partner.enrolled": partnerEnrolled,
   "commission.created": commissionCreated,
+  "bounty.created": bountyCreated,
+  "bounty.updated": bountyUpdated,
 };

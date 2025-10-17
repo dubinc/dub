@@ -29,7 +29,7 @@ export const withdrawPartnerApplicationAction = authPartnerActionClient
       );
     }
 
-    const res = await prisma.$transaction(async (tx) => {
+    await prisma.$transaction(async (tx) => {
       const deletedProgramEnrollment = await tx.programEnrollment.delete({
         where: {
           id: programEnrollment.id,
@@ -46,8 +46,4 @@ export const withdrawPartnerApplicationAction = authPartnerActionClient
 
       return deletedProgramEnrollment;
     });
-
-    console.log("Deleted program enrollment", res);
-
-    return res;
   });

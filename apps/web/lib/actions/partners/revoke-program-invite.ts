@@ -2,7 +2,7 @@
 
 import { linkCache } from "@/lib/api/links/cache";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { recordLinkTB, transformLinkTB } from "@/lib/tinybird";
+import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import z from "../../zod";
@@ -68,16 +68,11 @@ export const revokeProgramInviteAction = authActionClient
 
     waitUntil(
       Promise.all([
-        // Delete the links from Redis
-        linkCache.deleteMany(partnerLinks),
+        // Expire the links from Redis
+        linkCache.expireMany(partnerLinks),
 
         // Record the links deletion in Tinybird
-        recordLinkTB(
-          partnerLinks.map((link) => ({
-            ...transformLinkTB(link),
-            deleted: true,
-          })),
-        ),
+        recordLink(partnerLinks, { deleted: true }),
 
         // Update totalLinks for the workspace
         prisma.project.update({

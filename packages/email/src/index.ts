@@ -1,7 +1,7 @@
 import { resend } from "./resend";
-import { ResendEmailOptions } from "./resend/types";
+import { ResendBulkEmailOptions, ResendEmailOptions } from "./resend/types";
 import { sendViaNodeMailer } from "./send-via-nodemailer";
-import { sendEmailViaResend } from "./send-via-resend";
+import { sendBatchEmailViaResend, sendEmailViaResend } from "./send-via-resend";
 
 export const sendEmail = async (opts: ResendEmailOptions) => {
   if (resend) {
@@ -14,9 +14,9 @@ export const sendEmail = async (opts: ResendEmailOptions) => {
   );
 
   if (smtpConfigured) {
-    const { email, subject, text, react } = opts;
+    const { to, subject, text, react } = opts;
     return await sendViaNodeMailer({
-      email,
+      to,
       subject,
       text,
       react,
@@ -26,4 +26,42 @@ export const sendEmail = async (opts: ResendEmailOptions) => {
   console.info(
     "Email sending failed: Neither SMTP nor Resend is configured. Please set up at least one email service to send emails.",
   );
+};
+
+export const sendBatchEmail = async (payload: ResendBulkEmailOptions) => {
+  if (resend) {
+    return await sendBatchEmailViaResend(payload);
+  }
+
+  // Fallback to SMTP if Resend is not configured
+  const smtpConfigured = Boolean(
+    process.env.SMTP_HOST && process.env.SMTP_PORT,
+  );
+
+  if (smtpConfigured) {
+    await Promise.all(
+      payload.map((p) =>
+        sendViaNodeMailer({
+          to: p.to,
+          subject: p.subject,
+          text: p.text,
+          react: p.react,
+        }),
+      ),
+    );
+
+    return {
+      data: null,
+      error: null,
+    };
+  }
+
+  console.info(
+    "Email sending failed: Neither SMTP nor Resend is configured. Please set up at least one email service to send emails.",
+  );
+
+  return {
+    data: null,
+    error: null,
+  };
 };

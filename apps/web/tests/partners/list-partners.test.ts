@@ -81,6 +81,24 @@ describe.sequential("GET /partners", async () => {
     });
   });
 
+  test("filters partners by email", async () => {
+    const { data, status } = await http.get<EnrolledPartnerProps[]>({
+      path: "/partners",
+      query: {
+        email: E2E_PARTNER.email,
+      },
+    });
+
+    expect(status).toEqual(200);
+    expect(Array.isArray(data)).toBe(true);
+
+    // All partners should have the specified email
+    data.forEach((partner) => {
+      const parsed = EnrolledPartnerSchema.parse(partner);
+      expect(parsed.email).toBe(E2E_PARTNER.email);
+    });
+  });
+
   test("filters partners by tenantId", async () => {
     const { data, status } = await http.get<EnrolledPartnerProps[]>({
       path: "/partners",

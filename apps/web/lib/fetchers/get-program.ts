@@ -1,33 +1,81 @@
 import { prisma } from "@dub/prisma";
+import { Program } from "@prisma/client";
 import { cache } from "react";
-import { sortRewardsByEventOrder } from "../partners/sort-rewards-by-event-order";
+import { DiscountProps, GroupWithFormDataProps, RewardProps } from "../types";
+
+type Result = Program & {
+  groups: GroupWithFormDataProps[];
+};
 
 export const getProgram = cache(
-  async ({
-    slug,
-    include,
-  }: {
-    slug: string;
-    include?: ("allRewards" | "allDiscounts")[];
-  }) => {
-    const program = await prisma.program.findUnique({
+  async ({ slug, groupSlug }: { slug: string; groupSlug?: string }) => {
+    const programData = await prisma.program.findUnique({
       where: {
         slug,
       },
-      include: {
-        rewards: include?.includes("allRewards") ? true : undefined,
-        discounts: include?.includes("allDiscounts") ? true : undefined,
-      },
+      ...(groupSlug && {
+        include: {
+          groups: {
+            where: {
+              slug: groupSlug,
+            },
+            include: {
+              clickReward: true,
+              leadReward: true,
+              saleReward: true,
+              discount: true,
+            },
+          },
+        },
+      }),
     });
 
-    if (!program) {
+    if (!programData) {
       return null;
     }
 
-    if (include?.includes("allRewards")) {
-      program.rewards = sortRewardsByEventOrder(program.rewards);
+    // If no group slug is provided, return the program data with no rewards or discount
+    if (!groupSlug) {
+      return {
+        ...programData,
+        group: null,
+        rewards: [],
+        discount: null,
+      };
     }
 
-    return program;
+    // Extract the group data and find its rewards and discount
+    const { groups, ...program } = programData as unknown as Result;
+
+    // Group not found
+    if (groups.length === 0) {
+      return;
+    }
+
+    const group = groups[0];
+
+    const rewards = [
+      group.clickReward,
+      group.leadReward,
+      group.saleReward,
+    ].filter(Boolean);
+
+    const discount = group.discount;
+
+    return {
+      ...program,
+      group: {
+        id: group.id,
+        name: group.name,
+        slug: group.slug,
+        color: group.color,
+        applicationFormData: group.applicationFormData,
+        applicationFormPublishedAt: group.applicationFormPublishedAt,
+        landerData: group.landerData,
+        landerPublishedAt: group.landerPublishedAt,
+      },
+      rewards: rewards as RewardProps[],
+      discount: discount as DiscountProps | null,
+    };
   },
 );

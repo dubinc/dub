@@ -1,5 +1,6 @@
 import z from "@/lib/zod";
 import { DEFAULT_REDIRECTS, RESERVED_SLUGS, validSlugRegex } from "@dub/utils";
+import { WorkspaceRole } from "@prisma/client";
 import slugify from "@sindresorhus/slugify";
 import { DomainSchema } from "./domains";
 import { planSchema, roleSchema, uploadedImageSchema } from "./misc";
@@ -67,6 +68,10 @@ export const WorkspaceSchema = z
     tagsLimit: z.number().describe("The tags limit of the workspace."),
     foldersUsage: z.number().describe("The folders usage of the workspace."),
     foldersLimit: z.number().describe("The folders limit of the workspace."),
+    groupsLimit: z.number().describe("The groups limit of the workspace."),
+    networkInvitesLimit: z
+      .number()
+      .describe("The weekly network invites limit of the workspace."),
     usersLimit: z.number().describe("The users limit of the workspace."),
     aiUsage: z.number().describe("The AI usage of the workspace."),
     aiLimit: z.number().describe("The AI limit of the workspace."),
@@ -81,10 +86,6 @@ export const WorkspaceSchema = z
       .describe(
         "Whether the workspace has claimed a free .link domain. (dub.link/free)",
       ),
-    partnersEnabled: z
-      .boolean()
-      .describe("Whether the workspace has Dub Partners enabled."),
-
     createdAt: z
       .date()
       .describe("The date and time when the workspace was created."),
@@ -125,6 +126,8 @@ export const WorkspaceSchema = z
       .nullable()
       .describe("Specifies hostnames permitted for client-side click tracking.")
       .openapi({ example: ["dub.sh"] }),
+    ssoEmailDomain: z.string().nullable(),
+    ssoEnforcedAt: z.date().nullable(),
   })
   .openapi({
     title: "Workspace",
@@ -148,15 +151,13 @@ export const createWorkspaceSchema = z.object({
   conversionEnabled: z.boolean().optional(),
 });
 
-export const updateWorkspaceSchema = createWorkspaceSchema.partial().extend({
-  allowedHostnames: z.array(z.string()).optional(),
-});
-
 export const notificationTypes = z.enum([
   "linkUsageSummary",
   "domainConfigurationUpdates",
   "newPartnerSale",
   "newPartnerApplication",
+  "newBountySubmitted",
+  "newMessageFromPartner",
 ]);
 
 export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
@@ -171,6 +172,8 @@ export const WorkspaceSchemaExtended = WorkspaceSchema.extend({
       workspacePreferences: z.record(z.any()).nullish(),
     }),
   ),
+  publishableKey: z.string().nullable(),
+  fastDirectDebitPayouts: z.boolean().default(false),
 });
 
 export const OnboardingUsageSchema = z.object({
@@ -186,4 +189,25 @@ export const workspaceStoreKeys = z.enum([
   "conversionsOnboarding", // boolean
   "dubPartnersPopupDismissed", // boolean
   "dotLinkOfferDismissed", // string
+  "analyticsSettingsConversionTrackingEnabled", // boolean
+  "analyticsSettingsSiteVisitTrackingEnabled", // boolean
+  "analyticsSettingsOutboundDomainTrackingEnabled", // boolean
+  "analyticsSettingsConnectionSetupComplete", // boolean
+  "analyticsSettingsLeadTrackingSetupComplete", // boolean
+  "analyticsSettingsSaleTrackingSetupComplete", // boolean
 ]);
+
+export const getWorkspaceUsersQuerySchema = z.object({
+  search: z.string().optional(),
+  role: z.nativeEnum(WorkspaceRole).optional(),
+});
+
+export const workspaceUserSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  email: z.string().nullish(),
+  image: z.string().nullish(),
+  role: z.nativeEnum(WorkspaceRole),
+  isMachine: z.boolean().default(false),
+  createdAt: z.date(),
+});

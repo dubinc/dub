@@ -43,7 +43,7 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           </span>
           {payouts?.length ? (
             <Link
-              href={`/settings/payouts?programId=${programId}`}
+              href={`/payouts?programId=${programId}`}
               className="text-sm font-medium leading-none text-neutral-500 hover:text-neutral-600"
             >
               {payouts.length} of {payoutsCount} results
@@ -64,10 +64,7 @@ export function PayoutsCard({ programId }: { programId?: string }) {
                   >
                     <div className="flex flex-col">
                       <span className="text-xs font-medium text-neutral-800">
-                        {currencyFormatter(payout.amount / 100, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {currencyFormatter(payout.amount / 100)}
                       </span>
                       <span className="text-[0.7rem] text-neutral-500">
                         {formatPeriod(payout)}

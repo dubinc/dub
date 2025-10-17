@@ -36,7 +36,7 @@ export function SelectionToolbar<T>({
           : "pointer-events-none opacity-0",
         className,
       )}
-      {...{ inert: selectedCount > 0 ? undefined : "" }}
+      inert={selectedCount === 0}
     >
       <div className="flex h-11 items-center gap-2.5 px-2 py-2.5">
         <div className="flex w-6 items-center justify-center">

@@ -4,7 +4,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { getFolders } from "@/lib/folder/get-folders";
 import { webhookCache } from "@/lib/webhook/cache";
-import { PARTNERS_WEBHOOK_TRIGGERS } from "@/lib/webhook/constants";
 import { createWebhook } from "@/lib/webhook/create-webhook";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
@@ -65,21 +64,6 @@ export const POST = withWorkspace(
     const { name, url, triggers, linkIds, secret } = createWebhookSchema.parse(
       await parseRequestBody(req),
     );
-
-    if (triggers) {
-      const hasPartnersTriggers = PARTNERS_WEBHOOK_TRIGGERS.some((trigger) =>
-        triggers.includes(trigger),
-      );
-
-      if (hasPartnersTriggers && !workspace.partnersEnabled) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "Dub Partners is not enabled on this workspace, which is required to use the following webhook triggers: " +
-            PARTNERS_WEBHOOK_TRIGGERS.join(", "),
-        });
-      }
-    }
 
     const existingWebhook = await prisma.webhook.findFirst({
       where: {
@@ -181,7 +165,7 @@ export const POST = withWorkspace(
             workspaceId: workspace.id,
           }),
           sendEmail({
-            email: session.user.email,
+            to: session.user.email,
             subject: "New webhook added",
             react: WebhookAdded({
               email: session.user.email,

@@ -4,15 +4,15 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useWorkspace from "@/lib/swr/use-workspace";
 import LayoutLoader from "@/ui/layout/layout-loader";
 import { PageContent } from "@/ui/layout/page-content";
+import { isLegacyBusinessPlan } from "@dub/utils";
 import { ReactNode, useEffect, useState } from "react";
-import { PartnersUpgradeCTA } from "./partners-ugrade-cta";
+import { PartnersUpgradeCTA } from "./partners-upgrade-cta";
 
 export default function ProgramAuth({ children }: { children: ReactNode }) {
   const {
-    slug,
     plan,
     defaultProgramId,
-    partnersEnabled,
+    payoutsLimit,
     loading,
     mutate: mutateWorkspace,
   } = useWorkspace();
@@ -31,9 +31,9 @@ export default function ProgramAuth({ children }: { children: ReactNode }) {
   }
 
   if (
-    !partnersEnabled ||
+    !defaultProgramId ||
     !getPlanCapabilities(plan).canManageProgram ||
-    !defaultProgramId
+    isLegacyBusinessPlan({ plan, payoutsLimit })
   ) {
     return (
       <PageContent>

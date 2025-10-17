@@ -106,8 +106,6 @@ export function LinkAnalyticsBadge({
                 <span className="font-medium text-neutral-950">
                   {tab === "sales"
                     ? currencyFormatter(value / 100, {
-                        maximumFractionDigits: 2,
-                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                         trailingZeroDisplay: "stripIfInteger",
                       })
                     : nFormatter(value, { full: value < INFINITY_NUMBER })}
@@ -172,7 +170,6 @@ export function LinkAnalyticsBadge({
                   <span>
                     {tab === "sales"
                       ? currencyFormatter(value / 100, {
-                          maximumFractionDigits: 2,
                           // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                           trailingZeroDisplay: "stripIfInteger",
                         })

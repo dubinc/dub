@@ -4,9 +4,10 @@
   "license": "AGPL-3.0-or-later",
   "scripts": {
     "build": "turbo build",
+    "build:packages": "pnpm -r --filter \"./packages/**\" build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "clean": "turbo clean",
+    "clean": "turbo clean && find . -name '.next' -type d -prune -exec rm -rf {} + 2>/dev/null || true",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "prettier-check": "prettier --check \"**/*.{ts,tsx,md}\"",
     "publish-cli": "turbo build --filter='@dub/cli' && cd packages/cli && npm publish && cd ../../",
@@ -29,8 +30,6 @@
     "turbo": "^1.12.5"
   },
   "resolutions": {
-    "@radix-ui/react-dialog": "1.0.5",
-    "@radix-ui/react-popover": "1.0.7",
     "chrono-node": "2.7.5"
   },
   "packageManager": "pnpm@8.6.10"

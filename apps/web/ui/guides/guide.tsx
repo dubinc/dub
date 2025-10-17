@@ -1,9 +1,10 @@
 "use client";
 
-import { BookOpen, Button, buttonVariants, ChevronLeft } from "@dub/ui";
+import { Button, buttonVariants, ChevronLeft } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { GuideActionButton } from "./guide-action-button";
 import { InstallStripeIntegrationButton } from "./install-stripe-integration-button";
 import { guides, IntegrationType } from "./integrations";
 import { GuidesMarkdown } from "./markdown";
@@ -36,14 +37,7 @@ export function Guide({ markdown }: { markdown: string }) {
             />
           </Link>
 
-          <Link href={selectedGuide.url} target="_blank">
-            <Button
-              text="Read full guide"
-              variant="secondary"
-              className="h-8 w-fit rounded-lg px-3"
-              icon={<BookOpen className="size-3.5" />}
-            />
-          </Link>
+          <GuideActionButton guide={selectedGuide} markdown={markdown} />
         </div>
 
         <div>

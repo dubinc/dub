@@ -1,23 +1,21 @@
+import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
-import useRewards from "@/lib/swr/use-rewards";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { RewardProps } from "@/lib/types";
-import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import {
-  CircleDotted,
-  CursorRays,
-  FlagWavy,
-  InvoiceDollar,
-  UserPlus,
-} from "@dub/ui/icons";
+import { CircleDotted, FlagWavy, Users6 } from "@dub/ui/icons";
 import { cn, COUNTRIES, nFormatter } from "@dub/utils";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { useMemo } from "react";
 
 export function usePartnerFilters(extraSearchParams: Record<string, string>) {
   const { searchParamsObj, queryParams } = useRouterStuff();
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug } = useWorkspace();
+  const status = (searchParamsObj.status ||
+    "approved") as ProgramEnrollmentStatus;
+
+  const { groups } = useGroups();
 
   const { partnersCount: countriesCount } = usePartnersCount<
     | {
@@ -27,6 +25,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
     | undefined
   >({
     groupBy: "country",
+    status,
   });
 
   const { partnersCount: statusCount } = usePartnersCount<
@@ -36,73 +35,46 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
       }[]
     | undefined
   >({
-    groupBy: "status",
+    groupBy: "status", // here we include all statuses to get the groupBy count
   });
 
-  const { rewards } = useRewards();
-
-  const { hasClickRewards, hasLeadRewards, hasSaleRewards } = useMemo(() => {
-    return {
-      hasClickRewards: rewards?.some((r) => r.event === "click") ?? false,
-      hasLeadRewards: rewards?.some((r) => r.event === "lead") ?? false,
-      hasSaleRewards: rewards?.some((r) => r.event === "sale") ?? false,
-    };
-  }, [rewards]);
-
-  const { partnersCount: clickRewardsCount } = usePartnersCount<
-    | (RewardProps & {
-        partnersCount: number;
-      })[]
+  const { partnersCount: groupsCount } = usePartnersCount<
+    | {
+        groupId: string;
+        _count: number;
+      }[]
     | undefined
   >({
-    groupBy: "clickRewardId",
-    enabled: hasClickRewards,
-  });
-
-  const { partnersCount: leadRewardsCount } = usePartnersCount<
-    | (RewardProps & {
-        partnersCount: number;
-      })[]
-    | undefined
-  >({
-    groupBy: "leadRewardId",
-    enabled: hasLeadRewards,
-  });
-
-  const { partnersCount: saleRewardsCount } = usePartnersCount<
-    | (RewardProps & {
-        partnersCount: number;
-      })[]
-    | undefined
-  >({
-    groupBy: "saleRewardId",
-    enabled: hasSaleRewards,
+    groupBy: "groupId",
+    status,
   });
 
   const filters = useMemo(
     () => [
       {
-        key: "country",
-        icon: FlagWavy,
-        label: "Location",
-        getOptionIcon: (value) => (
-          <img
-            alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
-            className="h-2.5 w-4"
-          />
-        ),
-        getOptionLabel: (value) => COUNTRIES[value],
+        key: "groupId",
+        icon: Users6,
+        label: "Group",
         options:
-          countriesCount
-            ?.filter(({ country }) => COUNTRIES[country])
-            .map(({ country, _count }) => ({
-              value: country,
-              label: COUNTRIES[country],
-              right: nFormatter(_count, { full: true }),
-            })) ?? [],
-      },
+          groupsCount && groups
+            ? groupsCount
+                .filter(({ groupId }) =>
+                  groups.find(({ id }) => id === groupId),
+                )
+                .map(({ groupId, _count }) => {
+                  const groupData = groups.find(({ id }) => id === groupId)!; // coerce cause we already filtered above
 
+                  return {
+                    value: groupId,
+                    label: groupData.name,
+                    icon: <GroupColorCircle group={groupData} />,
+                    right: nFormatter(_count || 0, { full: true }),
+                    permalink: `/${slug}/program/groups/${groupData.slug}/rewards`,
+                  };
+                })
+                .filter((group) => group !== null)
+            : null,
+      },
       {
         key: "status",
         icon: CircleDotted,
@@ -127,85 +99,38 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
               };
             }) ?? [],
       },
-
-      ...(saleRewardsCount && saleRewardsCount.length > 0
-        ? [
-            {
-              key: "saleRewardId",
-              icon: InvoiceDollar,
-              label: "Sale reward",
-              options:
-                saleRewardsCount?.map((reward) => {
-                  return {
-                    value: reward.id,
-                    label: formatRewardDescription({ reward }),
-                    icon: <InvoiceDollar className="size-4 bg-transparent" />,
-                    right: nFormatter(reward.partnersCount, { full: true }),
-                  };
-                }) ?? [],
-            },
-          ]
-        : []),
-
-      ...(leadRewardsCount && leadRewardsCount.length > 0
-        ? [
-            {
-              key: "leadRewardId",
-              icon: UserPlus,
-              label: "Lead reward",
-              options:
-                leadRewardsCount?.map((reward) => {
-                  return {
-                    value: reward.id,
-                    label: formatRewardDescription({ reward }),
-                    icon: <UserPlus className="size-4 bg-transparent" />,
-                    right: nFormatter(reward.partnersCount, { full: true }),
-                  };
-                }) ?? [],
-            },
-          ]
-        : []),
-
-      ...(clickRewardsCount && clickRewardsCount.length > 0
-        ? [
-            {
-              key: "clickRewardId",
-              icon: CursorRays,
-              label: "Click reward",
-              options:
-                clickRewardsCount?.map((reward) => {
-                  return {
-                    value: reward.id,
-                    label: formatRewardDescription({ reward }),
-                    icon: <CursorRays className="size-4 bg-transparent" />,
-                    right: nFormatter(reward.partnersCount, { full: true }),
-                  };
-                }) ?? [],
-            },
-          ]
-        : []),
+      {
+        key: "country",
+        icon: FlagWavy,
+        label: "Location",
+        getOptionIcon: (value) => (
+          <img
+            alt={value}
+            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
+            className="size-4 shrink-0"
+          />
+        ),
+        getOptionLabel: (value) => COUNTRIES[value],
+        options:
+          countriesCount
+            ?.filter(({ country }) => COUNTRIES[country])
+            .map(({ country, _count }) => ({
+              value: country,
+              label: COUNTRIES[country],
+              right: nFormatter(_count, { full: true }),
+            })) ?? [],
+      },
     ],
-    [
-      countriesCount,
-      statusCount,
-      clickRewardsCount,
-      leadRewardsCount,
-      saleRewardsCount,
-    ],
+    [groupsCount, groups, statusCount, countriesCount],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, country, clickRewardId, leadRewardId, saleRewardId } =
-      searchParamsObj;
+    const { groupId, status, country } = searchParamsObj;
 
     return [
+      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
       ...(status ? [{ key: "status", value: status }] : []),
       ...(country ? [{ key: "country", value: country }] : []),
-      ...(clickRewardId
-        ? [{ key: "clickRewardId", value: clickRewardId }]
-        : []),
-      ...(leadRewardId ? [{ key: "leadRewardId", value: leadRewardId }] : []),
-      ...(saleRewardId ? [{ key: "saleRewardId", value: saleRewardId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -224,14 +149,7 @@ export function usePartnerFilters(extraSearchParams: Record<string, string>) {
 
   const onRemoveAll = () =>
     queryParams({
-      del: [
-        "status",
-        "country",
-        "clickRewardId",
-        "leadRewardId",
-        "saleRewardId",
-        "search",
-      ],
+      del: ["status", "country", "groupId", "search"],
     });
 
   const searchQuery = useMemo(

@@ -6,19 +6,18 @@ import {
   TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
-import { prefixWorkspaceId } from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
-  COUNTRY_CODES,
+  DUB_FOUNDING_DATE,
   PAGINATION_LIMIT,
-  THE_BEGINNING_OF_TIME,
   capitalize,
   formatDate,
 } from "@dub/utils";
 import { booleanQuerySchema } from "./misc";
 import { parseDateSchema } from "./utils";
-import { utmTagsSchema } from "./utm";
+import { UTMTemplateSchema } from "./utm";
 
 const analyticsEvents = z
   .enum([...EVENT_TYPES, "composite"], {
@@ -87,11 +86,14 @@ export const analyticsQuerySchema = z
       .describe(
         "The unique ID of the short link on Dub to retrieve analytics for.",
       ),
-    linkIds: z
-      .union([z.string(), z.array(z.string())])
-      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
-      .optional()
-      .describe("The link IDs to retrieve analytics for."),
+    // TODO: Add this to the public API when we can properly verify linkIds ownership in /api/analytics
+    // linkIds: z
+    //   .union([z.string(), z.array(z.string())])
+    //   .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+    //   .optional()
+    //   .describe(
+    //     "A list of link IDs to retrieve analytics for. Takes precidence over ",
+    //   ),
     externalId: z
       .string()
       .optional()
@@ -123,8 +125,8 @@ export const analyticsQuerySchema = z
         "The interval to retrieve analytics for. If undefined, defaults to 24h.",
       ),
     start: parseDateSchema
-      .refine((value: Date) => value >= THE_BEGINNING_OF_TIME, {
-        message: `The start date cannot be earlier than ${formatDate(THE_BEGINNING_OF_TIME)}.`,
+      .refine((value: Date) => value >= DUB_FOUNDING_DATE, {
+        message: `The start date cannot be earlier than ${formatDate(DUB_FOUNDING_DATE)}.`,
       })
       .optional()
       .describe(
@@ -143,10 +145,10 @@ export const analyticsQuerySchema = z
       )
       .openapi({ example: "America/New_York", default: "UTC" }),
     country: z
-      .enum(COUNTRY_CODES)
+      .string()
       .optional()
       .describe(
-        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. Learn more: https://d.to/geo",
+        "The country to retrieve analytics for. Must be passed as a 2-letter ISO 3166-1 country code. See https://d.to/geo for more information.",
       )
       .openapi({ ref: "countryCode" }),
     city: z
@@ -249,7 +251,7 @@ export const analyticsQuerySchema = z
       )
       .openapi({ deprecated: true }),
   })
-  .merge(utmTagsSchema);
+  .merge(UTMTemplateSchema.omit({ id: true, name: true }));
 
 // Analytics filter params for Tinybird endpoints
 export const analyticsFilterTB = z
@@ -271,6 +273,12 @@ export const analyticsFilterTB = z
       .string()
       .optional()
       .describe("The UTM tag to group by. Defaults to `utm_source`."),
+    // TODO: remove this once it's been added to the public API
+    linkIds: z
+      .union([z.string(), z.array(z.string())])
+      .transform((v) => (Array.isArray(v) ? v : v.split(",")))
+      .optional()
+      .describe("The link IDs to retrieve analytics for."),
     folderIds: z
       .union([z.string(), z.array(z.string())])
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))

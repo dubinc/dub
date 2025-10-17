@@ -23,7 +23,10 @@ export default function PartnerPayoutFailed({
   },
   payout = {
     amount: 530000,
-    failureFee: 1000,
+    method: "card",
+    // failureFee: 1000,
+    failureReason:
+      "Your payment requires additional authentication to complete.",
     cardLast4: "1234",
   },
   email = "panic@thedis.co",
@@ -36,15 +39,15 @@ export default function PartnerPayoutFailed({
   };
   payout: {
     amount: number; // in cents
+    method: "card" | "direct_debit";
+    failureReason?: string | null;
     failureFee?: number; // in cents
     cardLast4?: string;
   };
   email: string;
 }) {
-  const payoutAmount = currencyFormatter(payout.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const payoutAmount = currencyFormatter(payout.amount / 100);
+  const payoutMethod = payout.method.replace("_", " ");
 
   return (
     <Html>
@@ -70,10 +73,19 @@ export default function PartnerPayoutFailed({
               <span className="font-semibold text-purple-600">
                 {program.name}
               </span>{" "}
-              failed. It's been reverted back to{" "}
+              failed. The payouts have been reverted back to{" "}
               <span className="font-semibold text-neutral-800">Pending</span>{" "}
               and will need to be confirmed again.
             </Text>
+
+            {payout.failureReason && (
+              <Text className="text-sm leading-6 text-neutral-600">
+                Reason:{" "}
+                <span className="font-semibold italic text-neutral-800">
+                  {payout.failureReason}
+                </span>
+              </Text>
+            )}
 
             {payout.failureFee && (
               <Text className="text-sm leading-6 text-neutral-600">
@@ -95,16 +107,29 @@ export default function PartnerPayoutFailed({
             )}
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Please update your direct debit details at your earliest
-              convenience to ensure that your partners are paid on time.
+              Please{" "}
+              <Link
+                href={`https://app.dub.co/${workspace.slug}/settings/billing`}
+                className="font-medium text-black underline"
+              >
+                update your {payoutMethod} details
+              </Link>{" "}
+              at your earliest convenience and retry the payout from your{" "}
+              <Link
+                href="https://app.dub.co/program/payouts?status=pending&sortBy=amount"
+                className="font-medium text-black underline"
+              >
+                payouts tab
+              </Link>{" "}
+              to ensure that your partners are paid on time.
             </Text>
 
             <Section className="my-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
-                href={`https://app.dub.co/${workspace.slug}/settings/billing`}
+                href="https://app.dub.co/program/payouts?status=pending&sortBy=amount"
               >
-                Update direct debit details
+                Retry payout
               </Link>
             </Section>
 

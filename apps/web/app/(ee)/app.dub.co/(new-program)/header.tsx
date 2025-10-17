@@ -38,21 +38,10 @@ export function ProgramOnboardingHeader() {
     data = {
       ...data,
       url: data.url === "" ? null : data.url,
-
       partners:
         data?.partners?.filter(
           (partner) => partner.email !== "" && partner.key !== "",
         ) ?? null,
-
-      ...(data.programType === "new" && {
-        rewardful: null,
-      }),
-
-      ...(data.programType === "import" && {
-        type: null,
-        amount: null,
-        maxDuration: null,
-      }),
     };
 
     const currentPath = pathname.replace(`/${workspaceSlug}`, "");

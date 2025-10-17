@@ -15,7 +15,7 @@ const workspace = {
 
 async function main() {
   const res = await sendEmail({
-    email: user.email as string,
+    to: user.email as string,
     from: "steven@dub.co",
     subject: `${
       attemptCount == 2

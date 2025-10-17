@@ -15,13 +15,17 @@ export const POST = withWorkspace(
       customerExternalId: newExternalId,
       externalId: oldExternalId, // deprecated
       customerId: oldCustomerId, // deprecated
-      paymentProcessor,
-      invoiceId,
+      customerName,
+      customerEmail,
+      customerAvatar,
+      clickId,
       amount,
       currency,
-      metadata,
       eventName,
+      paymentProcessor,
+      invoiceId,
       leadEventName,
+      metadata,
     } = trackSaleRequestSchema
       .extend({
         // add backwards compatibility
@@ -42,6 +46,10 @@ export const POST = withWorkspace(
 
     const response = await trackSale({
       customerExternalId,
+      customerName,
+      customerEmail,
+      customerAvatar,
+      clickId,
       amount,
       currency,
       eventName,

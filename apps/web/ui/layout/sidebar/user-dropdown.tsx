@@ -7,16 +7,17 @@ import {
   Gift,
   Icon,
   Popover,
+  useCurrentSubdomain,
   User,
 } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { APP_DOMAIN, cn, PARTNERS_DOMAIN } from "@dub/utils";
 import { LogOut } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import Link from "next/link";
 import {
   ComponentPropsWithoutRef,
   ElementType,
-  useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -24,10 +25,63 @@ export default function UserDropdown() {
   const { data: session } = useSession();
   const { partner } = usePartnerProfile();
   const [openPopover, setOpenPopover] = useState(false);
-  const [isPartnerPage, setIsPartnerPage] = useState(false);
-  useEffect(() => {
-    setIsPartnerPage(window.location.hostname.startsWith("partners."));
-  }, []);
+  const { subdomain } = useCurrentSubdomain();
+
+  const menuOptions = useMemo(() => {
+    const options: Array<{
+      label: string;
+      icon: any;
+      href?: string;
+      type?: string;
+      onClick?: () => void;
+    }> = [
+      {
+        label: "Account settings",
+        icon: User,
+        href: "/account/settings",
+        onClick: () => setOpenPopover(false),
+      },
+    ];
+
+    // Add subdomain-specific options
+    if (subdomain === "partners") {
+      options.push({
+        label: "Switch to workspace",
+        icon: ArrowsOppositeDirectionX,
+        href: APP_DOMAIN,
+      });
+    }
+
+    if (subdomain === "app") {
+      options.push({
+        label: "Refer and earn",
+        icon: Gift,
+        href: "/account/settings/referrals",
+        onClick: () => setOpenPopover(false),
+      });
+
+      if (partner) {
+        options.push({
+          label: "Switch to partner account",
+          icon: ArrowsOppositeDirectionX,
+          href: PARTNERS_DOMAIN,
+        });
+      }
+    }
+
+    // Add logout option
+    options.push({
+      type: "button",
+      label: "Log out",
+      icon: LogOut,
+      onClick: () =>
+        signOut({
+          callbackUrl: "/login",
+        }),
+    });
+
+    return options;
+  }, [subdomain, partner, setOpenPopover]);
 
   return (
     <Popover
@@ -48,43 +102,13 @@ export default function UserDropdown() {
               <div className="h-3 w-20 animate-pulse rounded-full bg-neutral-200" />
             </div>
           )}
-          <UserOption
-            as={Link}
-            label="Account"
-            icon={User}
-            href="/account/settings"
-            onClick={() => setOpenPopover(false)}
-          />
-          {...!isPartnerPage
-            ? [
-                <UserOption
-                  as={Link}
-                  label="Refer and earn"
-                  icon={Gift}
-                  href="/account/settings/referrals"
-                  onClick={() => setOpenPopover(false)}
-                />,
-                partner ? (
-                  <UserOption
-                    as={Link}
-                    label="Switch to partner account"
-                    icon={ArrowsOppositeDirectionX}
-                    href="https://partners.dub.co"
-                  />
-                ) : null,
-              ].filter(Boolean)
-            : []}
-          <UserOption
-            as="button"
-            type="button"
-            label="Log out"
-            icon={LogOut}
-            onClick={() =>
-              signOut({
-                callbackUrl: "/login",
-              })
-            }
-          />
+          {menuOptions.map((menuOption, idx) => (
+            <UserOption
+              key={idx}
+              as={menuOption.href ? Link : "button"}
+              {...menuOption}
+            />
+          ))}
         </div>
       }
       align="start"

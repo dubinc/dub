@@ -19,6 +19,7 @@ export type PopoverProps = PropsWithChildren<{
   sticky?: "partial" | "always";
   onEscapeKeyDown?: (event: KeyboardEvent) => void;
   onWheel?: WheelEventHandler;
+  sideOffset?: number;
 }>;
 
 export function Popover({
@@ -35,6 +36,7 @@ export function Popover({
   sticky,
   onEscapeKeyDown,
   onWheel,
+  sideOffset = 8,
 }: PopoverProps) {
   const { isMobile } = useMediaQuery();
 
@@ -79,7 +81,7 @@ export function Popover({
       </PopoverPrimitive.Trigger>
       <PopoverPrimitive.Portal>
         <PopoverPrimitive.Content
-          sideOffset={8}
+          sideOffset={sideOffset}
           align={align}
           side={side}
           className={cn(

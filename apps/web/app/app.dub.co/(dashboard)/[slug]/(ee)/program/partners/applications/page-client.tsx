@@ -1,14 +1,16 @@
 "use client";
 
-import { bulkApprovePartnersAction } from "@/lib/actions/partners/bulk-approve-partners";
 import { bulkRejectPartnersAction } from "@/lib/actions/partners/bulk-reject-partners";
 import { rejectPartnerAction } from "@/lib/actions/partners/reject-partner";
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useGroups from "@/lib/swr/use-groups";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { useBulkApprovePartnersModal } from "@/ui/modals/bulk-approve-partners-modal";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
@@ -20,6 +22,7 @@ import {
   MenuItem,
   Popover,
   Table,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
@@ -38,7 +41,27 @@ import { useAction } from "next-safe-action/hooks";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
-import { useColumnVisibility } from "./use-column-visibility";
+const applicationsColumns = {
+  all: [
+    "partner",
+    "createdAt",
+    "location",
+    "website",
+    "youtube",
+    "twitter",
+    "linkedin",
+    "instagram",
+    "tiktok",
+  ],
+  defaultVisible: [
+    "partner",
+    "createdAt",
+    "location",
+    "website",
+    "youtube",
+    "linkedin",
+  ],
+};
 
 export function ProgramPartnersApplicationsPageClient() {
   const { id: workspaceId } = useWorkspace();
@@ -61,6 +84,7 @@ export function ProgramPartnersApplicationsPageClient() {
       {
         workspaceId,
         status: "pending",
+        sortBy: "createdAt",
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -70,6 +94,8 @@ export function ProgramPartnersApplicationsPageClient() {
       revalidateOnFocus: false,
     },
   );
+
+  const { groups } = useGroups();
 
   const [detailsSheetState, setDetailsSheetState] = useState<
     | { open: false; partnerId: string | null }
@@ -100,41 +126,17 @@ export function ProgramPartnersApplicationsPageClient() {
       },
     });
 
-  const { executeAsync: approvePartners, isPending: isApprovingPartners } =
-    useAction(bulkApprovePartnersAction, {
-      onError: ({ error }) => {
-        toast.error(error.serverError);
-      },
-      onSuccess: async ({ input }) => {
-        await mutatePrefix("/api/partners");
-        toast.success(
-          `${pluralize("Partner", input.partnerIds.length)} approved`,
-        );
-      },
-    });
-
   // State for pending bulk actions
-  const [pendingApproveIds, setPendingApproveIds] = useState<string[]>([]);
+  const [pendingApprovePartners, setPendingApprovePartners] = useState<
+    EnrolledPartnerProps[]
+  >([]);
+
   const [pendingRejectIds, setPendingRejectIds] = useState<string[]>([]);
 
-  // Confirmation modals
-  const {
-    setShowConfirmModal: setShowApproveModal,
-    confirmModal: approveModal,
-  } = useConfirmModal({
-    title: "Approve Applications",
-    description: "Are you sure you want to approve these applications?",
-    confirmText: "Approve",
-    onConfirm: async () => {
-      if (pendingApproveIds.length > 0) {
-        await approvePartners({
-          workspaceId: workspaceId!,
-          partnerIds: pendingApproveIds,
-        });
-        setPendingApproveIds([]);
-      }
-    },
-  });
+  const { setShowBulkApprovePartnersModal, BulkApprovePartnersModal } =
+    useBulkApprovePartnersModal({
+      partners: pendingApprovePartners,
+    });
 
   const { setShowConfirmModal: setShowRejectModal, confirmModal: rejectModal } =
     useConfirmModal({
@@ -152,7 +154,11 @@ export function ProgramPartnersApplicationsPageClient() {
       },
     });
 
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "applications-table-columns",
+    applicationsColumns,
+  );
+
   const { pagination, setPagination } = usePagination();
 
   const columns = useMemo(
@@ -172,6 +178,34 @@ export function ProgramPartnersApplicationsPageClient() {
         id: "createdAt",
         header: "Applied",
         accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+      },
+      {
+        id: "group",
+        header: "Group",
+        enableHiding: false,
+        minSize: 150,
+        cell: ({ row }) => {
+          if (!groups || !row.original.groupId) {
+            return "-";
+          }
+
+          const partnerGroup = groups.find(
+            (g) => g.id === row.original.groupId,
+          );
+
+          if (!partnerGroup) {
+            return "-";
+          }
+
+          return (
+            <div className="flex items-center gap-2">
+              <GroupColorCircle group={partnerGroup} />
+              <span className="truncate text-sm font-medium">
+                {partnerGroup.name}
+              </span>
+            </div>
+          );
+        },
       },
       {
         id: "location",
@@ -205,7 +239,6 @@ export function ProgramPartnersApplicationsPageClient() {
             <PartnerSocialColumn
               value={getDomainWithoutWWW(row.original.website) ?? "-"}
               verified={!!row.original.websiteVerifiedAt}
-              href={row.original.website}
             />
           );
         },
@@ -220,7 +253,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.youtube}
               verified={!!row.original.youtubeVerifiedAt}
-              href={`https://youtube.com/@${row.original.youtube}`}
             />
           );
         },
@@ -235,7 +267,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.twitter}
               verified={!!row.original.twitterVerifiedAt}
-              href={`https://x.com/${row.original.twitter}`}
             />
           );
         },
@@ -249,7 +280,6 @@ export function ProgramPartnersApplicationsPageClient() {
             <PartnerSocialColumn
               value={row.original.linkedin}
               verified={!!row.original.linkedinVerifiedAt}
-              href={`https://linkedin.com/in/${row.original.linkedin}`}
             />
           );
         },
@@ -264,7 +294,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.instagram}
               verified={!!row.original.instagramVerifiedAt}
-              href={`https://instagram.com/${row.original.instagram}`}
             />
           );
         },
@@ -279,7 +308,6 @@ export function ProgramPartnersApplicationsPageClient() {
               at
               value={row.original.tiktok}
               verified={!!row.original.tiktokVerifiedAt}
-              href={`https://tiktok.com/@${row.original.tiktok}`}
             />
           );
         },
@@ -298,7 +326,7 @@ export function ProgramPartnersApplicationsPageClient() {
         ),
       },
     ],
-    [workspaceId],
+    [workspaceId, groups],
   );
 
   const { table, ...tableProps } = useTable<EnrolledPartnerProps>({
@@ -317,7 +345,6 @@ export function ProgramPartnersApplicationsPageClient() {
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
     sortableColumns: ["createdAt"],
-
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -337,14 +364,14 @@ export function ProgramPartnersApplicationsPageClient() {
           variant="primary"
           text="Approve"
           className="h-7 w-fit rounded-lg px-2.5"
-          loading={isApprovingPartners}
+          // loading={isApprovingPartners}
           onClick={() => {
-            const partnerIds = table
+            const partners = table
               .getSelectedRowModel()
-              .rows.map((row) => row.original.id);
+              .rows.map((row) => row.original);
 
-            setPendingApproveIds(partnerIds);
-            setShowApproveModal(true);
+            setPendingApprovePartners(partners);
+            setShowBulkApprovePartnersModal(true);
           }}
         />
         <Button
@@ -372,6 +399,20 @@ export function ProgramPartnersApplicationsPageClient() {
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
+  const [previousPartnerId, nextPartnerId] = useMemo(() => {
+    if (!partners || !detailsSheetState.partnerId) return [null, null];
+
+    const currentIndex = partners.findIndex(
+      ({ id }) => id === detailsSheetState.partnerId,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? partners[currentIndex - 1].id : null,
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+    ];
+  }, [partners, detailsSheetState.partnerId]);
+
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.partnerId && currentPartner && (
@@ -381,10 +422,29 @@ export function ProgramPartnersApplicationsPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          onPrevious={
+            previousPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: previousPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+          onNext={
+            nextPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: nextPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
         />
       )}
-      {approveModal}
+      <BulkApprovePartnersModal />
       {rejectModal}
+
       <div className="w-min">
         <SearchBoxPersisted
           placeholder="Search by name or email"

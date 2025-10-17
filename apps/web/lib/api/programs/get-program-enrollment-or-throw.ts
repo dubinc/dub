@@ -1,39 +1,37 @@
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { prisma } from "@dub/prisma";
-import { Prisma, Reward } from "@dub/prisma/client";
+import { Prisma } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
-export async function getProgramEnrollmentOrThrow({
+// Type-safe version that accepts an include object directly
+export async function getProgramEnrollmentOrThrow<
+  T extends Prisma.ProgramEnrollmentInclude,
+>({
   partnerId,
   programId,
-  includePartner = false,
-  includeRewards = false,
-  includeDiscount = false,
+  include,
 }: {
   partnerId: string;
   programId: string;
-  includePartner?: boolean;
-  includeRewards?: boolean;
-  includeDiscount?: boolean;
-}) {
-  const include: Prisma.ProgramEnrollmentInclude = {
-    program: true,
-    links: {
-      orderBy: {
-        createdAt: "asc",
-      },
-    },
-    ...(includePartner && {
-      partner: true,
-    }),
-    ...(includeRewards && {
-      clickReward: true,
-      leadReward: true,
-      saleReward: true,
-    }),
-    ...(includeDiscount && {
-      discount: true,
-    }),
+  include: T;
+}): Promise<Prisma.ProgramEnrollmentGetPayload<{ include: T }>> {
+  const finalInclude = {
+    ...include,
+    links: include.links
+      ? {
+          orderBy: {
+            createdAt: "asc",
+          },
+        }
+      : false,
+    discountCodes: include.discountCodes
+      ? {
+          where: {
+            discountId: {
+              not: null,
+            },
+          },
+        }
+      : false,
   };
 
   const programEnrollment = programId.startsWith("prog_")
@@ -44,7 +42,7 @@ export async function getProgramEnrollmentOrThrow({
             programId,
           },
         },
-        include,
+        include: finalInclude,
       })
     : await prisma.programEnrollment.findFirst({
         where: {
@@ -53,38 +51,17 @@ export async function getProgramEnrollmentOrThrow({
             slug: programId,
           },
         },
-        include,
+        include: finalInclude,
       });
 
-  if (!programEnrollment || !programEnrollment.program) {
+  if (!programEnrollment) {
     throw new DubApiError({
       code: "not_found",
-      message:
-        "You are not enrolled in this program. Contact your program admin to get enrolled.",
+      message: `Partner ${partnerId} is not enrolled in program ${programId}.`,
     });
   }
 
-  const { links } = programEnrollment;
-
-  if (!links) {
-    throw new DubApiError({
-      code: "not_found",
-      message:
-        "You don't have a link for this program yet. Contact your program admin to get one.",
-    });
-  }
-
-  return {
-    ...programEnrollment,
-    ...(includeRewards && {
-      rewards: sortRewardsByEventOrder(
-        [
-          programEnrollment.clickReward,
-          programEnrollment.leadReward,
-          programEnrollment.saleReward,
-        ].filter((r): r is Reward => r !== null),
-      ),
-    }),
-    links,
-  };
+  return programEnrollment as Prisma.ProgramEnrollmentGetPayload<{
+    include: T;
+  }>;
 }

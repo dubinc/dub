@@ -52,6 +52,9 @@ export async function getDefaultPartnerId(user: UserProps) {
               create: {
                 partnerId: partner.id,
                 role: "owner",
+                notificationPreferences: {
+                  create: {},
+                },
               },
             },
           },

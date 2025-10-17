@@ -56,7 +56,6 @@ export function Slider({
 
               {sliderMarks.map((mark) => {
                 const left = ((mark - min) / (max - min)) * 100;
-                const isFilled = mark <= value;
 
                 return (
                   <span

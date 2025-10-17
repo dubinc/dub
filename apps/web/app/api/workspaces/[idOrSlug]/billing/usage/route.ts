@@ -1,4 +1,4 @@
-import { prefixWorkspaceId } from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { tb } from "@/lib/tinybird";
 import z from "@/lib/zod";

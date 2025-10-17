@@ -55,6 +55,18 @@ export const E2E_REWARD = {
         },
       ],
     },
+    {
+      operator: "AND",
+      amount: 5000,
+      conditions: [
+        {
+          entity: "sale",
+          attribute: "amount",
+          operator: "greater_than",
+          value: 15000,
+        },
+      ],
+    },
   ],
 };
 
@@ -66,13 +78,12 @@ export const E2E_CUSTOMER_WITH_DISCOUNT = {
 };
 
 export const E2E_DISCOUNT = {
-  id: "disc_1JY5V6W88X71C7T5DMXPNWTCD",
+  id: "disc_1K2E253814K7TA6YRKA86XMX5",
   amount: 30,
   type: "percentage",
   maxDuration: 3,
   couponId: "XZuejd0Q",
   couponTestId: "2NMXz81x",
-  default: true,
   description: null,
 };
 
@@ -80,10 +91,15 @@ export const E2E_DISCOUNT = {
 export const E2E_PROGRAM = {
   id: "prog_CYCu7IMAapjkRpTnr8F1azjN",
   domain: "getacme.link",
-  url: "https://acme.dub.sh",
 };
 
 export const E2E_PARTNER = {
   id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
+  email: "steven@dub.co",
   tenantId: "4149092f-7265-4002-98d9-da9f8e67e1fb",
+};
+
+export const E2E_PARTNER_GROUP = {
+  id: "grp_1K2E25381GVMG7HHM057TB92F",
+  url: "https://acme.dub.sh/",
 };

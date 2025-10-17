@@ -1,5 +1,4 @@
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
 import { getPartners } from "@/lib/api/partners/get-partners";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
@@ -17,15 +16,59 @@ import { z } from "zod";
 export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
-    const parsedParams = getPartnersQuerySchemaExtended.parse(searchParams);
+    const { sortBy: sortByWithOldFields, ...parsedParams } =
+      getPartnersQuerySchemaExtended
+        .merge(
+          z.object({
+            // add old fields for backward compatibility (clicks, leads, conversions, sales, saleAmount)
+            sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
+              z.enum(["clicks", "leads", "conversions", "sales", "saleAmount"]),
+            ),
+          }),
+        )
+        .parse(searchParams);
 
+    // get the final sortBy field (replace old fields with new fields)
+    const sortBy =
+      {
+        clicks: "totalClicks",
+        leads: "totalLeads",
+        conversions: "totalConversions",
+        sales: "totalSales",
+        saleAmount: "totalSaleAmount",
+      }[sortByWithOldFields] || sortByWithOldFields;
+
+    console.time("getPartners");
     const partners = await getPartners({
       ...parsedParams,
-      workspaceId: workspace.id,
+      sortBy,
       programId,
     });
+    console.timeEnd("getPartners");
 
-    return NextResponse.json(z.array(EnrolledPartnerSchema).parse(partners));
+    // polyfill deprecated fields for backward compatibility
+    return NextResponse.json(
+      z
+        .array(
+          EnrolledPartnerSchema.extend({
+            clicks: z.number().default(0),
+            leads: z.number().default(0),
+            conversions: z.number().default(0),
+            sales: z.number().default(0),
+            saleAmount: z.number().default(0),
+          }),
+        )
+        .parse(
+          partners.map((partner) => ({
+            ...partner,
+            clicks: partner.totalClicks,
+            leads: partner.totalLeads,
+            conversions: partner.totalConversions,
+            sales: partner.totalSales,
+            saleAmount: partner.totalSaleAmount,
+          })),
+        ),
+    );
   },
   {
     requiredPlan: [
@@ -44,47 +87,21 @@ export const POST = withWorkspace(
   async ({ workspace, req, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const {
-      name,
-      email,
-      username,
-      image = null,
-      country = null,
-      description = null,
-      tenantId,
-      linkProps,
-    } = createPartnerSchema.parse(await parseRequestBody(req));
+    const { linkProps: link, ...partner } = createPartnerSchema.parse(
+      await parseRequestBody(req),
+    );
 
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
 
-    const partnerLink = await createPartnerLink({
-      workspace,
-      program,
-      partner: {
-        name,
-        email,
-        username,
-        tenantId,
-        linkProps,
-      },
-      userId: session.user.id,
-    });
-
     const enrolledPartner = await createAndEnrollPartner({
-      program,
-      link: partnerLink,
       workspace,
-      partner: {
-        name,
-        email,
-        image,
-        country,
-        description,
-      },
-      tenantId,
+      program,
+      partner,
+      link,
+      userId: session.user.id,
     });
 
     return NextResponse.json(enrolledPartner, {

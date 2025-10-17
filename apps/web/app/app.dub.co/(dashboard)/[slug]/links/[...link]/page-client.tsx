@@ -39,16 +39,20 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { notFound, useParams, useRouter } from "next/navigation";
+import { redirect, useParams, useRouter } from "next/navigation";
 import { memo, useEffect, useRef, useState } from "react";
 import { useFormContext, useFormState } from "react-hook-form";
 import { toast } from "sonner";
 
 export function LinkPageClient() {
-  const params = useParams<{ link: string | string[] }>();
+  const { slug: workspaceSlug, link: linkParams } = useParams<{
+    slug: string;
+    link: string | string[];
+  }>();
 
-  const linkParts = Array.isArray(params.link) ? params.link : null;
-  if (!linkParts) notFound();
+  const linkParts = Array.isArray(linkParams) ? linkParams : null;
+
+  if (!linkParts) redirect(`/${workspaceSlug}/links`);
 
   const domain = linkParts[0];
   const slug = linkParts.length > 1 ? linkParts.slice(1).join("/") : "_root";

@@ -1,9 +1,9 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { banPartnerSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -22,20 +22,36 @@ export const unbanPartnerAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const programEnrollment = await getProgramEnrollmentOrThrow({
-      partnerId,
+    const where = {
       programId,
-      includePartner: true,
+      partnerId,
+    };
+
+    const programEnrollment = await prisma.programEnrollment.findUniqueOrThrow({
+      where: {
+        partnerId_programId: where,
+      },
+      include: {
+        program: true,
+        partner: true,
+      },
     });
 
     if (programEnrollment.status !== "banned") {
       throw new Error("This partner is not banned.");
     }
 
-    const where = {
+    if (!programEnrollment.program.defaultGroupId) {
+      // this should never happen
+      throw new Error(
+        "Program does not have a default group ID. Please contact support.",
+      );
+    }
+
+    const defaultGroup = await getGroupOrThrow({
       programId,
-      partnerId,
-    };
+      groupId: programEnrollment.program.defaultGroupId,
+    });
 
     await prisma.$transaction([
       prisma.link.updateMany({
@@ -53,6 +69,11 @@ export const unbanPartnerAction = authActionClient
           status: "approved",
           bannedAt: null,
           bannedReason: null,
+          groupId: defaultGroup.id,
+          clickRewardId: defaultGroup.clickRewardId,
+          leadRewardId: defaultGroup.leadRewardId,
+          saleRewardId: defaultGroup.saleRewardId,
+          discountId: defaultGroup.discountId,
         },
       }),
 
@@ -88,8 +109,8 @@ export const unbanPartnerAction = authActionClient
         });
 
         await Promise.allSettled([
-          // Delete links from cache
-          linkCache.deleteMany(links),
+          // Expire links from cache
+          linkCache.expireMany(links),
 
           recordAuditLog({
             workspaceId: workspace.id,

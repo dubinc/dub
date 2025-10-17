@@ -1,3 +1,4 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -7,7 +8,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   createContext,
   Dispatch,
@@ -51,18 +52,18 @@ const LinkCardInner = memo(({ link }: { link: ResponseLink }) => {
   const ref = useRef<HTMLDivElement>(null);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const selectedFolderId = searchParams.get("folderId");
-  const { slug, defaultFolderId } = useWorkspace();
+  const { folderId: currentFolderId } = useCurrentFolderId();
+  const { slug } = useWorkspace();
   const { queryParams } = useRouterStuff();
 
+  // only show the folder icon if:
+  // - loading is complete
+  // - the link has a folder id AND the currentFolderId is not the same as the link's folder id
   const showFolderIcon = useMemo(() => {
     return Boolean(
-      !loading &&
-        link.folderId &&
-        ![defaultFolderId, selectedFolderId].includes(link.folderId),
+      !loading && link.folderId && currentFolderId !== link.folderId,
     );
-  }, [loading, link.folderId, defaultFolderId, selectedFolderId]);
+  }, [loading, link.folderId, currentFolderId]);
 
   const { folder } = useFolder({
     folderId: link.folderId,

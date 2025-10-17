@@ -26,7 +26,7 @@ export default function ProgramImported({
   importId = "1K1QFYS3W9CJTEJ325SQKWCHF",
 }: {
   email: string;
-  provider: "Rewardful" | "Tolt" | "PartnerStack";
+  provider: "Rewardful" | "Tolt" | "PartnerStack" | "FirstPromoter";
   workspace: {
     slug: string;
   };

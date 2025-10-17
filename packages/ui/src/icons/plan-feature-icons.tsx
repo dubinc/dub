@@ -14,6 +14,7 @@ import {
   License,
   MarketingTarget,
   MoneyBills2,
+  Msgs,
   PaperPlane,
   Plug2,
   Receipt2,
@@ -51,6 +52,7 @@ export const PLAN_FEATURE_ICONS = {
   slack: Slack,
   tests: Flask,
   email: PaperPlane,
+  messages: Msgs,
   sso: ShieldKeyhole,
   logs: Versions2,
   success: UserCrown,
@@ -64,5 +66,5 @@ export const PLAN_FEATURE_ICONS = {
   ailandingpage: Sparkle3,
   customerinsights: UserFocus,
   partners: Users2,
-  whitelabel: SquareLayoutGrid5,
+  embeddedreferrals: SquareLayoutGrid5,
 };

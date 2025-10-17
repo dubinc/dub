@@ -10,14 +10,21 @@ import { endOfMonth } from "date-fns";
 export async function splitPayouts({
   program,
   cutoffPeriod,
+  selectedPayoutId,
   excludedPayoutIds,
 }: {
   program: Pick<Program, "id" | "name" | "minPayoutAmount">;
   cutoffPeriod: CUTOFF_PERIOD_TYPES;
+  selectedPayoutId?: string;
   excludedPayoutIds?: string[];
 }) {
   const payouts = await prisma.payout.findMany({
     where: {
+      ...(selectedPayoutId
+        ? { id: selectedPayoutId }
+        : excludedPayoutIds && excludedPayoutIds.length > 0
+          ? { id: { notIn: excludedPayoutIds } }
+          : {}),
       programId: program.id,
       status: "pending",
       invoiceId: null,
@@ -32,7 +39,6 @@ export async function splitPayouts({
       periodStart: {
         not: null, // exclude the manual payouts
       },
-      ...(excludedPayoutIds && { id: { notIn: excludedPayoutIds } }),
     },
     include: {
       commissions: true,

@@ -16,6 +16,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     partnerId,
     payoutId,
     customerId,
+    groupId,
     start,
     end,
     interval,
@@ -43,6 +44,16 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         gte: startDate.toISOString(),
         lte: endDate.toISOString(),
       },
+      ...(groupId && {
+        partner: {
+          programs: {
+            some: {
+              programId,
+              groupId,
+            },
+          },
+        },
+      }),
     },
     _count: true,
     _sum: {

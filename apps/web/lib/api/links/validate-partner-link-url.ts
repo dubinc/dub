@@ -1,30 +1,56 @@
-import { ProgramProps } from "@/lib/types";
-import { getApexDomain } from "@dub/utils";
+import { PartnerGroupAdditionalLink } from "@/lib/types";
+import { getUrlObjFromString } from "@dub/utils";
+import { PartnerGroup } from "@prisma/client";
 import { DubApiError } from "../errors";
 
 export const validatePartnerLinkUrl = ({
-  program,
+  group,
   url,
 }: {
-  program: Pick<ProgramProps, "urlValidationMode" | "url">;
+  group: Pick<PartnerGroup, "additionalLinks"> | null;
   url?: string | null;
 }) => {
-  if (!url || !program.url) {
+  if (!url || !group) {
     return;
   }
 
-  if (
-    program.urlValidationMode === "domain" &&
-    getApexDomain(url) !== getApexDomain(program.url)
-  ) {
+  const additionalLinks = group.additionalLinks as PartnerGroupAdditionalLink[];
+
+  if (!additionalLinks) {
     throw new DubApiError({
       code: "bad_request",
-      message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
+      message: "You cannot create additional links for this program.",
     });
-  } else if (program.urlValidationMode === "exact" && url !== program.url) {
+  }
+
+  const {
+    hostname: urlHostname,
+    pathname: urlPathname,
+    search: urlSearch,
+  } = getUrlObjFromString(url) ?? {};
+
+  // Find matching additional link based on its domain
+  const additionalLink = additionalLinks.find((additionalLink) => {
+    return additionalLink.domain === urlHostname;
+  });
+
+  if (!additionalLink) {
     throw new DubApiError({
       code: "bad_request",
-      message: `The provided URL (${url}) does not match the program's URL (${program.url}).`,
+      message: `The provided URL's domain (${urlHostname}) does not match the program's link domains.`,
+    });
+  }
+
+  // for domain mode, we only need to check if the domain matches
+  if (additionalLink.validationMode === "domain") {
+    return true;
+  }
+
+  // else, for exact mode, we need to check if the path matches too
+  if (additionalLink.path !== `${urlPathname}${urlSearch}`) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `The provided URL does not match the URL configured for this program.`,
     });
   }
 

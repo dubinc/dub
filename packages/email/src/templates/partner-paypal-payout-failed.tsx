@@ -40,10 +40,7 @@ export default function PartnerPaypalPayoutFailed({
   };
   email: string;
 }) {
-  const amountFormatted = currencyFormatter(payout.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const amountFormatted = currencyFormatter(payout.amount / 100);
 
   return (
     <Html>

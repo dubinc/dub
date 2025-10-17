@@ -1,12 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import DomainRenewalReminder from "@dub/email/templates/domain-renewal-reminder";
 import { prisma } from "@dub/prisma";
 import { chunk, log } from "@dub/utils";
 import {
-  addDays,
   differenceInCalendarDays,
   endOfDay,
   formatDistanceStrict,
@@ -45,6 +43,8 @@ export async function GET(req: Request) {
       };
     });
 
+    console.log("targetDates", targetDates);
+
     // Find all domains that are eligible for renewal reminders
     const domains = await prisma.registeredDomain.findMany({
       where: {
@@ -73,13 +73,16 @@ export async function GET(req: Request) {
     });
 
     if (domains.length === 0) {
+      console.log("No domains found to send reminders for. Skipping...");
       return NextResponse.json("No domains found to send reminders for.");
     }
 
     const reminderDomains = domains.flatMap(
       ({ slug, expiresAt, renewalFee, project }) => {
         const reminderWindow = differenceInCalendarDays(expiresAt, now);
-        const chargeAt: Date = addDays(now, reminderWindow);
+
+        // we charge 14 days before the expiration date to ensure timely processing
+        const chargeAt: Date = subDays(expiresAt, 14);
 
         return project.users.map(({ user }) => ({
           domain: {
@@ -88,7 +91,7 @@ export async function GET(req: Request) {
             expiresAt,
             reminderWindow,
             chargeAt,
-            chargeInText: formatDistanceStrict(chargeAt, now),
+            chargeAtInText: formatDistanceStrict(chargeAt, now),
           },
           workspace: {
             slug: project.slug,
@@ -100,18 +103,13 @@ export async function GET(req: Request) {
       },
     );
 
+    console.table(reminderDomains);
+
     const reminderDomainsChunks = chunk(reminderDomains, 100);
 
-    if (!resend) {
-      return NextResponse.json(
-        "Resend is not configured, skipping email sending.",
-      );
-    }
-
     for (const reminderDomainsChunk of reminderDomainsChunks) {
-      await resend.batch.send(
+      const res = await sendBatchEmail(
         reminderDomainsChunk.map(({ workspace, user, domain }) => ({
-          from: VARIANT_TO_FROM_MAP.notifications,
           to: user.email!,
           subject: "Your domain is expiring soon",
           variant: "notifications",
@@ -122,6 +120,7 @@ export async function GET(req: Request) {
           }),
         })),
       );
+      console.log(`Sent ${reminderDomainsChunk.length} emails`, res);
     }
 
     return NextResponse.json(reminderDomains);

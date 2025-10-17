@@ -140,9 +140,8 @@ export const GET = withWorkspace(
 // POST /api/customers – Create a customer
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
-    const { email, name, avatar, externalId } = createCustomerBodySchema.parse(
-      await parseRequestBody(req),
-    );
+    const { email, name, avatar, externalId, stripeCustomerId } =
+      createCustomerBodySchema.parse(await parseRequestBody(req));
 
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName = name || email || generateRandomName();
@@ -159,6 +158,7 @@ export const POST = withWorkspace(
           email,
           avatar: finalCustomerAvatar,
           externalId,
+          stripeCustomerId,
           projectId: workspace.id,
           projectConnectId: workspace.stripeConnectId,
         },

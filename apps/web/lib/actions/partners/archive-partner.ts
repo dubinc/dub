@@ -20,13 +20,14 @@ export const archivePartnerAction = authActionClient
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
+      include: {},
     });
 
     const { status, partner } = await prisma.programEnrollment.update({
       where: {
         partnerId_programId: {
-          programId,
           partnerId,
+          programId,
         },
       },
       data: {

@@ -216,7 +216,7 @@ export const importLinksFromShort = async ({
       // send email to user
       sendEmail({
         subject: `Your Short.io links have been imported!`,
-        email: ownerEmail,
+        to: ownerEmail,
         react: LinksImported({
           email: ownerEmail,
           provider: "Short.io",

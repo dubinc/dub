@@ -199,6 +199,7 @@ export function PayoutTable() {
                   <Filter.List
                     filters={filters}
                     activeFilters={activeFilters}
+                    onSelect={onSelect}
                     onRemove={onRemove}
                     onRemoveAll={onRemoveAll}
                   />
@@ -235,10 +236,7 @@ function AmountRowItem({
   status: PayoutStatus;
   minPayoutAmount: number;
 }) {
-  const display = currencyFormatter(amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const display = currencyFormatter(amount / 100);
 
   if (status === PayoutStatus.pending && amount < minPayoutAmount) {
     return (

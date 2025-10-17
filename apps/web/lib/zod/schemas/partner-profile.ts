@@ -2,9 +2,14 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { CommissionType, ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  CommissionType,
+  PartnerRole,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { z } from "zod";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
+import { BountySchema, BountySubmissionSchema } from "./bounties";
 import {
   CommissionSchema,
   getCommissionsCountQuerySchema,
@@ -13,6 +18,7 @@ import {
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
+import { workflowConditionSchema } from "./workflows";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
   userId: true,
@@ -84,6 +90,8 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
   comments: true,
 }).extend({
   createdAt: z.string().or(z.date()),
+  partnerGroupDefaultLinkId: z.string().nullish(),
+  discountCode: z.string().nullable().default(null),
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
@@ -98,7 +106,6 @@ export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
 });
 
 export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
-  workspaceId: true,
   externalId: true,
   tenantId: true,
   programId: true,
@@ -109,7 +116,6 @@ export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
 });
 
 export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
-  workspaceId: true,
   externalId: true,
   tenantId: true,
   programId: true,
@@ -130,4 +136,42 @@ export const partnerProfileProgramsCountQuerySchema =
 export const partnerNotificationTypes = z.enum([
   "commissionCreated",
   "applicationApproved",
+  "newMessageFromProgram",
 ]);
+
+export const PartnerBountySchema = BountySchema.omit({
+  groups: true,
+}).extend({
+  submission: BountySubmissionSchema.nullable(),
+  performanceCondition: workflowConditionSchema.nullable().default(null),
+  partner: z.object({
+    totalClicks: z.number(),
+    totalLeads: z.number(),
+    totalConversions: z.number(),
+    totalSales: z.number(),
+    totalSaleAmount: z.number(),
+    totalCommissions: z.number(),
+  }),
+});
+
+export const invitePartnerUserSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required.")
+    .email("Please enter a valid email."),
+  role: z.nativeEnum(PartnerRole),
+});
+
+export const getPartnerUsersQuerySchema = z.object({
+  search: z.string().optional(),
+  role: z.nativeEnum(PartnerRole).optional(),
+});
+
+export const partnerUserSchema = z.object({
+  id: z.string().nullable(),
+  name: z.string().nullable(),
+  email: z.string(),
+  role: z.nativeEnum(PartnerRole),
+  image: z.string().nullish(),
+  createdAt: z.date(),
+});
