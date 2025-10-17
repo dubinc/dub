@@ -1,6 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { DashboardProps, LinkProps } from "@/lib/types";
-import z from "@/lib/zod";
 import { updateDashboardBodySchema } from "@/lib/zod/schemas/dashboard";
 import {
   AnimatedSizeContainer,
@@ -25,6 +24,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import useSWR from "swr";
+import { z } from "zod";
 
 interface ShareDashboardModalProps {
   showModal: boolean;

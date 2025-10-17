@@ -1,5 +1,5 @@
-import z from "@/lib/zod";
 import { log } from "@dub/utils";
+import { z } from "zod";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
 
 const responseSchema = z.object({

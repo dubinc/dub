@@ -1,6 +1,5 @@
 import { z } from "zod";
 import {
-  firstPromoterCampaignSchema,
   firstPromoterCommissionSchema,
   firstPromoterCredentialsSchema,
   firstPromoterCustomerSchema,
@@ -15,8 +14,6 @@ export type FirstPromoterCredentials = z.infer<
 export type FirstPromoterImportPayload = z.infer<
   typeof firstPromoterImportPayloadSchema
 >;
-
-export type FirstPromoterCampaign = z.infer<typeof firstPromoterCampaignSchema>;
 
 export type FirstPromoterPartner = z.infer<typeof firstPromoterPartnerSchema>;
 

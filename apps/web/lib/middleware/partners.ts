@@ -16,7 +16,7 @@ const AUTHENTICATED_PATHS = [
   "/invite",
 ];
 
-export default async function PartnersMiddleware(req: NextRequest) {
+export async function PartnersMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsObj, searchParamsString } = parse(req);
 
   const user = await getUserViaToken(req);
