@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import {
   RewardfulAffiliate,
-  RewardfulAffiliateCoupon,
+  RewardfulCoupon,
   RewardfulCampaign,
   RewardfulCommission,
   RewardfulReferral,
@@ -100,7 +100,7 @@ export class RewardfulApi {
     searchParams.append("page", page.toString());
     searchParams.append("limit", PAGE_LIMIT.toString());
 
-    const { data } = await this.fetch<{ data: RewardfulAffiliateCoupon[] }>(
+    const { data } = await this.fetch<{ data: RewardfulCoupon[] }>(
       `${this.baseUrl}/affiliate_coupons?${searchParams.toString()}`,
     );
 

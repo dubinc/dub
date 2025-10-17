@@ -105,14 +105,21 @@ export async function importPartners(payload: RewardfulImportPayload) {
         }),
       );
 
-      await redis.hset(
-        `rewardful:affiliates:${program.id}`,
-        Object.fromEntries(
-          partners
-            .filter((p): p is NonNullable<typeof p> => p !== undefined)
-            .map((p) => [p.rewardfulAffiliateId, p.dubPartnerId]),
-        ),
+      const filteredPartners = partners.filter(
+        (p): p is NonNullable<typeof p> => p !== undefined,
       );
+
+      if (filteredPartners.length > 0) {
+        await redis.hset(
+          `rewardful:affiliates:${program.id}`,
+          Object.fromEntries(
+            filteredPartners.map((p) => [
+              p.rewardfulAffiliateId,
+              p.dubPartnerId,
+            ]),
+          ),
+        );
+      }
     }
 
     if (notImportedAffiliates.length > 0) {
