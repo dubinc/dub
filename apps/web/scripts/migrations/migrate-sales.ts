@@ -4,22 +4,44 @@ import { EventType } from "@dub/prisma/client";
 import "dotenv-flow/config";
 
 async function main() {
-  const program = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: "prog_1K2J9DRWPPJ2F1RX53N92TSGA",
+  // @ts-ignore (old sales table)
+  const sales = await prisma.sale.findMany({
+    select: {
+      id: true,
+      programId: true,
+      partnerId: true,
+      linkId: true,
+      payoutId: true,
+      invoiceId: true,
+      customerId: true,
+      eventId: true,
+      amount: true,
+      earnings: true,
+      currency: true,
+      status: true,
+      createdAt: true,
+      updatedAt: true,
     },
+    take: 1000,
+    skip: 2500,
   });
 
-  const link = await prisma.link.findUnique({
-    where: {
-      domain_key: {
-        domain: program.domain!,
-        key: "BESTPIC",
-      },
-    },
+  if (!sales.length) {
+    console.log("No sales found.");
+    return;
+  }
+
+  await prisma.commission.createMany({
+    data: sales.map((sale) => ({
+      ...sale,
+      id: createId({ prefix: "cm_" }),
+      type: EventType.sale,
+      quantity: 1,
+    })),
+    skipDuplicates: true,
   });
 
-  console.log(link)
+  console.log(`Migrated ${sales.length} sales.`);
 }
 
 main();
