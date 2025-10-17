@@ -454,7 +454,7 @@ function ABTestingEdit({
             <InfoTooltip
               content={
                 <SimpleTooltipContent
-                  title="Schedule when the A/B test should complete. After this date, all traffic will go to the highest converting URL."
+                  title="Schedule when the A/B test should complete. After this date, all traffic will go to the best performing URL."
                   cta="Learn more."
                   href="https://dub.co/help/article/ab-testing#completion-date-has-passed"
                 />

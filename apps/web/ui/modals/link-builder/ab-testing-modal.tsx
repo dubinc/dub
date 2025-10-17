@@ -284,7 +284,7 @@ function ABTestingModal({
                 <SimpleTooltipContent
                   title="Add up to 3 additional destination URLs to test for this short link."
                   cta="Learn more"
-                  href="https://dub.co/help/article/ab-testing" // TODO: Add article
+                  href="https://dub.co/help/article/ab-testing"
                 />
               }
             />
@@ -411,9 +411,9 @@ function ABTestingModal({
             <InfoTooltip
               content={
                 <SimpleTooltipContent
-                  title="Set when the A/B test should complete. After this date, all traffic will go to the highest converting URL."
+                  title="Set when the A/B test should complete. After this date, all traffic will go to the best performing URL."
                   cta="Learn more."
-                  href="https://dub.co/help/article/ab-testing"
+                  href="https://dub.co/help/article/ab-testing#completion-date-has-passed"
                 />
               }
             />
