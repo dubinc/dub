@@ -36,13 +36,13 @@ export async function getPartners(filters: PartnerFilters) {
 
   const partners = await prisma.programEnrollment.findMany({
     where: {
+      tenantId,
       programId,
       ...(partnerIds && {
         partnerId: {
           in: partnerIds,
         },
       }),
-      tenantId,
       status,
       groupId,
       ...(country || search || email

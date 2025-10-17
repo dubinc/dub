@@ -81,7 +81,9 @@ function ConfirmModal({
           className="h-8 w-fit px-3"
           text={confirmText}
           loading={isLoading}
-          shortcut={confirmShortcut?.toUpperCase()}
+          shortcut={
+            confirmShortcut === "Enter" ? "↵" : confirmShortcut?.toUpperCase()
+          }
           onClick={handleConfirm}
         />
       </div>

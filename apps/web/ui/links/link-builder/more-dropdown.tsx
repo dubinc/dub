@@ -20,7 +20,7 @@ export function MoreDropdown({
 }: {
   variant?: "page" | "modal";
 }) {
-  const { domains, flags, defaultProgramId } = useWorkspace();
+  const { domains, defaultProgramId } = useWorkspace();
   const { isMobile } = useMediaQuery();
   const [openPopover, setOpenPopover] = useState(false);
   const { watch, setValue } = useFormContext<LinkFormData>();
@@ -30,7 +30,6 @@ export function MoreDropdown({
   const options = useMemo(() => {
     return [...(isMobile ? MOBILE_MORE_ITEMS : []), ...MORE_ITEMS].filter(
       (option) => {
-        if (option.key === "testVariants") return flags?.abTesting;
         if (option.key === "partnerId") return Boolean(defaultProgramId);
         if (option.key === "linkRetentionCleanupDisabledAt")
           return (
@@ -42,7 +41,7 @@ export function MoreDropdown({
         return true;
       },
     );
-  }, [data, isMobile, domains, flags, defaultProgramId, variant]);
+  }, [data, isMobile, domains, defaultProgramId, variant]);
 
   const { ABTestingModal, setShowABTestingModal } = useABTestingModal();
   const { PasswordModal, setShowPasswordModal } = usePasswordModal();

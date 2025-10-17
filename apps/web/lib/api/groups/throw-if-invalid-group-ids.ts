@@ -7,7 +7,7 @@ export async function throwIfInvalidGroupIds({
   groupIds,
 }: {
   programId: string;
-  groupIds: string[] | null;
+  groupIds: string[] | null | undefined;
 }) {
   let partnerGroups: PartnerGroup[] = [];
 

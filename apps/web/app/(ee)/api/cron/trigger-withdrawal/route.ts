@@ -2,7 +2,8 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import { NextResponse } from "next/server";
+import { currencyFormatter } from "@dub/utils";
+import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -61,9 +62,9 @@ export async function GET(req: Request) {
     const balanceToWithdraw = currentNetBalance - reservedBalance;
 
     if (balanceToWithdraw <= 10000) {
-      return NextResponse.json({
-        message: "Balance to withdraw is less than $100, skipping...",
-      });
+      return logAndRespond(
+        "Balance to withdraw is less than $100, skipping...",
+      );
     }
 
     const createdPayout = await stripe.payouts.create({
@@ -71,14 +72,9 @@ export async function GET(req: Request) {
       currency: "usd",
     });
 
-    return NextResponse.json({
-      currentAvailableBalance,
-      currentPendingBalance,
-      currentNetBalance,
-      reservedBalance,
-      balanceToWithdraw,
-      createdPayout,
-    });
+    return logAndRespond(
+      `Created payout: ${createdPayout.id} (${currencyFormatter(createdPayout.amount / 100, { currency: createdPayout.currency })})`,
+    );
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }
