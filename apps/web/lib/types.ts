@@ -203,7 +203,6 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures =
   | "noDubLink"
-  | "abTesting"
   | "analyticsSettingsSiteVisitTracking"
   | "emailCampaigns";
 
