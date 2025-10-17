@@ -176,7 +176,7 @@ export function MessagesPanel({
                         {/* Message box */}
                         <div
                           className={cn(
-                            "w-full max-w-lg whitespace-pre-wrap break-words rounded-xl px-4 py-2.5 text-sm",
+                            "max-w-[min(100%,512px)] whitespace-pre-wrap break-words rounded-xl px-4 py-2.5 text-sm",
                             isMySide
                               ? "text-content-inverted rounded-br bg-neutral-700"
                               : "text-content-default rounded-bl bg-neutral-100",
@@ -405,7 +405,7 @@ function CampaignMessage({
 
         <div
           className={cn(
-            "w-full max-w-lg rounded-xl text-sm",
+            "max-w-[min(100%,512px)] rounded-xl text-sm",
             isMySide
               ? "text-content-inverted rounded-br bg-neutral-700"
               : "text-content-default rounded-bl bg-neutral-100",
