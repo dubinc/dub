@@ -113,7 +113,6 @@ import {
 } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
-  saleEventSchemaTB,
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
@@ -560,8 +559,6 @@ export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
-
-export type SaleEventTB = z.infer<typeof saleEventSchemaTB>;
 
 export type GroupProps = z.infer<typeof GroupSchema>;
 
