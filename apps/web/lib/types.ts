@@ -102,7 +102,6 @@ import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
   PartnerCommentSchema,
-  PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
   ProgramInviteSchema,
   ProgramMetricsSchema,
@@ -118,7 +117,6 @@ import {
 } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
-  saleEventSchemaTB,
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
@@ -492,10 +490,6 @@ export type ProgramApplicationFormFieldWithValues = z.infer<
 
 export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
 
-export type PartnerProgramInviteProps = z.infer<
-  typeof PartnerProgramInviteSchema
->;
-
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
 export type PayoutsCount = {
@@ -581,8 +575,6 @@ export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
-
-export type SaleEventTB = z.infer<typeof saleEventSchemaTB>;
 
 export type GroupProps = z.infer<typeof GroupSchema>;
 
