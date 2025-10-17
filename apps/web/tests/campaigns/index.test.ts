@@ -1,7 +1,7 @@
 import { Campaign, CampaignList } from "@/lib/types";
 import { updateCampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { E2E_PARTNER_GROUP } from "tests/utils/resource";
-import { describe, expect, test } from "vitest";
+import { describe, expect, onTestFinished, test } from "vitest";
 import { z } from "zod";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -134,6 +134,30 @@ describe.sequential("/campaigns/**", async () => {
       ...expectedCampaign,
       id: campaignId,
       status: "active",
+    });
+  });
+
+  test("POST /campaigns/[campaignId]/duplicate - duplicate campaign", async () => {
+    const { status, data } = await http.post<{ id: string }>({
+      path: `/campaigns/${campaignId}/duplicate`,
+    });
+
+    expect(status).toEqual(200);
+    expect(data.id).toBeDefined();
+
+    onTestFinished(async () => {
+      await h.deleteCampaign(data.id);
+    });
+
+    const { data: duplicatedCampaign } = await http.get<Campaign>({
+      path: `/campaigns/${data.id}`,
+    });
+
+    expect(duplicatedCampaign).toStrictEqual({
+      ...expectedCampaign,
+      id: data.id,
+      name: `${expectedCampaign.name} (copy)`,
+      status: "draft",
     });
   });
 
