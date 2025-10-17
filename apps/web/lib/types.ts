@@ -74,16 +74,11 @@ import {
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
-  PayoutSchema,
 } from "./zod/schemas/payouts";
 import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
-  PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
-  ProgramInviteSchema,
-  ProgramMetricsSchema,
-  ProgramPartnerLinkSchema,
   ProgramSchema,
   ProgramWithLanderDataSchema,
 } from "./zod/schemas/programs";
@@ -423,8 +418,6 @@ export type CustomerProps = z.infer<typeof CustomerSchema>;
 
 export type PartnerProps = z.infer<typeof PartnerSchema>;
 
-export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
-
 export type PartnerProfileCustomerProps = z.infer<
   typeof PartnerProfileCustomerSchema
 >;
@@ -443,12 +436,6 @@ export type ProgramWithLanderDataProps = z.infer<
   typeof ProgramWithLanderDataSchema
 >;
 
-export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
-
-export type PartnerProgramInviteProps = z.infer<
-  typeof PartnerProgramInviteSchema
->;
-
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
 export type PartnerProgramEnrollmentProps = z.infer<
@@ -460,8 +447,6 @@ export type PayoutsCount = {
   count: number;
   amount: number;
 };
-
-export type PayoutProps = z.infer<typeof PayoutSchema>;
 
 export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
@@ -506,11 +491,6 @@ export type RewardProps = z.infer<typeof RewardSchema>;
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
 export type ProgramData = z.infer<typeof programDataSchema>;
-
-export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
-
-export type PayoutMethod = "stripe" | "paypal";
-
 export type PaymentMethodOption = {
   currency?: string;
   mandate_options?: {
@@ -518,7 +498,6 @@ export type PaymentMethodOption = {
     transaction_type?: string;
   };
 };
-
 export interface FolderLinkCount {
   folderId: string;
   _count: number;
