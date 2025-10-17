@@ -1,7 +1,7 @@
 import type { PartnerRole } from "@prisma/client";
 import { DubApiError } from "../api/errors";
 
-type Permission = (typeof PERMISSIONS)[number];
+export type Permission = (typeof PERMISSIONS)[number];
 
 const PERMISSIONS = [
   "users.update",

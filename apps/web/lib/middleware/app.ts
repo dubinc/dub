@@ -1,15 +1,15 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
-import EmbedMiddleware from "./embed";
-import NewLinkMiddleware from "./new-link";
+import { EmbedMiddleware } from "./embed";
+import { NewLinkMiddleware } from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getOnboardingStep } from "./utils/get-onboarding-step";
 import { getUserViaToken } from "./utils/get-user-via-token";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
-import WorkspacesMiddleware from "./workspaces";
+import { WorkspacesMiddleware } from "./workspaces";
 
-export default async function AppMiddleware(req: NextRequest) {
+export async function AppMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsString } = parse(req);
 
   if (path.startsWith("/embed")) {
