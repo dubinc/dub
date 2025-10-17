@@ -76,10 +76,18 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
           continue;
         }
 
+        const activeCoupons = affiliateCoupons.filter(
+          (coupon) => !coupon.archived,
+        );
+
+        if (activeCoupons.length === 0) {
+          continue;
+        }
+
         linksToCreate.push(
-          ...coupons.map((coupon) => ({
+          ...activeCoupons.map((coupon) => ({
             domain: program.domain,
-            key: coupon.token.toLowerCase(),
+            key: coupon.token,
             url: program.url,
             trackConversion: true,
             programId,
