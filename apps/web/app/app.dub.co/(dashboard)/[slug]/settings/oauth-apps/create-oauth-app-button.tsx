@@ -11,7 +11,7 @@ export default function CreateOAuthAppButton() {
   const { slug, role } = useWorkspace();
 
   const { error: permissionsError } = clientAccessCheck({
-    action: "webhooks.write",
+    action: "oauth_apps.write",
     role: role,
   });
 
