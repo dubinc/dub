@@ -106,4 +106,13 @@ export class IntegrationHarness {
       path: `/bounties/${id}`,
     });
   }
+
+  // Delete campaign
+  public async deleteCampaign(id: string) {
+    if (!id) return;
+
+    await this.http.delete({
+      path: `/campaigns/${id}`,
+    });
+  }
 }

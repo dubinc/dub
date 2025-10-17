@@ -91,7 +91,6 @@ import {
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
-  PayoutSchema,
 } from "./zod/schemas/payouts";
 import {
   programApplicationFormDataWithValuesSchema,
@@ -102,11 +101,7 @@ import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
   PartnerCommentSchema,
-  PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
-  ProgramInviteSchema,
-  ProgramMetricsSchema,
-  ProgramPartnerLinkSchema,
   ProgramSchema,
 } from "./zod/schemas/programs";
 import {
@@ -118,7 +113,6 @@ import {
 } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
-  saleEventSchemaTB,
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
@@ -450,8 +444,6 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
 
 export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
 
-export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
-
 export type PartnerProfileCustomerProps = z.infer<
   typeof PartnerProfileCustomerSchema
 >;
@@ -490,12 +482,6 @@ export type ProgramApplicationFormFieldWithValues = z.infer<
   typeof programApplicationFormFieldWithValuesSchema
 >;
 
-export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
-
-export type PartnerProgramInviteProps = z.infer<
-  typeof PartnerProgramInviteSchema
->;
-
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
 export type PayoutsCount = {
@@ -503,8 +489,6 @@ export type PayoutsCount = {
   count: number;
   amount: number;
 };
-
-export type PayoutProps = z.infer<typeof PayoutSchema>;
 
 export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
@@ -552,11 +536,6 @@ export type RewardProps = z.infer<typeof RewardSchema>;
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
 export type ProgramData = z.infer<typeof programDataSchema>;
-
-export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
-
-export type PayoutMethod = "stripe" | "paypal";
-
 export type PaymentMethodOption = {
   currency?: string;
   mandate_options?: {
@@ -564,7 +543,6 @@ export type PaymentMethodOption = {
     transaction_type?: string;
   };
 };
-
 export interface FolderLinkCount {
   folderId: string;
   _count: number;
@@ -581,8 +559,6 @@ export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
-
-export type SaleEventTB = z.infer<typeof saleEventSchemaTB>;
 
 export type GroupProps = z.infer<typeof GroupSchema>;
 
