@@ -61,7 +61,7 @@ const updateRoleSchema = z.object({
 
 // PATCH /api/partner-profile/users - update a user's role
 export const PATCH = withPartnerProfile(
-  async ({ req, partner, partnerUser, session }) => {
+  async ({ req, partner, session }) => {
     const { userId, role } = updateRoleSchema.parse(
       await parseRequestBody(req),
     );
@@ -72,11 +72,6 @@ export const PATCH = withPartnerProfile(
         message: "You cannot change your own role.",
       });
     }
-
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "users.update",
-    });
 
     // Wrap read and mutation in a transaction to prevent TOCTOU race conditions
     const response = await prisma.$transaction(async (tx) => {
@@ -131,6 +126,9 @@ export const PATCH = withPartnerProfile(
     });
 
     return NextResponse.json(response);
+  },
+  {
+    requiredPermission: "users.update",
   },
 );
 
