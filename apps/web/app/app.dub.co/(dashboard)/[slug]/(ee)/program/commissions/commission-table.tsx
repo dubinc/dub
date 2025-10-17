@@ -18,6 +18,7 @@ import {
   Filter,
   StatusBadge,
   Table,
+  TimestampTooltip,
   Tooltip,
   usePagination,
   useRouterStuff,
@@ -28,7 +29,6 @@ import {
   cn,
   currencyFormatter,
   fetcher,
-  formatDateTime,
   formatDateTimeSmart,
   nFormatter,
 } from "@dub/utils";
@@ -90,9 +90,15 @@ const CommissionTableInner = memo(
           id: "createdAt",
           header: "Date",
           cell: ({ row }) => (
-            <p title={formatDateTime(row.original.createdAt)}>
-              {formatDateTimeSmart(row.original.createdAt)}
-            </p>
+            <TimestampTooltip
+              timestamp={row.original.createdAt}
+              side="right"
+              rows={["local", "utc", "unix"]}
+              delayDuration={150}
+              interactive
+            >
+              <p>{formatDateTimeSmart(row.original.createdAt)}</p>
+            </TimestampTooltip>
           ),
         },
         {

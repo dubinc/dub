@@ -28,6 +28,7 @@ import {
   Popover,
   StatusBadge,
   Table,
+  TimestampTooltip,
   useColumnVisibility,
   usePagination,
   useRouterStuff,
@@ -191,7 +192,18 @@ export function PartnersTable() {
         {
           id: "createdAt",
           header: "Enrolled",
-          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+          cell: ({ row }) => (
+            <TimestampTooltip
+              timestamp={row.original.createdAt}
+              side="right"
+              rows={["local"]}
+              delayDuration={150}
+            >
+              <span>
+                {formatDate(row.original.createdAt, { month: "short" })}
+              </span>
+            </TimestampTooltip>
+          ),
         },
         {
           id: "status",

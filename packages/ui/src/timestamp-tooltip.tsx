@@ -1,60 +1,43 @@
 "use client";
 
-import { cn, timeAgo } from "@dub/utils";
-import { Tooltip } from "./tooltip";
+import { cn } from "@dub/utils";
+import { formatDuration, intervalToDuration } from "date-fns";
+import { useMemo } from "react";
+import { toast } from "sonner";
+import { Tooltip, TooltipProps } from "./tooltip";
 
-type TimestampInput = Date | string | number;
+const DAY_MS = 24 * 60 * 60 * 1000;
+const MONTH_MS = 30 * DAY_MS;
 
-export interface TimestampTooltipProps {
-  timestamp: TimestampInput;
-  /**
-   * If true, the inline display will only render the time (HH:mm:ss).
-   * Useful for compact layouts on mobile.
-   */
-  timeOnly?: boolean;
-  side?: "top" | "bottom" | "left" | "right";
+export type TimestampTooltipProps = {
+  timestamp: Date | string | number | null | undefined;
+  rows?: ("local" | "utc" | "unix")[];
+  interactive?: boolean;
   className?: string;
-}
+} & Omit<TooltipProps, "content">;
 
 function getLocalTimeZone(): string {
   if (typeof Intl !== "undefined") {
     try {
       return Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
-    } catch (e) {
-      return "Local";
-    }
+    } catch (e) {}
   }
   return "Local";
 }
 
-function formatDisplay(date: Date, timeOnly?: boolean) {
-  const time = date.toLocaleTimeString("en-US", {
-    hour12: false,
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-  if (timeOnly) return time;
-
-  // Month (short, uppercase) + 2-digit day
-  const datePart = date
-    .toLocaleDateString("en-US", { month: "short", day: "2-digit" })
-    .toUpperCase();
-  return `${datePart} ${time}`;
-}
-
 export function TimestampTooltip({
   timestamp,
-  timeOnly,
+  children,
+  rows = ["local", "utc"],
+  interactive = false,
   className,
-  side = "top",
   ...tooltipProps
 }: TimestampTooltipProps) {
+  if (!timestamp) return children;
+
   const date = new Date(timestamp);
 
-  const tz = getLocalTimeZone();
-
-  const inlineText = formatDisplay(date, timeOnly);
+  if (date.toString() === "Invalid Date") return children;
 
   const commonFormat: Intl.DateTimeFormatOptions = {
     year: "numeric",
@@ -66,48 +49,124 @@ export function TimestampTooltip({
     hour12: true,
   };
 
-  const localText = date.toLocaleString("en-US", commonFormat);
-
-  const utcText = new Date(date.getTime()).toLocaleString("en-US", {
-    ...commonFormat,
-    timeZone: "UTC",
+  const diff = new Date().getTime() - date.getTime();
+  const relativeDuration = intervalToDuration({
+    start: date,
+    end: new Date(),
   });
+  const relative =
+    formatDuration(relativeDuration, {
+      delimiter: ", ",
+      format: [
+        "years",
+        "months",
+        "days",
+        ...(diff < MONTH_MS
+          ? [
+              "hours" as const,
+              ...(diff < DAY_MS
+                ? ["minutes" as const, "seconds" as const]
+                : []),
+            ]
+          : []),
+      ],
+    }) + " ago";
 
-  const unixMs = date.getTime().toString();
-  const relative = timeAgo(date, { withAgo: true });
+  const items: {
+    label: string;
+    shortLabel?: string;
+    value: string;
+    valueMono?: boolean;
+  }[] = useMemo(
+    () =>
+      rows.map(
+        (key) =>
+          ({
+            local: {
+              label: getLocalTimeZone(),
+              shortLabel: new Date()
+                .toLocaleTimeString("en-US", { timeZoneName: "short" })
+                .split(" ")[2],
+              value: date.toLocaleString("en-US", commonFormat),
+            },
 
-  const rows: { label: string; value: string }[] = [
-    { label: tz, value: localText },
-    { label: "UTC", value: utcText },
-    { label: "UNIX Timestamp", value: unixMs },
-    { label: "Relative", value: relative },
-  ];
+            utc: {
+              label: "UTC",
+              shortLabel: "UTC",
+              value: new Date(date.getTime()).toLocaleString("en-US", {
+                ...commonFormat,
+                timeZone: "UTC",
+              }),
+            },
+
+            unix: {
+              label: "UNIX Timestamp",
+              value: date.getTime().toString(),
+              valueMono: true,
+            },
+          })[key]!,
+      ),
+    [rows, date],
+  );
+
+  const shortLabels = items.every(({ shortLabel }) => shortLabel);
 
   return (
     <Tooltip
-      side={side}
       content={
-        <div className="grid w-[360px] gap-2.5 px-4 py-3 text-left text-sm text-neutral-700">
-          {rows.map((row, idx) => (
-            <div
-              key={idx}
-              className="grid grid-cols-[auto,1fr] items-baseline gap-x-4"
-            >
-              <span className="max-w-[170px] truncate text-xs text-neutral-400">
-                {row.label}
-              </span>
-              <span className="whitespace-nowrap font-mono text-neutral-800">
-                {row.value}
-              </span>
-            </div>
-          ))}
+        <div className="flex max-w-[360px] flex-col gap-2 px-2.5 py-2 text-left text-xs">
+          <span className="text-content-subtle cursor-default">{relative}</span>
+          <table>
+            {items.map((row, idx) => (
+              <tr
+                key={idx}
+                className={cn(
+                  interactive &&
+                    "before:bg-bg-emphasis relative select-none before:absolute before:-inset-x-1 before:inset-y-0 before:rounded before:opacity-0 before:content-[''] hover:cursor-pointer hover:before:opacity-60 active:before:opacity-100",
+                )}
+                onClick={
+                  interactive
+                    ? () => {
+                        try {
+                          navigator.clipboard.writeText(row.value);
+                          toast.success("Copied to clipboard");
+                        } catch (e) {
+                          toast.error("Failed to copy to clipboard");
+                          console.error("Failed to copy to clipboard", e);
+                        }
+                      }
+                    : undefined
+                }
+              >
+                <td className="relative py-0.5">
+                  <span
+                    className={cn(
+                      "text-content-subtle truncate",
+                      shortLabels && "bg-bg-inverted/10 rounded px-1 font-mono",
+                    )}
+                    title={shortLabels ? row.label : undefined}
+                  >
+                    {shortLabels ? row.shortLabel : row.label}
+                  </span>
+                </td>
+                <td
+                  className={cn(
+                    "text-content-default relative whitespace-nowrap py-0.5 pl-3",
+                    shortLabels && "pl-2",
+                    row.valueMono && "font-mono",
+                  )}
+                >
+                  {row.value}
+                </td>
+              </tr>
+            ))}
+          </table>
         </div>
       }
+      disableHoverableContent={!interactive}
       {...tooltipProps}
     >
-      <span className={cn("inline-block", className)} suppressHydrationWarning>
-        {inlineText}
-      </span>
+      {children}
     </Tooltip>
   );
 }

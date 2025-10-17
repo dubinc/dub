@@ -1,5 +1,5 @@
 import { CustomerActivityResponse } from "@/lib/types";
-import { DynamicTooltipWrapper, LinkLogo } from "@dub/ui";
+import { DynamicTooltipWrapper, LinkLogo, TimestampTooltip } from "@dub/ui";
 import { CursorRays, MoneyBill2, UserCheck } from "@dub/ui/icons";
 import { formatDateTimeSmart, getApexDomain, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
@@ -136,9 +136,16 @@ export function CustomerActivityList({
             </div>
             <div className="flex min-w-0 flex-col gap-x-4 gap-y-1 whitespace-nowrap text-sm text-neutral-800 lg:grow lg:flex-row lg:justify-between">
               <div className="truncate">{content(event)}</div>
-              <span className="shrink-0 truncate text-sm text-neutral-500">
-                {formatDateTimeSmart(event.timestamp)}
-              </span>
+              <TimestampTooltip
+                timestamp={event.timestamp}
+                side="right"
+                rows={["local", "utc", "unix"]}
+                interactive
+              >
+                <span className="shrink-0 truncate text-sm text-neutral-500">
+                  {formatDateTimeSmart(event.timestamp)}
+                </span>
+              </TimestampTooltip>
             </div>
           </li>
         );

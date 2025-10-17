@@ -1,6 +1,6 @@
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { Tooltip } from "@dub/ui";
-import { formatDateTime, OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import { TimestampTooltip } from "@dub/ui";
+import { OG_AVATAR_URL, timeAgo } from "@dub/utils";
 import { CampaignEvent } from "./campaign-events";
 
 export const campaignEventsColumns = [
@@ -45,9 +45,11 @@ export const campaignEventsColumns = [
       const timestamp = getTimestamp(row.original);
 
       return (
-        <Tooltip
-          content={timestamp ? formatDateTime(timestamp) : "-"}
+        <TimestampTooltip
+          timestamp={timestamp}
           side="top"
+          rows={["local", "utc", "unix"]}
+          interactive
         >
           <div
             className="text-content-subtle flex h-8 shrink-0 items-center justify-end text-xs font-medium"
@@ -55,7 +57,7 @@ export const campaignEventsColumns = [
           >
             {timeAgo(timestamp)}
           </div>
-        </Tooltip>
+        </TimestampTooltip>
       );
     },
   },
