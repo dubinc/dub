@@ -1,7 +1,7 @@
 import { withSession } from "@/lib/auth";
 import { plain, upsertPlainCustomer } from "@/lib/plain";
-import z from "@/lib/zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const supportRequestQuerySchema = z.object({
   message: z.string().min(1),

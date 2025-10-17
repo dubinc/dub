@@ -1,7 +1,7 @@
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { withWorkspace } from "@/lib/auth";
-import z from "@/lib/zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const schema = z.object({
   domain: z
