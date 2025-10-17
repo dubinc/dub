@@ -112,7 +112,20 @@ export const DestinationUrlInput = forwardRef<
               const url = getUrlFromString(e.target.value);
               if (url) {
                 // remove trailing slash and set the https:// prefix
-                formContext.setValue("url", url.replace(/\/$/, ""));
+                const normalizedUrl = url.replace(/\/$/, "");
+                formContext.setValue("url", normalizedUrl, {
+                  shouldDirty: true,
+                });
+
+                // If an A/B test exists, keep the first variant in sync
+                const testVariants = formContext.getValues("testVariants");
+                if (Array.isArray(testVariants) && testVariants.length > 0) {
+                  formContext.setValue(
+                    "testVariants.0.url" as any,
+                    normalizedUrl,
+                    { shouldDirty: true },
+                  );
+                }
               }
             }}
           />
