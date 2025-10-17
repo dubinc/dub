@@ -103,6 +103,10 @@ export async function processPayoutInvoiceFailure({
       if (paymentMethod?.card) {
         cardLast4 = paymentMethod.card.last4;
       }
+    } else {
+      console.log(
+        `Skipped charging failure fee for blocked direct debit charge on invoice ${invoice.id}.`,
+      );
     }
   }
 
