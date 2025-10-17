@@ -12,7 +12,7 @@ export default function PartnerDashboardLayout({
     <MainNav
       toolContent={
         <a
-          href="https://dub.co/help/category/partners"
+          href="https://dub.co/help/category/programs"
           target="_blank"
           className="text-content-default hover:bg-bg-inverted/5 flex size-11 shrink-0 items-center justify-center rounded-lg"
         >
