@@ -9,7 +9,6 @@ import {
   tb,
 } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { parseDateSchema } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
@@ -17,6 +16,7 @@ import { Prisma } from "@dub/prisma/client";
 import { linkConstructorSimple, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const schema = z.array(
   z.object({

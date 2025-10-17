@@ -1,4 +1,4 @@
-import z from "@/lib/zod";
+import { z } from "zod";
 import { DubApiError } from "../api/errors";
 import { DomainStatusSchema } from "../zod/schemas/domains";
 import { DYNADOT_API_KEY, DYNADOT_BASE_URL } from "./constants";
@@ -47,8 +47,6 @@ export const searchDomainsAvailability = async ({
   }
 
   const data = schema.parse(await response.json());
-
-  console.log(JSON.stringify(data, null, 2));
 
   if (data.SearchResponse.ResponseCode === "-1") {
     throw new DubApiError({

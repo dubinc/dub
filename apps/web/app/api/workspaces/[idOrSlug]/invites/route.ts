@@ -2,7 +2,6 @@ import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
 import { withWorkspace } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
-import z from "@/lib/zod";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import {
   getWorkspaceUsersQuerySchema,
@@ -11,6 +10,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { PartnerRole } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/workspaces/[idOrSlug]/invites – get invites for a specific workspace
 export const GET = withWorkspace(
