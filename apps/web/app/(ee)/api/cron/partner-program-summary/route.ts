@@ -331,6 +331,9 @@ async function handler(req: Request) {
             },
           }),
           variant: "notifications",
+          headers: {
+            "Idempotency-Key": `${program.id}-${partner.id}`,
+          },
         })),
       );
     }
