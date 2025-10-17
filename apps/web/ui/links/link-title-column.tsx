@@ -381,7 +381,11 @@ const Details = memo(
             displayProperties.includes("createdAt") && "sm:block",
           )}
         >
-          <TimestampTooltip timestamp={createdAt} delayDuration={150}>
+          <TimestampTooltip
+            timestamp={createdAt}
+            rows={["local"]}
+            delayDuration={150}
+          >
             <span className="text-neutral-400">{timeAgo(createdAt)}</span>
           </TimestampTooltip>
         </div>

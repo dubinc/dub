@@ -25,7 +25,17 @@ function getLocalTimeZone(): string {
   return "Local";
 }
 
-export function TimestampTooltip({
+export function TimestampTooltip(props: TimestampTooltipProps) {
+  if (
+    !props.timestamp ||
+    new Date(props.timestamp).toString() === "Invalid Date"
+  )
+    return props.children;
+
+  return <TimestampTooltipContent {...props} />;
+}
+
+function TimestampTooltipContent({
   timestamp,
   children,
   rows = ["local", "utc"],
@@ -33,11 +43,10 @@ export function TimestampTooltip({
   className,
   ...tooltipProps
 }: TimestampTooltipProps) {
-  if (!timestamp) return children;
+  if (!timestamp)
+    throw new Error("Falsy timestamp not permitted in TimestampTooltipContent");
 
   const date = new Date(timestamp);
-
-  if (date.toString() === "Invalid Date") return children;
 
   const commonFormat: Intl.DateTimeFormatOptions = {
     year: "numeric",
@@ -126,9 +135,9 @@ export function TimestampTooltip({
                 )}
                 onClick={
                   interactive
-                    ? () => {
+                    ? async () => {
                         try {
-                          navigator.clipboard.writeText(row.value);
+                          await navigator.clipboard.writeText(row.value);
                           toast.success("Copied to clipboard");
                         } catch (e) {
                           toast.error("Failed to copy to clipboard");
