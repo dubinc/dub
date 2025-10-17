@@ -84,5 +84,3 @@ const partnerEventsSchema = eventsQuerySchema
     sortBy: true,
   })
   .partial();
-
-export type PartnerEventsFilters = z.infer<typeof partnerEventsSchema>;

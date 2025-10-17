@@ -2,13 +2,13 @@
 
 import { consolidateScopes, getScopesForRole } from "@/lib/api/tokens/scopes";
 import useWorkspaces from "@/lib/swr/use-workspaces";
-import z from "@/lib/zod";
 import { authorizeRequestSchema } from "@/lib/zod/schemas/oauth";
 import { WorkspaceSelector } from "@/ui/workspaces/workspace-selector";
 import { Button } from "@dub/ui";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 
 interface AuthorizeFormProps extends z.infer<typeof authorizeRequestSchema> {
   //

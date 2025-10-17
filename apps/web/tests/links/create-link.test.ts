@@ -1,9 +1,9 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import z from "@/lib/zod";
 import { FolderSchema } from "@/lib/zod/schemas/folders";
 import { Link, Tag } from "@dub/prisma/client";
 import { IntegrationHarnessOld } from "tests/utils/integration-old";
 import { describe, expect, onTestFinished, test } from "vitest";
+import { z } from "zod";
 import { randomId, randomTagName } from "../utils/helpers";
 import { IntegrationHarness } from "../utils/integration";
 import { E2E_LINK, E2E_WEBHOOK_ID } from "../utils/resource";

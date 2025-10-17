@@ -2,11 +2,11 @@ import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
-import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { STRIPE_INTEGRATION_ID } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const CORS_HEADERS = new Headers({
   "Access-Control-Allow-Origin": "*",

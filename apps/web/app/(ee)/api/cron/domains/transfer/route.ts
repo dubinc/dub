@@ -3,10 +3,10 @@ import { linkCache } from "@/lib/api/links/cache";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { recordLink } from "@/lib/tinybird";
-import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { sendDomainTransferredEmail } from "./utils";
 
 const schema = z.object({

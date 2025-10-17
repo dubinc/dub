@@ -4,10 +4,7 @@ import { UserProps } from "../types";
 import { parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
 
-export default async function NewLinkMiddleware(
-  req: NextRequest,
-  user: UserProps,
-) {
+export async function NewLinkMiddleware(req: NextRequest, user: UserProps) {
   const { fullPath } = parse(req);
 
   const defaultWorkspace = await getDefaultWorkspace(user);

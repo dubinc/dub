@@ -31,10 +31,6 @@ export type IntegrationGuide = {
   url: string;
 };
 
-export type IntegrationGuideWithMarkdown = IntegrationGuide & {
-  markdown: string | null;
-};
-
 export const sections: {
   type: IntegrationType;
   title: string;
