@@ -23,6 +23,7 @@ import {
   cn,
   formatDateTime,
   getDateTimeLocal,
+  getUrlFromString,
   isValidUrl,
   parseDateTime,
 } from "@dub/utils";
@@ -295,49 +296,67 @@ function ABTestingModal({
               className="-m-1"
             >
               <div className="flex flex-col gap-2 p-1">
-                {testVariants.map((_, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <label className="relative flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
-                      <span className="flex h-9 w-8 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
-                        {index + 1}
-                      </span>
-                      <input
-                        type="url"
-                        placeholder={
-                          domains?.find(({ slug }) => slug === domain)
-                            ?.placeholder ||
-                          "https://dub.co/help/article/what-is-dub"
-                        }
-                        className="block h-9 grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:ring-0 sm:text-sm"
-                        {...register(`testVariants.${index}.url`, {
-                          validate: (value, { testVariants }) => {
-                            if (!value) return "URL is required";
+                {testVariants.map((_, index) => {
+                  const field = register(`testVariants.${index}.url`, {
+                    validate: (value, { testVariants }) => {
+                      if (!value) return "URL is required";
 
-                            if (!isValidUrl(value)) return "Invalid URL";
+                      if (!isValidUrl(value)) return "Invalid URL";
 
-                            return (
-                              testVariants.length > 1 &&
-                              testVariants.length <= MAX_TEST_COUNT
-                            );
-                          },
-                        })}
-                      />
-                      {index > 0 && (
-                        <Button
-                          onClick={() => removeTestUrl(index)}
-                          variant="outline"
-                          className="mr-1 size-7 p-0"
-                          text={
-                            <>
-                              <span className="sr-only">Remove</span>
-                              <X className="size-4" />
-                            </>
+                      return (
+                        testVariants.length > 1 &&
+                        testVariants.length <= MAX_TEST_COUNT
+                      );
+                    },
+                  });
+
+                  return (
+                    <div key={index} className="flex items-center gap-2">
+                      <label className="relative flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
+                        <span className="flex h-9 w-8 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
+                          {index + 1}
+                        </span>
+                        <input
+                          type="url"
+                          placeholder={
+                            domains?.find(({ slug }) => slug === domain)
+                              ?.placeholder ||
+                            "https://dub.co/help/article/what-is-dub"
                           }
+                          className="block h-9 grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:ring-0 sm:text-sm"
+                          {...field}
+                          onBlur={(e) => {
+                            field.onBlur(e);
+                            const url = getUrlFromString(e.target.value);
+                            if (url) {
+                              const normalizedUrl = url.replace(/\/$/, "");
+                              setValue(
+                                `testVariants.${index}.url`,
+                                normalizedUrl,
+                                {
+                                  shouldDirty: true,
+                                },
+                              );
+                            }
+                          }}
                         />
-                      )}
-                    </label>
-                  </div>
-                ))}
+                        {index > 0 && (
+                          <Button
+                            onClick={() => removeTestUrl(index)}
+                            variant="outline"
+                            className="mr-1 size-7 p-0"
+                            text={
+                              <>
+                                <span className="sr-only">Remove</span>
+                                <X className="size-4" />
+                              </>
+                            }
+                          />
+                        )}
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
             </AnimatedSizeContainer>
 
@@ -366,7 +385,7 @@ function ABTestingModal({
               content={`Adjust the percentage of traffic to each URL. The minimum is ${MIN_TEST_PERCENTAGE}%`}
             />
           </div>
-          <div className="mt-4">
+          <div className="mt-2">
             <TrafficSplitSlider
               testVariants={testVariants}
               onChange={(percentages) => {
@@ -392,7 +411,7 @@ function ABTestingModal({
             <InfoTooltip
               content={
                 <SimpleTooltipContent
-                  title="Set when the A/B test should complete. After this date, all traffic will go to the best performing URL."
+                  title="Set when the A/B test should complete. After this date, all traffic will go to the highest converting URL."
                   cta="Learn more."
                   href="https://dub.co/help/article/ab-testing"
                 />
@@ -442,7 +461,17 @@ function ABTestingModal({
               className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
             />
           </div>
-          <p className="mt-1 text-xs text-neutral-500">6 weeks maximum</p>
+          <p
+            className={cn(
+              "mt-1 text-xs",
+              testCompletedAt &&
+                differenceInDays(testCompletedAt, new Date()) > 6 * 7
+                ? "text-red-700"
+                : "text-neutral-500",
+            )}
+          >
+            6 weeks maximum
+          </p>
         </div>
 
         {testVariantsParent && (
