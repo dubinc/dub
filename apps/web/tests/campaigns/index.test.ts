@@ -76,6 +76,19 @@ describe.sequential("/campaigns/**", async () => {
     });
   });
 
+  test("GET /campaigns/[campaignId] - make sure the draft campaign is created", async () => {
+    const { status, data: fetchedCampaign } = await http.get<Campaign>({
+      path: `/campaigns/${campaignId}`,
+    });
+
+    expect(status).toEqual(200);
+    expect(fetchedCampaign).toStrictEqual({
+      ...expectedCampaign,
+      id: campaignId,
+      status: "draft",
+    });
+  });
+
   test("PATCH /campaigns/[campaignId] - publish campaign", async () => {
     const { status, data: publishedCampaign } = await http.patch<Campaign>({
       path: `/campaigns/${campaignId}`,
