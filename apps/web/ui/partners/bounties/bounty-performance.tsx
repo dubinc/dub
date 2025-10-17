@@ -1,6 +1,6 @@
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PartnerBountyProps } from "@/lib/types";
-import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { currencyFormatter, nFormatter } from "@dub/utils";
 
 export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
@@ -26,7 +26,9 @@ export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
     : nFormatter(target, { full: true });
 
   const metricLabel =
-    WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute].toLowerCase();
+    PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[
+      performanceCondition.attribute
+    ].toLowerCase();
 
   return (
     <div className="flex flex-col gap-2">

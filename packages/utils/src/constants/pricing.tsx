@@ -213,7 +213,7 @@ export const PLANS = [
       },
       {
         id: "tests",
-        text: "A/B testing (beta)",
+        text: "A/B testing",
       },
       {
         id: "roles",

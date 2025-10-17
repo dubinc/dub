@@ -2,6 +2,7 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
@@ -70,19 +71,26 @@ export const invitePartnerAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        sendEmail({
-          subject: `${program.name} invited you to join Dub Partners`,
-          variant: "notifications",
-          to: email,
-          react: ProgramInvite({
-            email,
-            program: {
-              name: program.name,
-              slug: program.slug,
-              logo: program.logo,
-            },
-          }),
-        }),
+        (async () => {
+          await sendEmail({
+            subject: `${program.name} invited you to join Dub Partners`,
+            variant: "notifications",
+            to: email,
+            react: ProgramInvite({
+              email,
+              name: enrolledPartner.name,
+              program: {
+                name: program.name,
+                slug: program.slug,
+                logo: program.logo,
+              },
+              ...(await getPartnerInviteRewardsAndBounties({
+                programId,
+                groupId: enrolledPartner.groupId || program.defaultGroupId,
+              })),
+            }),
+          });
+        })(),
 
         recordAuditLog({
           workspaceId: workspace.id,

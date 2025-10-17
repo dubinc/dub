@@ -1,3 +1,5 @@
+import { EmailTemplateVariables } from "@/lib/types";
+
 /**
  * Renders an email template by replacing variable placeholders with actual values.
  *
@@ -11,28 +13,21 @@
  *
  * @example
  * ```
- * const template = "Hello {{partnerName|Guest}}, welcome to the program!"
- * const variables = { partnerName: "John" };
+ * const template = "Hello {{PartnerName|Guest}}, welcome to the program!"
+ * const variables = { PartnerName: "John" };
  * const result = renderEmailTemplate({ template, variables });
  * // Result: "Hello John, welcome to the program!"
  * ```
  */
 
-const EMAIL_TEMPLATE_VARIABLE_KEYS = ["partnerName", "partnerEmail"] as const;
-
-export function renderEmailTemplate({
-  template,
+export function interpolateEmailTemplate({
+  text,
   variables,
 }: {
-  template: string;
-  variables: Partial<
-    Record<
-      (typeof EMAIL_TEMPLATE_VARIABLE_KEYS)[number],
-      string | number | null | undefined
-    >
-  >;
+  text: string;
+  variables: Partial<EmailTemplateVariables>;
 }): string {
-  return template.replace(
+  return text.replace(
     /{{\s*([\w.]+)(?:\|([^}]+))?\s*}}/g,
     (_, key, fallback) => {
       const value = variables[key];

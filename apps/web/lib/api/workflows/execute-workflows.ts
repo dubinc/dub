@@ -12,6 +12,7 @@ import { WorkflowTrigger } from "@dub/prisma/client";
 import { executeCompleteBountyWorkflow } from "./execute-complete-bounty-workflow";
 import { executeSendCampaignWorkflow } from "./execute-send-campaign-workflow";
 import { parseWorkflowConfig } from "./parse-workflow-config";
+import { isScheduledWorkflow } from "./utils";
 
 export async function executeWorkflows({
   trigger,
@@ -27,6 +28,7 @@ export async function executeWorkflows({
     where: {
       programId,
       trigger,
+      disabledAt: null,
     },
   });
 
@@ -73,19 +75,25 @@ export async function executeWorkflows({
     const { action } = parseWorkflowConfig(workflow);
 
     switch (action.type) {
-      case WORKFLOW_ACTION_TYPES.AwardBounty:
+      case WORKFLOW_ACTION_TYPES.AwardBounty: {
         await executeCompleteBountyWorkflow({
           workflow,
           context: workflowContext,
         });
-        break;
 
-      case WORKFLOW_ACTION_TYPES.SendCampaign:
-        await executeSendCampaignWorkflow({
-          workflow,
-          context: workflowContext,
-        });
         break;
+      }
+
+      case WORKFLOW_ACTION_TYPES.SendCampaign: {
+        if (!isScheduledWorkflow(workflow)) {
+          await executeSendCampaignWorkflow({
+            workflow,
+            context: workflowContext,
+          });
+        }
+
+        break;
+      }
     }
   }
 }
@@ -113,7 +121,8 @@ export function evaluateWorkflowCondition({
   const attributeValue = attributes[condition.attribute];
 
   // If the attribute is not provided in context, return false
-  if (!attributeValue) {
+  if (attributeValue === undefined || attributeValue === null) {
+    console.error(`${condition.attribute} doesn't exist in the context.`);
     return false;
   }
 

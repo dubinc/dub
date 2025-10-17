@@ -7,36 +7,39 @@ import { WorkflowTrigger } from "@dub/prisma/client";
 import { z } from "zod";
 
 export const WORKFLOW_ATTRIBUTES = [
+  // "totalClicks",
   "totalLeads",
   "totalConversions",
   "totalSaleAmount",
   "totalCommissions",
   "partnerEnrolledDays",
+  "partnerJoined",
 ] as const;
 
-export const WORKFLOW_ATTRIBUTE_LABELS: Record<
-  WorkflowConditionAttribute,
-  string
-> = {
-  totalLeads: "Leads",
-  totalConversions: "Conversions",
-  totalSaleAmount: "Revenue",
-  totalCommissions: "Commissions",
-  partnerEnrolledDays: "been in the program for",
-} as const;
-
-export const WORKFLOW_ATTRIBUTE_TRIGGER_MAP: Record<
+export const WORKFLOW_ATTRIBUTE_TRIGGER: Record<
   WorkflowConditionAttribute,
   WorkflowTrigger
 > = {
+  // totalClicks: WorkflowTrigger.clickRecorded,
   totalLeads: WorkflowTrigger.leadRecorded,
   totalConversions: WorkflowTrigger.saleRecorded,
   totalSaleAmount: WorkflowTrigger.saleRecorded,
   totalCommissions: WorkflowTrigger.commissionEarned,
   partnerEnrolledDays: WorkflowTrigger.partnerEnrolled,
+  partnerJoined: WorkflowTrigger.partnerEnrolled,
 } as const;
 
 export const WORKFLOW_COMPARISON_OPERATORS = ["gte"] as const;
+
+export const SCHEDULED_WORKFLOW_TRIGGERS: WorkflowTrigger[] = [
+  // "clickRecorded",
+  "partnerEnrolled",
+];
+
+export const WORKFLOW_SCHEDULES: Partial<Record<WorkflowTrigger, string>> = {
+  // clickRecorded: "*/5 * * * *", // every 5 minutes
+  partnerEnrolled: "0 */12 * * *", // every 12 hours
+};
 
 export const OPERATOR_FUNCTIONS: Record<
   WorkflowComparisonOperator,
@@ -62,7 +65,7 @@ export const WORKFLOW_LOGICAL_OPERATORS = ["AND"] as const;
 // Individual condition
 export const workflowConditionSchema = z.object({
   attribute: z.enum(WORKFLOW_ATTRIBUTES),
-  operator: z.enum(WORKFLOW_COMPARISON_OPERATORS),
+  operator: z.enum(WORKFLOW_COMPARISON_OPERATORS).default("gte"),
   value: z.number(),
 });
 

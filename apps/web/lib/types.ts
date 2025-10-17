@@ -37,6 +37,13 @@ import {
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
 import {
+  CampaignListSchema,
+  CampaignSchema,
+  campaignSummarySchema,
+  EMAIL_TEMPLATE_VARIABLES,
+  updateCampaignSchema,
+} from "./zod/schemas/campaigns";
+import {
   clickEventResponseSchema,
   clickEventSchemaTB,
 } from "./zod/schemas/clicks";
@@ -196,8 +203,8 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures =
   | "noDubLink"
-  | "abTesting"
-  | "analyticsSettingsSiteVisitTracking";
+  | "analyticsSettingsSiteVisitTracking"
+  | "emailCampaigns";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -648,4 +655,33 @@ export type BountySubmissionsQueryFilters = z.infer<
 
 export type Message = z.infer<typeof MessageSchema>;
 
+export type CampaignList = z.infer<typeof CampaignListSchema>;
+
+export type Campaign = z.infer<typeof CampaignSchema>;
+
+export type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;
+
+export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
+
 export type StripeMode = "test" | "sandbox" | "live";
+
+export type EmailTemplateVariables = Record<
+  (typeof EMAIL_TEMPLATE_VARIABLES)[number],
+  string | null | undefined
+>;
+
+export interface TiptapNode {
+  type: string;
+  text?: string;
+  attrs?: Record<string, any>;
+  content?: TiptapNode[];
+  marks?: Array<{ type: string; attrs?: Record<string, any> }>;
+}
+
+export interface CampaignWorkflowAttributeConfig {
+  label: string;
+  inputType: "number" | "currency" | "dropdown" | "none";
+  dropdownValues?: number[];
+}
+
+export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
