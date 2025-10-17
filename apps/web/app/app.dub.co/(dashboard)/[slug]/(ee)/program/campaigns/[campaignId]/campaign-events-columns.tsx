@@ -24,12 +24,14 @@ export const campaignEventsColumns = [
           <div className="text-content-emphasis truncate text-xs font-semibold">
             {row.original.partner.name}
           </div>
-          <div className="flex items-center gap-1">
-            <GroupColorCircle group={row.original.group} />
-            <span className="text-content-subtle truncate text-xs font-medium">
-              {row.original.group?.name}
-            </span>
-          </div>
+          {row.original.group && (
+            <div className="flex items-center gap-1">
+              <GroupColorCircle group={row.original.group} />
+              <span className="text-content-subtle truncate text-xs font-medium">
+                {row.original.group?.name}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     ),

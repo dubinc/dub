@@ -161,5 +161,5 @@ export const campaignEventSchema = z.object({
     id: true,
     name: true,
     color: true,
-  }),
+  }).nullish(), // group can be null for partners that are banned/deactivated
 });
