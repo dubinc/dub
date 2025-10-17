@@ -38,10 +38,7 @@ import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
-export default async function LinkMiddleware(
-  req: NextRequest,
-  ev: NextFetchEvent,
-) {
+export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   let { domain, fullKey: originalKey } = parse(req);
 
   if (!domain) {
