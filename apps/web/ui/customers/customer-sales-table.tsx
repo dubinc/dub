@@ -42,7 +42,6 @@ export function CustomerSalesTable({
             timestamp={getValue()}
             side="right"
             rows={["local", "utc", "unix"]}
-            interactive
           >
             <span>{formatDateTimeSmart(getValue())}</span>
           </TimestampTooltip>

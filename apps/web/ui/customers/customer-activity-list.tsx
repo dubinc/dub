@@ -140,7 +140,6 @@ export function CustomerActivityList({
                 timestamp={event.timestamp}
                 side="right"
                 rows={["local", "utc", "unix"]}
-                interactive
               >
                 <span className="shrink-0 truncate text-sm text-neutral-500">
                   {formatDateTimeSmart(event.timestamp)}

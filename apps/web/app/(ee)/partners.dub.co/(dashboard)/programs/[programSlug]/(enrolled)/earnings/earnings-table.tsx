@@ -83,7 +83,6 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             timestamp={row.original.createdAt}
             side="right"
             rows={["local"]}
-            interactive
           >
             <span>{formatDateTimeSmart(row.original.createdAt)}</span>
           </TimestampTooltip>

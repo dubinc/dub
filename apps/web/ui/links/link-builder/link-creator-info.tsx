@@ -32,7 +32,6 @@ export function LinkCreatorInfo({ link }: { link: ExpandedLinkProps }) {
           timestamp={link.createdAt}
           rows={["local", "utc", "unix"]}
           delayDuration={150}
-          interactive
         >
           <span className="select-none">{timeAgo(link.createdAt)}</span>
         </TimestampTooltip>

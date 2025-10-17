@@ -189,7 +189,6 @@ export default function EventsTable({
               timestamp={getValue()}
               side="right"
               rows={["local", "utc", "unix"]}
-              interactive
             >
               <span className="select-none truncate">
                 {formatDateTimeSmart(getValue())}

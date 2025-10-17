@@ -49,7 +49,6 @@ export const campaignEventsColumns = [
           timestamp={timestamp}
           side="top"
           rows={["local", "utc", "unix"]}
-          interactive
         >
           <div
             className="text-content-subtle flex h-8 shrink-0 items-center justify-end text-xs font-medium"

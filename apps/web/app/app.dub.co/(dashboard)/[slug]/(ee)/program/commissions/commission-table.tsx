@@ -95,7 +95,6 @@ const CommissionTableInner = memo(
               side="right"
               rows={["local", "utc", "unix"]}
               delayDuration={150}
-              interactive
             >
               <p>{formatDateTimeSmart(row.original.createdAt)}</p>
             </TimestampTooltip>

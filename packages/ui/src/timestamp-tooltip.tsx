@@ -28,7 +28,7 @@ function getLocalTimeZone(): string {
 export function TimestampTooltip({
   timestamp,
   rows,
-  interactive,
+  interactive = true,
   ...tooltipProps
 }: TimestampTooltipProps) {
   if (!timestamp || new Date(timestamp).toString() === "Invalid Date")
@@ -52,7 +52,7 @@ export function TimestampTooltip({
 function TimestampTooltipContent({
   timestamp,
   rows = ["local", "utc"],
-  interactive = false,
+  interactive,
 }: Pick<TimestampTooltipProps, "timestamp" | "rows" | "interactive">) {
   if (!timestamp)
     throw new Error("Falsy timestamp not permitted in TimestampTooltipContent");
@@ -95,6 +95,7 @@ function TimestampTooltipContent({
   const items: {
     label: string;
     shortLabel?: string;
+    successMessageLabel: string;
     value: string;
     valueMono?: boolean;
   }[] = useMemo(
@@ -107,12 +108,14 @@ function TimestampTooltipContent({
               shortLabel: new Date()
                 .toLocaleTimeString("en-US", { timeZoneName: "short" })
                 .split(" ")[2],
+              successMessageLabel: "local timestamp",
               value: date.toLocaleString("en-US", commonFormat),
             },
 
             utc: {
               label: "UTC",
               shortLabel: "UTC",
+              successMessageLabel: "UTC timestamp",
               value: new Date(date.getTime()).toLocaleString("en-US", {
                 ...commonFormat,
                 timeZone: "UTC",
@@ -121,6 +124,7 @@ function TimestampTooltipContent({
 
             unix: {
               label: "UNIX Timestamp",
+              successMessageLabel: "UNIX timestamp",
               value: (date.getTime() / 1000).toString(),
               valueMono: true,
             },
@@ -149,17 +153,24 @@ function TimestampTooltipContent({
             key={idx}
             className={cn(
               interactive &&
-                "before:bg-bg-emphasis relative select-none before:absolute before:-inset-x-1 before:inset-y-0 before:rounded before:opacity-0 before:content-[''] hover:cursor-pointer hover:before:opacity-60 active:before:opacity-100",
+                "before:bg-bg-emphasis relative select-none before:absolute before:-inset-x-1 before:inset-y-0 before:rounded before:opacity-0 before:content-[''] hover:cursor-copy hover:before:opacity-60 active:before:opacity-100",
             )}
             onClick={
               interactive
                 ? async () => {
                     try {
                       await navigator.clipboard.writeText(row.value);
-                      toast.success("Copied to clipboard");
+                      toast.success(
+                        `Copied ${row.successMessageLabel} to clipboard`,
+                      );
                     } catch (e) {
-                      toast.error("Failed to copy to clipboard");
-                      console.error("Failed to copy to clipboard", e);
+                      toast.error(
+                        `Failed to copy ${row.successMessageLabel} to clipboard`,
+                      );
+                      console.error(
+                        `Failed to copy ${row.successMessageLabel} to clipboard`,
+                        e,
+                      );
                     }
                   }
                 : undefined
