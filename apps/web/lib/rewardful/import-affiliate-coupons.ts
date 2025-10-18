@@ -1,5 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { bulkCreateLinks } from "../api/links";
+import { ProcessedLinkProps } from "../types";
 import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
@@ -54,7 +55,12 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       ),
     );
 
-    const affiliateIdToCouponsMap = affiliateCoupons.reduce(
+    // Find the coupons that have a partner account created on Dub
+    const filteredCoupons = affiliateCoupons.filter(
+      (affiliateCoupon) => filteredPartners[affiliateCoupon.affiliate_id],
+    );
+
+    const affiliateIdToCouponsMap = filteredCoupons.reduce(
       (acc, coupon) => {
         if (!acc[coupon.affiliate_id]) {
           acc[coupon.affiliate_id] = [];
@@ -63,44 +69,42 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
         acc[coupon.affiliate_id].push(coupon);
         return acc;
       },
-      {} as Record<string, typeof affiliateCoupons>,
+
+      {} as Record<string, typeof filteredCoupons>,
     );
 
-    if (Object.keys(filteredPartners).length > 0) {
-      const linksToCreate: any[] = [];
+    const linksToCreate: Partial<ProcessedLinkProps>[] = [];
 
-      for (const [affiliateId, partnerId] of Object.entries(filteredPartners)) {
-        const coupons = affiliateIdToCouponsMap[affiliateId];
+    if (Object.keys(affiliateIdToCouponsMap).length > 0) {
+      for (const [affiliateId, coupons] of Object.entries(
+        affiliateIdToCouponsMap,
+      )) {
+        const partnerId = filteredPartners[affiliateId];
 
-        if (!coupons) {
-          continue;
-        }
-
-        const activeCoupons = affiliateCoupons.filter(
-          (coupon) => !coupon.archived,
-        );
-
-        if (activeCoupons.length === 0) {
+        if (!partnerId) {
           continue;
         }
 
         linksToCreate.push(
-          ...activeCoupons.map((coupon) => ({
-            domain: program.domain,
+          ...coupons.map((coupon) => ({
+            domain: program.domain!,
             key: coupon.token,
-            url: program.url,
+            url: program.url!,
             trackConversion: true,
             programId,
             partnerId,
             folderId: program.defaultFolderId,
             userId,
             projectId: program.workspaceId,
+            comments: `Link created for coupon ${coupon.token}`,
           })),
         );
       }
+    }
 
+    if (linksToCreate.length > 0) {
       await bulkCreateLinks({
-        links: linksToCreate,
+        links: linksToCreate as ProcessedLinkProps[],
       });
     }
 

@@ -205,25 +205,22 @@ async function createPartnerAndLinks({
     return;
   }
 
-  if (programEnrollment.links.length > 0) {
-    console.log("Partner already has links", partner.id);
-    return;
+  if (programEnrollment.links.length === 0) {
+    await bulkCreateLinks({
+      links: affiliate.links.map((link, idx) => ({
+        domain: program.domain!,
+        key: link.token || nanoid(),
+        url: program.url!,
+        trackConversion: true,
+        programId: program.id,
+        partnerId: partner.id,
+        folderId: program.defaultFolderId,
+        userId,
+        projectId: program.workspaceId,
+        partnerGroupDefaultLinkId: idx === 0 ? partnerGroupDefaultLinkId : null,
+      })),
+    });
   }
-
-  await bulkCreateLinks({
-    links: affiliate.links.map((link, idx) => ({
-      domain: program.domain!,
-      key: link.token || nanoid(),
-      url: program.url!,
-      trackConversion: true,
-      programId: program.id,
-      partnerId: partner.id,
-      folderId: program.defaultFolderId,
-      userId,
-      projectId: program.workspaceId,
-      partnerGroupDefaultLinkId: idx === 0 ? partnerGroupDefaultLinkId : null,
-    })),
-  });
 
   return {
     rewardfulAffiliateId: affiliate.id,
