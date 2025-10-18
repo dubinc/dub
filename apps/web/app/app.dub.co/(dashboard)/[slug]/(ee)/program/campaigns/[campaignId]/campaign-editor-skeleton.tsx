@@ -19,7 +19,8 @@ export function CampaignEditorSkeleton() {
       controls={
         <div className="flex items-center gap-2">
           <div className="h-9 w-20 animate-pulse rounded-md bg-neutral-200" />
-          <div className="h-8 w-8 animate-pulse rounded-md bg-neutral-200" />
+          <div className="size-9 animate-pulse rounded-md bg-neutral-200" />
+          <div className="size-9 animate-pulse rounded-md bg-neutral-200" />
         </div>
       }
     >

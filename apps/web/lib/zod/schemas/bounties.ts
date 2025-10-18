@@ -1,3 +1,4 @@
+import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/partners/constants";
 import {
   BountyPerformanceScope,
   BountySubmissionRejectionReason,
@@ -49,7 +50,10 @@ export const createBountySchema = z.object({
   description: z
     .string()
     .trim()
-    .max(500, "Description must be less than 500 characters")
+    .max(
+      BOUNTY_DESCRIPTION_MAX_LENGTH,
+      `Description must be less than ${BOUNTY_DESCRIPTION_MAX_LENGTH} characters`,
+    )
     .nullish(),
   type: z.nativeEnum(BountyType),
   startsAt: parseDateSchema.nullish(),

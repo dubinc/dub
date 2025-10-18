@@ -20,7 +20,7 @@ import {
 } from "@dub/ui";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { useDeleteCampaignModal } from "../delete-campaign-modal";
@@ -120,37 +120,36 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     confirmShortcut: "Enter",
   });
 
-  const [name, subject, groupIds, bodyJson, status, triggerCondition] =
-    useWatch({
-      control,
-      name: [
-        "name",
-        "subject",
-        "groupIds",
-        "bodyJson",
-        "status",
-        "triggerCondition",
-      ],
-    });
+  const [name, subject, groupIds, bodyJson, triggerCondition] = useWatch({
+    control,
+    name: ["name", "subject", "groupIds", "bodyJson", "triggerCondition"],
+  });
 
   // Form validation
-  const validationError = useMemo(() => {
-    if (!name) {
-      return "Please enter a campaign name.";
-    }
+  const validationError = useCallback(
+    ({ sendPreview = false }: { sendPreview?: boolean } = {}) => {
+      if (!name) {
+        return "Please enter a campaign name.";
+      }
 
-    if (!subject) {
-      return "Please enter a subject.";
-    }
+      if (!subject) {
+        return "Please enter a subject.";
+      }
 
-    if (groupIds === undefined) {
-      return "Please select the groups you want to send this campaign to.";
-    }
+      if (groupIds === undefined) {
+        return "Please select the groups you want to send this campaign to.";
+      }
 
-    if (!bodyJson?.content || !bodyJson.content.length) {
-      return "Please write the message you want to send to the partners.";
-    }
-  }, [name, subject, groupIds, bodyJson, status, triggerCondition]);
+      if (!sendPreview && !triggerCondition) {
+        return "Please select a trigger condition.";
+      }
+
+      if (!bodyJson?.content || !bodyJson.content.length) {
+        return "Please write the message you want to send to the partners.";
+      }
+    },
+    [name, subject, groupIds, triggerCondition, bodyJson],
+  );
 
   const updateCampaign = useCallback(
     async (
@@ -222,8 +221,8 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
           <Button
             text={actionButton.text}
             icon={<actionButton.icon className="size-4" />}
-            disabled={!!validationError}
-            disabledTooltip={validationError}
+            disabled={!!validationError()}
+            disabledTooltip={validationError()}
             onClick={actionButton.onClick}
             loading={actionButton.loading}
             className="hidden h-9 px-4 sm:flex"
@@ -242,8 +241,8 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
                   <MenuItem
                     as={Command.Item}
                     icon={actionButton.icon}
-                    disabled={!!validationError || actionButton.loading}
-                    disabledTooltip={validationError}
+                    disabled={!!validationError() || actionButton.loading}
+                    disabledTooltip={validationError()}
                     onSelect={() => {
                       setOpenPopover(false);
                       actionButton.onClick();
@@ -256,8 +255,11 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
                 <MenuItem
                   as={Command.Item}
                   icon={Flask}
-                  disabled={!!validationError || isUpdatingCampaign}
-                  disabledTooltip={validationError}
+                  disabled={
+                    !!validationError({ sendPreview: true }) ||
+                    isUpdatingCampaign
+                  }
+                  disabledTooltip={validationError({ sendPreview: true })}
                   onSelect={() => {
                     setOpenPopover(false);
                     setShowSendEmailPreviewModal(true);

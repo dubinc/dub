@@ -63,6 +63,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       new Date(),
       createdGroup.createdAt,
     );
+
     console.log(
       `This group was created ${createdSecondsAgo} seconds ago (most likely ${createdSecondsAgo < 10 ? "created" : "upserted"})`,
     );
@@ -90,6 +91,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
               : commission_percent,
         },
       });
+
       console.log(
         `Since group was newly created, also created reward ${createdReward.id} with amount ${createdReward.amount} and type ${createdReward.type}`,
       );

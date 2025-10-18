@@ -16,7 +16,7 @@ export const isScheduledWorkflow = (workflow: Workflow) => {
 
   if (
     !shouldSchedule ||
-    (shouldSchedule && condition.attribute === "partnerJoined")
+    (shouldSchedule && condition.attribute === "partnerJoined") // for partnerJoined, we execute immediately on partner enrollment
   ) {
     return false;
   }

@@ -1,7 +1,7 @@
 import { ExpandedLinkProps } from "@/lib/types";
 import { UserAvatar } from "@/ui/links/link-title-column";
-import { Tooltip } from "@dub/ui";
-import { formatDateTime, timeAgo } from "@dub/utils";
+import { TimestampTooltip } from "@dub/ui";
+import { timeAgo } from "@dub/utils";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -28,9 +28,13 @@ export function LinkCreatorInfo({ link }: { link: ExpandedLinkProps }) {
       </Link>
       <span className="text-neutral-400">
         ·{" "}
-        <Tooltip content={formatDateTime(link.createdAt)} delayDuration={150}>
-          <span>{timeAgo(link.createdAt)}</span>
-        </Tooltip>
+        <TimestampTooltip
+          timestamp={link.createdAt}
+          rows={["local", "utc", "unix"]}
+          delayDuration={150}
+        >
+          <span className="select-none">{timeAgo(link.createdAt)}</span>
+        </TimestampTooltip>
       </span>
     </div>
   );

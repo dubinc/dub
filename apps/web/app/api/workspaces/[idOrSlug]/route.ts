@@ -8,7 +8,6 @@ import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
 import { jackson } from "@/lib/jackson";
 import { storage } from "@/lib/storage";
-import z from "@/lib/zod";
 import {
   createWorkspaceSchema,
   WorkspaceSchema,
@@ -18,6 +17,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const updateWorkspaceSchema = createWorkspaceSchema
   .extend({

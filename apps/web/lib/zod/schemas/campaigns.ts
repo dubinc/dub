@@ -2,11 +2,7 @@ import {
   CampaignWorkflowAttributeConfig,
   WorkflowAttribute,
 } from "@/lib/types";
-import {
-  CampaignStatus,
-  CampaignType,
-  WorkflowTrigger,
-} from "@dub/prisma/client";
+import { CampaignStatus, CampaignType } from "@dub/prisma/client";
 import { z } from "zod";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
@@ -22,28 +18,20 @@ export const CAMPAIGN_WORKFLOW_ATTRIBUTE_CONFIG: Record<
   WorkflowAttribute,
   CampaignWorkflowAttributeConfig
 > = {
-  totalClicks: {
-    label: "clicks",
-    inputType: "number",
-  },
   totalLeads: {
-    label: "leads",
+    label: "total leads",
     inputType: "number",
   },
   totalConversions: {
-    label: "conversions",
-    inputType: "number",
-  },
-  totalSales: {
-    label: "sales",
+    label: "total conversions",
     inputType: "number",
   },
   totalSaleAmount: {
-    label: "revenue",
+    label: "total revenue",
     inputType: "currency",
   },
   totalCommissions: {
-    label: "commissions",
+    label: "total commissions",
     inputType: "currency",
   },
   partnerEnrolledDays: {
@@ -173,5 +161,5 @@ export const campaignEventSchema = z.object({
     id: true,
     name: true,
     color: true,
-  }),
+  }).nullish(), // group can be null for partners that are banned/deactivated
 });

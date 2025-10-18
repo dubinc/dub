@@ -1,9 +1,7 @@
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
-import {
-  WORKFLOW_ATTRIBUTE_LABELS,
-  WORKFLOW_ATTRIBUTES,
-} from "@/lib/zod/schemas/workflows";
+import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
 import {
   InlineBadgePopover,
   InlineBadgePopoverContext,
@@ -59,7 +57,9 @@ export function BountyLogic({ className }: { className?: string }) {
               <InlineBadgePopover
                 text={
                   field.value
-                    ? WORKFLOW_ATTRIBUTE_LABELS[field.value].toLowerCase()
+                    ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[
+                        field.value
+                      ].toLowerCase()
                     : "activity"
                 }
                 invalid={!field.value}
@@ -68,15 +68,11 @@ export function BountyLogic({ className }: { className?: string }) {
                   selectedValue={field.value}
                   onSelect={field.onChange}
                   items={WORKFLOW_ATTRIBUTES.filter(
-                    (attr) =>
-                      ![
-                        "totalClicks",
-                        "totalSales",
-                        "partnerEnrolledDays",
-                        "partnerJoined",
-                      ].includes(attr),
+                    (attr) => PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[attr],
                   ).map((attribute) => ({
-                    text: WORKFLOW_ATTRIBUTE_LABELS[attribute].toLowerCase(),
+                    text: PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[
+                      attribute
+                    ].toLowerCase(),
                     value: attribute,
                   }))}
                 />

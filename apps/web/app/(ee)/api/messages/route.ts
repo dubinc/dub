@@ -36,6 +36,7 @@ export const GET = withWorkspace(
               },
             }),
       },
+      take: 1000, // TODO: add pagination later
       include: {
         partner: {
           include: {

@@ -2,13 +2,7 @@
 
 import useWorkspace from "@/lib/swr/use-workspace";
 import { SearchBox } from "@/ui/shared/search-box";
-import {
-  Modal,
-  PaginationControls,
-  Table,
-  usePagination,
-  useTable,
-} from "@dub/ui";
+import { Modal, PaginationControls, Table, useTable } from "@dub/ui";
 import { buildUrl, fetcher } from "@dub/utils";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -29,15 +23,21 @@ export function CampaignEventsModal({
   const router = useRouter();
   const { campaignId } = useParams<{ campaignId: string }>();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const { pagination, setPagination } = usePagination();
+
+  // Local pagination state (1-based for both API and table)
+  const [pagination, setPagination] = useState({
+    pageIndex: 1, // 1-based for table
+    pageSize: 100,
+  });
 
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
-  const debounced = useDebouncedCallback(
-    (value) => setDebouncedSearch(value),
-    500,
-  );
+  const debounced = useDebouncedCallback((value) => {
+    setDebouncedSearch(value);
+    // Reset pagination to page 1 when search changes
+    setPagination((prev) => ({ ...prev, pageIndex: 1 }));
+  }, 500);
 
   const {
     data: events,
@@ -48,6 +48,8 @@ export function CampaignEventsModal({
       ? buildUrl(`/api/campaigns/${campaignId}/events`, {
           workspaceId,
           status,
+          page: pagination.pageIndex, // Now 1-based
+          pageSize: pagination.pageSize,
           ...(debouncedSearch && { search: debouncedSearch }),
         })
       : null,
@@ -98,11 +100,10 @@ export function CampaignEventsModal({
     }),
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: () => "partner",
+    resourceName: (plural) => `event${plural ? "s" : ""}`,
     emptyState: "No events found",
     loading: isLoading || isCountLoading,
     error: error || countError ? "Failed to load events" : undefined,
-    rowCount: events?.length || 0,
   });
 
   return (
@@ -139,16 +140,15 @@ export function CampaignEventsModal({
           />
         </div>
 
-        {totalCount !== undefined && totalCount > 0 && (
-          <div className="flex-shrink-0 border-t border-neutral-200 bg-white px-6 py-4">
-            <PaginationControls
-              pagination={pagination}
-              setPagination={setPagination}
-              totalCount={totalCount}
-              unit={(p) => `event${p ? "s" : ""}`}
-            />
-          </div>
-        )}
+        {/* Fixed pagination footer */}
+        <div className="flex-shrink-0 border-t border-neutral-200 px-4 py-3">
+          <PaginationControls
+            pagination={pagination}
+            setPagination={setPagination}
+            totalCount={totalCount || 0}
+            unit={(plural) => `event${plural ? "s" : ""}`}
+          />
+        </div>
       </div>
     </Modal>
   );

@@ -1,6 +1,6 @@
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { Tooltip } from "@dub/ui";
-import { formatDateTime, OG_AVATAR_URL, timeAgo } from "@dub/utils";
+import { TimestampTooltip } from "@dub/ui";
+import { OG_AVATAR_URL, timeAgo } from "@dub/utils";
 import { CampaignEvent } from "./campaign-events";
 
 export const campaignEventsColumns = [
@@ -24,12 +24,14 @@ export const campaignEventsColumns = [
           <div className="text-content-emphasis truncate text-xs font-semibold">
             {row.original.partner.name}
           </div>
-          <div className="flex items-center gap-1">
-            <GroupColorCircle group={row.original.group} />
-            <span className="text-content-subtle truncate text-xs font-medium">
-              {row.original.group?.name}
-            </span>
-          </div>
+          {row.original.group && (
+            <div className="flex items-center gap-1">
+              <GroupColorCircle group={row.original.group} />
+              <span className="text-content-subtle truncate text-xs font-medium">
+                {row.original.group?.name}
+              </span>
+            </div>
+          )}
         </div>
       </div>
     ),
@@ -43,9 +45,10 @@ export const campaignEventsColumns = [
       const timestamp = getTimestamp(row.original);
 
       return (
-        <Tooltip
-          content={timestamp ? formatDateTime(timestamp) : "-"}
+        <TimestampTooltip
+          timestamp={timestamp}
           side="top"
+          rows={["local", "utc", "unix"]}
         >
           <div
             className="text-content-subtle flex h-8 shrink-0 items-center justify-end text-xs font-medium"
@@ -53,7 +56,7 @@ export const campaignEventsColumns = [
           >
             {timeAgo(timestamp)}
           </div>
-        </Tooltip>
+        </TimestampTooltip>
       );
     },
   },

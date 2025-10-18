@@ -1,7 +1,7 @@
 import { withWorkspace } from "@/lib/auth";
 import { redis } from "@/lib/upstash";
-import z from "@/lib/zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const schema = z.object({
   domain: z

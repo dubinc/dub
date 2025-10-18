@@ -24,9 +24,10 @@ export const getCampaignEvents = async ({
       ...(status === "opened" && { openedAt: { not: null } }),
       ...(status === "bounced" && { bouncedAt: { not: null } }),
       ...(search && {
-        partner: {
-          OR: [{ name: { contains: search } }, { email: { contains: search } }],
-        },
+        OR: [
+          { partner: { email: { contains: search } } },
+          { partner: { name: { contains: search } } },
+        ],
       }),
     },
     include: {
@@ -51,6 +52,11 @@ export const getCampaignEvents = async ({
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
+    orderBy: {
+      ...(status === "delivered" && { deliveredAt: "desc" }),
+      ...(status === "opened" && { openedAt: "desc" }),
+      ...(status === "bounced" && { bouncedAt: "desc" }),
+    },
   });
 
   const events = results.map((result) => {

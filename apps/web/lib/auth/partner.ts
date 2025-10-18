@@ -4,6 +4,7 @@ import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { PartnerUser } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
+import { Permission, throwIfNoPermission } from "./partner-user-permissions";
 import { Session, getSession } from "./utils";
 
 interface WithPartnerProfileHandler {
@@ -26,7 +27,14 @@ interface WithPartnerProfileHandler {
   }): Promise<Response>;
 }
 
-export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
+interface WithPartnerProfileOptions {
+  requiredPermission?: Permission;
+}
+
+export const withPartnerProfile = (
+  handler: WithPartnerProfileHandler,
+  { requiredPermission }: WithPartnerProfileOptions = {},
+) => {
   return withAxiom(
     async (
       req: AxiomRequest,
@@ -76,6 +84,13 @@ export const withPartnerProfile = (handler: WithPartnerProfileHandler) => {
           throw new DubApiError({
             code: "not_found",
             message: "Partner profile not found.",
+          });
+        }
+
+        if (requiredPermission) {
+          throwIfNoPermission({
+            role: partnerUser.role,
+            permission: requiredPermission,
           });
         }
 

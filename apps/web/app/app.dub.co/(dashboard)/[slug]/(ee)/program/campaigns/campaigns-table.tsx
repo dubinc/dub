@@ -17,19 +17,14 @@ import {
   Popover,
   StatusBadge,
   Table,
+  TimestampTooltip,
   Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
 import { Dots, Duplicate, LoadingCircle, Trash } from "@dub/ui/icons";
-import {
-  cn,
-  fetcher,
-  formatDateTime,
-  formatDateTimeSmart,
-  nFormatter,
-} from "@dub/utils";
+import { cn, fetcher, formatDateTimeSmart, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { Mail, Pause, Play } from "lucide-react";
@@ -121,9 +116,14 @@ export function CampaignsTable() {
         header: "Created",
         accessorFn: (d) => d.createdAt,
         cell: ({ row }) => (
-          <p title={formatDateTime(row.original.createdAt)}>
-            {formatDateTimeSmart(row.original.createdAt)}
-          </p>
+          <TimestampTooltip
+            timestamp={row.original.createdAt}
+            side="right"
+            rows={["local"]}
+            delayDuration={150}
+          >
+            <span>{formatDateTimeSmart(row.original.createdAt)}</span>
+          </TimestampTooltip>
         ),
       },
       {

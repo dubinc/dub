@@ -1,5 +1,5 @@
-import z from "@/lib/zod";
 import { waitUntil } from "@vercel/functions";
+import { z } from "zod";
 import { ExpandedLink } from "../api/links";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
 import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
