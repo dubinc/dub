@@ -59,3 +59,19 @@ model DefaultDomains {
   projectId   String  @unique
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
+
+model EmailDomain {
+  id          String   @id @default(cuid())
+  workspaceId String
+  programId   String   @unique
+  slug        String   @unique
+  fromAddress String
+  verified    Boolean  @default(false)
+  lastChecked DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+
+  @@index(lastChecked(sort: Asc))
+}

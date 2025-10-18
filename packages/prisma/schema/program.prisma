@@ -24,30 +24,30 @@ enum PartnerUrlValidationMode {
 }
 
 model Program {
-  id                           String                   @id @default(cuid())
+  id                           String    @id @default(cuid())
   workspaceId                  String
   defaultFolderId              String
   defaultGroupId               String
   name                         String
-  slug                         String                   @unique
+  slug                         String    @unique
   logo                         String?
   wordmark                     String?
   brandColor                   String?
   domain                       String?
   url                          String?
-  holdingPeriodDays            Int                      @default(0) // number of days to wait before earnings are added to a payout
-  minPayoutAmount              Int                      @default(0) // Default minimum payout amount of $0
-  embedData                    Json?                    @db.Json
-  resources                    Json?                    @db.Json
-  termsUrl                     String?                  @db.Text
-  helpUrl                      String?                  @db.Text
+  holdingPeriodDays            Int       @default(0) // number of days to wait before earnings are added to a payout
+  minPayoutAmount              Int       @default(0) // Default minimum payout amount of $0
+  embedData                    Json?     @db.Json
+  resources                    Json?     @db.Json
+  termsUrl                     String?   @db.Text
+  helpUrl                      String?   @db.Text
   supportEmail                 String?
   ageVerification              Int?
   autoApprovePartnersEnabledAt DateTime?
   messagingEnabledAt           DateTime?
   partnerNetworkEnabledAt      DateTime?
-  createdAt                    DateTime                 @default(now())
-  updatedAt                    DateTime                 @updatedAt
+  createdAt                    DateTime  @default(now())
+  updatedAt                    DateTime  @updatedAt
   startedAt                    DateTime?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
@@ -70,6 +70,7 @@ model Program {
   campaigns                Campaign[]
   discoveredPartners       DiscoveredPartner[]
   industryInterests        ProgramIndustryInterest[]
+  emailDomain              EmailDomain?
 
   @@index(workspaceId)
   @@index(domain)
