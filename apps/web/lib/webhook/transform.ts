@@ -74,7 +74,7 @@ export const transformLeadEventData = (data: any) => {
     },
     // transformLink -> add shortLink, qrCode, workspaceId, etc.
     link: transformLink(lead.link as ExpandedLink),
-    metadata: lead.metadata ?? null,
+    metadata: lead.metadata || null,
   });
 };
 

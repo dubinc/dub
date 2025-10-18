@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
@@ -34,9 +35,15 @@ export async function createShopifyLead({
   const email = orderCustomer?.email;
 
   // find click
-  const clickEvent = await getClickEvent({ clickId });
+  const clickData = await getClickEvent({ clickId });
 
-  const clickData = clickEvent.data[0];
+  if (!clickData) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Click event not found for clickId: ${clickId}`,
+    });
+  }
+
   const { link_id: linkId, country, timestamp } = clickData;
 
   // create customer

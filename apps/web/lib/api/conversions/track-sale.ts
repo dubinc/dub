@@ -151,31 +151,9 @@ export const trackSale = async ({
     }
 
     // Find the click event for the given clickId
-    const clickEvent = await getClickEvent({
+    const clickData = await getClickEvent({
       clickId,
     });
-
-    if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
-      clickData = clickEvent.data[0];
-    }
-
-    // If there is no click data in Tinybird yet, check the clickIdCache
-    if (!clickData) {
-      const cachedClickData = await redis.get<ClickEventTB>(
-        `clickIdCache:${clickId}`,
-      );
-
-      if (cachedClickData) {
-        clickData = {
-          ...cachedClickData,
-          timestamp: cachedClickData.timestamp
-            .replace("T", " ")
-            .replace("Z", ""),
-          qr: cachedClickData.qr ? 1 : 0,
-          bot: cachedClickData.bot ? 1 : 0,
-        };
-      }
-    }
 
     if (!clickData) {
       throw new DubApiError({
