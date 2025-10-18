@@ -36,7 +36,7 @@ export const POST = async (req: Request) => {
     if (clickId) {
       const clickEvent = await getClickEvent({ clickId });
 
-      if (!clickEvent || clickEvent.data.length === 0) {
+      if (!clickEvent) {
         clickId = null;
       }
     }
