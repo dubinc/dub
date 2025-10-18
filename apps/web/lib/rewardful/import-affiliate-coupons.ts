@@ -102,8 +102,6 @@ export async function importAffiliateCoupons(payload: RewardfulImportPayload) {
       }
     }
 
-    console.log(linksToCreate)
-
     if (linksToCreate.length > 0) {
       await bulkCreateLinks({
         links: linksToCreate as ProcessedLinkProps[],
