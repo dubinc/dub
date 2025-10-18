@@ -6,7 +6,7 @@ export const tb = new Tinybird({
 });
 
 // TODO: Remove after Tinybird migration
-export const tbNew = new Tinybird({
-  token: process.env.TINYBIRD_API_KEY_NEW as string,
+export const tbOld = new Tinybird({
+  token: process.env.TINYBIRD_API_KEY_OLD as string,
   baseUrl: process.env.TINYBIRD_API_URL as string,
 });
