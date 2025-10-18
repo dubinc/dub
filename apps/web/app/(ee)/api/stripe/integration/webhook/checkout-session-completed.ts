@@ -69,9 +69,7 @@ export async function checkoutSessionCompleted(
   if (clientReferenceId?.startsWith("dub_id_")) {
     const dubClickId = clientReferenceId.split("dub_id_")[1];
 
-    clickEvent = await getClickEvent({ clickId: dubClickId }).then(
-      (res) => res.data[0],
-    );
+    clickEvent = await getClickEvent({ clickId: dubClickId });
 
     if (!clickEvent) {
       return `Click event with dub_id ${dubClickId} not found, skipping...`;

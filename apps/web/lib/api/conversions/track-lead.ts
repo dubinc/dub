@@ -6,7 +6,7 @@ import { createPartnerCommission } from "@/lib/partners/create-partner-commissio
 import { isStored, storage } from "@/lib/storage";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
 import { logConversionEvent } from "@/lib/tinybird/log-conversion-events";
-import { ClickEventTB, WebhookPartner, WorkspaceProps } from "@/lib/types";
+import { WebhookPartner, WorkspaceProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformLeadEventData } from "@/lib/webhook/transform";
@@ -104,32 +104,9 @@ export const trackLead = async ({
   // we can proceed with the lead tracking process
   if (!isDuplicateEvent) {
     // First, we need to find the click event
-    let clickData: ClickEventTB | null = null;
-    const clickEvent = await getClickEvent({ clickId });
+    const clickData = await getClickEvent({ clickId });
 
-    if (clickEvent && clickEvent.data && clickEvent.data.length > 0) {
-      clickData = clickEvent.data[0];
-    }
-
-    // if there is no click data in Tinybird yet, check the clickIdCache
-    if (!clickData) {
-      const cachedClickData = await redis.get<ClickEventTB>(
-        `clickIdCache:${clickId}`,
-      );
-
-      if (cachedClickData) {
-        clickData = {
-          ...cachedClickData,
-          timestamp: cachedClickData.timestamp
-            .replace("T", " ")
-            .replace("Z", ""),
-          qr: cachedClickData.qr ? 1 : 0,
-          bot: cachedClickData.bot ? 1 : 0,
-        };
-      }
-    }
-
-    // if there is still no click data, throw an error
+    // if there is no click data, throw an error
     if (!clickData) {
       throw new DubApiError({
         code: "not_found",

@@ -7,8 +7,7 @@ async function main() {
   const columnName = "link_id";
   const columnValue = "link_1JRVCZWHWACS7R2KZB9ME6CJR";
 
-  const { data } = await getClickEvent({ clickId });
-  const oldData = data[0];
+  const oldData = await getClickEvent({ clickId });
   if (!oldData) {
     console.log("No data found");
     return;
