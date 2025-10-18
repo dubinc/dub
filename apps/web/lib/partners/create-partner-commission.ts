@@ -280,6 +280,7 @@ export const createPartnerCommission = async ({
             slug: true,
             logo: true,
             holdingPeriodDays: true,
+            supportEmail: true,
             workspace: {
               select: {
                 id: true,
