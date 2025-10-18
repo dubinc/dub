@@ -211,7 +211,7 @@ export async function POST(req: Request) {
           },
         });
 
-        await Promise.all([
+        await Promise.allSettled([
           deletedUser.image
             ? storage.delete(deletedUser.image.replace(`${R2_URL}/`, ""))
             : Promise.resolve(),
@@ -230,16 +230,9 @@ export async function POST(req: Request) {
       },
     });
 
-    await Promise.all([
-      deletedPartner.image
-        ? storage.delete(deletedPartner.image.replace(`${R2_URL}/`, ""))
-        : Promise.resolve(),
-
-      unsubscribe({
-        email: sourceEmail,
-        audience: "partners.dub.co",
-      }),
-    ]);
+    if (deletedPartner.image) {
+      await storage.delete(deletedPartner.image.replace(`${R2_URL}/`, ""));
+    }
 
     // Make sure the cache is cleared
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);

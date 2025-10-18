@@ -1,5 +1,5 @@
 import { CommissionResponse, SaleEvent } from "@/lib/types";
-import { StatusBadge } from "@dub/ui";
+import { StatusBadge, TimestampTooltip } from "@dub/ui";
 import { currencyFormatter, formatDateTimeSmart, nFormatter } from "@dub/utils";
 import {
   flexRender,
@@ -37,7 +37,15 @@ export function CustomerSalesTable({
           new Date("timestamp" in d ? d.timestamp : d.createdAt),
         enableHiding: false,
         minSize: 100,
-        cell: ({ getValue }) => <span>{formatDateTimeSmart(getValue())}</span>,
+        cell: ({ getValue }) => (
+          <TimestampTooltip
+            timestamp={getValue()}
+            side="right"
+            rows={["local", "utc", "unix"]}
+          >
+            <span>{formatDateTimeSmart(getValue())}</span>
+          </TimestampTooltip>
+        ),
       },
       ...(sales?.length && "eventName" in sales?.[0]
         ? [

@@ -259,7 +259,7 @@ function BountySubmissionDetailsSheetContent({
                               href={url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="cursor-alias text-sm font-normal text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
+                              className="block cursor-alias truncate text-sm font-normal text-neutral-800 decoration-dotted underline-offset-2 hover:underline"
                             >
                               {url}
                             </a>

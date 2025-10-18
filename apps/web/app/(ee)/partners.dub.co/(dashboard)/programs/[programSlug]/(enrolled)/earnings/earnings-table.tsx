@@ -14,6 +14,7 @@ import {
   LinkLogo,
   StatusBadge,
   Table,
+  TimestampTooltip,
   Tooltip,
   usePagination,
   useRouterStuff,
@@ -24,7 +25,6 @@ import {
   cn,
   currencyFormatter,
   fetcher,
-  formatDateTime,
   formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
@@ -79,9 +79,13 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         accessorKey: "timestamp",
         minSize: 140,
         cell: ({ row }) => (
-          <p title={formatDateTime(row.original.createdAt)}>
-            {formatDateTimeSmart(row.original.createdAt)}
-          </p>
+          <TimestampTooltip
+            timestamp={row.original.createdAt}
+            side="right"
+            rows={["local"]}
+          >
+            <span>{formatDateTimeSmart(row.original.createdAt)}</span>
+          </TimestampTooltip>
         ),
       },
       {

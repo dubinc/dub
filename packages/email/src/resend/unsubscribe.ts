@@ -1,13 +1,7 @@
 import { resend } from "./client";
-import { RESEND_AUDIENCES } from "./constants";
+import { RESEND_AUDIENCE_ID } from "./constants";
 
-export async function unsubscribe({
-  email,
-  audience = "app.dub.co",
-}: {
-  email: string;
-  audience?: keyof typeof RESEND_AUDIENCES;
-}) {
+export async function unsubscribe({ email }: { email: string }) {
   if (!resend) {
     console.error(
       "No RESEND_API_KEY is set in the environment variables. Skipping.",
@@ -15,10 +9,8 @@ export async function unsubscribe({
     return;
   }
 
-  const audienceId = RESEND_AUDIENCES[audience];
-
   return await resend.contacts.remove({
     email,
-    audienceId,
+    audienceId: RESEND_AUDIENCE_ID,
   });
 }

@@ -58,6 +58,7 @@ export interface RewardfulAffiliate {
 export interface RewardfulReferral {
   id: string;
   link?: RewardfulLink; // could be null for coupon-based referrals
+  coupon?: RewardfulCoupon; // could be null for link-based referrals
   customer: RewardfulCustomer;
   affiliate: RewardfulAffiliate;
   created_at: string;
@@ -98,6 +99,15 @@ export interface RewardfulCommission {
   voided_at: string | null;
   campaign: RewardfulCampaign;
   sale: RewardfulCommissionSale;
+}
+
+export interface RewardfulCoupon {
+  id: string;
+  external_id: string;
+  archived: boolean;
+  archived_at: string;
+  token: string;
+  affiliate_id: string;
 }
 
 export type RewardfulImportPayload = z.infer<

@@ -1,5 +1,6 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { importAffiliateCoupons } from "@/lib/rewardful/import-affiliate-coupons";
 import { importCampaigns } from "@/lib/rewardful/import-campaigns";
 import { importCommissions } from "@/lib/rewardful/import-commissions";
 import { importCustomers } from "@/lib/rewardful/import-customers";
@@ -22,6 +23,9 @@ export async function POST(req: Request) {
         break;
       case "import-partners":
         await importPartners(payload);
+        break;
+      case "import-affiliate-coupons":
+        await importAffiliateCoupons(payload);
         break;
       case "import-customers":
         await importCustomers(payload);
