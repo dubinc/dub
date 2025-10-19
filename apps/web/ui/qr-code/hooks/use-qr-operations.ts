@@ -299,6 +299,64 @@ export const useQrOperations = () => {
     [workspaceId],
   );
 
+  const duplicateQr = useCallback(
+    async (qrId: string) => {
+      try {
+        if (!workspaceId) {
+          toast.error("Workspace ID not found");
+          return false;
+        }
+
+        const res = await fetch(`/api/qrs/${qrId}/duplicate?workspaceId=${workspaceId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (res.status === 200) {
+          const responseData = await res.json();
+          const createdQrId = responseData?.createdQr?.id;
+
+          setNewQrId?.(createdQrId);
+
+          await mutatePrefix(["/api/qrs", "/api/links"]);
+
+          // // Track QR created event
+          // const trackingParams = createQRTrackingParams(
+          //   qrBuilderData,
+          //   createdQrId,
+          // );
+          // trackClientEvents({
+          //   event: EAnalyticEvents.QR_CREATED,
+          //   params: {
+          //     event_category: "Authorized",
+          //     page_name: "dashboard",
+          //     email: user?.email,
+          //     link_url: responseData.createdLink?.shortLink,
+          //     link_id: responseData.createdLink?.id,
+          //     target_url: responseData.createdLink?.url,
+          //     ...trackingParams,
+          //   },
+          //   sessionId: user?.id,
+          // });
+
+          toast.success("QR was duplicated");
+          return true;
+        } else {
+          const { error } = await res.json();
+          toast.error(error?.message || "Failed to duplicate QR");
+          return false;
+        }
+      } catch (e) {
+        console.error("Failed to duplicate QR", e);
+        toast.error("Failed to duplicate QR");
+        return false;
+      }
+    },
+    [workspaceId, setNewQrId],
+  );
+
   const resetScans = useCallback(
     async (qrId: string) => {
       try {
@@ -361,6 +419,7 @@ export const useQrOperations = () => {
     updateQrWithOriginal,
     archiveQr,
     deleteQr,
+    duplicateQr,
     resetScans,
   };
 };
