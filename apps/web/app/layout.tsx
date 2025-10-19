@@ -15,11 +15,10 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en" className={cn(inter.className)}>
+      <AnalyticScriptsComponent />
       <body>
         <Theme>
           <RootProviders>{children}</RootProviders>
-
-          <AnalyticScriptsComponent />
         </Theme>
       </body>
     </html>

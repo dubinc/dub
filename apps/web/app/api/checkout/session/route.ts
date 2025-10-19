@@ -1,9 +1,8 @@
 import { cookies, headers } from "next/headers";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { v4 as uuidV4 } from "uuid";
 
-import { withSession } from "@/lib/auth";
 import {
   getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
@@ -73,10 +72,10 @@ const getMetadata = ({
 };
 
 // set user session
-export const POST = withSession(async ({ req, session: authSession }) => {
+export const POST = async (req: NextRequest) => {
   const { user } = await getUserCookieService();
 
-  if (!user?.paymentInfo?.customerId || !authSession?.user) {
+  if (!user?.paymentInfo?.customerId) {
     return NextResponse.json(
       { success: false, error: "User not found" },
       { status: 400 },
@@ -160,84 +159,84 @@ export const POST = withSession(async ({ req, session: authSession }) => {
       { status: 500 },
     );
   }
-});
+};
 
 // update client session
-export const PATCH = withSession(
-  async ({ req, session: authSession }): Promise<NextResponse<IDataRes>> => {
-    const { user } = await getUserCookieService();
+export const PATCH = async (
+  req: NextRequest,
+): Promise<NextResponse<IDataRes>> => {
+  const { user } = await getUserCookieService();
 
-    if (!user?.id || !authSession?.user) {
-      return NextResponse.json(
-        { success: false, error: "User not found" },
-        { status: 400 },
-      );
-    }
+  if (!user?.id || !user?.email) {
+    return NextResponse.json(
+      { success: false, error: "User not found" },
+      { status: 400 },
+    );
+  }
 
-    try {
-      const body: IUpdatePrimerClientSessionBody = await req.json();
+  try {
+    const body: IUpdatePrimerClientSessionBody = await req.json();
 
-      const metadata = {
-        ...body.metadata,
-        ...getMetadata({
-          user: {
-            ...user,
-            email: authSession.user.email,
-          },
-          paymentPlan: initialSubPaymentPlan,
-        }),
-      };
-
-      const { priceForPay } = getPaymentPlanPrice({
+    const metadata = {
+      ...body.metadata,
+      ...getMetadata({
         user: {
           ...user,
-          email: authSession.user.email,
+          email: user?.email,
         },
-        paymentPlan: trialPaymentPlan,
-      });
+        paymentPlan: initialSubPaymentPlan,
+      }),
+    };
 
-      const { paymentPlan, ...cloneBody } = structuredClone(body);
+    const { priceForPay } = getPaymentPlanPrice({
+      user: {
+        ...user,
+        email: user?.email,
+      },
+      paymentPlan: trialPaymentPlan,
+    });
 
-      // The request can be triggered either from the checkout form with the full body, or from our component with only the payment plan.
-      const requestBody: Partial<IUpdatePrimerClientSessionBody> =
-        body.clientToken
-          ? { ...cloneBody }
-          : {
-              clientToken: user.paymentInfo?.clientToken,
-              currencyCode: user?.currency?.currencyForPay,
-              amount: priceForPay,
-              order: {
-                lineItems: [
-                  {
-                    itemId: uuidV4(),
-                    amount: priceForPay,
-                    quantity: 1,
-                  },
-                ],
-                countryCode: user?.currency?.countryCode || "",
-              },
-            };
+    const { paymentPlan, ...cloneBody } = structuredClone(body);
 
-      const { clientToken, clientTokenExpirationDate } =
-        await paymentService.updateClientPaymentSession({
-          ...requestBody,
-          customer: {
-            emailAddress: authSession.user.email,
-            billingAddress: { countryCode: user.currency?.countryCode || "" },
-            shippingAddress: { countryCode: user.currency?.countryCode || "" },
-          },
-          metadata,
-        } as IUpdatePrimerClientSessionBody);
+    // The request can be triggered either from the checkout form with the full body, or from our component with only the payment plan.
+    const requestBody: Partial<IUpdatePrimerClientSessionBody> =
+      body.clientToken
+        ? { ...cloneBody }
+        : {
+            clientToken: user.paymentInfo?.clientToken,
+            currencyCode: user?.currency?.currencyForPay,
+            amount: priceForPay,
+            order: {
+              lineItems: [
+                {
+                  itemId: uuidV4(),
+                  amount: priceForPay,
+                  quantity: 1,
+                },
+              ],
+              countryCode: user?.currency?.countryCode || "",
+            },
+          };
 
-      return NextResponse.json({
-        success: true,
-        data: { clientToken, clientTokenExpirationDate },
-      });
-    } catch (error: any) {
-      return NextResponse.json(
-        { success: false, error: error?.message },
-        { status: 500 },
-      );
-    }
-  },
-);
+    const { clientToken, clientTokenExpirationDate } =
+      await paymentService.updateClientPaymentSession({
+        ...requestBody,
+        customer: {
+          emailAddress: user?.email,
+          billingAddress: { countryCode: user.currency?.countryCode || "" },
+          shippingAddress: { countryCode: user.currency?.countryCode || "" },
+        },
+        metadata,
+      } as IUpdatePrimerClientSessionBody);
+
+    return NextResponse.json({
+      success: true,
+      data: { clientToken, clientTokenExpirationDate },
+    });
+  } catch (error: any) {
+    return NextResponse.json(
+      { success: false, error: error?.message },
+      { status: 500 },
+    );
+  }
+};

@@ -23,7 +23,7 @@ const WorkspaceAnalyticsPage = async () => {
 
   return (
     <Suspense fallback={<LayoutLoader />}>
-      <PageContent title="Analytics">
+      <PageContent title="Statistics">
         <Analytics />
       </PageContent>
       <PageViewedTrackerComponent

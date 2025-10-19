@@ -1,6 +1,6 @@
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { useShareDashboardModal } from "@/ui/modals/share-dashboard-modal.tsx";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import { CardList, CursorRays, useMediaQuery } from "@dub/ui";
 import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 import { Icon } from "@iconify/react";
@@ -11,7 +11,7 @@ export function QRCardAnalyticsBadge({
   qrCode,
   className,
 }: {
-  qrCode: QrStorageData;
+  qrCode: TQrStorageData;
   className?: string;
 }) {
   const { slug, plan } = useWorkspace();

@@ -4,6 +4,7 @@ import { FRAMES } from "../constants/customization/frames";
 import { EQRType } from "../constants/get-qr-config";
 import { TQRFormData } from "../types/context";
 import { IFrameData, IQRCustomizationData } from "../types/customization";
+import { TQrStorageData } from "../types/database";
 import { encodeQRData, parseQRData } from "./qr-data-handlers";
 import {
   getCornerDotType,
@@ -397,12 +398,12 @@ export async function convertNewQRBuilderDataToServer(
  * Convert server QR data back to new builder format
  */
 export function convertServerQRToNewBuilder(
-  serverData: TQrServerData,
+  serverData: TQrServerData | TQrStorageData,
 ): TNewQRBuilderData {
 
   // Parse QR data to form data using qr-data-handlers
   const sourceData = serverData.link?.url || serverData.data;
-  const formData = parseQRData(serverData.qrType, sourceData) as TQRFormData;
+  const formData = parseQRData(serverData.qrType as EQRType, sourceData) as TQRFormData;
 
   // Add qrName from title to formData
   if (serverData.title) {
@@ -411,17 +412,17 @@ export function convertServerQRToNewBuilder(
 
   // Extract customization data from styles, frame options, and logo options
   const customizationData = extractCustomizationData(
-    serverData.styles,
+    (serverData.styles || {}) as Options,
     serverData.frameOptions,
-    serverData.logoOptions,
+    serverData.logoOptions || undefined,
   );
 
   return {
-    qrType: serverData.qrType,
+    qrType: serverData.qrType as EQRType,
     formData,
     customizationData,
-    title: serverData.title,
-    fileId: serverData.fileId,
+    title: serverData.title ?? "",
+    fileId: serverData.fileId ?? undefined,
   };
 }
 
@@ -456,4 +457,117 @@ export function convertNewBuilderToStorageFormat(
   };
 
   return result;
+}
+// ============================================================================
+// COMPATIBILITY FUNCTIONS FOR WORKSPACE OPERATIONS
+// ============================================================================
+
+import { UpdateQrProps } from "@/lib/types";
+import { FILE_QR_TYPES } from "../constants/get-qr-config";
+import { TQRUpdateResult } from "../types/update";
+
+/**
+ * Compare original QR data with new builder data and generate update payload
+ * Used for determining what changed and building the update request
+ */
+export async function convertNewQRForUpdate(
+  originalQR: TQrStorageData,
+  newBuilderData: TNewQRBuilderData,
+  options: {
+    domain: string;
+  },
+): Promise<TQRUpdateResult> {
+  const { domain } = options;
+
+  // Convert new builder data to server format
+  const newServerData = await convertNewQRBuilderDataToServer(
+    newBuilderData,
+    options,
+  );
+
+  // Check what changed
+  const titleChanged = newBuilderData.title !== originalQR.title;
+  const qrTypeChanged = newBuilderData.qrType !== originalQR.qrType;
+
+  const newQrDataHasFileQrType = FILE_QR_TYPES.includes(
+    newBuilderData.qrType as EQRType,
+  );
+
+  // Check frame options changes
+  const frameOptionsChanged = (() => {
+    const originalFrame = originalQR.frameOptions as any;
+    const newFrame = newServerData.frameOptions;
+
+    const fieldsToCheck = ["id", "color", "text", "textColor"] as const;
+
+    return fieldsToCheck.some(
+      (field) => newFrame?.[field] !== originalFrame?.[field],
+    );
+  })();
+
+  // Check logo options changes
+  const logoOptionsChanged =
+    JSON.stringify(originalQR.logoOptions) !==
+    JSON.stringify(newServerData.logoOptions);
+
+  // Check data changes
+  const originalData = originalQR?.link?.url || originalQR.data || "";
+  const newData = newServerData.data || "";
+  const dataChanged = newData !== originalData;
+
+  // Check styles changes (excluding data field)
+  const originalStyles = { ...(originalQR.styles as Options) };
+  const newStyles = { ...newServerData.styles };
+
+  delete originalStyles.data;
+  delete newStyles.data;
+
+  const stylesChanged =
+    JSON.stringify(originalStyles) !== JSON.stringify(newStyles);
+
+  // Check files changes
+  const hasNewFiles = !!newBuilderData.fileId;
+  const hasExistingFiles = !!originalQR.fileId;
+
+  const hasChanges =
+    titleChanged ||
+    dataChanged ||
+    qrTypeChanged ||
+    frameOptionsChanged ||
+    logoOptionsChanged ||
+    stylesChanged ||
+    hasNewFiles;
+
+  const linkUrl =
+    hasNewFiles || (hasExistingFiles && newQrDataHasFileQrType) ? "" : newData;
+
+  const updateData: UpdateQrProps = {
+    data: newData,
+    qrType: newBuilderData.qrType,
+    title: newBuilderData.title,
+    styles: newServerData.styles,
+    frameOptions: newServerData.frameOptions,
+    logoOptions: newServerData.logoOptions,
+    fileId: newBuilderData.fileId || undefined,
+    link: {
+      url: linkUrl,
+      domain,
+      tagId: null,
+      webhookIds: [],
+    },
+  };
+
+  return {
+    hasChanges,
+    changes: {
+      title: titleChanged,
+      data: dataChanged,
+      qrType: qrTypeChanged,
+      frameOptions: frameOptionsChanged,
+      styles: stylesChanged,
+      logoOptions: logoOptionsChanged,
+      files: hasNewFiles,
+    },
+    updateData,
+  };
 }

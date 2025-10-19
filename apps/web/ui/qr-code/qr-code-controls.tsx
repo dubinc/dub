@@ -4,7 +4,7 @@ import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
 import { QRBuilderModal } from "@/ui/modals/qr-builder-new";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal.tsx";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
 import {
   Button,
@@ -23,8 +23,8 @@ import QRCodeStyling from "qr-code-styling";
 import { RefObject, useContext, useState } from "react";
 import { ThreeDots } from "../shared/icons";
 
-interface QrCodeControlsProps {
-  qrCode: QrStorageData;
+interface IQrCodeControlsProps {
+  qrCode: TQrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
   featuresAccess?: boolean;
@@ -39,7 +39,7 @@ export function QrCodeControls({
   featuresAccess,
   setShowTrialExpiredModal,
   user,
-}: QrCodeControlsProps) {
+}: IQrCodeControlsProps) {
   const { hovered } = useContext(CardList.Card.Context);
   const searchParams = useSearchParams();
 

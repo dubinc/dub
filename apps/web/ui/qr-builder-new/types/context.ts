@@ -90,4 +90,5 @@ export interface IQrBuilderContextType {
   // Refs
   contentStepRef: RefObject<QRContentStepRef>;
   qrBuilderButtonsWrapperRef: RefObject<HTMLDivElement>;
+  qrBuilderContentWrapperRef: RefObject<HTMLDivElement>;
 }
