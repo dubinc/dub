@@ -543,9 +543,7 @@ const partnerImageSchema = z
       }),
   ])
   .transform((v) => v || "")
-  .refine((v) => v !== "", {
-    message: "Image is required",
-  });
+  .optional();
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
