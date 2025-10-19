@@ -14,6 +14,7 @@ SQL >
     from dub_links_metadata_latest FINAL
     WHERE
         deleted == 0
+        AND stats_deleted == 0
         {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
@@ -46,6 +47,7 @@ SQL >
       WHERE
           region NOT IN ('Unknown', 'arn1', 'bom1', 'cdg1', 'cle1', 'cpt1', 'dub1', 'fra1', 'gru1', 'hkg1', 'hnd1', 'iad1', 'icn1', 'kix1', 'lhr1', 'pdx1', 'sfo1', 'sin1', 'syd1') 
           AND country != 'Unknown'
+          AND stats_deleted = 0
           {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
           {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
           {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -89,6 +91,7 @@ SQL >
       WHERE
           region NOT IN ('Unknown', 'arn1', 'bom1', 'cdg1', 'cle1', 'cpt1', 'dub1', 'fra1', 'gru1', 'hkg1', 'hnd1', 'iad1', 'icn1', 'kix1', 'lhr1', 'pdx1', 'sfo1', 'sin1', 'syd1') 
           AND country != 'Unknown'
+          AND stats_deleted = 0
           {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
           {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
           {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -134,6 +137,7 @@ SQL >
       WHERE
           region NOT IN ('Unknown', 'arn1', 'bom1', 'cdg1', 'cle1', 'cpt1', 'dub1', 'fra1', 'gru1', 'hkg1', 'hnd1', 'iad1', 'icn1', 'kix1', 'lhr1', 'pdx1', 'sfo1', 'sin1', 'syd1') 
           AND country != 'Unknown'
+          AND stats_deleted = 0
           {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
           {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
           {% if defined(continent) %} AND continent = {{ continent }} {% end %}
