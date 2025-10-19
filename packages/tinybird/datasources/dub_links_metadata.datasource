@@ -13,7 +13,8 @@ SCHEMA >
     `partner_id` String `json:$.partner_id`,
     `folder_id` String `json:$.folder_id`,
     `qr_id` String `json:$.qr_id` DEFAULT '',
-    `qr_type` String `json:$.qr_type` DEFAULT ''
+    `qr_type` String `json:$.qr_type` DEFAULT '',
+    `stats_deleted` UInt8 `json:$.stats_deleted` DEFAULT 0
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYear(timestamp)"

@@ -15,7 +15,8 @@ SCHEMA >
     `partner_id` String,
     `folder_id` String,
     `qr_id` String DEFAULT '',
-    `qr_type` String DEFAULT ''
+    `qr_type` String DEFAULT '',
+    `stats_deleted` UInt8 DEFAULT 0
 
 ENGINE "ReplacingMergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
