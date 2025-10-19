@@ -42,7 +42,6 @@ model Program {
   termsUrl                     String?                  @db.Text
   helpUrl                      String?                  @db.Text
   supportEmail                 String?
-  ageVerification              Int?
   autoApprovePartnersEnabledAt DateTime?
   messagingEnabledAt           DateTime?
   partnerNetworkEnabledAt      DateTime?

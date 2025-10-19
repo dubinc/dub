@@ -117,6 +117,9 @@ export async function POST(req: Request) {
         variant: "notifications",
         to: partner.email!, // coerce the type here because we've already filtered out partners with no email in the prisma query
         subject: `New bounty available for ${bounty.program.name}`,
+        ...(bounty.program.supportEmail
+          ? { replyTo: bounty.program.supportEmail }
+          : {}),
         react: NewBountyAvailable({
           email: partner.email!,
           bounty: {

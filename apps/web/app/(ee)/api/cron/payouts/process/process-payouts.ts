@@ -46,7 +46,10 @@ export async function processPayouts({
     | "payoutsLimit"
     | "payoutFee"
   >;
-  program: Pick<Program, "id" | "name" | "logo" | "minPayoutAmount">;
+  program: Pick<
+    Program,
+    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail"
+  >;
   userId: string;
   invoiceId: string;
   paymentMethodId: string;
@@ -264,6 +267,7 @@ export async function processPayouts({
           variant: "notifications",
           to: payout.partner.email!,
           subject: "You've got money coming your way!",
+          ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
           react: PartnerPayoutConfirmed({
             email: payout.partner.email!,
             program,
