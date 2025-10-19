@@ -33,7 +33,7 @@ NODE os_clicks
 SQL >
 
     %
-    SELECT os, COUNT(os) as clicks
+    SELECT os, {% if defined(unique) and Boolean(unique) == 1 %} uniqExact(identity_hash) {% else %} COUNT(os) {% end %} as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}

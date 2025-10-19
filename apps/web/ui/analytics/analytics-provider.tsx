@@ -264,6 +264,7 @@ export default function AnalyticsProvider({
     );
     return new URLSearchParams({
       ...availableFilterParams,
+      ...(searchParams?.has("unique") && { unique: searchParams.get("unique") as string }),
       ...(workspaceId && { workspaceId }),
       ...(domain && { domain }),
       ...(key && { key }),

@@ -39,7 +39,7 @@ SQL >
                 )
             }}
         ) as utm
-    SELECT utm, count(*) as clicks
+    SELECT utm, {% if defined(unique) and Boolean(unique) == 1 %} uniqExact(identity_hash) {% else %} count(*) {% end %} as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}

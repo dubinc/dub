@@ -98,6 +98,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     workspaceId,
     tagIds,
     qr,
+    unique: params.unique,
     start: startDate.toISOString().replace("T", " ").replace("Z", ""),
     end: endDate.toISOString().replace("T", " ").replace("Z", ""),
     granularity,
