@@ -1,0 +1,6 @@
+NODE aws_dub_links_metadata
+SQL >
+
+    SELECT * FROM dub_links_metadata
+
+

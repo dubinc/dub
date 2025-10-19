@@ -1,0 +1,17 @@
+NODE dub_click_events_mv_s3
+SQL >
+
+    SELECT *
+    FROM dub_click_events_mv
+
+TYPE sink
+EXPORT_SERVICE s3_iamrole
+EXPORT_CONNECTION_NAME data-getqr-tinybird-sink
+EXPORT_BUCKET_URI s3://data-getqr-tinybird-sink
+EXPORT_FILE_TEMPLATE dub_click_event_mv/export
+EXPORT_FORMAT parquet
+EXPORT_COMPRESSION snappy
+EXPORT_WRITE_STRATEGY create_new
+EXPORT_SCHEDULE 0 3 * * *
+
+
