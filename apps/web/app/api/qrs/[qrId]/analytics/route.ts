@@ -59,9 +59,8 @@ export const DELETE = withWorkspace(
     const updateCondition = `(link_id='${escapedLinkId}')`;
 
     await Promise.all([
-      executeTinybirdDatasourceSoftDelete("dub_click_events", updateCondition),
-      executeTinybirdDatasourceSoftDelete("dub_lead_events", updateCondition),
-      executeTinybirdDatasourceSoftDelete("dub_sale_events", updateCondition),
+      executeTinybirdDatasourceSoftDelete("dub_links_metadata", updateCondition),
+      executeTinybirdDatasourceSoftDelete("dub_links_metadata_latest", updateCondition),
     ]);
 
     await prisma.link.update({

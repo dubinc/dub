@@ -238,8 +238,6 @@ export const analyticsFilterTB = z
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     qr: z.boolean().optional(),
-    // Soft-delete flag propagated to Tinybird pipes
-    stats_deleted: z.boolean().optional(),
     start: z.string(),
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
