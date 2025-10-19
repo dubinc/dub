@@ -14,7 +14,6 @@ SQL >
     from dub_links_metadata_latest FINAL
     WHERE
         deleted == 0
-        AND stats_deleted == 0
         {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
@@ -41,7 +40,6 @@ SQL >
         {% end %}
     WHERE
         true
-        AND stats_deleted = 0
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -76,7 +74,6 @@ SQL >
         {% end %}
     WHERE
         true
-        AND stats_deleted = 0
         {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
         {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
@@ -116,7 +113,6 @@ SQL >
           {% end %}
       WHERE
           true
-          AND stats_deleted = 0
           {% if defined(linkId) %} AND link_id = {{ String(linkId) }} {% end %}
           {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
           {% if defined(continent) %} AND continent = {{ continent }} {% end %}

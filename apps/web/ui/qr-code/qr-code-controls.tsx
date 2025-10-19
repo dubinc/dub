@@ -21,7 +21,6 @@ import QRCodeStyling from "qr-code-styling";
 import { RefObject, useContext } from "react";
 import { ThreeDots } from "../shared/icons";
 import { useDuplicateQRModal } from '../modals/duplicate-qr-modal';
-import { useResetScansModal } from '../modals/reset-scans-modal';
 
 interface QrCodeControlsProps {
   qrCode: QrStorageData;
@@ -54,9 +53,6 @@ export function QrCodeControls({
   };
 
   const { handleToggleModal: setShowDuplicateQRModal, DuplicateQRModal } = useDuplicateQRModal({
-    props: qrCode,
-  });
-  const { handleToggleModal: setShowResetScansModal, ResetScansModal } = useResetScansModal({
     props: qrCode,
   });
   const { setShowArchiveQRModal, ArchiveQRModal } = useArchiveQRModal({
@@ -154,7 +150,6 @@ export function QrCodeControls({
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
       <DuplicateQRModal />
-      <ResetScansModal />
       <QRPreviewModal />
       <QRChangeTypeModal />
       <QRCustomizeModal />
@@ -270,24 +265,15 @@ export function QrCodeControls({
                 icon={<Palette className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
               />
-              <Button
+              {/* <Button
                 text="Reset scans"
                 variant="outline"
                 onClick={() => {
-                  onActionClick("reset_scans");
-
-                  setOpenPopover(false);
-
-                  if (!featuresAccess) {
-                    setShowTrialExpiredModal?.(true);
-                    return;
-                  }
-
-                  setShowResetScansModal(true);
+                  // TODO GETQR-261
                 }}
                 icon={<RotateCcw className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-              />
+              /> */}
             </div>
             <div className="w-full px-6" >
               <div className="border-t border-neutral-200 w-full" />
