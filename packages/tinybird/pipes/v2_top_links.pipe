@@ -33,7 +33,7 @@ NODE top_links_clicks
 SQL >
 
     %
-    SELECT link_id as link, COUNT(*) AS clicks
+    SELECT link_id as link, {% if defined(unique) and Boolean(unique) == 1 %} uniqExact(identity_hash) {% else %} COUNT(*) {% end %} AS clicks
     FROM
         dub_click_events_mv
         {% if defined(workspaceId) or defined(partnerId) or defined(programId) %}

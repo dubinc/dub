@@ -61,8 +61,8 @@ import { ANALYTICS_QR_TYPES_DATA } from "../qr-builder/constants/get-qr-config";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
-import EventsOptions from "./events/events-options";
 import { useAnalyticsFilterOption } from "./utils";
+import { Switch } from '@radix-ui/themes';
 
 export default function Toggle({
   page = "analytics",
@@ -673,56 +673,27 @@ export default function Toggle({
                 dashboardProps && "md:w-auto",
               )}
             >
-              {isMobile ? dateRangePicker : filterSelect}
-              <div
-                className={cn("flex w-full grow items-center gap-2 md:w-auto", {
-                  "grow-0": dashboardProps,
-                })}
-              >
-                {isMobile ? filterSelect : dateRangePicker}
-                {!dashboardProps && (
-                  <div className="flex grow justify-end gap-2">
-                    {/*{page === "analytics" && !partnerPage && (*/}
-                    {/*  <>*/}
-                    {/*    {domain && key && <ShareButton />}*/}
-                    {/*    <Button*/}
-                    {/*      variant="secondary"*/}
-                    {/*      className="border-border-500 w-fit"*/}
-                    {/*      icon={*/}
-                    {/*        <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />*/}
-                    {/*      }*/}
-                    {/*      text={isMobile ? undefined : "Switch to Events"}*/}
-                    {/*      onClick={() => {*/}
-                    {/*        if (dashboardProps) {*/}
-                    {/*          window.open("https://d.to/events");*/}
-                    {/*        } else {*/}
-                    {/*          router.push(*/}
-                    {/*            `/${slug}/events${getQueryString({}, { exclude: ["view"] })}`,*/}
-                    {/*          );*/}
-                    {/*        }*/}
-                    {/*      }}*/}
-                    {/*    />*/}
-                    {/*    <AnalyticsOptions />*/}
-                    {/*  </>*/}
-                    {/*)}*/}
-                    {page === "events" && !partnerPage && (
-                      <>
-                        <Button
-                          variant="secondary"
-                          className="w-fit"
-                          icon={
-                            <ChartLine className="h-4 w-4 text-neutral-600" />
-                          }
-                          text={isMobile ? undefined : "Switch to Analytics"}
-                          onClick={() =>
-                            router.push(`/${slug}/analytics${getQueryString()}`)
-                          }
-                        />
-                        <EventsOptions />
-                      </>
-                    )}
-                  </div>
-                )}
+              {filterSelect}
+              {dateRangePicker}
+              <div className="flex items-center gap-x-2">
+                <Switch
+                  id="unique"
+                  checked={!!searchParamsObj.unique}
+                  onCheckedChange={(checked: boolean) => {
+                    if (checked) {
+                      queryParams({
+                        set: { unique: "true"},
+                        scroll: false,
+                      });
+                    } else {
+                      queryParams({
+                        del: "unique",
+                        scroll: false,
+                      });
+                    }
+                  }}
+                />
+                <label htmlFor="unique">Unique Scans</label>
               </div>
             </div>
           </div>
