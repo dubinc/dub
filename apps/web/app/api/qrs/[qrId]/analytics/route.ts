@@ -3,35 +3,9 @@ import { getQr } from "@/lib/api/qrs/get-qr";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { verifyFolderAccess } from '@/lib/folder/permissions';
+import { recordLinkTB, transformLinkTB } from "@/lib/tinybird/record-link";
 
-async function executeTinybirdDatasourceSoftDelete(
-  datasource: string,
-  updateCondition: string,
-) {
-  // Use the Tinybird datasources update endpoint to mark rows as deleted
-  const url = `${process.env.TINYBIRD_API_URL}/v0/datasources/${datasource}/update`;
-  const body = new URLSearchParams({
-    update_expression: "stats_deleted = 1",
-    update_condition: updateCondition,
-  });
-
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-      Accept: "application/json",
-    },
-    body: body.toString(),
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Tinybird update failed: ${text || res.statusText}`);
-  }
-
-  return true;
-}
+// No helper needed; we'll ingest to dub_links_metadata with stats_deleted=1
 
 // DELETE /api/qrs/[qrId]/analytics – remove all Tinybird analytics for a QR (by its link)
 export const DELETE = withWorkspace(
@@ -55,13 +29,18 @@ export const DELETE = withWorkspace(
       });
     }
 
-    const escapedLinkId = linkId.replace(/'/g, "''");
-    const updateCondition = `(link_id='${escapedLinkId}')`;
-
-    await Promise.all([
-      executeTinybirdDatasourceSoftDelete("dub_links_metadata", updateCondition),
-      executeTinybirdDatasourceSoftDelete("dub_links_metadata_latest", updateCondition),
-    ]);
+    // Ingest a link metadata row with stats_deleted=1, same as bulk-delete pattern
+    const linkForIngest = qr.link ?? (await prisma.link.findUnique({ where: { id: linkId } }));
+    if (!linkForIngest) {
+      return NextResponse.json(
+        { ok: false, message: "Associated link not found." },
+        { status: 404, headers },
+      );
+    }
+    await recordLinkTB({
+      ...transformLinkTB(linkForIngest),
+      stats_deleted: true,
+    } as any);
 
     await prisma.link.update({
       where: { id: linkId },
