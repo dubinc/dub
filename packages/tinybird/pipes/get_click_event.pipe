@@ -10,6 +10,6 @@ DESCRIPTION >
 
 SQL >
 
-    % SELECT * FROM dub_click_events WHERE click_id = {{ clickId }} AND stats_deleted = 0 LIMIT 1
+    % SELECT * FROM dub_click_events WHERE click_id = {{ clickId }} LIMIT 1
 
 

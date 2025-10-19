@@ -24,5 +24,4 @@ WHERE
         )
     }}
     {% if defined(eventName) %} AND event_name = {{ eventName }} {% end %}
-    AND stats_deleted = 0
 ORDER BY timestamp DESC

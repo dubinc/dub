@@ -14,8 +14,7 @@ SQL >
         os,
         referer,
         qr,
-        ip,
-        stats_deleted
+        ip
     FROM dub_click_events
 
 TYPE materialized
