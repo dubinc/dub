@@ -43,13 +43,6 @@ import { BountySubmissionRowMenu } from "./bounty-submission-row-menu";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
 
-const PERFORMANCE_ATTRIBUTE_TO_SORTABLE_COLUMNS = {
-  totalLeads: "leads",
-  totalConversions: "conversions",
-  totalSaleAmount: "saleAmount",
-  totalCommissions: "commissions",
-} as const;
-
 export function BountySubmissionsTable() {
   const { bounty, loading: isBountyLoading } = useBounty();
   const { groups } = useGroups();
@@ -76,16 +69,18 @@ export function BountySubmissionsTable() {
   // Performance based bounty columns
   const performanceCondition = bounty?.performanceCondition;
 
-  const metricColumnId = performanceCondition?.attribute
-    ? PERFORMANCE_ATTRIBUTE_TO_SORTABLE_COLUMNS[performanceCondition.attribute]
-    : "leads";
-
   const metricColumnLabel = performanceCondition?.attribute
     ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute]
     : "Progress";
 
-  const status = (searchParams.get("status") ||
-    "submitted") as BountySubmissionStatus;
+  const expiredBounty =
+    bounty?.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
+
+  const status = useMemo(() => {
+    return (searchParams.get("status") ??
+      (expiredBounty ? "approved" : "submitted")) as BountySubmissionStatus;
+  }, [searchParams, expiredBounty]);
+
   const sortBy = searchParams.get("sortBy") || "completedAt";
   const sortOrder = searchParams.get("sortOrder") === "desc" ? "desc" : "asc";
 
@@ -251,7 +246,7 @@ export function BountySubmissionsTable() {
       ...(showColumns.includes("performanceMetrics")
         ? [
             {
-              id: metricColumnId,
+              id: "performanceCount",
               header: capitalize(metricColumnLabel)!,
               cell: ({ row }: { row: Row<BountySubmissionProps> }) => {
                 if (!performanceCondition) {
@@ -325,7 +320,6 @@ export function BountySubmissionsTable() {
       groups,
       bounty,
       showColumns,
-      metricColumnId,
       metricColumnLabel,
       performanceCondition,
       workspaceId,
@@ -350,9 +344,7 @@ export function BountySubmissionsTable() {
     },
     sortableColumns: [
       "completedAt",
-      ...(bounty?.type === "performance"
-        ? ["leads", "conversions", "saleAmount", "commissions"]
-        : []),
+      ...(bounty?.type === "performance" ? ["performanceCount"] : []),
     ],
     sortBy,
     sortOrder,

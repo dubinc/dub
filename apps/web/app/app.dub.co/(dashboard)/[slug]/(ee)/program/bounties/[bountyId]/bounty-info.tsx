@@ -82,7 +82,8 @@ export function BountyInfo() {
             <span className="font-medium text-neutral-700">
               {nFormatter(bounty.partnersCount, { full: true })}
             </span>{" "}
-            {pluralize("submission", bounty.partnersCount ?? 0)}
+            {pluralize("partner", bounty.partnersCount ?? 0)}{" "}
+            {bounty.type === "performance" ? "completed" : "submitted"}
             {readyForReviewSubmissions > 0 && (
               <>
                 {" "}
