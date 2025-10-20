@@ -32,7 +32,7 @@ NODE cities_clicks
 SQL >
 
     %
-    SELECT city, country, {% if defined(unique) and Boolean(unique) == 1 %} uniqExact(identity_hash) {% else %} COUNT(city) {% end %} as clicks
+    SELECT city, country, COUNT(city) as clicks
     FROM
         dub_click_events_mv
           {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
