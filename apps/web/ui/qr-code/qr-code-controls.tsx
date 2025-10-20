@@ -56,9 +56,6 @@ export function QrCodeControls({
   const { handleToggleModal: setShowDuplicateQRModal, DuplicateQRModal } = useDuplicateQRModal({
     props: qrCode,
   });
-  const { handleToggleModal: setShowResetScansModal, ResetScansModal } = useResetScansModal({
-    props: qrCode,
-  });
   const { setShowArchiveQRModal, ArchiveQRModal } = useArchiveQRModal({
     props: qrCode,
   });
@@ -154,7 +151,6 @@ export function QrCodeControls({
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
       <DuplicateQRModal />
-      <ResetScansModal />
       <QRPreviewModal />
       <QRChangeTypeModal />
       <QRCustomizeModal />
@@ -270,7 +266,7 @@ export function QrCodeControls({
                 icon={<Palette className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
               />
-              <Button
+              {/* <Button
                 text="Reset scans"
                 variant="outline"
                 onClick={() => {
@@ -287,7 +283,7 @@ export function QrCodeControls({
                 }}
                 icon={<RotateCcw className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-              />
+              /> */}
             </div>
             <div className="w-full px-6" >
               <div className="border-t border-neutral-200 w-full" />

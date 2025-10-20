@@ -30,27 +30,27 @@ export const DELETE = withWorkspace(
     }
 
     // Ingest a link metadata row with stats_deleted=1, same as bulk-delete pattern
-    const linkForIngest = qr.link ?? (await prisma.link.findUnique({ where: { id: linkId } }));
-    if (!linkForIngest) {
-      return NextResponse.json(
-        { ok: false, message: "Associated link not found." },
-        { status: 404, headers },
-      );
-    }
-    await recordLinkTB({
-      ...transformLinkTB(linkForIngest),
-      stats_deleted: true,
-    } as any);
+    // const linkForIngest = qr.link ?? (await prisma.link.findUnique({ where: { id: linkId } }));
+    // if (!linkForIngest) {
+    //   return NextResponse.json(
+    //     { ok: false, message: "Associated link not found." },
+    //     { status: 404, headers },
+    //   );
+    // }
+    // await recordLinkTB({
+    //   ...transformLinkTB(linkForIngest),
+    //   stats_deleted: true,
+    // } as any);
 
-    await prisma.link.update({
-      where: { id: linkId },
-      data: {
-        clicks: 0,
-        leads: 0,
-        sales: 0,
-        saleAmount: 0,
-      },
-    });
+    // await prisma.link.update({
+    //   where: { id: linkId },
+    //   data: {
+    //     clicks: 0,
+    //     leads: 0,
+    //     sales: 0,
+    //     saleAmount: 0,
+    //   },
+    // });
 
     return NextResponse.json(
       {
