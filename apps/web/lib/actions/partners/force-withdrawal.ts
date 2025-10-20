@@ -47,6 +47,12 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
       },
     });
 
+    if (previouslyProcessedPayouts.length === 0) {
+      throw new Error(
+        "No previously processed payouts found. Please try again or contact support.",
+      );
+    }
+
     try {
       await createStripeTransfer({
         partner,
