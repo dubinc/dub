@@ -57,6 +57,7 @@ model Program {
   helpUrl                      String?                  @db.Text
   supportEmail                 String?
   autoApprovePartnersEnabledAt DateTime?
+  marketplaceEnabledAt         DateTime?
   messagingEnabledAt           DateTime?
   partnerNetworkEnabledAt      DateTime?
   createdAt                    DateTime                 @default(now())
