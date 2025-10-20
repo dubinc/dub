@@ -11,7 +11,6 @@ import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
-  buttonVariants,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -177,57 +176,61 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
   } as any);
 
   return (
-    <div>
-      <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <Sheet.Title className="text-lg font-semibold">
-          Payout details
-        </Sheet.Title>
-        <Sheet.Close asChild>
-          <Button
-            variant="outline"
-            icon={<X className="size-5" />}
-            className="h-auto w-fit p-1"
-          />
-        </Sheet.Close>
-      </div>
-      <div className="flex flex-col gap-4 p-6">
-        <div className="text-base font-medium text-neutral-900">
-          Invoice details
-        </div>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          {Object.entries(invoiceData).map(([key, value]) => (
-            <Fragment key={key}>
-              <div className="flex items-center font-medium text-neutral-500">
-                {key}
-              </div>
-              <div className="text-neutral-800">{value}</div>
-            </Fragment>
-          ))}
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
+            Payout details
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
         </div>
       </div>
-      {isLoading ? (
-        <div className="flex h-full items-center justify-center">
-          <LoadingSpinner />
+
+      <div className="flex grow flex-col">
+        <div className="flex flex-col gap-4 p-6">
+          <div className="text-base font-medium text-neutral-900">
+            Invoice details
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            {Object.entries(invoiceData).map(([key, value]) => (
+              <Fragment key={key}>
+                <div className="flex items-center font-medium text-neutral-500">
+                  {key}
+                </div>
+                <div className="text-neutral-800">{value}</div>
+              </Fragment>
+            ))}
+          </div>
         </div>
-      ) : earnings?.length ? (
-        <>
+
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : earnings?.length ? (
           <div className="p-6 pt-2">
             <Table {...table} />
           </div>
-          <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
-            <Link
-              href={`/programs/${payout.program.slug}/earnings?payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-7 items-center rounded-lg border px-2 text-sm",
-              )}
-            >
-              View all
-            </Link>
-          </div>
-        </>
-      ) : null}
+        ) : null}
+      </div>
+
+      <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
+        <div className="flex items-center justify-between gap-2 p-5">
+          <Link
+            href={`/programs/${payout.program.slug}/earnings?payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`}
+            target="_blank"
+            className="w-full"
+          >
+            <Button variant="secondary" text="View all" />
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
