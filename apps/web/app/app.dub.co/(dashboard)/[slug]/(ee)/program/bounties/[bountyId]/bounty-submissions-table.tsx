@@ -96,10 +96,13 @@ export function BountySubmissionsTable() {
     data: submissions,
   } = useSWR<BountySubmissionProps[]>(
     workspaceId && bountyId
-      ? `/api/bounties/${bountyId}/submissions${getQueryString({
-          workspaceId,
-          sortBy,
-        })}`
+      ? `/api/bounties/${bountyId}/submissions${getQueryString(
+          {
+            workspaceId,
+            sortBy,
+          },
+          { exclude: ["submissionId"] },
+        )}`
       : null,
     fetcher,
     {
@@ -127,6 +130,38 @@ export function BountySubmissionsTable() {
       setDetailsSheetState({ open: true, submission });
     }
   }, [searchParams, submissions]);
+
+  // Navigation functions for the details sheet
+  const navigateToSubmission = (direction: "next" | "previous") => {
+    if (!submissions || !detailsSheetState.submission) return;
+
+    const currentIndex = submissions.findIndex(
+      (s) => s.id === detailsSheetState.submission!.id,
+    );
+
+    if (currentIndex === -1) return;
+
+    let targetIndex: number;
+    if (direction === "next") {
+      targetIndex = currentIndex + 1;
+      if (targetIndex >= submissions.length) {
+        targetIndex = 0; // Wrap to first
+      }
+    } else {
+      targetIndex = currentIndex - 1;
+      if (targetIndex < 0) {
+        targetIndex = submissions.length - 1; // Wrap to last
+      }
+    }
+
+    const targetSubmission = submissions[targetIndex];
+    if (targetSubmission) {
+      queryParams({ set: { submissionId: targetSubmission.id } });
+    }
+  };
+
+  const onNext = () => navigateToSubmission("next");
+  const onPrevious = () => navigateToSubmission("previous");
 
   const columns = useMemo(
     () => [
@@ -356,6 +391,8 @@ export function BountySubmissionsTable() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           submission={detailsSheetState.submission}
+          onNext={onNext}
+          onPrevious={onPrevious}
         />
       )}
 
