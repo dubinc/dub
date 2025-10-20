@@ -296,13 +296,16 @@ function ABTestingEdit({
               return;
             }
 
-            // Normalize URLs to ensure they have proper protocol
-            const normalizedTests = currentTests.map((test) => ({
-              ...test,
-              url: test.url.startsWith("http")
-                ? test.url
-                : `https://${test.url}`,
-            }));
+            // Normalize URLs to match analytics normalization: trim whitespace, ensure protocol, strip trailing slashes
+            const normalizedTests = currentTests.map((test) => {
+              const trimmedUrl = test.url.trim();
+              const urlWithProtocol = getUrlFromString(trimmedUrl);
+              const normalizedUrl = urlWithProtocol.replace(/\/+$/, "");
+              return {
+                ...test,
+                url: normalizedUrl,
+              };
+            });
 
             setValueParent("url", normalizedTests[0].url, {
               shouldDirty: true,
@@ -380,7 +383,8 @@ function ABTestingEdit({
                           {index + 1}
                         </span>
                         <input
-                          type="url"
+                          type="text"
+                          inputMode="url"
                           placeholder={getPrettyUrl(
                             domains?.find(({ slug }) => slug === domain)
                               ?.placeholder ||
@@ -409,16 +413,25 @@ function ABTestingEdit({
                             });
                           }}
                           onBlur={(e) => {
-                            const url = getUrlFromString(e.target.value);
+                            const raw = e.target.value.trim();
+                            const url = getUrlFromString(raw);
                             if (url) {
-                              const normalizedUrl = url.replace(/\/$/, "");
+                              const normalizedUrl = url.replace(/\/+$/, "");
                               setValue(
                                 `testVariants.${index}.url`,
                                 normalizedUrl,
                                 {
                                   shouldDirty: true,
+                                  shouldValidate: true,
+                                  shouldTouch: true,
                                 },
                               );
+                              // Keep destination URL and position 1 in sync
+                              if (index === 0) {
+                                setValueParent("url", normalizedUrl, {
+                                  shouldDirty: true,
+                                });
+                              }
                               // Clear the local input state to show the pretty URL
                               setUrlInputs((prev) => ({
                                 ...prev,
@@ -673,13 +686,16 @@ function ABTestingEdit({
                   return;
                 }
 
-                // Normalize URLs to ensure they have proper protocol
-                const normalizedTests = currentTests.map((test) => ({
-                  ...test,
-                  url: test.url.startsWith("http")
-                    ? test.url
-                    : `https://${test.url}`,
-                }));
+                // Normalize URLs to match analytics normalization: trim whitespace, ensure protocol, strip trailing slashes
+                const normalizedTests = currentTests.map((test) => {
+                  const trimmedUrl = test.url.trim();
+                  const urlWithProtocol = getUrlFromString(trimmedUrl);
+                  const normalizedUrl = urlWithProtocol.replace(/\/+$/, "");
+                  return {
+                    ...test,
+                    url: normalizedUrl,
+                  };
+                });
 
                 setValueParent("url", normalizedTests[0].url, {
                   shouldDirty: true,

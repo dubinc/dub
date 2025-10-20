@@ -21,9 +21,20 @@ function UrlWithTooltip({ url }: { url: string }) {
 
   useEffect(() => {
     const element = textRef.current;
-    if (element) {
+    if (!element) return;
+
+    const compute = () => {
       setIsOverflowing(element.scrollWidth > element.clientWidth);
-    }
+    };
+
+    compute();
+
+    const resizeObserver = new ResizeObserver(compute);
+    resizeObserver.observe(element);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, [url]);
 
   const content = (
@@ -138,54 +149,69 @@ function EndABTestingModal({
             Select the new destination URL to end the test. Save your changes on
             the link editor to confirm the change.
           </p>
-          <div className="mt-4 flex flex-col gap-2">
-            {testVariants?.map((test, index) => {
-              const normalized = normalizeUrl(test.url);
-              const analytics = analyticsByNormalizedUrl?.get(normalized);
+          <div
+            className="mt-4 flex flex-col gap-2"
+            role="radiogroup"
+            aria-label="Select winning URL"
+          >
+            {(() => {
               const link = getValuesParent();
-              return (
-                <button
-                  key={test.id}
-                  type="button"
-                  onClick={() => setSelectedUrl(test.url)}
-                  className={`relative flex w-full items-center justify-between rounded-lg border bg-white p-0 text-left ring-0 ring-black transition-all duration-100 hover:bg-neutral-50 ${
-                    selectedUrl === test.url
-                      ? "border-black ring-1"
-                      : "border-neutral-200"
-                  }`}
-                >
-                  <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden py-1 pl-1 pr-2">
-                    <div className="flex size-8 shrink-0 items-center justify-center">
-                      <div
-                        className={`size-4 rounded-full border transition-all ${
-                          selectedUrl === test.url
-                            ? "border-4 border-black"
-                            : "border-neutral-400"
-                        }`}
-                      />
+              return testVariants?.map((test, index) => {
+                const normalized = normalizeUrl(test.url);
+                const analytics = analyticsByNormalizedUrl?.get(normalized);
+                return (
+                  <button
+                    key={normalizeUrl(test.url) || test.url}
+                    type="button"
+                    role="radio"
+                    aria-checked={selectedUrl === test.url}
+                    onClick={() => setSelectedUrl(test.url)}
+                    className={`relative flex w-full items-center justify-between rounded-lg border bg-white p-0 text-left ring-0 ring-black transition-all duration-100 hover:bg-neutral-50 ${
+                      selectedUrl === test.url
+                        ? "border-black ring-1"
+                        : "border-neutral-200"
+                    }`}
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden py-1 pl-1 pr-2">
+                      <div className="flex size-8 shrink-0 items-center justify-center">
+                        <div
+                          className={`size-4 rounded-full border transition-all ${
+                            selectedUrl === test.url
+                              ? "border-4 border-black"
+                              : "border-neutral-400"
+                          }`}
+                        />
+                      </div>
+                      <UrlWithTooltip url={test.url} />
                     </div>
-                    <UrlWithTooltip url={test.url} />
-                  </div>
-                  <div className="flex shrink-0 items-center pr-1">
-                    {isLoading || !analyticsByNormalizedUrl ? (
-                      <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-100" />
-                    ) : error ? null : (
-                      <LinkAnalyticsBadge
-                        link={{
-                          ...(link as any),
-                          clicks: analytics?.clicks ?? 0,
-                          leads: analytics?.leads ?? 0,
-                          sales: analytics?.sales ?? 0,
-                          saleAmount: analytics?.saleAmount ?? 0,
-                        }}
-                        url={test.url}
-                        sharingEnabled={false}
-                      />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+                    <div
+                      className="flex shrink-0 items-center pr-1"
+                      onClickCapture={(e) => {
+                        // Block inner link navigation; keep row selection behavior
+                        e.preventDefault();
+                        e.stopPropagation();
+                      }}
+                    >
+                      {isLoading || !analyticsByNormalizedUrl ? (
+                        <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-100" />
+                      ) : error ? null : (
+                        <LinkAnalyticsBadge
+                          link={{
+                            ...(link as any),
+                            clicks: analytics?.clicks ?? 0,
+                            leads: analytics?.leads ?? 0,
+                            sales: analytics?.sales ?? 0,
+                            saleAmount: analytics?.saleAmount ?? 0,
+                          }}
+                          url={test.url}
+                          sharingEnabled={false}
+                        />
+                      )}
+                    </div>
+                  </button>
+                );
+              });
+            })()}
           </div>
         </div>
 

@@ -106,7 +106,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
 
           return (
             <li
-              key={idx}
+              key={normalizedTestUrl || idx}
               className="flex items-center justify-between rounded-md border border-neutral-300 bg-white p-2.5"
             >
               <div className="flex min-w-0 items-center gap-4">

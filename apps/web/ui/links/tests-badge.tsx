@@ -23,6 +23,9 @@ export function TestsBadge({
         year: "numeric",
       })
     : undefined;
+  const isBeyondSixWeeks = completedAtDate
+    ? completedAtDate.getTime() > Date.now() + 6 * 7 * 24 * 60 * 60 * 1000
+    : false;
 
   return (
     <div className="hidden sm:block">
@@ -38,9 +41,19 @@ export function TestsBadge({
                 <p className="font-semibold text-neutral-900">
                   A/B test is running
                 </p>
-                <p className="mt-1 text-neutral-600">
+                <p
+                  className={cn(
+                    "mt-1",
+                    isBeyondSixWeeks ? "text-red-600" : "text-neutral-600",
+                  )}
+                >
                   Scheduled completion date is{" "}
-                  <span className="font-medium text-neutral-800">
+                  <span
+                    className={cn(
+                      "font-medium",
+                      isBeyondSixWeeks ? "text-red-800" : "text-neutral-800",
+                    )}
+                  >
                     {formattedDate}
                   </span>
                 </p>
