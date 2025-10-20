@@ -89,9 +89,6 @@ export default function Toggle({
 
   const scrolled = useScroll(120);
 
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [isToggleOpen, setIsToggleOpen] = useState(false)
   const [selectedToggleFilterKey, setSelectedToggleFilterKey] = useState<string | undefined>(undefined)
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
@@ -142,51 +139,67 @@ export default function Toggle({
 
   const { data: links } = useAnalyticsFilterOption("top_links", {
     cacheOnly: !isRequested("link"),
+    filterKey: "domain"
   });
   const { data: countries } = useAnalyticsFilterOption("countries", {
     cacheOnly: !isRequested("country"),
+    filterKey: "country"
   });
   const { data: regions } = useAnalyticsFilterOption("regions", {
     cacheOnly: !isRequested("region"),
+    filterKey: "region"
   });
   const { data: cities } = useAnalyticsFilterOption("cities", {
     cacheOnly: !isRequested("city"),
+    filterKey: "city"
   });
   const { data: continents } = useAnalyticsFilterOption("continents", {
     cacheOnly: !isRequested("continent"),
+    filterKey: "continent"
   });
   const { data: devices } = useAnalyticsFilterOption("devices", {
     cacheOnly: !isRequested("device"),
+    filterKey: "device"
   });
   const { data: browsers } = useAnalyticsFilterOption("browsers", {
     cacheOnly: !isRequested("browser"),
+    filterKey: "browser"
   });
   const { data: os } = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
+    filterKey: "os"
   });
   const { data: referers } = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
+    filterKey: "referer"
   });
   const { data: refererUrls } = useAnalyticsFilterOption("referer_urls", {
     cacheOnly: !isRequested("refererUrl"),
+    filterKey: "refererUrl"
   });
   const { data: urls } = useAnalyticsFilterOption("top_urls", {
     cacheOnly: !isRequested("url"),
+    filterKey: "url"
   });
   const { data: utmSources } = useAnalyticsFilterOption("utm_sources", {
     cacheOnly: !isRequested("utm_source"),
+    filterKey: "utm_source"
   });
   const { data: utmMediums } = useAnalyticsFilterOption("utm_mediums", {
     cacheOnly: !isRequested("utm_medium"),
+    filterKey: "utm_medium"
   });
   const { data: utmCampaigns } = useAnalyticsFilterOption("utm_campaigns", {
     cacheOnly: !isRequested("utm_campaign"),
+    filterKey: "utm_campaign"
   });
   const { data: utmTerms } = useAnalyticsFilterOption("utm_terms", {
     cacheOnly: !isRequested("utm_term"),
+    filterKey: "utm_term"
   });
   const { data: utmContents } = useAnalyticsFilterOption("utm_contents", {
     cacheOnly: !isRequested("utm_content"),
+    filterKey: "utm_content"
   });
   const utmData = {
     utm_source: utmSources,
@@ -472,56 +485,56 @@ export default function Toggle({
 
   const { isMobile } = useMediaQuery();
 
+  const onFilterSelect = async (key, value) => {
+    if (key === "ai") {
+      setStreaming(true);
+      const prompt = value.replace("Ask AI ", "");
+      const { object } = await generateFilters(prompt);
+      for await (const partialObject of readStreamableValue(object)) {
+        if (partialObject) {
+          queryParams({
+            set: Object.fromEntries(
+              Object.entries(partialObject).map(([key, value]) => [
+                key,
+                // Convert Dates to ISO strings
+                value instanceof Date ? value.toISOString() : String(value),
+              ]),
+            ),
+          });
+        }
+      }
+      setStreaming(false);
+    } else {
+      let del: string | string[] = "page";
+      if (key === "qrType") {
+        del = ["domain", "key", "page"];
+      }
+      if (key === "link") {
+        del = ["qrType", "page"];
+      }
+      queryParams({
+        set:
+          key === "link"
+            ? {
+                domain: new URL(`https://${value}`).hostname,
+                key:
+                  new URL(`https://${value}`).pathname.slice(1) || "_root",
+              }
+            : {
+                [key]: value,
+              },
+        del,
+        scroll: false,
+      });
+    }
+  }
+
   const filterSelect = (
     <Filter.Select
       className="w-full md:w-fit"
       filters={filters}
       activeFilters={activeFilters}
-      onSearchChange={setSearch}
-      onSelectedFilterChange={setSelectedFilter}
-      onSelect={async (key, value) => {
-        if (key === "ai") {
-          setStreaming(true);
-          const prompt = value.replace("Ask AI ", "");
-          const { object } = await generateFilters(prompt);
-          for await (const partialObject of readStreamableValue(object)) {
-            if (partialObject) {
-              queryParams({
-                set: Object.fromEntries(
-                  Object.entries(partialObject).map(([key, value]) => [
-                    key,
-                    // Convert Dates to ISO strings
-                    value instanceof Date ? value.toISOString() : String(value),
-                  ]),
-                ),
-              });
-            }
-          }
-          setStreaming(false);
-        } else {
-          let del: string | string[] = "page";
-          if (key === "qrType") {
-            del = ["domain", "key", "page"];
-          }
-          if (key === "link") {
-            del = ["qrType", "page"];
-          }
-          queryParams({
-            set:
-              key === "link"
-                ? {
-                    domain: new URL(`https://${value}`).hostname,
-                    key:
-                      new URL(`https://${value}`).pathname.slice(1) || "_root",
-                  }
-                : {
-                    [key]: value,
-                  },
-            del,
-            scroll: false,
-          });
-        }
-      }}
+      onSelect={onFilterSelect}
       onRemove={(key, value) =>
         queryParams({
           del: key === "link" ? ["domain", "key"] : key,
@@ -532,10 +545,8 @@ export default function Toggle({
         setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
       }
       resetDefaultStates={() => {
-        setIsToggleOpen(false)
         setSelectedToggleFilterKey(undefined)
       }}
-      defaultIsOpen={isToggleOpen}
       defaultSelectedFilterKey={selectedToggleFilterKey}
     />
   );
@@ -741,11 +752,12 @@ export default function Toggle({
                 }))
               : []),
           ]}
-          onRemove={(key, value) =>
-            queryParams({
-              del: key === "link" ? ["domain", "key", "url"] : key,
-              scroll: false,
-            })
+          onRemove={(key, value) => {
+              queryParams({
+                del: key === "link" ? ["domain", "key", "url"] : key,
+                scroll: false,
+              })
+            }
           }
           onRemoveAll={() =>
             queryParams({
@@ -756,10 +768,8 @@ export default function Toggle({
               scroll: false,
             })
           }
-          onSelect={(key) => {
-            setIsToggleOpen(true)
-            setSelectedToggleFilterKey(key)
-          }}
+          onSelect={onFilterSelect}
+          isOptionDropdown
         />
         <div
           className={cn(
