@@ -42,8 +42,6 @@ export const generateStripeAccountLink = authPartnerActionClient.action(
       }
       // create a new account
       const connectedAccount = await createConnectedAccount({
-        name: partner.name,
-        email: partner.email,
         country: partner.country,
         profileType: partner.profileType,
         companyName: partner.companyName,
