@@ -110,7 +110,7 @@ export default function ConnectPayoutReminder({
 
             <Section className="mt-8 text-center">
               <Link
-                href={`https://partners.dub.co/register?email=${email}&next=/settings/payouts`}
+                href={`https://partners.dub.co/register?email=${email}&next=/payouts`}
                 className="box-border block w-full rounded-md bg-black px-0 py-4 text-center text-sm font-medium leading-none text-white no-underline"
               >
                 Connect payout details

@@ -26,12 +26,10 @@ export async function createNewCustomer(event: Stripe.Event) {
   }
 
   // Find click
-  const clickEvent = await getClickEvent({ clickId });
-  if (!clickEvent || clickEvent.data.length === 0) {
+  const clickData = await getClickEvent({ clickId });
+  if (!clickData) {
     return `Click event with ID ${clickId} not found, skipping...`;
   }
-
-  const clickData = clickEvent.data[0];
 
   // Find link
   const linkId = clickData.link_id;

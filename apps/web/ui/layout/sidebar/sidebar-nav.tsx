@@ -23,7 +23,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import UserDropdown from "./user-dropdown";
+import { UserDropdown } from "./user-dropdown";
 
 export type NavItemCommon = {
   name: string;

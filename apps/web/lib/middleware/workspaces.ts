@@ -2,13 +2,10 @@ import { UserProps } from "@/lib/types";
 import { NextRequest, NextResponse } from "next/server";
 import { isValidInternalRedirect, parse } from "./utils";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
-import { getDubProductFromCookie } from "./utils/get-dub-product-from-cookie";
+import { getWorkspaceProduct } from "./utils/get-workspace-product";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 
-export default async function WorkspacesMiddleware(
-  req: NextRequest,
-  user: UserProps,
-) {
+export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
   const { path, searchParamsObj, searchParamsString } = parse(req);
 
   // Handle ?next= query param with proper validation to prevent open redirects
@@ -30,8 +27,7 @@ export default async function WorkspacesMiddleware(
     }
 
     if (!redirectPath) {
-      // Determine product from cookie (default to links)
-      const product = await getDubProductFromCookie(defaultWorkspace);
+      const product = await getWorkspaceProduct(defaultWorkspace);
       redirectPath = `/${product}`;
     }
 

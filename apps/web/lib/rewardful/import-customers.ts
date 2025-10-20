@@ -99,13 +99,20 @@ async function createCustomer({
     entity_id: referralId,
   } as const;
 
-  if (!referral.link) {
+  if (!referral.link && !referral.coupon) {
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for referral ${referralId} (could've been a coupon-based referral).`,
+      message: `Link or coupon not found for referral ${referralId}.`,
     });
 
+    return;
+  }
+
+  const shortLinkToken = referral.link?.token || referral.coupon?.token;
+
+  if (!shortLinkToken) {
+    console.error(`Short link token not found for referral ${referralId}.`);
     return;
   }
 
@@ -113,7 +120,7 @@ async function createCustomer({
     where: {
       domain_key: {
         domain: program.domain!,
-        key: referral.link.token,
+        key: shortLinkToken,
       },
     },
   });
@@ -122,7 +129,7 @@ async function createCustomer({
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for referral ${referralId} (token: ${referral.link.token}).`,
+      message: `Link not found for referral ${referralId} (token: ${shortLinkToken}).`,
     });
 
     return;

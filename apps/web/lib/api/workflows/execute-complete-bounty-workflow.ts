@@ -182,6 +182,9 @@ export const executeCompleteBountyWorkflow = async ({
       subject: "Bounty completed!",
       to: partner.email,
       variant: "notifications",
+      ...(bounty.program.supportEmail
+        ? { replyTo: bounty.program.supportEmail }
+        : {}),
       react: BountyCompleted({
         email: partner.email,
         bounty: {

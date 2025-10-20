@@ -4,10 +4,11 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { getNetworkInvitesUsage } from "@/lib/api/partners/get-network-invites-usage";
+import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerFromNetworkSchema } from "@/lib/zod/schemas/partner-network";
 import { sendEmail } from "@dub/email";
-import ProgramInvite from "@dub/email/templates/program-invite";
+import ProgramNetworkInvite from "@dub/email/templates/program-network-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -85,19 +86,27 @@ export const invitePartnerFromNetworkAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        sendEmail({
-          subject: `${program.name} invited you to join on Dub Partners`,
-          variant: "notifications",
-          to: partner.email,
-          react: ProgramInvite({
-            email: partner.email,
-            program: {
-              name: program.name,
-              slug: program.slug,
-              logo: program.logo,
-            },
-          }),
-        }),
+        (async () => {
+          if (!partner.email) return;
+          await sendEmail({
+            subject: `${program.name} invited you to join on Dub Partners`,
+            variant: "notifications",
+            to: partner.email,
+            react: ProgramNetworkInvite({
+              email: partner.email,
+              name: partner.name,
+              program: {
+                name: program.name,
+                slug: program.slug,
+                logo: program.logo,
+              },
+              ...(await getPartnerInviteRewardsAndBounties({
+                programId,
+                groupId: enrolledPartner.groupId || program.defaultGroupId,
+              })),
+            }),
+          });
+        })(),
 
         recordAuditLog({
           workspaceId: workspace.id,

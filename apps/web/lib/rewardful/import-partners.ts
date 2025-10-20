@@ -4,6 +4,7 @@ import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { logImportError } from "../tinybird/log-import-error";
+import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
@@ -72,10 +73,11 @@ export async function importPartners(payload: RewardfulImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
-      await Promise.all(
+      const partners = await Promise.all(
         activeAffiliates.map((affiliate) => {
           const groupId = campaignIdToGroupMap[affiliate.campaign.id];
           const group = program.groups.find((group) => group.id === groupId);
+
           if (!group) {
             console.error(
               `Group not found for campaign ${affiliate.campaign.id}`,
@@ -102,6 +104,22 @@ export async function importPartners(payload: RewardfulImportPayload) {
           });
         }),
       );
+
+      const filteredPartners = partners.filter(
+        (p): p is NonNullable<typeof p> => p !== undefined,
+      );
+
+      if (filteredPartners.length > 0) {
+        await redis.hset(
+          `rewardful:affiliates:${program.id}`,
+          Object.fromEntries(
+            filteredPartners.map((p) => [
+              p.rewardfulAffiliateId,
+              p.dubPartnerId,
+            ]),
+          ),
+        );
+      }
     }
 
     if (notImportedAffiliates.length > 0) {
@@ -119,7 +137,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
     processedBatches++;
   }
 
-  const action = hasMore ? "import-partners" : "import-customers";
+  const action = hasMore ? "import-partners" : "import-affiliate-coupons";
 
   await rewardfulImporter.queue({
     ...payload,
@@ -187,23 +205,25 @@ async function createPartnerAndLinks({
     return;
   }
 
-  if (programEnrollment.links.length > 0) {
-    console.log("Partner already has links", partner.id);
-    return;
+  if (programEnrollment.links.length === 0) {
+    await bulkCreateLinks({
+      links: affiliate.links.map((link, idx) => ({
+        domain: program.domain!,
+        key: link.token || nanoid(),
+        url: program.url!,
+        trackConversion: true,
+        programId: program.id,
+        partnerId: partner.id,
+        folderId: program.defaultFolderId,
+        userId,
+        projectId: program.workspaceId,
+        partnerGroupDefaultLinkId: idx === 0 ? partnerGroupDefaultLinkId : null,
+      })),
+    });
   }
 
-  await bulkCreateLinks({
-    links: affiliate.links.map((link, idx) => ({
-      domain: program.domain!,
-      key: link.token || nanoid(),
-      url: program.url!,
-      trackConversion: true,
-      programId: program.id,
-      partnerId: partner.id,
-      folderId: program.defaultFolderId,
-      userId,
-      projectId: program.workspaceId,
-      partnerGroupDefaultLinkId: idx === 0 ? partnerGroupDefaultLinkId : null,
-    })),
-  });
+  return {
+    rewardfulAffiliateId: affiliate.id,
+    dubPartnerId: partner.id,
+  };
 }

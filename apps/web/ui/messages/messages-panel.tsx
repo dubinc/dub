@@ -12,6 +12,7 @@ import Linkify from "linkify-react";
 import { ChevronRight } from "lucide-react";
 import { Fragment, useMemo, useRef, useState } from "react";
 import { MessageInput } from "../shared/message-input";
+import { MessageMarkdown } from "./message-markdown";
 
 interface Sender {
   name: string | null;
@@ -158,7 +159,7 @@ export function MessagesPanel({
 
                       <div
                         className={cn(
-                          "flex flex-col items-start gap-1",
+                          "flex min-w-0 flex-col items-start gap-1",
                           isMySide && "items-end",
                         )}
                       >
@@ -175,7 +176,7 @@ export function MessagesPanel({
                         {/* Message box */}
                         <div
                           className={cn(
-                            "max-w-lg whitespace-pre-wrap rounded-xl px-4 py-2.5 text-sm",
+                            "max-w-[min(100%,512px)] whitespace-pre-wrap break-words rounded-xl px-4 py-2.5 text-sm",
                             isMySide
                               ? "text-content-inverted rounded-br bg-neutral-700"
                               : "text-content-default rounded-bl bg-neutral-100",
@@ -388,7 +389,7 @@ function CampaignMessage({
 
       <div
         className={cn(
-          "flex flex-col items-start gap-1",
+          "flex min-w-0 flex-col items-start gap-1",
           isMySide && "items-end",
         )}
       >
@@ -404,7 +405,7 @@ function CampaignMessage({
 
         <div
           className={cn(
-            "max-w-lg rounded-xl text-sm",
+            "max-w-[min(100%,512px)] rounded-xl text-sm",
             isMySide
               ? "text-content-inverted rounded-br bg-neutral-700"
               : "text-content-default rounded-bl bg-neutral-100",
@@ -449,20 +450,13 @@ function CampaignMessage({
           <AnimatedSizeContainer height>
             <div
               className={cn(
-                "max-w-lg overflow-hidden whitespace-pre-wrap",
-                isExpanded ? "max-h-[1000px] px-4 py-2.5" : "max-h-0 px-4 py-0",
+                "max-w-lg overflow-hidden",
+                isExpanded ? "px-2 py-2.5" : "max-h-0 px-2 py-0",
               )}
             >
-              <Linkify
-                as="div"
-                options={{
-                  target: "_blank",
-                  rel: "noopener noreferrer nofollow",
-                  className: "underline underline-offset-4",
-                }}
-              >
+              <MessageMarkdown invert={isMySide}>
                 {message.text}
-              </Linkify>
+              </MessageMarkdown>
             </div>
           </AnimatedSizeContainer>
         </div>

@@ -1,4 +1,3 @@
-import z from "@/lib/zod";
 import { LeaderboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import {
@@ -13,6 +12,7 @@ import { currencyFormatter, fetcher } from "@dub/utils";
 import { cn } from "@dub/utils/src/functions";
 import { motion } from "motion/react";
 import useSWR from "swr";
+import { z } from "zod";
 import { useEmbedToken } from "../../embed/use-embed-token";
 
 export function ReferralsEmbedLeaderboard() {

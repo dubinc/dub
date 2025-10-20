@@ -81,24 +81,32 @@ export async function processPayoutInvoiceFailure({
   let chargedFailureFee = false;
   let cardLast4: string | undefined;
 
-  // Charge failure fee for direct debit payment failures
+  // Charge failure fee for direct debit payment failures (excluding blocked charges)
   if (paymentMethod === "direct_debit") {
-    const { paymentIntent, paymentMethod } = await createPaymentIntent({
-      stripeId: workspace.stripeId,
-      amount: PAYOUT_FAILURE_FEE_CENTS,
-      description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
-      statementDescriptor: "Dub Partners",
-    });
+    const isBlocked = charge?.outcome?.type === "blocked";
 
-    if (paymentIntent) {
-      chargedFailureFee = true;
+    if (!isBlocked) {
+      const { paymentIntent, paymentMethod } = await createPaymentIntent({
+        stripeId: workspace.stripeId,
+        amount: PAYOUT_FAILURE_FEE_CENTS,
+        description: `Dub Partners payout failure fee for invoice ${invoice.id}`,
+        statementDescriptor: "Dub Partners",
+      });
+
+      if (paymentIntent) {
+        chargedFailureFee = true;
+        console.log(
+          `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
+        );
+      }
+
+      if (paymentMethod?.card) {
+        cardLast4 = paymentMethod.card.last4;
+      }
+    } else {
       console.log(
-        `Charged a failure fee of $${PAYOUT_FAILURE_FEE_CENTS / 100} to ${workspace.slug}.`,
+        `Skipped charging failure fee for blocked direct debit charge on invoice ${invoice.id}.`,
       );
-    }
-
-    if (paymentMethod?.card) {
-      cardLast4 = paymentMethod.card.last4;
     }
   }
 

@@ -114,7 +114,7 @@ export default function PartnerPayoutConfirmed({
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href={`https://partners.dub.co/settings/payouts?payoutId=${payout.id}`}
+                href={`https://partners.dub.co/payouts?payoutId=${payout.id}`}
               >
                 View payout
               </Link>

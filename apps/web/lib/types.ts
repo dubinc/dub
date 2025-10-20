@@ -1,4 +1,3 @@
-import z from "@/lib/zod";
 import {
   PartnerBountySchema,
   PartnerEarningsSchema,
@@ -22,6 +21,7 @@ import {
   Webhook,
   WorkspaceRole,
 } from "@dub/prisma/client";
+import { z } from "zod";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
   FOLDER_PERMISSIONS,
@@ -36,6 +36,13 @@ import {
   getBountySubmissionsQuerySchema,
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
+import {
+  CampaignListSchema,
+  CampaignSchema,
+  campaignSummarySchema,
+  EMAIL_TEMPLATE_VARIABLES,
+  updateCampaignSchema,
+} from "./zod/schemas/campaigns";
 import {
   clickEventResponseSchema,
   clickEventSchemaTB,
@@ -84,7 +91,6 @@ import {
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
-  PayoutSchema,
 } from "./zod/schemas/payouts";
 import {
   programApplicationFormDataWithValuesSchema,
@@ -95,13 +101,8 @@ import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
   PartnerCommentSchema,
-  PartnerProgramInviteSchema,
   ProgramEnrollmentSchema,
-  ProgramInviteSchema,
-  ProgramMetricsSchema,
-  ProgramPartnerLinkSchema,
   ProgramSchema,
-  ProgramWithLanderDataSchema,
 } from "./zod/schemas/programs";
 import {
   rewardConditionsArraySchema,
@@ -112,7 +113,6 @@ import {
 } from "./zod/schemas/rewards";
 import {
   saleEventResponseSchema,
-  saleEventSchemaTB,
   trackSaleResponseSchema,
 } from "./zod/schemas/sales";
 import { tokenSchema } from "./zod/schemas/token";
@@ -197,8 +197,8 @@ export type PlanProps = (typeof plans)[number];
 
 export type BetaFeatures =
   | "noDubLink"
-  | "abTesting"
-  | "analyticsSettingsSiteVisitTracking";
+  | "analyticsSettingsSiteVisitTracking"
+  | "emailCampaigns";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -444,8 +444,6 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
 
 export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
 
-export type ProgramPartnerLinkProps = z.infer<typeof ProgramPartnerLinkSchema>;
-
 export type PartnerProfileCustomerProps = z.infer<
   typeof PartnerProfileCustomerSchema
 >;
@@ -472,10 +470,6 @@ export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramLanderData = z.infer<typeof programLanderSchema>;
 
-export type ProgramWithLanderDataProps = z.infer<
-  typeof ProgramWithLanderDataSchema
->;
-
 export type ProgramApplicationFormData = z.infer<
   typeof programApplicationFormSchema
 >;
@@ -488,12 +482,6 @@ export type ProgramApplicationFormFieldWithValues = z.infer<
   typeof programApplicationFormFieldWithValuesSchema
 >;
 
-export type ProgramInviteProps = z.infer<typeof ProgramInviteSchema>;
-
-export type PartnerProgramInviteProps = z.infer<
-  typeof PartnerProgramInviteSchema
->;
-
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
 export type PayoutsCount = {
@@ -501,8 +489,6 @@ export type PayoutsCount = {
   count: number;
   amount: number;
 };
-
-export type PayoutProps = z.infer<typeof PayoutSchema>;
 
 export type PayoutResponse = z.infer<typeof PayoutResponseSchema>;
 
@@ -550,11 +536,6 @@ export type RewardProps = z.infer<typeof RewardSchema>;
 export type CreatePartnerProps = z.infer<typeof createPartnerSchema>;
 
 export type ProgramData = z.infer<typeof programDataSchema>;
-
-export type ProgramMetrics = z.infer<typeof ProgramMetricsSchema>;
-
-export type PayoutMethod = "stripe" | "paypal";
-
 export type PaymentMethodOption = {
   currency?: string;
   mandate_options?: {
@@ -562,7 +543,6 @@ export type PaymentMethodOption = {
     transaction_type?: string;
   };
 };
-
 export interface FolderLinkCount {
   folderId: string;
   _count: number;
@@ -579,8 +559,6 @@ export type RewardConditionsArray = z.infer<typeof rewardConditionsArraySchema>;
 export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
-
-export type SaleEventTB = z.infer<typeof saleEventSchemaTB>;
 
 export type GroupProps = z.infer<typeof GroupSchema>;
 
@@ -653,4 +631,33 @@ export type BountySubmissionsQueryFilters = z.infer<
 
 export type Message = z.infer<typeof MessageSchema>;
 
+export type CampaignList = z.infer<typeof CampaignListSchema>;
+
+export type Campaign = z.infer<typeof CampaignSchema>;
+
+export type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;
+
+export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
+
 export type StripeMode = "test" | "sandbox" | "live";
+
+export type EmailTemplateVariables = Record<
+  (typeof EMAIL_TEMPLATE_VARIABLES)[number],
+  string | null | undefined
+>;
+
+export interface TiptapNode {
+  type: string;
+  text?: string;
+  attrs?: Record<string, any>;
+  content?: TiptapNode[];
+  marks?: Array<{ type: string; attrs?: Record<string, any> }>;
+}
+
+export interface CampaignWorkflowAttributeConfig {
+  label: string;
+  inputType: "number" | "currency" | "dropdown" | "none";
+  dropdownValues?: number[];
+}
+
+export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];

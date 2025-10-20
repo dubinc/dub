@@ -49,22 +49,13 @@ model Program {
   brandColor                   String?
   domain                       String?
   url                          String?
-  urlValidationMode            PartnerUrlValidationMode @default(domain)
-  linkStructure                PartnerLinkStructure     @default(short)
-  linkParameter                String? // null for SHORT, "via" for QUERY, "refer" for PATH
-  maxPartnerLinks              Int                      @default(10) // maximum number of links partners can create
-  cookieLength                 Int                      @default(90)
   holdingPeriodDays            Int                      @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount              Int                      @default(0) // Default minimum payout amount of $0
   embedData                    Json?                    @db.Json
-  landerData                   Json?                    @db.Json // TODO: drop this column after PR #2893 merges
-  landerPublishedAt            DateTime? // TODO: drop this column after PR #2893 merges
-  applicationFormData          Json?                    @db.Json // TODO: drop this column after PR #2893 merges
   resources                    Json?                    @db.Json
   termsUrl                     String?                  @db.Text
   helpUrl                      String?                  @db.Text
   supportEmail                 String?
-  ageVerification              Int?
   autoApprovePartnersEnabledAt DateTime?
   messagingEnabledAt           DateTime?
   partnerNetworkEnabledAt      DateTime?
@@ -73,7 +64,6 @@ model Program {
   startedAt                    DateTime?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
-  primaryDomain            Domain?                   @relation(fields: [domain], references: [slug], onUpdate: Cascade)
   partners                 ProgramEnrollment[]
   payouts                  Payout[]
   invoices                 Invoice[]
@@ -163,14 +153,12 @@ model ProgramApplication {
   name      String
   email     String
   country   String?
-  proposal  String?  @db.Text // TODO: drop this column after PR #2893 merges
   website   String?  @db.Text
   youtube   String?  @db.Text
   twitter   String?  @db.Text
   linkedin  String?  @db.Text
   instagram String?  @db.Text
   tiktok    String?  @db.Text
-  comments  String?  @db.Text // TODO: drop this column after PR #2893 merges
   formData  Json?    @db.Json
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

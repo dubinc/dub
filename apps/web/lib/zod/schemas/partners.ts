@@ -30,37 +30,43 @@ import { parseUrlSchema } from "./utils";
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 
 export const exportPartnerColumns = [
-  { id: "id", label: "ID", default: true, expanded: false },
-  { id: "name", label: "Name", default: true, expanded: false },
-  { id: "email", label: "Email", default: true, expanded: false },
-  { id: "country", label: "Country", default: true, expanded: false },
-  { id: "status", label: "Status", default: true, expanded: false },
-  { id: "createdAt", label: "Enrolled at", default: true, expanded: false },
+  { id: "id", label: "ID", default: true },
+  { id: "name", label: "Name", default: true },
+  { id: "email", label: "Email", default: true },
+  { id: "country", label: "Country", default: true },
+  { id: "status", label: "Status", default: true },
+  { id: "createdAt", label: "Enrolled at", default: true },
   {
     id: "payoutsEnabledAt",
     label: "Payouts enabled at",
     default: true,
     expanded: false,
   },
-  { id: "description", label: "Description", default: false, expanded: false },
-  { id: "clicks", label: "Clicks", default: false, expanded: true },
-  { id: "leads", label: "Leads", default: false, expanded: true },
-  { id: "conversions", label: "Conversions", default: false, expanded: true },
-  { id: "sales", label: "Sales", default: false, expanded: true },
-  { id: "saleAmount", label: "Revenue", default: false, expanded: true },
+  { id: "description", label: "Description", default: false },
+  { id: "totalClicks", label: "Clicks", default: false, numeric: true },
+  { id: "totalLeads", label: "Leads", default: false, numeric: true },
+  {
+    id: "totalConversions",
+    label: "Conversions",
+    default: false,
+    numeric: true,
+  },
+  { id: "totalSales", label: "Sales", default: false, numeric: true },
+  { id: "totalSaleAmount", label: "Revenue", default: false, numeric: true },
   {
     id: "totalCommissions",
     label: "Commissions",
     default: false,
     expanded: true,
+    numeric: true,
   },
-  { id: "netRevenue", label: "Net Revenue", default: false, expanded: true },
-  { id: "website", label: "Website", default: false, expanded: false },
-  { id: "youtube", label: "YouTube", default: false, expanded: false },
-  { id: "twitter", label: "Twitter", default: false, expanded: false },
-  { id: "linkedin", label: "LinkedIn", default: false, expanded: false },
-  { id: "instagram", label: "Instagram", default: false, expanded: false },
-  { id: "tiktok", label: "TikTok", default: false, expanded: false },
+  { id: "netRevenue", label: "Net Revenue", default: false, numeric: true },
+  { id: "website", label: "Website", default: false },
+  { id: "youtube", label: "YouTube", default: false },
+  { id: "twitter", label: "Twitter", default: false },
+  { id: "linkedin", label: "LinkedIn", default: false },
+  { id: "instagram", label: "Instagram", default: false },
+  { id: "tiktok", label: "TikTok", default: false },
 ];
 
 export const BAN_PARTNER_REASONS = {
@@ -523,23 +529,19 @@ export const createPartnerSchema = z.object({
 
 // This is a temporary fix to allow arbitrary image URL
 // TODO: Fix this by using file-type
-const partnerImageSchema = z
-  .union([
-    base64ImageSchema,
-    storedR2ImageUrlSchema,
-    publicHostedImageSchema,
-    z
-      .string()
-      .url()
-      .trim()
-      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
-        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
-      }),
-  ])
-  .transform((v) => v || "")
-  .refine((v) => v !== "", {
-    message: "Image is required",
-  });
+const partnerImageSchema = z.union([
+  base64ImageSchema,
+  storedR2ImageUrlSchema,
+  publicHostedImageSchema,
+  z
+    .string()
+    .url()
+    .trim()
+    .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+      message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+    }),
+  z.string().nullish(), // make image optional
+]);
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({

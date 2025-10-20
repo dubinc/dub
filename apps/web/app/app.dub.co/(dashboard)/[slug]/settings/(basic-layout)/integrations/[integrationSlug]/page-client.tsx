@@ -272,6 +272,7 @@ export default function IntegrationPageClient({
                 icon={<ConnectedDots className="size-4" />}
                 disabledTooltip={
                   integration.id === HUBSPOT_INTEGRATION_ID &&
+                  plan !== "business" &&
                   plan !== "advanced" &&
                   plan !== "enterprise" ? (
                     <TooltipContent

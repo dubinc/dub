@@ -2,13 +2,13 @@ import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
-import z from "@/lib/zod";
 import {
   PartnerEarningsSchema,
   getPartnerEarningsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/partner-profile/programs/[programId]/earnings – get earnings for a partner in a program enrollment
 export const GET = withPartnerProfile(

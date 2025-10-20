@@ -1,7 +1,7 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
 
-export default function ApiMiddleware(req: NextRequest) {
+export function ApiMiddleware(req: NextRequest) {
   const { fullPath } = parse(req);
 
   // redirect to dub.co for /metatags

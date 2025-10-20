@@ -1,6 +1,6 @@
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
-import z from "@/lib/zod";
 import { expect } from "vitest";
+import { z } from "zod";
 import {
   E2E_PARTNER,
   E2E_PARTNER_GROUP,

@@ -248,14 +248,16 @@ function BrandingFormInner({
 
   const { isGeneratingLander } = useBrandingContext();
 
-  const disablePublishButton = useMemo(() => {
+  const publishButtonActive = useMemo(() => {
     // the lander is being generated with AI, disable publishing
-    if (isGeneratingLander) return true;
+    if (isGeneratingLander) return false;
 
-    // if (draftUsed && draft) return false;
+    // if the lander is not published, allow publishing
+    if (!group.landerPublishedAt) return true;
 
-    return !isDirty;
-  }, [isGeneratingLander, isDirty]);
+    // if the lander is published, allow publishing if there are changes
+    return isDirty;
+  }, [isGeneratingLander, group.landerPublishedAt, isDirty]);
   return (
     <form
       onSubmit={handleSubmit(async (data) => {
@@ -340,7 +342,7 @@ function BrandingFormInner({
               variant="primary"
               text="Publish"
               loading={isPending || isSubmitting || isSubmitSuccessful}
-              disabled={disablePublishButton}
+              disabled={!publishButtonActive}
               className="h-8 w-fit px-3"
             />
           </div>

@@ -35,6 +35,7 @@ model Partner {
   paypalEmail                  String?            @unique
   stripeConnectId              String?            @unique
   payoutsEnabledAt             DateTime?
+  payoutMethodHash             String?            @unique
   minWithdrawalAmount          Int                @default(10000) // Default minimum withdrawal amount of $100
   connectPayoutsLastRemindedAt DateTime?
   createdAt                    DateTime           @default(now())
@@ -60,16 +61,17 @@ model Partner {
   invoiceSettings              Json?
   monthlyTraffic               MonthlyTraffic?
 
-  programs          ProgramEnrollment[]
-  users             PartnerUser[]
-  invites           PartnerInvite[]
-  payouts           Payout[]
-  commissions       Commission[]
-  bountySubmissions BountySubmission[]
-  messages          Message[]
-  sentMessages      Message[]           @relation("SenderPartner")
-  comments          PartnerComment[]
-  discountCodes     DiscountCode[]
+  programs           ProgramEnrollment[]
+  users              PartnerUser[]
+  invites            PartnerInvite[]
+  payouts            Payout[]
+  commissions        Commission[]
+  bountySubmissions  BountySubmission[]
+  messages           Message[]
+  sentMessages       Message[]           @relation("SenderPartner")
+  comments           PartnerComment[]
+  discountCodes      DiscountCode[]
+  notificationEmails NotificationEmail[]
 
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]

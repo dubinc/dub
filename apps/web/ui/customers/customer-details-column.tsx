@@ -1,5 +1,5 @@
 import { CustomerActivityResponse, CustomerProps } from "@/lib/types";
-import { CopyButton, UTM_PARAMETERS } from "@dub/ui";
+import { CopyButton, TimestampTooltip, UTM_PARAMETERS } from "@dub/ui";
 import {
   capitalize,
   cn,
@@ -123,13 +123,19 @@ export function CustomerDetailsColumn({
       <div className="flex flex-col gap-2">
         <DetailHeading>Customer since</DetailHeading>
         {customer ? (
-          <span>
-            {new Date(customer.createdAt).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            })}
-          </span>
+          <TimestampTooltip
+            timestamp={customer.createdAt}
+            rows={["local"]}
+            side="left"
+          >
+            <span>
+              {new Date(customer.createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              })}
+            </span>
+          </TimestampTooltip>
         ) : (
           <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
         )}
