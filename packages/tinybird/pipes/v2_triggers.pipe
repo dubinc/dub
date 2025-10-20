@@ -32,7 +32,7 @@ NODE trigger_clicks
 SQL >
 
     %
-    SELECT CASE WHEN qr = 0 THEN 'link' WHEN qr = 1 THEN 'qr' END as trigger, {% if defined(unique) and Boolean(unique) == 1 %} uniqExact(identity_hash) {% else %} COUNT(qr) {% end %} as clicks
+    SELECT CASE WHEN qr = 0 THEN 'link' WHEN qr = 1 THEN 'qr' END as trigger, COUNT(qr) as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}
