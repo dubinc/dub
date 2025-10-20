@@ -31,7 +31,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
   handleScrollButtonClick,
 }) => {
   return (
-    <section className="mx-auto max-w-[1440px] px-4 py-8 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
+    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
       <div className="mb-12 flex flex-col items-center justify-center gap-6 lg:mb-24 lg:gap-10">
         <SectionTitle
           titleFirstPart={"Start 7-Day Trial Today, Upgrade when"}
