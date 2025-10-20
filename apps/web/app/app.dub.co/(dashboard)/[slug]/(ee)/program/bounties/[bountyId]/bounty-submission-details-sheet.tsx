@@ -86,6 +86,28 @@ function BountySubmissionDetailsSheetContent({
     },
   });
 
+  // right arrow key onNext
+  useKeyboardShortcut(
+    "ArrowRight",
+    () => {
+      if (onNext) {
+        onNext();
+      }
+    },
+    { sheet: true },
+  );
+
+  // left arrow key onPrevious
+  useKeyboardShortcut(
+    "ArrowLeft",
+    () => {
+      if (onPrevious) {
+        onPrevious();
+      }
+    },
+    { sheet: true },
+  );
+
   useKeyboardShortcut(
     "a",
     () => {
