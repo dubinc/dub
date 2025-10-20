@@ -2,7 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkAnalyticsBadge } from "@/ui/links/link-analytics-badge";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
 import { Button, Modal, Tooltip } from "@dub/ui";
-import { fetcher, normalizeUrl } from "@dub/utils";
+import { fetcher, getPrettyUrl, normalizeUrl } from "@dub/utils";
 import {
   Dispatch,
   SetStateAction,
@@ -31,7 +31,7 @@ function UrlWithTooltip({ url }: { url: string }) {
       ref={textRef}
       className="min-w-0 truncate text-sm font-medium text-neutral-800"
     >
-      {url}
+      {getPrettyUrl(url)}
     </span>
   );
 
@@ -145,7 +145,8 @@ function EndABTestingModal({
               const link = getValuesParent();
               return (
                 <button
-                  key={index}
+                  key={test.id}
+                  type="button"
                   onClick={() => setSelectedUrl(test.url)}
                   className={`relative flex w-full items-center justify-between rounded-lg border bg-white p-0 text-left ring-0 ring-black transition-all duration-100 hover:bg-neutral-50 ${
                     selectedUrl === test.url
@@ -153,7 +154,7 @@ function EndABTestingModal({
                       : "border-neutral-200"
                   }`}
                 >
-                  <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden px-1 py-1">
+                  <div className="flex min-w-0 flex-1 items-center gap-1 overflow-hidden py-1 pl-1 pr-2">
                     <div className="flex size-8 shrink-0 items-center justify-center">
                       <div
                         className={`size-4 rounded-full border transition-all ${

@@ -4,7 +4,6 @@ import {
   MIN_TEST_PERCENTAGE,
 } from "@/lib/zod/schemas/links";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
-import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { useEndABTestingModal } from "@/ui/modals/link-builder/ab-testing/end-ab-testing-modal";
 import { BusinessBadgeTooltip } from "@/ui/shared/business-badge-tooltip";
@@ -12,17 +11,20 @@ import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
+  CircleCheck,
   Flask,
   InfoTooltip,
   Modal,
   SimpleTooltipContent,
   Tooltip,
   TriangleWarning,
+  useKeyboardShortcut,
 } from "@dub/ui";
 import {
   cn,
   formatDateTime,
   getDateTimeLocal,
+  getPrettyUrl,
   getUrlFromString,
   isValidUrl,
   parseDateTime,
@@ -54,8 +56,35 @@ function ABTestingModal({
   showABTestingModal: boolean;
   setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  return (
+    <Modal
+      showModal={showABTestingModal}
+      setShowModal={setShowABTestingModal}
+      className="sm:max-w-md"
+    >
+      <ABTestingModalInner setShowABTestingModal={setShowABTestingModal} />
+    </Modal>
+  );
+}
+
+function ABTestingModalInner({
+  setShowABTestingModal,
+}: {
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  return <ABTestingEdit setShowABTestingModal={setShowABTestingModal} />;
+}
+
+function ABTestingEdit({
+  setShowABTestingModal,
+}: {
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+}) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [urlInputs, setUrlInputs] = useState<
+    Record<number, string | undefined>
+  >({});
 
   const {
     watch: watchParent,
@@ -100,6 +129,22 @@ function ABTestingModal({
   const testCompletedAt = watch("testCompletedAt");
   const [idParent, testVariantsParent] = watchParent(["id", "testVariants"]);
 
+  // Manual validation for URLs
+  const validateUrls = () => {
+    if (!testVariants || testVariants.length <= 1) return false;
+
+    return testVariants.every((test) => {
+      if (!test.url || test.url.trim() === "") return false;
+
+      // Check if it's a valid URL (with or without protocol)
+      const urlToValidate = test.url.startsWith("http")
+        ? test.url
+        : `https://${test.url}`;
+
+      return isValidUrl(urlToValidate);
+    });
+  };
+
   const addTestUrl = () => {
     if (!testVariants.length || testVariants.length >= MAX_TEST_COUNT) return;
 
@@ -143,6 +188,10 @@ function ABTestingModal({
         },
       );
     }
+
+    // Initialize the new input field with empty string
+    const newIndex = testVariants.length;
+    setUrlInputs((prev) => ({ ...prev, [newIndex]: "" }));
   };
 
   const removeTestUrl = (index: number) => {
@@ -190,14 +239,27 @@ function ABTestingModal({
         },
       );
     }
+
+    // Clean up the local input state for the removed index
+    setUrlInputs((prev) => {
+      const newState = { ...prev };
+      delete newState[index];
+      // Shift down the indices for inputs after the removed one
+      const shiftedState: Record<number, string | undefined> = {};
+      Object.entries(newState).forEach(([key, value]) => {
+        const numKey = parseInt(key);
+        if (numKey > index) {
+          shiftedState[numKey - 1] = value;
+        } else {
+          shiftedState[numKey] = value;
+        }
+      });
+      return shiftedState;
+    });
   };
 
   return (
-    <Modal
-      showModal={showABTestingModal}
-      setShowModal={setShowABTestingModal}
-      className="sm:max-w-md"
-    >
+    <>
       <EndABTestingModal />
       <form
         className="px-5 py-4"
@@ -227,14 +289,28 @@ function ABTestingModal({
             }
 
             // Validate all URLs are filled
-            if (currentTests.some((test) => !test.url)) {
+            if (
+              currentTests.some((test) => !test.url || test.url.trim() === "")
+            ) {
               toast.error("All test URLs must be filled");
               return;
             }
 
-            setValueParent("url", currentTests[0].url, { shouldDirty: true });
+            // Normalize URLs to ensure they have proper protocol
+            const normalizedTests = currentTests.map((test) => ({
+              ...test,
+              url: test.url.startsWith("http")
+                ? test.url
+                : `https://${test.url}`,
+            }));
+
+            setValueParent("url", normalizedTests[0].url, {
+              shouldDirty: true,
+            });
             setValueParent("trackConversion", true);
-            setValueParent("testVariants", currentTests, { shouldDirty: true });
+            setValueParent("testVariants", normalizedTests, {
+              shouldDirty: true,
+            });
             setValueParent("testCompletedAt", data.testCompletedAt, {
               shouldDirty: true,
             });
@@ -296,20 +372,7 @@ function ABTestingModal({
               className="-m-1"
             >
               <div className="flex flex-col gap-2 p-1">
-                {testVariants.map((_, index) => {
-                  const field = register(`testVariants.${index}.url`, {
-                    validate: (value, { testVariants }) => {
-                      if (!value) return "URL is required";
-
-                      if (!isValidUrl(value)) return "Invalid URL";
-
-                      return (
-                        testVariants.length > 1 &&
-                        testVariants.length <= MAX_TEST_COUNT
-                      );
-                    },
-                  });
-
+                {testVariants.map((test, index) => {
                   return (
                     <div key={index} className="flex items-center gap-2">
                       <label className="relative flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
@@ -318,15 +381,34 @@ function ABTestingModal({
                         </span>
                         <input
                           type="url"
-                          placeholder={
+                          placeholder={getPrettyUrl(
                             domains?.find(({ slug }) => slug === domain)
                               ?.placeholder ||
-                            "https://dub.co/help/article/what-is-dub"
-                          }
+                              "dub.co/help/article/what-is-dub",
+                          )}
                           className="block h-9 grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:ring-0 sm:text-sm"
-                          {...field}
+                          value={
+                            urlInputs[index] !== undefined
+                              ? urlInputs[index]
+                              : getPrettyUrl(test.url)
+                          }
+                          onChange={(e) => {
+                            const inputValue = e.target.value;
+                            setUrlInputs((prev) => ({
+                              ...prev,
+                              [index]: inputValue,
+                            }));
+
+                            // Convert to full URL for storage
+                            const fullUrl = inputValue.startsWith("http")
+                              ? inputValue
+                              : `https://${inputValue}`;
+                            setValue(`testVariants.${index}.url`, fullUrl, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                          }}
                           onBlur={(e) => {
-                            field.onBlur(e);
                             const url = getUrlFromString(e.target.value);
                             if (url) {
                               const normalizedUrl = url.replace(/\/$/, "");
@@ -337,7 +419,25 @@ function ABTestingModal({
                                   shouldDirty: true,
                                 },
                               );
+                              // Clear the local input state to show the pretty URL
+                              setUrlInputs((prev) => ({
+                                ...prev,
+                                [index]: undefined,
+                              }));
                             }
+                          }}
+                          onFocus={() => {
+                            // When focusing, show the raw URL if it exists
+                            if (test.url && urlInputs[index] === undefined) {
+                              setUrlInputs((prev) => ({
+                                ...prev,
+                                [index]: getPrettyUrl(test.url),
+                              }));
+                            }
+                          }}
+                          onInvalid={(e) => {
+                            // Prevent browser validation error from showing
+                            e.preventDefault();
                           }}
                         />
                         {index > 0 && (
@@ -465,7 +565,8 @@ function ABTestingModal({
             className={cn(
               "mt-1 text-xs",
               testCompletedAt &&
-                differenceInDays(testCompletedAt, new Date()) > 6 * 7
+                (differenceInDays(testCompletedAt, new Date()) > 6 * 7 ||
+                  differenceInDays(testCompletedAt, new Date()) < -1)
                 ? "text-red-700"
                 : "text-neutral-500",
             )}
@@ -517,7 +618,7 @@ function ABTestingModal({
               }}
             />
             <Button
-              type="submit"
+              type="button"
               variant="primary"
               text={
                 Array.isArray(testVariantsParent) &&
@@ -528,7 +629,7 @@ function ABTestingModal({
               className="h-9 w-fit"
               disabled={
                 !isDirty ||
-                !isValid ||
+                !validateUrls() ||
                 Boolean(
                   testCompletedAt &&
                     // Restrict competion date from -1 days to 6 weeks
@@ -536,11 +637,123 @@ function ABTestingModal({
                       differenceInDays(testCompletedAt, new Date()) < -1),
                 )
               }
+              onClick={(e) => {
+                e.preventDefault();
+                const formData = getValues();
+
+                // Call the same logic as the form onSubmit handler
+                const currentTests = formData.testVariants;
+
+                if (!currentTests || currentTests.length <= 1) {
+                  setValueParent("testVariants", null, { shouldDirty: true });
+                  setValueParent("testCompletedAt", null, {
+                    shouldDirty: true,
+                  });
+                  return;
+                }
+
+                // Validate total percentage equals 100
+                const totalPercentage = currentTests.reduce(
+                  (sum, test) => sum + test.percentage,
+                  0,
+                );
+
+                if (totalPercentage !== 100) {
+                  toast.error("Total percentage must equal 100%");
+                  return;
+                }
+
+                // Validate all URLs are filled
+                const hasEmptyUrls = currentTests.some(
+                  (test) => !test.url || test.url.trim() === "",
+                );
+
+                if (hasEmptyUrls) {
+                  toast.error("All test URLs must be filled");
+                  return;
+                }
+
+                // Normalize URLs to ensure they have proper protocol
+                const normalizedTests = currentTests.map((test) => ({
+                  ...test,
+                  url: test.url.startsWith("http")
+                    ? test.url
+                    : `https://${test.url}`,
+                }));
+
+                setValueParent("url", normalizedTests[0].url, {
+                  shouldDirty: true,
+                });
+                setValueParent("trackConversion", true);
+                setValueParent("testVariants", normalizedTests, {
+                  shouldDirty: true,
+                });
+                setValueParent("testCompletedAt", formData.testCompletedAt, {
+                  shouldDirty: true,
+                });
+                setShowABTestingModal(false);
+              }}
             />
           </div>
         </div>
       </form>
-    </Modal>
+    </>
+  );
+}
+
+function ABTestingComplete({
+  setShowABTestingModal,
+}: {
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { watch } = useFormContext<LinkFormData>();
+
+  const [testVariantsRaw, winnerUrl] = watch(["testVariants", "url"]);
+  const testVariants = useMemo(
+    () => parseTests(testVariantsRaw),
+    [testVariantsRaw],
+  );
+
+  return (
+    <div className="px-5 py-4">
+      <h3 className="text-lg font-medium">A/B test complete</h3>
+
+      {/* Testing URLs */}
+      <div className="mt-6">
+        <div className="flex flex-col gap-2">
+          {testVariants?.map((test, index) => (
+            <div
+              key={index}
+              className="relative block flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500"
+            >
+              <span className="flex h-9 w-8 shrink-0 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
+                {index + 1}
+              </span>
+              <span className="min-w-0 grow truncate px-2 text-sm text-neutral-800 placeholder-neutral-400">
+                {getPrettyUrl(test.url)}
+              </span>
+              {winnerUrl === test.url && (
+                <CircleCheck className="ml-2 mr-3 size-4 shrink-0 text-blue-500" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-end">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Close"
+            className="h-9 w-fit"
+            onClick={() => {
+              setShowABTestingModal(false);
+            }}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -569,21 +782,26 @@ function ABTestingButton({
     "testCompletedAt",
   ]);
 
-  useLinkBuilderKeyboardShortcut("a", () => setShowABTestingModal(true));
+  useKeyboardShortcut("a", () => setShowABTestingModal(true), {
+    modal: true,
+  });
 
   const enabled = Boolean(testVariants && testCompletedAt);
+  const complete = enabled && new Date() > new Date(testCompletedAt!);
 
   const label = useMemo(
     () => getABTestingLabel({ testVariants, testCompletedAt }),
     [testVariants, testCompletedAt],
   );
 
+  const Icon = Flask;
+
   return (
     <Button
       variant="secondary"
       text={label}
-      icon={<Flask className={cn("size-4", enabled && "text-blue-500")} />}
-      className="h-8 w-fit gap-1.5 px-2.5 text-xs font-medium text-neutral-700"
+      icon={<Icon className={cn("size-4", enabled && "text-blue-500")} />}
+      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
       onClick={() => setShowABTestingModal(true)}
     />
   );
