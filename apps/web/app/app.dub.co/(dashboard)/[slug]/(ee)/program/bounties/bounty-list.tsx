@@ -19,7 +19,9 @@ export function BountyList() {
     isLoading,
     error,
   } = useSWR<BountyListProps[]>(
-    workspaceId ? `/api/bounties?workspaceId=${workspaceId}` : null,
+    workspaceId
+      ? `/api/bounties?${new URLSearchParams({ workspaceId, includeSubmissionsCount: "true" }).toString()}`
+      : null,
     fetcher,
     {
       keepPreviousData: true,

@@ -5,12 +5,15 @@ import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-im
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
 import { StatusBadge } from "@dub/ui";
 import { Calendar6, Gift } from "@dub/ui/icons";
-import { formatDate } from "@dub/utils";
+import { cn, formatDate } from "@dub/utils";
 
 export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
   const { claimBountyModal, setShowClaimBountyModal } = useClaimBountyModal({
     bounty,
   });
+
+  const expiredBounty =
+    bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
 
   return (
     <>
@@ -18,12 +21,26 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
       <button
         type="button"
         onClick={() => setShowClaimBountyModal(true)}
-        className="border-border-subtle hover:border-border-default group relative flex cursor-pointer flex-col gap-5 overflow-hidden rounded-xl border bg-white p-5 text-left transition-all hover:shadow-lg"
+        disabled={expiredBounty}
+        className={cn(
+          "border-border-subtle group relative flex cursor-pointer flex-col gap-5 overflow-hidden rounded-xl border bg-white p-5 text-left",
+          expiredBounty
+            ? "cursor-not-allowed"
+            : "hover:border-border-default transition-all hover:shadow-lg",
+        )}
       >
         <div className="relative flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
           <div className="relative size-full">
             <BountyThumbnailImage bounty={bounty} />
           </div>
+
+          {expiredBounty && (
+            <div className="absolute left-2 top-2 z-10">
+              <div className="flex h-5 items-center gap-1 rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-600">
+                Expired {formatDate(bounty.endsAt!, { month: "short" })}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex min-w-0 flex-col gap-1.5">
@@ -35,7 +52,10 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
             <Calendar6 className="size-3.5" />
             <span>
               {bounty.endsAt ? (
-                <>Ends {formatDate(bounty.endsAt, { month: "short" })}</>
+                <>
+                  End{expiredBounty ? "ed" : "s"}{" "}
+                  {formatDate(bounty.endsAt, { month: "short" })}
+                </>
               ) : (
                 "No end date"
               )}
@@ -50,12 +70,14 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
           </div>
         </div>
 
-        <div className="flex grow flex-col justify-end">
-          {renderSubmissionStatus({
-            bounty,
-            setShowClaimBountyModal,
-          })}
-        </div>
+        {!expiredBounty && (
+          <div className="flex grow flex-col justify-end">
+            {renderSubmissionStatus({
+              bounty,
+              setShowClaimBountyModal,
+            })}
+          </div>
+        )}
       </button>
     </>
   );
@@ -88,7 +110,6 @@ function renderSubmissionStatus({
   setShowClaimBountyModal: (show: boolean) => void;
 }) {
   const { submission } = bounty;
-
   // When there is no submission, we show the performance or claim bounty button
   if (!submission) {
     return bounty.type === "performance" ? (
