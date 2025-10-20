@@ -37,17 +37,17 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
       sales: number;
     }[]
   >(
-    Boolean(testVariants && testVariants.length) &&
-      showTests &&
-      `/api/analytics?${new URLSearchParams({
-        event: "composite",
-        groupBy: "top_urls",
-        linkId: link.id,
-        workspaceId: workspaceId!,
-        ...(link.testStartedAt && {
-          start: new Date(link.testStartedAt).toISOString(),
-        }),
-      }).toString()}`,
+    testVariants?.length && showTests
+      ? `/api/analytics?${new URLSearchParams({
+          event: "composite",
+          groupBy: "top_urls",
+          linkId: link.id,
+          workspaceId: workspaceId!,
+          ...(link.testStartedAt && {
+            start: new Date(link.testStartedAt).toISOString(),
+          }),
+        }).toString()}`
+      : null,
     fetcher,
     {
       revalidateOnFocus: false,
@@ -106,7 +106,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
 
           return (
             <li
-              key={normalizedTestUrl || idx}
+              key={normalizedTestUrl || `${test.url}-${idx}`}
               className="flex items-center justify-between rounded-md border border-neutral-300 bg-white p-2.5"
             >
               <div className="flex min-w-0 items-center gap-4">
@@ -128,7 +128,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
                 <div className="flex justify-end sm:min-w-48">
                   {isLoading ? (
                     <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-100" />
-                  ) : error ? null : (
+                  ) : (
                     <LinkAnalyticsBadge
                       link={{
                         ...link,
@@ -137,7 +137,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
                         sales: analytics?.sales ?? 0,
                         saleAmount: analytics?.saleAmount ?? 0,
                       }}
-                      url={test.url}
+                      url={normalizedTestUrl}
                       sharingEnabled={false}
                     />
                   )}

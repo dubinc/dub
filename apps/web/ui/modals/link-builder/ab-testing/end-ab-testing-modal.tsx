@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkAnalyticsBadge } from "@/ui/links/link-analytics-badge";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
+import { ResponseLink } from "@/ui/links/links-container";
 import { Button, Modal, Tooltip } from "@dub/ui";
 import { fetcher, getPrettyUrl, normalizeUrl } from "@dub/utils";
 import {
@@ -93,16 +94,17 @@ function EndABTestingModal({
       sales: number;
     }[]
   >(
-    Boolean(testVariants && testVariants.length && linkId && workspaceId) &&
-      `/api/analytics?${new URLSearchParams({
-        event: "composite",
-        groupBy: "top_urls",
-        linkId: linkId as string,
-        workspaceId: workspaceId!,
-        ...(testStartedAt && {
-          start: new Date(testStartedAt as Date).toISOString(),
-        }),
-      }).toString()}`,
+    testVariants?.length && linkId && workspaceId
+      ? `/api/analytics?${new URLSearchParams({
+          event: "composite",
+          groupBy: "top_urls",
+          linkId: linkId as string,
+          workspaceId: workspaceId!,
+          ...(testStartedAt && {
+            start: new Date(testStartedAt as Date).toISOString(),
+          }),
+        }).toString()}`
+      : null,
     fetcher,
     { revalidateOnFocus: false },
   );
@@ -155,13 +157,13 @@ function EndABTestingModal({
             aria-label="Select winning URL"
           >
             {(() => {
-              const link = getValuesParent();
+              const parentLink = getValuesParent() as Partial<ResponseLink>;
               return testVariants?.map((test, index) => {
                 const normalized = normalizeUrl(test.url);
                 const analytics = analyticsByNormalizedUrl?.get(normalized);
                 return (
                   <button
-                    key={normalizeUrl(test.url) || test.url}
+                    key={normalized || `${test.url}-${index}`}
                     type="button"
                     role="radio"
                     aria-checked={selectedUrl === test.url}
@@ -192,18 +194,18 @@ function EndABTestingModal({
                         e.stopPropagation();
                       }}
                     >
-                      {isLoading || !analyticsByNormalizedUrl ? (
+                      {isLoading ? (
                         <div className="h-7 w-32 animate-pulse rounded-md bg-neutral-100" />
-                      ) : error ? null : (
+                      ) : (
                         <LinkAnalyticsBadge
                           link={{
-                            ...(link as any),
+                            ...(parentLink as any),
                             clicks: analytics?.clicks ?? 0,
                             leads: analytics?.leads ?? 0,
                             sales: analytics?.sales ?? 0,
                             saleAmount: analytics?.saleAmount ?? 0,
                           }}
-                          url={test.url}
+                          url={normalized}
                           sharingEnabled={false}
                         />
                       )}

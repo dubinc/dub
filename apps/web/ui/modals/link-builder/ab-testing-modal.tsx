@@ -49,6 +49,9 @@ const parseTests = (testVariants: LinkFormData["testVariants"]) =>
 
 const inTwoWeeks = new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000);
 
+const normalizeForForm = (raw: string) =>
+  getUrlFromString(raw).replace(/\/+$/, "");
+
 function ABTestingModal({
   showABTestingModal,
   setShowABTestingModal,
@@ -166,9 +169,11 @@ function ABTestingEdit({
       );
     } else {
       // Not all percentages are equal so let's split the latest one we can
-      const toSplitIndex = testVariants.findLastIndex(
+      const toSplitIndexRaw = testVariants.findLastIndex(
         ({ percentage }) => percentage >= MIN_TEST_PERCENTAGE * 2,
       );
+      const toSplitIndex =
+        toSplitIndexRaw === -1 ? testVariants.length - 1 : toSplitIndexRaw;
       const toSplit = testVariants[toSplitIndex];
       const toSplitPercentage = Math.floor(toSplit.percentage / 2);
       const remainingPercentage = toSplit.percentage - toSplitPercentage;
@@ -298,9 +303,7 @@ function ABTestingEdit({
 
             // Normalize URLs to match analytics normalization: trim whitespace, ensure protocol, strip trailing slashes
             const normalizedTests = currentTests.map((test) => {
-              const trimmedUrl = test.url.trim();
-              const urlWithProtocol = getUrlFromString(trimmedUrl);
-              const normalizedUrl = urlWithProtocol.replace(/\/+$/, "");
+              const normalizedUrl = normalizeForForm(test.url || "");
               return {
                 ...test,
                 url: normalizedUrl,
@@ -414,9 +417,8 @@ function ABTestingEdit({
                           }}
                           onBlur={(e) => {
                             const raw = e.target.value.trim();
-                            const url = getUrlFromString(raw);
-                            if (url) {
-                              const normalizedUrl = url.replace(/\/+$/, "");
+                            const normalizedUrl = normalizeForForm(raw);
+                            if (normalizedUrl) {
                               setValue(
                                 `testVariants.${index}.url`,
                                 normalizedUrl,
@@ -688,9 +690,7 @@ function ABTestingEdit({
 
                 // Normalize URLs to match analytics normalization: trim whitespace, ensure protocol, strip trailing slashes
                 const normalizedTests = currentTests.map((test) => {
-                  const trimmedUrl = test.url.trim();
-                  const urlWithProtocol = getUrlFromString(trimmedUrl);
-                  const normalizedUrl = urlWithProtocol.replace(/\/+$/, "");
+                  const normalizedUrl = normalizeForForm(test.url || "");
                   return {
                     ...test,
                     url: normalizedUrl,
@@ -859,6 +859,7 @@ function TrafficSplitSlider({
   onChange: (percentages: number[]) => void;
 }) {
   const [isDragging, setIsDragging] = useState<number | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (index: number) => (e: React.MouseEvent) => {
@@ -899,6 +900,41 @@ function TrafficSplitSlider({
   const handleMouseUp = useCallback(() => {
     setIsDragging(null);
   }, []);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent, index: number) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+
+      e.preventDefault();
+
+      const delta = e.key === "ArrowLeft" ? -1 : 1;
+      const newPercentages = testVariants.map(({ percentage }) => percentage);
+
+      // The slider at index i controls the boundary between test i and test i+1
+      const leftIndex = index;
+      const rightIndex = index + 1;
+
+      if (rightIndex >= testVariants.length) return;
+
+      const leftPercentage = newPercentages[leftIndex];
+      const rightPercentage = newPercentages[rightIndex];
+
+      // Ensure minimum percentage constraints
+      if (
+        leftPercentage <= MIN_TEST_PERCENTAGE ||
+        rightPercentage <= MIN_TEST_PERCENTAGE
+      ) {
+        return;
+      }
+
+      // Adjust percentages: left arrow moves percentage from left to right, right arrow moves from right to left
+      newPercentages[leftIndex] = leftPercentage + delta;
+      newPercentages[rightIndex] = rightPercentage - delta;
+
+      onChange(newPercentages);
+    },
+    [testVariants, onChange],
+  );
 
   useEffect(() => {
     if (isDragging !== null) {
@@ -941,11 +977,20 @@ function TrafficSplitSlider({
                 <div
                   className="group pointer-events-auto absolute -right-1.5 flex h-full w-3 cursor-col-resize items-center px-1"
                   onMouseDown={handleMouseDown(i)}
+                  onKeyDown={(e) => handleKeyDown(e, i)}
+                  onFocus={() => setFocusedIndex(i)}
+                  onBlur={() => setFocusedIndex(null)}
+                  tabIndex={0}
+                  role="slider"
+                  aria-label={`Adjust traffic split between URL ${i + 1} and URL ${i + 2}`}
+                  aria-valuemin={MIN_TEST_PERCENTAGE}
+                  aria-valuemax={100 - MIN_TEST_PERCENTAGE}
+                  aria-valuenow={test.percentage}
                 >
                   <div
                     className={cn(
                       "h-2/3 w-1 rounded-full bg-neutral-200",
-                      isDragging === i
+                      isDragging === i || focusedIndex === i
                         ? "bg-neutral-400"
                         : "group-hover:bg-neutral-300",
                     )}
