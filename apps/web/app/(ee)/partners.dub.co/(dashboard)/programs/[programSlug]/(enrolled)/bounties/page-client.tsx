@@ -24,7 +24,7 @@ const tabs = [
 
 export function BountiesPageClient() {
   const [activeTab, setActiveTab] = useState<"active" | "expired">("active");
-  const { bounties, isLoading } = usePartnerProgramBounties();
+  const { bounties, bountiesCount, isLoading } = usePartnerProgramBounties();
 
   // Filter bounties based on active tab
   const filteredBounties = useMemo(() => {
@@ -41,21 +41,6 @@ export function BountiesPageClient() {
       }
     });
   }, [bounties, activeTab]);
-
-  // Calculate counts for each tab
-  const tabCounts = useMemo(() => {
-    if (!bounties) return { active: 0, expired: 0 };
-
-    const now = new Date();
-    return bounties.reduce(
-      (counts, bounty) => {
-        const isExpired = bounty.endsAt && new Date(bounty.endsAt) <= now;
-        counts[isExpired ? "expired" : "active"]++;
-        return counts;
-      },
-      { active: 0, expired: 0 },
-    );
-  }, [bounties]);
 
   return (
     <PageWidthWrapper className="pb-10">
@@ -80,7 +65,7 @@ export function BountiesPageClient() {
               </span>
               {bounties ? (
                 <span className="text-content-emphasis text-base font-semibold">
-                  {tabCounts[tab.id].toLocaleString()}
+                  {bountiesCount[tab.id].toLocaleString()}
                 </span>
               ) : (
                 <div className="h-6 w-12 animate-pulse rounded-md bg-neutral-200" />
