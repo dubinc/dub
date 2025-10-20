@@ -203,6 +203,7 @@ export * from "./shield-check";
 export * from "./shield-keyhole";
 export * from "./shield-slash";
 export * from "./shield-user";
+export * from "./shop";
 export * from "./shuffle";
 export * from "./sitemap";
 export * from "./sliders";
