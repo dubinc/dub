@@ -33,7 +33,6 @@ import {
   formatDate,
   nFormatter,
 } from "@dub/utils";
-import { BountySubmissionStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
@@ -73,14 +72,6 @@ export function BountySubmissionsTable() {
     ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute]
     : "Progress";
 
-  const expiredBounty =
-    bounty?.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
-
-  const status = useMemo(() => {
-    return (searchParams.get("status") ??
-      (expiredBounty ? "approved" : "submitted")) as BountySubmissionStatus;
-  }, [searchParams, expiredBounty]);
-
   const sortBy = searchParams.get("sortBy") || "completedAt";
   const sortOrder = searchParams.get("sortOrder") === "desc" ? "desc" : "asc";
 
@@ -101,7 +92,6 @@ export function BountySubmissionsTable() {
             workspaceId,
             sortBy,
             sortOrder,
-            status,
           },
           { exclude: ["submissionId"] },
         )}`
@@ -362,7 +352,14 @@ export function BountySubmissionsTable() {
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
     resourceName: (p) => `submission${p ? "s" : ""}`,
-    rowCount: submissionsCount?.find((s) => s.status === status)?.count || 0,
+    // if status is not set, we count submitted and approved submissions
+    // else, we count the submissions for the status
+    rowCount: searchParams.get("status")
+      ? submissionsCount?.find((s) => s.status === searchParams.get("status"))
+          ?.count || 0
+      : submissionsCount
+          ?.filter((s) => s.status === "submitted" || s.status === "approved")
+          .reduce((acc, curr) => acc + curr.count, 0) || 0,
     loading: isLoading || isBountyLoading,
     error: error ? "Failed to load bounty submissions" : undefined,
   });
