@@ -48,12 +48,15 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
             <BountyThumbnailImage bounty={bounty} />
           </div>
 
-          {/* {bounty.pendingSubmissions > 0 ? (
-            <SubmissionsCountBadge count={bounty.pendingSubmissions} />
-          ) : null} */}
-
           {bounty.endsAt && new Date(bounty.endsAt) < new Date() ? (
             <BountyEndedBadge endsAt={bounty.endsAt} />
+          ) : null}
+
+          {bounty.submissionsCountData &&
+          bounty.submissionsCountData.submitted > 0 ? (
+            <SubmissionsCountBadge
+              count={bounty.submissionsCountData.submitted}
+            />
           ) : null}
         </div>
 
@@ -85,12 +88,14 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
             <Users className="size-3.5" />
             <div className="h-5">
-              {bounty.submissionsCount === totalPartnersForBounty ? (
+              {bounty.submissionsCountData?.total === totalPartnersForBounty ? (
                 <>All</>
               ) : (
                 <>
                   <span className="text-content-default">
-                    {nFormatter(bounty.submissionsCount, { full: true })}
+                    {nFormatter(bounty.submissionsCountData?.total ?? 0, {
+                      full: true,
+                    })}
                   </span>{" "}
                   of
                 </>
@@ -122,7 +127,8 @@ function SubmissionsCountBadge({ count }: { count: number }) {
   return (
     <div className="absolute left-2 top-2 z-10">
       <div className="flex h-5 items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-600">
-        {count} {pluralize("submission", count)}
+        {nFormatter(count, { full: true })} {pluralize("submission", count)}{" "}
+        awaiting review
       </div>
     </div>
   );

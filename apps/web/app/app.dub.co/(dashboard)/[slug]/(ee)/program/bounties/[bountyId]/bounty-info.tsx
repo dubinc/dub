@@ -27,6 +27,10 @@ export function BountyInfo() {
       ?.reduce((acc, curr) => acc + curr.count, 0);
   }, [submissionsCount]);
 
+  const readyForReviewSubmissions = useMemo(() => {
+    return submissionsCount?.find((s) => s.status === "submitted")?.count ?? 0;
+  }, [submissionsCount]);
+
   if (loading) {
     return <BountyInfoSkeleton />;
   }
@@ -78,8 +82,17 @@ export function BountyInfo() {
             <span className="font-medium text-neutral-700">
               {nFormatter(bounty.partnersCount, { full: true })}
             </span>{" "}
-            {pluralize("partner", bounty.partnersCount ?? 0)}{" "}
-            {bounty.type === "performance" ? "completed" : "submitted"}
+            {pluralize("submission", bounty.partnersCount ?? 0)}
+            {readyForReviewSubmissions > 0 && (
+              <>
+                {" "}
+                (
+                <span className="font-medium text-neutral-700">
+                  {nFormatter(readyForReviewSubmissions, { full: true })}
+                </span>{" "}
+                awaiting review)
+              </>
+            )}
           </div>
         </div>
       </div>
