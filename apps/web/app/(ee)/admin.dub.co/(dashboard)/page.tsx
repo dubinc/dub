@@ -1,5 +1,6 @@
 import { constructMetadata } from "@dub/utils";
 import BanLink from "./components/ban-link";
+import DeleteStripeExpress from "./components/delete-stripe-express";
 import ImpersonateUser from "./components/impersonate-user";
 import ImpersonateWorkspace from "./components/impersonate-workspace";
 import RefreshDomain from "./components/refresh-domain";
@@ -25,16 +26,23 @@ export default function AdminPage() {
         <ImpersonateWorkspace />
       </div>
       <div className="flex flex-col space-y-4 px-5 py-10">
+        <h2 className="text-xl font-semibold">Ban Link</h2>
+        <p className="text-sm text-neutral-500">Ban a dub.sh link</p>
+        <BanLink />
+      </div>
+      <div className="flex flex-col space-y-4 px-5 py-10">
+        <h2 className="text-xl font-semibold">Delete Stripe Express</h2>
+        <p className="text-sm text-neutral-500">
+          Delete a partner's Stripe express account
+        </p>
+        <DeleteStripeExpress />
+      </div>
+      <div className="flex flex-col space-y-4 px-5 py-10">
         <h2 className="text-xl font-semibold">Refresh Domain</h2>
         <p className="text-sm text-neutral-500">
           Remove and re-add domain from Vercel
         </p>
         <RefreshDomain />
-      </div>
-      <div className="flex flex-col space-y-4 px-5 py-10">
-        <h2 className="text-xl font-semibold">Ban Link</h2>
-        <p className="text-sm text-neutral-500">Ban a dub.sh link</p>
-        <BanLink />
       </div>
     </div>
   );
