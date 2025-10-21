@@ -52,7 +52,7 @@ export function usePartnerNetworkFilters({
     [countriesCount],
   );
 
-  const multiFilters = useMemo(() => ({}), []);
+  const multiFilters = useMemo(() => ({}), []) as Record<string, string[]>;
 
   const activeFilters = useMemo(() => {
     const { country } = searchParamsObj;
