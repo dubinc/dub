@@ -7,6 +7,7 @@ import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -211,6 +212,10 @@ export const createProgram = async ({
         }),
       }),
 
+      // delete the workspace product cache
+      redis.del(`workspace:product:${workspace.slug}`),
+
+      // record the audit log
       recordAuditLog({
         workspaceId: workspace.id,
         programId: program.id,
