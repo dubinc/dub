@@ -25,8 +25,10 @@ function AddEditEmailDomainModalContent({
   emailDomain,
 }: AddEditEmailDomainModalProps) {
   const { program } = useProgram();
-  const { makeRequest: createEmailDomain, isSubmitting } = useApiMutation();
-  const { makeRequest: updateEmailDomain } = useApiMutation();
+  const { makeRequest: createEmailDomain, isSubmitting: isCreating } =
+    useApiMutation();
+  const { makeRequest: updateEmailDomain, isSubmitting: isUpdating } =
+    useApiMutation();
 
   const {
     register,
@@ -202,7 +204,7 @@ function AddEditEmailDomainModalContent({
             onClick={() => setIsOpen(false)}
             text="Cancel"
             className="h-9 w-fit"
-            disabled={isSubmitting}
+            disabled={isCreating || isUpdating}
           />
 
           <Button
@@ -210,7 +212,7 @@ function AddEditEmailDomainModalContent({
             variant="primary"
             text={emailDomain ? "Update domain" : "Add domain"}
             className="h-9 w-fit"
-            loading={isSubmitting}
+            loading={isCreating || isUpdating}
             disabled={!slug || !fromAddress}
           />
         </div>

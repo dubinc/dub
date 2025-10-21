@@ -96,7 +96,6 @@ export const POST = withWorkspace(
             },
           }),
 
-          // Start the verification process
           resend.domains.verify(resendDomain.id),
         ]),
       );

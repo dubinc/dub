@@ -147,9 +147,9 @@ function DnsRecordsTable({
   const { table, ...tableProps } = useTable({
     data: records,
     columns,
-    getRowId: (row: DomainRecord) => row.record,
-    thClassName: "border-l-0",
-    tdClassName: "border-l-0",
+    getRowId: (row: DomainRecord) => `${row.type}-${row.name}`,
+    thClassName: "border-l-0 py-1.5",
+    tdClassName: "border-l-0 py-1.5",
   });
 
   return (
