@@ -84,7 +84,7 @@ const LinksQuerySchema = z.object({
 });
 
 const sortBy = z
-  .enum(["createdAt", "clicks", "saleAmount", "lastClicked"])
+  .enum(["createdAt", "clicks", "saleAmount", "lastClicked", "type"])
   .optional()
   .default("createdAt")
   .describe("The field to sort the links by. The default is `createdAt`.");
