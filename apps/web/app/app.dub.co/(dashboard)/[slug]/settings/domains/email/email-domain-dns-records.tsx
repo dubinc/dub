@@ -27,6 +27,7 @@ interface DomainRecord {
 
 interface DnsRecordsTableProps {
   title: string;
+  description: React.ReactNode;
   records: DomainRecord[];
   showPriority?: boolean;
   showStatus?: boolean;
@@ -34,6 +35,7 @@ interface DnsRecordsTableProps {
 
 function DnsRecordsTable({
   title,
+  description,
   records,
   showPriority = false,
   showStatus = false,
@@ -153,6 +155,7 @@ function DnsRecordsTable({
   return (
     <div className="flex flex-col gap-2">
       <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
+      {description}
       <Table
         {...tableProps}
         table={table}
@@ -204,25 +207,38 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
           </div>
         </div>
       ) : records && records.length > 0 ? (
-        <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
-          <p className="text-sm text-neutral-700">
-            To send emails from <strong>{domain.slug}</strong> to your partners
-            from Dub, ensure the DNS records below are setup.
-          </p>
+        <div className="flex flex-col gap-8">
+          <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
+            <div className="flex flex-col gap-6">
+              {records.length > 0 && (
+                <DnsRecordsTable
+                  title="DKIM and SPF (Required)"
+                  description={
+                    <p className="text-sm text-neutral-700">
+                      To authorize Dub to send emails from{" "}
+                      <strong>{domain.slug}</strong> to your partners, verify
+                      that the DNS records listed below are properly configured
+                      in your domain's DNS settings.
+                    </p>
+                  }
+                  records={records}
+                  showPriority
+                  showStatus
+                />
+              )}
+            </div>
+          </div>
 
-          <div className="flex flex-col gap-6">
-            {records.length > 0 && (
-              <DnsRecordsTable
-                title="DKIM and SPF (Required)"
-                records={records}
-                showPriority
-                showStatus
-              />
-            )}
-
+          <div className="flex flex-col rounded-lg border border-neutral-200 bg-neutral-100 p-4">
             {dmarcRecords.length > 0 && (
               <DnsRecordsTable
                 title="DMARC (Recommended)"
+                description={
+                  <p className="text-sm text-neutral-700">
+                    Add DMARC record to build trust in your domain and protect
+                    against email spoofing.
+                  </p>
+                }
                 records={dmarcRecords}
               />
             )}
