@@ -10,9 +10,26 @@ export const EmailDomainSchema = z.object({
   slug: z.string(),
   fromAddress: z.string(),
   verified: z.boolean(),
+  resendDomainId: z.string().nullable(),
   lastChecked: z.date(),
   createdAt: z.date(),
   updatedAt: z.date(),
+});
+
+export const ResendDomainRecordSchema = z.object({
+  record: z.string(),
+  name: z.string(),
+  type: z.string(),
+  ttl: z.string(),
+  value: z.string(),
+  priority: z.number().optional(),
+  status: z.enum([
+    "not_started",
+    "pending",
+    "verified",
+    "failed",
+    "temporary_failure",
+  ]),
 });
 
 export const createEmailDomainBodySchema = z.object({
@@ -43,23 +60,9 @@ export const validateEmailDomain = ({
   if (fromAddress && !fromAddress.endsWith(slug)) {
     throw new DubApiError({
       code: "bad_request",
-      message: "From address must end with the email domain",
+      message: "From address must end with the email domain.",
     });
   }
 };
 
-// export const validateDomain = async (
-//   domain: string,
-// ): Promise<{ error: string | null; code?: DubApiError["code"] }> => {
-//   if (!domain || typeof domain !== "string") {
-//     return { error: "Missing domain", code: "unprocessable_entity" };
-//   }
-//   if (!isValidDomain(domain)) {
-//     return { error: "Invalid domain", code: "unprocessable_entity" };
-//   }
-//   const exists = await domainExists(domain);
-//   if (exists) {
-//     return { error: "Domain is already in use.", code: "conflict" };
-//   }
-//   return { error: null };
-// };
+// resend email domain records

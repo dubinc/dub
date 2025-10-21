@@ -61,15 +61,16 @@ model DefaultDomains {
 }
 
 model EmailDomain {
-  id          String   @id @default(cuid())
-  workspaceId String
-  programId   String
-  slug        String   @unique
-  fromAddress String
-  verified    Boolean  @default(false)
-  lastChecked DateTime @default(now())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             String   @id @default(cuid())
+  workspaceId    String
+  programId      String
+  slug           String   @unique
+  fromAddress    String
+  verified       Boolean  @default(false)
+  resendDomainId String?  @unique
+  lastChecked    DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 

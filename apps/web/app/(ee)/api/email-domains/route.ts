@@ -10,6 +10,7 @@ import {
 import { resend } from "@dub/email/resend";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -76,15 +77,29 @@ export const POST = withWorkspace(
         });
       }
 
-      const { data, error } = await resend.domains.create({
+      const { data: resendDomain, error } = await resend.domains.create({
         name: slug,
       });
-
-      console.log(data);
 
       if (error) {
         throw error;
       }
+
+      waitUntil(
+        Promise.allSettled([
+          prisma.emailDomain.update({
+            where: {
+              id: emailDomain.id,
+            },
+            data: {
+              resendDomainId: resendDomain.id,
+            },
+          }),
+
+          // Start the verification process
+          resend.domains.verify(resendDomain.id),
+        ]),
+      );
 
       return NextResponse.json(EmailDomainSchema.parse(emailDomain));
     } catch (error) {
@@ -94,15 +109,14 @@ export const POST = withWorkspace(
         if (error.code === "P2002") {
           throw new DubApiError({
             code: "conflict",
-            message:
-              "This domain has already been configured for another program.",
+            message: `This ${slug} domain has been registered already by another program.`,
           });
         }
       }
 
       throw new DubApiError({
         code: "internal_server_error",
-        message: "An error occurred while creating the email domain.",
+        message: error.message,
       });
     }
   },

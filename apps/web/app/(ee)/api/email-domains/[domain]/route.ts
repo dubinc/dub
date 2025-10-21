@@ -2,27 +2,9 @@ import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-thr
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import {
-  EmailDomainSchema,
-  updateEmailDomainBodySchema,
-} from "@/lib/zod/schemas/email-domains";
+import { updateEmailDomainBodySchema } from "@/lib/zod/schemas/email-domains";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-
-// GET /api/email-domains/[domain] - get an email domain
-export const GET = withWorkspace(
-  async ({ workspace, params }) => {
-    const { domain } = params;
-    const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const emailDomain = await getEmailDomainOrThrow({ programId, domain });
-
-    return NextResponse.json(EmailDomainSchema.parse(emailDomain));
-  },
-  {
-    requiredPlan: ["advanced", "enterprise"],
-  },
-);
 
 // PATCH /api/email-domains/[domain] - update an email domain
 export const PATCH = withWorkspace(
@@ -33,6 +15,11 @@ export const PATCH = withWorkspace(
     const { slug, fromAddress } = updateEmailDomainBodySchema.parse(
       await parseRequestBody(req),
     );
+
+    const emailDomain = await getEmailDomainOrThrow({
+      programId,
+      domain,
+    });
 
     // TODO:
     // Finish the update email domain logic
@@ -50,7 +37,10 @@ export const DELETE = withWorkspace(
     const { domain } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const emailDomain = await getEmailDomainOrThrow({ programId, domain });
+    const emailDomain = await getEmailDomainOrThrow({
+      programId,
+      domain,
+    });
 
     await prisma.emailDomain.delete({
       where: {

@@ -119,7 +119,7 @@ function AddEditEmailDomainModalContent({
                     return true;
                   },
                 })}
-                placeholder="dub.co"
+                placeholder="mail.dub.co"
               />
               {errors.slug && (
                 <p className="mt-1 text-sm text-red-600">
