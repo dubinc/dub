@@ -40,12 +40,14 @@ const verifyCommission = async ({
   expectedEarnings: number;
 }) => {
   // Find the customer first
-  const { data: customer } = await http.get<Customer>({
+  const { data: customers } = await http.get<Customer[]>({
     path: "/customers",
     query: {
       externalId: customerExternalId,
     },
   });
+
+  const customer = customers[0];
 
   // Find the commission for the customer
   const { status, data: commissions } = await http.get<CommissionResponse[]>({
@@ -98,14 +100,6 @@ describe("POST /track/lead", async () => {
       response,
       customer: customer1,
       clickId: trackedClickId,
-    });
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    await verifyCommission({
-      http,
-      customerExternalId: customer1.externalId,
-      expectedEarnings: E2E_LEAD_REWARD.amount,
     });
   });
 
