@@ -76,7 +76,7 @@ export const invitePartnerAction = authActionClient
             subject: `${program.name} invited you to join Dub Partners`,
             variant: "notifications",
             to: email,
-            ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+            replyTo: program.supportEmail || "noreply",
             react: ProgramInvite({
               email,
               name: enrolledPartner.name,

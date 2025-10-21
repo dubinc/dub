@@ -272,7 +272,7 @@ async function invitePartner({
         subject: `${program.name} invited you to join Dub Partners`,
         variant: "notifications",
         to: partner.email,
-        ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+        replyTo: program.supportEmail || "noreply",
         react: ProgramInvite({
           email: partner.email,
           name: null,
