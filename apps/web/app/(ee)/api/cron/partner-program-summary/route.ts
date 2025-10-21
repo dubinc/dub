@@ -321,7 +321,7 @@ async function handler(req: Request) {
         summary.map(({ partner, ...rest }) => ({
           subject: `Your ${reportingMonth} performance report for ${program.name} program`,
           to: partner.email!,
-          ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+          replyTo: program.supportEmail || "noreply",
           react: PartnerProgramSummary({
             program,
             partner,

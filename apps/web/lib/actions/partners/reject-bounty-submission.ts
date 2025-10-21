@@ -97,7 +97,7 @@ export const rejectBountySubmissionAction = authActionClient
             subject: "Bounty rejected",
             to: partner.email,
             variant: "notifications",
-            ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+            replyTo: program.supportEmail || "noreply",
             react: BountyRejected({
               email: partner.email,
               program: {

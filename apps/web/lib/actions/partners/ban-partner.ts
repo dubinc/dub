@@ -123,9 +123,7 @@ export const banPartnerAction = authActionClient
             sendEmail({
               subject: `You've been banned from the ${program.name} Partner Program`,
               to: partner.email,
-              ...(program.supportEmail
-                ? { replyTo: program.supportEmail }
-                : {}),
+              replyTo: program.supportEmail || "noreply",
               react: PartnerBanned({
                 partner: {
                   name: partner.name,
