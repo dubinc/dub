@@ -10,6 +10,161 @@ interface EmailDomainDnsRecordsProps {
   domain: EmailDomainProps;
 }
 
+interface DomainRecord {
+  record: string;
+  type: string;
+  name: string;
+  value: string;
+  ttl: string;
+  priority?: number | null;
+  status?:
+    | "not_started"
+    | "verified"
+    | "pending"
+    | "failed"
+    | "temporary_failure";
+}
+
+interface DnsRecordsTableProps {
+  title: string;
+  records: DomainRecord[];
+  showPriority?: boolean;
+  showStatus?: boolean;
+}
+
+function DnsRecordsTable({
+  title,
+  records,
+  showPriority = false,
+  showStatus = false,
+}: DnsRecordsTableProps) {
+  const columns = [
+    {
+      id: "type",
+      header: "Type",
+      cell: ({ row }: { row: { original: DomainRecord } }) => (
+        <span className="text-content-default font-mono text-sm">
+          {row.original.type}
+        </span>
+      ),
+      size: 80,
+      minSize: 80,
+      maxSize: 100,
+    },
+    {
+      id: "name",
+      header: "Name",
+      cell: ({ row }: { row: { original: DomainRecord } }) => (
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className="text-content-default truncate text-sm"
+            title={row.original.name}
+          >
+            {row.original.name}
+          </span>
+          <CopyButton
+            variant="neutral"
+            className="flex-shrink-0"
+            value={row.original.name}
+          />
+        </div>
+      ),
+      size: 150,
+      minSize: 120,
+      maxSize: 200,
+    },
+    {
+      id: "value",
+      header: "Value",
+      cell: ({ row }: { row: { original: DomainRecord } }) => (
+        <div className="flex min-w-0 items-center gap-2">
+          <span
+            className="text-content-default truncate text-sm"
+            title={row.original.value}
+          >
+            {row.original.value}
+          </span>
+          <CopyButton
+            variant="neutral"
+            className="flex-shrink-0"
+            value={row.original.value}
+          />
+        </div>
+      ),
+      size: 300,
+      minSize: 200,
+      maxSize: 500,
+    },
+    {
+      id: "ttl",
+      header: "TTL",
+      cell: ({ row }: { row: { original: DomainRecord } }) => (
+        <span className="text-content-default text-sm">{row.original.ttl}</span>
+      ),
+      size: 80,
+      minSize: 60,
+      maxSize: 100,
+    },
+  ];
+
+  if (showPriority) {
+    columns.push({
+      id: "priority",
+      header: "Priority",
+      cell: ({ row }: { row: { original: DomainRecord } }) => (
+        <span className="text-content-default text-sm">
+          {row.original.priority ?? "-"}
+        </span>
+      ),
+      size: 80,
+      minSize: 60,
+      maxSize: 100,
+    });
+  }
+
+  if (showStatus) {
+    columns.push({
+      id: "status",
+      header: "Status",
+      cell: ({ row }: { row: { original: DomainRecord } }) => {
+        const status = row.original.status!;
+        const variant = EMAIL_DOMAIN_STATUS_TO_VARIANT[status];
+
+        return (
+          <StatusBadge variant={variant} icon={null}>
+            {capitalize(status.replace(/_/g, " "))}
+          </StatusBadge>
+        );
+      },
+      size: 120,
+      minSize: 100,
+      maxSize: 150,
+    });
+  }
+
+  const { table, ...tableProps } = useTable({
+    data: records,
+    columns,
+    getRowId: (row: DomainRecord) => row.record,
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+  });
+
+  return (
+    <div className="flex flex-col gap-2">
+      <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
+      <Table
+        {...tableProps}
+        table={table}
+        containerClassName="border-0 bg-transparent"
+        scrollWrapperClassName="min-h-0"
+        emptyWrapperClassName="h-24"
+        className="[&_tbody]:bg-transparent"
+      />
+    </div>
+  );
+}
+
 export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
   const { id: workspaceId } = useWorkspace();
 
@@ -34,194 +189,8 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
       name: "_dmarc",
       value: "v=DMARC1; p=none;",
       ttl: "Auto",
-      priority: null,
-      status: "not_started" as const,
     },
   ];
-
-  const { table, ...tableProps } = useTable({
-    data: records || [],
-    columns: [
-      {
-        id: "type",
-        header: "Type",
-        cell: ({ row }) => (
-          <span className="text-content-default font-mono text-sm">
-            {row.original.type}
-          </span>
-        ),
-        size: 80,
-        minSize: 80,
-        maxSize: 100,
-      },
-      {
-        id: "name",
-        header: "Name",
-        cell: ({ row }) => (
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className="text-content-default truncate text-sm"
-              title={row.original.name}
-            >
-              {row.original.name}
-            </span>
-            <CopyButton
-              variant="neutral"
-              className="flex-shrink-0"
-              value={row.original.name}
-            />
-          </div>
-        ),
-        size: 150,
-        minSize: 120,
-        maxSize: 200,
-      },
-      {
-        id: "value",
-        header: "Value",
-        cell: ({ row }) => (
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className="text-content-default truncate text-sm"
-              title={row.original.value}
-            >
-              {row.original.value}
-            </span>
-            <CopyButton
-              variant="neutral"
-              className="flex-shrink-0"
-              value={row.original.value}
-            />
-          </div>
-        ),
-        size: 300,
-        minSize: 200,
-        maxSize: 500,
-      },
-      {
-        id: "ttl",
-        header: "TTL",
-        cell: ({ row }) => (
-          <span className="text-content-default text-sm">
-            {row.original.ttl}
-          </span>
-        ),
-        size: 80,
-        minSize: 60,
-        maxSize: 100,
-      },
-      {
-        id: "priority",
-        header: "Priority",
-        cell: ({ row }) => (
-          <span className="text-content-default text-sm">
-            {row.original.priority ?? "-"}
-          </span>
-        ),
-        size: 80,
-        minSize: 60,
-        maxSize: 100,
-      },
-      {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-          const status = row.original.status;
-          const variant = EMAIL_DOMAIN_STATUS_TO_VARIANT[status];
-
-          return (
-            <StatusBadge variant={variant} icon={null}>
-              {capitalize(status.replace(/_/g, " "))}
-            </StatusBadge>
-          );
-        },
-        size: 120,
-        minSize: 100,
-        maxSize: 150,
-      },
-    ],
-    getRowId: (row) => row.record,
-    thClassName: "border-l-0",
-    tdClassName: "border-l-0",
-  });
-
-  const { table: dmarcTable, ...dmarcTableProps } = useTable({
-    data: dmarcRecords || [],
-    columns: [
-      {
-        id: "type",
-        header: "Type",
-        cell: ({ row }) => (
-          <span className="text-content-default font-mono text-sm">
-            {row.original.type}
-          </span>
-        ),
-        size: 80,
-        minSize: 80,
-        maxSize: 100,
-      },
-      {
-        id: "name",
-        header: "Name",
-        cell: ({ row }) => (
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className="text-content-default truncate text-sm"
-              title={row.original.name}
-            >
-              {row.original.name}
-            </span>
-            <CopyButton
-              variant="neutral"
-              className="flex-shrink-0"
-              value={row.original.name}
-            />
-          </div>
-        ),
-        size: 150,
-        minSize: 120,
-        maxSize: 200,
-      },
-      {
-        id: "value",
-        header: "Value",
-        cell: ({ row }) => (
-          <div className="flex min-w-0 items-center gap-2">
-            <span
-              className="text-content-default truncate text-sm"
-              title={row.original.value}
-            >
-              {row.original.value}
-            </span>
-            <CopyButton
-              variant="neutral"
-              className="flex-shrink-0"
-              value={row.original.value}
-            />
-          </div>
-        ),
-        size: 300,
-        minSize: 200,
-        maxSize: 500,
-      },
-      {
-        id: "ttl",
-        header: "TTL",
-        cell: ({ row }) => (
-          <span className="text-content-default text-sm">
-            {row.original.ttl}
-          </span>
-        ),
-        size: 80,
-        minSize: 60,
-        maxSize: 100,
-      },
-    ],
-    rowCount: dmarcRecords?.length || 0,
-    getRowId: (row) => row.record,
-    thClassName: "border-l-0",
-    tdClassName: "border-l-0",
-  });
 
   return (
     <div className="mt-4 space-y-4">
@@ -241,35 +210,23 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
             from Dub, ensure the DNS records below are setup.
           </p>
 
-          {records.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-semibold text-neutral-900">
-                DKIM and SPF
-              </h3>
-              <Table
-                {...tableProps}
-                table={table}
-                containerClassName="border-0 bg-transparent"
-                scrollWrapperClassName="min-h-0"
-                emptyWrapperClassName="h-24"
-                className="[&_tbody]:bg-transparent"
+          <div className="flex flex-col gap-6">
+            {records.length > 0 && (
+              <DnsRecordsTable
+                title="DKIM and SPF (Required)"
+                records={records}
+                showPriority
+                showStatus
               />
-            </div>
-          )}
+            )}
 
-          {dmarcRecords.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <h3 className="text-sm font-semibold text-neutral-900">DMARC</h3>
-              <Table
-                {...dmarcTableProps}
-                table={dmarcTable}
-                containerClassName="border-0 bg-transparent"
-                scrollWrapperClassName="min-h-0"
-                emptyWrapperClassName="h-24"
-                className="[&_tbody]:bg-transparent"
+            {dmarcRecords.length > 0 && (
+              <DnsRecordsTable
+                title="DMARC (Recommended)"
+                records={dmarcRecords}
               />
-            </div>
-          )}
+            )}
+          </div>
         </div>
       ) : (
         <div className="rounded-lg bg-neutral-100/80 p-4 text-center text-sm text-neutral-600">
