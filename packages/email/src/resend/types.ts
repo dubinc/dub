@@ -1,4 +1,4 @@
-import { CreateEmailOptions, GetDomainResponseSuccess } from "resend";
+import { CreateEmailOptions } from "resend";
 
 export interface ResendEmailOptions
   extends Omit<CreateEmailOptions, "to" | "from"> {
@@ -9,4 +9,4 @@ export interface ResendEmailOptions
 
 export type ResendBulkEmailOptions = ResendEmailOptions[];
 
-export type ResendDomainRecords = GetDomainResponseSuccess["records"];
+export type { GetDomainResponseSuccess } from "resend";

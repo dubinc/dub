@@ -4,32 +4,17 @@ import {
 } from "@/lib/api/domains/is-valid-domain";
 import { DubApiError } from "@/lib/api/errors";
 import z from "@/lib/zod";
+import { EmailDomainStatus } from "@dub/prisma/client";
 
 export const EmailDomainSchema = z.object({
   id: z.string(),
   slug: z.string(),
   fromAddress: z.string(),
-  verified: z.boolean(),
+  status: z.nativeEnum(EmailDomainStatus),
   resendDomainId: z.string().nullable(),
   lastChecked: z.date(),
   createdAt: z.date(),
   updatedAt: z.date(),
-});
-
-export const ResendDomainRecordSchema = z.object({
-  record: z.string(),
-  name: z.string(),
-  type: z.string(),
-  ttl: z.string(),
-  value: z.string(),
-  priority: z.number().optional(),
-  status: z.enum([
-    "not_started",
-    "pending",
-    "verified",
-    "failed",
-    "temporary_failure",
-  ]),
 });
 
 export const createEmailDomainBodySchema = z.object({

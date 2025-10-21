@@ -2,11 +2,9 @@ import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-thr
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { ResendDomainRecordSchema } from "@/lib/zod/schemas/email-domains";
 import { resend } from "@dub/email/resend";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/email-domains/[domain]/verify - verify an email domain
 export const GET = withWorkspace(
@@ -33,10 +31,6 @@ export const GET = withWorkspace(
       });
     }
 
-    if (emailDomain.verified) {
-      return NextResponse.json({});
-    }
-
     const [verificationResponse, domainResponse] = await Promise.all([
       resend.domains.verify(emailDomain.resendDomainId),
       resend.domains.get(emailDomain.resendDomainId),
@@ -52,19 +46,19 @@ export const GET = withWorkspace(
       });
     }
 
-    await prisma.emailDomain.update({
-      where: {
-        id: emailDomain.id,
-      },
-      data: {
-        verified: domainResponse.data.status === "verified" ? true : false,
-        lastChecked: new Date(),
-      },
-    });
+    if (emailDomain.status !== domainResponse.data.status) {
+      await prisma.emailDomain.update({
+        where: {
+          id: emailDomain.id,
+        },
+        data: {
+          status: domainResponse.data.status,
+          lastChecked: new Date(),
+        },
+      });
+    }
 
-    return NextResponse.json(
-      z.array(ResendDomainRecordSchema).parse(domainResponse.data.records),
-    );
+    return NextResponse.json(domainResponse.data);
   },
   {
     requiredPlan: ["advanced", "enterprise"],

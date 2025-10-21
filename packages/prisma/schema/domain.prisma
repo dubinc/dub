@@ -60,17 +60,25 @@ model DefaultDomains {
   project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
+enum EmailDomainStatus {
+  pending
+  verified
+  failed
+  temporary_failure
+  not_started
+}
+
 model EmailDomain {
-  id             String   @id @default(cuid())
+  id             String            @id @default(cuid())
   workspaceId    String
   programId      String
-  slug           String   @unique
+  slug           String            @unique
   fromAddress    String
-  verified       Boolean  @default(false)
-  resendDomainId String?  @unique
-  lastChecked    DateTime @default(now())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  status         EmailDomainStatus @default(pending)
+  resendDomainId String?           @unique
+  lastChecked    DateTime          @default(now())
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
 
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 

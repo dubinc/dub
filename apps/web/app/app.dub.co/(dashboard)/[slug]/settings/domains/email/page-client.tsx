@@ -4,11 +4,11 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useEmailDomains from "@/lib/swr/use-email-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
-import { EmailDomainCard } from "app/app.dub.co/(dashboard)/[slug]/settings/domains/email/email-domain-card";
-import { useAddEditEmailDomainModal } from "app/app.dub.co/(dashboard)/[slug]/settings/domains/email/add-edit-email-domain-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { ArrowTurnRight2, Button, buttonVariants } from "@dub/ui";
 import { cn } from "@dub/utils";
+import { useAddEditEmailDomainModal } from "app/app.dub.co/(dashboard)/[slug]/settings/domains/email/add-edit-email-domain-modal";
+import { EmailDomainCard } from "app/app.dub.co/(dashboard)/[slug]/settings/domains/email/email-domain-card";
 import { Mail } from "lucide-react";
 import Link from "next/link";
 
@@ -105,11 +105,30 @@ const NoEmailDomains = () => {
 const EmailDomainSkeleton = () => {
   return (
     <div className="grid gap-5">
-      <div className="animate-fade-in">
-        <div className="space-y-3">
-          <div className="h-20 w-full animate-pulse rounded-xl bg-neutral-200" />
-          <div className="h-20 w-full animate-pulse rounded-xl bg-neutral-200" />
-        </div>
+      <div className="animate-fade-in space-y-3">
+        {[...Array(1)].map((_, i) => (
+          <div
+            key={i}
+            className="rounded-xl border border-neutral-200 bg-white p-4 sm:p-5"
+          >
+            <div className="flex w-full items-center justify-between gap-2">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="size-10 shrink-0 animate-pulse rounded-full bg-neutral-200" />
+                <div className="flex min-w-0 flex-col gap-2">
+                  <div className="h-4 w-32 animate-pulse rounded bg-neutral-200" />
+                  <div className="h-3 w-40 animate-pulse rounded bg-neutral-200" />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <div className="h-8 w-20 animate-pulse rounded-lg bg-neutral-200" />
+                <div className="size-8 animate-pulse rounded-lg bg-neutral-200" />
+                <div className="size-8 animate-pulse rounded-lg bg-neutral-200" />
+                <div className="size-8 animate-pulse rounded-lg bg-neutral-200" />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

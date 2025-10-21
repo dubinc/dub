@@ -1,42 +1,30 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ResendDomainRecordSchema } from "@/lib/zod/schemas/email-domains";
+import { GetDomainResponseSuccess } from "@dub/email/resend/types";
 import { CircleCheck, CopyButton, StatusBadge, Table, useTable } from "@dub/ui";
 import { capitalize, fetcher } from "@dub/utils";
 import useSWRImmutable from "swr/immutable";
-import { z } from "zod";
+import { EMAIL_DOMAIN_STATUS_TO_VARIANT } from "./constants";
 
 interface EmailDomainDnsRecordsProps {
   domain: string;
 }
 
-type ResendDomainRecord = z.infer<typeof ResendDomainRecordSchema>;
-
-const resendStatusToVariant = {
-  verified: "success",
-  failed: "error",
-  pending: "pending",
-  temporary_failure: "warning",
-  not_started: "neutral",
-} as const;
-
 export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
   const { id: workspaceId } = useWorkspace();
 
-  const {
-    data: records,
-    isValidating,
-    mutate,
-  } = useSWRImmutable<ResendDomainRecord[]>(
-    workspaceId &&
-      `/api/email-domains/${domain}/verify?workspaceId=${workspaceId}`,
-    fetcher,
-    {
-      onError: (error) => {
-        console.error("Failed to fetch email domain verification", error);
+  const { data, isValidating, mutate } =
+    useSWRImmutable<GetDomainResponseSuccess>(
+      workspaceId &&
+        `/api/email-domains/${domain}/verify?workspaceId=${workspaceId}`,
+      fetcher,
+      {
+        onError: (error) => {
+          console.error("Failed to fetch email domain verification", error);
+        },
       },
-    },
-  );
+    );
 
+  const records = data?.records || [];
   const isVerified = records !== undefined && Object.keys(records).length === 0;
 
   const { table, ...tableProps } = useTable({
@@ -127,7 +115,7 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
         header: "Status",
         cell: ({ row }) => {
           const status = row.original.status;
-          const variant = resendStatusToVariant[status];
+          const variant = EMAIL_DOMAIN_STATUS_TO_VARIANT[status];
 
           return (
             <StatusBadge variant={variant} icon={null}>

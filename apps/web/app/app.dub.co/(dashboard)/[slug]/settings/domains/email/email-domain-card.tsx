@@ -2,11 +2,20 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { ThreeDots } from "@/ui/shared/icons";
-import { Button, Envelope, Plug2, Refresh2, StatusBadge, Tooltip } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import {
+  Button,
+  Envelope,
+  Plug2,
+  Refresh2,
+  StatusBadge,
+  Tooltip,
+  useInViewport,
+} from "@dub/ui";
+import { capitalize, cn, fetcher } from "@dub/utils";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import useSWRImmutable from "swr/immutable";
+import { EMAIL_DOMAIN_STATUS_TO_VARIANT } from "./constants";
 import { EmailDomainDnsRecords } from "./email-domain-dns-records";
 
 interface EmailDomainCardProps {
@@ -14,18 +23,25 @@ interface EmailDomainCardProps {
 }
 
 export function EmailDomainCard({
-  emailDomain: { slug: domain, fromAddress, verified },
+  emailDomain: { slug: domain, fromAddress, status },
 }: EmailDomainCardProps) {
   const { id: workspaceId } = useWorkspace();
   const [showDetails, setShowDetails] = useState(false);
+  const domainRef = useRef<HTMLDivElement>(null);
+  const isVisible = useInViewport(domainRef, { defaultValue: true });
 
-  const { isValidating, mutate } = useSWRImmutable(
-    workspaceId && `/api/email-domains/${domain}/verify?workspaceId=${workspaceId}`,
+  const { isValidating, mutate, data } = useSWRImmutable(
+    workspaceId &&
+      isVisible &&
+      `/api/email-domains/${domain}/verify?workspaceId=${workspaceId}`,
     fetcher,
   );
 
   return (
-    <div className="hover:drop-shadow-card-hover group rounded-xl border border-neutral-200 bg-white transition-[filter]">
+    <div
+      ref={domainRef}
+      className="hover:drop-shadow-card-hover group rounded-xl border border-neutral-200 bg-white transition-[filter]"
+    >
       <div className="p-4 sm:p-5">
         <div className="flex w-full items-center justify-between gap-2">
           <DomainCardTitleColumn
@@ -36,10 +52,10 @@ export function EmailDomainCard({
 
           <div className="flex items-center gap-2.5">
             <StatusBadge
-              variant={verified ? "success" : "pending"}
+              variant={EMAIL_DOMAIN_STATUS_TO_VARIANT[status]}
               className="h-8 rounded-lg"
             >
-              {verified ? "Active" : "Pending"}
+              {capitalize(status.replace(/_/g, " "))}
             </StatusBadge>
 
             <Button
