@@ -114,10 +114,6 @@ export const BountyListSchema = BountySchema.extend({
     .optional(),
 });
 
-export const BountySchemaExtended = BountySchema.extend({
-  partnersCount: z.number().default(0),
-});
-
 export const BountySubmissionSchema = z.object({
   id: z.string(),
   description: z.string().nullable(),

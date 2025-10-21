@@ -4,11 +4,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  BountyExtendedProps,
-  BountyProps,
-  BountySubmissionRequirement,
-} from "@/lib/types";
+import { BountyProps, BountySubmissionRequirement } from "@/lib/types";
 import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
@@ -47,7 +43,7 @@ import { z } from "zod";
 
 type BountySheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  bounty?: BountyExtendedProps;
+  bounty?: BountyProps;
 };
 
 type FormData = z.infer<typeof createBountySchema>;

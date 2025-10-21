@@ -324,7 +324,7 @@ function BountySubmissionDetailsSheetContent({
                     </h2>
                     <div className="mt-2 flex flex-col gap-2">
                       {submission.urls?.map((url) => (
-                        <div className="relative">
+                        <div className="relative" key={url}>
                           <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pr-12">
                             <a
                               href={url}

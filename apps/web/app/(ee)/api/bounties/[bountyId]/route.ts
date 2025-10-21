@@ -11,11 +11,7 @@ import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import {
-  BountySchema,
-  BountySchemaExtended,
-  updateBountySchema,
-} from "@/lib/zod/schemas/bounties";
+import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
 import { PartnerGroup, Prisma } from "@prisma/client";
@@ -29,12 +25,14 @@ export const GET = withWorkspace(
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    console.time("getBountyWithDetails");
     const bounty = await getBountyWithDetails({
       bountyId,
       programId,
     });
+    console.timeEnd("getBountyWithDetails");
 
-    return NextResponse.json(BountySchemaExtended.parse(bounty));
+    return NextResponse.json(BountySchema.parse(bounty));
   },
   {
     requiredPlan: [
