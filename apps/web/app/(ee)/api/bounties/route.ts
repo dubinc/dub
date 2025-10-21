@@ -159,6 +159,7 @@ export const POST = withWorkspace(
       groupIds,
       performanceCondition,
       performanceScope,
+      sendNotificationEmails,
     } = createBountySchema.parse(await parseRequestBody(req));
 
     // Use current date as default if startsAt is not provided
@@ -288,13 +289,14 @@ export const POST = withWorkspace(
           data: createdBounty,
         }),
 
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
-          body: {
-            bountyId: bounty.id,
-          },
-          notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
-        }),
+        sendNotificationEmails &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
+            body: {
+              bountyId: bounty.id,
+            },
+            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+          }),
 
         shouldScheduleDraftSubmissions &&
           qstash.publishJSON({
