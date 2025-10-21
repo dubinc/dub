@@ -9,6 +9,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkflowAction } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -266,6 +267,8 @@ export const POST = withWorkspace(
     const shouldScheduleDraftSubmissions =
       bounty.type === "performance" && bounty.performanceScope === "lifetime";
 
+    const { canSendBountyNotifications } = getPlanCapabilities(workspace.plan);
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -290,6 +293,7 @@ export const POST = withWorkspace(
         }),
 
         sendNotificationEmails &&
+          canSendBountyNotifications &&
           qstash.publishJSON({
             url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
             body: {

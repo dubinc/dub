@@ -44,7 +44,9 @@ function ConfirmCreateBountyModal({
   const { canSendBountyNotifications } = getPlanCapabilities(plan);
 
   const [isLoading, setIsLoading] = useState(false);
-  const [sendNotificationEmails, setSendNotificationEmails] = useState(true);
+  const [sendNotificationEmails, setSendNotificationEmails] = useState(
+    canSendBountyNotifications,
+  );
 
   const { totalPartnersForBounty, loading } = usePartnersCountBounty({
     bounty,
