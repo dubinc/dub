@@ -22,6 +22,7 @@ export const CONDITION_CUSTOMER_ATTRIBUTES = ["country"] as const;
 export const CONDITION_SALE_ATTRIBUTES = ["productId", "amount"] as const;
 
 export const CONDITION_PARTNER_ATTRIBUTES = [
+  "country",
   "totalClicks",
   "totalLeads",
   "totalConversions",
@@ -46,7 +47,11 @@ export const ENTITY_ATTRIBUTE_TYPES: Partial<
     >
   >
 > = {
+  customer: {
+    country: "string",
+  },
   partner: {
+    country: "string",
     totalClicks: "number",
     totalLeads: "number",
     totalConversions: "number",
@@ -209,6 +214,7 @@ export const rewardContextSchema = z.object({
 
   partner: z
     .object({
+      country: z.string().nullish(),
       totalClicks: z.number().nullish(),
       totalLeads: z.number().nullish(),
       totalConversions: z.number().nullish(),
