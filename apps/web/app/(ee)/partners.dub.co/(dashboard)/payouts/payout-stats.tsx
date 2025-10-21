@@ -1,13 +1,19 @@
 "use client";
 
+import { forceWithdrawalAction } from "@/lib/actions/partners/force-withdrawal";
+import {
+  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
+  MIN_WITHDRAWAL_AMOUNT_CENTS,
+} from "@/lib/partners/constants";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PayoutsCount } from "@/lib/types";
+import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descriptions";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
-import { Tooltip } from "@dub/ui";
+import { Button, Tooltip } from "@dub/ui";
 import {
   cn,
   CONNECT_SUPPORTED_COUNTRIES,
@@ -15,6 +21,8 @@ import {
   PAYPAL_SUPPORTED_COUNTRIES,
 } from "@dub/utils";
 import { HelpCircle } from "lucide-react";
+import { useAction } from "next-safe-action/hooks";
+import { toast } from "sonner";
 
 function PayoutStatsCard({
   label,
@@ -23,6 +31,7 @@ function PayoutStatsCard({
   iconClassName,
   tooltip,
   error,
+  setShowForceWithdrawalModal,
 }: {
   label: string;
   amount: number;
@@ -30,6 +39,7 @@ function PayoutStatsCard({
   iconClassName?: string;
   tooltip?: string;
   error?: boolean;
+  setShowForceWithdrawalModal: (show: boolean) => void;
 }) {
   const { partner } = usePartnerProfile();
 
@@ -82,6 +92,14 @@ function PayoutStatsCard({
                   <>{amount > 0 ? currencyFormatter(amount / 100) : "$0.00"}</>
                 )}
               </span>
+              {label === "Processed" && amount > 0 && (
+                <Button
+                  variant="secondary"
+                  text="Pay out now"
+                  className="ml-2 h-7 px-2 py-1"
+                  onClick={() => setShowForceWithdrawalModal(true)}
+                />
+              )}
             </div>
           ) : (
             <div className="h-5 w-20 animate-pulse rounded bg-neutral-200 sm:h-7 sm:w-24" />
@@ -172,19 +190,84 @@ export function PayoutStats() {
   const topRowStats = payoutStats.slice(0, 3);
   const bottomRowStats = payoutStats.slice(3);
 
+  const { executeAsync: executeForceWithdrawal } = useAction(
+    forceWithdrawalAction,
+    {
+      onSuccess: () => {
+        toast.success("Withdrawal initiated successfully");
+      },
+      onError: ({ error }) => {
+        toast.error(error.serverError || "Failed to initiate withdrawal");
+      },
+    },
+  );
+
+  const processedPayoutAmountInUsd = currencyFormatter(
+    payoutStatusMap?.processed?.amount / 100,
+    {
+      trailingZeroDisplay: "stripIfInteger",
+    },
+  );
+
+  const {
+    confirmModal: forceWithdrawalModal,
+    setShowConfirmModal: setShowForceWithdrawalModal,
+  } = useConfirmModal({
+    title: "Pay out funds instantly",
+    description: (
+      <>
+        Since your total processed earnings (
+        <strong className="text-black">{processedPayoutAmountInUsd}</strong>)
+        are below the minimum requirement of{" "}
+        <strong className="text-black">
+          {currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS / 100, {
+            trailingZeroDisplay: "stripIfInteger",
+          })}
+        </strong>
+        , you will be charged a fee of{" "}
+        <strong className="text-black">
+          {currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)}
+        </strong>{" "}
+        for this payout, which means you will receive{" "}
+        <strong className="text-black">
+          {currencyFormatter(
+            (payoutStatusMap?.processed?.amount -
+              BELOW_MIN_WITHDRAWAL_FEE_CENTS) /
+              100,
+            { trailingZeroDisplay: "stripIfInteger" },
+          )}
+        </strong>
+        .
+      </>
+    ),
+    onConfirm: async () => {
+      await executeForceWithdrawal();
+    },
+    confirmText: `Pay out ${processedPayoutAmountInUsd}`,
+  });
+
   return (
     <>
+      {forceWithdrawalModal}
       {/* Mobile: 3 on top, 2 on bottom */}
       <div className="grid divide-y divide-neutral-200 overflow-hidden rounded-lg border border-neutral-200 bg-white md:hidden">
         <div className="grid grid-cols-3 divide-x divide-neutral-200">
           {topRowStats.map((stat) => (
-            <PayoutStatsCard key={stat.label} {...stat} />
+            <PayoutStatsCard
+              key={stat.label}
+              {...stat}
+              setShowForceWithdrawalModal={setShowForceWithdrawalModal}
+            />
           ))}
         </div>
         {bottomRowStats.length > 0 && (
           <div className="grid grid-cols-2 divide-x divide-neutral-200">
             {bottomRowStats.map((stat) => (
-              <PayoutStatsCard key={stat.label} {...stat} />
+              <PayoutStatsCard
+                key={stat.label}
+                {...stat}
+                setShowForceWithdrawalModal={setShowForceWithdrawalModal}
+              />
             ))}
           </div>
         )}
@@ -198,7 +281,11 @@ export function PayoutStats() {
         )}
       >
         {payoutStats.map((stat) => (
-          <PayoutStatsCard key={stat.label} {...stat} />
+          <PayoutStatsCard
+            key={stat.label}
+            {...stat}
+            setShowForceWithdrawalModal={setShowForceWithdrawalModal}
+          />
         ))}
       </div>
     </>

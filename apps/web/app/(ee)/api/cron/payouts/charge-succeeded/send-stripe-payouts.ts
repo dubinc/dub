@@ -17,7 +17,6 @@ export async function sendStripePayouts({
         id: true,
         email: true,
         stripeConnectId: true,
-        minWithdrawalAmount: true,
       },
     },
     program: {

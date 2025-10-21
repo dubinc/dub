@@ -38,6 +38,7 @@ export function PayoutTable() {
 
   const { payouts, error, loading } = usePartnerPayouts();
   const { payoutsCount } = usePartnerPayoutsCount<number>();
+
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     usePayoutFilters();
 
@@ -185,13 +186,15 @@ export function PayoutTable() {
       )}
       <div className="flex flex-col gap-3">
         <div>
-          <Filter.Select
-            className="w-full md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-          />
+          <div className="flex items-center justify-between gap-2">
+            <Filter.Select
+              className="w-full md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+          </div>
           <AnimatedSizeContainer height>
             <div>
               {activeFilters.length > 0 && (

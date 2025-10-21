@@ -45,6 +45,28 @@ function PartnerApplicationSheetContent({
     partner.groupId ?? null,
   );
 
+  // right arrow key onNext
+  useKeyboardShortcut(
+    "ArrowRight",
+    () => {
+      if (onNext) {
+        onNext();
+      }
+    },
+    { sheet: true },
+  );
+
+  // left arrow key onPrevious
+  useKeyboardShortcut(
+    "ArrowLeft",
+    () => {
+      if (onPrevious) {
+        onPrevious();
+      }
+    },
+    { sheet: true },
+  );
+
   // Reset selection when navigating between partners
   useEffect(() => {
     setSelectedGroupId(partner.groupId ?? null);

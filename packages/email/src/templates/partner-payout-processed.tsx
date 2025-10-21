@@ -41,7 +41,9 @@ export default function PartnerPayoutProcessed({
   };
   variant: "stripe" | "paypal";
 }) {
-  const saleAmountInDollars = currencyFormatter(payout.amount / 100);
+  const saleAmountInDollars = currencyFormatter(payout.amount / 100, {
+    trailingZeroDisplay: "stripIfInteger",
+  });
 
   const startDate = payout.periodStart
     ? formatDate(payout.periodStart, {
@@ -94,16 +96,18 @@ export default function PartnerPayoutProcessed({
 
             <Text className="text-sm leading-6 text-neutral-600">
               {variant === "stripe"
-                ? "If the balance in your Stripe Express account is above your minimum withdrawal amount, they'll automatically begin transferring to your bank account. You can change your minimum withdrawal amount any time in your payout settings."
+                ? payout.amount >= 1000
+                  ? "The funds will begin transferring to your connected bank account shortly. You will receive another email when the funds are on their way."
+                  : "Since this payout is below the minimum withdrawal amount of $10, it will remain in processed status. If you'd like to receive your payout now, you can do so with a $0.50 withdrawal fee."
                 : "Your payout is on its way to your PayPal account. You'll receive an email from PayPal when it's complete."}
             </Text>
 
             <Section className="mb-12 mt-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
-                href="https://partners.dub.co/payouts"
+                href={`https://partners.dub.co/payouts?payoutId=${payout.id}`}
               >
-                View payouts
+                View payout
               </Link>
             </Section>
             <Footer email={email} />
