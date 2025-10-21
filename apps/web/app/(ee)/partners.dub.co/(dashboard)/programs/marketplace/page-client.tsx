@@ -1,18 +1,27 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
-import { useRouterStuff } from "@dub/ui";
-import { OG_AVATAR_URL, cn } from "@dub/utils";
+import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
+import { NetworkProgramProps } from "@/lib/types";
+import { Link4, useRouterStuff } from "@dub/ui";
+import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
+import useSWR from "swr";
 
 export function ProgramMarketplacePageClient() {
-  const { id: workspaceId } = useWorkspace();
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
 
-  // TODO: Fetch programs+counts
-  const programs = undefined as any[] | undefined,
-    error = undefined,
-    countError = undefined,
-    isValidating = false;
+  const { data: programsCount, error: countError } = useNetworkProgramsCount();
+
+  const {
+    data: programs,
+    error,
+    isValidating,
+  } = useSWR<NetworkProgramProps[]>(
+    `/api/network/programs${getQueryString({
+      //
+    })}`,
+    fetcher,
+    { revalidateOnFocus: false, keepPreviousData: true },
+  );
 
   // TODO: Pagination+filters
 
@@ -85,24 +94,24 @@ function ProgramCard({
 }: {
   program?: any; // TODO
 }) {
-  const { queryParams } = useRouterStuff();
-
   return (
     <div className={cn(program?.id && "cursor-pointer hover:drop-shadow-sm")}>
-      <div className="border-border-subtle rounded-xl border bg-white p-4">
+      <div className="border-border-subtle rounded-xl border bg-white p-6">
         <div className="flex justify-between gap-4">
           {program ? (
             <img
               src={program.logo || `${OG_AVATAR_URL}${program.name}`}
               alt={program.name}
-              className="size-16 rounded-full"
+              className="size-12 rounded-full"
             />
           ) : (
-            <div className="size-16 animate-pulse rounded-full bg-neutral-200" />
+            <div className="size-12 animate-pulse rounded-full bg-neutral-200" />
           )}
+
+          {/* TODO: Status */}
         </div>
 
-        <div className="mt-3.5 flex flex-col gap-3">
+        <div className="mt-4 flex flex-col">
           {/* Name */}
           {program ? (
             <span className="text-content-emphasis text-base font-semibold">
@@ -111,6 +120,36 @@ function ProgramCard({
           ) : (
             <div className="h-6 w-32 animate-pulse rounded bg-neutral-200" />
           )}
+
+          <div className="text-content-default mt-1 flex items-center gap-1">
+            <Link4 className="size-3.5" />
+            {/* Domain */}
+            {program ? (
+              <a
+                href={program.url}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="text-sm font-medium"
+              >
+                {getPrettyUrl(program.url)}
+              </a>
+            ) : (
+              <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+            )}
+          </div>
+
+          <div className="mt-4 flex gap-8">
+            <div>
+              <span className="text-content-subtle text-xs font-medium">
+                Rewards
+              </span>
+            </div>
+            <div>
+              <span className="text-content-subtle text-xs font-medium">
+                Industry
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
