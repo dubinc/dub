@@ -24,8 +24,20 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
     },
   );
 
-  const records = data?.records || [];
   const isVerified = data?.status === "verified";
+  const records = data?.records || [];
+
+  const dmarcRecords = [
+    {
+      record: "dmarc",
+      type: "TXT",
+      name: "_dmarc",
+      value: "v=DMARC1; p=none;",
+      ttl: "Auto",
+      priority: null,
+      status: "not_started" as const,
+    },
+  ];
 
   const { table, ...tableProps } = useTable({
     data: records || [],
@@ -128,7 +140,84 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
         maxSize: 150,
       },
     ],
-    rowCount: records?.length || 0,
+    getRowId: (row) => row.record,
+    thClassName: "border-l-0",
+    tdClassName: "border-l-0",
+  });
+
+  const { table: dmarcTable, ...dmarcTableProps } = useTable({
+    data: dmarcRecords || [],
+    columns: [
+      {
+        id: "type",
+        header: "Type",
+        cell: ({ row }) => (
+          <span className="text-content-default font-mono text-sm">
+            {row.original.type}
+          </span>
+        ),
+        size: 80,
+        minSize: 80,
+        maxSize: 100,
+      },
+      {
+        id: "name",
+        header: "Name",
+        cell: ({ row }) => (
+          <div className="flex min-w-0 items-center gap-2">
+            <span
+              className="text-content-default truncate text-sm"
+              title={row.original.name}
+            >
+              {row.original.name}
+            </span>
+            <CopyButton
+              variant="neutral"
+              className="flex-shrink-0"
+              value={row.original.name}
+            />
+          </div>
+        ),
+        size: 150,
+        minSize: 120,
+        maxSize: 200,
+      },
+      {
+        id: "value",
+        header: "Value",
+        cell: ({ row }) => (
+          <div className="flex min-w-0 items-center gap-2">
+            <span
+              className="text-content-default truncate text-sm"
+              title={row.original.value}
+            >
+              {row.original.value}
+            </span>
+            <CopyButton
+              variant="neutral"
+              className="flex-shrink-0"
+              value={row.original.value}
+            />
+          </div>
+        ),
+        size: 300,
+        minSize: 200,
+        maxSize: 500,
+      },
+      {
+        id: "ttl",
+        header: "TTL",
+        cell: ({ row }) => (
+          <span className="text-content-default text-sm">
+            {row.original.ttl}
+          </span>
+        ),
+        size: 80,
+        minSize: 60,
+        maxSize: 100,
+      },
+    ],
+    rowCount: dmarcRecords?.length || 0,
     getRowId: (row) => row.record,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
@@ -146,20 +235,41 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
           </div>
         </div>
       ) : records && records.length > 0 ? (
-        <div className="flex flex-col gap-2 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
+        <div className="flex flex-col gap-4 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
           <p className="text-sm text-neutral-700">
             To send emails from <strong>{domain.slug}</strong> to your partners
             from Dub, ensure the DNS records below are setup.
           </p>
 
-          <Table
-            {...tableProps}
-            table={table}
-            containerClassName="border-0 bg-transparent"
-            scrollWrapperClassName="min-h-0"
-            emptyWrapperClassName="h-24"
-            className="[&_tbody]:bg-transparent"
-          />
+          {records.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-semibold text-neutral-900">
+                DKIM and SPF
+              </h3>
+              <Table
+                {...tableProps}
+                table={table}
+                containerClassName="border-0 bg-transparent"
+                scrollWrapperClassName="min-h-0"
+                emptyWrapperClassName="h-24"
+                className="[&_tbody]:bg-transparent"
+              />
+            </div>
+          )}
+
+          {dmarcRecords.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-semibold text-neutral-900">DMARC</h3>
+              <Table
+                {...dmarcTableProps}
+                table={dmarcTable}
+                containerClassName="border-0 bg-transparent"
+                scrollWrapperClassName="min-h-0"
+                emptyWrapperClassName="h-24"
+                className="[&_tbody]:bg-transparent"
+              />
+            </div>
+          )}
         </div>
       ) : (
         <div className="rounded-lg bg-neutral-100/80 p-4 text-center text-sm text-neutral-600">
