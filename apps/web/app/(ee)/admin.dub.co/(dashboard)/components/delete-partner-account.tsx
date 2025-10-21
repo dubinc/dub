@@ -5,19 +5,19 @@ import { cn } from "@dub/utils";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
 
-export default function DeleteStripeExpress() {
+export default function DeletePartnerAccount() {
   return (
     <div className="flex flex-col space-y-5">
       <form
         action={async (formData) => {
-          await fetch("/api/admin/delete-stripe-express", {
+          await fetch("/api/admin/delete-partner-account", {
             method: "POST",
             body: JSON.stringify({
               email: formData.get("email"),
             }),
           }).then(async (res) => {
             if (res.ok) {
-              toast.success("Stripe express account deleted!");
+              toast.success("Partner account deleted!");
             } else {
               const error = await res.text();
               toast.error(error);
