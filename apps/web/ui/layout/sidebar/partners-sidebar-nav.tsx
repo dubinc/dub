@@ -284,7 +284,7 @@ export function PartnersSidebarNav({
     status: "invited",
   });
 
-  const { bounties } = usePartnerProgramBounties({
+  const { bountiesCount } = usePartnerProgramBounties({
     enabled: isEnrolledProgramPage,
   });
 
@@ -308,7 +308,7 @@ export function PartnersSidebarNav({
           !!programEnrollment && programEnrollment.status !== "approved",
         invitationsCount,
         unreadMessagesCount,
-        programBountiesCount: bounties?.length,
+        programBountiesCount: bountiesCount.active,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

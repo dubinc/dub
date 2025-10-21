@@ -68,6 +68,7 @@ async function handler(req: Request) {
         name: true,
         logo: true,
         slug: true,
+        supportEmail: true,
       },
       skip: programSkip,
       take: programsTake,
@@ -320,6 +321,7 @@ async function handler(req: Request) {
         summary.map(({ partner, ...rest }) => ({
           subject: `Your ${reportingMonth} performance report for ${program.name} program`,
           to: partner.email!,
+          ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
           react: PartnerProgramSummary({
             program,
             partner,

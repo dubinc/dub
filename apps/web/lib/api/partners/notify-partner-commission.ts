@@ -15,7 +15,10 @@ export async function notifyPartnerCommission({
   workspace,
   commission,
 }: {
-  program: Pick<Program, "name" | "slug" | "logo" | "holdingPeriodDays">;
+  program: Pick<
+    Program,
+    "name" | "slug" | "logo" | "holdingPeriodDays" | "supportEmail"
+  >;
   workspace: Pick<Project, "id" | "slug" | "name">;
   commission: Pick<
     Commission,
@@ -118,6 +121,7 @@ export async function notifyPartnerCommission({
           subject: "You just made a commission via Dub Partners!",
           variant: "notifications",
           to: email,
+          ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
           react: NewCommissionAlertPartner({
             email,
             ...data,

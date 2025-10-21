@@ -1,27 +1,23 @@
 "use client";
 
-import { Button, LoadingSpinner } from "@dub/ui";
+import { LoadingSpinner } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useState } from "react";
 import { useFormStatus } from "react-dom";
 import { toast } from "sonner";
-import UserInfo, { UserInfoProps } from "./user-info";
 
-export default function ImpersonateUser() {
-  const [data, setData] = useState<UserInfoProps | null>(null);
-
+export default function DeletePartnerAccount() {
   return (
     <div className="flex flex-col space-y-5">
       <form
         action={async (formData) => {
-          await fetch("/api/admin/impersonate", {
+          await fetch("/api/admin/delete-partner-account", {
             method: "POST",
             body: JSON.stringify({
               email: formData.get("email"),
             }),
           }).then(async (res) => {
             if (res.ok) {
-              setData(await res.json());
+              toast.success("Partner account deleted!");
             } else {
               const error = await res.text();
               toast.error(error);
@@ -31,37 +27,6 @@ export default function ImpersonateUser() {
       >
         <Form />
       </form>
-      {data && (
-        <form
-          action={async () => {
-            if (
-              !confirm(
-                `This will ban the user ${data.email} and delete all their workspaces and links. Are you sure?`,
-              )
-            ) {
-              return;
-            }
-            await fetch("/api/admin/ban", {
-              method: "POST",
-              body: JSON.stringify({
-                email: data.email,
-              }),
-            }).then(async (res) => {
-              if (res.ok) {
-                toast.success("User has been banned");
-              } else {
-                const error = await res.text();
-                toast.error(error);
-              }
-            });
-          }}
-        >
-          <UserInfo data={data} />
-          <div className="mt-4">
-            <BanButton />
-          </div>
-        </form>
-      )}
     </div>
   );
 }
@@ -100,9 +65,4 @@ const Form = () => {
       )}
     </div>
   );
-};
-
-const BanButton = () => {
-  const { pending } = useFormStatus();
-  return <Button text="Confirm Ban" loading={pending} variant="danger" />;
 };

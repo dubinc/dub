@@ -170,6 +170,7 @@ export const bulkBanPartnersAction = authActionClient
           select: {
             name: true,
             slug: true,
+            supportEmail: true,
           },
         });
 
@@ -180,6 +181,9 @@ export const bulkBanPartnersAction = authActionClient
               to: partner.email!,
               subject: `You've been banned from the ${program.name} Partner Program`,
               variant: "notifications",
+              ...(program.supportEmail
+                ? { replyTo: program.supportEmail }
+                : {}),
               react: PartnerBanned({
                 partner: {
                   name: partner.name,

@@ -226,6 +226,7 @@ export const { POST } = serve<Payload>(
           subject: `Your application to join ${program.name} partner program has been approved!`,
           from: VARIANT_TO_FROM_MAP.notifications,
           to: user.email!,
+          ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
           react: PartnerApplicationApproved({
             program: {
               name: program.name,
