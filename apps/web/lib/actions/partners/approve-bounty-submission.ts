@@ -111,7 +111,7 @@ export const approveBountySubmissionAction = authActionClient
             subject: "Bounty approved!",
             to: partner.email,
             variant: "notifications",
-            ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+            replyTo: program.supportEmail || "noreply",
             react: BountyApproved({
               email: partner.email,
               program: {

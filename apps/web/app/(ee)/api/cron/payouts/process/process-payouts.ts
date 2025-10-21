@@ -267,7 +267,7 @@ export async function processPayouts({
           variant: "notifications",
           to: payout.partner.email!,
           subject: "You've got money coming your way!",
-          ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+          replyTo: program.supportEmail || "noreply",
           react: PartnerPayoutConfirmed({
             email: payout.partner.email!,
             program,

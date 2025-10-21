@@ -38,7 +38,7 @@ export const E2E_NO_ACCESS_FOLDER_LINK_ID = "link_1JP8FQE9VSVBG2G2Z6EBZWYF6"; //
 
 // Rewards specific
 export const E2E_CUSTOMER_EXTERNAL_ID_2 = "cus_pqc8qRtofpu6ZqvutyNDGAU2";
-export const E2E_REWARD = {
+export const E2E_SALE_REWARD = {
   id: "rw_1JYPP77NNDG6TVPAJDKNZREQN",
   event: "sale",
   amount: 1000,
@@ -66,6 +66,27 @@ export const E2E_REWARD = {
           value: 15000,
         },
       ],
+    },
+  ],
+};
+export const E2E_LEAD_REWARD = {
+  id: "rw_1K82ESAT4YPY0STR20GKXZ7DR",
+  event: "lead",
+  amount: 1000,
+  modifiers: [
+    {
+      type: "flat",
+      amount: 200,
+      operator: "AND",
+      conditions: [
+        {
+          value: "US",
+          entity: "partner",
+          operator: "equals_to",
+          attribute: "country",
+        },
+      ],
+      maxDuration: null,
     },
   ],
 };

@@ -10,6 +10,7 @@ import {
   capitalize,
   formatFileSize,
   getApexDomain,
+  getFileExtension,
   getPrettyUrl,
   GOOGLE_FAVICON_URL,
 } from "@dub/utils";
@@ -106,7 +107,7 @@ export function ProgramBrandAssets() {
                           </div>
                         }
                         title={logo.name || "Logo"}
-                        description={formatFileSize(logo.size, 0)}
+                        description={`${getFileExtension(logo.url) || "Unknown"}・${formatFileSize(logo.size, 0)}`}
                         downloadUrl={logo.url}
                         onDelete={() => handleDelete("logo", logo.id)}
                       />
@@ -232,7 +233,7 @@ export function ProgramBrandAssets() {
                           </div>
                         }
                         title={file.name || "File"}
-                        description={formatFileSize(file.size, 0)}
+                        description={`${getFileExtension(file.url) || "Unknown"}・${formatFileSize(file.size, 0)}`}
                         downloadUrl={file.url}
                         onDelete={() => handleDelete("file", file.id)}
                       />
