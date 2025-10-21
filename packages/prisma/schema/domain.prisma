@@ -63,7 +63,7 @@ model DefaultDomains {
 model EmailDomain {
   id          String   @id @default(cuid())
   workspaceId String
-  programId   String   @unique
+  programId   String
   slug        String   @unique
   fromAddress String
   verified    Boolean  @default(false)
@@ -74,4 +74,5 @@ model EmailDomain {
   program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
 
   @@index(lastChecked(sort: Asc))
+  @@index(programId)
 }

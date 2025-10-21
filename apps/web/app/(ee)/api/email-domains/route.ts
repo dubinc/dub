@@ -42,7 +42,7 @@ export const POST = withWorkspace(
 
     try {
       const emailDomain = await prisma.$transaction(async (tx) => {
-        const existingEmailDomain = await tx.emailDomain.findUnique({
+        const existingEmailDomain = await tx.emailDomain.findFirst({
           where: {
             programId,
           },
@@ -76,9 +76,11 @@ export const POST = withWorkspace(
         });
       }
 
-      const { error } = await resend.domains.create({
+      const { data, error } = await resend.domains.create({
         name: slug,
       });
+
+      console.log(data);
 
       if (error) {
         throw error;
@@ -86,19 +88,22 @@ export const POST = withWorkspace(
 
       return NextResponse.json(EmailDomainSchema.parse(emailDomain));
     } catch (error) {
-      console.log(error)
+      console.error(error);
 
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
           throw new DubApiError({
-            code: "bad_request",
+            code: "conflict",
             message:
-              "The email domain has already been configured for another program.",
+              "This domain has already been configured for another program.",
           });
         }
       }
 
-      throw error;
+      throw new DubApiError({
+        code: "internal_server_error",
+        message: "An error occurred while creating the email domain.",
+      });
     }
   },
   {

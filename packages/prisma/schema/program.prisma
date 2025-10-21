@@ -69,7 +69,7 @@ model Program {
   campaigns                Campaign[]
   discoveredPartners       DiscoveredPartner[]
   industryInterests        ProgramIndustryInterest[]
-  emailDomain              EmailDomain?
+  emailDomains             EmailDomain[]
 
   @@index(workspaceId)
   @@index(domain)
