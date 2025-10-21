@@ -5,6 +5,7 @@ import { NetworkProgramProps } from "@/lib/types";
 import { Link4, useRouterStuff } from "@dub/ui";
 import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
 import useSWR from "swr";
+import { MarketplaceEmptyState } from "./marketplace-empty-state";
 
 export function ProgramMarketplacePageClient() {
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
@@ -82,8 +83,10 @@ export function ProgramMarketplacePageClient() {
           </div> */}
         </div>
       ) : (
-        // TODO: Empty state
-        <p>No programs found</p>
+        <MarketplaceEmptyState
+          isFiltered={false} // TODO
+          onClearAllFilters={() => {}} // TODO
+        />
       )}
     </div>
   );
