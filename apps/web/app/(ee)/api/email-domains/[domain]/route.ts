@@ -1,8 +1,10 @@
 import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-throw";
+import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { updateEmailDomainBodySchema } from "@/lib/zod/schemas/email-domains";
+import { resend } from "@dub/email/resend";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -47,6 +49,17 @@ export const DELETE = withWorkspace(
         id: emailDomain.id,
       },
     });
+
+    if (emailDomain.resendDomainId) {
+      if (!resend) {
+        throw new DubApiError({
+          code: "internal_server_error",
+          message: "Resend is not configured.",
+        });
+      }
+
+      await resend.domains.remove(emailDomain.resendDomainId);
+    }
 
     return NextResponse.json({ id: emailDomain.id });
   },
