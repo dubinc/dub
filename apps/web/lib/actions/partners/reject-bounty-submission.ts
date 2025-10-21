@@ -48,32 +48,18 @@ export const rejectBountySubmissionAction = authActionClient
       throw new Error("Bounty submission already rejected.");
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.bountySubmission.update({
-        where: {
-          id: submissionId,
-        },
-        data: {
-          status: "rejected",
-          reviewedAt: new Date(),
-          userId: user.id,
-          rejectionReason,
-          rejectionNote,
-          commissionId: null,
-        },
-      });
-
-      if (bountySubmission.commissionId) {
-        await tx.commission.update({
-          where: {
-            id: bountySubmission.commissionId,
-          },
-          data: {
-            status: "canceled",
-            payoutId: null,
-          },
-        });
-      }
+    await prisma.bountySubmission.update({
+      where: {
+        id: submissionId,
+      },
+      data: {
+        status: "rejected",
+        reviewedAt: new Date(),
+        userId: user.id,
+        rejectionReason,
+        rejectionNote,
+        commissionId: null,
+      },
     });
 
     waitUntil(
