@@ -58,17 +58,7 @@ export const getBountyWithDetails = async ({
           WHERE bountyId = b.id
         ),
         JSON_ARRAY()
-      ) AS groups,
-
-      --  Bounty submissions total count
-      COALESCE(
-        (
-          SELECT COUNT(*)
-          FROM BountySubmission
-          WHERE bountyId = b.id
-        ),
-        0
-      ) AS submissions
+      ) AS groups
 
     FROM Bounty b
     LEFT JOIN Workflow wf ON wf.id = b.workflowId
@@ -103,6 +93,5 @@ export const getBountyWithDetails = async ({
     performanceCondition,
     groups: bounty.groups.filter((group) => group !== null) ?? [],
     partnersCount: Number(bounty.partners),
-    submissionsCount: Number(bounty.submissions),
   };
 };

@@ -24,12 +24,14 @@ interface RejectBountySubmissionModalProps {
   submission: BountySubmissionProps;
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
+  onReject?: () => void;
 }
 
 const RejectBountySubmissionModal = ({
   submission,
   showModal,
   setShowModal,
+  onReject,
 }: RejectBountySubmissionModalProps) => {
   const { bounty } = useBounty();
   const workspace = useWorkspace();
@@ -52,6 +54,7 @@ const RejectBountySubmissionModal = ({
       onSuccess: async () => {
         toast.success("Bounty submission rejected successfully!");
         setShowModal(false);
+        onReject ? onReject() : null;
         await mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
       },
       onError({ error }) {
@@ -178,6 +181,7 @@ export function useRejectBountySubmissionModal(
         showModal={showRejectModal}
         setShowModal={setShowRejectModal}
         submission={submission}
+        onReject={onReject}
       />
     );
   }, [showRejectModal, setShowRejectModal, onReject, submission]);
