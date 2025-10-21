@@ -62,7 +62,7 @@ export function EmailDomains() {
   ) : emailDomainsError ? (
     <NoEmailDomains />
   ) : emailDomains && emailDomains.length > 0 ? (
-    <EmailDomainsList emailDomains={emailDomains || []} />
+    <EmailDomainsList domains={emailDomains || []} />
   ) : (
     <NoEmailDomains />
   );
@@ -134,16 +134,12 @@ const EmailDomainSkeleton = () => {
   );
 };
 
-const EmailDomainsList = ({
-  emailDomains,
-}: {
-  emailDomains: EmailDomainProps[];
-}) => {
+const EmailDomainsList = ({ domains }: { domains: EmailDomainProps[] }) => {
   return (
     <div className="grid gap-5">
       <div className="animate-fade-in space-y-3">
-        {emailDomains.map((emailDomain) => (
-          <EmailDomainCard key={emailDomain.id} emailDomain={emailDomain} />
+        {domains.map((emailDomain) => (
+          <EmailDomainCard key={emailDomain.id} domain={emailDomain} />
         ))}
       </div>
     </div>

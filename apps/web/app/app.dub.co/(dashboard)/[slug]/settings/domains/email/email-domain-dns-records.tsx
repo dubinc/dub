@@ -1,4 +1,5 @@
 import useWorkspace from "@/lib/swr/use-workspace";
+import { EmailDomainProps } from "@/lib/types";
 import { GetDomainResponseSuccess } from "@dub/email/resend/types";
 import { CircleCheck, CopyButton, StatusBadge, Table, useTable } from "@dub/ui";
 import { capitalize, fetcher } from "@dub/utils";
@@ -6,26 +7,25 @@ import useSWRImmutable from "swr/immutable";
 import { EMAIL_DOMAIN_STATUS_TO_VARIANT } from "./constants";
 
 interface EmailDomainDnsRecordsProps {
-  domain: string;
+  domain: EmailDomainProps;
 }
 
 export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
   const { id: workspaceId } = useWorkspace();
 
-  const { data, isValidating, mutate } =
-    useSWRImmutable<GetDomainResponseSuccess>(
-      workspaceId &&
-        `/api/email-domains/${domain}/verify?workspaceId=${workspaceId}`,
-      fetcher,
-      {
-        onError: (error) => {
-          console.error("Failed to fetch email domain verification", error);
-        },
+  const { data, isValidating } = useSWRImmutable<GetDomainResponseSuccess>(
+    workspaceId &&
+      `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
+    fetcher,
+    {
+      onError: (error) => {
+        console.error("Failed to fetch email domain verification", error);
       },
-    );
+    },
+  );
 
   const records = data?.records || [];
-  const isVerified = records !== undefined && Object.keys(records).length === 0;
+  const isVerified = data?.status === "verified";
 
   const { table, ...tableProps } = useTable({
     data: records || [],
@@ -148,8 +148,8 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
       ) : records && records.length > 0 ? (
         <div className="flex flex-col gap-2 rounded-lg border border-neutral-200 bg-neutral-100 p-4">
           <p className="text-sm text-neutral-700">
-            To send emails from <strong>{domain}</strong> to your partners from
-            Dub, ensure the DNS records below are setup.
+            To send emails from <strong>{domain.slug}</strong> to your partners
+            from Dub, ensure the DNS records below are setup.
           </p>
 
           <Table

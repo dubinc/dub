@@ -2,6 +2,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
 import { ThreeDots } from "@/ui/shared/icons";
+import { GetDomainResponseSuccess } from "@dub/email/resend/types";
 import {
   Button,
   Envelope,
@@ -13,29 +14,35 @@ import {
 } from "@dub/ui";
 import { capitalize, cn, fetcher } from "@dub/utils";
 import { motion } from "motion/react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import useSWRImmutable from "swr/immutable";
 import { EMAIL_DOMAIN_STATUS_TO_VARIANT } from "./constants";
 import { EmailDomainDnsRecords } from "./email-domain-dns-records";
 
 interface EmailDomainCardProps {
-  emailDomain: EmailDomainProps;
+  domain: EmailDomainProps;
 }
 
-export function EmailDomainCard({
-  emailDomain: { slug: domain, fromAddress, status },
-}: EmailDomainCardProps) {
+export function EmailDomainCard({ domain }: EmailDomainCardProps) {
   const { id: workspaceId } = useWorkspace();
   const [showDetails, setShowDetails] = useState(false);
   const domainRef = useRef<HTMLDivElement>(null);
   const isVisible = useInViewport(domainRef, { defaultValue: true });
 
-  const { isValidating, mutate, data } = useSWRImmutable(
-    workspaceId &&
-      isVisible &&
-      `/api/email-domains/${domain}/verify?workspaceId=${workspaceId}`,
-    fetcher,
-  );
+  const { isValidating, mutate, data } =
+    useSWRImmutable<GetDomainResponseSuccess>(
+      workspaceId &&
+        isVisible &&
+        `/api/email-domains/${domain.slug}/verify?workspaceId=${workspaceId}`,
+      fetcher,
+    );
+
+  // Automatically open DNS records section if status is not verified
+  useEffect(() => {
+    if (data?.status && data.status !== "verified") {
+      setShowDetails(true);
+    }
+  }, [data?.status]);
 
   return (
     <div
@@ -45,18 +52,22 @@ export function EmailDomainCard({
       <div className="p-4 sm:p-5">
         <div className="flex w-full items-center justify-between gap-2">
           <DomainCardTitleColumn
-            domain={domain}
+            domain={domain.slug}
             icon={Envelope}
-            url={fromAddress}
+            url={domain.fromAddress}
           />
 
           <div className="flex items-center gap-2.5">
-            <StatusBadge
-              variant={EMAIL_DOMAIN_STATUS_TO_VARIANT[status]}
-              className="h-8 rounded-lg"
-            >
-              {capitalize(status.replace(/_/g, " "))}
-            </StatusBadge>
+            {!isValidating && data?.status ? (
+              <StatusBadge
+                variant={EMAIL_DOMAIN_STATUS_TO_VARIANT[data.status]}
+                className="h-8 rounded-lg"
+              >
+                {capitalize(data.status.replace(/_/g, " "))}
+              </StatusBadge>
+            ) : (
+              <div className="h-8 min-w-20 animate-pulse rounded-lg bg-neutral-200" />
+            )}
 
             <Button
               variant="secondary"
