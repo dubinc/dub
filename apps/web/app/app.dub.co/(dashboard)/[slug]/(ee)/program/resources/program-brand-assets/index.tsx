@@ -107,7 +107,7 @@ export function ProgramBrandAssets() {
                           </div>
                         }
                         title={logo.name || "Logo"}
-                        description={`${getFileExtension(logo.url)}・${formatFileSize(logo.size, 0)}`}
+                        description={`${getFileExtension(logo.url) || "Unknown"}・${formatFileSize(logo.size, 0)}`}
                         downloadUrl={logo.url}
                         onDelete={() => handleDelete("logo", logo.id)}
                       />
@@ -233,7 +233,7 @@ export function ProgramBrandAssets() {
                           </div>
                         }
                         title={file.name || "File"}
-                        description={`${getFileExtension(file.url)} ・ ${formatFileSize(file.size, 0)}`}
+                        description={`${getFileExtension(file.url) || "Unknown"}・${formatFileSize(file.size, 0)}`}
                         downloadUrl={file.url}
                         onDelete={() => handleDelete("file", file.id)}
                       />

@@ -50,7 +50,7 @@ export function ResourcesPageClient() {
                     </div>
                   }
                   title={logo.name || "Logo"}
-                  description={`${getFileExtension(logo.url)}・${formatFileSize(logo.size, 0)}`}
+                  description={`${getFileExtension(logo.url) || "Unknown"}・${formatFileSize(logo.size, 0)}`}
                   downloadUrl={logo.url}
                 />
               ))}
@@ -127,7 +127,7 @@ export function ResourcesPageClient() {
                     </div>
                   }
                   title={file.name || "File"}
-                  description={`${getFileExtension(file.url)} ・ ${formatFileSize(file.size, 0)}`}
+                  description={`${getFileExtension(file.url) || "Unknown"}・${formatFileSize(file.size, 0)}`}
                   downloadUrl={file.url}
                 />
               ))}
