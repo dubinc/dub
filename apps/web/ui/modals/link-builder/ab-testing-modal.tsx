@@ -310,6 +310,12 @@ function ABTestingEdit({
               };
             });
 
+            // Validate URLs after normalization
+            if (normalizedTests.some((test) => !isValidUrl(test.url))) {
+              toast.error("Please enter valid URLs");
+              return;
+            }
+
             setValueParent("url", normalizedTests[0].url, {
               shouldDirty: true,
             });
@@ -697,6 +703,12 @@ function ABTestingEdit({
                   };
                 });
 
+                // Validate URLs after normalization
+                if (normalizedTests.some((test) => !isValidUrl(test.url))) {
+                  toast.error("Please enter valid URLs");
+                  return;
+                }
+
                 setValueParent("url", normalizedTests[0].url, {
                   shouldDirty: true,
                 });
@@ -919,17 +931,18 @@ function TrafficSplitSlider({
       const leftPercentage = newPercentages[leftIndex];
       const rightPercentage = newPercentages[rightIndex];
 
-      // Ensure minimum percentage constraints
-      if (
-        leftPercentage <= MIN_TEST_PERCENTAGE ||
-        rightPercentage <= MIN_TEST_PERCENTAGE
-      ) {
+      // Compute proposed values after applying delta
+      const nextLeft = leftPercentage + delta;
+      const nextRight = rightPercentage - delta;
+
+      // Check if either proposed value would go below minimum
+      if (nextLeft < MIN_TEST_PERCENTAGE || nextRight < MIN_TEST_PERCENTAGE) {
         return;
       }
 
-      // Adjust percentages: left arrow moves percentage from left to right, right arrow moves from right to left
-      newPercentages[leftIndex] = leftPercentage + delta;
-      newPercentages[rightIndex] = rightPercentage - delta;
+      // Apply the changes
+      newPercentages[leftIndex] = nextLeft;
+      newPercentages[rightIndex] = nextRight;
 
       onChange(newPercentages);
     },
