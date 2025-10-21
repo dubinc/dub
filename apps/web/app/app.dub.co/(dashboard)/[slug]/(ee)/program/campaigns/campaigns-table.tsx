@@ -419,5 +419,5 @@ const calculatePercentage = (value: number, total: number) => {
     return 0;
   }
 
-  return Math.round((value / total) * 100);
+  return Number(((value / total) * 100).toFixed(2));
 };

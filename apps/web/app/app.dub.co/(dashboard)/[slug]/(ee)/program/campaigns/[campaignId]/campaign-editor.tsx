@@ -17,6 +17,7 @@ import {
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
+import { capitalize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useCallback, useEffect, useRef } from "react";
@@ -219,13 +220,14 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               <span className="min-w-0 truncate text-lg font-semibold leading-7 text-neutral-900">
                 {campaign.status === CampaignStatus.draft ? (
                   <>
-                    New <span className="hidden sm:inline">transactional</span>{" "}
+                    New{" "}
+                    <span className="hidden sm:inline">{campaign.type}</span>{" "}
                     email
                   </>
                 ) : (
                   <>
                     <span className="hidden sm:inline">
-                      Transactional email
+                      {capitalize(campaign.type)} email
                     </span>
                     <span className="inline sm:hidden">Email</span>
                   </>
