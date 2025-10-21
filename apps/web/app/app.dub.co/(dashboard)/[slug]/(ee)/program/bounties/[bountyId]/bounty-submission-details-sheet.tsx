@@ -460,27 +460,3 @@ export function BountySubmissionDetailsSheet({
     </Sheet>
   );
 }
-
-export function useBountySubmissionDetailsSheet(
-  props: {
-    nested?: boolean;
-    onNext?: () => void;
-    onPrevious?: () => void;
-  } & Omit<
-    BountySubmissionDetailsSheetProps,
-    "setIsOpen" | "onNext" | "onPrevious"
-  >,
-) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    BountySubmissionDetailsSheet: (
-      <BountySubmissionDetailsSheet
-        setIsOpen={setIsOpen}
-        isOpen={isOpen}
-        {...props}
-      />
-    ),
-    setShowBountySubmissionDetailsSheet: setIsOpen,
-  };
-}

@@ -124,36 +124,28 @@ export function BountySubmissionsTable() {
   }, [searchParams, submissions]);
 
   // Navigation functions for the details sheet
-  const navigateToSubmission = (direction: "next" | "previous") => {
-    if (!submissions || !detailsSheetState.submission) return;
+  const [previousSubmissionId, nextSubmissionId] = useMemo(() => {
+    if (!submissions || !detailsSheetState.submission) return [null, null];
 
     const currentIndex = submissions.findIndex(
       (s) => s.id === detailsSheetState.submission!.id,
     );
+    if (currentIndex === -1) return [null, null];
 
-    if (currentIndex === -1) return;
+    return [
+      currentIndex > 0 ? submissions[currentIndex - 1].id : null,
+      currentIndex < submissions.length - 1
+        ? submissions[currentIndex + 1].id
+        : null,
+    ];
+  }, [submissions, detailsSheetState.submission]);
 
-    let targetIndex: number;
-    if (direction === "next") {
-      targetIndex = currentIndex + 1;
-      if (targetIndex >= submissions.length) {
-        targetIndex = 0; // Wrap to first
-      }
-    } else {
-      targetIndex = currentIndex - 1;
-      if (targetIndex < 0) {
-        targetIndex = submissions.length - 1; // Wrap to last
-      }
-    }
-
-    const targetSubmission = submissions[targetIndex];
-    if (targetSubmission) {
-      queryParams({ set: { submissionId: targetSubmission.id } });
-    }
-  };
-
-  const onNext = () => navigateToSubmission("next");
-  const onPrevious = () => navigateToSubmission("previous");
+  const onNext = nextSubmissionId
+    ? () => queryParams({ set: { submissionId: nextSubmissionId } })
+    : undefined;
+  const onPrevious = previousSubmissionId
+    ? () => queryParams({ set: { submissionId: previousSubmissionId } })
+    : undefined;
 
   const columns = useMemo(
     () => [
