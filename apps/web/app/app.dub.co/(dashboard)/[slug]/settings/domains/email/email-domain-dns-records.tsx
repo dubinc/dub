@@ -203,7 +203,8 @@ export function EmailDomainDnsRecords({ domain }: EmailDomainDnsRecordsProps) {
         <div className="flex items-center gap-2 text-pretty rounded-lg bg-green-100/80 p-3 text-sm text-green-600">
           <CircleCheck className="h-5 w-5 shrink-0" />
           <div>
-            Good news! Your email domain is verified and ready to send emails.
+            Good news! All the DNS records are verified. You are ready to start
+            sending emails with this domain.
           </div>
         </div>
       ) : records && records.length > 0 ? (
