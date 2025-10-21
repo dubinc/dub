@@ -62,5 +62,6 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredPermissions: ["domains.read"],
   },
 );

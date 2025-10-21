@@ -29,6 +29,7 @@ export const GET = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredPermissions: ["domains.read"],
   },
 );
 
@@ -121,5 +122,6 @@ export const POST = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredPermissions: ["domains.write"],
   },
 );

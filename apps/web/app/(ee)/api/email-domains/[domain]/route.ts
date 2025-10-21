@@ -99,6 +99,7 @@ export const PATCH = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredPermissions: ["domains.write"],
   },
 );
 
@@ -134,5 +135,6 @@ export const DELETE = withWorkspace(
   },
   {
     requiredPlan: ["advanced", "enterprise"],
+    requiredPermissions: ["domains.write"],
   },
 );
