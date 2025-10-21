@@ -1,8 +1,8 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { jackson } from "@/lib/jackson";
-import z from "@/lib/zod";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const createDirectorySchema = z.object({
   provider: z.enum(["okta-scim-v2", "azure-scim-v2", "google"]).optional(),

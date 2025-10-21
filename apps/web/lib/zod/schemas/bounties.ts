@@ -1,3 +1,4 @@
+import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/partners/constants";
 import {
   BountyPerformanceScope,
   BountySubmissionRejectionReason,
@@ -7,7 +8,7 @@ import {
 import { z } from "zod";
 import { CommissionSchema } from "./commissions";
 import { GroupSchema } from "./groups";
-import { getPaginationQuerySchema } from "./misc";
+import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
@@ -27,14 +28,6 @@ export const REJECT_BOUNTY_SUBMISSION_REASONS = {
   other: "Other",
 } as const;
 
-export const BOUNTY_SUBMISSIONS_SORT_BY_COLUMNS = [
-  "createdAt",
-  "leads",
-  "conversions",
-  "saleAmount",
-  "commissions",
-] as const;
-
 export const submissionRequirementsSchema = z
   .array(z.enum(SUBMISSION_REQUIREMENTS))
   .min(0)
@@ -49,7 +42,10 @@ export const createBountySchema = z.object({
   description: z
     .string()
     .trim()
-    .max(500, "Description must be less than 500 characters")
+    .max(
+      BOUNTY_DESCRIPTION_MAX_LENGTH,
+      `Description must be less than ${BOUNTY_DESCRIPTION_MAX_LENGTH} characters`,
+    )
     .nullish(),
   type: z.nativeEnum(BountyType),
   startsAt: parseDateSchema.nullish(),
@@ -104,14 +100,21 @@ export const BountySchema = z.object({
 
 export const getBountiesQuerySchema = z.object({
   partnerId: z.string().optional(),
+  includeSubmissionsCount: booleanQuerySchema.optional().default("false"),
 });
 
 // used in GET /bounties
 export const BountyListSchema = BountySchema.extend({
-  submissionsCount: z.number().default(0),
+  submissionsCountData: z
+    .object({
+      total: z.number().default(0),
+      submitted: z.number().default(0),
+      approved: z.number().default(0),
+    })
+    .optional(),
 });
 
-export const BountySchemaExtended = BountyListSchema.extend({
+export const BountySchemaExtended = BountySchema.extend({
   partnersCount: z.number().default(0),
 });
 
@@ -166,8 +169,8 @@ export const rejectBountySubmissionSchema = z.object({
 
 export const getBountySubmissionsQuerySchema = z
   .object({
-    sortBy: z.enum(BOUNTY_SUBMISSIONS_SORT_BY_COLUMNS).default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).default("desc"),
+    sortBy: z.enum(["completedAt", "performanceCount"]).default("completedAt"),
+    sortOrder: z.enum(["asc", "desc"]).default("asc"),
     status: z.nativeEnum(BountySubmissionStatus).optional(),
     groupId: z.string().optional(),
   })

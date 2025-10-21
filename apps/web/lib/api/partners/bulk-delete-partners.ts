@@ -65,6 +65,14 @@ export async function bulkDeletePartners({
     },
   });
 
+  await prisma.notificationEmail.deleteMany({
+    where: {
+      partnerId: {
+        in: finalParterIds,
+      },
+    },
+  });
+
   await prisma.partner.deleteMany({
     where: {
       id: {

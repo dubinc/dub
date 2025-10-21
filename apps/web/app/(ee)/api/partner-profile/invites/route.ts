@@ -2,7 +2,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { invitePartnerUser } from "@/lib/api/partners/invite-partner-user";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
 import {
   MAX_INVITES_PER_REQUEST,
   MAX_PARTNER_USERS,
@@ -45,15 +44,10 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
 
 // POST /api/partner-profile/invites - invite team members
 export const POST = withPartnerProfile(
-  async ({ partner, req, session, partnerUser }) => {
+  async ({ partner, req, session }) => {
     const invites = z
       .array(invitePartnerUserSchema)
       .parse(await parseRequestBody(req));
-
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "user_invites.create",
-    });
 
     if (invites.length > MAX_INVITES_PER_REQUEST) {
       throw new DubApiError({
@@ -161,6 +155,9 @@ export const POST = withPartnerProfile(
 
     return NextResponse.json({ message: "Invite(s) sent" });
   },
+  {
+    requiredPermission: "user_invites.create",
+  },
 );
 
 const updateInviteRoleSchema = z.object({
@@ -170,15 +167,10 @@ const updateInviteRoleSchema = z.object({
 
 // PATCH /api/partner-profile/invites - update an invite's role
 export const PATCH = withPartnerProfile(
-  async ({ req, partner, partnerUser }) => {
+  async ({ req, partner }) => {
     const { email, role } = updateInviteRoleSchema.parse(
       await parseRequestBody(req),
     );
-
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "user_invites.update",
-    });
 
     const invite = await prisma.partnerInvite.findUnique({
       where: {
@@ -210,6 +202,9 @@ export const PATCH = withPartnerProfile(
 
     return NextResponse.json(response);
   },
+  {
+    requiredPermission: "user_invites.update",
+  },
 );
 
 const removeInviteSchema = z.object({
@@ -218,13 +213,8 @@ const removeInviteSchema = z.object({
 
 // DELETE /api/partner-profile/invites?email={email} - remove an invite
 export const DELETE = withPartnerProfile(
-  async ({ searchParams, partner, partnerUser }) => {
+  async ({ searchParams, partner }) => {
     const { email } = removeInviteSchema.parse(searchParams);
-
-    throwIfNoPermission({
-      role: partnerUser.role,
-      permission: "user_invites.delete",
-    });
 
     await prisma.$transaction([
       prisma.partnerInvite.delete({
@@ -244,5 +234,8 @@ export const DELETE = withPartnerProfile(
     ]);
 
     return NextResponse.json({ email });
+  },
+  {
+    requiredPermission: "user_invites.delete",
   },
 );

@@ -157,7 +157,9 @@ async function createCommission({
     entity_id: commission.id,
   } as const;
 
-  if (commission.campaign.id && !campaignIds.includes(commission.campaign.id)) {
+  const campaignId = commission.sale.affiliate.campaign?.id;
+
+  if (campaignId && !campaignIds.includes(campaignId)) {
     console.log(
       `Affiliate ${commission?.sale?.affiliate?.email} for commission ${commission.id}) not in campaignIds (${campaignIds.join(", ")}) (they're in ${commission.campaign.id}). Skipping...`,
     );

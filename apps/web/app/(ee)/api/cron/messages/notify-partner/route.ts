@@ -108,6 +108,7 @@ export async function POST(req: Request) {
         subject: `${program.name} sent ${unreadMessages.length === 1 ? "a message" : `${unreadMessages.length} messages`}`,
         variant: "notifications",
         to: email,
+        ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
         react: NewMessageFromProgram({
           program: {
             name: program.name,

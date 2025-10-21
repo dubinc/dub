@@ -2,10 +2,12 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
@@ -210,6 +212,10 @@ export const createProgram = async ({
         }),
       }),
 
+      // delete the workspace product cache
+      redis.del(`workspace:product:${workspace.slug}`),
+
+      // record the audit log
       recordAuditLog({
         workspaceId: workspace.id,
         programId: program.id,
@@ -261,18 +267,26 @@ async function invitePartner({
   });
 
   waitUntil(
-    sendEmail({
-      subject: `${program.name} invited you to join Dub Partners`,
-      variant: "notifications",
-      to: partner.email,
-      react: ProgramInvite({
-        email: partner.email,
-        program: {
-          name: program.name,
-          slug: program.slug,
-          logo: program.logo,
-        },
-      }),
-    }),
+    (async () => {
+      await sendEmail({
+        subject: `${program.name} invited you to join Dub Partners`,
+        variant: "notifications",
+        to: partner.email,
+        ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+        react: ProgramInvite({
+          email: partner.email,
+          name: null,
+          program: {
+            name: program.name,
+            slug: program.slug,
+            logo: program.logo,
+          },
+          ...(await getPartnerInviteRewardsAndBounties({
+            programId: program.id,
+            groupId: program.defaultGroupId,
+          })),
+        }),
+      });
+    })(),
   );
 }

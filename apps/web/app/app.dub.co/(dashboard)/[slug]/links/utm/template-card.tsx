@@ -9,6 +9,7 @@ import {
   Button,
   CardList,
   Popover,
+  TimestampTooltip,
   Tooltip,
   useKeyboardShortcut,
   UTM_PARAMETERS,
@@ -108,7 +109,14 @@ export function TemplateCard({
         </Tooltip>
 
         <div className="hidden text-sm text-neutral-500 sm:block">
-          {formatDate(template.updatedAt, { month: "short" })}
+          <TimestampTooltip
+            timestamp={template.updatedAt}
+            rows={["local"]}
+            side="left"
+            delayDuration={150}
+          >
+            <span>{formatDate(template.updatedAt, { month: "short" })}</span>
+          </TimestampTooltip>
         </div>
 
         <div className="flex items-center gap-5 sm:gap-8 md:gap-12">

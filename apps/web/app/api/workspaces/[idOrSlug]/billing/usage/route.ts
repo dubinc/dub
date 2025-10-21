@@ -1,9 +1,9 @@
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { tb } from "@/lib/tinybird";
-import z from "@/lib/zod";
 import { usageQuerySchema, usageResponse } from "@/lib/zod/schemas/usage";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 export const GET = withWorkspace(async ({ searchParams, workspace }) => {
   const { resource, start, end, timezone } =

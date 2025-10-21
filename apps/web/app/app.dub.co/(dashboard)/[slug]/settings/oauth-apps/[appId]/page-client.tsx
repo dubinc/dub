@@ -164,7 +164,7 @@ export default function OAuthAppManagePageClient({ appId }: { appId: string }) {
         </div>
       </MaxWidthWrapper>
 
-      <MaxWidthWrapper className="max-w-screen-lg space-y-6">
+      <MaxWidthWrapper className="mt-4 max-w-screen-lg space-y-6">
         {oAuthApp && (
           <>
             <OAuthAppCredentials

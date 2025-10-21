@@ -305,6 +305,7 @@ const deleteStripeAccountIfRequired = async ({
         data: {
           stripeConnectId: null,
           payoutsEnabledAt: null,
+          payoutMethodHash: null,
         },
       });
     }

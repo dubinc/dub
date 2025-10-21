@@ -20,16 +20,12 @@ export default function NewOAuthAppPageClient() {
   }
 
   return (
-    <>
-      <MaxWidthWrapper className="grid max-w-screen-lg gap-8">
-        <BackLink href={`/${slug}/settings/oauth-apps`}>
-          Back to OAuth Apps
-        </BackLink>
-      </MaxWidthWrapper>
+    <MaxWidthWrapper className="max-w-screen-lg space-y-6">
+      <BackLink href={`/${slug}/settings/oauth-apps`}>
+        Back to OAuth Apps
+      </BackLink>
 
-      <MaxWidthWrapper className="max-w-screen-lg space-y-6">
-        <AddOAuthAppForm oAuthApp={null} />
-      </MaxWidthWrapper>
-    </>
+      <AddOAuthAppForm oAuthApp={null} />
+    </MaxWidthWrapper>
   );
 }

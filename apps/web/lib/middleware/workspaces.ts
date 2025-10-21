@@ -5,10 +5,7 @@ import { getDefaultWorkspace } from "./utils/get-default-workspace";
 import { getWorkspaceProduct } from "./utils/get-workspace-product";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
 
-export default async function WorkspacesMiddleware(
-  req: NextRequest,
-  user: UserProps,
-) {
+export async function WorkspacesMiddleware(req: NextRequest, user: UserProps) {
   const { path, searchParamsObj, searchParamsString } = parse(req);
 
   // Handle ?next= query param with proper validation to prevent open redirects

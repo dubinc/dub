@@ -15,7 +15,7 @@ async function main() {
         id: true,
         text: true,
       },
-      take: 10,
+      take: 100,
       ...(cursor && {
         skip: 1,
         cursor: {
@@ -31,18 +31,12 @@ async function main() {
       break;
     }
 
-    await prisma.$transaction(
-      messages.map((message) =>
-        prisma.message.update({
-          where: {
-            id: message.id,
-          },
-          data: {
-            text: convertToMarkdown(message.text),
-          },
-        }),
-      ),
-    );
+    for (const message of messages) {
+      await prisma.message.update({
+        where: { id: message.id },
+        data: { text: convertToMarkdown(message.text) },
+      });
+    }
 
     batchNumber++;
     processedCount += messages.length;

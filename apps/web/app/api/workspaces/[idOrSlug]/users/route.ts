@@ -2,7 +2,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { throwIfNoAccess } from "@/lib/api/tokens/permissions";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
-import z from "@/lib/zod";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
@@ -10,6 +9,7 @@ import {
 import { prisma } from "@dub/prisma";
 import { WorkspaceRole } from "@prisma/client";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/workspaces/[idOrSlug]/users – get users for a specific workspace
 export const GET = withWorkspace(

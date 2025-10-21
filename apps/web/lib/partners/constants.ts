@@ -3,12 +3,13 @@ import { PaymentMethodOption } from "../types";
 
 export const PROGRAM_ONBOARDING_PARTNERS_LIMIT = 5;
 export const PAYOUTS_SHEET_ITEMS_LIMIT = 10;
+export const BOUNTY_DESCRIPTION_MAX_LENGTH = 5000;
 export const REFERRALS_EMBED_EARNINGS_LIMIT = 8;
 export const CUSTOMER_PAGE_EVENTS_LIMIT = 8;
 export const PAYOUT_FAILURE_FEE_CENTS = 1000; // 10 USD
 export const FOREX_MARKUP_RATE = 0.005; // 0.5%
-export const MIN_WITHDRAWAL_AMOUNT_CENTS = 10000; // $100
-export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 200; // $2
+export const MIN_WITHDRAWAL_AMOUNT_CENTS = 1000; // $10
+export const BELOW_MIN_WITHDRAWAL_FEE_CENTS = 50; // $0.50
 export const FAST_ACH_FEE_CENTS = 2500; // $25
 
 export const ALLOWED_MIN_WITHDRAWAL_AMOUNTS = [1000, 2500, 5000, 7500, 10000];

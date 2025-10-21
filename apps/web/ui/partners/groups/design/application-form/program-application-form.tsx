@@ -9,7 +9,6 @@ import {
   ProgramApplicationFormDataWithValues,
   ProgramProps,
 } from "@/lib/types";
-import z from "@/lib/zod";
 import {
   programApplicationFormFieldSchema,
   programApplicationFormLongTextFieldWithValueSchema,
@@ -27,6 +26,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import { CountryCombobox } from "../../../country-combobox";
 import { ProgramApplicationFormField } from "./fields";
 import { FormControlRequiredBadge } from "./fields/form-control";
@@ -35,7 +35,6 @@ type FormData = {
   name: string;
   email: string;
   country: string;
-  ageVerification: boolean;
   termsAgreement: boolean;
   formData: ProgramApplicationFormDataWithValues;
 };
@@ -95,10 +94,7 @@ export function ProgramApplicationForm({
   group,
   preview = false,
 }: {
-  program: Pick<
-    ProgramProps,
-    "id" | "slug" | "name" | "termsUrl" | "ageVerification"
-  >;
+  program: Pick<ProgramProps, "id" | "slug" | "name" | "termsUrl">;
   group: Pick<GroupWithFormDataProps, "id" | "applicationFormData" | "slug">;
   preview?: boolean;
 }) {
@@ -111,7 +107,6 @@ export function ProgramApplicationForm({
       name: "",
       email: "",
       country: "",
-      ageVerification: false,
       termsAgreement: false,
       formData: formDataForApplicationFormData(
         group.applicationFormData?.fields ?? [],
@@ -274,28 +269,6 @@ export function ProgramApplicationForm({
             />
           );
         })}
-
-        {program.ageVerification && (
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="ageVerification"
-              className={cn(
-                "h-4 w-4 rounded border-neutral-300 text-[var(--brand)] focus:ring-[var(--brand)]",
-                errors.ageVerification && "border-red-400 focus:ring-red-500",
-              )}
-              {...register("ageVerification", {
-                required: true,
-              })}
-            />
-            <label
-              htmlFor="ageVerification"
-              className="text-sm text-neutral-800"
-            >
-              I'm {program.ageVerification} years or older
-            </label>
-          </div>
-        )}
 
         {program.termsUrl && (
           <div className="flex items-center gap-2">

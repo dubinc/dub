@@ -4,7 +4,6 @@ import { createId } from "@/lib/api/create-id";
 import { completeProgramApplications } from "@/lib/partners/complete-program-applications";
 import { storage } from "@/lib/storage";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
-import { subscribe } from "@dub/email/resend/subscribe";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
@@ -31,9 +30,11 @@ export const onboardPartnerAction = authUserActionClient
       ? existingPartner.id
       : createId({ prefix: "pn_" });
 
-    const imageUrl = await storage
-      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
-      .then(({ url }) => url);
+    const imageUrl = image
+      ? await storage
+          .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
+          .then(({ url }) => url)
+      : null;
 
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {
@@ -95,16 +96,6 @@ export const onboardPartnerAction = authUserActionClient
         }),
     ]);
 
-    waitUntil(
-      Promise.allSettled([
-        // Complete any outstanding program application
-        completeProgramApplications(user.email),
-        // Subscribe the partner to the partners.dub.co Resend audience
-        subscribe({
-          email: user.email,
-          name: user.name || partner.name || undefined,
-          audience: "partners.dub.co",
-        }),
-      ]),
-    );
+    // Complete any outstanding program application
+    waitUntil(completeProgramApplications(user.email));
   });

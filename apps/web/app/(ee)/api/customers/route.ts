@@ -5,7 +5,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { isStored, storage } from "@/lib/storage";
-import z from "@/lib/zod";
 import {
   createCustomerBodySchema,
   CustomerEnrichedSchema,
@@ -25,6 +24,7 @@ import {
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 interface CustomerResponse extends Customer {
   link: Link & {

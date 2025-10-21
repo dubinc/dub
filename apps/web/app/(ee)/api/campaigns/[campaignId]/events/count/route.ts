@@ -26,12 +26,10 @@ export const GET = withWorkspace(
         ...(status === "opened" && { openedAt: { not: null } }),
         ...(status === "bounced" && { bouncedAt: { not: null } }),
         ...(search && {
-          partner: {
-            OR: [
-              { name: { contains: search } },
-              { email: { contains: search } },
-            ],
-          },
+          OR: [
+            { partner: { name: { contains: search } } },
+            { partner: { email: { contains: search } } },
+          ],
         }),
       },
     });

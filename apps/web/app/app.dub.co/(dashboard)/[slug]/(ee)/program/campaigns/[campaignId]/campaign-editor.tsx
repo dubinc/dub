@@ -248,6 +248,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     <CampaignEvents />
                   </div>
                 ),
+                defaultOpen: campaign.status === CampaignStatus.active,
               }
             : undefined
         }

@@ -1,7 +1,7 @@
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { PartnerBountyProps } from "@/lib/types";
-import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
-import { currencyFormatter, nFormatter } from "@dub/utils";
+import { cn, currencyFormatter, nFormatter } from "@dub/utils";
 
 export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
   const performanceCondition = bounty.performanceCondition;
@@ -26,7 +26,12 @@ export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
     : nFormatter(target, { full: true });
 
   const metricLabel =
-    WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute].toLowerCase();
+    PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[
+      performanceCondition.attribute
+    ].toLowerCase();
+
+  const expiredBounty =
+    bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
 
   return (
     <div className="flex flex-col gap-2">
@@ -36,7 +41,10 @@ export function BountyPerformance({ bounty }: { bounty: PartnerBountyProps }) {
             style={{
               width: Math.min(Math.max(value / target, 0), 1) * 100 + "%",
             }}
-            className="h-full rounded-full bg-orange-600"
+            className={cn(
+              "h-full rounded-full bg-orange-600",
+              expiredBounty && "bg-neutral-400",
+            )}
           />
         )}
       </div>

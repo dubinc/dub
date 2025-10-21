@@ -2,11 +2,11 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { throwIfAIUsageExceeded } from "@/lib/api/links/usage-checks";
 import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
-import z from "@/lib/zod";
 import { anthropic } from "@ai-sdk/anthropic";
 import { prismaEdge } from "@dub/prisma/edge";
 import { waitUntil } from "@vercel/functions";
 import { streamText } from "ai";
+import { z } from "zod";
 
 const completionSchema = z.object({
   prompt: z.string(),
