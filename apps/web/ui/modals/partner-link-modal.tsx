@@ -231,7 +231,7 @@ function PartnerLinkModalContent({
   });
 
   useEffect(() => {
-    if (!selectedAdditionalLink) {
+    if (!selectedAdditionalLink || isEditingLink) {
       return;
     }
 
@@ -240,7 +240,7 @@ function PartnerLinkModalContent({
     } else {
       setValue("pathname", "", { shouldDirty: true });
     }
-  }, [selectedAdditionalLink, isExactMode]);
+  }, [selectedAdditionalLink, isExactMode, isEditingLink]);
 
   const [key, pathname] = watch(["key", "pathname"]);
 

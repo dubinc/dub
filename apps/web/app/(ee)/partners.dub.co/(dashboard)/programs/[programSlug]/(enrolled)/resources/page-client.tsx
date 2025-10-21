@@ -9,6 +9,7 @@ import { FileContent, FileZip2, Link4, Palette2, Post } from "@dub/ui/icons";
 import {
   formatFileSize,
   getApexDomain,
+  getFileExtension,
   getPrettyUrl,
   GOOGLE_FAVICON_URL,
 } from "@dub/utils";
@@ -49,7 +50,7 @@ export function ResourcesPageClient() {
                     </div>
                   }
                   title={logo.name || "Logo"}
-                  description={formatFileSize(logo.size, 0)}
+                  description={`${getFileExtension(logo.url) || "Unknown"}・${formatFileSize(logo.size, 0)}`}
                   downloadUrl={logo.url}
                 />
               ))}
@@ -126,7 +127,7 @@ export function ResourcesPageClient() {
                     </div>
                   }
                   title={file.name || "File"}
-                  description={formatFileSize(file.size, 0)}
+                  description={`${getFileExtension(file.url) || "Unknown"}・${formatFileSize(file.size, 0)}`}
                   downloadUrl={file.url}
                 />
               ))}
