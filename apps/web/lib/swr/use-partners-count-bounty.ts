@@ -11,6 +11,8 @@ export function usePartnersCountBounty({ bounty }: { bounty?: BountyProps }) {
     | undefined
   >({
     groupBy: "groupId",
+    ignoreParams: true,
+    enabled: !!bounty,
   });
 
   const totalPartnersForBounty = useMemo(() => {

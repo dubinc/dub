@@ -51,11 +51,11 @@ const RejectBountySubmissionModal = ({
   const { executeAsync: rejectBountySubmission, isPending } = useAction(
     rejectBountySubmissionAction,
     {
-      onSuccess: async () => {
+      onSuccess: () => {
         toast.success("Bounty submission rejected successfully!");
         setShowModal(false);
         onReject ? onReject() : null;
-        await mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
+        mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
       },
       onError({ error }) {
         toast.error(error.serverError);
