@@ -70,14 +70,12 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
           </div>
         </div>
 
-        {!expiredBounty && (
-          <div className="flex grow flex-col justify-end">
-            {renderSubmissionStatus({
-              bounty,
-              setShowClaimBountyModal,
-            })}
-          </div>
-        )}
+        <div className="flex grow flex-col justify-end">
+          {renderSubmissionStatus({
+            bounty,
+            setShowClaimBountyModal,
+          })}
+        </div>
       </button>
     </>
   );

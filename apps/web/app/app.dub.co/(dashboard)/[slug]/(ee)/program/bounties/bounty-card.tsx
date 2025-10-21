@@ -48,16 +48,17 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
             <BountyThumbnailImage bounty={bounty} />
           </div>
 
-          {bounty.endsAt && new Date(bounty.endsAt) < new Date() ? (
-            <BountyEndedBadge endsAt={bounty.endsAt} />
-          ) : null}
-
-          {bounty.submissionsCountData &&
-          bounty.submissionsCountData.submitted > 0 ? (
-            <SubmissionsCountBadge
-              count={bounty.submissionsCountData.submitted}
-            />
-          ) : null}
+          <div className="absolute left-2 top-2 z-10 flex flex-col gap-1.5">
+            {bounty.submissionsCountData &&
+              bounty.submissionsCountData.submitted > 0 && (
+                <SubmissionsCountBadge
+                  count={bounty.submissionsCountData.submitted}
+                />
+              )}
+            {bounty.endsAt && new Date(bounty.endsAt) < new Date() && (
+              <BountyEndedBadge endsAt={bounty.endsAt} />
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-1.5">
@@ -113,23 +114,18 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
   );
 }
 
-function BountyEndedBadge({ endsAt }: { endsAt: Date }) {
+function SubmissionsCountBadge({ count }: { count: number }) {
   return (
-    <div className="absolute left-2 top-2 z-10">
-      <div className="flex h-5 items-center gap-1 rounded-md bg-neutral-200 px-2 py-1 text-xs font-semibold text-neutral-600">
-        Ended {formatDate(endsAt, { month: "short" })}
-      </div>
+    <div className="flex h-5 w-fit items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-600">
+      {nFormatter(count, { full: true })} {pluralize("submission", count)}{" "}
+      awaiting review
     </div>
   );
 }
-
-function SubmissionsCountBadge({ count }: { count: number }) {
+function BountyEndedBadge({ endsAt }: { endsAt: Date }) {
   return (
-    <div className="absolute left-2 top-2 z-10">
-      <div className="flex h-5 items-center gap-1 rounded-md bg-blue-100 px-2 py-1 text-xs font-semibold text-blue-600">
-        {nFormatter(count, { full: true })} {pluralize("submission", count)}{" "}
-        awaiting review
-      </div>
+    <div className="flex h-5 w-fit items-center gap-1 rounded-md bg-neutral-200 px-2 py-1 text-xs font-semibold text-neutral-600">
+      Ended {formatDate(endsAt, { month: "short" })}
     </div>
   );
 }
