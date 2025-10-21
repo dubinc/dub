@@ -13,6 +13,7 @@ import {
   Lock,
   PaperPlane,
   RichTextArea,
+  SmartDateTimePicker,
   StatusBadge,
   Tooltip,
   useKeyboardShortcut,
@@ -83,6 +84,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       bodyJson: campaign.bodyJson,
       groupIds: campaign.groups.map(({ id }) => id),
       triggerCondition: campaign.triggerCondition,
+      scheduledAt: campaign.scheduledAt,
     },
   });
 
@@ -295,6 +297,29 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 {...register("subject")}
               />
             </label>
+
+            {campaign.type === "marketing" && (
+              <>
+                <span className={labelClassName}>Schedule</span>
+                <Controller
+                  control={control}
+                  name="scheduledAt"
+                  render={({ field }) => (
+                    <DisabledInputWrapper
+                      tooltip="Cannot change schedule while campaign is sent."
+                      disabled={campaign.status === CampaignStatus.sent}
+                      hideIcon={true}
+                    >
+                      <SmartDateTimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
+                      />
+                    </DisabledInputWrapper>
+                  )}
+                />
+              </>
+            )}
 
             {campaign.type === "transactional" && (
               <>

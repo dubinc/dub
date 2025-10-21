@@ -53,8 +53,15 @@ export const PATCH = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { name, subject, status, bodyJson, groupIds, triggerCondition } =
-      updateCampaignSchema.parse(await parseRequestBody(req));
+    const {
+      name,
+      subject,
+      status,
+      bodyJson,
+      groupIds,
+      triggerCondition,
+      scheduledAt,
+    } = updateCampaignSchema.parse(await parseRequestBody(req));
 
     const campaign = await getCampaignOrThrow({
       programId,
@@ -111,6 +118,7 @@ export const PATCH = withWorkspace(
           ...(subject && { subject }),
           ...(status && { status }),
           ...(bodyJson && { bodyJson }),
+          ...(scheduledAt !== undefined && { scheduledAt }),
           ...(shouldUpdateGroups && {
             groups: {
               deleteMany: {},

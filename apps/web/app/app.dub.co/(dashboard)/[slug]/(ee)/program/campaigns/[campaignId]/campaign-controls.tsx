@@ -7,6 +7,7 @@ import { ThreeDots } from "@/ui/shared/icons";
 import { CampaignStatus } from "@dub/prisma/client";
 import {
   Button,
+  CircleXmark,
   Duplicate,
   Flask,
   LoadingCircle,
@@ -120,6 +121,28 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     confirmShortcut: "Enter",
   });
 
+  const {
+    confirmModal: cancelConfirmModal,
+    setShowConfirmModal: setShowCancelModal,
+  } = useConfirmModal({
+    title: "Cancel Campaign",
+    description:
+      "Are you sure you want to cancel this email campaign? This action cannot be undone.",
+    onConfirm: async () => {
+      await updateCampaign(
+        {
+          status: CampaignStatus.cancelled,
+        },
+        () => {
+          toast.success("Email campaign cancelled!");
+        },
+      );
+    },
+    confirmText: "Cancel Campaign",
+    confirmShortcut: "Enter",
+  });
+
+
   const [name, subject, groupIds, bodyJson, triggerCondition] = useWatch({
     control,
     name: ["name", "subject", "groupIds", "bodyJson", "triggerCondition"],
@@ -181,37 +204,77 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
   };
 
   const actionButton = (() => {
-    switch (campaign.status) {
-      case CampaignStatus.draft:
-        return {
-          text: "Publish",
-          icon: PaperPlane,
-          onClick: () => {
-            setShowPublishModal(true);
-          },
-          loading: isUpdatingCampaign,
-        };
-      case CampaignStatus.active:
-        return {
-          text: "Pause",
-          icon: MediaPause,
-          onClick: () => {
-            setShowPauseModal(true);
-          },
-          loading: isUpdatingCampaign,
-        };
-      case CampaignStatus.paused:
-        return {
-          text: "Resume",
-          icon: MediaPlay,
-          onClick: () => {
-            setShowResumeModal(true);
-          },
-          loading: isUpdatingCampaign,
-        };
-      default:
-        return null;
+    const transactionalActionButtonMap = {
+      [CampaignStatus.draft]: {
+        text: "Publish",
+        icon: PaperPlane,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowPublishModal(true);
+        },
+      },
+
+      [CampaignStatus.active]: {
+        text: "Pause",
+        icon: MediaPause,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowPauseModal(true);
+        },
+      },
+
+      [CampaignStatus.paused]: {
+        text: "Resume",
+        icon: MediaPlay,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowResumeModal(true);
+        },
+      },
+    };
+
+    const marketingActionButtonMap = {
+      [CampaignStatus.draft]: {
+        text: "Send",
+        icon: PaperPlane,
+        loading: isUpdatingCampaign,
+        variant: "primary",
+        onClick: () => {
+          setShowPublishModal(true);
+        },
+      },
+
+      [CampaignStatus.scheduled]: {
+        text: "Cancel",
+        icon: CircleXmark,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowCancelModal(true);
+        },
+      },
+
+      [CampaignStatus.sending]: {
+        text: "Cancel",
+        icon: CircleXmark,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowCancelModal(true);
+        },
+      },
+
+      [CampaignStatus.sent]: null, // No action once sent
+      [CampaignStatus.cancelled]: null, // No action once cancelled
+    };
+
+    if (campaign.type === "transactional") {
+      return transactionalActionButtonMap[campaign.status];
     }
+
+    if (campaign.type === "marketing") {
+      return marketingActionButtonMap[campaign.status];
+    }
+
+    return null;
   })();
 
   return (
@@ -226,7 +289,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
             onClick={actionButton.onClick}
             loading={actionButton.loading}
             className="hidden h-9 px-4 sm:flex"
-            variant="secondary"
+            variant={actionButton.variant || "secondary"}
           />
         )}
 
@@ -311,6 +374,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       {publishConfirmModal}
       {pauseConfirmModal}
       {resumeConfirmModal}
+      {cancelConfirmModal}
     </>
   );
 }
