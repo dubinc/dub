@@ -1,6 +1,12 @@
-import { TrackLeadResponse, TrackSaleResponse } from "@/lib/types";
+import {
+  CommissionResponse,
+  Customer,
+  TrackLeadResponse,
+  TrackSaleResponse,
+} from "@/lib/types";
 import { randomCustomer } from "tests/utils/helpers";
-import { E2E_TRACK_CLICK_HEADERS } from "tests/utils/resource";
+import { HttpClient } from "tests/utils/http";
+import { E2E_LEAD_REWARD, E2E_TRACK_CLICK_HEADERS } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -22,6 +28,37 @@ const expectValidLeadResponse = ({
     link: response.data.link,
     customer,
   });
+};
+
+const verifyCommission = async ({
+  http,
+  customerExternalId,
+  expectedEarnings,
+}: {
+  http: HttpClient;
+  customerExternalId: string;
+  expectedEarnings: number;
+}) => {
+  // Find the customer first
+  const { data: customer } = await http.get<Customer>({
+    path: "/customers",
+    query: {
+      externalId: customerExternalId,
+    },
+  });
+
+  // Find the commission for the customer
+  const { status, data: commissions } = await http.get<CommissionResponse[]>({
+    path: "/commissions",
+    query: {
+      customerId: customer.id,
+    },
+  });
+
+  expect(status).toEqual(200);
+  expect(commissions).toHaveLength(1);
+  expect(commissions[0].customer?.id).toEqual(customer.id);
+  expect(commissions[0].earnings).toEqual(expectedEarnings);
 };
 
 describe("POST /track/lead", async () => {
@@ -61,6 +98,14 @@ describe("POST /track/lead", async () => {
       response,
       customer: customer1,
       clickId: trackedClickId,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    await verifyCommission({
+      http,
+      customerExternalId: customer1.externalId,
+      expectedEarnings: E2E_LEAD_REWARD.amount,
     });
   });
 
@@ -213,6 +258,46 @@ describe("POST /track/lead", async () => {
       response,
       customer: customer6,
       clickId: trackedClickId,
+    });
+  });
+
+  test("track a lead and verify the reward based on the partner.country (US)", async () => {
+    const clickResponse = await http.post<{ clickId: string }>({
+      path: "/track/click",
+      headers: E2E_TRACK_CLICK_HEADERS,
+      body: {
+        domain: "getacme.link",
+        key: "marvin",
+      },
+    });
+
+    const trackedClickId = clickResponse.data.clickId;
+    const customer = randomCustomer();
+
+    const response = await http.post<TrackLeadResponse>({
+      path: "/track/lead",
+      body: {
+        clickId: trackedClickId,
+        customerId: customer.externalId,
+        eventName: "Signup",
+        customerName: customer.name,
+        customerEmail: customer.email,
+        customerAvatar: customer.avatar,
+      },
+    });
+
+    expectValidLeadResponse({
+      response,
+      customer: customer,
+      clickId: trackedClickId,
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    await verifyCommission({
+      http,
+      customerExternalId: customer.externalId,
+      expectedEarnings: E2E_LEAD_REWARD.modifiers[0].amount,
     });
   });
 });
