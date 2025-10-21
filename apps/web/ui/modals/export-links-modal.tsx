@@ -1,4 +1,8 @@
 import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import {
+  exportLinksColumns,
+  exportLinksColumnsDefault,
+} from "@/lib/zod/schemas/links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   Button,
@@ -20,19 +24,6 @@ import {
 } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-
-const columns = [
-  { id: "link", label: "Short link" },
-  { id: "url", label: "Destination URL" },
-  { id: "clicks", label: "Clicks" },
-  { id: "createdAt", label: "Created at" },
-  { id: "id", label: "Link ID" },
-  { id: "updatedAt", label: "Updated at" },
-  { id: "tags", label: "Tags" },
-  { id: "archived", label: "Archived" },
-];
-
-const defaultColumns = ["link", "url", "clicks", "createdAt"];
 
 type FormData = {
   dateRange: {
@@ -65,7 +56,7 @@ function ExportLinksModal({
       dateRange: {
         interval: "all",
       },
-      columns: defaultColumns,
+      columns: exportLinksColumnsDefault,
       useFilters: true,
     },
   });
@@ -83,7 +74,7 @@ function ExportLinksModal({
           : {
               interval: data.dateRange.interval ?? "all",
             }),
-        columns: (data.columns.length ? data.columns : defaultColumns).join(
+        columns: (data.columns.length ? data.columns : exportLinksColumnsDefault).join(
           ",",
         ),
       };
@@ -191,7 +182,7 @@ function ExportLinksModal({
             control={control}
             render={({ field }) => (
               <div className="xs:grid-cols-2 mt-2 grid grid-cols-1 gap-x-4 gap-y-2">
-                {columns.map(({ id, label }) => (
+                {exportLinksColumns.map(({ id, label }) => (
                   <div key={id} className="group flex gap-2">
                     <Checkbox
                       value={id}

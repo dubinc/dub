@@ -1,17 +1,34 @@
-import { INTERVAL_DATA } from "@/lib/analytics/constants";
+import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV } from "@/lib/analytics/utils";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
-import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
+import {
+  exportLinksColumns,
+  linksExportQuerySchema,
+} from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { linkConstructor } from "@dub/utils";
+import { endOfDay, startOfDay } from "date-fns";
+import { z } from "zod";
 
-// GET /api/links/export – export links to CSV
+const columnIdToLabel = exportLinksColumns.reduce((acc, column) => {
+  acc[column.id] = column.label;
+  return acc;
+}, {});
+
+const numericColumns = exportLinksColumns
+  .filter((column) => "numeric" in column && column.numeric)
+  .map((column) => column.id);
+
+// GET /api/links/export – export links to CSV
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
+
+    let { columns, ...filters } = linksExportQuerySchema.parse(searchParams);
 
     const {
       domain,
@@ -20,13 +37,11 @@ export const GET = withWorkspace(
       sort,
       userId,
       showArchived,
-      withTags,
       start,
       end,
       interval,
-      columns,
       folderId,
-    } = linksExportQuerySchema.parse(searchParams);
+    } = filters;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
@@ -41,15 +56,55 @@ export const GET = withWorkspace(
       });
     }
 
+    const { startDate, endDate } = getStartEndDates({
+      interval,
+      start: start ? startOfDay(new Date(start)) : undefined,
+      end: end ? endOfDay(new Date(end)) : undefined,
+    });
+
+    const columnOrderMap = exportLinksColumns.reduce((acc, column, index) => {
+      acc[column.id] = index + 1;
+      return acc;
+    }, {});
+
+    columns = columns.sort(
+      (a, b) =>
+        (columnOrderMap[a as keyof typeof columnOrderMap] || 999) -
+        (columnOrderMap[b as keyof typeof columnOrderMap] || 999),
+    );
+
+    const schemaFields: Record<string, z.ZodTypeAny> = {};
+    columns.forEach((column) => {
+      if (numericColumns.includes(column as any)) {
+        schemaFields[columnIdToLabel[column as keyof typeof columnIdToLabel]] =
+          z.coerce.number().optional().default(0);
+      } else {
+        schemaFields[columnIdToLabel[column as keyof typeof columnIdToLabel]] =
+          z.string().optional().default("");
+      }
+    });
+
+    /* we only need to get the folder ids if we are:
+      - not filtering by folder
+      - filtering by search, domain, or tags
+    */
+    let folderIds =
+      !folderId && (search || domain || tagIds)
+        ? await getFolderIdsToFilter({
+            workspace,
+            userId: session.user.id,
+          })
+        : undefined;
+
+    if (Array.isArray(folderIds)) {
+      folderIds = folderIds?.filter((id) => id !== "");
+      if (folderIds.length === 0) {
+        folderIds = undefined;
+      }
+    }
+
     const links = await prisma.link.findMany({
-      select: {
-        id: columns.includes("id"),
-        domain: columns.includes("link"),
-        key: columns.includes("link"),
-        url: columns.includes("url"),
-        clicks: columns.includes("clicks"),
-        createdAt: columns.includes("createdAt"),
-        updatedAt: columns.includes("updatedAt"),
+      include: {
         ...(columns.includes("tags") && {
           tags: {
             select: {
@@ -61,41 +116,64 @@ export const GET = withWorkspace(
             },
           },
         }),
-        archived: columns.includes("archived"),
       },
       where: {
         projectId: workspace.id,
-        archived: showArchived ? undefined : false,
-        createdAt: {
-          gte:
-            start ??
-            (interval && interval !== "all"
-              ? INTERVAL_DATA[interval].startDate
-              : undefined),
-          lte: end ?? new Date(),
-        },
+        AND: [
+          ...(folderIds
+            ? [
+                {
+                  OR: [
+                    {
+                      folderId: {
+                        in: folderIds,
+                      },
+                    },
+                    {
+                      folderId: null,
+                    },
+                  ],
+                },
+              ]
+            : [
+                {
+                  folderId: folderId || null,
+                },
+              ]),
+          ...(search
+            ? [
+                {
+                  OR: [
+                    {
+                      key: { contains: search },
+                    },
+                    {
+                      url: { contains: search },
+                    },
+                  ],
+                },
+              ]
+            : []),
+        ],
         ...(domain && { domain }),
-        ...(search && {
-          OR: [
-            {
-              key: { contains: search },
-            },
-            {
-              url: { contains: search },
-            },
-          ],
-        }),
-        ...(withTags && {
-          tags: {
-            some: {},
-          },
-        }),
         ...(tagIds &&
           tagIds.length > 0 && {
-            tags: { some: { tagId: { in: tagIds } } },
+            tags: {
+              some: {
+                tagId: { in: tagIds },
+              },
+            },
           }),
         ...(userId && { userId }),
-        folderId: folderId || null,
+        archived: showArchived ? undefined : false,
+        ...(interval === "all"
+          ? {}
+          : {
+              createdAt: {
+                gte: startDate,
+                lte: endDate,
+              },
+            }),
       },
 
       // TODO: orderBy is not currently supported
@@ -104,36 +182,35 @@ export const GET = withWorkspace(
       },
     });
 
-    const csvData = convertToCSV(
-      links.map((link) => {
-        // Use a Map to maintain order of keys
-        let result = new Map([
-          ...(columns.includes("link")
-            ? [
-                [
-                  "link",
-                  linkConstructor({ domain: link.domain, key: link.key }),
-                ] as [string, string],
-              ]
-            : []),
-          ...Object.entries(link),
-        ]);
+    const formattedLinks = links.map((link) => {
+      const result: Record<string, any> = {};
 
-        if (columns.includes("link")) {
-          result.delete("domain");
-          result.delete("key");
+      columns.forEach((column) => {
+        let value = link[column as keyof typeof link] || "";
+
+        // Handle special cases
+        if (column === "link") {
+          value = linkConstructor({ domain: link.domain, key: link.key });
+        } else if (column === "tags") {
+          value =
+            link.tags?.map((tag) => (tag as any).tag.name).join(", ") || "";
         }
 
-        if (columns.includes("tags")) {
-          result.set(
-            "tags",
-            link.tags.map((tag) => (tag as any).tag.name).join(", "),
-          );
+        // Handle date fields - convert to ISO string format
+        if (
+          (column === "createdAt" || column === "updatedAt") &&
+          value instanceof Date
+        ) {
+          value = value.toISOString();
         }
 
-        return Object.fromEntries(result.entries());
-      }),
-    );
+        result[columnIdToLabel[column as keyof typeof columnIdToLabel]] = value;
+      });
+
+      return z.object(schemaFields).parse(result);
+    });
+
+    const csvData = convertToCSV(formattedLinks);
 
     return new Response(csvData, {
       headers: {
