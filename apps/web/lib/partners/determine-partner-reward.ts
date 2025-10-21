@@ -14,6 +14,7 @@ const REWARD_EVENT_COLUMN_MAPPING = {
 };
 
 interface ProgramEnrollmentWithReward {
+  partner: { country: string | null };
   links: Link[] | null;
   totalCommissions: number;
   clickReward?: Reward | null;
@@ -46,6 +47,7 @@ export const determinePartnerReward = ({
       ...context?.partner,
       ...partnerLinksStats,
       totalCommissions: programEnrollment.totalCommissions,
+      country: programEnrollment.partner?.country,
     },
   };
 
