@@ -1,3 +1,4 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Invite } from "@/lib/zod/schemas/invites";
 import { WorkspaceRole } from "@dub/prisma/client";
@@ -8,7 +9,6 @@ import { Plus } from "lucide-react";
 import posthog from "posthog-js";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
 import { CustomToast } from "../shared/custom-toast";
 import { CheckCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
@@ -66,7 +66,7 @@ export function InviteTeammatesForm({
         );
 
         if (res.ok) {
-          await mutate(`/api/workspaces/${id}/invites`);
+          await mutatePrefix(`/api/workspaces/${id}/invites`);
 
           if (saveOnly) {
             toast.custom(
