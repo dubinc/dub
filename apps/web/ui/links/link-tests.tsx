@@ -37,7 +37,7 @@ export const LinkTests = memo(({ link }: { link: ResponseLink }) => {
       sales: number;
     }[]
   >(
-    testVariants?.length && showTests
+    testVariants?.length && showTests && workspaceId
       ? `/api/analytics?${new URLSearchParams({
           event: "composite",
           groupBy: "top_urls",

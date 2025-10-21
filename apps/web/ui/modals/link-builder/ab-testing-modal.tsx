@@ -50,7 +50,7 @@ const parseTests = (testVariants: LinkFormData["testVariants"]) =>
 const inTwoWeeks = new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000);
 
 const normalizeForForm = (raw: string) =>
-  getUrlFromString(raw).replace(/\/+$/, "");
+  getUrlFromString(raw.trim()).replace(/\/+$/, "");
 
 function ABTestingModal({
   showABTestingModal,
