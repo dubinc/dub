@@ -45,6 +45,9 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       },
       categories: true,
     },
+    orderBy: {
+      createdAt: "desc",
+    },
     skip: (page - 1) * pageSize,
     take: pageSize,
   });

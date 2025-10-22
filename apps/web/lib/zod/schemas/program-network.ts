@@ -5,6 +5,7 @@ import { ProgramSchema } from "./programs";
 
 export const NetworkProgramSchema = ProgramSchema.pick({
   id: true,
+  slug: true,
   name: true,
   logo: true,
   domain: true,

@@ -3,6 +3,7 @@
 import { categoriesMap } from "@/lib/partners/categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { NetworkProgramProps } from "@/lib/types";
+import { PROGRAM_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/program-network";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -12,12 +13,16 @@ import {
   CircleInfo,
   Filter,
   Link4,
+  PaginationControls,
   StatusBadge,
   Tooltip,
+  usePagination,
   useRouterStuff,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
+import Link from "next/link";
+import { HTMLProps } from "react";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
@@ -39,7 +44,10 @@ export function ProgramMarketplacePageClient() {
     { revalidateOnFocus: false, keepPreviousData: true },
   );
 
-  // TODO: Pagination+filters
+  const { pagination, setPagination } = usePagination(
+    PROGRAM_NETWORK_MAX_PAGE_SIZE,
+  );
+
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     useProgramNetworkFilters();
 
@@ -80,7 +88,7 @@ export function ProgramMarketplacePageClient() {
         <div>
           <div
             className={cn(
-              "@4xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 transition-opacity lg:gap-6",
+              "@4xl/page:grid-cols-3 @xl/page:grid-cols-2 grid min-h-[500px] grid-cols-1 items-start gap-4 transition-opacity lg:gap-6",
               isValidating && "opacity-50",
             )}
           >
@@ -88,16 +96,16 @@ export function ProgramMarketplacePageClient() {
               ? programs?.map((program) => (
                   <ProgramCard key={program.id} program={program} />
                 ))
-              : [...Array(8)].map((_, idx) => <ProgramCard key={idx} />)}
+              : [...Array(5)].map((_, idx) => <ProgramCard key={idx} />)}
           </div>
-          {/* <div className="sticky bottom-0 mt-4 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
+          <div className="sticky bottom-0 mt-4 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
             <PaginationControls
               pagination={pagination}
               setPagination={setPagination}
-              totalCount={partnerCounts?.[status] || 0}
-              unit={(p) => `partner${p ? "s" : ""}`}
+              totalCount={programsCount || 0}
+              unit={(p) => `program${p ? "s" : ""}`}
             />
-          </div> */}
+          </div>
         </div>
       ) : (
         <MarketplaceEmptyState
@@ -129,7 +137,10 @@ function ProgramCard({
   const statusBadge = program?.status ? statusBadges[program.status] : null;
 
   return (
-    <div className={cn(program?.id && "cursor-pointer hover:drop-shadow-sm")}>
+    <ConditionalLink
+      href={`/programs/${program.slug}`}
+      className={cn(program?.id && "cursor-pointer hover:drop-shadow-sm")}
+    >
       <div className="border-border-subtle rounded-xl border bg-white p-6">
         <div className="flex justify-between gap-4">
           {program ? (
@@ -259,9 +270,16 @@ function ProgramCard({
           </div>
         </div>
       </div>
-    </div>
+    </ConditionalLink>
   );
 }
+
+const ConditionalLink = ({
+  href,
+  ...rest
+}: Partial<HTMLProps<HTMLAnchorElement>>) => {
+  return href ? <Link href={href} {...rest} /> : <div {...(rest as any)} />;
+};
 
 const CategoryButton = ({ category }: { category: Category }) => {
   const categoryData = categoriesMap[category];
