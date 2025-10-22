@@ -262,7 +262,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         individualScrolling
         contentWrapperClassName="flex flex-col"
       >
-        <PageWidthWrapper className="mb-8 mt-6 max-w-[600px]">
+        <PageWidthWrapper className="mb-8 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
             <label className="contents">
               <span className={labelClassName}>Name</span>
@@ -328,7 +328,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                         value={field.value}
                         onChange={field.onChange}
                         placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
-                        className="[&>div]:mt-0 [&>div]:h-8 [&>div]:min-h-8"
+                        className="[&>div]:hover:border-border-subtle [&>div]:mt-0 [&>div]:h-8 [&>div]:min-h-8 [&>div]:border-transparent [&>div]:shadow-none [&>div]:focus-within:border-black/75 [&>div]:focus-within:ring-black/75 [&>div]:hover:cursor-pointer [&>div]:hover:bg-neutral-100"
                       />
                     </DisabledInputWrapper>
                   )}
