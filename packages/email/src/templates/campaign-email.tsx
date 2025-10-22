@@ -29,7 +29,7 @@ export default function CampaignEmail({
     name: string;
     slug: string;
     logo: string | null;
-    messagingEnabledAt: Date | null | undefined;
+    messagingEnabledAt?: Date | null | undefined;
   };
   campaign?: {
     type: "transactional" | "marketing";
