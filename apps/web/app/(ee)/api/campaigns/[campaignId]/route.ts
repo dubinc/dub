@@ -142,38 +142,58 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       (async () => {
-        if (
-          !updatedCampaign.workflow ||
-          !isScheduledWorkflow(updatedCampaign.workflow)
-        ) {
-          return;
-        }
-
         // Decide whether to schedule the workflow or delete the schedule
-        const shouldSchedule =
-          (campaign.status === "draft" || campaign.status === "paused") &&
-          updatedCampaign.status === "active";
+        if (
+          updatedCampaign.type === "transactional" &&
+          updatedCampaign.workflow &&
+          isScheduledWorkflow(updatedCampaign.workflow)
+        ) {
+          const shouldSchedule =
+            (campaign.status === "draft" || campaign.status === "paused") &&
+            updatedCampaign.status === "active";
 
-        const shouldDeleteSchedule =
-          campaign.status === "active" && updatedCampaign.status === "paused";
+          const shouldDeleteSchedule =
+            campaign.status === "active" && updatedCampaign.status === "paused";
 
-        const cronSchedule =
-          WORKFLOW_SCHEDULES[updatedCampaign.workflow.trigger];
+          const cronSchedule =
+            WORKFLOW_SCHEDULES[updatedCampaign.workflow.trigger];
 
-        if (!cronSchedule) {
-          throw new Error(
-            `Cron schedule not found for trigger ${updatedCampaign.workflow.trigger}`,
-          );
+          if (!cronSchedule) {
+            throw new Error(
+              `Cron schedule not found for trigger ${updatedCampaign.workflow.trigger}`,
+            );
+          }
+
+          if (shouldSchedule) {
+            await qstash.schedules.create({
+              destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
+              cron: cronSchedule,
+              scheduleId: updatedCampaign.workflow.id,
+            });
+          } else if (shouldDeleteSchedule) {
+            await qstash.schedules.delete(updatedCampaign.workflow.id);
+          }
         }
 
-        if (shouldSchedule) {
-          await qstash.schedules.create({
-            destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
-            cron: cronSchedule,
-            scheduleId: updatedCampaign.workflow.id,
-          });
-        } else if (shouldDeleteSchedule) {
-          await qstash.schedules.delete(updatedCampaign.workflow.id);
+        if (updatedCampaign.type === "marketing") {
+          const shouldQueue =
+            campaign.status === "draft" &&
+            updatedCampaign.status === "scheduled";
+
+          if (shouldQueue) {
+            const notBefore = updatedCampaign.scheduledAt
+              ? Math.floor(updatedCampaign.scheduledAt.getTime() / 1000)
+              : null;
+
+            await qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
+              method: "POST",
+              ...(notBefore && { notBefore }),
+              body: {
+                campaignId,
+              },
+            });
+          }
         }
       })(),
     );

@@ -97,6 +97,7 @@ export const updateCampaignSchema = z
       CampaignStatus.draft,
       CampaignStatus.active,
       CampaignStatus.paused,
+      CampaignStatus.scheduled,
       CampaignStatus.cancelled,
     ]),
   })

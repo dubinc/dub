@@ -60,22 +60,34 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     confirmModal: publishConfirmModal,
     setShowConfirmModal: setShowPublishModal,
   } = useConfirmModal({
-    title: "Publish Campaign",
+    title:
+      campaign.type === "transactional"
+        ? "Publish Campaign"
+        : "Schedule Campaign",
     description:
-      "Are you sure you want to publish this email campaign? It will be sent to all selected partner groups.",
+      campaign.type === "transactional"
+        ? "Are you sure you want to publish this email campaign? It will be sent to all selected partner groups."
+        : "Are you sure you want to schedule this email campaign? It will be sent to all selected partner groups at the scheduled time.",
     onConfirm: async () => {
       await updateCampaign(
         {
           ...getValues(),
-          status: CampaignStatus.active,
+          status:
+            campaign.type === "transactional"
+              ? CampaignStatus.active
+              : CampaignStatus.scheduled,
         },
         () => {
-          toast.success("Email campaign published!");
+          toast.success(
+            campaign.type === "transactional"
+              ? "Email campaign published!"
+              : "Email campaign scheduled!",
+          );
           router.push(`/${workspaceSlug}/program/campaigns`);
         },
       );
     },
-    confirmText: "Publish",
+    confirmText: campaign.type === "transactional" ? "Publish" : "Schedule",
     confirmShortcut: "Enter",
   });
 
@@ -126,8 +138,21 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     setShowConfirmModal: setShowCancelModal,
   } = useConfirmModal({
     title: "Cancel Campaign",
-    description:
-      "Are you sure you want to cancel this email campaign? This action cannot be undone.",
+    description: (
+      <div className="flex flex-col gap-2">
+        <span>
+          Are you sure you want to cancel this email campaign? If you choose to
+          stop delivery, we'll begin cancelling the campaign immediately.
+        </span>
+
+        <span>
+          However, because sending happens in batches, some additional emails
+          may still go out before the process completes.
+        </span>
+
+        <span className="font-semibold">This action cannot be undone.</span>
+      </div>
+    ),
     onConfirm: async () => {
       await updateCampaign(
         {
@@ -142,10 +167,16 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     confirmShortcut: "Enter",
   });
 
-
-  const [name, subject, groupIds, bodyJson, triggerCondition] = useWatch({
+  const [name, subject, groupIds, bodyJson, triggerCondition, from] = useWatch({
     control,
-    name: ["name", "subject", "groupIds", "bodyJson", "triggerCondition"],
+    name: [
+      "name",
+      "subject",
+      "groupIds",
+      "bodyJson",
+      "triggerCondition",
+      "from",
+    ],
   });
 
   // Form validation
@@ -163,7 +194,15 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return "Please select the groups you want to send this campaign to.";
       }
 
-      if (!sendPreview && !triggerCondition) {
+      if (!from) {
+        return "Please select a sender email address.";
+      }
+
+      if (
+        !sendPreview &&
+        campaign.type === "transactional" &&
+        !triggerCondition
+      ) {
         return "Please select a trigger condition.";
       }
 
