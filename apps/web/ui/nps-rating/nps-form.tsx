@@ -35,6 +35,7 @@ export function NpsForm() {
       sessionId: user?.id,
     });
     setHasClosed(true);
+    toast.success("Your feedback was successfully submitted.")
   };
 
   const handleRatingClick = async (selectedRating: number) => {

@@ -32,10 +32,10 @@ export const NpsFeedback: FC<INpsFeedback> = ({ rating, handleFeedbackAnswer, cl
   }, [])
  
   return (
-    <div className="fixed bottom-4 right-0 w-fit max-w-2xl z-50">
-      <div className="px-4" >
+    <div className="fixed bottom-3 md:bottom-8 right-0 w-full max-w-xl z-50">
+      <div className="px-3 md:px-8" >
         <div className="relative bg-white border border-border-500 rounded-xl shadow-lg p-6 flex flex-col gap-4">
-          <h2 className="text-2xl font-bold text-neutral-800 pr-6">
+          <h2 className="text-sm font-bold text-neutral-800 pr-6">
             {getFeedbackText(rating)}
           </h2>
           <button
