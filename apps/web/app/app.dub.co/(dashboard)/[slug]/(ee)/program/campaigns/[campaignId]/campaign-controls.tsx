@@ -1,8 +1,7 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Campaign, UpdateCampaignFormData } from "@/lib/types";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
+import { Campaign } from "@/lib/types";
 import { ThreeDots } from "@/ui/shared/icons";
 import { CampaignStatus } from "@dub/prisma/client";
 import {
@@ -23,24 +22,21 @@ import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useWatch } from "react-hook-form";
-import { toast } from "sonner";
 import { useDeleteCampaignModal } from "../delete-campaign-modal";
 import { useCampaignFormContext } from "./campaign-form-context";
 import { useSendEmailPreviewModal } from "./send-email-preview-modal";
+import { useCampaignConfirmationModals } from "./use-campaign-confirmation-modals";
 
 interface CampaignControlsProps {
   campaign: Pick<Campaign, "id" | "name" | "type" | "status">;
 }
 
 export function CampaignControls({ campaign }: CampaignControlsProps) {
-  const { isMobile } = useMediaQuery();
   const router = useRouter();
+  const { isMobile } = useMediaQuery();
   const { slug: workspaceSlug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
-  const { control, getValues } = useCampaignFormContext();
-
-  const { makeRequest, isSubmitting: isUpdatingCampaign } =
-    useApiMutation<Campaign>();
+  const { control } = useCampaignFormContext();
 
   const {
     makeRequest: duplicateCampaign,
@@ -54,118 +50,6 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
 
   const { DeleteCampaignModal, setShowDeleteCampaignModal } =
     useDeleteCampaignModal(campaign);
-
-  // Confirmation modals
-  const {
-    confirmModal: publishConfirmModal,
-    setShowConfirmModal: setShowPublishModal,
-  } = useConfirmModal({
-    title:
-      campaign.type === "transactional"
-        ? "Publish Campaign"
-        : "Schedule Campaign",
-    description:
-      campaign.type === "transactional"
-        ? "Are you sure you want to publish this email campaign? It will be sent to all selected partner groups."
-        : "Are you sure you want to schedule this email campaign? It will be sent to all selected partner groups at the scheduled time.",
-    onConfirm: async () => {
-      await updateCampaign(
-        {
-          ...getValues(),
-          status:
-            campaign.type === "transactional"
-              ? CampaignStatus.active
-              : CampaignStatus.scheduled,
-        },
-        () => {
-          toast.success(
-            campaign.type === "transactional"
-              ? "Email campaign published!"
-              : "Email campaign scheduled!",
-          );
-          router.push(`/${workspaceSlug}/program/campaigns`);
-        },
-      );
-    },
-    confirmText: campaign.type === "transactional" ? "Publish" : "Schedule",
-    confirmShortcut: "Enter",
-  });
-
-  const {
-    confirmModal: pauseConfirmModal,
-    setShowConfirmModal: setShowPauseModal,
-  } = useConfirmModal({
-    title: "Pause Campaign",
-    description:
-      "Are you sure you want to pause this email campaign? It will stop sending emails to new recipients.",
-    onConfirm: async () => {
-      await updateCampaign(
-        {
-          status: CampaignStatus.paused,
-        },
-        () => {
-          toast.success("Email campaign paused!");
-        },
-      );
-    },
-    confirmText: "Pause",
-    confirmShortcut: "Enter",
-  });
-
-  const {
-    confirmModal: resumeConfirmModal,
-    setShowConfirmModal: setShowResumeModal,
-  } = useConfirmModal({
-    title: "Resume Campaign",
-    description:
-      "Are you sure you want to resume this email campaign? It will continue sending emails to remaining recipients.",
-    onConfirm: async () => {
-      await updateCampaign(
-        {
-          status: CampaignStatus.active,
-        },
-        () => {
-          toast.success("Email campaign resumed!");
-        },
-      );
-    },
-    confirmText: "Resume",
-    confirmShortcut: "Enter",
-  });
-
-  const {
-    confirmModal: cancelConfirmModal,
-    setShowConfirmModal: setShowCancelModal,
-  } = useConfirmModal({
-    title: "Cancel Campaign",
-    description: (
-      <div className="flex flex-col gap-2">
-        <span>
-          Are you sure you want to cancel this email campaign? If you choose to
-          stop delivery, we'll begin cancelling the campaign immediately.
-        </span>
-
-        <span>
-          However, because sending happens in batches, some additional emails
-          may still go out before the process completes.
-        </span>
-
-        <span className="font-semibold">This action cannot be undone.</span>
-      </div>
-    ),
-    onConfirm: async () => {
-      await updateCampaign(
-        {
-          status: CampaignStatus.cancelled,
-        },
-        () => {
-          toast.success("Email campaign cancelled!");
-        },
-      );
-    },
-    confirmText: "Cancel Campaign",
-    confirmShortcut: "Enter",
-  });
 
   const [name, subject, groupIds, bodyJson, triggerCondition, from] = useWatch({
     control,
@@ -213,24 +97,20 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     [name, subject, groupIds, triggerCondition, bodyJson],
   );
 
-  const updateCampaign = useCallback(
-    async (
-      data: Partial<UpdateCampaignFormData>,
-      onSuccess: (data: Campaign) => void,
-    ) => {
-      await makeRequest(`/api/campaigns/${campaign.id}`, {
-        method: "PATCH",
-        body: {
-          ...data,
-        },
-        onSuccess: async (data) => {
-          await mutatePrefix(`/api/campaigns/${campaign.id}`);
-          onSuccess(data);
-        },
-      });
-    },
-    [makeRequest, campaign.id],
-  );
+  // Confirmation modals
+  const {
+    isUpdatingCampaign,
+    publishConfirmModal,
+    setShowPublishModal,
+    pauseConfirmModal,
+    setShowPauseModal,
+    resumeConfirmModal,
+    setShowResumeModal,
+    cancelConfirmModal,
+    setShowCancelModal,
+  } = useCampaignConfirmationModals({
+    campaign,
+  });
 
   const handleCampaignDuplication = async () => {
     await duplicateCampaign(`/api/campaigns/${campaign.id}/duplicate`, {
@@ -409,7 +289,6 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       <SendEmailPreviewModal />
       <DeleteCampaignModal />
 
-      {/* Confirmation Modals */}
       {publishConfirmModal}
       {pauseConfirmModal}
       {resumeConfirmModal}
