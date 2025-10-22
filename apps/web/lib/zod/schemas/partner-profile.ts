@@ -96,12 +96,10 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   id: true,
+  email: true,
   country: true,
   createdAt: true,
 }).extend({
-  email: z
-    .string()
-    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
   activity: customerActivityResponseSchema,
 });
 

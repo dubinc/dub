@@ -10,23 +10,17 @@ import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-const CustomerSchema = z.object({
-  id: z.string(),
-  email: z
-    .string()
-    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
-});
-
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: params.programId,
-      include: {
-        program: true,
-      },
-    });
+    const { program, customerDataSharingEnabledAt } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId: params.programId,
+        include: {
+          program: true,
+        },
+      });
 
     let { linkId, domain, key, ...rest } =
       partnerProfileEventsQuerySchema.parse(searchParams);
@@ -68,7 +62,17 @@ export const GET = withPartnerProfile(
         link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
         // @ts-expect-error - customer is not always present
         ...(event?.customer && {
-          customer: CustomerSchema
+          customer: z
+            .object({
+              id: z.string(),
+              email: customerDataSharingEnabledAt
+                ? z.string()
+                : z
+                    .string()
+                    .transform((email) =>
+                      email.replace(/(?<=^.).+(?=.@)/, "****"),
+                    ),
+            })
             // @ts-expect-error - customer is not always present
             .parse(event.customer),
         }),
