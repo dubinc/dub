@@ -132,6 +132,16 @@ export const POST = withSession(
     );
 
     try {
+      if (
+        subscription.status === "cancelled" ||
+        subscription.status === "dunning"
+      ) {
+        await paymentService.reactivateClientSubscription(
+          subscription?.id || paymentData?.paymentInfo?.subscriptionId || "",
+          { skipFirstPayment: true, skipTrial: true },
+        );
+      }
+
       await paymentService.updateClientSubscription(
         paymentData?.paymentInfo?.subscriptionId || "",
         {
@@ -175,13 +185,6 @@ export const POST = withSession(
           },
         },
       );
-
-      if (subscription.status === "cancelled") {
-        await paymentService.reactivateClientSubscription(
-          subscription?.id || paymentData?.paymentInfo?.subscriptionId || "",
-          { skipFirstPayment: true, skipTrial: true },
-        );
-      }
 
       const subDataAfterUpdate =
         await paymentService.getClientSubscriptionDataByEmail({ email: email });

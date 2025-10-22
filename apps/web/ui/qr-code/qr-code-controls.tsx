@@ -229,7 +229,7 @@ export function QrCodeControls({
               />
             </div>
             <div className="w-full px-6" >
-              <div className="border-t border-neutral-200 w-full" />
+              <div className="border-t border-border-500 w-full" />
             </div>
             <div className="grid gap-1 p-2">
               <Button
@@ -286,7 +286,7 @@ export function QrCodeControls({
               /> */}
             </div>
             <div className="w-full px-6" >
-              <div className="border-t border-neutral-200 w-full" />
+              <div className="border-t border-border-500 w-full" />
             </div>
             <div className="grid gap-1 p-2">
               <Button

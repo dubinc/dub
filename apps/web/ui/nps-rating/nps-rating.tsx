@@ -17,21 +17,21 @@ export const NpsRating: FC<INpsRatingProps> = ({
   }, []);
 
   return (
-    <div className="fixed bottom-4 right-0 z-50 w-min max-w-full md:bottom-6 md:right-6">
-      <div className="w-full px-4">
+    <div className="fixed bottom-3 md:bottom-8 right-0 z-50 w-full max-w-max">
+      <div className="w-full px-3 md:px-8">
         <div className="border-border-500 relative w-full rounded-xl border bg-white p-4 shadow-2xl md:p-6">
           <h2 className="mb-4 text-balance pr-6 text-sm font-semibold leading-snug md:mb-6 md:text-base">
             How likely are you to recommend GetQR to your friends and
             colleagues?
           </h2>
           <div className="w-full space-y-4 md:space-y-6">
-            <div className="flex max-w-full gap-1.5 md:gap-2 overflow-auto dub-scrollbar">
+            <div className="flex max-w-full gap-2 justify-between overflow-auto dub-scrollbar">
               {Array.from({ length: 10 }, (_, i) => i + 1).map((rating) => {
                 return (
                   <Button
                     key={rating}
                     onClick={() => handleRatingClick(rating)}
-                    className="bg-secondary/50 border-border hover:border-primary/50 hover:bg-secondary h-9 min-w-9 w-9 rounded-full border-2 text-sm font-semibold text-neutral-700 hover:text-neutral-800 md:h-10 md:min-w-10 hover:ring-0 hover:outline-none px-0"
+                    className="bg-secondary-100 border border-neutral-200/10 text-secondary h-9 min-w-9 w-9 rounded-full text-sm md:h-10 md:min-w-10 hover:ring-0 hover:outline-none px-0 hover:bg-neutral-100"
                     text={rating}
                   />
                 );

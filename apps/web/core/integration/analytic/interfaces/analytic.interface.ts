@@ -29,7 +29,7 @@ export enum EAnalyticEvents {
 
   THRESHOLD_PASSED = "thresholdPassed",
 
-  NPS_FEEDBACK = "userFeedback",
+  USER_FEEDBACK = "userFeedback",
 
   EMAIL_SUBMITTED = "emailSubmitted",
   CODE_SUBMITTED = "codeSubmitted",
