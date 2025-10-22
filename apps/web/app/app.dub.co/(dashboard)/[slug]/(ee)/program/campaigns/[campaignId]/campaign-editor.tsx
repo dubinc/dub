@@ -312,19 +312,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               )}
             />
 
-            <label className="contents">
-              <span className={labelClassName}>Subject</span>
-              <input
-                type="text"
-                placeholder="Enter a subject..."
-                className={inputClassName}
-                {...register("subject")}
-              />
-            </label>
-
             {campaign.type === "marketing" && (
               <>
-                <span className={labelClassName}>Schedule</span>
+                <span className={labelClassName}>When</span>
                 <Controller
                   control={control}
                   name="scheduledAt"
@@ -338,12 +328,23 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                         value={field.value}
                         onChange={field.onChange}
                         placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
+                        className="[&>div]:mt-0 [&>div]:h-8 [&>div]:min-h-8"
                       />
                     </DisabledInputWrapper>
                   )}
                 />
               </>
             )}
+
+            <label className="contents">
+              <span className={labelClassName}>Subject</span>
+              <input
+                type="text"
+                placeholder="Enter a subject..."
+                className={inputClassName}
+                {...register("subject")}
+              />
+            </label>
 
             {campaign.type === "transactional" && (
               <>
