@@ -22,8 +22,7 @@ import {
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
-import Link from "next/link";
-import { HTMLProps } from "react";
+import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
@@ -139,12 +138,24 @@ function ProgramCard({
 }: {
   program?: any; // TODO
 }) {
+  const router = useRouter();
+
   const statusBadge = program?.status ? statusBadges[program.status] : null;
+  const url = program ? `/programs/${program.slug}` : undefined;
 
   return (
-    <ConditionalLink
-      href={program ? `/programs/${program.slug}` : undefined}
+    <div
       className={cn(program?.id && "cursor-pointer hover:drop-shadow-sm")}
+      onClick={
+        url
+          ? (e) => {
+              e.metaKey || e.ctrlKey
+                ? window.open(url, "_blank")
+                : router.push(url);
+            }
+          : undefined
+      }
+      onAuxClick={url ? () => window.open(url, "_blank") : undefined}
     >
       <div className="border-border-subtle rounded-xl border bg-white p-6">
         <div className="flex justify-between gap-4">
@@ -205,7 +216,7 @@ function ProgramCard({
                       {program.rewards.map((reward) => {
                         const Icon = REWARD_EVENTS[reward.event].icon;
                         return (
-                          <HoverCard.Root openDelay={100}>
+                          <HoverCard.Root key={reward.id} openDelay={100}>
                             <HoverCard.Portal>
                               <HoverCard.Content
                                 side="bottom"
@@ -275,16 +286,9 @@ function ProgramCard({
           </div>
         </div>
       </div>
-    </ConditionalLink>
+    </div>
   );
 }
-
-const ConditionalLink = ({
-  href,
-  ...rest
-}: Partial<HTMLProps<HTMLAnchorElement>>) => {
-  return href ? <Link href={href} {...rest} /> : <div {...(rest as any)} />;
-};
 
 const CategoryButton = ({ category }: { category: Category }) => {
   const categoryData = categoriesMap[category];
