@@ -15,6 +15,7 @@ export const QrTabsDownloadButton: FC<IQrTabsDownloadButtonProps> = ({
   isQrDisabled,
 }) => {
   const handleClick = () => {
+    console.log("handleClick");
     trackClientEvents({
       event: EAnalyticEvents.PAGE_CLICKED,
       params: {

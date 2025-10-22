@@ -11,6 +11,10 @@ import { useLocalStorage, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { FC, forwardRef, Ref, useEffect } from "react";
 import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
+import { getSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useQrOperations } from '@/ui/qr-code/hooks/use-qr-operations.ts';
+import { Session } from '@/lib/auth';
 
 interface IQRTabsProps {
   sessionId: string;
@@ -22,8 +26,9 @@ export const QRTabs: FC<
   Readonly<IQRTabsProps> & { ref?: Ref<HTMLDivElement> }
 > = forwardRef(
   ({ sessionId, typeToScrollTo, handleResetTypeToScrollTo }, ref) => {
-    console.log("qr tabs");
     const { AuthModal, showModal } = useAuthModal({ sessionId });
+    const router = useRouter();
+    const { createQr } = useQrOperations();
 
     const { executeAsync: saveQrDataToRedis } = useAction(
       saveQrDataToRedisAction,
@@ -63,6 +68,16 @@ export const QRTabs: FC<
     const handleSaveQR = async (data: QRBuilderData) => {
       const newDataJSON = JSON.stringify(data);
       const qrDataToCreateJSON = JSON.stringify(qrDataToCreate) ?? "{}";
+      const existingSession = await getSession();
+      console.log("existingSession", existingSession);
+      const user = existingSession?.user as Session['user'] || undefined;
+
+      if (existingSession?.user) {
+        const createdQrId = await createQr(data, user?.defaultWorkspace);
+        console.log("createdQrId", createdQrId);
+        router.push(`/?qrId=${createdQrId}`);
+        return;
+      }
 
       if (newDataJSON !== qrDataToCreateJSON) {
         setQrDataToCreate(data);
