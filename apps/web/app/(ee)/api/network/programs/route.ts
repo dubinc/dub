@@ -35,6 +35,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           partnerId: partner.id,
         },
       },
+      categories: true,
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
@@ -54,6 +55,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
             : [],
         discount: program.groups.length > 0 ? program.groups[0].discount : null,
         status: program.partners.length > 0 ? program.partners[0].status : null,
+        categories: program.categories.map(({ category }) => category),
       })),
     ),
   );

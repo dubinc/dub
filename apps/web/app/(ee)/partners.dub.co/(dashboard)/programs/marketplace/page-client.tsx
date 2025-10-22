@@ -1,10 +1,14 @@
 "use client";
 
+import { categoriesMap } from "@/lib/partners/categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { NetworkProgramProps } from "@/lib/types";
+import { REWARD_EVENTS } from "@/ui/partners/constants";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { Link4, StatusBadge, useRouterStuff } from "@dub/ui";
 import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
+import * as HoverCard from "@radix-ui/react-hover-card";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
 
@@ -162,16 +166,72 @@ function ProgramCard({
           </div>
 
           <div className="mt-4 flex gap-8">
-            <div>
-              <span className="text-content-subtle text-xs font-medium">
-                Rewards
-              </span>
-            </div>
-            <div>
-              <span className="text-content-subtle text-xs font-medium">
-                Industry
-              </span>
-            </div>
+            {program ? (
+              <>
+                {Boolean(program?.rewards?.length) && (
+                  <div>
+                    <span className="text-content-muted block text-xs font-medium">
+                      Rewards
+                    </span>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      {program?.rewards?.map((reward) => {
+                        const Icon = REWARD_EVENTS[reward.event].icon;
+                        return (
+                          <HoverCard.Root openDelay={100}>
+                            <HoverCard.Portal>
+                              <HoverCard.Content
+                                side="bottom"
+                                sideOffset={8}
+                                className="animate-slide-up-fade z-[99] flex items-center gap-2 overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 text-xs text-neutral-700 shadow-sm"
+                              >
+                                <Icon className="text-content-default size-4" />
+                                <span>
+                                  {formatRewardDescription({ reward })}
+                                </span>
+                              </HoverCard.Content>
+                            </HoverCard.Portal>
+                            <HoverCard.Trigger>
+                              <button
+                                key={reward.id}
+                                type="button"
+                                className="hover:bg-bg-subtle active:bg-bg-emphasis flex size-6 items-center justify-center rounded-md"
+                              >
+                                <Icon className="text-content-default size-4" />
+                              </button>
+                            </HoverCard.Trigger>
+                          </HoverCard.Root>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                <div>
+                  <span className="text-content-muted block text-xs font-medium">
+                    Industry
+                  </span>
+                  <div className="mt-1 flex items-center gap-1.5">
+                    {program?.categories?.slice(0, 1)?.map((category) => {
+                      const { icon: Icon, label } = categoriesMap[category];
+                      return (
+                        <button
+                          key={category}
+                          type="button"
+                          className="hover:bg-bg-subtle text-content-default active:bg-bg-emphasis flex h-6 items-center gap-1 rounded-md px-1"
+                        >
+                          <Icon className="size-4" />
+                          <span className="text-sm font-medium">{label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div>
+                <div className="h-3.5 w-12 animate-pulse rounded bg-neutral-200" />
+                <div className="mt-1 h-6 w-24 animate-pulse rounded bg-neutral-200" />
+              </div>
+            )}
           </div>
         </div>
       </div>
