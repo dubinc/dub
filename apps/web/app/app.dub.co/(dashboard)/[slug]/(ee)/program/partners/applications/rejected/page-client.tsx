@@ -8,7 +8,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { PartnerApplicationSheet } from "@/ui/partners/partner-application-sheet";
-import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerSocialColumn } from "@/ui/partners/partner-social-column";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -30,6 +29,7 @@ import {
   formatDate,
   getDomainWithoutWWW,
 } from "@dub/utils";
+import { OG_AVATAR_URL } from "@dub/utils/src/constants";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { useAction } from "next-safe-action/hooks";
@@ -124,7 +124,20 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
         minSize: 250,
         cell: ({ row }) => {
           return (
-            <PartnerRowItem partner={row.original} showPermalink={false} />
+            <div className="flex items-center gap-2">
+              <div className="relative shrink-0">
+                <img
+                  src={
+                    row.original.image || `${OG_AVATAR_URL}${row.original.name}`
+                  }
+                  alt={row.original.name}
+                  className="size-5 shrink-0 rounded-full"
+                />
+              </div>
+              <span className="min-w-0 truncate text-sm font-medium">
+                {row.original.name}
+              </span>
+            </div>
           );
         },
       },

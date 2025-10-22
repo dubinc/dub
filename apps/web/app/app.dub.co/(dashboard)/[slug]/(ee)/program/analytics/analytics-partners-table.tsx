@@ -60,6 +60,7 @@ export function AnalyticsPartnersTable() {
                   ? new Date(p.payoutsEnabledAt)
                   : null,
               }}
+              showRewardsTooltip={true}
             />
           );
         },
