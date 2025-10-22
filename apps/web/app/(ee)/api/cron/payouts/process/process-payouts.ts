@@ -1,5 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,
@@ -13,11 +14,8 @@ import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { PlanProps } from "@/lib/types";
-import { sendBatchEmail } from "@dub/email";
-import { resend } from "@dub/email/resend";
-import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
-import { chunk, currencyFormatter, log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 
@@ -246,42 +244,12 @@ export async function processPayouts({
     invoice &&
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
   ) {
-    if (!resend) {
-      // this should never happen, but just in case
-      await log({
-        message: "Resend is not configured, skipping email sending.",
-        type: "errors",
-      });
-      console.log("Resend is not configured, skipping email sending.");
-      return;
-    }
-
-    const payoutChunks = chunk(
-      payouts.filter((payout) => payout.partner.email),
-      100,
-    );
-
-    for (const payoutChunk of payoutChunks) {
-      await sendBatchEmail(
-        payoutChunk.map((payout) => ({
-          variant: "notifications",
-          to: payout.partner.email!,
-          subject: "You've got money coming your way!",
-          replyTo: program.supportEmail || "noreply",
-          react: PartnerPayoutConfirmed({
-            email: payout.partner.email!,
-            program,
-            payout: {
-              id: payout.id,
-              amount: payout.amount,
-              startDate: payout.periodStart,
-              endDate: payout.periodEnd,
-              paymentMethod: invoice.paymentMethod ?? "ach",
-            },
-          }),
-        })),
-      );
-    }
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/notify`,
+      body: {
+        invoiceId,
+      },
+    });
   }
 
   waitUntil(
