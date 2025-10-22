@@ -1,23 +1,23 @@
 import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
+import {
+  scheduleMarketingCampaign,
+  scheduleTransactionalCampaign,
+} from "@/lib/api/campaigns/schedule-campaigns";
 import { validateCampaign } from "@/lib/api/campaigns/validate-campaign";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { parseWorkflowConfig } from "@/lib/api/workflows/parse-workflow-config";
-import { isScheduledWorkflow } from "@/lib/api/workflows/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
 import {
   CampaignSchema,
   updateCampaignSchema,
 } from "@/lib/zod/schemas/campaigns";
-import {
-  WORKFLOW_ATTRIBUTE_TRIGGER,
-  WORKFLOW_SCHEDULES,
-} from "@/lib/zod/schemas/workflows";
+import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
-import { PartnerGroup } from "@prisma/client";
+import { arrayEqual } from "@dub/utils";
+import { Campaign, PartnerGroup, Workflow } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -146,58 +146,16 @@ export const PATCH = withWorkspace(
 
     waitUntil(
       (async () => {
-        // Decide whether to schedule the workflow or delete the schedule
-        if (
-          updatedCampaign.type === "transactional" &&
-          updatedCampaign.workflow &&
-          isScheduledWorkflow(updatedCampaign.workflow)
-        ) {
-          const shouldSchedule =
-            (campaign.status === "draft" || campaign.status === "paused") &&
-            updatedCampaign.status === "active";
-
-          const shouldDeleteSchedule =
-            campaign.status === "active" && updatedCampaign.status === "paused";
-
-          const cronSchedule =
-            WORKFLOW_SCHEDULES[updatedCampaign.workflow.trigger];
-
-          if (!cronSchedule) {
-            throw new Error(
-              `Cron schedule not found for trigger ${updatedCampaign.workflow.trigger}`,
-            );
-          }
-
-          if (shouldSchedule) {
-            await qstash.schedules.create({
-              destination: `${APP_DOMAIN_WITH_NGROK}/api/cron/workflows/${updatedCampaign.workflow.id}`,
-              cron: cronSchedule,
-              scheduleId: updatedCampaign.workflow.id,
-            });
-          } else if (shouldDeleteSchedule) {
-            await qstash.schedules.delete(updatedCampaign.workflow.id);
-          }
-        }
-
         if (updatedCampaign.type === "marketing") {
-          const shouldQueue =
-            campaign.status === "draft" &&
-            updatedCampaign.status === "scheduled";
-
-          if (shouldQueue) {
-            const notBefore = updatedCampaign.scheduledAt
-              ? Math.floor(updatedCampaign.scheduledAt.getTime() / 1000)
-              : null;
-
-            await qstash.publishJSON({
-              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
-              method: "POST",
-              ...(notBefore && { notBefore }),
-              body: {
-                campaignId,
-              },
-            });
-          }
+          await scheduleMarketingCampaign({
+            campaign,
+            updatedCampaign,
+          });
+        } else if (updatedCampaign.type === "transactional") {
+          await scheduleTransactionalCampaign({
+            campaign,
+            updatedCampaign
+          });
         }
       })(),
     );
