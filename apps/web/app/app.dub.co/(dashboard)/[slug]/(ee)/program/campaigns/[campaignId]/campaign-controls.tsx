@@ -102,6 +102,8 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
     isUpdatingCampaign,
     publishConfirmModal,
     setShowPublishModal,
+    scheduleConfirmModal,
+    setShowScheduleModal,
     pauseConfirmModal,
     setShowPauseModal,
     resumeConfirmModal,
@@ -159,7 +161,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         loading: isUpdatingCampaign,
         variant: "primary",
         onClick: () => {
-          setShowPublishModal(true);
+          setShowScheduleModal(true);
         },
       },
 
@@ -290,6 +292,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       <DeleteCampaignModal />
 
       {publishConfirmModal}
+      {scheduleConfirmModal}
       {pauseConfirmModal}
       {resumeConfirmModal}
       {cancelConfirmModal}
