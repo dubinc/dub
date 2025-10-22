@@ -80,6 +80,18 @@ export async function POST(req: Request) {
     // TODO:
     // Check scheduledAt is met
 
+    // Mark the campaign as sending
+    if (campaign.status === "scheduled") {
+      await prisma.campaign.update({
+        where: {
+          id: campaignId,
+        },
+        data: {
+          status: "sending",
+        },
+      });
+    }
+
     const campaignGroupIds = campaign.groups.map(({ groupId }) => groupId);
 
     const programEnrollments = await prisma.programEnrollment.findMany({
@@ -128,12 +140,6 @@ export async function POST(req: Request) {
       },
     });
 
-    if (programEnrollments.length === 0) {
-      return logAndRespond(
-        `No more program enrollments found for campaign ${campaignId}.`,
-      );
-    }
-
     const partnerUsers = programEnrollments.flatMap((enrollment) =>
       enrollment.partner.users
         .filter(({ user }) => user.email)
@@ -150,8 +156,6 @@ export async function POST(req: Request) {
         })),
     );
 
-    console.log(`Sending the campaign to ${partnerUsers.length} partners.`);
-
     console.table(
       partnerUsers.map((partnerUser) => ({
         id: partnerUser.partner.id,
@@ -160,37 +164,39 @@ export async function POST(req: Request) {
       })),
     );
 
-    await sendBatchEmail(
-      partnerUsers.map((partnerUser) => ({
-        variant: "notifications",
-        from: `${program.name} <${emailDomain.fromAddress}>`,
-        to: partnerUser.email!,
-        subject: campaign.subject,
-        ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
-        react: CampaignEmail({
-          program: {
-            name: program.name,
-            slug: program.slug,
-            logo: program.logo,
+    if (partnerUsers.length > 0) {
+      await sendBatchEmail(
+        partnerUsers.map((partnerUser) => ({
+          variant: "notifications",
+          from: `${program.name} <${emailDomain.fromAddress}>`,
+          to: partnerUser.email!,
+          subject: campaign.subject,
+          ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+          react: CampaignEmail({
+            program: {
+              name: program.name,
+              slug: program.slug,
+              logo: program.logo,
+            },
+            campaign: {
+              type: campaign.type,
+              subject: campaign.subject,
+              body: renderCampaignEmailHTML({
+                content: campaign.bodyJson as unknown as TiptapNode,
+                variables: {
+                  PartnerName: partnerUser.partner.name,
+                  PartnerEmail: partnerUser.partner.email,
+                },
+              }),
+            },
+          }),
+          tags: [{ name: "type", value: "notification-email" }],
+          headers: {
+            "Idempotency-Key": `${campaign.id}-${startingAfter}`,
           },
-          campaign: {
-            type: campaign.type,
-            subject: campaign.subject,
-            body: renderCampaignEmailHTML({
-              content: campaign.bodyJson as unknown as TiptapNode,
-              variables: {
-                PartnerName: partnerUser.partner.name,
-                PartnerEmail: partnerUser.partner.email,
-              },
-            }),
-          },
-        }),
-        tags: [{ name: "type", value: "notification-email" }],
-        headers: {
-          "Idempotency-Key": `${campaign.id}-${startingAfter}`,
-        },
-      })),
-    );
+        })),
+      );
+    }
 
     if (programEnrollments.length === MAX_PARTNERS_SIZE) {
       const nextStartingAfter =
@@ -208,6 +214,18 @@ export async function POST(req: Request) {
       return logAndRespond(
         `Enqueued next page (${nextStartingAfter}) for campaign ${campaignId}.`,
       );
+    }
+
+    // Mark the campaign as sent
+    if (campaign.status === "sending") {
+      await prisma.campaign.update({
+        where: {
+          id: campaignId,
+        },
+        data: {
+          status: "sent",
+        },
+      });
     }
 
     return logAndRespond(`Finished broadcasting campaign ${campaignId}.`);

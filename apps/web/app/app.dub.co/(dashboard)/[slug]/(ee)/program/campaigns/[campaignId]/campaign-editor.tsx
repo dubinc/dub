@@ -285,8 +285,15 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     value={field.value || ""}
                     onChange={field.onChange}
                   >
+                    <option value="" disabled>
+                      Select email domain
+                    </option>
                     {emailDomains.map((domain) => (
-                      <option key={domain.id} value={domain.fromAddress}>
+                      <option
+                        key={domain.id}
+                        value={domain.fromAddress}
+                        disabled={domain.status !== "verified"}
+                      >
                         {program?.name} &lt;{domain.fromAddress}&gt;
                       </option>
                     ))}

@@ -27,7 +27,7 @@ export const CAMPAIGN_STATUS_BADGES = {
   },
   scheduled: {
     label: "Scheduled",
-    variant: "neutral",
+    variant: "warning",
     icon: CircleHalfDottedClock,
     iconClassName: "text-neutral-600",
   },

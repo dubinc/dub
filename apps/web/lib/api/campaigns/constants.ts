@@ -1,26 +1,24 @@
-import { CampaignStatus } from "@prisma/client";
+import { CampaignStatus, CampaignType } from "@prisma/client";
 
 export const DEFAULT_CAMPAIGN_BODY = {
   type: "doc",
   content: [],
 };
 
-export const CAMPAIGN_STATUS_TRANSITIONS: Partial<
-  Record<CampaignStatus, CampaignStatus[]>
+export const CAMPAIGN_STATUS_TRANSITIONS: Record<
+  CampaignType,
+  Partial<Record<CampaignStatus, CampaignStatus[]>>
 > = {
-  draft: ["active", "scheduled", "sending"],
-  scheduled: ["sending", "cancelled"],
-  sending: ["sent", "cancelled"],
-  sent: [],
-  cancelled: [],
-  active: ["paused", "cancelled"],
-  paused: ["active", "cancelled"],
-};
-
-// Move to utils
-export function canTransitionCampaignStatus(
-  from: CampaignStatus,
-  to: CampaignStatus,
-) {
-  return CAMPAIGN_STATUS_TRANSITIONS[from]?.includes(to) ?? false;
-}
+  marketing: {
+    draft: ["scheduled"],
+    scheduled: ["sending", "cancelled"],
+    sending: ["sent", "cancelled"],
+    sent: [],
+    cancelled: [],
+  },
+  transactional: {
+    draft: ["active"],
+    active: ["paused"],
+    paused: ["active"],
+  },
+} as const;

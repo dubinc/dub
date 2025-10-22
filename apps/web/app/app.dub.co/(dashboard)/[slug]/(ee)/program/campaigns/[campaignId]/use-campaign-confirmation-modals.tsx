@@ -4,6 +4,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CampaignStatus } from "@dub/prisma/client";
+import { isFuture } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -22,6 +23,9 @@ export function useCampaignConfirmationModals({
 
   const { makeRequest, isSubmitting: isUpdatingCampaign } =
     useApiMutation<Campaign>();
+
+  const { scheduledAt } = getValues();
+  const isScheduled = scheduledAt && isFuture(new Date(scheduledAt));
 
   const updateCampaign = useCallback(
     async (
@@ -65,14 +69,12 @@ export function useCampaignConfirmationModals({
     confirmShortcut: "Enter",
   });
 
-  const { scheduledAt } = getValues();
-
   const {
     confirmModal: scheduleConfirmModal,
     setShowConfirmModal: setShowScheduleModal,
   } = useConfirmModal({
-    title: "Schedule Campaign",
-    description: scheduledAt
+    title: isScheduled ? "Schedule Campaign" : "Send Campaign",
+    description: isScheduled
       ? "Are you sure you want to schedule this email campaign? It will be automatically sent to all selected partner groups at the scheduled date and time you've set."
       : "Are you sure you want to send this email campaign now? It will start sending immediately to all selected partner groups once published.",
     onConfirm: async () => {
@@ -87,7 +89,7 @@ export function useCampaignConfirmationModals({
         },
       );
     },
-    confirmText: "Schedule",
+    confirmText: isScheduled ? "Schedule" : "Send",
     confirmShortcut: "Enter",
   });
 

@@ -1,4 +1,5 @@
 import { getCampaignOrThrow } from "@/lib/api/campaigns/get-campaign-or-throw";
+import { validateCampaign } from "@/lib/api/campaigns/validate-campaign";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -53,6 +54,13 @@ export const PATCH = withWorkspace(
     const { campaignId } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    const campaign = await getCampaignOrThrow({
+      programId,
+      campaignId,
+      includeWorkflow: true,
+      includeGroups: true,
+    });
+
     const {
       name,
       subject,
@@ -62,13 +70,9 @@ export const PATCH = withWorkspace(
       groupIds,
       triggerCondition,
       scheduledAt,
-    } = updateCampaignSchema.parse(await parseRequestBody(req));
-
-    const campaign = await getCampaignOrThrow({
-      programId,
-      campaignId,
-      includeWorkflow: true,
-      includeGroups: true,
+    } = validateCampaign({
+      input: updateCampaignSchema.parse(await parseRequestBody(req)),
+      campaign,
     });
 
     // if groupIds is provided and is different from the current groupIds, update the groups

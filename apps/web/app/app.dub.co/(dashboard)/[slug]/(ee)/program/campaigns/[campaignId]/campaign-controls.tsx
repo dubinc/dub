@@ -19,6 +19,7 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { Command } from "cmdk";
+import { isFuture } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useWatch } from "react-hook-form";
@@ -51,7 +52,15 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
   const { DeleteCampaignModal, setShowDeleteCampaignModal } =
     useDeleteCampaignModal(campaign);
 
-  const [name, subject, groupIds, bodyJson, triggerCondition, from] = useWatch({
+  const [
+    name,
+    subject,
+    groupIds,
+    bodyJson,
+    triggerCondition,
+    from,
+    scheduledAt,
+  ] = useWatch({
     control,
     name: [
       "name",
@@ -60,6 +69,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       "bodyJson",
       "triggerCondition",
       "from",
+      "scheduledAt",
     ],
   });
 
@@ -94,7 +104,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return "Please write the message you want to send to the partners.";
       }
     },
-    [name, subject, groupIds, triggerCondition, bodyJson],
+    [name, subject, groupIds, triggerCondition, bodyJson, from],
   );
 
   // Confirmation modals
@@ -156,7 +166,8 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
 
     const marketingActionButtonMap = {
       [CampaignStatus.draft]: {
-        text: "Send",
+        text:
+          scheduledAt && isFuture(new Date(scheduledAt)) ? "Schedule" : "Send",
         icon: PaperPlane,
         loading: isUpdatingCampaign,
         variant: "primary",
