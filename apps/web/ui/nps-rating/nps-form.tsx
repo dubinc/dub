@@ -22,7 +22,7 @@ export function NpsForm() {
 
   const handleFeedbackAnswer = async (feedback?: string) => {
     trackClientEvents({
-      event: EAnalyticEvents.NPS_FEEDBACK,
+      event: EAnalyticEvents.USER_FEEDBACK,
       params: {
         page_name: pageName,
         flow_type: "nps",
@@ -35,7 +35,7 @@ export function NpsForm() {
       sessionId: user?.id,
     });
     setHasClosed(true);
-    toast.success("Your feedback was successfully submitted.")
+    toast.success("Your feedback was successfully submitted.");
   };
 
   const handleRatingClick = async (selectedRating: number) => {
@@ -43,7 +43,7 @@ export function NpsForm() {
     const success = await leaveFeedback();
     if (success) {
       trackClientEvents({
-        event: EAnalyticEvents.NPS_FEEDBACK,
+        event: EAnalyticEvents.USER_FEEDBACK,
         params: {
           page_name: pageName,
           flow_type: "nps",
