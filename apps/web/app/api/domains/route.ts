@@ -136,13 +136,17 @@ export const POST = withWorkspace(
       });
     }
 
-    const vercelResponse = await addDomainToVercel(slug);
+    const skipAddingDomain = process.env.TEST_SKIP_ADD_DOMAIN === "true";
 
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use" // ignore this error
-    ) {
-      return new Response(vercelResponse.error.message, { status: 422 });
+    if (!skipAddingDomain) {
+      const vercelResponse = await addDomainToVercel(slug);
+
+      if (
+        vercelResponse.error &&
+        vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+      ) {
+        return new Response(vercelResponse.error.message, { status: 422 });
+      }
     }
 
     const domainId = createId({ prefix: "dom_" });

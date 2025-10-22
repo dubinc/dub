@@ -41,7 +41,7 @@ export async function recordClick({
   partnerId,
   webhookIds,
   workspaceId,
-  skipRatelimit,
+  skipRatelimit: skipRateLimitProp,
   timestamp,
   referrer,
   trigger = "link",
@@ -80,7 +80,8 @@ export async function recordClick({
   }
 
   const ua = userAgent(req);
-  const isBot = detectBot(req);
+  const isBot =
+    process.env.TEST_SKIP_BOT_DETECTION === "true" ? false : detectBot(req);
 
   // don't record clicks from bots
   if (isBot) {
@@ -95,6 +96,9 @@ export async function recordClick({
 
   // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
   // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
+  const skipRatelimit =
+    skipRateLimitProp || process.env.TEST_SKIP_RATE_LIMIT === "true";
+
   if (!skipRatelimit) {
     // here, we check if the clickId is cached in Redis within the last hour
     const cachedClickId = await recordClickCache.get({
