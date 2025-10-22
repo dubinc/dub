@@ -24,7 +24,7 @@ import {
   useTable,
 } from "@dub/ui";
 import { Dots, Duplicate, LoadingCircle, Trash } from "@dub/ui/icons";
-import { cn, fetcher, formatDateTimeSmart, nFormatter } from "@dub/utils";
+import { fetcher, formatDateTimeSmart, nFormatter } from "@dub/utils";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { Mail, Pause, Play } from "lucide-react";
@@ -33,7 +33,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { CAMPAIGN_STATUS_BADGES } from "./campaign-status-badges";
-import { CAMPAIGN_TYPE_BADGES } from "./campaign-type-badges";
+import { CampaignTypeIcon } from "./campaign-type-icon";
 import { CreateCampaignButton } from "./create-campaign-button";
 import { useDeleteCampaignModal } from "./delete-campaign-modal";
 import { useCampaignsFilters } from "./use-campaigns-filters";
@@ -90,26 +90,14 @@ export function CampaignsTable() {
         header: "Email",
         enableHiding: false,
         minSize: 200,
-        cell: ({ row }) => {
-          const { icon: Icon, iconClassName } =
-            CAMPAIGN_TYPE_BADGES[row.original.type];
-
-          return (
-            <div className="flex items-center gap-2">
-              <div
-                className={cn(
-                  "flex size-6 shrink-0 items-center justify-center rounded-md",
-                  iconClassName,
-                )}
-              >
-                <Icon className="size-3.5" />
-              </div>
-              <span className="text-content-emphasis truncate text-sm font-medium">
-                {row.original.name}
-              </span>
-            </div>
-          );
-        },
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <CampaignTypeIcon type={row.original.type} />
+            <span className="text-content-emphasis truncate text-sm font-medium">
+              {row.original.name}
+            </span>
+          </div>
+        ),
       },
       {
         id: "createdAt",
