@@ -70,7 +70,8 @@ export async function POST(req: Request) {
 
     const program = campaign.program;
     const emailDomain = program.emailDomains.find(
-      (domain) => domain.fromAddress === campaign.from,
+      ({ fromAddress, status }) =>
+        fromAddress === campaign.from && status === "verified",
     );
 
     if (!emailDomain) {
@@ -78,9 +79,6 @@ export async function POST(req: Request) {
         `No verified email domain found for program ${program.id}.`,
       );
     }
-
-    // TODO:
-    // Check scheduledAt is met
 
     // Mark the campaign as sending
     if (campaign.status === "scheduled") {
@@ -170,7 +168,7 @@ export async function POST(req: Request) {
     if (partnerUsers.length > 0) {
       const { data } = await sendBatchEmail(
         partnerUsers.map((partnerUser) => ({
-          variant: "notifications",
+          variant: "marketing",
           from: `${program.name} <${emailDomain.fromAddress}>`,
           to: partnerUser.email!,
           subject: campaign.subject,
