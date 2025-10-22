@@ -140,8 +140,7 @@ export const PATCH = withWorkspace(
     if (updatedLink.projectId !== link?.projectId) {
       throw new DubApiError({
         code: "forbidden",
-        message:
-          "Transferring links to another workspace is only allowed via the /links/[linkId]/transfer endpoint.",
+        message: "You cannot transfer links to another workspace.",
       });
     }
 

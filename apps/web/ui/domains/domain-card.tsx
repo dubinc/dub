@@ -38,7 +38,7 @@ import {
   nFormatter,
 } from "@dub/utils";
 import { isPast } from "date-fns";
-import { Archive, ChevronDown, FolderInput, QrCode } from "lucide-react";
+import { Archive, ChevronDown, QrCode } from "lucide-react";
 import { motion } from "motion/react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -52,7 +52,6 @@ import { useDomainAutoRenewalModal } from "../modals/domain-auto-renewal-modal";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { usePrimaryDomainModal } from "../modals/primary-domain-modal";
-import { useTransferDomainModal } from "../modals/transfer-domain-modal";
 import { DomainCardTitleColumn } from "./domain-card-title-column";
 import DomainConfiguration from "./domain-configuration";
 
@@ -350,11 +349,6 @@ function DomainCardMenu({
       props,
     });
 
-  const { setShowTransferDomainModal, TransferDomainModal } =
-    useTransferDomainModal({
-      props,
-    });
-
   const { setShowPrimaryDomainModal, PrimaryDomainModal } =
     usePrimaryDomainModal({
       props,
@@ -387,8 +381,6 @@ function DomainCardMenu({
     });
   };
 
-  const activeDomainsCount = activeWorkspaceDomains?.length || 0;
-
   return (
     <>
       <LinkBuilder />
@@ -397,7 +389,6 @@ function DomainCardMenu({
       <PrimaryDomainModal />
       <ArchiveDomainModal />
       <DeleteDomainModal />
-      <TransferDomainModal />
       <motion.div
         animate={{
           width: groupHover && !isMobile ? "auto" : isMobile ? 79 : 39,
@@ -524,23 +515,6 @@ function DomainCardMenu({
                     }}
                     icon={<Flag2 className="h-4 w-4" />}
                     className="h-9 justify-start px-2 font-medium"
-                  />
-                )}
-                {!isDubProvisioned && (
-                  <Button
-                    text="Transfer"
-                    variant="outline"
-                    onClick={() => {
-                      setOpenPopover(false);
-                      setShowTransferDomainModal(true);
-                    }}
-                    icon={<FolderInput className="h-4 w-4" />}
-                    className="h-9 justify-start px-2 font-medium"
-                    disabledTooltip={
-                      primary && activeDomainsCount > 1
-                        ? "You cannot transfer your workspace's primary domain. Set another domain as primary to transfer this domain."
-                        : undefined
-                    }
                   />
                 )}
                 <Button

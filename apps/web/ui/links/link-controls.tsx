@@ -9,7 +9,6 @@ import {
   IconMenu,
   PenWriting,
   Popover,
-  SimpleTooltipContent,
   useCopyToClipboard,
   useKeyboardShortcut,
 } from "@dub/ui";
@@ -20,15 +19,14 @@ import {
   FolderBookmark,
   QRCode,
 } from "@dub/ui/icons";
-import { cn, isDubDomain, nanoid } from "@dub/utils";
-import { CopyPlus, Delete, FolderInput } from "lucide-react";
+import { cn, nanoid } from "@dub/utils";
+import { CopyPlus, Delete } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useLinkBuilder } from "../modals/link-builder";
 import { useLinkQRModal } from "../modals/link-qr-modal";
 import { useMoveLinkToFolderModal } from "../modals/move-link-to-folder-modal";
-import { useTransferLinkModal } from "../modals/transfer-link-modal";
 import { ThreeDots } from "../shared/icons";
 
 const OPTIONS = {
@@ -38,7 +36,6 @@ const OPTIONS = {
   id: "i",
   move: "m",
   archive: "a",
-  transfer: "t",
   delete: "x",
   ban: "b",
 };
@@ -83,10 +80,6 @@ export function LinkControls({
 
   const { setShowArchiveLinkModal, ArchiveLinkModal } = useArchiveLinkModal({
     props: link,
-  });
-  const { setShowTransferLinkModal, TransferLinkModal } = useTransferLinkModal({
-    props: link,
-    onSuccess: onTransferSuccess,
   });
   const { setShowDeleteLinkModal, DeleteLinkModal } = useDeleteLinkModal({
     props: link,
@@ -168,11 +161,6 @@ export function LinkControls({
         case "a":
           canManageLink && setShowArchiveLinkModal(true);
           break;
-        case "t":
-          canManageLink &&
-            isDubDomain(link.domain) &&
-            setShowTransferLinkModal(true);
-          break;
         case "i":
           copyLinkId();
           break;
@@ -198,7 +186,6 @@ export function LinkControls({
       {options.includes("qr") && <LinkQRModal />}
       {options.includes("duplicate") && <DuplicateLinkModal />}
       {options.includes("archive") && <ArchiveLinkModal />}
-      {options.includes("transfer") && <TransferLinkModal />}
       {options.includes("delete") && <DeleteLinkModal />}
       {options.includes("move") && <MoveLinkToFolderModal />}
       <Popover
@@ -306,30 +293,6 @@ export function LinkControls({
                     !canManageLink
                       ? "You don't have permission to archive this link."
                       : undefined
-                  }
-                />
-              )}
-              {options.includes("transfer") && (
-                <Button
-                  text="Transfer"
-                  variant="outline"
-                  onClick={() => {
-                    setOpenPopover(false);
-                    setShowTransferLinkModal(true);
-                  }}
-                  icon={<FolderInput className="size-4" />}
-                  shortcut="T"
-                  className="h-9 px-2 font-medium"
-                  disabledTooltip={
-                    !isDubDomain(link.domain) ? (
-                      <SimpleTooltipContent
-                        title="Since this is a custom domain link, you can only transfer it to another workspace if you transfer the domain as well."
-                        cta="Learn more."
-                        href="https://dub.co/help/article/how-to-transfer-domains"
-                      />
-                    ) : !canManageLink ? (
-                      "You don't have permission to transfer this link."
-                    ) : undefined
                   }
                 />
               )}
