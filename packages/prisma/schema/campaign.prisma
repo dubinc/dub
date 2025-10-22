@@ -26,6 +26,7 @@ model Campaign {
   status      CampaignStatus      @default(draft)
   name        String
   subject     String
+  from        String?
   bodyJson    Json                @db.Json
   scheduledAt DateTime?
   createdAt   DateTime            @default(now())

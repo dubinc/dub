@@ -1,7 +1,7 @@
 "use client";
 
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useEmailDomains from "@/lib/swr/use-email-domains";
+import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";

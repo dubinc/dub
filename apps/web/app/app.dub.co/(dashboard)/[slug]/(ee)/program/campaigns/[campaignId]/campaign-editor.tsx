@@ -1,5 +1,6 @@
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
@@ -71,6 +72,7 @@ const DisabledInputWrapper = ({
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { emailDomains } = useEmailDomains();
 
   const isActive = campaign.status === CampaignStatus.active;
 
@@ -81,6 +83,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     defaultValues: {
       name: campaign.name,
       subject: campaign.subject,
+      from: campaign.from ?? undefined,
       bodyJson: campaign.bodyJson,
       groupIds: campaign.groups.map(({ id }) => id),
       triggerCondition: campaign.triggerCondition,
@@ -268,6 +271,27 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 placeholder="Enter a name..."
                 className={inputClassName}
                 {...register("name")}
+              />
+            </label>
+
+            <label className="contents">
+              <span className={labelClassName}>From</span>
+              <Controller
+                control={control}
+                name="from"
+                render={({ field }) => (
+                  <select
+                    className={inputClassName}
+                    value={field.value || ""}
+                    onChange={field.onChange}
+                  >
+                    {emailDomains.map((domain) => (
+                      <option key={domain.id} value={domain.fromAddress}>
+                        {program?.name} &lt;{domain.fromAddress}&gt;
+                      </option>
+                    ))}
+                  </select>
+                )}
               />
             </label>
 
