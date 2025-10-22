@@ -62,6 +62,15 @@ export async function POST(req: Request) {
           },
           data: {
             projectId: newWorkspaceId,
+            // reset all stats and folder
+            clicks: 0,
+            leads: 0,
+            sales: 0,
+            saleAmount: 0,
+            conversions: 0,
+            lastClicked: null,
+            lastLeadAt: null,
+            lastConversionAt: null,
             folderId: null,
           },
         }),
