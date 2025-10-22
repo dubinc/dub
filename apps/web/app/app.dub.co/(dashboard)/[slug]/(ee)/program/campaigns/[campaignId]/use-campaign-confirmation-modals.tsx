@@ -46,34 +46,48 @@ export function useCampaignConfirmationModals({
     confirmModal: publishConfirmModal,
     setShowConfirmModal: setShowPublishModal,
   } = useConfirmModal({
-    title:
-      campaign.type === "transactional"
-        ? "Publish Campaign"
-        : "Schedule Campaign",
+    title: "Publish Campaign",
     description:
-      campaign.type === "transactional"
-        ? "Are you sure you want to publish this email campaign? It will be sent to all selected partner groups."
-        : "Are you sure you want to schedule this email campaign? It will be sent to all selected partner groups at the scheduled time.",
+      "Are you sure you want to publish this campaign? Once your campaign rules are met, it will be sent to the partners in the selected groups.",
     onConfirm: async () => {
       await updateCampaign(
         {
           ...getValues(),
-          status:
-            campaign.type === "transactional"
-              ? CampaignStatus.active
-              : CampaignStatus.scheduled,
+          status: CampaignStatus.active,
         },
         () => {
-          toast.success(
-            campaign.type === "transactional"
-              ? "Email campaign published!"
-              : "Email campaign scheduled!",
-          );
+          toast.success("Email campaign published!");
           router.push(`/${workspaceSlug}/program/campaigns`);
         },
       );
     },
-    confirmText: campaign.type === "transactional" ? "Publish" : "Schedule",
+    confirmText: "Publish",
+    confirmShortcut: "Enter",
+  });
+
+  const { scheduledAt } = getValues();
+
+  const {
+    confirmModal: scheduleConfirmModal,
+    setShowConfirmModal: setShowScheduleModal,
+  } = useConfirmModal({
+    title: "Schedule Campaign",
+    description: scheduledAt
+      ? "Are you sure you want to schedule this email campaign? It will be automatically sent to all selected partner groups at the scheduled date and time you've set."
+      : "Are you sure you want to send this email campaign now? It will start sending immediately to all selected partner groups once published.",
+    onConfirm: async () => {
+      await updateCampaign(
+        {
+          ...getValues(),
+          status: CampaignStatus.scheduled,
+        },
+        () => {
+          toast.success("Email campaign scheduled!");
+          router.push(`/${workspaceSlug}/program/campaigns`);
+        },
+      );
+    },
+    confirmText: "Schedule",
     confirmShortcut: "Enter",
   });
 
@@ -158,6 +172,8 @@ export function useCampaignConfirmationModals({
     isUpdatingCampaign,
     publishConfirmModal,
     setShowPublishModal,
+    scheduleConfirmModal,
+    setShowScheduleModal,
     pauseConfirmModal,
     setShowPauseModal,
     resumeConfirmModal,
