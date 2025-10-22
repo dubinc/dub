@@ -1,13 +1,15 @@
 "use client";
 
-import useWorkspace from "@/lib/swr/use-workspace";
 import { PageContent } from "@/ui/layout/page-content";
-import { buttonVariants } from "@dub/ui";
+import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
+import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
-import Link from "next/link";
 
 export function MessagesUpsell() {
-  const { slug } = useWorkspace();
+  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
+    usePartnersUpgradeModal({
+      plan: "Advanced",
+    });
 
   return (
     <PageContent
@@ -18,6 +20,7 @@ export function MessagesUpsell() {
         href: "https://dub.co/help/article/messaging-partners",
       }}
     >
+      {partnersUpgradeModal}
       <div className="flex min-h-[calc(100vh-200px)] flex-col items-center justify-center gap-6 overflow-hidden px-4 py-10">
         <div className="flex w-full max-w-md flex-col gap-4 [mask-image:linear-gradient(black_60%,transparent)]">
           <DemoMessage
@@ -47,15 +50,11 @@ export function MessagesUpsell() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Link
-            href={`/${slug}/upgrade`}
-            className={cn(
-              buttonVariants({ variant: "primary" }),
-              "flex h-8 items-center justify-center whitespace-nowrap rounded-lg border px-3 text-sm",
-            )}
-          >
-            Upgrade to Advanced
-          </Link>
+          <Button
+            onClick={() => setShowPartnersUpgradeModal(true)}
+            text="Upgrade to Advanced"
+            className="h-8 px-3"
+          />
         </div>
       </div>
     </PageContent>

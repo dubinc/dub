@@ -1,11 +1,14 @@
 import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
+  exportLinksColumns,
+  exportLinksColumnsDefault,
+} from "@/lib/zod/schemas/links";
+import {
   Button,
   Checkbox,
   DateRangePicker,
   InfoTooltip,
-  Logo,
   Modal,
   Switch,
   useRouterStuff,
@@ -20,19 +23,6 @@ import {
 } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-
-const columns = [
-  { id: "link", label: "Short link" },
-  { id: "url", label: "Destination URL" },
-  { id: "clicks", label: "Clicks" },
-  { id: "createdAt", label: "Created at" },
-  { id: "id", label: "Link ID" },
-  { id: "updatedAt", label: "Updated at" },
-  { id: "tags", label: "Tags" },
-  { id: "archived", label: "Archived" },
-];
-
-const defaultColumns = ["link", "url", "clicks", "createdAt"];
 
 type FormData = {
   dateRange: {
@@ -65,7 +55,7 @@ function ExportLinksModal({
       dateRange: {
         interval: "all",
       },
-      columns: defaultColumns,
+      columns: exportLinksColumnsDefault,
       useFilters: true,
     },
   });
@@ -83,9 +73,10 @@ function ExportLinksModal({
           : {
               interval: data.dateRange.interval ?? "all",
             }),
-        columns: (data.columns.length ? data.columns : defaultColumns).join(
-          ",",
-        ),
+        columns: (data.columns.length
+          ? data.columns
+          : exportLinksColumnsDefault
+        ).join(","),
       };
 
       const queryString = data.useFilters
@@ -128,112 +119,124 @@ function ExportLinksModal({
       showModal={showExportLinksModal}
       setShowModal={setShowExportLinksModal}
     >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 sm:px-16">
-        <Logo />
-        <div className="flex flex-col space-y-1 text-center">
-          <h3 className="text-lg font-medium">Export links</h3>
-          <p className="text-sm text-neutral-500">
-            Export this workspace's links to a CSV file
-          </p>
-        </div>
+      <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+        <h3 className="text-lg font-medium leading-none">Export links</h3>
       </div>
 
-      <form
-        onSubmit={onSubmit}
-        className="flex flex-col gap-6 bg-neutral-50 px-4 py-8 text-left sm:rounded-b-2xl sm:px-16"
-      >
-        <Controller
-          name="dateRange"
-          control={control}
-          render={({ field }) => (
-            <div className="flex flex-col gap-2">
-              <label
-                htmlFor={dateRangePickerId}
-                className="block text-sm font-medium text-neutral-700"
-              >
+      <form onSubmit={onSubmit}>
+        <div className="bg-neutral-50 p-4 sm:p-6">
+          <div className="space-y-4">
+            <div>
+              <p className="mb-2 block text-sm font-medium text-neutral-700">
                 Date Range
-              </label>
-              <DateRangePicker
-                id={dateRangePickerId}
-                value={
-                  field.value?.from && field.value?.to
-                    ? {
-                        from: field.value.from,
-                        to: field.value.to,
-                      }
-                    : undefined
-                }
-                presetId={
-                  !field.value.from || !field.value.to
-                    ? field.value.interval ?? "all"
-                    : undefined
-                }
-                onChange={(dateRange, preset) => {
-                  field.onChange(preset ? { interval: preset.id } : dateRange);
-                }}
-                presets={INTERVAL_DISPLAYS.map(({ display, value }) => ({
-                  id: value,
-                  label: display,
-                  dateRange: {
-                    from: INTERVAL_DATA[value].startDate,
-                    to: new Date(),
-                  },
-                }))}
+              </p>
+              <Controller
+                name="dateRange"
+                control={control}
+                render={({ field }) => (
+                  <DateRangePicker
+                    id={dateRangePickerId}
+                    className="w-full"
+                    value={
+                      field.value?.from && field.value?.to
+                        ? {
+                            from: field.value.from,
+                            to: field.value.to,
+                          }
+                        : undefined
+                    }
+                    presetId={
+                      !field.value.from || !field.value.to
+                        ? field.value.interval ?? "all"
+                        : undefined
+                    }
+                    onChange={(dateRange, preset) => {
+                      field.onChange(
+                        preset ? { interval: preset.id } : dateRange,
+                      );
+                    }}
+                    presets={INTERVAL_DISPLAYS.map(({ display, value }) => ({
+                      id: value,
+                      label: display,
+                      dateRange: {
+                        from: INTERVAL_DATA[value].startDate,
+                        to: new Date(),
+                      },
+                    }))}
+                  />
+                )}
               />
             </div>
-          )}
-        />
 
-        <div>
-          <p className="block text-sm font-medium text-neutral-700">Columns</p>
+            <div>
+              <p className="mb-2 block text-sm font-medium text-neutral-700">
+                Columns
+              </p>
+              <Controller
+                name="columns"
+                control={control}
+                render={({ field }) => (
+                  <div className="xs:grid-cols-2 grid grid-cols-1 gap-x-4 gap-y-2">
+                    {exportLinksColumns.map(({ id, label }) => (
+                      <div key={id} className="group flex gap-2">
+                        <Checkbox
+                          value={id}
+                          id={`${columnCheckboxId}-${id}`}
+                          checked={field.value.includes(id)}
+                          onCheckedChange={(checked) => {
+                            field.onChange(
+                              checked
+                                ? [...field.value, id]
+                                : field.value.filter((value) => value !== id),
+                            );
+                          }}
+                        />
+                        <label
+                          htmlFor={`${columnCheckboxId}-${id}`}
+                          className="select-none text-sm font-medium text-neutral-600 group-hover:text-neutral-800"
+                        >
+                          {label}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-neutral-200 bg-neutral-50 px-4 py-4 sm:px-6">
           <Controller
-            name="columns"
+            name="useFilters"
             control={control}
             render={({ field }) => (
-              <div className="xs:grid-cols-2 mt-2 grid grid-cols-1 gap-x-4 gap-y-2">
-                {columns.map(({ id, label }) => (
-                  <div key={id} className="group flex gap-2">
-                    <Checkbox
-                      value={id}
-                      id={`${columnCheckboxId}-${id}`}
-                      checked={field.value.includes(id)}
-                      onCheckedChange={(checked) => {
-                        field.onChange(
-                          checked
-                            ? [...field.value, id]
-                            : field.value.filter((value) => value !== id),
-                        );
-                      }}
-                    />
-                    <label
-                      htmlFor={`${columnCheckboxId}-${id}`}
-                      className="select-none text-sm font-medium text-neutral-600 group-hover:text-neutral-800"
-                    >
-                      {label}
-                    </label>
-                  </div>
-                ))}
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex select-none items-center gap-2 text-sm font-medium text-neutral-600 group-hover:text-neutral-800">
+                  Apply current filters
+                  <InfoTooltip content="Filter exported links by your currently selected filters" />
+                </span>
+                <Switch checked={field.value} fn={field.onChange} />
               </div>
             )}
           />
         </div>
 
-        <div className="border-t border-neutral-200" />
-
-        <Controller
-          name="useFilters"
-          control={control}
-          render={({ field }) => (
-            <div className="flex items-center justify-between gap-2">
-              <span className="flex select-none items-center gap-2 text-sm font-medium text-neutral-600 group-hover:text-neutral-800">
-                Apply current filters
-                <InfoTooltip content="Filter exported links by your currently selected filters" />
-              </span>
-              <Switch checked={field.value} fn={field.onChange} />
-            </div>
-          )}
-        />
-        <Button loading={isLoading} text="Export links" />
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+          <Button
+            onClick={() => setShowExportLinksModal(false)}
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+            type="button"
+          />
+          <Button
+            type="submit"
+            loading={isLoading}
+            text="Export links"
+            className="h-8 w-fit px-3"
+          />
+        </div>
       </form>
     </Modal>
   );

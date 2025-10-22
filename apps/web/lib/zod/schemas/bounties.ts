@@ -65,6 +65,7 @@ export const createBountySchema = z.object({
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: workflowConditionSchema.nullish(),
   performanceScope: z.nativeEnum(BountyPerformanceScope).nullish(),
+  sendNotificationEmails: z.boolean().optional(),
 });
 
 export const updateBountySchema = createBountySchema
@@ -112,10 +113,6 @@ export const BountyListSchema = BountySchema.extend({
       approved: z.number().default(0),
     })
     .optional(),
-});
-
-export const BountySchemaExtended = BountySchema.extend({
-  partnersCount: z.number().default(0),
 });
 
 export const BountySubmissionSchema = z.object({

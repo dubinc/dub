@@ -225,7 +225,7 @@ export const createBountySubmissionAction = authPartnerActionClient
           await sendEmail({
             subject: "Bounty submitted!",
             to: partner.email,
-            ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+            replyTo: program.supportEmail || "noreply",
             react: BountySubmitted({
               email: partner.email,
               bounty: {

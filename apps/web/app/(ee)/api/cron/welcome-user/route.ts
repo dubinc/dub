@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     await Promise.allSettled([
       sendEmail({
         to: user.email,
-        replyTo: "steven.tey@dub.co",
+        replyTo: isPartner ? "noreply" : "steven.tey@dub.co",
         subject: `Welcome to Dub${isPartner ? " Partners" : ""}!`,
         react: isPartner
           ? WelcomeEmailPartner({

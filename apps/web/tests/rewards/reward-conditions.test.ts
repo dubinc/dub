@@ -1497,4 +1497,138 @@ describe("evaluateRewardConditions", () => {
       expect(result).toEqual(conditions[1]); // Should return the highest amount (3000)
     });
   });
+
+  describe("partner country conditions", () => {
+    test("should match partner country condition", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          amount: 1000,
+          conditions: [
+            {
+              entity: "partner" as const,
+              attribute: "country" as const,
+              operator: "equals_to" as const,
+              value: "US",
+            },
+          ],
+        },
+        {
+          operator: "AND" as const,
+          amount: 2000,
+          conditions: [
+            {
+              entity: "partner" as const,
+              attribute: "country" as const,
+              operator: "equals_to" as const,
+              value: "CA",
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        partner: {
+          country: "US",
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toEqual(conditions[0]); // Should return the US condition
+    });
+
+    test("should match partner country with multiple countries", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          amount: 1500,
+          conditions: [
+            {
+              entity: "partner" as const,
+              attribute: "country" as const,
+              operator: "in" as const,
+              value: ["US", "CA", "UK"],
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        partner: {
+          country: "CA",
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toEqual(conditions[0]); // Should match CA
+    });
+
+    test("should not match when partner country does not match", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          amount: 1000,
+          conditions: [
+            {
+              entity: "partner" as const,
+              attribute: "country" as const,
+              operator: "equals_to" as const,
+              value: "US",
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        partner: {
+          country: "CA",
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBeNull(); // Should not match
+    });
+
+    test("should handle null partner country", () => {
+      const conditions = [
+        {
+          operator: "AND" as const,
+          amount: 1000,
+          conditions: [
+            {
+              entity: "partner" as const,
+              attribute: "country" as const,
+              operator: "equals_to" as const,
+              value: "US",
+            },
+          ],
+        },
+      ];
+
+      const context: RewardContext = {
+        partner: {
+          country: null,
+        },
+      };
+
+      const result = evaluateRewardConditions({
+        conditions,
+        context,
+      });
+
+      expect(result).toBeNull(); // Should not match when country is null
+    });
+  });
 });

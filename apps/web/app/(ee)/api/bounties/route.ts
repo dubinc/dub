@@ -9,6 +9,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkflowAction } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -159,6 +160,7 @@ export const POST = withWorkspace(
       groupIds,
       performanceCondition,
       performanceScope,
+      sendNotificationEmails,
     } = createBountySchema.parse(await parseRequestBody(req));
 
     // Use current date as default if startsAt is not provided
@@ -265,6 +267,8 @@ export const POST = withWorkspace(
     const shouldScheduleDraftSubmissions =
       bounty.type === "performance" && bounty.performanceScope === "lifetime";
 
+    const { canSendEmailCampaigns } = getPlanCapabilities(workspace.plan);
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -288,13 +292,15 @@ export const POST = withWorkspace(
           data: createdBounty,
         }),
 
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
-          body: {
-            bountyId: bounty.id,
-          },
-          notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
-        }),
+        sendNotificationEmails &&
+          canSendEmailCampaigns &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
+            body: {
+              bountyId: bounty.id,
+            },
+            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+          }),
 
         shouldScheduleDraftSubmissions &&
           qstash.publishJSON({

@@ -121,7 +121,7 @@ export async function notifyPartnerCommission({
           subject: "You just made a commission via Dub Partners!",
           variant: "notifications",
           to: email,
-          ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+          replyTo: program.supportEmail || "noreply",
           react: NewCommissionAlertPartner({
             email,
             ...data,

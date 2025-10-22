@@ -8,16 +8,11 @@ import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
 import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import {
-  BountySchema,
-  BountySchemaExtended,
-  updateBountySchema,
-} from "@/lib/zod/schemas/bounties";
+import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
+import { arrayEqual } from "@dub/utils";
 import { PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -29,12 +24,14 @@ export const GET = withWorkspace(
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    console.time("getBountyWithDetails");
     const bounty = await getBountyWithDetails({
       bountyId,
       programId,
     });
+    console.timeEnd("getBountyWithDetails");
 
-    return NextResponse.json(BountySchemaExtended.parse(bounty));
+    return NextResponse.json(BountySchema.parse(bounty));
   },
   {
     requiredPlan: [
@@ -217,16 +214,6 @@ export const PATCH = withWorkspace(
           trigger: "bounty.updated",
           data: updatedBounty,
         }),
-
-        // if bounty.startsAt was updated, publish a new message to the queue
-        updatedBounty.startsAt.getTime() !== bounty.startsAt.getTime() &&
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
-            body: {
-              bountyId: updatedBounty.id,
-            },
-            notBefore: Math.floor(updatedBounty.startsAt.getTime() / 1000),
-          }),
       ]),
     );
 

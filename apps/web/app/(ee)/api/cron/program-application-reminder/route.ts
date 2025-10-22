@@ -30,6 +30,7 @@ export async function POST(req: Request) {
             id: true,
             name: true,
             slug: true,
+            supportEmail: true,
           },
         },
       },
@@ -74,6 +75,7 @@ export async function POST(req: Request) {
     await sendEmail({
       subject: `Complete your application for ${application.program.name}`,
       to: application.email,
+      replyTo: application.program.supportEmail || "noreply",
       react: ProgramApplicationReminder({
         email: application.email,
         program: {

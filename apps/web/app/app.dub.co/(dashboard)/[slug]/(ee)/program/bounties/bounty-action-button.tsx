@@ -6,7 +6,7 @@ import {
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyExtendedProps } from "@/lib/types";
+import { BountyProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import { Button, MenuItem, Popover } from "@dub/ui";
@@ -17,7 +17,7 @@ import { toast } from "sonner";
 import { useBountySheet } from "./add-edit-bounty-sheet";
 
 interface BountyActionButtonProps {
-  bounty: BountyExtendedProps;
+  bounty: BountyProps;
   className?: string;
   buttonClassName?: string;
 }
