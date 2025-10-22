@@ -77,7 +77,7 @@ export function CreateCampaignButton() {
       <Button
         type="button"
         variant="primary"
-        className="h-8 w-fit px-3 sm:h-9"
+        className="h-9 w-fit rounded-lg px-3"
         loading={isSubmitting}
         text={
           <div className="flex items-center gap-2">
