@@ -18,7 +18,7 @@ import { toast } from "sonner";
 
 type FormData = {
   tenantId: string | null;
-  customerDataSharingEnabledAt: Date | null;
+  customerDataSharingEnabled: boolean;
 };
 
 function PartnerAdvancedSettingsModal({
@@ -53,13 +53,13 @@ function PartnerAdvancedSettingsModal({
   } = useForm<FormData>({
     defaultValues: {
       tenantId: partner.tenantId,
-      customerDataSharingEnabledAt: partner.customerDataSharingEnabledAt,
+      customerDataSharingEnabled: !!partner.customerDataSharingEnabledAt,
     },
   });
 
   const handleCustomerDataSharingToggle = (checked: boolean) => {
     setHasCustomerDataSharing(checked);
-    setValue("customerDataSharingEnabledAt", checked ? new Date() : null, {
+    setValue("customerDataSharingEnabled", checked, {
       shouldDirty: true,
       shouldValidate: true,
     });
@@ -82,7 +82,7 @@ function PartnerAdvancedSettingsModal({
             workspaceId: workspaceId!,
             partnerId: partner.id,
             tenantId: data.tenantId || null,
-            customerDataSharingEnabledAt: data.customerDataSharingEnabledAt,
+            customerDataSharingEnabled: data.customerDataSharingEnabled,
           });
 
           if (result?.serverError || result?.validationErrors) {

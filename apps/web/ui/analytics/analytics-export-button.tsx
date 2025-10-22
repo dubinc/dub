@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction, useContext, useState } from "react";
 import { toast } from "sonner";
 import { AnalyticsContext } from "./analytics-provider";
 
-export default function ExportButton({
+export function AnalyticsExportButton({
   setOpenPopover,
 }: {
   setOpenPopover: Dispatch<SetStateAction<boolean>>;
