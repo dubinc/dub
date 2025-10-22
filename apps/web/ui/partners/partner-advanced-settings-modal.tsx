@@ -2,7 +2,10 @@ import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updatePartnerEnrollmentAction } from "@/lib/actions/partners/update-partner-enrollment";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { EnrolledPartnerProps } from "@/lib/types";
+import {
+  EnrolledPartnerExtendedProps,
+  EnrolledPartnerProps,
+} from "@/lib/types";
 import { Button, CircleInfo, Modal, Switch } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -28,7 +31,7 @@ function PartnerAdvancedSettingsModal({
 }: {
   showPartnerAdvancedSettingsModal: boolean;
   setShowPartnerAdvancedSettingsModal: Dispatch<SetStateAction<boolean>>;
-  partner: EnrolledPartnerProps;
+  partner: EnrolledPartnerExtendedProps;
 }) {
   const { id: workspaceId } = useWorkspace();
 
