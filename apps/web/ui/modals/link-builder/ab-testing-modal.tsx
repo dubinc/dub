@@ -4,7 +4,6 @@ import {
   MIN_TEST_PERCENTAGE,
 } from "@/lib/zod/schemas/links";
 import { LinkFormData } from "@/ui/links/link-builder/link-builder-provider";
-import { useLinkBuilderKeyboardShortcut } from "@/ui/links/link-builder/use-link-builder-keyboard-shortcut";
 import { useAvailableDomains } from "@/ui/links/use-available-domains";
 import { useEndABTestingModal } from "@/ui/modals/link-builder/ab-testing/end-ab-testing-modal";
 import { BusinessBadgeTooltip } from "@/ui/shared/business-badge-tooltip";
@@ -12,17 +11,21 @@ import { X } from "@/ui/shared/icons";
 import {
   AnimatedSizeContainer,
   Button,
+  CircleCheck,
   Flask,
   InfoTooltip,
   Modal,
   SimpleTooltipContent,
   Tooltip,
   TriangleWarning,
+  useKeyboardShortcut,
 } from "@dub/ui";
 import {
   cn,
   formatDateTime,
   getDateTimeLocal,
+  getPrettyUrl,
+  getUrlFromString,
   isValidUrl,
   parseDateTime,
 } from "@dub/utils";
@@ -46,6 +49,9 @@ const parseTests = (testVariants: LinkFormData["testVariants"]) =>
 
 const inTwoWeeks = new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000);
 
+const normalizeForForm = (raw: string) =>
+  getUrlFromString(raw.trim()).replace(/\/+$/, "");
+
 function ABTestingModal({
   showABTestingModal,
   setShowABTestingModal,
@@ -53,8 +59,35 @@ function ABTestingModal({
   showABTestingModal: boolean;
   setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  return (
+    <Modal
+      showModal={showABTestingModal}
+      setShowModal={setShowABTestingModal}
+      className="sm:max-w-md"
+    >
+      <ABTestingModalInner setShowABTestingModal={setShowABTestingModal} />
+    </Modal>
+  );
+}
+
+function ABTestingModalInner({
+  setShowABTestingModal,
+}: {
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  return <ABTestingEdit setShowABTestingModal={setShowABTestingModal} />;
+}
+
+function ABTestingEdit({
+  setShowABTestingModal,
+}: {
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+}) {
   const id = useId();
   const inputRef = useRef<HTMLInputElement>(null);
+  const [urlInputs, setUrlInputs] = useState<
+    Record<number, string | undefined>
+  >({});
 
   const {
     watch: watchParent,
@@ -99,6 +132,22 @@ function ABTestingModal({
   const testCompletedAt = watch("testCompletedAt");
   const [idParent, testVariantsParent] = watchParent(["id", "testVariants"]);
 
+  // Manual validation for URLs
+  const validateUrls = () => {
+    if (!testVariants || testVariants.length <= 1) return false;
+
+    return testVariants.every((test) => {
+      if (!test.url || test.url.trim() === "") return false;
+
+      // Check if it's a valid URL (with or without protocol)
+      const urlToValidate = test.url.startsWith("http")
+        ? test.url
+        : `https://${test.url}`;
+
+      return isValidUrl(urlToValidate);
+    });
+  };
+
   const addTestUrl = () => {
     if (!testVariants.length || testVariants.length >= MAX_TEST_COUNT) return;
 
@@ -120,9 +169,11 @@ function ABTestingModal({
       );
     } else {
       // Not all percentages are equal so let's split the latest one we can
-      const toSplitIndex = testVariants.findLastIndex(
+      const toSplitIndexRaw = testVariants.findLastIndex(
         ({ percentage }) => percentage >= MIN_TEST_PERCENTAGE * 2,
       );
+      const toSplitIndex =
+        toSplitIndexRaw === -1 ? testVariants.length - 1 : toSplitIndexRaw;
       const toSplit = testVariants[toSplitIndex];
       const toSplitPercentage = Math.floor(toSplit.percentage / 2);
       const remainingPercentage = toSplit.percentage - toSplitPercentage;
@@ -142,6 +193,10 @@ function ABTestingModal({
         },
       );
     }
+
+    // Initialize the new input field with empty string
+    const newIndex = testVariants.length;
+    setUrlInputs((prev) => ({ ...prev, [newIndex]: "" }));
   };
 
   const removeTestUrl = (index: number) => {
@@ -189,14 +244,27 @@ function ABTestingModal({
         },
       );
     }
+
+    // Clean up the local input state for the removed index
+    setUrlInputs((prev) => {
+      const newState = { ...prev };
+      delete newState[index];
+      // Shift down the indices for inputs after the removed one
+      const shiftedState: Record<number, string | undefined> = {};
+      Object.entries(newState).forEach(([key, value]) => {
+        const numKey = parseInt(key);
+        if (numKey > index) {
+          shiftedState[numKey - 1] = value;
+        } else {
+          shiftedState[numKey] = value;
+        }
+      });
+      return shiftedState;
+    });
   };
 
   return (
-    <Modal
-      showModal={showABTestingModal}
-      setShowModal={setShowABTestingModal}
-      className="sm:max-w-md"
-    >
+    <>
       <EndABTestingModal />
       <form
         className="px-5 py-4"
@@ -226,14 +294,35 @@ function ABTestingModal({
             }
 
             // Validate all URLs are filled
-            if (currentTests.some((test) => !test.url)) {
+            if (
+              currentTests.some((test) => !test.url || test.url.trim() === "")
+            ) {
               toast.error("All test URLs must be filled");
               return;
             }
 
-            setValueParent("url", currentTests[0].url, { shouldDirty: true });
+            // Normalize URLs to match analytics normalization: trim whitespace, ensure protocol, strip trailing slashes
+            const normalizedTests = currentTests.map((test) => {
+              const normalizedUrl = normalizeForForm(test.url || "");
+              return {
+                ...test,
+                url: normalizedUrl,
+              };
+            });
+
+            // Validate URLs after normalization
+            if (normalizedTests.some((test) => !isValidUrl(test.url))) {
+              toast.error("Please enter valid URLs");
+              return;
+            }
+
+            setValueParent("url", normalizedTests[0].url, {
+              shouldDirty: true,
+            });
             setValueParent("trackConversion", true);
-            setValueParent("testVariants", currentTests, { shouldDirty: true });
+            setValueParent("testVariants", normalizedTests, {
+              shouldDirty: true,
+            });
             setValueParent("testCompletedAt", data.testCompletedAt, {
               shouldDirty: true,
             });
@@ -283,7 +372,7 @@ function ABTestingModal({
                 <SimpleTooltipContent
                   title="Add up to 3 additional destination URLs to test for this short link."
                   cta="Learn more"
-                  href="https://dub.co/help/article/ab-testing" // TODO: Add article
+                  href="https://dub.co/help/article/ab-testing"
                 />
               }
             />
@@ -295,49 +384,100 @@ function ABTestingModal({
               className="-m-1"
             >
               <div className="flex flex-col gap-2 p-1">
-                {testVariants.map((_, index) => (
-                  <div key={index} className="flex items-center gap-2">
-                    <label className="relative flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
-                      <span className="flex h-9 w-8 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
-                        {index + 1}
-                      </span>
-                      <input
-                        type="url"
-                        placeholder={
-                          domains?.find(({ slug }) => slug === domain)
-                            ?.placeholder ||
-                          "https://dub.co/help/article/what-is-dub"
-                        }
-                        className="block h-9 grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:ring-0 sm:text-sm"
-                        {...register(`testVariants.${index}.url`, {
-                          validate: (value, { testVariants }) => {
-                            if (!value) return "URL is required";
-
-                            if (!isValidUrl(value)) return "Invalid URL";
-
-                            return (
-                              testVariants.length > 1 &&
-                              testVariants.length <= MAX_TEST_COUNT
-                            );
-                          },
-                        })}
-                      />
-                      {index > 0 && (
-                        <Button
-                          onClick={() => removeTestUrl(index)}
-                          variant="outline"
-                          className="mr-1 size-7 p-0"
-                          text={
-                            <>
-                              <span className="sr-only">Remove</span>
-                              <X className="size-4" />
-                            </>
+                {testVariants.map((test, index) => {
+                  return (
+                    <div key={index} className="flex items-center gap-2">
+                      <label className="relative flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500">
+                        <span className="flex h-9 w-8 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
+                          {index + 1}
+                        </span>
+                        <input
+                          type="text"
+                          inputMode="url"
+                          placeholder={getPrettyUrl(
+                            domains?.find(({ slug }) => slug === domain)
+                              ?.placeholder ||
+                              "dub.co/help/article/what-is-dub",
+                          )}
+                          className="block h-9 grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:ring-0 sm:text-sm"
+                          value={
+                            urlInputs[index] !== undefined
+                              ? urlInputs[index]
+                              : getPrettyUrl(test.url)
                           }
+                          onChange={(e) => {
+                            const inputValue = e.target.value;
+                            setUrlInputs((prev) => ({
+                              ...prev,
+                              [index]: inputValue,
+                            }));
+
+                            // Convert to full URL for storage
+                            const fullUrl = inputValue.startsWith("http")
+                              ? inputValue
+                              : `https://${inputValue}`;
+                            setValue(`testVariants.${index}.url`, fullUrl, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            });
+                          }}
+                          onBlur={(e) => {
+                            const raw = e.target.value.trim();
+                            const normalizedUrl = normalizeForForm(raw);
+                            if (normalizedUrl) {
+                              setValue(
+                                `testVariants.${index}.url`,
+                                normalizedUrl,
+                                {
+                                  shouldDirty: true,
+                                  shouldValidate: true,
+                                  shouldTouch: true,
+                                },
+                              );
+                              // Keep destination URL and position 1 in sync
+                              if (index === 0) {
+                                setValueParent("url", normalizedUrl, {
+                                  shouldDirty: true,
+                                });
+                              }
+                              // Clear the local input state to show the pretty URL
+                              setUrlInputs((prev) => ({
+                                ...prev,
+                                [index]: undefined,
+                              }));
+                            }
+                          }}
+                          onFocus={() => {
+                            // When focusing, show the raw URL if it exists
+                            if (test.url && urlInputs[index] === undefined) {
+                              setUrlInputs((prev) => ({
+                                ...prev,
+                                [index]: getPrettyUrl(test.url),
+                              }));
+                            }
+                          }}
+                          onInvalid={(e) => {
+                            // Prevent browser validation error from showing
+                            e.preventDefault();
+                          }}
                         />
-                      )}
-                    </label>
-                  </div>
-                ))}
+                        {index > 0 && (
+                          <Button
+                            onClick={() => removeTestUrl(index)}
+                            variant="outline"
+                            className="mr-1 size-7 p-0"
+                            text={
+                              <>
+                                <span className="sr-only">Remove</span>
+                                <X className="size-4" />
+                              </>
+                            }
+                          />
+                        )}
+                      </label>
+                    </div>
+                  );
+                })}
               </div>
             </AnimatedSizeContainer>
 
@@ -366,7 +506,7 @@ function ABTestingModal({
               content={`Adjust the percentage of traffic to each URL. The minimum is ${MIN_TEST_PERCENTAGE}%`}
             />
           </div>
-          <div className="mt-4">
+          <div className="mt-2">
             <TrafficSplitSlider
               testVariants={testVariants}
               onChange={(percentages) => {
@@ -394,7 +534,7 @@ function ABTestingModal({
                 <SimpleTooltipContent
                   title="Set when the A/B test should complete. After this date, all traffic will go to the best performing URL."
                   cta="Learn more."
-                  href="https://dub.co/help/article/ab-testing"
+                  href="https://dub.co/help/article/ab-testing#completion-date-has-passed"
                 />
               }
             />
@@ -442,7 +582,18 @@ function ABTestingModal({
               className="w-[40px] border-none bg-transparent text-neutral-500 focus:outline-none focus:ring-0 sm:text-sm"
             />
           </div>
-          <p className="mt-1 text-xs text-neutral-500">6 weeks maximum</p>
+          <p
+            className={cn(
+              "mt-1 text-xs",
+              testCompletedAt &&
+                (differenceInDays(testCompletedAt, new Date()) > 6 * 7 ||
+                  differenceInDays(testCompletedAt, new Date()) < -1)
+                ? "text-red-700"
+                : "text-neutral-500",
+            )}
+          >
+            6 weeks maximum
+          </p>
         </div>
 
         {testVariantsParent && (
@@ -488,7 +639,7 @@ function ABTestingModal({
               }}
             />
             <Button
-              type="submit"
+              type="button"
               variant="primary"
               text={
                 Array.isArray(testVariantsParent) &&
@@ -499,7 +650,7 @@ function ABTestingModal({
               className="h-9 w-fit"
               disabled={
                 !isDirty ||
-                !isValid ||
+                !validateUrls() ||
                 Boolean(
                   testCompletedAt &&
                     // Restrict competion date from -1 days to 6 weeks
@@ -507,11 +658,130 @@ function ABTestingModal({
                       differenceInDays(testCompletedAt, new Date()) < -1),
                 )
               }
+              onClick={(e) => {
+                e.preventDefault();
+                const formData = getValues();
+
+                // Call the same logic as the form onSubmit handler
+                const currentTests = formData.testVariants;
+
+                if (!currentTests || currentTests.length <= 1) {
+                  setValueParent("testVariants", null, { shouldDirty: true });
+                  setValueParent("testCompletedAt", null, {
+                    shouldDirty: true,
+                  });
+                  return;
+                }
+
+                // Validate total percentage equals 100
+                const totalPercentage = currentTests.reduce(
+                  (sum, test) => sum + test.percentage,
+                  0,
+                );
+
+                if (totalPercentage !== 100) {
+                  toast.error("Total percentage must equal 100%");
+                  return;
+                }
+
+                // Validate all URLs are filled
+                const hasEmptyUrls = currentTests.some(
+                  (test) => !test.url || test.url.trim() === "",
+                );
+
+                if (hasEmptyUrls) {
+                  toast.error("All test URLs must be filled");
+                  return;
+                }
+
+                // Normalize URLs to match analytics normalization: trim whitespace, ensure protocol, strip trailing slashes
+                const normalizedTests = currentTests.map((test) => {
+                  const normalizedUrl = normalizeForForm(test.url || "");
+                  return {
+                    ...test,
+                    url: normalizedUrl,
+                  };
+                });
+
+                // Validate URLs after normalization
+                if (normalizedTests.some((test) => !isValidUrl(test.url))) {
+                  toast.error("Please enter valid URLs");
+                  return;
+                }
+
+                setValueParent("url", normalizedTests[0].url, {
+                  shouldDirty: true,
+                });
+                setValueParent("trackConversion", true);
+                setValueParent("testVariants", normalizedTests, {
+                  shouldDirty: true,
+                });
+                setValueParent("testCompletedAt", formData.testCompletedAt, {
+                  shouldDirty: true,
+                });
+                setShowABTestingModal(false);
+              }}
             />
           </div>
         </div>
       </form>
-    </Modal>
+    </>
+  );
+}
+
+function ABTestingComplete({
+  setShowABTestingModal,
+}: {
+  setShowABTestingModal: Dispatch<SetStateAction<boolean>>;
+}) {
+  const { watch } = useFormContext<LinkFormData>();
+
+  const [testVariantsRaw, winnerUrl] = watch(["testVariants", "url"]);
+  const testVariants = useMemo(
+    () => parseTests(testVariantsRaw),
+    [testVariantsRaw],
+  );
+
+  return (
+    <div className="px-5 py-4">
+      <h3 className="text-lg font-medium">A/B test complete</h3>
+
+      {/* Testing URLs */}
+      <div className="mt-6">
+        <div className="flex flex-col gap-2">
+          {testVariants?.map((test, index) => (
+            <div
+              key={index}
+              className="relative block flex grow items-center overflow-hidden rounded-md border border-neutral-300 focus-within:border-neutral-500 focus-within:ring-1 focus-within:ring-neutral-500"
+            >
+              <span className="flex h-9 w-8 shrink-0 items-center justify-center border-r border-neutral-300 text-center text-sm font-medium text-neutral-800">
+                {index + 1}
+              </span>
+              <span className="min-w-0 grow truncate px-2 text-sm text-neutral-800 placeholder-neutral-400">
+                {getPrettyUrl(test.url)}
+              </span>
+              {winnerUrl === test.url && (
+                <CircleCheck className="ml-2 mr-3 size-4 shrink-0 text-blue-500" />
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-4 flex items-center justify-end">
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="secondary"
+            text="Close"
+            className="h-9 w-fit"
+            onClick={() => {
+              setShowABTestingModal(false);
+            }}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -540,21 +810,26 @@ function ABTestingButton({
     "testCompletedAt",
   ]);
 
-  useLinkBuilderKeyboardShortcut("a", () => setShowABTestingModal(true));
+  useKeyboardShortcut("a", () => setShowABTestingModal(true), {
+    modal: true,
+  });
 
   const enabled = Boolean(testVariants && testCompletedAt);
+  const complete = enabled && new Date() > new Date(testCompletedAt!);
 
   const label = useMemo(
     () => getABTestingLabel({ testVariants, testCompletedAt }),
     [testVariants, testCompletedAt],
   );
 
+  const Icon = Flask;
+
   return (
     <Button
       variant="secondary"
       text={label}
-      icon={<Flask className={cn("size-4", enabled && "text-blue-500")} />}
-      className="h-8 w-fit gap-1.5 px-2.5 text-xs font-medium text-neutral-700"
+      icon={<Icon className={cn("size-4", enabled && "text-blue-500")} />}
+      className="h-9 w-fit px-2.5 font-medium text-neutral-700"
       onClick={() => setShowABTestingModal(true)}
     />
   );
@@ -596,6 +871,7 @@ function TrafficSplitSlider({
   onChange: (percentages: number[]) => void;
 }) {
   const [isDragging, setIsDragging] = useState<number | null>(null);
+  const [focusedIndex, setFocusedIndex] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (index: number) => (e: React.MouseEvent) => {
@@ -636,6 +912,42 @@ function TrafficSplitSlider({
   const handleMouseUp = useCallback(() => {
     setIsDragging(null);
   }, []);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent, index: number) => {
+      if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+
+      e.preventDefault();
+
+      const delta = e.key === "ArrowLeft" ? -1 : 1;
+      const newPercentages = testVariants.map(({ percentage }) => percentage);
+
+      // The slider at index i controls the boundary between test i and test i+1
+      const leftIndex = index;
+      const rightIndex = index + 1;
+
+      if (rightIndex >= testVariants.length) return;
+
+      const leftPercentage = newPercentages[leftIndex];
+      const rightPercentage = newPercentages[rightIndex];
+
+      // Compute proposed values after applying delta
+      const nextLeft = leftPercentage + delta;
+      const nextRight = rightPercentage - delta;
+
+      // Check if either proposed value would go below minimum
+      if (nextLeft < MIN_TEST_PERCENTAGE || nextRight < MIN_TEST_PERCENTAGE) {
+        return;
+      }
+
+      // Apply the changes
+      newPercentages[leftIndex] = nextLeft;
+      newPercentages[rightIndex] = nextRight;
+
+      onChange(newPercentages);
+    },
+    [testVariants, onChange],
+  );
 
   useEffect(() => {
     if (isDragging !== null) {
@@ -678,11 +990,20 @@ function TrafficSplitSlider({
                 <div
                   className="group pointer-events-auto absolute -right-1.5 flex h-full w-3 cursor-col-resize items-center px-1"
                   onMouseDown={handleMouseDown(i)}
+                  onKeyDown={(e) => handleKeyDown(e, i)}
+                  onFocus={() => setFocusedIndex(i)}
+                  onBlur={() => setFocusedIndex(null)}
+                  tabIndex={0}
+                  role="slider"
+                  aria-label={`Adjust traffic split between URL ${i + 1} and URL ${i + 2}`}
+                  aria-valuemin={MIN_TEST_PERCENTAGE}
+                  aria-valuemax={100 - MIN_TEST_PERCENTAGE}
+                  aria-valuenow={test.percentage}
                 >
                   <div
                     className={cn(
                       "h-2/3 w-1 rounded-full bg-neutral-200",
-                      isDragging === i
+                      isDragging === i || focusedIndex === i
                         ? "bg-neutral-400"
                         : "group-hover:bg-neutral-300",
                     )}

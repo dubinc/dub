@@ -123,7 +123,7 @@ function LinkCloakingToggleBadge({
 
   const { data, isLoading } = useSWR<{ iframeable: boolean }>(
     domain && isValidUrl
-      ? `/api/links/iframeable?domain=${domain}&url=${debouncedUrl}`
+      ? `/api/links/iframeable?${new URLSearchParams({ domain, url: debouncedUrl }).toString()}`
       : null,
     fetcher,
   );
@@ -144,7 +144,7 @@ function LinkCloakingToggleBadge({
         }
       />
     ),
-    [data, isLoading],
+    [data, isLoading, toggle, onRemove],
   );
 
   return data ? (
