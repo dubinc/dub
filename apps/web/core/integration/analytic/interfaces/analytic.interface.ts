@@ -1,5 +1,5 @@
 // all event types
-export enum EAnalyticEvents { 
+export enum EAnalyticEvents {
   PAGE_CLICKED = "pageClicked",
   PAGE_VIEWED = "pageViewed",
 
@@ -29,9 +29,13 @@ export enum EAnalyticEvents {
 
   THRESHOLD_PASSED = "thresholdPassed",
 
-  EMAIL_SUBMITTED = "emailSubmitted",
-
   NPS_FEEDBACK = "userFeedback",
+
+  EMAIL_SUBMITTED = "emailSubmitted",
+  CODE_SUBMITTED = "codeSubmitted",
+
+  SUBSCRIPTION_CANCELLED = "subscriptionCancelled",
+  SUBSCRIPTION_CANCELLED_ERROR = "subscriptionCancelledError",
 }
 
 // purchase related events
