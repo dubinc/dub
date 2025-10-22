@@ -10,6 +10,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -46,12 +47,12 @@ function EditLogoModal(props: EditLogoModalProps) {
   );
 }
 
-function EditLogoModalInner({ 
-  setShowEditLogoModal, 
-  resourceId, 
-  initialName, 
-  initialUrl, 
-  initialExtension 
+function EditLogoModalInner({
+  setShowEditLogoModal,
+  resourceId,
+  initialName,
+  initialUrl,
+  initialExtension,
 }: EditLogoModalProps) {
   const { id: workspaceId } = useWorkspace();
   const { mutate } = useProgramResources();
@@ -63,13 +64,23 @@ function EditLogoModalInner({
     setValue,
     getValues,
     setError,
+    reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<LogoFormData>({
     defaultValues: {
       name: initialName,
       file: initialUrl,
+      extension: initialExtension,
     },
   });
+
+  useEffect(() => {
+    reset({
+      name: initialName,
+      file: initialUrl,
+      extension: initialExtension,
+    });
+  }, [reset, resourceId, initialName, initialUrl, initialExtension]);
 
   const { executeAsync } = useAction(updateProgramResourceAction, {
     onSuccess: () => {
@@ -214,14 +225,22 @@ export function useEditLogoModal() {
     initialExtension?: string;
   } | null>(null);
 
-  const openEditModal = useCallback((resourceId: string, initialName: string, initialUrl: string, initialExtension?: string) => {
-    setEditData({ resourceId, initialName, initialUrl, initialExtension });
-    setShowEditLogoModal(true);
-  }, []);
+  const openEditModal = useCallback(
+    (
+      resourceId: string,
+      initialName: string,
+      initialUrl: string,
+      initialExtension?: string,
+    ) => {
+      setEditData({ resourceId, initialName, initialUrl, initialExtension });
+      setShowEditLogoModal(true);
+    },
+    [],
+  );
 
   const EditLogoModalCallback = useCallback(() => {
     if (!editData) return null;
-    
+
     return (
       <EditLogoModal
         showEditLogoModal={showEditLogoModal}

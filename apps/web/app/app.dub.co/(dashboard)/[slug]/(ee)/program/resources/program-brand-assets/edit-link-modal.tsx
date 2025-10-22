@@ -10,6 +10,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -43,11 +44,11 @@ function EditLinkModal(props: EditLinkModalProps) {
   );
 }
 
-function EditLinkModalInner({ 
-  setShowEditLinkModal, 
-  resourceId, 
-  initialName, 
-  initialUrl 
+function EditLinkModalInner({
+  setShowEditLinkModal,
+  resourceId,
+  initialName,
+  initialUrl,
 }: EditLinkModalProps) {
   const { id: workspaceId } = useWorkspace();
   const { mutate } = useProgramResources();
@@ -56,6 +57,7 @@ function EditLinkModalInner({
     register,
     handleSubmit,
     setError,
+    reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<LinkFormData>({
     defaultValues: {
@@ -63,6 +65,14 @@ function EditLinkModalInner({
       url: initialUrl,
     },
   });
+
+  // Reset form when switching between different resources
+  useEffect(() => {
+    reset({
+      name: initialName,
+      url: initialUrl,
+    });
+  }, [initialName, initialUrl, resourceId, reset]);
 
   const { executeAsync } = useAction(updateProgramResourceAction, {
     onSuccess: () => {
@@ -190,14 +200,17 @@ export function useEditLinkModal() {
     initialUrl: string;
   } | null>(null);
 
-  const openEditModal = useCallback((resourceId: string, initialName: string, initialUrl: string) => {
-    setEditData({ resourceId, initialName, initialUrl });
-    setShowEditLinkModal(true);
-  }, []);
+  const openEditModal = useCallback(
+    (resourceId: string, initialName: string, initialUrl: string) => {
+      setEditData({ resourceId, initialName, initialUrl });
+      setShowEditLinkModal(true);
+    },
+    [],
+  );
 
   const EditLinkModalCallback = useCallback(() => {
     if (!editData) return null;
-    
+
     return (
       <EditLinkModal
         showEditLinkModal={showEditLinkModal}

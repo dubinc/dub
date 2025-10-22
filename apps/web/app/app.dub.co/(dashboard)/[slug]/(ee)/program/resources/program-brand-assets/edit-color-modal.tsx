@@ -45,11 +45,11 @@ function EditColorModal(props: EditColorModalProps) {
   );
 }
 
-function EditColorModalInner({ 
-  setShowEditColorModal, 
-  resourceId, 
-  initialName, 
-  initialColor 
+function EditColorModalInner({
+  setShowEditColorModal,
+  resourceId,
+  initialName,
+  initialColor,
 }: EditColorModalProps) {
   const { id: workspaceId } = useWorkspace();
   const { mutate } = useProgramResources();
@@ -61,6 +61,7 @@ function EditColorModalInner({
     setValue,
     watch,
     setError,
+    reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<ColorFormData>({
     defaultValues: {
@@ -70,6 +71,12 @@ function EditColorModalInner({
   });
 
   const selectedColor = watch("color");
+
+  // Reset form when resource data changes
+  useEffect(() => {
+    reset({ name: initialName, color: initialColor });
+    setHexInputValue(initialColor);
+  }, [resourceId, initialName, initialColor, reset]);
 
   // Keep hex input in sync with form value
   useEffect(() => setHexInputValue(selectedColor), [selectedColor]);
@@ -213,14 +220,17 @@ export function useEditColorModal() {
     initialColor: string;
   } | null>(null);
 
-  const openEditModal = useCallback((resourceId: string, initialName: string, initialColor: string) => {
-    setEditData({ resourceId, initialName, initialColor });
-    setShowEditColorModal(true);
-  }, []);
+  const openEditModal = useCallback(
+    (resourceId: string, initialName: string, initialColor: string) => {
+      setEditData({ resourceId, initialName, initialColor });
+      setShowEditColorModal(true);
+    },
+    [],
+  );
 
   const EditColorModalCallback = useCallback(() => {
     if (!editData) return null;
-    
+
     return (
       <EditColorModal
         showEditColorModal={showEditColorModal}

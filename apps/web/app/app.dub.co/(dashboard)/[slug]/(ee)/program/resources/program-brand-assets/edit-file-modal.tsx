@@ -10,6 +10,7 @@ import {
   Dispatch,
   SetStateAction,
   useCallback,
+  useEffect,
   useMemo,
   useState,
 } from "react";
@@ -46,12 +47,12 @@ function EditFileModal(props: EditFileModalProps) {
   );
 }
 
-function EditFileModalInner({ 
-  setShowEditFileModal, 
-  resourceId, 
-  initialName, 
-  initialUrl, 
-  initialExtension 
+function EditFileModalInner({
+  setShowEditFileModal,
+  resourceId,
+  initialName,
+  initialUrl,
+  initialExtension,
 }: EditFileModalProps) {
   const { id: workspaceId } = useWorkspace();
   const { mutate } = useProgramResources();
@@ -63,15 +64,27 @@ function EditFileModalInner({
     setValue,
     getValues,
     setError,
+    reset,
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<FileFormData>({
     defaultValues: {
       name: initialName,
       file: initialUrl,
+      extension: initialExtension ?? undefined,
     },
   });
 
   const [fileName, setFileName] = useState(initialName);
+
+  // Reset form when resource data changes
+  useEffect(() => {
+    reset({
+      name: initialName,
+      file: initialUrl,
+      extension: initialExtension ?? undefined,
+    });
+    setFileName(initialName);
+  }, [initialName, initialUrl, initialExtension, reset]);
 
   const { executeAsync } = useAction(updateProgramResourceAction, {
     onSuccess: () => {
@@ -220,14 +233,22 @@ export function useEditFileModal() {
     initialExtension?: string;
   } | null>(null);
 
-  const openEditModal = useCallback((resourceId: string, initialName: string, initialUrl: string, initialExtension?: string) => {
-    setEditData({ resourceId, initialName, initialUrl, initialExtension });
-    setShowEditFileModal(true);
-  }, []);
+  const openEditModal = useCallback(
+    (
+      resourceId: string,
+      initialName: string,
+      initialUrl: string,
+      initialExtension?: string,
+    ) => {
+      setEditData({ resourceId, initialName, initialUrl, initialExtension });
+      setShowEditFileModal(true);
+    },
+    [],
+  );
 
   const EditFileModalCallback = useCallback(() => {
     if (!editData) return null;
-    
+
     return (
       <EditFileModal
         showEditFileModal={showEditFileModal}
