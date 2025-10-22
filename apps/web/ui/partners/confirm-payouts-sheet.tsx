@@ -39,6 +39,7 @@ import {
   currencyFormatter,
   fetcher,
   formatDate,
+  nFormatter,
   OG_AVATAR_URL,
   truncate,
 } from "@dub/utils";
@@ -346,7 +347,9 @@ function ConfirmPayoutsSheetContent() {
       },
       {
         key: "Partners",
-        value: eligiblePayouts?.length ?? (
+        value: eligiblePayouts ? (
+          nFormatter(eligiblePayouts.length, { full: true })
+        ) : (
           <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
         ),
       },
