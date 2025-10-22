@@ -24,6 +24,23 @@ export function validateCampaign({ input, campaign }: ValidateCampaignParams) {
     }
   }
 
+  if (
+    input.name ||
+    input.subject ||
+    input.bodyJson ||
+    input.groupIds ||
+    input.triggerCondition ||
+    input.from ||
+    input.scheduledAt
+  ) {
+    if (["active", "sending", "sent", "cancelled"].includes(campaign.status)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `You can't make changes to a "${campaign.status}" campaign.`,
+      });
+    }
+  }
+
   if (campaign.type === "marketing") {
     delete input.triggerCondition;
   }

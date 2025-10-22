@@ -140,19 +140,28 @@ export function useCampaignConfirmationModals({
     setShowConfirmModal: setShowCancelModal,
   } = useConfirmModal({
     title: "Cancel Campaign",
-    description: (
-      <div className="flex flex-col gap-2">
-        <span>
+    description: isScheduled ? (
+      <div className="space-y-2">
+        <p>
+          Are you sure you want to cancel this scheduled email campaign? The
+          campaign will not be sent at the scheduled time.
+        </p>
+
+        <p className="font-semibold">This action cannot be undone.</p>
+      </div>
+    ) : (
+      <div className="space-y-2">
+        <p>
           Are you sure you want to cancel this email campaign? If you choose to
           stop delivery, we'll begin cancelling the campaign immediately.
-        </span>
+        </p>
 
-        <span>
+        <p>
           However, because sending happens in batches, some additional emails
           may still go out before the process completes.
-        </span>
+        </p>
 
-        <span className="font-semibold">This action cannot be undone.</span>
+        <p className="font-semibold">This action cannot be undone.</p>
       </div>
     ),
     onConfirm: async () => {

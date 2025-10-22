@@ -363,7 +363,7 @@ function RowMenuButton({
                 Duplicate
               </MenuItem>
 
-              {!isDraft && (
+              {!isDraft && campaign.type === "transactional" && (
                 <MenuItem
                   icon={
                     isUpdatingCampaign ? LoadingCircle : isPaused ? Play : Pause

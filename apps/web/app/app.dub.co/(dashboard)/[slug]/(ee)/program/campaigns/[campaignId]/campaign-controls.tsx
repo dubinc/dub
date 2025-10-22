@@ -135,35 +135,6 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
   };
 
   const actionButton = (() => {
-    const transactionalActionButtonMap = {
-      [CampaignStatus.draft]: {
-        text: "Publish",
-        icon: PaperPlane,
-        loading: isUpdatingCampaign,
-        onClick: () => {
-          setShowPublishModal(true);
-        },
-      },
-
-      [CampaignStatus.active]: {
-        text: "Pause",
-        icon: MediaPause,
-        loading: isUpdatingCampaign,
-        onClick: () => {
-          setShowPauseModal(true);
-        },
-      },
-
-      [CampaignStatus.paused]: {
-        text: "Resume",
-        icon: MediaPlay,
-        loading: isUpdatingCampaign,
-        onClick: () => {
-          setShowResumeModal(true);
-        },
-      },
-    };
-
     const marketingActionButtonMap = {
       [CampaignStatus.draft]: {
         text:
@@ -196,6 +167,35 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
 
       [CampaignStatus.sent]: null, // No action once sent
       [CampaignStatus.cancelled]: null, // No action once cancelled
+    };
+
+    const transactionalActionButtonMap = {
+      [CampaignStatus.draft]: {
+        text: "Publish",
+        icon: PaperPlane,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowPublishModal(true);
+        },
+      },
+
+      [CampaignStatus.active]: {
+        text: "Pause",
+        icon: MediaPause,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowPauseModal(true);
+        },
+      },
+
+      [CampaignStatus.paused]: {
+        text: "Resume",
+        icon: MediaPlay,
+        loading: isUpdatingCampaign,
+        onClick: () => {
+          setShowResumeModal(true);
+        },
+      },
     };
 
     if (campaign.type === "transactional") {

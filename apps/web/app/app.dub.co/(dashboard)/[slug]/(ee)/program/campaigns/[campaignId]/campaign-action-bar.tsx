@@ -24,9 +24,11 @@ export function CampaignActionBar({
     control,
   });
 
-  // Only show action bar for non-draft campaigns when there are changes
+  // Only show action bar when there are changes and campaign can be edited
+  // Campaigns with status active, sending, sent, or cancelled cannot be edited
   const showActionBar =
-    campaignStatus !== "draft" && (isDirty || isSubmitting || isSaving);
+    !["active", "sending", "sent", "cancelled"].includes(campaignStatus) &&
+    (isDirty || isSubmitting || isSaving);
 
   return (
     <div

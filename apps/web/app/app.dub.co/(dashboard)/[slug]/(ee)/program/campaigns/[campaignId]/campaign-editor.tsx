@@ -143,10 +143,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               toast.success("Campaign saved successfully!");
             }
           },
-          onError: () => {
-            toast.error(
-              `Failed to save the ${isDraft ? "draft " : ""}campaign.`,
-            );
+          onError: (error) => {
+            toast.error(error);
           },
         });
       }
@@ -246,7 +244,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         }
         controls={<CampaignControls campaign={campaign} />}
         sidePanel={
-          campaign.status !== CampaignStatus.draft
+          !["draft", "scheduled"].includes(campaign.status)
             ? {
                 title: "Metrics",
                 content: (
@@ -255,7 +253,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     <CampaignEvents />
                   </div>
                 ),
-                defaultOpen: campaign.status === CampaignStatus.active,
+                defaultOpen: ["active", "sending", "sent"].includes(
+                  campaign.status,
+                ),
               }
             : undefined
         }
