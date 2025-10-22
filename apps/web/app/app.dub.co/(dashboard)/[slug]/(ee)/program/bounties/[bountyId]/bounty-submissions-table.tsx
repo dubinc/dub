@@ -130,7 +130,10 @@ export function BountySubmissionsTable() {
     const currentIndex = submissions.findIndex(
       (s) => s.id === detailsSheetState.submission!.id,
     );
-    if (currentIndex === -1) return [null, null];
+
+    // if the current submission is not found, return the current details sheet submission id
+    // and the first submission id as the previous and next submission ids
+    if (currentIndex === -1) return [null, submissions[0].id];
 
     return [
       currentIndex > 0 ? submissions[currentIndex - 1].id : null,
