@@ -164,7 +164,7 @@ export const executeSendCampaignWorkflow = async ({
         variant: "notifications",
         to: partnerUser.email!,
         subject: campaign.subject,
-        ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
+        replyTo: program.supportEmail || "noreply",
         react: CampaignEmail({
           program: {
             name: program.name,

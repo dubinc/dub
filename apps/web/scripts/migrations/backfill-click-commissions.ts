@@ -13,6 +13,7 @@ async function main() {
     partnerId,
     programId,
     include: {
+      partner: true,
       links: true,
       clickReward: true,
     },

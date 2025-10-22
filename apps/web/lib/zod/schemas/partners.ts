@@ -402,6 +402,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
 export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
   lastConversionAt: z.date().nullish(),
+  customerDataSharingEnabledAt: z.date().nullish(),
 }).merge(
   PartnerSchema.pick({
     monthlyTraffic: true,

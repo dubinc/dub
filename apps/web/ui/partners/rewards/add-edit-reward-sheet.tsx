@@ -54,7 +54,6 @@ import {
   InlineBadgePopoverMenu,
 } from "../../shared/inline-badge-popover";
 import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
-import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
 import { RewardIconSquare } from "./reward-icon-square";
 import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
 
@@ -87,7 +86,12 @@ function RewardSheetContent({
   defaultRewardValues,
 }: RewardSheetProps) {
   const { group, mutateGroup } = useGroup();
-  const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    defaultProgramId,
+    plan,
+  } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
   const { queryParams } = useRouterStuff();
@@ -287,16 +291,8 @@ function RewardSheetContent({
     });
   };
 
-  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal({
-      plan: "Advanced",
-      description:
-        "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, embedded referral dashboard, and more.",
-    });
-
   return (
     <FormProvider {...form}>
-      {partnersUpgradeModal}
       <form
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
@@ -517,7 +513,8 @@ function RewardSheetContent({
                   <TooltipContent
                     title="Advanced reward structures are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    onClick={() => setShowPartnersUpgradeModal(true)}
+                    href={`/${workspaceSlug}/upgrade?plan=advanced`}
+                    target="_blank"
                   />
                 ) : undefined
               }

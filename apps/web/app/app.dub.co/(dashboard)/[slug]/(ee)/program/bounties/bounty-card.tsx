@@ -1,41 +1,18 @@
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
-import usePartnersCount from "@/lib/swr/use-partners-count";
+import { usePartnersCountBounty } from "@/lib/swr/use-partners-count-bounty";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyListProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { Calendar6, Gift, Users } from "@dub/ui/icons";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import Link from "next/link";
-import { useMemo } from "react";
 
 export function BountyCard({ bounty }: { bounty: BountyListProps }) {
   const { slug: workspaceSlug } = useWorkspace();
-  const { partnersCount: groupCount } = usePartnersCount<
-    | {
-        groupId: string;
-        _count: number;
-      }[]
-    | undefined
-  >({
-    groupBy: "groupId",
+
+  const { totalPartnersForBounty, loading } = usePartnersCountBounty({
+    bounty,
   });
-
-  const totalPartnersForBounty = useMemo(() => {
-    if (bounty.groups.length === 0) {
-      // if no groups set, return all partners
-      return groupCount?.reduce((acc, curr) => acc + curr._count, 0) ?? 0;
-    }
-
-    return (
-      groupCount?.reduce((acc, curr) => {
-        if (bounty.groups.some((group) => group.id === curr.groupId)) {
-          return acc + curr._count;
-        }
-
-        return acc;
-      }, 0) ?? 0
-    );
-  }, [groupCount, bounty.groups]);
 
   return (
     <div className="border-border-subtle hover:border-border-default relative cursor-pointer rounded-xl border bg-white p-5 transition-all hover:shadow-lg">
@@ -101,10 +78,19 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
                   of
                 </>
               )}{" "}
-              <span className="text-content-default">
-                {nFormatter(totalPartnersForBounty, { full: true })}
-              </span>{" "}
-              {pluralize("partner", totalPartnersForBounty)}{" "}
+              {loading ? (
+                <span className="inline-block h-4 w-8 animate-pulse rounded bg-neutral-200 align-middle" />
+              ) : (
+                <>
+                  <span className="text-content-default">
+                    {nFormatter(totalPartnersForBounty, { full: true })}
+                  </span>{" "}
+                </>
+              )}{" "}
+              {pluralize(
+                "partner",
+                bounty.submissionsCountData?.total || totalPartnersForBounty,
+              )}{" "}
               {bounty.type === "performance" ? "completed" : "submitted"}
             </div>
           </div>

@@ -90,6 +90,7 @@ export const PATCH = withWorkspace(
         partnerId: partner.id,
         programId,
         include: {
+          partner: true,
           links: true,
           saleReward: true,
         },

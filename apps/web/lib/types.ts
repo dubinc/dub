@@ -31,7 +31,6 @@ import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   BountyListSchema,
   BountySchema,
-  BountySchemaExtended,
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
   SUBMISSION_REQUIREMENTS,
@@ -584,7 +583,6 @@ export type PartnerCommentProps = z.infer<typeof PartnerCommentSchema>;
 
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
-export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
 
 export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
 

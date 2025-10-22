@@ -31,9 +31,8 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useContext } from "react";
-import AnalyticsOptions from "./analytics-options";
+import { AnalyticsOptions } from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
-import EventsOptions from "./events/events-options";
 import { ShareButton } from "./share-button";
 import { useAnalyticsFilters } from "./use-analytics-filters";
 
@@ -253,7 +252,6 @@ export default function Toggle({
                             text={isMobile ? undefined : "View Events"}
                           />
                         </Link>
-                        <AnalyticsOptions />
                       </>
                     )}
                     {page === "events" && (
@@ -270,9 +268,9 @@ export default function Toggle({
                             text={isMobile ? undefined : "View Analytics"}
                           />
                         </Link>
-                        <EventsOptions />
                       </>
                     )}
+                    {!partnerPage && <AnalyticsOptions page={page} />}
                   </div>
                 )}
               </div>

@@ -10,13 +10,14 @@ import { NextResponse } from "next/server";
 // GET /api/partner-profile/programs/[programId]/earnings/count – get earnings count for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: params.programId,
-      include: {
-        program: true,
-      },
-    });
+    const { program, customerDataSharingEnabledAt } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId: params.programId,
+        include: {
+          program: true,
+        },
+      });
 
     const {
       groupBy,
@@ -100,7 +101,9 @@ export const GET = withPartnerProfile(
           return {
             id: customerId,
             email: customer?.email
-              ? customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+              ? customerDataSharingEnabledAt
+                ? customer.email
+                : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
               : customer?.name || generateRandomName(),
             _count,
           };
