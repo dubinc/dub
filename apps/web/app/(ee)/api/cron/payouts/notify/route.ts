@@ -58,6 +58,11 @@ export async function POST(req: Request) {
       where: {
         invoiceId,
         status: "processing",
+        partner: {
+          email: {
+            not: null,
+          },
+        },
       },
       select: {
         id: true,
