@@ -41,11 +41,11 @@ function ConfirmCreateBountyModal({
   setShowConfirmCreateBountyModal: Dispatch<SetStateAction<boolean>>;
 } & ConfirmCreateBountyModalProps) {
   const { plan, slug: workspaceSlug } = useWorkspace();
-  const { canSendBountyNotifications } = getPlanCapabilities(plan);
+  const { canSendEmailCampaigns } = getPlanCapabilities(plan);
 
   const [isLoading, setIsLoading] = useState(false);
   const [sendNotificationEmails, setSendNotificationEmails] = useState(
-    canSendBountyNotifications,
+    canSendEmailCampaigns,
   );
 
   const { totalPartnersForBounty, loading } = usePartnersCountBounty({
@@ -109,7 +109,7 @@ function ConfirmCreateBountyModal({
 
         <DynamicTooltipWrapper
           tooltipProps={
-            !canSendBountyNotifications
+            !canSendEmailCampaigns
               ? {
                   content: (
                     <TooltipContent
@@ -126,24 +126,22 @@ function ConfirmCreateBountyModal({
           <label
             className={cn(
               "mt-4 flex items-center gap-2",
-              !canSendBountyNotifications &&
+              !canSendEmailCampaigns &&
                 "pointer-events-none cursor-not-allowed",
             )}
           >
             <Checkbox
-              checked={
-                canSendBountyNotifications ? sendNotificationEmails : false
-              }
+              checked={canSendEmailCampaigns ? sendNotificationEmails : false}
               onCheckedChange={(checked) =>
                 setSendNotificationEmails(Boolean(checked))
               }
-              disabled={!canSendBountyNotifications}
+              disabled={!canSendEmailCampaigns}
               className="data-[state=checked]:bg-black"
             />
             <span
               className={cn(
                 "text-content-default select-none text-sm font-medium",
-                !canSendBountyNotifications && "opacity-50",
+                !canSendEmailCampaigns && "opacity-50",
               )}
             >
               Send notification to{" "}

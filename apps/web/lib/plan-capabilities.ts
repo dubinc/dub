@@ -15,8 +15,7 @@ export const getPlanCapabilities = (
     canUseAdvancedRewardLogic:
       !!plan && ["enterprise", "advanced"].includes(plan),
     canMessagePartners: !!plan && ["enterprise", "advanced"].includes(plan),
+    canSendEmailCampaigns: !!plan && ["enterprise", "advanced"].includes(plan),
     canDiscoverPartners: !!plan && ["enterprise"].includes(plan),
-    canSendBountyNotifications:
-      !!plan && ["enterprise", "advanced"].includes(plan),
   };
 };

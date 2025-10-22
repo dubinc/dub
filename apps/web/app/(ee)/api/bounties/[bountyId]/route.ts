@@ -214,17 +214,6 @@ export const PATCH = withWorkspace(
           trigger: "bounty.updated",
           data: updatedBounty,
         }),
-
-        // sendNotificationEmails &&
-        //   // if bounty.startsAt was updated, publish a new message to the queue
-        //   updatedBounty.startsAt.getTime() !== bounty.startsAt.getTime() &&
-        //   qstash.publishJSON({
-        //     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
-        //     body: {
-        //       bountyId: updatedBounty.id,
-        //     },
-        //     notBefore: Math.floor(updatedBounty.startsAt.getTime() / 1000),
-        //   }),
       ]),
     );
 
