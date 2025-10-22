@@ -3,13 +3,9 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { storage } from "@/lib/storage";
 import { uploadedImageAllowSVGSchema } from "@/lib/zod/schemas/misc";
-import {
-  programResourceColorSchema,
-  programResourceFileSchema,
-  programResourceLinkSchema,
-} from "@/lib/zod/schemas/program-resources";
 import { prisma } from "@dub/prisma";
-import { R2_URL } from "@dub/utils";
+import { R2_URL, nanoid } from "@dub/utils";
+import slugify from "@sindresorhus/slugify";
 import { z } from "zod";
 import { authActionClient } from "../../safe-action";
 
@@ -87,36 +83,93 @@ export const updateProgramResourceAction = authActionClient
     // Find the resource to update
     const resourceKey = `${resourceType}s`;
     const resourceArray = updatedResources[resourceKey] || [];
-    const existingResource = resourceArray.find((r: any) => r.id === resourceId);
+    const existingResource = resourceArray.find(
+      (r: any) => r.id === resourceId,
+    );
 
     if (!existingResource) throw new Error("Resource not found");
 
     if (resourceType === "logo" || resourceType === "file") {
       const { file, extension } = parsedInput;
 
-      // Delete old file if it exists and is different
-      if (existingResource.url && existingResource.url !== file) {
-        try {
-          await storage.delete(existingResource.url.replace(`${R2_URL}/`, ""));
-        } catch (error) {
-          console.error(
-            "Failed to delete old program resource file from storage:",
-            error,
-          );
-        }
+      if (!file) {
+        throw new Error("File is required.");
       }
 
-      const updatedResource = {
-        ...existingResource,
-        name,
-        url: file,
-        extension: extension || existingResource.extension,
-        size: existingResource.size, // Keep existing size for now
-      };
+      // Check if the file is already a stored URL (not base64)
+      const isStoredUrl = file.startsWith("http");
+      let fileUrl = file;
 
-      updatedResources[resourceKey] = resourceArray.map((r: any) =>
-        r.id === resourceId ? updatedResource : r,
-      );
+      if (!isStoredUrl) {
+        // Upload the file to storage (following add flow pattern)
+        const fileKey = `programs/${program.id}/${resourceType}s/${slugify(name || resourceType)}-${nanoid(4)}${extension ? `.${extension}` : ""}`;
+        const uploadResult = await storage.upload(
+          fileKey,
+          file,
+          resourceType === "logo"
+            ? {
+                headers: {
+                  "Content-Disposition": "attachment",
+                  ...(extension === "svg" && {
+                    "Content-Type": "image/svg+xml",
+                  }),
+                },
+              }
+            : undefined,
+        );
+
+        if (!uploadResult || !uploadResult.url) {
+          throw new Error(`Failed to upload ${resourceType}`);
+        }
+
+        fileUrl = uploadResult.url;
+
+        // Extract file size from base64 string
+        const base64Data = file.replace(/^data:.+;base64,/, "");
+        const fileSize = Math.ceil((base64Data.length * 3) / 4);
+
+        if (fileSize / 1024 / 1024 > 10)
+          throw new Error("File size is too large");
+
+        // Delete old file if it exists and is different
+        if (existingResource.url && existingResource.url !== fileUrl) {
+          try {
+            await storage.delete(
+              existingResource.url.replace(`${R2_URL}/`, ""),
+            );
+          } catch (error) {
+            console.error(
+              "Failed to delete old program resource file from storage:",
+              error,
+            );
+          }
+        }
+
+        const updatedResource = {
+          ...existingResource,
+          name,
+          url: fileUrl,
+          extension: extension || existingResource.extension,
+          size: fileSize,
+        };
+
+        updatedResources[resourceKey] = resourceArray.map((r: any) =>
+          r.id === resourceId ? updatedResource : r,
+        );
+      } else {
+        // File is already a stored URL, just update the name
+        const updatedResource = {
+          ...existingResource,
+          name,
+          url: fileUrl,
+          extension: extension || existingResource.extension,
+          size: existingResource.size, // Keep existing size
+        };
+
+        updatedResources[resourceKey] = resourceArray.map((r: any) =>
+          r.id === resourceId ? updatedResource : r,
+        );
+      }
     } else if (resourceType === "color") {
       const { color } = parsedInput;
 

@@ -1,10 +1,11 @@
 "use client";
 
 import { updateProgramResourceAction } from "@/lib/actions/partners/program-resources/update-program-resource";
+import { storage } from "@/lib/storage";
 import useProgramResources from "@/lib/swr/use-program-resources";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, FileContent, FileUpload, Modal } from "@dub/ui";
-import { cn, truncate } from "@dub/utils";
+import { cn, R2_URL, truncate } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -35,6 +36,39 @@ const fileFormSchema = z.object({
 });
 
 type FileFormData = z.infer<typeof fileFormSchema>;
+
+// Helper function to check if a string is a valid URL
+const isValidUrl = (str: string): boolean => {
+  try {
+    new URL(str);
+    return true;
+  } catch (_) {
+    return false;
+  }
+};
+
+// Helper function to check if a string is base64 data
+const isBase64Data = (str: string): boolean => {
+  const base64Regex =
+    /^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+  const dataImageRegex =
+    /^data:image\/[a-zA-Z0-9.+-]+;base64,(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/;
+  return base64Regex.test(str) || dataImageRegex.test(str);
+};
+
+// Helper function to calculate file size from base64 string
+const getBase64FileSize = (base64String: string): number => {
+  const base64Data = base64String.replace(/^data:.+;base64,/, "");
+  return Math.ceil((base64Data.length * 3) / 4);
+};
+
+// Helper function to extract object key from R2 URL
+const extractObjectKeyFromUrl = (url: string): string | null => {
+  if (url.startsWith(R2_URL)) {
+    return url.replace(`${R2_URL}/`, "");
+  }
+  return null;
+};
 
 function EditFileModal(props: EditFileModalProps) {
   return (
@@ -145,9 +179,8 @@ function EditFileModalInner({
                     iconClassName="size-5"
                     variant="plain"
                     readFile
-                    onChange={({ file, src }) => {
+                    onChange={async ({ file, src }) => {
                       setFileName(file.name);
-                      field.onChange(src);
                       setValue("extension", file.name.split(".").pop());
 
                       // Set the file name to the file name without extension if no name is provided
@@ -158,6 +191,85 @@ function EditFileModalInner({
                           .slice(0, -1)
                           .join(".");
                         setValue("name", nameWithoutExtension || file.name);
+                      }
+
+                      try {
+                        // If the provided value is already a valid URL, skip upload
+                        if (isValidUrl(src)) {
+                          field.onChange(src);
+                          return;
+                        }
+
+                        // If it's base64 data, validate size and upload
+                        if (isBase64Data(src)) {
+                          const fileSize = getBase64FileSize(src);
+                          const maxSizeBytes = 10 * 1024 * 1024; // 10MB
+
+                          if (fileSize > maxSizeBytes) {
+                            setError("file", {
+                              message:
+                                "File size is too large. Maximum size is 10MB.",
+                            });
+                            toast.error(
+                              "File size is too large. Maximum size is 10MB.",
+                            );
+                            return;
+                          }
+
+                          // Delete old file if it exists and is different from the new one
+                          const currentValue = getValues("file");
+                          if (
+                            currentValue &&
+                            currentValue !== src &&
+                            isValidUrl(currentValue)
+                          ) {
+                            const oldObjectKey =
+                              extractObjectKeyFromUrl(currentValue);
+                            if (oldObjectKey) {
+                              try {
+                                await storage.delete(oldObjectKey);
+                              } catch (error) {
+                                console.error(
+                                  "Failed to delete old file:",
+                                  error,
+                                );
+                                // Continue with upload even if deletion fails
+                              }
+                            }
+                          }
+
+                          // Upload the new file
+                          const fileKey = `programs/${workspaceId}/files/${file.name.split(".").slice(0, -1).join(".")}-${Date.now()}${file.name.split(".").pop() ? `.${file.name.split(".").pop()}` : ""}`;
+                          const uploadResult = await storage.upload(
+                            fileKey,
+                            src,
+                          );
+
+                          if (!uploadResult || !uploadResult.url) {
+                            throw new Error("Failed to upload file");
+                          }
+
+                          field.onChange(uploadResult.url);
+                        } else {
+                          // If it's neither a URL nor base64, treat as invalid
+                          setError("file", {
+                            message: "Invalid file format",
+                          });
+                          toast.error("Invalid file format");
+                        }
+                      } catch (error) {
+                        console.error("File upload error:", error);
+                        setError("file", {
+                          message:
+                            error instanceof Error
+                              ? error.message
+                              : "Failed to upload file",
+                        });
+                        toast.error(
+                          error instanceof Error
+                            ? error.message
+                            : "Failed to upload file",
+                        );
                       }
                     }}
                     icon={field.value ? FileContent : undefined}
