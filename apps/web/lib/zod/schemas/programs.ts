@@ -123,12 +123,6 @@ export const ProgramEnrollmentSchema = z.object({
     .describe(
       "If the partner was banned from the program, this is the reason for the ban.",
     ),
-  customerDataSharingEnabledAt: z
-    .date()
-    .nullish()
-    .describe(
-      "The date when customer data sharing was enabled for this partner.",
-    ),
   group: GroupSchema.pick({
     additionalLinks: true,
     maxPartnerLinks: true,
