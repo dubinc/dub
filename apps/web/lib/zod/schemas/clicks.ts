@@ -5,7 +5,10 @@ import { linkEventSchema } from "./links";
 export const clickEventSchemaTB = z.object({
   timestamp: z.string(),
   click_id: z.string(),
+  workspace_id: z.string().default(""),
   link_id: z.string(),
+  domain: z.string().default(""),
+  key: z.string().default(""),
   url: z.string(),
   continent: z.string().nullable(),
   country: z.string().nullable(),
