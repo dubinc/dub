@@ -1,3 +1,4 @@
+import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
 import { qstash } from "@/lib/cron";
@@ -6,6 +7,7 @@ import { TiptapNode } from "@/lib/types";
 import { sendBatchEmail } from "@dub/email";
 import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
+import { NotificationEmailType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
@@ -120,6 +122,7 @@ export async function POST(req: Request) {
               select: {
                 user: {
                   select: {
+                    id: true,
                     email: true,
                   },
                 },
@@ -165,7 +168,7 @@ export async function POST(req: Request) {
     );
 
     if (partnerUsers.length > 0) {
-      await sendBatchEmail(
+      const { data } = await sendBatchEmail(
         partnerUsers.map((partnerUser) => ({
           variant: "notifications",
           from: `${program.name} <${emailDomain.fromAddress}>`,
@@ -196,6 +199,21 @@ export async function POST(req: Request) {
           },
         })),
       );
+
+      if (data) {
+        await prisma.notificationEmail.createMany({
+          data: partnerUsers.map((partnerUser, idx) => ({
+            id: createId({ prefix: "em_" }),
+            type: NotificationEmailType.Campaign,
+            emailId: data.data[idx].id,
+            campaignId: campaign.id,
+            programId: campaign.programId,
+            partnerId: partnerUser.partner.id,
+            recipientUserId: partnerUser.id,
+          })),
+          skipDuplicates: true,
+        });
+      }
     }
 
     if (programEnrollments.length === MAX_PARTNERS_SIZE) {

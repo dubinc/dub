@@ -1,3 +1,4 @@
+import { CAMPAIGN_EDITABLE_STATUSES } from "@/lib/api/campaigns/constants";
 import { Campaign } from "@/lib/types";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -24,10 +25,10 @@ export function CampaignActionBar({
     control,
   });
 
-  // Only show action bar when there are changes and campaign can be edited
-  // Campaigns with status active, sending, sent, or cancelled cannot be edited
+  // Only show action bar for non-draft campaigns when there are changes
   const showActionBar =
-    !["active", "sending", "sent", "cancelled"].includes(campaignStatus) &&
+    CAMPAIGN_EDITABLE_STATUSES.includes(campaignStatus) &&
+    campaignStatus !== "draft" &&
     (isDirty || isSubmitting || isSaving);
 
   return (

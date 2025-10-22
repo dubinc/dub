@@ -2,7 +2,10 @@ import { updateCampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { Campaign } from "@dub/prisma/client";
 import { z } from "zod";
 import { DubApiError } from "../errors";
-import { CAMPAIGN_STATUS_TRANSITIONS } from "./constants";
+import {
+  CAMPAIGN_EDITABLE_STATUSES,
+  CAMPAIGN_STATUS_TRANSITIONS,
+} from "./constants";
 
 interface ValidateCampaignParams {
   input: Partial<z.infer<typeof updateCampaignSchema>>;
@@ -33,7 +36,7 @@ export function validateCampaign({ input, campaign }: ValidateCampaignParams) {
     input.from ||
     input.scheduledAt
   ) {
-    if (["active", "sending", "sent", "cancelled"].includes(campaign.status)) {
+    if (!CAMPAIGN_EDITABLE_STATUSES.includes(campaign.status)) {
       throw new DubApiError({
         code: "bad_request",
         message: `You can't make changes to a "${campaign.status}" campaign.`,

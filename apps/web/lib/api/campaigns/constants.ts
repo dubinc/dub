@@ -22,3 +22,5 @@ export const CAMPAIGN_STATUS_TRANSITIONS: Record<
     paused: ["active"],
   },
 } as const;
+
+export const CAMPAIGN_EDITABLE_STATUSES = ["draft", "paused", "scheduled"];
