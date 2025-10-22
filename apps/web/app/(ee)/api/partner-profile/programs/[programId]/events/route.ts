@@ -1,6 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { generateRandomName } from "@/lib/names";
 import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
@@ -53,28 +54,27 @@ export const GET = withPartnerProfile(
     const response = events.map((event) => {
       // don't return ip address for partner profile
       // @ts-ignore – ip is deprecated but present in the data
-      const { ip, click, ...eventRest } = event;
+      const { ip, click, customer, ...eventRest } = event;
       const { ip: _, ...clickRest } = click;
 
       return {
         ...eventRest,
         click: clickRest,
         link: event?.link ? PartnerProfileLinkSchema.parse(event.link) : null,
-        // @ts-expect-error - customer is not always present
-        ...(event?.customer && {
+        ...(customer && {
           customer: z
             .object({
               id: z.string(),
-              email: customerDataSharingEnabledAt
-                ? z.string()
-                : z
-                    .string()
-                    .transform((email) =>
-                      email.replace(/(?<=^.).+(?=.@)/, "****"),
-                    ),
+              email: z.string(),
             })
-            // @ts-expect-error - customer is not always present
-            .parse(event.customer),
+            .parse({
+              ...customer,
+              email: customer.email
+                ? customerDataSharingEnabledAt
+                  ? customer.email
+                  : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+                : customer.name || generateRandomName(),
+            }),
         }),
       };
     });

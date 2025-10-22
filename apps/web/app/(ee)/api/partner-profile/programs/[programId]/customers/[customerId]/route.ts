@@ -79,15 +79,15 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
-      email: customerDataSharingEnabledAt
-        ? z.string()
-        : z
-            .string()
-            .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
+      email: z.string(),
     }).parse({
       ...transformCustomer({
         ...customer,
-        email: customer.email || customer.name || generateRandomName(),
+        email: customer.email
+          ? customerDataSharingEnabledAt
+            ? customer.email
+            : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+          : customer.name || generateRandomName(),
       }),
       activity: {
         ltv,

@@ -28,9 +28,7 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
     customer: z
       .object({
         id: z.string(),
-        email: z
-          .string()
-          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
+        email: z.string(),
       })
       .nullable(),
     link: LinkSchema.pick({

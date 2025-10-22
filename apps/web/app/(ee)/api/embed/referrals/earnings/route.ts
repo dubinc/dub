@@ -1,4 +1,5 @@
 import { withReferralsEmbedToken } from "@/lib/embed/referrals/auth";
+import { generateRandomName } from "@/lib/names";
 import { REFERRALS_EMBED_EARNINGS_LIMIT } from "@/lib/partners/constants";
 import { PartnerEarningsSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
@@ -25,6 +26,7 @@ export const GET = withReferralsEmbedToken(
           select: {
             id: true,
             email: true,
+            name: true,
           },
         },
         link: {
@@ -42,6 +44,22 @@ export const GET = withReferralsEmbedToken(
       },
     });
 
-    return NextResponse.json(z.array(PartnerEarningsSchema).parse(earnings));
+    return NextResponse.json(
+      z.array(PartnerEarningsSchema).parse(
+        earnings.map((e) => ({
+          ...e,
+          customer: e.customer
+            ? {
+                ...e.customer,
+                email: e.customer.email
+                  ? programEnrollment.customerDataSharingEnabledAt
+                    ? e.customer.email
+                    : e.customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+                  : e.customer.name || generateRandomName(),
+              }
+            : null,
+        })),
+      ),
+    );
   },
 );

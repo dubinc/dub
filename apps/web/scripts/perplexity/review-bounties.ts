@@ -1,45 +1,95 @@
+import { createId } from "@/lib/api/create-id";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
+import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
+
+const userId = "xxx";
 
 // reject invalid bounty submissions
 async function main() {
-  const bountySubmissions = await prisma.bountySubmission.findMany({
+  const bounty = await prisma.bounty.findUniqueOrThrow({
     where: {
-      bountyId: {
-        in: [
-          "bnty_1K7QH2WJPA1KRGM56VVW911XX",
-          "bnty_1K7X45AGSP9PS7TA0F7YAD0M1",
-        ],
-      },
-      status: "submitted",
+      id: "xxx",
     },
   });
 
-  const invalidSubmissions = bountySubmissions.filter((submission) => {
-    return (submission.urls as string[]).every(
-      (url) => !url.includes("linkedin.com"),
+  const bountySubmissions = await prisma.bountySubmission.findMany({
+    where: {
+      bountyId: bounty.id,
+      status: "submitted",
+    },
+    take: 1000,
+  });
+
+  const validSubmissions = bountySubmissions.filter((submission) => {
+    return (submission.urls as string[]).some((url) =>
+      url.includes("linkedin.com"),
     );
   });
 
-  console.log(`Found ${invalidSubmissions.length} invalid bounty submissions`);
+  console.log(`Found ${validSubmissions.length} valid bounty submissions`);
 
-  const res = await prisma.bountySubmission.updateMany({
+  const commissionsToCreate = validSubmissions.map((submission) => ({
+    id: createId({ prefix: "cm_" }),
+    programId: submission.programId,
+    partnerId: submission.partnerId,
+    userId,
+    quantity: 1,
+    amount: 0,
+    type: "custom",
+    earnings: bounty.rewardAmount ?? 0,
+    description: `Commission for successfully completed "${bounty.name}" bounty.`,
+    createdAt: new Date(),
+  })) satisfies Prisma.CommissionCreateManyInput[];
+
+  const commissionRes = await prisma.commission.createMany({
+    data: commissionsToCreate,
+    skipDuplicates: true,
+  });
+
+  console.log(`Created ${commissionRes.count} commissions`);
+
+  const submissionsUpdatedRes = await prisma.bountySubmission.updateMany({
     where: {
       id: {
-        in: invalidSubmissions.map((submission) => submission.id),
+        in: validSubmissions.map((submission) => submission.id),
       },
     },
     data: {
-      status: "rejected",
+      status: "approved",
       reviewedAt: new Date(),
-      userId: "user_1K1WRVWYV6VDPHF2N6KMRZBNX",
-      rejectionReason: "invalidProof",
-      rejectionNote: "Not a LinkedIn URL",
-      commissionId: null,
+      userId,
     },
   });
 
-  console.log(`Updated ${res.count} bounty submissions`);
+  console.log(`Updated ${submissionsUpdatedRes.count} submissions`);
+
+  for (const submission of validSubmissions) {
+    const commission = commissionsToCreate.find(
+      (c) =>
+        c.programId === submission.programId &&
+        c.partnerId === submission.partnerId,
+    );
+    if (!commission) {
+      console.log(`Commission not found for submission ${submission.id}`);
+      continue;
+    }
+
+    await Promise.allSettled([
+      prisma.bountySubmission.update({
+        where: { id: submission.id },
+        data: { commissionId: commission.id },
+      }),
+      syncTotalCommissions({
+        partnerId: submission.partnerId,
+        programId: submission.programId,
+      }),
+    ]);
+    console.log(
+      `Updated submission ${submission.id} to have commission ${commission.id} + synced total commissions`,
+    );
+  }
 }
 
 main();
