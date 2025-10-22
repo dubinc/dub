@@ -8,6 +8,7 @@ import {
   SimpleTooltipContent,
   Switch,
   Tooltip,
+  useRouterStuff,
 } from "@dub/ui";
 import { cn, INFINITY_NUMBER, nFormatter, PLANS } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
@@ -34,6 +35,8 @@ export function PartnersUpgradeModal({
   showPartnersUpgradeModal,
   setShowPartnersUpgradeModal,
 }: PartnersUpgradeModalProps) {
+  const { queryParams } = useRouterStuff();
+
   const plan = PLANS.find(({ name }) => name === planName)!;
 
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
@@ -147,6 +150,7 @@ export function PartnersUpgradeModal({
     <Modal
       showModal={showPartnersUpgradeModal}
       setShowModal={setShowPartnersUpgradeModal}
+      onClose={() => queryParams({ del: "plan" })}
     >
       <div className="scrollbar-hide relative max-h-[calc(100dvh-50px)] overflow-y-auto p-4 sm:p-8">
         <div className="pointer-events-none absolute inset-y-0 left-1/2 hidden w-[640px] -translate-x-1/2 [mask-image:linear-gradient(black,transparent_280px)] sm:block">
@@ -262,7 +266,10 @@ export function PartnersUpgradeModal({
           <Button
             text="Maybe later"
             variant="secondary"
-            onClick={() => setShowPartnersUpgradeModal(false)}
+            onClick={() => {
+              setShowPartnersUpgradeModal(false);
+              queryParams({ del: "plan" });
+            }}
           />
         </div>
       </div>
