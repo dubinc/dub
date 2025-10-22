@@ -92,19 +92,29 @@ export async function POST(req: Request) {
           },
         }),
       },
-      include: {
+      select: {
+        id: true,
         partner: {
-          include: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
             users: {
-              include: {
-                user: true,
+              where: {
+                notificationPreferences: {
+                  marketingCampaign: true,
+                },
+              },
+              select: {
+                user: {
+                  select: {
+                    email: true,
+                  },
+                },
               },
             },
           },
         },
-      },
-      orderBy: {
-        createdAt: "asc",
       },
       take: MAX_PARTNERS_SIZE,
       skip: startingAfter ? 1 : 0,
@@ -113,6 +123,9 @@ export async function POST(req: Request) {
           id: startingAfter,
         },
       }),
+      orderBy: {
+        createdAt: "asc",
+      },
     });
 
     if (programEnrollments.length === 0) {
@@ -137,7 +150,15 @@ export async function POST(req: Request) {
         })),
     );
 
-    console.table(partnerUsers);
+    console.log(`Sending the campaign to ${partnerUsers.length} partners.`);
+
+    console.table(
+      partnerUsers.map((partnerUser) => ({
+        id: partnerUser.partner.id,
+        name: partnerUser.partner.name,
+        email: partnerUser.email,
+      })),
+    );
 
     await sendBatchEmail(
       partnerUsers.map((partnerUser) => ({
