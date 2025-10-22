@@ -14,7 +14,7 @@ const updatePartnerEnrollmentSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
   tenantId: z.string().nullable(),
-  customerDataSharingEnabled: z.boolean(),
+  customerDataSharingEnabledAt: z.coerce.date().nullable(),
 });
 
 // Update a partner's program enrollment data
@@ -22,7 +22,7 @@ export const updatePartnerEnrollmentAction = authActionClient
   .schema(updatePartnerEnrollmentSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { partnerId, tenantId, customerDataSharingEnabled } = parsedInput;
+    const { partnerId, tenantId, customerDataSharingEnabledAt } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -52,9 +52,7 @@ export const updatePartnerEnrollmentAction = authActionClient
         },
         data: {
           tenantId,
-          customerDataSharingEnabledAt: customerDataSharingEnabled
-            ? new Date()
-            : null,
+          customerDataSharingEnabledAt,
         },
         include: {
           links: {
