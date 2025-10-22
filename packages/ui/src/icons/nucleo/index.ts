@@ -216,6 +216,7 @@ export * from "./square-xmark";
 export * from "./star";
 export * from "./star-fill";
 export * from "./stars2";
+export * from "./suitcase";
 export * from "./table-icon";
 export * from "./table-rows2";
 export * from "./tablet";

@@ -20,7 +20,7 @@ export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;
 
 export const getNetworkProgramsQuerySchema = z
   .object({
-    //
+    category: z.nativeEnum(Category).optional(),
   })
   .merge(
     getPaginationQuerySchema({
@@ -28,8 +28,11 @@ export const getNetworkProgramsQuerySchema = z
     }),
   );
 
-export const getNetworkProgramsCountQuerySchema =
-  getNetworkProgramsQuerySchema.omit({
+export const getNetworkProgramsCountQuerySchema = getNetworkProgramsQuerySchema
+  .omit({
     page: true,
     pageSize: true,
+  })
+  .extend({
+    groupBy: z.enum(["category"]).optional(),
   });

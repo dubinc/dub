@@ -6,11 +6,21 @@ import { NetworkProgramProps } from "@/lib/types";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
-import { Link4, StatusBadge, useRouterStuff } from "@dub/ui";
+import { Category } from "@dub/prisma/client";
+import {
+  AnimatedSizeContainer,
+  CircleInfo,
+  Filter,
+  Link4,
+  StatusBadge,
+  Tooltip,
+  useRouterStuff,
+} from "@dub/ui";
 import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
+import { useProgramNetworkFilters } from "./use-program-network-filters";
 
 export function ProgramMarketplacePageClient() {
   const { searchParams, getQueryString, queryParams } = useRouterStuff();
@@ -30,10 +40,12 @@ export function ProgramMarketplacePageClient() {
   );
 
   // TODO: Pagination+filters
+  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
+    useProgramNetworkFilters();
 
   return (
     <div className="flex flex-col gap-6">
-      {/* <div>
+      <div>
         <div className="xs:flex-row xs:items-center flex flex-col gap-4">
           <Filter.Select
             className="h-9 w-full rounded-lg md:w-fit"
@@ -58,7 +70,7 @@ export function ProgramMarketplacePageClient() {
             )}
           </div>
         </AnimatedSizeContainer>
-      </div> */}
+      </div>
 
       {error || countError ? (
         <div className="text-content-subtle py-12 text-sm">
@@ -68,7 +80,7 @@ export function ProgramMarketplacePageClient() {
         <div>
           <div
             className={cn(
-              "@3xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 transition-opacity lg:gap-6",
+              "@4xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 transition-opacity lg:gap-6",
               isValidating && "opacity-50",
             )}
           >
@@ -174,7 +186,7 @@ function ProgramCard({
                       Rewards
                     </span>
                     <div className="mt-1 flex items-center gap-1.5">
-                      {program?.rewards?.map((reward) => {
+                      {program.rewards.map((reward) => {
                         const Icon = REWARD_EVENTS[reward.event].icon;
                         return (
                           <HoverCard.Root openDelay={100}>
@@ -205,26 +217,38 @@ function ProgramCard({
                     </div>
                   </div>
                 )}
-                <div>
-                  <span className="text-content-muted block text-xs font-medium">
-                    Industry
-                  </span>
-                  <div className="mt-1 flex items-center gap-1.5">
-                    {program?.categories?.slice(0, 1)?.map((category) => {
-                      const { icon: Icon, label } = categoriesMap[category];
-                      return (
-                        <button
-                          key={category}
-                          type="button"
-                          className="hover:bg-bg-subtle text-content-default active:bg-bg-emphasis flex h-6 items-center gap-1 rounded-md px-1"
+                {Boolean(program?.categories?.length) && (
+                  <div className="min-w-0">
+                    <span className="text-content-muted block text-xs font-medium">
+                      Industry
+                    </span>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      {program.categories
+                        .slice(0, 1)
+                        ?.map((category) => (
+                          <CategoryButton key={category} category={category} />
+                        ))}
+                      {program.categories.length > 1 && (
+                        <Tooltip
+                          content={
+                            <div className="flex flex-col gap-0.5 p-2">
+                              {program.categories.slice(1).map((category) => (
+                                <CategoryButton
+                                  key={category}
+                                  category={category}
+                                />
+                              ))}
+                            </div>
+                          }
                         >
-                          <Icon className="size-4" />
-                          <span className="text-sm font-medium">{label}</span>
-                        </button>
-                      );
-                    })}
+                          <div className="text-content-subtle -ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
+                            +{program.categories.length - 1}
+                          </div>
+                        </Tooltip>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </>
             ) : (
               <div>
@@ -238,3 +262,22 @@ function ProgramCard({
     </div>
   );
 }
+
+const CategoryButton = ({ category }: { category: Category }) => {
+  const categoryData = categoriesMap[category];
+  const { icon: Icon, label } = categoryData ?? {
+    icon: CircleInfo,
+    label: category.replace("_", " "),
+  };
+
+  return (
+    <button
+      key={category}
+      type="button"
+      className="hover:bg-bg-subtle text-content-default active:bg-bg-emphasis flex h-6 min-w-0 items-center gap-1 rounded-md px-1"
+    >
+      <Icon className="size-4" />
+      <span className="min-w-0 truncate text-sm font-medium">{label}</span>
+    </button>
+  );
+};
