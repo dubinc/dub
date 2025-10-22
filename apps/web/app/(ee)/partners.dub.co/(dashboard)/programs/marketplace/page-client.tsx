@@ -7,6 +7,7 @@ import { PROGRAM_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/program-network
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Category } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
@@ -54,13 +55,17 @@ export function ProgramMarketplacePageClient() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <div className="xs:flex-row xs:items-center flex flex-col gap-4">
+        <div className="xs:flex-row xs:items-center flex flex-col justify-between gap-4">
           <Filter.Select
             className="h-9 w-full rounded-lg md:w-fit"
             filters={filters}
             activeFilters={activeFilters}
             onSelect={onSelect}
             onRemove={onRemove}
+          />
+          <SearchBoxPersisted
+            placeholder="Search the marketplace..."
+            inputClassName="md:w-[19rem] h-9 rounded-lg"
           />
         </div>
         <AnimatedSizeContainer height>
@@ -138,7 +143,7 @@ function ProgramCard({
 
   return (
     <ConditionalLink
-      href={`/programs/${program.slug}`}
+      href={program ? `/programs/${program.slug}` : undefined}
       className={cn(program?.id && "cursor-pointer hover:drop-shadow-sm")}
     >
       <div className="border-border-subtle rounded-xl border bg-white p-6">

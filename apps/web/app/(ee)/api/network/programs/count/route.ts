@@ -6,13 +6,20 @@ import { NextResponse } from "next/server";
 
 // GET /api/network/programs/count - get the number of available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { groupBy, category } =
+  const { groupBy, search, category } =
     getNetworkProgramsCountQuerySchema.parse(searchParams);
 
   const commonWhere = {
     marketplaceEnabledAt: {
       not: null,
     },
+    ...(search && {
+      OR: [
+        { name: { contains: search } },
+        { slug: { contains: search } },
+        { domain: { contains: search } },
+      ],
+    }),
     ...(category && {
       categories: {
         some: {
@@ -22,9 +29,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     }),
   };
 
+  const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
   const commonWhereSql = Prisma.sql`
     p.marketplaceEnabledAt IS NOT NULL
     ${category && groupBy !== "category" ? Prisma.sql`AND pc.category = ${category}` : Prisma.sql``}
+    ${searchSql ? Prisma.sql`AND (p.name LIKE ${searchSql} OR p.slug LIKE ${searchSql} OR p.domain LIKE ${searchSql})` : Prisma.sql``}
   `;
 
   if (groupBy === "category") {

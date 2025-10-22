@@ -21,6 +21,7 @@ export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;
 
 export const getNetworkProgramsQuerySchema = z
   .object({
+    search: z.string().optional(),
     category: z.nativeEnum(Category).optional(),
   })
   .merge(
