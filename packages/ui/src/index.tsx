@@ -21,7 +21,6 @@ export * from "./filter";
 export * from "./form";
 export * from "./grid";
 export * from "./input";
-export * from "./input-select";
 export * from "./label";
 export * from "./menu-item";
 export * from "./mini-area-chart";

@@ -9,6 +9,7 @@ import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enro
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { WorkflowAction } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import {
@@ -32,7 +33,8 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { partnerId } = getBountiesQuerySchema.parse(searchParams);
+    const { partnerId, includeSubmissionsCount } =
+      getBountiesQuerySchema.parse(searchParams);
 
     const programEnrollment = partnerId
       ? await getProgramEnrollmentOrThrow({
@@ -44,56 +46,87 @@ export const GET = withWorkspace(
         })
       : null;
 
-    const bounties = await prisma.bounty.findMany({
-      where: {
-        programId,
-        // Filter only bounties the specified partner is eligible for
-        ...(programEnrollment && {
-          OR: [
-            {
-              groups: {
-                none: {},
-              },
-            },
-            {
-              groups: {
-                some: {
-                  groupId:
-                    programEnrollment.groupId ||
-                    programEnrollment.program.defaultGroupId,
+    const [bounties, allBountiesSubmissionsCount] = await Promise.all([
+      prisma.bounty.findMany({
+        where: {
+          programId,
+          // Filter only bounties the specified partner is eligible for
+          ...(programEnrollment && {
+            OR: [
+              {
+                groups: {
+                  none: {},
                 },
               },
-            },
-          ],
-        }),
-      },
-      include: {
-        groups: {
-          select: {
-            groupId: true,
-          },
+              {
+                groups: {
+                  some: {
+                    groupId:
+                      programEnrollment.groupId ||
+                      programEnrollment.program.defaultGroupId,
+                  },
+                },
+              },
+            ],
+          }),
         },
-        _count: {
-          select: {
-            submissions: {
-              where: {
-                status: {
-                  in: ["submitted", "approved"],
-                },
-              },
+        include: {
+          groups: {
+            select: {
+              groupId: true,
             },
           },
         },
-      },
-    });
+      }),
+      includeSubmissionsCount
+        ? prisma.bountySubmission.groupBy({
+            by: ["bountyId", "status"],
+            where: {
+              programId,
+              status: {
+                in: ["submitted", "approved"],
+              },
+            },
+            _count: {
+              status: true,
+            },
+          })
+        : null,
+    ]);
 
-    const data = bounties.map((bounty) =>
-      BountyListSchema.parse({
+    const aggregateSubmissionsCountForBounty = (bountyId: string) => {
+      if (!allBountiesSubmissionsCount) {
+        return null;
+      }
+      const bountySubmissions = allBountiesSubmissionsCount.filter(
+        (s) => s.bountyId === bountyId,
+      );
+      const total = bountySubmissions.reduce(
+        (sum, s) => sum + s._count.status,
+        0,
+      );
+      const submitted =
+        bountySubmissions.find((s) => s.status === "submitted")?._count
+          .status ?? 0;
+      const approved =
+        bountySubmissions.find((s) => s.status === "approved")?._count.status ??
+        0;
+      return {
+        total,
+        submitted,
+        approved,
+      };
+    };
+
+    const data = bounties.map((bounty) => {
+      return BountyListSchema.parse({
         ...bounty,
         groups: bounty.groups.map(({ groupId }) => ({ id: groupId })),
-        submissionsCount: bounty._count.submissions,
-      }),
-    );
+        ...(allBountiesSubmissionsCount && {
+          submissionsCountData: aggregateSubmissionsCountForBounty(bounty.id),
+        }),
+      });
+    });
 
     return NextResponse.json(data);
   },
@@ -127,6 +160,7 @@ export const POST = withWorkspace(
       groupIds,
       performanceCondition,
       performanceScope,
+      sendNotificationEmails,
     } = createBountySchema.parse(await parseRequestBody(req));
 
     // Use current date as default if startsAt is not provided
@@ -181,8 +215,7 @@ export const POST = withWorkspace(
           data: {
             id: createId({ prefix: "wf_" }),
             programId,
-            trigger:
-              WORKFLOW_ATTRIBUTE_TRIGGER[performanceCondition.attribute],
+            trigger: WORKFLOW_ATTRIBUTE_TRIGGER[performanceCondition.attribute],
             triggerConditions: [performanceCondition],
             actions: [action],
           },
@@ -234,6 +267,8 @@ export const POST = withWorkspace(
     const shouldScheduleDraftSubmissions =
       bounty.type === "performance" && bounty.performanceScope === "lifetime";
 
+    const { canSendEmailCampaigns } = getPlanCapabilities(workspace.plan);
+
     waitUntil(
       Promise.allSettled([
         recordAuditLog({
@@ -257,13 +292,15 @@ export const POST = withWorkspace(
           data: createdBounty,
         }),
 
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
-          body: {
-            bountyId: bounty.id,
-          },
-          notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
-        }),
+        sendNotificationEmails &&
+          canSendEmailCampaigns &&
+          qstash.publishJSON({
+            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
+            body: {
+              bountyId: bounty.id,
+            },
+            notBefore: Math.floor(bounty.startsAt.getTime() / 1000),
+          }),
 
         shouldScheduleDraftSubmissions &&
           qstash.publishJSON({

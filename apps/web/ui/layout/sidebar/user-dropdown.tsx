@@ -21,7 +21,7 @@ import {
   useState,
 } from "react";
 
-export default function UserDropdown() {
+export function UserDropdown() {
   const { data: session } = useSession();
   const { partner } = usePartnerProfile();
   const [openPopover, setOpenPopover] = useState(false);

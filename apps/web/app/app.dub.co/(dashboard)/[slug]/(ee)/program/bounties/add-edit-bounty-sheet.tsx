@@ -1,17 +1,13 @@
+import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { BOUNTY_DESCRIPTION_MAX_LENGTH } from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import {
-  BountyExtendedProps,
-  BountyProps,
-  BountySubmissionRequirement,
-} from "@/lib/types";
+import { BountyProps, BountySubmissionRequirement } from "@/lib/types";
 import { createBountySchema } from "@/lib/zod/schemas/bounties";
 import { workflowConditionSchema } from "@/lib/zod/schemas/workflows";
-import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { BountyLogic } from "@/ui/partners/bounties/bounty-logic";
 import { GroupsMultiSelect } from "@/ui/partners/groups/groups-multi-select";
 import {
@@ -44,10 +40,11 @@ import {
 } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useConfirmCreateBountyModal } from "./confirm-create-bounty-modal";
 
 type BountySheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  bounty?: BountyExtendedProps;
+  bounty?: BountyProps;
 };
 
 type FormData = z.infer<typeof createBountySchema>;
@@ -171,6 +168,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     name,
     description,
     performanceCondition,
+    groupIds,
   ] = watch([
     "startsAt",
     "endsAt",
@@ -180,6 +178,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     "name",
     "description",
     "performanceCondition",
+    "groupIds",
   ]);
 
   // Helper functions to update form values
@@ -257,17 +256,6 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     setRequireUrl(checked);
     updateSubmissionRequirements(requireImage, checked);
   };
-
-  // Confirmation modal for bounty creation only
-  const { setShowConfirmModal, confirmModal } = useConfirmModal({
-    title: "Confirm bounty creation",
-    description:
-      "This will create the bounty and notify all partners in the selected partner groups. Are you sure you want to continue?",
-    confirmText: "Confirm",
-    onConfirm: async () => {
-      await performSubmit();
-    },
-  });
 
   // Comprehensive validation logic
   const validationError = useMemo(() => {
@@ -406,8 +394,35 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
     performanceCondition?.value,
   ]);
 
+  const { setShowConfirmCreateBountyModal, confirmCreateBountyModal } =
+    useConfirmCreateBountyModal({
+      bounty:
+        !validationError && rewardAmount
+          ? {
+              type,
+              name:
+                type === "performance" && performanceCondition
+                  ? generatePerformanceBountyName({
+                      rewardAmount: rewardAmount ? rewardAmount * 100 : 0,
+                      condition: performanceCondition,
+                    })
+                  : name || "New bounty",
+              startsAt: startsAt || new Date(),
+              endsAt: endsAt || null,
+              rewardAmount: rewardAmount ? rewardAmount * 100 : null,
+              rewardDescription: rewardDescription || null,
+              groups: groupIds?.map((id) => ({ id })) || [],
+            }
+          : undefined,
+      onConfirm: async ({ sendNotificationEmails }) => {
+        await performSubmit({ sendNotificationEmails });
+      },
+    });
+
   // Handle actual form submission (called after confirmation)
-  const performSubmit = async () => {
+  const performSubmit = async ({
+    sendNotificationEmails,
+  }: { sendNotificationEmails?: boolean } = {}) => {
     if (!workspaceId) return;
 
     const data = form.getValues();
@@ -452,7 +467,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
 
     await makeRequest(bounty ? `/api/bounties/${bounty.id}` : "/api/bounties", {
       method: bounty ? "PATCH" : "POST",
-      body: data,
+      body: { ...data, sendNotificationEmails },
       onSuccess: () => {
         mutatePrefix("/api/bounties");
         setIsOpen(false);
@@ -468,7 +483,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
       await performSubmit();
     } else {
       // For creation, show confirmation modal
-      setShowConfirmModal(true);
+      setShowConfirmCreateBountyModal(true);
     }
   });
 
@@ -931,7 +946,7 @@ function BountySheetContent({ setIsOpen, bounty }: BountySheetProps) {
           </div>
         </div>
       </FormProvider>
-      {!bounty && confirmModal}
+      {!bounty && confirmCreateBountyModal}
     </form>
   );
 }

@@ -1,4 +1,3 @@
-import { ALLOWED_MIN_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
 import {
   IndustryInterest,
   MonthlyTraffic,
@@ -9,11 +8,7 @@ import {
   ProgramEnrollmentStatus,
   SalesChannel,
 } from "@dub/prisma/client";
-import {
-  COUNTRY_CODES,
-  currencyFormatter,
-  GOOGLE_FAVICON_URL,
-} from "@dub/utils";
+import { COUNTRY_CODES, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
@@ -320,9 +315,6 @@ export const PartnerSchema = z
       })
       .nullable()
       .describe("The partner's invoice settings."),
-    minWithdrawalAmount: z
-      .number()
-      .describe("The minimum withdrawal amount in cents."),
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
@@ -410,6 +402,7 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
 export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
   lastLeadAt: z.date().nullish(),
   lastConversionAt: z.date().nullish(),
+  customerDataSharingEnabledAt: z.date().nullish(),
 }).merge(
   PartnerSchema.pick({
     monthlyTraffic: true,
@@ -529,23 +522,19 @@ export const createPartnerSchema = z.object({
 
 // This is a temporary fix to allow arbitrary image URL
 // TODO: Fix this by using file-type
-const partnerImageSchema = z
-  .union([
-    base64ImageSchema,
-    storedR2ImageUrlSchema,
-    publicHostedImageSchema,
-    z
-      .string()
-      .url()
-      .trim()
-      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
-        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
-      }),
-  ])
-  .transform((v) => v || "")
-  .refine((v) => v !== "", {
-    message: "Image is required",
-  });
+const partnerImageSchema = z.union([
+  base64ImageSchema,
+  storedR2ImageUrlSchema,
+  publicHostedImageSchema,
+  z
+    .string()
+    .url()
+    .trim()
+    .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+      message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+    }),
+  z.string().nullish(), // make image optional
+]);
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
@@ -768,11 +757,4 @@ export const partnerPayoutSettingsSchema = z.object({
   companyName: z.string().max(190).trim().nullish(),
   address: z.string().max(500).trim().nullish(),
   taxId: z.string().max(100).trim().nullish(),
-  minWithdrawalAmount: z.coerce
-    .number()
-    .min(1000, "Minimum withdrawal amount must be greater than $10.")
-    .default(10000)
-    .refine((val) => ALLOWED_MIN_WITHDRAWAL_AMOUNTS.includes(val), {
-      message: `Minimum withdrawal amount must be one of ${ALLOWED_MIN_WITHDRAWAL_AMOUNTS.map((amount) => currencyFormatter(amount / 100)).join(", ")}`,
-    }),
 });

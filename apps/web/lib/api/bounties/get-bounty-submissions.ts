@@ -18,7 +18,9 @@ export async function getBountySubmissions({
   const submissions = await prisma.bountySubmission.findMany({
     where: {
       bountyId,
-      ...(status ? { status } : { status: { not: "rejected" } }),
+      status: status ?? {
+        in: ["submitted", "approved"],
+      },
       ...(groupId && {
         programEnrollment: {
           groupId,
@@ -32,7 +34,8 @@ export async function getBountySubmissions({
       programEnrollment: true,
     },
     orderBy: {
-      [sortBy === "createdAt" ? "createdAt" : "performanceCount"]: sortOrder,
+      [sortBy === "completedAt" ? "completedAt" : "performanceCount"]:
+        sortOrder,
     },
     skip: (page - 1) * pageSize,
     take: pageSize,

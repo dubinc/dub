@@ -8,7 +8,7 @@ import {
   E2E_CUSTOMER_EXTERNAL_ID,
   E2E_CUSTOMER_EXTERNAL_ID_2,
   E2E_CUSTOMER_ID,
-  E2E_REWARD,
+  E2E_SALE_REWARD,
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
 import { describe, expect, test } from "vitest";
@@ -134,13 +134,13 @@ describe("POST /track/sale", async () => {
       http,
       regularInvoiceId,
       response1.data.sale?.amount!,
-      E2E_REWARD.amount,
+      E2E_SALE_REWARD.amount,
     );
     await verifyCommission(
       http,
       premiumInvoiceId,
       response2.data.sale?.amount!,
-      E2E_REWARD.modifiers[0].amount,
+      E2E_SALE_REWARD.modifiers[0].amount,
     );
   });
 
@@ -315,14 +315,14 @@ describe("POST /track/sale", async () => {
       http,
       smallSaleInvoiceId,
       response1.data.sale?.amount!,
-      E2E_REWARD.amount,
+      E2E_SALE_REWARD.amount,
     );
 
     await verifyCommission(
       http,
       largeSaleInvoiceId,
       response2.data.sale?.amount!,
-      E2E_REWARD.modifiers[1].amount,
+      E2E_SALE_REWARD.modifiers[1].amount,
     );
   });
 });

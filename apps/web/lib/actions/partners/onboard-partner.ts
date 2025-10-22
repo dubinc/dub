@@ -30,9 +30,11 @@ export const onboardPartnerAction = authUserActionClient
       ? existingPartner.id
       : createId({ prefix: "pn_" });
 
-    const imageUrl = await storage
-      .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
-      .then(({ url }) => url);
+    const imageUrl = image
+      ? await storage
+          .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
+          .then(({ url }) => url)
+      : null;
 
     // country, profileType, and companyName cannot be changed once set
     const payload: Prisma.PartnerCreateInput = {

@@ -4,7 +4,7 @@ import {
 } from "@/lib/swr/use-bounty-submissions-count";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { BountyExtendedProps } from "@/lib/types";
+import { BountyProps } from "@/lib/types";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
 import { Users6 } from "@dub/ui/icons";
@@ -15,7 +15,7 @@ import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badg
 export function useBountySubmissionFilters({
   bounty,
 }: {
-  bounty?: BountyExtendedProps;
+  bounty?: BountyProps;
 }) {
   const { searchParamsObj, queryParams } = useRouterStuff();
 

@@ -14,7 +14,7 @@ export default function Page() {
       }}
       controls={<CreateBountyButton />}
     >
-      <PageWidthWrapper>
+      <PageWidthWrapper className="pb-10">
         <BountyList />
       </PageWidthWrapper>
     </PageContent>

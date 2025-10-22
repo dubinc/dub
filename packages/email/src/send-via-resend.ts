@@ -21,7 +21,9 @@ const resendEmailForOptions = (opts: ResendEmailOptions) => {
     to,
     from: from || VARIANT_TO_FROM_MAP[variant],
     bcc: bcc,
-    replyTo: replyTo || "support@dub.co",
+    // if replyTo is set to "noreply@dub.co", don't set replyTo
+    // else set it to the value of replyTo or fallback to support@dub.co
+    ...(replyTo === "noreply" ? {} : { replyTo: replyTo || "support@dub.co" }),
     subject,
     text,
     react,
