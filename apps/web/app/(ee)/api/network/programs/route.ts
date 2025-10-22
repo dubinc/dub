@@ -30,6 +30,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           discount: true,
         },
       },
+      partners: {
+        where: {
+          partnerId: partner.id,
+        },
+      },
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
@@ -48,6 +53,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
               ].filter(Boolean)
             : [],
         discount: program.groups.length > 0 ? program.groups[0].discount : null,
+        status: program.partners.length > 0 ? program.partners[0].status : null,
       })),
     ),
   );

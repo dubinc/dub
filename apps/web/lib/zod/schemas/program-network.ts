@@ -1,3 +1,4 @@
+import { ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 import { ProgramSchema } from "./programs";
@@ -10,6 +11,8 @@ export const NetworkProgramSchema = ProgramSchema.pick({
   url: true,
   rewards: true,
   discount: true,
+}).extend({
+  status: z.nativeEnum(ProgramEnrollmentStatus).nullable(),
 });
 
 export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;

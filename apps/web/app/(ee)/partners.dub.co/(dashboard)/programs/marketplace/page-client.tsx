@@ -2,7 +2,8 @@
 
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { NetworkProgramProps } from "@/lib/types";
-import { Link4, useRouterStuff } from "@dub/ui";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { Link4, StatusBadge, useRouterStuff } from "@dub/ui";
 import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
@@ -92,11 +93,25 @@ export function ProgramMarketplacePageClient() {
   );
 }
 
+const statusBadges = {
+  ...PartnerStatusBadges,
+  approved: {
+    ...PartnerStatusBadges.approved,
+    label: "Enrolled",
+  },
+  pending: {
+    ...PartnerStatusBadges.pending,
+    label: "Applied",
+  },
+};
+
 function ProgramCard({
   program,
 }: {
   program?: any; // TODO
 }) {
+  const statusBadge = program?.status ? statusBadges[program.status] : null;
+
   return (
     <div className={cn(program?.id && "cursor-pointer hover:drop-shadow-sm")}>
       <div className="border-border-subtle rounded-xl border bg-white p-6">
@@ -112,6 +127,11 @@ function ProgramCard({
           )}
 
           {/* TODO: Status */}
+          {statusBadge && (
+            <StatusBadge {...statusBadge} className="px-1.5 py-0.5">
+              {statusBadge.label}
+            </StatusBadge>
+          )}
         </div>
 
         <div className="mt-4 flex flex-col">
