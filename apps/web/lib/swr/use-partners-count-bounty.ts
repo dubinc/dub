@@ -2,7 +2,11 @@ import { useMemo } from "react";
 import { BountyProps } from "../types";
 import usePartnersCount from "./use-partners-count";
 
-export function usePartnersCountBounty({ bounty }: { bounty?: BountyProps }) {
+export function usePartnersCountBounty({
+  bounty,
+}: {
+  bounty?: Pick<BountyProps, "groups">;
+}) {
   const { partnersCount: groupCount, loading } = usePartnersCount<
     | {
         groupId: string;

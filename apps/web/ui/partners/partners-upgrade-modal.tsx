@@ -4,6 +4,7 @@ import {
   Check,
   Grid,
   Modal,
+  PLAN_FEATURE_ICONS,
   SimpleTooltipContent,
   Switch,
   Tooltip,
@@ -75,7 +76,17 @@ export function PartnersUpgradeModal({
             },
           },
           {
-            id: "groups",
+            id: "messages",
+            text: "Messaging center",
+            tooltip: {
+              title:
+                "Easily communicate with your partners using our messaging center.",
+              cta: "Learn more.",
+              href: "https://dub.co/help/article/messaging-partners",
+            },
+          },
+          {
+            id: "users",
             text: `${plan.limits.groups} partner groups`,
             tooltip: {
               title:
@@ -101,7 +112,7 @@ export function PartnersUpgradeModal({
         ],
         Enterprise: [
           {
-            id: "groups",
+            id: "users",
             text: "Unlimited partner groups",
           },
           {
@@ -204,20 +215,27 @@ export function PartnersUpgradeModal({
           )}
 
           <div className="mt-6 flex flex-col gap-2 text-sm">
-            {features.map(({ id, text, tooltip }) => (
-              <li key={id} className="flex items-center gap-2 text-neutral-600">
-                <Check className="size-2.5 shrink-0 [&_*]:stroke-2" />
-                {tooltip ? (
-                  <Tooltip content={<SimpleTooltipContent {...tooltip} />}>
-                    <span className="cursor-help underline decoration-dotted underline-offset-2">
-                      {text}
-                    </span>
-                  </Tooltip>
-                ) : (
-                  <p>{text}</p>
-                )}
-              </li>
-            ))}
+            {features.map(({ id, text, tooltip }) => {
+              const Icon =
+                id && PLAN_FEATURE_ICONS[id] ? PLAN_FEATURE_ICONS[id] : Check;
+              return (
+                <li
+                  key={id}
+                  className="flex items-center gap-2 text-neutral-600"
+                >
+                  <Icon className="size-3 shrink-0 [&_*]:stroke-2" />
+                  {tooltip ? (
+                    <Tooltip content={<SimpleTooltipContent {...tooltip} />}>
+                      <span className="cursor-help underline decoration-dotted underline-offset-2">
+                        {text}
+                      </span>
+                    </Tooltip>
+                  ) : (
+                    <p>{text}</p>
+                  )}
+                </li>
+              );
+            })}
           </div>
         </div>
 

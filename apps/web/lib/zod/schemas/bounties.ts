@@ -65,6 +65,7 @@ export const createBountySchema = z.object({
   groupIds: z.array(z.string()).nullable(),
   performanceCondition: workflowConditionSchema.nullish(),
   performanceScope: z.nativeEnum(BountyPerformanceScope).nullish(),
+  sendNotificationEmails: z.boolean().optional(),
 });
 
 export const updateBountySchema = createBountySchema
