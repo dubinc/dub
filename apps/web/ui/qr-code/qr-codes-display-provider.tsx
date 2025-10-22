@@ -26,6 +26,10 @@ export const sortOptions = [
     display: "Last scanned",
     slug: "lastClicked",
   },
+  {
+    display: "QR type",
+    slug: "type",
+  },
 ] as const;
 
 export type QrCodesSortSlug = (typeof sortOptions)[number]["slug"];
