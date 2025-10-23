@@ -146,6 +146,9 @@ export async function POST(req: Request) {
             arrivalDate: stripePayout.arrival_date,
           },
         }),
+        headers: {
+          "Idempotency-Key": `payout-initiated-${stripePayout.id}`,
+        },
       });
 
       console.log(
