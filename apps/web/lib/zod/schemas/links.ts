@@ -183,12 +183,33 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
   }),
 );
 
+export const exportLinksColumns = [
+  { id: "link", label: "Short link", default: true },
+  { id: "url", label: "Destination URL", default: true },
+  { id: "clicks", label: "Clicks", default: true, numeric: true },
+  { id: "leads", label: "Leads", default: false, numeric: true },
+  { id: "conversions", label: "Conversions", default: false, numeric: true },
+  { id: "saleAmount", label: "Revenue", default: false, numeric: true },
+  { id: "createdAt", label: "Created at", default: true },
+  { id: "id", label: "Link ID", default: false },
+  { id: "updatedAt", label: "Updated at", default: false },
+  { id: "tags", label: "Tags", default: false },
+  { id: "archived", label: "Archived", default: false },
+] as const;
+
+export type ExportLinksColumn = (typeof exportLinksColumns)[number];
+
+export const exportLinksColumnsDefault = exportLinksColumns
+  .filter((column) => column.default)
+  .map((column) => column.id);
+
 export const linksExportQuerySchema = getLinksQuerySchemaBase
   .omit({ page: true, pageSize: true })
   .merge(
     z.object({
       columns: z
         .string()
+        .default(exportLinksColumnsDefault.join(","))
         .transform((v) => v.split(","))
         .describe("The columns to export."),
       start: parseDateSchema

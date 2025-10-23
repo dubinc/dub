@@ -7,19 +7,21 @@ import { generateRandomName } from "@/lib/names";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/partner-profile/programs/:programId/customers/:customerId – Get a customer by ID
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { customerId, programId } = params;
 
-  const { program, links } = await getProgramEnrollmentOrThrow({
-    partnerId: partner.id,
-    programId: programId,
-    include: {
-      program: true,
-      links: true,
-    },
-  });
+  const { program, links, customerDataSharingEnabledAt } =
+    await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: programId,
+      include: {
+        program: true,
+        links: true,
+      },
+    });
 
   const customer = await prisma.customer.findUnique({
     where: {
@@ -76,10 +78,16 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       : null;
 
   return NextResponse.json(
-    PartnerProfileCustomerSchema.parse({
+    PartnerProfileCustomerSchema.extend({
+      email: z.string(),
+    }).parse({
       ...transformCustomer({
         ...customer,
-        email: customer.email || customer.name || generateRandomName(),
+        email: customer.email
+          ? customerDataSharingEnabledAt
+            ? customer.email
+            : customer.email.replace(/(?<=^.).+(?=.@)/, "****")
+          : customer.name || generateRandomName(),
       }),
       activity: {
         ltv,

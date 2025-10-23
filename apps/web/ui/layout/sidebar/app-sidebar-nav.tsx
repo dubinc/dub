@@ -5,7 +5,6 @@ import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
-import useCustomersCount from "@/lib/swr/use-customers-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
@@ -537,9 +536,6 @@ export function AppSidebarNav({
   });
 
   const { canTrackConversions } = getPlanCapabilities(plan);
-  const { data: customersCount } = useCustomersCount({
-    enabled: canTrackConversions === true,
-  });
 
   return (
     <SidebarNav
@@ -559,7 +555,7 @@ export function AppSidebarNav({
         applicationsCount,
         submittedBountiesCount,
         unreadMessagesCount,
-        showConversionGuides: canTrackConversions && customersCount === 0,
+        showConversionGuides: canTrackConversions,
         partnerNetworkEnabled:
           program && program.partnerNetworkEnabledAt !== null,
         emailCampaignsEnabled: flags?.emailCampaigns,

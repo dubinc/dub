@@ -1,4 +1,3 @@
-import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
@@ -7,6 +6,7 @@ import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { recordLink } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
+import { isDubDomain } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -26,6 +26,14 @@ export const POST = withWorkspace(
       linkId: params.linkId,
     });
 
+    if (!isDubDomain(link.domain)) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "You can only transfer Dub default domain links to another workspace.",
+      });
+    }
+
     if (link.folderId) {
       await verifyFolderAccess({
         workspace,
@@ -36,6 +44,13 @@ export const POST = withWorkspace(
     }
 
     const { newWorkspaceId } = transferLinkBodySchema.parse(await req.json());
+
+    if (newWorkspaceId === workspace.id) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "You cannot transfer a link to the same workspace.",
+      });
+    }
 
     const newWorkspace = await prisma.project.findUnique({
       where: { id: newWorkspaceId },
@@ -67,24 +82,24 @@ export const POST = withWorkspace(
       });
     }
 
-    const { clicks: linkClicks } = await getAnalytics({
-      event: "clicks",
-      groupBy: "count",
-      linkId: link.id,
-      interval: "30d",
-    });
-
     const updatedLink = await prisma.link.update({
       where: {
         id: link.id,
       },
       data: {
         projectId: newWorkspaceId,
-        // remove tags when transferring link
+        // reset all stats, tags, and folder when transferring link
+        clicks: 0,
+        leads: 0,
+        sales: 0,
+        saleAmount: 0,
+        conversions: 0,
+        lastClicked: null,
+        lastLeadAt: null,
+        lastConversionAt: null,
         tags: {
           deleteMany: {},
         },
-        // remove folder when transferring link
         folderId: null,
       },
     });
@@ -94,21 +109,6 @@ export const POST = withWorkspace(
         linkCache.set(updatedLink),
 
         recordLink(updatedLink),
-
-        // increment new workspace usage
-        prisma.project.update({
-          where: {
-            id: newWorkspaceId,
-          },
-          data: {
-            usage: {
-              increment: linkClicks,
-            },
-            linksUsage: {
-              increment: 1,
-            },
-          },
-        }),
 
         // Remove the webhooks associated with the link
         prisma.linkWebhook.deleteMany({

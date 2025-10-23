@@ -13,13 +13,14 @@ import { z } from "zod";
 // GET /api/partner-profile/programs/[programId]/earnings – get earnings for a partner in a program enrollment
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: params.programId,
-      include: {
-        program: true,
-      },
-    });
+    const { program, customerDataSharingEnabledAt } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId: params.programId,
+        include: {
+          program: true,
+        },
+      });
 
     const {
       page,
@@ -75,17 +76,22 @@ export const GET = withPartnerProfile(
     });
 
     const data = z.array(PartnerEarningsSchema).parse(
-      earnings.map((e) => ({
-        ...e,
-        customer: e.customer
-          ? {
-              ...e.customer,
-              // fallback to a random name if the customer doesn't have an email
-              email:
-                e.customer.email ?? e.customer.name ?? generateRandomName(),
-            }
-          : null,
-      })),
+      earnings.map((e) => {
+        // fallback to a random name if the customer doesn't have an email
+        const customerEmail =
+          e.customer?.email || e.customer?.name || generateRandomName();
+        return {
+          ...e,
+          customer: e.customer
+            ? {
+                ...e.customer,
+                email: customerDataSharingEnabledAt
+                  ? customerEmail
+                  : customerEmail.replace(/(?<=^.).+(?=.@)/, "****"),
+              }
+            : null,
+        };
+      }),
     );
 
     return NextResponse.json(data);

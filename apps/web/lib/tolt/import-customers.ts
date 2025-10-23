@@ -202,12 +202,12 @@ async function createReferral({
 
   const clickData = await recordClick({
     req: dummyRequest,
-    linkId: link.id,
     clickId: nanoid(16),
-    url: link.url,
+    workspaceId: workspace.id,
+    linkId: link.id,
     domain: link.domain,
     key: link.key,
-    workspaceId: workspace.id,
+    url: link.url,
     skipRatelimit: true,
     timestamp: new Date(customer.created_at).toISOString(),
   });

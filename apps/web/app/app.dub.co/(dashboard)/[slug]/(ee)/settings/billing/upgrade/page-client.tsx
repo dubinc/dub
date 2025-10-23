@@ -1,6 +1,7 @@
 "use client";
 
 import useWorkspace from "@/lib/swr/use-workspace";
+import { usePartnersUpgradeModal } from "@/ui/partners/partners-upgrade-modal";
 import { UpgradePlanButton } from "@/ui/workspaces/upgrade-plan-button";
 import {
   ChartLine,
@@ -19,7 +20,8 @@ import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { CSSProperties, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { CSSProperties, useEffect, useState } from "react";
 
 const COMPARE_FEATURE_ICONS: Record<
   (typeof PLAN_COMPARE_FEATURES)[number]["category"],
@@ -44,8 +46,21 @@ export function WorkspaceBillingUpgradePageClient() {
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
 
+  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
+    usePartnersUpgradeModal({
+      plan: "Advanced",
+    });
+
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    if (searchParams.get("plan") === "advanced") {
+      setShowPartnersUpgradeModal(true);
+    }
+  }, [searchParams]);
+
   return (
     <div>
+      {partnersUpgradeModal}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <Link
           href={`/${slug}/settings/billing`}

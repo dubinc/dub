@@ -23,31 +23,6 @@ export const getBountyWithDetails = async ({
       b.performanceScope,
       wf.triggerConditions,
 
-      -- Partners count
-      COALESCE(
-        (
-          SELECT COUNT(pe.partnerId)
-          FROM ProgramEnrollment pe
-          WHERE pe.programId = ${programId} AND pe.status IN ('approved', 'invited')
-          AND (
-            -- If bounty has specific groups, count only partners in those groups
-            EXISTS (
-              SELECT 1
-              FROM BountyGroup bg 
-              WHERE bg.bountyId = b.id AND bg.groupId = pe.groupId
-            )
-            OR
-            -- If bounty has no groups, count all approved/invited partners
-            NOT EXISTS (
-              SELECT 1 
-              FROM BountyGroup bg 
-              WHERE bg.bountyId = b.id
-            )
-          )
-        ),
-        0
-      ) AS partners,
-
       --  Bounty groups
       COALESCE(
         (
@@ -92,6 +67,5 @@ export const getBountyWithDetails = async ({
     performanceScope,
     performanceCondition,
     groups: bounty.groups.filter((group) => group !== null) ?? [],
-    partnersCount: Number(bounty.partners),
   };
 };

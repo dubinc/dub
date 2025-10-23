@@ -62,10 +62,6 @@ We love our contributors! Here's how you can contribute:
 - Follow the [local development guide](https://dub.co/docs/local-development) to get your local dev environment set up.
 - Make a [pull request](https://github.com/dubinc/dub/pull) to add new features/make quality-of-life improvements/fix bugs.
 
-<a href="https://github.com/dubinc/dub/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=dubinc/dub" />
-</a>
-
 ### Recommended Versions
 
 | Package | Version  |
