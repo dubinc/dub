@@ -67,6 +67,13 @@ export const POST = withAxiom(async (req: Request) => {
     });
   }
 
+  // When an app is installed in live mode, it receives both live and test mode events
+  // We need to check the event's livemode property to determine the correct mode to use
+  // See: https://docs.stripe.com/stripe-apps/build-backend#sandbox-mode
+  if (mode === "live" && !event.livemode) {
+    mode = "test";
+  }
+
   let response = "OK";
 
   switch (event.type) {
