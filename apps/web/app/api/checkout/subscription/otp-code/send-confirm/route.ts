@@ -1,3 +1,4 @@
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
 import { prisma } from "@dub/prisma";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface";
@@ -65,13 +66,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // const mailer = new CustomerIoService();
-    // await mailer.sendCancellationOTP(
-    //   email,
-    //   { code: confirmationCode.code.toString() } as CancellationOTPEmailData,
-    //   locale,
-    // );
-
     const confirmationCode = await generateHashedConfirmationCode();
     cookieStore.set(ECookieArg.CONFIRM_CODE, confirmationCode.hashedToken, {
       maxAge: 5 * 60,
@@ -88,6 +82,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         confirmationCode.code.toString(),
       );
     }
+
+    await sendEmail({
+      email: user.email,
+      subject: "Subscription Cancellation OTP",
+      template: CUSTOMER_IO_TEMPLATES.CANCELLATION_OTP,
+      messageData: {
+        code: confirmationCode.code.toString(),
+      },
+      customerId: user.id,
+    });
 
     return NextResponse.json({
       success: true,
