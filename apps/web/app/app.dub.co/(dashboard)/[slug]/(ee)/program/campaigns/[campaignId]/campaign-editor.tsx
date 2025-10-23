@@ -1,6 +1,5 @@
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import { useEmailDomains } from "@/lib/swr/use-email-domains";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
@@ -32,6 +31,7 @@ import { CampaignControls } from "./campaign-controls";
 import { CampaignEvents } from "./campaign-events";
 import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { CampaignMetrics } from "./campaign-metrics";
+import { EmailDomainSelector } from "./email-domain-selector";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 import { isValidTriggerCondition } from "./utils";
 
@@ -72,7 +72,6 @@ const DisabledInputWrapper = ({
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
-  const { emailDomains } = useEmailDomains();
 
   const isActive = campaign.status === CampaignStatus.active;
 
@@ -280,24 +279,10 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 control={control}
                 name="from"
                 render={({ field }) => (
-                  <select
-                    className={inputClassName}
-                    value={field.value || ""}
-                    onChange={field.onChange}
-                  >
-                    <option value="" disabled>
-                      Select email domain
-                    </option>
-                    {emailDomains.map((domain) => (
-                      <option
-                        key={domain.id}
-                        value={domain.fromAddress}
-                        disabled={domain.status !== "verified"}
-                      >
-                        {program?.name} &lt;{domain.fromAddress}&gt;
-                      </option>
-                    ))}
-                  </select>
+                  <EmailDomainSelector
+                    selectedFromAddress={field.value || ""}
+                    setSelectedFromAddress={field.onChange}
+                  />
                 )}
               />
             </label>

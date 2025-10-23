@@ -4,6 +4,7 @@ import { Campaign, Workflow } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { isScheduledWorkflow } from "../workflows/utils";
 
+// Schedule a marketing campaign
 export const scheduleMarketingCampaign = async ({
   campaign,
   updatedCampaign,
@@ -32,6 +33,7 @@ export const scheduleMarketingCampaign = async ({
   });
 };
 
+// Schedule a transactional campaign
 export const scheduleTransactionalCampaign = async ({
   campaign,
   updatedCampaign,
