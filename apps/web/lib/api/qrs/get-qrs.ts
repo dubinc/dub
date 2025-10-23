@@ -42,12 +42,9 @@ export async function getQrs(
     where: {
       ...(search && {
         OR: [
-          // More efficient search - only search title for better performance
-          // data field is LongText and expensive to search
           {
             title: { contains: search },
           },
-          // Only search data field if title search might not be sufficient
           ...(search.length > 2 ? [{ data: { contains: search } }] : []),
         ],
       }),
