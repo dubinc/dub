@@ -28,6 +28,7 @@ export const backfillLinkCommissions = async (link: {
     programId: link.programId,
     include: {
       program: true,
+      partner: true,
       links: true,
       saleReward: true,
     },

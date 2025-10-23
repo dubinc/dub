@@ -54,10 +54,10 @@ function BountySubmissionDetailsSheetContent({
     executeAsync: approveBountySubmission,
     isPending: isApprovingBountySubmission,
   } = useAction(approveBountySubmissionAction, {
-    onSuccess: async () => {
+    onSuccess: () => {
       toast.success("Bounty submission approved successfully!");
       onNext ? onNext() : setIsOpen(false);
-      await mutatePrefix("/api/bounties");
+      mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
     },
     onError({ error }) {
       toast.error(error.serverError);
@@ -324,7 +324,7 @@ function BountySubmissionDetailsSheetContent({
                     </h2>
                     <div className="mt-2 flex flex-col gap-2">
                       {submission.urls?.map((url) => (
-                        <div className="relative">
+                        <div className="relative" key={url}>
                           <div className="border-border-subtle block w-full rounded-lg border px-3 py-2 pr-12">
                             <a
                               href={url}
@@ -459,28 +459,4 @@ export function BountySubmissionDetailsSheet({
       <BountySubmissionDetailsSheetContent {...rest} />
     </Sheet>
   );
-}
-
-export function useBountySubmissionDetailsSheet(
-  props: {
-    nested?: boolean;
-    onNext?: () => void;
-    onPrevious?: () => void;
-  } & Omit<
-    BountySubmissionDetailsSheetProps,
-    "setIsOpen" | "onNext" | "onPrevious"
-  >,
-) {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return {
-    BountySubmissionDetailsSheet: (
-      <BountySubmissionDetailsSheet
-        setIsOpen={setIsOpen}
-        isOpen={isOpen}
-        {...props}
-      />
-    ),
-    setShowBountySubmissionDetailsSheet: setIsOpen,
-  };
 }

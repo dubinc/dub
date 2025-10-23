@@ -1,10 +1,14 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Button, Download, TooltipContent } from "@dub/ui";
-import { useContext } from "react";
+import { Dispatch, SetStateAction, useContext } from "react";
 import { toast } from "sonner";
 import { EventsContext } from "./events-provider";
 
-export default function ExportButton({ onClick }: { onClick?: () => void }) {
+export function EventsExportButton({
+  setOpenPopover,
+}: {
+  setOpenPopover: Dispatch<SetStateAction<boolean>>;
+}) {
   const { exportQueryString } = useContext(EventsContext);
   const { slug, plan } = useWorkspace();
 
@@ -51,7 +55,7 @@ export default function ExportButton({ onClick }: { onClick?: () => void }) {
           success: "Exported successfully",
           error: (error) => error,
         });
-        onClick?.();
+        setOpenPopover(false);
       }}
     />
   );

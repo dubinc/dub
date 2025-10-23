@@ -144,8 +144,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       : []),
   ];
 
-  const supportEmail = payout.program.supportEmail || "support@dub.co";
-
   const invoiceDate = payout.paidAt
     ? formatDate(payout.paidAt, {
         month: "short",
@@ -232,12 +230,17 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         <View style={tw("h-0.5 bg-neutral-200 mb-6")} />
 
         {/* Footer */}
-        <Text style={tw("text-sm text-neutral-600 mt-auto")}>
-          If you have any questions, contact the program at{" "}
-          <Link href={`mailto:${supportEmail}`} style={tw("text-neutral-900")}>
-            {supportEmail}
-          </Link>
-        </Text>
+        {payout.program.supportEmail && (
+          <Text style={tw("text-sm text-neutral-600 mt-auto")}>
+            If you have any questions, contact the program at{" "}
+            <Link
+              href={`mailto:${payout.program.supportEmail}`}
+              style={tw("text-neutral-900")}
+            >
+              {payout.program.supportEmail}
+            </Link>
+          </Text>
+        )}
       </Page>
     </Document>,
   );

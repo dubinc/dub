@@ -7,7 +7,7 @@ import {
   REJECT_BOUNTY_SUBMISSION_REASONS,
   rejectBountySubmissionSchema,
 } from "@/lib/zod/schemas/bounties";
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import { useCallback, useMemo, useState } from "react";
@@ -43,7 +43,7 @@ const RejectBountySubmissionModal = ({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      rejectionReason: "didNotMeetCriteria",
+      rejectionReason: undefined,
       rejectionNote: "",
     },
   });
@@ -51,17 +51,39 @@ const RejectBountySubmissionModal = ({
   const { executeAsync: rejectBountySubmission, isPending } = useAction(
     rejectBountySubmissionAction,
     {
-      onSuccess: async () => {
+      onSuccess: () => {
         toast.success("Bounty submission rejected successfully!");
         setShowModal(false);
         onReject ? onReject() : null;
-        await mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
+        mutatePrefix(`/api/bounties/${bounty?.id}/submissions`);
       },
       onError({ error }) {
         toast.error(error.serverError);
       },
     },
   );
+
+  const handleReject = useCallback(async () => {
+    if (!workspace.id || !submission?.id) {
+      return;
+    }
+
+    const formData = getValues();
+
+    await rejectBountySubmission({
+      ...formData,
+      rejectionReason: formData.rejectionReason || "other",
+      workspaceId: workspace.id,
+      submissionId: submission.id,
+    });
+  }, [workspace.id, submission?.id, getValues, rejectBountySubmission]);
+
+  // Handle keyboard shortcut for Reject button
+  useKeyboardShortcut("r", handleReject, {
+    enabled: showModal,
+    sheet: true,
+    modal: true,
+  });
 
   return (
     <Modal showModal={showModal} setShowModal={setShowModal}>
@@ -77,17 +99,22 @@ const RejectBountySubmissionModal = ({
               className="text-content-emphasis text-sm font-medium"
             >
               Rejection reason
+              <span className="ml-1 font-normal text-neutral-500">
+                (optional)
+              </span>
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <select
                 id="rejectionReason"
-                {...register("rejectionReason", { required: true })}
+                {...register("rejectionReason")}
+                disabled={isPending}
                 className={cn(
                   "block w-full rounded-md border-neutral-300 text-neutral-900 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   errors.rejectionReason &&
                     "border-red-600 focus:border-red-500 focus:ring-red-600",
                 )}
               >
+                <option value="">Select a reason</option>
                 {Object.entries(REJECT_BOUNTY_SUBMISSION_REASONS).map(
                   ([value, label]) => (
                     <option key={value} value={value}>
@@ -147,21 +174,10 @@ const RejectBountySubmissionModal = ({
             type="button"
             text="Reject"
             variant="danger"
+            shortcut="R"
             className="h-9 w-fit"
             loading={isPending}
-            onClick={async () => {
-              if (!workspace.id || !submission?.id) {
-                return;
-              }
-
-              const formData = getValues();
-
-              await rejectBountySubmission({
-                ...formData,
-                workspaceId: workspace.id,
-                submissionId: submission.id,
-              });
-            }}
+            onClick={handleReject}
           />
         </div>
       </div>

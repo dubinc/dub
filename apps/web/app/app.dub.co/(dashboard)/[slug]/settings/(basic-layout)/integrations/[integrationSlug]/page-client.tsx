@@ -272,12 +272,11 @@ export default function IntegrationPageClient({
                 icon={<ConnectedDots className="size-4" />}
                 disabledTooltip={
                   integration.id === HUBSPOT_INTEGRATION_ID &&
-                  plan !== "business" &&
-                  plan !== "advanced" &&
-                  plan !== "enterprise" ? (
+                  plan &&
+                  ["free", "pro"].includes(plan) ? (
                     <TooltipContent
-                      title="Hubspot integration is only available on Advanced plans and above. Upgrade to get started."
-                      cta="Upgrade to Advanced"
+                      title="Hubspot integration is only available on Business plans and above. Upgrade to get started."
+                      cta="Upgrade to Business"
                       href={`/${slug}/settings/billing/upgrade`}
                     />
                   ) : null

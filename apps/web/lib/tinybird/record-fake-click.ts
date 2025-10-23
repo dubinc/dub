@@ -31,11 +31,11 @@ export async function recordFakeClick({
   const clickData = await recordClick({
     req: dummyRequest,
     clickId: nanoid(16),
+    workspaceId: link.projectId!,
     linkId: link.id,
-    url: link.url,
     domain: link.domain,
     key: link.key,
-    workspaceId: link.projectId!,
+    url: link.url,
     skipRatelimit: true,
     ...(timestamp && { timestamp: new Date(timestamp).toISOString() }),
   });

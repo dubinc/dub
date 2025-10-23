@@ -33,6 +33,7 @@ import { transformClickEventData } from "../webhook/transform";
 export async function recordClick({
   req,
   clickId,
+  workspaceId,
   linkId,
   domain,
   key,
@@ -40,7 +41,6 @@ export async function recordClick({
   programId,
   partnerId,
   webhookIds,
-  workspaceId,
   skipRatelimit,
   timestamp,
   referrer,
@@ -50,13 +50,13 @@ export async function recordClick({
   req: Request;
   clickId?: string;
   linkId: string;
+  workspaceId?: string;
   domain: string;
   key: string;
   url?: string;
   programId?: string;
   partnerId?: string;
   webhookIds?: string[];
-  workspaceId: string | undefined;
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
@@ -137,7 +137,10 @@ export async function recordClick({
     timestamp: timestamp || new Date(Date.now()).toISOString(),
     identity_hash: identityHash,
     click_id: clickId,
+    workspace_id: workspaceId || "",
     link_id: linkId,
+    domain,
+    key,
     url: finalUrl,
     ip:
       // only record IP if it's a valid IP and not from a EU country
