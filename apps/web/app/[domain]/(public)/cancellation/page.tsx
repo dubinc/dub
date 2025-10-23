@@ -1,5 +1,9 @@
+import { checkSubscriptionStatusAuthLess } from "@/lib/actions/check-subscription-status-auth-less";
 import { getSession } from "@/lib/auth";
+import { CancellationFlowModule } from "@/ui/cancellation-flow/cancellation-flow.module";
 import { redirect } from "next/navigation";
+
+const pageName = "cancel_flow_or_return";
 
 const CancellationPage = async () => {
   const authSession = await getSession();
@@ -8,7 +12,18 @@ const CancellationPage = async () => {
     redirect("/cancellation/auth");
   }
 
-  return <div>CancellationPage</div>;
+  const { isSubscribed, isScheduledForCancellation, isCancelled, isDunning } =
+    await checkSubscriptionStatusAuthLess(authSession.user.email);
+
+  if (isScheduledForCancellation || isCancelled) {
+    return redirect("/cancellation/success");
+  }
+
+  if (!isSubscribed) {
+    return redirect("/");
+  }
+
+  return <CancellationFlowModule isDunning={isDunning} />;
 };
 
 export default CancellationPage;

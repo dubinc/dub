@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import useSWR from "swr";
 import useSWRMutation from "swr/mutation";
 import {
+  cancelSubscriptionScheduleFetcher,
   checkSubscriptionStatusFetcher,
   createSubscriptionFetcher,
   updateSubscriptionFetcher,
@@ -60,6 +61,20 @@ export const useUpdateSubscriptionPaymentMethodQuery = () => {
       onSuccess(res) {
         if (!res.success) {
           toast.error(res?.error || "");
+        }
+      },
+    },
+  );
+};
+
+export const useCancelSubscriptionScheduleMutation = () => {
+  return useSWRMutation(
+    EServerRoutes.USER_SUBSCRIPTION_CANCEL,
+    cancelSubscriptionScheduleFetcher,
+    {
+      onSuccess(res) {
+        if (!res.success) {
+          toast.error(res?.error || "Something went wrong");
         }
       },
     },

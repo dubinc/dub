@@ -1,6 +1,7 @@
 import { prisma } from "@dub/prisma";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface";
+import { updateUserCookieService } from "core/services/cookie/user-session.service";
 import { generateHashedConfirmationCode } from "core/services/token-hash.service";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
@@ -24,8 +25,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       { status: 400 },
     );
   }
-
-  const confirmationCode = await generateHashedConfirmationCode();
 
   try {
     const { hasAccessToApp, isCancelled } =
@@ -73,12 +72,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     //   locale,
     // );
 
+    const confirmationCode = await generateHashedConfirmationCode();
     cookieStore.set(ECookieArg.CONFIRM_CODE, confirmationCode.hashedToken, {
       maxAge: 5 * 60,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
     });
+
+    await updateUserCookieService({ email });
 
     if (process.env.NODE_ENV === "development") {
       console.log(
@@ -89,9 +91,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({
       success: true,
-      data: {
-        user_id: user?.id,
-      },
+      // data: {
+      //   user_id: user?.id,
+      // },
     });
   } catch (error: any) {
     return NextResponse.json(
