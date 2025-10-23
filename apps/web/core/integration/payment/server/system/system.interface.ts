@@ -147,47 +147,48 @@ export interface IGetSystemUserDataBody {
   subscriptionType?: string;
   includeInit?: string;
 }
+
+export interface ISystemSubscriptionRes {
+  id: string;
+  userId: string;
+  plan: {
+    id: string;
+    currencyCode: string;
+    price: number;
+    chargePeriodDays: number;
+    trialPrice: number;
+    trialPeriodDays: number;
+    secondary: boolean;
+    createdAt: string;
+    updatedAt: string;
+    twoSteps: boolean;
+    delayedCapture: string | null;
+    delayedCaptureTrialDays: number;
+    delayedCaptureDays: number;
+  };
+  status:
+    | "active"
+    | "inactive"
+    | "trial"
+    | "dunning"
+    | "pre_active"
+    | "pre_renew"
+    | "scheduled_for_cancellation"
+    | "cancelled";
+  nextBillingDate: string;
+  createdAt: string;
+  updatedAt: string;
+  attributes: {
+    hostname: string;
+    application: string;
+    subscriptionType: string;
+    plan_name: string;
+  };
+  cancelReason: string;
+}
+
 export interface IGetSystemUserDataRes {
-  subscriptions: [
-    {
-      id: string;
-      userId: string;
-      plan: {
-        id: string;
-        currencyCode: string;
-        price: number;
-        chargePeriodDays: number;
-        trialPrice: number;
-        trialPeriodDays: number;
-        secondary: boolean;
-        createdAt: string;
-        updatedAt: string;
-        twoSteps: boolean;
-        delayedCapture: string | null;
-        delayedCaptureTrialDays: number;
-        delayedCaptureDays: number;
-      };
-      status:
-        | "active"
-        | "inactive"
-        | "trial"
-        | "dunning"
-        | "pre_active"
-        | "pre_renew"
-        | "scheduled_for_cancellation"
-        | "cancelled";
-      nextBillingDate: string;
-      createdAt: string;
-      updatedAt: string;
-      attributes: {
-        hostname: string;
-        application: string;
-        subscriptionType: string;
-        plan_name: string;
-      };
-      cancelReason: string;
-    },
-  ];
+  subscriptions: ISystemSubscriptionRes[];
 }
 
 export interface ICheckSystemSubscriptionStatusBody {
@@ -237,4 +238,13 @@ export interface IGetSystemUserProcessorRes {
     hint_stripe_eu_custom_descriptor?: string;
     hint_stripe_uk_custom_descriptor?: string;
   };
+}
+
+export interface IReactivateSystemSubscriptionBody {
+  skipFirstPayment: boolean;
+  skipTrial?: boolean;
+}
+
+export interface IReactivateSystemSubscriptionRes {
+  success: boolean;
 }

@@ -158,6 +158,11 @@ export type ExpandedWorkspaceProps = WorkspaceProps & {
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
 
+export interface NPS {
+  show: boolean;
+  trigger: string | null;
+}
+
 export interface UserProps {
   id: string;
   name: string;
@@ -172,6 +177,7 @@ export interface UserProps {
   hasPassword: boolean;
   provider: string | null;
   paymentData?: any;
+  nps: NPS;
 }
 
 export interface WorkspaceUserProps extends UserProps {

@@ -10,12 +10,15 @@ import {
   IGetSystemUserDataBody,
   IGetSystemUserDataRes,
   IGetSystemUserProcessorRes,
+  IReactivateSystemSubscriptionBody,
+  IReactivateSystemSubscriptionRes,
   IUpdateSystemPaymentMethodBody,
   IUpdateSystemSubscriptionBody,
   IUpdateSystemSubscriptionRes,
   IUpdateUserSystemDataBody,
 } from "./system.interface";
 
+import { ICancelSubscriptionScheduleBody } from "core/api/user/subscription/subscription.interface.ts";
 import { debugUtil } from "core/util";
 import { compareDesc } from "date-fns/compareDesc";
 import { parseISO } from "date-fns/parseISO";
@@ -77,6 +80,67 @@ export const updateSystemSubscriptionStatus = async (
 
     debugUtil({
       text: "updateSystemSubscriptionStatus error",
+      value: errorMsg,
+    });
+    throw new Error(errorMsg);
+  }
+};
+
+// reactivate system subscription
+export const reactivateSystemSubscription = async (
+  id: string,
+  body: IReactivateSystemSubscriptionBody,
+) => {
+  try {
+    const res = await ky.post<IReactivateSystemSubscriptionRes>(
+      `${systemUrl}/subscriptions/${id}/reactivate`,
+      {
+        headers: systemHeaders,
+        json: body,
+      },
+    );
+    const data = await res.json();
+    debugUtil({ text: "reactivateSystemSubscription", value: data });
+
+    return data;
+  } catch (error: any) {
+    const errorMsg =
+      error?.response?.body?.error?.message ||
+      error?.message ||
+      "Something went wrong";
+
+    debugUtil({ text: "reactivateSystemSubscription error", value: errorMsg });
+    throw new Error(errorMsg);
+  }
+};
+
+// cancel system subscription
+export const cancelSystemSubscriptionSchedule = async (
+  id: string,
+  body: ICancelSubscriptionScheduleBody,
+) => {
+  try {
+    const res = await ky.post(
+      `${systemUrl}/subscriptions/${id}/schedule/cancellation`,
+      {
+        headers: systemHeaders,
+        json: body,
+      },
+    );
+
+    const data = await res.json();
+
+    debugUtil({ text: "cancelSystemSubscriptionSchedule", value: data });
+
+    return data;
+  } catch (error: any) {
+    const errorMsg =
+      error?.response?.body?.error?.message ||
+      error?.message ||
+      "Something went wrong";
+
+    debugUtil({
+      text: "cancelSystemSubscriptionSchedule error",
       value: errorMsg,
     });
     throw new Error(errorMsg);

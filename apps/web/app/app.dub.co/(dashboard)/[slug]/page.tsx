@@ -25,6 +25,8 @@ const WorkspaceQRsPage = async () => {
     withTags: false,
     page: 1,
     pageSize: 100,
+  }, {
+    includeFile: true,
   });
 
   const featuresAccess = await checkFeaturesAccessAuthLess(authUser.id);

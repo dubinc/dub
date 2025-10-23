@@ -1,3 +1,4 @@
+import { ICancelSubscriptionScheduleBody } from "core/api/user/subscription/subscription.interface";
 import ky from "ky";
 import {
   createPrimerClientPayment,
@@ -9,6 +10,7 @@ import {
   updatePrimerClientSession,
 } from "./primer";
 import {
+  cancelSystemSubscriptionSchedule,
   checkSystemSubscriptionStatus,
   createSystemTokenOnboarding,
   getSystemSubscriptionUpgradePaymentId,
@@ -17,9 +19,11 @@ import {
   ICheckSystemSubscriptionStatusBody,
   ICreateSystemTokenOnboardingBody,
   IGetSystemUserDataBody,
+  IReactivateSystemSubscriptionBody,
   IUpdateSystemPaymentMethodBody,
   IUpdateSystemSubscriptionBody,
   IUpdateUserSystemDataBody,
+  reactivateSystemSubscription,
   updateSystemSubscriptionPaymentMethod,
   updateSystemSubscriptionStatus,
   updateUserSystemData,
@@ -86,6 +90,22 @@ export class PaymentService {
     body: ICheckSystemSubscriptionStatusBody,
   ) {
     return await checkSystemSubscriptionStatus(body);
+  }
+
+  // cancel client subscription
+  public async cancelClientSubscriptionBySchedule(
+    id: string,
+    body: ICancelSubscriptionScheduleBody,
+  ) {
+    return await cancelSystemSubscriptionSchedule(id, body);
+  }
+
+  // reactivate client subscription
+  public async reactivateClientSubscription(
+    id: string,
+    body: IReactivateSystemSubscriptionBody,
+  ) {
+    return await reactivateSystemSubscription(id, body);
   }
 
   // create client one time payment

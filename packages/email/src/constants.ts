@@ -13,4 +13,5 @@ export const CUSTOMER_IO_TEMPLATES = {
   WELCOME_TRIAL: "welcome_trial",
   FAILED_TRIAL: "failed_trial",
   FAILED_PAYMENT: "failed_payment",
+  CANCELLATION_OTP: "cancellation_otp",
 };

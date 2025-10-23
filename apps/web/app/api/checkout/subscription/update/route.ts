@@ -132,6 +132,17 @@ export const POST = withSession(
     );
 
     try {
+      if (
+        subscription.status === "cancelled" ||
+        subscription.status === "dunning" ||
+        subscription.status === "scheduled_for_cancellation"
+      ) {
+        await paymentService.reactivateClientSubscription(
+          subscription?.id || paymentData?.paymentInfo?.subscriptionId || "",
+          { skipFirstPayment: true, skipTrial: true },
+        );
+      }
+
       await paymentService.updateClientSubscription(
         paymentData?.paymentInfo?.subscriptionId || "",
         {
@@ -181,8 +192,6 @@ export const POST = withSession(
       const newSubData = subDataAfterUpdate.subscriptions.at(
         -1,
       ) as IGetSystemUserDataRes["subscriptions"][0];
-
-      console.log("sub data after update", newSubData);
 
       const carryoverDays = subscription?.nextBillingDate
         ? differenceInCalendarDays(

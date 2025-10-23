@@ -5,8 +5,8 @@ import { userAgent } from "next/server";
 /**
  * Combine IP + UA to create a unique identifier for the user (for deduplication)
  */
-export async function getIdentityHash(req: Request) {
+export async function getIdentityHash(req: Request, linkId: string) {
   const ip = ipAddress(req) || LOCALHOST_IP;
   const ua = userAgent(req);
-  return await hashStringSHA256(`${ip}-${ua.ua}`);
+  return await hashStringSHA256(`${ip}-${ua.ua}-${linkId}`);
 }

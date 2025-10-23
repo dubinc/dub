@@ -6,7 +6,7 @@ import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 /*
-    This route is used to clean up files that don't have related QRs and are older than 1 day.
+    This route is used to clean up files that don't have related QRs and are older than 10 days.
     Runs every hour (0 * * * *)
 */
 export const dynamic = "force-dynamic";
@@ -15,8 +15,8 @@ async function handler(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    // Calculate 1 day ago timestamp
-    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    // Calculate 10 days ago timestamp
+    const tenDaysAgo = new Date(Date.now() - 10 * 24 * 60 * 60 * 1000);
 
     let totalDeletedCount = 0;
     let batchCount = 0;
@@ -25,11 +25,11 @@ async function handler(req: Request) {
     while (true) {
       batchCount++;
 
-      // Find files without related QRs that are older than 1 day
+      // Find files without related QRs that are older than 10 days
       const orphanedFiles = await prisma.file.findMany({
         where: {
           createdAt: {
-            lt: oneDayAgo,
+            lt: tenDaysAgo,
           },
           qrs: {
             none: {}, // Files that have no related QRs

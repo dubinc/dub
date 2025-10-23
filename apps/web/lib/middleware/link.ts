@@ -270,6 +270,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
+        skipRatelimit: true,
       }),
     );
 
@@ -315,6 +316,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
+        skipRatelimit: true,
       }),
     );
 
@@ -349,6 +351,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
+        skipRatelimit: true,
       }),
     );
 
@@ -385,6 +388,7 @@ export default async function LinkMiddleware(
         url: ios,
         webhookIds,
         workspaceId,
+        skipRatelimit: true,
       }),
     );
 
@@ -445,6 +449,7 @@ export default async function LinkMiddleware(
         url: geo[country],
         webhookIds,
         workspaceId,
+        skipRatelimit: true,
       }),
     );
 
@@ -475,6 +480,7 @@ export default async function LinkMiddleware(
         url,
         webhookIds,
         workspaceId,
+        skipRatelimit: true,
       }),
     );
 

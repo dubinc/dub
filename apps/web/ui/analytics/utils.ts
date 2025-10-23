@@ -8,6 +8,7 @@ import { AnalyticsContext } from "./analytics-provider";
 type AnalyticsFilterResult = {
   data: ({ count?: number } & Record<string, any>)[] | null;
   loading: boolean;
+  path?:string;
 };
 
 /**
@@ -20,31 +21,28 @@ export function useAnalyticsFilterOption(
   groupByOrParams:
     | AnalyticsGroupByOptions
     | ({ groupBy: AnalyticsGroupByOptions } & Record<string, any>),
-  options?: { cacheOnly?: boolean },
+  options?: { cacheOnly?: boolean, filterKey?: string },
 ): AnalyticsFilterResult {
   const { cache } = useSWRConfig();
-
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     useContext(AnalyticsContext);
 
-  const enabled =
-    !options?.cacheOnly ||
-    [...cache.keys()].includes(
-      `${baseApiPath}?${editQueryString(queryString, {
-        ...(typeof groupByOrParams === "string"
-          ? { groupBy: groupByOrParams }
-          : groupByOrParams),
-      })}`,
-    );
+  const params = new URLSearchParams(editQueryString(queryString, {
+    ...(typeof groupByOrParams === "string"
+      ? { groupBy: groupByOrParams }
+      : groupByOrParams),
+  }));
+  
+  if (options?.filterKey) {
+    params.delete(options.filterKey);
+  }
+
+  const cachePath = `${baseApiPath}?${params.toString()}`;
+
+  const enabled = !options?.cacheOnly || [...cache.keys()].includes(cachePath);
 
   const { data, isLoading } = useSWR<Record<string, any>[]>(
-    enabled
-      ? `${baseApiPath}?${editQueryString(queryString, {
-          ...(typeof groupByOrParams === "string"
-            ? { groupBy: groupByOrParams }
-            : groupByOrParams),
-        })}`
-      : null,
+  enabled ? cachePath : null,
     fetcher,
     {
       shouldRetryOnError: !requiresUpgrade,

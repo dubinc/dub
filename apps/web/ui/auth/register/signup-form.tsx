@@ -10,16 +10,18 @@ import {
 } from "core/integration/analytic/services/analytic.service.ts";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
 
-export const SignUpForm = ({
-  sessionId,
-  methods = ["email", "google"],
-}: {
+interface ISignUpFormProps {
   sessionId: string;
   methods?: ("email" | "google")[];
+}
+
+export const SignUpForm: FC<Readonly<ISignUpFormProps>> = ({
+  sessionId,
+  methods = ["email", "google"],
 }) => {
   const router = useRouter();
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -57,24 +59,12 @@ export const SignUpForm = ({
     setLoadingState((prev) => ({ ...prev, [signupMethod]: true }));
 
     trackClientEvents({
-      event: EAnalyticEvents.ELEMENT_CLICKED,
-      params: {
-        page_name: "landing",
-        element_name: "signup",
-        content_value: signupMethod,
-        event_category: "nonAuthorized",
-      },
-      sessionId,
-    });
-
-    trackClientEvents({
       event: EAnalyticEvents.AUTH_ATTEMPT,
       params: {
         page_name: "landing",
         auth_type: "signup",
         auth_method: signupMethod,
         email: email,
-        auth_origin: "qr",
         event_category: "nonAuthorized",
       },
       sessionId,
@@ -96,7 +86,6 @@ export const SignUpForm = ({
               email: email,
               error_code: "email-exists",
               error_message: "User with this email already exists",
-              auth_origin: "qr",
               event_category: "nonAuthorized",
             },
             sessionId,
@@ -111,7 +100,6 @@ export const SignUpForm = ({
               email: email,
               error_code: "signup-error",
               error_message: "Something went wrong with signup",
-              auth_origin: "qr",
               event_category: "nonAuthorized",
             },
             sessionId,
@@ -163,6 +151,7 @@ export const SignUpForm = ({
       )}
       {methods.includes("email") && (
         <SignUpEmail
+         sessionId={sessionId}
           onEmailSubmit={handleEmailSubmit}
           isLoading={loadingState.email}
           isDisabled={isAnyLoading}
