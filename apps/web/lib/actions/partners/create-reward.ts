@@ -20,8 +20,9 @@ export const createRewardAction = authActionClient
     const { workspace, user } = ctx;
     const {
       event,
-      amount,
       type,
+      amountInCents,
+      amountInPercentage,
       maxDuration,
       description,
       modifiers,
@@ -50,6 +51,17 @@ export const createRewardAction = authActionClient
       );
     }
 
+    const amount =
+      type === "flat"
+        ? {
+            amountInCents,
+            amountInPercentage: null,
+          }
+        : {
+            amountInCents: null,
+            amountInPercentage: new Prisma.Decimal(amountInPercentage!),
+          };
+
     const reward = await prisma.$transaction(async (tx) => {
       const reward = await tx.reward.create({
         data: {
@@ -57,10 +69,10 @@ export const createRewardAction = authActionClient
           programId,
           event,
           type,
-          amount,
           maxDuration,
           description: description || null,
           modifiers: modifiers || Prisma.DbNull,
+          ...amount,
         },
       });
 

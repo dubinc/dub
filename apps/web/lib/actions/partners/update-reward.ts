@@ -15,8 +15,15 @@ export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { rewardId, amount, maxDuration, type, description, modifiers } =
-      parsedInput;
+    const {
+      type,
+      amountInCents,
+      amountInPercentage,
+      maxDuration,
+      description,
+      modifiers,
+      rewardId,
+    } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -33,16 +40,27 @@ export const updateRewardAction = authActionClient
       );
     }
 
+    const amount =
+      type === "flat"
+        ? {
+            amountInCents,
+            amountInPercentage: null,
+          }
+        : {
+            amountInCents: null,
+            amountInPercentage: new Prisma.Decimal(amountInPercentage!),
+          };
+
     const updatedReward = await prisma.reward.update({
       where: {
         id: rewardId,
       },
       data: {
         type,
-        amount,
         maxDuration,
         description: description || null,
         modifiers: modifiers === null ? Prisma.DbNull : modifiers,
+        ...amount,
       },
       include: {
         program: true,
