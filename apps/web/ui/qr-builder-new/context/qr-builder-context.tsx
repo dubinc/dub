@@ -1,7 +1,11 @@
 "use client";
 
+import { useUser } from "@/ui/contexts/user";
 import { QRContentStepRef } from "@/ui/qr-builder-new/components/qr-content-step.tsx";
+import { useMediaQuery } from "@dub/ui";
 import { linkConstructor } from "@dub/utils";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import {
   createContext,
   ReactNode,
@@ -13,10 +17,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { trackClientEvents } from "core/integration/analytic";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
-import { useUser } from "@/ui/contexts/user";
-import { useMediaQuery } from "@dub/ui";
 import { EQRType } from "../constants/get-qr-config.ts";
 import {
   convertServerQRToNewBuilder,
@@ -262,7 +262,14 @@ export function QrBuilderProvider({
 
     // Scroll on mobile
     handleScroll();
-  }, [builderStep, handleChangeStep, homepageDemo, user, sessionId, handleScroll]);
+  }, [
+    builderStep,
+    handleChangeStep,
+    homepageDemo,
+    user,
+    sessionId,
+    handleScroll,
+  ]);
 
   // Methods
   const onSave = useCallback(async () => {
@@ -315,7 +322,7 @@ export function QrBuilderProvider({
         params: {
           page_name: homepageDemo ? "landing" : "dashboard",
           content_group: "customize_qr",
-          content_value: homepageDemo ? "download" : (isEdit ? "save" : "create"),
+          content_value: homepageDemo ? "download" : isEdit ? "save" : "create",
           email: user?.email,
           event_category: homepageDemo ? "nonAuthorized" : "Authorized",
         },
@@ -389,7 +396,12 @@ export function QrBuilderProvider({
       handleSelectQRType(typeToScrollTo);
       handleResetTypeToScrollTo?.();
     }
-  }, [typeToScrollTo, homepageDemo, handleSelectQRType, handleResetTypeToScrollTo]);
+  }, [
+    typeToScrollTo,
+    homepageDemo,
+    handleSelectQRType,
+    handleResetTypeToScrollTo,
+  ]);
 
   const contextValue: IQrBuilderContextType = {
     // States

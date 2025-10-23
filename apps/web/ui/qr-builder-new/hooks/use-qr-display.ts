@@ -1,4 +1,3 @@
-import QRCodeStyling from "qr-code-styling";
 import { useMemo } from "react";
 import { EQRType } from "../constants/get-qr-config";
 import { convertServerQRToNewBuilder } from "../helpers/data-converters";

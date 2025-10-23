@@ -1,20 +1,18 @@
 "use client";
 
+import { saveQrDataToRedisAction } from "@/lib/actions/pre-checkout-flow/save-qr-data-to-redis.ts";
 import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
+import { EQRType } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import {
   convertNewBuilderToStorageFormat,
   TNewQRBuilderData,
   TQRBuilderDataForStorage,
 } from "@/ui/qr-builder-new/helpers/data-converters";
 import { QRBuilderNew } from "@/ui/qr-builder-new/index.tsx";
-import { EQRType } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
-import { Rating } from "@/ui/qr-rating/rating.tsx";
 import { useLocalStorage, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { FC, forwardRef, Ref, useEffect, useState } from "react";
-import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
-import { saveQrDataToRedisAction } from "@/lib/actions/pre-checkout-flow/save-qr-data-to-redis.ts";
 
 interface IQRTabsProps {
   sessionId: string;
@@ -34,7 +32,10 @@ export const QRTabs: FC<
     );
 
     const [qrDataToCreate, setQrDataToCreate] =
-      useLocalStorage<TQRBuilderDataForStorage | null>(`qr-data-to-create`, null);
+      useLocalStorage<TQRBuilderDataForStorage | null>(
+        `qr-data-to-create`,
+        null,
+      );
 
     const [isProcessingSignup, setIsProcessingSignup] = useState(false);
 
@@ -89,9 +90,9 @@ export const QRTabs: FC<
     };
 
     return (
-      <section className="bg-primary-100 w-full px-3 py-10 lg:py-14">
+      <section className="bg-primary-100 w-full px-3">
         <div
-          className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-6 lg:gap-12"
+          className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-10 lg:gap-14"
           ref={ref}
         >
           <QrTabsTitle />
@@ -103,9 +104,6 @@ export const QRTabs: FC<
             handleResetTypeToScrollTo={handleResetTypeToScrollTo}
           />
 
-          <Rating />
-
-          {!isMobile && <LogoScrollingBanner />}
         </div>
 
         <AuthModal />

@@ -1,7 +1,7 @@
-import { Button } from "@dub/ui";
+import { Button } from "@/components/ui/button";
 import { cn } from "@dub/utils";
 import { Flex, Responsive } from "@radix-ui/themes";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Loader2 } from "lucide-react";
 import { FC, useCallback } from "react";
 
 interface IQrBuilderButtonsProps {
@@ -11,7 +11,6 @@ interface IQrBuilderButtonsProps {
   maxStep?: number;
   minStep?: number;
   className?: string;
-  size?: Responsive<"3" | "4" | "1" | "2"> | undefined;
   display?: Responsive<"none" | "inline-flex" | "flex"> | undefined;
   isEdit?: boolean;
   isProcessing?: boolean;
@@ -29,7 +28,6 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   maxStep = 3,
   minStep = 1,
   className,
-  size = "4",
   display = "flex",
   isEdit = false,
   isProcessing = false,
@@ -63,35 +61,39 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
 
   const buttonText = getButtonText();
 
+  const isLoading = isProcessing || isFileUploading || isFileProcessing;
+
   return (
     <Flex
       justify="between"
       display={display}
       gap="4"
-      className={cn("w-full md:w-auto", className)}
+      className={cn("w-full", className)}
     >
       <Button
-        size={size}
-        variant="secondary"
-        color="blue"
-        className="border-secondary focus-visible:border-secondary-500 hover:bg-secondary-50 text-secondary data-[state=open]:border-secondary-500 data-[state=open]:ring-secondary-200 flex min-h-10 min-w-0 shrink basis-1/4"
+        variant="outline"
+        size="lg"
+        className={cn(
+          "border-secondary text-secondary hover:bg-secondary/10 flex min-w-0 shrink basis-1/4 gap-2",
+          {
+            "text-neutral-400 border-neutral-400": isProcessing,
+          },
+        )}
         disabled={step <= minStep || isProcessing}
         onClick={onBack}
-        icon={
-          <ChevronLeft
-            className={cn("text-secondary", {
-              "text-neutral-400": isProcessing,
-            })}
-          />
-        }
-        text={<span className="hidden md:inline">Back</span>}
-      />
+      >
+        <ChevronLeft
+          className={cn("h-4 w-4", {
+            "text-neutral-400": isProcessing,
+          })}
+        />
+        <span className="hidden md:inline">Back</span>
+      </Button>
 
       <Button
         type="submit"
-        size={size}
-        color="blue"
-        className="grow basis-3/4"
+        size="lg"
+        className="bg-secondary hover:bg-secondary/90 grow basis-3/4"
         onClick={onContinue}
         disabled={
           isProcessing ||
@@ -100,9 +102,10 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
           isTitleEmpty ||
           hasUploadedLogoWithoutFileId
         }
-        loading={isProcessing || isFileUploading || isFileProcessing}
-        text={buttonText}
-      />
+      >
+        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+        {buttonText}
+      </Button>
     </Flex>
   );
 };

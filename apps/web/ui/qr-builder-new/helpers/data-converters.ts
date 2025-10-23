@@ -400,10 +400,12 @@ export async function convertNewQRBuilderDataToServer(
 export function convertServerQRToNewBuilder(
   serverData: TQrServerData | TQrStorageData,
 ): TNewQRBuilderData {
-
   // Parse QR data to form data using qr-data-handlers
   const sourceData = serverData.link?.url || serverData.data;
-  const formData = parseQRData(serverData.qrType as EQRType, sourceData) as TQRFormData;
+  const formData = parseQRData(
+    serverData.qrType as EQRType,
+    sourceData,
+  ) as TQRFormData;
 
   // Add qrName from title to formData
   if (serverData.title) {

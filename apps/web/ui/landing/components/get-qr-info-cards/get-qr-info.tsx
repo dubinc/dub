@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { MotionPreset } from "@/components/ui/motion-preset";
 import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
@@ -8,13 +8,13 @@ import { GET_QR_CARDS } from "./config.ts";
 
 export const GetQRInfoCardsSection: FC = () => {
   return (
-    <section className='py-8 sm:py-16 lg:py-24'>
+    <section className="py-10 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col items-center justify-center gap-6 sm:mb-16 lg:mb-24 lg:gap-10">
           <SectionTitle
-            titleFirstPart={"Create Your"}
-            highlightedTitlePart={"QR Code"}
-            titleSecondPart={"in Three Simple Steps"}
+            titleFirstPart={"Create QR"}
+            highlightedTitlePart={"In 3"}
+            titleSecondPart={"Simple Steps"}
           />
         </div>
 
@@ -24,7 +24,7 @@ export const GetQRInfoCardsSection: FC = () => {
               key={idx}
               fade
               blur
-              slide={{ direction: 'up', offset: 40 }}
+              slide={{ direction: "up", offset: 40 }}
               delay={0.3 + idx * 0.15}
               transition={{ duration: 0.7 }}
             >

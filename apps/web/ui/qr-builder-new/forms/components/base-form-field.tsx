@@ -50,7 +50,10 @@ export const BaseFormField = ({
   return (
     <div className={cn("flex w-full flex-col gap-2", className)}>
       <Flex gap="1" align="center">
-        <label className="text-neutral text-sm font-medium">{label}</label>
+        <label className="text-neutral text-sm font-medium">
+          {label}
+          {required && <span className="text-red-500 ml-1">*</span>}
+        </label>
         <TooltipComponent tooltip={tooltip} />
       </Flex>
       <FormInput

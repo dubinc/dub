@@ -33,8 +33,8 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
           </Heading>
           <Badge
             className={cn(
-              "bg-primary-100 text-primary min-w-[100px] items-center justify-center px-2.5 py-1.5 text-center text-sm font-semibold",
-              withButton && "bg-primary border-primary text-white",
+              "bg-primary-100 text-primary pointer-events-none min-w-[100px] items-center justify-center px-2.5 py-1.5 text-center text-sm font-semibold hover:bg-primary-100",
+              withButton && "bg-primary border-primary text-white hover:bg-primary",
             )}
           >
             {badge}
@@ -61,7 +61,7 @@ export const PricingPlanCard: FC<IPricingPlanCardProps> = ({
       {withButton && (
         <Button
           text="Start Trial"
-          className="hidden bg-secondary hover:bg-secondary/90 sm:inline-flex mt-4"
+          className="bg-secondary hover:bg-secondary/90 mt-4 hidden sm:inline-flex"
           onClick={() => handleScrollButtonClick("2")}
         />
       )}

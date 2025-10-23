@@ -33,7 +33,7 @@ export const QRCodeDemoWhatsapp: FC<QRCodeDemoWhatsappProps> = ({
     <div className="flex h-full items-center justify-center">
       <div
         className={cn(
-          "relative flex h-[200px] w-[200px] flex-col overflow-hidden rounded-t-[14px] md:h-[352px] md:w-[270px] md:rounded-t-[22px]",
+          "relative flex h-[200px] w-[200px] flex-col overflow-hidden rounded-t-[14px] shadow-lg md:h-[352px] md:w-[270px] md:rounded-t-[22px]",
           {
             "h-[180px] w-[138px] lg:h-[209px] lg:w-[158px]": smallPreview,
           },

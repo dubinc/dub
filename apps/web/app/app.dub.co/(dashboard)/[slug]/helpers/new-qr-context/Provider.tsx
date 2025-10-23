@@ -1,6 +1,13 @@
 "use client";
 
-import { createContext, useContext, ReactNode, useState, SetStateAction, Dispatch } from "react";
+import {
+  createContext,
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  useContext,
+  useState,
+} from "react";
 
 interface NewQrContextType {
   newQrId?: string | null;

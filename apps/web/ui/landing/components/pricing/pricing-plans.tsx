@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
 import { cn } from "@dub/utils";
-import { Calendar, CheckIcon, Star, TrendingUp, Zap } from "lucide-react";
+import { CheckIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { FC } from "react";
 import { PRICING_PLANS } from "./config.ts";
@@ -14,13 +14,6 @@ import { PRICING_PLANS } from "./config.ts";
 interface IPricingSectionProps {
   handleScrollButtonClick: (type: "1" | "2" | "3") => void;
 }
-
-const planIcons = [
-  <Zap key="zap" />,
-  <TrendingUp key="trending" />,
-  <Calendar key="calendar" />,
-  <Star key="star" />,
-];
 
 const extractPrice = (planText: string): number => {
   const match = planText.match(/\$(\d+\.?\d*)/);
@@ -31,7 +24,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
   handleScrollButtonClick,
 }) => {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
+    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
       <div className="mb-12 flex flex-col items-center justify-center gap-6 lg:mb-24 lg:gap-10">
         <SectionTitle
           titleFirstPart={"Start 7-Day Trial Today, Upgrade when"}
@@ -66,20 +59,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
                 },
               )}
             >
-              <motion.div
-                className="bg-muted absolute -right-6 -top-6 z-0 rounded-full p-10 [&>svg]:size-12 [&>svg]:flex-shrink-0 [&>svg]:stroke-1 [&>svg]:opacity-20"
-                initial={{ scale: 0, rotate: -180 }}
-                whileInView={{ scale: 1, rotate: 0 }}
-                viewport={{ once: true }}
-                transition={{
-                  duration: 0.6,
-                  delay: index * 0.1 + 0.2,
-                  ease: "easeOut",
-                }}
-              >
-                {planIcons[index]}
-              </motion.div>
-              <CardContent className="relative z-10 flex h-full flex-col gap-6">
+              <CardContent className="flex h-full flex-col gap-6">
                 <div>
                   <div className="mb-4">
                     <h3 className="text-card-foreground text-2xl font-semibold">
@@ -98,7 +78,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
                       /{plan.plan.split("/")[1]}
                     </span>
                   </div>
-                  <Badge className="bg-primary/20 text-primary border-primary/30 mt-3 inline-block w-fit rounded-full border px-3 py-1 text-xs font-semibold">
+                  <Badge className="bg-primary/20 text-primary border-primary/30 pointer-events-none mt-3 inline-block w-fit rounded-full border px-3 py-1 text-xs font-semibold hover:bg-primary/20">
                     {plan.badge}
                   </Badge>
                 </div>
@@ -137,7 +117,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
                 >
                   {plan.withButton ? (
                     <Button
-                      className="bg-secondary hover:bg-secondary/90 hidden sm:inline-flex w-full"
+                      className="bg-secondary hover:bg-secondary/90 hidden w-full sm:inline-flex"
                       size="lg"
                       onClick={() => handleScrollButtonClick("3")}
                     >

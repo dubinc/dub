@@ -1,15 +1,22 @@
 "use client";
 
 import { cn } from "@dub/utils";
-import { Card, Flex } from "@radix-ui/themes";
-import { CircleArrowRight } from "lucide-react";
-import { FC, useEffect } from "react";
+import { ArrowRightIcon } from "lucide-react";
+import Image from "next/image";
+import { FC } from "react";
 import {
   EQRType,
   LINKED_QR_TYPES,
   QR_TYPES,
 } from "../constants/get-qr-config.ts";
 import { QrTypeIcon } from "./qr-type-icon";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface QrTypeSelectionProps {
   selectedQRType: EQRType | null;
@@ -17,82 +24,100 @@ interface QrTypeSelectionProps {
   onHover: (type: EQRType | null) => void;
 }
 
-// Arrow color mapping for each QR type (text colors)
-const QR_TYPE_ARROW_COLORS: Record<EQRType, string> = {
-  [EQRType.WEBSITE]: "group-hover:text-blue-500",
-  [EQRType.PDF]: "group-hover:text-orange-500",
-  [EQRType.IMAGE]: "group-hover:text-amber-500",
-  [EQRType.VIDEO]: "group-hover:text-red-500",
-  [EQRType.WHATSAPP]: "group-hover:text-green-500",
-  [EQRType.SOCIAL]: "group-hover:text-indigo-500",
-  [EQRType.WIFI]: "group-hover:text-purple-500",
-  [EQRType.APP_LINK]: "group-hover:text-cyan-500",
-  [EQRType.FEEDBACK]: "group-hover:text-amber-500",
-};
-
-// Icon background glow colors
-const QR_TYPE_ICON_BG: Record<EQRType, string> = {
-  [EQRType.WEBSITE]: "bg-blue-100",
-  [EQRType.PDF]: "bg-orange-100",
-  [EQRType.IMAGE]: "bg-amber-100",
-  [EQRType.VIDEO]: "bg-red-100",
-  [EQRType.WHATSAPP]: "bg-green-100",
-  [EQRType.SOCIAL]: "bg-indigo-100",
-  [EQRType.WIFI]: "bg-purple-100",
-  [EQRType.APP_LINK]: "bg-cyan-100",
-  [EQRType.FEEDBACK]: "bg-amber-100",
-};
-
-// Card border colors (hover)
-const QR_TYPE_BORDER_COLORS: Record<EQRType, string> = {
-  [EQRType.WEBSITE]: "hover:!border-blue-500",
-  [EQRType.PDF]: "hover:!border-orange-500",
-  [EQRType.IMAGE]: "hover:!border-amber-500",
-  [EQRType.VIDEO]: "hover:!border-red-500",
-  [EQRType.WHATSAPP]: "hover:!border-green-500",
-  [EQRType.SOCIAL]: "hover:!border-indigo-500",
-  [EQRType.WIFI]: "hover:!border-purple-500",
-  [EQRType.APP_LINK]: "hover:!border-cyan-500",
-  [EQRType.FEEDBACK]: "hover:!border-amber-500",
-};
-
-// Card border colors (selected)
-const QR_TYPE_SELECTED_BORDER: Record<EQRType, string> = {
-  [EQRType.WEBSITE]: "!border-blue-500",
-  [EQRType.PDF]: "!border-orange-500",
-  [EQRType.IMAGE]: "!border-amber-500",
-  [EQRType.VIDEO]: "!border-red-500",
-  [EQRType.WHATSAPP]: "!border-green-500",
-  [EQRType.SOCIAL]: "!border-indigo-500",
-  [EQRType.WIFI]: "!border-purple-500",
-  [EQRType.APP_LINK]: "!border-cyan-500",
-  [EQRType.FEEDBACK]: "!border-amber-500",
-};
-
-// Card background colors (when selected)
-const QR_TYPE_BG_COLORS: Record<EQRType, string> = {
-  [EQRType.WEBSITE]: "bg-blue-50",
-  [EQRType.PDF]: "bg-orange-50",
-  [EQRType.IMAGE]: "bg-amber-50",
-  [EQRType.VIDEO]: "bg-red-50",
-  [EQRType.WHATSAPP]: "bg-green-50",
-  [EQRType.SOCIAL]: "bg-indigo-50",
-  [EQRType.WIFI]: "bg-purple-50",
-  [EQRType.APP_LINK]: "bg-cyan-50",
-  [EQRType.FEEDBACK]: "bg-amber-50",
-};
-
-// Blob hover colors (for mouse-follow effect)
-const QR_TYPE_BLOB_COLORS: Record<EQRType, string> = {
-  [EQRType.WEBSITE]: "bg-blue-500/30",
-  [EQRType.PDF]: "bg-orange-500/30",
-  [EQRType.IMAGE]: "bg-amber-500/30",
-  [EQRType.VIDEO]: "bg-red-500/30",
-  [EQRType.WHATSAPP]: "bg-green-500/30",
-  [EQRType.SOCIAL]: "bg-indigo-500/30",
-  [EQRType.WIFI]: "bg-purple-500/30",
-  [EQRType.APP_LINK]: "bg-cyan-500/30",
-  [EQRType.FEEDBACK]: "bg-amber-500/30",
+// Color configurations for each QR type
+const QR_TYPE_COLORS: Record<
+  EQRType,
+  {
+    border: string;
+    borderHover: string;
+    bg: string;
+    bgHover: string;
+    text: string;
+    textHover: string;
+    iconBg: string;
+  }
+> = {
+  [EQRType.WEBSITE]: {
+    border: "border-blue-600/30",
+    borderHover: "hover:border-blue-600",
+    bg: "bg-white/50",
+    bgHover: "hover:bg-blue-600/10",
+    text: "text-blue-600",
+    textHover: "group-hover:text-blue-700",
+    iconBg: "bg-card text-blue-600",
+  },
+  [EQRType.PDF]: {
+    border: "border-orange-600/30",
+    borderHover: "hover:border-orange-600",
+    bg: "bg-white/50",
+    bgHover: "hover:bg-orange-600/10",
+    text: "text-orange-600",
+    textHover: "group-hover:text-orange-700",
+    iconBg: "bg-card text-orange-600",
+  },
+  [EQRType.IMAGE]: {
+    border: "border-amber-600/30",
+    borderHover: "hover:border-amber-600",
+    bg: "bg-white/50",
+    bgHover: "hover:bg-amber-600/10",
+    text: "text-amber-600",
+    textHover: "group-hover:text-amber-700",
+    iconBg: "bg-card text-amber-600",
+  },
+  [EQRType.VIDEO]: {
+    border: "border-red-600/30",
+    borderHover: "hover:border-red-600",
+    bg: "bg-white/50",
+    bgHover: "hover:bg-red-600/10",
+    text: "text-red-600",
+    textHover: "group-hover:text-red-700",
+    iconBg: "bg-card text-red-600",
+  },
+  [EQRType.WHATSAPP]: {
+    border: "border-green-600/30",
+    borderHover: "hover:border-green-600",
+    bg: "bg-white/50",
+    bgHover: "hover:bg-green-600/10",
+    text: "text-green-600",
+    textHover: "group-hover:text-green-700",
+    iconBg: "bg-card text-green-600",
+  },
+  [EQRType.SOCIAL]: {
+    border: "border-indigo-600/30",
+    borderHover: "hover:border-indigo-600",
+    bg: "bg-white/50",
+    bgHover: "hover:bg-indigo-600/10",
+    text: "text-indigo-600",
+    textHover: "group-hover:text-indigo-700",
+    iconBg: "bg-card text-indigo-600",
+  },
+  [EQRType.WIFI]: {
+    border: "border-purple-600/30",
+    borderHover: "hover:border-purple-600",
+    bg: "bg-white/50",
+    bgHover: "hover:bg-purple-600/10",
+    text: "text-purple-600",
+    textHover: "group-hover:text-purple-700",
+    iconBg: "bg-card text-purple-600",
+  },
+  [EQRType.APP_LINK]: {
+    border: "border-cyan-600/30",
+    borderHover: "hover:border-cyan-600",
+    bg: "bg-white/50",
+    bgHover: "hover:bg-cyan-600/10",
+    text: "text-cyan-600",
+    textHover: "group-hover:text-cyan-700",
+    iconBg: "bg-card text-cyan-600",
+  },
+  [EQRType.FEEDBACK]: {
+    border: "border-pink-600/30",
+    borderHover: "hover:border-pink-600",
+    bg: "bg-white/50",
+    bgHover: "hover:bg-pink-600/10",
+    text: "text-pink-600",
+    textHover: "group-hover:text-pink-700",
+    iconBg: "bg-card text-pink-600",
+  },
 };
 
 export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
@@ -105,121 +130,155 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
       !LINKED_QR_TYPES.includes(qrType.id) || qrType.id === EQRType.WEBSITE,
   );
 
-  useEffect(() => {
-    const all = document.querySelectorAll(".card");
-
-    const handleMouseMove = (ev: MouseEvent) => {
-      all.forEach((e) => {
-        const blob = e.querySelector(".blob") as HTMLElement;
-        const fblob = e.querySelector(".fake-blob") as HTMLElement;
-
-        if (!blob || !fblob) return;
-
-        const rec = fblob.getBoundingClientRect();
-
-        blob.style.opacity = "0.9";
-
-        blob.animate(
-          [
-            {
-              transform: `translate(${
-                ev.clientX - rec.left - 40
-              }px, ${ev.clientY - rec.top - 40}px)`,
-            },
-          ],
-          {
-            duration: 300,
-            fill: "forwards",
-          },
-        );
-      });
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-    };
-  }, []);
-
   return (
-    <div className="grid w-full grid-cols-1 gap-5 md:grid-cols-2">
-      {filteredQrTypes.map((type, idx) => (
-        <div key={type.id} className="card relative overflow-hidden rounded-lg">
-          <Card
-            size="1"
-            className={cn(
-              "text-neutral group relative flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg border-2 px-5 py-5 font-medium transition-colors [&_div:nth-child(1)>div:first-child]:flex [&_div:nth-child(1)>div:first-child]:flex-row [&_div:nth-child(1)>div:first-child]:items-center [&_div:nth-child(1)>div:first-child]:gap-3 md:[&_div:nth-child(1)>div:first-child]:flex-none md:[&_div:nth-child(1)>div:first-child]:gap-3 [&_div]:p-0",
-              "transition-all duration-300 ease-in-out",
-              QR_TYPE_BORDER_COLORS[type.id],
-              selectedQRType === type.id ? QR_TYPE_SELECTED_BORDER[type.id] : "!border-border-500",
-              selectedQRType === type.id ? QR_TYPE_BG_COLORS[type.id] : "!bg-background md:!bg-white",
-            )}
-            onClick={() => onSelect(type.id)}
-            onMouseEnter={() => onHover(type.id)}
-            onMouseLeave={() => onHover(null)}
-            asChild
-          >
-            <div className="relative">
-              {/* Colored blur effect on top-left */}
-              <Flex
-                direction={{ initial: "row", md: "column" }}
-                align="start"
-                gap="2"
-                className="relative z-10"
-              >
-                <div />
-                <Flex direction="column">
-                  <Flex direction="row" gap="3" align="center">
-                    <div className="relative hidden h-12 w-12 items-center justify-center rounded-lg md:flex">
-                      <div
-                        className={cn(
-                          "absolute inset-0 rounded-full blur-sm opacity-80",
-                          QR_TYPE_ICON_BG[type.id],
-                        )}
-                      />
+    <>
+      {/* Row 1 */}
+      <div className="flex w-full gap-6 max-lg:flex-col">
+        {filteredQrTypes.slice(0, 3).map((type, idx) => {
+          const colors = QR_TYPE_COLORS[type.id];
+          const isSelected = selectedQRType === type.id;
+
+          return (
+            <Card
+              key={type.id}
+              className={cn(
+                "group flex-1 cursor-pointer transition-all duration-500 hover:flex-[2_1_0%]",
+                "shadow-lg rounded-[20px] border-2 border-gray-300",
+                colors.bg,
+                colors.borderHover,
+                colors.bgHover,
+                isSelected && [
+                  colors.border.replace("/30", ""),
+                  colors.bg.replace("white/50", colors.bg.split("/")[0].replace("bg-", "") + "-600/10"),
+                ],
+              )}
+              onClick={() => onSelect(type.id)}
+              onMouseEnter={() => onHover(type.id)}
+              onMouseLeave={() => onHover(null)}
+            >
+              <CardContent className="flex gap-4 p-4">
+                <div className="flex-1 space-y-4">
+                  <Avatar className="size-12 shadow-sm transition-transform duration-300 group-hover:scale-110">
+                    <AvatarFallback className={colors.iconBg}>
                       <QrTypeIcon
                         icon={type.icon}
                         idx={idx}
-                        isActive={selectedQRType === type.id}
-                        className="relative z-10 h-6 w-6 flex-none"
+                        isActive={isSelected}
+                        className="size-6"
                       />
-                    </div>
-                    <div className="flex items-center gap-2.5">
-                      <h3
-                        className={cn(
-                          "text-neutral group-hover:text-secondary text-lg font-semibold md:text-xl",
-                          {
-                            "!text-secondary": selectedQRType === type.id,
-                          },
-                        )}
-                      >
-                        {type.label}
-                      </h3>
-                      <CircleArrowRight
-                        className={cn(
-                          "text-muted-foreground size-5 transition-all duration-300 group-hover:-rotate-45",
-                          QR_TYPE_ARROW_COLORS[type.id],
-                        )}
-                      />
-                    </div>
-                  </Flex>
-                  <p className="text-sm text-neutral-500 md:text-base">
-                    {type.info}
-                  </p>
-                </Flex>
-              </Flex>
-            </div>
-          </Card>
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="space-y-1.5">
+                    <CardTitle
+                      className={cn(
+                        "text-xl font-semibold transition-colors duration-300",
+                        colors.text,
+                        colors.textHover,
+                      )}
+                    >
+                      {type.label}
+                    </CardTitle>
+                    <CardDescription className="text-xs text-gray-700">
+                      {type.info}
+                    </CardDescription>
+                  </div>
+                  <div
+                    className={cn(
+                      "inline-flex items-center gap-2 text-xs font-medium transition-all duration-300",
+                      colors.text,
+                      colors.textHover,
+                    )}
+                  >
+                    <span>Select</span>
+                    <ArrowRightIcon className="size-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+                  </div>
+                </div>
+                <div className="relative w-0 shrink-0 overflow-hidden transition-all duration-500 group-hover:w-24 lg:group-hover:w-32">
+                  <Image
+                    src={type.img}
+                    alt={type.label}
+                    className="h-full w-24 object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100 lg:w-32"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-          {/* Mouse follow blob effect */}
-          <div className={cn("blob pointer-events-none absolute left-0 top-0 h-20 w-20 rounded-full opacity-0 blur-2xl transition-opacity duration-300", QR_TYPE_BLOB_COLORS[type.id])} />
-          <div
-            className="fake-blob pointer-events-none absolute left-0 top-0 h-40 w-40 rounded-full"
-            style={{ visibility: "hidden" }}
-          />
-        </div>
-      ))}
-    </div>
+      {/* Row 2 */}
+      <div className="flex w-full gap-6 max-lg:flex-col">
+        {filteredQrTypes.slice(3, 6).map((type, idx) => {
+          const colors = QR_TYPE_COLORS[type.id];
+          const isSelected = selectedQRType === type.id;
+
+          return (
+            <Card
+              key={type.id}
+              className={cn(
+                "group flex-1 cursor-pointer transition-all duration-500 hover:flex-[2_1_0%]",
+                "shadow-lg rounded-[20px] border-2 border-gray-300",
+                colors.bg,
+                colors.borderHover,
+                colors.bgHover,
+                isSelected && [
+                  colors.border.replace("/30", ""),
+                  colors.bg.replace("white/50", colors.bg.split("/")[0].replace("bg-", "") + "-600/10"),
+                ],
+              )}
+              onClick={() => onSelect(type.id)}
+              onMouseEnter={() => onHover(type.id)}
+              onMouseLeave={() => onHover(null)}
+            >
+            <CardContent className="flex gap-4 p-4">
+              <div className="flex-1 space-y-4">
+                <Avatar className="size-12 shadow-sm transition-transform duration-300 group-hover:scale-110">
+                  <AvatarFallback className={colors.iconBg}>
+                    <QrTypeIcon
+                      icon={type.icon}
+                      idx={idx + 3}
+                      isActive={isSelected}
+                      className="size-6"
+                    />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="space-y-1.5">
+                  <CardTitle
+                    className={cn(
+                      "text-xl font-semibold transition-colors duration-300",
+                      colors.text,
+                      colors.textHover,
+                    )}
+                  >
+                    {type.label}
+                  </CardTitle>
+                  <CardDescription className="text-xs text-gray-700">
+                    {type.info}
+                  </CardDescription>
+                </div>
+                <div
+                  className={cn(
+                    "inline-flex items-center gap-2 text-xs font-medium transition-all duration-300",
+                    colors.text,
+                    colors.textHover,
+                  )}
+                >
+                  <span>Select</span>
+                  <ArrowRightIcon className="size-3.5 transition-transform duration-200 group-hover:translate-x-1" />
+                </div>
+              </div>
+              <div className="relative w-0 shrink-0 overflow-hidden transition-all duration-500 group-hover:w-24 lg:group-hover:w-32">
+                <Image
+                  src={type.img}
+                  alt={type.label}
+                  className="h-full w-24 object-contain opacity-0 transition-opacity duration-500 group-hover:opacity-100 lg:w-32"
+                />
+              </div>
+            </CardContent>
+          </Card>
+          );
+        })}
+      </div>
+    </>
   );
 };

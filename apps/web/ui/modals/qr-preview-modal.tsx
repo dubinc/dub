@@ -273,7 +273,15 @@ export function useQRPreviewModal(data: {
   user: Session["user"];
   onCanvasReady?: () => void;
 }) {
-  const { canvasRef, qrCode, qrCodeId, width = 200, height = 200, user, onCanvasReady } = data;
+  const {
+    canvasRef,
+    qrCode,
+    qrCodeId,
+    width = 200,
+    height = 200,
+    user,
+    onCanvasReady,
+  } = data;
   const [showQRPreviewModal, setShowQRPreviewModal] = useState(false);
   const [isNewQr, setIsNewQr] = useState(false);
 

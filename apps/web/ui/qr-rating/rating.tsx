@@ -1,8 +1,7 @@
-import RatingStars from "@/ui/landing/assets/webp/stars.webp";
+import { AvatarGroup } from "@/components/ui/avatar-group";
 import { cn } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Text } from "@radix-ui/themes";
-import Image from "next/image";
 import { FC, useEffect, useState } from "react";
 
 interface IRatingProps {
@@ -31,33 +30,35 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
   return (
     <div
       className={cn(
-        "mt-4 flex flex-col items-center justify-center gap-0.5 md:hidden",
+        "flex flex-col items-center justify-center gap-2",
         `items-${alignItems}`,
       )}
     >
-      <div className="flex flex-row items-center gap-1">
-        <Text
-          as="span"
-          size="4"
-          weight="regular"
-          className="text-secondary-textMuted"
-        >
-          Join <NumberFlow value={users} className="tabular-nums" /> users
-        </Text>
-        <Image width={95} height={17} src={RatingStars} alt="Rating" />
+      <div className="flex flex-col items-center gap-3 sm:flex-row">
+        <AvatarGroup />
+        <div className="flex flex-col items-center gap-2 sm:items-start">
+          <Text
+            as="span"
+            size="4"
+            weight="medium"
+            className="text-gray-700"
+          >
+            Trusted by <NumberFlow value={users} className="tabular-nums" />+ users
+          </Text>
+          <Text
+            as="span"
+            size="3"
+            weight="regular"
+            className="text-muted-foreground"
+          >
+            Their QR codes have been scanned{" "}
+            <strong className="tabular-nums font-semibold">
+              <NumberFlow value={scans} />
+            </strong>{" "}
+            times
+          </Text>
+        </div>
       </div>
-      <Text
-        as="span"
-        size="4"
-        weight="regular"
-        className="text-secondary-textMuted max-w-[300px] text-center"
-      >
-        Their QR codes have been scanned{" "}
-        <strong className="tabular-nums">
-          <NumberFlow value={scans} />
-        </strong>{" "}
-        times
-      </Text>
     </div>
   );
 };

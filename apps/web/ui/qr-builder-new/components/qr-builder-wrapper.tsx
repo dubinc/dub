@@ -1,11 +1,9 @@
 import { QrBuilderButtons } from "@/ui/qr-builder-new/components/qr-builder-buttons.tsx";
 import { QRBuilderInner } from "@/ui/qr-builder-new/components/qr-builder-inner.tsx";
-import { QRBuilderSteps } from "@/ui/qr-builder-new/components/qr-builder-steps.tsx";
-import { QR_BUILDER_STEP_TITLES } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import { useQrBuilderContext } from "@/ui/qr-builder-new/context";
 import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils/src";
-import { Heading } from "@radix-ui/themes";
+import { motion } from "framer-motion";
 
 export const QRBuilderWrapper = () => {
   const {
@@ -28,18 +26,27 @@ export const QRBuilderWrapper = () => {
   const { isMobile } = useMediaQuery();
 
   return (
-    <div
+    <motion.div
       ref={qrBuilderContentWrapperRef}
+      key={`builder-step-${builderStep}`}
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{
+        duration: 0.4,
+        ease: [0.4, 0, 0.2, 1],
+      }}
       className={cn(
-        "border-border-500 mx-auto flex h-full w-full flex-col justify-between rounded-lg border bg-white",
+        "mx-auto flex h-full w-full flex-col justify-between",
+        !isTypeStep &&
+          "border-border-500 rounded-[20px] border bg-white shadow-lg",
       )}
     >
       <div>
-        <QRBuilderSteps />
-        <div className="border-t-border-500 flex w-full flex-col items-stretch justify-between gap-4 border-t p-6 md:gap-6">
-          <Heading as="h3" weight="medium" size="5" className="text-neutral">
-            {QR_BUILDER_STEP_TITLES[(builderStep || 1) - 1]}
-          </Heading>
+        <div
+          className={cn(
+            "flex w-full flex-col items-stretch justify-between gap-4 p-6 md:gap-6",
+          )}
+        >
           <QRBuilderInner />
         </div>
       </div>
@@ -59,6 +66,6 @@ export const QRBuilderWrapper = () => {
           />
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };

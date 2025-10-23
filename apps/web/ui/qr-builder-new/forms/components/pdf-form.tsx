@@ -1,6 +1,14 @@
 "use client";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { FileText, Tag } from "lucide-react";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { EQRType } from "../../constants/get-qr-config";
@@ -10,19 +18,19 @@ import {
 } from "../../constants/qr-type-inputs-placeholders";
 import { useQrBuilderContext } from "../../context";
 import { useQRFormData } from "../../hooks/use-qr-form-data";
-import { PdfQRFormData, pdfQRSchema } from "../../validation/schemas";
+import { TPdfQRFormData, pdfQRSchema } from "../../validation/schemas";
 import { BaseFormField } from "./base-form-field.tsx";
 import { FileUploadField } from "./file-upload-field";
 
 export interface PdfFormRef {
   validate: () => Promise<boolean>;
-  getValues: () => PdfQRFormData & { encodedData: string };
-  form: UseFormReturn<PdfQRFormData>;
+  getValues: () => TPdfQRFormData & { encodedData: string; fileId?: string };
+  form: UseFormReturn<TPdfQRFormData>;
 }
 
 interface PdfFormProps {
-  onSubmit: (data: PdfQRFormData & { encodedData: string }) => void;
-  defaultValues?: Partial<PdfQRFormData>;
+  onSubmit: (data: TPdfQRFormData & { encodedData: string; fileId?: string }) => void;
+  defaultValues?: Partial<TPdfQRFormData>;
   initialData?: {
     qrType: EQRType;
     data: string;
@@ -34,6 +42,7 @@ interface PdfFormProps {
 export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
     const [fileId, setFileId] = useState<string>(initialData?.fileId!);
+    const [openAccordion, setOpenAccordion] = useState<string | undefined>("name");
     const { setIsFileUploading, setIsFileProcessing } = useQrBuilderContext();
 
     const { getDefaultValues, encodeFormData } = useQRFormData({
@@ -47,7 +56,7 @@ export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
       ...defaultValues,
     });
 
-    const form = useForm<PdfQRFormData>({
+    const form = useForm<TPdfQRFormData>({
       resolver: zodResolver(pdfQRSchema),
       defaultValues: formDefaults,
     });
@@ -79,25 +88,79 @@ export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
 
     return (
       <FormProvider {...form}>
-        <form className="flex w-full flex-col gap-4">
-          <BaseFormField
-            name="qrName"
-            label="Name your QR Code"
-            placeholder={QR_NAME_PLACEHOLDERS.PDF}
-            tooltip="Only you can see this. It helps you recognize your QR codes later."
-            initFromPlaceholder
-          />
+        <form className="w-full">
+          <Accordion
+            type="single"
+            collapsible
+            value={openAccordion}
+            onValueChange={(value) => setOpenAccordion(value as string | undefined)}
+            className="w-full space-y-2"
+          >
+            <AccordionItem
+              value="name"
+              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
+            >
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex w-full items-start gap-3 text-left">
+                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
+                    <Tag className="h-5 w-5 text-secondary" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-foreground text-base font-medium">
+                      Name
+                    </span>
+                    <span className="text-muted-foreground text-sm font-normal">
+                      Give your QR code a memorable name
+                    </span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              {openAccordion === "name" && <Separator className="mb-3" />}
+              <AccordionContent className="pt-2 ">
+                <BaseFormField
+                  name="qrName"
+                  label="Name your QR Code"
+                  placeholder={QR_NAME_PLACEHOLDERS.PDF}
+                  tooltip="Only you can see this. It helps you recognize your QR codes later."
+                  initFromPlaceholder
+                />
+              </AccordionContent>
+            </AccordionItem>
 
-          <FileUploadField
-            title="PDF"
-            name="filesPDF"
-            label={QR_FILE_TITLES.PDF}
-            accept="application/pdf"
-            maxSize={20 * 1024 * 1024}
-            onFileIdReceived={setFileId}
-            onUploadStateChange={setIsFileUploading}
-            onProcessingStateChange={setIsFileProcessing}
-          />
+            <AccordionItem
+              value="details"
+              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
+            >
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex w-full items-start gap-3 text-left">
+                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
+                    <FileText className="h-5 w-5 text-secondary" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-foreground text-base font-medium">
+                      PDF
+                    </span>
+                    <span className="text-muted-foreground text-sm font-normal">
+                      Upload your PDF document
+                    </span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              {openAccordion === "details" && <Separator className="mb-3" />}
+              <AccordionContent className="pt-2 ">
+                <FileUploadField
+                  title="PDF"
+                  name="filesPDF"
+                  label={QR_FILE_TITLES.PDF}
+                  accept="application/pdf"
+                  maxSize={20 * 1024 * 1024}
+                  onFileIdReceived={setFileId}
+                  onUploadStateChange={setIsFileUploading}
+                  onProcessingStateChange={setIsFileProcessing}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </form>
       </FormProvider>
     );

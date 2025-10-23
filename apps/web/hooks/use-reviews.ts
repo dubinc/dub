@@ -16,7 +16,10 @@ export interface ReviewsStats {
 
 export const useReviews = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
-  const [stats, setStats] = useState<ReviewsStats>({ averageRating: 0, totalReviews: 0 });
+  const [stats, setStats] = useState<ReviewsStats>({
+    averageRating: 0,
+    totalReviews: 0,
+  });
 
   useEffect(() => {
     let mounted = true;
@@ -24,11 +27,13 @@ export const useReviews = () => {
     const loadWidget = () => {
       const container = document.createElement("div");
       container.id = `temp-reviews-${Date.now()}`;
-      container.style.cssText = "position:absolute;left:-9999px;visibility:hidden;";
+      container.style.cssText =
+        "position:absolute;left:-9999px;visibility:hidden;";
       document.body.appendChild(container);
 
       const script = document.createElement("script");
-      script.src = "https://widget.reviews.io/carousel-inline-iframeless/dist.js?_t=2024062615";
+      script.src =
+        "https://widget.reviews.io/carousel-inline-iframeless/dist.js?_t=2024062615";
       script.async = true;
 
       script.onload = () => {
@@ -69,8 +74,12 @@ export const useReviews = () => {
             attempts++;
 
             try {
-              const ratingElements = container.querySelectorAll('.cssVar-subheading__number');
-              const reviewElements = container.querySelectorAll('.R-ReviewsList__item');
+              const ratingElements = container.querySelectorAll(
+                ".cssVar-subheading__number",
+              );
+              const reviewElements = container.querySelectorAll(
+                ".R-ReviewsList__item",
+              );
 
               // Check if data is ready
               const hasStats = ratingElements.length >= 2;
@@ -79,8 +88,12 @@ export const useReviews = () => {
               if (hasStats || hasReviews) {
                 // Extract stats
                 if (hasStats) {
-                  const averageRating = parseFloat(ratingElements[0].textContent?.trim() || '0');
-                  const totalReviews = parseInt(ratingElements[1].textContent?.trim() || '0');
+                  const averageRating = parseFloat(
+                    ratingElements[0].textContent?.trim() || "0",
+                  );
+                  const totalReviews = parseInt(
+                    ratingElements[1].textContent?.trim() || "0",
+                  );
 
                   if (averageRating > 0 && totalReviews > 0) {
                     setStats({
@@ -92,20 +105,24 @@ export const useReviews = () => {
 
                 // Extract reviews
                 if (hasReviews) {
-                  const extracted: Testimonial[] = Array.from(reviewElements).map((el) => {
-                    const nameEl = el.querySelector('.cssVar-authorName');
-                    const name = nameEl?.textContent?.trim() || 'Anonymous';
+                  const extracted: Testimonial[] = Array.from(reviewElements)
+                    .map((el) => {
+                      const nameEl = el.querySelector(".cssVar-authorName");
+                      const name = nameEl?.textContent?.trim() || "Anonymous";
 
-                    const contentEl = el.querySelector('.R-ReviewsList__item--body');
-                    const content = contentEl?.textContent?.trim() || '';
+                      const contentEl = el.querySelector(
+                        ".R-ReviewsList__item--body",
+                      );
+                      const content = contentEl?.textContent?.trim() || "";
 
-                    return {
-                      name,
-                      role: "Verified Customer",
-                      avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=006666&color=fff`,
-                      content,
-                    };
-                  }).filter(t => t.content.length > 10);
+                      return {
+                        name,
+                        role: "Verified Customer",
+                        avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=006666&color=fff`,
+                        content,
+                      };
+                    })
+                    .filter((t) => t.content.length > 10);
 
                   if (extracted.length > 0) {
                     setTestimonials(extracted);
@@ -118,8 +135,10 @@ export const useReviews = () => {
                 }
 
                 // Remove any other widget-related elements
-                const widgetElements = document.querySelectorAll('[class*="CarouselWidget"], [id*="ReviewsWidget"]');
-                widgetElements.forEach(el => {
+                const widgetElements = document.querySelectorAll(
+                  '[class*="CarouselWidget"], [id*="ReviewsWidget"]',
+                );
+                widgetElements.forEach((el) => {
                   if (el.parentNode) {
                     el.parentNode.removeChild(el);
                   }
@@ -129,20 +148,23 @@ export const useReviews = () => {
                 setTimeout(pollForData, 200);
               } else {
                 // Max attempts reached, cleanup
-                console.warn("Reviews.io widget data not found after max attempts");
+                console.warn(
+                  "Reviews.io widget data not found after max attempts",
+                );
                 if (container.parentNode) {
                   document.body.removeChild(container);
                 }
 
                 // Remove any other widget-related elements
-                const widgetElements = document.querySelectorAll('[class*="CarouselWidget"], [id*="ReviewsWidget"]');
-                widgetElements.forEach(el => {
+                const widgetElements = document.querySelectorAll(
+                  '[class*="CarouselWidget"], [id*="ReviewsWidget"]',
+                );
+                widgetElements.forEach((el) => {
                   if (el.parentNode) {
                     el.parentNode.removeChild(el);
                   }
                 });
               }
-
             } catch (err) {
               console.error("Error extracting widget data:", err);
               if (container.parentNode) {
@@ -150,8 +172,10 @@ export const useReviews = () => {
               }
 
               // Remove any other widget-related elements
-              const widgetElements = document.querySelectorAll('[class*="CarouselWidget"], [id*="ReviewsWidget"]');
-              widgetElements.forEach(el => {
+              const widgetElements = document.querySelectorAll(
+                '[class*="CarouselWidget"], [id*="ReviewsWidget"]',
+              );
+              widgetElements.forEach((el) => {
                 if (el.parentNode) {
                   el.parentNode.removeChild(el);
                 }
@@ -182,8 +206,10 @@ export const useReviews = () => {
       mounted = false;
 
       // Cleanup any remaining widget elements on unmount
-      const widgetElements = document.querySelectorAll('[class*="CarouselWidget"], [id*="ReviewsWidget"], [id^="temp-reviews-"]');
-      widgetElements.forEach(el => {
+      const widgetElements = document.querySelectorAll(
+        '[class*="CarouselWidget"], [id*="ReviewsWidget"], [id^="temp-reviews-"]',
+      );
+      widgetElements.forEach((el) => {
         if (el.parentNode) {
           el.parentNode.removeChild(el);
         }

@@ -41,11 +41,9 @@ export const QRPreview = ({
   const isDisabled = !selectedQrType || !activeFormData;
 
   return (
-    <div>
-      <div className="mb-4 flex flex-col items-center gap-4 rounded-lg shadow-lg">
-        <QRCanvas qrCode={qrCode} width={300} height={300} />
-      </div>
-      {homepageDemo && <DownloadButton qrCode={qrCode} disabled={isDisabled} />}
+    <div className="flex justify-center items-center w-full">
+      <QRCanvas qrCode={qrCode} width={300} height={300} />
+      {/* {homepageDemo && <DownloadButton qrCode={qrCode} disabled={isDisabled} />} */}
     </div>
   );
 };

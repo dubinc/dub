@@ -9,6 +9,7 @@ export type TQrType = EQRType | null;
 // Import form data types
 import { QRContentStepRef } from "@/ui/qr-builder-new/components/qr-content-step.tsx";
 import { RefObject } from "react";
+import { TQrServerData } from "../helpers/data-converters";
 import {
   TAppLinkQRFormData,
   TFeedbackQRFormData,
@@ -21,7 +22,6 @@ import {
   TWifiQRFormData,
 } from "../validation/schemas";
 import { IQRCustomizationData } from "./customization";
-import { TQrServerData } from "../helpers/data-converters";
 
 export type TQRFormData =
   | TWebsiteQRFormData

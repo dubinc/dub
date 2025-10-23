@@ -41,7 +41,7 @@ export const ShapeSelector: FC<ShapeSelectorProps> = ({
     [shapeData, onShapeChange],
   );
   return (
-    <div className="flex max-w-[680px] flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <div
         className={cn("flex flex-col gap-4", {
           "border-border-500 rounded-lg border p-3": !isMobile,

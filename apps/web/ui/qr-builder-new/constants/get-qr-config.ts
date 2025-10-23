@@ -42,7 +42,7 @@ export const QR_TYPES: QRType[] = [
   {
     id: EQRType.WEBSITE,
     label: "Website",
-    info: "Open a website or landing page",
+    info: "Open any website, landing page, URL or profile with a QR code scan.",
     icon: "streamline:web",
     img: QrWebsiteFull,
     content:
@@ -53,7 +53,7 @@ export const QR_TYPES: QRType[] = [
   {
     id: EQRType.PDF,
     label: "PDF",
-    info: "Open a PDF document",
+    info: "Share a any document, menu, guide, or flyer in a PDF that opens from a QR code.",
     icon: "hugeicons:pdf-02",
     img: QrPDFFull,
     content:
@@ -64,7 +64,7 @@ export const QR_TYPES: QRType[] = [
   {
     id: EQRType.WHATSAPP,
     label: "Whatsapp",
-    info: "Start a WhatsApp chat instantly",
+    info: "Start a WhatsApp conversation with a QR code, no number saving needed.",
     icon: "basil:whatsapp-outline",
     img: QrWhatsappFull,
     content:
@@ -76,7 +76,7 @@ export const QR_TYPES: QRType[] = [
     id: EQRType.WIFI,
     label: "Wifi",
     icon: "streamline:wifi",
-    info: "Connect to a Wifi network",
+    info: "Let people join your WIFI with a QR code scan, no typing required.",
     img: QrWifiFull,
     content:
       "Instant Wifi access—no typing required! Use a QR code to let guests connect to your network effortlessly by scanning, making it perfect for homes, cafés, offices, and events.",
@@ -86,7 +86,7 @@ export const QR_TYPES: QRType[] = [
   {
     id: EQRType.IMAGE,
     label: "Image",
-    info: "Display an image or photo",
+    info: "Show a picture or gallery on the phone with a QR code.",
     icon: "hugeicons:ai-image",
     img: QrImagesFull,
     content:
@@ -97,7 +97,7 @@ export const QR_TYPES: QRType[] = [
   {
     id: EQRType.VIDEO,
     label: "Video",
-    info: "Display a video with one scan",
+    info: "Play a video or promo clip from any printed or digital QR code.",
     icon: "hugeicons:ai-video",
     img: QrVideosFull,
     content:

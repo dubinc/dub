@@ -1,9 +1,14 @@
-import { cn } from "@dub/utils";
-import * as Tabs from "@radix-ui/react-tabs";
-import { FC, useCallback } from "react";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useUser } from "@/ui/contexts/user";
+import { cn } from "@dub/utils";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
+import { FC, useCallback } from "react";
 
 import { QR_STYLES_OPTIONS } from "../../constants/customization/qr-styles-options";
 import {
@@ -41,21 +46,23 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
 
   const isFrameSelected = customizationData.frame.id !== "frame-none";
 
-  const handleTabChange = useCallback(
-    (tab: string) => {
-      onTabChange(tab);
+  const handleAccordionChange = useCallback(
+    (value: string) => {
+      if (value) {
+        onTabChange(value);
 
-      trackClientEvents({
-        event: EAnalyticEvents.ELEMENT_CLICKED,
-        params: {
-          page_name: homepageDemo ? "landing" : "dashboard",
-          element_name: "customization_tabs",
-          content_value: tab.toLowerCase(),
-          email: user?.email,
-          event_category: homepageDemo ? "nonAuthorized" : "Authorized",
-        },
-        sessionId: user?.id,
-      });
+        trackClientEvents({
+          event: EAnalyticEvents.ELEMENT_CLICKED,
+          params: {
+            page_name: homepageDemo ? "landing" : "dashboard",
+            element_name: "customization_accordion",
+            content_value: value.toLowerCase(),
+            email: user?.email,
+            event_category: homepageDemo ? "nonAuthorized" : "Authorized",
+          },
+          sessionId: user?.id,
+        });
+      }
     },
     [onTabChange, homepageDemo, user],
   );
@@ -140,43 +147,57 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
   );
 
   return (
-    <Tabs.Root
+    <Accordion
+      type="single"
+      collapsible
       value={activeTab}
-      onValueChange={handleTabChange}
-      className="text-neutral flex w-full flex-col items-center justify-center gap-4"
+      onValueChange={handleAccordionChange}
+      className="w-full space-y-2"
     >
-      <Tabs.List className="flex w-full items-center gap-1 overflow-x-auto rounded-lg">
-        {QR_STYLES_OPTIONS.map((tab) => (
-          <Tabs.Trigger
+      {QR_STYLES_OPTIONS.map((tab) => {
+        const selectorContent =
+          tab.id === "frame" ? frameSelector :
+          tab.id === "style" ? styleSelector :
+          tab.id === "shape" ? shapeSelector :
+          tab.id === "logo" ? logoSelector : null;
+
+        const Icon = tab.icon;
+
+        return (
+          <AccordionItem
             key={tab.id}
             value={tab.label}
-            className={cn(
-              "text-neutral flex h-12 items-center justify-center gap-2 rounded-md px-3.5 py-2 transition-colors md:h-9",
-              "hover:bg-border-100 hover:text-neutral",
-              "data-[state=active]:bg-secondary-100 data-[state=active]:text-secondary",
-              {
-                "cursor-not-allowed opacity-50": disabled,
-              },
-            )}
+            className="border-none rounded-md px-4 bg-[#fbfbfb]"
             disabled={disabled}
           >
-            <span className="text-sm font-medium">{tab.label}</span>
-          </Tabs.Trigger>
-        ))}
-      </Tabs.List>
-
-      {QR_STYLES_OPTIONS.map((tab) => (
-        <Tabs.Content
-          key={tab.id}
-          value={tab.label}
-          className="w-full focus:outline-none"
-        >
-          {tab.id === "frame" && frameSelector}
-          {tab.id === "style" && styleSelector}
-          {tab.id === "shape" && shapeSelector}
-          {tab.id === "logo" && logoSelector}
-        </Tabs.Content>
-      ))}
-    </Tabs.Root>
+            <AccordionTrigger
+              className={cn(
+                "hover:no-underline",
+                {
+                  "cursor-not-allowed opacity-50": disabled,
+                },
+              )}
+            >
+              <div className="flex items-start gap-3 text-left">
+                <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
+                  <Icon className="h-5 w-5 text-secondary" />
+                </div>
+                <div className="flex flex-col gap-1">
+                  <span className="text-foreground text-base font-medium">
+                    {tab.label}
+                  </span>
+                  <span className="text-muted-foreground text-sm font-normal">
+                    {tab.description}
+                  </span>
+                </div>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="pt-2 ">
+              {selectorContent}
+            </AccordionContent>
+          </AccordionItem>
+        );
+      })}
+    </Accordion>
   );
 };

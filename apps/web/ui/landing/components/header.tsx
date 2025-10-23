@@ -82,15 +82,18 @@ export const Header: FC<Readonly<IHeaderProps>> = ({
                 <Button
                   variant="ghost"
                   onClick={handleOpenLogin}
-                  className="p-0 text-base font-medium text-neutral-200 transition-colors duration-300 hover:bg-transparent hover:text-secondary"
+                  className="hover:text-secondary p-0 text-base font-medium text-neutral-200 transition-colors duration-300 hover:bg-transparent"
                   size="lg"
                 >
                   Log In
                 </Button>
-                <Separator orientation="vertical" className="!h-6 max-md:hidden" />
+                <Separator
+                  orientation="vertical"
+                  className="!h-6 max-md:hidden"
+                />
                 <Button
                   onClick={handleScrollToQRGenerationBlock}
-                  className="hidden bg-secondary hover:bg-secondary/90 sm:inline-flex"
+                  className="bg-secondary hover:bg-secondary/90 hidden sm:inline-flex"
                   size="lg"
                 >
                   Create QR code
@@ -99,7 +102,7 @@ export const Header: FC<Readonly<IHeaderProps>> = ({
             ) : (
               <Button
                 onClick={handleOpenMyQRCodes}
-                className=" bg-secondary text-base font-medium text-white hover:bg-secondary/90"
+                className="bg-secondary hover:bg-secondary/90 text-base font-medium text-white"
                 size="lg"
               >
                 My QR Codes

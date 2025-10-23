@@ -32,7 +32,7 @@ export const StyleSelector: FC<StyleSelectorProps> = ({
   );
   return (
     <div
-      className={cn("flex max-w-[680px] flex-col gap-4", {
+      className={cn("flex w-full flex-col gap-4", {
         "border-border-500 rounded-lg border p-3": !isMobile,
       })}
     >

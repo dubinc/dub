@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { MotionPreset } from "@/components/ui/motion-preset";
 import { Icon } from "@iconify/react";
 import { FC } from "react";
@@ -38,15 +37,13 @@ const QR_STATS = [
   },
 ];
 
-export const HeroSection: FC<IHeroSectionProps> = ({
-  onCreateQRClick,
-}) => {
+export const HeroSection: FC<IHeroSectionProps> = ({ onCreateQRClick }) => {
   return (
     <section className="relative flex">
       {/* Background gradient effects */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
-        <div className="absolute left-1/4 top-0 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute right-1/4 top-1/3 h-96 w-96 rounded-full bg-secondary/10 blur-3xl" />
+        <div className="bg-primary/10 absolute left-1/4 top-0 h-96 w-96 rounded-full blur-3xl" />
+        <div className="bg-secondary/10 absolute right-1/4 top-1/3 h-96 w-96 rounded-full blur-3xl" />
       </div>
 
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-4 pb-8 pt-8 sm:px-6 lg:px-8">
@@ -55,7 +52,7 @@ export const HeroSection: FC<IHeroSectionProps> = ({
           <div className="flex flex-col justify-center gap-6 py-4 max-lg:items-center max-lg:text-center sm:gap-8 sm:py-8 lg:gap-10 lg:py-12">
             <div className="flex flex-col gap-4 max-lg:items-center sm:gap-6">
               <MotionPreset fade slide transition={{ duration: 0.5 }}>
-                <Badge className="rounded-full bg-primary/10 text-primary hover:bg-primary/20">
+                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 rounded-full">
                   <Icon icon="solar:qr-code-bold" className="mr-1.5 size-3.5" />
                   QR Code Generator
                 </Badge>
@@ -82,9 +79,10 @@ export const HeroSection: FC<IHeroSectionProps> = ({
                 transition={{ duration: 0.5 }}
                 className="text-muted-foreground max-w-2xl text-sm sm:text-base lg:text-lg"
               >
-                Generate customizable, high-quality QR codes for websites, PDFs, images,
-                videos, and more. Track analytics, design with your brand colors, and
-                download in multiple formats—all in one powerful platform.
+                Generate customizable, high-quality QR codes for websites, PDFs,
+                images, videos, and more. Track analytics, design with your
+                brand colors, and download in multiple formats—all in one
+                powerful platform.
               </MotionPreset>
             </div>
           </div>
@@ -104,14 +102,14 @@ export const HeroSection: FC<IHeroSectionProps> = ({
                 zoom={{ initialScale: 0.8 }}
                 delay={1.3}
                 transition={{ duration: 0.5 }}
-                className="absolute left-1/2 top-1/2 flex h-80 w-80 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-3xl border-2 bg-gradient-to-br from-background to-muted/30 p-8 shadow-2xl"
+                className="from-background to-muted/30 absolute left-1/2 top-1/2 flex h-80 w-80 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-3xl border-2 bg-gradient-to-br p-8 shadow-2xl"
               >
                 <div className="relative h-full w-full">
                   <Icon
                     icon="solar:qr-code-bold"
                     className="text-primary absolute inset-0 h-full w-full opacity-20"
                   />
-                  <div className="absolute inset-4 rounded-xl border-4 border-dashed border-primary/30" />
+                  <div className="border-primary/30 absolute inset-4 rounded-xl border-4 border-dashed" />
                 </div>
               </MotionPreset>
 
@@ -146,12 +144,15 @@ export const HeroSection: FC<IHeroSectionProps> = ({
                         : "bottom-20 left-1/2 -translate-x-1/2"
                   }`}
                 >
-                  <div className="flex w-64 flex-col gap-3 rounded-2xl border bg-card p-4 shadow-lg backdrop-blur-sm">
+                  <div className="bg-card flex w-64 flex-col gap-3 rounded-2xl border p-4 shadow-lg backdrop-blur-sm">
                     <div className="flex items-center gap-3">
                       <div
                         className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${stat.color}`}
                       >
-                        <Icon icon={stat.icon} className={`size-5 ${stat.iconColor}`} />
+                        <Icon
+                          icon={stat.icon}
+                          className={`size-5 ${stat.iconColor}`}
+                        />
                       </div>
                       <div className="flex-1">
                         <p className="text-muted-foreground text-xs font-medium">
@@ -173,7 +174,6 @@ export const HeroSection: FC<IHeroSectionProps> = ({
             </MotionPreset>
           </div>
         </div>
-
       </div>
     </section>
   );

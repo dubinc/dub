@@ -36,7 +36,7 @@ type FilterSelectProps = {
   children?: ReactNode;
   emptyState?: ReactNode | Record<string, ReactNode>;
   defaultIsOpen?: boolean;
-  defaultSelectedFilterKey?: Filter['key'];
+  defaultSelectedFilterKey?: Filter["key"];
   className?: string;
 };
 
@@ -79,7 +79,7 @@ export function FilterSelect({
   const reset = useCallback(() => {
     setSearch("");
     setSelectedFilterKey(null);
-    resetDefaultStates?.()
+    resetDefaultStates?.();
   }, []);
 
   // Reset state when closed
@@ -159,13 +159,13 @@ export function FilterSelect({
   }, [selectedFilter?.options]);
 
   useEffect(() => {
-    if(defaultIsOpen) {
-      setIsOpen(true)
-      if(!!defaultSelectedFilterKey) {
-        setSelectedFilterKey(defaultSelectedFilterKey)
+    if (defaultIsOpen) {
+      setIsOpen(true);
+      if (!!defaultSelectedFilterKey) {
+        setSelectedFilterKey(defaultSelectedFilterKey);
       }
     }
-  }, [defaultIsOpen, defaultSelectedFilterKey])
+  }, [defaultIsOpen, defaultSelectedFilterKey]);
 
   return (
     <Popover

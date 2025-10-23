@@ -16,6 +16,7 @@ interface StylePickerProps {
   styleButtonClassName?: string;
   disabled?: boolean;
   applyBlackFilter?: boolean;
+  maxHeight?: string;
 }
 
 export const StylePicker: FC<StylePickerProps> = ({
@@ -29,14 +30,18 @@ export const StylePicker: FC<StylePickerProps> = ({
   styleButtonClassName,
   disabled = false,
   applyBlackFilter = false,
+  maxHeight = "500px",
 }) => {
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
       <label className="text-sm font-medium">{label}</label>
       <ScrollArea.Root type="auto" className="relative w-full overflow-hidden">
-        <ScrollArea.Viewport className="overflow-x-auto">
+        <ScrollArea.Viewport
+          className="overflow-y-auto"
+          style={{ maxHeight }}
+        >
           <div
-            className={cn("flex flex-nowrap gap-3", optionsWrapperClassName)}
+            className={cn("flex flex-wrap gap-3", optionsWrapperClassName)}
           >
             {styleOptions.map((styleOption) => (
               <StyleButton
@@ -55,14 +60,12 @@ export const StylePicker: FC<StylePickerProps> = ({
             ))}
           </div>
         </ScrollArea.Viewport>
-        <div className="mt-2">
-          <ScrollArea.Scrollbar
-            orientation="horizontal"
-            className="bg-border-100 h-1 cursor-pointer rounded-[3px]"
-          >
-            <ScrollArea.Thumb className="!bg-primary !h-full rounded-lg" />
-          </ScrollArea.Scrollbar>
-        </div>
+        <ScrollArea.Scrollbar
+          orientation="vertical"
+          className="bg-border-100 w-1.5 cursor-pointer rounded-[3px]"
+        >
+          <ScrollArea.Thumb className="!bg-primary rounded-lg" />
+        </ScrollArea.Scrollbar>
       </ScrollArea.Root>
     </div>
   );

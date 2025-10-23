@@ -91,8 +91,10 @@ export default function Toggle({
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [isToggleOpen, setIsToggleOpen] = useState(false)
-  const [selectedToggleFilterKey, setSelectedToggleFilterKey] = useState<string | undefined>(undefined)
+  const [isToggleOpen, setIsToggleOpen] = useState(false);
+  const [selectedToggleFilterKey, setSelectedToggleFilterKey] = useState<
+    string | undefined
+  >(undefined);
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -532,8 +534,8 @@ export default function Toggle({
         setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
       }
       resetDefaultStates={() => {
-        setIsToggleOpen(false)
-        setSelectedToggleFilterKey(undefined)
+        setIsToggleOpen(false);
+        setSelectedToggleFilterKey(undefined);
       }}
       defaultIsOpen={isToggleOpen}
       defaultSelectedFilterKey={selectedToggleFilterKey}
@@ -757,8 +759,8 @@ export default function Toggle({
             })
           }
           onSelect={(key) => {
-            setIsToggleOpen(true)
-            setSelectedToggleFilterKey(key)
+            setIsToggleOpen(true);
+            setSelectedToggleFilterKey(key);
           }}
         />
         <div

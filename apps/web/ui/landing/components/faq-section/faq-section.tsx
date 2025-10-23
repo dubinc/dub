@@ -1,6 +1,11 @@
 "use client";
 
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
 import { BlockMarkdown } from "@/ui/partners/lander-blocks/BlockMarkdown.tsx";
 import { FC } from "react";
@@ -16,22 +21,28 @@ interface IFaqSectionProps {
 
 export const FAQSection: FC<IFaqSectionProps> = ({ faqItems }) => {
   return (
-    <section className='py-8 sm:py-16 lg:py-24'>
-      <div className='mx-auto max-w-7xl px-4 sm:px-6 lg:px-8'>
+    <section className="py-10 lg:py-14">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* FAQ Header */}
-        <div className='mb-12 flex flex-col items-center justify-center gap-6 sm:mb-16 lg:mb-24 lg:gap-10'>
+        <div className="mb-12 flex flex-col items-center justify-center gap-6 sm:mb-16 lg:mb-24 lg:gap-10">
           <SectionTitle
             titleFirstPart="Frequently"
-            highlightedTitlePart='Asked'
-            titleSecondPart='Questions'
+            highlightedTitlePart="Asked"
+            titleSecondPart="Questions"
           />
         </div>
 
-        <Accordion type='single' collapsible className='w-full' defaultValue='item-0'>
+        <Accordion
+          type="single"
+          collapsible
+          className="w-full"
+        >
           {faqItems.map((item, index) => (
             <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className='text-lg'>{item.title}</AccordionTrigger>
-              <AccordionContent className='text-muted-foreground'>
+              <AccordionTrigger className="text-lg">
+                {item.title}
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
                 {Array.isArray(item.content) ? (
                   item.content.map((content, idx) => (
                     <BlockMarkdown

@@ -12,7 +12,7 @@ import { GET_QR_FEATURES } from "./config.ts";
 
 export const GetQRFeaturesCardsSection: FC = () => {
   const [activeTab, setActiveTab] = useState(
-    GET_QR_FEATURES[0].title.toLowerCase().replace(/\s+/g, "-")
+    GET_QR_FEATURES[0].title.toLowerCase().replace(/\s+/g, "-"),
   );
   const [isPaused, setIsPaused] = useState(false);
 
@@ -22,7 +22,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
     const interval = setInterval(() => {
       setActiveTab((current) => {
         const currentIndex = GET_QR_FEATURES.findIndex(
-          (f) => f.title.toLowerCase().replace(/\s+/g, "-") === current
+          (f) => f.title.toLowerCase().replace(/\s+/g, "-") === current,
         );
         const nextIndex = (currentIndex + 1) % GET_QR_FEATURES.length;
         return GET_QR_FEATURES[nextIndex].title
@@ -42,7 +42,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
   };
 
   return (
-    <section className="relative py-8 sm:py-16 lg:py-24">
+    <section className="relative py-10 lg:py-14">
       {/* Background gradient effects */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="bg-primary/5 absolute left-1/4 top-0 h-96 w-96 rounded-full blur-3xl" />
@@ -70,100 +70,109 @@ export const GetQRFeaturesCardsSection: FC = () => {
           onValueChange={handleTabChange}
           className="w-full"
         >
-          <MotionPreset
-            fade
-            blur
-            slide={{ direction: "down", offset: 30 }}
-            delay={0.3}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="mb-8 flex w-full justify-center overflow-x-auto pb-2 sm:mb-12">
-              <TabsList className="inline-flex h-auto w-full gap-2 bg-muted/50 p-1.5 backdrop-blur-sm sm:w-auto sm:gap-3 sm:rounded-2xl sm:p-2">
+          <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
+            {/* Simple tabs on the left */}
+            <MotionPreset
+              fade
+              blur
+              slide={{ direction: "left", offset: 50 }}
+              delay={0.3}
+              transition={{ duration: 0.5 }}
+              className="w-full lg:w-auto"
+            >
+              <TabsList className="flex h-auto w-full flex-col items-start gap-2 bg-transparent p-0 lg:sticky lg:top-24">
                 {GET_QR_FEATURES.map((feature, index) => (
                   <MotionPreset
                     key={feature.title}
                     fade
-                    zoom={{ initialScale: 0.9 }}
-                    delay={0.4 + index * 0.05}
-                    transition={{ duration: 0.3 }}
+                    slide={{ direction: "left", offset: 30 }}
+                    delay={0.4 + index * 0.1}
+                    transition={{ duration: 0.4 }}
                   >
                     <TabsTrigger
                       value={feature.title.toLowerCase().replace(/\s+/g, "-")}
-                      className="group relative flex min-w-[140px] items-center justify-center gap-2 rounded-xl bg-transparent px-4 py-3 text-sm font-medium transition-all duration-300 hover:bg-background/50 data-[state=active]:bg-background data-[state=active]:shadow-md sm:min-w-[160px] sm:px-5 sm:py-3.5 sm:text-base"
+                      className={cn(
+                        "group relative flex items-center justify-start gap-3 rounded-lg border-l-4 border-transparent bg-transparent px-4 py-3 text-left transition-all duration-300 hover:bg-muted/50 data-[state=active]:border-primary data-[state=active]:bg-primary/5",
+                      )}
                     >
                       <Icon
                         icon={feature.icon}
                         className={cn(
-                          "size-5 transition-colors duration-300",
-                          "text-muted-foreground group-data-[state=active]:text-primary"
+                          "size-5 flex-shrink-0 transition-colors duration-300",
+                          "text-muted-foreground group-data-[state=active]:text-primary",
                         )}
                       />
-                      <span className="whitespace-nowrap">{feature.title}</span>
+                      <span className="whitespace-nowrap text-sm font-medium text-foreground group-data-[state=active]:text-primary sm:text-base">
+                        {feature.title}
+                      </span>
                     </TabsTrigger>
                   </MotionPreset>
                 ))}
               </TabsList>
-            </div>
-          </MotionPreset>
+            </MotionPreset>
 
-          {GET_QR_FEATURES.map((feature) => (
-            <TabsContent
-              key={feature.title}
-              value={feature.title.toLowerCase().replace(/\s+/g, "-")}
-              className="mt-0"
-            >
-              <MotionPreset
-                fade
-                slide={{ direction: "up", offset: 40 }}
-                blur
-                transition={{ duration: 0.6, ease: "easeOut" }}
-              >
-                <div className="mx-auto max-w-4xl">
-                  <div className="relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-background via-background to-muted/20 p-8 shadow-xl backdrop-blur-sm sm:p-12 lg:p-16">
-                    {/* Decorative corner accents */}
-                    <div className="absolute right-0 top-0 h-32 w-32 bg-gradient-to-bl from-primary/10 to-transparent" />
-                    <div className="absolute bottom-0 left-0 h-32 w-32 bg-gradient-to-tr from-secondary/10 to-transparent" />
+            {/* Content on the right */}
+            <div className="flex-1">
+              {GET_QR_FEATURES.map((feature) => (
+                <TabsContent
+                  key={feature.title}
+                  value={feature.title.toLowerCase().replace(/\s+/g, "-")}
+                  className="mt-0"
+                >
+                  <MotionPreset
+                    fade
+                    slide={{ direction: "right", offset: 50 }}
+                    blur
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                  >
+                    <div className="border-border/50 from-background via-background to-muted/20 relative h-full overflow-hidden rounded-3xl border bg-gradient-to-br p-8 shadow-xl backdrop-blur-sm sm:p-10 lg:p-12">
+                      {/* Decorative corner accents */}
+                      <div className="from-primary/10 absolute right-0 top-0 h-32 w-32 bg-gradient-to-bl to-transparent" />
+                      <div className="from-secondary/10 absolute bottom-0 left-0 h-32 w-32 bg-gradient-to-tr to-transparent" />
 
-                    <div className="relative flex flex-col items-center gap-6 text-center sm:gap-8">
-                      <div className="relative inline-flex">
-                        <Avatar
-                          className={cn(
-                            "h-24 w-24 rounded-3xl border-2 shadow-lg sm:h-28 sm:w-28 lg:h-32 lg:w-32",
-                            feature.avatarTextColor,
-                          )}
-                        >
-                          <AvatarFallback
-                            className={cn(
-                              "rounded-3xl bg-gradient-to-br from-background to-muted [&>svg]:size-12 sm:[&>svg]:size-14 lg:[&>svg]:size-16",
-                              feature.avatarTextColor,
-                            )}
-                          >
-                            <Icon icon={feature.icon} />
-                          </AvatarFallback>
-                        </Avatar>
-                        {/* Enhanced glow effect */}
-                        <div
-                          className={cn(
-                            "absolute -inset-4 -z-10 rounded-3xl opacity-30 blur-3xl",
-                            feature.avatarTextColor,
-                          )}
-                        />
-                      </div>
+                      <div className="relative flex flex-col gap-6 sm:gap-8">
+                        <div className="flex items-start gap-6">
+                          <div className="relative inline-flex flex-shrink-0">
+                            <Avatar
+                              className={cn(
+                                "h-20 w-20 rounded-2xl border-2 shadow-lg sm:h-24 sm:w-24",
+                                feature.avatarTextColor,
+                              )}
+                            >
+                              <AvatarFallback
+                                className={cn(
+                                  "from-background to-muted rounded-2xl bg-gradient-to-br [&>svg]:size-10 sm:[&>svg]:size-12",
+                                  feature.avatarTextColor,
+                                )}
+                              >
+                                <Icon icon={feature.icon} />
+                              </AvatarFallback>
+                            </Avatar>
+                            {/* Enhanced glow effect */}
+                            <div
+                              className={cn(
+                                "absolute -inset-3 -z-10 rounded-2xl opacity-30 blur-2xl",
+                                feature.avatarTextColor,
+                              )}
+                            />
+                          </div>
 
-                      <div className="space-y-4 sm:space-y-6">
-                        <h3 className="bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-3xl font-bold text-transparent sm:text-4xl lg:text-5xl">
-                          {feature.title}
-                        </h3>
-                        <p className="text-muted-foreground mx-auto max-w-2xl text-base leading-relaxed sm:text-lg lg:text-xl">
-                          {feature.content}
-                        </p>
+                          <div className="flex-1 space-y-3">
+                            <h3 className="from-foreground to-foreground/70 bg-gradient-to-br bg-clip-text text-2xl font-bold text-transparent sm:text-3xl lg:text-4xl">
+                              {feature.title}
+                            </h3>
+                            <p className="text-muted-foreground text-base leading-relaxed sm:text-lg">
+                              {feature.content}
+                            </p>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              </MotionPreset>
-            </TabsContent>
-          ))}
+                  </MotionPreset>
+                </TabsContent>
+              ))}
+            </div>
+          </div>
         </Tabs>
       </div>
       <Separator className="my-8 sm:my-12" />

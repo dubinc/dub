@@ -15,7 +15,7 @@ const payments = [
 export const Payments = () => (
   <div className="flex flex-wrap items-center gap-4">
     {payments.map(({ icon: Icon, alt }) => (
-      <Icon key={alt} className="h-5" aria-label={alt} />
+      <Icon key={alt} className="h-8" aria-label={alt} />
     ))}
   </div>
 );

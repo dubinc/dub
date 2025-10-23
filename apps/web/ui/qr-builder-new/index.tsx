@@ -1,6 +1,6 @@
 import { QRBuilderWrapper } from "./components/qr-builder-wrapper.tsx";
-import { QrBuilderProvider } from "./context";
 import { EQRType } from "./constants/get-qr-config";
+import { QrBuilderProvider } from "./context";
 import { TNewQRBuilderData, TQrServerData } from "./helpers/data-converters";
 
 interface QRBuilderNewProps {

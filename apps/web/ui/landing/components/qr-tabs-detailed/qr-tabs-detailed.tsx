@@ -3,14 +3,17 @@
 import { Button } from "@/components/ui/button";
 import { MotionPreset } from "@/components/ui/motion-preset";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EQRType, QR_TYPES } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
+import {
+  EQRType,
+  QR_TYPES,
+} from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import Image from "next/image";
 import { FC, useState } from "react";
+import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title";
 
 interface IQrTabsDetailedProps {
   sessionId: string;
@@ -39,38 +42,34 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
   };
 
   return (
-    <section className="py-6 sm:py-10 lg:py-16">
+    <section className="py-10 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header with Title */}
         <div className="mb-8 flex items-center justify-center text-center sm:mb-12 lg:mb-16">
-          <div className="max-w-3xl">
+          <div className="flex max-w-3xl flex-col items-center justify-center gap-6">
+            <QrTabsDetailedTitle />
             <MotionPreset
-              component="h2"
-              className="mb-4 text-3xl font-bold md:text-4xl lg:text-5xl"
-              fade
-              slide={{ direction: "down", offset: 50 }}
-              blur
-              transition={{ duration: 0.5 }}
-            >
-              Generate the <span className="text-primary">Perfect QR Code</span> for Your Needs
-            </MotionPreset>
-            <MotionPreset
-              component="p"
-              className="text-muted-foreground text-lg md:text-xl"
               fade
               blur
               slide={{ direction: "down", offset: 50 }}
               delay={0.2}
               transition={{ duration: 0.5 }}
             >
-              From websites and social media to PDFs, business cards, and Wi-Fi access—there's no
-              limit to what you can create a QR code for. GetQR offers every type of QR code you
-              need, all in one place.
+              <p className="text-muted-foreground text-lg md:text-xl">
+                From websites and social media to PDFs, business cards, and
+                Wi-Fi access—there's no limit to what you can create a QR code
+                for. GetQR offers every type of QR code you need, all in one
+                place.
+              </p>
             </MotionPreset>
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={onQrTypeClick} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={onQrTypeClick}
+          className="w-full"
+        >
           <MotionPreset
             fade
             blur
@@ -80,7 +79,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
           >
             <ScrollArea.Root className="w-full">
               <ScrollArea.Viewport className="w-full overflow-x-auto pt-3">
-                <TabsList className="flex mb-4 h-auto w-max min-w-full justify-start gap-3 bg-transparent p-0 sm:gap-4">
+                <TabsList className="mb-4 flex h-auto w-max min-w-full justify-start gap-3 bg-transparent p-0 sm:gap-4">
                   {QR_TYPES.map((type, index) => (
                     <MotionPreset
                       key={type.id}
@@ -91,13 +90,13 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                     >
                       <TabsTrigger
                         value={type.id}
-                        className="group relative flex h-24 w-24 flex-shrink-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-transparent bg-card px-3 py-4 shadow-sm transition-all duration-300 hover:border-primary/30 data-[state=active]:border-primary data-[state=active]:bg-primary/5 data-[state=active]:shadow-md sm:h-28 sm:w-28"
+                        className="bg-card hover:border-primary/30 data-[state=active]:border-primary data-[state=active]:bg-primary/5 group relative flex h-24 w-24 flex-shrink-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-transparent px-3 py-4 shadow-sm transition-all duration-300 data-[state=active]:shadow-md sm:h-28 sm:w-28"
                       >
                         <Icon
                           icon={type.icon}
-                          className="relative z-10 h-7 w-7 text-muted-foreground transition-colors duration-300 group-data-[state=active]:text-primary sm:h-8 sm:w-8"
+                          className="text-muted-foreground group-data-[state=active]:text-primary relative z-10 h-7 w-7 transition-colors duration-300 sm:h-8 sm:w-8"
                         />
-                        <span className="relative z-10 text-center text-xs font-medium text-muted-foreground transition-colors duration-300 group-data-[state=active]:text-primary">
+                        <span className="text-muted-foreground group-data-[state=active]:text-primary relative z-10 text-center text-xs font-medium transition-colors duration-300">
                           {type.label}
                         </span>
                       </TabsTrigger>
@@ -107,9 +106,9 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
               </ScrollArea.Viewport>
               <ScrollArea.Scrollbar
                 orientation="horizontal"
-                className="flex h-2 translate-y-1 touch-none select-none flex-col bg-muted/50 transition-colors"
+                className="bg-muted/50 flex h-2 translate-y-1 touch-none select-none flex-col transition-colors"
               >
-                <ScrollArea.Thumb className="relative flex-1 rounded-full bg-primary/50 transition-colors hover:bg-primary/70" />
+                <ScrollArea.Thumb className="bg-primary/50 hover:bg-primary/70 relative flex-1 rounded-full transition-colors" />
               </ScrollArea.Scrollbar>
             </ScrollArea.Root>
           </MotionPreset>
@@ -130,12 +129,16 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                       {type.info}
                     </h3>
 
-                    <p className="text-muted-foreground text-base md:text-lg">{type.content}</p>
+                    <p className="text-muted-foreground text-base md:text-lg">
+                      {type.content}
+                    </p>
 
                     <Button
                       className="bg-secondary hover:bg-secondary/90 w-fit"
                       size="lg"
-                      onClick={() => handleScrollButtonClick("2", type.scrollTo)}
+                      onClick={() =>
+                        handleScrollButtonClick("2", type.scrollTo)
+                      }
                     >
                       Create {type.label} QR code
                     </Button>
@@ -150,12 +153,12 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                   transition={{ duration: 0.7 }}
                   className="w-full lg:w-1/2"
                 >
-                  <div className="relative h-[400px] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-secondary/10">
+                  <div className="from-primary/10 via-primary/5 to-secondary/10 relative h-[280px] w-full overflow-hidden rounded-2xl bg-gradient-to-br">
                     <Image
                       src={type.img}
                       alt={type.label}
                       fill
-                      className="object-contain p-8"
+                      className="object-contain p-6"
                       priority
                     />
                   </div>

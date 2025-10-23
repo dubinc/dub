@@ -1,10 +1,7 @@
 "use client";
 
-import { HeroSection } from "@/ui/landing/components/hero/hero-section.tsx";
-import { PricingSection } from "@/ui/landing/components/pricing/pricing-plans.tsx";
-import { QrTabsDetailed } from "@/ui/landing/components/qr-tabs-detailed/qr-tabs-detailed.tsx";
 import { QRTabs } from "@/ui/landing/components/qr-tabs/qr-tabs.tsx";
-import { ReviewsSection } from "@/ui/landing/components/reviews/reviews-section.tsx";
+import { LandingSectionsServer } from "@/ui/landing/landing-sections-server.tsx";
 import { FC, useCallback, useRef, useState } from "react";
 import { trackClientEvents } from "../../core/integration/analytic";
 import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
@@ -50,11 +47,7 @@ export const LandingSectionsClient: FC<
 
   return (
     <>
-      <HeroSection
-        sessionId={sessionId}
-        onCreateQRClick={() => handleScrollButtonClick("1")}
-      />
-
+      {/* 1. New Builder */}
       <section
         id="qr-generation-block"
         ref={qrGenerationBlockRef}
@@ -67,12 +60,11 @@ export const LandingSectionsClient: FC<
         />
       </section>
 
-      <QrTabsDetailed
+      {/* 2-8. Other sections */}
+      <LandingSectionsServer
         sessionId={sessionId}
         handleScrollButtonClick={handleScrollButtonClick}
       />
-      <ReviewsSection />
-      <PricingSection handleScrollButtonClick={handleScrollButtonClick} />
     </>
   );
 };
