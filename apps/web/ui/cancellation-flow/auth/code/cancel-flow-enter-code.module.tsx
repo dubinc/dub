@@ -15,7 +15,7 @@ const pageName = "cancel_flow_email_verification";
 const CODE_REGEX = /^\d{6}$/;
 
 const errorMessages = {
-  subscription_cancelled: "Subscription cancelled",
+  invalid_code: "Invalid code. Please try again.",
   user_not_found: "User not found. Please check your email and try again.",
 };
 
@@ -49,17 +49,17 @@ export const CancelFlowEnterCodeModule: FC<
     }
   };
 
-  const handleResendCode = async (callback: () => void) => {
+  const handleResendCode = async (resetTimer: () => void) => {
     const response = await sendOtpCode({ email });
 
     if (response?.success) {
-      callback();
+      resetTimer();
     }
   };
 
   const handleSubmit = async () => {
     if (!CODE_REGEX.test(value)) {
-      setErrorMessage("Please enter a valid email address");
+      setErrorMessage("Please enter a valid verification code");
       return;
     }
 
@@ -81,7 +81,7 @@ export const CancelFlowEnterCodeModule: FC<
 
     initPeopleAnalytic(response.data?.user_id || "");
 
-    router.push("/cancellation");
+    router.push("/cancellation/feedback");
   };
 
   return (

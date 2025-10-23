@@ -8,9 +8,6 @@ import { verifyConfirmationCode } from "core/services/token-hash.service";
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
 
-const USER_NOT_FOUND =
-  "User not found. Please check your email address and try again.";
-
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const { confirm_code, user_email } = await request.json();
 
@@ -23,8 +20,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid code",
-          // error: tCancellation('error_invalid_code')
+          error: "invalid_code",
         },
         { status: 401 },
       );
@@ -40,7 +36,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json(
         {
           success: false,
-          error: "Invalid code",
+          error: "invalid_code",
         },
         { status: 401 },
       );
@@ -54,7 +50,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (!user) {
       return NextResponse.json(
-        { status: 404, success: false, error: USER_NOT_FOUND },
+        { status: 404, success: false, error: "user_not_found" },
         { status: 404 },
       );
     }

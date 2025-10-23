@@ -3,16 +3,14 @@
 import { Button } from "@dub/ui";
 import { useCancelSubscriptionScheduleMutation } from "core/api/user/subscription/subscription.hook";
 import { useRouter } from "next/navigation";
-import { FC, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface ICancellationFlowModuleProps {
   isDunning: boolean;
 }
 
-export const CancellationFlowModule: FC<
-  Readonly<ICancellationFlowModuleProps>
-> = ({ isDunning }) => {
+export const CancellationFlowModule = () => {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -68,12 +66,14 @@ export const CancellationFlowModule: FC<
       </p>
       <div className="flex w-full flex-col gap-2">
         <Button
-          loading={isLoading || isCancellingSchedule}
+          loading={isCancellingSchedule}
+          disabled={isLoading || isCancellingSchedule}
           className="border-none bg-red-500 font-semibold text-white"
           onClick={handleCancelSubscription}
           text="Cancel Subscription"
         />
         <Button
+          disabled={isLoading || isCancellingSchedule}
           onClick={handleLinkToWorkspaceClick}
           text="Return to workspace"
         />
