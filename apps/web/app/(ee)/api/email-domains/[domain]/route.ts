@@ -53,7 +53,10 @@ export const PATCH = withWorkspace(
       });
 
       if (error) {
-        throw error;
+        throw new DubApiError({
+          code: "unprocessable_entity",
+          message: error.message,
+        });
       }
 
       waitUntil(
@@ -119,6 +122,23 @@ export const DELETE = withWorkspace(
       programId,
       domain,
     });
+
+    const activeCampaignsCount = await prisma.campaign.count({
+      where: {
+        programId,
+        from: emailDomain.fromAddress,
+        status: {
+          in: ["active", "scheduled", "sending"],
+        },
+      },
+    });
+
+    if (activeCampaignsCount > 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: `There are active campaigns using this email domain. You can not delete it until all campaigns are completed or paused.`,
+      });
+    }
 
     await prisma.emailDomain.delete({
       where: {

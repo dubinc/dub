@@ -48,69 +48,62 @@ export const POST = withWorkspace(
       fromAddress,
     });
 
+    const existingEmailDomain = await prisma.emailDomain.findFirst({
+      where: {
+        programId,
+      },
+    });
+
+    if (existingEmailDomain) {
+      throw new DubApiError({
+        code: "bad_request",
+        message:
+          "An email domain has already been configured for this program. Each program can only have one email domain.",
+      });
+    }
+
+    if (!resend) {
+      throw new DubApiError({
+        code: "internal_server_error",
+        message: "Resend is not configured.",
+      });
+    }
+
+    const { data: resendDomain, error } = await resend.domains.create({
+      name: slug,
+    });
+
+    if (error) {
+      throw new DubApiError({
+        code: "unprocessable_entity",
+        message: error.message,
+      });
+    }
+
     try {
-      const emailDomain = await prisma.$transaction(async (tx) => {
-        const existingEmailDomain = await tx.emailDomain.findFirst({
-          where: {
-            programId,
-          },
-        });
-
-        if (existingEmailDomain) {
-          throw new DubApiError({
-            code: "bad_request",
-            message:
-              "An email domain has already been configured for this program. Each program can only have one email domain.",
-          });
-        }
-
-        const emailDomain = await tx.emailDomain.create({
-          data: {
-            id: createId({ prefix: "dom_" }),
-            workspaceId: workspace.id,
-            programId,
-            slug,
-            fromAddress,
-          },
-        });
-
-        return emailDomain;
+      const emailDomain = await prisma.emailDomain.create({
+        data: {
+          id: createId({ prefix: "dom_" }),
+          workspaceId: workspace.id,
+          programId,
+          slug,
+          fromAddress,
+          resendDomainId: resendDomain.id,
+        },
       });
-
-      if (!resend) {
-        throw new DubApiError({
-          code: "internal_server_error",
-          message: "Resend is not configured.",
-        });
-      }
-
-      const { data: resendDomain, error } = await resend.domains.create({
-        name: slug,
-      });
-
-      if (error) {
-        throw error;
-      }
 
       waitUntil(
-        Promise.allSettled([
-          prisma.emailDomain.update({
-            where: {
-              id: emailDomain.id,
-            },
-            data: {
-              resendDomainId: resendDomain.id,
-            },
-          }),
+        (async () => {
+          const { error } = await resend.domains.verify(resendDomain.id);
 
-          resend.domains.verify(resendDomain.id),
-        ]),
+          if (error) {
+            console.error("Error verifying resend domain", error);
+          }
+        })(),
       );
 
       return NextResponse.json(EmailDomainSchema.parse(emailDomain));
     } catch (error) {
-      console.error(error);
-
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
           throw new DubApiError({

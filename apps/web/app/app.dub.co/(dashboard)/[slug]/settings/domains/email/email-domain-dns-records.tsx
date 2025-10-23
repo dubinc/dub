@@ -159,7 +159,7 @@ function DnsRecordsTable({
       <Table
         {...tableProps}
         table={table}
-        containerClassName="border-0 bg-transparent"
+        containerClassName="border-0 bg-transparent rounded-none"
         scrollWrapperClassName="min-h-0"
         emptyWrapperClassName="h-24"
         className="[&_tbody]:bg-transparent"
