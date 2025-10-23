@@ -23,24 +23,29 @@ export const CancellationFlowSuccessModule: FC<
         Subscription Cancelled
       </h1>
       <p className="text-default-700 text-center text-sm">
-        Your subscription has been cancelled. No further charges will occur. You
-        can continue using all features until{" "}
-        <span className="font-semibold">
-          {format(new Date(nextBillingDate), "MMMM d, yyyy")}
-        </span>
-        . A confirmation email has been sent to your email address. If you need
+        Your subscription has been cancelled. No further charges will occur.{" "}
+        {!isCancelled && (
+          <>
+            You can continue using all features until{" "}
+            <span className="font-semibold">
+              {format(new Date(nextBillingDate), "MMMM d, yyyy")}
+            </span>
+            .
+          </>
+        )}{" "}
+        A confirmation email has been sent to your email address. If you need
         further assistance, you can contact support at{" "}
         <Link
           className="font-semibold text-blue-500 underline"
-          href="mailto:help@hint.app"
+          href="mailto:help@getqr.com"
         >
-          help@hint.app
+          help@getqr.com
         </Link>
         .
       </p>
 
       <Button
-        onClick={() => router.push("/workspace")}
+        onClick={() => router.push("/workspaces")}
         text="Return to GetQR"
       />
     </div>

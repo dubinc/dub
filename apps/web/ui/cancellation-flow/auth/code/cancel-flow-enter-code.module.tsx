@@ -1,9 +1,14 @@
 "use client";
 
 import { Button, Input } from "@dub/ui";
-import { useVerifyOtpCodeQuery } from "core/api/user/subscription/cancellation-opt-code/opt-code.hook";
+import {
+  useSendOtpCodeQuery,
+  useVerifyOtpCodeQuery,
+} from "core/api/user/subscription/cancellation-opt-code/opt-code.hook";
+import { initPeopleAnalytic } from "core/integration/analytic";
 import { useRouter } from "next/navigation";
 import { FC, useState } from "react";
+import { TimerComponent } from "./elements/timer.component";
 
 const pageName = "cancel_flow_email_verification";
 
@@ -28,7 +33,9 @@ export const CancelFlowEnterCodeModule: FC<
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>("");
 
-  const { trigger: validateEmail, isMutating: isSendingOtpCode } =
+  const { trigger: sendOtpCode, isMutating: isSendingOtpCode } =
+    useSendOtpCodeQuery();
+  const { trigger: validateEmail, isMutating: isEmailvalidating } =
     useVerifyOtpCodeQuery();
 
   const handleChangeCode = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,6 +46,14 @@ export const CancelFlowEnterCodeModule: FC<
   const handleBlur = () => {
     if (value && !CODE_REGEX.test(value)) {
       setErrorMessage("Please enter a valid email address");
+    }
+  };
+
+  const handleResendCode = async (callback: () => void) => {
+    const response = await sendOtpCode({ email });
+
+    if (response?.success) {
+      callback();
     }
   };
 
@@ -64,6 +79,8 @@ export const CancelFlowEnterCodeModule: FC<
       return;
     }
 
+    initPeopleAnalytic(response.data?.user_id || "");
+
     router.push("/cancellation");
   };
 
@@ -72,27 +89,34 @@ export const CancelFlowEnterCodeModule: FC<
       <h1 className="text-center text-2xl font-semibold lg:text-2xl">
         Check your email to continue
       </h1>
-      <p className="text-default-700 text-center text-sm">
+      <p className="text-center text-sm text-neutral-500">
         We've sent you a one-time code to{" "}
         <span className="text-blue-600">{email}</span>. Enter the code below:
       </p>
-      <Input
-        value={value}
-        onChange={handleChangeCode}
-        onBlur={handleBlur}
-        inputMode="numeric"
-        autoCapitalize="none"
-        className="border-border-500 focus:border-secondary block w-full px-3 py-2 placeholder-neutral-400 shadow-sm focus:outline-none sm:text-sm"
-        error={errorMessage}
-        placeholder="Confirmation code"
-        containerClassName="w-full min-w-full max-w-full"
-      />
+      <div className="flex w-full flex-col gap-3">
+        <div className="flex flex-col gap-2">
+          <Input
+            value={value}
+            onChange={handleChangeCode}
+            onBlur={handleBlur}
+            inputMode="numeric"
+            autoCapitalize="none"
+            className="border-border-500 focus:border-secondary block w-full px-3 py-2 placeholder-neutral-400 shadow-sm focus:outline-none sm:text-sm"
+            error={errorMessage}
+            placeholder="Confirmation code"
+            containerClassName="w-full min-w-full max-w-full"
+          />
 
-      <Button
-        loading={isLoading || isSendingOtpCode}
-        onClick={handleSubmit}
-        text="Continue"
-      />
+          <TimerComponent resendCode={handleResendCode} />
+        </div>
+
+        <Button
+          loading={isLoading || isEmailvalidating}
+          disabled={isSendingOtpCode}
+          onClick={handleSubmit}
+          text="Continue"
+        />
+      </div>
     </div>
   );
 };

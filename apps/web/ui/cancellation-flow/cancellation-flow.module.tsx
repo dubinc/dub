@@ -53,7 +53,7 @@ export const CancellationFlowModule: FC<
 
   const handleLinkToWorkspaceClick = () => {
     setIsLoading(true);
-    router.push("/workspace");
+    router.push("/workspaces");
   };
 
   return (
