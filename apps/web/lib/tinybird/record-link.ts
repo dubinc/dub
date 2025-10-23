@@ -30,11 +30,7 @@ export const dubLinksMetadataSchema = z.object({
   workspace_id: z
     .string()
     .nullish()
-    .transform((v) => {
-      if (!v) return ""; // return empty string if null or undefined
-
-      return prefixWorkspaceId(v);
-    }),
+    .transform((v) => (v ? v : "")),
   created_at: z
     .date()
     .transform((v) => v.toISOString().replace("T", " ").replace("Z", "")),
@@ -46,7 +42,15 @@ export const dubLinksMetadataSchema = z.object({
 
 export const recordLinkTB = tb.buildIngestEndpoint({
   datasource: "dub_links_metadata",
-  event: dubLinksMetadataSchema,
+  event: dubLinksMetadataSchema.extend({
+    workspace_id: z
+      .string()
+      .nullish()
+      .transform((v) => {
+        if (!v) return ""; // return empty string if null or undefined
+        return prefixWorkspaceId(v);
+      }),
+  }),
   wait: true,
 });
 
