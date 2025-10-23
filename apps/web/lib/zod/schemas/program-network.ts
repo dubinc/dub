@@ -31,9 +31,13 @@ export const getNetworkProgramsQuerySchema = z
       .transform((v) =>
         Array.isArray(v)
           ? v
-          : v.split(",").filter((v) => rewardTypes.includes(v)),
+          : v.split(",").filter((v) => rewardTypes.includes(v as any)),
       )
       .optional(),
+    status: z.preprocess(
+      (v) => (v === "null" ? null : v),
+      z.nativeEnum(ProgramEnrollmentStatus).nullish(),
+    ),
     search: z.string().optional(),
   })
   .merge(
@@ -48,5 +52,5 @@ export const getNetworkProgramsCountQuerySchema = getNetworkProgramsQuerySchema
     pageSize: true,
   })
   .extend({
-    groupBy: z.enum(["category", "rewardType"]).optional(),
+    groupBy: z.enum(["category", "rewardType", "status"]).optional(),
   });

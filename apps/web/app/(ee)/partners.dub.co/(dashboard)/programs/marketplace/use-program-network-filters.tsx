@@ -1,9 +1,10 @@
 import { categoriesMap } from "@/lib/partners/categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
+import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { Gift, Suitcase } from "@dub/ui/icons";
-import { nFormatter } from "@dub/utils";
+import { CircleDotted, Gift, Suitcase } from "@dub/ui/icons";
+import { capitalize, cn, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
 const REWARD_TYPES = {
@@ -54,6 +55,19 @@ export function useProgramNetworkFilters() {
     excludeParams: ["rewardType"],
   });
 
+  const { data: statusCount } = useNetworkProgramsCount<
+    | {
+        status: string | null;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    query: {
+      groupBy: "status",
+    },
+    excludeParams: ["status"],
+  });
+
   const filters = useMemo(
     () => [
       {
@@ -90,8 +104,35 @@ export function useProgramNetworkFilters() {
           }),
         ),
       },
+      {
+        key: "status",
+        icon: CircleDotted,
+        label: "Status",
+        options:
+          statusCount?.map(({ status, _count }) => {
+            const {
+              label,
+              icon: Icon,
+              className,
+            } = status
+              ? ProgramNetworkStatusBadges[status]
+              : {
+                  label: "No status",
+                  icon: CircleDotted,
+                  className: "text-neutral-500",
+                };
+            return {
+              value: status ?? "null",
+              label: label || capitalize(status),
+              icon: (
+                <Icon className={cn("size-4", className, "bg-transparent")} />
+              ),
+              right: nFormatter(_count, { full: true }),
+            };
+          }) ?? null,
+      },
     ],
-    [categoriesCount, rewardTypesCount],
+    [categoriesCount, rewardTypesCount, statusCount],
   );
 
   const multiFilters = useMemo(
@@ -102,7 +143,7 @@ export function useProgramNetworkFilters() {
   ) as Record<string, string[]>;
 
   const activeFilters = useMemo(() => {
-    const { category } = searchParamsObj;
+    const { category, status } = searchParamsObj;
 
     return [
       ...Object.entries(multiFilters)
@@ -110,6 +151,7 @@ export function useProgramNetworkFilters() {
         .filter(({ value }) => value.length > 0),
 
       ...(category ? [{ key: "category", value: category }] : []),
+      ...(status ? [{ key: "status", value: status }] : []),
     ];
   }, [searchParamsObj, multiFilters]);
 
@@ -152,7 +194,7 @@ export function useProgramNetworkFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: [...Object.keys(multiFilters), "category", "starred"],
+        del: [...Object.keys(multiFilters), "category", "status"],
       }),
     [queryParams, multiFilters],
   );

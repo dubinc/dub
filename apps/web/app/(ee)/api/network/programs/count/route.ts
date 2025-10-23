@@ -14,7 +14,7 @@ const rewardTypeMap = {
 
 // GET /api/network/programs/count - get the number of available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { groupBy, category, rewardType, search } =
+  const { groupBy, category, rewardType, status, search } =
     getNetworkProgramsCountQuerySchema.parse(searchParams);
 
   const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
@@ -24,16 +24,28 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     ${
       rewardType && groupBy !== "rewardType"
         ? Prisma.sql`
-        AND EXISTS (
-          SELECT 1 FROM PartnerGroup pg
-          WHERE
-            pg.programId = p.id 
-            AND pg.slug = ${DEFAULT_PARTNER_GROUP.slug}
-            AND ${Prisma.join(
-              rewardType.map((type) => rewardTypeMap[type]),
-              " AND ",
-            )}
-        )`
+          AND EXISTS (
+            SELECT 1 FROM PartnerGroup pg
+            WHERE
+              pg.programId = p.id 
+              AND pg.slug = ${DEFAULT_PARTNER_GROUP.slug}
+              AND ${Prisma.join(
+                rewardType.map((type) => rewardTypeMap[type]),
+                " AND ",
+              )}
+          )`
+        : Prisma.sql``
+    }
+    ${
+      status !== undefined && groupBy !== "status"
+        ? Prisma.sql`
+          AND ${status === null ? Prisma.sql`NOT` : Prisma.sql``} EXISTS (
+            SELECT 1 FROM ProgramEnrollment pe
+            WHERE
+              pe.programId = p.id 
+              AND pe.partnerId = ${partner.id}
+              ${status === null ? Prisma.sql`` : Prisma.sql`AND pe.status = ${status}`}
+          )`
         : Prisma.sql``
     }
     ${searchSql ? Prisma.sql`AND (p.name LIKE ${searchSql} OR p.slug LIKE ${searchSql} OR p.domain LIKE ${searchSql})` : Prisma.sql``}
@@ -71,6 +83,22 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       ["sale", "lead", "click", "discount"].map((k) => ({
         type: k,
         _count: Number(rewards[0][k]),
+      })),
+    );
+  } else if (groupBy === "status") {
+    const statuses = (await prisma.$queryRaw`
+      SELECT pe.status, COUNT(p.id) AS _count
+      FROM Program p
+      LEFT JOIN ProgramEnrollment pe ON p.id = pe.programId AND pe.partnerId = ${partner.id}
+      WHERE p.marketplaceEnabledAt IS NOT NULL
+      GROUP BY pe.status
+      ORDER BY _count DESC
+    `) as { status: string | null; _count: bigint }[];
+
+    return NextResponse.json(
+      statuses.map(({ _count, ...rest }) => ({
+        ...rest,
+        _count: Number(_count),
       })),
     );
   }

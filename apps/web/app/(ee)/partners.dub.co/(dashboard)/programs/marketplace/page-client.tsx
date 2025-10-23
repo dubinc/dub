@@ -7,7 +7,7 @@ import { PROGRAM_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/program-network
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
-import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
+import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import { Category } from "@dub/prisma/client";
 import {
@@ -124,18 +124,6 @@ export function ProgramMarketplacePageClient() {
   );
 }
 
-const statusBadges = {
-  ...PartnerStatusBadges,
-  approved: {
-    ...PartnerStatusBadges.approved,
-    label: "Enrolled",
-  },
-  pending: {
-    ...PartnerStatusBadges.pending,
-    label: "Applied",
-  },
-};
-
 function ProgramCard({
   program,
 }: {
@@ -143,7 +131,9 @@ function ProgramCard({
 }) {
   const router = useRouter();
 
-  const statusBadge = program?.status ? statusBadges[program.status] : null;
+  const statusBadge = program?.status
+    ? ProgramNetworkStatusBadges[program.status]
+    : null;
   const url = program ? `/programs/${program.slug}` : undefined;
 
   return (
