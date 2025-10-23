@@ -42,7 +42,6 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   isDeprecatedClicksEndpoint?: boolean;
   linkIds?: string[]; // TODO: remove this once it's been added to the public API
   folderIds?: string[];
-  isMegaFolder?: boolean;
 };
 
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
@@ -51,7 +50,6 @@ export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   isDemo?: boolean;
   customerId?: string;
   folderIds?: string[];
-  isMegaFolder?: boolean;
 };
 
 const partnerAnalyticsSchema = analyticsQuerySchema

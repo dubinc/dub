@@ -284,7 +284,6 @@ export const analyticsFilterTB = z
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
-    isMegaFolder: z.boolean().optional(),
     filters: z
       .string()
       .optional()
