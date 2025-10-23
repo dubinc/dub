@@ -33,37 +33,33 @@ export const authOptions: NextAuthOptions = {
   providers: [
     EmailProvider({
       sendVerificationRequest({ identifier, url }) {
-        try {
-          prisma.user
-            .findUnique({
-              where: {
-                email: identifier,
-              },
-              select: {
-                id: true,
-              },
-            })
-            .then(async (user) => {
-              if (process.env.NODE_ENV === "development") {
-                console.log(`Login link: ${url}`);
-                return;
-              }
+        prisma.user
+          .findUnique({
+            where: {
+              email: identifier,
+            },
+            select: {
+              id: true,
+            },
+          })
+          .then(async (user) => {
+            if (process.env.NODE_ENV === "development") {
+              console.log(`Login link: ${url}`);
+              return;
+            }
 
-              waitUntil(
-                sendEmail({
-                  email: identifier,
-                  subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
-                  template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
-                  messageData: {
-                    url,
-                  },
-                  customerId: user?.id,
-                }),
-              );
-            });
-        } catch (error) {
-          console.error("Failed to send verification email:", error);
-        }
+            waitUntil(
+              sendEmail({
+                email: identifier,
+                subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
+                template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
+                messageData: {
+                  url,
+                },
+                customerId: user?.id,
+              }),
+            );
+          });
       },
     }),
     GoogleProvider({
