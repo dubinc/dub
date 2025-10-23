@@ -9,6 +9,8 @@ import CampaignEmail from "@dub/email/templates/campaign-email";
 import { prisma } from "@dub/prisma";
 import { NotificationEmailType } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { differenceInMinutes } from "date-fns";
+import { headers } from "next/headers";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
@@ -65,6 +67,33 @@ export async function POST(req: Request) {
     if (!["scheduled", "sending"].includes(campaign.status)) {
       return logAndRespond(
         `Campaign ${campaignId} must be in "sending" or "scheduled" status to broadcast.`,
+      );
+    }
+
+    // This is a safety check to ensure the campaign is not scheduled to broadcast too far in the future
+    // Idealy this should not happen but just in case
+    if (campaign.scheduledAt) {
+      const diffMinutes = differenceInMinutes(campaign.scheduledAt, new Date());
+
+      if (diffMinutes >= 5) {
+        await log({
+          message: `Campaign ${campaignId} broadcast was skipped because it is scheduled to broadcast in the future. This might be an error in the campaign scheduling.`,
+          type: "errors",
+        });
+
+        return logAndRespond(
+          `Campaign ${campaignId} is not scheduled to broadcast yet.`,
+        );
+      }
+    }
+
+    // This is a safety check to ensure the campaign is not broadcasted multiple times
+    const headersList = await headers();
+    const upstashMessageId = headersList.get("Upstash-Message-Id");
+
+    if (campaign.qstashId && upstashMessageId !== campaign.qstashId) {
+      return logAndRespond(
+        `Campaign ${campaignId} broadcast was skipped because it is not the current message being processed.`,
       );
     }
 
