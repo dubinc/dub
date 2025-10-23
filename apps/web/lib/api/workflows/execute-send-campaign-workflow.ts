@@ -124,7 +124,7 @@ export const executeSendCampaignWorkflow = async ({
 
   const program = campaign.program;
 
-  // Find the from address
+  // Make sure the email domain is verified otherwise Resend will throw an error
   let fromAddress: string | null = null;
   if (campaign.from) {
     const emailDomain = program.emailDomains.find(
