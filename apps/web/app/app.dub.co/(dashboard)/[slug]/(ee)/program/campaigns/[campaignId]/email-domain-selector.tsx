@@ -82,7 +82,8 @@ export function EmailDomainSelector({
         <Combobox
           options={loading ? undefined : domainOptions}
           setSelected={(option) => {
-            setSelectedFromAddress(option?.value || null);
+            if (!option) return;
+            setSelectedFromAddress(option.value);
           }}
           selected={selectedOption}
           caret={true}
