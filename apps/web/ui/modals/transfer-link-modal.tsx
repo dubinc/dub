@@ -1,22 +1,8 @@
-import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
 import useWorkspaces from "@/lib/swr/use-workspaces";
 import { LinkProps } from "@/lib/types";
-import {
-  Button,
-  InputSelect,
-  InputSelectItemProps,
-  LinkLogo,
-  Modal,
-} from "@dub/ui";
-import {
-  APP_NAME,
-  OG_AVATAR_URL,
-  getApexDomain,
-  isDubDomain,
-  linkConstructor,
-} from "@dub/utils";
+import { Button, Modal, useMediaQuery } from "@dub/ui";
 import {
   Dispatch,
   SetStateAction,
@@ -25,6 +11,8 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
+import { SimpleLinkCard } from "../links/simple-link-card";
+import { WorkspaceSelector } from "../workspaces/workspace-selector";
 
 type TransferLinkModalProps = {
   showTransferLinkModal: boolean;
@@ -38,7 +26,6 @@ function TransferLinkModal(props: TransferLinkModalProps) {
     <Modal
       showModal={props.showTransferLinkModal}
       setShowModal={props.setShowTransferLinkModal}
-      className="overflow-y-visible"
     >
       <TransferLinkModalInner {...props} />
     </Modal>
@@ -50,96 +37,128 @@ function TransferLinkModalInner({
   props,
   onSuccess,
 }: TransferLinkModalProps) {
-  const { id } = useWorkspace();
-  const { workspaces } = useWorkspaces();
+  const { id: currentWorkspaceId } = useWorkspace();
   const [transferring, setTransferring] = useState(false);
-  const [selectedWorkspace, setSelectedWorkspace] =
-    useState<InputSelectItemProps | null>(null);
+  const { workspaces } = useWorkspaces();
+  const [selectedWorkspace, setSelectedWorkspace] = useState<string | null>(
+    null,
+  );
+  const [verificationText, setVerificationText] = useState("");
 
-  const apexDomain = getApexDomain(props.url);
-  const { key, domain } = props;
+  const { isMobile } = useMediaQuery();
 
-  const shortlink = useMemo(() => {
-    return linkConstructor({
-      key,
-      domain,
-      pretty: true,
-    });
-  }, [key, domain]);
+  const transferLink = async (linkId: string, selectedWorkspace: string) => {
+    setTransferring(true);
+    const newWorkspaceId = workspaces?.find(
+      (workspace) => workspace.slug === selectedWorkspace,
+    )?.id;
+    if (!newWorkspaceId) {
+      toast.error("New workspace not found.");
+      return;
+    }
 
-  const transferLink = async (linkId: string, newWorkspaceId: string) => {
-    return await fetch(`/api/links/${linkId}/transfer?workspaceId=${id}`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    return await fetch(
+      `/api/links/${linkId}/transfer?workspaceId=${currentWorkspaceId}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ newWorkspaceId }),
       },
-      body: JSON.stringify({ newWorkspaceId }),
-    }).then(async (res) => {
+    ).then(async (res) => {
       if (res.ok) {
         mutatePrefix("/api/links");
         setShowTransferLinkModal(false);
         onSuccess?.();
-        return true;
       } else {
-        const error = await res.json();
-        throw new Error(error.message);
+        const { error } = await res.json();
+        toast.error(error.message || "Failed to transfer link.");
       }
+
+      setTransferring(false);
     });
   };
 
   return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        if (selectedWorkspace) {
-          setTransferring(true);
-          toast.promise(transferLink(props.id, selectedWorkspace.id), {
-            loading: "Transferring link...",
-            success: "Successfully transferred link.",
-            error: "Failed to transfer link.",
-          });
-        }
-      }}
-    >
-      <div className="flex flex-col items-center justify-center space-y-3 border-b border-neutral-200 px-4 py-4 pt-8 text-center sm:px-16">
-        <LinkLogo apexDomain={apexDomain} />
-        <h3 className="text-lg font-medium">Transfer {shortlink}</h3>
-        <p className="text-sm text-neutral-500">
-          Transfer this link and its analytics to another {APP_NAME} workspace.
-          Link tags will not be transferred.
-        </p>
+    <>
+      <div className="space-y-2 border-b border-neutral-200 p-4 sm:p-6">
+        <h3 className="text-lg font-medium leading-none">Transfer link</h3>
       </div>
 
-      <div className="flex flex-col space-y-28 bg-neutral-50 px-4 py-8 text-left sm:space-y-3 sm:rounded-b-2xl sm:px-16">
-        <InputSelect
-          items={
-            workspaces
-              ? workspaces.map((workspace) => ({
-                  id: workspace.id,
-                  value: workspace.name,
-                  image: workspace.logo || `${OG_AVATAR_URL}${workspace.name}`,
-                  disabled:
-                    normalizeWorkspaceId(workspace.id) === props.projectId,
-                  label:
-                    normalizeWorkspaceId(workspace.id) === props.projectId
-                      ? "Current"
-                      : "",
-                }))
-              : []
-          }
-          selectedItem={selectedWorkspace}
-          setSelectedItem={setSelectedWorkspace}
-          inputAttrs={{
-            placeholder: "Select a workspace",
-          }}
-        />
-        <Button
-          disabled={!selectedWorkspace || !isDubDomain(domain)}
-          loading={transferring}
-          text="Confirm transfer"
-        />
+      <div className="bg-neutral-50 p-4 sm:p-6">
+        <p className="text-sm text-neutral-800">
+          Are you sure you want to transfer this link?
+        </p>
+
+        <p className="mt-4 text-sm font-medium text-neutral-800">
+          Transferring a link will fully reset its stats and is irreversible –
+          please proceed with caution.
+        </p>
+
+        <div className="scrollbar-hide mt-4 flex max-h-[190px] flex-col gap-2 overflow-y-auto rounded-2xl border border-neutral-200 p-2">
+          <SimpleLinkCard link={props} />
+        </div>
+
+        <div className="mt-4">
+          <WorkspaceSelector
+            selectedWorkspace={selectedWorkspace || ""}
+            setSelectedWorkspace={setSelectedWorkspace}
+          />
+        </div>
       </div>
-    </form>
+
+      <form
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (selectedWorkspace) {
+            await transferLink(props.id, selectedWorkspace);
+          }
+        }}
+        className="flex flex-col bg-neutral-50 text-left"
+      >
+        <div className="px-4 sm:px-6">
+          <label
+            htmlFor="verification"
+            className="block text-sm text-neutral-700"
+          >
+            To verify, type{" "}
+            <span className="font-semibold">confirm transfer link</span> below
+          </label>
+          <div className="relative mt-1.5 rounded-md shadow-sm">
+            <input
+              type="text"
+              name="verification"
+              id="verification"
+              pattern="confirm transfer link"
+              required
+              autoFocus={!isMobile}
+              autoComplete="off"
+              value={verificationText}
+              onChange={(e) => setVerificationText(e.target.value)}
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+            />
+          </div>
+        </div>
+
+        <div className="mt-8 flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
+          <Button
+            onClick={() => setShowTransferLinkModal(false)}
+            variant="secondary"
+            text="Cancel"
+            className="h-8 w-fit px-3"
+          />
+          <Button
+            disabled={
+              !selectedWorkspace || verificationText !== "confirm transfer link"
+            }
+            loading={transferring}
+            text="Transfer link"
+            className="h-8 w-fit px-3"
+          />
+        </div>
+      </form>
+    </>
   );
 }
 

@@ -272,6 +272,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
@@ -279,7 +280,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -325,6 +325,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
@@ -332,7 +333,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -365,6 +365,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
@@ -372,7 +373,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -407,6 +407,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
@@ -414,7 +415,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -478,6 +478,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
@@ -485,7 +486,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -514,6 +514,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
@@ -521,7 +522,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -550,6 +550,7 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
@@ -557,7 +558,6 @@ export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
         programId: cachedLink.programId,
         partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );

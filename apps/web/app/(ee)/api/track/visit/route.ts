@@ -86,11 +86,11 @@ export const POST = withAxiom(async (req: AxiomRequest) => {
           await recordClick({
             req,
             clickId,
+            workspaceId: cachedLink.projectId,
             linkId: cachedLink.id,
             domain,
             key,
             url: finalUrl,
-            workspaceId: cachedLink.projectId,
             skipRatelimit: true,
             ...(referrer && { referrer }),
             trigger: "pageview",
