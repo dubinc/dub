@@ -96,6 +96,16 @@ export const unbanPartnerAction = authActionClient
           status: "pending",
         },
       }),
+
+      prisma.bountySubmission.updateMany({
+        where: {
+          ...where,
+          status: "rejected",
+        },
+        data: {
+          status: "submitted",
+        },
+      }),
     ]);
 
     waitUntil(
