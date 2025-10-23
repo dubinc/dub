@@ -20,7 +20,15 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
   const commonWhereSql = Prisma.sql`
     p.marketplaceEnabledAt IS NOT NULL
-    ${category && groupBy !== "category" ? Prisma.sql`AND pc.category = ${category}` : Prisma.sql``}
+    ${
+      category && groupBy !== "category"
+        ? Prisma.sql`
+          AND EXISTS (
+            SELECT 1 FROM ProgramCategory pc
+            WHERE pc.programId = p.id AND pc.category = ${category}
+          )`
+        : Prisma.sql``
+    }
     ${
       rewardType && groupBy !== "rewardType"
         ? Prisma.sql`

@@ -194,12 +194,14 @@ export function useProgramNetworkFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: [...Object.keys(multiFilters), "category", "status"],
+        del: [...Object.keys(multiFilters), "category", "status", "search"],
       }),
     [queryParams, multiFilters],
   );
 
-  const isFiltered = activeFilters.length > 0 || searchParamsObj.search;
+  const isFiltered = Boolean(
+    activeFilters.length > 0 || searchParamsObj.search,
+  );
 
   return {
     filters,

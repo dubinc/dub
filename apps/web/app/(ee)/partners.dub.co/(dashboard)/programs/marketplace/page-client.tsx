@@ -58,8 +58,14 @@ export function ProgramMarketplacePageClient() {
     PROGRAM_NETWORK_MAX_PAGE_SIZE,
   );
 
-  const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
-    useProgramNetworkFilters();
+  const {
+    filters,
+    activeFilters,
+    isFiltered,
+    onSelect,
+    onRemove,
+    onRemoveAll,
+  } = useProgramNetworkFilters();
 
   return (
     <div className="flex flex-col gap-6">
@@ -82,17 +88,15 @@ export function ProgramMarketplacePageClient() {
         </div>
         <AnimatedSizeContainer height>
           <div>
-            {activeFilters.length > 0 && (
-              <div className="pt-3">
-                <Filter.List
-                  filters={filters}
-                  activeFilters={activeFilters}
-                  onSelect={onSelect}
-                  onRemove={onRemove}
-                  onRemoveAll={onRemoveAll}
-                />
-              </div>
-            )}
+            <div className={cn("pt-3", !isFiltered && "hidden")}>
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            </div>
           </div>
         </AnimatedSizeContainer>
       </div>
@@ -126,19 +130,15 @@ export function ProgramMarketplacePageClient() {
         </div>
       ) : (
         <MarketplaceEmptyState
-          isFiltered={false} // TODO
-          onClearAllFilters={() => {}} // TODO
+          isFiltered={isFiltered}
+          onClearAllFilters={onRemoveAll}
         />
       )}
     </div>
   );
 }
 
-function ProgramCard({
-  program,
-}: {
-  program?: any; // TODO
-}) {
+function ProgramCard({ program }: { program?: NetworkProgramProps }) {
   const router = useRouter();
 
   const statusBadge = program?.status
@@ -203,12 +203,12 @@ function ProgramCard({
             {/* Domain */}
             {program ? (
               <a
-                href={program.url}
+                href={program.url || `https://${program.domain}`}
                 target="_blank"
                 rel="noreferrer noopener"
                 className="text-sm font-medium"
               >
-                {getPrettyUrl(program.url)}
+                {getPrettyUrl(program.url) || program.domain}
               </a>
             ) : (
               <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
@@ -224,7 +224,7 @@ function ProgramCard({
                       Rewards
                     </span>
                     <div className="mt-1 flex items-center gap-1.5">
-                      {program.rewards.map((reward) => (
+                      {program.rewards?.map((reward) => (
                         <RewardOrDiscountIcon
                           key={reward.id}
                           icon={REWARD_EVENTS[reward.event].icon}
