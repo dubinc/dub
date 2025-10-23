@@ -92,18 +92,13 @@ export const POST = withWorkspace(
         },
       });
 
-      waitUntil(
-        (async () => {
-          const { error } = await resend.domains.verify(resendDomain.id);
-
-          if (error) {
-            console.error("Error verifying resend domain", error);
-          }
-        })(),
-      );
+      waitUntil(resend.domains.verify(resendDomain.id));
 
       return NextResponse.json(EmailDomainSchema.parse(emailDomain));
     } catch (error) {
+      // Cleanup to avoid orphaned Resend domains
+      waitUntil(resend.domains.remove(resendDomain.id));
+
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
         if (error.code === "P2002") {
           throw new DubApiError({
