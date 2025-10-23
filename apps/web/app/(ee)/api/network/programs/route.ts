@@ -12,6 +12,7 @@ import { z } from "zod";
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const {
     search,
+    featured,
     category,
     rewardType,
     status,
@@ -26,6 +27,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       marketplaceEnabledAt: {
         not: null,
       },
+      ...(featured && {
+        marketplaceFeaturedAt: {
+          not: null,
+        },
+      }),
       ...(search && {
         OR: [
           { name: { contains: search } },

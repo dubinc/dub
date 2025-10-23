@@ -16,6 +16,8 @@ export const NetworkProgramSchema = ProgramSchema.pick({
   discount: DiscountSchema.nullish(),
   status: z.nativeEnum(ProgramEnrollmentStatus).nullable(),
   categories: z.array(z.nativeEnum(Category)),
+  marketplaceFeaturedAt: z.date().nullable(),
+  marketplaceHeaderImage: z.string().nullable(),
 });
 
 export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;
@@ -38,6 +40,7 @@ export const getNetworkProgramsQuerySchema = z
       (v) => (v === "null" ? null : v),
       z.nativeEnum(ProgramEnrollmentStatus).nullish(),
     ),
+    featured: z.boolean().optional(),
     search: z.string().optional(),
     sortBy: z.enum(["name", "createdAt", "popularity"]).default("popularity"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),

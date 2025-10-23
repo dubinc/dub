@@ -14,7 +14,7 @@ const rewardTypeMap = {
 
 // GET /api/network/programs/count - get the number of available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { groupBy, category, rewardType, status, search } =
+  const { groupBy, category, rewardType, status, featured, search } =
     getNetworkProgramsCountQuerySchema.parse(searchParams);
 
   const searchSql = search ? Prisma.sql`CONCAT('%', ${search}, '%')` : null;
@@ -56,6 +56,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           )`
         : Prisma.sql``
     }
+    ${featured !== undefined ? Prisma.sql`AND p.marketplaceFeaturedAt IS ${featured ? Prisma.sql`NOT` : Prisma.sql``} NULL` : Prisma.sql``}
     ${searchSql ? Prisma.sql`AND (p.name LIKE ${searchSql} OR p.slug LIKE ${searchSql} OR p.domain LIKE ${searchSql})` : Prisma.sql``}
   `;
 

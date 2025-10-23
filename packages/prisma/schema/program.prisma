@@ -57,12 +57,15 @@ model Program {
   helpUrl                      String?   @db.Text
   supportEmail                 String?
   autoApprovePartnersEnabledAt DateTime?
-  marketplaceEnabledAt         DateTime?
   messagingEnabledAt           DateTime?
   partnerNetworkEnabledAt      DateTime?
   createdAt                    DateTime  @default(now())
   updatedAt                    DateTime  @updatedAt
   startedAt                    DateTime?
+
+  marketplaceEnabledAt   DateTime?
+  marketplaceFeaturedAt  DateTime?
+  marketplaceHeaderImage String?
 
   workspace                Project                   @relation(fields: [workspaceId], references: [id])
   partners                 ProgramEnrollment[]
