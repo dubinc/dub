@@ -5,12 +5,14 @@ import {
   useSendOtpCodeQuery,
   useVerifyOtpCodeQuery,
 } from "core/api/user/subscription/cancellation-opt-code/opt-code.hook";
-import { initPeopleAnalytic } from "core/integration/analytic";
+import {
+  initPeopleAnalytic,
+  trackClientEvents,
+} from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { useRouter } from "next/navigation";
 import { FC, useState } from "react";
 import { TimerComponent } from "./elements/timer.component";
-
-const pageName = "cancel_flow_email_verification";
 
 const CODE_REGEX = /^\d{6}$/;
 
@@ -21,11 +23,13 @@ const errorMessages = {
 
 interface ICancelFlowEnterCodeModuleProps {
   email: string;
+  sessionId: string;
+  pageName: string;
 }
 
 export const CancelFlowEnterCodeModule: FC<
   Readonly<ICancelFlowEnterCodeModuleProps>
-> = ({ email }) => {
+> = ({ email, sessionId, pageName }) => {
   const router = useRouter();
 
   const [value, setValue] = useState<string>("");
@@ -68,6 +72,25 @@ export const CancelFlowEnterCodeModule: FC<
     const response = await validateEmail({
       confirm_code: value,
       user_email: email,
+    });
+
+    trackClientEvents({
+      event: EAnalyticEvents.CODE_SUBMITTED,
+      params: {
+        page_name: pageName,
+        event_category: response?.error ? "nonAuthorized" : "Authorized",
+        email: value,
+        flow_type: "cancel_subscription",
+        status: !response?.error ? "success" : "failed",
+        ...(response?.error
+          ? {
+              error_code: response?.error ?? "unknown_error",
+              error_message:
+                errorMessages?.[response?.error] || "An error occurred",
+            }
+          : {}),
+      },
+      sessionId: response?.error ? sessionId : response?.data?.user_id,
     });
 
     if (!response?.success) {

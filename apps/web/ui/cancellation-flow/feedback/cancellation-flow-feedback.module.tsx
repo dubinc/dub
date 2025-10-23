@@ -2,8 +2,10 @@
 
 import { Button } from "@dub/ui";
 import { TextArea } from "@radix-ui/themes";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { toast } from "sonner";
 import {
   CANCEL_REASONS,
@@ -11,7 +13,15 @@ import {
 } from "./constants/cancel-reasons.constants";
 import { validateFeedback } from "./helplers/feedback-validation";
 
-export const CancellationFlowFeedbackModule = () => {
+interface ICancellationFlowFeedbackModuleProps {
+  pageName: string;
+  sessionId: string;
+  email: string;
+}
+
+export const CancellationFlowFeedbackModule: FC<
+  Readonly<ICancellationFlowFeedbackModuleProps>
+> = ({ pageName, sessionId, email }) => {
   const router = useRouter();
 
   const [selectedCancelReason, setSelectedCancelReason] = useState<string>("");
@@ -52,16 +62,19 @@ export const CancellationFlowFeedbackModule = () => {
 
     setIsLoading(true);
 
-    // trackClientEvents({
-    //   event: EAnalyticEvents.PAGE_CLICKED,
-    //   params: {
-    //     page_name: pageName,
-    //     content_value: "cancel_subscription",
-    //     event_category: "Authorized",
-    //   },
-    //   user,
-    //   locale,
-    // });
+    trackClientEvents({
+      event: EAnalyticEvents.USER_FEEDBACK,
+      params: {
+        page_name: pageName,
+        flow_type: "cancel_subscription",
+        trogger: "cancellation_portal",
+        content_value: selectedCancelReason,
+        custom_input: cancelReason,
+        event_category: "Authorized",
+        email,
+      },
+      sessionId,
+    });
 
     router.push("/cancellation");
   };

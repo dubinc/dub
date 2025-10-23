@@ -1,6 +1,7 @@
 import { checkSubscriptionStatusAuthLess } from "@/lib/actions/check-subscription-status-auth-less";
 import { getSession } from "@/lib/auth";
 import { CancellationFlowSuccessModule } from "@/ui/cancellation-flow/success/cancellation-flow-success.module";
+import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker";
 import { redirect } from "next/navigation";
 
 const pageName = "subscription_cancelled";
@@ -20,11 +21,20 @@ const CancellationSuccessPage = async () => {
   }
 
   return (
-    <CancellationFlowSuccessModule
-      pageName={pageName}
-      nextBillingDate={nextBillingDate!}
-      isCancelled={isCancelled}
-    />
+    <>
+      <CancellationFlowSuccessModule
+        pageName={pageName}
+        nextBillingDate={nextBillingDate!}
+        isCancelled={isCancelled}
+        sessionId={authSession?.user.id!}
+      />
+
+      <PageViewedTrackerComponent
+        sessionId={authSession?.user.id!}
+        pageName={pageName}
+        params={{ event_category: "Authorized" }}
+      />
+    </>
   );
 };
 

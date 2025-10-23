@@ -2,9 +2,11 @@
 
 import { Button, Input } from "@dub/ui";
 import { useSendOtpCodeQuery } from "core/api/user/subscription/cancellation-opt-code/opt-code.hook";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { FC, useState } from "react";
 
 const MAX_ATTEMPTS = 5;
 
@@ -16,7 +18,14 @@ const errorMessages = {
   user_not_found: "User not found. Please check your email and try again.",
 };
 
-export const CancelFlowEnterEmailModule = () => {
+interface ICancelFlowEnterEmailModuleProps {
+  pageName: string;
+  sessionId: string;
+}
+
+export const CancelFlowEnterEmailModule: FC<
+  Readonly<ICancelFlowEnterEmailModuleProps>
+> = ({ pageName, sessionId }) => {
   const router = useRouter();
 
   const [attemptsCount, setAttemptsCount] = useState<number>(0);
@@ -52,6 +61,25 @@ export const CancelFlowEnterEmailModule = () => {
     setIsLoading(true);
 
     const response = await sendOtpCode({ email: value });
+
+    trackClientEvents({
+      event: EAnalyticEvents.EMAIL_SUBMITTED,
+      params: {
+        page_name: pageName,
+        event_category: "nonAuthorized",
+        email: value,
+        flow_type: "cancel_subscription",
+        status: !response?.error ? "success" : "failed",
+        ...(response?.error
+          ? {
+              error_code: response?.error ?? "unknown_error",
+              error_message:
+                errorMessages?.[response?.error] || "An error occurred",
+            }
+          : {}),
+      },
+      sessionId,
+    });
 
     if (!response?.success) {
       setErrorMessage(

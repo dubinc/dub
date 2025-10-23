@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@dub/ui";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { format } from "date-fns";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -10,12 +12,27 @@ interface ICancellationFlowSuccessModuleProps {
   pageName: string;
   nextBillingDate: string;
   isCancelled: boolean;
+  sessionId: string;
 }
 
 export const CancellationFlowSuccessModule: FC<
   Readonly<ICancellationFlowSuccessModuleProps>
-> = ({ pageName, nextBillingDate, isCancelled }) => {
+> = ({ pageName, nextBillingDate, isCancelled, sessionId }) => {
   const router = useRouter();
+
+  const handleHomeClick = () => {
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_CLICKED,
+      params: {
+        page_name: pageName,
+        content_value: "home",
+        event_category: "Authorized",
+      },
+      sessionId,
+    });
+
+    router.push("/workspaces");
+  };
 
   return (
     <div className="md:py-18 mx-auto mt-4 flex w-full max-w-[470px] flex-col items-center justify-center gap-6 px-4 py-8 md:mt-6">
@@ -44,10 +61,7 @@ export const CancellationFlowSuccessModule: FC<
         .
       </p>
 
-      <Button
-        onClick={() => router.push("/workspaces")}
-        text="Return to GetQR"
-      />
+      <Button onClick={handleHomeClick} text="Return to GetQR" />
     </div>
   );
 };

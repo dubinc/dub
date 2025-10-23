@@ -2,15 +2,20 @@
 
 import { Button } from "@dub/ui";
 import { useCancelSubscriptionScheduleMutation } from "core/api/user/subscription/subscription.hook";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { FC, useState } from "react";
 import { toast } from "sonner";
 
 interface ICancellationFlowModuleProps {
-  isDunning: boolean;
+  pageName: string;
+  sessionId: string;
 }
 
-export const CancellationFlowModule = () => {
+export const CancellationFlowModule: FC<
+  Readonly<ICancellationFlowModuleProps>
+> = ({ pageName, sessionId }) => {
   const router = useRouter();
 
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -23,16 +28,15 @@ export const CancellationFlowModule = () => {
   const handleCancelSubscription = async () => {
     setIsLoading(true);
 
-    // trackClientEvents({
-    //   event: EAnalyticEvents.PAGE_CLICKED,
-    //   params: {
-    //     page_name: pageName,
-    //     content_value: "cancel_subscription",
-    //     event_category: "Authorized",
-    //   },
-    //   user,
-    //   locale,
-    // });
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_CLICKED,
+      params: {
+        page_name: pageName,
+        content_value: "cancel_subscription",
+        event_category: "Authorized",
+      },
+      sessionId,
+    });
 
     try {
       const response = await cancelSubscriptionSchedule();
@@ -50,6 +54,16 @@ export const CancellationFlowModule = () => {
   };
 
   const handleLinkToWorkspaceClick = () => {
+    trackClientEvents({
+      event: EAnalyticEvents.PAGE_CLICKED,
+      params: {
+        page_name: pageName,
+        content_value: "home",
+        event_category: "Authorized",
+      },
+      sessionId,
+    });
+
     setIsLoading(true);
     router.push("/workspaces");
   };

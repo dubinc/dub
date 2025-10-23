@@ -1,6 +1,7 @@
 import { checkSubscriptionStatusAuthLess } from "@/lib/actions/check-subscription-status-auth-less";
 import { getSession } from "@/lib/auth";
 import { CancellationFlowModule } from "@/ui/cancellation-flow/cancellation-flow.module";
+import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker";
 import { redirect } from "next/navigation";
 
 const pageName = "cancel_flow_or_return";
@@ -23,7 +24,20 @@ const CancellationPage = async () => {
     return redirect("/");
   }
 
-  return <CancellationFlowModule />;
+  return (
+    <>
+      <CancellationFlowModule
+        pageName={pageName}
+        sessionId={authSession?.user.id!}
+      />
+
+      <PageViewedTrackerComponent
+        sessionId={authSession?.user.id!}
+        pageName={pageName}
+        params={{ event_category: "Authorized" }}
+      />
+    </>
+  );
 };
 
 export default CancellationPage;
