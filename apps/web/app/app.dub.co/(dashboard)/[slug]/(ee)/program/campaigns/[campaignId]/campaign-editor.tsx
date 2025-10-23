@@ -1,4 +1,5 @@
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
+import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -13,13 +14,15 @@ import {
   Lock,
   PaperPlane,
   RichTextArea,
+  SmartDateTimePicker,
   StatusBadge,
   Tooltip,
   useKeyboardShortcut,
 } from "@dub/ui";
+import { capitalize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -29,6 +32,7 @@ import { CampaignControls } from "./campaign-controls";
 import { CampaignEvents } from "./campaign-events";
 import { CampaignGroupsSelector } from "./campaign-groups-selector";
 import { CampaignMetrics } from "./campaign-metrics";
+import { EmailDomainSelector } from "./email-domain-selector";
 import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 import { isValidTriggerCondition } from "./utils";
 
@@ -66,11 +70,25 @@ const DisabledInputWrapper = ({
   );
 };
 
+const statusMessages = {
+  sending: "Edits aren't allowed while sending.",
+  sent: "Edits aren't allowed after sending.",
+  cancelled: "Edits aren't allowed after cancellation.",
+};
+
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const isActive = campaign.status === CampaignStatus.active;
+  const isActive = useMemo(
+    () => campaign.status === CampaignStatus.active,
+    [campaign.status],
+  );
+
+  const isReadOnly = useMemo(
+    () => CAMPAIGN_READONLY_STATUSES.includes(campaign.status),
+    [campaign.status],
+  );
 
   const { makeRequest, isSubmitting: isSavingCampaign } =
     useApiMutation<Campaign>();
@@ -79,9 +97,11 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     defaultValues: {
       name: campaign.name,
       subject: campaign.subject,
+      from: campaign.from ?? undefined,
       bodyJson: campaign.bodyJson,
       groupIds: campaign.groups.map(({ id }) => id),
       triggerCondition: campaign.triggerCondition,
+      scheduledAt: campaign.scheduledAt,
     },
   });
 
@@ -137,10 +157,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               toast.success("Campaign saved successfully!");
             }
           },
-          onError: () => {
-            toast.error(
-              `Failed to save the ${isDraft ? "draft " : ""}campaign.`,
-            );
+          onError: (error) => {
+            toast.error(error);
           },
         });
       }
@@ -219,13 +237,14 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               <span className="min-w-0 truncate text-lg font-semibold leading-7 text-neutral-900">
                 {campaign.status === CampaignStatus.draft ? (
                   <>
-                    New <span className="hidden sm:inline">transactional</span>{" "}
+                    New{" "}
+                    <span className="hidden sm:inline">{campaign.type}</span>{" "}
                     email
                   </>
                 ) : (
                   <>
                     <span className="hidden sm:inline">
-                      Transactional email
+                      {capitalize(campaign.type)} email
                     </span>
                     <span className="inline sm:hidden">Email</span>
                   </>
@@ -239,7 +258,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         }
         controls={<CampaignControls campaign={campaign} />}
         sidePanel={
-          campaign.status !== CampaignStatus.draft
+          !["draft", "scheduled"].includes(campaign.status)
             ? {
                 title: "Metrics",
                 content: (
@@ -248,22 +267,47 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                     <CampaignEvents />
                   </div>
                 ),
-                defaultOpen: campaign.status === CampaignStatus.active,
+                defaultOpen: ["active", "sending", "sent"].includes(
+                  campaign.status,
+                ),
               }
             : undefined
         }
         individualScrolling
         contentWrapperClassName="flex flex-col"
       >
-        <PageWidthWrapper className="mb-8 mt-6 max-w-[600px]">
+        <PageWidthWrapper className="mb-8 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
-            <label className="contents">
-              <span className={labelClassName}>Name</span>
+            <span className={labelClassName}>Name</span>
+            <DisabledInputWrapper
+              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
+              disabled={isReadOnly}
+              hideIcon={true}
+            >
               <input
                 type="text"
                 placeholder="Enter a name..."
                 className={inputClassName}
+                disabled={isReadOnly}
                 {...register("name")}
+              />
+            </DisabledInputWrapper>
+
+            <label className="contents">
+              <span className={labelClassName}>From</span>
+              <Controller
+                control={control}
+                name="from"
+                render={({ field }) => (
+                  <EmailDomainSelector
+                    selectedFromAddress={field.value || ""}
+                    setSelectedFromAddress={field.onChange}
+                    disabled={isReadOnly}
+                    disabledTooltip={
+                      isReadOnly ? statusMessages[campaign.status] : undefined
+                    }
+                  />
+                )}
               />
             </label>
 
@@ -273,8 +317,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               name="groupIds"
               render={({ field }) => (
                 <DisabledInputWrapper
-                  tooltip="Cannot change recipients while campaign is active. Pause the campaign to make changes."
-                  disabled={isActive}
+                  tooltip={
+                    isReadOnly
+                      ? statusMessages[campaign.status]
+                      : "Cannot change recipients while campaign is active. Pause the campaign to make changes."
+                  }
+                  disabled={isActive || isReadOnly}
+                  hideIcon={isReadOnly}
                 >
                   <CampaignGroupsSelector
                     selectedGroupIds={field.value ?? null}
@@ -284,22 +333,57 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               )}
             />
 
-            <label className="contents">
-              <span className={labelClassName}>Subject</span>
+            {campaign.type === "marketing" && (
+              <>
+                <span className={labelClassName}>When</span>
+                <Controller
+                  control={control}
+                  name="scheduledAt"
+                  render={({ field }) => (
+                    <DisabledInputWrapper
+                      tooltip={
+                        isReadOnly ? statusMessages[campaign.status] : undefined
+                      }
+                      disabled={isReadOnly}
+                      hideIcon={true}
+                    >
+                      <SmartDateTimePicker
+                        value={field.value}
+                        onChange={field.onChange}
+                        placeholder='E.g. "tomorrow at 5pm" or "in 2 hours"'
+                        className="[&>div]:hover:border-border-subtle [&>div]:mt-0 [&>div]:h-8 [&>div]:min-h-8 [&>div]:border-transparent [&>div]:shadow-none [&>div]:focus-within:border-black/75 [&>div]:focus-within:ring-black/75 [&>div]:hover:cursor-pointer [&>div]:hover:bg-neutral-100"
+                      />
+                    </DisabledInputWrapper>
+                  )}
+                />
+              </>
+            )}
+
+            <span className={labelClassName}>Subject</span>
+            <DisabledInputWrapper
+              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
+              disabled={isReadOnly}
+              hideIcon={true}
+            >
               <input
                 type="text"
                 placeholder="Enter a subject..."
                 className={inputClassName}
+                disabled={isReadOnly}
                 {...register("subject")}
               />
-            </label>
+            </DisabledInputWrapper>
 
             {campaign.type === "transactional" && (
               <>
                 <span className={labelClassName}>Logic</span>
                 <DisabledInputWrapper
-                  tooltip="Cannot change trigger logic while campaign is active. Pause the campaign to make changes."
-                  disabled={isActive}
+                  tooltip={
+                    isReadOnly
+                      ? statusMessages[campaign.status]
+                      : "Cannot change trigger logic while campaign is active. Pause the campaign to make changes."
+                  }
+                  disabled={isActive || isReadOnly}
                 >
                   <TransactionalCampaignLogic />
                 </DisabledInputWrapper>
@@ -318,6 +402,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   initialValue={field.value}
                   onChange={(editor) => field.onChange(editor.getJSON())}
                   variables={[...EMAIL_TEMPLATE_VARIABLES]}
+                  editable={
+                    campaign.type === "marketing" ? !isReadOnly : !isActive
+                  }
                   uploadImage={async (file) => {
                     try {
                       const result = await executeImageUpload({

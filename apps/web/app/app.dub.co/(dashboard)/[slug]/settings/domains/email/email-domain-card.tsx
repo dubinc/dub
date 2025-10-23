@@ -1,6 +1,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EmailDomainProps } from "@/lib/types";
 import { DomainCardTitleColumn } from "@/ui/domains/domain-card-title-column";
+import { useAddEditEmailDomainModal } from "@/ui/modals/add-edit-email-domain-modal";
 import { useDeleteEmailDomainModal } from "@/ui/modals/delete-email-domain-modal";
 import { Delete, ThreeDots } from "@/ui/shared/icons";
 import { GetDomainResponseSuccess } from "@dub/email/resend/types";
@@ -19,7 +20,6 @@ import { capitalize, cn, fetcher } from "@dub/utils";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import useSWRImmutable from "swr/immutable";
-import { useAddEditEmailDomainModal } from "./add-edit-email-domain-modal";
 import { EMAIL_DOMAIN_STATUS_TO_VARIANT } from "./constants";
 import { EmailDomainDnsRecords } from "./email-domain-dns-records";
 

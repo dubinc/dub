@@ -1,16 +1,12 @@
+import { EmailDomainProps } from "@/lib/types";
 import { fetcher } from "@dub/utils";
 import useSWR from "swr";
-import { EmailDomainProps } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useEmailDomains() {
+export function useEmailDomains() {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
-  const {
-    data: emailDomains,
-    error,
-    mutate,
-  } = useSWR<EmailDomainProps[]>(
+  const { data, error, mutate } = useSWR<EmailDomainProps[]>(
     workspaceId && defaultProgramId
       ? `/api/email-domains?workspaceId=${workspaceId}`
       : null,
@@ -21,8 +17,8 @@ export default function useEmailDomains() {
   );
 
   return {
-    emailDomains,
-    loading: !emailDomains && !error,
+    emailDomains: data || [],
+    loading: !data && !error,
     mutate,
     error,
   };

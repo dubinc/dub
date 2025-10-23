@@ -11,8 +11,10 @@ enum CampaignStatus {
   paused
 
   // Marketing
-  sent
   scheduled
+  sending
+  sent
+  cancelled
 }
 
 model Campaign {
@@ -20,11 +22,12 @@ model Campaign {
   programId   String
   workflowId  String?             @unique
   userId      String
+  qstashId    String?             @unique
   type        CampaignType
   status      CampaignStatus      @default(draft)
   name        String
   subject     String
-  body        String?             @db.Text // TODO: Remove after migration complete
+  from        String?
   bodyJson    Json                @db.Json
   scheduledAt DateTime?
   createdAt   DateTime            @default(now())

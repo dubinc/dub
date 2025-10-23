@@ -42,6 +42,13 @@ export const POST = withWorkspace(
 
     const { type } = createCampaignSchema.parse(await parseRequestBody(req));
 
+    const emailDomain = await prisma.emailDomain.findFirst({
+      where: {
+        programId,
+        status: "verified",
+      },
+    });
+
     const campaign = await prisma.$transaction(async (tx) => {
       const campaignId = createId({ prefix: "cmp_" });
       const workflowId = createId({ prefix: "wf_" });
@@ -56,6 +63,7 @@ export const POST = withWorkspace(
           subject: "",
           bodyJson: DEFAULT_CAMPAIGN_BODY,
           type,
+          from: emailDomain?.fromAddress,
           ...(type === "transactional" && { workflowId }),
         },
       });
