@@ -10,19 +10,19 @@ import {
 } from "../../constants/qr-type-inputs-placeholders";
 import { useQrBuilderContext } from "../../context";
 import { useQRFormData } from "../../hooks/use-qr-form-data";
-import { PdfQRFormData, pdfQRSchema } from "../../validation/schemas";
+import { TPdfQRFormData, pdfQRSchema } from "../../validation/schemas";
 import { BaseFormField } from "./base-form-field.tsx";
 import { FileUploadField } from "./file-upload-field";
 
 export interface PdfFormRef {
   validate: () => Promise<boolean>;
-  getValues: () => PdfQRFormData & { encodedData: string };
-  form: UseFormReturn<PdfQRFormData>;
+  getValues: () => TPdfQRFormData & { encodedData: string; fileId?: string };
+  form: UseFormReturn<TPdfQRFormData>;
 }
 
 interface PdfFormProps {
-  onSubmit: (data: PdfQRFormData & { encodedData: string }) => void;
-  defaultValues?: Partial<PdfQRFormData>;
+  onSubmit: (data: TPdfQRFormData & { encodedData: string; fileId?: string }) => void;
+  defaultValues?: Partial<TPdfQRFormData>;
   initialData?: {
     qrType: EQRType;
     data: string;
@@ -47,7 +47,7 @@ export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
       ...defaultValues,
     });
 
-    const form = useForm<PdfQRFormData>({
+    const form = useForm<TPdfQRFormData>({
       resolver: zodResolver(pdfQRSchema),
       defaultValues: formDefaults,
     });

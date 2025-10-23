@@ -9,18 +9,18 @@ import {
   QR_NAME_PLACEHOLDERS,
 } from "../../constants/qr-type-inputs-placeholders";
 import { useQRFormData } from "../../hooks/use-qr-form-data";
-import { WhatsappQRFormData, whatsappQRSchema } from "../../validation/schemas";
+import { TWhatsappQRFormData, whatsappQRSchema } from "../../validation/schemas";
 import { BaseFormField } from "./base-form-field.tsx";
 
 export interface WhatsAppFormRef {
   validate: () => Promise<boolean>;
-  getValues: () => WhatsappQRFormData & { encodedData: string };
-  form: UseFormReturn<WhatsappQRFormData>;
+  getValues: () => TWhatsappQRFormData & { encodedData: string };
+  form: UseFormReturn<TWhatsappQRFormData>;
 }
 
 interface WhatsAppFormProps {
-  onSubmit: (data: WhatsappQRFormData & { encodedData: string }) => void;
-  defaultValues?: Partial<WhatsappQRFormData>;
+  onSubmit: (data: TWhatsappQRFormData & { encodedData: string }) => void;
+  defaultValues?: Partial<TWhatsappQRFormData>;
   initialData?: {
     qrType: EQRType;
     data: string;
@@ -42,7 +42,7 @@ export const WhatsAppForm = forwardRef<WhatsAppFormRef, WhatsAppFormProps>(
       ...defaultValues,
     });
 
-    const form = useForm<WhatsappQRFormData>({
+    const form = useForm<TWhatsappQRFormData>({
       resolver: zodResolver(whatsappQRSchema),
       defaultValues: formDefaults,
     });

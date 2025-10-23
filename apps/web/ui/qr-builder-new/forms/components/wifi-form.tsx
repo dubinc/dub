@@ -20,18 +20,18 @@ import {
   QR_NAME_PLACEHOLDERS,
 } from "../../constants/qr-type-inputs-placeholders";
 import { useQRFormData } from "../../hooks/use-qr-form-data";
-import { WifiQRFormData, wifiQRSchema } from "../../validation/schemas";
+import { TWifiQRFormData, wifiQRSchema } from "../../validation/schemas";
 import { BaseFormField } from "./base-form-field.tsx";
 
 export interface WiFiFormRef {
   validate: () => Promise<boolean>;
-  getValues: () => WifiQRFormData & { encodedData: string };
-  form: UseFormReturn<WifiQRFormData>;
+  getValues: () => TWifiQRFormData & { encodedData: string };
+  form: UseFormReturn<TWifiQRFormData>;
 }
 
 interface WiFiFormProps {
-  onSubmit: (data: WifiQRFormData & { encodedData: string }) => void;
-  defaultValues?: Partial<WifiQRFormData>;
+  onSubmit: (data: TWifiQRFormData & { encodedData: string }) => void;
+  defaultValues?: Partial<TWifiQRFormData>;
   initialData?: {
     qrType: EQRType;
     data: string;
@@ -55,7 +55,7 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
       ...defaultValues,
     });
 
-    const form = useForm<WifiQRFormData>({
+    const form = useForm<TWifiQRFormData>({
       resolver: zodResolver(wifiQRSchema),
       defaultValues: formDefaults,
     });

@@ -10,19 +10,19 @@ import {
 } from "../../constants/qr-type-inputs-placeholders";
 import { useQrBuilderContext } from "../../context";
 import { useQRFormData } from "../../hooks/use-qr-form-data";
-import { ImageQRFormData, imageQRSchema } from "../../validation/schemas";
+import { TImageQRFormData, imageQRSchema } from "../../validation/schemas";
 import { BaseFormField } from "./base-form-field.tsx";
 import { FileUploadField } from "./file-upload-field";
 
 export interface ImageFormRef {
   validate: () => Promise<boolean>;
-  getValues: () => ImageQRFormData & { encodedData: string };
-  form: UseFormReturn<ImageQRFormData>;
+  getValues: () => TImageQRFormData & { encodedData: string; fileId?: string };
+  form: UseFormReturn<TImageQRFormData>;
 }
 
 interface ImageFormProps {
-  onSubmit: (data: ImageQRFormData & { encodedData: string }) => void;
-  defaultValues?: Partial<ImageQRFormData>;
+  onSubmit: (data: TImageQRFormData & { encodedData: string; fileId?: string }) => void;
+  defaultValues?: Partial<TImageQRFormData>;
   initialData?: {
     qrType: EQRType;
     data: string;
@@ -47,7 +47,7 @@ export const ImageForm = forwardRef<ImageFormRef, ImageFormProps>(
       ...defaultValues,
     });
 
-    const form = useForm<ImageQRFormData>({
+    const form = useForm<TImageQRFormData>({
       resolver: zodResolver(imageQRSchema),
       defaultValues: formDefaults,
     });

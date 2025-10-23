@@ -10,19 +10,19 @@ import {
 } from "../../constants/qr-type-inputs-placeholders";
 import { useQrBuilderContext } from "../../context";
 import { useQRFormData } from "../../hooks/use-qr-form-data";
-import { VideoQRFormData, videoQRSchema } from "../../validation/schemas";
+import { TVideoQRFormData, videoQRSchema } from "../../validation/schemas";
 import { BaseFormField } from "./base-form-field.tsx";
 import { FileUploadField } from "./file-upload-field";
 
 export interface VideoFormRef {
   validate: () => Promise<boolean>;
-  getValues: () => VideoQRFormData & { encodedData: string };
-  form: UseFormReturn<VideoQRFormData>;
+  getValues: () => TVideoQRFormData & { encodedData: string; fileId?: string };
+  form: UseFormReturn<TVideoQRFormData>;
 }
 
 interface VideoFormProps {
-  onSubmit: (data: VideoQRFormData & { encodedData: string }) => void;
-  defaultValues?: Partial<VideoQRFormData>;
+  onSubmit: (data: TVideoQRFormData & { encodedData: string; fileId?: string }) => void;
+  defaultValues?: Partial<TVideoQRFormData>;
   initialData?: {
     qrType: EQRType;
     data: string;
@@ -47,7 +47,7 @@ export const VideoForm = forwardRef<VideoFormRef, VideoFormProps>(
       ...defaultValues,
     });
 
-    const form = useForm<VideoQRFormData>({
+    const form = useForm<TVideoQRFormData>({
       resolver: zodResolver(videoQRSchema),
       defaultValues: formDefaults,
     });
