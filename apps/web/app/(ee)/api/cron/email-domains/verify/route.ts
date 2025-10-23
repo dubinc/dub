@@ -9,13 +9,6 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-/**
- * Cron to check if email domains are verified.
- * If a domain is invalid for more than 14 days, we send a reminder email to the workspace owner.
- * If a domain is invalid for more than 28 days, we send a second and final reminder email to the workspace owner.
- * If a domain is invalid for more than 30 days, we delete it from the database.
- **/
-
 // GET /api/cron/email-domains/verify
 // Runs every hour (0 * * * *)
 export async function GET(req: Request) {
@@ -77,9 +70,6 @@ async function verifyEmailDomain(domain: EmailDomain) {
   if (error) {
     return null;
   }
-
-  console.log(resendDomain);
-  console.log(error);
 
   await prisma.emailDomain.update({
     where: {

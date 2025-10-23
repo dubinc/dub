@@ -37,17 +37,3 @@ export const createEmailDomainBodySchema = z.object({
 
 export const updateEmailDomainBodySchema =
   createEmailDomainBodySchema.partial();
-
-export const validateEmailDomain = ({
-  slug,
-  fromAddress,
-}: z.infer<typeof createEmailDomainBodySchema>) => {
-  if (fromAddress && !fromAddress.endsWith(slug)) {
-    throw new DubApiError({
-      code: "bad_request",
-      message: "From address must end with the email domain.",
-    });
-  }
-};
-
-// resend email domain records

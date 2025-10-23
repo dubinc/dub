@@ -13,32 +13,30 @@ export function DomainsHeader({
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
-  const options = [
-    {
-      id: "",
-      label: "Custom domains",
-      href: `/${slug}${baseUrl}`,
-    },
-    {
-      id: "default",
-      label: "Default domains",
-      href: `/${slug}${baseUrl}/default`,
-    },
-  ];
-
-  // Only show Email domains tab if workspace has a default program
-  if (defaultProgramId) {
-    options.push({
-      id: "email",
-      label: "Email domains",
-      href: `/${slug}${baseUrl}/email`,
-    });
-  }
-
   return (
     <div className="-mt-4 border-b border-neutral-200">
       <TabSelect
-        options={options}
+        options={[
+          {
+            id: "",
+            label: "Custom domains",
+            href: `/${slug}${baseUrl}`,
+          },
+          {
+            id: "default",
+            label: "Default domains",
+            href: `/${slug}${baseUrl}/default`,
+          },
+          ...(defaultProgramId
+            ? [
+                {
+                  id: "email",
+                  label: "Email domains",
+                  href: `/${slug}${baseUrl}/email`,
+                },
+              ]
+            : []),
+        ]}
         selected={page}
       />
     </div>

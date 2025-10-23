@@ -22,7 +22,7 @@ import {
 import { capitalize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -80,15 +80,8 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const isActive = useMemo(
-    () => campaign.status === CampaignStatus.active,
-    [campaign.status],
-  );
-
-  const isReadOnly = useMemo(
-    () => CAMPAIGN_READONLY_STATUSES.includes(campaign.status),
-    [campaign.status],
-  );
+  const isActive = campaign.status === CampaignStatus.active;
+  const isReadOnly = CAMPAIGN_READONLY_STATUSES.includes(campaign.status);
 
   const { makeRequest, isSubmitting: isSavingCampaign } =
     useApiMutation<Campaign>();

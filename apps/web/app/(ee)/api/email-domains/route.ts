@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { validateEmailDomain } from "@/lib/api/domains/validate-email-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -42,6 +43,11 @@ export const POST = withWorkspace(
       await parseRequestBody(req),
     );
 
+    validateEmailDomain({
+      slug,
+      fromAddress,
+    });
+
     try {
       const emailDomain = await prisma.$transaction(async (tx) => {
         const existingEmailDomain = await tx.emailDomain.findFirst({
@@ -58,7 +64,7 @@ export const POST = withWorkspace(
           });
         }
 
-        const emailDomain = await prisma.emailDomain.create({
+        const emailDomain = await tx.emailDomain.create({
           data: {
             id: createId({ prefix: "dom_" }),
             workspaceId: workspace.id,

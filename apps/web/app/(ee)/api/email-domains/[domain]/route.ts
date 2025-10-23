@@ -1,4 +1,5 @@
 import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-throw";
+import { validateEmailDomain } from "@/lib/api/domains/validate-email-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -26,6 +27,11 @@ export const PATCH = withWorkspace(
     const emailDomain = await getEmailDomainOrThrow({
       programId,
       domain,
+    });
+
+    validateEmailDomain({
+      slug: slug ?? emailDomain.slug,
+      fromAddress: fromAddress ?? emailDomain.fromAddress,
     });
 
     const domainChanged = slug && slug !== emailDomain.slug;
@@ -120,14 +126,7 @@ export const DELETE = withWorkspace(
       },
     });
 
-    if (emailDomain.resendDomainId) {
-      if (!resend) {
-        throw new DubApiError({
-          code: "internal_server_error",
-          message: "Resend is not configured.",
-        });
-      }
-
+    if (emailDomain.resendDomainId && resend) {
       await resend.domains.remove(emailDomain.resendDomainId);
     }
 
