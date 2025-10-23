@@ -32,9 +32,15 @@ export const scheduleMarketingCampaign = async ({
 
   // Delete the existing message
   if (campaign.qstashId) {
-    await qstash.messages.delete(campaign.qstashId);
-
-    qstashId = null;
+    try {
+      await qstash.messages.delete(campaign.qstashId);
+      qstashId = null;
+    } catch (error) {
+      console.warn(
+        `Failed to delete QStash message ${campaign.qstashId}:`,
+        error,
+      );
+    }
   }
 
   // Queue a new message
@@ -43,16 +49,23 @@ export const scheduleMarketingCampaign = async ({
       ? Math.floor(updatedCampaign.scheduledAt.getTime() / 1000)
       : null;
 
-    const response = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
-      method: "POST",
-      ...(notBefore && { notBefore }),
-      body: {
-        campaignId: campaign.id,
-      },
-    });
+    try {
+      const response = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
+        method: "POST",
+        ...(notBefore && { notBefore }),
+        body: {
+          campaignId: campaign.id,
+        },
+      });
 
-    qstashId = response.messageId;
+      qstashId = response.messageId;
+    } catch (error) {
+      console.warn(
+        `Failed to queue QStash message for campaign ${campaign.id}:`,
+        error,
+      );
+    }
   }
 
   await prisma.campaign.update({
