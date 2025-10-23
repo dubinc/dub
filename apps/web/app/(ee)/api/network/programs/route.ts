@@ -10,7 +10,7 @@ import { z } from "zod";
 
 // GET /api/network/programs - get all available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  const { search, category, page, pageSize } =
+  const { search, category, rewardType, page, pageSize } =
     getNetworkProgramsQuerySchema.parse(searchParams);
 
   const programs = await prisma.program.findMany({
@@ -29,6 +29,25 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         categories: {
           some: {
             category,
+          },
+        },
+      }),
+      ...(rewardType && {
+        groups: {
+          some: {
+            slug: DEFAULT_PARTNER_GROUP.slug,
+            ...(rewardType.includes("sale") && {
+              saleRewardId: { not: null },
+            }),
+            ...(rewardType.includes("lead") && {
+              leadRewardId: { not: null },
+            }),
+            ...(rewardType.includes("click") && {
+              clickRewardId: { not: null },
+            }),
+            ...(rewardType.includes("discount") && {
+              discountId: { not: null },
+            }),
           },
         },
       }),

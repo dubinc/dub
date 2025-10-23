@@ -1,9 +1,29 @@
 import { categoriesMap } from "@/lib/partners/categories";
 import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
+import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { useRouterStuff } from "@dub/ui";
-import { Suitcase } from "@dub/ui/icons";
+import { Gift, Suitcase } from "@dub/ui/icons";
 import { nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
+
+const REWARD_TYPES = {
+  sale: {
+    icon: REWARD_EVENTS.sale.icon,
+    label: "Sales (CPS)",
+  },
+  lead: {
+    icon: REWARD_EVENTS.lead.icon,
+    label: "Leads (CPL)",
+  },
+  click: {
+    icon: REWARD_EVENTS.click.icon,
+    label: "Clicks (CPC)",
+  },
+  discount: {
+    icon: Gift,
+    label: "Discount",
+  },
+};
 
 export function useProgramNetworkFilters() {
   const { searchParamsObj, queryParams } = useRouterStuff();
@@ -19,6 +39,19 @@ export function useProgramNetworkFilters() {
       groupBy: "category",
     },
     excludeParams: ["category"],
+  });
+
+  const { data: rewardTypesCount } = useNetworkProgramsCount<
+    | {
+        type: string;
+        _count: number;
+      }[]
+    | undefined
+  >({
+    query: {
+      groupBy: "rewardType",
+    },
+    excludeParams: ["rewardType"],
   });
 
   const filters = useMemo(
@@ -40,11 +73,33 @@ export function useProgramNetworkFilters() {
             right: nFormatter(_count, { full: true }),
           })) ?? [],
       },
+      {
+        key: "rewardType",
+        multiple: true,
+        icon: Gift,
+        label: "Reward type",
+        options: Object.entries(REWARD_TYPES).map(
+          ([key, { label, icon: Icon }]) => ({
+            value: key,
+            label,
+            icon: <Icon className="size-4" />,
+            right: nFormatter(
+              rewardTypesCount?.find(({ type }) => type === key)?._count || 0,
+              { full: true },
+            ),
+          }),
+        ),
+      },
     ],
-    [categoriesCount],
+    [categoriesCount, rewardTypesCount],
   );
 
-  const multiFilters = useMemo(() => ({}), []) as Record<string, string[]>;
+  const multiFilters = useMemo(
+    () => ({
+      rewardType: searchParamsObj.rewardType?.split(",").filter(Boolean) ?? [],
+    }),
+    [searchParamsObj],
+  ) as Record<string, string[]>;
 
   const activeFilters = useMemo(() => {
     const { category } = searchParamsObj;
@@ -97,9 +152,9 @@ export function useProgramNetworkFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["category", "starred"],
+        del: [...Object.keys(multiFilters), "category", "starred"],
       }),
-    [queryParams],
+    [queryParams, multiFilters],
   );
 
   const isFiltered = activeFilters.length > 0 || searchParamsObj.search;

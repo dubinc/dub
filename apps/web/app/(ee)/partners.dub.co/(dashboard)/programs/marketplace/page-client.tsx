@@ -218,6 +218,7 @@ function ProgramCard({
                     <div className="mt-1 flex items-center gap-1.5">
                       {program.rewards.map((reward) => (
                         <RewardOrDiscountIcon
+                          key={reward.id}
                           icon={REWARD_EVENTS[reward.event].icon}
                           description={formatRewardDescription({ reward })}
                         />
