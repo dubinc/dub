@@ -8,20 +8,18 @@ export const calculateSaleEarnings = ({
   reward,
   sale,
 }: {
-  reward: Pick<RewardProps, "amount" | "type">;
+  reward: Pick<RewardProps, "type" | "amountInCents" | "amountInPercentage">;
   sale: Pick<Commission, "quantity" | "amount">;
 }) => {
   if (!reward) {
     return 0;
   }
 
-  if (reward.type === "percentage") {
-    return sale.amount * (reward.amount / 100);
+  if (reward.type === "percentage" && reward.amountInPercentage) {
+    return sale.amount * (reward.amountInPercentage / 100);
+  } else if (reward.type === "flat" && reward.amountInCents) {
+    return sale.quantity * reward.amountInCents;
   }
 
-  if (reward.type === "flat") {
-    return sale.quantity * reward.amount;
-  }
-
-  throw new Error("Invalid reward type");
+  return 0;
 };

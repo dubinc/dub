@@ -120,7 +120,7 @@ export async function GET(req: Request) {
           quantity: linkClicks,
           type: CommissionType.click,
           amount: 0,
-          earnings: reward.amount * linkClicks,
+          earnings: (reward.amountInCents ?? 0) * linkClicks,
         };
       })
       .filter((c) => c !== null) as Prisma.CommissionCreateManyInput[];

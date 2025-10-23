@@ -1,4 +1,4 @@
-import { EventType, Link, Reward } from "@dub/prisma/client";
+import { EventType, Link, Prisma, Reward } from "@dub/prisma/client";
 import { RewardContext } from "../types";
 import {
   rewardConditionsArraySchema,
@@ -67,8 +67,13 @@ export const determinePartnerReward = ({
         partnerReward = {
           ...partnerReward,
           // Override the reward amount, type and max duration with the matched condition
-          amount: matchedCondition.amount,
           type: matchedCondition.type || partnerReward.type,
+          amountInCents:
+            matchedCondition.type === "flat" ? matchedCondition.amount : null,
+          amountInPercentage:
+            matchedCondition.type === "percentage"
+              ? new Prisma.Decimal(matchedCondition.amount)
+              : null,
           maxDuration:
             matchedCondition.maxDuration !== undefined
               ? matchedCondition.maxDuration
@@ -78,7 +83,12 @@ export const determinePartnerReward = ({
     }
   }
 
-  if (partnerReward.amount === 0) {
+  const amount =
+    partnerReward.type === "flat"
+      ? partnerReward.amountInCents
+      : partnerReward.amountInPercentage;
+
+  if (amount === 0) {
     return null;
   }
 
