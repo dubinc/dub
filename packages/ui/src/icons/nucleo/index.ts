@@ -207,6 +207,8 @@ export * from "./shop";
 export * from "./shuffle";
 export * from "./sitemap";
 export * from "./sliders";
+export * from "./sort-alpha-ascending";
+export * from "./sort-alpha-descending";
 export * from "./sparkle3";
 export * from "./square-chart";
 export * from "./square-layout-grid5";

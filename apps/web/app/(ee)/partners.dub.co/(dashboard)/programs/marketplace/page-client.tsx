@@ -23,15 +23,22 @@ import {
   usePagination,
   useRouterStuff,
 } from "@dub/ui";
-import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
+import {
+  OG_AVATAR_URL,
+  cn,
+  fetcher,
+  getPrettyUrl,
+  isClickOnInteractiveChild,
+} from "@dub/utils";
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { useRouter } from "next/navigation";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
+import ProgramSort from "./program-sort";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 
 export function ProgramMarketplacePageClient() {
-  const { searchParams, getQueryString, queryParams } = useRouterStuff();
+  const { getQueryString } = useRouterStuff();
 
   const { data: programsCount, error: countError } = useNetworkProgramsCount();
 
@@ -58,13 +65,16 @@ export function ProgramMarketplacePageClient() {
     <div className="flex flex-col gap-6">
       <div>
         <div className="xs:flex-row xs:items-center flex flex-col justify-between gap-4">
-          <Filter.Select
-            className="h-9 w-full rounded-lg md:w-fit"
-            filters={filters}
-            activeFilters={activeFilters}
-            onSelect={onSelect}
-            onRemove={onRemove}
-          />
+          <div className="flex items-center gap-2">
+            <Filter.Select
+              className="h-9 w-full rounded-lg md:w-fit"
+              filters={filters}
+              activeFilters={activeFilters}
+              onSelect={onSelect}
+              onRemove={onRemove}
+            />
+            <ProgramSort />
+          </div>
           <SearchBoxPersisted
             placeholder="Search the marketplace..."
             inputClassName="md:w-[19rem] h-9 rounded-lg"
@@ -142,13 +152,21 @@ function ProgramCard({
       onClick={
         url
           ? (e) => {
+              if (isClickOnInteractiveChild(e)) return;
               e.metaKey || e.ctrlKey
                 ? window.open(url, "_blank")
                 : router.push(url);
             }
           : undefined
       }
-      onAuxClick={url ? () => window.open(url, "_blank") : undefined}
+      onAuxClick={
+        url
+          ? (e) => {
+              if (isClickOnInteractiveChild(e)) return;
+              window.open(url, "_blank");
+            }
+          : undefined
+      }
     >
       <div className="border-border-subtle rounded-xl border bg-white p-6">
         <div className="flex justify-between gap-4">

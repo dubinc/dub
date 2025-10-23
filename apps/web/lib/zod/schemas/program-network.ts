@@ -39,6 +39,8 @@ export const getNetworkProgramsQuerySchema = z
       z.nativeEnum(ProgramEnrollmentStatus).nullish(),
     ),
     search: z.string().optional(),
+    sortBy: z.enum(["name", "createdAt", "popularity"]).default("popularity"),
+    sortOrder: z.enum(["asc", "desc"]).default("desc"),
   })
   .merge(
     getPaginationQuerySchema({
