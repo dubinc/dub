@@ -87,11 +87,15 @@ export async function POST(req: Request) {
       }
     }
 
-    // This is a safety check to ensure the campaign is not broadcasted multiple times
+    // This is a safety check to ensure the campaign broadcast is not "initiated" multiple times
     const headersList = await headers();
     const upstashMessageId = headersList.get("Upstash-Message-Id");
 
-    if (campaign.qstashId && upstashMessageId !== campaign.qstashId) {
+    if (
+      !startingAfter &&
+      campaign.qstashId &&
+      upstashMessageId !== campaign.qstashId
+    ) {
       return logAndRespond(
         `Campaign ${campaignId} broadcast was skipped because it is not the current message being processed.`,
       );
