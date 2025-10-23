@@ -22,7 +22,7 @@ model Campaign {
   programId   String
   workflowId  String?             @unique
   userId      String
-  qstashId    String?             @unique
+  qstashMessageId    String?             @unique
   type        CampaignType
   status      CampaignStatus      @default(draft)
   name        String

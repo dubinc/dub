@@ -28,16 +28,16 @@ export const scheduleMarketingCampaign = async ({
     return;
   }
 
-  let qstashId = updatedCampaign.qstashId;
+  let qstashMessageId = updatedCampaign.qstashMessageId;
 
   // Delete the existing message
-  if (campaign.qstashId) {
+  if (campaign.qstashMessageId) {
     try {
-      await qstash.messages.delete(campaign.qstashId);
-      qstashId = null;
+      await qstash.messages.delete(campaign.qstashMessageId);
+      qstashMessageId = null;
     } catch (error) {
       console.warn(
-        `Failed to delete QStash message ${campaign.qstashId}:`,
+        `Failed to delete QStash message ${campaign.qstashMessageId}:`,
         error,
       );
     }
@@ -59,7 +59,7 @@ export const scheduleMarketingCampaign = async ({
         },
       });
 
-      qstashId = response.messageId;
+      qstashMessageId = response.messageId;
     } catch (error) {
       console.warn(
         `Failed to queue QStash message for campaign ${campaign.id}:`,
@@ -73,7 +73,7 @@ export const scheduleMarketingCampaign = async ({
       id: campaign.id,
     },
     data: {
-      qstashId,
+      qstashMessageId,
     },
   });
 };

@@ -93,8 +93,8 @@ export async function POST(req: Request) {
 
     if (
       !startingAfter &&
-      campaign.qstashId &&
-      upstashMessageId !== campaign.qstashId
+      campaign.qstashMessageId &&
+      upstashMessageId !== campaign.qstashMessageId
     ) {
       return logAndRespond(
         `Campaign ${campaignId} broadcast was skipped because it is not the current message being processed.`,
