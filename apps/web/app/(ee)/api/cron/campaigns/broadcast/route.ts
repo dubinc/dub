@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!["sending", "scheduled"].includes(campaign.status)) {
+    if (!["scheduled", "sending"].includes(campaign.status)) {
       return logAndRespond(
         `Campaign ${campaignId} must be in "sending" or "scheduled" status to broadcast.`,
       );
@@ -81,16 +81,15 @@ export async function POST(req: Request) {
     }
 
     // Mark the campaign as sending
-    if (campaign.status === "scheduled") {
-      await prisma.campaign.update({
-        where: {
-          id: campaignId,
-        },
-        data: {
-          status: "sending",
-        },
-      });
-    }
+    await prisma.campaign.update({
+      where: {
+        id: campaignId,
+        status: "scheduled",
+      },
+      data: {
+        status: "sending",
+      },
+    });
 
     const campaignGroupIds = campaign.groups.map(({ groupId }) => groupId);
 
@@ -233,16 +232,15 @@ export async function POST(req: Request) {
     }
 
     // Mark the campaign as sent
-    if (campaign.status === "sending") {
-      await prisma.campaign.update({
-        where: {
-          id: campaignId,
-        },
-        data: {
-          status: "sent",
-        },
-      });
-    }
+    await prisma.campaign.update({
+      where: {
+        id: campaignId,
+        status: "sending",
+      },
+      data: {
+        status: "sent",
+      },
+    });
 
     return logAndRespond(`Finished broadcasting campaign ${campaignId}.`);
   } catch (error) {

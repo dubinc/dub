@@ -88,7 +88,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
         return "Please select the groups you want to send this campaign to.";
       }
 
-      if (!from) {
+      if (!from && !sendPreview) {
         return "Please select a sender email address.";
       }
 

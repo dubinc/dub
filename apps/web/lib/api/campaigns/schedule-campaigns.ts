@@ -1,5 +1,6 @@
 import { qstash } from "@/lib/cron";
 import { WORKFLOW_SCHEDULES } from "@/lib/zod/schemas/workflows";
+import { prisma } from "@dub/prisma";
 import { Campaign, Workflow } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { isScheduledWorkflow } from "../workflows/utils";
@@ -12,23 +13,54 @@ export const scheduleMarketingCampaign = async ({
   campaign: Campaign;
   updatedCampaign: Campaign;
 }) => {
-  const shouldQueue =
-    campaign.status === "draft" && updatedCampaign.status === "scheduled";
-
-  if (!shouldQueue) {
+  if (updatedCampaign.status === "draft") {
     return;
   }
 
-  const notBefore = updatedCampaign.scheduledAt
-    ? Math.floor(updatedCampaign.scheduledAt.getTime() / 1000)
-    : null;
+  const scheduleChanged =
+    campaign.scheduledAt?.getTime() !== updatedCampaign.scheduledAt?.getTime();
 
-  await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
-    method: "POST",
-    ...(notBefore && { notBefore }),
-    body: {
-      campaignId: campaign.id,
+  const statusChanged =
+    (campaign.status === "draft" && updatedCampaign.status === "scheduled") ||
+    (campaign.status === "scheduled" && updatedCampaign.status === "cancelled");
+
+  if (!statusChanged && !scheduleChanged) {
+    return;
+  }
+
+  let qstashId = updatedCampaign.qstashId;
+
+  // Delete the existing message
+  if (campaign.qstashId) {
+    await qstash.messages.delete(campaign.qstashId);
+
+    qstashId = null;
+  }
+
+  // Queue a new message
+  if (updatedCampaign.status === "scheduled") {
+    const notBefore = updatedCampaign.scheduledAt
+      ? Math.floor(updatedCampaign.scheduledAt.getTime() / 1000)
+      : null;
+
+    const response = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
+      method: "POST",
+      ...(notBefore && { notBefore }),
+      body: {
+        campaignId: campaign.id,
+      },
+    });
+
+    qstashId = response.messageId;
+  }
+
+  await prisma.campaign.update({
+    where: {
+      id: campaign.id,
+    },
+    data: {
+      qstashId,
     },
   });
 };

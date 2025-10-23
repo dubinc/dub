@@ -17,7 +17,7 @@ import {
 import { WORKFLOW_ATTRIBUTE_TRIGGER } from "@/lib/zod/schemas/workflows";
 import { prisma } from "@dub/prisma";
 import { arrayEqual } from "@dub/utils";
-import { Campaign, PartnerGroup, Workflow } from "@prisma/client";
+import { PartnerGroup } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -154,7 +154,7 @@ export const PATCH = withWorkspace(
         } else if (updatedCampaign.type === "transactional") {
           await scheduleTransactionalCampaign({
             campaign,
-            updatedCampaign
+            updatedCampaign,
           });
         }
       })(),
@@ -204,17 +204,17 @@ export const DELETE = withWorkspace(
 
     waitUntil(
       (async () => {
-        if (!campaign.workflow) {
-          return;
+        if (campaign.type === "marketing" && campaign.qstashId) {
+          await qstash.messages.delete(campaign.qstashId);
+        } else if (campaign.type === "transactional" && campaign.workflow) {
+          const { condition } = parseWorkflowConfig(campaign.workflow);
+
+          if (condition.attribute === "partnerJoined") {
+            return;
+          }
+
+          await qstash.schedules.delete(campaign.workflow.id);
         }
-
-        const { condition } = parseWorkflowConfig(campaign.workflow);
-
-        if (condition.attribute === "partnerJoined") {
-          return;
-        }
-
-        await qstash.schedules.delete(campaign.workflow.id);
       })(),
     );
 

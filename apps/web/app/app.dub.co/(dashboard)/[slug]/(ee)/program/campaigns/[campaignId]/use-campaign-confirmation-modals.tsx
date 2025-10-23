@@ -168,6 +168,7 @@ export function useCampaignConfirmationModals({
       await updateCampaign(
         {
           status: CampaignStatus.cancelled,
+          scheduledAt: null,
         },
         () => {
           toast.success("Email campaign cancelled!");
