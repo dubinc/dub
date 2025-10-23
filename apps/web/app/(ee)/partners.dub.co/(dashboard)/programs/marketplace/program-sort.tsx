@@ -57,7 +57,7 @@ export default function ProgramSort() {
         <div className="w-full p-2 md:w-48">
           {programSortOptions.map(({ label, value, order, icon: Icon }) => (
             <button
-              key={value}
+              key={`${value}-${order}`}
               onClick={() => {
                 queryParams({
                   set: {
