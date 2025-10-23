@@ -139,6 +139,7 @@ export function ProgramMarketplacePageClient() {
 }
 
 function ProgramCard({ program }: { program?: NetworkProgramProps }) {
+  const { queryParams } = useRouterStuff();
   const router = useRouter();
 
   const statusBadge = program?.status
@@ -229,6 +230,14 @@ function ProgramCard({ program }: { program?: NetworkProgramProps }) {
                           key={reward.id}
                           icon={REWARD_EVENTS[reward.event].icon}
                           description={formatRewardDescription({ reward })}
+                          onClick={() =>
+                            queryParams({
+                              set: {
+                                rewardType: reward.event,
+                              },
+                              del: "page",
+                            })
+                          }
                         />
                       ))}
                       {program.discount && (
@@ -237,6 +246,14 @@ function ProgramCard({ program }: { program?: NetworkProgramProps }) {
                           description={formatDiscountDescription({
                             discount: program.discount,
                           })}
+                          onClick={() =>
+                            queryParams({
+                              set: {
+                                rewardType: "discount",
+                              },
+                              del: "page",
+                            })
+                          }
                         />
                       )}
                     </div>
@@ -291,9 +308,11 @@ function ProgramCard({ program }: { program?: NetworkProgramProps }) {
 const RewardOrDiscountIcon = ({
   icon: Icon,
   description,
+  onClick,
 }: {
   icon: Icon;
   description: string;
+  onClick: () => void;
 }) => (
   <HoverCard.Root openDelay={100}>
     <HoverCard.Portal>
@@ -309,6 +328,7 @@ const RewardOrDiscountIcon = ({
     <HoverCard.Trigger>
       <button
         type="button"
+        onClick={onClick}
         className="hover:bg-bg-subtle active:bg-bg-emphasis flex size-6 items-center justify-center rounded-md"
       >
         <Icon className="text-content-default size-4" />
@@ -318,6 +338,7 @@ const RewardOrDiscountIcon = ({
 );
 
 const CategoryButton = ({ category }: { category: Category }) => {
+  const { queryParams } = useRouterStuff();
   const categoryData = categoriesMap[category];
   const { icon: Icon, label } = categoryData ?? {
     icon: CircleInfo,
@@ -326,8 +347,15 @@ const CategoryButton = ({ category }: { category: Category }) => {
 
   return (
     <button
-      key={category}
       type="button"
+      onClick={() =>
+        queryParams({
+          set: {
+            category,
+          },
+          del: "page",
+        })
+      }
       className="hover:bg-bg-subtle text-content-default active:bg-bg-emphasis flex h-6 min-w-0 items-center gap-1 rounded-md px-1"
     >
       <Icon className="size-4" />
