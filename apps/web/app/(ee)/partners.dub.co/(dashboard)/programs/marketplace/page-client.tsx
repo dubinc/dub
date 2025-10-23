@@ -5,6 +5,7 @@ import useNetworkProgramsCount from "@/lib/swr/use-network-programs-count";
 import { NetworkProgramProps } from "@/lib/types";
 import { PROGRAM_NETWORK_MAX_PAGE_SIZE } from "@/lib/zod/schemas/program-network";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
+import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
@@ -13,6 +14,8 @@ import {
   AnimatedSizeContainer,
   CircleInfo,
   Filter,
+  Gift,
+  Icon,
   Link4,
   PaginationControls,
   StatusBadge,
@@ -207,40 +210,26 @@ function ProgramCard({
           <div className="mt-4 flex gap-8">
             {program ? (
               <>
-                {Boolean(program?.rewards?.length) && (
+                {Boolean(program?.rewards?.length || program?.discount) && (
                   <div>
                     <span className="text-content-muted block text-xs font-medium">
                       Rewards
                     </span>
                     <div className="mt-1 flex items-center gap-1.5">
-                      {program.rewards.map((reward) => {
-                        const Icon = REWARD_EVENTS[reward.event].icon;
-                        return (
-                          <HoverCard.Root key={reward.id} openDelay={100}>
-                            <HoverCard.Portal>
-                              <HoverCard.Content
-                                side="bottom"
-                                sideOffset={8}
-                                className="animate-slide-up-fade z-[99] flex items-center gap-2 overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 text-xs text-neutral-700 shadow-sm"
-                              >
-                                <Icon className="text-content-default size-4" />
-                                <span>
-                                  {formatRewardDescription({ reward })}
-                                </span>
-                              </HoverCard.Content>
-                            </HoverCard.Portal>
-                            <HoverCard.Trigger>
-                              <button
-                                key={reward.id}
-                                type="button"
-                                className="hover:bg-bg-subtle active:bg-bg-emphasis flex size-6 items-center justify-center rounded-md"
-                              >
-                                <Icon className="text-content-default size-4" />
-                              </button>
-                            </HoverCard.Trigger>
-                          </HoverCard.Root>
-                        );
-                      })}
+                      {program.rewards.map((reward) => (
+                        <RewardOrDiscountIcon
+                          icon={REWARD_EVENTS[reward.event].icon}
+                          description={formatRewardDescription({ reward })}
+                        />
+                      ))}
+                      {program.discount && (
+                        <RewardOrDiscountIcon
+                          icon={Gift}
+                          description={formatDiscountDescription({
+                            discount: program.discount,
+                          })}
+                        />
+                      )}
                     </div>
                   </div>
                 )}
@@ -289,6 +278,35 @@ function ProgramCard({
     </div>
   );
 }
+
+const RewardOrDiscountIcon = ({
+  icon: Icon,
+  description,
+}: {
+  icon: Icon;
+  description: string;
+}) => (
+  <HoverCard.Root openDelay={100}>
+    <HoverCard.Portal>
+      <HoverCard.Content
+        side="bottom"
+        sideOffset={8}
+        className="animate-slide-up-fade z-[99] flex items-center gap-2 overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 text-xs text-neutral-700 shadow-sm"
+      >
+        <Icon className="text-content-default size-4" />
+        <span>{description}</span>
+      </HoverCard.Content>
+    </HoverCard.Portal>
+    <HoverCard.Trigger>
+      <button
+        type="button"
+        className="hover:bg-bg-subtle active:bg-bg-emphasis flex size-6 items-center justify-center rounded-md"
+      >
+        <Icon className="text-content-default size-4" />
+      </button>
+    </HoverCard.Trigger>
+  </HoverCard.Root>
+);
 
 const CategoryButton = ({ category }: { category: Category }) => {
   const categoryData = categoriesMap[category];
