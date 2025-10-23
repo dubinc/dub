@@ -38,4 +38,8 @@ export const PUBLIC_ROUTES = [
   "/qr-disabled",
   "/qr-complete-setup",
   "/paywall",
+  "/cancellation",
+  "/cancellation/auth",
+  "/cancellation/auth/email",
+  "/cancellation/auth/code",
 ];

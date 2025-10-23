@@ -134,7 +134,8 @@ export const POST = withSession(
     try {
       if (
         subscription.status === "cancelled" ||
-        subscription.status === "dunning"
+        subscription.status === "dunning" ||
+        subscription.status === "scheduled_for_cancellation"
       ) {
         await paymentService.reactivateClientSubscription(
           subscription?.id || paymentData?.paymentInfo?.subscriptionId || "",

@@ -9,4 +9,8 @@ export enum EServerRoutes {
   USER_SUBSCRIPTION_UPDATE = "checkout/subscription/update",
   USER_SUBSCRIPTION_STATUS = "checkout/subscription/status",
   USER_SUBSCRIPTION_PAYMENT_METHOD_UPDATE = "checkout/subscription/payment-method/update",
+  USER_SUBSCRIPTION_CANCEL = "checkout/subscription/cancel",
+
+  OTP_CODE_SEND = "checkout/subscription/otp-code/send-confirm",
+  OTP_CODE_VERIFY = "checkout/subscription/otp-code/verify",
 }
