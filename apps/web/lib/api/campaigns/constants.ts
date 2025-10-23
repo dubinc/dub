@@ -23,4 +23,14 @@ export const CAMPAIGN_STATUS_TRANSITIONS: Record<
   },
 } as const;
 
-export const CAMPAIGN_EDITABLE_STATUSES = ["draft", "paused", "scheduled"];
+export const CAMPAIGN_EDITABLE_STATUSES: CampaignStatus[] = [
+  "draft",
+  "paused",
+  "scheduled",
+];
+
+export const CAMPAIGN_READONLY_STATUSES: CampaignStatus[] = [
+  "sending",
+  "sent",
+  "cancelled",
+];

@@ -1,4 +1,5 @@
 import { uploadEmailImageAction } from "@/lib/actions/partners/upload-email-image";
+import { CAMPAIGN_READONLY_STATUSES } from "@/lib/api/campaigns/constants";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -21,7 +22,7 @@ import {
 import { capitalize } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -69,11 +70,25 @@ const DisabledInputWrapper = ({
   );
 };
 
+const statusMessages = {
+  sending: "Edits aren't allowed while sending.",
+  sent: "Edits aren't allowed after sending.",
+  cancelled: "Edits aren't allowed after cancellation.",
+};
+
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
 
-  const isActive = campaign.status === CampaignStatus.active;
+  const isActive = useMemo(
+    () => campaign.status === CampaignStatus.active,
+    [campaign.status],
+  );
+
+  const isReadOnly = useMemo(
+    () => CAMPAIGN_READONLY_STATUSES.includes(campaign.status),
+    [campaign.status],
+  );
 
   const { makeRequest, isSubmitting: isSavingCampaign } =
     useApiMutation<Campaign>();
@@ -263,15 +278,20 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
       >
         <PageWidthWrapper className="mb-8 max-w-[600px]">
           <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
-            <label className="contents">
-              <span className={labelClassName}>Name</span>
+            <span className={labelClassName}>Name</span>
+            <DisabledInputWrapper
+              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
+              disabled={isReadOnly}
+              hideIcon={true}
+            >
               <input
                 type="text"
                 placeholder="Enter a name..."
                 className={inputClassName}
+                disabled={isReadOnly}
                 {...register("name")}
               />
-            </label>
+            </DisabledInputWrapper>
 
             <label className="contents">
               <span className={labelClassName}>From</span>
@@ -282,6 +302,10 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   <EmailDomainSelector
                     selectedFromAddress={field.value || ""}
                     setSelectedFromAddress={field.onChange}
+                    disabled={isReadOnly}
+                    disabledTooltip={
+                      isReadOnly ? statusMessages[campaign.status] : undefined
+                    }
                   />
                 )}
               />
@@ -293,8 +317,13 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               name="groupIds"
               render={({ field }) => (
                 <DisabledInputWrapper
-                  tooltip="Cannot change recipients while campaign is active. Pause the campaign to make changes."
-                  disabled={isActive}
+                  tooltip={
+                    isReadOnly
+                      ? statusMessages[campaign.status]
+                      : "Cannot change recipients while campaign is active. Pause the campaign to make changes."
+                  }
+                  disabled={isActive || isReadOnly}
+                  hideIcon={isReadOnly}
                 >
                   <CampaignGroupsSelector
                     selectedGroupIds={field.value ?? null}
@@ -312,8 +341,10 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   name="scheduledAt"
                   render={({ field }) => (
                     <DisabledInputWrapper
-                      tooltip="Cannot change schedule while campaign is sent."
-                      disabled={campaign.status === CampaignStatus.sent}
+                      tooltip={
+                        isReadOnly ? statusMessages[campaign.status] : undefined
+                      }
+                      disabled={isReadOnly}
                       hideIcon={true}
                     >
                       <SmartDateTimePicker
@@ -328,22 +359,31 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               </>
             )}
 
-            <label className="contents">
-              <span className={labelClassName}>Subject</span>
+            <span className={labelClassName}>Subject</span>
+            <DisabledInputWrapper
+              tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
+              disabled={isReadOnly}
+              hideIcon={true}
+            >
               <input
                 type="text"
                 placeholder="Enter a subject..."
                 className={inputClassName}
+                disabled={isReadOnly}
                 {...register("subject")}
               />
-            </label>
+            </DisabledInputWrapper>
 
             {campaign.type === "transactional" && (
               <>
                 <span className={labelClassName}>Logic</span>
                 <DisabledInputWrapper
-                  tooltip="Cannot change trigger logic while campaign is active. Pause the campaign to make changes."
-                  disabled={isActive}
+                  tooltip={
+                    isReadOnly
+                      ? statusMessages[campaign.status]
+                      : "Cannot change trigger logic while campaign is active. Pause the campaign to make changes."
+                  }
+                  disabled={isActive || isReadOnly}
                 >
                   <TransactionalCampaignLogic />
                 </DisabledInputWrapper>
@@ -362,6 +402,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                   initialValue={field.value}
                   onChange={(editor) => field.onChange(editor.getJSON())}
                   variables={[...EMAIL_TEMPLATE_VARIABLES]}
+                  editable={
+                    campaign.type === "marketing" ? !isReadOnly : !isActive
+                  }
                   uploadImage={async (file) => {
                     try {
                       const result = await executeImageUpload({
