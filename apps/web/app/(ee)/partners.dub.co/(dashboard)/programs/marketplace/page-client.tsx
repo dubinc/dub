@@ -14,7 +14,7 @@ import {
 import { cn, fetcher } from "@dub/utils";
 import useSWR from "swr";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
-import { ProgramCard } from "./program-card";
+import { FeaturedProgramCard, ProgramCard } from "./program-card";
 import ProgramSort from "./program-sort";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 
@@ -50,6 +50,15 @@ export function ProgramMarketplacePageClient() {
 
   return (
     <div className="flex flex-col gap-6">
+      <div>
+        <h2 className="text-content-emphasis text-base font-semibold">
+          Featured programs
+        </h2>
+        <div className="@3xl/page:grid-cols-2 mt-4 grid grid-cols-1 gap-4">
+          <FeaturedProgramCard program={programs?.[0]} />
+          <FeaturedProgramCard program={programs?.[1]} />
+        </div>
+      </div>
       <div>
         <div className="xs:flex-row xs:items-center flex flex-col justify-between gap-4">
           <div className="flex items-center gap-2">
