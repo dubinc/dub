@@ -150,12 +150,13 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   });
 
   if (groupBy === "count") {
-    // Return the count value for deprecated endpoints
+    const { groupByField, ...rest } = response.data[0];
+    // Return the count value for deprecated count endpoints
     if (isDeprecatedClicksEndpoint) {
-      return response.data[0][event];
-      // Return the object for count endpoints
+      return rest[event];
+      // Return the object for regular count endpoints
     } else {
-      return response.data[0];
+      return rest;
     }
   } else if (groupBy === "top_links") {
     const links = await prisma.link.findMany({
