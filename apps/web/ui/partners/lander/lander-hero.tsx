@@ -9,17 +9,19 @@ export function LanderHero({
   showLabel = true,
   heading,
   preview,
+  className,
 }: {
   program: Pick<Program, "name">;
   landerData: Pick<ProgramLanderData, "label" | "title" | "description">;
   showLabel?: boolean;
   heading?: ElementType;
   preview?: boolean;
+  className?: string;
 }) {
   const Heading = heading || (preview ? "div" : "h1");
 
   return (
-    <div className="grid grid-cols-1 gap-5 py-6 sm:mt-14">
+    <div className={cn("grid grid-cols-1 gap-5 py-6 sm:mt-14", className)}>
       {showLabel && (
         <span
           className={cn(

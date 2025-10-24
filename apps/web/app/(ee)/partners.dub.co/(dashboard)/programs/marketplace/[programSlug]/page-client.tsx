@@ -220,9 +220,11 @@ export function MarketplaceProgramPageClient() {
 
           {program && (
             <div>
-              {program.landerData && (
-                <LanderHero program={program} landerData={program.landerData} />
-              )}
+              <LanderHero
+                program={program}
+                landerData={program.landerData || {}}
+                className="mt-8 sm:mt-8"
+              />
 
               <LanderRewards
                 className="mt-4"
