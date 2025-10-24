@@ -67,7 +67,12 @@ export default function Locations() {
                         ? CONTINENTS[d.continent]
                         : tab === "countries"
                           ? COUNTRIES[d.country]
-                          : `${tab === "cities" ? `${d.city}, ` : ""}${REGIONS[d.region] || d.region.split("-")[1]}`,
+                          : `${tab === "cities" ? `${d.city}, ` : ""}${
+                              REGIONS[d.region] ||
+                              (d.region.endsWith("-Unknown")
+                                ? COUNTRIES[d.country]
+                                : d.region.split("-")[1])
+                            }`,
                     href: queryParams({
                       ...(searchParams.has(singularTabName)
                         ? { del: singularTabName }
