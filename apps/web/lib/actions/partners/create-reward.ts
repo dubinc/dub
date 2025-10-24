@@ -52,17 +52,6 @@ export const createRewardAction = authActionClient
       );
     }
 
-    const amount =
-      type === "flat"
-        ? {
-            amountInCents,
-            amountInPercentage: null,
-          }
-        : {
-            amountInCents: null,
-            amountInPercentage: new Prisma.Decimal(amountInPercentage!),
-          };
-
     const reward = await prisma.$transaction(async (tx) => {
       const reward = await tx.reward.create({
         data: {
@@ -73,7 +62,15 @@ export const createRewardAction = authActionClient
           maxDuration,
           description: description || null,
           modifiers: modifiers || Prisma.DbNull,
-          ...amount,
+          ...(type === "flat"
+            ? {
+                amountInCents,
+                amountInPercentage: null,
+              }
+            : {
+                amountInCents: null,
+                amountInPercentage: new Prisma.Decimal(amountInPercentage!),
+              }),
         },
       });
 
