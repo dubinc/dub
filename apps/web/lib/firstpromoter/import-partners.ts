@@ -4,7 +4,7 @@ import {
   PartnerGroupDefaultLink,
   Program,
 } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import { isRejected, nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -60,7 +60,7 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
     );
 
     if (affiliates.length > 0) {
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         affiliates.map((affiliate) => {
           const promoterCampaigns = affiliate.promoter_campaigns;
 
@@ -77,6 +77,16 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
           });
         }),
       );
+
+      // Log any errors that occurred
+      results.forEach((result, index) => {
+        if (isRejected(result)) {
+          console.error(
+            `Failed to import affiliate ${affiliates[index]?.email}:`,
+            result.reason,
+          );
+        }
+      });
     }
 
     currentPage++;
@@ -176,7 +186,7 @@ async function createPartnerAndLinks({
     trackConversion: true,
     userId,
     partnerGroupDefaultLinkId:
-      idx === 0 ? group.partnerGroupDefaultLinks[0].id : null,
+      idx === 0 ? group.partnerGroupDefaultLinks[0]?.id ?? null : null,
   }));
 
   await bulkCreateLinks({
