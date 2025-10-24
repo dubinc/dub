@@ -180,8 +180,8 @@ export function OnboardingForm({
               {...field}
               error={errors.country ? true : false}
               disabledTooltip={
-                partner?.country
-                  ? "Your country cannot be changed once set. If you need to update your country, please contact support."
+                partner?.payoutsEnabledAt
+                  ? "Since you've already received payouts, you cannot change your country. Contact support if you need to update your country."
                   : undefined
               }
             />
