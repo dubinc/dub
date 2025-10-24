@@ -108,7 +108,7 @@ export default function PlanUsage() {
         icon: Hyperlink,
         title: "Links created",
         usage:
-          linksTabFilteredUsage && hasActiveFilters
+          linksTabFilteredUsage !== undefined && hasActiveFilters
             ? linksTabFilteredUsage
             : linksUsage,
         limit: linksLimit,
