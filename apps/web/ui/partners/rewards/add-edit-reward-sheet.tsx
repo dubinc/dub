@@ -15,6 +15,7 @@ import {
   createOrUpdateRewardSchema,
   ENTITY_ATTRIBUTE_TYPES,
   rewardConditionsArraySchema,
+  rewardConditionSchema,
   rewardConditionsSchema,
 } from "@/lib/zod/schemas/rewards";
 import { X } from "@/ui/shared/icons";
@@ -65,7 +66,13 @@ interface RewardSheetProps {
 
 // Special form schema to allow for empty condition fields when adding a new condition
 const formSchema = createOrUpdateRewardSchema.extend({
-  modifiers: z.array(rewardConditionsSchema).min(1),
+  modifiers: z
+    .array(
+      rewardConditionsSchema.extend({
+        conditions: z.array(rewardConditionSchema.partial()).min(1),
+      }),
+    )
+    .min(1),
 });
 
 type FormData = z.infer<typeof formSchema>;
