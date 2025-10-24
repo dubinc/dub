@@ -42,4 +42,5 @@ export const PUBLIC_ROUTES = [
   "/cancellation/auth",
   "/cancellation/auth/email",
   "/cancellation/auth/code",
+  "/cancellation/feedback",
 ];
