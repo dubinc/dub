@@ -131,7 +131,7 @@ export const rewardConditionSchema = z.object({
 
 const baseRewardConditionSchema = z.object({
   operator: z.enum(["AND", "OR"]).default("AND"),
-  conditions: z.array(rewardConditionSchema).min(1),
+  conditions: z.array(rewardConditionSchema.partial()).min(1),
   maxDuration: maxDurationSchema,
 });
 
