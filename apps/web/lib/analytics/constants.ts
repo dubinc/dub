@@ -152,6 +152,10 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   utm_campaigns: "utm_campaign",
   utm_terms: "utm_term",
   utm_contents: "utm_content",
+  // extra fields
+  top_links: "link",
+  top_urls: "url",
+  timeseries: "start",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
