@@ -41,17 +41,6 @@ export const updateRewardAction = authActionClient
       );
     }
 
-    const amount =
-      type === "flat"
-        ? {
-            amountInCents,
-            amountInPercentage: null,
-          }
-        : {
-            amountInCents: null,
-            amountInPercentage: new Prisma.Decimal(amountInPercentage!),
-          };
-
     const updatedReward = await prisma.reward.update({
       where: {
         id: rewardId,
@@ -61,7 +50,15 @@ export const updateRewardAction = authActionClient
         maxDuration,
         description: description || null,
         modifiers: modifiers === null ? Prisma.DbNull : modifiers,
-        ...amount,
+        ...(type === "flat"
+          ? {
+              amountInCents,
+              amountInPercentage: null,
+            }
+          : {
+              amountInCents: null,
+              amountInPercentage: new Prisma.Decimal(amountInPercentage!),
+            }),
       },
       include: {
         program: true,
