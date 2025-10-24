@@ -8,14 +8,19 @@ NODE workspace_links
 SQL >
 
     %
-    SELECT link_id, domain, key
-    FROM
-        {% if defined(isMegaFolder) and Boolean(isMegaFolder) == 1 %} dub_links_metadata_latest
-        {% else %} dub_regular_links_metadata_latest
-        {% end %} FINAL
+    SELECT link_id
+    FROM dub_links_metadata_latest FINAL
     WHERE
-        deleted == 0
-        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'cl7pj5kq4006835rbjlt2ofka',
+                description="The unique ID for the workspace",
+                required=True,
+            )
+        }}
+        AND deleted == 0
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
         {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
@@ -41,22 +46,27 @@ SQL >
         splitByString('?', referer_url)[1] as referer_url_processed,
         CONCAT(country, '-', region) as region_processed,
         'click' as event
-    FROM {% if defined(customerId) %} dub_click_events_id {% else %} dub_click_events_mv {% end %}
-    WHERE
-        timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
-        AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
+    FROM
+        {% if defined(customerId) %} dub_click_events_id
+        {% else %} dub_click_events_mv
+        {% end %}
         {% if defined(customerId) %}
-            AND click_id IN (
+            PREWHERE click_id IN (
                 SELECT DISTINCT click_id
                 FROM dub_lead_events_mv
                 WHERE customer_id = {{ String(customerId) }}
             )
-        {% elif defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
-        {% elif defined(linkId) %} AND link_id = {{ String(linkId) }}
-        {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
-            AND link_id IN (SELECT link_id FROM workspace_links)
         {% end %}
-        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+    WHERE
+        true
+        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
+        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% elif defined(programId) or defined(partnerId) or defined(folderIds) or defined(
+            folderId
+        ) or defined(domain) or defined(tagIds) or defined(root) %}
+            AND link_id in (SELECT link_id from workspace_links)
+        {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(region) %} AND region = {{ region }} {% end %}
@@ -84,6 +94,8 @@ SQL >
             AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
         {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
@@ -101,15 +113,16 @@ SQL >
         'lead' as event
     FROM dub_lead_events_mv
     WHERE
-        timestamp >= {{ DateTime(start, '2024-01-01 00:00:00') }}
-        AND timestamp < {{ DateTime(end, '2025-12-31 00:00:00') }}
+        true
+        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
-        {% elif defined(linkId) %} AND link_id = {{ String(linkId) }}
-        {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
-            AND link_id IN (SELECT link_id FROM workspace_links)
+        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% elif defined(programId) or defined(partnerId) or defined(folderIds) or defined(
+            folderId
+        ) or defined(domain) or defined(tagIds) or defined(root) %}
+            AND link_id in (SELECT link_id from workspace_links)
         {% end %}
         {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
-        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(region) %} AND region = {{ region }} {% end %}
@@ -136,14 +149,14 @@ SQL >
             AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
         {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
-
+        {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
         {% if defined(filters) %}
             {% for item in JSON(filters, '[]') %}
                 {% if item.get('operand', '').startswith('metadata.') %}
                     {% set metadataKey = item.get('operand', '').split('.')[1] %}
                     {% set operator = item.get('operator', 'equals') %}
                     {% set value = item.get('value', '') %}
-
                     {% if operator == 'equals' %}
                         AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
                     {% elif operator == 'notEquals' %}
@@ -160,7 +173,6 @@ SQL >
                 {% end %}
             {% end %}
         {% end %}
-
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
@@ -179,15 +191,17 @@ SQL >
         'sale' as event
     FROM dub_sale_events_mv
     WHERE
-        timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
-        AND timestamp < {{ DateTime(end, '2025-12-31 00:00:00') }}
+        true
+        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
-        {% elif defined(linkId) %} AND link_id = {{ String(linkId) }}
-        {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
-            AND link_id IN (SELECT link_id FROM workspace_links)
+        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% elif defined(programId) or defined(partnerId) or defined(folderIds) or defined(
+            folderId
+        ) or defined(domain) or defined(tagIds) or defined(root) %}
+            AND link_id in (SELECT link_id from workspace_links)
         {% end %}
         {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
-        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% if defined(saleType) %} AND sale_type = {{ String(saleType) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(region) %} AND region = {{ region }} {% end %}
@@ -214,14 +228,14 @@ SQL >
             AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
         {% end %}
         {% if defined(url) %} AND url = {{ url }} {% end %}
-
+        {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
         {% if defined(filters) %}
             {% for item in JSON(filters, '[]') %}
                 {% if item.get('operand', '').startswith('metadata.') %}
                     {% set metadataKey = item.get('operand', '').split('.')[1] %}
                     {% set operator = item.get('operator', 'equals') %}
                     {% set value = item.get('value', '') %}
-
                     {% if operator == 'equals' %}
                         AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
                     {% elif operator == 'notEquals' %}
@@ -238,112 +252,6 @@ SQL >
                 {% end %}
             {% end %}
         {% end %}
-
-    ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
-    LIMIT {{ Int32(limit, 100) }}
-    {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
-
-
-
-NODE sale_events_with_type
-SQL >
-
-    %
-    WITH
-        sales AS (
-            SELECT
-                *,
-                amount as saleAmount,
-                CONCAT(country, '-', region) as region_processed,
-                splitByString('?', referer_url)[1] as referer_url_processed,
-                'sale' as event
-            FROM dub_sale_events_mv
-            WHERE
-                timestamp >= {{ DateTime(start, '2024-06-01 00:00:00') }}
-                AND timestamp < {{ DateTime(end, '2024-06-07 00:00:00') }}
-                {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
-                {% elif defined(linkId) %} AND link_id = {{ String(linkId) }}
-                {% elif defined(workspaceId) or defined(partnerId) or defined(programId) %}
-                    AND link_id IN (SELECT link_id FROM workspace_links)
-                {% end %}
-                {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
-                {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
-                {% if defined(continent) %} AND continent = {{ continent }} {% end %}
-                {% if defined(country) %} AND country = {{ country }} {% end %}
-                {% if defined(region) %} AND region = {{ region }} {% end %}
-                {% if defined(city) %} AND city = {{ city }} {% end %}
-                {% if defined(device) %} AND device = {{ device }} {% end %}
-                {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-                {% if defined(os) %} AND os = {{ os }} {% end %}
-                {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-                {% if defined(refererUrl) %}
-                    AND splitByString('?', referer_url)[1] = {{ refererUrl }}
-                {% end %}
-                {% if defined(utm_source) %}
-                    AND url
-                    LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
-                {% end %}
-                {% if defined(utm_medium) %}
-                    AND url
-                    LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
-                {% end %}
-                {% if defined(utm_campaign) %}
-                    AND url LIKE concat(
-                        '%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%'
-                    )
-                {% end %}
-                {% if defined(utm_term) %}
-                    AND url
-                    LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
-                {% end %}
-                {% if defined(utm_content) %}
-                    AND url
-                    LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
-                {% end %}
-                {% if defined(url) %} AND url = {{ url }} {% end %}
-
-
-                {% if defined(filters) %}
-                    {% for item in JSON(filters, '[]') %}
-                        {% if item.get('operand', '').startswith('metadata.') %}
-                            {% set metadataKey = item.get('operand', '').split('.')[1] %}
-                            {% set operator = item.get('operator', 'equals') %}
-                            {% set value = item.get('value', '') %}
-
-                            {% if operator == 'equals' %}
-                                AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
-                            {% elif operator == 'notEquals' %}
-                                AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
-                            {% elif operator == 'greaterThan' %}
-                                AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
-                            {% elif operator == 'lessThan' %}
-                                AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
-                            {% elif operator == 'greaterThanOrEqual' %}
-                                AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
-                            {% elif operator == 'lessThanOrEqual' %}
-                                AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
-                            {% end %}
-                        {% end %}
-                    {% end %}
-                {% end %}
-        ),
-        distinct_sales AS (SELECT DISTINCT customer_id, link_id FROM sales),
-        min_timestamps AS (
-            SELECT customer_id, link_id, min(timestamp) AS first_sale_ts
-            FROM dub_sale_events_mv
-            WHERE (customer_id, link_id) IN distinct_sales
-            GROUP BY customer_id, link_id
-        )
-    SELECT *, CASE WHEN timestamp = first_sale_ts THEN 'new' ELSE 'recurring' END as sale_type
-    FROM sales
-    INNER JOIN min_timestamps USING (customer_id, link_id)
-    WHERE
-        1 = 1
-        {% if defined(saleType) %}
-            {% if saleType == 'new' %} AND timestamp = first_sale_ts
-            {% elif saleType == 'recurring' %} AND timestamp > first_sale_ts
-            {% end %}
-        {% end %}
     ORDER BY timestamp {% if order == 'asc' %} ASC {% else %} DESC {% end %}
     LIMIT {{ Int32(limit, 100) }}
     {% if defined(offset) %} OFFSET {{ Int32(offset, 0) }} {% end %}
@@ -354,12 +262,12 @@ NODE endpoint
 SQL >
 
     %
-    SELECT *
-    FROM
-        {% if eventType == 'leads' %} lead_events
-        {% elif eventType == 'sales' %}
-          {% if defined(saleType) %} sale_events_with_type {% else %} sale_events {% end %}
-        {% else %} click_events
-        {% end %}
+        SELECT *
+        FROM
+            {% if eventType == 'leads' %} lead_events
+            {% elif eventType == 'sales' %}
+              {% if defined(saleType) %} sale_events_with_type {% else %} sale_events {% end %}
+            {% else %} click_events
+            {% end %}
 
 
