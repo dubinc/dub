@@ -39,6 +39,7 @@ export const QRBuilderInner = () => {
     isFileUploading,
     isFileProcessing,
     isEditMode,
+    isFormValid,
   } = useQrBuilderContext();
 
   const logoData = customizationData.logo;
@@ -125,6 +126,7 @@ export const QRBuilderInner = () => {
                 homepageDemo={homepageDemo}
                 currentFormValues={currentFormValues}
                 logoData={logoData}
+                isFormValid={isFormValid}
               />
             </div>
           )}

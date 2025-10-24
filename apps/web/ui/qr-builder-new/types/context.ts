@@ -52,6 +52,9 @@ export interface IQrBuilderContextType {
   isFileUploading: boolean;
   isFileProcessing: boolean;
 
+  // Form validation state
+  isFormValid: boolean;
+
   // Customization states
   customizationData: IQRCustomizationData;
   customizationActiveTab: string;
@@ -82,6 +85,7 @@ export interface IQrBuilderContextType {
   setSelectedQrType: (type: TQrType) => void;
   setIsFileUploading: (uploading: boolean) => void;
   setIsFileProcessing: (processing: boolean) => void;
+  setIsFormValid: (valid: boolean) => void;
 
   // Buttons
   handleContinue: () => Promise<void>;

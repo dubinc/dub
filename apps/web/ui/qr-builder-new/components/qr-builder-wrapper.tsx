@@ -19,6 +19,7 @@ export const QRBuilderWrapper = () => {
     customizationData,
     isEditMode,
     qrBuilderContentWrapperRef,
+    isFormValid,
   } = useQrBuilderContext();
 
   const logoData = customizationData.logo;
@@ -63,6 +64,7 @@ export const QRBuilderWrapper = () => {
             homepageDemo={homepageDemo}
             currentFormValues={currentFormValues}
             logoData={logoData}
+            isFormValid={isFormValid}
           />
         </div>
       )}

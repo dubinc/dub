@@ -42,7 +42,7 @@ interface PdfFormProps {
 export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
     const [fileId, setFileId] = useState<string>(initialData?.fileId!);
-    const [openAccordion, setOpenAccordion] = useState<string | undefined>("name");
+    const [openAccordion, setOpenAccordion] = useState<string | undefined>("details");
     const { setIsFileUploading, setIsFileProcessing } = useQrBuilderContext();
 
     const { getDefaultValues, encodeFormData } = useQRFormData({
@@ -97,37 +97,6 @@ export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
             className="w-full space-y-2"
           >
             <AccordionItem
-              value="name"
-              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex w-full items-start gap-3 text-left">
-                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <Tag className="h-5 w-5 text-secondary" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-foreground text-base font-medium">
-                      Name
-                    </span>
-                    <span className="text-muted-foreground text-sm font-normal">
-                      Give your QR code a memorable name
-                    </span>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              {openAccordion === "name" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2 ">
-                <BaseFormField
-                  name="qrName"
-                  label="Name your QR Code"
-                  placeholder={QR_NAME_PLACEHOLDERS.PDF}
-                  tooltip="Only you can see this. It helps you recognize your QR codes later."
-                  initFromPlaceholder
-                />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem
               value="details"
               className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
             >
@@ -157,6 +126,38 @@ export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
                   onFileIdReceived={setFileId}
                   onUploadStateChange={setIsFileUploading}
                   onProcessingStateChange={setIsFileProcessing}
+                />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem
+              value="name"
+              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
+            >
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex w-full items-start gap-3 text-left">
+                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
+                    <Tag className="h-5 w-5 text-secondary" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-foreground text-base font-medium">
+                      Name
+                    </span>
+                    <span className="text-muted-foreground text-sm font-normal">
+                      Give your QR code a memorable name
+                    </span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              {openAccordion === "name" && <Separator className="mb-3" />}
+              <AccordionContent className="pt-2 ">
+                <BaseFormField
+                  name="qrName"
+                  label="Name your QR Code"
+                  placeholder={QR_NAME_PLACEHOLDERS.PDF}
+                  tooltip="Only you can see this. It helps you recognize your QR codes later."
+                  initFromPlaceholder
+                  required={false}
                 />
               </AccordionContent>
             </AccordionItem>

@@ -122,6 +122,9 @@ export function QrBuilderProvider({
   const [isFileUploading, setIsFileUploading] = useState<boolean>(false);
   const [isFileProcessing, setIsFileProcessing] = useState<boolean>(false);
 
+  // Form validation state
+  const [isFormValid, setIsFormValid] = useState<boolean>(true);
+
   // Customization states
   const [customizationData, setCustomizationData] =
     useState<IQRCustomizationData>(initialState.customizationData);
@@ -188,6 +191,11 @@ export function QrBuilderProvider({
 
       setTypeSelectionError("");
       setBuilderStep(newStep as TStepState);
+
+      // Reset form validity when not on content step
+      if (newStep !== 2) {
+        setIsFormValid(true);
+      }
 
       // Track step navigation via stepper
       trackClientEvents({
@@ -420,6 +428,9 @@ export function QrBuilderProvider({
     isFileUploading,
     isFileProcessing,
 
+    // Form validation state
+    isFormValid,
+
     // Customization states
     customizationData,
     customizationActiveTab,
@@ -450,6 +461,7 @@ export function QrBuilderProvider({
     setSelectedQrType,
     setIsFileUploading,
     setIsFileProcessing,
+    setIsFormValid,
 
     //Buttons
     handleBack,

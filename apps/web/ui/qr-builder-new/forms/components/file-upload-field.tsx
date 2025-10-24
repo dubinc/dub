@@ -71,6 +71,17 @@ export const FileUploadField = ({
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
   };
 
+  const formatAcceptTypes = (accept: string) => {
+    if (accept === "image/*") return "PNG, JPG, JPEG, etc.";
+    if (accept === "application/pdf") return "PDF";
+    if (accept === "video/*") return "MP4, MOV, AVI, etc.";
+    // Fallback: clean up the accept string
+    return accept
+      .split(",")
+      .map((type) => type.trim().replace("application/", "").replace("/*", "").toUpperCase())
+      .join(", ");
+  };
+
   const handleFileValidation = useCallback(
     (file: File) => {
       if (file.size > maxSize) {
@@ -167,11 +178,7 @@ export const FileUploadField = ({
                       Click to upload or drag & drop your {title}
                     </p>
                     <p className="text-muted-foreground text-xs">
-                      Max size: {formatFileSize(maxSize)} •{" "}
-                      {accept
-                        .split(",")
-                        .map((ext) => ext.trim().replace("*", ""))
-                        .join(", ")}
+                      Max size: {formatFileSize(maxSize)} • {formatAcceptTypes(accept)}
                     </p>
                   </div>
                 </div>

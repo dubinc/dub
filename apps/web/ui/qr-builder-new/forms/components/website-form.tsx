@@ -38,7 +38,7 @@ interface WebsiteFormProps {
 
 export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
-    const [openAccordion, setOpenAccordion] = useState<string | undefined>("name");
+    const [openAccordion, setOpenAccordion] = useState<string | undefined>("details");
 
     const { getDefaultValues, encodeFormData } = useQRFormData({
       qrType: EQRType.WEBSITE,
@@ -85,6 +85,37 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
             className="w-full space-y-2"
           >
             <AccordionItem
+              value="details"
+              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
+            >
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex w-full items-start gap-3 text-left">
+                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
+                    <Globe className="h-5 w-5 text-secondary" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-foreground text-base font-medium">
+                      Website
+                    </span>
+                    <span className="text-muted-foreground text-sm font-normal">
+                      Enter the website URL for your QR code
+                    </span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              {openAccordion === "details" && <Separator className="mb-3" />}
+              <AccordionContent className="pt-2 ">
+                <BaseFormField
+                  name="websiteLink"
+                  label="Enter your website"
+                  type="url"
+                  placeholder={QR_INPUT_PLACEHOLDERS.WEBSITE_URL}
+                  tooltip="This is the link people will open when they scan your QR code."
+                />
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem
               value="name"
               className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
             >
@@ -112,37 +143,7 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
                   tooltip="Only you can see this. It helps you recognize your QR codes later."
                   initFromPlaceholder
                   className="w-full"
-                />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem
-              value="details"
-              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex w-full items-start gap-3 text-left">
-                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <Globe className="h-5 w-5 text-secondary" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-foreground text-base font-medium">
-                      Website
-                    </span>
-                    <span className="text-muted-foreground text-sm font-normal">
-                      Enter the website URL for your QR code
-                    </span>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              {openAccordion === "details" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2 ">
-                <BaseFormField
-                  name="websiteLink"
-                  label="Enter your website"
-                  type="url"
-                  placeholder={QR_INPUT_PLACEHOLDERS.WEBSITE_URL}
-                  tooltip="This is the link people will open when they scan your QR code."
+                  required={false}
                 />
               </AccordionContent>
             </AccordionItem>

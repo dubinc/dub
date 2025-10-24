@@ -19,6 +19,7 @@ interface IQrBuilderButtonsProps {
   homepageDemo?: boolean;
   currentFormValues?: Record<string, any>;
   logoData?: { type: string; fileId?: string; file?: File };
+  isFormValid?: boolean;
 }
 
 export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
@@ -36,18 +37,18 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   homepageDemo = false,
   currentFormValues = {},
   logoData,
+  isFormValid = true,
 }) => {
   const isLastStep = step === maxStep;
-
-  // Check if QR title is filled (required on content step)
   const isContentStep = step === 2;
-  const qrName = currentFormValues?.qrName;
-  const isTitleEmpty = isContentStep && (!qrName || qrName.trim() === "");
 
   // Check if logo upload is incomplete (on customization step)
   const isCustomizationStep = step === 3;
   const hasUploadedLogoWithoutFileId =
     isCustomizationStep && logoData?.type === "uploaded" && !logoData?.fileId;
+
+  // On content step, disable button if form is invalid
+  const shouldDisableForValidation = isContentStep && !isFormValid;
 
   const getButtonText = useCallback(() => {
     if (isFileUploading) return "Uploading...";
@@ -99,8 +100,8 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
           isProcessing ||
           isFileUploading ||
           isFileProcessing ||
-          isTitleEmpty ||
-          hasUploadedLogoWithoutFileId
+          hasUploadedLogoWithoutFileId ||
+          shouldDisableForValidation
         }
       >
         {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
