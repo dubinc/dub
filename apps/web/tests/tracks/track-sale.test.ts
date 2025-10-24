@@ -134,13 +134,13 @@ describe("POST /track/sale", async () => {
       http,
       regularInvoiceId,
       response1.data.sale?.amount!,
-      E2E_SALE_REWARD.amount,
+      E2E_SALE_REWARD.amountInCents,
     );
     await verifyCommission(
       http,
       premiumInvoiceId,
       response2.data.sale?.amount!,
-      E2E_SALE_REWARD.modifiers[0].amount,
+      E2E_SALE_REWARD.modifiers[0].amountInCents,
     );
   });
 
@@ -315,14 +315,14 @@ describe("POST /track/sale", async () => {
       http,
       smallSaleInvoiceId,
       response1.data.sale?.amount!,
-      E2E_SALE_REWARD.amount,
+      E2E_SALE_REWARD.amountInCents,
     );
 
     await verifyCommission(
       http,
       largeSaleInvoiceId,
       response2.data.sale?.amount!,
-      E2E_SALE_REWARD.modifiers[1].amount,
+      E2E_SALE_REWARD.modifiers[1].amountInCents,
     );
   });
 });

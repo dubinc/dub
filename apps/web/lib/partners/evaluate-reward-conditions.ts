@@ -65,14 +65,14 @@ export const evaluateRewardConditions = ({
   return matchingConditions.sort(
     (a, b) =>
       getRewardAmount({
-        type: a.type!,
-        amountInCents: a.amountInCents,
-        amountInPercentage: a.amountInPercentage,
-      }) -
-      getRewardAmount({
         type: b.type!,
         amountInCents: b.amountInCents,
         amountInPercentage: b.amountInPercentage,
+      }) -
+      getRewardAmount({
+        type: a.type!,
+        amountInCents: a.amountInCents,
+        amountInPercentage: a.amountInPercentage,
       }),
   )[0];
 };
