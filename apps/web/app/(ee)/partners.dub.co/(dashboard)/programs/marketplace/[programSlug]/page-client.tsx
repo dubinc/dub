@@ -1,5 +1,7 @@
 "use client";
 
+import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
+import { mutatePrefix } from "@/lib/swr/mutate";
 import { NetworkProgramProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
@@ -12,8 +14,9 @@ import {
   buttonVariants,
 } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
+import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import useSWR from "swr";
 
@@ -65,14 +68,7 @@ export function MarketplaceProgramPageClient() {
       }
       controls={
         !program ? undefined : program.status === "invited" ? (
-          <Button
-            text="Accept invite"
-            shortcut="A"
-            onClick={() => {
-              toast.info("WIP");
-            }}
-            className="h-9 rounded-lg"
-          />
+          <AcceptInviteButton key={program.id} program={program} />
         ) : program.status === "approved" ? (
           <Link
             href={`/programs/${program.slug}`}
@@ -106,5 +102,30 @@ export function MarketplaceProgramPageClient() {
     >
       <PageWidthWrapper className="mb-10">test</PageWidthWrapper>
     </PageContent>
+  );
+}
+
+function AcceptInviteButton({ program }: { program: NetworkProgramProps }) {
+  const router = useRouter();
+
+  const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
+    onSuccess: async () => {
+      await mutatePrefix("/api/partner-profile/programs");
+      toast.success("Program invite accepted!");
+      router.push(`/programs/${program.slug}`);
+    },
+    onError: ({ error }) => {
+      toast.error(error.serverError);
+    },
+  });
+
+  return (
+    <Button
+      text="Accept invite"
+      shortcut="A"
+      onClick={() => executeAsync({ programId: program.id })}
+      loading={isPending}
+      className="h-9 rounded-lg"
+    />
   );
 }
