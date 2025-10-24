@@ -5,15 +5,24 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import { NetworkProgramProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
+import { REWARD_EVENTS } from "@/ui/partners/constants";
+import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
+import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
+import { ProgramCategoryButton } from "@/ui/partners/program-network/program-category-button";
+import { ProgramRewardIcon } from "@/ui/partners/program-network/program-reward-icon";
 import {
   Button,
   ChevronRight,
+  Gift,
+  Link4,
   Shop,
   StatusBadge,
+  Tooltip,
   buttonVariants,
+  useRouterStuff,
 } from "@dub/ui";
-import { cn, fetcher } from "@dub/utils";
+import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -22,6 +31,7 @@ import useSWR from "swr";
 
 export function MarketplaceProgramPageClient() {
   const { programSlug } = useParams();
+  const { queryParams } = useRouterStuff();
 
   const {
     data: program,
@@ -100,7 +110,132 @@ export function MarketplaceProgramPageClient() {
         )
       }
     >
-      <PageWidthWrapper className="mb-10">test</PageWidthWrapper>
+      <PageWidthWrapper>
+        <div className="mx-auto mt-10 w-full max-w-screen-sm">
+          {program ? (
+            <img
+              src={program.logo || `${OG_AVATAR_URL}${program.name}`}
+              alt={program.name}
+              className="size-20 rounded-full"
+            />
+          ) : (
+            <div className="size-20 animate-pulse rounded-full bg-neutral-200" />
+          )}
+
+          <div className="mt-6 flex flex-col">
+            {program ? (
+              <span className="text-content-emphasis text-3xl font-semibold">
+                {program.name}
+              </span>
+            ) : (
+              <div className="h-9 w-48 animate-pulse rounded bg-neutral-200" />
+            )}
+
+            <div className="text-content-default mt-1 flex items-center gap-1">
+              <Link4 className="size-3.5" />
+              {program ? (
+                <a
+                  href={program.url || `https://${program.domain}`}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-sm font-medium"
+                >
+                  {getPrettyUrl(program.url) || program.domain}
+                </a>
+              ) : (
+                <div className="h-4 w-24 animate-pulse rounded bg-neutral-200" />
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 flex gap-8">
+            {program ? (
+              <>
+                {Boolean(program?.rewards?.length || program?.discount) && (
+                  <div>
+                    <span className="text-content-muted block text-xs font-medium">
+                      Rewards
+                    </span>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      {program.rewards?.map((reward) => (
+                        <ProgramRewardIcon
+                          key={reward.id}
+                          icon={REWARD_EVENTS[reward.event].icon}
+                          description={formatRewardDescription({ reward })}
+                          onClick={() =>
+                            queryParams({
+                              set: {
+                                rewardType: reward.event,
+                              },
+                              del: "page",
+                            })
+                          }
+                        />
+                      ))}
+                      {program.discount && (
+                        <ProgramRewardIcon
+                          icon={Gift}
+                          description={formatDiscountDescription({
+                            discount: program.discount,
+                          })}
+                          onClick={() =>
+                            queryParams({
+                              set: {
+                                rewardType: "discount",
+                              },
+                              del: "page",
+                            })
+                          }
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
+                {Boolean(program?.categories?.length) && (
+                  <div className="min-w-0">
+                    <span className="text-content-muted block text-xs font-medium">
+                      Industry
+                    </span>
+                    <div className="mt-1 flex items-center gap-1.5">
+                      {program.categories
+                        .slice(0, 1)
+                        ?.map((category) => (
+                          <ProgramCategoryButton
+                            key={category}
+                            category={category}
+                          />
+                        ))}
+                      {program.categories.length > 1 && (
+                        <Tooltip
+                          content={
+                            <div className="flex flex-col gap-0.5 p-2">
+                              {program.categories.slice(1).map((category) => (
+                                <ProgramCategoryButton
+                                  key={category}
+                                  category={category}
+                                />
+                              ))}
+                            </div>
+                          }
+                        >
+                          <div className="text-content-subtle -ml-1.5 flex size-6 items-center justify-center rounded-md text-xs font-medium">
+                            +{program.categories.length - 1}
+                          </div>
+                        </Tooltip>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div>
+                <div className="h-3.5 w-12 animate-pulse rounded bg-neutral-200" />
+                <div className="mt-1 h-6 w-24 animate-pulse rounded bg-neutral-200" />
+              </div>
+            )}
+          </div>
+        </div>
+      </PageWidthWrapper>
     </PageContent>
   );
 }

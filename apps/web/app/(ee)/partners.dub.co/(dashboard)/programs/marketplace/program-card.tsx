@@ -1,26 +1,17 @@
-import { categoriesMap } from "@/lib/partners/categories";
 import { NetworkProgramProps } from "@/lib/types";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
-import { Category } from "@dub/prisma/client";
-import {
-  CircleInfo,
-  Gift,
-  Icon,
-  Link4,
-  StatusBadge,
-  Tooltip,
-  useRouterStuff,
-} from "@dub/ui";
+import { ProgramCategoryButton } from "@/ui/partners/program-network/program-category-button";
+import { ProgramRewardIcon } from "@/ui/partners/program-network/program-reward-icon";
+import { Gift, Link4, StatusBadge, Tooltip, useRouterStuff } from "@dub/ui";
 import {
   OG_AVATAR_URL,
   cn,
   getPrettyUrl,
   isClickOnInteractiveChild,
 } from "@dub/utils";
-import * as HoverCard from "@radix-ui/react-hover-card";
 import { useRouter } from "next/navigation";
 
 const getClickHandlers = (
@@ -113,7 +104,7 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
                   </span>
                   <div className="mt-1 flex items-center gap-1.5">
                     {program.rewards?.map((reward) => (
-                      <RewardOrDiscountIcon
+                      <ProgramRewardIcon
                         key={reward.id}
                         icon={REWARD_EVENTS[reward.event].icon}
                         description={formatRewardDescription({ reward })}
@@ -128,7 +119,7 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
                       />
                     ))}
                     {program.discount && (
-                      <RewardOrDiscountIcon
+                      <ProgramRewardIcon
                         icon={Gift}
                         description={formatDiscountDescription({
                           discount: program.discount,
@@ -155,14 +146,17 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
                     {program.categories
                       .slice(0, 1)
                       ?.map((category) => (
-                        <CategoryButton key={category} category={category} />
+                        <ProgramCategoryButton
+                          key={category}
+                          category={category}
+                        />
                       ))}
                     {program.categories.length > 1 && (
                       <Tooltip
                         content={
                           <div className="flex flex-col gap-0.5 p-2">
                             {program.categories.slice(1).map((category) => (
-                              <CategoryButton
+                              <ProgramCategoryButton
                                 key={category}
                                 category={category}
                               />
@@ -282,7 +276,7 @@ export function FeaturedProgramCard({
                     </span>
                     <div className="mt-2 flex items-center gap-1.5">
                       {program.rewards?.map((reward) => (
-                        <RewardOrDiscountIcon
+                        <ProgramRewardIcon
                           key={reward.id}
                           icon={REWARD_EVENTS[reward.event].icon}
                           description={formatRewardDescription({ reward })}
@@ -298,7 +292,7 @@ export function FeaturedProgramCard({
                         />
                       ))}
                       {program.discount && (
-                        <RewardOrDiscountIcon
+                        <ProgramRewardIcon
                           icon={Gift}
                           description={formatDiscountDescription({
                             discount: program.discount,
@@ -326,7 +320,7 @@ export function FeaturedProgramCard({
                       {program.categories
                         .slice(0, 1)
                         ?.map((category) => (
-                          <CategoryButton
+                          <ProgramCategoryButton
                             key={category}
                             category={category}
                             className="text-content-inverted hover:bg-bg-default/10 active:bg-bg-default/20"
@@ -337,7 +331,7 @@ export function FeaturedProgramCard({
                           content={
                             <div className="flex flex-col gap-0.5 p-2">
                               {program.categories.slice(1).map((category) => (
-                                <CategoryButton
+                                <ProgramCategoryButton
                                   key={category}
                                   category={category}
                                 />
@@ -366,76 +360,3 @@ export function FeaturedProgramCard({
     </div>
   );
 }
-
-const RewardOrDiscountIcon = ({
-  icon: Icon,
-  description,
-  onClick,
-  className,
-}: {
-  icon: Icon;
-  description: string;
-  onClick: () => void;
-  className?: string;
-}) => (
-  <HoverCard.Root openDelay={100}>
-    <HoverCard.Portal>
-      <HoverCard.Content
-        side="bottom"
-        sideOffset={8}
-        className="animate-slide-up-fade z-[99] flex items-center gap-2 overflow-hidden rounded-xl border border-neutral-200 bg-white p-2 text-xs text-neutral-700 shadow-sm"
-      >
-        <Icon className="text-content-default size-4" />
-        <span>{description}</span>
-      </HoverCard.Content>
-    </HoverCard.Portal>
-    <HoverCard.Trigger>
-      <button
-        type="button"
-        onClick={onClick}
-        className={cn(
-          "hover:bg-bg-subtle active:bg-bg-emphasis text-content-default flex size-6 items-center justify-center rounded-md",
-          className,
-        )}
-      >
-        <Icon className="size-4" />
-      </button>
-    </HoverCard.Trigger>
-  </HoverCard.Root>
-);
-
-const CategoryButton = ({
-  category,
-  className,
-}: {
-  category: Category;
-  className?: string;
-}) => {
-  const { queryParams } = useRouterStuff();
-  const categoryData = categoriesMap[category];
-  const { icon: Icon, label } = categoryData ?? {
-    icon: CircleInfo,
-    label: category.replace("_", " "),
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={() =>
-        queryParams({
-          set: {
-            category,
-          },
-          del: "page",
-        })
-      }
-      className={cn(
-        "hover:bg-bg-subtle text-content-default active:bg-bg-emphasis flex h-6 min-w-0 items-center gap-1 rounded-md px-1",
-        className,
-      )}
-    >
-      <Icon className="size-4" />
-      <span className="min-w-0 truncate text-sm font-medium">{label}</span>
-    </button>
-  );
-};
