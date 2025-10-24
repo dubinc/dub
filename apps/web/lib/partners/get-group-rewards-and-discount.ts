@@ -1,5 +1,6 @@
 import { GroupProps, RewardProps } from "@/lib/types";
 import { Reward } from "@prisma/client";
+import { serializeReward } from "./serialize-reward";
 
 /**
  * Accepts both Prisma 'Reward' (database) and 'RewardProps' (frontend).
@@ -35,18 +36,5 @@ export function getGroupRewardsAndDiscount({
   return {
     rewards: normalizedRewards,
     discount: discount ?? null,
-  };
-}
-
-export function serializeReward(
-  reward: Reward | RewardProps | null | undefined,
-): RewardProps | null {
-  if (!reward) return null;
-
-  return {
-    ...reward,
-    amountInPercentage: reward.amountInPercentage
-      ? Number(reward.amountInPercentage)
-      : null,
   };
 }
