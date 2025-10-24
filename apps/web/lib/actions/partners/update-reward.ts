@@ -29,7 +29,7 @@ export const updateRewardAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await getRewardOrThrow({
+    const reward = await getRewardOrThrow({
       rewardId,
       programId,
     });
@@ -42,7 +42,10 @@ export const updateRewardAction = authActionClient
       );
     }
 
-    validateReward(parsedInput);
+    validateReward({
+      ...parsedInput,
+      event: reward.event,
+    });
 
     const updatedReward = await prisma.reward.update({
       where: {
