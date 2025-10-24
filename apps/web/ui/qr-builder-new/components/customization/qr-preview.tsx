@@ -43,7 +43,6 @@ export const QRPreview = ({
   return (
     <div className="flex justify-center items-center w-full">
       <QRCanvas qrCode={qrCode} width={300} height={300} />
-      {/* {homepageDemo && <DownloadButton qrCode={qrCode} disabled={isDisabled} />} */}
     </div>
   );
 };

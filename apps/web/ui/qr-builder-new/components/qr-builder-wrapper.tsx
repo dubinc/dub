@@ -1,30 +1,14 @@
-import { QrBuilderButtons } from "@/ui/qr-builder-new/components/qr-builder-buttons.tsx";
 import { QRBuilderInner } from "@/ui/qr-builder-new/components/qr-builder-inner.tsx";
 import { useQrBuilderContext } from "@/ui/qr-builder-new/context";
-import { useMediaQuery } from "@dub/ui";
 import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
 
 export const QRBuilderWrapper = () => {
   const {
     builderStep,
-    handleBack,
-    handleContinue,
     isTypeStep,
-    homepageDemo,
-    isProcessing,
-    isFileUploading,
-    isFileProcessing,
-    currentFormValues,
-    customizationData,
-    isEditMode,
     qrBuilderContentWrapperRef,
-    isFormValid,
   } = useQrBuilderContext();
-
-  const logoData = customizationData.logo;
-
-  const { isMobile } = useMediaQuery();
 
   return (
     <motion.div
@@ -51,23 +35,6 @@ export const QRBuilderWrapper = () => {
           <QRBuilderInner />
         </div>
       </div>
-      {!isTypeStep && isMobile && (
-        <div className="border-border-500 sticky bottom-0 z-10 mt-auto w-full border-t bg-white px-6 py-3">
-          <QrBuilderButtons
-            step={builderStep || 1}
-            onBack={handleBack}
-            onContinue={handleContinue}
-            isEdit={isEditMode}
-            isProcessing={isProcessing}
-            isFileUploading={isFileUploading}
-            isFileProcessing={isFileProcessing}
-            homepageDemo={homepageDemo}
-            currentFormValues={currentFormValues}
-            logoData={logoData}
-            isFormValid={isFormValid}
-          />
-        </div>
-      )}
     </motion.div>
   );
 };

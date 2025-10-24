@@ -83,6 +83,7 @@ export interface IQrBuilderContextType {
   setBuilderStep: (state: TStepState) => void;
   setDestinationData: (data: TDestinationData) => void;
   setSelectedQrType: (type: TQrType) => void;
+  setFormData: (data: TQRFormData | null) => void;
   setIsFileUploading: (uploading: boolean) => void;
   setIsFileProcessing: (processing: boolean) => void;
   setIsFormValid: (valid: boolean) => void;

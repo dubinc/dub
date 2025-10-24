@@ -1,7 +1,8 @@
-import { Button } from "@dub/ui";
+import { Button } from "@/components/ui/button";
 import QRCodeStyling from "qr-code-styling";
 import { useCallback } from "react";
 import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
 import { useQrBuilderContext } from "../context";
 
 interface DownloadButtonProps {
@@ -14,15 +15,16 @@ export const DownloadButton = ({
   disabled = false,
 }: DownloadButtonProps) => {
   const {
-    selectedQrType,
-    formData,
     homepageDemo,
-    handleContinue,
     isEditMode,
     isFileUploading,
     isFileProcessing,
     isProcessing,
     customizationData,
+    onSave,
+    isContentStep,
+    contentStepRef,
+    setFormData,
   } = useQrBuilderContext();
 
   // Check if logo upload is incomplete
@@ -31,24 +33,32 @@ export const DownloadButton = ({
     !customizationData.logo?.fileId;
 
   const handleSave = useCallback(async () => {
-    if (!qrCode || disabled) return;
+    if (disabled) return;
 
-    if (!selectedQrType || !formData) {
-      toast.error("Please complete all required fields");
-      return;
+    // If on content step, validate and get form data without changing step
+    if (isContentStep && contentStepRef.current) {
+      // Trigger validation without calling onSubmit (which changes step)
+      const isValid = await contentStepRef.current.form.trigger();
+      if (!isValid) {
+        return;
+      }
+
+      // Get form values and update formData state
+      const formValues = contentStepRef.current.getValues();
+      setFormData(formValues as any);
+
+      // Wait for state update
+      await new Promise(resolve => setTimeout(resolve, 0));
     }
 
-    if (homepageDemo) {
-      await handleContinue();
-      return;
-    }
+    // Directly save/create the QR code without navigating steps
+    await onSave();
   }, [
-    qrCode,
     disabled,
-    selectedQrType,
-    formData,
-    homepageDemo,
-    handleContinue,
+    isContentStep,
+    contentStepRef,
+    setFormData,
+    onSave,
   ]);
 
   const getButtonText = useCallback(() => {
@@ -67,14 +77,18 @@ export const DownloadButton = ({
     isFileProcessing ||
     hasUploadedLogoWithoutFileId;
 
+  const isLoading = isProcessing || isFileUploading || isFileProcessing;
+
   return (
     <Button
-      color="blue"
-      className="w-full grow basis-3/4"
+      type="submit"
+      size="lg"
+      className="bg-secondary hover:bg-secondary/90 w-full"
       onClick={handleSave}
       disabled={isDisabled}
-      loading={isProcessing || isFileUploading || isFileProcessing}
-      text={buttonText}
-    />
+    >
+      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {buttonText}
+    </Button>
   );
 };

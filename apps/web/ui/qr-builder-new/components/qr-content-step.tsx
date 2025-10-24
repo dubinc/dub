@@ -7,6 +7,8 @@ import { QRFormRef } from "../forms/types";
 
 export interface QRContentStepRef {
   validateForm: () => Promise<boolean>;
+  form: any;
+  getValues: () => any;
 }
 
 export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
@@ -16,7 +18,6 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
     formData,
     updateCurrentFormValues,
     initialQrData,
-    setIsFormValid,
   } = useQrBuilderContext();
   const formRef = useRef<QRFormRef>(null);
 
@@ -26,6 +27,13 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
         return await formRef.current.validate();
       }
       return false;
+    },
+    form: formRef.current?.form,
+    getValues: () => {
+      if (formRef.current) {
+        return formRef.current.getValues();
+      }
+      return null;
     },
   }));
 
@@ -38,25 +46,6 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
       return () => subscription.unsubscribe();
     }
   }, [selectedQrType, updateCurrentFormValues]);
-
-  // Track form validation state and update context
-  useEffect(() => {
-    if (formRef.current?.form) {
-      // Trigger initial validation
-      formRef.current.form.trigger().then((isValid) => {
-        setIsFormValid(isValid);
-      });
-
-      // Subscribe to form value changes
-      const subscription = formRef.current.form.watch(async () => {
-        // Trigger validation on every change
-        const isValid = await formRef.current?.form.trigger();
-        setIsFormValid(isValid || false);
-      });
-
-      return () => subscription.unsubscribe();
-    }
-  }, [formRef.current?.form, setIsFormValid]);
 
   if (!selectedQrType) {
     return (

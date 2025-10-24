@@ -48,9 +48,9 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
 
   const handleAccordionChange = useCallback(
     (value: string) => {
-      if (value) {
-        onTabChange(value);
+      onTabChange(value);
 
+      if (value) {
         trackClientEvents({
           event: EAnalyticEvents.ELEMENT_CLICKED,
           params: {
@@ -167,7 +167,7 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
           <AccordionItem
             key={tab.id}
             value={tab.label}
-            className="border-none rounded-md px-4 bg-[#fbfbfb]"
+            className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
             disabled={disabled}
           >
             <AccordionTrigger

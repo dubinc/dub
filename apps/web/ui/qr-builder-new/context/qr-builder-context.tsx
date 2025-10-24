@@ -189,6 +189,12 @@ export function QrBuilderProvider({
         return;
       }
 
+      // Prevent going to step 3 if step 2 is not completed with valid data
+      if (newStep === 3 && !formData) {
+        toast.error("Please complete the required fields in step 2 first");
+        return;
+      }
+
       setTypeSelectionError("");
       setBuilderStep(newStep as TStepState);
 
@@ -210,7 +216,7 @@ export function QrBuilderProvider({
         sessionId: sessionId || user?.id,
       });
     },
-    [selectedQrType, homepageDemo, user, sessionId],
+    [selectedQrType, formData, homepageDemo, user, sessionId],
   );
 
   const handleSelectQRType = useCallback(
@@ -459,6 +465,7 @@ export function QrBuilderProvider({
     setBuilderStep,
     setDestinationData,
     setSelectedQrType,
+    setFormData,
     setIsFileUploading,
     setIsFileProcessing,
     setIsFormValid,
