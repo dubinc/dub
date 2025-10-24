@@ -78,7 +78,12 @@ export async function getPartnerInviteRewardsAndBounties({
         ...(group.leadReward ? [group.leadReward] : []),
         ...(group.saleReward ? [group.saleReward] : []),
       ].map((reward) => ({
-        label: formatRewardDescription({ reward }),
+        label: formatRewardDescription({
+          ...reward,
+          amountInPercentage: reward.amountInPercentage
+            ? reward.amountInPercentage.toNumber()
+            : undefined,
+        }),
         icon: REWARD_ICONS[reward.event],
       })),
       ...(group.discount

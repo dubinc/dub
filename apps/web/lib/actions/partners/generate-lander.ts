@@ -107,7 +107,7 @@ export const generateLanderAction = authActionClient
         // Program details
         `\n\nProgram details:` +
         `\n\nName: ${program.name}\n` +
-        `\nAffiliate rewards: ${rewards.map((reward) => formatRewardDescription({ reward })).join(", ")}` +
+        `\nAffiliate rewards: ${rewards.map((reward) => formatRewardDescription(reward)).join(", ")}` +
         (discount
           ? `\nDiscounts for referred users: ${formatDiscountDescription(discount)}`
           : "") +

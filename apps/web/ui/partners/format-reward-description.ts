@@ -1,11 +1,7 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { RewardProps } from "@/lib/types";
 
-export function formatRewardDescription({
-  reward,
-}: {
-  reward: Omit<RewardProps, "id">;
-}): string {
+export function formatRewardDescription(reward: RewardProps) {
   if (reward.description) {
     return reward.description;
   }
