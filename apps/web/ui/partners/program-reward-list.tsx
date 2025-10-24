@@ -1,4 +1,5 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -21,7 +22,7 @@ export function ProgramRewardList({
   iconClassName?: string;
   showModifiersTooltip?: boolean;
 }) {
-  const sortedFilteredRewards = rewards.filter((r) => r.amount >= 0);
+  const sortedFilteredRewards = rewards.filter((r) => getRewardAmount(r) >= 0);
 
   return (
     <ul

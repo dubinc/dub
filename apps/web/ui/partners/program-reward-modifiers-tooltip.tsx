@@ -1,6 +1,7 @@
 "use client";
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { RewardProps } from "@/lib/types";
 import {
   ATTRIBUTE_LABELS,
@@ -25,10 +26,7 @@ const REWARD_MODIFIER_LABELS = {
 };
 
 type ProgramRewardModifiersTooltipProps = {
-  reward?: Pick<
-    RewardProps,
-    "amount" | "type" | "event" | "maxDuration" | "modifiers"
-  > | null;
+  reward?: Omit<RewardProps, "id"> | null;
 };
 
 export function ProgramRewardModifiersTooltip({
@@ -53,7 +51,7 @@ export function ProgramRewardModifiersTooltipContent({
 
   if (!reward?.modifiers?.length) return null;
 
-  const showBaseReward = reward.amount !== 0;
+  const showBaseReward = getRewardAmount(reward) !== 0;
 
   return (
     <div className="relative">
@@ -103,7 +101,7 @@ const RewardItem = ({
   conditions,
   operator = "AND",
 }: {
-  reward: Pick<RewardProps, "amount" | "type" | "event" | "maxDuration">;
+  reward: Omit<RewardProps, "id">;
   conditions?: z.infer<
     typeof rewardConditionsArraySchema
   >[number]["conditions"];

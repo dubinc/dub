@@ -188,7 +188,7 @@ function RewardSheetContent({
         await mutateProgram();
         await mutateGroup();
       },
-      onError({ error, input }) {
+      onError({ error }) {
         toast.error(error.serverError);
       },
     },
@@ -267,7 +267,7 @@ function RewardSheetContent({
       }
     }
 
-    const amountT =
+    const amount =
       type === "flat"
         ? {
             amountInCents: Math.round((data.amountInCents ?? 0) * 100),
@@ -280,7 +280,7 @@ function RewardSheetContent({
 
     const payload = {
       ...data,
-      ...amountT,
+      ...amount,
       workspaceId,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,

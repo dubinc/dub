@@ -10,10 +10,7 @@ export function ProgramRewardDescription({
   periodClassName,
   showModifiersTooltip = true,
 }: {
-  reward?: Pick<
-    RewardProps,
-    "amount" | "type" | "event" | "maxDuration" | "description" | "modifiers"
-  > | null;
+  reward?: Omit<RewardProps, "id"> | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
