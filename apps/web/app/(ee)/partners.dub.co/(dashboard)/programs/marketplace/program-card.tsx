@@ -207,7 +207,7 @@ export function FeaturedProgramCard({
   return (
     <div
       className={cn(
-        "border-border-subtle relative overflow-hidden rounded-xl border p-6",
+        "border-border-subtle relative h-full overflow-hidden rounded-xl border p-6",
         program?.id &&
           "cursor-pointer border-transparent bg-black hover:drop-shadow-sm",
       )}
