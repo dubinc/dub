@@ -1,6 +1,8 @@
 import { RewardProps } from "../types";
 
-export const getRewardAmount = (reward: RewardProps) => {
+export const getRewardAmount = (
+  reward: Pick<RewardProps, "type" | "amountInCents" | "amountInPercentage">,
+) => {
   const amount =
     reward.type === "flat" ? reward.amountInCents : reward.amountInPercentage;
 
