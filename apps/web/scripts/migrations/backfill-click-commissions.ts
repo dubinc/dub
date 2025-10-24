@@ -67,7 +67,7 @@ async function main() {
         type: "click",
         amount: 0,
         quantity,
-        earnings: reward.amount * quantity,
+        earnings: (reward.amountInCents ?? 0) * quantity,
         status: payoutId ? "paid" : "pending",
         createdAt: new Date(start),
         updatedAt: new Date(start),

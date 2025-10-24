@@ -6,6 +6,7 @@ import {
 } from "../zod/schemas/rewards";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { evaluateRewardConditions } from "./evaluate-reward-conditions";
+import { getRewardAmount } from "./get-reward-amount";
 
 const REWARD_EVENT_COLUMN_MAPPING = {
   [EventType.click]: "clickReward",
@@ -85,10 +86,7 @@ export const determinePartnerReward = ({
     }
   }
 
-  const amount =
-    partnerReward.type === "flat"
-      ? partnerReward.amountInCents
-      : partnerReward.amountInPercentage;
+  const amount = getRewardAmount(partnerReward);
 
   if (amount === 0) {
     return null;

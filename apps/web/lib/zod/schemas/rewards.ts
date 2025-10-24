@@ -129,14 +129,25 @@ export const rewardConditionSchema = z.object({
     .describe("Product name used for display purposes in the UI."),
 });
 
-export const rewardConditionsSchema = z.object({
+const baseRewardConditionSchema = z.object({
   operator: z.enum(["AND", "OR"]).default("AND"),
   conditions: z.array(rewardConditionSchema).min(1),
-  amountInCents: z.number().int().min(0).optional(),
-  amountInPercentage: z.number().min(0).max(100).optional(),
-  type: z.nativeEnum(RewardStructure).optional(),
   maxDuration: maxDurationSchema,
 });
+
+export const rewardConditionsSchema = z.discriminatedUnion("type", [
+  baseRewardConditionSchema.extend({
+    type: z.literal(RewardStructure.flat),
+    amountInCents: z.number().int().min(0),
+    amountInPercentage: z.never().optional(),
+  }),
+
+  baseRewardConditionSchema.extend({
+    type: z.literal(RewardStructure.percentage),
+    amountInPercentage: z.number().min(0).max(100),
+    amountInCents: z.never().optional(),
+  }),
+]);
 
 export const rewardConditionsArraySchema = z
   .array(rewardConditionsSchema)

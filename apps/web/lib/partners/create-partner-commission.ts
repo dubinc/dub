@@ -111,7 +111,7 @@ export const createPartnerCommission = async ({
 
     // for click events, it's super simple – just multiply the reward amount by the quantity
     if (event === "click") {
-      earnings = reward.amount * quantity;
+      earnings = (reward.amountInCents ?? 0) * quantity;
 
       // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
       // for sale rewards specifically, we also need to check:
@@ -140,6 +140,7 @@ export const createPartnerCommission = async ({
           console.log(
             `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`,
           );
+
           return {
             commission: null,
             webhookPartner: constructWebhookPartner(programEnrollment),
@@ -221,7 +222,7 @@ export const createPartnerCommission = async ({
 
       // for lead events, we just multiply the reward amount by the quantity
       if (event === "lead") {
-        earnings = reward.amount * quantity;
+        earnings = (reward.amountInCents ?? 0) * quantity;
         // for sale events, we need to calculate the earnings based on the sale amount
       } else {
         earnings = calculateSaleEarnings({
