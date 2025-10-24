@@ -6,7 +6,6 @@ import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
 import { sendBatchEmail } from "@dub/email";
-import { unsubscribe } from "@dub/email/resend";
 import PartnerAccountMerged from "@dub/email/templates/partner-account-merged";
 import { prisma } from "@dub/prisma";
 import { log, R2_URL } from "@dub/utils";
@@ -131,44 +130,32 @@ export async function POST(req: Request) {
       ({ programId }) => programId,
     );
 
-    // update links, commissions, and payouts
+    const updateManyPayload = {
+      where: {
+        programId: {
+          in: programIdsToTransfer,
+        },
+        partnerId: sourcePartnerId,
+      },
+      data: {
+        partnerId: targetPartnerId,
+      },
+    };
+
+    // update links, commissions, bounty submissions, and payouts
     if (programIdsToTransfer.length > 0) {
       await Promise.all([
-        prisma.link.updateMany({
-          where: {
-            programId: {
-              in: programIdsToTransfer,
-            },
-            partnerId: sourcePartnerId,
-          },
-          data: {
-            partnerId: targetPartnerId,
-          },
-        }),
+        prisma.link.updateMany(updateManyPayload),
+        prisma.commission.updateMany(updateManyPayload),
+        prisma.bountySubmission.updateMany(updateManyPayload),
+        prisma.payout.updateMany(updateManyPayload),
+      ]);
 
-        prisma.commission.updateMany({
-          where: {
-            programId: {
-              in: programIdsToTransfer,
-            },
-            partnerId: sourcePartnerId,
-          },
-          data: {
-            partnerId: targetPartnerId,
-          },
-        }),
-
-        prisma.payout.updateMany({
-          where: {
-            programId: {
-              in: programIdsToTransfer,
-            },
-            partnerId: sourcePartnerId,
-          },
-          data: {
-            partnerId: targetPartnerId,
-          },
-        }),
+      // update notification emails, messages, and partner comments
+      await Promise.all([
+        prisma.notificationEmail.updateMany(updateManyPayload),
+        prisma.message.updateMany(updateManyPayload),
+        prisma.partnerComment.updateMany(updateManyPayload),
       ]);
 
       const updatedLinks = await prisma.link.findMany({
@@ -211,15 +198,9 @@ export async function POST(req: Request) {
           },
         });
 
-        await Promise.allSettled([
-          deletedUser.image
-            ? storage.delete(deletedUser.image.replace(`${R2_URL}/`, ""))
-            : Promise.resolve(),
-
-          unsubscribe({
-            email: deletedUser.email!,
-          }),
-        ]);
+        if (deletedUser.image) {
+          await storage.delete(deletedUser.image.replace(`${R2_URL}/`, ""));
+        }
       }
     }
 

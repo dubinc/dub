@@ -20,10 +20,10 @@ model Message {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
-  program       Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
-  partner       Partner             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
-  senderUser    User                @relation(fields: [senderUserId], references: [id], onDelete: Cascade)
-  senderPartner Partner?            @relation("SenderPartner", fields: [senderPartnerId], references: [id], onDelete: Cascade)
+  program       Program             @relation(fields: [programId], references: [id])
+  partner       Partner             @relation(fields: [partnerId], references: [id])
+  senderUser    User                @relation(fields: [senderUserId], references: [id])
+  senderPartner Partner?            @relation("SenderPartner", fields: [senderPartnerId], references: [id])
   emails        NotificationEmail[]
 
   @@index([programId, partnerId])
