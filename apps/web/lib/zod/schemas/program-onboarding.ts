@@ -19,7 +19,8 @@ export const programInfoSchema = z.object({
 export const programRewardSchema = z.object({
   defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
   type: z.nativeEnum(RewardStructure).nullish(),
-  amount: z.number().min(0).nullish(),
+  amountInCents: z.number().int().min(0).nullish(),
+  amountInPercentage: z.number().min(0).max(100).nullish(),
   maxDuration: maxDurationSchema,
 });
 
