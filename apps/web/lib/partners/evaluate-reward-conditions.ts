@@ -63,7 +63,17 @@ export const evaluateRewardConditions = ({
 
   // Find the best matching condition (highest amount)
   return matchingConditions.sort(
-    (a, b) => getRewardAmount(b) - getRewardAmount(a),
+    (a, b) =>
+      getRewardAmount({
+        type: a.type!,
+        amountInCents: a.amountInCents,
+        amountInPercentage: a.amountInPercentage,
+      }) -
+      getRewardAmount({
+        type: b.type!,
+        amountInCents: b.amountInCents,
+        amountInPercentage: b.amountInPercentage,
+      }),
   )[0];
 };
 

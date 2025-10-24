@@ -57,7 +57,10 @@ async function main() {
                 newModifier.amountInPercentage = modifier.amount;
               }
 
-      
+              // Some of the old modifiers don't have a type, so we add it from the parent reward type
+              if (!newModifier.type) {
+                newModifier.type = modifierType;
+              }
 
               delete newModifier.amount;
               return newModifier;
