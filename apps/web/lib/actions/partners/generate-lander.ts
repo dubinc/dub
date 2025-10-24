@@ -109,7 +109,7 @@ export const generateLanderAction = authActionClient
         `\n\nName: ${program.name}\n` +
         `\nAffiliate rewards: ${rewards.map((reward) => formatRewardDescription({ reward })).join(", ")}` +
         (discount
-          ? `\nDiscounts for referred users: ${formatDiscountDescription({ discount })}`
+          ? `\nDiscounts for referred users: ${formatDiscountDescription(discount)}`
           : "") +
         // Existing page
         (landerData

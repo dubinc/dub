@@ -84,7 +84,7 @@ export async function getPartnerInviteRewardsAndBounties({
       ...(group.discount
         ? [
             {
-              label: formatDiscountDescription({ discount: group.discount }),
+              label: formatDiscountDescription(group.discount),
               icon: "https://assets.dub.co/email-assets/icons/gift.png",
             },
           ]
