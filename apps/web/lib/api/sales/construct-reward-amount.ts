@@ -1,3 +1,4 @@
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { RewardProps } from "@/lib/types";
 import { rewardConditionsArraySchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
@@ -34,23 +35,24 @@ export const constructRewardAmount = (
 
       // If the type AND maxDuration matches the primary, show a range
       if (matchPrimary) {
-        const amount =
-          reward.type === "flat"
-            ? reward.amountInCents
-            : reward.amountInPercentage;
-
-        if (amount === undefined || amount === null) {
-          throw new Error("Invalid reward amount");
-        }
+        const amount = getRewardAmount(reward);
 
         const min = Math.min(
           amount,
-          ...modifiers.map((modifier) => modifier.amount),
+          ...modifiers.map((modifier) =>
+            reward.type === "flat"
+              ? modifier.amountInCents ?? Infinity
+              : modifier.amountInPercentage ?? Infinity,
+          ),
         );
 
         const max = Math.max(
           amount,
-          ...modifiers.map((modifier) => modifier.amount),
+          ...modifiers.map((modifier) =>
+            reward.type === "flat"
+              ? modifier.amountInCents ?? 0
+              : modifier.amountInPercentage ?? 0,
+          ),
         );
 
         if (min !== max) {
