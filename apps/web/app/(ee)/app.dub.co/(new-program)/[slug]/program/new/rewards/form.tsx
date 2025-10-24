@@ -76,11 +76,11 @@ export function Form() {
     await executeAsync({
       ...data,
       amountInCents:
-        data.amountInCents && data.type === "flat"
+        data.amountInCents != null && data.type === "flat"
           ? Math.round(data.amountInCents * 100)
           : null,
       amountInPercentage:
-        data.amountInPercentage && data.type === "percentage"
+        data.amountInPercentage != null && data.type === "percentage"
           ? data.amountInPercentage
           : null,
       workspaceId,
@@ -89,7 +89,7 @@ export function Form() {
   };
 
   const amount = type === "flat" ? amountInCents : amountInPercentage;
-  const buttonDisabled = !amount || !type || !defaultRewardType;
+  const buttonDisabled = amount == null || !type || !defaultRewardType;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">

@@ -55,7 +55,7 @@ export function PageClient() {
 
   const reward: Omit<RewardProps, "id"> = {
     type: (data.type ?? "flat") as RewardStructure,
-    amountInCents: data.amountInCents ? data.amountInCents * 100 : null,
+    amountInCents: data.amountInCents != null ? data.amountInCents * 100 : null,
     amountInPercentage: data.amountInPercentage,
     maxDuration: data.maxDuration ?? 0,
     event: data.defaultRewardType,

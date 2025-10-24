@@ -4,8 +4,9 @@ import { RewardProps } from "../types";
 export function serializeReward(reward: Reward | RewardProps): RewardProps {
   return {
     ...reward,
-    amountInPercentage: reward.amountInPercentage
-      ? Number(reward.amountInPercentage)
-      : null,
+    amountInPercentage:
+      reward.amountInPercentage != null
+        ? Number(reward.amountInPercentage)
+        : null,
   };
 }
