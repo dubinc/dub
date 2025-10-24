@@ -221,18 +221,20 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
       },
     });
 
-    return response.data.map((item) => {
-      const partner = partners.find((p) => p.id === item.groupByField);
-      if (!partner) return null;
-      return analyticsResponse[groupBy].parse({
-        ...item,
-        partnerId: item.groupByField,
-        partner: {
-          ...partner,
-          payoutsEnabledAt: partner.payoutsEnabledAt?.toISOString() || null,
-        },
-      });
-    });
+    return response.data
+      .map((item) => {
+        const partner = partners.find((p) => p.id === item.groupByField);
+        if (!partner) return null;
+        return analyticsResponse[groupBy].parse({
+          ...item,
+          partnerId: item.groupByField,
+          partner: {
+            ...partner,
+            payoutsEnabledAt: partner.payoutsEnabledAt?.toISOString() || null,
+          },
+        });
+      })
+      .filter((d) => d !== null);
   }
 
   // Return array for other endpoints
