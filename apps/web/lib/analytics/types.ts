@@ -38,7 +38,6 @@ export type DeviceTabs = "devices" | "browsers" | "os" | "triggers";
 export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
   workspaceId?: string;
   dataAvailableFrom?: Date;
-  isDemo?: boolean;
   isDeprecatedClicksEndpoint?: boolean;
   linkIds?: string[]; // TODO: remove this once it's been added to the public API
   folderIds?: string[];
@@ -47,7 +46,6 @@ export type AnalyticsFilters = z.infer<typeof analyticsQuerySchema> & {
 export type EventsFilters = z.infer<typeof eventsQuerySchema> & {
   workspaceId?: string;
   dataAvailableFrom?: Date;
-  isDemo?: boolean;
   customerId?: string;
   folderIds?: string[];
 };
