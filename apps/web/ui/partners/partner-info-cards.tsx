@@ -1,4 +1,3 @@
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -268,13 +267,11 @@ export function PartnerInfoCards({
             group.saleReward ||
             group.discount ? (
               <ProgramRewardList
-                rewards={sortRewardsByEventOrder(
-                  [
-                    group.clickReward,
-                    group.leadReward,
-                    group.saleReward,
-                  ].filter((r): r is RewardProps => r !== null),
-                )}
+                rewards={[
+                  group.clickReward,
+                  group.leadReward,
+                  group.saleReward,
+                ].filter((r): r is RewardProps => r !== null)}
                 discount={group.discount}
                 variant="plain"
                 className="text-content-subtle gap-2 text-xs leading-4"

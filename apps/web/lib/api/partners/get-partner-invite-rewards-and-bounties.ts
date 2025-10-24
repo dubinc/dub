@@ -1,4 +1,3 @@
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
@@ -74,11 +73,11 @@ export async function getPartnerInviteRewardsAndBounties({
 
   return {
     rewards: [
-      ...sortRewardsByEventOrder([
+      ...[
         ...(group.clickReward ? [group.clickReward] : []),
         ...(group.leadReward ? [group.leadReward] : []),
         ...(group.saleReward ? [group.saleReward] : []),
-      ]).map((reward) => ({
+      ].map((reward) => ({
         label: formatRewardDescription({ reward }),
         icon: REWARD_ICONS[reward.event],
       })),
