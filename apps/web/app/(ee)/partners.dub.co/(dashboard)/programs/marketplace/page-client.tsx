@@ -13,24 +13,25 @@ import {
 } from "@dub/ui";
 import { cn, fetcher } from "@dub/utils";
 import useSWR from "swr";
+import { FeaturedPrograms } from "./featured-programs";
 import { MarketplaceEmptyState } from "./marketplace-empty-state";
-import { FeaturedProgramCard, ProgramCard } from "./program-card";
+import { ProgramCard } from "./program-card";
 import ProgramSort from "./program-sort";
 import { useProgramNetworkFilters } from "./use-program-network-filters";
 
 export function ProgramMarketplacePageClient() {
   const { getQueryString } = useRouterStuff();
 
-  const { data: programsCount, error: countError } = useNetworkProgramsCount();
+  const { data: programsCount, error: countError } = useNetworkProgramsCount(
+    {},
+  );
 
   const {
     data: programs,
     error,
     isValidating,
   } = useSWR<NetworkProgramProps[]>(
-    `/api/network/programs${getQueryString({
-      //
-    })}`,
+    `/api/network/programs${getQueryString()}`,
     fetcher,
     { revalidateOnFocus: false, keepPreviousData: true },
   );
@@ -50,15 +51,7 @@ export function ProgramMarketplacePageClient() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h2 className="text-content-emphasis text-base font-semibold">
-          Featured programs
-        </h2>
-        <div className="@3xl/page:grid-cols-2 mt-4 grid grid-cols-1 gap-4">
-          <FeaturedProgramCard program={programs?.[0]} />
-          <FeaturedProgramCard program={programs?.[1]} />
-        </div>
-      </div>
+      <FeaturedPrograms />
       <div>
         <div className="xs:flex-row xs:items-center flex flex-col justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -97,17 +90,19 @@ export function ProgramMarketplacePageClient() {
         </div>
       ) : !programs || programs?.length ? (
         <div>
-          <div
-            className={cn(
-              "@4xl/page:grid-cols-3 @xl/page:grid-cols-2 grid min-h-[500px] grid-cols-1 items-start gap-4 transition-opacity lg:gap-6",
-              isValidating && "opacity-50",
-            )}
-          >
-            {programs
-              ? programs?.map((program) => (
-                  <ProgramCard key={program.id} program={program} />
-                ))
-              : [...Array(5)].map((_, idx) => <ProgramCard key={idx} />)}
+          <div className="min-h-[300px]">
+            <div
+              className={cn(
+                "@4xl/page:grid-cols-3 @xl/page:grid-cols-2 grid grid-cols-1 gap-4 transition-opacity lg:gap-6",
+                isValidating && "opacity-50",
+              )}
+            >
+              {programs
+                ? programs?.map((program) => (
+                    <ProgramCard key={program.id} program={program} />
+                  ))
+                : [...Array(5)].map((_, idx) => <ProgramCard key={idx} />)}
+            </div>
           </div>
           <div className="sticky bottom-0 mt-4 rounded-b-[inherit] border-t border-neutral-200 bg-white px-3.5 py-2">
             <PaginationControls

@@ -40,7 +40,7 @@ export const getNetworkProgramsQuerySchema = z
       (v) => (v === "null" ? null : v),
       z.nativeEnum(ProgramEnrollmentStatus).nullish(),
     ),
-    featured: z.boolean().optional(),
+    featured: z.coerce.boolean().optional(),
     search: z.string().optional(),
     sortBy: z.enum(["name", "createdAt", "popularity"]).default("popularity"),
     sortOrder: z.enum(["asc", "desc"]).default("desc"),
