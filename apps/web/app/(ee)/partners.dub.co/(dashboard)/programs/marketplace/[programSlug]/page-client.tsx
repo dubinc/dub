@@ -8,6 +8,7 @@ import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
@@ -112,7 +113,7 @@ export function MarketplaceProgramPageClient() {
         )
       }
     >
-      <PageWidthWrapper>
+      <PageWidthWrapper className="mb-10">
         <div className="mx-auto mt-10 w-full max-w-screen-sm">
           {program ? (
             <img
@@ -231,6 +232,17 @@ export function MarketplaceProgramPageClient() {
                 rewards={program.rewards || []}
                 discount={program.discount || null}
               />
+
+              {program.landerData && (
+                <div className="mt-16 grid grid-cols-1 gap-10">
+                  {program.landerData.blocks.map((block, idx) => {
+                    const Component = BLOCK_COMPONENTS[block.type];
+                    return Component ? (
+                      <Component key={idx} block={block} program={program} />
+                    ) : null;
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
