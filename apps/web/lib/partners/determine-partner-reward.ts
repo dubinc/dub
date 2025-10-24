@@ -69,10 +69,12 @@ export const determinePartnerReward = ({
           // Override the reward amount, type and max duration with the matched condition
           type: matchedCondition.type || partnerReward.type,
           amountInCents:
-            matchedCondition.type === "flat" ? matchedCondition.amount : null,
+            matchedCondition.amountInCents !== undefined
+              ? matchedCondition.amountInCents
+              : null,
           amountInPercentage:
-            matchedCondition.type === "percentage"
-              ? new Prisma.Decimal(matchedCondition.amount)
+            matchedCondition.amountInPercentage !== undefined
+              ? new Prisma.Decimal(matchedCondition.amountInPercentage)
               : null,
           maxDuration:
             matchedCondition.maxDuration !== undefined

@@ -134,7 +134,11 @@ function RewardSheetContent({
                 ? Number(c.value) / 100
                 : c.value,
           })),
-          amount: type === "flat" ? m.amount / 100 : m.amount,
+          amountInCents:
+            m.amountInCents !== undefined && m.amountInCents !== null
+              ? m.amountInCents / 100
+              : undefined,
+          amountInPercentage: m.amountInPercentage ?? undefined,
           maxDuration: m.maxDuration === null ? Infinity : maxDuration,
         };
       }),
@@ -252,7 +256,12 @@ function RewardSheetContent({
                       : Math.round(Number(c.value) * 100)
                     : c.value,
               })),
-              amount: type === "flat" ? Math.round(m.amount * 100) : m.amount,
+              amountInCents:
+                type === "flat" && m.amountInCents !== undefined
+                  ? Math.round(m.amountInCents * 100)
+                  : undefined,
+              amountInPercentage:
+                type === "percentage" ? m.amountInPercentage : undefined,
               maxDuration: maxDuration === Infinity ? null : maxDuration,
             };
           }),

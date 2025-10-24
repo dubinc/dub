@@ -73,9 +73,10 @@ export function ProgramRewardModifiersTooltipContent({
               <RewardItem
                 reward={{
                   event: reward.event,
-                  amount: modifier.amount,
                   type:
                     modifier.type === undefined ? reward.type : modifier.type, // fallback to primary
+                  amountInCents: modifier.amountInCents,
+                  amountInPercentage: modifier.amountInPercentage,
                   maxDuration:
                     modifier.maxDuration === undefined
                       ? reward.maxDuration

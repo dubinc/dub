@@ -4,10 +4,7 @@ import { RewardProps } from "@/lib/types";
 export function formatRewardDescription({
   reward,
 }: {
-  reward: Pick<
-    RewardProps,
-    "description" | "amount" | "type" | "event" | "maxDuration"
-  >;
+  reward: Omit<RewardProps, "id">;
 }): string {
   if (reward.description) {
     return reward.description;
