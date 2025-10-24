@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { serializeReward } from "@/lib/partners/serialize-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   createRewardSchema,
@@ -108,7 +109,7 @@ export const createRewardAction = authActionClient
           {
             type: "reward",
             id: reward.id,
-            metadata: reward,
+            metadata: serializeReward(reward),
           },
         ],
       }),

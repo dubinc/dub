@@ -1,11 +1,7 @@
 import { Reward } from "@dub/prisma/client";
 import { RewardProps } from "../types";
 
-export function serializeReward(
-  reward: Reward | RewardProps | null | undefined,
-): RewardProps | null {
-  if (!reward) return null;
-
+export function serializeReward(reward: Reward | RewardProps): RewardProps {
   return {
     ...reward,
     amountInPercentage: reward.amountInPercentage
