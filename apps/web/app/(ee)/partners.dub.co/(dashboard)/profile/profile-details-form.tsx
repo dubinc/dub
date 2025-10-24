@@ -309,7 +309,6 @@ function BasicInfoForm({
               <CountryCombobox
                 value={field.value || ""}
                 onChange={field.onChange}
-                error={errors.country ? true : false}
                 disabledTooltip="Your country cannot be changed once set. If you need to update your country, please contact support."
               />
             )}
