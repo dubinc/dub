@@ -5,9 +5,9 @@ import "dotenv-flow/config";
 
 // One time script to migrate rewards from the old "amount" field to the new "amountInCents" and "amountInPercentage" fields.
 async function main() {
-  let skip = 0;
   let totalMigrated = 0;
-  const pageSize = 1;
+  const pageSize = 50;
+  let cursor: string | undefined = undefined;
 
   while (true) {
     const rewards = await prisma.reward.findMany({
@@ -22,7 +22,15 @@ async function main() {
         modifiers: true,
       },
       take: pageSize,
-      skip,
+      orderBy: {
+        id: "asc",
+      },
+      ...(cursor && {
+        cursor: {
+          id: cursor,
+        },
+        skip: 1,
+      }),
     });
 
     if (rewards.length === 0) {
@@ -90,7 +98,7 @@ async function main() {
     }
 
     console.log(`Migrated batch of ${rewards.length} rewards`);
-    skip += pageSize;
+    cursor = rewards[rewards.length - 1].id;
   }
 
   console.log(`Total rewards migrated: ${totalMigrated}`);
