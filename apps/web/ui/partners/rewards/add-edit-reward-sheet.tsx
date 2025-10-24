@@ -108,10 +108,10 @@ function RewardSheetContent({
           ? Infinity
           : defaultValuesSource.maxDuration
         : Infinity,
-      amountInCents: defaultValuesSource?.amountInCents
+      amountInCents: defaultValuesSource?.amountInCents != null
         ? defaultValuesSource.amountInCents / 100
         : undefined,
-      amountInPercentage: defaultValuesSource?.amountInPercentage
+      amountInPercentage: defaultValuesSource?.amountInPercentage != null
         ? defaultValuesSource.amountInPercentage
         : undefined,
       description: defaultValuesSource?.description ?? null,
