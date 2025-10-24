@@ -15,6 +15,7 @@ import {
   MoneyBills2,
   Msgs,
   ShieldCheck,
+  Shop,
   SquareUserSparkle2,
   Trophy,
   UserCheck,
@@ -97,7 +98,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: "/programs",
             isActive: (pathname, href) =>
               pathname.startsWith(href) &&
-              !pathname.startsWith(`${href}/invitations`),
+              ["invitations", "marketplace"].every(
+                (k) => !pathname.startsWith(`${href}/${k}`),
+              ),
+          },
+          {
+            name: "Marketplace",
+            icon: Shop,
+            href: "/programs/marketplace",
           },
           {
             name: "Invitations",

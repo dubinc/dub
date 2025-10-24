@@ -97,6 +97,10 @@ import {
   programApplicationFormSchema,
 } from "./zod/schemas/program-application-form";
 import { programLanderSchema } from "./zod/schemas/program-lander";
+import {
+  NetworkProgramExtendedSchema,
+  NetworkProgramSchema,
+} from "./zod/schemas/program-network";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
   PartnerCommentSchema,
@@ -455,6 +459,12 @@ export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
 
 export type PartnerConversionScore = z.infer<
   typeof PartnerConversionScoreSchema
+>;
+
+export type NetworkProgramProps = z.infer<typeof NetworkProgramSchema>;
+
+export type NetworkProgramExtendedProps = z.infer<
+  typeof NetworkProgramExtendedSchema
 >;
 
 export type EnrolledPartnerExtendedProps = z.infer<

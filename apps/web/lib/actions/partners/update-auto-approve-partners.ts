@@ -9,14 +9,15 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  autoApprovePartners: z.boolean(),
+  autoApprovePartners: z.boolean().optional(),
+  marketplaceEnabled: z.boolean().optional(),
 });
 
-export const updateAutoApprovePartnersAction = authActionClient
+export const updateApplicationSettingsAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { autoApprovePartners } = parsedInput;
+    const { autoApprovePartners, marketplaceEnabled } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -25,22 +26,33 @@ export const updateAutoApprovePartnersAction = authActionClient
         id: programId,
       },
       data: {
-        autoApprovePartnersEnabledAt: autoApprovePartners ? new Date() : null,
+        ...(autoApprovePartners !== undefined && {
+          autoApprovePartnersEnabledAt: autoApprovePartners ? new Date() : null,
+        }),
+        ...(marketplaceEnabled !== undefined && {
+          marketplaceEnabledAt: marketplaceEnabled ? new Date() : null,
+        }),
       },
     });
 
     waitUntil(
-      recordAuditLog({
-        workspaceId: workspace.id,
-        programId,
-        action: autoApprovePartners
-          ? "auto_approve_partner.enabled"
-          : "auto_approve_partner.disabled",
-        description: autoApprovePartners
-          ? "Auto approve partners enabled"
-          : "Auto approve partners disabled",
-        actor: user,
-      }),
+      Promise.allSettled([
+        ...(autoApprovePartners !== undefined
+          ? []
+          : [
+              recordAuditLog({
+                workspaceId: workspace.id,
+                programId,
+                action: autoApprovePartners
+                  ? "auto_approve_partner.enabled"
+                  : "auto_approve_partner.disabled",
+                description: autoApprovePartners
+                  ? "Auto approve partners enabled"
+                  : "Auto approve partners disabled",
+                actor: user,
+              }),
+            ]),
+      ]),
     );
 
     return program;

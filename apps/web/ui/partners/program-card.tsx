@@ -7,26 +7,6 @@ import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { useMemo } from "react";
 
-export const ProgramEnrollmentStatusBadges = {
-  approved: {
-    label: "Enrolled",
-    variant: "success",
-    className: "text-green-600 bg-green-100",
-  },
-  pending: {
-    label: "Pending",
-    variant: "pending",
-  },
-  rejected: {
-    label: "Rejected",
-    variant: "error",
-  },
-  banned: {
-    label: "Banned",
-    variant: "error",
-  },
-};
-
 export function ProgramCard({
   programEnrollment,
 }: {
