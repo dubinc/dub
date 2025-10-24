@@ -15,17 +15,11 @@ export function useAnalyticsQuery({
   domain: domainParam,
   defaultKey,
   defaultInterval = DUB_LINKS_ANALYTICS_INTERVAL,
-  defaultRoot,
 }: {
   defaultEvent?: EventType;
   domain?: string;
   defaultKey?: string;
   defaultInterval?: string;
-  defaultRoot?: (props: {
-    key?: string;
-    folderId?: string;
-    tagIds?: string;
-  }) => boolean | string | undefined;
 } = {}) {
   const searchParams = useSearchParams();
   const { id: workspaceId } = useWorkspace();
@@ -64,11 +58,7 @@ export function useAnalyticsQuery({
   const interval =
     start || end ? undefined : searchParams?.get("interval") ?? defaultInterval;
 
-  const root = searchParams.get("root")
-    ? searchParams.get("root") === "true"
-    : defaultRoot
-      ? defaultRoot({ key, folderId, tagIds })
-      : "false";
+  const root = searchParams.get("root");
 
   const selectedTab: EventType = useMemo(() => {
     const event = searchParams.get("event");

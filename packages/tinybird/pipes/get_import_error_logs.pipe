@@ -6,26 +6,26 @@ NODE endpoint
 SQL >
 
     %
-        SELECT *
-        FROM dub_import_error_logs
-        WHERE
-            workspace_id
-            = {{
-                String(
-                    workspaceId,
-                    'wh_fjs8YfXkgsFL7eF7LOBvbluDb',
-                    required=True,
-                )
-            }}
-            AND import_id
-            = {{
-                String(
-                    importId,
-                    'uC2DOqy',
-                    required=True,
-                )
-            }}
-        ORDER BY timestamp DESC
-        limit 5000
+            SELECT *
+            FROM dub_import_error_logs
+            WHERE
+                workspace_id
+                = {{
+                    String(
+                        workspaceId,
+                        'wh_fjs8YfXkgsFL7eF7LOBvbluDb',
+                        required=True,
+                    )
+                }}
+                AND import_id
+                = {{
+                    String(
+                        importId,
+                        'uC2DOqy',
+                        required=True,
+                    )
+                }}
+            ORDER BY timestamp DESC
+            limit 5000
 
 

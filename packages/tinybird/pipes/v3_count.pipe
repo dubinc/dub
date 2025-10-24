@@ -1,5 +1,3 @@
-TOKEN dub_tinybird_token READ
-
 DESCRIPTION >
 	Top countries
 
@@ -11,13 +9,18 @@ SQL >
 
     %
     SELECT link_id
-    FROM
-        {% if defined(isMegaFolder) and Boolean(isMegaFolder) == 1 %} dub_links_metadata_latest
-        {% else %} dub_regular_links_metadata_latest
-        {% end %} FINAL
+    FROM dub_links_metadata_latest FINAL
     WHERE
-        deleted == 0
-        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'cl7pj5kq4006835rbjlt2ofka',
+                description="The unique ID for the workspace",
+                required=True,
+            )
+        }}
+        AND deleted == 0
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
         {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
         {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
@@ -34,11 +37,11 @@ SQL >
 
 
 
-NODE devices_clicks
+NODE count_clicks
 SQL >
 
     %
-    SELECT device, COUNT(device) as clicks
+    SELECT 'count' as groupByField, COUNT(*) as clicks
     FROM
         {% if defined(customerId) %} dub_click_events_id
         {% else %} dub_click_events_mv
@@ -49,16 +52,17 @@ SQL >
                 FROM dub_lead_events_mv
                 WHERE customer_id = {{ String(customerId) }}
             )
-        {% elif not defined(linkId) and not defined(linkIds) and (
-            defined(workspaceId) or defined(partnerId) or defined(programId)
-        ) %} PREWHERE link_id in (SELECT link_id from workspace_links)
         {% end %}
     WHERE
         true
+        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
         {% elif defined(linkId) %} AND link_id = {{ linkId }}
-        {% end %} AND device != 'Unknown'
-        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
+        {% elif defined(programId) or defined(partnerId) or defined(folderIds) or defined(
+            folderId
+        ) or defined(domain) or defined(tagIds) or defined(root) %}
+            AND link_id in (SELECT link_id from workspace_links)
+        {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(region) %} AND region = {{ region }} {% end %}
@@ -88,28 +92,26 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
-    GROUP BY device
-    ORDER BY clicks DESC
 
 
 
-NODE devices_leads
+NODE count_leads
 SQL >
 
     %
-    SELECT device, COUNT(device) as leads
-    FROM
-        dub_lead_events_mv
-        {% if not defined(linkId) and not defined(linkIds) and (
-            defined(workspaceId) or defined(partnerId) or defined(programId)
-        ) %} PREWHERE link_id in (SELECT link_id from workspace_links) {% end %}
+    SELECT 'count' as groupByField, COUNT(*) as leads
+    FROM dub_lead_events_mv
     WHERE
         true
+        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
         {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
         {% elif defined(linkId) %} AND link_id = {{ linkId }}
-        {% end %} AND device != 'Unknown'
+        {% elif defined(programId) or defined(partnerId) or defined(folderIds) or defined(
+            folderId
+        ) or defined(domain) or defined(tagIds) or defined(root) %}
+            AND link_id in (SELECT link_id from workspace_links)
+        {% end %}
         {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
-        {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
         {% if defined(continent) %} AND continent = {{ continent }} {% end %}
         {% if defined(country) %} AND country = {{ country }} {% end %}
         {% if defined(region) %} AND region = {{ region }} {% end %}
@@ -138,167 +140,119 @@ SQL >
         {% if defined(url) %} AND url = {{ url }} {% end %}
         {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
         {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
-    GROUP BY device
-    ORDER BY leads DESC
-
-
-
-NODE devices_sales
-SQL >
-
-    %
-    SELECT device, sales, amount, amount AS saleAmount
-    FROM
-        (
-            SELECT device, COUNT(device) as sales, sum(amount) as amount
-            FROM
-                dub_sale_events_mv
-                {% if not defined(linkId) and not defined(linkIds) and (
-                    defined(workspaceId) or defined(partnerId) or defined(programId)
-                ) %} PREWHERE link_id in (SELECT link_id from workspace_links) {% end %}
-            WHERE
-                true
-                {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
-                {% elif defined(linkId) %} AND link_id = {{ linkId }}
-                {% end %} AND device != 'Unknown'
-                {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
-                {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
-                {% if defined(continent) %} AND continent = {{ continent }} {% end %}
-                {% if defined(country) %} AND country = {{ country }} {% end %}
-                {% if defined(region) %} AND region = {{ region }} {% end %}
-                {% if defined(city) %} AND city = {{ city }} {% end %}
-                {% if defined(device) %} AND device = {{ device }} {% end %}
-                {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-                {% if defined(os) %} AND os = {{ os }} {% end %}
-                {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-                {% if defined(refererUrl) %}
-                    AND splitByString('?', referer_url)[1] = {{ refererUrl }}
-                {% end %}
-                {% if defined(utm_source) %}
-                    AND url
-                    LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
-                {% end %}
-                {% if defined(utm_medium) %}
-                    AND url
-                    LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
-                {% end %}
-                {% if defined(utm_campaign) %}
-                    AND url LIKE concat(
-                        '%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%'
-                    )
-                {% end %}
-                {% if defined(utm_term) %}
-                    AND url
-                    LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
-                {% end %}
-                {% if defined(utm_content) %}
-                    AND url
-                    LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
-                {% end %}
-                {% if defined(url) %} AND url = {{ url }} {% end %}
-                {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
-                {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
-            GROUP BY device
-            ORDER BY amount DESC
-        ) subquery
-
-
-
-NODE devices_sales_with_type
-SQL >
-
-    %
-    WITH
-        sales AS (
-            SELECT device, customer_id, link_id, timestamp, amount
-            FROM
-                dub_sale_events_mv
-                {% if not defined(linkId) and not defined(linkIds) and (
-                    defined(workspaceId) or defined(partnerId) or defined(programId)
-                ) %} PREWHERE link_id in (SELECT link_id from workspace_links) {% end %}
-            WHERE
-                true
-                {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
-                {% elif defined(linkId) %} AND link_id = {{ linkId }}
-                {% end %} AND device != 'Unknown'
-                {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
-                {% if defined(qr) %} AND qr = {{ Boolean(qr) }} {% end %}
-                {% if defined(continent) %} AND continent = {{ continent }} {% end %}
-                {% if defined(country) %} AND country = {{ country }} {% end %}
-                {% if defined(region) %} AND region = {{ region }} {% end %}
-                {% if defined(city) %} AND city = {{ city }} {% end %}
-                {% if defined(device) %} AND device = {{ device }} {% end %}
-                {% if defined(browser) %} AND browser = {{ browser }} {% end %}
-                {% if defined(os) %} AND os = {{ os }} {% end %}
-                {% if defined(referer) %} AND referer = {{ referer }} {% end %}
-                {% if defined(refererUrl) %}
-                    AND splitByString('?', referer_url)[1] = {{ refererUrl }}
-                {% end %}
-                {% if defined(utm_source) %}
-                    AND url
-                    LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
-                {% end %}
-                {% if defined(utm_medium) %}
-                    AND url
-                    LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
-                {% end %}
-                {% if defined(utm_campaign) %}
-                    AND url LIKE concat(
-                        '%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%'
-                    )
-                {% end %}
-                {% if defined(utm_term) %}
-                    AND url
-                    LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
-                {% end %}
-                {% if defined(utm_content) %}
-                    AND url
-                    LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
-                {% end %}
-                {% if defined(url) %} AND url = {{ url }} {% end %}
-                {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
-                {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
-        ),
-        distinct_sales AS (SELECT DISTINCT customer_id, link_id FROM sales),
-        min_timestamps AS (
-            SELECT customer_id, link_id, min(timestamp) AS first_sale_ts
-            FROM dub_sale_events_mv
-            WHERE (customer_id, link_id) IN distinct_sales
-            GROUP BY customer_id, link_id
-        )
-    SELECT device, sales, amount, amount AS saleAmount
-    FROM
-        (
-            SELECT device, COUNT(device) as sales, sum(amount) as amount
-            FROM sales
-            INNER JOIN min_timestamps USING (customer_id, link_id)
-            WHERE
-                1 = 1
-                {% if defined(saleType) %}
-                    {% if saleType == 'new' %} AND timestamp <= first_sale_ts
-                    {% elif saleType == 'recurring' %} AND timestamp > first_sale_ts
+        {% if defined(filters) %}
+            {% for item in JSON(filters, '[]') %}
+                {% if item.get('operand', '').startswith('metadata.') %}
+                    {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                    {% set operator = item.get('operator', 'equals') %}
+                    {% set value = item.get('value', '') %}
+                    {% if operator == 'equals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                    {% elif operator == 'notEquals' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                    {% elif operator == 'greaterThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                    {% elif operator == 'lessThan' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                    {% elif operator == 'greaterThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                    {% elif operator == 'lessThanOrEqual' %}
+                        AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
                     {% end %}
                 {% end %}
-            GROUP BY device
-            ORDER BY amount DESC
-        ) subquery
+            {% end %}
+        {% end %}
 
 
 
-NODE devices_composite
+NODE count_sales
 SQL >
 
     %
-    SELECT dce.device AS device, clicks, leads, sales, amount
-    FROM (SELECT device, clicks FROM devices_clicks) AS dce
-    LEFT JOIN (SELECT * FROM devices_leads) AS dle ON dce.device = dle.device
-    LEFT JOIN
+    SELECT 'count' as groupByField, sales, amount, amount AS saleAmount
+    FROM
         (
-            SELECT *
-            FROM {% if defined(saleType) %} devices_sales_with_type {% else %} devices_sales {% end %}
-        ) AS dse
-        ON dce.device = dse.device
-    ORDER BY clicks DESC
+            SELECT COUNT(*) as sales, sum(amount) as amount
+            FROM dub_sale_events_mv
+            WHERE
+                true
+                {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
+                {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+                {% elif defined(linkId) %} AND link_id = {{ linkId }}
+                {% elif defined(programId) or defined(partnerId) or defined(folderIds) or defined(
+                    folderId
+                ) or defined(domain) or defined(tagIds) or defined(root) %}
+                    AND link_id in (SELECT link_id from workspace_links)
+                {% end %}
+                {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
+                {% if defined(saleType) %} AND sale_type = {{ String(saleType) }} {% end %}
+                {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+                {% if defined(country) %} AND country = {{ country }} {% end %}
+                {% if defined(region) %} AND region = {{ region }} {% end %}
+                {% if defined(city) %} AND city = {{ city }} {% end %}
+                {% if defined(device) %} AND device = {{ device }} {% end %}
+                {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+                {% if defined(os) %} AND os = {{ os }} {% end %}
+                {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+                {% if defined(refererUrl) %}
+                    AND splitByString('?', referer_url)[1] = {{ refererUrl }}
+                {% end %}
+                {% if defined(utm_source) %}
+                    AND url
+                    LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+                {% end %}
+                {% if defined(utm_medium) %}
+                    AND url
+                    LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+                {% end %}
+                {% if defined(utm_campaign) %}
+                    AND url LIKE concat(
+                        '%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%'
+                    )
+                {% end %}
+                {% if defined(utm_term) %}
+                    AND url
+                    LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+                {% end %}
+                {% if defined(utm_content) %}
+                    AND url
+                    LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+                {% end %}
+                {% if defined(url) %} AND url = {{ url }} {% end %}
+                {% if defined(start) %} AND timestamp >= {{ DateTime(start) }} {% end %}
+                {% if defined(end) %} AND timestamp <= {{ DateTime(end) }} {% end %}
+                {% if defined(filters) %}
+                    {% for item in JSON(filters, '[]') %}
+                        {% if item.get('operand', '').startswith('metadata.') %}
+                            {% set metadataKey = item.get('operand', '').split('.')[1] %}
+                            {% set operator = item.get('operator', 'equals') %}
+                            {% set value = item.get('value', '') %}
+                            {% if operator == 'equals' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) = {{ value }}
+                            {% elif operator == 'notEquals' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) != {{ value }}
+                            {% elif operator == 'greaterThan' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) > {{ value }}
+                            {% elif operator == 'lessThan' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) < {{ value }}
+                            {% elif operator == 'greaterThanOrEqual' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) >= {{ value }}
+                            {% elif operator == 'lessThanOrEqual' %}
+                                AND JSONExtractString(metadata, {{ metadataKey }}) <= {{ value }}
+                            {% end %}
+                        {% end %}
+                    {% end %}
+                {% end %}
+        ) AS subquery
+
+
+
+NODE count_composite
+SQL >
+
+    %
+    SELECT 'count' as groupByField, clicks, leads, sales, amount, saleAmount
+    FROM count_clicks, count_leads, count_sales
 
 
 
@@ -308,11 +262,11 @@ SQL >
     %
     SELECT *
     FROM
-        {% if eventType == 'clicks' %} devices_clicks
-        {% elif eventType == 'leads' %} devices_leads
-        {% elif eventType == 'sales' %}
-            {% if defined(saleType) %} devices_sales_with_type {% else %} devices_sales {% end %}
-        {% else %} devices_composite
+        {% if eventType == 'clicks' %} count_clicks
+        {% elif eventType == 'leads' %} count_leads
+        {% elif eventType == 'sales' %} count_sales
+        {% elif eventType == 'composite' %} count_composite
+        {% else %} count_clicks
         {% end %}
 
-TYPE endpoint
+

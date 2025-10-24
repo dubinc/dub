@@ -66,7 +66,7 @@ export const getEvents = async (params: EventsFilters) => {
   }
 
   const pipe = tb.buildPipe({
-    pipe: "v2_events",
+    pipe: "v3_events",
     parameters: eventsFilterTB,
     data:
       {

@@ -19,10 +19,10 @@ model NotificationEmail {
   bouncedAt       DateTime?
   createdAt       DateTime              @default(now())
 
-  message  Message?  @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  bounty   Bounty?   @relation(fields: [bountyId], references: [id], onDelete: Cascade)
-  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  partner  Partner?  @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  message  Message?  @relation(fields: [messageId], references: [id])
+  bounty   Bounty?   @relation(fields: [bountyId], references: [id])
+  campaign Campaign? @relation(fields: [campaignId], references: [id])
+  partner  Partner?  @relation(fields: [partnerId], references: [id])
 
   @@index(type)
   @@index(messageId)

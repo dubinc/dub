@@ -1,0 +1,248 @@
+NODE workspace_links
+SQL >
+
+    %
+    SELECT
+        link_id,
+        -- here we split tag_ids out of the multiIf because arrayJoin explodes rows
+        if(
+            {{ String(groupBy) }} = 'top_tags',
+            arrayJoin(tag_ids),
+            multiIf(
+                {{ String(groupBy) }} = 'top_partners',
+                partner_id,
+                {{ String(groupBy) }} = 'top_folders',
+                folder_id,
+                partner_id
+            )
+        ) AS groupByField
+    FROM dub_links_metadata_latest FINAL
+    WHERE
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'cl7pj5kq4006835rbjlt2ofka',
+                description="The unique ID for the workspace",
+                required=True,
+            )
+        }}
+        AND deleted == 0
+        AND multiIf(
+            {{ String(groupBy) }} = 'top_partners',
+            partner_id != '',
+            {{ String(groupBy) }} = 'top_folders',
+            folder_id != '',
+            {{ String(groupBy) }} = 'top_tags',
+            length(tag_ids) > 0,
+            partner_id != ''
+        )
+        {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
+        {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
+        {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
+        {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
+        {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
+        {% elif defined(folderId) %} AND folder_id = {{ folderId }}
+        {% end %}
+        {% if defined(tagIds) %}
+            AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != []
+        {% end %}
+        {% if defined(root) %}
+            {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
+        {% end %}
+
+
+
+NODE group_by_link_metadata_clicks
+SQL >
+
+    %
+    SELECT wl.groupByField as groupByField, COUNT(*) AS clicks
+    FROM dub_click_events_mv AS ce
+    JOIN workspace_links AS wl ON ce.link_id = wl.link_id
+    WHERE
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'cl7pj5kq4006835rbjlt2ofka',
+                description="The unique ID for the workspace",
+                required=True,
+            )
+        }}
+        {% if defined(linkIds) %} AND ce.link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND ce.link_id = {{ linkId }}
+        {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(trigger) %} AND trigger = {{ trigger }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY wl.groupByField
+    ORDER BY clicks DESC
+    LIMIT 5000
+
+
+
+NODE group_by_link_metadata_leads
+SQL >
+
+    %
+    SELECT wl.groupByField as groupByField, COUNT(*) AS leads
+    FROM dub_lead_events_mv AS le
+    JOIN workspace_links AS wl ON le.link_id = wl.link_id
+    WHERE
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'cl7pj5kq4006835rbjlt2ofka',
+                description="The unique ID for the workspace",
+                required=True,
+            )
+        }}
+        {% if defined(linkIds) %} AND le.link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND le.link_id = {{ linkId }}
+        {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(trigger) %} AND trigger = {{ trigger }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY wl.groupByField
+    ORDER BY leads DESC
+    LIMIT 5000
+
+
+
+NODE group_by_link_metadata_sales
+SQL >
+
+    %
+    SELECT wl.groupByField as groupByField, COUNT(*) AS sales, SUM(amount) as saleAmount
+    FROM dub_sale_events_mv AS se
+    JOIN workspace_links AS wl ON se.link_id = wl.link_id
+    WHERE
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'cl7pj5kq4006835rbjlt2ofka',
+                description="The unique ID for the workspace",
+                required=True,
+            )
+        }}
+        {% if defined(linkIds) %} AND se.link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND se.link_id = {{ linkId }}
+        {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
+        {% if defined(saleType) %} AND sale_type = {{ String(saleType) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(trigger) %} AND trigger = {{ trigger }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY wl.groupByField
+    ORDER BY saleAmount DESC
+    LIMIT 5000
+
+
+
+NODE group_by_link_metadata_composite
+SQL >
+
+    %
+        SELECT c.groupByField as groupByField, c.clicks as clicks, l.leads as leads, s.sales as sales, s.saleAmount as saleAmount
+        FROM group_by_link_metadata_clicks AS c
+        LEFT JOIN group_by_link_metadata_leads AS l ON c.groupByField = l.groupByField
+        LEFT JOIN group_by_link_metadata_sales AS s ON c.groupByField = s.groupByField
+        ORDER BY saleAmount DESC
+
+
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT *
+    FROM
+        {% if eventType == 'clicks' %} group_by_link_metadata_clicks
+        {% elif eventType == 'leads' %} group_by_link_metadata_leads
+        {% elif eventType == 'sales' %}group_by_link_metadata_sales 
+        {% else %} group_by_link_metadata_clicks
+        {% end %}
+
+
