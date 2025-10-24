@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { validateReward } from "@/lib/api/rewards/validate-reward";
 import { serializeReward } from "@/lib/partners/serialize-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
@@ -51,6 +52,8 @@ export const createRewardAction = authActionClient
         `You can't create a ${event} reward for this group because it already has a ${event} reward.`,
       );
     }
+
+    validateReward(parsedInput);
 
     const reward = await prisma.$transaction(async (tx) => {
       const reward = await tx.reward.create({
