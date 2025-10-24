@@ -48,7 +48,7 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
   const statusBadge = program?.status
     ? ProgramNetworkStatusBadges[program.status]
     : null;
-  const url = program ? `/programs/${program.slug}` : undefined;
+  const url = program ? `/programs/marketplace/${program.slug}` : undefined;
 
   return (
     <div
@@ -202,7 +202,7 @@ export function FeaturedProgramCard({
   const statusBadge = program?.status
     ? ProgramNetworkStatusBadges[program.status]
     : null;
-  const url = program ? `/programs/${program.slug}` : undefined;
+  const url = program ? `/programs/marketplace/${program.slug}` : undefined;
 
   return (
     <div
