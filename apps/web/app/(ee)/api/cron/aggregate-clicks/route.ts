@@ -3,6 +3,7 @@ import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { analyticsResponse } from "@/lib/zod/schemas/analytics-response";
 import { prisma } from "@dub/prisma";
 import { CommissionType, Prisma } from "@dub/prisma/client";
@@ -120,7 +121,7 @@ export async function GET(req: Request) {
           quantity: linkClicks,
           type: CommissionType.click,
           amount: 0,
-          earnings: (reward.amountInCents ?? 0) * linkClicks,
+          earnings: getRewardAmount(reward) * linkClicks,
         };
       })
       .filter((c) => c !== null) as Prisma.CommissionCreateManyInput[];
