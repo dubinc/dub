@@ -68,12 +68,6 @@ export const updatePartnerProfileAction = authPartnerActionClient
       discoverable,
     } = parsedInput;
 
-    if (country !== undefined && country !== partner.country) {
-      throw new Error(
-        "Your country cannot be changed once set. If you need to update your country, please contact support.",
-      );
-    }
-
     if (
       profileType === "company" &&
       (companyName === undefined ? !partner.companyName : !companyName)
@@ -263,6 +257,10 @@ const deleteStripeAccountIfRequired = async ({
   partner: Partner;
   input: z.infer<typeof updatePartnerProfileSchema>;
 }) => {
+  const countryChanged =
+    input.country !== undefined &&
+    partner.country?.toLowerCase() !== input.country?.toLowerCase();
+
   const profileTypeChanged =
     input.profileType !== undefined &&
     partner.profileType.toLowerCase() !== input.profileType.toLowerCase();
@@ -272,26 +270,27 @@ const deleteStripeAccountIfRequired = async ({
     partner.companyName?.toLowerCase() !== input.companyName?.toLowerCase();
 
   const deleteExpressAccount =
-    (profileTypeChanged || companyNameChanged) && partner.stripeConnectId;
+    (countryChanged || profileTypeChanged || companyNameChanged) &&
+    partner.stripeConnectId;
 
   if (!deleteExpressAccount) {
     return;
   }
 
-  // Partner is not able to update their profile type or company name
+  // Partner is not able to update their country, profile type, or company name
   // if they have already have a Stripe Express account + any sent / completed payouts
   const completedPayoutsCount = await prisma.payout.count({
     where: {
       partnerId: partner.id,
       status: {
-        in: ["sent", "completed"],
+        in: ["processing", "processed", "sent", "completed"],
       },
     },
   });
 
   if (completedPayoutsCount > 0) {
     throw new Error(
-      "Since you've already received payouts on Dub, you cannot change your profile type. Please contact support to update your profile type.",
+      "Since you've already received payouts on Dub, you cannot change your country or profile type. Please contact support to update those fields.",
     );
   }
 

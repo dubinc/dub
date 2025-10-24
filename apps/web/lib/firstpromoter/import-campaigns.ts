@@ -20,6 +20,13 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
     },
   });
 
+  if (!program.domain || !program.url) {
+    console.error(
+      `domain or url not found for program ${program.id}. Skipping the import..`,
+    );
+    return;
+  }
+
   // Groups in the program
   const existingGroupNames = program.groups.map((group) => group.name);
 
@@ -64,6 +71,28 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
       console.log(
         `Created ${groups.count} new groups for ${program.id}: ${newCampaigns.map(({ campaign }) => campaign.name).join(", ")}`,
       );
+    }
+
+    // Create default links for groups without default links
+    const groupsWithoutDefaultLinks = await prisma.partnerGroup.findMany({
+      where: {
+        programId: program.id,
+        partnerGroupDefaultLinks: {
+          none: {},
+        },
+      },
+    });
+
+    if (groupsWithoutDefaultLinks.length > 0) {
+      await prisma.partnerGroupDefaultLink.createMany({
+        data: groupsWithoutDefaultLinks.map((group) => ({
+          id: createId({ prefix: "pgdl_" }),
+          groupId: group.id,
+          programId: program.id,
+          domain: program.domain!,
+          url: program.url!,
+        })),
+      });
     }
 
     currentPage++;

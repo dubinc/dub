@@ -32,21 +32,13 @@ export async function GET(req: Request) {
 
     const currentAvailableBalance = stripeBalanceData.available[0].amount;
     const currentPendingBalance = stripeBalanceData.pending[0].amount;
-
-    // if the pending balance is negative, add it to the available balance
-    // this only happens when we have a connected account transfer that hasn't fully settled yet
-    // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1750185638973479
-    const currentNetBalance =
-      currentPendingBalance < 0
-        ? currentAvailableBalance + currentPendingBalance
-        : currentAvailableBalance;
+    const currentNetBalance = currentAvailableBalance + currentPendingBalance;
 
     console.log({
       currentAvailableBalance,
       currentPendingBalance,
       currentNetBalance,
       toBeSentPayouts,
-      stripeBalanceData,
     });
 
     let reservedBalance = 50000; // keep at least $500 in the account
@@ -55,7 +47,7 @@ export async function GET(req: Request) {
     if (totalToBeSentPayouts) {
       // add the total payouts that are still to be sent to connected accounts
       // to the reserved balance (to make sure we have enough balance
-      // to pay out partners when chargeSucceeded webhook is triggered)
+      // to pay out partners when charge.succeeded webhook is triggered)
       reservedBalance += totalToBeSentPayouts;
     }
 

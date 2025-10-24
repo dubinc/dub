@@ -310,7 +310,13 @@ function BasicInfoForm({
                 value={field.value || ""}
                 onChange={field.onChange}
                 error={errors.country ? true : false}
-                disabledTooltip="Your country cannot be changed once set. If you need to update your country, please contact support."
+                disabledTooltip={
+                  disabled
+                    ? "You don't have permission to update this field"
+                    : completedPayoutsCount > 0
+                      ? "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support."
+                      : undefined
+                }
               />
             )}
           />
