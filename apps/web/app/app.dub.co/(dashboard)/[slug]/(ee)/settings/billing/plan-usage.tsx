@@ -1,5 +1,6 @@
 "use client";
 
+import useGroupsCount from "@/lib/swr/use-groups-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
 import useUsage from "@/lib/swr/use-usage";
@@ -56,13 +57,15 @@ export default function PlanUsage() {
     billingCycleStart,
   } = useWorkspace();
 
+  const { data: tags } = useTagsCount();
+  const { users } = useWorkspaceUsers();
+
   const { partnersCount } = usePartnersCount<number>({
     programId: defaultProgramId ?? undefined,
     status: "approved",
   });
 
-  const { data: tags } = useTagsCount();
-  const { users } = useWorkspaceUsers();
+  const { groupsCount } = useGroupsCount();
 
   const [billingStart, billingEnd] = useMemo(() => {
     if (billingCycleStart) {
@@ -82,7 +85,6 @@ export default function PlanUsage() {
     return [];
   }, [billingCycleStart]);
 
-  const { searchParamsObj } = useRouterStuff();
   const { usage: usageTimeseries } = useUsage();
 
   const usageTabs = useMemo(() => {
@@ -103,11 +105,7 @@ export default function PlanUsage() {
         id: "links",
         icon: Hyperlink,
         title: "Links created",
-        usage:
-          (searchParamsObj.folderId || searchParamsObj.domain) &&
-          currentTabFilteredUsage !== undefined
-            ? currentTabFilteredUsage
-            : linksUsage,
+        usage: currentTabFilteredUsage,
         limit: linksLimit,
       },
     ];
@@ -128,7 +126,6 @@ export default function PlanUsage() {
     linksLimit,
     totalLinks,
     usageTimeseries,
-    searchParamsObj,
   ]);
 
   return (
@@ -222,13 +219,20 @@ export default function PlanUsage() {
             href={`/${slug}/settings/people`}
           />
         </div>
-        <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
+        <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-4">
           <UsageCategory
             title="Partners"
-            icon={Users6}
+            icon={Users}
             usage={partnersCount ?? 0}
             usageLimit={INFINITY_NUMBER}
             href={`/${slug}/program/partners`}
+          />
+          <UsageCategory
+            title="Partner Groups"
+            icon={Users6}
+            usage={groupsCount ?? 0}
+            usageLimit={INFINITY_NUMBER}
+            href={`/${slug}/program/groups`}
           />
           <UsageCategory
             title="Partner payouts"
