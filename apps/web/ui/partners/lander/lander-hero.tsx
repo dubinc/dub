@@ -1,28 +1,35 @@
 import { ProgramLanderData } from "@/lib/types";
 import { cn } from "@dub/utils";
 import { Program } from "@prisma/client";
+import { ElementType } from "react";
 
 export function LanderHero({
   program,
   landerData,
+  showLabel = true,
+  heading,
   preview,
 }: {
   program: Pick<Program, "name">;
   landerData: Pick<ProgramLanderData, "label" | "title" | "description">;
+  showLabel?: boolean;
+  heading?: ElementType;
   preview?: boolean;
 }) {
-  const Heading = preview ? "div" : "h1";
+  const Heading = heading || (preview ? "div" : "h1");
 
   return (
     <div className="grid grid-cols-1 gap-5 py-6 sm:mt-14">
-      <span
-        className={cn(
-          "font-mono text-xs font-medium uppercase text-[var(--brand)]",
-          "animate-slide-up-fade [--offset:5px] [animation-duration:1s] [animation-fill-mode:both]",
-        )}
-      >
-        {landerData.label || "Affiliate Program"}
-      </span>
+      {showLabel && (
+        <span
+          className={cn(
+            "font-mono text-xs font-medium uppercase text-[var(--brand)]",
+            "animate-slide-up-fade [--offset:5px] [animation-duration:1s] [animation-fill-mode:both]",
+          )}
+        >
+          {landerData.label || "Affiliate Program"}
+        </span>
+      )}
       <Heading
         className={cn(
           "text-4xl font-semibold",

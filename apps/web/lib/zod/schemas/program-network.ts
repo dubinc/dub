@@ -2,6 +2,7 @@ import { Category, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { getPaginationQuerySchema } from "./misc";
+import { programLanderSchema } from "./program-lander";
 import { ProgramSchema } from "./programs";
 
 export const NetworkProgramSchema = ProgramSchema.pick({
@@ -18,6 +19,10 @@ export const NetworkProgramSchema = ProgramSchema.pick({
   categories: z.array(z.nativeEnum(Category)),
   marketplaceFeaturedAt: z.date().nullable(),
   marketplaceHeaderImage: z.string().nullable(),
+});
+
+export const NetworkProgramExtendedSchema = NetworkProgramSchema.extend({
+  landerData: programLanderSchema.nullable(),
 });
 
 export const PROGRAM_NETWORK_MAX_PAGE_SIZE = 100;

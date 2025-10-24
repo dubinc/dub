@@ -2,14 +2,16 @@
 
 import { acceptProgramInviteAction } from "@/lib/actions/partners/accept-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import { NetworkProgramProps } from "@/lib/types";
+import { NetworkProgramExtendedProps, NetworkProgramProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
+import { LanderHero } from "@/ui/partners/lander/lander-hero";
+import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
-import { ProgramCategoryButton } from "@/ui/partners/program-network/program-category-button";
+import { ProgramCategory } from "@/ui/partners/program-network/program-category";
 import { ProgramRewardIcon } from "@/ui/partners/program-network/program-reward-icon";
 import {
   Button,
@@ -37,7 +39,7 @@ export function MarketplaceProgramPageClient() {
     data: program,
     isLoading,
     error,
-  } = useSWR<NetworkProgramProps>(
+  } = useSWR<NetworkProgramExtendedProps>(
     programSlug ? `/api/network/programs/${programSlug}` : null,
     fetcher,
   );
@@ -162,14 +164,6 @@ export function MarketplaceProgramPageClient() {
                           key={reward.id}
                           icon={REWARD_EVENTS[reward.event].icon}
                           description={formatRewardDescription({ reward })}
-                          onClick={() =>
-                            queryParams({
-                              set: {
-                                rewardType: reward.event,
-                              },
-                              del: "page",
-                            })
-                          }
                         />
                       ))}
                       {program.discount && (
@@ -178,14 +172,6 @@ export function MarketplaceProgramPageClient() {
                           description={formatDiscountDescription({
                             discount: program.discount,
                           })}
-                          onClick={() =>
-                            queryParams({
-                              set: {
-                                rewardType: "discount",
-                              },
-                              del: "page",
-                            })
-                          }
                         />
                       )}
                     </div>
@@ -200,17 +186,14 @@ export function MarketplaceProgramPageClient() {
                       {program.categories
                         .slice(0, 1)
                         ?.map((category) => (
-                          <ProgramCategoryButton
-                            key={category}
-                            category={category}
-                          />
+                          <ProgramCategory key={category} category={category} />
                         ))}
                       {program.categories.length > 1 && (
                         <Tooltip
                           content={
                             <div className="flex flex-col gap-0.5 p-2">
                               {program.categories.slice(1).map((category) => (
-                                <ProgramCategoryButton
+                                <ProgramCategory
                                   key={category}
                                   category={category}
                                 />
@@ -234,6 +217,20 @@ export function MarketplaceProgramPageClient() {
               </div>
             )}
           </div>
+
+          {program && (
+            <div>
+              {program.landerData && (
+                <LanderHero program={program} landerData={program.landerData} />
+              )}
+
+              <LanderRewards
+                className="mt-4"
+                rewards={program.rewards || []}
+                discount={program.discount || null}
+              />
+            </div>
+          )}
         </div>
       </PageWidthWrapper>
     </PageContent>

@@ -1,6 +1,7 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { NetworkProgramSchema } from "@/lib/zod/schemas/program-network";
+import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
+import { NetworkProgramExtendedSchema } from "@/lib/zod/schemas/program-network";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 
@@ -37,7 +38,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   });
 
   return NextResponse.json(
-    NetworkProgramSchema.parse({
+    NetworkProgramExtendedSchema.parse({
       ...program,
       rewards:
         program.groups.length > 0
@@ -50,6 +51,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       discount: program.groups.length > 0 ? program.groups[0].discount : null,
       status: program.partners.length > 0 ? program.partners[0].status : null,
       categories: program.categories.map(({ category }) => category),
+      landerData: program.groups?.[0]?.landerData
+        ? programLanderSchema.parse(program.groups[0].landerData)
+        : null,
     }),
   );
 });

@@ -3,7 +3,7 @@ import { REWARD_EVENTS } from "@/ui/partners/constants";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
-import { ProgramCategoryButton } from "@/ui/partners/program-network/program-category-button";
+import { ProgramCategory } from "@/ui/partners/program-network/program-category";
 import { ProgramRewardIcon } from "@/ui/partners/program-network/program-reward-icon";
 import { Gift, Link4, StatusBadge, Tooltip, useRouterStuff } from "@dub/ui";
 import {
@@ -143,22 +143,36 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
                     Industry
                   </span>
                   <div className="mt-1 flex items-center gap-1.5">
-                    {program.categories
-                      .slice(0, 1)
-                      ?.map((category) => (
-                        <ProgramCategoryButton
-                          key={category}
-                          category={category}
-                        />
-                      ))}
+                    {program.categories.slice(0, 1)?.map((category) => (
+                      <ProgramCategory
+                        key={category}
+                        category={category}
+                        onClick={() =>
+                          queryParams({
+                            set: {
+                              category,
+                            },
+                            del: "page",
+                          })
+                        }
+                      />
+                    ))}
                     {program.categories.length > 1 && (
                       <Tooltip
                         content={
                           <div className="flex flex-col gap-0.5 p-2">
                             {program.categories.slice(1).map((category) => (
-                              <ProgramCategoryButton
+                              <ProgramCategory
                                 key={category}
                                 category={category}
+                                onClick={() =>
+                                  queryParams({
+                                    set: {
+                                      category,
+                                    },
+                                    del: "page",
+                                  })
+                                }
                               />
                             ))}
                           </div>
@@ -317,23 +331,37 @@ export function FeaturedProgramCard({
                       Industry
                     </span>
                     <div className="mt-2 flex items-center gap-1.5">
-                      {program.categories
-                        .slice(0, 1)
-                        ?.map((category) => (
-                          <ProgramCategoryButton
-                            key={category}
-                            category={category}
-                            className="text-content-inverted hover:bg-bg-default/10 active:bg-bg-default/20"
-                          />
-                        ))}
+                      {program.categories.slice(0, 1)?.map((category) => (
+                        <ProgramCategory
+                          key={category}
+                          category={category}
+                          onClick={() =>
+                            queryParams({
+                              set: {
+                                category,
+                              },
+                              del: "page",
+                            })
+                          }
+                          className="text-content-inverted hover:bg-bg-default/10 active:bg-bg-default/20"
+                        />
+                      ))}
                       {program.categories.length > 1 && (
                         <Tooltip
                           content={
                             <div className="flex flex-col gap-0.5 p-2">
                               {program.categories.slice(1).map((category) => (
-                                <ProgramCategoryButton
+                                <ProgramCategory
                                   key={category}
                                   category={category}
+                                  onClick={() =>
+                                    queryParams({
+                                      set: {
+                                        category,
+                                      },
+                                      del: "page",
+                                    })
+                                  }
                                 />
                               ))}
                             </div>
