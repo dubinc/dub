@@ -70,9 +70,12 @@ export const getReferralsEmbedData = async (token: string) => {
       email: partner.email,
     },
     links: z.array(ReferralsEmbedLinkSchema).parse(links),
-    rewards: [clickReward, leadReward, saleReward].filter(
-      (r): r is Reward => r !== null,
-    ),
+    rewards: [clickReward, leadReward, saleReward]
+      .filter((r): r is Reward => r !== null)
+      .map((r) => ({
+        ...r,
+        amountInPercentage: r.amountInPercentage?.toNumber() ?? null,
+      })),
     discount,
     earnings: {
       upcoming: commissions.reduce((acc, c) => {
