@@ -5,7 +5,13 @@ import useSWR from "swr";
 import { UsageResponse } from "../types";
 import useWorkspace from "./use-workspace";
 
-export default function useUsage() {
+// here we're using disabledWhenNoFilters for the special case where we need to
+// fetch the total links usage conditionally only if there are active filters (folderId or domain)
+// if not we need to fallback to the workspace.linksUsage value
+// TODO: Improve this since it's a bit hacky right now
+export default function useUsage({
+  disabledWhenNoFilters = false,
+}: { disabledWhenNoFilters?: boolean } = {}) {
   const { id: workspaceId, billingCycleStart, totalLinks } = useWorkspace();
   const { firstDay, lastDay } = getFirstAndLastDay(billingCycleStart ?? 0);
   const searchParams = useSearchParams();
@@ -17,12 +23,18 @@ export default function useUsage() {
     return "events";
   }, [totalLinks]);
 
-  const activeResource =
-    searchParams.get("tab") === "links" ? "links" : defaultActiveTab;
+  const activeResource = useMemo(() => {
+    const tab = searchParams.get("tab");
+    if (tab && ["links", "events"].includes(tab)) {
+      return tab;
+    }
+    return defaultActiveTab;
+  }, [searchParams, defaultActiveTab]);
 
   // Get filter parameters from URL
   const folderId = searchParams.get("folderId");
   const domain = searchParams.get("domain");
+  const hasActiveFilters = folderId || domain ? true : false;
 
   const {
     data: usage,
@@ -30,6 +42,7 @@ export default function useUsage() {
     isValidating,
   } = useSWR<UsageResponse[]>(
     workspaceId &&
+      (disabledWhenNoFilters ? hasActiveFilters : true) &&
       `/api/workspaces/${workspaceId}/billing/usage?${new URLSearchParams({
         resource: activeResource,
         start: firstDay.toISOString().replace("T", " ").replace("Z", ""),
@@ -41,6 +54,8 @@ export default function useUsage() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         ...(folderId && { folderId }),
         ...(domain && { domain }),
+        ...(disabledWhenNoFilters &&
+          hasActiveFilters && { cacheKey: "disabledWhenNoFilters" }),
       }).toString()}`,
     fetcher,
     {
@@ -52,6 +67,7 @@ export default function useUsage() {
   return {
     usage,
     activeResource,
+    hasActiveFilters,
     loading: !usage && !error,
     isValidating,
   };

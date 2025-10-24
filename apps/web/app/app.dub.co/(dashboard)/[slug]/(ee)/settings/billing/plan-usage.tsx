@@ -85,10 +85,12 @@ export default function PlanUsage() {
     return [];
   }, [billingCycleStart]);
 
-  const { usage: usageTimeseries } = useUsage();
+  const { usage: usageTimeseries, hasActiveFilters } = useUsage({
+    disabledWhenNoFilters: true,
+  });
 
   const usageTabs = useMemo(() => {
-    const currentTabFilteredUsage = usageTimeseries?.reduce((acc, curr) => {
+    const linksTabFilteredUsage = usageTimeseries?.reduce((acc, curr) => {
       acc += curr.value;
       return acc;
     }, 0);
@@ -105,7 +107,10 @@ export default function PlanUsage() {
         id: "links",
         icon: Hyperlink,
         title: "Links created",
-        usage: currentTabFilteredUsage,
+        usage:
+          linksTabFilteredUsage && hasActiveFilters
+            ? linksTabFilteredUsage
+            : linksUsage,
         limit: linksLimit,
       },
     ];
@@ -119,13 +124,13 @@ export default function PlanUsage() {
     }
     return tabs;
   }, [
-    plan,
     usage,
     usageLimit,
     linksUsage,
     linksLimit,
     totalLinks,
     usageTimeseries,
+    hasActiveFilters,
   ]);
 
   return (
@@ -231,7 +236,7 @@ export default function PlanUsage() {
             title="Partner Groups"
             icon={Users6}
             usage={groupsCount ?? 0}
-            usageLimit={INFINITY_NUMBER}
+            usageLimit={groupsLimit}
             href={`/${slug}/program/groups`}
           />
           <UsageCategory
@@ -271,8 +276,8 @@ function UsageTabCard({
   unit?: string;
   requiresUpgrade?: boolean;
 }) {
-  const { searchParams, queryParams } = useRouterStuff();
-  const { slug, totalLinks } = useWorkspace();
+  const { queryParams } = useRouterStuff();
+  const { slug } = useWorkspace();
 
   const { activeResource } = useUsage();
 
