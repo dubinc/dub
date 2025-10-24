@@ -1,4 +1,7 @@
-import { createOrUpdateRewardSchema } from "@/lib/zod/schemas/rewards";
+import {
+  createOrUpdateRewardSchema,
+  rewardConditionsArraySchema,
+} from "@/lib/zod/schemas/rewards";
 import { z } from "zod";
 import { DubApiError } from "../errors";
 
@@ -57,6 +60,68 @@ export function validateReward(
         code: "bad_request",
         message:
           "amountInPercentage must be provided when type is 'percentage'.",
+      });
+    }
+  }
+
+  if (reward.modifiers != null) {
+    if (reward.event !== "sale") {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "Modifiers are only allowed for sale events.",
+      });
+    }
+
+    const parsedModifiers = rewardConditionsArraySchema.safeParse(
+      reward.modifiers,
+    );
+
+    if (parsedModifiers.success) {
+      parsedModifiers.data.forEach((modifier, index) => {
+        if (modifier.type == null) {
+          throw new DubApiError({
+            code: "bad_request",
+            message: `Modifier ${index + 1}: type must be provided.`,
+          });
+        }
+
+        if (
+          modifier.amountInCents == null &&
+          modifier.amountInPercentage == null
+        ) {
+          throw new DubApiError({
+            code: "bad_request",
+            message: `Modifier ${index + 1}: amountInCents or amountInPercentage must be provided.`,
+          });
+        }
+
+        if (
+          modifier.amountInCents != null &&
+          modifier.amountInPercentage != null
+        ) {
+          throw new DubApiError({
+            code: "bad_request",
+            message: `Modifier ${index + 1}: amountInCents and amountInPercentage cannot be used together.`,
+          });
+        }
+
+        if (modifier.type === "flat") {
+          if (modifier.amountInCents == null) {
+            throw new DubApiError({
+              code: "bad_request",
+              message: `Modifier ${index + 1}: amountInCents must be provided when type is 'flat'.`,
+            });
+          }
+        }
+
+        if (modifier.type === "percentage") {
+          if (modifier.amountInPercentage == null) {
+            throw new DubApiError({
+              code: "bad_request",
+              message: `Modifier ${index + 1}: amountInPercentage must be provided when type is 'percentage'.`,
+            });
+          }
+        }
       });
     }
   }
