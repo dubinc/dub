@@ -1,4 +1,5 @@
-TOKEN dub_tinybird_token APPEND
+TOKEN "dub_tinybird_token" APPEND
+
 
 SCHEMA >
     `timestamp` DateTime64(3) `json:$.timestamp` DEFAULT now(),
