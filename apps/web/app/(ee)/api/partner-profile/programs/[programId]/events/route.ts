@@ -14,6 +14,10 @@ import { z } from "zod";
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
+    if (params.programId === "perplexity") {
+      return NextResponse.json([], { status: 200 });
+    }
+
     const { program, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
