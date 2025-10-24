@@ -6,7 +6,7 @@ export const constructDiscountAmount = (
 ) => {
   return discount.type === "percentage"
     ? `${discount.amount}%`
-    : currencyFormatter((discount.amount ?? 0) / 100, {
+    : currencyFormatter(discount.amount / 100, {
         trailingZeroDisplay: "stripIfInteger",
       });
 };
