@@ -19,9 +19,9 @@ const stripeChargeMetadataSchema = z.object({
 });
 
 // POST /api/cron/payouts/charge-succeeded
-// This route is used to process the charge-succeeded event from Stripe
-// we're intentionally offloading this to a cron job to avoid blocking the main thread
-// so that we can return a 200 to Stripe immediately
+// This route is used to process the charge-succeeded event from Stripe.
+// We're intentionally offloading this to a cron job so we can return a 200 to Stripe immediately.
+// We'll also be calling this route recursively to process payouts in batches of 100.
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -38,9 +38,7 @@ export async function POST(req: Request) {
           select: {
             payouts: {
               where: {
-                status: {
-                  not: "completed",
-                },
+                status: "processing",
               },
             },
           },
