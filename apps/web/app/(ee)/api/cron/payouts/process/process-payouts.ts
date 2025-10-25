@@ -19,7 +19,6 @@ import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirme
 import { prisma } from "@dub/prisma";
 import { chunk, currencyFormatter, log } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 
 const paymentMethodToCurrency = {
   sepa_debit: "eur",
@@ -240,6 +239,41 @@ export async function processPayouts({
     type: "payouts",
   });
 
+  const userWhoInitiatedPayout = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  await recordAuditLog(
+    payouts.map((payout) => ({
+      workspaceId: workspace.id,
+      programId: program.id,
+      action: "payout.confirmed",
+      description: `Payout ${payout.id} confirmed`,
+      actor: userWhoInitiatedPayout ?? {
+        id: userId,
+        name: "Unknown user", // should never happen but just in case
+      },
+      targets: [
+        {
+          type: "payout",
+          id: payout.id,
+          metadata: {
+            ...payout,
+            invoiceId: invoice.id,
+            status: "processing",
+            userId,
+          },
+        },
+      ],
+    })),
+  );
+
   // Send emails to all the partners involved in the payouts if the payout method is Direct Debit
   // This is because Direct Debit takes 4 business days to process, so we want to give partners a heads up
   if (
@@ -257,7 +291,12 @@ export async function processPayouts({
     }
 
     const payoutChunks = chunk(
-      payouts.filter((payout) => payout.partner.email),
+      payouts.filter(
+        (payout) =>
+          // TODO: right now we're only sending notifications for payouts above $100
+          // but once we have a queue for sending emails, we can remove this check
+          payout.partner.email && payout.amount > 100_00, // $100
+      ),
       100,
     );
 
@@ -283,40 +322,4 @@ export async function processPayouts({
       );
     }
   }
-
-  waitUntil(
-    (async () => {
-      // refetching to confirm the payouts are in the processing state
-      const updatedPayouts = await prisma.payout.findMany({
-        where: {
-          id: {
-            in: payouts.map((p) => p.id),
-          },
-          status: "processing",
-        },
-        select: {
-          id: true,
-          status: true,
-          user: true,
-        },
-      });
-
-      await recordAuditLog(
-        updatedPayouts.map((payout) => ({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "payout.confirmed",
-          description: `Payout ${payout.id} confirmed`,
-          actor: payout.user!,
-          targets: [
-            {
-              type: "payout",
-              id: payout.id,
-              metadata: payout,
-            },
-          ],
-        })),
-      );
-    })(),
-  );
 }
