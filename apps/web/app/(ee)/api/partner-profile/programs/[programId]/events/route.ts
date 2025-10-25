@@ -8,7 +8,6 @@ import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -16,20 +15,6 @@ import { z } from "zod";
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    let { linkId, domain, key, ...rest } =
-      partnerProfileEventsQuerySchema.parse(searchParams);
-
-    const { success } = await ratelimit(60, "1 h").limit(
-      `partnerProgramEvents:${partner.id}:${params.programId}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You have been rate limited. Please try again later.",
-      });
-    }
-
     const { program, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
@@ -38,6 +23,21 @@ export const GET = withPartnerProfile(
           program: true,
         },
       });
+
+    let { linkId, domain, key, ...rest } =
+      partnerProfileEventsQuerySchema.parse(searchParams);
+
+    const { success } = await ratelimit(
+      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? 5 : 60,
+      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? "30 m" : "1 h",
+    ).limit(`partnerProgramEvents:${partner.id}:${program.id}`);
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "You have been rate limited. Please try again later.",
+      });
+    }
 
     if (!linkId && domain && key) {
       const link = await prisma.link.findUnique({

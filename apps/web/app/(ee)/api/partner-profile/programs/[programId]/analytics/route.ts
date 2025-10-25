@@ -9,20 +9,6 @@ import { NextResponse } from "next/server";
 // GET /api/partner-profile/programs/[programId]/analytics – get analytics for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    let { linkId, domain, key, ...rest } =
-      partnerProfileAnalyticsQuerySchema.parse(searchParams);
-
-    const { success } = await ratelimit(60, "1 h").limit(
-      `partnerProgramAnalytics:${partner.id}:${params.programId}:${rest.groupBy}`,
-    );
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You have been rate limited. Please try again later.",
-      });
-    }
-
     const { program, links } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
@@ -31,6 +17,21 @@ export const GET = withPartnerProfile(
         links: true,
       },
     });
+
+    let { linkId, domain, key, ...rest } =
+      partnerProfileAnalyticsQuerySchema.parse(searchParams);
+
+    const { success } = await ratelimit(
+      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? 5 : 60,
+      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? "30 m" : "1 h",
+    ).limit(`partnerProgramEvents:${partner.id}:${program.id}`);
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "You have been rate limited. Please try again later.",
+      });
+    }
 
     if (linkId) {
       if (!links.some((link) => link.id === linkId)) {

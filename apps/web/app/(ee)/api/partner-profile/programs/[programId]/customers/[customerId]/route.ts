@@ -14,17 +14,6 @@ import { z } from "zod";
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { customerId, programId } = params;
 
-  const { success } = await ratelimit(60, "1 h").limit(
-    `partnerProgramCustomers:${partner.id}:${params.programId}`,
-  );
-
-  if (!success) {
-    throw new DubApiError({
-      code: "rate_limit_exceeded",
-      message: "You have been rate limited. Please try again later.",
-    });
-  }
-
   const { program, links, customerDataSharingEnabledAt } =
     await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
@@ -34,6 +23,18 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         links: true,
       },
     });
+
+  const { success } = await ratelimit(
+    program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? 5 : 60,
+    program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? "30 m" : "1 h",
+  ).limit(`partnerProgramEvents:${partner.id}:${program.id}`);
+
+  if (!success) {
+    throw new DubApiError({
+      code: "rate_limit_exceeded",
+      message: "You have been rate limited. Please try again later.",
+    });
+  }
 
   const customer = await prisma.customer.findUnique({
     where: {
