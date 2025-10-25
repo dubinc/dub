@@ -22,6 +22,12 @@ export const GET = withPartnerProfile(
       partnerProfileAnalyticsQuerySchema.parse(searchParams);
 
     if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
+      if (rest.groupBy !== "count") {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "This feature is not available for your program.",
+        });
+      }
       const { success } = await ratelimit(10, "30 m").limit(
         `partnerProgramAnalytics:${partner.id}:${program.id}`,
       );
@@ -52,6 +58,10 @@ export const GET = withPartnerProfile(
       }
 
       linkId = foundLink.id;
+    }
+
+    if (links.length === 0) {
+      return NextResponse.json([], { status: 200 });
     }
 
     const response = await getAnalytics({

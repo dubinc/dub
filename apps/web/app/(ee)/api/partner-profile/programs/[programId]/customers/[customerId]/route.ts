@@ -24,7 +24,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
 
   if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
-    return NextResponse.json([], { status: 200 });
+    throw new DubApiError({
+      code: "forbidden",
+      message: "This feature is not available for your program.",
+    });
   }
 
   const customer = await prisma.customer.findUnique({
