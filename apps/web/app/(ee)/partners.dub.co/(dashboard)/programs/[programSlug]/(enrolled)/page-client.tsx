@@ -404,7 +404,7 @@ function StatCardSimple({
   });
 
   return (
-    <div className="group block rounded-lg border border-neutral-300 bg-white p-6">
+    <div className="group relative block rounded-lg border border-neutral-300 bg-white p-6">
       <div className="flex flex-col items-center text-center">
         <span className="mb-3 block text-sm font-medium text-neutral-600">
           {title}
@@ -422,6 +422,9 @@ function StatCardSimple({
         ) : (
           <div className="h-12 w-20 animate-pulse rounded-md bg-neutral-200" />
         )}
+      </div>
+      <div className="absolute bottom-2 right-2 text-xs text-neutral-400">
+        All-time data
       </div>
     </div>
   );
