@@ -27,15 +27,7 @@ export default function RootProviders({ children }: { children: ReactNode }) {
 
   return (
     <PostHogProvider client={posthog}>
-      <PlausibleProvider
-        domain="dub.co"
-        revenue
-        scriptProps={{
-          src: "/_proxy/plausible/script.js",
-          // @ts-ignore
-          "data-api": "/_proxy/plausible/event",
-        }}
-      />
+      <PlausibleProvider domain="dub.co" revenue />
       <TooltipProvider>
         <KeyboardShortcutProvider>
           <Toaster className="pointer-events-auto" closeButton />

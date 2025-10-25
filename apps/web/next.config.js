@@ -199,15 +199,6 @@ module.exports = withAxiom({
         source: "/_proxy/dub/track/click",
         destination: "https://api.dub.co/track/click",
       },
-      // for plausible proxy
-      {
-        source: "/_proxy/plausible/script.js",
-        destination: "https://plausible.io/js/script.js",
-      },
-      {
-        source: "/_proxy/plausible/event",
-        destination: "https://plausible.io/api/event",
-      },
     ];
   },
 });
