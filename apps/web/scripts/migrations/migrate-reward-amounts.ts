@@ -55,7 +55,7 @@ async function main() {
       if (reward.modifiers && Array.isArray(reward.modifiers)) {
         updatedModifiers = reward.modifiers.map(
           (modifier: RewardConditions & { amount?: number }) => {
-            if (modifier.amount !== undefined) {
+            if (modifier.amount != null) {
               const modifierType = modifier.type || reward.type;
               const newModifier = { ...modifier };
 
