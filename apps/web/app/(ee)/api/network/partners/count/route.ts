@@ -18,57 +18,42 @@ export const GET = withWorkspace(
         id: programId,
       },
     });
-    if (!partnerNetworkEnabledAt)
+
+    if (!partnerNetworkEnabledAt) {
       throw new DubApiError({
         code: "forbidden",
         message: "Partner network is not enabled for this program.",
       });
+    }
 
-    const {
-      partnerIds,
-      status,
-      groupBy,
-      country,
-      starred,
-      industryInterests,
-      salesChannels,
-      preferredEarningStructures,
-    } = getNetworkPartnersCountQuerySchema.parse(searchParams);
+    const { partnerIds, status, groupBy, country, starred } =
+      getNetworkPartnersCountQuerySchema.parse(searchParams);
 
     const commonWhere = {
-      discoverableAt: { not: null },
+      // Removed discoverableAt filter to show all partners
       ...(partnerIds && {
         id: { in: partnerIds },
       }),
       ...(country && {
         country,
       }),
-      ...(industryInterests && {
-        industryInterests: {
-          some: { industryInterest: { in: industryInterests } },
-        },
-      }),
-      ...(salesChannels && {
-        salesChannels: { some: { salesChannel: { in: salesChannels } } },
-      }),
-      ...(preferredEarningStructures && {
-        preferredEarningStructures: {
-          some: {
-            preferredEarningStructure: { in: preferredEarningStructures },
-          },
-        },
-      }),
     };
 
     const statusWheres = {
       discover: {
         programs: { none: { programId } },
-        discoveredByPrograms: {
-          none: { programId, ignoredAt: { not: null } },
-          ...(starred === true && {
-            some: { programId, starredAt: { not: null } },
-          }),
-        },
+        // Allow partners with no DiscoveredPartner record OR not ignored
+        OR: starred === true 
+          ? [{ discoveredByPrograms: { some: { programId, starredAt: { not: null } } } }]
+          : starred === false
+          ? [
+              { discoveredByPrograms: { none: { programId } } }, // No record yet
+              { discoveredByPrograms: { some: { programId, starredAt: null, ignoredAt: null } } }, // Not starred and not ignored
+            ]
+          : [
+              { discoveredByPrograms: { none: { programId } } }, // No record yet
+              { discoveredByPrograms: { some: { programId, ignoredAt: null } } }, // Has record but not ignored
+            ],
       },
       invited: {
         programs: { some: { programId, status: "invited" } },
