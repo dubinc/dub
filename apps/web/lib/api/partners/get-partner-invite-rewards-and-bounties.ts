@@ -1,7 +1,7 @@
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
-import { BountyType, EventType } from "@dub/prisma/client";
+import { BountyType, EventType, Reward } from "@dub/prisma/client";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
 
 const REWARD_ICONS: Record<EventType, string> = {
@@ -73,19 +73,17 @@ export async function getPartnerInviteRewardsAndBounties({
 
   return {
     rewards: [
-      ...[
-        ...(group.clickReward ? [group.clickReward] : []),
-        ...(group.leadReward ? [group.leadReward] : []),
-        ...(group.saleReward ? [group.saleReward] : []),
-      ].map((reward) => ({
-        label: formatRewardDescription({
-          ...reward,
-          amountInPercentage: reward.amountInPercentage
-            ? reward.amountInPercentage.toNumber()
-            : undefined,
-        }),
-        icon: REWARD_ICONS[reward.event],
-      })),
+      ...[group.clickReward, group.leadReward, group.saleReward]
+        .filter((r): r is Reward => r !== null)
+        .map((reward) => ({
+          label: formatRewardDescription({
+            ...reward,
+            amountInPercentage: reward.amountInPercentage
+              ? reward.amountInPercentage.toNumber()
+              : undefined,
+          }),
+          icon: REWARD_ICONS[reward.event],
+        })),
       ...(group.discount
         ? [
             {
