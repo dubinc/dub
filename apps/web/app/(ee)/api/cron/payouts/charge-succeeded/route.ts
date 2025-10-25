@@ -47,14 +47,12 @@ export async function POST(req: Request) {
     });
 
     if (!invoice) {
-      console.log(`Invoice with id ${invoiceId} not found.`);
-      return new Response(`Invoice with id ${invoiceId} not found.`);
+      return logAndRespond(`Invoice ${invoiceId} not found.`);
     }
 
     if (invoice._count.payouts === 0) {
-      console.log("No payouts found with status not completed, skipping...");
-      return new Response(
-        `No payouts found with status not completed for invoice ${invoiceId}`,
+      return logAndRespond(
+        `No payouts found with status 'processing' for invoice ${invoiceId}, skipping...`,
       );
     }
 
@@ -103,7 +101,11 @@ export async function POST(req: Request) {
           `Message sent to Qstash with id ${qstashResponse.messageId}`,
         );
       } else {
-        console.error("Error sending message to Qstash", qstashResponse);
+        // should never happen but just in case
+        await log({
+          message: `Error sending message to Qstash to schedule next batch of payouts for invoice ${invoiceId}: ${JSON.stringify(qstashResponse)}`,
+          type: "errors",
+        });
       }
 
       return logAndRespond(
