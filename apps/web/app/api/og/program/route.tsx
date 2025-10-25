@@ -1,5 +1,6 @@
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
-import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
+import { RewardProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prismaEdge } from "@dub/prisma/edge";
 import { ImageResponse } from "next/og";
@@ -56,7 +57,13 @@ export async function GET(req: NextRequest) {
   const logo = program.wordmark || program.logo;
   const brandColor = program.brandColor || "#000000";
 
-  const { rewards } = getGroupRewardsAndDiscount(program.groups[0]);
+  const group = program.groups[0];
+
+  const rewards = [
+    group.clickReward ? serializeReward(group.clickReward) : null,
+    group.leadReward ? serializeReward(group.leadReward) : null,
+    group.saleReward ? serializeReward(group.saleReward) : null,
+  ].filter((r): r is RewardProps => r !== null);
 
   const reward = rewards[0];
 

@@ -1,7 +1,8 @@
 "use server";
 
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
+import { RewardProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   programLanderSchema,
@@ -52,7 +53,13 @@ export const generateLanderAction = authActionClient
       },
     });
 
-    const { rewards, discount } = getGroupRewardsAndDiscount(program.groups[0]);
+    const group = program.groups[0];
+    const discount = group.discount;
+    const rewards = [
+      group.clickReward ? serializeReward(group.clickReward) : null,
+      group.leadReward ? serializeReward(group.leadReward) : null,
+      group.saleReward ? serializeReward(group.saleReward) : null,
+    ].filter((r): r is RewardProps => r !== null);
 
     const firecrawl = new FireCrawlApp({
       apiKey: process.env.FIRECRAWL_API_KEY,
