@@ -1,8 +1,9 @@
 import type { Reward } from "@dub/prisma/client";
 import "server-only";
-import { RewardProps } from "../../types";
 
-export function serializeReward(reward: Reward | RewardProps): RewardProps {
+// Convert Prisma.Decimal object to number
+// should not send Prisma.Decimal to the client
+export function serializeReward(reward: Reward) {
   return {
     ...reward,
     amountInPercentage:
