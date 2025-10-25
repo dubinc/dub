@@ -23,6 +23,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       },
     });
 
+  if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
+    return NextResponse.json([], { status: 200 });
+  }
+
   const customer = await prisma.customer.findUnique({
     where: {
       id: customerId,

@@ -6,7 +6,6 @@ import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -22,6 +21,10 @@ export const GET = withPartnerProfile(
           program: true,
         },
       });
+
+    if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
+      return NextResponse.json([], { status: 200 });
+    }
 
     let { linkId, domain, key, ...rest } =
       partnerProfileEventsQuerySchema.parse(searchParams);

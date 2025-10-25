@@ -195,23 +195,6 @@ export default function AnalyticsProvider({
       defaultInterval: partnerPage
         ? DUB_PARTNERS_ANALYTICS_INTERVAL
         : DUB_LINKS_ANALYTICS_INTERVAL,
-
-      /*
-      If not explicitly set, show root domain links if:
-        - it's filtered by a link, or
-        - the workspace has more than 50 domains
-        - is admin page
-        - is filtered by a folder or tag
-      Otherwise, hide root domain links
-    */
-      defaultRoot: ({ key, folderId, tagIds }) =>
-        (domain && key) ||
-        (domains && domains.length > 50) ||
-        adminPage ||
-        folderId ||
-        tagIds
-          ? undefined
-          : "false",
     });
 
   // Reset requiresUpgrade when query changes

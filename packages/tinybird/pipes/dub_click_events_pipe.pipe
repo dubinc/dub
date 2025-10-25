@@ -6,33 +6,49 @@ SQL >
     SELECT
         timestamp,
         click_id,
+        toLowCardinality(
+            coalesce(click_event.workspace_id, link_metadata.workspace_id)
+        ) AS workspace_id,
         link_id,
+        coalesce(click_event.domain, link_metadata.domain) AS domain,
+        coalesce(click_event.key, link_metadata.key) AS key,
         url,
-        continent,
-        country,
-        city,
-        region,
+        -- geolocation fields
+        toLowCardinality(continent) continent,
+        toLowCardinality(country) country,
+        toLowCardinality(city) city,
+        toLowCardinality(region) region,
         latitude,
         longitude,
+        -- additional fields
         device,
         browser,
         os,
-        CASE 
-            WHEN trigger = '' THEN 
-                CASE 
-                    WHEN qr = true THEN 'qr'
-                    ELSE 'link'
-                END
-            ELSE trigger
+        CASE
+            WHEN trigger = '' THEN CASE WHEN qr = true THEN 'qr' ELSE 'link' END ELSE trigger
         END as trigger,
-        engine,
         ua,
-        coalesce(identity_hash, '') as identity_hash,
         referer,
         referer_url,
         ip,
-        qr
-    FROM dub_click_events
+        coalesce(identity_hash, '') as identity_hash,
+        -- other fields from raw DS
+        device_model,
+        device_vendor,
+        browser_version,
+        os_version,
+        engine,
+        engine_version,
+        cpu_architecture,
+        qr,
+        bot
+    FROM dub_click_events AS click_event ANY
+    LEFT JOIN
+        (
+            SELECT link_id, workspace_id, domain, key
+            FROM dub_links_metadata_latest
+            WHERE link_id IN (SELECT link_id FROM dub_click_events)
+        ) AS link_metadata USING link_id
 
 TYPE materialized
 DATASOURCE dub_click_events_mv
