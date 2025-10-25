@@ -1,9 +1,7 @@
 import { getEvents } from "@/lib/analytics/get-events";
-import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
-import { ratelimit } from "@/lib/upstash";
 import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
@@ -24,20 +22,12 @@ export const GET = withPartnerProfile(
         },
       });
 
+    if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
+      return NextResponse.json([], { status: 200 });
+    }
+
     let { linkId, domain, key, ...rest } =
       partnerProfileEventsQuerySchema.parse(searchParams);
-
-    const { success } = await ratelimit(
-      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? 5 : 60,
-      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? "30 m" : "1 h",
-    ).limit(`partnerProgramEvents:${partner.id}:${program.id}`);
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You have been rate limited. Please try again later.",
-      });
-    }
 
     if (!linkId && domain && key) {
       const link = await prisma.link.findUnique({

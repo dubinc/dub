@@ -21,16 +21,16 @@ export const GET = withPartnerProfile(
     let { linkId, domain, key, ...rest } =
       partnerProfileAnalyticsQuerySchema.parse(searchParams);
 
-    const { success } = await ratelimit(
-      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? 5 : 60,
-      program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? "30 m" : "1 h",
-    ).limit(`partnerProgramEvents:${partner.id}:${program.id}`);
-
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message: "You have been rate limited. Please try again later.",
-      });
+    if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
+      const { success } = await ratelimit(10, "30 m").limit(
+        `partnerProgramAnalytics:${partner.id}:${program.id}`,
+      );
+      if (!success) {
+        throw new DubApiError({
+          code: "rate_limit_exceeded",
+          message: "You have been rate limited. Please try again later.",
+        });
+      }
     }
 
     if (linkId) {

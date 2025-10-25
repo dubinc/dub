@@ -4,7 +4,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
-import { ratelimit } from "@/lib/upstash";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -24,16 +23,8 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       },
     });
 
-  const { success } = await ratelimit(
-    program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? 5 : 60,
-    program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" ? "30 m" : "1 h",
-  ).limit(`partnerProgramEvents:${partner.id}:${program.id}`);
-
-  if (!success) {
-    throw new DubApiError({
-      code: "rate_limit_exceeded",
-      message: "You have been rate limited. Please try again later.",
-    });
+  if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
+    return NextResponse.json([], { status: 200 });
   }
 
   const customer = await prisma.customer.findUnique({
