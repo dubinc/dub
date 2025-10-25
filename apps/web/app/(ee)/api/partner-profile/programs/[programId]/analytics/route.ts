@@ -2,7 +2,6 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { ratelimit } from "@/lib/upstash";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
@@ -20,18 +19,6 @@ export const GET = withPartnerProfile(
 
     let { linkId, domain, key, ...rest } =
       partnerProfileAnalyticsQuerySchema.parse(searchParams);
-
-    if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
-      const { success } = await ratelimit(10, "30 m").limit(
-        `partnerProgramAnalytics:${partner.id}:${program.id}`,
-      );
-      if (!success) {
-        throw new DubApiError({
-          code: "rate_limit_exceeded",
-          message: "You have been rate limited. Please try again later.",
-        });
-      }
-    }
 
     if (linkId) {
       if (!links.some((link) => link.id === linkId)) {
@@ -54,8 +41,14 @@ export const GET = withPartnerProfile(
       linkId = foundLink.id;
     }
 
+    if (links.length === 0) {
+      return NextResponse.json([], { status: 200 });
+    }
+
     const response = await getAnalytics({
-      ...rest,
+      ...(program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X"
+        ? { event: rest.event, groupBy: "count", interval: "all" }
+        : rest),
       ...(linkId ? { linkId } : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
