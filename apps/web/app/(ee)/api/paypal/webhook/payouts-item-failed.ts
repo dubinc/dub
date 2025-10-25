@@ -9,10 +9,10 @@ const PAYPAL_TO_DUB_STATUS = {
   "PAYMENT.PAYOUTS-ITEM.CANCELED": "canceled",
   "PAYMENT.PAYOUTS-ITEM.DENIED": "failed",
   "PAYMENT.PAYOUTS-ITEM.FAILED": "failed",
-  "PAYMENT.PAYOUTS-ITEM.HELD": "processing",
+  "PAYMENT.PAYOUTS-ITEM.HELD": "processed",
   "PAYMENT.PAYOUTS-ITEM.REFUNDED": "failed",
   "PAYMENT.PAYOUTS-ITEM.RETURNED": "failed",
-  "PAYMENT.PAYOUTS-ITEM.UNCLAIMED": "processing",
+  "PAYMENT.PAYOUTS-ITEM.UNCLAIMED": "processed",
 };
 
 export async function payoutsItemFailed(event: any) {
