@@ -5,102 +5,65 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
-import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-const BATCH_SIZE = 5000;
+const BATCH_SIZE = 10000;
 
 // This cron job aggregates due commissions (pending commissions that are past the program holding period) into payouts.
 // Runs once every hour (0 * * * *) + calls itself recursively to look through all pending commissions available.
 async function handler(req: Request) {
   try {
-    let skip: number = 0;
-
     if (req.method === "GET") {
       await verifyVercelSignature(req);
     } else if (req.method === "POST") {
       const rawBody = await req.text();
-      const jsonBody = z
-        .object({
-          skip: z.number(),
-        })
-        .parse(JSON.parse(rawBody));
-      skip = jsonBody.skip;
       await verifyQstashSignature({
         req,
         rawBody,
       });
     }
 
-    const groupedCommissions = await prisma.commission.groupBy({
-      by: ["programId", "partnerId"],
-      where: {
-        status: "pending",
-        payoutId: null,
+    const programsByHoldingPeriod = await prisma.program.groupBy({
+      by: ["holdingPeriodDays"],
+      _count: {
+        id: true,
       },
-      skip,
-      take: BATCH_SIZE,
       orderBy: {
-        partnerId: "asc",
+        _count: {
+          id: "desc",
+        },
       },
     });
 
-    if (!groupedCommissions.length) {
-      return logAndRespond(
-        `No partner-program pair with pending commissions found. Skipping...`,
-      );
-    }
-
-    console.log(
-      `Found ${groupedCommissions.length} partner-program pairs with pending commissions to process...`,
-    );
-
-    const programIdsToPartnerIds = groupedCommissions.reduce<
-      Record<string, string[]>
-    >((acc, { programId, partnerId }) => {
-      acc[programId] ??= [];
-      if (!acc[programId].includes(partnerId)) {
-        acc[programId].push(partnerId);
-      }
-      return acc;
-    }, {});
-
-    const programIdsToPartnerIdsArray = Object.entries(
-      programIdsToPartnerIds,
-    ).map(([programId, partnerIds]) => ({
-      programId,
-      partnerIds,
-    }));
-
-    for (const { programId, partnerIds } of programIdsToPartnerIdsArray) {
-      const program = await prisma.program.findUnique({
+    let holdingPeriodsWithMoreToProcess: number[] = [];
+    for (const { holdingPeriodDays } of programsByHoldingPeriod) {
+      const programs = await prisma.program.findMany({
         where: {
-          id: programId,
+          holdingPeriodDays,
         },
         select: {
+          id: true,
           name: true,
-          holdingPeriodDays: true,
         },
       });
 
-      if (!program) {
-        continue;
-      }
+      console.log(
+        `Found ${programs.length} programs with holding period days: ${holdingPeriodDays}`,
+      );
 
-      // Find all due commissions for program
-      const dueCommissionsForProgram = await prisma.commission.findMany({
+      // Find all due commissions (limit by BATCH_SIZE)
+      const dueCommissions = await prisma.commission.findMany({
         where: {
           status: "pending",
-          programId,
-          partnerId: {
-            in: partnerIds,
+          programId: {
+            in: programs.map((p) => p.id),
           },
-          // If there is a holding period set:
+          // If holding period days is greater than 0:
           // we only process commissions that were created before the holding period
           // but custom commissions are always included
-          ...(program.holdingPeriodDays > 0
+          ...(holdingPeriodDays > 0
             ? {
                 OR: [
                   {
@@ -109,8 +72,7 @@ async function handler(req: Request) {
                   {
                     createdAt: {
                       lt: new Date(
-                        Date.now() -
-                          program.holdingPeriodDays * 24 * 60 * 60 * 1000,
+                        Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000,
                       ),
                     },
                   },
@@ -123,52 +85,70 @@ async function handler(req: Request) {
           createdAt: true,
           earnings: true,
           partnerId: true,
+          programId: true,
         },
         orderBy: {
           createdAt: "asc",
         },
+        take: BATCH_SIZE,
       });
 
-      if (dueCommissionsForProgram.length === 0) {
+      if (dueCommissions.length === 0) {
         console.log(
-          `No due commissions found for program ${program.name}, skipping...`,
+          `No more due commissions found for programs with holding period days: ${holdingPeriodDays}, skipping...`,
         );
         continue;
       }
 
-      const partnerIdsToCommissions = dueCommissionsForProgram.reduce<
-        Record<string, typeof dueCommissionsForProgram>
+      if (dueCommissions.length === BATCH_SIZE) {
+        holdingPeriodsWithMoreToProcess.push(holdingPeriodDays);
+      }
+
+      console.log(
+        `Found ${dueCommissions.length} due commissions for programs with holding period days: ${holdingPeriodDays}`,
+      );
+
+      const partnerProgramCommissions = dueCommissions.reduce<
+        Record<string, typeof dueCommissions>
       >((acc, commission) => {
-        if (!acc[commission.partnerId]) {
-          acc[commission.partnerId] = [];
+        const key = `${commission.partnerId}:${commission.programId}`;
+        if (!acc[key]) {
+          acc[key] = [];
         }
-        acc[commission.partnerId].push(commission);
+        acc[key].push(commission);
         return acc;
       }, {});
 
-      const partnerIdsToCommissionsArray = Object.entries(
-        partnerIdsToCommissions,
-      ).map(([partnerId, commissions]) => ({
-        partnerId,
+      const partnerProgramCommissionsArray = Object.entries(
+        partnerProgramCommissions,
+      ).map(([key, commissions]) => ({
+        partnerId: key.split(":")[0],
+        programId: key.split(":")[1],
         commissions,
       }));
 
       const existingPendingPayouts = await prisma.payout.findMany({
         where: {
-          programId,
+          programId: {
+            in: partnerProgramCommissionsArray.map((p) => p.programId),
+          },
           partnerId: {
-            in: partnerIdsToCommissionsArray.map((p) => p.partnerId),
+            in: partnerProgramCommissionsArray.map((p) => p.partnerId),
           },
           status: "pending",
         },
       });
 
       console.log(
-        `Processing ${partnerIdsToCommissionsArray.length} partners with due commissions for program ${program.name}...`,
+        `Processing ${partnerProgramCommissionsArray.length} partners with due commissions for programs with holding period days: ${holdingPeriodDays}`,
       );
       let totalProcessed = 0;
 
-      for (const { partnerId, commissions } of partnerIdsToCommissionsArray) {
+      for (const {
+        partnerId,
+        programId,
+        commissions,
+      } of partnerProgramCommissionsArray) {
         // sort the commissions by createdAt
         const sortedCommissions = commissions.sort(
           (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
@@ -200,7 +180,7 @@ async function handler(req: Request) {
               periodStart,
               periodEnd,
               amount: totalEarnings,
-              description: `Dub Partners payout (${program.name})`,
+              description: `Dub Partners payout (${programs.find((p) => p.id === programId)?.name})`,
             },
           });
         }
@@ -216,7 +196,7 @@ async function handler(req: Request) {
           },
         });
 
-        // if we're reusing a pending payout, we need to update the amount
+        // if we're reusing a pending payout, we need to update the amount and periodEnd
         if (existingPendingPayouts.find((p) => p.id === payoutToUse.id)) {
           await prisma.payout.update({
             where: {
@@ -235,18 +215,19 @@ async function handler(req: Request) {
       }
 
       const successRate =
-        (totalProcessed / partnerIdsToCommissionsArray.length) * 100;
+        (totalProcessed / partnerProgramCommissionsArray.length) * 100;
       console.log(
-        `Processed ${totalProcessed}/${partnerIdsToCommissionsArray.length} partners with due commissions for program ${program.name} (${successRate.toFixed(1)}% success rate)`,
+        `Processed ${totalProcessed}/${partnerProgramCommissionsArray.length} partners with due commissions for programs with holding period days: ${holdingPeriodDays} (${successRate.toFixed(1)}% success rate)`,
       );
     }
 
-    if (groupedCommissions.length === BATCH_SIZE) {
+    if (holdingPeriodsWithMoreToProcess.length > 0) {
+      console.log(
+        `Several holding periods still have more due commissions: ${holdingPeriodsWithMoreToProcess.join(", ")}`,
+      );
+
       const qstashResponse = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
-        body: {
-          skip: skip + BATCH_SIZE,
-        },
       });
       if (qstashResponse.messageId) {
         console.log(
@@ -261,16 +242,16 @@ async function handler(req: Request) {
         });
       }
       return logAndRespond(
-        `Processed payout commission aggregation for ${groupedCommissions.length} partner-program pairs. Scheduling next batch...`,
+        "Finished aggregating due commissions into payouts for current batch. Scheduling next batch...",
       );
     }
 
     return logAndRespond(
-      `Completed all payout commission aggregation for ${groupedCommissions.length} partner-program pairs.`,
+      "Finished aggregating due commissions into payouts for all batches.",
     );
   } catch (error) {
     await log({
-      message: `Error aggregating commissions into payouts: ${error.message}`,
+      message: `Error aggregating due commissions into payouts: ${error.message}`,
       type: "errors",
       mention: true,
     });
