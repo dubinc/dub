@@ -1,8 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { prisma } from "@dub/prisma";
-import { log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { z } from "zod";
+import { logAndRespond } from "../../utils";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
 import { sendStripePayouts } from "./send-stripe-payouts";
 
@@ -88,7 +90,32 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    return new Response(`Invoice ${invoiceId} processed.`);
+    if (invoice._count.payouts > 100) {
+      console.log(
+        "More than 100 payouts found for invoice, scheduling next batch...",
+      );
+      const qstashResponse = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
+        body: {
+          invoiceId: invoiceId,
+        },
+      });
+      if (qstashResponse.messageId) {
+        console.log(
+          `Message sent to Qstash with id ${qstashResponse.messageId}`,
+        );
+      } else {
+        console.error("Error sending message to Qstash", qstashResponse);
+      }
+
+      return logAndRespond(
+        `Completed processing current batch of payouts for invoice ${invoiceId}. Next batch scheduled.`,
+      );
+    }
+
+    return logAndRespond(
+      `Completed processing all payouts for invoice ${invoiceId}.`,
+    );
   } catch (error) {
     await log({
       message: `Error sending payouts for invoice: ${error.message}`,
