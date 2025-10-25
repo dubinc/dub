@@ -1,5 +1,6 @@
 import { Reward } from "@dub/prisma/client";
-import { RewardProps } from "../types";
+import "server-only";
+import { RewardProps } from "../../types";
 
 export function serializeReward(reward: Reward | RewardProps): RewardProps {
   return {

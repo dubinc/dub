@@ -24,7 +24,7 @@ import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { determinePartnerReward } from "./determine-partner-reward";
-import { getRewardAmount } from "./get-reward-amount";
+import { getRewardAmount } from "../api/partners/get-reward-amount";
 
 export type CreatePartnerCommissionProps = {
   event: CommissionType;

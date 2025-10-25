@@ -1,6 +1,6 @@
 import { GroupProps, RewardProps } from "@/lib/types";
 import { Reward } from "@prisma/client";
-import { serializeReward } from "./serialize-reward";
+import { serializeReward } from "../api/partners/serialize-reward";
 
 /**
  * Accepts both Prisma 'Reward' (database) and 'RewardProps' (frontend).

@@ -6,7 +6,7 @@ import {
 } from "../zod/schemas/rewards";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { evaluateRewardConditions } from "./evaluate-reward-conditions";
-import { getRewardAmount } from "./get-reward-amount";
+import { getRewardAmount } from "../api/partners/get-reward-amount";
 
 const REWARD_EVENT_COLUMN_MAPPING = {
   [EventType.click]: "clickReward",

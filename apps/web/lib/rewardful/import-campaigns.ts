@@ -4,7 +4,7 @@ import { EventType, Prisma, RewardStructure } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
-import { getRewardAmount } from "../partners/get-reward-amount";
+import { getRewardAmount } from "../api/partners/get-reward-amount";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";

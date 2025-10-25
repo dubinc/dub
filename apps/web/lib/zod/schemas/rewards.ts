@@ -144,7 +144,7 @@ export const rewardConditionsArraySchema = z
 
 const decimalToNumber = z
   .any()
-  .transform((val) => (val ? Number(val) : null))
+  .transform((val) => (val != null && val !== "" ? Number(val) : null))
   .nullable()
   .optional();
 

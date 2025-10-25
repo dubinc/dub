@@ -1,17 +1,10 @@
-import { Prisma, RewardStructure } from "@dub/prisma/client";
+import "client-only";
+import { RewardProps } from "../types";
 
-interface GetRewardAmountProps {
-  type: RewardStructure;
-  amountInCents?: number | null;
-  amountInPercentage?: Prisma.Decimal | number | null;
-}
-
-export const getRewardAmount = (reward: GetRewardAmountProps) => {
-  let { type, amountInCents, amountInPercentage } = reward;
-
-  if (amountInPercentage && amountInPercentage instanceof Prisma.Decimal) {
-    amountInPercentage = amountInPercentage.toNumber();
-  }
+export const getRewardAmount = (
+  reward: Pick<RewardProps, "type" | "amountInCents" | "amountInPercentage">,
+) => {
+  const { type, amountInCents, amountInPercentage } = reward;
 
   const amount = type === "flat" ? amountInCents : amountInPercentage;
 

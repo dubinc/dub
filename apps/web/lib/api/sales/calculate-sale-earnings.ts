@@ -1,4 +1,4 @@
-import { getRewardAmount } from "@/lib/partners/get-reward-amount";
+import { getRewardAmount } from "@/lib/api/partners/get-reward-amount";
 import { RewardProps } from "@/lib/types";
 import { Commission } from "@dub/prisma/client";
 
