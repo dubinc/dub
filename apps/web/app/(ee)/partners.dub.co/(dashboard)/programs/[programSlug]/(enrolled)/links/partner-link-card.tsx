@@ -16,15 +16,21 @@ import {
   LoadingSpinner,
   SimpleTooltipContent,
   Tooltip,
-  useCopyToClipboard,
   useInViewport,
   UserCheck,
   useRouterStuff,
 } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis } from "@dub/ui/charts";
-import { cn, getApexDomain, getPrettyUrl } from "@dub/utils";
+import {
+  cn,
+  currencyFormatter,
+  getApexDomain,
+  getPrettyUrl,
+  nFormatter,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
+import { useParams } from "next/navigation";
 import {
   ComponentProps,
   memo,
@@ -59,68 +65,17 @@ const CHARTS = [
 ];
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
-  const { getQueryString } = useRouterStuff();
-  const { start, end, interval } = usePartnerLinksContext();
+  const { programSlug } = useParams();
   const { programEnrollment } = useProgramEnrollment();
-
-  const ref = useRef<HTMLDivElement>(null);
-  const isVisible = useInViewport(ref);
-  const lastValidTotals = useRef<{
-    clicks: number;
-    leads: number;
-    saleAmount: number;
-  } | null>(null);
-
-  const { data: timeseries, error } = usePartnerAnalytics(
-    {
-      linkId: link.id,
-      groupBy: "timeseries",
-      event: "composite",
-      interval,
-      start,
-      end,
-      enabled: isVisible,
-    },
-    {
-      keepPreviousData: false,
-    },
-  );
-
-  const totals = useMemo(() => {
-    const newTotals = timeseries?.reduce(
-      (acc, { clicks, leads, saleAmount }) => ({
-        clicks: acc.clicks + clicks,
-        leads: acc.leads + leads,
-        saleAmount: acc.saleAmount + saleAmount,
-      }),
-      { clicks: 0, leads: 0, saleAmount: 0 },
-    );
-
-    if (newTotals) {
-      lastValidTotals.current = newTotals;
-      return newTotals;
-    }
-
-    return lastValidTotals.current ?? { clicks: 0, leads: 0, saleAmount: 0 };
-  }, [timeseries]);
-
-  const chartData = useMemo(() => {
-    return timeseries?.map(({ start, clicks, leads, saleAmount }) => ({
-      date: new Date(start),
-      values: { clicks, leads, saleAmount: saleAmount / 100 },
-    }));
-  }, [timeseries]);
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
     link,
   });
 
-  const [copied, copyToClipboard] = useCopyToClipboard();
-
   return (
     <CardList.Card innerClassName="px-0 py-0 group/card">
-      <div className="p-4" ref={ref}>
+      <div className="p-4">
         <div className="flex items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
             <div className="relative hidden shrink-0 items-center justify-center sm:flex">
@@ -201,102 +156,205 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                 </div>
               </Tooltip>
             )}
+            {programSlug == "perplexity" && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>
         </div>
-
-        <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
-          {CHARTS.map((chart) => (
-            <Link
-              key={chart.key}
-              href={`/programs/${programEnrollment?.program.slug}/analytics${getQueryString(
-                {
-                  domain: link.domain,
-                  key: link.key,
-                  event: chart.key === "saleAmount" ? "sales" : chart.key,
-                },
-              )}`}
-              className="group/chart relative isolate rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
-            >
-              <div className="absolute right-2 top-2 overflow-hidden">
-                <div className="translate-x-full transition-transform duration-200 group-hover/chart:translate-x-0">
-                  <Button
-                    text="View more"
-                    variant="secondary"
-                    className="h-6 w-fit px-2 text-xs"
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
-                <div className="flex items-center gap-1.5">
-                  <chart.icon
-                    className={cn("h-4 w-4 shrink-0", chart.colorClassName)}
-                  />
-                  <span className="text-sm font-semibold leading-none text-neutral-800">
-                    {chart.label}
-                  </span>
-                </div>
-                {totals ? (
-                  <span className="text-base font-medium leading-none text-neutral-600">
-                    <NumberFlow
-                      value={
-                        chart.currency
-                          ? totals[chart.key] / 100
-                          : totals[chart.key]
-                      }
-                      format={
-                        chart.currency
-                          ? {
-                              style: "currency",
-                              currency: "USD",
-                              // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                              trailingZeroDisplay: "stripIfInteger",
-                            }
-                          : {
-                              notation:
-                                totals[chart.key] > 999999
-                                  ? "compact"
-                                  : "standard",
-                            }
-                      }
-                    />
-                  </span>
-                ) : (
-                  <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
-                )}
-              </div>
-              <div className="h-20 sm:h-24">
-                {chartData ? (
-                  <LinkEventsChart
-                    key={`${interval}-${start}-${end}`}
-                    data={chartData}
-                    series={{
-                      id: chart.key,
-                      valueAccessor: (d) => d.values[chart.key],
-                      colorClassName: chart.colorClassName,
-                      isActive: true,
-                    }}
-                    currency={chart.currency}
-                  />
-                ) : (
-                  <div className="flex size-full items-center justify-center">
-                    {error ? (
-                      <p className="text-xs text-neutral-500">
-                        Failed to load data
-                      </p>
-                    ) : (
-                      <LoadingSpinner className="size-4" />
-                    )}
-                  </div>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
       </div>
+      {programSlug !== "perplexity" && <StatsCharts link={link} />}
     </CardList.Card>
   );
 }
+
+const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
+  return (
+    <div className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600">
+      {[
+        {
+          id: "clicks",
+          icon: CursorRays,
+          value: link.clicks,
+          iconClassName: "data-[active=true]:text-blue-500",
+        },
+        {
+          id: "leads",
+          icon: UserCheck,
+          value: link.leads,
+          className: "hidden sm:flex",
+          iconClassName: "data-[active=true]:text-purple-500",
+        },
+        {
+          id: "sales",
+          icon: InvoiceDollar,
+          value: link.saleAmount,
+          className: "hidden sm:flex",
+          iconClassName: "data-[active=true]:text-teal-500",
+        },
+      ].map(({ id: tab, icon: Icon, value, className, iconClassName }) => (
+        <div
+          key={tab}
+          className={cn(
+            "flex items-center gap-1 whitespace-nowrap rounded-md px-1 py-px transition-colors",
+            className,
+          )}
+        >
+          <Icon
+            data-active={value > 0}
+            className={cn("h-4 w-4 shrink-0", iconClassName)}
+          />
+          <span>
+            {tab === "sales"
+              ? currencyFormatter(value / 100, {
+                  trailingZeroDisplay: "stripIfInteger",
+                })
+              : nFormatter(value)}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+});
+
+const StatsCharts = memo(({ link }: { link: PartnerProfileLinkProps }) => {
+  const { getQueryString } = useRouterStuff();
+  const { start, end, interval } = usePartnerLinksContext();
+  const { programEnrollment } = useProgramEnrollment();
+
+  const ref = useRef<HTMLDivElement>(null);
+  const isVisible = useInViewport(ref);
+  const lastValidTotals = useRef<{
+    clicks: number;
+    leads: number;
+    saleAmount: number;
+  } | null>(null);
+
+  const { data: timeseries, error } = usePartnerAnalytics(
+    {
+      linkId: link.id,
+      groupBy: "timeseries",
+      event: "composite",
+      interval,
+      start,
+      end,
+      enabled: isVisible,
+    },
+    {
+      keepPreviousData: false,
+    },
+  );
+
+  const totals = useMemo(() => {
+    const newTotals = timeseries?.reduce(
+      (acc, { clicks, leads, saleAmount }) => ({
+        clicks: acc.clicks + clicks,
+        leads: acc.leads + leads,
+        saleAmount: acc.saleAmount + saleAmount,
+      }),
+      { clicks: 0, leads: 0, saleAmount: 0 },
+    );
+
+    if (newTotals) {
+      lastValidTotals.current = newTotals;
+      return newTotals;
+    }
+
+    return lastValidTotals.current ?? { clicks: 0, leads: 0, saleAmount: 0 };
+  }, [timeseries]);
+
+  const chartData = useMemo(() => {
+    return timeseries?.map(({ start, clicks, leads, saleAmount }) => ({
+      date: new Date(start),
+      values: { clicks, leads, saleAmount: saleAmount / 100 },
+    }));
+  }, [timeseries]);
+
+  return (
+    <div ref={ref} className="grid grid-cols-1 gap-4 p-4 pt-0 sm:grid-cols-3">
+      {CHARTS.map((chart) => (
+        <Link
+          key={chart.key}
+          href={`/programs/${programEnrollment?.program.slug}/analytics${getQueryString(
+            {
+              domain: link.domain,
+              key: link.key,
+              event: chart.key === "saleAmount" ? "sales" : chart.key,
+            },
+          )}`}
+          className="group/chart relative isolate rounded-lg border border-neutral-200 px-2 py-1.5 lg:px-3"
+        >
+          <div className="absolute right-2 top-2 overflow-hidden">
+            <div className="translate-x-full transition-transform duration-200 group-hover/chart:translate-x-0">
+              <Button
+                text="View more"
+                variant="secondary"
+                className="h-6 w-fit px-2 text-xs"
+              />
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 pl-2 pt-3 lg:pl-1.5">
+            <div className="flex items-center gap-1.5">
+              <chart.icon
+                className={cn("h-4 w-4 shrink-0", chart.colorClassName)}
+              />
+              <span className="text-sm font-semibold leading-none text-neutral-800">
+                {chart.label}
+              </span>
+            </div>
+            {totals ? (
+              <span className="text-base font-medium leading-none text-neutral-600">
+                <NumberFlow
+                  value={
+                    chart.currency ? totals[chart.key] / 100 : totals[chart.key]
+                  }
+                  format={
+                    chart.currency
+                      ? {
+                          style: "currency",
+                          currency: "USD",
+                          // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
+                          trailingZeroDisplay: "stripIfInteger",
+                        }
+                      : {
+                          notation:
+                            totals[chart.key] > 999999 ? "compact" : "standard",
+                        }
+                  }
+                />
+              </span>
+            ) : (
+              <div className="h-4 w-12 animate-pulse rounded bg-neutral-200" />
+            )}
+          </div>
+          <div className="h-20 sm:h-24">
+            {chartData ? (
+              <LinkEventsChart
+                key={`${interval}-${start}-${end}`}
+                data={chartData}
+                series={{
+                  id: chart.key,
+                  valueAccessor: (d) => d.values[chart.key],
+                  colorClassName: chart.colorClassName,
+                  isActive: true,
+                }}
+                currency={chart.currency}
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center">
+                {error ? (
+                  <p className="text-xs text-neutral-500">
+                    Failed to load data
+                  </p>
+                ) : (
+                  <LoadingSpinner className="size-4" />
+                )}
+              </div>
+            )}
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+});
 
 const Controls = memo(({ link }: { link: PartnerProfileLinkProps }) => {
   const { hovered } = useContext(CardList.Card.Context);

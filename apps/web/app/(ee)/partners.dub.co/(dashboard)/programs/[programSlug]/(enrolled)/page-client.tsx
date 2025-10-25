@@ -399,15 +399,8 @@ function StatCardSimple({
   title: string;
   event: "clicks" | "leads" | "sales";
 }) {
-  const { programSlug } = useParams();
-  const { getQueryString } = useRouterStuff();
-  const { start, end, interval } = useContext(ProgramOverviewContext);
-
   const { data: total } = usePartnerAnalytics({
     event: "composite",
-    interval,
-    start,
-    end,
   });
 
   return (
