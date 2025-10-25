@@ -62,7 +62,7 @@ function ConfirmModal({
           {title}
         </h3>
         {description && (
-          <p className="text-content-subtle mt-1 text-sm">{description}</p>
+          <div className="text-content-subtle mt-1 text-sm">{description}</div>
         )}
       </div>
 

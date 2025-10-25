@@ -45,8 +45,16 @@ export const executeSendCampaignWorkflow = async ({
       id: campaignId,
     },
     include: {
-      program: true,
       groups: true,
+      program: {
+        include: {
+          emailDomains: {
+            where: {
+              status: "verified",
+            },
+          },
+        },
+      },
     },
   });
 
@@ -114,6 +122,21 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
+  const program = campaign.program;
+
+  // Make sure the email domain is verified otherwise Resend will throw an error
+  let fromAddress: string | null = null;
+  if (campaign.from) {
+    const emailDomain = program.emailDomains.find(
+      ({ fromAddress, status }) =>
+        fromAddress === campaign.from && status === "verified",
+    );
+
+    if (emailDomain) {
+      fromAddress = emailDomain.fromAddress;
+    }
+  }
+
   const programEnrollmentsChunks = chunk(programEnrollments, 100);
 
   for (const programEnrollmentChunk of programEnrollmentsChunks) {
@@ -156,12 +179,11 @@ export const executeSendCampaignWorkflow = async ({
       `Workflow ${workflow.id} created ${messages.count} messages for campaign ${campaignId}.`,
     );
 
-    const { program } = campaign;
-
     // Send emails
     const { data } = await sendBatchEmail(
       partnerUsers.map((partnerUser) => ({
         variant: "notifications",
+        ...(fromAddress ? { from: fromAddress } : {}),
         to: partnerUser.email!,
         subject: campaign.subject,
         replyTo: program.supportEmail || "noreply",

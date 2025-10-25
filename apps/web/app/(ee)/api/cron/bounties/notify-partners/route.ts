@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       });
     }
 
-    let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+    const diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
 
     if (diffMinutes >= 10) {
       return logAndRespond(

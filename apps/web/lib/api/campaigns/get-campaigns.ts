@@ -11,6 +11,7 @@ interface QueryResult {
   name: string;
   type: string;
   status: string;
+  scheduledAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
   sent: number;
@@ -67,6 +68,7 @@ export const getCampaigns = async ({
       c.status,
       c.createdAt,
       c.updatedAt,
+      c.scheduledAt,
       COALESCE(metrics.sent, 0) AS sent,
       COALESCE(metrics.delivered, 0) AS delivered,
       COALESCE(metrics.opened, 0) AS opened,
@@ -97,6 +99,7 @@ export const getCampaigns = async ({
     status: result.status,
     createdAt: result.createdAt,
     updatedAt: result.updatedAt,
+    scheduledAt: result.scheduledAt,
     sent: Number(result.sent),
     delivered: Number(result.delivered),
     bounced: Number(result.bounced),

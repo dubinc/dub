@@ -26,6 +26,7 @@ interface RichTextAreaProps {
   editorClassName?: string;
   uploadImage?: (file: File) => Promise<string | null>;
   variables?: string[];
+  editable?: boolean;
 }
 
 export interface RichTextAreaRef {
@@ -42,6 +43,7 @@ export const RichTextArea = forwardRef<RichTextAreaRef, RichTextAreaProps>(
       editorClassName,
       uploadImage,
       variables,
+      editable = true,
     },
     ref,
   ) {
@@ -75,6 +77,7 @@ export const RichTextArea = forwardRef<RichTextAreaRef, RichTextAreaProps>(
     };
 
     const editor = useEditor({
+      editable,
       extensions: [
         ...richTextAreaExtensions,
         Placeholder.configure({

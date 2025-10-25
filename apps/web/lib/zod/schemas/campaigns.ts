@@ -7,6 +7,7 @@ import { z } from "zod";
 import { GroupSchema } from "./groups";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema } from "./partners";
+import { parseDateSchema } from "./utils";
 import { workflowConditionSchema } from "./workflows";
 
 export const EMAIL_TEMPLATE_VARIABLES = [
@@ -49,11 +50,13 @@ export const CampaignSchema = z.object({
   id: z.string(),
   name: z.string(),
   subject: z.string(),
+  from: z.string().nullable(),
   bodyJson: z.record(z.string(), z.any()),
   type: z.nativeEnum(CampaignType),
   status: z.nativeEnum(CampaignStatus),
   triggerCondition: workflowConditionSchema.nullable().default(null),
   groups: z.array(GroupSchema.pick({ id: true })),
+  scheduledAt: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -68,6 +71,7 @@ export const CampaignListSchema = z.object({
   sent: z.number(),
   bounced: z.number(),
   opened: z.number(),
+  scheduledAt: z.date().nullable(),
   createdAt: z.date(),
   updatedAt: z.date(),
   groups: z.array(GroupSchema.pick({ id: true })),
@@ -84,13 +88,17 @@ export const updateCampaignSchema = z
       .string()
       .trim()
       .max(100, "Subject must be less than 100 characters."),
+    from: z.string().email().trim().toLowerCase(),
     bodyJson: z.record(z.string(), z.any()),
     triggerCondition: workflowConditionSchema.nullish(),
     groupIds: z.array(z.string()).nullable(),
+    scheduledAt: parseDateSchema.nullish(),
     status: z.enum([
       CampaignStatus.draft,
       CampaignStatus.active,
       CampaignStatus.paused,
+      CampaignStatus.scheduled,
+      CampaignStatus.cancelled,
     ]),
   })
   .partial();

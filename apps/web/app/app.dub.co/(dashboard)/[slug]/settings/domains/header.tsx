@@ -9,7 +9,7 @@ export function DomainsHeader({
 }: {
   baseUrl?: `/${string}`;
 }) {
-  const { slug } = useWorkspace();
+  const { slug, defaultProgramId } = useWorkspace();
   const selectedLayoutSegment = useSelectedLayoutSegment();
   const page = selectedLayoutSegment === null ? "" : selectedLayoutSegment;
 
@@ -27,6 +27,15 @@ export function DomainsHeader({
             label: "Default domains",
             href: `/${slug}${baseUrl}/default`,
           },
+          ...(defaultProgramId
+            ? [
+                {
+                  id: "email",
+                  label: "Email domains",
+                  href: `/${slug}${baseUrl}/email`,
+                },
+              ]
+            : []),
         ]}
         selected={page}
       />

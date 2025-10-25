@@ -1,3 +1,4 @@
+import { CAMPAIGN_EDITABLE_STATUSES } from "@/lib/api/campaigns/constants";
 import { Campaign } from "@/lib/types";
 import { Button } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -26,7 +27,9 @@ export function CampaignActionBar({
 
   // Only show action bar for non-draft campaigns when there are changes
   const showActionBar =
-    campaignStatus !== "draft" && (isDirty || isSubmitting || isSaving);
+    CAMPAIGN_EDITABLE_STATUSES.includes(campaignStatus) &&
+    campaignStatus !== "draft" &&
+    (isDirty || isSubmitting || isSaving);
 
   return (
     <div
