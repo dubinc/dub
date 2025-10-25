@@ -3,6 +3,7 @@ import { formatRewardDescription } from "@/ui/partners/format-reward-description
 import { prisma } from "@dub/prisma";
 import { BountyType, EventType, Reward } from "@dub/prisma/client";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
+import { serializeReward } from "./serialize-reward";
 
 const REWARD_ICONS: Record<EventType, string> = {
   click: "https://assets.dub.co/email-assets/icons/cursor-rays.png",
@@ -76,12 +77,7 @@ export async function getPartnerInviteRewardsAndBounties({
       ...[group.clickReward, group.leadReward, group.saleReward]
         .filter((r): r is Reward => r !== null)
         .map((reward) => ({
-          label: formatRewardDescription({
-            ...reward,
-            amountInPercentage: reward.amountInPercentage
-              ? reward.amountInPercentage.toNumber()
-              : undefined,
-          }),
+          label: formatRewardDescription(serializeReward(reward)),
           icon: REWARD_ICONS[reward.event],
         })),
       ...(group.discount
