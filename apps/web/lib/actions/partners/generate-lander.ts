@@ -2,7 +2,6 @@
 
 import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { RewardProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   programLanderSchema,
@@ -12,6 +11,7 @@ import { formatDiscountDescription } from "@/ui/partners/format-discount-descrip
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { anthropic } from "@ai-sdk/anthropic";
 import { prisma } from "@dub/prisma";
+import { Reward } from "@dub/prisma/client";
 import FireCrawlApp, {
   ErrorResponse,
   ScrapeResponse,
@@ -55,11 +55,9 @@ export const generateLanderAction = authActionClient
 
     const group = program.groups[0];
     const discount = group.discount;
-    const rewards = [
-      group.clickReward ? serializeReward(group.clickReward) : null,
-      group.leadReward ? serializeReward(group.leadReward) : null,
-      group.saleReward ? serializeReward(group.saleReward) : null,
-    ].filter((r): r is RewardProps => r !== null);
+    const rewards = [group.clickReward, group.leadReward, group.saleReward]
+      .filter((r): r is Reward => r !== null)
+      .map(serializeReward);
 
     const firecrawl = new FireCrawlApp({
       apiKey: process.env.FIRECRAWL_API_KEY,
