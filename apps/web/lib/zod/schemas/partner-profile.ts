@@ -29,6 +29,7 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
       .object({
         id: z.string(),
         email: z.string(),
+        country: z.string().nullish(),
       })
       .nullable(),
     link: LinkSchema.pick({
