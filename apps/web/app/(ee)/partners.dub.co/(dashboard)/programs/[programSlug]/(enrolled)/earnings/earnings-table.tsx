@@ -138,7 +138,11 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           row.original.customer ? (
             <CustomerRowItem
               customer={row.original.customer}
-              href={`/programs/${programSlug}/customers/${row.original.customer.id}`}
+              href={
+                programSlug === "perplexity"
+                  ? undefined
+                  : `/programs/${programSlug}/customers/${row.original.customer.id}`
+              }
               className="px-4 py-2.5"
             />
           ) : (
