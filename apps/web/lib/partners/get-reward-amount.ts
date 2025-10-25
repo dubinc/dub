@@ -1,11 +1,10 @@
-import "client-only";
 import { RewardProps } from "../types";
 
-export const getRewardAmount = (
-  reward: Pick<RewardProps, "type" | "amountInCents" | "amountInPercentage">,
-) => {
-  const { type, amountInCents, amountInPercentage } = reward;
-
+export const getRewardAmount = ({
+  type,
+  amountInCents,
+  amountInPercentage,
+}: Pick<RewardProps, "type" | "amountInCents" | "amountInPercentage">) => {
   const amount = type === "flat" ? amountInCents : amountInPercentage;
 
   return amount === null || amount === undefined ? 0 : amount;

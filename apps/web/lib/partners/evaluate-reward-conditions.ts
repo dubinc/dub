@@ -4,7 +4,7 @@ import {
   RewardConditionsArray,
   RewardContext,
 } from "../types";
-import { getRewardAmount } from "../api/partners/get-reward-amount";
+import { getRewardAmount } from "./get-reward-amount";
 
 export const evaluateRewardConditions = ({
   conditions,

@@ -4,7 +4,9 @@ import { EventType, Prisma, RewardStructure } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
-import { getRewardAmount } from "../api/partners/get-reward-amount";
+
+import { serializeReward } from "../api/partners/serialize-reward";
+import { getRewardAmount } from "../partners/get-reward-amount";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
@@ -97,7 +99,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
       });
 
       console.log(
-        `Since group was newly created, also created reward ${createdReward.id} with amount ${getRewardAmount(createdReward)} and type ${createdReward.type}`,
+        `Since group was newly created, also created reward ${createdReward.id} with amount ${getRewardAmount(serializeReward(createdReward))} and type ${createdReward.type}`,
       );
     }
 
