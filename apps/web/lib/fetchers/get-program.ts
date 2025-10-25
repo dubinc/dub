@@ -1,5 +1,5 @@
 import { prisma } from "@dub/prisma";
-import { Program } from "@prisma/client";
+import { Program, Reward } from "@prisma/client";
 import { cache } from "react";
 import { serializeReward } from "../api/partners/serialize-reward";
 import { DiscountProps, GroupWithFormDataProps, RewardProps } from "../types";
@@ -56,8 +56,8 @@ export const getProgram = cache(
     const group = groups[0];
 
     const rewards = [group.clickReward, group.leadReward, group.saleReward]
-      .filter((r): r is RewardProps => r !== null)
-      .map(serializeReward);
+      .filter((r) => r !== null)
+      .map((r) => serializeReward(r as Reward));
 
     const discount = group.discount;
 
