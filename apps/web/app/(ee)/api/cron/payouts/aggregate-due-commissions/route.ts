@@ -168,7 +168,7 @@ async function handler(req: Request) {
           sortedCommissions[sortedCommissions.length - 1].createdAt;
 
         let payoutToUse = existingPendingPayouts.find(
-          (p) => p.partnerId === partnerId,
+          (p) => p.partnerId === partnerId && p.programId === programId,
         );
 
         if (!payoutToUse) {
