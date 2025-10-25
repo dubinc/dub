@@ -1,5 +1,6 @@
 import { fetcher } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import useSWR, { SWRConfiguration } from "swr";
 import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
@@ -51,6 +52,10 @@ export default function usePartnerAnalytics(
     {
       dedupingInterval: 60000,
       keepPreviousData: true,
+      onError: (error) => {
+        const errorMessage = error.message;
+        toast.error(errorMessage);
+      },
       ...options,
     },
   );

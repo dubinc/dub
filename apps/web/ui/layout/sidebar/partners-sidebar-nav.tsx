@@ -186,22 +186,18 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/programs/${programSlug}/earnings${queryString}`,
             locked: isUnapproved,
           },
-          ...(programSlug !== "perplexity"
-            ? [
-                {
-                  name: "Analytics",
-                  icon: LinesY,
-                  href: `/programs/${programSlug}/analytics` as `/${string}`,
-                  locked: isUnapproved,
-                },
-                {
-                  name: "Events",
-                  icon: CursorRays,
-                  href: `/programs/${programSlug}/events` as `/${string}`,
-                  locked: isUnapproved,
-                },
-              ]
-            : []),
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/programs/${programSlug}/analytics` as `/${string}`,
+            locked: isUnapproved,
+          },
+          {
+            name: "Events",
+            icon: CursorRays,
+            href: `/programs/${programSlug}/events` as `/${string}`,
+            locked: isUnapproved,
+          },
         ],
       },
       {

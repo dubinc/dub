@@ -1,7 +1,9 @@
 import { getEvents } from "@/lib/analytics/get-events";
+import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
+import { ratelimit } from "@/lib/upstash";
 import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
@@ -14,8 +16,18 @@ import { z } from "zod";
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    if (params.programId === "perplexity") {
-      return NextResponse.json([], { status: 200 });
+    let { linkId, domain, key, ...rest } =
+      partnerProfileEventsQuerySchema.parse(searchParams);
+
+    const { success } = await ratelimit(60, "1 h").limit(
+      `partnerProgramEvents:${partner.id}:${params.programId}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message: "You have been rate limited. Please try again later.",
+      });
     }
 
     const { program, customerDataSharingEnabledAt } =
@@ -26,9 +38,6 @@ export const GET = withPartnerProfile(
           program: true,
         },
       });
-
-    let { linkId, domain, key, ...rest } =
-      partnerProfileEventsQuerySchema.parse(searchParams);
 
     if (!linkId && domain && key) {
       const link = await prisma.link.findUnique({
