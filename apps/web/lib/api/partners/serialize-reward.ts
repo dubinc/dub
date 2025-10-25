@@ -1,4 +1,4 @@
-import { Reward } from "@dub/prisma/client";
+import type { Reward } from "@dub/prisma/client";
 import "server-only";
 import { RewardProps } from "../../types";
 
