@@ -21,28 +21,26 @@ export const evaluateRewardConditions = ({
 
   for (const conditionGroup of conditions) {
     // Evaluate each condition in the group
-    const conditionResults = conditionGroup.conditions.map(
-      (condition: RewardCondition) => {
-        let fieldValue = undefined;
+    const conditionResults = conditionGroup.conditions.map((condition) => {
+      let fieldValue = undefined;
 
-        if (condition.entity === "customer") {
-          fieldValue = context.customer?.[condition.attribute];
-        } else if (condition.entity === "sale") {
-          fieldValue = context.sale?.[condition.attribute];
-        } else if (condition.entity === "partner") {
-          fieldValue = context.partner?.[condition.attribute];
-        }
+      if (condition.entity === "customer") {
+        fieldValue = context.customer?.[condition.attribute];
+      } else if (condition.entity === "sale") {
+        fieldValue = context.sale?.[condition.attribute];
+      } else if (condition.entity === "partner") {
+        fieldValue = context.partner?.[condition.attribute];
+      }
 
-        if (fieldValue === undefined) {
-          return false;
-        }
+      if (fieldValue === undefined) {
+        return false;
+      }
 
-        return evaluateCondition({
-          condition,
-          fieldValue,
-        });
-      },
-    );
+      return evaluateCondition({
+        condition,
+        fieldValue,
+      });
+    });
 
     // Apply the operator logic to the condition results
     let conditionsMet = false;
