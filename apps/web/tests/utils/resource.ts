@@ -41,11 +41,13 @@ export const E2E_CUSTOMER_EXTERNAL_ID_2 = "cus_pqc8qRtofpu6ZqvutyNDGAU2";
 export const E2E_SALE_REWARD = {
   id: "rw_1JYPP77NNDG6TVPAJDKNZREQN",
   event: "sale",
-  amount: 1000,
+  type: "flat",
+  amountInCents: 1000,
   modifiers: [
     {
       operator: "AND",
-      amount: 3000,
+      type: "flat",
+      amountInCents: 3000,
       conditions: [
         {
           entity: "sale",
@@ -57,7 +59,8 @@ export const E2E_SALE_REWARD = {
     },
     {
       operator: "AND",
-      amount: 5000,
+      type: "flat",
+      amountInCents: 5000,
       conditions: [
         {
           entity: "sale",
@@ -72,11 +75,12 @@ export const E2E_SALE_REWARD = {
 export const E2E_LEAD_REWARD = {
   id: "rw_1K82ESAT4YPY0STR20GKXZ7DR",
   event: "lead",
-  amount: 1000,
+  type: "flat",
+  amountInCents: 1000,
   modifiers: [
     {
       type: "flat",
-      amount: 200,
+      amountInCents: 200,
       operator: "AND",
       conditions: [
         {

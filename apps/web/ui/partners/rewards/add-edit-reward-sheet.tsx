@@ -108,10 +108,12 @@ function RewardSheetContent({
           ? Infinity
           : defaultValuesSource.maxDuration
         : Infinity,
-      amount:
-        defaultValuesSource?.type === "flat"
-          ? defaultValuesSource.amount / 100
-          : defaultValuesSource?.amount,
+      amountInCents: defaultValuesSource?.amountInCents != null
+        ? defaultValuesSource.amountInCents / 100
+        : undefined,
+      amountInPercentage: defaultValuesSource?.amountInPercentage != null
+        ? defaultValuesSource.amountInPercentage
+        : undefined,
       description: defaultValuesSource?.description ?? null,
       modifiers: defaultValuesSource?.modifiers?.map((m) => {
         const type = m.type === undefined ? defaultValuesSource?.type : m.type;
@@ -132,7 +134,11 @@ function RewardSheetContent({
                 ? Number(c.value) / 100
                 : c.value,
           })),
-          amount: type === "flat" ? m.amount / 100 : m.amount,
+          amountInCents:
+            m.amountInCents !== undefined && m.amountInCents !== null
+              ? m.amountInCents / 100
+              : undefined,
+          amountInPercentage: m.amountInPercentage ?? undefined,
           maxDuration: m.maxDuration === null ? Infinity : maxDuration,
         };
       }),
@@ -141,15 +147,26 @@ function RewardSheetContent({
 
   const { handleSubmit, watch, setValue, setError } = form;
 
-  const [selectedEvent, amount, type, maxDuration, description, modifiers] =
-    watch([
-      "event",
-      "amount",
-      "type",
-      "maxDuration",
-      "description",
-      "modifiers",
-    ]);
+  const [
+    selectedEvent,
+    amountInCents,
+    amountInPercentage,
+    type,
+    maxDuration,
+    description,
+    modifiers,
+  ] = watch([
+    "event",
+    "amountInCents",
+    "amountInPercentage",
+    "type",
+    "maxDuration",
+    "description",
+    "modifiers",
+  ]);
+
+  // Compute amount based on type
+  const amount = type === "flat" ? amountInCents : amountInPercentage;
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -239,7 +256,12 @@ function RewardSheetContent({
                       : Math.round(Number(c.value) * 100)
                     : c.value,
               })),
-              amount: type === "flat" ? Math.round(m.amount * 100) : m.amount,
+              amountInCents:
+                type === "flat" && m.amountInCents !== undefined
+                  ? Math.round(m.amountInCents * 100)
+                  : undefined,
+              amountInPercentage:
+                type === "percentage" ? m.amountInPercentage : undefined,
               maxDuration: maxDuration === Infinity ? null : maxDuration,
             };
           }),
@@ -254,10 +276,21 @@ function RewardSheetContent({
       }
     }
 
+    const amount =
+      type === "flat"
+        ? {
+            amountInCents: Math.round((data.amountInCents ?? 0) * 100),
+            amountInPercentage: undefined,
+          }
+        : {
+            amountInCents: undefined,
+            amountInPercentage: data.amountInPercentage,
+          };
+
     const payload = {
       ...data,
+      ...amount,
       workspaceId,
-      amount: type === "flat" ? Math.round(data.amount * 100) : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
       modifiers,
@@ -339,15 +372,18 @@ function RewardSheetContent({
                       )}
                       <InlineBadgePopover
                         text={
-                          !isNaN(amount)
+                          amount != null && !isNaN(amount)
                             ? constructRewardAmount({
-                                amount: type === "flat" ? amount * 100 : amount,
                                 type,
                                 maxDuration,
+                                amountInCents:
+                                  type === "flat" ? amount * 100 : undefined,
+                                amountInPercentage:
+                                  type === "percentage" ? amount : undefined,
                               })
                             : "amount"
                         }
-                        invalid={isNaN(amount)}
+                        invalid={amount == null || isNaN(amount)}
                       >
                         <AmountInput />
                       </InlineBadgePopover>{" "}
@@ -550,9 +586,10 @@ const VerticalLine = () => (
 
 function AmountInput() {
   const { watch, register } = useAddEditRewardForm();
-  const type = watch("type");
-
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  const type = watch("type");
+  const fieldName = type === "flat" ? "amountInCents" : "amountInPercentage";
 
   return (
     <div className="relative rounded-md shadow-sm">
@@ -566,7 +603,7 @@ function AmountInput() {
           "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
           type === "flat" ? "pl-4 pr-12" : "pr-7",
         )}
-        {...register("amount", {
+        {...register(fieldName, {
           required: true,
           setValueAs: (value: string) => (value === "" ? undefined : +value),
           min: 0,

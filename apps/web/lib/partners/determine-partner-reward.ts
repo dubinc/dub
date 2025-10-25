@@ -1,4 +1,5 @@
-import { EventType, Link, Reward } from "@dub/prisma/client";
+import { EventType, Link, Prisma, Reward } from "@dub/prisma/client";
+import { serializeReward } from "../api/partners/serialize-reward";
 import { RewardContext } from "../types";
 import {
   rewardConditionsArraySchema,
@@ -6,6 +7,7 @@ import {
 } from "../zod/schemas/rewards";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { evaluateRewardConditions } from "./evaluate-reward-conditions";
+import { getRewardAmount } from "./get-reward-amount";
 
 const REWARD_EVENT_COLUMN_MAPPING = {
   [EventType.click]: "clickReward",
@@ -67,8 +69,15 @@ export const determinePartnerReward = ({
         partnerReward = {
           ...partnerReward,
           // Override the reward amount, type and max duration with the matched condition
-          amount: matchedCondition.amount,
           type: matchedCondition.type || partnerReward.type,
+          amountInCents:
+            matchedCondition.amountInCents != null
+              ? matchedCondition.amountInCents
+              : null,
+          amountInPercentage:
+            matchedCondition.amountInPercentage != null
+              ? new Prisma.Decimal(matchedCondition.amountInPercentage)
+              : null,
           maxDuration:
             matchedCondition.maxDuration !== undefined
               ? matchedCondition.maxDuration
@@ -78,7 +87,9 @@ export const determinePartnerReward = ({
     }
   }
 
-  if (partnerReward.amount === 0) {
+  const amount = getRewardAmount(serializeReward(partnerReward));
+
+  if (amount === 0) {
     return null;
   }
 

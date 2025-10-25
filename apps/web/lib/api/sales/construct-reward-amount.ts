@@ -1,9 +1,17 @@
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { RewardProps } from "@/lib/types";
 import { rewardConditionsArraySchema } from "@/lib/zod/schemas/rewards";
 import { currencyFormatter } from "@dub/utils";
 
 export const constructRewardAmount = (
-  reward: Pick<RewardProps, "amount" | "type" | "maxDuration" | "modifiers">,
+  reward: Pick<
+    RewardProps,
+    | "type"
+    | "amountInCents"
+    | "amountInPercentage"
+    | "maxDuration"
+    | "modifiers"
+  >,
 ) => {
   // If there are modifiers, we need to check if they match the primary reward
   if (reward.modifiers) {
@@ -27,14 +35,24 @@ export const constructRewardAmount = (
 
       // If the type AND maxDuration matches the primary, show a range
       if (matchPrimary) {
+        const amount = getRewardAmount(reward);
+
         const min = Math.min(
-          reward.amount,
-          ...modifiers.map((modifier) => modifier.amount),
+          amount,
+          ...modifiers.map((modifier) =>
+            reward.type === "flat"
+              ? modifier.amountInCents ?? Infinity
+              : modifier.amountInPercentage ?? Infinity,
+          ),
         );
 
         const max = Math.max(
-          reward.amount,
-          ...modifiers.map((modifier) => modifier.amount),
+          amount,
+          ...modifiers.map((modifier) =>
+            reward.type === "flat"
+              ? modifier.amountInCents ?? 0
+              : modifier.amountInPercentage ?? 0,
+          ),
         );
 
         if (min !== max) {
@@ -54,8 +72,8 @@ export const constructRewardAmount = (
   // 1. There are no modifiers OR
   // 2. type AND timelines doesn't match the primary reward
   return reward.type === "percentage"
-    ? `${reward.amount}%`
-    : currencyFormatter(reward.amount / 100, {
+    ? `${reward.amountInPercentage}%`
+    : currencyFormatter((reward.amountInCents ?? 0) / 100, {
         trailingZeroDisplay: "stripIfInteger",
       });
 };

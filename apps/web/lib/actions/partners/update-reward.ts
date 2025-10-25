@@ -3,6 +3,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getRewardOrThrow } from "@/lib/api/partners/get-reward-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { validateReward } from "@/lib/api/rewards/validate-reward";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { updateRewardSchema } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
@@ -15,12 +17,19 @@ export const updateRewardAction = authActionClient
   .schema(updateRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { rewardId, amount, maxDuration, type, description, modifiers } =
-      parsedInput;
+    const {
+      type,
+      amountInCents,
+      amountInPercentage,
+      maxDuration,
+      description,
+      modifiers,
+      rewardId,
+    } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    await getRewardOrThrow({
+    const reward = await getRewardOrThrow({
       rewardId,
       programId,
     });
@@ -33,16 +42,29 @@ export const updateRewardAction = authActionClient
       );
     }
 
+    validateReward({
+      ...parsedInput,
+      event: reward.event,
+    });
+
     const updatedReward = await prisma.reward.update({
       where: {
         id: rewardId,
       },
       data: {
         type,
-        amount,
         maxDuration,
         description: description || null,
         modifiers: modifiers === null ? Prisma.DbNull : modifiers,
+        ...(type === "flat"
+          ? {
+              amountInCents,
+              amountInPercentage: null,
+            }
+          : {
+              amountInCents: null,
+              amountInPercentage: new Prisma.Decimal(amountInPercentage!),
+            }),
       },
       include: {
         program: true,
@@ -78,7 +100,7 @@ export const updateRewardAction = authActionClient
             {
               type: "reward",
               id: rewardId,
-              metadata: rewardMetadata,
+              metadata: serializeReward(rewardMetadata),
             },
           ],
         }),

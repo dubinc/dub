@@ -8,7 +8,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -47,7 +48,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -86,7 +88,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -127,7 +130,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "OR" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -166,7 +170,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "OR" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -205,7 +210,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "OR" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -246,7 +252,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 1000,
+          type: "flat" as const,
+          amountInCents: 1000,
           conditions: [
             {
               entity: "customer" as const,
@@ -258,7 +265,8 @@ describe("evaluateRewardConditions", () => {
         },
         {
           operator: "AND" as const,
-          amount: 2000,
+          type: "flat" as const,
+          amountInCents: 2000,
           conditions: [
             {
               entity: "customer" as const,
@@ -270,7 +278,8 @@ describe("evaluateRewardConditions", () => {
         },
         {
           operator: "AND" as const,
-          amount: 3000,
+          type: "flat" as const,
+          amountInCents: 3000,
           conditions: [
             {
               entity: "customer" as const,
@@ -300,7 +309,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 1000,
+          type: "flat" as const,
+          amountInCents: 1000,
           conditions: [
             {
               entity: "customer" as const,
@@ -312,7 +322,8 @@ describe("evaluateRewardConditions", () => {
         },
         {
           operator: "AND" as const,
-          amount: 2000,
+          type: "flat" as const,
+          amountInCents: 2000,
           conditions: [
             {
               entity: "customer" as const,
@@ -345,7 +356,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "customer" as const,
@@ -375,7 +386,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "customer" as const,
@@ -407,7 +418,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "customer" as const,
@@ -437,7 +448,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "customer" as const,
@@ -469,7 +480,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "customer" as const,
@@ -499,7 +510,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "customer" as const,
@@ -531,7 +542,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "customer" as const,
@@ -561,7 +572,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "customer" as const,
@@ -593,7 +604,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "sale" as const,
@@ -623,7 +634,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "sale" as const,
@@ -655,7 +666,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "sale" as const,
@@ -685,7 +696,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "sale" as const,
@@ -717,7 +728,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -747,7 +758,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -777,7 +788,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -809,7 +820,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -839,7 +850,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -869,7 +880,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -901,7 +912,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -931,7 +942,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -961,7 +972,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -993,7 +1004,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -1023,7 +1034,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -1053,7 +1064,7 @@ describe("evaluateRewardConditions", () => {
         const conditions = [
           {
             operator: "AND" as const,
-            amount: 5000,
+            amountInCents: 5000,
             conditions: [
               {
                 entity: "partner" as const,
@@ -1103,7 +1114,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -1127,7 +1139,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -1157,7 +1170,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1187,7 +1201,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1217,7 +1232,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1247,7 +1263,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1277,7 +1294,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1309,7 +1327,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -1355,7 +1374,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "customer" as const,
@@ -1401,7 +1421,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "OR" as const,
-          amount: 5000,
+          type: "flat" as const,
+          amountInCents: 5000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1445,7 +1466,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 1000,
+          type: "flat" as const,
+          amountInCents: 1000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1457,7 +1479,8 @@ describe("evaluateRewardConditions", () => {
         },
         {
           operator: "AND" as const,
-          amount: 3000, // Highest amount
+          type: "flat" as const,
+          amountInCents: 3000, // Highest amount
           conditions: [
             {
               entity: "partner" as const,
@@ -1469,7 +1492,8 @@ describe("evaluateRewardConditions", () => {
         },
         {
           operator: "AND" as const,
-          amount: 2000,
+          type: "flat" as const,
+          amountInCents: 2000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1503,7 +1527,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 1000,
+          type: "flat" as const,
+          amountInCents: 1000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1515,7 +1540,8 @@ describe("evaluateRewardConditions", () => {
         },
         {
           operator: "AND" as const,
-          amount: 2000,
+          type: "flat" as const,
+          amountInCents: 2000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1545,7 +1571,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 1500,
+          type: "flat" as const,
+          amountInCents: 1500,
           conditions: [
             {
               entity: "partner" as const,
@@ -1575,7 +1602,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 1000,
+          type: "flat" as const,
+          amountInCents: 1000,
           conditions: [
             {
               entity: "partner" as const,
@@ -1605,7 +1633,8 @@ describe("evaluateRewardConditions", () => {
       const conditions = [
         {
           operator: "AND" as const,
-          amount: 1000,
+          type: "flat" as const,
+          amountInCents: 1000,
           conditions: [
             {
               entity: "partner" as const,

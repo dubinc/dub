@@ -1,9 +1,12 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import { EventType, Prisma, RewardStructure } from "@dub/prisma/client";
 import { randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
+
+import { serializeReward } from "../api/partners/serialize-reward";
+import { getRewardAmount } from "../partners/get-reward-amount";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
@@ -85,15 +88,18 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
             reward_type === "amount"
               ? RewardStructure.flat
               : RewardStructure.percentage,
-          amount:
-            reward_type === "amount"
-              ? commission_amount_cents
-              : commission_percent,
+          ...(reward_type === "amount"
+            ? {
+                amountInCents: commission_amount_cents,
+              }
+            : {
+                amountInPercentage: new Prisma.Decimal(commission_percent),
+              }),
         },
       });
 
       console.log(
-        `Since group was newly created, also created reward ${createdReward.id} with amount ${createdReward.amount} and type ${createdReward.type}`,
+        `Since group was newly created, also created reward ${createdReward.id} with amount ${getRewardAmount(serializeReward(createdReward))} and type ${createdReward.type}`,
       );
     }
 

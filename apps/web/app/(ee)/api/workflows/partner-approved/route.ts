@@ -257,7 +257,7 @@ export const { POST } = serve<Payload>(
       }
 
       if (error) {
-        throw new Error(`Failed to send email notification to partner users.`);
+        throw new Error(error.message);
       }
     });
 

@@ -13,7 +13,8 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
       linkStructure: "short",
       defaultRewardType: "sale",
       type: "percentage",
-      amount: null,
+      amountInCents: null,
+      amountInPercentage: null,
       maxDuration: 12,
       partners: [{ email: "" }],
     },
@@ -23,10 +24,14 @@ export function FormWrapper({ children }: { children: React.ReactNode }) {
           linkStructure: programOnboarding.linkStructure ?? "short",
           defaultRewardType: programOnboarding.defaultRewardType ?? "sale",
           type: programOnboarding.type ?? "percentage",
-          amount:
-            programOnboarding.type === "flat" && programOnboarding.amount
-              ? programOnboarding.amount / 100
-              : programOnboarding.amount ?? null,
+          amountInCents:
+            programOnboarding.amountInCents != null
+              ? programOnboarding.amountInCents / 100
+              : null,
+          amountInPercentage:
+            programOnboarding.amountInPercentage != null
+              ? programOnboarding.amountInPercentage
+              : null,
           partners: programOnboarding.partners?.length
             ? programOnboarding.partners
             : [{ email: "" }],

@@ -14,6 +14,7 @@ declare module "@react-email/components" {
   export const Link: React.FC<React.AnchorHTMLAttributes<HTMLAnchorElement>>;
   export const Text: React.FC<React.HTMLAttributes<HTMLParagraphElement>>;
   export const Heading: React.FC<React.HTMLAttributes<HTMLHeadingElement>>;
+  export const Hr: React.FC<React.HTMLAttributes<HTMLHRElement>>;
   export const Preview: React.FC<{ children: React.ReactNode }>;
   export const Tailwind: React.FC<{ children: React.ReactNode }>;
 }

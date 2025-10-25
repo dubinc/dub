@@ -1,11 +1,13 @@
 "use client";
 
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { Gift, Tooltip } from "@dub/ui";
 import { HelpCircle } from "lucide-react";
 import { memo } from "react";
 import { REWARD_EVENTS } from "./constants";
+import { formatDiscountDescription } from "./format-discount-description";
 import { ProgramRewardModifiersTooltipContent } from "./program-reward-modifiers-tooltip";
 
 interface ProgramRewardsPanelProps {
@@ -28,7 +30,9 @@ function CustomRewardModifiersTooltip({ reward }: { reward: RewardProps }) {
 
 export const ProgramRewardsPanel = memo(
   ({ rewards, discount }: ProgramRewardsPanelProps) => {
-    const sortedFilteredRewards = rewards.filter((r) => r.amount >= 0);
+    const sortedFilteredRewards = rewards.filter(
+      (r) => getRewardAmount(r) >= 0,
+    );
 
     const rewardItems = [
       ...sortedFilteredRewards.map((reward) => ({
@@ -71,20 +75,7 @@ export const ProgramRewardsPanel = memo(
         ? [
             {
               icon: Gift,
-              label: discount.description || (
-                <>
-                  New users get {constructRewardAmount(discount)} off{" "}
-                  {discount.maxDuration === null
-                    ? "for their lifetime"
-                    : discount.maxDuration === 0
-                      ? "for their first purchase"
-                      : discount.maxDuration === 1
-                        ? "for their first month"
-                        : discount.maxDuration && discount.maxDuration > 1
-                          ? `for ${discount.maxDuration} months`
-                          : null}
-                </>
-              ),
+              label: formatDiscountDescription(discount),
             },
           ]
         : []),

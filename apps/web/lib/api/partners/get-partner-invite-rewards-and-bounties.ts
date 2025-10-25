@@ -1,9 +1,9 @@
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { formatDiscountDescription } from "@/ui/partners/format-discount-description";
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { prisma } from "@dub/prisma";
-import { BountyType, EventType } from "@dub/prisma/client";
+import { BountyType, EventType, Reward } from "@dub/prisma/client";
 import { getGroupOrThrow } from "../groups/get-group-or-throw";
+import { serializeReward } from "./serialize-reward";
 
 const REWARD_ICONS: Record<EventType, string> = {
   click: "https://assets.dub.co/email-assets/icons/cursor-rays.png",
@@ -74,18 +74,16 @@ export async function getPartnerInviteRewardsAndBounties({
 
   return {
     rewards: [
-      ...sortRewardsByEventOrder([
-        ...(group.clickReward ? [group.clickReward] : []),
-        ...(group.leadReward ? [group.leadReward] : []),
-        ...(group.saleReward ? [group.saleReward] : []),
-      ]).map((reward) => ({
-        label: formatRewardDescription({ reward }),
-        icon: REWARD_ICONS[reward.event],
-      })),
+      ...[group.clickReward, group.leadReward, group.saleReward]
+        .filter((r): r is Reward => r !== null)
+        .map((reward) => ({
+          label: formatRewardDescription(serializeReward(reward)),
+          icon: REWARD_ICONS[reward.event],
+        })),
       ...(group.discount
         ? [
             {
-              label: formatDiscountDescription({ discount: group.discount }),
+              label: formatDiscountDescription(group.discount),
               icon: "https://assets.dub.co/email-assets/icons/gift.png",
             },
           ]

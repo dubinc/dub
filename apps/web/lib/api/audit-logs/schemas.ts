@@ -116,7 +116,8 @@ export const auditLogTarget = z.union([
     metadata: RewardSchema.pick({
       event: true,
       type: true,
-      amount: true,
+      amountInCents: true,
+      amountInPercentage: true,
       maxDuration: true,
     }),
   }),

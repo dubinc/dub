@@ -1,9 +1,11 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
 import { REWARD_EVENTS } from "./constants";
+import { formatDiscountDescription } from "./format-discount-description";
 import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 
 export function ProgramRewardList({
@@ -21,7 +23,7 @@ export function ProgramRewardList({
   iconClassName?: string;
   showModifiersTooltip?: boolean;
 }) {
-  const sortedFilteredRewards = rewards.filter((r) => r.amount >= 0);
+  const sortedFilteredRewards = rewards.filter((r) => getRewardAmount(r) >= 0);
 
   return (
     <ul
@@ -75,23 +77,10 @@ export function ProgramRewardList({
           )}
         </Item>
       ))}
+
       {discount && (
         <Item icon={Gift} iconClassName={iconClassName}>
-          {discount.description || (
-            <>
-              {" "}
-              New users get {constructRewardAmount(discount)} off{" "}
-              {discount.maxDuration === null
-                ? "for their lifetime"
-                : discount.maxDuration === 0
-                  ? "for their first purchase"
-                  : discount.maxDuration === 1
-                    ? "for their first month"
-                    : discount.maxDuration && discount.maxDuration > 1
-                      ? `for ${discount.maxDuration} months`
-                      : null}
-            </>
-          )}
+          {formatDiscountDescription(discount)}
         </Item>
       )}
     </ul>

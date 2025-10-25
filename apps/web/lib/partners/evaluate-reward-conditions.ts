@@ -4,6 +4,7 @@ import {
   RewardConditionsArray,
   RewardContext,
 } from "../types";
+import { getRewardAmount } from "./get-reward-amount";
 
 export const evaluateRewardConditions = ({
   conditions,
@@ -59,7 +60,19 @@ export const evaluateRewardConditions = ({
   }
 
   // Find the best matching condition (highest amount)
-  return matchingConditions.sort((a, b) => b.amount - a.amount)[0];
+  return matchingConditions.sort(
+    (a, b) =>
+      getRewardAmount({
+        type: b.type!,
+        amountInCents: b.amountInCents,
+        amountInPercentage: b.amountInPercentage,
+      }) -
+      getRewardAmount({
+        type: a.type!,
+        amountInCents: a.amountInCents,
+        amountInPercentage: a.amountInPercentage,
+      }),
+  )[0];
 };
 
 const evaluateCondition = ({

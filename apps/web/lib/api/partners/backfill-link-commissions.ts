@@ -2,6 +2,7 @@ import { getEvents } from "@/lib/analytics/get-events";
 import { createId } from "@/lib/api/create-id";
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
 import { determinePartnerReward } from "@/lib/partners/determine-partner-reward";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { SaleEvent } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { EventType } from "@dub/prisma/client";
@@ -41,7 +42,7 @@ export const backfillLinkCommissions = async (link: {
 
   const { program } = programEnrollment;
 
-  if (!reward || reward.amount === 0) {
+  if (!reward || getRewardAmount(reward) === 0) {
     console.log("No reward.", reward);
     return;
   }

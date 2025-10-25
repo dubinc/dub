@@ -1,3 +1,4 @@
+import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amount";
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { cn } from "@dub/utils";
@@ -10,10 +11,7 @@ export function ProgramRewardDescription({
   periodClassName,
   showModifiersTooltip = true,
 }: {
-  reward?: Pick<
-    RewardProps,
-    "amount" | "type" | "event" | "maxDuration" | "description" | "modifiers"
-  > | null;
+  reward?: Omit<RewardProps, "id"> | null;
   discount?: DiscountProps | null;
   amountClassName?: string;
   periodClassName?: string;
@@ -70,7 +68,7 @@ export function ProgramRewardDescription({
           {" "}
           New users get{" "}
           <strong className={cn("font-semibold", amountClassName)}>
-            {constructRewardAmount(discount)}
+            {constructDiscountAmount(discount)}
           </strong>{" "}
           off{" "}
           {discount.maxDuration === null ? (

@@ -3,7 +3,7 @@
 import { createDiscountAction } from "@/lib/actions/partners/create-discount";
 import { deleteDiscountAction } from "@/lib/actions/partners/delete-discount";
 import { updateDiscountAction } from "@/lib/actions/partners/update-discount";
-import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amount";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
 import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
@@ -417,7 +417,7 @@ function DiscountSheetContent({
                   <InlineBadgePopover
                     text={
                       amount
-                        ? constructRewardAmount({
+                        ? constructDiscountAmount({
                             amount: type === "flat" ? amount * 100 : amount,
                             type,
                           })

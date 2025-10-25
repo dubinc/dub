@@ -18,7 +18,7 @@ model Message {
   readInApp   DateTime?
   readInEmail DateTime?
   createdAt   DateTime  @default(now())
-updatedAt   DateTime  @updatedAt
+  updatedAt   DateTime  @updatedAt
 
   program       Program             @relation(fields: [programId], references: [id], onDelete: Cascade)
   partner       Partner             @relation(fields: [partnerId], references: [id], onDelete: Cascade)
