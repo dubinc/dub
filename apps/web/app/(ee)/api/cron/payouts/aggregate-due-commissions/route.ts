@@ -1,19 +1,38 @@
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
+import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { prisma } from "@dub/prisma";
-import { endOfMonth } from "date-fns";
-import { NextResponse } from "next/server";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
+import { z } from "zod";
+import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-// This route is used to aggregate pending commissions
-// that are past the program holding period into a single payout.
-// Runs once every hour (0 * * * *)
-// GET /api/cron/payouts
-export async function GET(req: Request) {
+const BATCH_SIZE = 5000;
+
+// This cron job aggregates due commissions (pending commissions that are past the program holding period) into payouts.
+// Runs once every hour (0 * * * *) + calls itself recursively to look through all pending commissions available.
+async function handler(req: Request) {
   try {
-    await verifyVercelSignature(req);
+    let skip: number = 0;
+
+    if (req.method === "GET") {
+      await verifyVercelSignature(req);
+    } else if (req.method === "POST") {
+      const rawBody = await req.text();
+      const jsonBody = z
+        .object({
+          skip: z.number(),
+        })
+        .parse(JSON.parse(rawBody));
+      skip = jsonBody.skip;
+      await verifyQstashSignature({
+        req,
+        rawBody,
+      });
+    }
 
     const groupedCommissions = await prisma.commission.groupBy({
       by: ["programId", "partnerId"],
@@ -21,16 +40,21 @@ export async function GET(req: Request) {
         status: "pending",
         payoutId: null,
       },
+      skip,
+      take: BATCH_SIZE,
+      orderBy: {
+        partnerId: "asc",
+      },
     });
 
     if (!groupedCommissions.length) {
-      return NextResponse.json({
-        message: "No pending commissions found. Skipping...",
-      });
+      return logAndRespond(
+        `No partner-program pair with pending commissions found. Skipping...`,
+      );
     }
 
     console.log(
-      `Found ${groupedCommissions.length} pending commissions to process.`,
+      `Found ${groupedCommissions.length} partner-program pairs with pending commissions to process...`,
     );
 
     const programIdsToPartnerIds = groupedCommissions.reduce<
@@ -58,13 +82,6 @@ export async function GET(req: Request) {
         select: {
           name: true,
           holdingPeriodDays: true,
-          partners: {
-            where: {
-              partnerId: {
-                in: partnerIds,
-              },
-            },
-          },
         },
       });
 
@@ -72,41 +89,18 @@ export async function GET(req: Request) {
         continue;
       }
 
-      const { name, holdingPeriodDays, partners } = program;
-
-      const bannedPartners = partners.filter(
-        (partner) => partner.status === "banned",
-      );
-      const updatedBannedCommissions = await prisma.commission.updateMany({
+      // Find all due commissions for program
+      const dueCommissionsForProgram = await prisma.commission.findMany({
         where: {
-          earnings: {
-            gt: 0,
-          },
+          status: "pending",
           programId,
           partnerId: {
-            in: bannedPartners.map(({ partnerId }) => partnerId),
+            in: partnerIds,
           },
-          status: "pending",
-        },
-        data: {
-          status: "canceled",
-        },
-      });
-      if (updatedBannedCommissions.count > 0) {
-        console.log(
-          `Updated ${updatedBannedCommissions.count} banned commissions for program ${name} to canceled`,
-        );
-      }
-
-      // Find all pending commissions
-      const pendingCommissionsForProgram = await prisma.commission.findMany({
-        where: {
-          status: "pending",
-          programId,
           // If there is a holding period set:
           // we only process commissions that were created before the holding period
           // but custom commissions are always included
-          ...(holdingPeriodDays > 0
+          ...(program.holdingPeriodDays > 0
             ? {
                 OR: [
                   {
@@ -115,7 +109,8 @@ export async function GET(req: Request) {
                   {
                     createdAt: {
                       lt: new Date(
-                        Date.now() - holdingPeriodDays * 24 * 60 * 60 * 1000,
+                        Date.now() -
+                          program.holdingPeriodDays * 24 * 60 * 60 * 1000,
                       ),
                     },
                   },
@@ -134,12 +129,15 @@ export async function GET(req: Request) {
         },
       });
 
-      if (pendingCommissionsForProgram.length === 0) {
+      if (dueCommissionsForProgram.length === 0) {
+        console.log(
+          `No due commissions found for program ${program.name}, skipping...`,
+        );
         continue;
       }
 
-      const partnerIdsToCommissions = pendingCommissionsForProgram.reduce<
-        Record<string, typeof pendingCommissionsForProgram>
+      const partnerIdsToCommissions = dueCommissionsForProgram.reduce<
+        Record<string, typeof dueCommissionsForProgram>
       >((acc, commission) => {
         if (!acc[commission.partnerId]) {
           acc[commission.partnerId] = [];
@@ -165,6 +163,11 @@ export async function GET(req: Request) {
         },
       });
 
+      console.log(
+        `Processing ${partnerIdsToCommissionsArray.length} partners with due commissions for program ${program.name}...`,
+      );
+      let totalProcessed = 0;
+
       for (const { partnerId, commissions } of partnerIdsToCommissionsArray) {
         // sort the commissions by createdAt
         const sortedCommissions = commissions.sort(
@@ -180,11 +183,9 @@ export async function GET(req: Request) {
         // earliest commission date
         const periodStart = sortedCommissions[0].createdAt;
 
-        // end of the month of the latest commission date
-        // e.g. if the latest sale is 2024-12-16, the periodEnd should be 2024-12-31
-        const periodEnd = endOfMonth(
-          sortedCommissions[sortedCommissions.length - 1].createdAt,
-        );
+        // last commission date
+        const periodEnd =
+          sortedCommissions[sortedCommissions.length - 1].createdAt;
 
         let payoutToUse = existingPendingPayouts.find(
           (p) => p.partnerId === partnerId,
@@ -202,12 +203,10 @@ export async function GET(req: Request) {
               description: `Dub Partners payout (${program.name})`,
             },
           });
-          console.log(
-            `No existing payout found, created new one ${payoutToUse.id} for partner ${partnerId}`,
-          );
         }
 
-        const updatedCommissions = await prisma.commission.updateMany({
+        // update the commissions to have the payoutId
+        await prisma.commission.updateMany({
           where: {
             id: { in: commissions.map((c) => c.id) },
           },
@@ -216,13 +215,10 @@ export async function GET(req: Request) {
             payoutId: payoutToUse.id,
           },
         });
-        console.log(
-          `Updated ${updatedCommissions.count} commissions to have payoutId ${payoutToUse.id}`,
-        );
 
         // if we're reusing a pending payout, we need to update the amount
         if (existingPendingPayouts.find((p) => p.id === payoutToUse.id)) {
-          const updatedPayout = await prisma.payout.update({
+          await prisma.payout.update({
             where: {
               id: payoutToUse.id,
             },
@@ -233,17 +229,53 @@ export async function GET(req: Request) {
               periodEnd,
             },
           });
-          console.log(
-            `Since we're reusing payout ${payoutToUse.id}, add the new earnings of ${totalEarnings} to the payout amount, making it ${updatedPayout.amount}`,
-          );
         }
+
+        totalProcessed++;
       }
+
+      const successRate =
+        (totalProcessed / partnerIdsToCommissionsArray.length) * 100;
+      console.log(
+        `Processed ${totalProcessed}/${partnerIdsToCommissionsArray.length} partners with due commissions for program ${program.name} (${successRate.toFixed(1)}% success rate)`,
+      );
     }
 
-    return NextResponse.json({
-      message: "Commissions payout created.",
-    });
+    if (groupedCommissions.length === BATCH_SIZE) {
+      const qstashResponse = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/aggregate-due-commissions`,
+        body: {
+          skip: skip + BATCH_SIZE,
+        },
+      });
+      if (qstashResponse.messageId) {
+        console.log(
+          `Message sent to Qstash with id ${qstashResponse.messageId}`,
+        );
+      } else {
+        // should never happen, but just in case
+        await log({
+          message: `Error sending message to Qstash to schedule next batch of payouts: ${JSON.stringify(qstashResponse)}`,
+          type: "errors",
+          mention: true,
+        });
+      }
+      return logAndRespond(
+        `Processed payout commission aggregation for ${groupedCommissions.length} partner-program pairs. Scheduling next batch...`,
+      );
+    }
+
+    return logAndRespond(
+      `Completed all payout commission aggregation for ${groupedCommissions.length} partner-program pairs.`,
+    );
   } catch (error) {
+    await log({
+      message: `Error aggregating commissions into payouts: ${error.message}`,
+      type: "errors",
+      mention: true,
+    });
     return handleAndReturnErrorResponse(error);
   }
 }
+
+export { handler as GET, handler as POST };
