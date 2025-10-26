@@ -99,9 +99,12 @@ export const POST = withWorkspace(
       return campaign;
     });
 
-    return NextResponse.json({
-      id: campaign.id,
-    });
+    return NextResponse.json(
+      {
+        id: campaign.id,
+      },
+      { status: 201 },
+    );
   },
   {
     requiredPlan: ["advanced", "enterprise"],
