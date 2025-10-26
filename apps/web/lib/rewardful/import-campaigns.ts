@@ -11,13 +11,22 @@ import { RewardfulImportPayload } from "./types";
 export async function importCampaigns(payload: RewardfulImportPayload) {
   const { programId, campaignIds } = payload;
 
-  const { workspaceId } = await prisma.program.findUniqueOrThrow({
+  const program = await prisma.program.findUniqueOrThrow({
     where: {
       id: programId,
     },
+    select: {
+      workspaceId: true,
+      domain: true,
+      url: true,
+    },
   });
 
-  const { token } = await rewardfulImporter.getCredentials(workspaceId);
+  if (!program.domain || !program.url) {
+    throw new Error("Program domain or URL is not set.");
+  }
+
+  const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
   const rewardfulApi = new RewardfulApi({ token });
 
@@ -45,14 +54,22 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
           slug: groupSlug,
         },
       },
-      update: {},
       create: {
         id: createId({ prefix: "grp_" }),
         programId,
         name: `(Rewardful) ${campaign.name}`,
         slug: groupSlug,
         color: randomValue(RESOURCE_COLORS),
+        partnerGroupDefaultLinks: {
+          create: {
+            id: createId({ prefix: "pgdl_" }),
+            programId,
+            domain: program.domain,
+            url: program.url,
+          },
+        },
       },
+      update: {},
     });
 
     console.log(

@@ -15,8 +15,14 @@ export async function importGroups(payload: PartnerStackImportPayload) {
     },
     select: {
       workspaceId: true,
+      domain: true,
+      url: true,
     },
   });
+
+  if (!program.domain || !program.url) {
+    throw new Error("Program domain or URL is not set.");
+  }
 
   const { publicKey, secretKey } = await partnerStackImporter.getCredentials(
     program.workspaceId,
@@ -49,6 +55,14 @@ export async function importGroups(payload: PartnerStackImportPayload) {
           name: group.name,
           slug: group.slug,
           color: randomValue(RESOURCE_COLORS),
+          partnerGroupDefaultLinks: {
+            create: {
+              id: createId({ prefix: "pgdl_" }),
+              programId,
+              domain: program.domain,
+              url: program.url,
+            },
+          },
         },
         update: {},
       });
