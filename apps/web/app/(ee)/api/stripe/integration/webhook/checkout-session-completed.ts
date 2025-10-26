@@ -138,6 +138,7 @@ export async function checkoutSessionCompleted(
     const { timestamp, ...rest } = clickEvent;
     leadEvent = {
       ...rest,
+      workspace_id: clickEvent.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
       event_id: nanoid(16),
       event_name: "Sign up",
       customer_id: customer.id,
@@ -321,6 +322,7 @@ export async function checkoutSessionCompleted(
 
   const saleData = {
     ...leadEvent,
+    workspace_id: leadEvent.workspace_id || customer.projectId, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
     // if the charge is a one-time payment, we set the event name to "Purchase"
     event_name:
@@ -623,6 +625,7 @@ async function attributeViaPromoCode({
 
   const leadEvent = {
     ...rest,
+    workspace_id: clickEvent.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: "Sign up",
     customer_id: customer.id,

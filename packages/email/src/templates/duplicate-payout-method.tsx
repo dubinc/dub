@@ -138,17 +138,6 @@ export default function DuplicatePayoutMethod({
                 </Link>
                 .
               </Text>
-              <Text className="mb-3 text-sm leading-6 text-neutral-600">
-                <strong>3. Connect a different payout method:</strong> If this
-                partner account is for a different entity, you can{" "}
-                <Link
-                  href="https://dub.co/help/article/receiving-payouts"
-                  className="font-semibold text-black underline"
-                >
-                  connect a different payout method
-                </Link>{" "}
-                to this account.
-              </Text>
             </Section>
 
             {/* Action Buttons */}

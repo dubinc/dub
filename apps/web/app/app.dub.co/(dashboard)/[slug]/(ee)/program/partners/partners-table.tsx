@@ -411,7 +411,7 @@ export function PartnersTable() {
             onRemove={onRemove}
           />
           <SearchBoxPersisted
-            placeholder="Search by ID, name, or email"
+            placeholder="Search by name or email"
             inputClassName="md:w-[19rem]"
           />
         </div>
