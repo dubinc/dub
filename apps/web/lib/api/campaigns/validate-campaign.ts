@@ -1,6 +1,6 @@
 import { updateCampaignSchema } from "@/lib/zod/schemas/campaigns";
 import { prisma } from "@dub/prisma";
-import { Campaign } from "@dub/prisma/client";
+import { Campaign, EmailDomain } from "@dub/prisma/client";
 import { z } from "zod";
 import { DubApiError } from "../errors";
 import {
@@ -12,6 +12,9 @@ interface ValidateCampaignParams {
   input: Partial<z.infer<typeof updateCampaignSchema>>;
   campaign: Campaign;
 }
+
+// TODO:
+// Make sure the campaign has all required fields for the status
 
 export async function validateCampaign({
   input,
@@ -58,28 +61,68 @@ export async function validateCampaign({
 
   // Validate that the from address uses a verified email domain
   if (input.from) {
-    const domainPart = input.from.split("@")[1];
-
-    if (!domainPart) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Invalid email address format for 'from' field.",
-      });
-    }
-
-    const emailDomain = await prisma.emailDomain.findUniqueOrThrow({
+    const emailDomains = await prisma.emailDomain.findMany({
       where: {
-        slug: domainPart,
+        programId: campaign.programId,
       },
     });
 
-    if (emailDomain.status !== "verified") {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The domain '${domainPart}' is not verified. Please add and verify this email domain before using it.`,
-      });
-    }
+    validateCampaignFromAddress({
+      campaign,
+      emailDomains,
+    });
   }
 
   return input;
+}
+
+export function validateCampaignFromAddress({
+  campaign,
+  emailDomains,
+}: {
+  campaign: Pick<Campaign, "id" | "from" | "programId">;
+  emailDomains: Pick<EmailDomain, "slug" | "status">[];
+}) {
+  if (emailDomains.length === 0) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `No email domains found for program (${campaign.programId}).`,
+    });
+  }
+
+  if (!campaign.from) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Campaign (${campaign.id}) from address is required.`,
+    });
+  }
+
+  const parts = campaign.from.split("@");
+
+  if (parts.length !== 2) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Campaign (${campaign.id}) has an invalid email address format for 'from' field.`,
+    });
+  }
+
+  const domainPart = parts[1];
+
+  const emailDomain = emailDomains.find(
+    (emailDomain) => emailDomain.slug === domainPart,
+  );
+
+  if (!emailDomain) {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Email domain (${domainPart}) not found in the program (${campaign.programId}) for campaign (${campaign.id}).`,
+    });
+  }
+
+  if (emailDomain.status !== "verified") {
+    throw new DubApiError({
+      code: "bad_request",
+      message: `Email domain (${domainPart}) is not verified in the program (${campaign.programId}) for campaign (${campaign.id}).`,
+    });
+  }
 }

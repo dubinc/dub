@@ -12,6 +12,7 @@ import { prisma } from "@dub/prisma";
 import { NotificationEmailType, Prisma, Workflow } from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
 import { addHours, differenceInDays, subDays } from "date-fns";
+import { validateCampaignFromAddress } from "../campaigns/validate-campaign";
 import { createId } from "../create-id";
 import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
@@ -124,17 +125,12 @@ export const executeSendCampaignWorkflow = async ({
 
   const program = campaign.program;
 
-  // Make sure the email domain is verified otherwise Resend will throw an error
-  let fromAddress: string | null = null;
+  // TODO: We should make the from address required. There are existing campaign without from adress
   if (campaign.from) {
-    const emailDomain = program.emailDomains.find(
-      ({ fromAddress, status }) =>
-        fromAddress === campaign.from && status === "verified",
-    );
-
-    if (emailDomain) {
-      fromAddress = emailDomain.fromAddress;
-    }
+    validateCampaignFromAddress({
+      campaign,
+      emailDomains: program.emailDomains,
+    });
   }
 
   const programEnrollmentsChunks = chunk(programEnrollments, 100);
@@ -183,7 +179,7 @@ export const executeSendCampaignWorkflow = async ({
     const { data } = await sendBatchEmail(
       partnerUsers.map((partnerUser) => ({
         variant: "notifications",
-        ...(fromAddress ? { from: fromAddress } : {}),
+        ...(campaign.from ? { from: campaign.from } : {}),
         to: partnerUser.email!,
         subject: campaign.subject,
         replyTo: program.supportEmail || "noreply",

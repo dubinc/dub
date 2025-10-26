@@ -1,3 +1,4 @@
+import { validateCampaignFromAddress } from "@/lib/api/campaigns/validate-campaign";
 import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { renderCampaignEmailHTML } from "@/lib/api/workflows/render-campaign-email-html";
@@ -102,15 +103,13 @@ export async function POST(req: Request) {
     }
 
     const program = campaign.program;
-    const emailDomain = program.emailDomains.find(
-      ({ fromAddress, status }) =>
-        fromAddress === campaign.from && status === "verified",
-    );
 
-    if (!emailDomain) {
-      return logAndRespond(
-        `No verified email domain found for program ${program.id}.`,
-      );
+    // TODO: We should make the from address required. There are existing campaign without from adress
+    if (campaign.from) {
+      validateCampaignFromAddress({
+        campaign,
+        emailDomains: program.emailDomains,
+      });
     }
 
     // Mark the campaign as sending
@@ -201,7 +200,7 @@ export async function POST(req: Request) {
       const { data } = await sendBatchEmail(
         partnerUsers.map((partnerUser) => ({
           variant: "marketing",
-          from: `${program.name} <${emailDomain.fromAddress}>`,
+          from: `${program.name} <${campaign.from}>`,
           to: partnerUser.email!,
           subject: campaign.subject,
           ...(program.supportEmail ? { replyTo: program.supportEmail } : {}),
