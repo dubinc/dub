@@ -56,7 +56,7 @@ export const POST = withWorkspace(
 
     if (existingEmailDomain) {
       throw new DubApiError({
-        code: "bad_request",
+        code: "conflict",
         message:
           "An email domain has already been configured for this program. Each program can only have one email domain.",
       });
@@ -69,14 +69,15 @@ export const POST = withWorkspace(
       });
     }
 
-    const { data: resendDomain, error } = await resend.domains.create({
-      name: slug,
-    });
+    const { data: resendDomain, error: resendError } =
+      await resend.domains.create({
+        name: slug,
+      });
 
-    if (error) {
+    if (resendError) {
       throw new DubApiError({
         code: "unprocessable_entity",
-        message: error.message,
+        message: resendError.message,
       });
     }
 
@@ -92,9 +93,23 @@ export const POST = withWorkspace(
         },
       });
 
-      waitUntil(resend.domains.verify(resendDomain.id));
+      waitUntil(
+        (async () => {
+          const { error: resendError } = await resend.domains.verify(
+            resendDomain.id,
+          );
 
-      return NextResponse.json(EmailDomainSchema.parse(emailDomain));
+          if (resendError) {
+            console.error(
+              `Resend domain verify failed - ${resendError.message}`,
+            );
+          }
+        })(),
+      );
+
+      return NextResponse.json(EmailDomainSchema.parse(emailDomain), {
+        status: 201,
+      });
     } catch (error) {
       // Cleanup to avoid orphaned Resend domains
       waitUntil(resend.domains.remove(resendDomain.id));
