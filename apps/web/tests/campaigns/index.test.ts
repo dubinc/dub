@@ -51,7 +51,7 @@ describe.sequential("/campaigns/**", async () => {
       },
     });
 
-    expect(status).toEqual(200);
+    expect(status).toEqual(201);
     expect(data).toMatchObject({
       id: expect.any(String),
     });
