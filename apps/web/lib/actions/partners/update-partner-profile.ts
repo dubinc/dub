@@ -20,7 +20,6 @@ import {
 } from "@dub/utils";
 import { Partner, PartnerProfileType } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
-import { stripe } from "../../stripe";
 import z from "../../zod";
 import { uploadedImageSchema } from "../../zod/schemas/misc";
 import { authPartnerActionClient } from "../safe-action";
@@ -74,8 +73,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
     )
       throw new Error("Legal company name is required.");
 
-    // Delete the Stripe Express account if needed
-    await deleteStripeAccountIfRequired({
+    await updatedComplianceFieldsChecks({
       partner,
       input: parsedInput,
     });
@@ -250,7 +248,7 @@ export const updatePartnerProfileAction = authPartnerActionClient
     }
   });
 
-const deleteStripeAccountIfRequired = async ({
+const updatedComplianceFieldsChecks = async ({
   partner,
   input,
 }: {
@@ -265,49 +263,12 @@ const deleteStripeAccountIfRequired = async ({
     input.profileType !== undefined &&
     partner.profileType.toLowerCase() !== input.profileType.toLowerCase();
 
-  const companyNameChanged =
-    input.profileType === "company" &&
-    partner.companyName?.toLowerCase() !== input.companyName?.toLowerCase();
-
-  const deleteExpressAccount =
-    (countryChanged || profileTypeChanged || companyNameChanged) &&
-    partner.stripeConnectId;
-
-  if (!deleteExpressAccount) {
-    return;
-  }
-
-  // Partner is not able to update their country, profile type, or company name
-  // if they have already have a Stripe Express account + any sent / completed payouts
-  const completedPayoutsCount = await prisma.payout.count({
-    where: {
-      partnerId: partner.id,
-      status: {
-        in: ["processing", "processed", "sent", "completed"],
-      },
-    },
-  });
-
-  if (completedPayoutsCount > 0) {
+  if (partner.payoutsEnabledAt && (countryChanged || profileTypeChanged)) {
     throw new Error(
-      "Since you've already received payouts on Dub, you cannot change your country or profile type. Please contact support to update those fields.",
+      "Since you've already connected your bank account for payouts, you cannot change your country or profile type. Please contact support to update those fields.",
     );
   }
 
-  if (partner.stripeConnectId) {
-    const response = await stripe.accounts.del(partner.stripeConnectId);
-
-    if (response.deleted) {
-      await prisma.partner.update({
-        where: {
-          id: partner.id,
-        },
-        data: {
-          stripeConnectId: null,
-          payoutsEnabledAt: null,
-          payoutMethodHash: null,
-        },
-      });
-    }
-  }
+  // TODO: log country and profile type changes
+  return;
 };

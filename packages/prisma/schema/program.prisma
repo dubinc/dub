@@ -117,14 +117,12 @@ model ProgramEnrollment {
   // unique constraints
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
-
   // indexes for sorting partners
   @@index([programId, status, totalClicks])
   @@index([programId, status, totalLeads])
   @@index([programId, status, totalConversions])
   @@index([programId, status, totalSaleAmount])
   @@index([programId, status, totalCommissions])
-
   // other indexes
   @@index([groupId, status])
   @@index(clickRewardId)
