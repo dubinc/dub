@@ -332,10 +332,8 @@ export function PartnersTable() {
       "totalClicks",
       "totalLeads",
       "totalConversions",
-      "totalSales",
       "totalSaleAmount",
       "totalCommissions",
-      // "netRevenue", // TODO: add back when we can sort by this again
     ],
     sortBy,
     sortOrder,

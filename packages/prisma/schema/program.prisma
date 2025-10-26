@@ -114,10 +114,17 @@ model ProgramEnrollment {
   bountySubmissions BountySubmission[]
   discountCodes     DiscountCode[]
 
+  // unique constraints
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
-  @@index(programId)
-  @@index(groupId)
+
+  // indexes for sorting partners
+  @@index([programId, status, totalLeads])
+  @@index([programId, status, totalSaleAmount])
+  @@index([programId, status, totalCommissions])
+
+  // other indexes
+  @@index([groupId, status])
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)
