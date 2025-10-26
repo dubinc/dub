@@ -6,6 +6,7 @@ import useDomainsCount from "@/lib/swr/use-domains-count";
 import useFolder from "@/lib/swr/use-folder";
 import useFolders from "@/lib/swr/use-folders";
 import useFoldersCount from "@/lib/swr/use-folders-count";
+import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
@@ -42,6 +43,7 @@ import {
   User,
   UserPlus,
   Users,
+  Users6,
   Window,
 } from "@dub/ui/icons";
 import {
@@ -167,6 +169,11 @@ export function useAnalyticsFilters({
   });
 
   const selectedCustomer = selectedCustomerPartner || selectedCustomerWorkspace;
+
+  const selectedPartnerId = searchParamsObj.partnerId;
+  const { partner: selectedPartner } = usePartner({
+    partnerId: selectedPartnerId,
+  });
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 
@@ -821,6 +828,30 @@ export function useAnalyticsFilters({
             : slug
               ? `/${slug}/customers/${selectedCustomerId}`
               : null;
+        },
+        options: [],
+      },
+      {
+        key: "partnerId",
+        icon: Users6,
+        label: "Partner",
+        hideInFilterDropdown: true,
+        getOptionIcon: () => {
+          return selectedPartner ? (
+            <img
+              src={
+                selectedPartner.image || `${OG_AVATAR_URL}${selectedPartner.id}`
+              }
+              alt={`${selectedPartner.email} avatar`}
+              className="size-4 rounded-full"
+            />
+          ) : null;
+        },
+        getOptionLabel: () => {
+          return selectedPartner?.name ?? selectedPartnerId;
+        },
+        getOptionPermalink: () => {
+          return slug ? `/${slug}/program/partners/${selectedPartnerId}` : null;
         },
         options: [],
       },
