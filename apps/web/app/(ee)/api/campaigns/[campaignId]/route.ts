@@ -70,7 +70,7 @@ export const PATCH = withWorkspace(
       groupIds,
       triggerCondition,
       scheduledAt,
-    } = validateCampaign({
+    } = await validateCampaign({
       input: updateCampaignSchema.parse(await parseRequestBody(req)),
       campaign,
     });

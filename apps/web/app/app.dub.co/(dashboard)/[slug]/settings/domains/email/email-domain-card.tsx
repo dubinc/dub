@@ -16,7 +16,7 @@ import {
   Tooltip,
   useInViewport,
 } from "@dub/ui";
-import { capitalize, cn, fetcher } from "@dub/utils";
+import { capitalize, cn, fetcher, formatDate } from "@dub/utils";
 import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import useSWRImmutable from "swr/immutable";
@@ -76,6 +76,7 @@ export function EmailDomainCard({ domain }: EmailDomainCardProps) {
             <DomainCardTitleColumn
               domain={domain.slug}
               icon={Envelope}
+              description={`Added on ${formatDate(domain.createdAt)}`}
             />
 
             <div className="flex items-center gap-2.5">
