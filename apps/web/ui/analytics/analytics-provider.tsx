@@ -14,7 +14,6 @@ import {
 } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import useCustomersCount from "@/lib/swr/use-customers-count";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PlanProps } from "@/lib/types";
@@ -201,9 +200,6 @@ export default function AnalyticsProvider({
   useEffect(() => setRequiresUpgrade(false), [queryString]);
 
   const { canTrackConversions } = getPlanCapabilities(workspacePlan);
-  const { data: customersCount } = useCustomersCount({
-    enabled: canTrackConversions === true,
-  });
 
   const fetchCompositeStats = useMemo(() => {
     // show composite stats if:
@@ -213,10 +209,15 @@ export default function AnalyticsProvider({
     return dashboardProps?.showConversions ||
       adminPage ||
       partnerPage ||
-      (customersCount && customersCount > 0)
+      canTrackConversions === true
       ? true
       : false;
-  }, [dashboardProps?.showConversions, adminPage, partnerPage, customersCount]);
+  }, [
+    dashboardProps?.showConversions,
+    adminPage,
+    partnerPage,
+    canTrackConversions,
+  ]);
 
   const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;

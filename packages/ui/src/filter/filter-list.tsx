@@ -152,7 +152,9 @@ export function FilterList({
                         <div className="flex items-center gap-2.5 px-3 py-2">
                           <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
                         </div>
-                      ) : onSelect ? (
+                      ) : // show the filter list item dropdown if there's onSelect configured
+                      // and the filter is not hidden in the main filter dropdown itself
+                      onSelect && !filter.hideInFilterDropdown ? (
                         (() => {
                           // Precompute options array once
                           const options: ComboboxOption[] =
