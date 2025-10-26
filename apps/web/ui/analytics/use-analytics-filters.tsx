@@ -1,9 +1,6 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import useCustomer from "@/lib/swr/use-customer";
-import useCustomers from "@/lib/swr/use-customers";
-import useCustomersCount from "@/lib/swr/use-customers-count";
 import useDomains from "@/lib/swr/use-domains";
 import useDomainsCount from "@/lib/swr/use-domains-count";
 import useFolder from "@/lib/swr/use-folder";
@@ -12,9 +9,7 @@ import useFoldersCount from "@/lib/swr/use-folders-count";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkProps } from "@/lib/types";
-import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
 import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
 import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
@@ -107,7 +102,6 @@ export function useAnalyticsFilters({
   const { selectedTab, saleUnit } = context ?? useContext(AnalyticsContext);
 
   const { slug, programSlug } = useParams();
-  const { plan } = useWorkspace();
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
@@ -115,12 +109,9 @@ export function useAnalyticsFilters({
   const { data: tagsCount } = useTagsCount();
   const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
   const { data: foldersCount } = useFoldersCount();
-  const { data: customersCount } = useCustomersCount();
   const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
   const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
   const foldersAsync = foldersCount && foldersCount > FOLDERS_MAX_PAGE_SIZE;
-  const customersAsync =
-    customersCount && customersCount > CUSTOMERS_MAX_PAGE_SIZE;
 
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -137,15 +128,6 @@ export function useAnalyticsFilters({
         foldersAsync && selectedFilter === "folderId" ? debouncedSearch : "",
     },
   });
-  const { customers } = useCustomers({
-    query: {
-      search:
-        customersAsync && selectedFilter === "customerId"
-          ? debouncedSearch
-          : "",
-    },
-  });
-  const { canManageCustomers } = getPlanCapabilities(plan);
 
   const {
     allDomains: domains,
@@ -425,47 +407,6 @@ export function useAnalyticsFilters({
       ) ?? null,
   };
 
-  const CustomerFilterItem = {
-    key: "customerId",
-    icon: User,
-    label: "Customer",
-    hideInFilterDropdown: true,
-    shouldFilter: !customersAsync,
-    getOptionIcon: () => {
-      return selectedCustomer ? (
-        <img
-          src={
-            selectedCustomer["avatar"] ||
-            `${OG_AVATAR_URL}${selectedCustomer.id}`
-          }
-          alt={`${selectedCustomer.email} avatar`}
-          className="size-4 rounded-full"
-        />
-      ) : null;
-    },
-    getOptionPermalink: () => {
-      return programSlug
-        ? `/programs/${programSlug}/customers/${selectedCustomerId}`
-        : slug
-          ? `/${slug}/customers/${selectedCustomerId}`
-          : null;
-    },
-    options:
-      customers?.map(({ id, email, name, avatar }) => {
-        return {
-          value: id,
-          label: email ?? name,
-          icon: (
-            <img
-              src={avatar || `${OG_AVATAR_URL}${id}`}
-              alt={`${email} avatar`}
-              className="size-4 rounded-full"
-            />
-          ),
-        };
-      }) ?? null,
-  };
-
   const SaleTypeFilterItem = {
     key: "saleType",
     icon: Receipt2,
@@ -528,9 +469,8 @@ export function useAnalyticsFilters({
               SaleTypeFilterItem,
             ]
           : partnerPage
-            ? [LinkFilterItem, CustomerFilterItem, SaleTypeFilterItem]
+            ? [LinkFilterItem, SaleTypeFilterItem]
             : [
-                ...(canManageCustomers ? [CustomerFilterItem] : []),
                 {
                   key: "folderId",
                   icon: Folder,
@@ -857,6 +797,33 @@ export function useAnalyticsFilters({
               }),
             ),
           ]),
+      // additional fields that are hidden in filter dropdown
+      {
+        key: "customerId",
+        icon: User,
+        label: "Customer",
+        hideInFilterDropdown: true,
+        getOptionIcon: () => {
+          return selectedCustomer ? (
+            <img
+              src={
+                selectedCustomer["avatar"] ||
+                `${OG_AVATAR_URL}${selectedCustomer.id}`
+              }
+              alt={`${selectedCustomer.email} avatar`}
+              className="size-4 rounded-full"
+            />
+          ) : null;
+        },
+        getOptionPermalink: () => {
+          return programSlug
+            ? `/programs/${programSlug}/customers/${selectedCustomerId}`
+            : slug
+              ? `/${slug}/customers/${selectedCustomerId}`
+              : null;
+        },
+        options: [],
+      },
     ],
     [
       dashboardProps,
