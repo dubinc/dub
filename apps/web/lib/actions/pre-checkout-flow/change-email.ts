@@ -48,6 +48,13 @@ export const changePreSignupEmailAction = actionClient
       },
     });
 
+    if (dbUser) {
+      throw new AuthError(
+        "email-exists",
+        "User with this email already exists",
+      );
+    }
+
     await updateUserCookieService({ email });
 
     const userToken = encodeUserMarketingToken({
