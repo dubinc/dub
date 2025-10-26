@@ -1,5 +1,5 @@
 import { getPartnersQuerySchemaExtended } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { z } from "zod";
 
 type PartnerFilters = z.infer<typeof getPartnersQuerySchemaExtended> & {
@@ -49,14 +49,16 @@ export async function getPartners(filters: PartnerFilters) {
         ? {
             partner: {
               country,
-              ...(search && {
-                OR: [
-                  { id: { contains: search } },
-                  { name: { contains: search } },
-                  { email: { contains: search } },
-                ],
-              }),
-              email,
+              ...(email
+                ? { email }
+                : search
+                  ? search.includes("@")
+                    ? { email: search }
+                    : {
+                        email: { search: sanitizeFullTextSearch(search) },
+                        name: { search: sanitizeFullTextSearch(search) },
+                      }
+                  : {}),
             },
           }
         : {}),

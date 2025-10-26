@@ -55,6 +55,7 @@ export async function createShopifySale({
 
   const saleData = {
     ...leadData,
+    workspace_id: leadData.workspace_id || workspaceId, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: "Purchase",
     payment_processor: "shopify",

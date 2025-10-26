@@ -126,6 +126,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
 
   const saleData = {
     ...leadEvent.data[0],
+    workspace_id: leadEvent.data[0].workspace_id || customer.projectId, // in case for some reason the lead event doesn't have workspace_id
     event_id: eventId,
     event_name: isOneTimePayment ? "Purchase" : "Invoice paid",
     payment_processor: "stripe",

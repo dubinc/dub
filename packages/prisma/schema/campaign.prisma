@@ -24,7 +24,6 @@ model Campaign {
   status      CampaignStatus      @default(draft)
   name        String
   subject     String
-  body        String?             @db.Text // TODO: Remove after migration complete
   bodyJson    Json                @db.Json
   scheduledAt DateTime?
   createdAt   DateTime            @default(now())
