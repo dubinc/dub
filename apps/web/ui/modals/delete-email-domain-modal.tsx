@@ -6,7 +6,7 @@ import { FormEvent, useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 interface DeleteEmailDomainModalProps {
-  emailDomain: Pick<EmailDomainProps, "id" | "slug" | "fromAddress">;
+  emailDomain: Pick<EmailDomainProps, "id" | "slug">;
   showModal: boolean;
   setShowModal: (showModal: boolean) => void;
   onDelete?: () => void;
@@ -119,7 +119,7 @@ const DeleteEmailDomainModal = ({
 };
 
 export function useDeleteEmailDomainModal(
-  emailDomain: Pick<EmailDomainProps, "id" | "slug" | "fromAddress">,
+  emailDomain: Pick<EmailDomainProps, "id" | "slug">,
   onDelete?: () => void,
 ) {
   const [showDeleteEmailDomainModal, setShowDeleteEmailDomainModal] =

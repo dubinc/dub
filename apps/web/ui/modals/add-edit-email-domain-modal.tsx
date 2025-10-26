@@ -1,6 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
-import useProgram from "@/lib/swr/use-program";
 import { createEmailDomainBodySchema } from "@/lib/zod/schemas/email-domains";
 import { Button, Modal } from "@dub/ui";
 import { cn } from "@dub/utils";
@@ -14,7 +13,6 @@ interface AddEditEmailDomainModalProps {
   emailDomain?: {
     id: string;
     slug: string;
-    fromAddress: string;
   };
 }
 
@@ -24,7 +22,6 @@ function AddEditEmailDomainModalContent({
   setIsOpen,
   emailDomain,
 }: AddEditEmailDomainModalProps) {
-  const { program } = useProgram();
   const { makeRequest: createEmailDomain, isSubmitting: isCreating } =
     useApiMutation();
   const { makeRequest: updateEmailDomain, isSubmitting: isUpdating } =
@@ -38,22 +35,14 @@ function AddEditEmailDomainModalContent({
   } = useForm<FormData>({
     defaultValues: {
       slug: emailDomain?.slug || "",
-      fromAddress: emailDomain?.fromAddress
-        ? emailDomain.fromAddress.split("@")[0]
-        : "",
     },
   });
 
   const onSubmit = async (data: FormData) => {
-    const requestData = {
-      ...data,
-      fromAddress: `${data.fromAddress}@${data.slug}`,
-    };
-
     if (!emailDomain) {
       return await createEmailDomain("/api/email-domains", {
         method: "POST",
-        body: requestData,
+        body: data,
         onSuccess: async () => {
           toast.success("Email domain created successfully!");
           setIsOpen(false);
@@ -64,7 +53,7 @@ function AddEditEmailDomainModalContent({
 
     return await updateEmailDomain(`/api/email-domains/${emailDomain.slug}`, {
       method: "PATCH",
-      body: requestData,
+      body: data,
       onSuccess: async () => {
         toast.success("Email domain updated successfully!");
         setIsOpen(false);
@@ -73,7 +62,7 @@ function AddEditEmailDomainModalContent({
     });
   };
 
-  const [slug, fromAddress] = watch(["slug", "fromAddress"]);
+  const slug = watch("slug");
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -128,68 +117,9 @@ function AddEditEmailDomainModalContent({
                   {errors.slug.message}
                 </p>
               )}
-            </div>
-          </div>
-
-          <div>
-            <label
-              htmlFor="fromAddress"
-              className="text-sm font-medium text-neutral-800"
-            >
-              From address
-            </label>
-            <div className="mt-1.5">
-              <div className="relative">
-                <input
-                  type="text"
-                  id="fromAddress"
-                  className={cn(
-                    "block w-full rounded-md border border-neutral-300 px-3 py-2 pr-20 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
-                    errors.fromAddress &&
-                      "border-red-600 focus:border-red-500 focus:ring-red-600",
-                  )}
-                  {...register("fromAddress", {
-                    required: "From address is required",
-                    validate: (value) => {
-                      if (!value) return "From address is required";
-
-                      // Check if the local part is valid (no @ symbols, spaces, etc.)
-                      const localPartRegex = /^[a-zA-Z0-9._-]+$/;
-                      if (!localPartRegex.test(value)) {
-                        return "From address can only contain letters, numbers, dots, underscores, and hyphens";
-                      }
-
-                      // Check if it's a valid email format when combined with domain
-                      const domain = watch("slug");
-                      if (!domain) {
-                        return "Please enter a domain first";
-                      }
-
-                      const fullEmail = `${value}@${domain}`;
-                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                      if (!emailRegex.test(fullEmail)) {
-                        return "Please enter a valid email address";
-                      }
-
-                      return true;
-                    },
-                  })}
-                  placeholder="partners"
-                />
-                <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-                  <span className="text-sm text-neutral-500">
-                    @{watch("slug") || "dub.co"}
-                  </span>
-                </div>
-              </div>
-              {errors.fromAddress && (
-                <p className="mt-1 text-sm text-red-600">
-                  {errors.fromAddress.message}
-                </p>
-              )}
               <p className="mt-2 text-xs text-neutral-500">
-                Used to send campaigns and bounty emails. Replies will go to{" "}
-                {program?.supportEmail}
+                This domain will be used to send campaign emails. You can
+                configure specific "from" addresses when creating campaigns.
               </p>
             </div>
           </div>
@@ -213,7 +143,7 @@ function AddEditEmailDomainModalContent({
             text={emailDomain ? "Update domain" : "Add domain"}
             className="h-9 w-fit"
             loading={isCreating || isUpdating}
-            disabled={!slug || !fromAddress}
+            disabled={!slug}
           />
         </div>
       </div>
@@ -254,4 +184,3 @@ export function useAddEditEmailDomainModal(
     setIsOpen,
   };
 }
-

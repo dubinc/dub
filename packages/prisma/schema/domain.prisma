@@ -73,7 +73,6 @@ model EmailDomain {
   workspaceId    String
   programId      String
   slug           String            @unique
-  fromAddress    String
   status         EmailDomainStatus @default(pending)
   resendDomainId String?           @unique
   lastChecked    DateTime          @default(now())

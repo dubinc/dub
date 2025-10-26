@@ -2,14 +2,12 @@ import {
   isValidDomain,
   isValidDomainFormat,
 } from "@/lib/api/domains/is-valid-domain";
-import { DubApiError } from "@/lib/api/errors";
 import z from "@/lib/zod";
 import { EmailDomainStatus } from "@dub/prisma/client";
 
 export const EmailDomainSchema = z.object({
   id: z.string(),
   slug: z.string(),
-  fromAddress: z.string(),
   status: z.nativeEnum(EmailDomainStatus),
   resendDomainId: z.string().nullable(),
   lastChecked: z.date(),
@@ -26,12 +24,6 @@ export const createEmailDomainBodySchema = z.object({
     .refine(isValidDomain, {
       message: "You are not allowed to use this domain name",
     })
-    .transform((value) => value.toLowerCase()),
-  fromAddress: z
-    .string({ required_error: "From address is required" })
-    .email({ message: "Invalid from address" })
-    .min(5, "From address is too short")
-    .max(255, "From address is too long")
     .transform((value) => value.toLowerCase()),
 });
 

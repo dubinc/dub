@@ -47,7 +47,6 @@ export function EmailDomainCard({ domain }: EmailDomainCardProps) {
       emailDomain: {
         id: domain.id,
         slug: domain.slug,
-        fromAddress: domain.fromAddress,
       },
     });
 
@@ -55,7 +54,6 @@ export function EmailDomainCard({ domain }: EmailDomainCardProps) {
     useDeleteEmailDomainModal({
       id: domain.id,
       slug: domain.slug,
-      fromAddress: domain.fromAddress,
     });
 
   // Automatically open DNS records section if status is not verified
@@ -78,7 +76,6 @@ export function EmailDomainCard({ domain }: EmailDomainCardProps) {
             <DomainCardTitleColumn
               domain={domain.slug}
               icon={Envelope}
-              url={domain.fromAddress}
             />
 
             <div className="flex items-center gap-2.5">

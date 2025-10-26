@@ -1,5 +1,4 @@
 import { getEmailDomainOrThrow } from "@/lib/api/domains/get-email-domain-or-throw";
-import { validateEmailDomain } from "@/lib/api/domains/validate-email-domain";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -20,18 +19,13 @@ export const PATCH = withWorkspace(
     const { domain } = params;
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { slug, fromAddress } = updateEmailDomainBodySchema.parse(
+    const { slug } = updateEmailDomainBodySchema.parse(
       await parseRequestBody(req),
     );
 
     const emailDomain = await getEmailDomainOrThrow({
       programId,
       domain,
-    });
-
-    validateEmailDomain({
-      slug: slug ?? emailDomain.slug,
-      fromAddress: fromAddress ?? emailDomain.fromAddress,
     });
 
     const domainChanged = slug && slug !== emailDomain.slug;
@@ -83,7 +77,6 @@ export const PATCH = withWorkspace(
         },
         data: {
           slug,
-          fromAddress,
         },
       });
 
@@ -123,12 +116,15 @@ export const DELETE = withWorkspace(
       domain,
     });
 
+    // Check if any active campaigns use this domain
     const activeCampaignsCount = await prisma.campaign.count({
       where: {
         programId,
-        from: emailDomain.fromAddress,
         status: {
           in: ["active", "scheduled", "sending"],
+        },
+        from: {
+          endsWith: `@${emailDomain.slug}`,
         },
       },
     });
