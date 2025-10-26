@@ -178,8 +178,8 @@ export const partnerProfileChangeHistoryLogSchema = z.array(
   z.union([
     z.object({
       field: z.literal("country"),
-      from: z.string().nullable(),
-      to: z.string().nullable(),
+      from: z.string(),
+      to: z.string(),
       changedAt: z.coerce.date(),
     }),
     z.object({

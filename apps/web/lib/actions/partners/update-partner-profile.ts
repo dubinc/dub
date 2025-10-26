@@ -275,7 +275,6 @@ const updatedComplianceFieldsChecks = async ({
     );
   }
 
-  // Track compliance-sensitive field changes
   const partnerChangeHistoryLog = partner.changeHistoryLog
     ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
     : [];
@@ -283,7 +282,7 @@ const updatedComplianceFieldsChecks = async ({
   if (countryChanged) {
     partnerChangeHistoryLog.push({
       field: "country",
-      from: partner.country,
+      from: partner.country as string,
       to: input.country as string,
       changedAt: new Date(),
     });
