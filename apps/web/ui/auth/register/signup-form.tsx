@@ -13,6 +13,8 @@ import { useRouter } from "next/navigation";
 import { FC, useState } from "react";
 import { SignUpEmail } from "./signup-email";
 import { SignUpOAuth } from "./signup-oauth";
+import { signIn } from 'next-auth/react';
+import { showMessage } from '../helpers';
 
 interface ISignUpFormProps {
   sessionId: string;
@@ -40,7 +42,10 @@ export const SignUpForm: FC<Readonly<ISignUpFormProps>> = ({
   );
 
   const { executeAsync, isPending } = useAction(changePreSignupEmailAction, {
-    async onSuccess() {
+    async onSuccess({ data }) {
+      if (data?.error === "email-exists") {
+        return;
+      }
       setErrorState({ message: null, method: null });
       setIsRedirecting(true);
       router.push("/paywall");
@@ -108,7 +113,26 @@ export const SignUpForm: FC<Readonly<ISignUpFormProps>> = ({
 
         setErrorState({ message: errorMessage, method: signupMethod });
       } else if (result?.data) {
-        const { signupMethod, email, userToken } = result.data;
+        const { signupMethod, email, userToken, error } = result.data;
+
+        if (error === "email-exists") {
+          if (signupMethod !== "email") {
+            return;
+          }
+          const response = await signIn("email", {
+            email,
+            redirect: false,
+            callbackUrl: `/workspaces`,
+          });
+          if (response?.ok) {
+            showMessage(
+              `You’re already registered. A login link has been emailed to you. After logging in, you’ll find your QR code waiting in your account`,
+              "success",
+            );
+          }
+          return;
+        }
+
         setPeopleAnalytic({
           signup_method: signupMethod,
           $email: email,
