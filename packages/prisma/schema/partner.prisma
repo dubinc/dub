@@ -58,6 +58,7 @@ model Partner {
   tiktok                       String?
   tiktokVerifiedAt             DateTime?
   invoiceSettings              Json?
+  changeHistoryLog             Json?
 
   programs           ProgramEnrollment[]
   users              PartnerUser[]
