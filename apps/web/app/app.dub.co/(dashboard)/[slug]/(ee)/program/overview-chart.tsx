@@ -178,7 +178,7 @@ export function OverviewChart() {
                     <p className="text-right font-medium text-neutral-900">
                       {viewType === "leads"
                         ? nFormatter(d.values.amount, { full: true })
-                        : currencyFormatter(d.values.amount / 100)}
+                        : currencyFormatter(d.values.amount)}
                     </p>
                   </div>
                 </>
