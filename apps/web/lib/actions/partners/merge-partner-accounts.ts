@@ -105,6 +105,7 @@ const sendTokens = async ({
     select: {
       id: true,
       email: true,
+      country: true,
       payoutsEnabledAt: true,
     },
   });
@@ -137,7 +138,17 @@ const sendTokens = async ({
 
   if (sourceAccount.payoutsEnabledAt) {
     throw new Error(
-      "Account merging is not available if payouts are enabled on the source account. Please contact our support for assistance.",
+      "Account merging is not available if payouts are enabled on the source account. Please contact support for assistance.",
+    );
+  }
+
+  // if source acocunt country is set and is different from target account country, throw an error
+  if (
+    sourceAccount.country &&
+    sourceAccount.country !== targetAccount.country
+  ) {
+    throw new Error(
+      "You cannot merge partner accounts that are in different countries. Please contact support for assistance.",
     );
   }
 

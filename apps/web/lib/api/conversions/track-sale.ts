@@ -125,9 +125,15 @@ export const trackSale = async ({
         });
       }
 
-      leadEventData = cachedLeadEvent;
+      leadEventData = {
+        ...cachedLeadEvent,
+        workspace_id: cachedLeadEvent.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
+      };
     } else {
-      leadEventData = leadEvent.data[0];
+      leadEventData = {
+        ...leadEvent.data[0],
+        workspace_id: leadEvent.data[0].workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
+      };
     }
   }
 
@@ -300,7 +306,10 @@ const _trackLead = async ({
     (async () => {
       const [_leadEvent, link, _workspace] = await Promise.all([
         // Record the lead event for the customer
-        recordLead(leadEventData),
+        recordLead({
+          ...leadEventData,
+          workspace_id: leadEventData.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
+        }),
 
         // Update link leads count + lastLeadAt date
         prisma.link.update({
@@ -419,6 +428,7 @@ const _trackSale = async ({
 
   const saleData = {
     ...leadEventData,
+    workspace_id: leadEventData.workspace_id || workspace.id, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: eventName,
     customer_id: customer.id,

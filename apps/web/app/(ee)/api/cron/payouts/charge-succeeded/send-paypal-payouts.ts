@@ -7,9 +7,7 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
   const payouts = await prisma.payout.findMany({
     where: {
       invoiceId,
-      status: {
-        not: "completed",
-      },
+      status: "processing",
       partner: {
         payoutsEnabledAt: {
           not: null,
@@ -33,6 +31,7 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
         },
       },
     },
+    take: 100,
   });
 
   if (payouts.length === 0) {
@@ -46,6 +45,18 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
   });
 
   console.log("PayPal batch payout created", batchPayout);
+
+  // update the payouts to "sent" status
+  const updatedPayouts = await prisma.payout.updateMany({
+    where: {
+      id: { in: payouts.map((p) => p.id) },
+    },
+    data: {
+      status: "sent",
+      paidAt: new Date(),
+    },
+  });
+  console.log(`Updated ${updatedPayouts.count} payouts to "sent" status`);
 
   const batchEmails = await sendBatchEmail(
     payouts

@@ -9,10 +9,10 @@ const PAYPAL_TO_DUB_STATUS = {
   "PAYMENT.PAYOUTS-ITEM.CANCELED": "canceled",
   "PAYMENT.PAYOUTS-ITEM.DENIED": "failed",
   "PAYMENT.PAYOUTS-ITEM.FAILED": "failed",
-  "PAYMENT.PAYOUTS-ITEM.HELD": "processing",
+  "PAYMENT.PAYOUTS-ITEM.HELD": "processed",
   "PAYMENT.PAYOUTS-ITEM.REFUNDED": "failed",
   "PAYMENT.PAYOUTS-ITEM.RETURNED": "failed",
-  "PAYMENT.PAYOUTS-ITEM.UNCLAIMED": "processing",
+  "PAYMENT.PAYOUTS-ITEM.UNCLAIMED": "processed",
 };
 
 export async function payoutsItemFailed(event: any) {
@@ -58,9 +58,9 @@ export async function payoutsItemFailed(event: any) {
     },
   });
 
-  if (payoutStatus === "processing") {
+  if (payoutStatus === "processed") {
     await log({
-      message: `Paypal payout is stuck in processing for invoice ${invoiceId} and partner ${paypalEmail}. PayPal webhook status: ${body.event_type}.${
+      message: `Paypal payout is stuck in processed for invoice ${invoiceId} and partner ${paypalEmail}. PayPal webhook status: ${body.event_type}.${
         failureReason ? ` Failure reason: ${failureReason}` : ""
       }`,
       type: "errors",
