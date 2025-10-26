@@ -65,7 +65,10 @@ export async function validateCampaign({
     });
 
     validateCampaignFromAddress({
-      campaign,
+      campaign: {
+        ...campaign,
+        from: input.from,
+      },
       emailDomains,
     });
   }
