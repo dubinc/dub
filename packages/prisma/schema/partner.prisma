@@ -78,6 +78,9 @@ model Partner {
 
   discoveredByPrograms DiscoveredPartner[]
 
+  @@index([email])  // For exact email lookups
+  @@index(name)     // Already exists
+  @@fulltext([email, name])  // For full-text search
   @@index(discoverableAt)
 }
 

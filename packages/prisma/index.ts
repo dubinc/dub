@@ -15,3 +15,9 @@ declare global {
 }
 
 if (process.env.NODE_ENV === "development") global.prisma = prisma;
+
+export const sanitizeFullTextSearch = (search: string) => {
+  // remove unsupported characters for full text search
+  // '*', '+', '-', ' ', '(', ')', '~', '@','%', '<', '>', '=', '|', '!', '?', ':'
+  return search.replace(/[*+\- ()~@%<>!=?:\s]/g, "").trim();
+};
