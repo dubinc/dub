@@ -1,8 +1,7 @@
 import { editQueryString } from "@/lib/analytics/utils";
-import useGroup from "@/lib/swr/use-group";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerProps } from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ArrowUpRight, LoadingSpinner } from "@dub/ui";
 import {
@@ -18,9 +17,7 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function PartnersBlock() {
   const { slug: workspaceSlug } = useWorkspace();
-  const { group: defaultGroup } = useGroup({
-    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
-  });
+  const { program } = useProgram();
 
   const { queryString } = useContext(AnalyticsContext);
 
@@ -34,14 +31,14 @@ export function PartnersBlock() {
   >(
     `/api/analytics?${editQueryString(queryString, {
       groupBy: "top_partners",
-      event: defaultGroup?.saleReward === null ? "leads" : "sales",
+      event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
     })}`,
     fetcher,
   );
 
   return (
     <ProgramOverviewBlock
-      title={`Top partners by ${defaultGroup?.saleReward === null ? "leads" : "revenue"}`}
+      title={`Top partners by ${program?.primaryRewardEvent === "lead" ? "leads" : "revenue"}`}
       viewAllHref={`/${workspaceSlug}/program/partners`}
     >
       <div className="divide-border-subtle @2xl:h-60 flex h-auto flex-col divide-y">
@@ -79,7 +76,7 @@ export function PartnersBlock() {
               </div>
 
               <span>
-                {defaultGroup?.saleReward === null
+                {program?.primaryRewardEvent === "lead"
                   ? nFormatter(partner.leads, { full: true })
                   : currencyFormatter(partner.saleAmount / 100)}
               </span>

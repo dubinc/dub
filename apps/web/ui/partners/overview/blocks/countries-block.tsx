@@ -1,7 +1,6 @@
 import { editQueryString } from "@/lib/analytics/utils";
-import useGroup from "@/lib/swr/use-group";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ArrowUpRight, Link4, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { COUNTRIES, currencyFormatter, fetcher, nFormatter } from "@dub/utils";
@@ -12,9 +11,8 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function CountriesBlock() {
   const { slug: workspaceSlug } = useWorkspace();
-  const { group: defaultGroup } = useGroup({
-    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
-  });
+  const { program } = useProgram();
+
   const { getQueryString } = useRouterStuff();
 
   const { queryString } = useContext(AnalyticsContext);
@@ -28,14 +26,14 @@ export function CountriesBlock() {
   >(
     `/api/analytics?${editQueryString(queryString, {
       groupBy: "countries",
-      event: defaultGroup?.saleReward === null ? "leads" : "sales",
+      event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
     })}`,
     fetcher,
   );
 
   return (
     <ProgramOverviewBlock
-      title={`Top countries by ${defaultGroup?.saleReward === null ? "leads" : "revenue"}`}
+      title={`Top countries by ${program?.primaryRewardEvent === "lead" ? "leads" : "revenue"}`}
       viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
         undefined,
         {
@@ -86,7 +84,7 @@ export function CountriesBlock() {
               </div>
 
               <span>
-                {defaultGroup?.saleReward === null
+                {program?.primaryRewardEvent === "lead"
                   ? nFormatter(leads, { full: true })
                   : currencyFormatter(saleAmount / 100)}
               </span>

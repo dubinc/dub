@@ -1,6 +1,5 @@
-import useGroup from "@/lib/swr/use-group";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { FunnelChart } from "@dub/ui/charts";
@@ -10,9 +9,7 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function ConversionBlock() {
   const { slug: workspaceSlug } = useWorkspace();
-  const { group: defaultGroup } = useGroup({
-    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
-  });
+  const { program } = useProgram();
 
   const { getQueryString } = useRouterStuff();
 
@@ -71,8 +68,8 @@ export function ConversionBlock() {
               <span className="text-content-emphasis block text-xl font-medium">
                 {formatPercentage(
                   (steps.at(
-                    // if sale reward is null, we want to show the conversion rate for leads
-                    defaultGroup?.saleReward === null ? 1 : 2,
+                    // show conversion rate based on program's primary reward event
+                    program?.primaryRewardEvent === "lead" ? 1 : 2,
                   )!.value /
                     maxValue) *
                     100,

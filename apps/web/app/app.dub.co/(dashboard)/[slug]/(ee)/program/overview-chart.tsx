@@ -2,9 +2,8 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useCommissionsTimeseries from "@/lib/swr/use-commissions-timeseries";
-import useGroup from "@/lib/swr/use-group";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { Combobox, LoadingSpinner, useRouterStuff } from "@dub/ui";
@@ -33,14 +32,12 @@ export function OverviewChart() {
   const [viewType, setViewType] = useState<ViewType>("sales");
 
   const { slug } = useWorkspace();
-  const { group: defaultGroup } = useGroup({
-    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
-  });
+  const { program } = useProgram();
   useEffect(() => {
-    if (defaultGroup?.saleReward === null) {
+    if (program?.primaryRewardEvent === "lead") {
       setViewType("leads");
     }
-  }, [defaultGroup]);
+  }, [program]);
 
   const { data: analyticsData, error: analyticsError } = useSWR<
     {

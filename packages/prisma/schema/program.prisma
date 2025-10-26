@@ -35,6 +35,7 @@ model Program {
   brandColor                   String?
   domain                       String?
   url                          String?
+  primaryRewardEvent           EventType @default(sale)
   holdingPeriodDays            Int       @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount              Int       @default(0) // Default minimum payout amount of $0
   embedData                    Json?     @db.Json

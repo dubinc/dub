@@ -5,6 +5,7 @@ import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
 import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
@@ -101,13 +102,17 @@ const getPartnerUrl = ({
 }) => `/${workspaceSlug}/program/partners/${id}`;
 
 export function PartnersTable() {
-  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const router = useRouter();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { program } = useProgram();
+
   const status = (searchParams.get("status") ||
     "approved") as ProgramEnrollmentStatus;
-  const sortBy = searchParams.get("sortBy") || "totalSaleAmount";
+  const sortBy =
+    searchParams.get("sortBy") ||
+    (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
@@ -131,6 +136,8 @@ export function PartnersTable() {
     `/api/partners${getQueryString({
       workspaceId,
       status,
+      sortBy,
+      sortOrder,
     })}`,
     fetcher,
     {

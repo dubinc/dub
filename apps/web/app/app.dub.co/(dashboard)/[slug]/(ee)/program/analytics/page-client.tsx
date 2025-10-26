@@ -3,10 +3,8 @@
 import { DUB_PARTNERS_ANALYTICS_INTERVAL } from "@/lib/analytics/constants";
 import { AnalyticsResponseOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
-import useGroup from "@/lib/swr/use-group";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import Devices from "@/ui/analytics/devices";
 import Locations from "@/ui/analytics/locations";
@@ -35,17 +33,13 @@ export function ProgramAnalyticsPageClient() {
   const { searchParamsObj, getQueryString } = useRouterStuff();
   const { isMobile } = useMediaQuery();
 
-  const { group: defaultGroup } = useGroup({
-    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
-  });
-
   const { start, end, interval, selectedTab, saleUnit, view } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;
 
     return {
       interval: DUB_PARTNERS_ANALYTICS_INTERVAL,
       selectedTab:
-        event || defaultGroup?.saleReward === null ? "leads" : "sales",
+        event || (program?.primaryRewardEvent === "lead" ? "leads" : "sales"),
       saleUnit: "saleAmount",
       view: "timeseries",
       ...rest,
@@ -54,7 +48,7 @@ export function ProgramAnalyticsPageClient() {
 
   const queryString = editQueryString(
     useAnalyticsQuery({
-      defaultEvent: defaultGroup?.saleReward === null ? "leads" : "sales",
+      defaultEvent: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
       defaultInterval: DUB_PARTNERS_ANALYTICS_INTERVAL,
     }).queryString,
     {
