@@ -1,4 +1,6 @@
+import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { FunnelChart } from "@dub/ui/charts";
@@ -8,6 +10,9 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function ConversionBlock() {
   const { slug: workspaceSlug } = useWorkspace();
+  const { group: defaultGroup } = useGroup({
+    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
+  });
 
   const { getQueryString } = useRouterStuff();
 
@@ -64,7 +69,14 @@ export function ConversionBlock() {
           <div className="flex size-full flex-col">
             <div className="px-6">
               <span className="text-content-emphasis block text-xl font-medium">
-                {formatPercentage((steps.at(-1)!.value / maxValue) * 100) + "%"}
+                {formatPercentage(
+                  (steps.at(
+                    // if sale reward is null, we want to show the conversion rate for leads
+                    defaultGroup?.saleReward === null ? 1 : 2,
+                  )!.value /
+                    maxValue) *
+                    100,
+                ) + "%"}
               </span>
             </div>
             <div className="mt-4 grid grid-cols-3">

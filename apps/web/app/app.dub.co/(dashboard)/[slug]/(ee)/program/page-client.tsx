@@ -10,7 +10,6 @@ import { ConversionBlock } from "@/ui/partners/overview/blocks/conversion-block"
 import { CountriesBlock } from "@/ui/partners/overview/blocks/countries-block";
 import { LinksBlock } from "@/ui/partners/overview/blocks/links-block";
 import { PartnersBlock } from "@/ui/partners/overview/blocks/partners-block";
-import { SaleTypeBlock } from "@/ui/partners/overview/blocks/sale-type-block";
 import { TrafficSourcesBlock } from "@/ui/partners/overview/blocks/traffic-sources-block";
 import { ProgramOverviewCard } from "@/ui/partners/overview/program-overview-card";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
@@ -29,13 +28,13 @@ const BLOCKS = [
   ConversionBlock,
   CountriesBlock,
   LinksBlock,
-  SaleTypeBlock,
+  // SaleTypeBlock, // TODO: figure out how to best show sales by type
 ];
 
 export default function ProgramOverviewPageClient() {
-  const { searchParamsObj } = useRouterStuff();
-
   const { defaultProgramId, id: workspaceId } = useWorkspace();
+
+  const { searchParamsObj } = useRouterStuff();
 
   const { start, end, interval } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;

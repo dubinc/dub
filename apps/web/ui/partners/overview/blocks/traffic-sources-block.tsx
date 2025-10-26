@@ -1,5 +1,7 @@
 import { editQueryString } from "@/lib/analytics/utils";
+import useGroup from "@/lib/swr/use-group";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import {
   ArrowUpRight,
@@ -8,7 +10,12 @@ import {
   LoadingSpinner,
   useRouterStuff,
 } from "@dub/ui";
-import { currencyFormatter, fetcher, GOOGLE_FAVICON_URL } from "@dub/utils";
+import {
+  currencyFormatter,
+  fetcher,
+  GOOGLE_FAVICON_URL,
+  nFormatter,
+} from "@dub/utils";
 import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
@@ -16,7 +23,9 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function TrafficSourcesBlock() {
   const { slug: workspaceSlug } = useWorkspace();
-
+  const { group: defaultGroup } = useGroup({
+    groupIdOrSlug: DEFAULT_PARTNER_GROUP.slug,
+  });
   const { getQueryString } = useRouterStuff();
 
   const { queryString } = useContext(AnalyticsContext);
@@ -24,19 +33,20 @@ export function TrafficSourcesBlock() {
   const { data, isLoading, error } = useSWR<
     {
       referer: string;
+      leads: number;
       saleAmount: number;
     }[]
   >(
     `/api/analytics?${editQueryString(queryString, {
       groupBy: "referers",
-      event: "sales",
+      event: defaultGroup?.saleReward === null ? "leads" : "sales",
     })}`,
     fetcher,
   );
 
   return (
     <ProgramOverviewBlock
-      title="Top traffic sources by revenue"
+      title={`Top traffic sources by ${defaultGroup?.saleReward === null ? "leads" : "revenue"}`}
       viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
         undefined,
         {
@@ -58,7 +68,7 @@ export function TrafficSourcesBlock() {
             No traffic sources found
           </div>
         ) : (
-          data?.slice(0, 6).map(({ referer, saleAmount }) => (
+          data?.slice(0, 6).map(({ referer, leads, saleAmount }) => (
             <Link
               key={referer}
               href={`/${workspaceSlug}/program/analytics${getQueryString(
@@ -88,7 +98,11 @@ export function TrafficSourcesBlock() {
                 <ArrowUpRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
               </div>
 
-              <span>{currencyFormatter(saleAmount / 100)}</span>
+              <span>
+                {defaultGroup?.saleReward === null
+                  ? nFormatter(leads, { full: true })
+                  : currencyFormatter(saleAmount / 100)}
+              </span>
             </Link>
           ))
         )}
