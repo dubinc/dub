@@ -4,6 +4,7 @@ import {
 } from "@/lib/analytics/constants";
 import {
   CommissionType,
+  PartnerProfileType,
   PartnerRole,
   ProgramEnrollmentStatus,
 } from "@prisma/client";
@@ -172,3 +173,20 @@ export const partnerUserSchema = z.object({
   image: z.string().nullish(),
   createdAt: z.date(),
 });
+
+export const partnerProfileChangeHistoryLogSchema = z.array(
+  z.union([
+    z.object({
+      field: z.literal("country"),
+      from: z.string(),
+      to: z.string(),
+      changedAt: z.coerce.date(),
+    }),
+    z.object({
+      field: z.literal("profileType"),
+      from: z.nativeEnum(PartnerProfileType),
+      to: z.nativeEnum(PartnerProfileType),
+      changedAt: z.coerce.date(),
+    }),
+  ]),
+);

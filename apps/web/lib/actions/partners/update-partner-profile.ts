@@ -5,6 +5,8 @@ import { throwIfNoPermission } from "@/lib/auth/partner-user-permissions";
 import { qstash } from "@/lib/cron";
 import { getPartnerDiscoveryRequirements } from "@/lib/partners/discoverability";
 import { storage } from "@/lib/storage";
+import { stripe } from "@/lib/stripe";
+import { partnerProfileChangeHistoryLogSchema } from "@/lib/zod/schemas/partner-profile";
 import {
   MAX_PARTNER_DESCRIPTION_LENGTH,
   PartnerProfileSchema,
@@ -263,12 +265,49 @@ const updatedComplianceFieldsChecks = async ({
     input.profileType !== undefined &&
     partner.profileType.toLowerCase() !== input.profileType.toLowerCase();
 
-  if (partner.payoutsEnabledAt && (countryChanged || profileTypeChanged)) {
+  if (!countryChanged && !profileTypeChanged) {
+    return;
+  }
+
+  if (partner.payoutsEnabledAt) {
     throw new Error(
       "Since you've already connected your bank account for payouts, you cannot change your country or profile type. Please contact support to update those fields.",
     );
   }
 
-  // TODO: log country and profile type changes
-  return;
+  const partnerChangeHistoryLog = partner.changeHistoryLog
+    ? partnerProfileChangeHistoryLogSchema.parse(partner.changeHistoryLog)
+    : [];
+
+  if (countryChanged) {
+    partnerChangeHistoryLog.push({
+      field: "country",
+      from: partner.country as string,
+      to: input.country as string,
+      changedAt: new Date(),
+    });
+  }
+
+  if (profileTypeChanged) {
+    partnerChangeHistoryLog.push({
+      field: "profileType",
+      from: partner.profileType,
+      to: input.profileType as PartnerProfileType,
+      changedAt: new Date(),
+    });
+  }
+
+  if (partner.stripeConnectId) {
+    await stripe.accounts.del(partner.stripeConnectId);
+  }
+
+  await prisma.partner.update({
+    where: {
+      id: partner.id,
+    },
+    data: {
+      stripeConnectId: null,
+      changeHistoryLog: partnerChangeHistoryLog,
+    },
+  });
 };
