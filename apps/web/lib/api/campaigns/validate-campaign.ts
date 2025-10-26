@@ -13,9 +13,6 @@ interface ValidateCampaignParams {
   campaign: Campaign;
 }
 
-// TODO:
-// Make sure the campaign has all required fields for the status
-
 export async function validateCampaign({
   input,
   campaign,
