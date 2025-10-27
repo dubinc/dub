@@ -11,8 +11,8 @@ import {
   FileTextIcon,
   FileVideoIcon,
 } from "lucide-react";
-import * as React from "react";
 import Image from "next/image";
+import * as React from "react";
 
 const ROOT_NAME = "FileUpload";
 const DROPZONE_NAME = "FileUploadDropzone";
@@ -996,7 +996,7 @@ const FileUploadItem = React.forwardRef<HTMLDivElement, FileUploadItemProps>(
           {...itemProps}
           ref={forwardedRef}
           className={cn(
-            "relative flex items-center gap-2.5 rounded-md border p-3 flex-col",
+            "relative flex flex-col items-center gap-2.5 rounded-md border p-3",
             className,
           )}
         >

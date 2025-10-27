@@ -1,6 +1,6 @@
-'use server';
+"use server";
 
-import { PaymentService } from 'core/integration/payment/server';
+import { PaymentService } from "core/integration/payment/server";
 
 const paymentService = new PaymentService();
 

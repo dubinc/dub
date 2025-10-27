@@ -1,0 +1,11 @@
+<svg width="320" height="418" viewBox="0 70 320 280" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M256.3 83.3C258 83.3 259.5 84.7 259.5 86.5V282.3H60.5V86.4C60.5 84.7 61.9 83.2 63.7 83.2H256.3M256.3 73.8H63.7C56.7 73.8 51.1 79.4 51.1 86.4V291.7H269V86.4C268.9 79.4 263.3 73.8 256.3 73.8Z" fill="currentColor"/>
+    <g id="qr-frame-secondary-color" fill="currentColor">
+        <path d="M51.1 302H2.30005L20.9 271L2.30005 240H51.1V302Z"/>
+        <path d="M268.9 302H317.7L299.1 271L317.7 240H268.9V302Z"/>
+    </g>
+    <path d="M51.1 285V252.5C51.1 252.5 34.3 259.1 34.3 267.8C34.3 285 51.1 285 51.1 285Z" fill="white"/>
+    <path d="M268.9 285V252.5C268.9 252.5 285.7 259.1 285.7 267.8C285.7 285 268.9 285 268.9 285Z" fill="white"/>
+    <path d="M285.7 307.1V267.9C285.2 284.7 254.1 282.3 237 282.3H82.9C65.8 282.3 34.8 284.7 34.2 267.9V307.1C34.2 307.2 34.2 307.3 34.2 307.4V328.4C34.2 337.1 41.3 344.2 50 344.2H270C278.7 344.2 285.8 337.1 285.8 328.4V307.4C285.7 307.3 285.7 307.2 285.7 307.1Z" fill="currentColor"/>
+    <text id="qr-frame-text" x="160" y="330" font-size="40px" font-weight="600" font-family="Inter, sans-serif" fill="white" text-anchor="middle">Scan Me!</text>
+</svg>

@@ -2,15 +2,15 @@ import { useQRContentEditor } from "@/ui/modals/qr-content-editor";
 import {
   EQRType,
   LINKED_QR_TYPES,
-} from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { unescapeWiFiValue } from "@/ui/qr-builder/helpers/qr-type-data-handlers.ts";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+} from "@/ui/qr-builder-new/constants/get-qr-config";
+import { unescapeWiFiValue } from "@/ui/qr-builder-new/helpers/wifi-helpers";
+import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import { Tooltip } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils/src";
 import { Icon } from "@iconify/react";
 import { memo } from "react";
 
-const getDisplayContent = (qrCode: QrStorageData): string => {
+const getDisplayContent = (qrCode: TQrStorageData): string => {
   const { data, qrType } = qrCode;
 
   switch (qrType as EQRType) {
@@ -84,7 +84,7 @@ export const QRCardDetails = memo(
     featuresAccess,
     setShowTrialExpiredModal,
   }: {
-    qrCode: QrStorageData;
+    qrCode: TQrStorageData;
     compact?: boolean;
     featuresAccess?: boolean;
     setShowTrialExpiredModal?: (show: boolean) => void;

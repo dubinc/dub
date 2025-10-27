@@ -1,4 +1,4 @@
-import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
+import { QRType } from "@/ui/qr-builder-new/constants/get-qr-config";
 import { cn } from "@dub/utils/src";
 import { Icon } from "@iconify/react";
 import { Text } from "@radix-ui/themes";

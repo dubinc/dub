@@ -1,1 +1,1 @@
-export { SupportChatbot } from './support-chat-bot';
+export { SupportChatbot } from "./support-chat-bot";
