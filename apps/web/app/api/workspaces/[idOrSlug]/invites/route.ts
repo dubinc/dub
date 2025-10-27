@@ -146,7 +146,8 @@ export const POST = withWorkspace(
 
     if (results.some((result) => result.status === "rejected")) {
       const failedInvites = results.filter(
-        (result) => result.status === "rejected",
+        (result): result is PromiseRejectedResult =>
+          result.status === "rejected",
       );
       throw new DubApiError({
         code: "bad_request",
