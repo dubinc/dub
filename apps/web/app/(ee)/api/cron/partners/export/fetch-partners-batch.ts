@@ -15,7 +15,6 @@ export async function* fetchPartnersBatch(
 ) {
   let page = 1;
   let hasMore = true;
-  let totalFetched = 0;
 
   while (hasMore) {
     const partners = await getPartners({
@@ -25,8 +24,7 @@ export async function* fetchPartnersBatch(
     });
 
     if (partners.length > 0) {
-      totalFetched += partners.length;
-      yield { partners, totalFetched };
+      yield { partners };
       page++;
       hasMore = partners.length === batchSize;
     } else {
