@@ -34,11 +34,11 @@ interface WithPartnerProfileOptions {
 
 export const RATE_LIMIT = {
   global: {
-    limit: 20,
+    limit: 15,
     interval: "1 s",
   },
   analytics: {
-    limit: 10,
+    limit: 5,
     interval: "1 s",
   },
 } as const;
