@@ -295,8 +295,10 @@ export function QrBuilderProvider({
   ]);
 
   // Methods
-  const onSave = useCallback(async () => {
-    if (!selectedQrType || !formData) {
+  const onSave = useCallback(async (providedFormData?: TQRFormData) => {
+    const dataToSave = providedFormData || formData;
+    
+    if (!selectedQrType || !dataToSave) {
       toast.error("Please complete all required fields");
       return;
     }
@@ -312,10 +314,10 @@ export function QrBuilderProvider({
     try {
       const builderData: TNewQRBuilderData = {
         qrType: selectedQrType,
-        formData,
+        formData: dataToSave,
         customizationData,
         title: initialState.qrTitle || `${selectedQrType} QR Code`,
-        fileId: (formData as any)?.fileId || initialState.fileId,
+        fileId: (dataToSave as any)?.fileId || initialState.fileId,
       };
 
       await onSaveProp(builderData);
@@ -359,6 +361,7 @@ export function QrBuilderProvider({
     if (isContentStep && contentStepRef.current) {
       const isValid = await contentStepRef.current.validateForm();
       if (!isValid) {
+        // toast.error("Please fill in all required fields correctly");
         return;
       }
 

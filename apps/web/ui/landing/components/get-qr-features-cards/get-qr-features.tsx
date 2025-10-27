@@ -10,11 +10,24 @@ import { FC, useEffect, useState } from "react";
 import { SectionTitle } from "../section-title.tsx";
 import { GET_QR_FEATURES } from "./config.ts";
 
-export const GetQRFeaturesCardsSection: FC = () => {
+interface GetQRFeaturesCardsSectionProps {
+  initialTab?: string;
+}
+
+export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({ initialTab }) => {
   const [activeTab, setActiveTab] = useState(
-    GET_QR_FEATURES[0].title.toLowerCase().replace(/\s+/g, "-"),
+    initialTab || GET_QR_FEATURES[0].title.toLowerCase().replace(/\s+/g, "-"),
   );
   const [isPaused, setIsPaused] = useState(false);
+
+  // Update active tab if initialTab changes
+  useEffect(() => {
+    if (initialTab) {
+      setActiveTab(initialTab);
+      setIsPaused(true);
+      setTimeout(() => setIsPaused(false), 10000);
+    }
+  }, [initialTab]);
 
   useEffect(() => {
     if (isPaused) return;
@@ -42,7 +55,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
   };
 
   return (
-    <section className="relative py-10 lg:py-14">
+    <section id="features" className="relative py-10 lg:py-14">
       {/* Background gradient effects */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="bg-primary/5 absolute left-1/4 top-0 h-96 w-96 rounded-full blur-3xl" />
@@ -50,7 +63,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex flex-col items-center justify-center gap-3 sm:mb-16 lg:mb-24">
+        <div className="mb-12 flex flex-col items-center justify-center gap-3">
           <MotionPreset
             fade
             slide={{ direction: "down", offset: 50 }}
@@ -63,8 +76,9 @@ export const GetQRFeaturesCardsSection: FC = () => {
               titleSecondPart=" Generator"
             />
           </MotionPreset>
-          <p className="text-muted-foreground max-w-4xl text-base md:text-lg-base">
-            Make every code on-brand, easy to refine, swap links anytime and see your metrics align.
+          <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
+            Make every code on-brand, easy to refine, swap links anytime and see
+            your metrics align.
           </p>
         </div>
 
@@ -95,7 +109,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
                     <TabsTrigger
                       value={feature.title.toLowerCase().replace(/\s+/g, "-")}
                       className={cn(
-                        "group relative flex items-center justify-start gap-3 rounded-lg border-l-4 border-transparent bg-transparent px-4 py-3 text-left transition-all duration-300 hover:bg-muted/50 data-[state=active]:border-primary data-[state=active]:bg-primary/5",
+                        "hover:bg-muted/50 data-[state=active]:border-primary data-[state=active]:bg-primary/5 group relative flex items-center justify-start gap-3 rounded-lg border-l-4 border-transparent bg-transparent px-4 py-3 text-left transition-all duration-300",
                       )}
                     >
                       <Icon
@@ -105,7 +119,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
                           "text-muted-foreground group-data-[state=active]:text-primary",
                         )}
                       />
-                      <span className="whitespace-nowrap text-sm font-medium text-foreground group-data-[state=active]:text-primary sm:text-base">
+                      <span className="text-foreground group-data-[state=active]:text-primary whitespace-nowrap text-sm font-medium sm:text-base">
                         {feature.title}
                       </span>
                     </TabsTrigger>

@@ -26,38 +26,21 @@ export const CustomerSupport: FC<Readonly<ICustomerSupportProps>> = ({
   };
 
   return (
-    <div className="flex flex-col gap-5">
-      <div className="text-lg font-medium">Customer Support</div>
-      <ul className="text-muted-foreground space-y-3">
-        <li>
-          <Link
-            href="/help/cancel-my-subscription"
-            target="_blank"
-            onClick={() => onClickHandler("how_to_cancel")}
-            className="hover:text-foreground transition-colors"
-          >
-            How to Cancel
-          </Link>
-        </li>
-        <li>
-          <Link
-            className="border-border bg-card hover:border-primary hover:bg-primary/5 group inline-flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium transition-all"
-            href="/help"
-            target="_blank"
-            onClick={() => onClickHandler("customer_support")}
-          >
-            <div className="bg-primary/10 group-hover:bg-primary/20 rounded-full p-2 transition-colors">
-              <HelpPhone className="text-primary h-5 w-5" />
-            </div>
-            <div className="flex flex-col items-start">
-              <span className="text-foreground font-semibold">
-                Customer Support
-              </span>
-              <span className="text-muted-foreground text-xs">24/7/365</span>
-            </div>
-          </Link>
-        </li>
-      </ul>
-    </div>
+    <Link
+      className="border-border bg-card hover:border-primary hover:bg-primary/5 group inline-flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium transition-all"
+      href="/help"
+      target="_blank"
+      onClick={() => onClickHandler("customer_support")}
+    >
+      <div className="bg-primary/10 group-hover:bg-primary/20 rounded-full p-2 transition-colors">
+        <HelpPhone className="text-primary h-5 w-5" />
+      </div>
+      <div className="flex flex-col items-start">
+        <span className="text-foreground font-semibold">
+          Customer Support
+        </span>
+        <span className="text-muted-foreground text-xs">24/7/365</span>
+      </div>
+    </Link>
   );
 };

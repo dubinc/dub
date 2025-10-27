@@ -21,24 +21,16 @@ type SignUpContentProps = {
 function SignUpStep({ sessionId, authModal = false }) {
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3, delay: 0.1 }}
-        className={cn(
-          "border-border-500 border-b bg-white pb-4 pt-8 text-center",
-          {
-            "flex flex-col items-center justify-center border-none bg-neutral-50 pt-0":
-              authModal,
-          },
-        )}
-      >
-        <h3 className="text-lg font-semibold">
-          {authModal
-            ? "Create your GetQR account to download your QR code instantly."
-            : "Get started with GetQR"}
-        </h3>
-      </motion.div>
+      {!authModal && (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="border-border-500 border-b bg-white pb-4 pt-8 text-center"
+        >
+          <h3 className="text-lg font-semibold">Get started with GetQR</h3>
+        </motion.div>
+      )}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

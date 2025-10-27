@@ -143,8 +143,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
               key={type.id}
               className={cn(
                 "group flex-1 cursor-pointer transition-all duration-500 hover:flex-[2_1_0%]",
-                "shadow-lg rounded-[20px] border-2 border-gray-300",
-                colors.bg,
+                "shadow-2xl rounded-3xl border-2 bg-white",
                 colors.borderHover,
                 colors.bgHover,
                 isSelected && [
@@ -217,8 +216,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
               key={type.id}
               className={cn(
                 "group flex-1 cursor-pointer transition-all duration-500 hover:flex-[2_1_0%]",
-                "shadow-lg rounded-[20px] border-2 border-gray-300",
-                colors.bg,
+                "shadow-2xl rounded-3xl border-2 bg-white",
                 colors.borderHover,
                 colors.bgHover,
                 isSelected && [

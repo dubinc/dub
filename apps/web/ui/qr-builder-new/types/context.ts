@@ -67,7 +67,7 @@ export interface IQrBuilderContextType {
   homepageDemo?: boolean;
 
   // Methods
-  onSave: () => Promise<void>;
+  onSave: (providedFormData?: TQRFormData) => Promise<void>;
   handleNextStep: () => void;
   handleChangeStep: (step: number) => void;
   handleSelectQRType: (type: EQRType) => void;

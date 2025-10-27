@@ -24,22 +24,19 @@ export const FAQSection: FC<IFaqSectionProps> = ({ faqItems }) => {
     <section className="py-10 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* FAQ Header */}
-        <div className="mb-12 flex flex-col items-center justify-center gap-3 sm:mb-16 lg:mb-24">
+        <div className="mb-12 flex flex-col items-center justify-center gap-3">
           <SectionTitle
             titleFirstPart="Frequently"
             highlightedTitlePart="Asked"
             titleSecondPart="Questions"
           />
-          <p className="text-muted-foreground max-w-4xl text-base md:text-lg-base">
-            Need help fast so projects don't stall? Browse these FAQs— we've covered it all.
+          <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
+            Need help fast so projects don't stall? Browse these FAQs— we've
+            covered it all.
           </p>
         </div>
 
-        <Accordion
-          type="single"
-          collapsible
-          className="w-full"
-        >
+        <Accordion type="single" collapsible className="w-full">
           {faqItems.map((item, index) => (
             <AccordionItem key={index} value={`item-${index}`}>
               <AccordionTrigger className="text-lg">

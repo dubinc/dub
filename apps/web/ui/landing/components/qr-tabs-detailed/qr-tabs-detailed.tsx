@@ -45,7 +45,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
     <section className="py-10 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header with Title */}
-        <div className="mb-8 flex items-center justify-center text-center sm:mb-12 lg:mb-16">
+        <div className="mb-8 flex items-center justify-center text-center">
           <div className="flex max-w-3xl flex-col items-center justify-center gap-3">
             <QrTabsDetailedTitle />
             <MotionPreset
@@ -55,7 +55,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
               delay={0.2}
               transition={{ duration: 0.5 }}
             >
-              <p className="text-muted-foreground max-w-4xl text-base md:text-lg-base">
+              <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
                 GetQR brings every QR code type in one place. Create, customize,
                 share, scan and analyze.
               </p>

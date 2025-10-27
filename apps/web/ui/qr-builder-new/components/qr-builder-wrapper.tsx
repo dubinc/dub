@@ -9,6 +9,8 @@ export const QRBuilderWrapper = () => {
   const {
     builderStep,
     isTypeStep,
+    isContentStep,
+    isCustomizationStep,
     qrBuilderContentWrapperRef,
     handleBack,
     handleContinue,
@@ -23,6 +25,9 @@ export const QRBuilderWrapper = () => {
   } = useQrBuilderContext();
 
   const { isMobile } = useMediaQuery();
+
+  // Show decorative border and blobs only on steps 2 and 3
+  const showDecorations = isContentStep || isCustomizationStep;
 
   return (
     <motion.div
@@ -40,18 +45,27 @@ export const QRBuilderWrapper = () => {
           "border-border-500 rounded-[20px] border bg-white shadow-lg",
       )}
     >
-      <div>
+      {/* Decorative blobs - only on steps 2 and 3 */}
+      {showDecorations && (
+        <>
+          <div className="bg-primary/10 absolute -right-20 -top-20 h-72 w-72 animate-pulse rounded-full blur-3xl" />
+          <div className="bg-secondary/10 absolute -bottom-20 -left-20 h-72 w-72 animate-pulse rounded-full blur-3xl delay-700" />
+        </>
+      )}
+
+      <div className="relative">
         <div
           className={cn(
             "flex w-full flex-col items-stretch justify-between gap-4 p-6 md:gap-6",
+            isTypeStep && "p-0",
           )}
         >
           <QRBuilderInner />
         </div>
       </div>
 
-      {!isTypeStep && isMobile && (
-        <div className="border-border-500 sticky bottom-0 z-10 mt-auto w-full border-t bg-white px-6 py-3">
+      {showDecorations && isMobile && (
+        <div className="border-border-500 relative sticky bottom-0 z-10 mt-auto w-full border-t bg-white px-6 py-3">
           <QrBuilderButtons
             step={builderStep || 1}
             onBack={handleBack}

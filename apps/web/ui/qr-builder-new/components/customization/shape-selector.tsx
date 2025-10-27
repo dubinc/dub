@@ -42,11 +42,7 @@ export const ShapeSelector: FC<ShapeSelectorProps> = ({
   );
   return (
     <div className="flex w-full flex-col gap-4">
-      <div
-        className={cn("flex flex-col gap-4", {
-          "border-border-500 rounded-lg border p-3": !isMobile,
-        })}
-      >
+      <div className="flex flex-col gap-4">
         <StylePicker
           label="Corner Square Style"
           styleOptions={CORNER_SQUARE_STYLES}

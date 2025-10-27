@@ -92,7 +92,7 @@ export const QRTabs: FC<
     return (
       <section className="bg-primary-100 w-full px-3">
         <div
-          className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-10 lg:gap-14"
+          className="mx-auto flex max-w-7xl flex-col items-center justify-center"
           ref={ref}
         >
           <QrTabsTitle />

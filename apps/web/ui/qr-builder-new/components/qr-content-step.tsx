@@ -46,7 +46,6 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
       const subscription = formRef.current.form.watch((values) => {
         updateCurrentFormValues(values);
 
-        // Use form's built-in validation state (updated utomatically by mode: "onChange")
         const isValid = formRef.current?.form.formState.isValid ?? false;
         setIsFormValid(isValid);
       });

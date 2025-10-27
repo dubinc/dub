@@ -6,14 +6,14 @@ import { Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { QRCodeDemoPlaceholder } from "../constants/qr-code-demo-placeholder.tsx";
+import { useQRCodeStyling } from "../hooks/use-qr-code-styling";
 import { QRCustomization } from "./customization";
 import { QRPreview } from "./customization/qr-preview";
+import { DownloadButton } from "./download-button";
+import { QrBuilderButtons } from "./qr-builder-buttons";
 import { QRCodeDemoMap } from "./qr-code-demos/qr-code-demo-map";
 import { QrContentStep } from "./qr-content-step.tsx";
 import { QrTypeSelection } from "./qr-type-selection";
-import { QrBuilderButtons } from "./qr-builder-buttons";
-import { DownloadButton } from "./download-button";
-import { useQRCodeStyling } from "../hooks/use-qr-code-styling";
 
 export const QRBuilderInner = () => {
   const {
@@ -71,8 +71,8 @@ export const QRBuilderInner = () => {
       gap={{ initial: "4", md: "6" }}
       className="items-stretch"
     >
-      <div className="flex w-full flex-col gap-4">
-        <div className="flex h-full w-full flex-col items-start justify-start gap-4">
+      <div className="flex w-full flex-col gap-4 justify-between">
+        <div className="flex w-full flex-col items-start justify-start gap-4">
           {!isTypeStep && (
             <div className="w-full">
               <QRBuilderSteps />
@@ -101,7 +101,7 @@ export const QRBuilderInner = () => {
           )}
 
           {isContentStep && (
-            <div className="flex w-full justify-start h-full">
+            <div className="flex w-full justify-start">
               <QrContentStep ref={contentStepRef} />
             </div>
           )}
@@ -150,7 +150,7 @@ export const QRBuilderInner = () => {
         )}
       >
         {!isTypeStep && (
-          <div className="sticky top-20 flex w-full max-w-[270px] flex-col gap-6">
+          <div className="sticky top-20 flex w-full flex-col items-center gap-6">
             {!isCustomizationStep ? (
               <div className="relative inline-block">
                 <motion.div
@@ -172,9 +172,7 @@ export const QRBuilderInner = () => {
                   {!currentQRType ? (
                     <QRCodeDemoPlaceholder />
                   ) : (
-                    <>
-                      {qrCodeDemo && <qrCodeDemo.Component {...demoProps} />}
-                    </>
+                    <>{qrCodeDemo && <qrCodeDemo.Component {...demoProps} />}</>
                   )}
                 </motion.div>
               </div>
@@ -186,10 +184,12 @@ export const QRBuilderInner = () => {
             )}
 
             {!isMobile && (
-              <DownloadButton
-                qrCode={isCustomizationStep ? qrCode : null}
-                disabled={!selectedQrType || (isContentStep && !isFormValid)}
-              />
+              <div className="w-full " style={{ maxWidth: isCustomizationStep ? "300px" :"270px" }}>
+                <DownloadButton
+                  qrCode={isCustomizationStep ? qrCode : null}
+                  disabled={!selectedQrType || (isContentStep && !isFormValid)}
+                />
+              </div>
             )}
           </div>
         )}

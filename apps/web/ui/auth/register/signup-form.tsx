@@ -144,23 +144,6 @@ export const SignUpForm = ({
 
   return (
     <div className="flex flex-col gap-3 p-1">
-      <SignUpOAuth
-        sessionId={sessionId}
-        methods={methods}
-        onEmailSubmit={handleEmailSubmit}
-        isLoading={loadingState.google}
-        isDisabled={isAnyLoading}
-        error={errorState.method === "google" ? errorState.message : undefined}
-      />
-      {methods.includes("google") && methods.includes("email") && (
-        <div className="my-2 flex flex-shrink items-center justify-center gap-2">
-          <div className="border-border-500 grow basis-0 border-b" />
-          <span className="text-xs font-normal uppercase leading-none text-neutral-500">
-            or
-          </span>
-          <div className="border-border-500 grow basis-0 border-b" />
-        </div>
-      )}
       {methods.includes("email") && (
         <SignUpEmail
           onEmailSubmit={handleEmailSubmit}
@@ -173,6 +156,23 @@ export const SignUpForm = ({
           }
         />
       )}
+      {methods.includes("google") && methods.includes("email") && (
+        <div className="my-2 flex flex-shrink items-center justify-center gap-2">
+          <div className="border-border-500 grow basis-0 border-b" />
+          <span className="text-xs font-normal uppercase leading-none text-neutral-500">
+            or
+          </span>
+          <div className="border-border-500 grow basis-0 border-b" />
+        </div>
+      )}
+      <SignUpOAuth
+        sessionId={sessionId}
+        methods={methods}
+        onEmailSubmit={handleEmailSubmit}
+        isLoading={loadingState.google}
+        isDisabled={isAnyLoading}
+        error={errorState.method === "google" ? errorState.message : undefined}
+      />
     </div>
   );
 };

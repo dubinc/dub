@@ -3,7 +3,8 @@ import { z } from "zod";
 export const qrNameSchema = z.object({
   qrName: z
     .string()
-    .transform((val) => val?.trim() === "" || !val ? "My QR Code" : val),
+    .optional()
+    .transform((val) => !val || val?.trim() === "" ? "My QR Code" : val),
 });
 
 export const websiteUrlSchema = z

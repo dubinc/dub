@@ -183,9 +183,7 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
   return (
     <motion.div
       layout
-      className={cn("flex max-w-[788px] overflow-y-auto w-full flex-col gap-4", {
-        "border-border-500 rounded-lg border p-3": !isMobile,
-      })}
+      className="flex max-w-[788px] w-full flex-col gap-4"
     >
       <StylePicker
         label="Select a logo"
@@ -197,7 +195,6 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
         }`}
         styleButtonClassName="[&_img]:h-10 [&_img]:w-10 p-2"
         disabled={disabled}
-        maxHeight="150px"
       />
 
       <AnimatePresence>

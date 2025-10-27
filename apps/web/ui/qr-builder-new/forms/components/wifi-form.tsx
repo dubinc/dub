@@ -14,7 +14,7 @@ import { WIFI_ENCRYPTION_TYPES } from "@/ui/qr-builder/constants/wifi-encryption
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Flex, Text } from "@radix-ui/themes";
 import { Info, Tag, Wifi } from "lucide-react";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import {
   Controller,
   FormProvider,
@@ -67,6 +67,7 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
     const form = useForm<TWifiQRFormData>({
       resolver: zodResolver(wifiQRSchema),
       defaultValues: formDefaults,
+      mode: "all",
     });
 
     const watchEncryption = form.watch("networkEncryption");

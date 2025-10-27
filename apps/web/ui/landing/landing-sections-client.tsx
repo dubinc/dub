@@ -16,6 +16,7 @@ export const LandingSectionsClient: FC<
 > = ({ sessionId }) => {
   const qrGenerationBlockRef = useRef<HTMLDivElement>(null);
   const [typeToScrollTo, setTypeToScrollTo] = useState<EQRType | null>(null);
+  const [featureToOpen, setFeatureToOpen] = useState<string | null>(null);
 
   const handleScrollButtonClick = (
     type: "1" | "2" | "3",
@@ -41,6 +42,14 @@ export const LandingSectionsClient: FC<
     });
   };
 
+  const handleFeatureClick = useCallback((feature: string) => {
+    setFeatureToOpen(feature);
+    const featuresSection = document.getElementById("features");
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
+
   const handleResetTypeToScrollTo = useCallback(() => {
     setTypeToScrollTo(null);
   }, []);
@@ -64,6 +73,8 @@ export const LandingSectionsClient: FC<
       <LandingSectionsServer
         sessionId={sessionId}
         handleScrollButtonClick={handleScrollButtonClick}
+        handleFeatureClick={handleFeatureClick}
+        featureToOpen={featureToOpen}
       />
     </>
   );

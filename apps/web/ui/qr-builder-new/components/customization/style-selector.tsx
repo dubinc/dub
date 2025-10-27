@@ -31,19 +31,12 @@ export const StyleSelector: FC<StyleSelectorProps> = ({
     [styleData, onStyleChange],
   );
   return (
-    <div
-      className={cn("flex w-full flex-col gap-4", {
-        "border-border-500 rounded-lg border p-3": !isMobile,
-      })}
-    >
+    <div className="flex w-full flex-col gap-4">
       <StylePicker
         label="QR code style"
         styleOptions={DOT_STYLES}
         value={styleData.dotsStyle}
         onSelect={handleDotsStyleChange}
-        stylePickerWrapperClassName={cn("", {
-          "border border-border-500 p-3 rounded-lg": isMobile,
-        })}
         optionsWrapperClassName="gap-2 md:flex-nowrap"
         styleButtonClassName="[&_img]:h-12 [&_img]:w-12 p-3.5"
         disabled={disabled}
@@ -51,7 +44,7 @@ export const StyleSelector: FC<StyleSelectorProps> = ({
 
       <div
         className={cn("", {
-          "border-border-500 rounded-lg border p-3": isMobile,
+          "rounded-lg p-3": isMobile,
         })}
       >
         <ColorsSettings

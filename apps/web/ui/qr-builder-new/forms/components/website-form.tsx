@@ -46,7 +46,7 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
     });
 
     const formDefaults = getDefaultValues({
-      qrName: "",
+      qrName: "My QR Code",
       websiteLink: "",
       ...defaultValues,
     });

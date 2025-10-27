@@ -49,7 +49,7 @@ export const SignUpEmail = ({
           />
           <Button
             type="submit"
-            text={isLoading ? "Submitting..." : "Sign Up"}
+            text={isLoading ? "Submitting..." : "Continue"}
             disabled={isDisabled}
             loading={isLoading}
             className="!mt-3"

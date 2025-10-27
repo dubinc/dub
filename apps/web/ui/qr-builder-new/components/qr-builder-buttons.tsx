@@ -47,9 +47,6 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   const hasUploadedLogoWithoutFileId =
     isCustomizationStep && logoData?.type === "uploaded" && !logoData?.fileId;
 
-  // On content step, disable button if form is invalid
-  const shouldDisableForValidation = isContentStep && !isFormValid;
-
   const getButtonText = useCallback(() => {
     if (isFileUploading) return "Uploading...";
     if (isFileProcessing) return "Processing...";
@@ -109,7 +106,6 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
             isFileUploading ||
             isFileProcessing ||
             hasUploadedLogoWithoutFileId ||
-            shouldDisableForValidation ||
             isCustomizationStep
           }
         >

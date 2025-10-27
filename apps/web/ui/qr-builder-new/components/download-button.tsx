@@ -33,28 +33,24 @@ export const DownloadButton = ({
     !customizationData.logo?.fileId;
 
   const handleSave = useCallback(async () => {
-    if (disabled) return;
-
     // If on content step, validate and get form data without changing step
     if (isContentStep && contentStepRef.current) {
-      // Trigger validation without calling onSubmit (which changes step)
       const isValid = await contentStepRef.current.form.trigger();
       if (!isValid) {
+        toast.error("Please fill in all required fields correctly");
         return;
       }
 
-      // Get form values and update formData state
       const formValues = contentStepRef.current.getValues();
       setFormData(formValues as any);
 
-      // Wait for state update
-      await new Promise(resolve => setTimeout(resolve, 0));
+      await onSave(formValues as any);
+      return;
     }
 
     // Directly save/create the QR code without navigating steps
     await onSave();
   }, [
-    disabled,
     isContentStep,
     contentStepRef,
     setFormData,
@@ -71,7 +67,6 @@ export const DownloadButton = ({
 
   const buttonText = getButtonText();
   const isDisabled =
-    disabled ||
     isProcessing ||
     isFileUploading ||
     isFileProcessing ||

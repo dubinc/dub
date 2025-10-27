@@ -10,14 +10,15 @@ export const GetQRInfoCardsSection: FC = () => {
   return (
     <section className="py-10 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex flex-col items-center justify-center gap-3 sm:mb-16 lg:mb-24">
+        <div className="mb-12 flex flex-col items-center justify-center gap-3">
           <SectionTitle
             titleFirstPart={"Create QR"}
             highlightedTitlePart={"In 3"}
             titleSecondPart={"Simple Steps"}
           />
-          <p className="text-muted-foreground max-w-4xl text-base md:text-lg-base">
-            Choose your type, personalize in three quick steps, your QR code's ready to share.
+          <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
+            Choose your type, personalize in three quick steps, your QR code's
+            ready to share.
           </p>
         </div>
 

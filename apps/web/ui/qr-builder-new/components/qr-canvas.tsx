@@ -164,7 +164,7 @@ export const QRCanvas = forwardRef<HTMLCanvasElement, QRCanvasProps>(
           ref={canvasRef}
           width={actualSize}
           height={actualSize}
-          className="border-border-100 max-h-full max-w-full rounded-lg border bg-white shadow-lg"
+          className="border-border-100 max-h-full p-3 max-w-full rounded-lg border bg-white shadow-lg"
         />
         <div ref={svgContainerRef} style={{ display: "none" }} />
       </>

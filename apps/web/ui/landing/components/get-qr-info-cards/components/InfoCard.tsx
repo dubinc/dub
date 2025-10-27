@@ -8,6 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Cursor, CursorFollow, CursorProvider } from "@/components/ui/cursor";
 import { Icon } from "@iconify/react";
 import { cn } from "@dub/utils";
@@ -183,20 +184,13 @@ export const InfoCard: FC<IGetInfoCardProps> = ({
       </CardContent>
       <CardHeader className="gap-3">
         <div className="flex items-center gap-2">
-          <div className="relative flex h-8 w-8 items-center justify-center rounded-full">
-            <div
-              className="absolute inset-0 -m-[2px] rounded-full"
-              style={{
-                background:
-                  "linear-gradient(90deg, #115740 20.53%, #25BD8B 37.79%)",
-                padding: "2px",
-              }}
-            >
-              <div className="text-foreground flex h-full w-full items-center justify-center rounded-full bg-white text-sm font-semibold">
+          <Avatar className="size-10">
+            <AvatarFallback className="!bg-primary !text-primary-foreground shadow-sm">
+              <span className="text-sm font-semibold">
                 {cardNumber}
-              </div>
-            </div>
-          </div>
+              </span>
+            </AvatarFallback>
+          </Avatar>
           <CardTitle className="group-hover:text-primary text-lg font-semibold transition-colors duration-300">
             {title}
           </CardTitle>
