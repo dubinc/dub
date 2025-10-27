@@ -1,12 +1,10 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
-import {
-  exportPartnerColumns,
-  partnersExportQuerySchema,
-} from "@/lib/zod/schemas/partners";
+import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import PartnerExportReady from "@dub/email/templates/partner-export-ready";
 import { prisma } from "@dub/prisma";
@@ -19,20 +17,6 @@ const payloadSchema = partnersExportQuerySchema.extend({
   programId: z.string(),
   userId: z.string(),
 });
-
-const columnIdToLabel = exportPartnerColumns.reduce(
-  (acc, column) => {
-    acc[column.id] = column.label;
-    return acc;
-  },
-  {} as Record<string, string>,
-);
-
-const numericColumns = exportPartnerColumns
-  .filter((column) => column.numeric)
-  .map((column) => column.id);
-
-const dateColumns = ["createdAt", "payoutsEnabledAt"];
 
 // POST /api/cron/partners/export - QStash worker for processing large partner exports
 export async function POST(req: Request) {
@@ -80,35 +64,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // Sort columns according to schema order
-    const columnOrderMap = exportPartnerColumns.reduce(
-      (acc, column, index) => {
-        acc[column.id] = index + 1;
-        return acc;
-      },
-      {} as Record<string, number>,
-    );
-
-    columns = columns.sort(
-      (a, b) => (columnOrderMap[a] || 999) - (columnOrderMap[b] || 999),
-    );
-
-    // Create schema for validation
-    const schemaFields: Record<string, any> = {};
-    columns.forEach((column) => {
-      if (numericColumns.includes(column)) {
-        schemaFields[columnIdToLabel[column]] = z.coerce
-          .number()
-          .optional()
-          .default(0);
-      } else {
-        schemaFields[columnIdToLabel[column]] = z
-          .string()
-          .optional()
-          .default("");
-      }
-    });
-
     // Fetch partners in batches and build CSV
     const allPartners: any[] = [];
     const partnersFilters = {
@@ -120,21 +75,7 @@ export async function POST(req: Request) {
       partnersFilters,
       1000,
     )) {
-      const formattedBatch = partners.map((partner) => {
-        const result: Record<string, any> = {};
-
-        columns.forEach((column) => {
-          let value = partner[column] || "";
-
-          if (dateColumns.includes(column) && value instanceof Date) {
-            value = value.toISOString();
-          }
-
-          result[columnIdToLabel[column]] = value;
-        });
-
-        return z.object(schemaFields).parse(result);
-      });
+      const formattedBatch = formatPartnersForExport(partners, columns);
 
       allPartners.push(...formattedBatch);
     }
