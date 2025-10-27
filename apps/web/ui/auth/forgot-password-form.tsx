@@ -26,7 +26,7 @@ export const ForgotPasswordForm = ({
         "You will receive an email with instructions to reset your password.",
         "success",
         authModal,
-        setAuthModalMessage
+        setAuthModalMessage,
       );
       router.push("/login");
     },
@@ -35,7 +35,7 @@ export const ForgotPasswordForm = ({
         error.serverError || "An error occurred. Please try again.",
         "error",
         authModal,
-        setAuthModalMessage
+        setAuthModalMessage,
       );
     },
   });

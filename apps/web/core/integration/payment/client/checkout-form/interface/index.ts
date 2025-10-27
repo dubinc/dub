@@ -1,1 +1,1 @@
-export * from './checkout-form.interface';
+export * from "./checkout-form.interface";

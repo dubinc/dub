@@ -14,17 +14,15 @@ export const getLinkViaEdge = async ({ id, domain, key }: GetLinkParams) => {
   }
 
   const isIdSearch = !!id;
-  
+
   const { rows } =
     (await conn.execute(
       `SELECT l.*, u.id as userId, u.createdAt as userCreatedAt, u.email as userEmail,
         (SELECT SUM(clicks) FROM Link WHERE userId = u.id) as totalUserClicks
        FROM Link l 
        LEFT JOIN User u ON l.userId = u.id 
-       WHERE ${isIdSearch ? 'l.id = ?' : 'l.domain = ? AND l.key = ?'}`,
-      isIdSearch 
-        ? [id]
-        : [domain, punyEncode(decodeURIComponent(key!))], // we need to make sure that the key is always URI-decoded + punycode-encoded (cause that's how we store it in MySQL)
+       WHERE ${isIdSearch ? "l.id = ?" : "l.domain = ? AND l.key = ?"}`,
+      isIdSearch ? [id] : [domain, punyEncode(decodeURIComponent(key!))], // we need to make sure that the key is always URI-decoded + punycode-encoded (cause that's how we store it in MySQL)
     )) || {};
 
   return rows && Array.isArray(rows) && rows.length > 0

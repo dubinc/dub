@@ -1,4 +1,4 @@
-import { TrialDays } from '@/lib/constants/trial';
+import { TrialDays } from "@/lib/constants/trial";
 
 export const FAQ_ITEMS_HOMEPAGE = [
   {
@@ -8,8 +8,7 @@ export const FAQ_ITEMS_HOMEPAGE = [
   },
   {
     title: "Are QR codes free?",
-    content:
-      `GetQR offers a discounted ${TrialDays}-day paid trial so you can try the product with full access to unlimited QR codes, edits, scans, analytics, and downloads. After the trial, subscribe to a plan to keep your QR codes active. You can cancel anytime. If you don’t continue, your codes are paused but safely saved for when you come back.`,
+    content: `GetQR offers a discounted ${TrialDays}-day paid trial so you can try the product with full access to unlimited QR codes, edits, scans, analytics, and downloads. After the trial, subscribe to a plan to keep your QR codes active. You can cancel anytime. If you don’t continue, your codes are paused but safely saved for when you come back.`,
   },
   {
     title: "Can the QR codes be used for business?",

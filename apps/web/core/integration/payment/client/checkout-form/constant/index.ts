@@ -1,1 +1,1 @@
-export * from './checkout-form.constant';
+export * from "./checkout-form.constant";

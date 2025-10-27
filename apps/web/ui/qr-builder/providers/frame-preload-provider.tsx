@@ -1,7 +1,13 @@
 "use client";
 
 import { preloadAllFrames } from "@/ui/qr-builder/constants/customization/frames.ts";
-import { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  ReactNode,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 
 interface FramePreloadContextType {
   isLoaded: boolean;
@@ -17,7 +23,9 @@ interface FramePreloadProviderProps {
   children: ReactNode;
 }
 
-export const FramePreloadProvider = ({ children }: FramePreloadProviderProps) => {
+export const FramePreloadProvider = ({
+  children,
+}: FramePreloadProviderProps) => {
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
@@ -37,7 +45,7 @@ export const FramePreloadProvider = ({ children }: FramePreloadProviderProps) =>
       }
     };
 
-    if ('requestIdleCallback' in window) {
+    if ("requestIdleCallback" in window) {
       requestIdleCallback(() => loadFrames(), { timeout: 5000 });
     } else {
       setTimeout(loadFrames, 100);
@@ -53,4 +61,4 @@ export const FramePreloadProvider = ({ children }: FramePreloadProviderProps) =>
       {children}
     </FramePreloadContext.Provider>
   );
-}; 
+};

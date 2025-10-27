@@ -3,7 +3,7 @@ export const fileToBase64 = (file: File) => {
     const reader = new FileReader();
     reader.onload = () => {
       const base64 = reader.result;
-      
+
       // const payload = {
       //   filename: file.name,
       //   mimeType: file.type,

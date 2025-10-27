@@ -1,8 +1,8 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
 import { NewQrProps, WorkspaceProps } from "@/lib/types";
+import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { createQr } from "./create-qr";
-import { EQRType } from '@/ui/qr-builder/constants/get-qr-config';
 
 interface CreateQrWithLinkOptions {
   qrData: NewQrProps;
@@ -41,7 +41,9 @@ export async function createQrWithLinkUniversal({
   }
 
   try {
-    const createdLink = await createLink(link, { qrType: qrData.qrType as EQRType });
+    const createdLink = await createLink(link, {
+      qrType: qrData.qrType as EQRType,
+    });
 
     if (onLinkCreated) {
       await onLinkCreated(createdLink);
