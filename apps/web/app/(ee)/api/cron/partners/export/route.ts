@@ -82,11 +82,12 @@ export async function POST(req: Request) {
 
     const csvData = convertToCSV(allPartners);
 
-    // Upload to R2
+    // Upload to R2 as private file (not publicly accessible)
     const fileKey = `exports/partners/${generateRandomString(60)}.csv`;
     const csvBlob = new Blob([csvData], { type: "text/csv" });
     const uploadResult = await storage.upload(fileKey, csvBlob, {
       contentType: "text/csv",
+      access: "private",
       headers: {
         "Content-Type": "text/csv",
         "Content-Disposition": "attachment",
@@ -97,12 +98,18 @@ export async function POST(req: Request) {
       throw new Error("Failed to upload CSV to storage.");
     }
 
+    // Generate a signed GET URL with 7-day expiry (604800 seconds)
+    const downloadUrl = await storage.getSignedUrl(fileKey, {
+      method: "GET",
+      expiresIn: 7 * 24 * 3600, // 7 days
+    });
+
     await sendEmail({
       to: user.email,
       subject: "Your partner export is ready",
       react: PartnerExportReady({
         email: user.email,
-        downloadUrl: uploadResult.url,
+        downloadUrl,
         program: {
           name: program.name,
         },
