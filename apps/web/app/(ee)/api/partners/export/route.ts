@@ -21,7 +21,7 @@ const numericColumns = exportPartnerColumns
   .filter((column) => column.numeric)
   .map((column) => column.id);
 
-const MAX_PARTNERS_TO_EXPORT = 5;
+const MAX_PARTNERS_TO_EXPORT = 1000;
 
 // GET /api/partners/export – export partners to CSV
 export const GET = withWorkspace(
