@@ -26,7 +26,7 @@ interface ICheckoutFormEventProps {
   toxic?: boolean;
   paymentType?: string;
   additionalParams?: {
-    [key: string]: string | null;
+    [key: string]: string | number | boolean | null;
   };
 }
 

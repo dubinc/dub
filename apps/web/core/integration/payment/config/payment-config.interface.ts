@@ -5,6 +5,7 @@ export interface ICustomerBody {
   email?: string;
   toxic?: boolean;
   isPaidUser?: boolean;
+  emailMarketing?: boolean;
   currency?: {
     countryCode?: string;
     currencyCode?: string;
