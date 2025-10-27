@@ -50,12 +50,9 @@ export async function POST(req: Request) {
 
     console.log(`Processing batch of ${payload.length} email(s)`);
 
-    // Process each email and build Resend payload
-    const emailsToSend: ResendEmailOptions[] = [];
-    const errors: BatchError[] = [];
-
-    for (const emailItem of payload) {
-      try {
+    // Process all emails in parallel and build Resend payload
+    const results = await Promise.allSettled(
+      payload.map(async (emailItem) => {
         const TemplateComponent = TEMPLATE_MAP[emailItem.templateName];
 
         if (!TemplateComponent) {
@@ -69,20 +66,41 @@ export async function POST(req: Request) {
           emailItem.templateProps,
         );
 
-        emailsToSend.push({
-          react,
-          from: emailItem.from,
-          to: emailItem.to,
-          subject: emailItem.subject,
-          variant: emailItem.variant,
-          ...(emailItem.replyTo && { replyTo: emailItem.replyTo }),
-          ...(emailItem.headers && { headers: emailItem.headers }),
-          ...(emailItem.tags && { tags: emailItem.tags }),
-          ...(emailItem.scheduledAt && { scheduledAt: emailItem.scheduledAt }),
-        });
-      } catch (error) {
+        return {
+          emailItem,
+          emailPayload: {
+            react,
+            from: emailItem.from,
+            to: emailItem.to,
+            subject: emailItem.subject,
+            variant: emailItem.variant,
+            ...(emailItem.bcc && { bcc: emailItem.bcc }),
+            ...(emailItem.replyTo && { replyTo: emailItem.replyTo }),
+            ...(emailItem.headers && { headers: emailItem.headers }),
+            ...(emailItem.tags && { tags: emailItem.tags }),
+            ...(emailItem.scheduledAt && {
+              scheduledAt: emailItem.scheduledAt,
+            }),
+          },
+        };
+      }),
+    );
+
+    // Separate successes and failures
+    const emailsToSend: ResendEmailOptions[] = [];
+    const errors: BatchError[] = [];
+
+    for (let i = 0; i < results.length; i++) {
+      const result = results[i];
+      const emailItem = payload[i];
+
+      if (result.status === "fulfilled") {
+        emailsToSend.push(result.value.emailPayload);
+      } else {
         const errorMessage =
-          error instanceof Error ? error.message : String(error);
+          result.reason instanceof Error
+            ? result.reason.message
+            : String(result.reason);
 
         console.error(
           `Failed to process email template ${emailItem.templateName} for ${emailItem.to}:`,
