@@ -8,7 +8,7 @@ type QueueBatchProps<TTemplate extends (props: any) => any> =
     templateProps: Parameters<TTemplate>[0];
   };
 
-const BATCH_SIZE = 2; // Resend's maximum batch size
+const BATCH_SIZE = 50;
 
 const queue = qstash.queue({
   queueName: "batch-email",
