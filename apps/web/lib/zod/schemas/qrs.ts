@@ -19,7 +19,6 @@ export const createQrBodySchema = z.object({
   description: z.string().max(280).optional(),
   styles: z.record(z.any()).optional(), // Json
   frameOptions: z.record(z.any()).optional(), // Json
-  logoOptions: z.record(z.any()).optional(), // Json - logo configuration: type, id (suggested), fileId (uploaded)
   archived: z.boolean().optional(),
   fileId: z.string().optional().describe("The file the link leads to"),
   link: createLinkBodySchema,

@@ -1,7 +1,7 @@
 import { NewQrProps } from "@/lib/types";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config";
 import { prisma } from "@dub/prisma";
 import { createId } from "../utils";
+import { EQRType } from '@/ui/qr-builder/constants/get-qr-config';
 
 export async function createQr(
   {
@@ -11,7 +11,6 @@ export async function createQr(
     description,
     styles,
     frameOptions,
-    logoOptions,
     fileId,
   }: NewQrProps,
   url: string,
@@ -27,7 +26,6 @@ export async function createQr(
       description,
       styles,
       frameOptions,
-      logoOptions,
       linkId,
       userId,
       fileId,

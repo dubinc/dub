@@ -1,8 +1,8 @@
 import { Session } from "@/lib/auth/utils";
 import { useTrialExpiredModal } from "@/lib/hooks/use-trial-expired-modal.tsx";
-import { QR_TYPES } from "@/ui/qr-builder-new/constants/get-qr-config";
+import { QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
-import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { CardList } from "@dub/ui";
 import { useRef } from "react";
 import { QrCodeDetailsColumn } from "./qr-code-details-column.tsx";
@@ -13,7 +13,7 @@ export function QrCodeCard({
   featuresAccess,
   user,
 }: {
-  qrCode: TQrStorageData;
+  qrCode: QrStorageData;
   featuresAccess: boolean;
   user: Session["user"];
 }) {

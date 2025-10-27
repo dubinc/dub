@@ -1,9 +1,7 @@
-import { declineReasons } from "../constant";
+import { declineReasons } from '../constant';
 
-import { DeclineReasonKeys } from "./../interface/checkout-form.interface";
+import { DeclineReasonKeys } from './../interface/checkout-form.interface';
 
-export function isValidDeclineReason(
-  reason: string,
-): reason is DeclineReasonKeys {
+export function isValidDeclineReason(reason: string): reason is DeclineReasonKeys {
   return reason in declineReasons;
 }
