@@ -32,6 +32,8 @@ const numericColumns = exportPartnerColumns
   .filter((column) => column.numeric)
   .map((column) => column.id);
 
+const dateColumns = ["createdAt", "payoutsEnabledAt"];
+
 // POST /api/cron/partners/export - QStash worker for processing large partner exports
 export async function POST(req: Request) {
   try {
@@ -109,12 +111,13 @@ export async function POST(req: Request) {
 
     // Fetch partners in batches and build CSV
     const allPartners: any[] = [];
+    const partnersFilters = {
+      ...filters,
+      programId,
+    };
 
     for await (const { partners } of fetchPartnersBatch(
-      {
-        ...filters,
-        programId,
-      },
+      partnersFilters,
       1000,
     )) {
       const formattedBatch = partners.map((partner) => {
@@ -123,10 +126,7 @@ export async function POST(req: Request) {
         columns.forEach((column) => {
           let value = partner[column] || "";
 
-          if (
-            ["createdAt", "payoutsEnabledAt"].includes(column) &&
-            value instanceof Date
-          ) {
+          if (dateColumns.includes(column) && value instanceof Date) {
             value = value.toISOString();
           }
 
