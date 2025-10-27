@@ -1,4 +1,5 @@
 import { TPaymentPlan } from "core/integration/payment/config";
+import { ISystemSubscriptionRes } from "core/integration/payment/server";
 import { IDataRes } from "core/interfaces/common.interface.ts";
 
 export interface ICheckSubscriptionStatusRes extends IDataRes {
@@ -27,6 +28,7 @@ export interface ICreateSubscriptionRes extends IDataRes {
 }
 
 export interface IUpdateSubscriptionBody {
+  paymentId: string;
   paymentPlan: TPaymentPlan;
 }
 
@@ -50,4 +52,17 @@ export interface IUpdateSubscriptionPaymentMethodBody {
 
 export interface IUpdateSubscriptionPaymentMethodRes extends IDataRes {
   data?: { toxic: boolean } | null;
+}
+
+export interface ICancelSubscriptionScheduleBody {
+  cancelReason?: string;
+}
+
+export interface ICancelSubscriptionScheduleRes extends IDataRes {
+  data?: {
+    isSubscribed: boolean;
+    subscriptionId?: string;
+    nextBillingDate?: string;
+    subscription?: ISystemSubscriptionRes;
+  } | null;
 }

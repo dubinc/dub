@@ -299,10 +299,127 @@ export const useQrOperations = () => {
     [workspaceId],
   );
 
+  const duplicateQr = useCallback(
+    async (qrId: string) => {
+      try {
+        if (!workspaceId) {
+          toast.error("Workspace ID not found");
+          return false;
+        }
+
+        const res = await fetch(`/api/qrs/${qrId}/duplicate?workspaceId=${workspaceId}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (res.status === 200) {
+          const responseData = await res.json();
+          const createdQrId = responseData?.createdQr?.id;
+
+          setNewQrId?.(createdQrId);
+
+          await mutatePrefix(["/api/qrs", "/api/links"]);
+
+          // // Track QR created event
+          // const trackingParams = createQRTrackingParams(
+          //   qrBuilderData,
+          //   createdQrId,
+          // );
+          // trackClientEvents({
+          //   event: EAnalyticEvents.QR_CREATED,
+          //   params: {
+          //     event_category: "Authorized",
+          //     page_name: "dashboard",
+          //     email: user?.email,
+          //     link_url: responseData.createdLink?.shortLink,
+          //     link_id: responseData.createdLink?.id,
+          //     target_url: responseData.createdLink?.url,
+          //     ...trackingParams,
+          //   },
+          //   sessionId: user?.id,
+          // });
+
+          toast.success("QR was duplicated");
+          return true;
+        } else {
+          const { error } = await res.json();
+          toast.error(error?.message || "Failed to duplicate QR");
+          return false;
+        }
+      } catch (e) {
+        console.error("Failed to duplicate QR", e);
+        toast.error("Failed to duplicate QR");
+        return false;
+      }
+    },
+    [workspaceId, setNewQrId],
+  );
+
+  // const resetScans = useCallback(
+  //   async (qrId: string) => {
+  //     try {
+  //       if (!workspaceId) {
+  //         toast.error("Workspace ID not found");
+  //         return false;
+  //       }
+
+  //       const res = await fetch(`/api/qrs/${qrId}/analytics?workspaceId=${workspaceId}`, {
+  //         method: "DELETE",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       });
+
+  //       if (res.status === 200) {
+  //         await mutatePrefix(["/api/qrs", "/api/links"]);
+
+  //         // const responseData = await res.json();
+  //         // const convertedQr = convertQrStorageDataToBuilder(responseData.qr);
+  //         // const trackingParams = createQRTrackingParams(
+  //         //   convertedQr,
+  //         //   responseData.qr.id,
+  //         // );
+  //         // trackClientEvents({
+  //         //   event: EAnalyticEvents.QR_UPDATED,
+  //         //   params: {
+  //         //     event_category: "Authorized",
+  //         //     page_name: "dashboard",
+  //         //     email: user?.email,
+  //         //     ...trackingParams,
+  //         //     is_activated: false,
+  //         //     is_deactivated: false,
+  //         //     is_deleted: true,
+  //         //     link_url: responseData.qr.link?.shortLink,
+  //         //     link_id: responseData.qr.link?.id,
+  //         //     target_url: responseData.qr.link?.url,
+  //         //   },
+  //         //   sessionId: user?.id,
+  //         // });
+
+  //         toast.success("Scans reset successfully!");
+  //         return true;
+  //       } else {
+  //         const { error } = await res.json();
+  //         toast.error(error?.message || "Failed to reset scans");
+  //         return false;
+  //       }
+  //     } catch (e) {
+  //       console.error("Failed to reset scans", e);
+  //       toast.error("Failed to reset scans");
+  //       return false;
+  //     }
+  //   },
+  //   [workspaceId],
+  // );
+
   return {
     createQr,
     updateQrWithOriginal,
     archiveQr,
     deleteQr,
+    duplicateQr,
+    // resetScans,
   };
 };

@@ -91,7 +91,7 @@ export async function recordClick({
   const ua = userAgent(req);
   const referer = req.headers.get("referer");
 
-  const identity_hash = await getIdentityHash(req);
+  const identity_hash = await getIdentityHash(req, linkId);
 
   const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 

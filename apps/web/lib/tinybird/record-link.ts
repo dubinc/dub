@@ -43,6 +43,10 @@ export const dubLinksMetadataSchema = z.object({
     .boolean()
     .default(false)
     .transform((v) => (v ? 1 : 0)),
+  stats_deleted: z
+    .boolean()
+    .default(false)
+    .transform((v) => (v ? 1 : 0)),
   qr_id: z
     .string()
     .nullish()

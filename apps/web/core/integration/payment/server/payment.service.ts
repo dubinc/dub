@@ -1,3 +1,4 @@
+import { ICancelSubscriptionScheduleBody } from "core/api/user/subscription/subscription.interface";
 import ky from "ky";
 import {
   createPrimerClientPayment,
@@ -9,6 +10,7 @@ import {
   updatePrimerClientSession,
 } from "./primer";
 import {
+  cancelSystemSubscriptionSchedule,
   checkSystemSubscriptionStatus,
   createSystemTokenOnboarding,
   getSystemSubscriptionUpgradePaymentId,
@@ -20,10 +22,12 @@ import {
   IReactivateSystemSubscriptionBody,
   IUpdateSystemPaymentMethodBody,
   IUpdateSystemSubscriptionBody,
+  IUpdateUserSubscriptionAttributesBody,
   IUpdateUserSystemDataBody,
   reactivateSystemSubscription,
   updateSystemSubscriptionPaymentMethod,
   updateSystemSubscriptionStatus,
+  updateUserSubscriptionAttributes,
   updateUserSystemData,
 } from "./system";
 
@@ -90,6 +94,14 @@ export class PaymentService {
     return await checkSystemSubscriptionStatus(body);
   }
 
+  // cancel client subscription
+  public async cancelClientSubscriptionBySchedule(
+    id: string,
+    body: ICancelSubscriptionScheduleBody,
+  ) {
+    return await cancelSystemSubscriptionSchedule(id, body);
+  }
+
   // reactivate client subscription
   public async reactivateClientSubscription(
     id: string,
@@ -113,6 +125,14 @@ export class PaymentService {
   // update client data
   public async updateClientData(id: string, body: IUpdateUserSystemDataBody) {
     return await updateUserSystemData(id, body);
+  }
+
+  // update client subscription attributes
+  public async updateClientSubscriptionAttributes(
+    id: string,
+    body: IUpdateUserSubscriptionAttributesBody,
+  ) {
+    return await updateUserSubscriptionAttributes(id, body);
   }
 
   // check client card risk

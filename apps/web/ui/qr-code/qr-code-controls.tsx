@@ -20,6 +20,8 @@ import { useRouter } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useContext } from "react";
 import { ThreeDots } from "../shared/icons";
+import { useDuplicateQRModal } from '../modals/duplicate-qr-modal';
+import { useResetScansModal } from '../modals/reset-scans-modal';
 
 interface QrCodeControlsProps {
   qrCode: QrStorageData;
@@ -51,6 +53,9 @@ export function QrCodeControls({
     setOpenMenuQrCodeId(open ? qrCode.id : null);
   };
 
+  const { handleToggleModal: setShowDuplicateQRModal, DuplicateQRModal } = useDuplicateQRModal({
+    props: qrCode,
+  });
   const { setShowArchiveQRModal, ArchiveQRModal } = useArchiveQRModal({
     props: qrCode,
   });
@@ -145,6 +150,7 @@ export function QrCodeControls({
 
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
+      <DuplicateQRModal />
       <QRPreviewModal />
       <QRChangeTypeModal />
       <QRCustomizeModal />
@@ -182,15 +188,25 @@ export function QrCodeControls({
                 icon={<ChartNoAxesColumn className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
               />
-              {/* <Button
+              <Button
                 text="Duplicate"
                 variant="outline"
                 onClick={() => {
-                  // TODO GETQR-260
+                  onActionClick("duplicate");
+
+                  setOpenPopover(false);
+
+                  if (!featuresAccess) {
+                    setShowTrialExpiredModal?.(true);
+                    setOpenPopover(false);
+                    return;
+                  }
+
+                  setShowDuplicateQRModal(true);
                 }}
                 icon={<Copy className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-              /> */}
+              />
               <Button
                 text={qrCode.archived ? "Activate" : "Pause"}
                 variant="outline"
@@ -213,7 +229,7 @@ export function QrCodeControls({
               />
             </div>
             <div className="w-full px-6" >
-              <div className="border-t border-neutral-200 w-full" />
+              <div className="border-t border-border-500 w-full" />
             </div>
             <div className="grid gap-1 p-2">
               <Button
@@ -254,14 +270,23 @@ export function QrCodeControls({
                 text="Reset scans"
                 variant="outline"
                 onClick={() => {
-                  // TODO GETQR-261
+                  onActionClick("reset_scans");
+
+                  setOpenPopover(false);
+
+                  if (!featuresAccess) {
+                    setShowTrialExpiredModal?.(true);
+                    return;
+                  }
+
+                  setShowResetScansModal(true);
                 }}
                 icon={<RotateCcw className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
               /> */}
             </div>
             <div className="w-full px-6" >
-              <div className="border-t border-neutral-200 w-full" />
+              <div className="border-t border-border-500 w-full" />
             </div>
             <div className="grid gap-1 p-2">
               <Button

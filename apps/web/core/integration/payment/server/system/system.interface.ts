@@ -147,47 +147,48 @@ export interface IGetSystemUserDataBody {
   subscriptionType?: string;
   includeInit?: string;
 }
+
+export interface ISystemSubscriptionRes {
+  id: string;
+  userId: string;
+  plan: {
+    id: string;
+    currencyCode: string;
+    price: number;
+    chargePeriodDays: number;
+    trialPrice: number;
+    trialPeriodDays: number;
+    secondary: boolean;
+    createdAt: string;
+    updatedAt: string;
+    twoSteps: boolean;
+    delayedCapture: string | null;
+    delayedCaptureTrialDays: number;
+    delayedCaptureDays: number;
+  };
+  status:
+    | "active"
+    | "inactive"
+    | "trial"
+    | "dunning"
+    | "pre_active"
+    | "pre_renew"
+    | "scheduled_for_cancellation"
+    | "cancelled";
+  nextBillingDate: string;
+  createdAt: string;
+  updatedAt: string;
+  attributes: {
+    hostname: string;
+    application: string;
+    subscriptionType: string;
+    plan_name: string;
+  };
+  cancelReason: string;
+}
+
 export interface IGetSystemUserDataRes {
-  subscriptions: [
-    {
-      id: string;
-      userId: string;
-      plan: {
-        id: string;
-        currencyCode: string;
-        price: number;
-        chargePeriodDays: number;
-        trialPrice: number;
-        trialPeriodDays: number;
-        secondary: boolean;
-        createdAt: string;
-        updatedAt: string;
-        twoSteps: boolean;
-        delayedCapture: string | null;
-        delayedCaptureTrialDays: number;
-        delayedCaptureDays: number;
-      };
-      status:
-        | "active"
-        | "inactive"
-        | "trial"
-        | "dunning"
-        | "pre_active"
-        | "pre_renew"
-        | "scheduled_for_cancellation"
-        | "cancelled";
-      nextBillingDate: string;
-      createdAt: string;
-      updatedAt: string;
-      attributes: {
-        hostname: string;
-        application: string;
-        subscriptionType: string;
-        plan_name: string;
-      };
-      cancelReason: string;
-    },
-  ];
+  subscriptions: ISystemSubscriptionRes[];
 }
 
 export interface ICheckSystemSubscriptionStatusBody {
@@ -227,6 +228,10 @@ export interface IUpdateUserSystemDataBody {
   firstName?: string;
   lastName?: string;
   nationalDocumentId?: string;
+}
+
+export interface IUpdateUserSubscriptionAttributesBody {
+  attributes: { [key: string]: string | number | boolean | object | null };
 }
 
 export interface IGetSystemUserProcessorRes {

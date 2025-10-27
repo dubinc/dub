@@ -1,5 +1,6 @@
 "use client";
 
+import { NpsForm } from "@/ui/nps-rating/nps-form";
 // import { PosthogPageview } from "@/ui/layout/posthog-pageview";
 import { Analytics as DubAnalytics } from "@dub/analytics/react";
 import {
@@ -41,6 +42,7 @@ export default function RootProviders({ children }: { children: ReactNode }) {
       <TooltipProvider>
         <KeyboardShortcutProvider>
           <ToasterProvider />
+          <NpsForm />
           {/* <PosthogPageview /> */}
           {children}
           <DubAnalytics

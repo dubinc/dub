@@ -21,13 +21,11 @@ const Layout = async ({ children }) => {
   const authSession = await getSession();
 
   return (
-    <>
-      <div className="flex min-h-screen flex-col bg-neutral-50/80">
-        <Header sessionId={sessionId!} authSession={authSession} />
-        {children}
-        <Footer sessionId={sessionId!} />
-      </div>
-    </>
+    <div className="flex min-h-screen flex-col bg-neutral-50/80">
+      <Header sessionId={sessionId!} authSession={authSession} />
+      {children}
+      <Footer sessionId={sessionId!} />
+    </div>
   );
 };
 

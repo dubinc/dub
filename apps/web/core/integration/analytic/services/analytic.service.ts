@@ -1,7 +1,7 @@
 import { Dict } from "mixpanel-browser";
 import { debugUtil } from "../../../util";
 import { ICustomerBody } from "../../payment/config";
-import { getUtmListFromSearch } from "../helpers/get-utms.helper.ts";
+import { getUTMList } from "../helpers/get-utms.helper.ts";
 import { EAnalyticEvents } from "../interfaces/analytic.interface.ts";
 import { mixpanelClient } from "../mixpanel";
 
@@ -65,19 +65,7 @@ export const trackClientEvents = <T extends Dict>(
 ) => {
   const { event, user, sessionId, params } = props;
 
-  let utm: Record<string, string> | null = {};
-
-  if (typeof window !== "undefined") {
-    const storedUtms = localStorage.getItem("utmValues");
-    if (storedUtms) {
-      utm = { ...JSON.parse(storedUtms) };
-    } else {
-      utm = getUtmListFromSearch();
-      if (utm) {
-        localStorage.setItem("utmValues", JSON.stringify(utm));
-      }
-    }
-  }
+  const utm = getUTMList();
 
   const values = {
     env: `${process.env.NEXT_PUBLIC_APP_ENV}`,

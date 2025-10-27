@@ -1,6 +1,6 @@
 "use client";
 
-import { FeaturesAccess } from '@/lib/actions/check-features-access-auth-less';
+import { FeaturesAccess } from "@/lib/actions/check-features-access-auth-less";
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import { IPricingPlan } from "@/ui/plans/constants";
 import { Button } from "@dub/ui";
@@ -53,7 +53,8 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
 
   const buttonText = useMemo(() => {
     switch (true) {
-      case !featuresAccess.isSubscribed:
+      case !featuresAccess.isSubscribed ||
+        featuresAccess.status === "scheduled_for_cancellation":
         return "Reactivate subscription";
       case selectedPlan.paymentPlan === currentSubscriptionPlan:
         return "Your Active Plan";
@@ -65,7 +66,11 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     }
   }, [selectedPlan, currentSubscriptionPlan]);
 
-  const isDisabled = (currentSubscriptionPlan === selectedPlan.paymentPlan && featuresAccess.isSubscribed ) || isProcessing
+  const isDisabled =
+    (currentSubscriptionPlan === selectedPlan.paymentPlan &&
+      featuresAccess.isSubscribed &&
+      featuresAccess.status !== "scheduled_for_cancellation") ||
+    isProcessing;
 
   const handleUpdatePlan = async () => {
     setIsProcessing(true);
@@ -128,7 +133,10 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     };
 
     const onPurchased = async (info: IGetPrimerClientPaymentInfoRes) => {
-      await triggerUpdateSubscription({ paymentPlan: selectedPlan.paymentPlan })
+      await triggerUpdateSubscription({
+        paymentId: info.id,
+        paymentPlan: selectedPlan.paymentPlan,
+      })
         .then(async () => {
           generateTrackingUpsellEvent({
             user,
