@@ -273,7 +273,8 @@ function LinkBuilderInner({
         mutate(`/api/workspaces/${slug}`);
 
         // Navigate to the link's folder
-        if (data.folderId) queryParams({ set: { folderId: data.folderId } });
+        if (data.folderId)
+          queryParams({ set: { folderId: data.folderId } });
         else queryParams({ del: ["folderId"] });
       } else {
         const { error } = await res.json();
@@ -334,7 +335,10 @@ function LinkBuilderInner({
             generatingMetatags,
           }}
         >
-          <form ref={formRef} onSubmit={handleSubmitForm}>
+          <form
+            ref={formRef}
+            onSubmit={handleSubmitForm}
+          >
             <div className="flex flex-col items-start gap-2 px-6 py-4 md:flex-row md:items-center md:justify-between">
               {flags?.linkFolders && (
                 <div className="flex items-center gap-2">

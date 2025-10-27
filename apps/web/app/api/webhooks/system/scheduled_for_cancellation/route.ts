@@ -1,7 +1,7 @@
-import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
-import { prisma } from "@dub/prisma";
-import { format } from "date-fns";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@dub/prisma';
+import { CUSTOMER_IO_TEMPLATES, sendEmail } from '@dub/email';
+import { format } from 'date-fns';
 
 interface IDataRes {
   success: boolean;
@@ -13,18 +13,15 @@ export async function POST(req: NextRequest): Promise<NextResponse<IDataRes>> {
   try {
     const body = await req.json();
 
-    console.log("scheduled_for_cancellation");
+    console.log('scheduled_for_cancellation');
     console.log(body);
 
     const email = body.subscription?.attributes?.email || body.user?.email;
     const nextBillingDate = body.subscription?.nextBillingDate;
     const changeType = body.type;
 
-    if (changeType !== "scheduled_for_cancellation") {
-      return NextResponse.json(
-        { success: false, error: "Bad request" },
-        { status: 400 },
-      );
+    if (changeType !== 'scheduled_for_cancellation') {
+      return NextResponse.json({ success: false, error: 'Bad request' }, { status: 400 });
     }
 
     const user = await prisma.user.findUnique({
@@ -36,10 +33,10 @@ export async function POST(req: NextRequest): Promise<NextResponse<IDataRes>> {
         email: true,
       },
     });
-
+  
     if (!user?.email) {
       return NextResponse.json(
-        { success: false, error: "User not found" },
+        { success: false, error: 'User not found' },
         { status: 404 },
       );
     }
@@ -49,16 +46,13 @@ export async function POST(req: NextRequest): Promise<NextResponse<IDataRes>> {
       subject: "Subscription Cancelled",
       template: CUSTOMER_IO_TEMPLATES.SUBSCRIPTION_CANCELLATION,
       messageData: {
-        end_date: format(new Date(nextBillingDate), "yyyy-MM-dd"),
+        end_date: format(new Date(nextBillingDate), 'yyyy-MM-dd'),
       },
       customerId: user.id,
     });
 
     return NextResponse.json({ success: true });
   } catch (error: any) {
-    return NextResponse.json(
-      { success: false, error: error?.message },
-      { status: 500 },
-    );
+    return NextResponse.json({ success: false, error: error?.message }, { status: 500 });
   }
 }

@@ -2,10 +2,10 @@
 
 import { Session } from "@/lib/auth";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
-import { QRType } from "@/ui/qr-builder-new/constants/get-qr-config";
+import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
-import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
 import { QRCardTitle } from "@/ui/qr-code/qr-code-card-title.tsx";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
@@ -18,9 +18,9 @@ import QRCodeStyling from "qr-code-styling";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
 
-interface IQrCodeTitleColumnProps {
+interface QrCodeTitleColumnProps {
   user: Session["user"];
-  qrCode: TQrStorageData;
+  qrCode: QrStorageData;
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
   featuresAccess?: boolean;
@@ -34,7 +34,7 @@ export function QrCodeTitleColumn({
   currentQrTypeInfo,
   featuresAccess,
   setShowTrialExpiredModal,
-}: IQrCodeTitleColumnProps) {
+}: QrCodeTitleColumnProps) {
   const { domain, key, createdAt, shortLink, title } = qrCode?.link ?? {};
   const { isMobile, width } = useMediaQuery();
   const [isPreviewCanvasReady, setIsPreviewCanvasReady] =

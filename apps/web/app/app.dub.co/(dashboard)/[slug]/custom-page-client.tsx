@@ -4,9 +4,8 @@ import { FeaturesAccess } from "@/lib/actions/check-features-access-auth-less";
 import { Session } from "@/lib/auth/utils";
 import useQrs from "@/lib/swr/use-qrs.ts";
 import { UserProvider } from "@/ui/contexts/user";
-import { CreateQRButton, QRBuilderModal } from "@/ui/modals/qr-builder-new";
-import { useTrialOfferWithQRPreviewModal } from "@/ui/modals/trial-offer-with-qr-preview";
-import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
+import { useQRBuilder } from "@/ui/modals/qr-builder";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import QrCodeSort from "@/ui/qr-code/qr-code-sort.tsx";
 import QrCodesContainer from "@/ui/qr-code/qr-codes-container.tsx";
 import { QrCodesDisplayProvider } from "@/ui/qr-code/qr-codes-display-provider.tsx";
@@ -16,13 +15,10 @@ import { ShieldAlert } from "@dub/ui/icons";
 import { ICustomerBody } from "core/integration/payment/config";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 import { NewQrProvider } from "./helpers/new-qr-context";
-import { trackClientEvents } from "core/integration/analytic";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 
 interface WorkspaceQRsClientProps {
-  initialQrs: TQrStorageData[];
+  initialQrs: QrStorageData[];
   featuresAccess: FeaturesAccess;
   user: Session["user"];
   cookieUser: ICustomerBody | null;
@@ -53,20 +49,18 @@ function WorkspaceQRs({
   featuresAccess,
   user,
 }: {
-  initialQrs: TQrStorageData[];
+  initialQrs: QrStorageData[];
   featuresAccess: FeaturesAccess;
   user: Session["user"];
 }) {
   const router = useRouter();
   const { isValidating } = useQrs({}, {}, true); // listenOnly mode
-  const [showQRBuilderModal, setShowQRBuilderModal] = useState(false);
+
+  const { CreateQRButton, QRBuilderModal } = useQRBuilder();
 
   return (
     <>
-      <QRBuilderModal
-        showModal={showQRBuilderModal}
-        setShowModal={setShowQRBuilderModal}
-      />
+      <QRBuilderModal />
 
       <div className="flex w-full items-center pt-2">
         <MaxWidthWrapper className="flex flex-col gap-y-3">
@@ -128,7 +122,7 @@ function WorkspaceQRs({
                 </div>
 
                 <div className="grow-0">
-                  <CreateQRButton onClick={() => setShowQRBuilderModal(true)} />
+                  <CreateQRButton />
                 </div>
               </div>
             </div>
@@ -138,13 +132,7 @@ function WorkspaceQRs({
 
       <div className="mt-3">
         <QrCodesContainer
-          CreateQrCodeButton={
-            featuresAccess
-              ? () => (
-                  <CreateQRButton onClick={() => setShowQRBuilderModal(true)} />
-                )
-              : () => <></>
-          }
+          CreateQrCodeButton={featuresAccess ? CreateQRButton : () => <></>}
           featuresAccess={featuresAccess.featuresAccess}
           initialQrs={initialQrs}
           user={user}
@@ -152,44 +140,4 @@ function WorkspaceQRs({
       </div>
     </>
   );
-}
-function TrialOfferWithQRPreviewWrapper({
-  initialQrs,
-  featuresAccess,
-  user,
-}: {
-  initialQrs: TQrStorageData[];
-  featuresAccess: FeaturesAccess;
-  user: ICustomerBody | null;
-}) {
-  const firstQr = initialQrs?.[0] || null;
-  const { isSubscribed } = featuresAccess;
-
-  const { TrialOfferWithQRPreviewModal, setShowTrialOfferModal } =
-    useTrialOfferWithQRPreviewModal({
-      user,
-      firstQr,
-    });
-
-  useEffect(() => {
-    if (!isSubscribed) {
-      // TODO: uncomment this when we will prepare subscription for old users
-      // && !featuresAccess.subscriptionId,
-
-      setShowTrialOfferModal(true);
-    } else {
-      trackClientEvents({
-        event: EAnalyticEvents.PAGE_VIEWED,
-        params: {
-          page_name: "dashboard",
-          content_group: "my_qr_codes",
-          event_category: "Authorized",
-          email: user?.email,
-        },
-        sessionId: user?.id,
-      });
-    }
-  }, [isSubscribed]);
-
-  return <TrialOfferWithQRPreviewModal />;
 }

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { UseFormReturn } from "react-hook-form";
-import { QRCodeDemoMap } from "../components/qr-code-demos/qr-code-demo-map";
 import { EQRType } from "../constants/get-qr-config";
+import { QRCodeDemoMap } from "../components/qr-code-demos/qr-code-demo-map";
 
 interface UseQRTypeDemoProps {
   step: number;
@@ -9,11 +9,7 @@ interface UseQRTypeDemoProps {
   form: UseFormReturn<any>;
 }
 
-export const useQRTypeDemo = ({
-  step,
-  selectedQRType,
-  form,
-}: UseQRTypeDemoProps) => {
+export const useQRTypeDemo = ({ step, selectedQRType, form }: UseQRTypeDemoProps) => {
   const [hoveredQRType, setHoveredQRType] = useState<EQRType | null>(null);
 
   const typeStep = step === 1;
@@ -53,4 +49,4 @@ export const useQRTypeDemo = ({
     demoProps,
     handleHoverQRType,
   };
-};
+}; 
