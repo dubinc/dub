@@ -50,8 +50,12 @@ class StorageClient {
     }
 
     // Set x-amz-acl header based on access parameter
-    // Default to public-read for backwards compatibility
-    if (opts?.access === "private") {
+    // Note: The R2 bucket is configured with public access at the bucket level,
+    // so objects are publicly accessible by default. Set access: "private" to
+    // restrict access to specific objects.
+    if (opts?.access === "public") {
+      headers["x-amz-acl"] = "public-read";
+    } else if (opts?.access === "private") {
       headers["x-amz-acl"] = "private";
     }
 
