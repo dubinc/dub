@@ -40,23 +40,20 @@ export async function GET(req: Request) {
     const currentAvailableBalance = stripeBalanceData.available[0].amount; // available to withdraw
     const currentPendingBalance = stripeBalanceData.pending[0].amount; // balance waiting to settle
 
-    let reservedBalance = 50000; // keep at least $500 in the account
-    reservedBalance = reservedBalance + processedPayouts; // add already processed payouts to the reserved balance
-
-    const balanceToWithdraw = currentAvailableBalance - reservedBalance;
+    const balanceToWithdraw = currentAvailableBalance - processedPayouts;
 
     console.log({
       processingPayouts,
       processedPayouts,
       currentAvailableBalance,
       currentPendingBalance,
-      reservedBalance,
       balanceToWithdraw,
     });
 
-    if (balanceToWithdraw <= 10000) {
+    const reservedBalance = 50000; // keep at least $500 in the account
+    if (balanceToWithdraw <= reservedBalance) {
       return logAndRespond(
-        "Balance to withdraw is less than $100, skipping...",
+        `Balance to withdraw is less than ${currencyFormatter(reservedBalance / 100, { currency: "usd" })}, skipping...`,
       );
     }
 
