@@ -2,38 +2,41 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
-import useGroup from "@/lib/swr/use-group";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
 import {
-  GroupWithProgramProps,
-  ProgramEnrollmentProps,
-  ProgramProps,
-} from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+  DEFAULT_PARTNER_GROUP,
+  PartnerProgramGroupSchema,
+} from "@/lib/zod/schemas/groups";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  CircleCheck,
   CircleCheckFill,
   Grid,
   Link4,
   Sheet,
 } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
+import { cn, fetcher, OG_AVATAR_URL } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
 import { Dispatch, SetStateAction, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
+import useSWR, { mutate } from "swr";
 import { z } from "zod";
 import { ProgramApplicationFormField } from "./groups/design/application-form/fields";
 
 interface ProgramApplicationSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  program?: ProgramProps;
+  program: Pick<
+    ProgramProps,
+    "id" | "slug" | "defaultGroupId" | "name" | "domain" | "logo" | "termsUrl"
+  >;
   programEnrollment?: ProgramEnrollmentProps;
+  backDestination?: "programs" | "marketplace";
   onSuccess?: () => void;
 }
 
@@ -45,24 +48,26 @@ type FormData = Omit<
 };
 
 function ProgramApplicationSheetContent({
-  program: programProp,
+  program,
   programEnrollment,
+  backDestination = "programs",
   onSuccess,
 }: ProgramApplicationSheetProps) {
   const { partner } = usePartnerProfile();
-  const groupId =
+  const groupIdOrSlug =
     programEnrollment?.groupId ||
-    programProp?.defaultGroupId ||
+    program?.defaultGroupId ||
     DEFAULT_PARTNER_GROUP.slug;
 
-  const { group } = useGroup<GroupWithProgramProps>(
-    { groupIdOrSlug: groupId, query: { includeExpandedFields: true } },
+  const { data: group } = useSWR<z.infer<typeof PartnerProgramGroupSchema>>(
+    groupIdOrSlug
+      ? `/api/partner-profile/programs/${program.id}/groups/${groupIdOrSlug}`
+      : null,
+    fetcher,
     {
       keepPreviousData: true,
     },
   );
-
-  const program = programProp || group?.program;
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -88,6 +93,8 @@ function ProgramApplicationSheetContent({
     if (!group || !program || !partner?.email || !partner.country) return;
 
     const result = await executeAsync({
+      // @ts-ignore
+      formData: { fields: [] },
       ...data,
       email: partner.email,
       name: partner.name,
@@ -103,8 +110,6 @@ function ProgramApplicationSheetContent({
       toast.error(parseActionError(result, "Failed to submit application"));
     }
   };
-
-  if (!program) return null;
 
   const fields = group?.applicationFormData?.fields || [];
 
@@ -155,15 +160,22 @@ function ProgramApplicationSheetContent({
           </div>
 
           <div className="flex flex-col gap-6 p-5 sm:p-8">
-            {fields.map((field, index) => {
-              return (
-                <ProgramApplicationFormField
-                  key={field.id}
-                  field={field}
-                  keyPath={`formData.fields.${index}`}
-                />
-              );
-            })}
+            {fields?.length ? (
+              fields.map((field, index) => {
+                return (
+                  <ProgramApplicationFormField
+                    key={field.id}
+                    field={field}
+                    keyPath={`formData.fields.${index}`}
+                  />
+                );
+              })
+            ) : (
+              <p className="text-content-subtle flex items-center gap-1 text-sm">
+                <CircleCheck className="inline-block size-4 text-green-500" />
+                No additional information required to apply
+              </p>
+            )}
 
             {program.termsUrl && (
               <div className="flex items-center gap-2">
@@ -244,13 +256,17 @@ function ProgramApplicationSheetContent({
               you once approved.
             </p>
             <Link
-              href="/programs"
+              href={
+                backDestination === "marketplace"
+                  ? "/programs/marketplace"
+                  : "/programs"
+              }
               className={cn(
                 buttonVariants({ variant: "primary" }),
-                "mt-8 flex h-10 w-fit cursor-pointer items-center rounded-md border px-4 text-sm",
+                "mt-8 flex h-9 w-fit cursor-pointer items-center rounded-lg border px-4 text-sm",
               )}
             >
-              Back to programs
+              Back to {backDestination}
             </Link>
           </div>
         </div>

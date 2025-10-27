@@ -12,6 +12,7 @@ import { BLOCK_COMPONENTS } from "@/ui/partners/lander/blocks";
 import { LanderHero } from "@/ui/partners/lander/lander-hero";
 import { LanderRewards } from "@/ui/partners/lander/lander-rewards";
 import { ProgramNetworkStatusBadges } from "@/ui/partners/partner-status-badges";
+import { useProgramApplicationSheet } from "@/ui/partners/program-application-sheet";
 import { ProgramCategory } from "@/ui/partners/program-network/program-category";
 import { ProgramRewardIcon } from "@/ui/partners/program-network/program-reward-icon";
 import {
@@ -23,7 +24,7 @@ import {
   StatusBadge,
   Tooltip,
   buttonVariants,
-  useRouterStuff,
+  useKeyboardShortcut,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, fetcher, getPrettyUrl } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
@@ -34,15 +35,13 @@ import useSWR from "swr";
 
 export function MarketplaceProgramPageClient() {
   const { programSlug } = useParams();
-  const { queryParams } = useRouterStuff();
 
-  const {
-    data: program,
-    isLoading,
-    error,
-  } = useSWR<NetworkProgramExtendedProps>(
+  const { data: program, error } = useSWR<NetworkProgramExtendedProps>(
     programSlug ? `/api/network/programs/${programSlug}` : null,
     fetcher,
+    {
+      keepPreviousData: true,
+    },
   );
 
   const statusBadge = program?.status
@@ -93,23 +92,7 @@ export function MarketplaceProgramPageClient() {
             View dashboard
           </Link>
         ) : (
-          <Button
-            text="Apply"
-            shortcut="A"
-            onClick={() => {
-              toast.info("WIP");
-            }}
-            disabledTooltip={
-              program.status === "banned"
-                ? "You are banned from this program"
-                : program.status === "pending"
-                  ? "Your application is under review"
-                  : program.status === "rejected"
-                    ? "Your application was rejected"
-                    : undefined
-            }
-            className="h-9 rounded-lg"
-          />
+          <ApplyButton program={program} />
         )
       }
     >
@@ -251,6 +234,41 @@ export function MarketplaceProgramPageClient() {
   );
 }
 
+function ApplyButton({ program }: { program: NetworkProgramProps }) {
+  const { programApplicationSheet, setIsOpen: setIsApplicationSheetOpen } =
+    useProgramApplicationSheet({
+      program,
+      backDestination: "marketplace",
+      onSuccess: () => mutatePrefix("/api/network/programs"),
+    });
+
+  const disabledTooltip =
+    program.status === "banned"
+      ? "You are banned from this program"
+      : program.status === "pending"
+        ? "Your application is under review"
+        : program.status === "rejected"
+          ? "Your application was rejected"
+          : undefined;
+
+  useKeyboardShortcut("a", () => setIsApplicationSheetOpen(true), {
+    enabled: !disabledTooltip,
+  });
+
+  return (
+    <>
+      {programApplicationSheet}
+      <Button
+        text="Apply"
+        shortcut="A"
+        onClick={() => setIsApplicationSheetOpen(true)}
+        disabledTooltip={disabledTooltip}
+        className="h-9 rounded-lg"
+      />
+    </>
+  );
+}
+
 function AcceptInviteButton({ program }: { program: NetworkProgramProps }) {
   const router = useRouter();
 
@@ -265,11 +283,17 @@ function AcceptInviteButton({ program }: { program: NetworkProgramProps }) {
     },
   });
 
+  const onAccept = () => executeAsync({ programId: program.id });
+
+  useKeyboardShortcut("a", onAccept, {
+    enabled: !isPending,
+  });
+
   return (
     <Button
       text="Accept invite"
       shortcut="A"
-      onClick={() => executeAsync({ programId: program.id })}
+      onClick={onAccept}
       loading={isPending}
       className="h-9 rounded-lg"
     />

@@ -81,6 +81,12 @@ export const GroupSchemaExtended = GroupSchema.extend({
   netRevenue: z.number().default(0),
 });
 
+export const PartnerProgramGroupSchema = GroupWithFormDataSchema.pick({
+  id: true,
+  slug: true,
+  applicationFormData: true,
+});
+
 export const createOrUpdateDefaultLinkSchema = z.object({
   url: parseUrlSchema,
 });

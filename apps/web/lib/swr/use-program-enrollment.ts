@@ -5,8 +5,10 @@ import useSWR, { SWRConfiguration } from "swr";
 import { ProgramEnrollmentProps } from "../types";
 
 export default function useProgramEnrollment({
+  enabled = true,
   swrOpts,
 }: {
+  enabled?: boolean;
   swrOpts?: SWRConfiguration;
 } = {}) {
   const { data: session, status } = useSession();
@@ -19,7 +21,7 @@ export default function useProgramEnrollment({
     error,
     isLoading,
   } = useSWR<ProgramEnrollmentProps>(
-    partnerId && programSlug
+    enabled && partnerId && programSlug
       ? `/api/partner-profile/programs/${programSlug}`
       : undefined,
     fetcher,

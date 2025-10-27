@@ -8,11 +8,13 @@ import { ProgramSchema } from "./programs";
 export const NetworkProgramSchema = ProgramSchema.pick({
   id: true,
   slug: true,
+  defaultGroupId: true,
   name: true,
   logo: true,
   domain: true,
   url: true,
   rewards: true,
+  termsUrl: true,
 }).extend({
   discount: DiscountSchema.nullish(),
   status: z.nativeEnum(ProgramEnrollmentStatus).nullable(),
