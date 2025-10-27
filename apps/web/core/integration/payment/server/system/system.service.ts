@@ -15,6 +15,7 @@ import {
   IUpdateSystemPaymentMethodBody,
   IUpdateSystemSubscriptionBody,
   IUpdateSystemSubscriptionRes,
+  IUpdateUserSubscriptionAttributesBody,
   IUpdateUserSystemDataBody,
 } from "./system.interface";
 
@@ -341,6 +342,28 @@ export const updateUserSystemData = async (
     const data = await res.json();
 
     debugUtil({ text: "updateUserSystemData", value: data });
+  } catch (error: any) {
+    const errorMsg =
+      error?.response?.body?.error?.message ||
+      error?.message ||
+      "Something went wrong";
+
+    debugUtil({ text: "updateUserSystemData error", value: errorMsg });
+  }
+};
+
+export const updateUserSubscriptionAttributes = async (
+  id: string,
+  body: IUpdateUserSubscriptionAttributesBody,
+) => {
+  try {
+    const res = await ky.put<IDataRes>(`${systemUrl}/subscriptions/${id}`, {
+      headers: systemHeaders,
+      json: body,
+    });
+    const data = await res.json();
+
+    debugUtil({ text: "updateUserSubscriptionAttributes", value: data });
   } catch (error: any) {
     const errorMsg =
       error?.response?.body?.error?.message ||

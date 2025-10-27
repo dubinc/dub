@@ -230,6 +230,10 @@ export interface IUpdateUserSystemDataBody {
   nationalDocumentId?: string;
 }
 
+export interface IUpdateUserSubscriptionAttributesBody {
+  attributes: { [key: string]: string | number | boolean | object | null };
+}
+
 export interface IGetSystemUserProcessorRes {
   metadata: {
     sub_merchant_name?: string;

@@ -12,18 +12,18 @@ interface IPageViewedTrackerProps {
 
 const waitForGoogleAnalytics = (): Promise<void> => {
   return new Promise((resolve) => {
-    if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+    if (typeof window !== "undefined" && typeof window.gtag === "function") {
       resolve();
       return;
     }
 
     let attempts = 0;
     const maxAttempts = 50;
-    
+
     const checkGtag = () => {
       attempts++;
-      
-      if (typeof window !== 'undefined' && typeof window.gtag === 'function') {
+
+      if (typeof window !== "undefined" && typeof window.gtag === "function") {
         resolve();
       } else if (attempts < maxAttempts) {
         setTimeout(checkGtag, 100);
@@ -31,7 +31,7 @@ const waitForGoogleAnalytics = (): Promise<void> => {
         resolve();
       }
     };
-    
+
     checkGtag();
   });
 };

@@ -12,24 +12,29 @@ interface IStepperProps {
   onStepClick?: (step: number) => void;
 }
 
-export default function Stepper({ steps, currentStep, onStepClick }: IStepperProps) {
+export default function Stepper({
+  steps,
+  currentStep,
+  onStepClick,
+}: IStepperProps) {
   return (
     <div className="flex w-full items-center justify-center md:w-3/4">
       {steps.map((step, index) => {
         const isCompleted = currentStep > step.number;
         const isActive = currentStep === step.number;
         const isLast = index === steps.length - 1;
-        const isClickable = onStepClick && (isCompleted || step.number === currentStep + 1);
+        const isClickable =
+          onStepClick && (isCompleted || step.number === currentStep + 1);
 
         return (
           <div
             key={step.number}
             className={cn("flex items-center", isLast ? "flex-0" : "flex-1")}
           >
-            <div 
+            <div
               className={cn(
-                "flex flex-col items-center", 
-                isClickable && "cursor-pointer"
+                "flex flex-col items-center",
+                isClickable && "cursor-pointer",
               )}
               onClick={() => isClickable && onStepClick(step.number)}
             >

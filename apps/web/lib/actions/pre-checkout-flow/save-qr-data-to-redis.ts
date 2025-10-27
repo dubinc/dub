@@ -11,7 +11,7 @@ const schema = z.object({
   extraKey: z.string().optional().describe("Extra key to identify the data"),
   qrData: z.object({
     title: z.string(),
-    styles: z.object({}).passthrough(),
+    styles: z.object({}).passthrough(), // Logo stored in styles.image
     frameOptions: z.object({
       id: z.string(),
       color: z.string().optional(),
@@ -29,7 +29,7 @@ const schema = z.object({
       "app",
       "feedback",
     ]),
-    fileId: z.string().optional(),
+    fileId: z.string().optional(), // For PDF/Image/Video QR content files ONLY
   }),
 });
 

@@ -3,11 +3,11 @@ import { mutatePrefix } from "@/lib/swr/mutate.ts";
 import { useUserCache } from "@/lib/swr/use-user.ts";
 import useWorkspace from "@/lib/swr/use-workspace.ts";
 import {
-  convertQRBuilderDataToServer,
-  convertQRForUpdate,
-  convertQrStorageDataToBuilder,
-} from "@/ui/qr-builder/helpers/data-converters.ts";
-import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
+  convertNewQRBuilderDataToServer,
+  convertNewQRForUpdate,
+  convertServerQRToNewBuilder,
+  TNewQRBuilderData,
+} from "@/ui/qr-builder-new/helpers/data-converters";
 import { useToastWithUndo } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
 import { useNewQrContext } from 'app/app.dub.co/(dashboard)/[slug]/helpers/new-qr-context';
@@ -26,7 +26,7 @@ export const useQrOperations = () => {
   const { setNewQrId } = useNewQrContext();
 
   const createQr = useCallback(
-    async (qrBuilderData: QRBuilderData, projectSlug?: string) => {
+    async (qrBuilderData: TNewQRBuilderData, projectSlug?: string) => {
       try {
         if (!workspaceId && !projectSlug) {
           toast.error("Workspace ID not found");
@@ -34,7 +34,7 @@ export const useQrOperations = () => {
         }
 
         console.log("qrBuilderData", qrBuilderData);
-        const serverData = await convertQRBuilderDataToServer(qrBuilderData, {
+        const serverData = await convertNewQRBuilderDataToServer(qrBuilderData, {
           domain: SHORT_DOMAIN!,
         });
         console.log("serverData", serverData);
@@ -91,7 +91,7 @@ export const useQrOperations = () => {
   );
 
   const updateQrWithOriginal = useCallback(
-    async (originalQR: any, qrBuilderData: QRBuilderData) => {
+    async (originalQR: any, qrBuilderData: TNewQRBuilderData) => {
       try {
         if (!workspaceId) {
           toast.error("Workspace ID not found");
@@ -100,7 +100,7 @@ export const useQrOperations = () => {
 
         const domain = SHORT_DOMAIN!;
 
-        const updateResult = await convertQRForUpdate(
+        const updateResult = await convertNewQRForUpdate(
           originalQR,
           qrBuilderData,
           {
@@ -207,7 +207,7 @@ export const useQrOperations = () => {
             duration: 5000,
           });
 
-          const convertedQr = convertQrStorageDataToBuilder(responseData.qr);
+          const convertedQr = convertServerQRToNewBuilder(responseData.qr);
           const trackingParams = createQRTrackingParams(
             convertedQr,
             responseData.qr.id,
@@ -260,7 +260,7 @@ export const useQrOperations = () => {
           await mutatePrefix(["/api/qrs", "/api/links"]);
 
           const responseData = await res.json();
-          const convertedQr = convertQrStorageDataToBuilder(responseData.qr);
+          const convertedQr = convertServerQRToNewBuilder(responseData.qr);
           const trackingParams = createQRTrackingParams(
             convertedQr,
             responseData.qr.id,

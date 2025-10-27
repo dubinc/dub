@@ -28,6 +28,7 @@ export interface ICreateSubscriptionRes extends IDataRes {
 }
 
 export interface IUpdateSubscriptionBody {
+  paymentId: string;
   paymentPlan: TPaymentPlan;
 }
 

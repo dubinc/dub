@@ -17,3 +17,29 @@ export const getUtmListFromSearch = (): Record<string, string> | null => {
     utm_target_id: searchParams.get("utm_target_id") ?? "",
   };
 };
+
+export const getUTMList = (): Record<string, string> | null => {
+  const urlSearch = window.location.search;
+
+  if (!urlSearch.includes("utm")) {
+    const storedUtms = localStorage.getItem("utmList");
+    if (storedUtms) {
+      return JSON.parse(storedUtms);
+    }
+
+    return null;
+  }
+
+  const utmQueries = urlSearch
+    .replace("?", "")
+    .split("&")
+    .reduce((acc, curr) => {
+      const [key, value] = curr.split("=");
+      acc[key] = value;
+      return acc;
+    }, {});
+
+  localStorage.setItem("utmList", JSON.stringify(utmQueries));
+
+  return utmQueries;
+};

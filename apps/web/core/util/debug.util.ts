@@ -11,7 +11,7 @@ export const debugUtil = (props: IDebugUtil) => {
 
   if (
     !process.env.NEXT_PUBLIC_DISABLE_DEBUGGER &&
-    (process.env.NODE_ENV !== 'production' || isActiveOnProd)
+    (process.env.NODE_ENV !== "production" || isActiveOnProd)
   ) {
     // eslint-disable-next-line no-console
     console.log(`Debug [${text}]: ${JSON.stringify(value, null, 2)}`);

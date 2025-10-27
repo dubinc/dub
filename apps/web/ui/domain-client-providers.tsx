@@ -7,12 +7,8 @@ interface IDomainClientProvidersProps {
   children: ReactNode;
 }
 
-export const DomainClientProviders: FC<Readonly<IDomainClientProvidersProps>> = ({
-  children,
-}) => {
-  return (
-    <FramePreloadProvider>
-      {children}
-    </FramePreloadProvider>
-  );
-}; 
+export const DomainClientProviders: FC<
+  Readonly<IDomainClientProvidersProps>
+> = ({ children }) => {
+  return <FramePreloadProvider>{children}</FramePreloadProvider>;
+};

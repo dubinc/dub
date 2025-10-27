@@ -68,7 +68,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   );
   const [frameTextColorValid, setFrameTextColorValid] = useState<boolean>(true);
   const [frameText, setFrameText] = useState<string>(
-    frameOptions?.text ?? FRAME_TEXT
+    frameOptions?.text ?? FRAME_TEXT,
   );
 
   const selectedFrame = FRAMES.find((f) => f.type === selectedSuggestedFrame);

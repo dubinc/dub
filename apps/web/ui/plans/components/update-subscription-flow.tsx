@@ -133,7 +133,10 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     };
 
     const onPurchased = async (info: IGetPrimerClientPaymentInfoRes) => {
-      await triggerUpdateSubscription({ paymentPlan: selectedPlan.paymentPlan })
+      await triggerUpdateSubscription({
+        paymentId: info.id,
+        paymentPlan: selectedPlan.paymentPlan,
+      })
         .then(async () => {
           generateTrackingUpsellEvent({
             user,

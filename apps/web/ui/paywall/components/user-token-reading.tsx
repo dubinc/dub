@@ -9,6 +9,7 @@ import {
 import {
   initPeopleAnalytic,
   setPeopleAnalytic,
+  setPeopleAnalyticOnce,
 } from "core/integration/analytic";
 import { useAction } from "next-safe-action/hooks";
 import { redirect } from "next/navigation";
@@ -31,10 +32,11 @@ export const UserTokenReadingComponent: FC<
 
   const { executeAsync } = useAction(changePreSignupEmailAction, {
     async onSuccess() {
-      await triggerUpdateUserCookie({ isPaidUser });
+      await triggerUpdateUserCookie({ isPaidUser, emailMarketing: true });
 
       initPeopleAnalytic(id);
       setPeopleAnalytic({ $email: email });
+      setPeopleAnalyticOnce({ email_marketing: true });
 
       setTimeout(() => {
         queryParams({

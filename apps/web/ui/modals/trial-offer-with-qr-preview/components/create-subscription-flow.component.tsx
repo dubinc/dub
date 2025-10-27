@@ -131,6 +131,9 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       planCode: subPaymentPlan,
       paymentType: paymentTypeRef.current!,
       toxic: false,
+      additionalParams: {
+        email_marketing: user?.emailMarketing ?? false,
+      },
     });
   };
 
@@ -158,13 +161,12 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       setIsSubscriptionCreation(false);
       toast.error("Subscription creation failed!");
 
-
       const errorData = {
         code: "SUBSCRIPTION_CREATION_FAILED",
         message: "Subscription creation failed!",
       };
 
-      onSignupError(errorData)
+      onSignupError(errorData);
 
       return generateCheckoutFormPaymentEvents({
         user,
@@ -177,6 +179,9 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
         amount: priceForPay,
         stage: "error",
         toxic: false,
+        additionalParams: {
+          email_marketing: user?.emailMarketing ?? false,
+        },
       });
     }
 
@@ -201,6 +206,9 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
       paymentType: data.paymentType,
       subscriptionId: res!.data!.subscriptionId!,
       toxic: res?.data?.toxic,
+      additionalParams: {
+        email_marketing: user?.emailMarketing ?? false,
+      },
     });
 
     router.refresh();
@@ -223,7 +231,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
     setIsSubscriptionCreation(false);
 
-    onSignupError(eventData)
+    onSignupError(eventData);
 
     generateCheckoutFormPaymentEvents({
       user,
@@ -244,11 +252,11 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
         <div className="text-xs font-medium text-neutral-500">
           By continuing, you agree to our{" "}
-          <Link className="font-semibold underline" href="/eula">
+          <Link className="font-semibold underline" href="/eula?source=paywall">
             Terms and Conditions
           </Link>{" "}
           and{" "}
-          <Link className="font-semibold underline" href="/privacy-policy">
+          <Link className="font-semibold underline" href="/privacy-policy?source=paywall">
             Privacy Policy
           </Link>
           . After 7 days you will be charged{" "}
@@ -261,11 +269,11 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     return (
       <div className="text-xs font-medium text-neutral-500">
         By continuing, you agree to our{" "}
-        <Link className="font-semibold underline" href="/eula">
+        <Link className="font-semibold underline" href="/eula?source=paywall">
           Terms and Conditions
         </Link>{" "}
         and{" "}
-        <Link className="font-semibold underline" href="/privacy-policy">
+        <Link className="font-semibold underline" href="/privacy-policy?source=paywall">
           Privacy Policy
         </Link>
         . If you don’t cancel at least 24 hours before the end of your 7-day
@@ -274,7 +282,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           {oldPriceForViewText} every month
         </span>{" "}
         until you cancel through our{" "}
-        <Link className="font-semibold underline" href="/help">
+        <Link className="font-semibold underline" href="/help?source=paywall">
           Help Center
         </Link>
         . For assistance, please contact our support team at{" "}

@@ -7,7 +7,6 @@ import {
   updateUserCookieService,
 } from "core/services/cookie/user-session.service.ts";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 export async function GET(): Promise<
   NextResponse<Omit<IUserProfileRes, "sessions">>

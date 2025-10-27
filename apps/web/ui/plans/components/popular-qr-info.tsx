@@ -11,11 +11,10 @@ import {
 import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { parseQRData } from "@/ui/utils/qr-data-parser";
 import { Button } from "@dub/ui";
-import { cn } from "@dub/utils/src";
 import { Flex, Heading, Text } from "@radix-ui/themes";
 import { Options } from "qr-code-styling/lib/types";
 import { FC, useMemo } from "react";
-import { QrInfoBadge } from './qr-info-badge';
+import { QrInfoBadge } from "./qr-info-badge";
 
 interface IPopularQrInfo {
   mostScannedQR: QrStorageData | null;
@@ -140,7 +139,10 @@ export const PopularQrInfo: FC<IPopularQrInfo> = ({
             >
               QR Code Status:
             </Text>
-            <QrInfoBadge mostScannedQR={mostScannedQR} featuresAccess={featuresAccess} />
+            <QrInfoBadge
+              mostScannedQR={mostScannedQR}
+              featuresAccess={featuresAccess}
+            />
           </Flex>
         </Flex>
       </Flex>

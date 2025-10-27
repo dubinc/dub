@@ -2,7 +2,7 @@
 
 import { Session } from "@/lib/auth/utils";
 import useQrs from "@/lib/swr/use-qrs.ts";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import QrCodeCardPlaceholder from "@/ui/qr-code/qr-code-card-placeholder.tsx";
 import { QrCodesDisplayContext } from "@/ui/qr-code/qr-codes-display-provider.tsx";
 import { compressImagesInBackground } from "@/ui/utils/qr-code-previews.ts";
@@ -29,7 +29,7 @@ export default function QrCodesContainer({
 }: {
   CreateQrCodeButton: () => ReactNode;
   featuresAccess: boolean;
-  initialQrs: QrStorageData[];
+  initialQrs: TQrStorageData[];
   user: Session["user"];
 }) {
   const {
@@ -52,7 +52,7 @@ export default function QrCodesContainer({
 
   // State to hold QRs with preloaded previews
   const [qrsWithPreviews, setQrsWithPreviews] = useState<
-    QrStorageData[] | undefined
+    TQrStorageData[] | undefined
   >(undefined);
 
   useEffect(() => {
@@ -101,7 +101,7 @@ function QrCodesList({
   user,
 }: {
   CreateQrCodeButton: () => ReactNode;
-  qrCodes?: QrStorageData[];
+  qrCodes?: TQrStorageData[];
   count?: number;
   loading?: boolean;
   compact: boolean;

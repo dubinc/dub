@@ -143,6 +143,41 @@ export const POST = withSession(
         );
       }
 
+      const attributes = {
+        //**** antifraud sessions ****//
+        ...(paymentData?.sessions && { ...paymentData.sessions }),
+
+        //**** for analytics ****//
+        payment_id: body.paymentId,
+        email: email,
+        flow_type: "internal",
+        locale: "en",
+        mixpanel_user_id:
+          user?.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
+        plan_name: body.paymentPlan,
+        plan_price: priceForPay,
+        charge_period_days: chargePeriodDays,
+        payment_subtype: "SUBSCRIPTION",
+        billing_action: "rebill",
+        //**** for analytics ****//
+
+        //**** fields for subscription system ****//
+        sub_user_id_primer: paymentData?.paymentInfo?.customerId || null,
+        sub_order_country: paymentData.currency?.countryCode || null,
+        ipAddress: getUserIp(headerStore)!,
+        subscriptionType: "APP_SUBSCRIPTION",
+        application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
+        ...subProcessorData,
+        //**** fields for subscription system ****//
+      };
+
+      await paymentService.updateClientSubscriptionAttributes(
+        paymentData?.paymentInfo?.subscriptionId || "",
+        {
+          attributes,
+        },
+      );
+
       await paymentService.updateClientSubscription(
         paymentData?.paymentInfo?.subscriptionId || "",
         {
@@ -157,33 +192,7 @@ export const POST = withSession(
             secondary: false,
             twoSteps: false,
           },
-          attributes: {
-            //**** antifraud sessions ****//
-            ...(paymentData?.sessions && { ...paymentData.sessions }),
-
-            //**** for analytics ****//
-            email: email,
-            flow_type: "internal",
-            locale: "en",
-            mixpanel_user_id:
-              user?.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
-            plan_name: body.paymentPlan,
-            plan_price: priceForPay,
-            charge_period_days: chargePeriodDays,
-            payment_subtype: "SUBSCRIPTION",
-            billing_action: "rebill",
-            //**** for analytics ****//
-
-            //**** fields for subscription system ****//
-            sub_user_id_primer: paymentData?.paymentInfo?.customerId || null,
-            sub_order_country: paymentData.currency?.countryCode || null,
-            ipAddress: getUserIp(headerStore)!,
-            subscriptionType: "APP_SUBSCRIPTION",
-            application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
-            ...subProcessorData,
-            //**** fields for subscription system ****//
-            ...subProcessorData,
-          },
+          attributes,
         },
       );
 
