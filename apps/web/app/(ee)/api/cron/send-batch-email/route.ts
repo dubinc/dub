@@ -10,13 +10,13 @@ import { z } from "zod";
 
 const TEMPLATE_MAP = {
   PartnerPayoutConfirmed,
-};
+} as const;
 
 export const dynamic = "force-dynamic";
 
 const batchEmailPayloadSchema = z.array(
   z.object({
-    templateName: z.string(),
+    templateName: z.enum(Object.keys(TEMPLATE_MAP) as [string, ...string[]]),
     templateProps: z.record(z.any()),
     to: z.string().email(),
     from: z.string().optional(),
