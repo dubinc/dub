@@ -88,6 +88,7 @@ export async function POST(req: Request) {
 
     const uploadResult = await storage.upload(fileKey, csvBlob, {
       contentType: "text/csv",
+      access: "private",
       headers: {
         "Content-Type": "text/csv",
         "Content-Disposition": `attachment; filename="${generateExportFilename("commissions")}"`,
@@ -98,13 +99,19 @@ export async function POST(req: Request) {
       throw new Error("Failed to upload CSV to storage.");
     }
 
+    // Generate a signed GET URL with 7-day expiry (604800 seconds)
+    const downloadUrl = await storage.getSignedUrl(fileKey, {
+      method: "GET",
+      expiresIn: 7 * 24 * 3600, // 7 days
+    });
+
     await sendEmail({
       to: user.email,
       subject: "Your commission export is ready",
       react: ExportReady({
         email: user.email,
-        downloadUrl: uploadResult.url,
         exportType: "commissions",
+        downloadUrl,
         program: {
           name: program.name,
         },
