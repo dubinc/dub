@@ -31,11 +31,10 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    const processingPayouts = toBeSentPayouts.find(
-      (p) => p.status === "processing",
-    )?._sum.amount;
+    const processingPayouts =
+      toBeSentPayouts.find((p) => p.status === "processing")?._sum.amount ?? 0; // payouts awaiting payment from program
     const processedPayouts =
-      toBeSentPayouts.find((p) => p.status === "processed")?._sum.amount ?? 0;
+      toBeSentPayouts.find((p) => p.status === "processed")?._sum.amount ?? 0; // payouts paid by program, awaiting withdrawal by partner
 
     const currentAvailableBalance = stripeBalanceData.available[0].amount; // available to withdraw
     const currentPendingBalance = stripeBalanceData.pending[0].amount; // balance waiting to settle
