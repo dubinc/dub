@@ -6,6 +6,12 @@ interface imageOptions {
   width?: number;
   height?: number;
   headers?: Record<string, string>;
+  access?: "public" | "private";
+}
+
+interface SignedUrlOptions {
+  method?: "GET" | "PUT";
+  expiresIn?: number; // in seconds
 }
 
 class StorageClient {
@@ -38,7 +44,16 @@ class StorageClient {
       "Content-Length": uploadBody.size.toString(),
       ...opts?.headers,
     };
-    if (opts?.contentType) headers["Content-Type"] = opts.contentType;
+
+    if (opts?.contentType) {
+      headers["Content-Type"] = opts.contentType;
+    }
+
+    // Set x-amz-acl header based on access parameter
+    // Default to public-read for backwards compatibility
+    if (opts?.access === "private") {
+      headers["x-amz-acl"] = "private";
+    }
 
     try {
       await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
@@ -68,14 +83,15 @@ class StorageClient {
     return { success: true };
   }
 
-  async getSignedUrl(key: string) {
+  async getSignedUrl(key: string, options?: SignedUrlOptions) {
     const url = new URL(`${process.env.STORAGE_ENDPOINT}/${key}`);
 
-    // 10 minutes expiration
-    url.searchParams.set("X-Amz-Expires", "600");
+    // Default to 10 minutes expiration for backwards compatibility
+    const expiresIn = options?.expiresIn || 600;
+    url.searchParams.set("X-Amz-Expires", expiresIn.toString());
 
     const signed = await this.client.sign(url, {
-      method: "PUT",
+      method: options?.method || "PUT",
       aws: {
         signQuery: true,
         allHeaders: true,
