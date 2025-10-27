@@ -39,6 +39,7 @@ export const createProgram = async ({
   const {
     name,
     domain,
+    category,
     url,
     defaultRewardType,
     type,
@@ -178,6 +179,22 @@ export const createProgram = async ({
         }),
       },
     });
+
+    if (category) {
+      await tx.programCategory.upsert({
+        where: {
+          programId_category: {
+            programId,
+            category,
+          },
+        },
+        create: {
+          programId,
+          category,
+        },
+        update: {}, // noop
+      });
+    }
 
     return programData;
   });

@@ -139,9 +139,9 @@ export function Combobox({
   const handleSelect = (option: ComboboxOption) => {
     onSelect?.(option);
 
-    if (!setSelected) return;
-
     if (isMultiple) {
+      if (!setSelected) return;
+
       const isAlreadySelected = selected.some(
         ({ value }) => value === option.value,
       );
@@ -151,7 +151,7 @@ export function Combobox({
           : [...selected, option],
       );
     } else {
-      setSelected(
+      setSelected?.(
         selected.length && selected[0]?.value === option.value ? null : option,
       );
       setIsOpen(false);

@@ -3,7 +3,9 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
+import { ProgramCategorySelect } from "@/ui/partners/program-category-select";
 import { ProgramLinkConfiguration } from "@/ui/partners/program-link-configuration";
+import { Category } from "@dub/prisma/client";
 import { Button, FileUpload, Input, useMediaQuery } from "@dub/ui";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -28,7 +30,13 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [name, url, domain, logo] = watch(["name", "url", "domain", "logo"]);
+  const [name, url, domain, logo, category] = watch([
+    "name",
+    "url",
+    "domain",
+    "logo",
+    "category",
+  ]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
@@ -104,14 +112,14 @@ export function Form() {
         <label className="block text-sm font-medium text-neutral-800">
           Company name
         </label>
-        <p className="mb-4 mt-1 text-sm text-neutral-600">
+        <p className="mt-1 text-sm text-neutral-600">
           The name of your company
         </p>
         <Input
           {...register("name", { required: true })}
           placeholder="Acme"
           autoFocus={!isMobile}
-          className="mt-2 max-w-full"
+          className="mt-3 max-w-full"
         />
       </div>
 
@@ -140,6 +148,25 @@ export function Form() {
                 onChange={({ file }) => handleUpload(file)}
                 content={null}
                 maxFileSizeMB={2}
+              />
+            )}
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-neutral-800">
+          Product industry
+        </label>
+        <div className="mt-2">
+          <Controller
+            control={control}
+            name="category"
+            rules={{ required: true }}
+            render={({ field }) => (
+              <ProgramCategorySelect
+                selected={(field.value as Category) ?? null}
+                onChange={field.onChange}
               />
             )}
           />
