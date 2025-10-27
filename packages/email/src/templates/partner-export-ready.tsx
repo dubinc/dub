@@ -52,9 +52,9 @@ export default function PartnerExportReady({
                 Download Export
               </Link>
             </Section>
-            <Text className="text-sm leading-6 text-neutral-500">
+            {/* <Text className="text-sm leading-6 text-neutral-500">
               This download link will expire in 7 days.
-            </Text>
+            </Text> */}
             <Footer email={email} />
           </Container>
         </Body>
