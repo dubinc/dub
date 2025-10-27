@@ -7,6 +7,8 @@ import {
   exportPartnerColumns,
   partnersExportQuerySchema,
 } from "@/lib/zod/schemas/partners";
+import { sendEmail } from "@dub/email";
+import PartnerExportReady from "@dub/email/templates/partner-export-ready";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
@@ -15,6 +17,7 @@ import { fetchPartnersBatch } from "./fetch-partners-batch";
 
 const payloadSchema = partnersExportQuerySchema.extend({
   programId: z.string(),
+  userId: z.string(),
 });
 
 const columnIdToLabel = exportPartnerColumns.reduce(
@@ -39,18 +42,40 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    let { programId, columns, ...filters } = payloadSchema.parse(
+    let { programId, columns, userId, ...filters } = payloadSchema.parse(
       JSON.parse(rawBody),
     );
+
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+      select: {
+        email: true,
+      },
+    });
+
+    if (!user) {
+      return logAndRespond(`User ${userId} not found. Skipping the export.`);
+    }
+
+    if (!user.email) {
+      return logAndRespond(`User ${userId} has no email. Skipping the export.`);
+    }
 
     const program = await prisma.program.findUnique({
       where: {
         id: programId,
       },
+      select: {
+        name: true,
+      },
     });
 
     if (!program) {
-      return logAndRespond(`Program ${programId} not found`);
+      return logAndRespond(
+        `Program ${programId} not found. Skipping the export.`,
+      );
     }
 
     // Sort columns according to schema order
@@ -85,7 +110,7 @@ export async function POST(req: Request) {
     // Fetch partners in batches and build CSV
     const allPartners: any[] = [];
 
-    for await (const { partners, totalFetched } of fetchPartnersBatch(
+    for await (const { partners } of fetchPartnersBatch(
       {
         ...filters,
         programId,
@@ -131,19 +156,21 @@ export async function POST(req: Request) {
       throw new Error("Failed to upload CSV to storage.");
     }
 
-    // Send success email
-    // await sendEmail({
-    //   to: exportData.userEmail,
-    //   subject: "Your partner export is ready",
-    //   react: PartnerExportReady({
-    //     email: exportData.userEmail,
-    //     downloadUrl: uploadResult.url,
-    //     rowCount: totalRows,
-    //     workspaceName: workspace.name,
-    //   }),
-    // });
+    await sendEmail({
+      to: user.email,
+      subject: "Your partner export is ready",
+      react: PartnerExportReady({
+        email: user.email,
+        downloadUrl: uploadResult.url,
+        program: {
+          name: program.name,
+        },
+      }),
+    });
 
-    return logAndRespond(`Partners exported to ${uploadResult.url}`);
+    return logAndRespond(
+      `Export (${allPartners.length} partners) generated and email sent to user.`,
+    );
   } catch (error) {
     await log({
       message: `Error exporting partners: ${error.message}`,

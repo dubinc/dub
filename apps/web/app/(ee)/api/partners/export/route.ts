@@ -25,7 +25,7 @@ const MAX_PARTNERS_TO_EXPORT = 5;
 
 // GET /api/partners/export – export partners to CSV
 export const GET = withWorkspace(
-  async ({ searchParams, workspace }) => {
+  async ({ searchParams, workspace, session }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const parsedParams = partnersExportQuerySchema.parse(searchParams);
@@ -45,6 +45,7 @@ export const GET = withWorkspace(
           ...parsedParams,
           columns: columns.join(","),
           programId,
+          userId: session.user.id,
         },
       });
 
