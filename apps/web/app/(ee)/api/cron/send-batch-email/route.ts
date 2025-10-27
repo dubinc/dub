@@ -14,7 +14,7 @@ const TEMPLATE_MAP = {
 
 export const dynamic = "force-dynamic";
 
-export const batchEmailPayloadSchema = z.array(
+const batchEmailPayloadSchema = z.array(
   z.object({
     templateName: z.string(),
     templateProps: z.record(z.any()),
