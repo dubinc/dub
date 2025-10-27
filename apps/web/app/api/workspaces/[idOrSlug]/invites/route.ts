@@ -145,12 +145,12 @@ export const POST = withWorkspace(
     );
 
     if (results.some((result) => result.status === "rejected")) {
+      const failedInvites = results.filter(
+        (result) => result.status === "rejected",
+      );
       throw new DubApiError({
         code: "bad_request",
-        message:
-          teammates.length > 1
-            ? "Some invitations could not be sent."
-            : "Invitation could not be sent.",
+        message: `Failed to send ${pluralize("invitation", failedInvites.length)}: ${failedInvites.map((result) => result.reason.message).join(", ")}`,
       });
     }
 

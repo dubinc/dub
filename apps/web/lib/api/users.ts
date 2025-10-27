@@ -39,7 +39,7 @@ export async function inviteUser({
     if (error.code === "P2002") {
       throw new DubApiError({
         code: "conflict",
-        message: "User has already been invited to this workspace.",
+        message: `User ${email} has already been invited to this workspace.`,
       });
     }
   }
