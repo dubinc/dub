@@ -21,7 +21,7 @@ const numericColumns = exportPartnerColumns
   .filter((column) => column.numeric)
   .map((column) => column.id);
 
-const MAX_PARTNERS_TO_EXPORT = 1000;
+const MAX_PARTNERS_TO_EXPORT = 5;
 
 // GET /api/partners/export – export partners to CSV
 export const GET = withWorkspace(
@@ -43,11 +43,12 @@ export const GET = withWorkspace(
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/export`,
         body: {
           ...parsedParams,
+          columns: columns.join(","),
           programId,
         },
       });
 
-      return NextResponse.json({}, { status: 204 });
+      return NextResponse.json({}, { status: 202 });
     }
 
     const partners = await getPartners({
