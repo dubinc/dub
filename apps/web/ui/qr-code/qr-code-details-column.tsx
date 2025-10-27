@@ -1,14 +1,14 @@
 import { Session } from "@/lib/auth/utils";
-import { QRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
+import { QRType } from "@/ui/qr-builder-new/constants/get-qr-config";
+import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";
 import { QrCodeControls } from "@/ui/qr-code/qr-code-controls.tsx";
 import QRCodeStyling from "qr-code-styling";
 import { RefObject, useRef } from "react";
 import { QRStatusBadge } from "./qr-status-badge/qr-status-badge";
 
-interface QrCodeDetailsColumnProps {
-  qrCode: QrStorageData;
+interface IQrCodeDetailsColumnProps {
+  qrCode: TQrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
   currentQrTypeInfo: QRType;
@@ -25,7 +25,7 @@ export function QrCodeDetailsColumn({
   currentQrTypeInfo,
   featuresAccess,
   setShowTrialExpiredModal,
-}: QrCodeDetailsColumnProps) {
+}: IQrCodeDetailsColumnProps) {
   const ref = useRef<HTMLDivElement>(null);
 
   return (

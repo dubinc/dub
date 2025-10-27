@@ -1,6 +1,7 @@
 "use client";
 
-import { CheckCircleFill, X } from "@/ui/shared/icons";
+import { TrialClicks, TrialDays } from "@/lib/constants/trial";
+import { X } from "@/ui/shared/icons";
 import { Button, Modal } from "@dub/ui";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
@@ -17,10 +18,10 @@ interface IFeatureItemProps {
 function FeatureItem({ text }: IFeatureItemProps) {
   return (
     <li className="flex items-center justify-start gap-3 sm:gap-4">
-      <div>
-        <CheckCircleFill className="h-6 w-6 stroke-2 text-green-500 sm:h-8 sm:w-8" />
+      <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-red-100 bg-red-50 sm:h-8 sm:w-8">
+        <X className="h-3 w-3 stroke-2 text-red-500 sm:h-4 sm:w-4" />
       </div>
-      <span className="text-left text-xs leading-relaxed text-neutral-700 sm:text-sm">
+      <span className="text-left text-sm leading-relaxed text-neutral-700 sm:text-base">
         {text}
       </span>
     </li>
@@ -58,9 +59,9 @@ export function TrialExpiredModal({
         </button>
 
         <div className="flex flex-col items-center space-y-4 text-center sm:space-y-6">
-          <div className="space-y-3 px-8">
+          <div className="space-y-3">
             <h2 className="text-neutral text-xl font-bold tracking-tight sm:text-2xl">
-              Upgrade now to unlock your full QR features!
+              Free Access Has Ended — Upgrade to Keep Going
             </h2>
           </div>
 
@@ -94,23 +95,32 @@ export function TrialExpiredModal({
           <div className="w-full space-y-3 sm:space-y-4">
             <div className="text-left">
               <p className="text-medium text-sm leading-relaxed text-neutral-800 sm:text-base">
-                Your QR codes are ready to go live again. It only takes a click to unlock:
+                Free access has expired because you’ve either reached the{" "}
+                {TrialDays}-day usage limit or completed {TrialClicks} scans.
+                <br />
+                <br />
+                <span className="text-neutral">
+                  Because of this, the following features are now disabled:
+                </span>
               </p>
             </div>
 
             <ul className="space-y-2 sm:space-y-3">
-              <FeatureItem text="Nothing lost. Your existing QR codes & scans are restored" />
-              <FeatureItem text="Download your QR code in PNG, JPG, or SVG" />
-              <FeatureItem text="Edit your QR code anytime, even after printing" />
-              <FeatureItem text="Create unlimited QR codes" />
-              <FeatureItem text="Track scans, devices & locations with analytics" />
-              <FeatureItem text="Customize with colors, logos & frames" />
+              <FeatureItem text="Your dynamic QR codes are no longer scannable." />
+              <FeatureItem text="You can’t create new codes or edit existing ones." />
+              <FeatureItem text="Detailed tracking metrics are inaccessible." />
+              <FeatureItem text="Asset downloads are disabled." />
             </ul>
           </div>
 
           <div className="w-full space-y-3 pt-2 sm:space-y-4">
+            <p className="text-left text-sm font-medium leading-relaxed text-neutral-700 md:text-center md:text-base">
+              Upgrade now to restore full access and continue enjoying all GetQR
+              features!
+            </p>
+
             <Button
-              text="Restore Full Access"
+              text="Restore Access"
               variant="primary"
               className="bg-secondary hover:bg-secondary-800 h-10 w-full text-sm font-medium sm:h-12 sm:text-base"
               onClick={handleRestoreAccess}

@@ -299,22 +299,26 @@ export const analyticsResponse = {
       createdAt: z
         .string()
         .describe("The creation timestamp of the short link"),
-      qr: z.object({
-        id: z.string().describe("The unique ID of the QR code"),
-        qrType: z.enum([
-          "website",
-          "whatsapp",
-          "social",
-          "wifi",
-          "app",
-          "pdf",
-          "image",
-          "video",
-          "feedback",
-          "email",
-        ]).describe("The type of QR code"),
-        title: z.string().nullish().describe("The title of the QR code"),
-      }).optional(),
+      qr: z
+        .object({
+          id: z.string().describe("The unique ID of the QR code"),
+          qrType: z
+            .enum([
+              "website",
+              "whatsapp",
+              "social",
+              "wifi",
+              "app",
+              "pdf",
+              "image",
+              "video",
+              "feedback",
+              "email",
+            ])
+            .describe("The type of QR code"),
+          title: z.string().nullish().describe("The title of the QR code"),
+        })
+        .optional(),
       clicks: z
         .number()
         .describe("The number of clicks from this link")

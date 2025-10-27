@@ -24,6 +24,7 @@ model Qr {
 
   styles          Json?      // styles of the qr
   frameOptions    Json?
+  logoOptions     Json?      // logo configuration: type, id (suggested), fileId (uploaded)
 
   workspaceId     String?
 

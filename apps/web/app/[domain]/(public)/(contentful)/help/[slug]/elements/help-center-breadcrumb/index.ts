@@ -1,1 +1,1 @@
-export { HelpCenterBreadcrumbComponent } from './help-center-breadcrumb.component';
+export { HelpCenterBreadcrumbComponent } from "./help-center-breadcrumb.component";

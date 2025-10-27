@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
 import Script from "next/script";
 import { ReactNode, useRef } from "react";
-import { SupportChatbot } from "./support-chat-bot";
 import { ScriptProvider, useScriptContext } from "./script-context";
+import { SupportChatbot } from "./support-chat-bot";
 
 interface ChatbotWrapperProps {
   children?: ReactNode;
@@ -23,14 +23,14 @@ const BotpressScripts = () => {
 
   return (
     <>
-      <Script 
-        async 
-        src={process.env.NEXT_PUBLIC_BOTPRESS_WEBCHAT_URL} 
+      <Script
+        async
+        src={process.env.NEXT_PUBLIC_BOTPRESS_WEBCHAT_URL}
         onLoad={handleScriptLoad}
       />
-      <Script 
+      <Script
         async
-        src={process.env.NEXT_PUBLIC_BOTPRESS_WEBCHAT_SCRIPT_URL} 
+        src={process.env.NEXT_PUBLIC_BOTPRESS_WEBCHAT_SCRIPT_URL}
         onLoad={handleScriptLoad}
       />
     </>
