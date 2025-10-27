@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <rect id="video-camera-a" width="13" height="2"/>
+    <path id="video-camera-c" d="M2,2 L2,12 L15,12 L15,2 L2,2 Z M17,4.0954626 L20.5133571,2.12178132 C21.1834064,1.76317778 22,2.23954815 22,2.98903356 L22,11.0109664 C22,11.7604518 21.1834064,12.2368222 20.5133571,11.8782187 L17,9.91175081 L17,12 C17,13.1045695 16.1045695,14 15,14 L2,14 C0.8954305,14 0,13.1045695 0,12 L0,2 C0,0.8954305 0.8954305,0 2,0 L15,0 C16.1045695,0 17,0.8954305 17,2 L17,4.0954626 Z M19.9558105,9.43862799 L19.9558105,4.68369936 L16,7.06116368 L19.9558105,9.43862799 Z M13,5.5 C12.1715729,5.5 11.5,4.82842712 11.5,4 C11.5,3.17157288 12.1715729,2.5 13,2.5 C13.8284271,2.5 14.5,3.17157288 14.5,4 C14.5,4.82842712 13.8284271,5.5 13,5.5 Z M2,10 L2,8 L15,8 L15,10 L2,10 Z"/>
+  </defs>
+  <g fill="none" fill-rule="evenodd" transform="translate(1 5)">
+    <g transform="translate(2 10)">
+      <mask id="video-camera-b" fill="#ffffff">
+        <use xlink:href="#video-camera-a"/>
+      </mask>
+      <use fill="#D8D8D8" xlink:href="#video-camera-a"/>
+      <g fill="#FFA0A0" mask="url(#video-camera-b)">
+        <rect width="24" height="24" transform="translate(-3 -15)"/>
+      </g>
+    </g>
+    <mask id="video-camera-d" fill="#ffffff">
+      <use xlink:href="#video-camera-c"/>
+    </mask>
+    <use fill="#000000" fill-rule="nonzero" xlink:href="#video-camera-c"/>
+    <g fill="#7600FF" mask="url(#video-camera-d)">
+      <rect width="24" height="24" transform="translate(-1 -5)"/>
+    </g>
+  </g>
+</svg>

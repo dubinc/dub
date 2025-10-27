@@ -1,1 +1,1 @@
-export { HelpCenterHeaderComponent } from './help-center-header.component';
+export { HelpCenterHeaderComponent } from "./help-center-header.component";

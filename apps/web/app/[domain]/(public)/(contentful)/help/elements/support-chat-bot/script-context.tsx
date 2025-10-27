@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, ReactNode, useContext, useState } from "react";
 
 interface ScriptContextType {
   scriptsLoaded: boolean;
@@ -12,7 +12,7 @@ const ScriptContext = createContext<ScriptContextType | undefined>(undefined);
 export const useScriptContext = () => {
   const context = useContext(ScriptContext);
   if (!context) {
-    throw new Error('useScriptContext must be used within a ScriptProvider');
+    throw new Error("useScriptContext must be used within a ScriptProvider");
   }
   return context;
 };

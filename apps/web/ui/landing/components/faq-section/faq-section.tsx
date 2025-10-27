@@ -93,11 +93,16 @@ export const FAQSection: FC<IFaqSectionProps> = ({
                 contentRefs.current[idx] = el;
               }}
             >
-              {Array.isArray(item.content) ? item.content.map((content) => (
-                <BlockMarkdown key={content} className="py-2 text-left text-base text-neutral-300">
-                  {content}
-                </BlockMarkdown>
-              )) : (
+              {Array.isArray(item.content) ? (
+                item.content.map((content) => (
+                  <BlockMarkdown
+                    key={content}
+                    className="py-2 text-left text-base text-neutral-300"
+                  >
+                    {content}
+                  </BlockMarkdown>
+                ))
+              ) : (
                 <BlockMarkdown className="py-2 text-left text-base text-neutral-300">
                   {item.content}
                 </BlockMarkdown>

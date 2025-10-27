@@ -16,25 +16,28 @@ const getStyles = (featuresAccess: FeaturesAccess, archived: boolean) => {
       container: "border-red-600 bg-red-100",
       text: "text-red-600",
       label: "Deactivated",
-    }
+    };
   }
   if (archived) {
     return {
       container: "border-yellow-600 bg-yellow-100",
       text: "text-yellow-600",
       label: "Paused",
-    }
+    };
   }
   return {
     label: "Active",
-  }
-}
+  };
+};
 
 export const QrInfoBadge: FC<IPopularQrInfo> = ({
   mostScannedQR,
   featuresAccess,
 }) => {
-  const { container, text, label } = getStyles(featuresAccess, mostScannedQR?.archived || false);
+  const { container, text, label } = getStyles(
+    featuresAccess,
+    mostScannedQR?.archived || false,
+  );
 
   return (
     <div
@@ -43,9 +46,7 @@ export const QrInfoBadge: FC<IPopularQrInfo> = ({
         container,
       )}
     >
-      <span
-        className={cn("text-primary text-xs font-medium lg:text-sm", text)}
-      >
+      <span className={cn("text-primary text-xs font-medium lg:text-sm", text)}>
         {label}
       </span>
     </div>
