@@ -46,7 +46,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* Header with Title */}
         <div className="mb-8 flex items-center justify-center text-center sm:mb-12 lg:mb-16">
-          <div className="flex max-w-3xl flex-col items-center justify-center gap-6">
+          <div className="flex max-w-3xl flex-col items-center justify-center gap-3">
             <QrTabsDetailedTitle />
             <MotionPreset
               fade
@@ -55,11 +55,9 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
               delay={0.2}
               transition={{ duration: 0.5 }}
             >
-              <p className="text-muted-foreground text-lg md:text-xl">
-                From websites and social media to PDFs, business cards, and
-                Wi-Fi access—there's no limit to what you can create a QR code
-                for. GetQR offers every type of QR code you need, all in one
-                place.
+              <p className="text-muted-foreground max-w-4xl text-base md:text-lg-base">
+                GetQR brings every QR code type in one place. Create, customize,
+                share, scan and analyze.
               </p>
             </MotionPreset>
           </div>
@@ -126,7 +124,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                 >
                   <div className="flex flex-col gap-6">
                     <h3 className="text-card-foreground text-2xl font-bold md:text-3xl">
-                      {type.info}
+                      {type.label}
                     </h3>
 
                     <p className="text-muted-foreground text-base md:text-lg">
@@ -140,7 +138,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                         handleScrollButtonClick("2", type.scrollTo)
                       }
                     >
-                      Create {type.label} QR code
+                      Create QR code
                     </Button>
                   </div>
                 </MotionPreset>

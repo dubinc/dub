@@ -14,7 +14,7 @@ export const ReviewsSection = () => {
 
   return (
     <section className="py-10 lg:py-14">
-      <div className="mb-12 flex flex-col items-center justify-center gap-6 sm:mb-16 lg:mb-24 lg:gap-10">
+      <div className="mb-12 flex flex-col items-center justify-center gap-6 sm:mb-16 lg:gap-10">
         <SectionTitle
           titleFirstPart={"Why Our Customers"}
           highlightedTitlePart={"Choose GetQR"}

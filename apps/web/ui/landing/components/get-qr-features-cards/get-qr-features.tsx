@@ -50,7 +50,7 @@ export const GetQRFeaturesCardsSection: FC = () => {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="mb-12 flex flex-col items-center justify-center gap-6 sm:mb-16 lg:mb-24 lg:gap-10">
+        <div className="mb-12 flex flex-col items-center justify-center gap-3 sm:mb-16 lg:mb-24">
           <MotionPreset
             fade
             slide={{ direction: "down", offset: 50 }}
@@ -63,6 +63,9 @@ export const GetQRFeaturesCardsSection: FC = () => {
               titleSecondPart=" Generator"
             />
           </MotionPreset>
+          <p className="text-muted-foreground max-w-4xl text-base md:text-lg-base">
+            Make every code on-brand, easy to refine, swap links anytime and see your metrics align.
+          </p>
         </div>
 
         <Tabs

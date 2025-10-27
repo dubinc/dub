@@ -25,12 +25,15 @@ export const PricingSection: FC<IPricingSectionProps> = ({
 }) => {
   return (
     <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
-      <div className="mb-12 flex flex-col items-center justify-center gap-6 lg:mb-24 lg:gap-10">
+      <div className="mb-12 flex flex-col items-center justify-center gap-3 lg:mb-24">
         <SectionTitle
           titleFirstPart={"Start 7-Day Trial Today, Upgrade when"}
           highlightedTitlePart={"You Need"}
           className="lg:!leading-[52px]"
         />
+        <p className="text-muted-foreground max-w-4xl text-base md:text-lg-base">
+          Create without limits, make scanning a breeze, Try seven days for $0.99, upgrade when you please.
+        </p>
       </div>
 
       <div className="relative grid items-end gap-6 lg:grid-cols-4">

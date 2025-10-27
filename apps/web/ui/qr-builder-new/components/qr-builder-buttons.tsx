@@ -41,9 +41,9 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
 }) => {
   const isLastStep = step === maxStep;
   const isContentStep = step === 2;
+  const isCustomizationStep = step === 3;
 
   // Check if logo upload is incomplete (on customization step)
-  const isCustomizationStep = step === 3;
   const hasUploadedLogoWithoutFileId =
     isCustomizationStep && logoData?.type === "uploaded" && !logoData?.fileId;
 
@@ -54,8 +54,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
     if (isFileUploading) return "Uploading...";
     if (isFileProcessing) return "Processing...";
     if (isEdit) return "Save Changes";
-    if (!isLastStep) return "Continue";
-    if (homepageDemo) return "Download QR Code";
+    if (homepageDemo) return "Continue";
 
     return "Create QR Code";
   }, [isFileUploading, isFileProcessing, isEdit, isLastStep, homepageDemo]);
@@ -75,9 +74,11 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         variant="outline"
         size="lg"
         className={cn(
-          "border-secondary text-secondary hover:bg-secondary/10 flex min-w-0 shrink basis-1/4 gap-2",
+          "border-secondary text-secondary hover:bg-secondary/10 flex min-w-0 shrink gap-2",
           {
-            "text-neutral-400 border-neutral-400": isProcessing,
+            "border-neutral-400 text-neutral-400": isProcessing,
+            "w-full": isLastStep,
+            "basis-1/4": !isLastStep,
           },
         )}
         disabled={step <= minStep || isProcessing}
@@ -91,22 +92,31 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         <span className="hidden md:inline">Back</span>
       </Button>
 
-      <Button
-        type="submit"
-        size="lg"
-        className="bg-secondary hover:bg-secondary/90 grow basis-3/4"
-        onClick={onContinue}
-        disabled={
-          isProcessing ||
-          isFileUploading ||
-          isFileProcessing ||
-          hasUploadedLogoWithoutFileId ||
-          shouldDisableForValidation
-        }
-      >
-        {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-        {buttonText}
-      </Button>
+      {!isLastStep ? (
+        <Button
+          type="submit"
+          variant="outline"
+          size="lg"
+          className={cn(
+            "border-secondary text-secondary hover:bg-secondary/10 w-full shrink",
+            {
+              "border-neutral-400 text-neutral-400": isProcessing,
+            },
+          )}
+          onClick={onContinue}
+          disabled={
+            isProcessing ||
+            isFileUploading ||
+            isFileProcessing ||
+            hasUploadedLogoWithoutFileId ||
+            shouldDisableForValidation ||
+            isCustomizationStep
+          }
+        >
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {buttonText}
+        </Button>
+      ) : null}
     </Flex>
   );
 };

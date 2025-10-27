@@ -83,6 +83,7 @@ export const DownloadButton = ({
     <Button
       type="submit"
       size="lg"
+      variant="default"
       className="bg-secondary hover:bg-secondary/90 w-full"
       onClick={handleSave}
       disabled={isDisabled}

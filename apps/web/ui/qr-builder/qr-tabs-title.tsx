@@ -16,8 +16,7 @@ export const QrTabsTitle: FC = () => {
         </span>
       </Heading>
       <p className="text-muted-foreground max-w-2xl text-base md:text-lg">
-        Select the QR type that fits your need and let the QR code generator do
-        the rest
+        You design your QR to share, we drive your scans and measure with care
       </p>
     </div>
   );

@@ -29,9 +29,24 @@ export const FormInput = ({
   error,
   defaultCountry,
 }: FormInputProps) => {
-  const { control, register } = useFormContext();
+  const { control, register, setValue, trigger } = useFormContext();
 
   const autoCompleteValue = getAutoCompleteValue(type);
+
+  // Function to handle adding https:// prefix for URL inputs
+  const handleUrlBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const currentValue = e.target.value.trim();
+    if (
+      currentValue &&
+      !currentValue.startsWith("http://") &&
+      !currentValue.startsWith("https://")
+    ) {
+      const newValue = `https://${currentValue}`;
+      setValue(name, newValue, { shouldDirty: true });
+      // Wait for trigger to complete to ensure formState updates
+      await trigger(name);
+    }
+  };
 
   if (type === "textarea") {
     return (
@@ -115,6 +130,7 @@ export const FormInput = ({
       maxLength={maxLength}
       required={required}
       {...register(name)}
+      {...(type === "url" && { onBlur: handleUrlBlur })}
     />
   );
 };

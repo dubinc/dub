@@ -1,4 +1,5 @@
 import { AvatarGroup } from "@/components/ui/avatar-group";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import { Text } from "@radix-ui/themes";
@@ -28,37 +29,41 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
   }, []);
 
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center gap-2",
-        `items-${alignItems}`,
-      )}
-    >
-      <div className="flex flex-col items-center gap-3 sm:flex-row">
-        <AvatarGroup />
-        <div className="flex flex-col items-center gap-2 sm:items-start">
-          <Text
-            as="span"
-            size="4"
-            weight="medium"
-            className="text-gray-700"
-          >
-            Trusted by <NumberFlow value={users} className="tabular-nums" />+ users
-          </Text>
-          <Text
-            as="span"
-            size="3"
-            weight="regular"
-            className="text-muted-foreground"
-          >
-            Their QR codes have been scanned{" "}
-            <strong className="tabular-nums font-semibold">
-              <NumberFlow value={scans} />
-            </strong>{" "}
-            times
-          </Text>
+    <>
+      <Separator />
+      <div
+        className={cn(
+          "flex flex-col items-center py-8 justify-center gap-2",
+          `items-${alignItems}`,
+        )}
+      >
+        <div className="flex flex-col items-center gap-3 sm:flex-row">
+          <AvatarGroup />
+          <div className="flex flex-col items-center gap-2 sm:items-start">
+            <Text
+              as="span"
+              size="4"
+              weight="medium"
+              className="text-gray-700"
+            >
+              Trusted by <NumberFlow value={users} className="tabular-nums" /> users
+            </Text>
+            <Text
+              as="span"
+              size="3"
+              weight="regular"
+              className="text-muted-foreground"
+            >
+              Their QR codes have been scanned{" "}
+              <strong className="tabular-nums font-semibold">
+                <NumberFlow value={scans} />
+              </strong>{" "}
+              times
+            </Text>
+          </div>
         </div>
       </div>
-    </div>
+      <Separator />
+    </>
   );
 };

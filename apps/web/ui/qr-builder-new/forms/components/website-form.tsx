@@ -54,6 +54,7 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
     const form = useForm<TWebsiteQRFormData>({
       resolver: zodResolver(websiteQRSchema),
       defaultValues: formDefaults,
+      mode: "all",
     });
 
     useImperativeHandle(ref, () => ({

@@ -6,13 +6,14 @@ import { Flex } from "@radix-ui/themes";
 import { motion } from "framer-motion";
 import { useMemo } from "react";
 import { QRCodeDemoPlaceholder } from "../constants/qr-code-demo-placeholder.tsx";
-import { DownloadButton } from "./download-button";
 import { QRCustomization } from "./customization";
 import { QRPreview } from "./customization/qr-preview";
 import { QRCodeDemoMap } from "./qr-code-demos/qr-code-demo-map";
-import { useQRCodeStyling } from "../hooks/use-qr-code-styling";
 import { QrContentStep } from "./qr-content-step.tsx";
 import { QrTypeSelection } from "./qr-type-selection";
+import { QrBuilderButtons } from "./qr-builder-buttons";
+import { DownloadButton } from "./download-button";
+import { useQRCodeStyling } from "../hooks/use-qr-code-styling";
 
 export const QRBuilderInner = () => {
   const {
@@ -32,13 +33,21 @@ export const QRBuilderInner = () => {
     updateCustomizationData,
     setCustomizationActiveTab,
     homepageDemo,
+    isEditMode,
+    isProcessing,
+    isFileUploading,
+    isFileProcessing,
+    handleBack,
+    handleContinue,
+    builderStep,
+    isFormValid,
   } = useQrBuilderContext();
 
   const qrCodeDemo = currentQRType ? QRCodeDemoMap[currentQRType] : null;
 
   const { isMobile } = useMediaQuery();
 
-  // QR code instance for customization step
+  // QR code instance for download
   const qrCode = useQRCodeStyling({
     customizationData,
     defaultData: "https://getqr.com/qr-complete-setup",
@@ -111,75 +120,79 @@ export const QRBuilderInner = () => {
           )}
         </div>
 
-        {!isTypeStep && (
-          <div className="md:hidden flex w-full justify-center mt-6">
-            <div className="w-full">
-              <DownloadButton
-                qrCode={isCustomizationStep ? qrCode : null}
-                disabled={isTypeStep && !selectedQrType}
-              />
-            </div>
+        {!isTypeStep && !isMobile && (
+          <div className="w-full">
+            <QrBuilderButtons
+              step={builderStep || 1}
+              onBack={handleBack}
+              onContinue={handleContinue}
+              isEdit={isEditMode}
+              isProcessing={isProcessing}
+              isFileUploading={isFileUploading}
+              isFileProcessing={isFileProcessing}
+              homepageDemo={homepageDemo}
+              currentFormValues={currentFormValues}
+              logoData={customizationData.logo}
+              isFormValid={isFormValid}
+            />
           </div>
         )}
       </div>
 
       <div
         className={cn(
-          "relative flex h-full shrink-0 basis-1/3 flex-col items-center justify-between rounded-lg",
+          "relative h-auto shrink-0 basis-1/3 items-start justify-center rounded-lg md:flex",
           {
             "hidden md:flex": isTypeStep && !homepageDemo,
             "!hidden": isTypeStep && homepageDemo,
+            "items-start": isCustomizationStep,
           },
         )}
       >
-        <div className="flex flex-1 items-center justify-center w-full max-w-[300px] mx-auto">
-          {!isCustomizationStep && (
-            <div className="relative inline-block">
-              <motion.div
-                key={
-                  currentQRType
-                    ? `${currentQRType}-${hoveredQRType !== null ? "hovered" : "default"}`
-                    : "placeholder"
-                }
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 },
-                  exit: { opacity: 0, y: 20 },
-                }}
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-              >
-                {!currentQRType ? (
-                  <QRCodeDemoPlaceholder />
-                ) : (
-                  <>
-                    {qrCodeDemo && <qrCodeDemo.Component {...demoProps} />}
-                  </>
-                )}
-              </motion.div>
-            </div>
-          )}
-
-          {isCustomizationStep && (
-            <div className="flex w-full flex-col gap-6">
+        {!isTypeStep && (
+          <div className="sticky top-20 flex w-full max-w-[270px] flex-col gap-6">
+            {!isCustomizationStep ? (
+              <div className="relative inline-block">
+                <motion.div
+                  key={
+                    currentQRType
+                      ? `${currentQRType}-${hoveredQRType !== null ? "hovered" : "default"}`
+                      : "placeholder"
+                  }
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  variants={{
+                    hidden: { opacity: 0, y: 20 },
+                    visible: { opacity: 1, y: 0 },
+                    exit: { opacity: 0, y: 20 },
+                  }}
+                  transition={{ duration: 0.3, ease: "easeInOut" }}
+                >
+                  {!currentQRType ? (
+                    <QRCodeDemoPlaceholder />
+                  ) : (
+                    <>
+                      {qrCodeDemo && <qrCodeDemo.Component {...demoProps} />}
+                    </>
+                  )}
+                </motion.div>
+              </div>
+            ) : (
               <QRPreview
                 homepageDemo={homepageDemo}
                 customizationData={customizationData}
               />
-            </div>
-          )}
-        </div>
+            )}
 
-        <div className="w-full mt-6 flex justify-center md:flex hidden">
-          <div className="w-full max-w-[300px]">
-            <DownloadButton
-              qrCode={isCustomizationStep ? qrCode : null}
-              disabled={isTypeStep && !selectedQrType}
-            />
+            {!isMobile && (
+              <DownloadButton
+                qrCode={isCustomizationStep ? qrCode : null}
+                disabled={!selectedQrType || (isContentStep && !isFormValid)}
+              />
+            )}
           </div>
-        </div>
+        )}
       </div>
     </Flex>
   );

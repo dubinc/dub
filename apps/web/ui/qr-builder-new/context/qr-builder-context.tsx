@@ -190,16 +190,25 @@ export function QrBuilderProvider({
       }
 
       // Prevent going to step 3 if step 2 is not completed with valid data
-      if (newStep === 3 && !formData) {
-        toast.error("Please complete the required fields in step 2 first");
-        return;
+      if (newStep === 3) {
+        if (!formData) {
+          toast.error("Please complete the required fields in step 2 first");
+          return;
+        }
+        if (!isFormValid) {
+          toast.error("Please fix the errors in step 2 before continuing");
+          return;
+        }
       }
 
       setTypeSelectionError("");
       setBuilderStep(newStep as TStepState);
 
-      // Reset form validity when not on content step
+      // Reset form validity appropriately
       if (newStep !== 2) {
+        setIsFormValid(true);
+      } else if (newStep === 2 && formData) {
+        // When navigating back to step 2, if formData exists, form was previously valid
         setIsFormValid(true);
       }
 
@@ -216,7 +225,7 @@ export function QrBuilderProvider({
         sessionId: sessionId || user?.id,
       });
     },
-    [selectedQrType, formData, homepageDemo, user, sessionId],
+    [selectedQrType, formData, isFormValid, homepageDemo, user, sessionId],
   );
 
   const handleSelectQRType = useCallback(
