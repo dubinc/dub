@@ -13,6 +13,7 @@ import {
   Switch,
   useRouterStuff,
 } from "@dub/ui";
+import { useSession } from "next-auth/react";
 import {
   Dispatch,
   SetStateAction,
@@ -36,6 +37,7 @@ function ExportCommissionsModal({
   showExportCommissionsModal: boolean;
   setShowExportCommissionsModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { data: session } = useSession();
   const columnCheckboxId = useId();
   const { program } = useProgram();
   const { id: workspaceId } = useWorkspace();
@@ -81,6 +83,14 @@ function ExportCommissionsModal({
       if (!response.ok) {
         const { error } = await response.json();
         throw new Error(error.message);
+      }
+
+      if (response.status === 202) {
+        toast.success(
+          `Your export is being processed and we'll send you an email (${session?.user?.email}) when it's ready to download.`,
+        );
+        setShowExportCommissionsModal(false);
+        return;
       }
 
       const blob = await response.blob();

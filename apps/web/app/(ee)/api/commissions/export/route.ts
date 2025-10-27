@@ -1,52 +1,49 @@
 import { convertToCSV } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { formatCommissionsForExport } from "@/lib/api/commissions/format-commissions-for-export";
+import { getCommissionsCount } from "@/lib/api/commissions/get-commissions-count";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import {
-  COMMISSION_EXPORT_COLUMNS,
   commissionsExportQuerySchema,
   getCommissionsQuerySchema,
 } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
-import { z } from "zod";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { NextResponse } from "next/server";
 
-const COLUMN_LOOKUP: Map<
-  string,
-  { label: string; type: string; order: number }
-> = new Map(
-  COMMISSION_EXPORT_COLUMNS.map((column, index) => [
-    column.id,
-    {
-      label: column.label,
-      type: column.type,
-      order: index + 1,
-    },
-  ]),
-);
-
-// Define the Zod schemas for each column type
-const COLUMN_TYPE_SCHEMAS = {
-  number: z.coerce
-    .number()
-    .nullable()
-    .default(0)
-    .transform((value) => value || 0),
-  date: z.date().transform((date) => date?.toISOString() || ""),
-  string: z
-    .string()
-    .nullable()
-    .default("")
-    .transform((value) => value || ""),
-};
+const MAX_COMMISSIONS_TO_EXPORT = 1000;
 
 // GET /api/commissions/export – export commissions to CSV
-export const GET = withWorkspace(async ({ searchParams, workspace }) => {
+export const GET = withWorkspace(async ({ searchParams, workspace, session }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  let { columns, ...filters } =
-    commissionsExportQuerySchema.parse(searchParams);
+  const parsedParams = commissionsExportQuerySchema.parse(searchParams);
+  let { columns, ...filters } = parsedParams;
 
-  // Parse the search filters
+  // Get the count of commissions to decide if we should process async
+  const counts = await getCommissionsCount({
+    ...filters,
+    programId,
+  });
+
+  // Process the export in the background if the number of commissions is greater than MAX_COMMISSIONS_TO_EXPORT
+  if (counts.all.count > MAX_COMMISSIONS_TO_EXPORT) {
+    await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/commissions/export`,
+      body: {
+        ...parsedParams,
+        columns: columns.join(","),
+        programId,
+        userId: session.user.id,
+      },
+    });
+
+    return NextResponse.json({}, { status: 202 });
+  }
+
+  // Parse the search filters for synchronous export
   const {
     status,
     type,
@@ -123,54 +120,19 @@ export const GET = withWorkspace(async ({ searchParams, workspace }) => {
         },
       },
     },
-    take: 1000,
+    take: MAX_COMMISSIONS_TO_EXPORT,
     orderBy: {
       [sortBy]: sortOrder,
     },
   });
 
-  // Format the commissions
-  const formattedCommissions = commissions.map((commission) => ({
-    ...commission,
-    customerName: commission.customer?.name || "",
-    customerEmail: commission.customer?.email || "",
-    customerExternalId: commission.customer?.externalId || "",
-    partnerName: commission.partner?.name || "",
-    partnerEmail: commission.partner?.email || "",
-    partnerTenantId: commission.partner?.programs[0]?.tenantId || "",
-  }));
-
-  // Sort columns by their order
-  columns = columns.sort(
-    (a, b) =>
-      (COLUMN_LOOKUP.get(a)?.order || 999) -
-      (COLUMN_LOOKUP.get(b)?.order || 999),
-  );
-
-  // Build column schemas
-  const columnSchemas: Record<string, z.ZodTypeAny> = {};
-
-  for (const column of columns) {
-    const columnInfo = COLUMN_LOOKUP.get(column);
-
-    if (!columnInfo) {
-      continue;
-    }
-
-    columnSchemas[column] = COLUMN_TYPE_SCHEMAS[columnInfo.type];
-  }
-
-  // Prepare the data for export
-  const data = z.array(z.object(columnSchemas)).parse(formattedCommissions);
-  const csvData = convertToCSV(data);
-
-  // Sanitize timestamp for filesystem compatibility (replace colons with hyphens)
-  const sanitizedTimestamp = new Date().toISOString().replace(/:/g, "-");
+  const formattedCommissions = formatCommissionsForExport(commissions, columns);
+  const csvData = convertToCSV(formattedCommissions);
 
   return new Response(csvData, {
     headers: {
       "Content-Type": "text/csv",
-      "Content-Disposition": `attachment; filename="Dub Commissions Export - ${sanitizedTimestamp}.csv"`,
+      "Content-Disposition": "attachment",
     },
   });
 });

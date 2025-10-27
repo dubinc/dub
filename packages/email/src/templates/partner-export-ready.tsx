@@ -14,15 +14,17 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerExportReady({
+export default function ExportReady({
   email = "panic@thedis.co",
   downloadUrl = "https://dev.dubassets.com/exports/partners/xxxx.csv",
+  exportType = "partners",
   program = {
     name: "Acme",
   },
 }: {
   email: string;
   downloadUrl: string;
+  exportType: "partners" | "commissions";
   program: {
     name: string;
   };
@@ -30,7 +32,7 @@ export default function PartnerExportReady({
   return (
     <Html>
       <Head />
-      <Preview>Your partner export is ready to download</Preview>
+      <Preview>Your {exportType} export is ready to download</Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] rounded border border-solid border-neutral-200 px-10 py-5">
@@ -38,11 +40,11 @@ export default function PartnerExportReady({
               <Img src={DUB_WORDMARK} height="32" alt="Dub" />
             </Section>
             <Heading className="mx-0 my-7 p-0 text-xl font-medium text-black">
-              Your partner export is ready
+              Your {exportType} export is ready
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your export of partners from <strong>{program.name}</strong> has
-              been completed and is ready to download.
+              Your export of {exportType} from <strong>{program.name}</strong>{" "}
+              has been completed and is ready to download.
             </Text>
             <Section className="my-8">
               <Link
