@@ -1,6 +1,7 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { formatCommissionsForExport } from "@/lib/api/commissions/format-commissions-for-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
@@ -84,11 +85,12 @@ export async function POST(req: Request) {
     // Upload to R2
     const fileKey = `exports/commissions/${generateRandomString(60)}.csv`;
     const csvBlob = new Blob([csvData], { type: "text/csv" });
+
     const uploadResult = await storage.upload(fileKey, csvBlob, {
       contentType: "text/csv",
       headers: {
         "Content-Type": "text/csv",
-        "Content-Disposition": "attachment",
+        "Content-Disposition": `attachment; filename="${generateExportFilename("commissions")}"`,
       },
     });
 

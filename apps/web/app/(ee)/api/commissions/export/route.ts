@@ -54,9 +54,7 @@ export const GET = withWorkspace(
       columns,
     );
 
-    const csvData = convertToCSV(formattedCommissions);
-
-    return new Response(csvData, {
+    return new Response(convertToCSV(formattedCommissions), {
       headers: {
         "Content-Type": "text/csv",
         "Content-Disposition": "attachment",

@@ -1,3 +1,4 @@
+import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -98,7 +99,7 @@ function ExportCommissionsModal({
       const a = document.createElement("a");
 
       a.href = url;
-      a.download = `Dub Commissions Export - ${new Date().toISOString()}.csv`;
+      a.download = generateExportFilename("commissions");
       a.click();
 
       toast.success("Exported successfully");

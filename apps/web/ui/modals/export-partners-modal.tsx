@@ -1,3 +1,4 @@
+import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -99,7 +100,7 @@ function ExportPartnersModal({
       const a = document.createElement("a");
 
       a.href = url;
-      a.download = `Dub Partners Export - ${new Date().toISOString()}.csv`;
+      a.download = generateExportFilename("partners");
       a.click();
 
       toast.success("Exported successfully");
