@@ -7,6 +7,7 @@ import { getUserCookieService } from "core/services/cookie/user-session.service"
 import { Viewport } from "next";
 import WorkspaceQRsClient from "./custom-page-client";
 import { LinksTitle } from "./links-title";
+import { getQrDataFromRedis } from '@/lib/actions/pre-checkout-flow/get-qr-data-from-redis';
 
 export const viewport: Viewport = {
   themeColor: "#f6f6f7",
@@ -15,6 +16,13 @@ export const viewport: Viewport = {
 const WorkspaceQRsPage = async () => {
   const { user: authUser } = await getSession();
   const { sessionId, user } = await getUserCookieService();
+
+  console.log("authUser", authUser);
+
+  const { qrData } = await getQrDataFromRedis(authUser.id, "qr-from-landing");
+  if (qrData) {
+    console.log("qrData from landing", qrData);
+  }
 
   const qrs = await getQrs({
     userId: authUser.id,

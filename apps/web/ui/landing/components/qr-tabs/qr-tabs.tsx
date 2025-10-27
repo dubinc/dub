@@ -80,6 +80,7 @@ export const QRTabs: FC<
       }
 
       if (newDataJSON !== qrDataToCreateJSON) {
+        console.log("handleSaveQr", sessionId);
         setQrDataToCreate(data);
         saveQrDataToRedis({ sessionId, qrData: data });
       }
