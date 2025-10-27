@@ -259,4 +259,5 @@ async function handler(req: Request) {
   }
 }
 
+// GET/POST /api/cron/payouts/aggregate-due-commissions
 export { handler as GET, handler as POST };
