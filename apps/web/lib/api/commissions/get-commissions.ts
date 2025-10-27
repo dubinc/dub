@@ -1,14 +1,11 @@
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import {
-  CommissionEnrichedSchema,
-  getCommissionsQuerySchema,
-} from "@/lib/zod/schemas/commissions";
+import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { z } from "zod";
-import { transformCustomerForCommission } from "../customers/transform-customer";
 
 type CommissionsFilters = z.infer<typeof getCommissionsQuerySchema> & {
   programId: string;
+  includeProgramEnrollment?: boolean; // Decide if we want to fetch the program enrollment data for the partner
 };
 
 export async function getCommissions(filters: CommissionsFilters) {
@@ -28,6 +25,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     pageSize,
     sortBy,
     sortOrder,
+    includeProgramEnrollment = false,
   } = filters;
 
   const { startDate, endDate } = getStartEndDates({
@@ -36,7 +34,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     end,
   });
 
-  const commissions = await prisma.commission.findMany({
+  return await prisma.commission.findMany({
     where: invoiceId
       ? {
           invoiceId,
@@ -69,17 +67,24 @@ export async function getCommissions(filters: CommissionsFilters) {
         },
     include: {
       customer: true,
-      partner: true,
+      ...(!includeProgramEnrollment
+        ? {
+            partner: true,
+          }
+        : {
+            partner: {
+              include: {
+                programs: {
+                  where: {
+                    programId,
+                  },
+                },
+              },
+            },
+          }),
     },
     skip: (page - 1) * pageSize,
     take: pageSize,
     orderBy: { [sortBy]: sortOrder },
   });
-
-  return z.array(CommissionEnrichedSchema).parse(
-    commissions.map((c) => ({
-      ...c,
-      customer: transformCustomerForCommission(c.customer),
-    })),
-  );
 }

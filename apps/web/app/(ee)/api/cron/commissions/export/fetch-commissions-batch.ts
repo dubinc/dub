@@ -21,6 +21,7 @@ export async function* fetchCommissionsBatch(
       ...filters,
       page,
       pageSize,
+      includeProgramEnrollment: true,
     });
 
     if (commissions.length > 0) {

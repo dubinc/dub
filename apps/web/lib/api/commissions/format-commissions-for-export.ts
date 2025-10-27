@@ -35,7 +35,6 @@ export function formatCommissionsForExport(
   commissions: any[],
   columns: string[],
 ): Record<string, any>[] {
-  // Format the commissions with enriched fields
   const formattedCommissions = commissions.map((commission) => ({
     ...commission,
     customerName: commission.customer?.name || "",
@@ -66,9 +65,5 @@ export function formatCommissionsForExport(
     columnSchemas[column] = COLUMN_TYPE_SCHEMAS[columnInfo.type];
   }
 
-  // Prepare the data for export
-  const data = z.array(z.object(columnSchemas)).parse(formattedCommissions);
-
-  return data;
+  return z.array(z.object(columnSchemas)).parse(formattedCommissions);
 }
-

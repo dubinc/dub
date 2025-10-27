@@ -1,10 +1,15 @@
 import { getCommissions } from "@/lib/api/commissions/get-commissions";
+import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
+import {
+  CommissionEnrichedSchema,
+  getCommissionsQuerySchema,
+} from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/commissions - get all commissions for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
@@ -42,5 +47,12 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     programId,
   });
 
-  return NextResponse.json(commissions);
+  return NextResponse.json(
+    z.array(CommissionEnrichedSchema).parse(
+      commissions.map((c) => ({
+        ...c,
+        customer: transformCustomerForCommission(c.customer),
+      })),
+    ),
+  );
 });
