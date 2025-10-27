@@ -207,6 +207,7 @@ export function MarketplaceProgramPageClient() {
               <LanderHero
                 program={program}
                 landerData={program.landerData || {}}
+                showLabel={false}
                 className="mt-8 sm:mt-8"
               />
 
