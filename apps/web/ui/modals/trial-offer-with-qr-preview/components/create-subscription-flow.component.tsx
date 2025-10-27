@@ -252,11 +252,11 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
 
         <div className="text-xs font-medium text-neutral-500">
           By continuing, you agree to our{" "}
-          <Link className="font-semibold underline" href="/eula">
+          <Link className="font-semibold underline" href="/eula?source=paywall">
             Terms and Conditions
           </Link>{" "}
           and{" "}
-          <Link className="font-semibold underline" href="/privacy-policy">
+          <Link className="font-semibold underline" href="/privacy-policy?source=paywall">
             Privacy Policy
           </Link>
           . After 7 days you will be charged{" "}
@@ -269,11 +269,11 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
     return (
       <div className="text-xs font-medium text-neutral-500">
         By continuing, you agree to our{" "}
-        <Link className="font-semibold underline" href="/eula">
+        <Link className="font-semibold underline" href="/eula?source=paywall">
           Terms and Conditions
         </Link>{" "}
         and{" "}
-        <Link className="font-semibold underline" href="/privacy-policy">
+        <Link className="font-semibold underline" href="/privacy-policy?source=paywall">
           Privacy Policy
         </Link>
         . If you don’t cancel at least 24 hours before the end of your 7-day
@@ -282,7 +282,7 @@ export const CreateSubscriptionFlow: FC<Readonly<ICreateSubscriptionProps>> = ({
           {oldPriceForViewText} every month
         </span>{" "}
         until you cancel through our{" "}
-        <Link className="font-semibold underline" href="/help">
+        <Link className="font-semibold underline" href="/help?source=paywall">
           Help Center
         </Link>
         . For assistance, please contact our support team at{" "}
