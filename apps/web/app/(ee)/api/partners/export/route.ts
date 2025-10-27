@@ -1,11 +1,15 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
 import { getPartners } from "@/lib/api/partners/get-partners";
+import { getPartnersCount } from "@/lib/api/partners/get-partners-count";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
+import { qstash } from "@/lib/cron";
 import {
   exportPartnerColumns,
   partnersExportQuerySchema,
 } from "@/lib/zod/schemas/partners";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const columnIdToLabel = exportPartnerColumns.reduce((acc, column) => {
@@ -17,17 +21,39 @@ const numericColumns = exportPartnerColumns
   .filter((column) => column.numeric)
   .map((column) => column.id);
 
+const MAX_PARTNERS_TO_EXPORT = 1000;
+
 // GET /api/partners/export – export partners to CSV
 export const GET = withWorkspace(
   async ({ searchParams, workspace }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    let { columns, ...filters } = partnersExportQuerySchema.parse(searchParams);
+    const parsedParams = partnersExportQuerySchema.parse(searchParams);
+    let { columns, ...filters } = parsedParams;
+
+    const partnersCount = await getPartnersCount<number>({
+      ...filters,
+      groupBy: undefined,
+      programId,
+    });
+
+    // Process the export in the background if the number of partners is greater than MAX_PARTNERS_TO_EXPORT
+    if (partnersCount > MAX_PARTNERS_TO_EXPORT) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/partners/export`,
+        body: {
+          ...parsedParams,
+          programId,
+        },
+      });
+
+      return NextResponse.json({}, { status: 204 });
+    }
 
     const partners = await getPartners({
       ...filters,
       page: 1,
-      pageSize: 10000,
+      pageSize: MAX_PARTNERS_TO_EXPORT,
       programId,
     });
 
