@@ -41,10 +41,6 @@ export const GET = withPartnerProfile(
       linkId = foundLink.id;
     }
 
-    if (links.length === 0) {
-      return NextResponse.json([], { status: 200 });
-    }
-
     const response = await getAnalytics({
       ...(program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X"
         ? { event: rest.event, groupBy: "count", interval: "all" }

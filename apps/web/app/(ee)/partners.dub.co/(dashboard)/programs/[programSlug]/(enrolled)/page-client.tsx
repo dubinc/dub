@@ -329,20 +329,26 @@ function StatCard({
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = useContext(ProgramOverviewContext);
 
-  const { data: total } = usePartnerAnalytics({
+  const { data: timeseries, error } = usePartnerAnalytics({
+    groupBy: "timeseries",
     event: "composite",
     interval,
     start,
     end,
   });
 
-  const { data: timeseries, error } = usePartnerAnalytics({
-    groupBy: "timeseries",
-    interval,
-    start,
-    end,
-    event,
-  });
+  const totals = useMemo(() => {
+    return timeseries && timeseries.length > 0
+      ? timeseries.reduce(
+          (acc, { clicks, leads, sales }) => ({
+            clicks: acc.clicks + clicks,
+            leads: acc.leads + leads,
+            sales: acc.sales + sales,
+          }),
+          { clicks: 0, leads: 0, sales: 0 },
+        )
+      : { clicks: 0, leads: 0, sales: 0 };
+  }, [timeseries]);
 
   return (
     <div className="group block rounded-lg border border-neutral-300 bg-white p-5 pb-3">
@@ -351,12 +357,12 @@ function StatCard({
           <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
             {title}
           </span>
-          {total !== undefined ? (
+          {totals !== undefined ? (
             <div className="flex items-center gap-1 text-lg font-medium text-neutral-600">
               <NumberFlow
-                value={total[event]}
+                value={totals[event]}
                 format={{
-                  notation: total[event] > 999999 ? "compact" : "standard",
+                  notation: totals[event] > 999999 ? "compact" : "standard",
                 }}
               />
             </div>
