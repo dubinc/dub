@@ -1,9 +1,14 @@
 "use client";
 
+import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
 import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
+import {
+  PROGRAM_NETWORK_PARTNER_MIN_PAYOUTS,
+  PROGRAM_NETWORK_PARTNER_MIN_PROGRAMS,
+} from "@/lib/zod/schemas/program-network";
 import { useRouterStuff } from "@dub/ui";
 import {
   Bell,
@@ -39,6 +44,8 @@ type SidebarNavData = {
   invitationsCount?: number;
   unreadMessagesCount?: number;
   programBountiesCount?: number;
+  enrolledProgramsCount?: number;
+  payoutsCount?: number;
 };
 
 const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
@@ -81,7 +88,7 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: ({ invitationsCount }) => ({
+  programs: ({ invitationsCount, enrolledProgramsCount, payoutsCount }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -102,11 +109,18 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 (k) => !pathname.startsWith(`${href}/${k}`),
               ),
           },
-          {
-            name: "Marketplace",
-            icon: Shop,
-            href: "/programs/marketplace",
-          },
+          ...(enrolledProgramsCount &&
+          enrolledProgramsCount >= PROGRAM_NETWORK_PARTNER_MIN_PROGRAMS &&
+          payoutsCount &&
+          payoutsCount >= PROGRAM_NETWORK_PARTNER_MIN_PAYOUTS
+            ? [
+                {
+                  name: "Marketplace",
+                  icon: Shop,
+                  href: "/programs/marketplace" as `/${string}`,
+                },
+              ]
+            : []),
           {
             name: "Invitations",
             icon: UserCheck,
@@ -279,6 +293,14 @@ export function PartnersSidebarNav({
     enabled: isEnrolledProgramPage,
   });
 
+  const { payoutsCount } = usePartnerPayoutsCount<number>(
+    {},
+    { includeParams: [] },
+  );
+  const { count: enrolledProgramsCount } = useProgramEnrollmentsCount({
+    status: "approved",
+  });
+
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
@@ -320,6 +342,8 @@ export function PartnersSidebarNav({
         invitationsCount,
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,
+        enrolledProgramsCount,
+        payoutsCount: payoutsCount,
       }}
       toolContent={toolContent}
       newsContent={newsContent}

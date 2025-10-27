@@ -5,6 +5,12 @@ import { getPaginationQuerySchema } from "./misc";
 import { programLanderSchema } from "./program-lander";
 import { ProgramSchema } from "./programs";
 
+// Requirements for a partner to be able to access the marketplace:
+// - Enrolled in at least 2 programs
+// - Has at least 1 payout
+export const PROGRAM_NETWORK_PARTNER_MIN_PAYOUTS = 1;
+export const PROGRAM_NETWORK_PARTNER_MIN_PROGRAMS = 2;
+
 export const NetworkProgramSchema = ProgramSchema.pick({
   id: true,
   slug: true,
