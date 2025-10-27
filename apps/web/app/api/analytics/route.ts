@@ -7,6 +7,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { rateLimitAnalytics } from "@/lib/api/utils/rate-limit-analytics";
 import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -21,6 +22,11 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ params, searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
+
+    await rateLimitAnalytics({
+      workspace,
+      session,
+    });
 
     let { eventType: oldEvent, endpoint: oldType } =
       analyticsPathParamsSchema.parse(params);
