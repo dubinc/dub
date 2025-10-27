@@ -181,6 +181,7 @@ export const POST = async (
 
     await CustomerIOClient.track(user.id, {
       name: EAnalyticEvents.TRIAL_ACTIVATED,
+      email: user?.email,
     });
 
     const updatedUser = await updateUserCookieService({
