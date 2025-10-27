@@ -1,6 +1,6 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
-import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { formatCommissionsForExport } from "@/lib/api/commissions/format-commissions-for-export";
+import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
@@ -73,7 +73,6 @@ export async function POST(req: Request) {
 
     for await (const { commissions } of fetchCommissionsBatch(
       commissionsFilters,
-      1000,
     )) {
       const formattedBatch = formatCommissionsForExport(commissions, columns);
 
@@ -122,4 +121,3 @@ export async function POST(req: Request) {
     return handleAndReturnErrorResponse(error);
   }
 }
-

@@ -4,7 +4,9 @@ import { prisma } from "@dub/prisma";
 import { CommissionStatus } from "@dub/prisma/client";
 import { z } from "zod";
 
-type CommissionsCountFilters = z.infer<typeof getCommissionsCountQuerySchema> & {
+type CommissionsCountFilters = z.infer<
+  typeof getCommissionsCountQuerySchema
+> & {
   programId: string;
 };
 
@@ -103,4 +105,3 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
 
   return counts;
 }
-

@@ -1,43 +1,17 @@
-import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { transformCustomerForCommission } from "@/lib/api/customers/transform-customer";
+import { getCommissions } from "@/lib/api/commissions/get-commissions";
 import { DubApiError } from "@/lib/api/errors";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
-import {
-  CommissionEnrichedSchema,
-  getCommissionsQuerySchema,
-} from "@/lib/zod/schemas/commissions";
+import { getCommissionsQuerySchema } from "@/lib/zod/schemas/commissions";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 // GET /api/commissions - get all commissions for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
 
-  let {
-    status,
-    type,
-    customerId,
-    payoutId,
-    partnerId,
-    tenantId,
-    invoiceId,
-    groupId,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-    start,
-    end,
-    interval,
-  } = getCommissionsQuerySchema.parse(searchParams);
-
-  const { startDate, endDate } = getStartEndDates({
-    interval,
-    start,
-    end,
-  });
+  let { partnerId, tenantId, ...filters } =
+    getCommissionsQuerySchema.parse(searchParams);
 
   if (tenantId && !partnerId) {
     const partner = await prisma.programEnrollment.findUnique({
@@ -51,61 +25,22 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
         partnerId: true,
       },
     });
+
     if (!partner) {
       throw new DubApiError({
         code: "not_found",
         message: `Partner with specified tenantId ${tenantId} not found.`,
       });
     }
+
     partnerId = partner.partnerId;
   }
 
-  const commissions = await prisma.commission.findMany({
-    where: invoiceId
-      ? {
-          invoiceId,
-          programId,
-        }
-      : {
-          earnings: {
-            not: 0,
-          },
-          programId,
-          partnerId,
-          status,
-          type,
-          customerId,
-          payoutId,
-          createdAt: {
-            gte: startDate.toISOString(),
-            lte: endDate.toISOString(),
-          },
-          ...(groupId && {
-            partner: {
-              programs: {
-                some: {
-                  programId,
-                  groupId,
-                },
-              },
-            },
-          }),
-        },
-    include: {
-      customer: true,
-      partner: true,
-    },
-    skip: (page - 1) * pageSize,
-    take: pageSize,
-    orderBy: { [sortBy]: sortOrder },
+  const commissions = await getCommissions({
+    ...filters,
+    partnerId,
+    programId,
   });
 
-  return NextResponse.json(
-    z.array(CommissionEnrichedSchema).parse(
-      commissions.map((c) => ({
-        ...c,
-        customer: transformCustomerForCommission(c.customer),
-      })),
-    ),
-  );
+  return NextResponse.json(commissions);
 });

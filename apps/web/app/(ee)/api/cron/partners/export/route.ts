@@ -71,10 +71,7 @@ export async function POST(req: Request) {
       programId,
     };
 
-    for await (const { partners } of fetchPartnersBatch(
-      partnersFilters,
-      1000,
-    )) {
+    for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
       const formattedBatch = formatPartnersForExport(partners, columns);
 
       allPartners.push(...formattedBatch);
