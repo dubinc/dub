@@ -106,7 +106,7 @@ export const POST = withSession(async ({ session, params }) => {
   });
 
   // Update default workspace
-  if (session.user["defaultWorkspace"] === null) {
+  if (!session.user.defaultWorkspace) {
     await prisma.user.update({
       where: {
         id: session.user.id,

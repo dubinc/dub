@@ -52,7 +52,8 @@ export async function AppMiddleware(req: NextRequest) {
         - User was created less than a day ago
         - User is not invited to a workspace (redirect straight to the workspace)
         - The path does not start with /onboarding
-        - The user has not completed the onboarding step
+        - User doesn't have a default workspace
+        - User has not completed the onboarding flow
       */
     } else if (
       new Date(user.createdAt).getTime() >
