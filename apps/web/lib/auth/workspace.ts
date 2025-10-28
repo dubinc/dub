@@ -247,11 +247,13 @@ export const withWorkspace = (
             interval,
           });
 
-          if (!success) {
+          if (headers) {
             for (const [key, value] of Object.entries(headers)) {
               responseHeaders.set(key, value);
             }
+          }
 
+          if (!success) {
             throw new DubApiError({
               code: "rate_limit_exceeded",
               message: "Too many requests.",
@@ -321,11 +323,11 @@ export const withWorkspace = (
             interval: rateLimit.interval,
           });
 
-          if (!success) {
-            for (const [key, value] of Object.entries(headers)) {
-              responseHeaders.set(key, value);
-            }
+          for (const [key, value] of Object.entries(headers)) {
+            responseHeaders.set(key, value);
+          }
 
+          if (!success) {
             throw new DubApiError({
               code: "rate_limit_exceeded",
               message: "Too many requests.",

@@ -89,11 +89,13 @@ export const withPartnerProfile = (
           identifier: `partner-profile:ratelimit:${session.user.id}`,
         });
 
-        if (!success) {
+        if (headers) {
           for (const [key, value] of Object.entries(headers)) {
             responseHeaders.set(key, value);
           }
+        }
 
+        if (!success) {
           throw new DubApiError({
             code: "rate_limit_exceeded",
             message: "Too many requests.",

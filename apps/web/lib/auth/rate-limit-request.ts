@@ -14,15 +14,8 @@ export async function rateLimitRequest({
     interval,
   ).limit(identifier);
 
-  if (success) {
-    return {
-      success: true,
-      headers: {},
-    };
-  }
-
   return {
-    success: false,
+    success,
     headers: {
       "Retry-After": reset.toString(),
       "X-RateLimit-Limit": limit.toString(),
