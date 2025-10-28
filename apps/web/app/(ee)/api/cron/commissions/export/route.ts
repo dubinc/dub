@@ -1,25 +1,25 @@
 import { convertToCSV } from "@/lib/analytics/utils/convert-to-csv";
+import { formatCommissionsForExport } from "@/lib/api/commissions/format-commissions-for-export";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-export";
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
-import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
+import { commissionsExportQuerySchema } from "@/lib/zod/schemas/commissions";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/partner-export-ready";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
-import { fetchPartnersBatch } from "./fetch-partners-batch";
+import { fetchCommissionsBatch } from "./fetch-commissions-batch";
 
-const payloadSchema = partnersExportQuerySchema.extend({
+const payloadSchema = commissionsExportQuerySchema.extend({
   programId: z.string(),
   userId: z.string(),
 });
 
-// POST /api/cron/partners/export - QStash worker for processing large partner exports
+// POST /api/cron/commissions/export - QStash worker for processing large commission exports
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -65,23 +65,25 @@ export async function POST(req: Request) {
       );
     }
 
-    // Fetch partners in batches and build CSV
-    const allPartners: any[] = [];
-    const partnersFilters = {
+    // Fetch commissions in batches and build CSV
+    const allCommissions: any[] = [];
+    const commissionsFilters = {
       ...filters,
       programId,
     };
 
-    for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
-      const formattedBatch = formatPartnersForExport(partners, columns);
+    for await (const { commissions } of fetchCommissionsBatch(
+      commissionsFilters,
+    )) {
+      const formattedBatch = formatCommissionsForExport(commissions, columns);
 
-      allPartners.push(...formattedBatch);
+      allCommissions.push(...formattedBatch);
     }
 
-    const csvData = convertToCSV(allPartners);
+    const csvData = convertToCSV(allCommissions);
 
-    // Upload to R2 as private file (not publicly accessible)
-    const fileKey = `exports/partners/${generateRandomString(60)}.csv`;
+    // Upload to R2
+    const fileKey = `exports/commissions/${generateRandomString(60)}.csv`;
     const csvBlob = new Blob([csvData], { type: "text/csv" });
 
     const uploadResult = await storage.upload(fileKey, csvBlob, {
@@ -89,7 +91,7 @@ export async function POST(req: Request) {
       access: "private",
       headers: {
         "Content-Type": "text/csv",
-        "Content-Disposition": `attachment; filename="${generateExportFilename("partners")}"`,
+        "Content-Disposition": `attachment; filename="${generateExportFilename("commissions")}"`,
       },
     });
 
@@ -105,10 +107,10 @@ export async function POST(req: Request) {
 
     await sendEmail({
       to: user.email,
-      subject: "Your partner export is ready",
+      subject: "Your commission export is ready",
       react: ExportReady({
         email: user.email,
-        exportType: "partners",
+        exportType: "commissions",
         downloadUrl,
         program: {
           name: program.name,
@@ -117,11 +119,11 @@ export async function POST(req: Request) {
     });
 
     return logAndRespond(
-      `Export (${allPartners.length} partners) generated and email sent to user.`,
+      `Export (${allCommissions.length} commissions) generated and email sent to user.`,
     );
   } catch (error) {
     await log({
-      message: `Error exporting partners: ${error.message}`,
+      message: `Error exporting commissions: ${error.message}`,
       type: "cron",
     });
 

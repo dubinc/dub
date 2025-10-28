@@ -11,7 +11,7 @@ type PartnerFilters = Omit<
 
 export async function* fetchPartnersBatch(
   filters: PartnerFilters,
-  batchSize: number = 1000,
+  pageSize: number = 1000,
 ) {
   let page = 1;
   let hasMore = true;
@@ -20,13 +20,13 @@ export async function* fetchPartnersBatch(
     const partners = await getPartners({
       ...filters,
       page,
-      pageSize: batchSize,
+      pageSize,
     });
 
     if (partners.length > 0) {
       yield { partners };
       page++;
-      hasMore = partners.length === batchSize;
+      hasMore = partners.length === pageSize;
     } else {
       hasMore = false;
     }
