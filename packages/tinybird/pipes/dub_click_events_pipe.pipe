@@ -14,7 +14,8 @@ SQL >
         os,
         referer,
         qr,
-        ip
+        ip,
+        coalesce(identity_hash, '') as identity_hash
     FROM dub_click_events
 
 TYPE materialized
