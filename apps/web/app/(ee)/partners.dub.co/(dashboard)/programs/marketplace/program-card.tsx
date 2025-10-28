@@ -17,20 +17,25 @@ import { useRouter } from "next/navigation";
 const getClickHandlers = (
   url: string | undefined,
   router: ReturnType<typeof useRouter>,
-) => ({
-  onClick: url
-    ? (e) => {
-        if (isClickOnInteractiveChild(e)) return;
-        e.metaKey || e.ctrlKey ? window.open(url, "_blank") : router.push(url);
+) =>
+  url
+    ? {
+        onClick: (e) => {
+          if (isClickOnInteractiveChild(e)) return;
+          e.metaKey || e.ctrlKey
+            ? window.open(url, "_blank")
+            : router.push(url);
+        },
+        onAuxClick: (e) => {
+          if (isClickOnInteractiveChild(e)) return;
+          window.open(url, "_blank");
+        },
+        role: "link",
+        tabIndex: 0,
+        onKeyDown: (e) =>
+          e.target === e.currentTarget && e.key === "Enter" && router.push(url),
       }
-    : undefined,
-  onAuxClick: url
-    ? (e) => {
-        if (isClickOnInteractiveChild(e)) return;
-        window.open(url, "_blank");
-      }
-    : undefined,
-});
+    : {};
 
 export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
   const { queryParams } = useRouterStuff();
