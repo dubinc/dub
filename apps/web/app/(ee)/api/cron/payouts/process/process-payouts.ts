@@ -1,5 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,
@@ -13,11 +14,9 @@ import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { PlanProps } from "@/lib/types";
-import { sendBatchEmail } from "@dub/email";
-import { resend } from "@dub/email/resend";
-import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
+import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
-import { chunk, currencyFormatter, log } from "@dub/utils";
+import { currencyFormatter, log } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 
 const paymentMethodToCurrency = {
@@ -280,36 +279,22 @@ export async function processPayouts({
     invoice &&
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
   ) {
-    if (!resend) {
-      // this should never happen, but just in case
-      await log({
-        message: "Resend is not configured, skipping email sending.",
-        type: "errors",
-      });
-      console.log("Resend is not configured, skipping email sending.");
-      return;
-    }
-
-    const payoutChunks = chunk(
-      payouts.filter(
-        (payout) =>
-          // TODO: right now we're only sending notifications for payouts above $100
-          // but once we have a queue for sending emails, we can remove this check
-          payout.partner.email && payout.amount > 100_00, // $100
-      ),
-      100,
-    );
-
-    for (const payoutChunk of payoutChunks) {
-      await sendBatchEmail(
-        payoutChunk.map((payout) => ({
-          variant: "notifications",
+    await queueBatchEmail<typeof PartnerPayoutConfirmed>(
+      payouts
+        .filter((payout) => payout.partner.email)
+        .map((payout) => ({
           to: payout.partner.email!,
           subject: "You've got money coming your way!",
+          variant: "notifications",
           replyTo: program.supportEmail || "noreply",
-          react: PartnerPayoutConfirmed({
+          templateName: "PartnerPayoutConfirmed",
+          templateProps: {
             email: payout.partner.email!,
-            program,
+            program: {
+              id: program.id,
+              name: program.name,
+              logo: program.logo,
+            },
             payout: {
               id: payout.id,
               amount: payout.amount,
@@ -317,9 +302,11 @@ export async function processPayouts({
               endDate: payout.periodEnd,
               paymentMethod: invoice.paymentMethod ?? "ach",
             },
-          }),
+          },
         })),
-      );
-    }
+      {
+        deduplicationId: invoice.id,
+      },
+    );
   }
 }
