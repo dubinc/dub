@@ -9,7 +9,7 @@ describe.concurrent("Sale rewards", async () => {
   const h = new IntegrationHarness();
   const { http } = await h.init();
 
-  test("when {Customer} {Country} is {US}", async () => {
+  test("when {Customer} {Country} is {SG}", async () => {
     const saleAmount = 10000; // $100 in cents
     const invoiceId = `INV_${randomId()}`;
 
@@ -36,7 +36,7 @@ describe.concurrent("Sale rewards", async () => {
     });
   });
 
-  test.skip("when {Customer} {Country} is not {US}", async () => {
+  test.skip("when {Customer} {Country} is {CA}", async () => {
     const saleAmount = 10000; // $100 in cents
     const invoiceId = `INV_${randomId()}`;
 

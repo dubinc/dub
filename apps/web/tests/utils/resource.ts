@@ -181,9 +181,9 @@ export const E2E_PARTNERS = [
 
 export const E2E_CUSTOMERS = [
   {
-    id: "cus_1K8N811NNX9BJSBWGG3S567VG",
-    externalId: "cus_5akyQXRfzeFtCeUsCodaIlmf",
-    country: "US",
+    id: "cus_1K82FYFF7RANMCGRHRGMWDNEC",
+    externalId: "cus_LnZbkb8boLsOn1YGLPxZGZMU",
+    country: "SG",
   },
   {
     id: "cus_1K86CG1DZFW8EMSSWXX4AVZFA",
