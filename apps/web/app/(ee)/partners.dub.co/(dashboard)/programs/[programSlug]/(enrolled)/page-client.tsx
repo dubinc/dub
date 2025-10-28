@@ -200,9 +200,19 @@ export default function ProgramPageClient() {
 
             <PayoutsCard programId={program?.id} />
             <NumberFlowGroup>
-              <StatCard title="Clicks" event="clicks" />
-              <StatCard title="Leads" event="leads" />
-              <StatCard title="Sales" event="sales" />
+              {programSlug === "perplexity" ? (
+                <>
+                  <StatCardSimple title="Clicks" event="clicks" />
+                  <StatCardSimple title="Leads" event="leads" />
+                  <StatCardSimple title="Sales" event="sales" />
+                </>
+              ) : (
+                <>
+                  <StatCard title="Clicks" event="clicks" />
+                  <StatCard title="Leads" event="leads" />
+                  <StatCard title="Sales" event="sales" />
+                </>
+              )}
             </NumberFlowGroup>
           </div>
         </ChartTooltipSync>
@@ -319,20 +329,26 @@ function StatCard({
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = useContext(ProgramOverviewContext);
 
-  const { data: total } = usePartnerAnalytics({
+  const { data: timeseries, error } = usePartnerAnalytics({
+    groupBy: "timeseries",
     event: "composite",
     interval,
     start,
     end,
   });
 
-  const { data: timeseries, error } = usePartnerAnalytics({
-    groupBy: "timeseries",
-    interval,
-    start,
-    end,
-    event,
-  });
+  const totals = useMemo(() => {
+    return timeseries && timeseries.length > 0
+      ? timeseries.reduce(
+          (acc, { clicks, leads, sales }) => ({
+            clicks: acc.clicks + clicks,
+            leads: acc.leads + leads,
+            sales: acc.sales + sales,
+          }),
+          { clicks: 0, leads: 0, sales: 0 },
+        )
+      : { clicks: 0, leads: 0, sales: 0 };
+  }, [timeseries]);
 
   return (
     <div className="group block rounded-lg border border-neutral-300 bg-white p-5 pb-3">
@@ -341,12 +357,12 @@ function StatCard({
           <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
             {title}
           </span>
-          {total !== undefined ? (
+          {totals !== undefined ? (
             <div className="flex items-center gap-1 text-lg font-medium text-neutral-600">
               <NumberFlow
-                value={total[event]}
+                value={totals[event]}
                 format={{
-                  notation: total[event] > 999999 ? "compact" : "standard",
+                  notation: totals[event] > 999999 ? "compact" : "standard",
                 }}
               />
             </div>
@@ -377,6 +393,44 @@ function StatCard({
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function StatCardSimple({
+  title,
+  event,
+}: {
+  title: string;
+  event: "clicks" | "leads" | "sales";
+}) {
+  const { data: total } = usePartnerAnalytics({
+    event: "composite",
+  });
+
+  return (
+    <div className="group relative block rounded-lg border border-neutral-300 bg-white p-6">
+      <div className="flex flex-col items-center text-center">
+        <span className="mb-3 block text-sm font-medium text-neutral-600">
+          {title}
+        </span>
+        {total !== undefined ? (
+          <div className="flex items-center justify-center">
+            <NumberFlow
+              className="text-3xl font-semibold text-neutral-900"
+              value={total[event]}
+              format={{
+                notation: total[event] > 999999 ? "compact" : "standard",
+              }}
+            />
+          </div>
+        ) : (
+          <div className="h-12 w-20 animate-pulse rounded-md bg-neutral-200" />
+        )}
+      </div>
+      <div className="absolute bottom-2 right-2 text-xs text-neutral-400">
+        All-time data
       </div>
     </div>
   );

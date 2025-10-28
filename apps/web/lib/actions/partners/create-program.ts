@@ -43,7 +43,8 @@ export const createProgram = async ({
     url,
     defaultRewardType,
     type,
-    amount,
+    amountInCents,
+    amountInPercentage,
     maxDuration,
     partners,
     supportEmail,
@@ -108,12 +109,16 @@ export const createProgram = async ({
           ? new Date()
           : null,
         ...(type &&
-          amount && {
+          (amountInCents != null || amountInPercentage != null) && {
             rewards: {
               create: {
                 id: createId({ prefix: "rw_" }),
                 type,
-                amount,
+                amountInCents: type === "flat" ? amountInCents : null,
+                amountInPercentage:
+                  type === "percentage" && amountInPercentage != null
+                    ? amountInPercentage
+                    : null,
                 maxDuration,
                 event: defaultRewardType,
               },

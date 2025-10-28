@@ -1,4 +1,5 @@
-TOKEN dub_tinybird_token APPEND
+TOKEN "dub_tinybird_token" APPEND
+
 
 SCHEMA >
     `timestamp` DateTime64(3) `json:$.timestamp`,
@@ -31,7 +32,10 @@ SCHEMA >
     `qr` UInt8 `json:$.qr`,
     `continent` LowCardinality(String) `json:$.continent`,
     `vercel_region` Nullable(String) `json:$.vercel_region`,
-    `trigger` String `json:$.trigger`
+    `trigger` String `json:$.trigger`,
+    `workspace_id` Nullable(String) `json:$.workspace_id`,
+    `domain` Nullable(String) `json:$.domain`,
+    `key` Nullable(String) `json:$.key`
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"

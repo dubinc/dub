@@ -153,7 +153,12 @@ function renderSubmissionStatus({
         <BountyPerformance bounty={bounty} />
       ) : (
         <div
-          className="group-hover:ring-border-subtle flex h-7 w-fit items-center rounded-lg bg-black px-2.5 text-sm text-white transition-all group-hover:ring-2"
+          className={cn(
+            "flex h-7 w-fit items-center rounded-lg bg-black px-2.5 text-sm text-white",
+            expiredBounty
+              ? "cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400"
+              : "group-hover:ring-border-subtle transition-all group-hover:ring-2",
+          )}
           onClick={() => setShowClaimBountyModal(true)}
         >
           Continue submission

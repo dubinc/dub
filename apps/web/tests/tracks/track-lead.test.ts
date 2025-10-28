@@ -291,7 +291,7 @@ describe("POST /track/lead", async () => {
     await verifyCommission({
       http,
       customerExternalId: customer.externalId,
-      expectedEarnings: E2E_LEAD_REWARD.modifiers[0].amount,
+      expectedEarnings: E2E_LEAD_REWARD.modifiers[0].amountInCents,
     });
   });
 });

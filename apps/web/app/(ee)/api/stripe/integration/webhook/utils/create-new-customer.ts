@@ -64,6 +64,7 @@ export async function createNewCustomer(event: Stripe.Event) {
 
   const leadData = {
     ...clickData,
+    workspace_id: clickData.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: eventName,
     customer_id: customer.id,

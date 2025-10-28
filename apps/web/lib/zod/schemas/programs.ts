@@ -5,6 +5,7 @@ import {
 import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
 import {
   Category,
+  EventType,
   PartnerBannedReason,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
@@ -28,6 +29,7 @@ export const ProgramSchema = z.object({
   brandColor: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
+  primaryRewardEvent: z.nativeEnum(EventType).default("sale"),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
   landerPublishedAt: z.date().nullish(),

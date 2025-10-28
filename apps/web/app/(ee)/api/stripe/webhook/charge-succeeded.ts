@@ -54,22 +54,18 @@ export async function chargeSucceeded(event: Stripe.Event) {
 }
 
 async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
-  const payouts = await prisma.payout.findMany({
+  const payoutsToProcess = await prisma.payout.count({
     where: {
       invoiceId: invoice.id,
       status: {
         not: "completed",
       },
     },
-    include: {
-      program: true,
-      partner: true,
-    },
   });
 
-  if (payouts.length === 0) {
+  if (payoutsToProcess === 0) {
     console.log(
-      `No payouts found with status not completed for invoice ${invoice.id}, skipping...`,
+      `No payouts to process found for invoice ${invoice.id}, skipping...`,
     );
     return;
   }

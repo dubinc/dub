@@ -309,7 +309,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_NEW}`,
+            Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_OLD}`,
             "Content-Type": "application/x-ndjson",
           },
           body: dataArray.map((d) => JSON.stringify(d.clickData)).join("\n"),

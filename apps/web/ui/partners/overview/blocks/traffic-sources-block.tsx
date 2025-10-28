@@ -1,4 +1,5 @@
 import { editQueryString } from "@/lib/analytics/utils";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import {
@@ -8,7 +9,12 @@ import {
   LoadingSpinner,
   useRouterStuff,
 } from "@dub/ui";
-import { currencyFormatter, fetcher, GOOGLE_FAVICON_URL } from "@dub/utils";
+import {
+  currencyFormatter,
+  fetcher,
+  GOOGLE_FAVICON_URL,
+  nFormatter,
+} from "@dub/utils";
 import Link from "next/link";
 import { useContext } from "react";
 import useSWR from "swr";
@@ -16,6 +22,7 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function TrafficSourcesBlock() {
   const { slug: workspaceSlug } = useWorkspace();
+  const { program } = useProgram();
 
   const { getQueryString } = useRouterStuff();
 
@@ -24,19 +31,20 @@ export function TrafficSourcesBlock() {
   const { data, isLoading, error } = useSWR<
     {
       referer: string;
+      leads: number;
       saleAmount: number;
     }[]
   >(
     `/api/analytics?${editQueryString(queryString, {
       groupBy: "referers",
-      event: "sales",
+      event: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
     })}`,
     fetcher,
   );
 
   return (
     <ProgramOverviewBlock
-      title="Top traffic sources by revenue"
+      title={`Top traffic sources by ${program?.primaryRewardEvent === "lead" ? "leads" : "revenue"}`}
       viewAllHref={`/${workspaceSlug}/program/analytics${getQueryString(
         undefined,
         {
@@ -58,7 +66,7 @@ export function TrafficSourcesBlock() {
             No traffic sources found
           </div>
         ) : (
-          data?.slice(0, 6).map(({ referer, saleAmount }) => (
+          data?.slice(0, 6).map(({ referer, leads, saleAmount }) => (
             <Link
               key={referer}
               href={`/${workspaceSlug}/program/analytics${getQueryString(
@@ -88,7 +96,11 @@ export function TrafficSourcesBlock() {
                 <ArrowUpRight className="text-content-emphasis size-2.5 -translate-x-0.5 opacity-0 transition-[opacity,transform] group-hover:translate-x-0 group-hover:opacity-100 [&_*]:stroke-2" />
               </div>
 
-              <span>{currencyFormatter(saleAmount / 100)}</span>
+              <span>
+                {program?.primaryRewardEvent === "lead"
+                  ? nFormatter(leads, { full: true })
+                  : currencyFormatter(saleAmount / 100)}
+              </span>
             </Link>
           ))
         )}

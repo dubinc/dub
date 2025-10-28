@@ -1,7 +1,7 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import { partnersCountQuerySchema } from "@/lib/zod/schemas/partners";
-import { prisma } from "@dub/prisma";
+import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
@@ -10,13 +10,20 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const { groupBy, status, country, search, partnerIds, groupId } =
+    const { groupBy, status, country, search, email, partnerIds, groupId } =
       partnersCountQuerySchema.parse(searchParams);
 
     const commonWhere: Prisma.PartnerWhereInput = {
-      ...(search && {
-        OR: [{ name: { contains: search } }, { email: { contains: search } }],
-      }),
+      ...(email
+        ? { email }
+        : search
+          ? search.includes("@")
+            ? { email: search }
+            : {
+                email: { search: sanitizeFullTextSearch(search) },
+                name: { search: sanitizeFullTextSearch(search) },
+              }
+          : {}),
       ...(partnerIds && {
         id: { in: partnerIds },
       }),

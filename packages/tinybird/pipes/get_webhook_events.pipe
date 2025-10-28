@@ -6,19 +6,19 @@ NODE endpoint
 SQL >
 
     %
-        SELECT *
-        FROM dub_webhook_events
-        WHERE
-            webhook_id
-            = {{
-                String(
-                    webhookId,
-                    'wh_fjs8YfXkgsFL7eF7LOBvbluDb',
-                    description="The ID of the webhook",
-                    required=True,
-                )
-            }}
-            ORDER BY timestamp DESC
-            limit 100
+            SELECT *
+            FROM dub_webhook_events
+            WHERE
+                webhook_id
+                = {{
+                    String(
+                        webhookId,
+                        'wh_fjs8YfXkgsFL7eF7LOBvbluDb',
+                        description="The ID of the webhook",
+                        required=True,
+                    )
+                }}
+                ORDER BY timestamp DESC
+                limit 100
 
 

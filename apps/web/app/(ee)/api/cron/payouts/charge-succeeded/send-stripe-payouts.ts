@@ -42,6 +42,7 @@ export async function sendStripePayouts({
       },
     },
     include: commonInclude,
+    take: 100,
   });
 
   if (currentInvoicePayouts.length === 0) {
