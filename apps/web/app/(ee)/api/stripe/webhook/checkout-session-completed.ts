@@ -122,15 +122,6 @@ export async function checkoutSessionCompleted(event: Stripe.Event) {
         variant: "marketing",
       })),
     ),
-    // update rate limits for restricted tokens for the workspace
-    prisma.restrictedToken.updateMany({
-      where: {
-        projectId: workspaceId,
-      },
-      data: {
-        rateLimit: plan.limits.api,
-      },
-    }),
     // enable dub.link premium default domain for the workspace
     prisma.defaultDomains.update({
       where: {

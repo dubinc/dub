@@ -125,16 +125,6 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       },
     }),
 
-    // update rate limit for all restricted tokens for the workspace
-    prisma.restrictedToken.updateMany({
-      where: {
-        projectId: workspace.id,
-      },
-      data: {
-        rateLimit: FREE_PLAN.limits.api,
-      },
-    }),
-
     // disable dub.link premium default domain for the workspace
     prisma.defaultDomains.update({
       where: {
