@@ -93,7 +93,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
         COUNT(discountId) AS "discount"
       FROM PartnerGroup pg
       JOIN Program p ON p.id = pg.programId
-      WHERE pg.slug = 'default' AND ${commonWhereSql}
+      WHERE pg.slug = ${DEFAULT_PARTNER_GROUP.slug} AND ${commonWhereSql}
     `) as { click: bigint; lead: bigint; sale: bigint; discount: bigint }[];
 
     return NextResponse.json(
@@ -107,7 +107,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
       SELECT pe.status, COUNT(p.id) AS _count
       FROM Program p
       LEFT JOIN ProgramEnrollment pe ON p.id = pe.programId AND pe.partnerId = ${partner.id}
-      WHERE p.marketplaceEnabledAt IS NOT NULL
+      WHERE p.marketplaceEnabledAt IS NOT NULL AND ${commonWhereSql}
       GROUP BY pe.status
       ORDER BY _count DESC
     `) as { status: string | null; _count: bigint }[];
