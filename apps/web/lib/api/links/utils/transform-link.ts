@@ -1,6 +1,5 @@
 import { DiscountProps, PartnerProps } from "@/lib/types";
 import { Dashboard, Link, Tag } from "@dub/prisma/client";
-import { prefixWorkspaceId } from "../../workspaces/workspace-id";
 import { decodeLinkIfCaseSensitive } from "../case-sensitivity";
 
 // used in API (e.g. transformLink)
@@ -47,7 +46,7 @@ export const transformLink = (
     tags,
     webhookIds,
     qrCode: `https://api.dub.co/qr?url=${link.shortLink}?qr=1`,
-    workspaceId: link.projectId ? prefixWorkspaceId(link.projectId) : null,
+    workspaceId: link.projectId || null,
     ...(dashboard && { dashboardId: dashboard.id || null }),
   };
 };

@@ -62,7 +62,6 @@ export const GET = withWorkspace(
       {
         ...WorkspaceSchemaExtended.parse({
           ...workspace,
-          id: prefixWorkspaceId(workspace.id),
           domains,
           flags,
         }),
@@ -203,7 +202,6 @@ export const PATCH = withWorkspace(
       return NextResponse.json(
         WorkspaceSchema.parse({
           ...response,
-          id: prefixWorkspaceId(response.id),
           flags: await getFeatureFlags({
             workspaceId: response.id,
           }),

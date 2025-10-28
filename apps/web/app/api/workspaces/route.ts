@@ -1,7 +1,6 @@
 import { DubApiError } from "@/lib/api/errors";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { createWorkspaceId } from "@/lib/api/workspaces/create-workspace-id";
-import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
 import { storage } from "@/lib/storage";
@@ -50,12 +49,7 @@ export const GET = withSession(async ({ session }) => {
   });
 
   return NextResponse.json(
-    workspaces.map((project) =>
-      WorkspaceSchema.parse({
-        ...project,
-        id: prefixWorkspaceId(project.id),
-      }),
-    ),
+    workspaces.map((project) => WorkspaceSchema.parse(project)),
   );
 });
 
@@ -174,12 +168,7 @@ export const POST = withSession(async ({ req, session }) => {
       ]),
     );
 
-    return NextResponse.json(
-      WorkspaceSchema.parse({
-        ...workspace,
-        id: prefixWorkspaceId(workspace.id),
-      }),
-    );
+    return NextResponse.json(WorkspaceSchema.parse(workspace));
   } catch (error) {
     if (
       error instanceof Prisma.PrismaClientKnownRequestError &&

@@ -7,7 +7,6 @@ import { DubApiError } from "@/lib/api/errors";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import {
@@ -57,7 +56,7 @@ export const GET = withWorkspace(
       if (programId !== workspaceProgramId) {
         throw new DubApiError({
           code: "forbidden",
-          message: `Program ${programId} does not belong to workspace ${prefixWorkspaceId(workspace.id)}.`,
+          message: `Program ${programId} does not belong to workspace ${workspace.id}.`,
         });
       }
     }
