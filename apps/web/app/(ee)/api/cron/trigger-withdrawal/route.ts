@@ -17,7 +17,8 @@ export async function GET(req: Request) {
 
     const [stripeBalanceData, toBeSentPayouts] = await Promise.all([
       stripe.balance.retrieve(),
-      prisma.payout.aggregate({
+      prisma.payout.groupBy({
+        by: ["status"],
         where: {
           status: {
             in: ["processing", "processed"],
@@ -30,32 +31,28 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    const currentAvailableBalance = stripeBalanceData.available[0].amount;
-    const currentPendingBalance = stripeBalanceData.pending[0].amount;
-    const currentNetBalance = currentAvailableBalance + currentPendingBalance;
+    const processingPayouts =
+      toBeSentPayouts.find((p) => p.status === "processing")?._sum.amount ?? 0; // payouts awaiting payment from program
+    const processedPayouts =
+      toBeSentPayouts.find((p) => p.status === "processed")?._sum.amount ?? 0; // payouts paid by program, awaiting withdrawal by partner
+
+    const currentAvailableBalance = stripeBalanceData.available[0].amount; // available to withdraw
+    const currentPendingBalance = stripeBalanceData.pending[0].amount; // balance waiting to settle
+
+    const balanceToWithdraw = currentAvailableBalance - processedPayouts;
 
     console.log({
+      processingPayouts,
+      processedPayouts,
       currentAvailableBalance,
       currentPendingBalance,
-      currentNetBalance,
-      toBeSentPayouts,
+      balanceToWithdraw,
     });
 
-    let reservedBalance = 50000; // keep at least $500 in the account
-
-    const totalToBeSentPayouts = toBeSentPayouts._sum.amount;
-    if (totalToBeSentPayouts) {
-      // add the total payouts that are still to be sent to connected accounts
-      // to the reserved balance (to make sure we have enough balance
-      // to pay out partners when charge.succeeded webhook is triggered)
-      reservedBalance += totalToBeSentPayouts;
-    }
-
-    const balanceToWithdraw = currentNetBalance - reservedBalance;
-
-    if (balanceToWithdraw <= 10000) {
+    const reservedBalance = 50000; // keep at least $500 in the account
+    if (balanceToWithdraw <= reservedBalance) {
       return logAndRespond(
-        "Balance to withdraw is less than $100, skipping...",
+        `Balance to withdraw is less than ${currencyFormatter(reservedBalance / 100, { currency: "usd" })}, skipping...`,
       );
     }
 

@@ -53,6 +53,7 @@ export default function ProgramOverviewPageClient() {
         end: new Date(end).toISOString(),
       }),
     ...(interval && { interval: interval.toString() }),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   }).toString();
 
   const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
