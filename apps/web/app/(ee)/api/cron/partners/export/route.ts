@@ -4,7 +4,7 @@ import { formatPartnersForExport } from "@/lib/api/partners/format-partners-for-
 import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import { generateRandomString } from "@/lib/api/utils/generate-random-string";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { storage } from "@/lib/storage";
+import { storageV2 } from "@/lib/storage-v2";
 import { partnersExportQuerySchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ExportReady from "@dub/email/templates/partner-export-ready";
@@ -81,14 +81,14 @@ export async function POST(req: Request) {
     const csvData = convertToCSV(allPartners);
 
     // Upload to R2 as private file (not publicly accessible)
-    const fileKey = `exports/partners/${generateRandomString(60)}.csv`;
+    const fileKey = `partners-exports/${generateRandomString(60)}.csv`;
     const csvBlob = new Blob([csvData], { type: "text/csv" });
 
-    const uploadResult = await storage.upload(fileKey, csvBlob, {
+    const uploadResult = await storageV2.upload({
+      key: fileKey,
+      body: csvBlob,
       contentType: "text/csv",
-      access: "private",
       headers: {
-        "Content-Type": "text/csv",
         "Content-Disposition": `attachment; filename="${generateExportFilename("partners")}"`,
       },
     });
@@ -98,10 +98,14 @@ export async function POST(req: Request) {
     }
 
     // Generate a signed GET URL with 7-day expiry (604800 seconds)
-    const downloadUrl = await storage.getSignedUrl(fileKey, {
-      method: "GET",
+    const downloadUrl = await storageV2.getSignedDownloadUrl({
+      key: fileKey,
       expiresIn: 7 * 24 * 3600, // 7 days
     });
+
+    if (!downloadUrl) {
+      throw new Error("Failed to generate signed download URL.");
+    }
 
     await sendEmail({
       to: user.email,
