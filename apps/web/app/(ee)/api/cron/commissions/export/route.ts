@@ -83,7 +83,7 @@ export async function POST(req: Request) {
     const csvData = convertToCSV(allCommissions);
 
     // Upload to R2
-    const fileKey = `commissions-exports/${generateRandomString(16)}.csv`;
+    const fileKey = `exports/commissions/${generateRandomString(16)}.csv`;
     const csvBlob = new Blob([csvData], { type: "text/csv" });
 
     const uploadResult = await storageV2.upload({
