@@ -1,22 +1,20 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
+import { EMAIL_TEMPLATES_MAP } from "@/lib/email/email-templates-map";
 import { sendBatchEmail } from "@dub/email";
 import { ResendEmailOptions } from "@dub/email/resend/types";
-import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import React from "react";
 import { z } from "zod";
 
-const TEMPLATE_MAP = {
-  PartnerPayoutConfirmed,
-} as const;
-
 export const dynamic = "force-dynamic";
 
 const batchEmailPayloadSchema = z.array(
   z.object({
-    templateName: z.enum(Object.keys(TEMPLATE_MAP) as [string, ...string[]]),
+    templateName: z.enum(
+      Object.keys(EMAIL_TEMPLATES_MAP) as [string, ...string[]],
+    ),
     templateProps: z.record(z.any()),
     to: z.string().email(),
     from: z.string().optional(),
@@ -53,7 +51,7 @@ export async function POST(req: Request) {
     // Process all emails in parallel and build Resend payload
     const results = await Promise.allSettled(
       payload.map(async (emailItem) => {
-        const TemplateComponent = TEMPLATE_MAP[emailItem.templateName];
+        const TemplateComponent = EMAIL_TEMPLATES_MAP[emailItem.templateName];
 
         if (!TemplateComponent) {
           throw new Error(

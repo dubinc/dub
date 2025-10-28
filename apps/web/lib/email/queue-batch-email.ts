@@ -1,14 +1,15 @@
 import { qstash } from "@/lib/cron";
 import { ResendEmailOptions } from "@dub/email/resend/types";
 import { APP_DOMAIN_WITH_NGROK, chunk, log } from "@dub/utils";
+import { EMAIL_TEMPLATES_MAP } from "./email-templates-map";
 
 type QueueBatchProps<TTemplate extends (props: any) => any> =
   ResendEmailOptions & {
-    templateName: string;
+    templateName: keyof typeof EMAIL_TEMPLATES_MAP;
     templateProps: Parameters<TTemplate>[0];
   };
 
-const BATCH_SIZE = 50;
+const BATCH_SIZE = 100;
 
 const queue = qstash.queue({
   queueName: "batch-email",
