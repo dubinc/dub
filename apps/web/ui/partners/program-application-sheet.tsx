@@ -60,9 +60,11 @@ function ProgramApplicationSheetContent({
     program?.defaultGroupId ||
     DEFAULT_PARTNER_GROUP.slug;
 
-  const { data: group, isLoading: isGroupLoading } = useSWR<
-    z.infer<typeof PartnerProgramGroupSchema>
-  >(
+  const {
+    data: group,
+    isLoading: isGroupLoading,
+    error: groupError,
+  } = useSWR<z.infer<typeof PartnerProgramGroupSchema>>(
     groupIdOrSlug
       ? `/api/partner-profile/programs/${program.id}/groups/${groupIdOrSlug}`
       : null,
@@ -224,7 +226,7 @@ function ProgramApplicationSheetContent({
               type="submit"
               variant="primary"
               text="Submit application"
-              disabled={isGroupLoading}
+              disabled={isGroupLoading || groupError}
               loading={isSubmitting}
             />
           </div>
