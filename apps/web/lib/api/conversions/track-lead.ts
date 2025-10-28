@@ -141,6 +141,7 @@ export const trackLead = async ({
     const createLeadEventPayload = (customerId: string) => {
       const basePayload = {
         ...clickData,
+        workspace_id: clickData.workspace_id || workspace.id, // in case for some reason the click event doesn't have workspace_id
         event_id: leadEventId,
         event_name: eventName,
         customer_id: customerId,

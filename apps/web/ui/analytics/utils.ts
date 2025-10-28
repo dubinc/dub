@@ -2,7 +2,6 @@ import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { AnalyticsGroupByOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import { fetcher } from "@dub/utils";
-import { useSearchParams } from "next/navigation";
 import { ContextType, useContext } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "./analytics-provider";
@@ -33,8 +32,6 @@ export function useAnalyticsFilterOption(
     >;
   },
 ): AnalyticsFilterResult {
-  const searchParams = useSearchParams();
-
   const { baseApiPath, queryString, selectedTab, requiresUpgrade } =
     options?.context ?? useContext(AnalyticsContext);
 
@@ -49,9 +46,6 @@ export function useAnalyticsFilterOption(
         queryString,
         {
           ...(groupBy && { groupBy }),
-          ...(!options?.omitGroupByFilterKey &&
-            groupBy === "top_links" &&
-            !searchParams.get("root") && { root: "false" }),
         },
         // if theres no groupBy or we're not omitting the groupBy filter, skip
         // else, we need to remove the filter for that groupBy param

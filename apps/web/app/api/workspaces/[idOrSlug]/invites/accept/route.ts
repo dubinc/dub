@@ -1,4 +1,5 @@
-import { exceededLimitError } from "@/lib/api/errors";
+import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { withSession } from "@/lib/auth";
 import { PlanProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
@@ -7,6 +8,7 @@ import { NextResponse } from "next/server";
 // POST /api/workspaces/[idOrSlug]/invites/accept – accept a workspace invite
 export const POST = withSession(async ({ session, params }) => {
   const { idOrSlug: slug } = params;
+
   const invite = await prisma.projectInvite.findFirst({
     where: {
       email: session.user.email,
@@ -14,55 +16,72 @@ export const POST = withSession(async ({ session, params }) => {
         slug,
       },
     },
-    select: {
-      expires: true,
-      role: true,
-      project: {
-        select: {
-          id: true,
-          slug: true,
-          plan: true,
-          usersLimit: true,
-          _count: {
-            select: {
-              users: {
-                where: {
-                  user: {
-                    isMachine: false,
-                  },
+  });
+
+  if (!invite) {
+    throw new DubApiError({
+      code: "not_found",
+      message: "This invite is not found.",
+    });
+  }
+
+  if (invite.expires < new Date()) {
+    throw new DubApiError({
+      code: "invite_expired",
+      message: "This invite has expired.",
+    });
+  }
+
+  const workspace = await prisma.$transaction(async (tx) => {
+    const existingMembership = await tx.projectUsers.findFirst({
+      where: {
+        userId: session.user.id,
+        projectId: invite.projectId,
+      },
+    });
+
+    if (existingMembership) {
+      throw new DubApiError({
+        code: "conflict",
+        message: "You are already a member of this workspace.",
+      });
+    }
+
+    const workspace = await tx.project.findUniqueOrThrow({
+      where: {
+        id: invite.projectId,
+      },
+      select: {
+        id: true,
+        slug: true,
+        plan: true,
+        usersLimit: true,
+        _count: {
+          select: {
+            users: {
+              where: {
+                user: {
+                  isMachine: false,
                 },
               },
             },
           },
         },
       },
-    },
-  });
-  if (!invite) {
-    return new Response("Invalid invite", { status: 404 });
-  }
+    });
 
-  if (invite.expires < new Date()) {
-    return new Response("Invite expired", { status: 410 });
-  }
+    if (workspace._count.users >= workspace.usersLimit) {
+      throw new DubApiError({
+        code: "exceeded_limit",
+        message: exceededLimitError({
+          plan: workspace.plan as PlanProps,
+          limit: workspace.usersLimit,
+          type: "users",
+        }),
+      });
+    }
 
-  const workspace = invite.project;
-
-  if (workspace._count.users >= workspace.usersLimit) {
-    return new Response(
-      exceededLimitError({
-        plan: workspace.plan as PlanProps,
-        limit: workspace.usersLimit,
-        type: "users",
-      }),
-      {
-        status: 403,
-      },
-    );
-  }
-
-  const response = await Promise.all([
-    prisma.projectUsers.create({
+    await tx.projectUsers.create({
       data: {
         userId: session.user.id,
         role: invite.role,
@@ -71,24 +90,37 @@ export const POST = withSession(async ({ session, params }) => {
           create: {}, // by default, users are opted in to all notifications
         },
       },
-    }),
-    prisma.projectInvite.delete({
+    });
+
+    // Delete invite inside transaction to ensure consistency
+    await tx.projectInvite.delete({
       where: {
         email_projectId: {
           email: session.user.email,
           projectId: workspace.id,
         },
       },
-    }),
-    session.user["defaultWorkspace"] === null &&
-      prisma.user.update({
-        where: {
-          id: session.user.id,
-        },
-        data: {
-          defaultWorkspace: workspace.slug,
-        },
-      }),
-  ]);
-  return NextResponse.json(response);
+    });
+
+    return workspace;
+  });
+
+  // Update default workspace
+  if (!session.user.defaultWorkspace) {
+    await prisma.user.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        defaultWorkspace: workspace.slug,
+      },
+    });
+  }
+
+  await onboardingStepCache.set({
+    userId: session.user.id,
+    step: "completed",
+  });
+
+  return NextResponse.json({ message: "Invite accepted." });
 });

@@ -58,7 +58,7 @@ model Partner {
   tiktok                       String?
   tiktokVerifiedAt             DateTime?
   invoiceSettings              Json?
-  monthlyTraffic               MonthlyTraffic?
+  changeHistoryLog             Json?
 
   programs           ProgramEnrollment[]
   users              PartnerUser[]
@@ -72,6 +72,7 @@ model Partner {
   discountCodes      DiscountCode[]
   notificationEmails NotificationEmail[]
 
+  monthlyTraffic             MonthlyTraffic?
   industryInterests          PartnerIndustryInterest[]
   preferredEarningStructures PartnerPreferredEarningStructure[]
   salesChannels              PartnerSalesChannel[]
@@ -80,6 +81,7 @@ model Partner {
 
   @@index(discoverableAt)
   @@index(country)
+  @@fulltext([email, name]) // For full-text search
 }
 
 model PartnerInvite {

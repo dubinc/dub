@@ -2,20 +2,20 @@
 
 SCHEMA >
     `timestamp` DateTime,
+    `workspace_id` LowCardinality(String),
     `link_id` String,
     `domain` String,
     `key` String,
     `url` String,
-    `tag_ids` Array(String),
-    `workspace_id` String,
-    `created_at` DateTime64(3),
-    `deleted` UInt8,
-    `program_id` String,
-    `tenant_id` String,
+    `program_id` LowCardinality(String),
     `partner_id` String,
-    `folder_id` String
+    `folder_id` String,
+    `tag_ids` Array(String),
+    `tenant_id` String,
+    `created_at` DateTime64(3),
+    `deleted` UInt8
 
 ENGINE "ReplacingMergeTree"
-ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "link_id"
+ENGINE_SORTING_KEY "workspace_id, link_id"
 ENGINE_VER "timestamp"
+ENGINE_IS_DELETED "deleted"

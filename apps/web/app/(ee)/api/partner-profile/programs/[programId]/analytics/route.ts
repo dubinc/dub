@@ -42,7 +42,9 @@ export const GET = withPartnerProfile(
     }
 
     const response = await getAnalytics({
-      ...rest,
+      ...(program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X"
+        ? { event: rest.event, groupBy: "count", interval: "all" }
+        : rest),
       ...(linkId ? { linkId } : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });

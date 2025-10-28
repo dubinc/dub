@@ -1,4 +1,5 @@
 import { getEvents } from "@/lib/analytics/get-events";
+import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
@@ -6,48 +7,60 @@ import {
   PartnerProfileLinkSchema,
   partnerProfileEventsQuerySchema,
 } from "@/lib/zod/schemas/partner-profile";
-
-import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 // GET /api/partner-profile/programs/[programId]/events – get events for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program, customerDataSharingEnabledAt } =
+    const { program, links, customerDataSharingEnabledAt } =
       await getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId: params.programId,
         include: {
           program: true,
+          links: true,
         },
       });
+
+    if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
+      throw new DubApiError({
+        code: "forbidden",
+        message: "This feature is not available for your program.",
+      });
+    }
 
     let { linkId, domain, key, ...rest } =
       partnerProfileEventsQuerySchema.parse(searchParams);
 
-    if (!linkId && domain && key) {
-      const link = await prisma.link.findUnique({
-        where: {
-          domain_key: {
-            domain,
-            key,
-          },
-        },
-      });
-
-      if (!link || link.partnerId !== partner.id) {
-        return NextResponse.json({ error: "Link not found" }, { status: 404 });
+    if (linkId) {
+      if (!links.some((link) => link.id === linkId)) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found",
+        });
+      }
+    } else if (domain && key) {
+      const foundLink = links.find(
+        (link) => link.domain === domain && link.key === key,
+      );
+      if (!foundLink) {
+        throw new DubApiError({
+          code: "not_found",
+          message: "Link not found",
+        });
       }
 
-      linkId = link.id;
+      linkId = foundLink.id;
+    }
+
+    if (links.length === 0) {
+      return NextResponse.json([], { status: 200 });
     }
 
     const events = await getEvents({
       ...rest,
-      linkId,
-      programId: program.id,
-      partnerId: partner.id,
+      ...(linkId ? { linkId } : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });
 

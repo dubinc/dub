@@ -10,6 +10,7 @@ import {
   buttonVariants,
   FileUpload,
   ToggleGroup,
+  TooltipContent,
   useEnterSubmit,
   useLocalStorage,
   useMediaQuery,
@@ -180,9 +181,14 @@ export function OnboardingForm({
               {...field}
               error={errors.country ? true : false}
               disabledTooltip={
-                partner?.payoutsEnabledAt
-                  ? "Since you've already received payouts, you cannot change your country. Contact support if you need to update your country."
-                  : undefined
+                partner?.payoutsEnabledAt ? (
+                  <TooltipContent
+                    title="Since you've already connected your bank account for payouts, you cannot change your profile country."
+                    cta="Contact support"
+                    href="https://dub.co/support"
+                    target="_blank"
+                  />
+                ) : undefined
               }
             />
           )}

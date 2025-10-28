@@ -3,7 +3,7 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramData } from "@/lib/types";
+import { ProgramData, RewardProps } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { RewardStructure } from "@dub/prisma/client";
 import { Button } from "@dub/ui";
@@ -34,29 +34,29 @@ export function PageClient() {
     if (!workspaceId) return;
 
     await executeAsync({
-      ...data,
       workspaceId,
       step: "create-program",
     });
   };
 
   const isValid = useMemo(() => {
-    const { name, url, domain, logo, type, amount } = data;
+    const { name, url, domain, logo, type, amountInCents, amountInPercentage } =
+      data;
 
-    if (!name || !url || !domain || !logo || !type || !amount) {
+    const hasAmount =
+      type === "flat" ? amountInCents != null : amountInPercentage != null;
+
+    if (!name || !url || !domain || !logo || !type || !hasAmount) {
       return false;
     }
 
     return true;
   }, [data]);
 
-  const reward = {
+  const reward: Omit<RewardProps, "id"> = {
     type: (data.type ?? "flat") as RewardStructure,
-    amount: data.amount
-      ? data.type === "flat"
-        ? data.amount * 100
-        : data.amount
-      : 0,
+    amountInCents: data.amountInCents != null ? data.amountInCents * 100 : null,
+    amountInPercentage: data.amountInPercentage,
     maxDuration: data.maxDuration ?? 0,
     event: data.defaultRewardType,
   };

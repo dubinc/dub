@@ -33,10 +33,6 @@
       "schedule": "0 8 * * *"
     },
     {
-      "path": "/api/cron/payouts",
-      "schedule": "0 * * * *"
-    },
-    {
       "path": "/api/cron/aggregate-clicks",
       "schedule": "0 0 * * *"
     },
@@ -47,6 +43,10 @@
     {
       "path": "/api/cron/partner-program-summary",
       "schedule": "0 13 1 * *"
+    },
+    {
+      "path": "/api/cron/payouts/aggregate-due-commissions",
+      "schedule": "0 * * * *"
     },
     {
       "path": "/api/cron/payouts/reminders/partners",

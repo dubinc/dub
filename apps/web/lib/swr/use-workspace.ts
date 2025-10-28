@@ -37,6 +37,7 @@ export default function useWorkspace({
     exceededAI: workspace && workspace.aiUsage >= workspace.aiLimit,
     exceededDomains:
       workspace?.domains && workspace.domains.length >= workspace.domainsLimit,
+    isMegaWorkspace: workspace && workspace.totalLinks > 1_000_000,
     error,
     defaultFolderId: workspace?.users && workspace.users[0].defaultFolderId,
     mutate,

@@ -231,7 +231,9 @@ function BrandingFormInner({
       });
     },
     onError({ error }) {
-      console.error(error);
+      const message = error.serverError || "Failed to update application form.";
+      toast.error(message);
+      setError("root", { message });
     },
   });
 
@@ -268,8 +270,6 @@ function BrandingFormInner({
         });
 
         if (!result?.data?.success) {
-          toast.error("Failed to update application form.");
-          setError("root", { message: "Failed to update application form." });
           return;
         }
 

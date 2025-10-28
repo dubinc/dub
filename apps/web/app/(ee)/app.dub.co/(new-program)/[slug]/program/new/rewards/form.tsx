@@ -40,8 +40,15 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [amount, type, defaultRewardType, maxDuration] = watch([
-    "amount",
+  const [
+    amountInCents,
+    amountInPercentage,
+    type,
+    defaultRewardType,
+    maxDuration,
+  ] = watch([
+    "amountInCents",
+    "amountInPercentage",
     "type",
     "defaultRewardType",
     "maxDuration",
@@ -74,14 +81,21 @@ export function Form() {
 
     await executeAsync({
       ...data,
-      amount:
-        data.amount && data.type === "flat" ? data.amount * 100 : data.amount,
+      amountInCents:
+        data.amountInCents != null && data.type === "flat"
+          ? Math.round(data.amountInCents * 100)
+          : null,
+      amountInPercentage:
+        data.amountInPercentage != null && data.type === "percentage"
+          ? data.amountInPercentage
+          : null,
       workspaceId,
       step: "configure-reward",
     });
   };
 
-  const buttonDisabled = !amount || !type || !defaultRewardType;
+  const amount = type === "flat" ? amountInCents : amountInPercentage;
+  const buttonDisabled = amount == null || !type || !defaultRewardType;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -244,7 +258,9 @@ export function Form() {
 
         <div className="grid grid-cols-1 gap-6">
           <div>
-            <h2 className="text-base font-medium text-neutral-900">Payout</h2>
+            <h2 className="text-base font-medium text-neutral-900">
+              Reward amount
+            </h2>
             <p className="mt-1 text-sm font-normal text-neutral-600">
               Set how much the affiliate will get rewarded
             </p>
@@ -253,7 +269,7 @@ export function Form() {
           {defaultRewardType === "sale" && (
             <div>
               <label className="text-sm font-medium text-neutral-800">
-                Payout model
+                Reward structure
               </label>
               <select
                 {...register("type")}
@@ -267,7 +283,7 @@ export function Form() {
 
           <div>
             <label className="text-sm font-medium text-neutral-800">
-              Amount {defaultRewardType != "sale" ? "per lead" : ""}
+              Reward amount {defaultRewardType != "sale" ? "per lead" : ""}
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">
@@ -278,13 +294,16 @@ export function Form() {
                   "block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   type === "flat" ? "pl-6 pr-12" : "pr-7",
                 )}
-                {...register("amount", {
-                  required: true,
-                  valueAsNumber: true,
-                  min: 0,
-                  max: type === "flat" ? 1000 : 100,
-                  onChange: handleMoneyInputChange,
-                })}
+                {...register(
+                  type === "flat" ? "amountInCents" : "amountInPercentage",
+                  {
+                    required: true,
+                    valueAsNumber: true,
+                    min: 0,
+                    max: type === "flat" ? 1000 : 100,
+                    onChange: handleMoneyInputChange,
+                  },
+                )}
                 onKeyDown={handleMoneyKeyDown}
               />
               <span className="absolute inset-y-0 right-0 flex items-center pr-3 text-sm text-neutral-400">

@@ -2,10 +2,12 @@ import { FAST_ACH_FEE_CENTS } from "@/lib/partners/constants";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
 import {
+  APP_DOMAIN,
   currencyFormatter,
   DUB_WORDMARK,
   EU_COUNTRY_CODES,
   formatDate,
+  nFormatter,
   OG_AVATAR_URL,
 } from "@dub/utils";
 import { Invoice, Project } from "@prisma/client";
@@ -35,9 +37,9 @@ export async function PartnerPayoutInvoice({
   workspace,
 }: {
   invoice: Invoice;
-  workspace: Pick<Project, "id" | "name" | "stripeId">;
+  workspace: Pick<Project, "id" | "name" | "slug" | "stripeId">;
 }) {
-  const payouts = await prisma.payout.findMany({
+  const firstEightPayouts = await prisma.payout.findMany({
     where: {
       invoiceId: invoice.id,
     },
@@ -52,10 +54,22 @@ export async function PartnerPayoutInvoice({
         },
       },
     },
+    take: 8,
     orderBy: {
       amount: "desc",
     },
   });
+
+  const totalPayouts = await prisma.payout.count({
+    where: {
+      invoiceId: invoice.id,
+    },
+  });
+
+  // Show first 5 partners, hide last 3, and show "View +N more" if there are more than 8 total
+  const visiblePayouts = firstEightPayouts.slice(0, 5);
+  const hiddenPayouts = firstEightPayouts.slice(5, 8); // Last 3 partners for stacked avatars
+  const remainingPayoutsTotal = totalPayouts - firstEightPayouts.length;
 
   let customer: Stripe.Customer | null = null;
 
@@ -75,7 +89,7 @@ export async function PartnerPayoutInvoice({
       ? (invoice.stripeChargeMetadata as unknown as Stripe.Charge)
       : { amount: undefined, currency: undefined };
 
-  const earliestPeriodStart = payouts.reduce(
+  const earliestPeriodStart = visiblePayouts.reduce(
     (acc, payout) => {
       if (!acc) return payout.periodStart;
       if (!payout.periodStart) return acc;
@@ -84,7 +98,7 @@ export async function PartnerPayoutInvoice({
     null as Date | null,
   );
 
-  const latestPeriodEnd = payouts.reduce(
+  const latestPeriodEnd = visiblePayouts.reduce(
     (acc, payout) => {
       if (!acc) return payout.periodEnd;
       if (!payout.periodEnd) return acc;
@@ -212,7 +226,7 @@ export async function PartnerPayoutInvoice({
   return await renderToBuffer(
     <Document>
       <Page size="A4" style={tw("p-20 bg-white")}>
-        <View style={tw("flex-row justify-between items-center mb-10")}>
+        <View style={tw("flex-row justify-between items-center mb-4")}>
           <Image src={DUB_WORDMARK} style={tw("w-20 h-10")} />
           <View style={tw("text-right w-1/2")}>
             <Text style={tw("text-sm font-medium text-neutral-800")}>
@@ -231,7 +245,7 @@ export async function PartnerPayoutInvoice({
           ))}
         </View>
 
-        <View style={tw("flex-row justify-between mb-10 ")}>
+        <View style={tw("flex-row justify-between mb-4")}>
           {addresses.map(({ title, address }, index) => {
             const cityStatePostal = [
               address.city,
@@ -283,7 +297,7 @@ export async function PartnerPayoutInvoice({
               Payouts
             </Text>
             <Text style={tw("text-neutral-800 font-medium text-[16px]")}>
-              {payouts.length}
+              {nFormatter(totalPayouts, { full: true })}
             </Text>
           </View>
 
@@ -301,7 +315,7 @@ export async function PartnerPayoutInvoice({
           </View>
         </View>
 
-        {payouts.length > 0 && (
+        {visiblePayouts.length > 0 && (
           <View style={tw("mb-6 border border-neutral-200 rounded-xl")}>
             <View style={tw("flex-row border-neutral-200 border-b")}>
               <Text
@@ -321,11 +335,11 @@ export async function PartnerPayoutInvoice({
               </Text>
             </View>
 
-            {payouts.map((payout, index) => (
+            {visiblePayouts.map((payout, index) => (
               <View
                 key={index}
                 style={tw(
-                  `flex-row text-sm font-medium text-neutral-700 border-neutral-200 items-center ${index + 1 === payouts.length ? "" : "border-b"}`,
+                  `flex-row text-sm font-medium text-neutral-700 border-neutral-200 items-center ${index + 1 === visiblePayouts.length ? "" : "border-b"}`,
                 )}
               >
                 <View style={tw("flex-row items-center gap-2 w-2/6 p-3.5")}>
@@ -360,6 +374,41 @@ export async function PartnerPayoutInvoice({
                 </Text>
               </View>
             ))}
+
+            {/* Stacked avatars and View +N more row */}
+            {(hiddenPayouts.length > 0 || remainingPayoutsTotal > 0) && (
+              <View
+                style={tw(
+                  "flex-row items-center gap-2 p-3.5 w-full text-sm font-medium text-neutral-700 border-neutral-200 border-t",
+                )}
+              >
+                {/* Stacked avatars for hidden partners */}
+                <View style={tw("flex-row -space-x-1")}>
+                  {hiddenPayouts.slice(0, 4).map((payout, index) => (
+                    <Image
+                      key={index}
+                      src={
+                        payout.partner.image ??
+                        `${OG_AVATAR_URL}${payout.partner.name}`
+                      }
+                      style={tw(
+                        "h-5 w-5 shrink-0 rounded-full border border-white",
+                      )}
+                    />
+                  ))}
+                </View>
+                <Link
+                  href={`${APP_DOMAIN}/${workspace.slug}/program/payouts?invoiceId=${invoice.id}&sortBy=amount`}
+                  style={tw("text-blue-600")}
+                >
+                  View +
+                  {nFormatter(hiddenPayouts.length + remainingPayoutsTotal, {
+                    full: true,
+                  })}{" "}
+                  more payouts
+                </Link>
+              </View>
+            )}
           </View>
         )}
 

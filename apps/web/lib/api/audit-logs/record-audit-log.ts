@@ -1,5 +1,5 @@
 import { getIP } from "@/lib/api/utils/get-ip";
-import { tb, tbNew } from "@/lib/tinybird";
+import { tb, tbOld } from "@/lib/tinybird";
 import { log } from "@dub/utils";
 import { ipAddress as getIPAddress, waitUntil } from "@vercel/functions";
 import { headers } from "next/headers";
@@ -56,7 +56,7 @@ export const recordAuditLog = async (data: AuditLogInput | AuditLogInput[]) => {
     : [transformAuditLogTB(data, { headersList, ipAddress })];
 
   try {
-    waitUntil(recordAuditLogTBNew(auditLogs));
+    waitUntil(recordAuditLogTBOld(auditLogs));
     await recordAuditLogTB(auditLogs);
   } catch (error) {
     console.error(
@@ -80,7 +80,7 @@ const recordAuditLogTB = tb.buildIngestEndpoint({
 });
 
 // TODO: Remove after Tinybird migration
-const recordAuditLogTBNew = tbNew.buildIngestEndpoint({
+const recordAuditLogTBOld = tbOld.buildIngestEndpoint({
   datasource: "dub_audit_logs",
   event: auditLogSchemaTB,
   wait: true,

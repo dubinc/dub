@@ -88,6 +88,7 @@ export const GET = withPartnerProfile(
                 email: customerDataSharingEnabledAt
                   ? customerEmail
                   : customerEmail.replace(/(?<=^.).+(?=.@)/, "****"),
+                country: e.customer?.country,
               }
             : null,
         };

@@ -1,14 +1,21 @@
 "use client";
 
 import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
 import { CardList } from "@dub/ui";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
-import { createContext, Dispatch, SetStateAction, useContext, useState, type JSX } from "react";
+import {
+  createContext,
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useState,
+  type JSX,
+} from "react";
 import { PageWidthWrapper } from "../layout/page-width-wrapper";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
 import { LinkCard } from "./link-card";
@@ -78,7 +85,7 @@ function LinksList({
   compact: boolean;
 }) {
   const searchParams = useSearchParams();
-  const { isMegaFolder } = useIsMegaFolder();
+  const { isMegaWorkspace } = useWorkspace();
 
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
@@ -96,7 +103,7 @@ function LinksList({
       <LinkSelectionProvider links={links}>
         {!links || links.length ? (
           // Cards
-          (<CardList variant={compact ? "compact" : "loose"} loading={loading}>
+          <CardList variant={compact ? "compact" : "loose"} loading={loading}>
             {links?.length
               ? // Link cards
                 links.map((link) => <LinkCard key={link.id} link={link} />)
@@ -110,7 +117,7 @@ function LinksList({
                     <LinkCardPlaceholder />
                   </CardList.Card>
                 ))}
-          </CardList>)
+          </CardList>
         ) : (
           <AnimatedEmptyState
             title={isFiltered ? "No links found" : "No links yet"}
@@ -145,7 +152,9 @@ function LinksList({
           <LinksToolbar
             loading={!!loading}
             links={links}
-            linksCount={isMegaFolder ? Infinity : count ?? links?.length ?? 0}
+            linksCount={
+              isMegaWorkspace ? Infinity : count ?? links?.length ?? 0
+            }
           />
         )}
       </LinkSelectionProvider>

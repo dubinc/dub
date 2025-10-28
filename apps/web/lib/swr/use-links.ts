@@ -4,7 +4,6 @@ import useSWR, { SWRConfiguration } from "swr";
 import { z } from "zod";
 import { ExpandedLinkProps, UserProps } from "../types";
 import { getLinksQuerySchemaExtended } from "../zod/schemas/links";
-import { useIsMegaFolder } from "./use-is-mega-folder";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksQuerySchemaExtended.partial();
@@ -13,9 +12,8 @@ export default function useLinks(
   opts: z.infer<typeof partialQuerySchema> = {},
   swrOpts: SWRConfiguration = {},
 ) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, isMegaWorkspace } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-  const { isMegaFolder } = useIsMegaFolder();
 
   const { subdomain } = useCurrentSubdomain();
 
@@ -35,8 +33,8 @@ export default function useLinks(
             includeUser: "true",
             includeDashboard: "true",
             ...opts,
-            // don't show archived on mega folders
-            ...(isMegaFolder
+            // don't show archived on mega workspaces
+            ...(isMegaWorkspace
               ? {
                   showArchived: "false",
                 }

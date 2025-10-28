@@ -2,32 +2,44 @@ import { formatDateTooltip } from "@/lib/analytics/format-date-tooltip";
 import { IntervalOptions } from "@/lib/analytics/types";
 import { editQueryString } from "@/lib/analytics/utils";
 import useCommissionsTimeseries from "@/lib/swr/use-commissions-timeseries";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { ButtonLink } from "@/ui/placeholders/button-link";
 import { Combobox, LoadingSpinner, useRouterStuff } from "@dub/ui";
 import { Areas, TimeSeriesChart, XAxis, YAxis } from "@dub/ui/charts";
-import { currencyFormatter, fetcher } from "@dub/utils";
+import { currencyFormatter, fetcher, nFormatter } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 
-const chartOptions = [
-  { value: "revenue", label: "Revenue" },
-  { value: "commissions", label: "Commissions" },
-];
+type ViewType = "sales" | "leads" | "commissions";
 
-type ViewType = "revenue" | "commissions";
+const viewTypeToEvent = {
+  sales: "Revenue",
+  leads: "Leads",
+  commissions: "Commissions",
+};
+
+const chartOptions = Object.entries(viewTypeToEvent).map(([value, label]) => ({
+  value,
+  label,
+}));
 
 export function OverviewChart() {
   const { getQueryString } = useRouterStuff();
   const { queryString, start, end, interval } = useContext(AnalyticsContext);
-
-  const [viewType, setViewType] = useState<ViewType>("revenue");
+  const [viewType, setViewType] = useState<ViewType>("sales");
 
   const { slug } = useWorkspace();
+  const { program } = useProgram();
+  useEffect(() => {
+    if (program?.primaryRewardEvent === "lead") {
+      setViewType("leads");
+    }
+  }, [program]);
 
-  const { data: revenue, error: revenueError } = useSWR<
+  const { data: analyticsData, error: analyticsError } = useSWR<
     {
       start: Date;
       clicks: number;
@@ -36,9 +48,9 @@ export function OverviewChart() {
       saleAmount: number;
     }[]
   >(
-    viewType === "revenue"
+    viewType === "sales" || viewType === "leads"
       ? `/api/analytics?${editQueryString(queryString, {
-          event: "sales",
+          event: viewType,
           groupBy: "timeseries",
         })}`
       : null,
@@ -56,23 +68,27 @@ export function OverviewChart() {
     });
 
   const data = useMemo(() => {
-    const sourceData = viewType === "revenue" ? revenue : commissions;
+    const sourceData = viewType === "commissions" ? commissions : analyticsData;
 
     return sourceData?.map((item) => ({
       date: new Date(item.start),
       values: {
         amount:
-          (viewType === "revenue" ? item.saleAmount : item.earnings) / 100,
+          viewType === "commissions"
+            ? item.earnings / 100
+            : viewType === "sales"
+              ? item.saleAmount / 100
+              : item.leads,
       },
     }));
-  }, [revenue, commissions, viewType]);
+  }, [analyticsData, commissions, viewType]);
 
   const total = useMemo(() => {
     return data?.reduce((acc, curr) => acc + curr.values.amount, 0);
   }, [data]);
 
-  const isLoading = !data && !revenueError && !commissionsError;
-  const error = revenueError || commissionsError;
+  const isLoading = !data && !analyticsError && !commissionsError;
+  const error = analyticsError || commissionsError;
 
   return (
     <div className="flex size-full flex-col gap-6">
@@ -96,10 +112,14 @@ export function OverviewChart() {
             <NumberFlow
               value={total}
               className="text-content-emphasis block text-3xl font-medium"
-              format={{
-                style: "currency",
-                currency: "USD",
-              }}
+              {...(viewType === "leads"
+                ? {}
+                : {
+                    format: {
+                      style: "currency",
+                      currency: "USD",
+                    },
+                  })}
             />
           ) : (
             <div className="mb-1 mt-px h-10 w-24 animate-pulse rounded-md bg-neutral-200" />
@@ -107,7 +127,7 @@ export function OverviewChart() {
         </div>
 
         <ButtonLink
-          href={`/${slug}/program/${viewType === "revenue" ? "analytics" : "commissions"}${getQueryString(
+          href={`/${slug}/program/${viewType === "commissions" ? "commissions" : "analytics"}${getQueryString(
             undefined,
             {
               include: ["interval", "start", "end"],
@@ -152,11 +172,13 @@ export function OverviewChart() {
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-sm bg-violet-500 shadow-[inset_0_0_0_1px_#0003]" />
                       <p className="capitalize text-neutral-600">
-                        {viewType === "revenue" ? "Revenue" : "Commissions"}
+                        {viewTypeToEvent[viewType]}
                       </p>
                     </div>
                     <p className="text-right font-medium text-neutral-900">
-                      {currencyFormatter(d.values.amount)}
+                      {viewType === "leads"
+                        ? nFormatter(d.values.amount, { full: true })
+                        : currencyFormatter(d.values.amount)}
                     </p>
                   </div>
                 </>
