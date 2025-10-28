@@ -175,7 +175,6 @@ function ApplicationSettingsModal({
                     <Controller
                       control={control}
                       name="category"
-                      rules={{ required: true }}
                       render={({ field }) => (
                         <ProgramCategorySelect
                           selected={(field.value as Category) ?? null}
