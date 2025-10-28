@@ -81,7 +81,7 @@ export async function POST(req: Request) {
     const csvData = convertToCSV(allPartners);
 
     // Upload to R2 as private file (not publicly accessible)
-    const fileKey = `partners-exports/${generateRandomString(60)}.csv`;
+    const fileKey = `partners-exports/${generateRandomString(16)}.csv`;
     const csvBlob = new Blob([csvData], { type: "text/csv" });
 
     const uploadResult = await storageV2.upload({
