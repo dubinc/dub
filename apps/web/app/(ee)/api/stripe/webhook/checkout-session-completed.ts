@@ -1,5 +1,6 @@
 import { claimDotLinkDomain } from "@/lib/api/domains/claim-dot-link-domain";
 import { inviteUser } from "@/lib/api/users";
+import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { tokenCache } from "@/lib/auth/token-cache";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { stripe } from "@/lib/stripe";
@@ -184,7 +185,10 @@ async function completeOnboarding({
 
   await Promise.allSettled([
     // Complete onboarding for workspace users
-    ...users.map(({ id }) => redis.set(`onboarding-step:${id}`, "completed")),
+    onboardingStepCache.mset({
+      userIds: users.map(({ id }) => id),
+      step: "completed",
+    }),
 
     // Send saved invite emails
     (async () => {

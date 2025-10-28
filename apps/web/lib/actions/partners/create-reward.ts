@@ -4,6 +4,8 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { validateReward } from "@/lib/api/rewards/validate-reward";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   createRewardSchema,
@@ -20,8 +22,9 @@ export const createRewardAction = authActionClient
     const { workspace, user } = ctx;
     const {
       event,
-      amount,
       type,
+      amountInCents,
+      amountInPercentage,
       maxDuration,
       description,
       modifiers,
@@ -50,6 +53,8 @@ export const createRewardAction = authActionClient
       );
     }
 
+    validateReward(parsedInput);
+
     const reward = await prisma.$transaction(async (tx) => {
       const reward = await tx.reward.create({
         data: {
@@ -57,10 +62,18 @@ export const createRewardAction = authActionClient
           programId,
           event,
           type,
-          amount,
           maxDuration,
           description: description || null,
           modifiers: modifiers || Prisma.DbNull,
+          ...(type === "flat"
+            ? {
+                amountInCents,
+                amountInPercentage: null,
+              }
+            : {
+                amountInCents: null,
+                amountInPercentage: new Prisma.Decimal(amountInPercentage!),
+              }),
         },
       });
 
@@ -96,7 +109,7 @@ export const createRewardAction = authActionClient
           {
             type: "reward",
             id: reward.id,
-            metadata: reward,
+            metadata: serializeReward(reward),
           },
         ],
       }),
