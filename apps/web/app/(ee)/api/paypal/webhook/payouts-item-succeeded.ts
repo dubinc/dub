@@ -45,7 +45,7 @@ export async function payoutsItemSucceeded(event: any) {
       data: {
         paypalTransferId: payoutItemId,
         status: "completed",
-        paidAt: new Date(),
+        paidAt: payout.paidAt ?? new Date(), // preserve the paidAt if it already exists
       },
     }),
 

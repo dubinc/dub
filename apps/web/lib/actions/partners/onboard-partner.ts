@@ -40,14 +40,9 @@ export const onboardPartnerAction = authUserActionClient
     const payload: Prisma.PartnerCreateInput = {
       name: name || user.email,
       email: user.email,
-      // you can only update these fields if the partner doesn't already have a stripeConnectId
-      ...(existingPartner?.stripeConnectId
-        ? {}
-        : {
-            country,
-            profileType,
-            companyName,
-          }),
+      // can only update these fields if it's not already set (else you need to update under profile settings)
+      ...(existingPartner?.country ? {} : { country }),
+      ...(existingPartner?.profileType ? {} : { profileType }),
       ...(description && { description }),
       image: imageUrl,
       users: {
@@ -69,7 +64,7 @@ export const onboardPartnerAction = authUserActionClient
       },
     };
 
-    const [partner] = await Promise.all([
+    await Promise.all([
       existingPartner
         ? prisma.partner.update({
             where: {

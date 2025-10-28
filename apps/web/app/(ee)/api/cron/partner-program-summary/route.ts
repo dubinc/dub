@@ -69,6 +69,7 @@ async function handler(req: Request) {
         logo: true,
         slug: true,
         supportEmail: true,
+        workspaceId: true,
       },
       skip: programSkip,
       take: programsTake,
@@ -100,6 +101,7 @@ async function handler(req: Request) {
       getAnalytics({
         event: "composite",
         groupBy: "top_partners",
+        workspaceId: program.workspaceId,
         programId: program.id,
         start: previousMonth,
         end: endOfMonth(previousMonth),
@@ -109,6 +111,7 @@ async function handler(req: Request) {
       getAnalytics({
         event: "composite",
         groupBy: "top_partners",
+        workspaceId: program.workspaceId,
         programId: program.id,
         start: currentMonth,
         end: endOfMonth(currentMonth),

@@ -1,8 +1,7 @@
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
 import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import { mutatePrefix } from "@/lib/swr/mutate";
-import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
-import { PartnerProps, PayoutsCount } from "@/lib/types";
+import { PartnerProps } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
 import {
@@ -17,6 +16,7 @@ import {
   DynamicTooltipWrapper,
   FileUpload,
   ToggleGroup,
+  TooltipContent,
   buttonVariants,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
@@ -171,15 +171,6 @@ function BasicInfoForm({
 
   const { profileType } = watch();
 
-  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
-    groupBy: "status",
-  });
-
-  const completedPayoutsCount =
-    payoutsCount
-      ?.filter((payout) => ["sent", "completed"].includes(payout.status))
-      .reduce((acc, payout) => acc + payout.count, 0) ?? 0;
-
   const { executeAsync } = useAction(updatePartnerProfileAction, {
     onSuccess: async ({ data }) => {
       if (data?.needsEmailVerification) {
@@ -311,11 +302,16 @@ function BasicInfoForm({
                 onChange={field.onChange}
                 error={errors.country ? true : false}
                 disabledTooltip={
-                  disabled
-                    ? "You don't have permission to update this field"
-                    : completedPayoutsCount > 0
-                      ? "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support."
-                      : undefined
+                  disabled ? (
+                    "You don't have permission to update this field"
+                  ) : partner?.payoutsEnabledAt ? (
+                    <TooltipContent
+                      title="Since you've already connected your bank account for payouts, you cannot change your profile country."
+                      cta="Contact support"
+                      href="https://dub.co/support"
+                      target="_blank"
+                    />
+                  ) : undefined
                 }
               />
             )}
@@ -327,18 +323,18 @@ function BasicInfoForm({
             Profile type
           </span>
           <DynamicTooltipWrapper
-            tooltipProps={
-              disabled
-                ? {
-                    content: "You don't have permission to update this field",
-                  }
-                : completedPayoutsCount > 0
-                  ? {
-                      content:
-                        "Since you've already received payouts on Dub, you cannot change your profile type. If you need to update your profile type, please contact support.",
-                    }
-                  : undefined
-            }
+            tooltipProps={{
+              content: disabled ? (
+                "You don't have permission to update this field"
+              ) : partner?.payoutsEnabledAt ? (
+                <TooltipContent
+                  title="Since you've already connected your bank account for payouts, you cannot change your profile type."
+                  cta="Contact support"
+                  href="https://dub.co/support"
+                  target="_blank"
+                />
+              ) : undefined,
+            }}
           >
             <LayoutGroup>
               <div className="w-full">
@@ -355,18 +351,18 @@ function BasicInfoForm({
                   ]}
                   selected={profileType}
                   selectAction={(option: "individual" | "company") => {
-                    if (!disabled && completedPayoutsCount === 0) {
+                    if (!disabled && !partner?.payoutsEnabledAt) {
                       setValue("profileType", option);
                     }
                   }}
                   className={cn(
                     "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                    (disabled || completedPayoutsCount > 0) &&
+                    (disabled || partner?.payoutsEnabledAt) &&
                       "cursor-not-allowed",
                   )}
                   optionClassName={cn(
                     "h-9 flex items-center justify-center rounded-lg flex-1",
-                    (disabled || completedPayoutsCount > 0) &&
+                    (disabled || partner?.payoutsEnabledAt) &&
                       "pointer-events-none text-neutral-400",
                   )}
                   indicatorClassName="bg-white"
@@ -399,10 +395,10 @@ function BasicInfoForm({
                 <div>
                   <input
                     type="text"
-                    disabled={disabled || completedPayoutsCount > 0}
+                    disabled={disabled}
                     className={cn(
                       "block w-full rounded-md focus:outline-none sm:text-sm",
-                      (disabled || completedPayoutsCount > 0) &&
+                      disabled &&
                         "cursor-not-allowed bg-neutral-50 text-neutral-400",
                       errors.companyName
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"

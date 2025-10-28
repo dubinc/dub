@@ -1,3 +1,4 @@
+import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { getSession } from "@/lib/auth";
 import EmptyState from "@/ui/shared/empty-state";
 import { prisma } from "@dub/prisma";
@@ -7,13 +8,11 @@ import { APP_NAME } from "@dub/utils";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
-export default async function InvitesPage(
-  props: {
-    params: Promise<{
-      code: string;
-    }>;
-  }
-) {
+export default async function InvitesPage(props: {
+  params: Promise<{
+    code: string;
+  }>;
+}) {
   const params = await props.params;
   return (
     <div className="flex flex-col items-center justify-center gap-6 text-center">
@@ -102,6 +101,24 @@ async function VerifyInvite({ code }: { code: string }) {
         create: {}, // by default, users are opted in to all notifications
       },
     },
+  });
+
+  // Update default workspace
+  if (!session.user.defaultWorkspace) {
+    await prisma.user.update({
+      where: {
+        id: session.user.id,
+      },
+      data: {
+        defaultWorkspace: workspace.slug,
+      },
+    });
+  }
+
+  // Complete onboarding just in case
+  await onboardingStepCache.set({
+    userId: session.user.id,
+    step: "completed",
   });
 
   redirect(`/${workspace.slug}`);

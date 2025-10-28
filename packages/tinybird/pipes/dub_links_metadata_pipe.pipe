@@ -3,7 +3,27 @@ TAGS "Dub MV Pipes"
 NODE mv
 SQL >
 
-    SELECT * FROM dub_links_metadata
+    SELECT
+        timestamp,
+        toLowCardinality(
+            CASE
+                WHEN startsWith(workspace_id, 'ws_c')
+                THEN replace(workspace_id, 'ws_', '')
+                ELSE workspace_id
+            END
+        ) AS workspace_id,
+       link_id,
+       domain,
+       key,
+       url,
+       toLowCardinality(program_id) program_id,
+       partner_id,
+       folder_id,
+       tag_ids,
+       tenant_id,
+       created_at,
+       deleted
+    FROM dub_links_metadata
 
 TYPE materialized
 DATASOURCE dub_links_metadata_latest

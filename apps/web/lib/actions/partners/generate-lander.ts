@@ -1,7 +1,7 @@
 "use server";
 
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getGroupRewardsAndDiscount } from "@/lib/partners/get-group-rewards-and-discount";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import {
   programLanderSchema,
@@ -11,6 +11,7 @@ import { formatDiscountDescription } from "@/ui/partners/format-discount-descrip
 import { formatRewardDescription } from "@/ui/partners/format-reward-description";
 import { anthropic } from "@ai-sdk/anthropic";
 import { prisma } from "@dub/prisma";
+import { Reward } from "@dub/prisma/client";
 import FireCrawlApp, {
   ErrorResponse,
   ScrapeResponse,
@@ -52,7 +53,11 @@ export const generateLanderAction = authActionClient
       },
     });
 
-    const { rewards, discount } = getGroupRewardsAndDiscount(program.groups[0]);
+    const group = program.groups[0];
+    const discount = group.discount;
+    const rewards = [group.clickReward, group.leadReward, group.saleReward]
+      .filter((r): r is Reward => r !== null)
+      .map(serializeReward);
 
     const firecrawl = new FireCrawlApp({
       apiKey: process.env.FIRECRAWL_API_KEY,
@@ -107,9 +112,9 @@ export const generateLanderAction = authActionClient
         // Program details
         `\n\nProgram details:` +
         `\n\nName: ${program.name}\n` +
-        `\nAffiliate rewards: ${rewards.map((reward) => formatRewardDescription({ reward })).join(", ")}` +
+        `\nAffiliate rewards: ${rewards.map((reward) => formatRewardDescription(reward)).join(", ")}` +
         (discount
-          ? `\nDiscounts for referred users: ${formatDiscountDescription({ discount })}`
+          ? `\nDiscounts for referred users: ${formatDiscountDescription(discount)}`
           : "") +
         // Existing page
         (landerData

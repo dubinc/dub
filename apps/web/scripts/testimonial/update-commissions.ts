@@ -1,4 +1,5 @@
 import { calculateSaleEarnings } from "@/lib/api/sales/calculate-sale-earnings";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import "dotenv-flow/config";
@@ -25,7 +26,7 @@ async function main() {
     commissions.map(async (commission) => {
       // Recalculate the earnings based on the new amount
       const earnings = calculateSaleEarnings({
-        reward,
+        reward: serializeReward(reward),
         sale: {
           amount: commission.amount,
           quantity: commission.quantity,

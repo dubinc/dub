@@ -49,6 +49,7 @@ model Program {
   brandColor                   String?
   domain                       String?
   url                          String?
+  primaryRewardEvent           EventType @default(sale)
   holdingPeriodDays            Int       @default(0) // number of days to wait before earnings are added to a payout
   minPayoutAmount              Int       @default(0) // Default minimum payout amount of $0
   embedData                    Json?     @db.Json
@@ -141,10 +142,17 @@ model ProgramEnrollment {
   bountySubmissions BountySubmission[]
   discountCodes     DiscountCode[]
 
+  // unique constraints
   @@unique([partnerId, programId])
   @@unique([tenantId, programId])
-  @@index(programId)
-  @@index(groupId)
+  // indexes for sorting partners
+  @@index([programId, status, totalClicks])
+  @@index([programId, status, totalLeads])
+  @@index([programId, status, totalConversions])
+  @@index([programId, status, totalSaleAmount])
+  @@index([programId, status, totalCommissions])
+  // other indexes
+  @@index([groupId, status])
   @@index(clickRewardId)
   @@index(leadRewardId)
   @@index(saleRewardId)

@@ -97,8 +97,9 @@ export function SendVerificationCodeForm({
             <input
               type="email"
               required
+              disabled
               placeholder="Enter target account email"
-              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
+              className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-500 sm:text-sm"
               {...register("targetEmail")}
             />
           </div>

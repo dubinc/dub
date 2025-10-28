@@ -5,32 +5,69 @@ SQL >
 
     SELECT
         timestamp,
+        click_id,
+        toLowCardinality(coalesce(sale_event.workspace_id, link_metadata.workspace_id)) AS workspace_id,
+        link_id,
+        coalesce(sale_event.domain, link_metadata.domain) AS domain,
+        coalesce(sale_event.key, link_metadata.key) AS key,
+        url,
+
+        -- sale event fields
         event_id,
         event_name,
-        click_id,
-        link_id,
         customer_id,
         payment_processor,
         invoice_id,
         amount,
-        url,
-        continent,
-        country,
-        city,
-        region,
+        -- sale_type: "new" if this sale is the earliest one for (customer_id, link_id)
+        if(timestamp = first_sale_ts, 'new', 'recurring') AS sale_type,
+        metadata,
+
+        -- geolocation fields
+        toLowCardinality(continent) AS continent,
+        toLowCardinality(country) AS country,
+        toLowCardinality(city) AS city,
+        toLowCardinality(region) AS region,
         latitude,
         longitude,
+
+        -- additional fields
         device,
         browser,
         os,
-        engine,
+        CASE
+            WHEN trigger = '' THEN CASE WHEN qr = true THEN 'qr' ELSE 'link' END ELSE trigger
+        END AS trigger,
         ua,
         referer,
         referer_url,
-        qr,
         ip,
-        metadata
-    FROM dub_sale_events
+
+        -- other fields from raw DS
+        device_model,
+        device_vendor,
+        browser_version,
+        os_version,
+        engine,
+        engine_version,
+        cpu_architecture,
+        qr,
+        bot
+
+    FROM dub_sale_events AS sale_event
+    LEFT JOIN
+        (
+            -- find the first sale timestamp for each customer_id:link_id pair
+            SELECT customer_id, link_id, min(timestamp) AS first_sale_ts
+            FROM dub_sale_events
+            GROUP BY customer_id, link_id
+        ) AS first_sales USING (customer_id, link_id)
+    LEFT JOIN
+        (
+            SELECT link_id, workspace_id, domain, key
+            FROM dub_links_metadata_latest FINAL
+            WHERE link_id IN (SELECT link_id FROM dub_sale_events)
+        ) AS link_metadata USING (link_id)
 
 TYPE materialized
 DATASOURCE dub_sale_events_mv
