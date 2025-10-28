@@ -9,7 +9,7 @@ import { checkProgramNetworkRequirements } from "../check-program-network-requir
 
 // GET /api/network/programs/[programSlug] - get a program in the network by slug
 export const GET = withPartnerProfile(async ({ partner, params }) => {
-  if (!checkProgramNetworkRequirements({ partner }))
+  if (!(await checkProgramNetworkRequirements({ partner })))
     throw new DubApiError({
       code: "forbidden",
       message: "Program network is not available for this partner.",

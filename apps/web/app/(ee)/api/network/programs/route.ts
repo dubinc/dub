@@ -12,7 +12,7 @@ import { checkProgramNetworkRequirements } from "./check-program-network-require
 
 // GET /api/network/programs - get all available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  if (!checkProgramNetworkRequirements({ partner }))
+  if (!(await checkProgramNetworkRequirements({ partner })))
     throw new DubApiError({
       code: "forbidden",
       message: "Program network is not available for this partner.",

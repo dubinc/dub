@@ -16,7 +16,7 @@ const rewardTypeMap = {
 
 // GET /api/network/programs/count - get the number of available programs in the network
 export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
-  if (!checkProgramNetworkRequirements({ partner }))
+  if (!(await checkProgramNetworkRequirements({ partner })))
     throw new DubApiError({
       code: "forbidden",
       message: "Program network is not available for this partner.",
