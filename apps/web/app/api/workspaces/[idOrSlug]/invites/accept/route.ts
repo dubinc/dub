@@ -1,4 +1,5 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
+import { onboardingStepCache } from "@/lib/api/workspaces/onboarding-step-cache";
 import { withSession } from "@/lib/auth";
 import { PlanProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
@@ -105,7 +106,7 @@ export const POST = withSession(async ({ session, params }) => {
   });
 
   // Update default workspace
-  if (session.user["defaultWorkspace"] === null) {
+  if (!session.user.defaultWorkspace) {
     await prisma.user.update({
       where: {
         id: session.user.id,
@@ -115,6 +116,11 @@ export const POST = withSession(async ({ session, params }) => {
       },
     });
   }
+
+  await onboardingStepCache.set({
+    userId: session.user.id,
+    step: "completed",
+  });
 
   return NextResponse.json({ message: "Invite accepted." });
 });
