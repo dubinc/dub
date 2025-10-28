@@ -19,7 +19,7 @@ export function FeaturedPrograms() {
     { revalidateOnFocus: false, keepPreviousData: true },
   );
 
-  return programs?.length === 0 ? null : (
+  return programs?.length === 0 || error ? null : (
     <div>
       <h2 className="text-content-emphasis text-base font-semibold">
         Featured programs
