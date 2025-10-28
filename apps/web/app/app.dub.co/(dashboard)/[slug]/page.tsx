@@ -8,6 +8,7 @@ import { Viewport } from "next";
 import WorkspaceQRsClient from "./custom-page-client";
 import { LinksTitle } from "./links-title";
 import { getQrDataFromRedis } from '@/lib/actions/pre-checkout-flow/get-qr-data-from-redis';
+import { QRBuilderData } from '@/ui/qr-builder/types/types';
 
 export const viewport: Viewport = {
   themeColor: "#f6f6f7",
@@ -19,10 +20,7 @@ const WorkspaceQRsPage = async () => {
 
   console.log("authUser", authUser);
 
-  const { qrData } = await getQrDataFromRedis(authUser.id, "qr-from-landing");
-  if (qrData) {
-    console.log("qrData from landing", qrData);
-  }
+  const { qrData: qrDataFromLanding } = await getQrDataFromRedis(authUser.id, "qr-from-landing") as { qrData: QRBuilderData | null };
 
   const qrs = await getQrs({
     userId: authUser.id,
@@ -44,6 +42,7 @@ const WorkspaceQRsPage = async () => {
       <PageContent title={<LinksTitle />}>
         <WorkspaceQRsClient
           initialQrs={qrs as any}
+          qrDataFromLanding={qrDataFromLanding}
           featuresAccess={featuresAccess}
           user={authUser}
           cookieUser={user}

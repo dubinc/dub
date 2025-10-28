@@ -53,11 +53,8 @@ export const changePreSignupEmailAction = actionClient
     });
 
     if (dbUser) {
-      console.log("here123", sessionId);
-      const { qrData } = await getQrDataFromRedis(sessionId!, "qr-from-landing");
-      console.log("here321");
+      const { qrData } = await getQrDataFromRedis(sessionId!);
       if (qrData) {
-        console.log("qrData from landing", qrData);
         await saveQrDataToRedisAction({
           sessionId: dbUser.id,
           qrData: qrData as QRBuilderData,

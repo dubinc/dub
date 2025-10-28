@@ -20,9 +20,11 @@ import { useEffect, useState } from "react";
 import { NewQrProvider } from "./helpers/new-qr-context";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { QRBuilderData } from '@/ui/qr-builder/types/types';
 
 interface WorkspaceQRsClientProps {
   initialQrs: TQrStorageData[];
+  qrDataFromLanding: QRBuilderData | null;
   featuresAccess: FeaturesAccess;
   user: Session["user"];
   cookieUser: ICustomerBody | null;
