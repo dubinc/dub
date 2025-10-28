@@ -123,6 +123,20 @@ export const E2E_LEAD_REWARD = {
       maxDuration: null,
       amountInCents: 200,
     },
+    {
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: "US",
+          entity: "customer",
+          operator: "equals_to",
+          attribute: "country",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 400,
+    },
   ],
 };
 
@@ -170,11 +184,11 @@ export const E2E_PARTNERS = [
     },
   },
   {
-    id: "pn_NNG3YjwhLhA7nCZSaXeLIsWu",
-    country: "CA",
+    id: "pn_1K8ND11BZ4XPEX39QX3YMBGY0",
+    country: "SG",
     shortLink: {
       domain: "getacme.link",
-      key: "marvin",
+      key: "kiran-e2e-1",
     },
   },
 ] as const;
