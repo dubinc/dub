@@ -16,7 +16,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerInvite({
+export default function ProgramInvite({
   email = "panic@thedis.co",
   name = "John Doe",
   program = {
