@@ -25,7 +25,7 @@ export default function useNetworkProgramsCount<T = number>({
     enabled !== false &&
       `/api/network/programs/count${
         ignoreParams
-          ? `?${new URLSearchParams({ workspaceId, ...(query as any) }).toString()}`
+          ? `?${new URLSearchParams({ workspaceId, ...(query && (query as any)) }).toString()}`
           : getQueryString(query, {
               exclude: ["page", ...excludeParams],
             })

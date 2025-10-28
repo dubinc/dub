@@ -50,8 +50,7 @@ export const updateApplicationSettingsAction = authActionClient
     waitUntil(
       Promise.allSettled([
         ...(autoApprovePartners !== undefined
-          ? []
-          : [
+          ? [
               recordAuditLog({
                 workspaceId: workspace.id,
                 programId,
@@ -63,7 +62,8 @@ export const updateApplicationSettingsAction = authActionClient
                   : "Auto approve partners disabled",
                 actor: user,
               }),
-            ]),
+            ]
+          : []),
       ]),
     );
 
