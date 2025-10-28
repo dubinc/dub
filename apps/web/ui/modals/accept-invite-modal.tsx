@@ -51,7 +51,7 @@ function AcceptInviteModal({
                 fetch(`/api/workspaces/${slug}/invites/accept`, {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
-                }).then(async () => {
+                }).then(() => {
                   if (session?.user) {
                     posthog.identify(session.user["id"], {
                       email: session.user.email,
@@ -61,10 +61,10 @@ function AcceptInviteModal({
                   posthog.capture("accepted_workspace_invite", {
                     workspace: slug,
                   });
-                  await mutatePrefix("/api/workspaces");
-                  router.replace(`/${slug}/links`);
+                  router.replace(`/${slug}`);
                   setShowAcceptInviteModal(false);
                   toast.success("You now are a part of this workspace!");
+                  mutatePrefix("/api/workspaces");
                 });
               }}
               loading={accepting}

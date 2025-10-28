@@ -1,3 +1,4 @@
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { AnalyticsContext } from "@/ui/analytics/analytics-provider";
 import { LoadingSpinner, useRouterStuff } from "@dub/ui";
@@ -8,6 +9,7 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function ConversionBlock() {
   const { slug: workspaceSlug } = useWorkspace();
+  const { program } = useProgram();
 
   const { getQueryString } = useRouterStuff();
 
@@ -64,7 +66,14 @@ export function ConversionBlock() {
           <div className="flex size-full flex-col">
             <div className="px-6">
               <span className="text-content-emphasis block text-xl font-medium">
-                {formatPercentage((steps.at(-1)!.value / maxValue) * 100) + "%"}
+                {formatPercentage(
+                  (steps.at(
+                    // show conversion rate based on program's primary reward event
+                    program?.primaryRewardEvent === "lead" ? 1 : 2,
+                  )!.value /
+                    maxValue) *
+                    100,
+                ) + "%"}
               </span>
             </div>
             <div className="mt-4 grid grid-cols-3">

@@ -6,7 +6,6 @@ import {
   TRIGGER_TYPES,
   VALID_ANALYTICS_ENDPOINTS,
 } from "@/lib/analytics/constants";
-import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import z from "@/lib/zod";
 import {
   CONTINENT_CODES,
@@ -257,10 +256,7 @@ export const analyticsQuerySchema = z
 export const analyticsFilterTB = z
   .object({
     eventType: analyticsEvents,
-    workspaceId: z
-      .string()
-      .optional()
-      .transform((v) => (v ? prefixWorkspaceId(v) : undefined)),
+    workspaceId: z.string().optional(),
     customerId: z.string().optional(),
     root: z.boolean().optional(),
     saleType: z.string().optional(),
@@ -269,10 +265,6 @@ export const analyticsFilterTB = z
     end: z.string(),
     granularity: z.enum(["minute", "hour", "day", "month"]).optional(),
     timezone: z.string().optional(),
-    groupByUtmTag: z
-      .string()
-      .optional()
-      .describe("The UTM tag to group by. Defaults to `utm_source`."),
     // TODO: remove this once it's been added to the public API
     linkIds: z
       .union([z.string(), z.array(z.string())])
@@ -284,7 +276,6 @@ export const analyticsFilterTB = z
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
-    isMegaFolder: z.boolean().optional(),
     filters: z
       .string()
       .optional()
@@ -292,6 +283,7 @@ export const analyticsFilterTB = z
   })
   .merge(
     analyticsQuerySchema.pick({
+      groupBy: true,
       browser: true,
       city: true,
       country: true,

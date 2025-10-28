@@ -18,6 +18,7 @@ export const GET = withSession(async ({ session, params }) => {
         select: {
           id: true,
           name: true,
+          slug: true,
           stripeId: true,
         },
       },

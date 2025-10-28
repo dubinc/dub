@@ -67,6 +67,16 @@ export const POST = withAxiom(async (req: Request) => {
     });
   }
 
+  // When an app is installed in both live & test mode,
+  // test mode events are sent to both the test mode and live mode endpoints,
+  // and live mode events are sent to the live mode endpoint.
+  // See: https://docs.stripe.com/stripe-apps/build-backend#event-behavior-depends-on-install-mode
+  if (!event.livemode && mode === "live") {
+    return logAndRespond(
+      `Received a test webhook event (${event.type}) on our live webhook receiver endpoint, skipping...`,
+    );
+  }
+
   let response = "OK";
 
   switch (event.type) {

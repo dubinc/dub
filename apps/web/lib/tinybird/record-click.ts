@@ -238,7 +238,7 @@ export async function recordClick({
           {
             method: "POST",
             headers: {
-              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_NEW}`,
+              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_OLD}`,
             },
             body: JSON.stringify(clickData),
           },

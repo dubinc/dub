@@ -2,29 +2,40 @@
 
 SCHEMA >
     `timestamp` DateTime64(3),
+    `click_id` String,
+    `workspace_id` LowCardinality(String),
+    `link_id` String,
+    `domain` String,
+    `key` String,
+    `url` String,
     `event_id` String,
     `event_name` String,
-    `click_id` String,
-    `link_id` String,
     `customer_id` String,
-    `url` String,
+    `metadata` String,
     `continent` LowCardinality(String),
     `country` LowCardinality(String),
-    `city` String,
-    `region` String,
+    `city` LowCardinality(String),
+    `region` LowCardinality(String),
     `latitude` String,
     `longitude` String,
     `device` LowCardinality(String),
     `browser` LowCardinality(String),
     `os` LowCardinality(String),
-    `engine` LowCardinality(String),
+    `trigger` String,
     `ua` String,
     `referer` String,
     `referer_url` String,
-    `qr` UInt8,
     `ip` String,
-    `metadata` String
+    `device_model` LowCardinality(String),
+    `device_vendor` LowCardinality(String),
+    `browser_version` String,
+    `os_version` String,
+    `engine` LowCardinality(String),
+    `engine_version` String,
+    `cpu_architecture` LowCardinality(String),
+    `qr` UInt8,
+    `bot` UInt8
 
 ENGINE "MergeTree"
 ENGINE_PARTITION_KEY "toYYYYMM(timestamp)"
-ENGINE_SORTING_KEY "link_id, timestamp"
+ENGINE_SORTING_KEY "workspace_id, link_id, timestamp"

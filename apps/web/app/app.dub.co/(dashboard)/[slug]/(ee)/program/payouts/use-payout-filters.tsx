@@ -5,7 +5,7 @@ import { EnrolledPartnerProps, PayoutsCount } from "@/lib/types";
 import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { useRouterStuff } from "@dub/ui";
-import { CircleDotted, Users } from "@dub/ui/icons";
+import { CircleDotted, InvoiceDollar, Users } from "@dub/ui/icons";
 import { cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
@@ -72,17 +72,29 @@ export function usePayoutFilters() {
           },
         ),
       },
+      {
+        key: "invoiceId",
+        icon: InvoiceDollar,
+        label: "Invoice",
+        options: [],
+        hideInFilterDropdown: true,
+      },
     ],
     [payoutsCount, partners, partnersAsync],
   );
 
   const activeFilters = useMemo(() => {
-    const { status, partnerId } = searchParamsObj;
+    const { status, partnerId, invoiceId } = searchParamsObj;
     return [
       ...(status ? [{ key: "status", value: status }] : []),
       ...(partnerId ? [{ key: "partnerId", value: partnerId }] : []),
+      ...(invoiceId ? [{ key: "invoiceId", value: invoiceId }] : []),
     ];
-  }, [searchParamsObj.status, searchParamsObj.partnerId]);
+  }, [
+    searchParamsObj.status,
+    searchParamsObj.partnerId,
+    searchParamsObj.invoiceId,
+  ]);
 
   const onSelect = useCallback(
     (key: string, value: any) =>
@@ -106,7 +118,7 @@ export function usePayoutFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["status", "search", "partnerId"],
+        del: ["status", "search", "partnerId", "invoiceId"],
       }),
     [queryParams],
   );

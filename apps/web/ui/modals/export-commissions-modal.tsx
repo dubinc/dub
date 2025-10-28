@@ -1,3 +1,4 @@
+import { generateExportFilename } from "@/lib/api/utils/generate-export-filename";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
@@ -13,6 +14,7 @@ import {
   Switch,
   useRouterStuff,
 } from "@dub/ui";
+import { useSession } from "next-auth/react";
 import {
   Dispatch,
   SetStateAction,
@@ -36,6 +38,7 @@ function ExportCommissionsModal({
   showExportCommissionsModal: boolean;
   setShowExportCommissionsModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { data: session } = useSession();
   const columnCheckboxId = useId();
   const { program } = useProgram();
   const { id: workspaceId } = useWorkspace();
@@ -83,12 +86,20 @@ function ExportCommissionsModal({
         throw new Error(error.message);
       }
 
+      if (response.status === 202) {
+        toast.success(
+          `Your export is being processed and we'll send you an email (${session?.user?.email}) when it's ready to download.`,
+        );
+        setShowExportCommissionsModal(false);
+        return;
+      }
+
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
 
       a.href = url;
-      a.download = `Dub Commissions Export - ${new Date().toISOString()}.csv`;
+      a.download = generateExportFilename("commissions");
       a.click();
 
       toast.success("Exported successfully");

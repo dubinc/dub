@@ -1,5 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
   FAST_ACH_FEE_CENTS,
@@ -13,13 +14,10 @@ import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { PlanProps } from "@/lib/types";
-import { sendBatchEmail } from "@dub/email";
-import { resend } from "@dub/email/resend";
-import PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
+import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
-import { chunk, currencyFormatter, log } from "@dub/utils";
+import { currencyFormatter, log } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
-import { waitUntil } from "@vercel/functions";
 
 const paymentMethodToCurrency = {
   sepa_debit: "eur",
@@ -240,37 +238,63 @@ export async function processPayouts({
     type: "payouts",
   });
 
+  const userWhoInitiatedPayout = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+
+  await recordAuditLog(
+    payouts.map((payout) => ({
+      workspaceId: workspace.id,
+      programId: program.id,
+      action: "payout.confirmed",
+      description: `Payout ${payout.id} confirmed`,
+      actor: userWhoInitiatedPayout ?? {
+        id: userId,
+        name: "Unknown user", // should never happen but just in case
+      },
+      targets: [
+        {
+          type: "payout",
+          id: payout.id,
+          metadata: {
+            ...payout,
+            invoiceId: invoice.id,
+            status: "processing",
+            userId,
+          },
+        },
+      ],
+    })),
+  );
+
   // Send emails to all the partners involved in the payouts if the payout method is Direct Debit
   // This is because Direct Debit takes 4 business days to process, so we want to give partners a heads up
   if (
     invoice &&
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
   ) {
-    if (!resend) {
-      // this should never happen, but just in case
-      await log({
-        message: "Resend is not configured, skipping email sending.",
-        type: "errors",
-      });
-      console.log("Resend is not configured, skipping email sending.");
-      return;
-    }
-
-    const payoutChunks = chunk(
-      payouts.filter((payout) => payout.partner.email),
-      100,
-    );
-
-    for (const payoutChunk of payoutChunks) {
-      await sendBatchEmail(
-        payoutChunk.map((payout) => ({
-          variant: "notifications",
+    await queueBatchEmail<typeof PartnerPayoutConfirmed>(
+      payouts
+        .filter((payout) => payout.partner.email)
+        .map((payout) => ({
           to: payout.partner.email!,
           subject: "You've got money coming your way!",
+          variant: "notifications",
           replyTo: program.supportEmail || "noreply",
-          react: PartnerPayoutConfirmed({
+          templateName: "PartnerPayoutConfirmed",
+          templateProps: {
             email: payout.partner.email!,
-            program,
+            program: {
+              id: program.id,
+              name: program.name,
+              logo: program.logo,
+            },
             payout: {
               id: payout.id,
               amount: payout.amount,
@@ -278,45 +302,11 @@ export async function processPayouts({
               endDate: payout.periodEnd,
               paymentMethod: invoice.paymentMethod ?? "ach",
             },
-          }),
-        })),
-      );
-    }
-  }
-
-  waitUntil(
-    (async () => {
-      // refetching to confirm the payouts are in the processing state
-      const updatedPayouts = await prisma.payout.findMany({
-        where: {
-          id: {
-            in: payouts.map((p) => p.id),
           },
-          status: "processing",
-        },
-        select: {
-          id: true,
-          status: true,
-          user: true,
-        },
-      });
-
-      await recordAuditLog(
-        updatedPayouts.map((payout) => ({
-          workspaceId: workspace.id,
-          programId: program.id,
-          action: "payout.confirmed",
-          description: `Payout ${payout.id} confirmed`,
-          actor: payout.user!,
-          targets: [
-            {
-              type: "payout",
-              id: payout.id,
-              metadata: payout,
-            },
-          ],
         })),
-      );
-    })(),
-  );
+      {
+        deduplicationId: invoice.id,
+      },
+    );
+  }
 }

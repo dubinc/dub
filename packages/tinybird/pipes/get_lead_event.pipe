@@ -1,9 +1,13 @@
+DESCRIPTION >
+	internal pipe for updating lead event
+
+
 NODE endpoint
 SQL >
 
     %
     SELECT *
-    FROM dub_lead_events
+    FROM dub_lead_events_mv
     WHERE
         customer_id
         = {{

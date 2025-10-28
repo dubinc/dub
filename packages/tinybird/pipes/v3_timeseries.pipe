@@ -1,0 +1,379 @@
+DESCRIPTION >
+	Timeseries data
+
+
+TAGS "Dub Endpoints"
+
+NODE month_intervals
+SQL >
+
+    %
+        WITH
+            toStartOfMonth(
+                toDateTime64({{ DateTime64(start, '2024-02-24 00:00:00.000') }}, 3),
+                {{ String(timezone, 'UTC') }}
+            ) AS start,
+            toStartOfMonth(
+                toDateTime64({{ DateTime64(end, '2024-05-23 00:00:00.000') }}, 3),
+                {{ String(timezone, 'UTC') }}
+            ) AS
+        end,
+        dateDiff('month', start, end) + 1 AS months_diff
+        SELECT
+            arrayJoin(
+                arrayMap(
+                    x -> toDateTime64(start + toIntervalMonth(x), 3, {{ String(timezone, 'UTC') }}),
+                    range(0, months_diff)
+                )
+            ) as interval
+
+
+
+NODE day_intervals
+SQL >
+
+    %
+        WITH
+            toStartOfDay(
+                toDateTime64({{ DateTime64(start, '2024-02-24 00:00:00.000') }}, 3),
+                {{ String(timezone, 'UTC') }}
+            ) AS start,
+            toStartOfDay(
+                toDateTime64({{ DateTime64(end, '2024-05-23 00:00:00.000') }}, 3),
+                {{ String(timezone, 'UTC') }}
+            ) AS
+        end
+        SELECT
+            arrayJoin(
+                arrayMap(
+                    x -> toDateTime64(toStartOfDay(toDateTime64(x, 3), {{ String(timezone, 'UTC') }}), 3),
+                    range(toUInt32(start), toUInt32(end + 86400),
+                    86400
+                )
+            )
+        ) as interval
+
+
+
+NODE hour_intervals
+SQL >
+
+    %
+        WITH
+            toStartOfHour(
+                toDateTime64({{ DateTime64(start, '2024-05-22 00:00:00.000') }}, 3),
+                {{ String(timezone, 'UTC') }}
+            ) AS start,
+            toStartOfHour(
+                toDateTime64({{ DateTime64(end, '2024-05-23 00:00:00.000') }}, 3),
+                {{ String(timezone, 'UTC') }}
+            ) AS
+        end
+        SELECT
+            arrayJoin(
+                arrayMap(x -> toDateTime64(x, 3), range(toUInt32(start), toUInt32(end + 3600), 3600)
+            )
+        ) as interval
+
+
+
+NODE workspace_links
+SQL >
+
+    %
+    SELECT link_id
+    FROM dub_links_metadata_latest FINAL
+    WHERE
+        workspace_id
+        = {{
+            String(
+                workspaceId,
+                'cl7pj5kq4006835rbjlt2ofka',
+                description="The unique ID for the workspace",
+                required=True,
+            )
+        }}
+        AND deleted == 0
+        {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
+        {% if defined(partnerId) %} AND partner_id = {{ partnerId }} {% end %}
+        {% if defined(tenantId) %} AND tenant_id = {{ tenantId }} {% end %}
+        {% if defined(folderIds) %} AND folder_id IN {{ Array(folderIds, 'String') }}
+        {% elif defined(folderId) %} AND folder_id = {{ folderId }}
+        {% end %}
+        {% if defined(domain) %} AND domain IN {{ Array(domain, 'String') }} {% end %}
+        {% if defined(tagIds) %}
+            AND arrayIntersect(tag_ids, {{ Array(tagIds, 'String') }}) != []
+        {% end %}
+        {% if defined(root) %}
+            {% if Boolean(root) == 1 %} AND key = '_root' {% else %} AND key != '_root' {% end %}
+        {% end %}
+
+
+
+NODE timeseries_clicks_data
+SQL >
+
+    %
+    SELECT
+        {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
+        {% elif granularity == "month" %}
+            toDateTime64(
+                toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}),
+                3,
+                {{ String(timezone, 'UTC') }}
+            )
+        {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
+        {% end %} AS interval,
+        uniq(click_id) as clicks
+    FROM
+        {% if defined(customerId) %} dub_click_events_id
+        {% else %} dub_click_events_mv
+        {% end %}
+        {% if defined(customerId) %}
+            PREWHERE click_id IN (
+                SELECT DISTINCT click_id
+                FROM dub_lead_events_mv
+                WHERE customer_id = {{ String(customerId) }}
+            )
+        {% end %}
+    WHERE
+        true
+        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
+        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% elif defined(programId) or defined(partnerId) or defined(folderIds) or defined(
+            folderId
+        ) or defined(domain) or defined(tagIds) or defined(root) %}
+            AND link_id in (SELECT link_id from workspace_links)
+        {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(trigger) %} AND trigger = {{ trigger }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY interval
+    ORDER BY interval
+
+
+
+NODE timeseries_clicks
+SQL >
+
+    %
+        SELECT formatDateTime(interval, '%FT%T.000%z') as groupByField, clicks
+        FROM
+            {% if granularity == "minute" %} minute_intervals
+            {% elif granularity == "hour" %} hour_intervals
+            {% elif granularity == "month" %} month_intervals
+            {% else %} day_intervals
+            {% end %}
+        LEFT JOIN timeseries_clicks_data USING interval
+
+
+
+NODE timeseries_leads_data
+SQL >
+
+    %
+    SELECT
+        {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
+        {% elif granularity == "month" %}
+            toDateTime64(
+                toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}),
+                3,
+                {{ String(timezone, 'UTC') }}
+            )
+        {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
+        {% end %} AS interval,
+        uniq(*) as leads
+    FROM dub_lead_events_mv
+    WHERE
+        true
+        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
+        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% elif defined(programId) or defined(partnerId) or defined(folderIds) or defined(
+            folderId
+        ) or defined(domain) or defined(tagIds) or defined(root) %}
+            AND link_id in (SELECT link_id from workspace_links)
+        {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY interval
+    ORDER BY interval
+
+
+
+NODE timeseries_leads
+SQL >
+
+    %
+        SELECT formatDateTime(interval, '%FT%T.000%z') as groupByField, leads
+        FROM
+            {% if granularity == "minute" %} minute_intervals
+            {% elif granularity == "hour" %} hour_intervals
+            {% elif granularity == "month" %} month_intervals
+            {% else %} day_intervals
+            {% end %}
+        LEFT JOIN timeseries_leads_data USING interval
+
+
+
+NODE timeseries_sales_data
+DESCRIPTION >
+    undefined
+
+SQL >
+
+    %
+    SELECT
+        {% if granularity == "hour" %} toStartOfHour(timestamp, {{ String(timezone, 'UTC') }})
+        {% elif granularity == "month" %}
+            toDateTime64(
+                toStartOfMonth(timestamp, {{ String(timezone, 'UTC') }}),
+                3,
+                {{ String(timezone, 'UTC') }}
+            )
+        {% else %} toDateTime64(toStartOfDay(timestamp, {{ String(timezone, 'UTC') }}), 3)
+        {% end %} AS interval,
+        uniq(*) as sales,
+        sum(amount) as amount
+    FROM dub_sale_events_mv
+    WHERE
+        true
+        {% if defined(workspaceId) %} AND workspace_id = {{ workspaceId }} {% end %}
+        {% if defined(linkIds) %} AND link_id IN {{ Array(linkIds, 'String') }}
+        {% elif defined(linkId) %} AND link_id = {{ linkId }}
+        {% elif defined(programId) or defined(partnerId) or defined(folderIds) or defined(
+            folderId
+        ) or defined(domain) or defined(tagIds) or defined(root) %}
+            AND link_id in (SELECT link_id from workspace_links)
+        {% end %}
+        {% if defined(customerId) %} AND customer_id = {{ String(customerId) }} {% end %}
+        {% if defined(saleType) %} AND sale_type = {{ String(saleType) }} {% end %}
+        {% if defined(continent) %} AND continent = {{ continent }} {% end %}
+        {% if defined(country) %} AND country = {{ country }} {% end %}
+        {% if defined(region) %} AND region = {{ region }} {% end %}
+        {% if defined(city) %} AND city = {{ city }} {% end %}
+        {% if defined(device) %} AND device = {{ device }} {% end %}
+        {% if defined(browser) %} AND browser = {{ browser }} {% end %}
+        {% if defined(os) %} AND os = {{ os }} {% end %}
+        {% if defined(referer) %} AND referer = {{ referer }} {% end %}
+        {% if defined(refererUrl) %} AND splitByString('?', referer_url)[1] = {{ refererUrl }} {% end %}
+        {% if defined(utm_source) %}
+            AND url LIKE concat('%utm_source=', encodeURLFormComponent({{ String(utm_source) }}), '%')
+        {% end %}
+        {% if defined(utm_medium) %}
+            AND url LIKE concat('%utm_medium=', encodeURLFormComponent({{ String(utm_medium) }}), '%')
+        {% end %}
+        {% if defined(utm_campaign) %}
+            AND url
+            LIKE concat('%utm_campaign=', encodeURLFormComponent({{ String(utm_campaign) }}), '%')
+        {% end %}
+        {% if defined(utm_term) %}
+            AND url LIKE concat('%utm_term=', encodeURLFormComponent({{ String(utm_term) }}), '%')
+        {% end %}
+        {% if defined(utm_content) %}
+            AND url LIKE concat('%utm_content=', encodeURLFormComponent({{ String(utm_content) }}), '%')
+        {% end %}
+        {% if defined(url) %} AND url = {{ url }} {% end %}
+        {% if defined(start) %} AND timestamp >= {{ DateTime64(start) }} {% end %}
+        {% if defined(end) %} AND timestamp <= {{ DateTime64(end) }} {% end %}
+    GROUP BY interval
+    ORDER BY interval
+
+
+
+NODE timeseries_sales
+SQL >
+
+    %
+        SELECT formatDateTime(interval, '%FT%T.000%z') as groupByField, sales, amount, amount as saleAmount
+        FROM
+            {% if granularity == "minute" %} minute_intervals
+            {% elif granularity == "hour" %} hour_intervals
+            {% elif granularity == "month" %} month_intervals
+            {% else %} day_intervals
+            {% end %}
+        LEFT JOIN
+            {% if defined(saleType) %} timeseries_sales_data_with_type
+            {% else %} timeseries_sales_data
+            {% end %} USING interval
+
+
+
+NODE timeseries_composite
+SQL >
+
+    SELECT dce.groupByField AS groupByField, clicks, leads, sales, amount, saleAmount
+    FROM (SELECT groupByField, clicks FROM timeseries_clicks) AS dce
+    LEFT JOIN (SELECT * FROM  timeseries_leads) AS dle ON dce.groupByField = dle.groupByField
+    LEFT JOIN (SELECT * FROM timeseries_sales) AS dse ON dce.groupByField = dse.groupByField
+
+
+
+NODE endpoint
+SQL >
+
+    %
+    SELECT *
+    FROM
+        {% if eventType == 'clicks' %} timeseries_clicks
+        {% elif eventType == 'leads' %} timeseries_leads
+        {% elif eventType == 'sales' %} timeseries_sales
+        {% elif eventType == 'composite' %} timeseries_composite
+        {% else %} timeseries_clicks
+        {% end %}
+
+

@@ -3,6 +3,10 @@ import { PartnerLinkStructure, RewardStructure } from "@dub/prisma/client";
 import { z } from "zod";
 import { maxDurationSchema } from "./misc";
 import { updateProgramSchema } from "./programs";
+import {
+  FLAT_REWARD_AMOUNT_SCHEMA,
+  PERCENTAGE_REWARD_AMOUNT_SCHEMA,
+} from "./rewards";
 import { parseUrlSchema } from "./utils";
 
 // Getting started
@@ -19,7 +23,8 @@ export const programInfoSchema = z.object({
 export const programRewardSchema = z.object({
   defaultRewardType: z.enum(["lead", "sale"]).default("lead"),
   type: z.nativeEnum(RewardStructure).nullish(),
-  amount: z.number().min(0).nullish(),
+  amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.nullish(),
+  amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.nullish(),
   maxDuration: maxDurationSchema,
 });
 

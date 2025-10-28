@@ -48,7 +48,7 @@ export async function PartnersMiddleware(req: NextRequest) {
     if (
       !defaultPartnerId &&
       !isPartnerInvite &&
-      !path.startsWith("/onboarding")
+      !["/onboarding", "/account"].some((p) => path.startsWith(p))
     ) {
       return NextResponse.redirect(new URL("/onboarding", req.url));
     }
