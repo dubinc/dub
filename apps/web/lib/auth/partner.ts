@@ -21,7 +21,7 @@ interface WithPartnerProfileHandler {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
-    headers?: Record<string, string>;
+    headers?: Headers;
     session: Session;
     partner: Omit<PartnerProps, "role" | "userId">;
     partnerUser: Pick<PartnerUser, "userId" | "role">;
@@ -163,6 +163,7 @@ export const withPartnerProfile = (
             userId: partnerUser.userId,
             role: partnerUser.role,
           },
+          headers: responseHeaders,
         });
       } catch (error) {
         req.log.error(error);
