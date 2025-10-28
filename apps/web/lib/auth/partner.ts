@@ -4,8 +4,8 @@ import { prisma } from "@dub/prisma";
 import { getSearchParams, PARTNERS_DOMAIN } from "@dub/utils";
 import { PartnerUser } from "@prisma/client";
 import { AxiomRequest, withAxiom } from "next-axiom";
-import { ratelimit } from "../upstash/ratelimit";
 import { Permission, throwIfNoPermission } from "./partner-user-permissions";
+import { rateLimitRequest } from "./rate-limit-request";
 import { getSession, Session } from "./utils";
 
 interface WithPartnerProfileHandler {
@@ -33,11 +33,11 @@ interface WithPartnerProfileOptions {
 }
 
 export const RATE_LIMIT = {
-  global: {
+  api: {
     limit: 15,
     interval: "1 s",
   },
-  analytics: {
+  analyticsApi: {
     limit: 5,
     interval: "1 s",
   },
@@ -81,19 +81,19 @@ export const withPartnerProfile = (
           url.pathname.includes("/analytics") ||
           url.pathname.includes("/events");
 
-        const rateLimit = RATE_LIMIT[isAnalytics ? "analytics" : "global"];
+        const rateLimit = RATE_LIMIT[isAnalytics ? "analyticsApi" : "api"];
 
-        const { success, limit, reset, remaining } = await ratelimit(
-          rateLimit.limit,
-          rateLimit.interval,
-        ).limit(`partner-profile:${defaultPartnerId}:${session.user.id}`);
-
-        responseHeaders.set("Retry-After", reset.toString());
-        responseHeaders.set("X-RateLimit-Limit", limit.toString());
-        responseHeaders.set("X-RateLimit-Remaining", remaining.toString());
-        responseHeaders.set("X-RateLimit-Reset", reset.toString());
+        const { success, headers } = await rateLimitRequest({
+          requests: rateLimit.limit,
+          interval: rateLimit.interval,
+          identifier: `partner-profile:ratelimit:${session.user.id}`,
+        });
 
         if (!success) {
+          for (const [key, value] of Object.entries(headers)) {
+            responseHeaders.set(key, value);
+          }
+
           throw new DubApiError({
             code: "rate_limit_exceeded",
             message: "Too many requests.",
