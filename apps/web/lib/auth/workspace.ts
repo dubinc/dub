@@ -206,8 +206,6 @@ export const withWorkspace = (
 
           token = cachedToken || token;
 
-          console.log("token", token);
-
           if (!token || !token.user) {
             throw new DubApiError({
               code: "unauthorized",
