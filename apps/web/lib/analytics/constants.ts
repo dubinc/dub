@@ -129,6 +129,8 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "top_partners",
   "top_links",
   "top_urls",
+  "top_link_tags",
+  "top_link_folders",
   "utm_sources",
   "utm_mediums",
   "utm_campaigns",

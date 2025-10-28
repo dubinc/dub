@@ -1,6 +1,7 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { CONTINENT_CODES } from "@dub/utils";
+import { FolderAccessLevel } from "@prisma/client";
 
 const analyticsTriggersResponse = z
   .object({
@@ -489,4 +490,40 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsPartners" }),
+  top_link_tags: z
+    .object({
+      tagId: z.string().describe("The ID of the tag"),
+      tag: z.object({
+        id: z.string().describe("The ID of the tag"),
+        name: z.string().describe("The name of the tag"),
+        color: z.string().describe("The color of the tag"),
+      }),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this link tag, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopLinkTags" }),
+  top_link_folders: z
+    .object({
+      folderId: z.string().describe("The ID of the folder"),
+      folder: z.object({
+        id: z.string().describe("The ID of the folder"),
+        name: z.string().describe("The name of the folder"),
+        accessLevel: z
+          .nativeEnum(FolderAccessLevel)
+          .describe("The access level of the folder"),
+      }),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this link folder, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopLinkFolders" }),
 } as const;
