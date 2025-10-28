@@ -40,7 +40,13 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [amountInCents, amountInPercentage, type, defaultRewardType, maxDuration] = watch([
+  const [
+    amountInCents,
+    amountInPercentage,
+    type,
+    defaultRewardType,
+    maxDuration,
+  ] = watch([
     "amountInCents",
     "amountInPercentage",
     "type",
@@ -252,7 +258,9 @@ export function Form() {
 
         <div className="grid grid-cols-1 gap-6">
           <div>
-            <h2 className="text-base font-medium text-neutral-900">Payout</h2>
+            <h2 className="text-base font-medium text-neutral-900">
+              Reward amount
+            </h2>
             <p className="mt-1 text-sm font-normal text-neutral-600">
               Set how much the affiliate will get rewarded
             </p>
@@ -261,7 +269,7 @@ export function Form() {
           {defaultRewardType === "sale" && (
             <div>
               <label className="text-sm font-medium text-neutral-800">
-                Payout model
+                Reward structure
               </label>
               <select
                 {...register("type")}
@@ -275,7 +283,7 @@ export function Form() {
 
           <div>
             <label className="text-sm font-medium text-neutral-800">
-              Amount {defaultRewardType != "sale" ? "per lead" : ""}
+              Reward amount {defaultRewardType != "sale" ? "per lead" : ""}
             </label>
             <div className="relative mt-2 rounded-md shadow-sm">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-sm text-neutral-400">

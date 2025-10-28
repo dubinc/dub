@@ -1,7 +1,6 @@
 "use client";
 
 import { getRewardAmount } from "@/lib/partners/get-reward-amount";
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { ProgramProps } from "@/lib/types";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
@@ -26,11 +25,9 @@ export function EarningsCalculatorBlock({
 
   if (!program.rewards?.length) return null;
 
-  const reward = sortRewardsByEventOrder(program.rewards, [
-    "sale",
-    "lead",
-    "click",
-  ])[0];
+  const reward = program.rewards.find((r) => r.event === "sale");
+  if (!reward) return null;
+
   const rewardAmount = getRewardAmount(reward);
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 

@@ -7,8 +7,6 @@ import "dotenv-flow/config";
 async function main() {
   let totalMigrated = 0;
   const pageSize = 50;
-  let cursor: string | undefined = undefined;
-
   while (true) {
     const rewards = await prisma.reward.findMany({
       where: {
@@ -23,14 +21,8 @@ async function main() {
       },
       take: pageSize,
       orderBy: {
-        id: "asc",
+        createdAt: "asc",
       },
-      ...(cursor && {
-        cursor: {
-          id: cursor,
-        },
-        skip: 1,
-      }),
     });
 
     if (rewards.length === 0) {
@@ -69,8 +61,6 @@ async function main() {
               if (!newModifier.type) {
                 newModifier.type = modifierType;
               }
-
-              delete newModifier.amount;
               return newModifier;
             }
 
@@ -98,7 +88,6 @@ async function main() {
     }
 
     console.log(`Migrated batch of ${rewards.length} rewards`);
-    cursor = rewards[rewards.length - 1].id;
   }
 
   console.log(`Total rewards migrated: ${totalMigrated}`);
