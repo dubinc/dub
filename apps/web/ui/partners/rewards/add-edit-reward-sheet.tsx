@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createRewardAction } from "@/lib/actions/partners/create-reward";
 import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
@@ -108,15 +109,16 @@ function RewardSheetContent({
           ? Infinity
           : defaultValuesSource.maxDuration
         : Infinity,
-      amountInCents: defaultValuesSource?.amountInCents != null
-        ? defaultValuesSource.amountInCents / 100
-        : undefined,
-      amountInPercentage: defaultValuesSource?.amountInPercentage != null
-        ? defaultValuesSource.amountInPercentage
-        : undefined,
+      amountInCents:
+        defaultValuesSource?.amountInCents != null
+          ? defaultValuesSource.amountInCents / 100
+          : undefined,
+      amountInPercentage:
+        defaultValuesSource?.amountInPercentage != null
+          ? defaultValuesSource.amountInPercentage
+          : undefined,
       description: defaultValuesSource?.description ?? null,
       modifiers: defaultValuesSource?.modifiers?.map((m) => {
-        const type = m.type === undefined ? defaultValuesSource?.type : m.type;
         const maxDuration =
           m.maxDuration === undefined
             ? defaultValuesSource?.maxDuration
@@ -178,7 +180,7 @@ function RewardSheetContent({
         await mutateGroup();
       },
       onError({ error }) {
-        toast.error(error.serverError);
+        toast.error(parseActionError(error, "Failed to create reward"));
       },
     },
   );
@@ -193,7 +195,7 @@ function RewardSheetContent({
         await mutateGroup();
       },
       onError({ error }) {
-        toast.error(error.serverError);
+        toast.error(parseActionError(error, "Failed to update reward"));
       },
     },
   );

@@ -132,8 +132,21 @@ export const rewardConditionSchema = z.object({
 export const rewardConditionsSchema = z.object({
   operator: z.enum(["AND", "OR"]).default("AND"),
   conditions: z.array(rewardConditionSchema).min(1),
-  amountInCents: z.number().int().min(0).max(100000).optional(),
-  amountInPercentage: z.number().min(0).max(100).optional(),
+  amountInCents: z
+    .number()
+    .int()
+    .min(0)
+    .max(999_999_99, {
+      message: "Reward amount cannot be greater than $999,999.99",
+    })
+    .optional(),
+  amountInPercentage: z
+    .number()
+    .min(0)
+    .max(99.99, {
+      message: "Reward percentage amount cannot be greater than 99.99%",
+    })
+    .optional(),
   type: z.nativeEnum(RewardStructure).optional(),
   maxDuration: maxDurationSchema,
 });
@@ -163,8 +176,21 @@ export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
-  amountInCents: z.number().int().min(0).max(100000).optional(),
-  amountInPercentage: z.number().min(0).max(100).optional(),
+  amountInCents: z
+    .number()
+    .int()
+    .min(0)
+    .max(999_999_99, {
+      message: "Reward amount cannot be greater than $999,999.99",
+    })
+    .optional(),
+  amountInPercentage: z
+    .number()
+    .min(0)
+    .max(99.99, {
+      message: "Reward percentage amount cannot be greater than 99.99%",
+    })
+    .optional(),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
   description: z.string().max(100).nullish(),
