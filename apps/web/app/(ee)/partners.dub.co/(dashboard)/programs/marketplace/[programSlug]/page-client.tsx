@@ -147,15 +147,15 @@ export function MarketplaceProgramPageClient() {
                         <ProgramRewardIcon
                           key={reward.id}
                           icon={REWARD_EVENTS[reward.event].icon}
-                          description={formatRewardDescription({ reward })}
+                          description={formatRewardDescription(reward)}
                         />
                       ))}
                       {program.discount && (
                         <ProgramRewardIcon
                           icon={Gift}
-                          description={formatDiscountDescription({
-                            discount: program.discount,
-                          })}
+                          description={formatDiscountDescription(
+                            program.discount,
+                          )}
                         />
                       )}
                     </div>

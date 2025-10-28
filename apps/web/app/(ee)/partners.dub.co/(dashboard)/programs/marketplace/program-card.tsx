@@ -107,7 +107,7 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
                       <ProgramRewardIcon
                         key={reward.id}
                         icon={REWARD_EVENTS[reward.event].icon}
-                        description={formatRewardDescription({ reward })}
+                        description={formatRewardDescription(reward)}
                         onClick={() =>
                           queryParams({
                             set: {
@@ -121,9 +121,9 @@ export function ProgramCard({ program }: { program?: NetworkProgramProps }) {
                     {program.discount && (
                       <ProgramRewardIcon
                         icon={Gift}
-                        description={formatDiscountDescription({
-                          discount: program.discount,
-                        })}
+                        description={formatDiscountDescription(
+                          program.discount,
+                        )}
                         onClick={() =>
                           queryParams({
                             set: {
@@ -293,7 +293,7 @@ export function FeaturedProgramCard({
                         <ProgramRewardIcon
                           key={reward.id}
                           icon={REWARD_EVENTS[reward.event].icon}
-                          description={formatRewardDescription({ reward })}
+                          description={formatRewardDescription(reward)}
                           onClick={() =>
                             queryParams({
                               set: {
@@ -308,9 +308,9 @@ export function FeaturedProgramCard({
                       {program.discount && (
                         <ProgramRewardIcon
                           icon={Gift}
-                          description={formatDiscountDescription({
-                            discount: program.discount,
-                          })}
+                          description={formatDiscountDescription(
+                            program.discount,
+                          )}
                           onClick={() =>
                             queryParams({
                               set: {
