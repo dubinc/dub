@@ -72,15 +72,15 @@ export const E2E_SALE_REWARD = {
     },
   ],
 };
+
 export const E2E_LEAD_REWARD = {
   id: "rw_1K82ESAT4YPY0STR20GKXZ7DR",
   event: "lead",
   type: "flat",
-  amountInCents: 1000,
+  amountInCents: 100,
   modifiers: [
     {
       type: "flat",
-      amountInCents: 200,
       operator: "AND",
       conditions: [
         {
@@ -91,6 +91,21 @@ export const E2E_LEAD_REWARD = {
         },
       ],
       maxDuration: null,
+      amountInCents: 200,
+    },
+    {
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: "CA",
+          entity: "partner",
+          operator: "equals_to",
+          attribute: "country",
+        },
+      ],
+      maxDuration: 0,
+      amountInCents: 300,
     },
   ],
 };
@@ -128,3 +143,30 @@ export const E2E_PARTNER_GROUP = {
   id: "grp_1K2E25381GVMG7HHM057TB92F",
   url: "https://acme.dub.sh/",
 };
+
+export const E2E_PARTNERS = [
+  {
+    id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
+    country: "US",
+    shortLink: {
+      domain: "getacme.link",
+      key: "derek",
+    },
+  },
+  {
+    id: "pn_NNG3YjwhLhA7nCZSaXeLIsWu",
+    country: "CA",
+    shortLink: {
+      domain: "getacme.link",
+      key: "marvin",
+    },
+  },
+  {
+    id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
+    country: "IN",
+    shortLink: {
+      domain: "getacme.link",
+      key: "kirankk",
+    },
+  },
+] as const;

@@ -1,12 +1,7 @@
-import {
-  CommissionResponse,
-  Customer,
-  TrackLeadResponse,
-  TrackSaleResponse,
-} from "@/lib/types";
+import { TrackLeadResponse, TrackSaleResponse } from "@/lib/types";
 import { randomCustomer } from "tests/utils/helpers";
-import { HttpClient } from "tests/utils/http";
 import { E2E_LEAD_REWARD, E2E_TRACK_CLICK_HEADERS } from "tests/utils/resource";
+import { verifyCommission } from "tests/utils/verify-commission";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -28,39 +23,6 @@ const expectValidLeadResponse = ({
     link: response.data.link,
     customer,
   });
-};
-
-const verifyCommission = async ({
-  http,
-  customerExternalId,
-  expectedEarnings,
-}: {
-  http: HttpClient;
-  customerExternalId: string;
-  expectedEarnings: number;
-}) => {
-  // Find the customer first
-  const { data: customers } = await http.get<Customer[]>({
-    path: "/customers",
-    query: {
-      externalId: customerExternalId,
-    },
-  });
-
-  const customer = customers[0];
-
-  // Find the commission for the customer
-  const { status, data: commissions } = await http.get<CommissionResponse[]>({
-    path: "/commissions",
-    query: {
-      customerId: customer.id,
-    },
-  });
-
-  expect(status).toEqual(200);
-  expect(commissions).toHaveLength(1);
-  expect(commissions[0].customer?.id).toEqual(customer.id);
-  expect(commissions[0].earnings).toEqual(expectedEarnings);
 };
 
 describe("POST /track/lead", async () => {
