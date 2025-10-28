@@ -20,9 +20,16 @@ export const GET = withWorkspace(
       getPartnersQuerySchemaExtended
         .merge(
           z.object({
-            // add old fields for backward compatibility (clicks, leads, conversions, sales, saleAmount)
+            // add old fields for backward compatibility
             sortBy: getPartnersQuerySchemaExtended.shape.sortBy.or(
-              z.enum(["clicks", "leads", "conversions", "sales", "saleAmount"]),
+              z.enum([
+                "clicks",
+                "leads",
+                "conversions",
+                "sales",
+                "saleAmount",
+                "totalSales",
+              ]),
             ),
           }),
         )
@@ -34,8 +41,9 @@ export const GET = withWorkspace(
         clicks: "totalClicks",
         leads: "totalLeads",
         conversions: "totalConversions",
-        sales: "totalSales",
+        sales: "totalSaleAmount",
         saleAmount: "totalSaleAmount",
+        totalSales: "totalSaleAmount",
       }[sortByWithOldFields] || sortByWithOldFields;
 
     console.time("getPartners");

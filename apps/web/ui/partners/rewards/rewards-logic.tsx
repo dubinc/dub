@@ -114,15 +114,22 @@ export function RewardsLogic({
             )}
           </div>
         }
-        onClick={() =>
+        onClick={() => {
+          const type = getValues("type");
+
           appendModifier({
             operator: "AND",
             conditions: [{}],
-            amount: getValues("amount") || 0,
-            type: getValues("type"),
+            amountInCents:
+              type === "flat" ? getValues("amountInCents") || 0 : undefined,
+            amountInPercentage:
+              type === "percentage"
+                ? getValues("amountInPercentage") || 0
+                : undefined,
+            type,
             maxDuration: getValues("maxDuration"),
-          })
-        }
+          });
+        }}
         variant={isDefaultReward ? "primary" : "secondary"}
       />
     </div>
@@ -629,23 +636,33 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
   const modifierKey = `modifiers.${modifierIndex}` as const;
 
   const { control, setValue } = useAddEditRewardForm();
-  const [amount, type, maxDuration, event, parentType, parentMaxDuration] =
-    useWatch({
-      control,
-      name: [
-        `${modifierKey}.amount`,
-        `${modifierKey}.type`,
-        `${modifierKey}.maxDuration`,
-        "event",
-        "type",
-        "maxDuration",
-      ],
-    });
+  const [
+    amountInCents,
+    amountInPercentage,
+    type,
+    maxDuration,
+    event,
+    parentType,
+    parentMaxDuration,
+  ] = useWatch({
+    control,
+    name: [
+      `${modifierKey}.amountInCents`,
+      `${modifierKey}.amountInPercentage`,
+      `${modifierKey}.type`,
+      `${modifierKey}.maxDuration`,
+      "event",
+      "type",
+      "maxDuration",
+    ],
+  });
 
   // Use parent values as fallbacks if modifier doesn't have type or maxDuration
   const displayType = type || parentType;
   const displayMaxDuration =
     maxDuration !== undefined ? maxDuration : parentMaxDuration;
+
+  const amount = displayType === "flat" ? amountInCents : amountInPercentage;
 
   return (
     <span className="leading-relaxed">
@@ -669,15 +686,18 @@ function ResultTerms({ modifierIndex }: { modifierIndex: number }) {
       )}
       <InlineBadgePopover
         text={
-          !isNaN(amount)
+          amount != null && !isNaN(amount)
             ? constructRewardAmount({
-                amount: displayType === "flat" ? amount * 100 : amount,
                 type: displayType,
+                amountInCents:
+                  displayType === "flat" ? amount * 100 : undefined,
+                amountInPercentage:
+                  displayType === "percentage" ? amount : undefined,
                 maxDuration: displayMaxDuration,
               })
             : "amount"
         }
-        invalid={isNaN(amount)}
+        invalid={amount == null || isNaN(amount)}
       >
         <ResultAmountInput modifierKey={modifierKey} />
       </InlineBadgePopover>{" "}
@@ -752,9 +772,14 @@ function ResultAmountInput({
     }
   }, [type, parentType, setValue, modifierKey]);
 
+  const fieldKey =
+    displayType === "flat"
+      ? (`${modifierKey}.amountInCents` as const)
+      : (`${modifierKey}.amountInPercentage` as const);
+
   return (
     <AmountInput
-      fieldKey={`${modifierKey}.amount`}
+      fieldKey={fieldKey}
       type={displayType === "flat" ? "currency" : "percentage"}
     />
   );
@@ -765,7 +790,8 @@ function AmountInput({
   type,
 }: {
   fieldKey:
-    | `modifiers.${number}.amount`
+    | `modifiers.${number}.amountInCents`
+    | `modifiers.${number}.amountInPercentage`
     | `modifiers.${number}.conditions.${number}.value`;
   type: "currency" | "percentage" | "number";
 }) {
