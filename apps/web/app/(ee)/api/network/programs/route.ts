@@ -73,7 +73,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           },
         },
       }),
-      ...(status && {
+      ...(status !== undefined && {
         partners:
           status === null
             ? { none: { partnerId: partner.id } }
