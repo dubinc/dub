@@ -4,7 +4,7 @@ import { sendBatchEmail } from "@dub/email";
 import DomainRenewed from "@dub/email/templates/domain-renewed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log, pluralize } from "@dub/utils";
 import { addDays } from "date-fns";
 import Stripe from "stripe";
 
@@ -54,23 +54,27 @@ export async function chargeSucceeded(event: Stripe.Event) {
 }
 
 async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
-  const payouts = await prisma.payout.findMany({
+  const payoutsToProcess = await prisma.payout.count({
     where: {
       invoiceId: invoice.id,
       status: {
         not: "completed",
       },
     },
-    include: {
-      program: true,
-      partner: true,
-    },
   });
 
-  if (payouts.length === 0) {
+  if (payoutsToProcess === 0) {
     console.log(
-      `No payouts found with status not completed for invoice ${invoice.id}, skipping...`,
+      `No payouts to process found for invoice ${invoice.id}, skipping...`,
     );
+    return;
+  }
+
+  if (invoice.id === "inv_1K858PN9HDXYG47RVC6C6ZT7N") {
+    await log({
+      message: `Temporarily skipping payouts for invoice ${invoice.id}.`,
+      type: "payouts",
+    });
     return;
   }
 
