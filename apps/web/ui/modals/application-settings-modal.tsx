@@ -3,7 +3,9 @@ import { updateApplicationSettingsAction } from "@/lib/actions/partners/update-a
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { Category } from "@dub/prisma/client";
 import { Button, Modal, Switch } from "@dub/ui";
+import { cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -14,10 +16,12 @@ import {
 } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { ProgramCategorySelect } from "../partners/program-category-select";
 
 type FormData = {
   autoApprovePartners: boolean;
   marketplaceEnabled: boolean;
+  category: Category | null;
 };
 
 function ApplicationSettingsModal({
@@ -31,6 +35,7 @@ function ApplicationSettingsModal({
   const { id: workspaceId } = useWorkspace();
 
   const {
+    watch,
     control,
     handleSubmit,
     setError,
@@ -39,8 +44,11 @@ function ApplicationSettingsModal({
     defaultValues: {
       autoApprovePartners: program?.autoApprovePartnersEnabledAt ? true : false,
       marketplaceEnabled: program?.marketplaceEnabledAt ? true : false,
+      category: program?.categories?.[0] ?? null,
     },
   });
+
+  const marketplaceEnabled = watch("marketplaceEnabled");
 
   const { executeAsync } = useAction(updateApplicationSettingsAction, {
     onError: ({ error }) => {
@@ -89,38 +97,6 @@ function ApplicationSettingsModal({
             <div>
               <Controller
                 control={control}
-                name="marketplaceEnabled"
-                render={({ field }) => (
-                  <Switch
-                    checked={field.value}
-                    fn={field.onChange}
-                    trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
-                  />
-                )}
-              />
-            </div>
-            <div className="flex select-none flex-col gap-0.5">
-              <span className="text-content-emphasis text-sm font-medium">
-                Show in the partner marketplace
-              </span>
-              <p className="text-content-subtle text-xs">
-                Allow partners to discover your program.{" "}
-                {/* <a
-                  href=""
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-content-default underline"
-                >
-                  Learn more
-                </a> */}
-              </p>
-            </div>
-          </label>
-
-          <label className="flex gap-3">
-            <div>
-              <Controller
-                control={control}
                 name="autoApprovePartners"
                 render={({ field }) => (
                   <Switch
@@ -148,6 +124,70 @@ function ApplicationSettingsModal({
               </p>
             </div>
           </label>
+
+          <div>
+            <label className="flex gap-3">
+              <div>
+                <Controller
+                  control={control}
+                  name="marketplaceEnabled"
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      fn={field.onChange}
+                      trackDimensions="radix-state-checked:bg-black focus-visible:ring-black/20"
+                    />
+                  )}
+                />
+              </div>
+              <div className="flex select-none flex-col gap-0.5">
+                <span className="text-content-emphasis text-sm font-medium">
+                  Show in the partner marketplace
+                </span>
+                <p className="text-content-subtle text-xs">
+                  Allow partners to discover your program.{" "}
+                  {/* <a
+                  href=""
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-content-default underline"
+                >
+                  Learn more
+                </a> */}
+                </p>
+              </div>
+            </label>
+
+            <div
+              className={cn(
+                "grid grid-cols-1 transition-[grid-template-rows,opacity]",
+                marketplaceEnabled
+                  ? "grid-rows-[1fr]"
+                  : "grid-rows-[0fr] opacity-0",
+              )}
+            >
+              <div className="min-h-0">
+                <div className="pt-6">
+                  <label className="block text-sm font-medium text-neutral-800">
+                    Product industry
+                  </label>
+                  <div className="mt-1">
+                    <Controller
+                      control={control}
+                      name="category"
+                      rules={{ required: true }}
+                      render={({ field }) => (
+                        <ProgramCategorySelect
+                          selected={(field.value as Category) ?? null}
+                          onChange={field.onChange}
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">

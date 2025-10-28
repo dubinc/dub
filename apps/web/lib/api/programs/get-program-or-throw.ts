@@ -1,4 +1,3 @@
-import { ProgramProps } from "@/lib/types";
 import { ProgramSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { DubApiError } from "../errors";
@@ -6,16 +5,23 @@ import { DubApiError } from "../errors";
 export const getProgramOrThrow = async ({
   workspaceId,
   programId,
+  includeCategories = false,
 }: {
   workspaceId: string;
   programId: string;
+  includeCategories?: boolean;
 }) => {
-  const program = (await prisma.program.findUnique({
+  const program = await prisma.program.findUnique({
     where: {
       id: programId,
       workspaceId,
     },
-  })) as ProgramProps | null;
+    ...(includeCategories && {
+      include: {
+        categories: true,
+      },
+    }),
+  });
 
   if (!program) {
     throw new DubApiError({
@@ -24,5 +30,13 @@ export const getProgramOrThrow = async ({
     });
   }
 
-  return ProgramSchema.parse(program);
+  return ProgramSchema.parse(
+    includeCategories
+      ? {
+          ...program,
+          // @ts-ignore conditionally including categories
+          categories: program.categories?.map(({ category }) => category) ?? [],
+        }
+      : program,
+  );
 };

@@ -4,6 +4,7 @@ import {
 } from "@/lib/analytics/constants";
 import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
 import {
+  Category,
   PartnerBannedReason,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
@@ -36,6 +37,7 @@ export const ProgramSchema = z.object({
   partnerNetworkEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
+  categories: z.array(z.nativeEnum(Category)).nullish(),
   defaultFolderId: z.string(),
   defaultGroupId: z.string(),
   wordmark: z.string().nullable(),

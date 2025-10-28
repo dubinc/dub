@@ -3,6 +3,7 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { prisma } from "@dub/prisma";
+import { Category } from "@dub/prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { authActionClient } from "../safe-action";
@@ -11,13 +12,14 @@ const schema = z.object({
   workspaceId: z.string(),
   autoApprovePartners: z.boolean().optional(),
   marketplaceEnabled: z.boolean().optional(),
+  category: z.nativeEnum(Category).nullish(),
 });
 
 export const updateApplicationSettingsAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { autoApprovePartners, marketplaceEnabled } = parsedInput;
+    const { autoApprovePartners, marketplaceEnabled, category } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -31,6 +33,16 @@ export const updateApplicationSettingsAction = authActionClient
         }),
         ...(marketplaceEnabled !== undefined && {
           marketplaceEnabledAt: marketplaceEnabled ? new Date() : null,
+        }),
+        ...(category && {
+          categories: {
+            deleteMany: {},
+            create: [
+              {
+                category,
+              },
+            ],
+          },
         }),
       },
     });
