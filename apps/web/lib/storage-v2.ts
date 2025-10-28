@@ -1,6 +1,6 @@
 import { AwsClient } from "aws4fetch";
 
-type Bucket = "dubassets" | "private"; // TODO: Rename this bucket
+type Bucket = "dubassets" | "dubassets-private";
 
 class StorageV2 {
   private client: AwsClient;
@@ -19,7 +19,7 @@ class StorageV2 {
   }
 
   async upload({
-    bucket = "private",
+    bucket = "dubassets-private",
     key,
     body,
     contentType = "text/csv",
@@ -64,7 +64,7 @@ class StorageV2 {
   }
 
   async getSignedDownloadUrl({
-    bucket = "private",
+    bucket = "dubassets-private",
     key,
     expiresIn = 600, // 10 minutes
   }: {
