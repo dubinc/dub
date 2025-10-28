@@ -104,7 +104,7 @@ export function Form() {
   };
 
   const buttonDisabled =
-    isSubmitting || isPending || !name || !url || !domain || !logo;
+    isSubmitting || isPending || !name || !url || !domain || !logo || !category;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
