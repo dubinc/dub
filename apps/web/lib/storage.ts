@@ -6,12 +6,6 @@ interface imageOptions {
   width?: number;
   height?: number;
   headers?: Record<string, string>;
-  access?: "public" | "private";
-}
-
-interface SignedUrlOptions {
-  method?: "GET" | "PUT";
-  expiresIn?: number; // in seconds
 }
 
 class StorageClient {
@@ -44,20 +38,7 @@ class StorageClient {
       "Content-Length": uploadBody.size.toString(),
       ...opts?.headers,
     };
-
-    if (opts?.contentType) {
-      headers["Content-Type"] = opts.contentType;
-    }
-
-    // Set x-amz-acl header based on access parameter
-    // Note: The R2 bucket is configured with public access at the bucket level,
-    // so objects are publicly accessible by default. Set access: "private" to
-    // restrict access to specific objects.
-    if (opts?.access === "public") {
-      headers["x-amz-acl"] = "public-read";
-    } else if (opts?.access === "private") {
-      headers["x-amz-acl"] = "private";
-    }
+    if (opts?.contentType) headers["Content-Type"] = opts.contentType;
 
     try {
       await this.client.fetch(`${process.env.STORAGE_ENDPOINT}/${key}`, {
@@ -87,15 +68,14 @@ class StorageClient {
     return { success: true };
   }
 
-  async getSignedUrl(key: string, options?: SignedUrlOptions) {
+  async getSignedUrl(key: string) {
     const url = new URL(`${process.env.STORAGE_ENDPOINT}/${key}`);
 
-    // Default to 10 minutes expiration for backwards compatibility
-    const expiresIn = options?.expiresIn || 600;
-    url.searchParams.set("X-Amz-Expires", expiresIn.toString());
+    // 10 minutes expiration
+    url.searchParams.set("X-Amz-Expires", "600");
 
     const signed = await this.client.sign(url, {
-      method: options?.method || "PUT",
+      method: "PUT",
       aws: {
         signQuery: true,
         allHeaders: true,
