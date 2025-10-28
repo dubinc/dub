@@ -6,7 +6,6 @@ const CACHE_KEY_PREFIX = "tokenCache";
 
 const tokenCacheItemSchema = z.object({
   scopes: z.string().nullish(),
-  rateLimit: z.number().nullish(),
   projectId: z.string().nullish(),
   expires: z.date().nullish(),
   installationId: z.string().nullish(),
@@ -16,6 +15,11 @@ const tokenCacheItemSchema = z.object({
     email: z.string().nullable(),
     isMachine: z.boolean(),
   }),
+  project: z
+    .object({
+      plan: z.string().nullish(),
+    })
+    .nullish(),
 });
 
 type TokenCacheItem = z.infer<typeof tokenCacheItemSchema>;

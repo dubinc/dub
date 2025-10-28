@@ -2,7 +2,7 @@ import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { BetaFeatures, PlanProps, WorkspaceWithUsers } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
-import { API_DOMAIN, getSearchParams } from "@dub/utils";
+import { API_DOMAIN, getCurrentPlan, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
 import { headers } from "next/headers";
@@ -16,8 +16,20 @@ import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
+import { rateLimitRequest } from "./rate-limit-request";
 import { tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
+
+export const RATE_LIMIT_FOR_SESSIONS = {
+  api: {
+    limit: 100,
+    interval: "1 m",
+  },
+  analyticsApi: {
+    limit: 10,
+    interval: "1 s",
+  },
+} as const;
 
 interface WithWorkspaceHandler {
   ({
@@ -88,6 +100,8 @@ export const withWorkspace = (
           apiKey = authorizationHeader.replace("Bearer ", "");
         }
 
+        const url = new URL(req.url || "", API_DOMAIN);
+
         let session: Session | undefined;
         let workspaceId: string | undefined;
         let workspaceSlug: string | undefined;
@@ -144,6 +158,10 @@ export const withWorkspace = (
           }
         }
 
+        const isAnalytics =
+          url.pathname.includes("/analytics") ||
+          url.pathname.includes("/events");
+
         if (apiKey) {
           const hashedKey = await hashToken(apiKey);
 
@@ -159,10 +177,14 @@ export const withWorkspace = (
               select: {
                 ...(isRestrictedToken && {
                   scopes: true,
-                  rateLimit: true,
                   projectId: true,
                   expires: true,
                   installationId: true,
+                  project: {
+                    select: {
+                      plan: true,
+                    },
+                  },
                 }),
                 user: {
                   select: {
@@ -183,6 +205,8 @@ export const withWorkspace = (
           }
 
           token = cachedToken || token;
+
+          console.log("token", token);
 
           if (!token || !token.user) {
             throw new DubApiError({
@@ -208,19 +232,28 @@ export const withWorkspace = (
           }
 
           // Rate limit checks for API keys
-          const rateLimit = token.rateLimit || 600;
+          let limit = 0;
+          let interval: `${number} s` | `${number} m` = "1 m";
 
-          const { success, limit, reset, remaining } = await ratelimit(
-            rateLimit,
-            "1 m",
-          ).limit(apiKey);
+          if (token.project?.plan) {
+            const planLimit = getCurrentPlan(token.project?.plan);
+            limit = planLimit.limits[isAnalytics ? "analyticsApi" : "api"];
+            interval = isAnalytics ? "1 s" : "1 m";
+          } else {
+            limit = 600; // default rate limit for personal API keys
+          }
 
-          responseHeaders.set("Retry-After", reset.toString());
-          responseHeaders.set("X-RateLimit-Limit", limit.toString());
-          responseHeaders.set("X-RateLimit-Remaining", remaining.toString());
-          responseHeaders.set("X-RateLimit-Reset", reset.toString());
+          const { success, headers } = await rateLimitRequest({
+            identifier: `workspace:ratelimit:${apiKey}`,
+            requests: limit,
+            interval,
+          });
 
           if (!success) {
+            for (const [key, value] of Object.entries(headers)) {
+              responseHeaders.set(key, value);
+            }
+
             throw new DubApiError({
               code: "rate_limit_exceeded",
               message: "Too many requests.",
@@ -277,6 +310,27 @@ export const withWorkspace = (
             throw new DubApiError({
               code: "unauthorized",
               message: "Unauthorized: Login required.",
+            });
+          }
+
+          // Rate limit checks for session requests
+          const rateLimit =
+            RATE_LIMIT_FOR_SESSIONS[isAnalytics ? "analyticsApi" : "api"];
+
+          const { success, headers } = await rateLimitRequest({
+            identifier: `workspace:ratelimit:${session.user.id}`,
+            requests: rateLimit.limit,
+            interval: rateLimit.interval,
+          });
+
+          if (!success) {
+            for (const [key, value] of Object.entries(headers)) {
+              responseHeaders.set(key, value);
+            }
+
+            throw new DubApiError({
+              code: "rate_limit_exceeded",
+              message: "Too many requests.",
             });
           }
         }
@@ -379,8 +433,6 @@ export const withWorkspace = (
             });
           }
         }
-
-        const url = new URL(req.url || "", API_DOMAIN);
 
         // plan checks
         if (!requiredPlan.includes(workspace.plan)) {
