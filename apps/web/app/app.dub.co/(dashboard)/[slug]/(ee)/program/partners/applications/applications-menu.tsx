@@ -41,7 +41,10 @@ export function ApplicationsMenu() {
           <div className="w-full md:w-56">
             <div className="grid gap-px p-2">
               <button
-                onClick={() => setShowApplicationSettingsModal(true)}
+                onClick={() => {
+                  setShowApplicationSettingsModal(true);
+                  setIsOpen(false);
+                }}
                 className="w-full rounded-md p-2 hover:bg-neutral-100 active:bg-neutral-200 sm:hidden"
               >
                 <div className="flex items-center gap-2 text-left">
