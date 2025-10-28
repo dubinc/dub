@@ -176,11 +176,11 @@ export const E2E_PARTNER_GROUP = {
 
 export const E2E_PARTNERS = [
   {
-    id: "pn_H4TB2V5hDIjpqB7PwrxESoY3",
+    id: "pn_NNG3YjwhLhA7nCZSaXeLIsWu",
     country: "US",
     shortLink: {
       domain: "getacme.link",
-      key: "derek",
+      key: "marvin",
     },
   },
   {
