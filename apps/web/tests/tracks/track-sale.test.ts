@@ -11,6 +11,7 @@ import {
   E2E_SALE_REWARD,
   E2E_TRACK_CLICK_HEADERS,
 } from "tests/utils/resource";
+import { verifyCommission } from "tests/utils/verify-commission";
 import { describe, expect, test } from "vitest";
 import { IntegrationHarness } from "../utils/integration";
 
@@ -36,25 +37,6 @@ const expectValidSaleResponse = (
       metadata: null,
     },
   });
-};
-
-// Helper function to verify commission details
-const verifyCommission = async (
-  http: any,
-  invoiceId: string,
-  expectedAmount: number,
-  expectedEarnings: number,
-) => {
-  const { status, data: commissions } = await http.get({
-    path: "/commissions",
-    query: { invoiceId },
-  });
-
-  expect(status).toEqual(200);
-  expect(commissions).toHaveLength(1);
-  expect(commissions[0].invoiceId).toEqual(invoiceId);
-  expect(commissions[0].amount).toEqual(expectedAmount);
-  expect(commissions[0].earnings).toEqual(expectedEarnings);
 };
 
 describe("POST /track/sale", async () => {
@@ -129,19 +111,19 @@ describe("POST /track/sale", async () => {
     // pause for 2 seconds for data to be fully processed
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    // Verify commissions
-    await verifyCommission(
+    await verifyCommission({
       http,
-      regularInvoiceId,
-      response1.data.sale?.amount!,
-      E2E_SALE_REWARD.amountInCents,
-    );
-    await verifyCommission(
+      invoiceId: regularInvoiceId,
+      expectedAmount: response1.data.sale?.amount!,
+      expectedEarnings: E2E_SALE_REWARD.amountInCents,
+    });
+
+    await verifyCommission({
       http,
-      premiumInvoiceId,
-      response2.data.sale?.amount!,
-      E2E_SALE_REWARD.modifiers[0].amountInCents,
-    );
+      invoiceId: premiumInvoiceId,
+      expectedAmount: response2.data.sale?.amount!,
+      expectedEarnings: E2E_SALE_REWARD.modifiers[0].amountInCents!,
+    });
   });
 
   test("track a sale with an externalId that does not exist (should return null customer and sale)", async () => {
@@ -311,18 +293,18 @@ describe("POST /track/sale", async () => {
     // Pause for 2 seconds for data to be fully processed
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    await verifyCommission(
+    await verifyCommission({
       http,
-      smallSaleInvoiceId,
-      response1.data.sale?.amount!,
-      E2E_SALE_REWARD.amountInCents,
-    );
+      invoiceId: smallSaleInvoiceId,
+      expectedAmount: response1.data.sale?.amount!,
+      expectedEarnings: E2E_SALE_REWARD.amountInCents,
+    });
 
-    await verifyCommission(
+    await verifyCommission({
       http,
-      largeSaleInvoiceId,
-      response2.data.sale?.amount!,
-      E2E_SALE_REWARD.modifiers[1].amountInCents,
-    );
+      invoiceId: largeSaleInvoiceId,
+      expectedAmount: response2.data.sale?.amount!,
+      expectedEarnings: E2E_SALE_REWARD.modifiers[1].amountInCents!,
+    });
   });
 });

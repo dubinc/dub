@@ -45,30 +45,60 @@ export const E2E_SALE_REWARD = {
   amountInCents: 1000,
   modifiers: [
     {
-      operator: "AND",
       type: "flat",
-      amountInCents: 3000,
+      operator: "AND",
       conditions: [
         {
-          entity: "sale",
-          attribute: "productId",
-          operator: "equals_to",
           value: "premiumProductId",
+          entity: "sale",
+          operator: "equals_to",
+          attribute: "productId",
         },
       ],
+      maxDuration: null,
+      amountInCents: 3000,
     },
     {
-      operator: "AND",
       type: "flat",
-      amountInCents: 5000,
+      operator: "AND",
       conditions: [
         {
-          entity: "sale",
-          attribute: "amount",
-          operator: "greater_than",
           value: 15000,
+          entity: "sale",
+          operator: "greater_than",
+          attribute: "amount",
         },
       ],
+      maxDuration: null,
+      amountInCents: 5000,
+    },
+    {
+      type: "percentage",
+      operator: "AND",
+      conditions: [
+        {
+          value: "US",
+          entity: "customer",
+          operator: "equals_to",
+          attribute: "country",
+        },
+      ],
+      maxDuration: null,
+      amountInPercentage: 10,
+    },
+    {
+      type: "flat",
+      operator: "AND",
+      conditions: [
+        {
+          value: "CA",
+          entity: "customer",
+          operator: "equals_to",
+          attribute: "country",
+        },
+      ],
+      maxDuration: null,
+      amountInCents: 50,
     },
   ],
 };
@@ -92,20 +122,6 @@ export const E2E_LEAD_REWARD = {
       ],
       maxDuration: null,
       amountInCents: 200,
-    },
-    {
-      type: "flat",
-      operator: "AND",
-      conditions: [
-        {
-          value: "CA",
-          entity: "partner",
-          operator: "equals_to",
-          attribute: "country",
-        },
-      ],
-      maxDuration: 0,
-      amountInCents: 300,
     },
   ],
 };
@@ -161,12 +177,17 @@ export const E2E_PARTNERS = [
       key: "marvin",
     },
   },
+] as const;
+
+export const E2E_CUSTOMERS = [
   {
-    id: "pn_OfewI1Faaf5pV8QH3mha8L7S",
-    country: "IN",
-    shortLink: {
-      domain: "getacme.link",
-      key: "kirankk",
-    },
+    id: "cus_1K8N811NNX9BJSBWGG3S567VG",
+    externalId: "cus_5akyQXRfzeFtCeUsCodaIlmf",
+    country: "US",
+  },
+  {
+    id: "cus_1K86CG1DZFW8EMSSWXX4AVZFA",
+    externalId: "cus_vq3UgXINHS99MIon8vNvAO1n",
+    country: "CA",
   },
 ] as const;
