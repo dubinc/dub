@@ -4,7 +4,6 @@ import { validDateRangeForPlan } from "@/lib/analytics/utils";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { getLinkOrThrow } from "@/lib/api/links/get-link-or-throw";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
-import { rateLimitAnalytics } from "@/lib/api/utils/rate-limit-analytics";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
@@ -15,11 +14,6 @@ import { NextResponse } from "next/server";
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
-
-    await rateLimitAnalytics({
-      workspace,
-      session,
-    });
 
     const parsedParams = eventsQuerySchema.parse(searchParams);
 
