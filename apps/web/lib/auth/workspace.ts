@@ -242,7 +242,7 @@ export const withWorkspace = (
           }
 
           const { success, headers } = await rateLimitRequest({
-            identifier: `workspace:ratelimit:${apiKey}`,
+            identifier: `workspace:ratelimit:${hashedKey}`,
             requests: limit,
             interval,
           });
