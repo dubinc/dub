@@ -4,7 +4,7 @@ import { sendBatchEmail } from "@dub/email";
 import DomainRenewed from "@dub/email/templates/domain-renewed";
 import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
-import { APP_DOMAIN_WITH_NGROK, log, pluralize } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, pluralize } from "@dub/utils";
 import { addDays } from "date-fns";
 import Stripe from "stripe";
 
@@ -67,14 +67,6 @@ async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
     console.log(
       `No payouts to process found for invoice ${invoice.id}, skipping...`,
     );
-    return;
-  }
-
-  if (invoice.id === "inv_1K858PN9HDXYG47RVC6C6ZT7N") {
-    await log({
-      message: `Temporarily skipping payouts for invoice ${invoice.id}.`,
-      type: "payouts",
-    });
     return;
   }
 
