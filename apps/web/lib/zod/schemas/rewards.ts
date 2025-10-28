@@ -129,24 +129,26 @@ export const rewardConditionSchema = z.object({
     .describe("Product name used for display purposes in the UI."),
 });
 
+export const PERCENTAGE_REWARD_AMOUNT_SCHEMA = z
+  .number()
+  .min(0, { message: "Reward percentage amount cannot be less than 0%" })
+  .max(99.99, {
+    message: "Reward percentage amount cannot be greater than 99.99%",
+  });
+
+export const FLAT_REWARD_AMOUNT_SCHEMA = z
+  .number()
+  .int()
+  .min(0, { message: "Reward amount cannot be less than $0" })
+  .max(999_999_99, {
+    message: "Reward amount cannot be greater than $999,999.99",
+  });
+
 export const rewardConditionsSchema = z.object({
   operator: z.enum(["AND", "OR"]).default("AND"),
   conditions: z.array(rewardConditionSchema).min(1),
-  amountInCents: z
-    .number()
-    .int()
-    .min(0)
-    .max(999_999_99, {
-      message: "Reward amount cannot be greater than $999,999.99",
-    })
-    .optional(),
-  amountInPercentage: z
-    .number()
-    .min(0)
-    .max(99.99, {
-      message: "Reward percentage amount cannot be greater than 99.99%",
-    })
-    .optional(),
+  amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
+  amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   type: z.nativeEnum(RewardStructure).optional(),
   maxDuration: maxDurationSchema,
 });
@@ -176,21 +178,8 @@ export const createOrUpdateRewardSchema = z.object({
   workspaceId: z.string(),
   event: z.nativeEnum(EventType),
   type: z.nativeEnum(RewardStructure).default(RewardStructure.flat),
-  amountInCents: z
-    .number()
-    .int()
-    .min(0)
-    .max(999_999_99, {
-      message: "Reward amount cannot be greater than $999,999.99",
-    })
-    .optional(),
-  amountInPercentage: z
-    .number()
-    .min(0)
-    .max(99.99, {
-      message: "Reward percentage amount cannot be greater than 99.99%",
-    })
-    .optional(),
+  amountInCents: FLAT_REWARD_AMOUNT_SCHEMA.optional(),
+  amountInPercentage: PERCENTAGE_REWARD_AMOUNT_SCHEMA.optional(),
   maxDuration: maxDurationSchema,
   modifiers: rewardConditionsArraySchema.nullish(),
   description: z.string().max(100).nullish(),
