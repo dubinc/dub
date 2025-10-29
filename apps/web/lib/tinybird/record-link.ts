@@ -2,7 +2,6 @@ import { waitUntil } from "@vercel/functions";
 import { z } from "zod";
 import { ExpandedLink } from "../api/links";
 import { decodeKeyIfCaseSensitive } from "../api/links/case-sensitivity";
-import { prefixWorkspaceId } from "../api/workspaces/workspace-id";
 import { tb, tbOld } from "./client";
 
 export const dubLinksMetadataSchema = z.object({
@@ -42,15 +41,7 @@ export const dubLinksMetadataSchema = z.object({
 
 export const recordLinkTB = tb.buildIngestEndpoint({
   datasource: "dub_links_metadata",
-  event: dubLinksMetadataSchema.extend({
-    workspace_id: z
-      .string()
-      .nullish()
-      .transform((v) => {
-        if (!v) return ""; // return empty string if null or undefined
-        return prefixWorkspaceId(v);
-      }),
-  }),
+  event: dubLinksMetadataSchema,
   wait: true,
 });
 

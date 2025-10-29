@@ -1,19 +1,9 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useCustomer from "@/lib/swr/use-customer";
-import useDomains from "@/lib/swr/use-domains";
-import useDomainsCount from "@/lib/swr/use-domains-count";
-import useFolder from "@/lib/swr/use-folder";
-import useFolders from "@/lib/swr/use-folders";
-import useFoldersCount from "@/lib/swr/use-folders-count";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
-import useTags from "@/lib/swr/use-tags";
-import useTagsCount from "@/lib/swr/use-tags-count";
 import { LinkProps } from "@/lib/types";
-import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
-import { FOLDERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/folders";
-import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   BlurImage,
   Filter,
@@ -69,7 +59,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useDebounce } from "use-debounce";
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkIcon } from "../links/link-icon";
 import TagBadge from "../links/tag-badge";
@@ -107,57 +96,10 @@ export function useAnalyticsFilters({
 
   const { queryParams, searchParamsObj } = useRouterStuff();
 
-  // Determine whether filters should be fetched async
-  const { data: tagsCount } = useTagsCount();
-  const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
-  const { data: foldersCount } = useFoldersCount();
-  const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
-  const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
-  const foldersAsync = foldersCount && foldersCount > FOLDERS_MAX_PAGE_SIZE;
-
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch] = useDebounce(search, 500);
-
-  const { tags, loading: loadingTags } = useTags({
-    query: {
-      search: tagsAsync && selectedFilter === "tagIds" ? debouncedSearch : "",
-    },
-  });
-  const { folders, loading: loadingFolders } = useFolders({
-    query: {
-      search:
-        foldersAsync && selectedFilter === "folderId" ? debouncedSearch : "",
-    },
-  });
-
-  const {
-    allDomains: domains,
-    primaryDomain,
-    loading: loadingDomains,
-  } = useDomains({
-    ignoreParams: true,
-    opts: {
-      search:
-        domainsAsync && selectedFilter === "domain" ? debouncedSearch : "",
-    },
-  });
-
   const selectedTagIds = useMemo(
     () => searchParamsObj.tagIds?.split(",")?.filter(Boolean) ?? [],
     [searchParamsObj.tagIds],
   );
-
-  const { tags: selectedTags } = useTags({
-    query: { ids: selectedTagIds },
-    enabled: tagsAsync,
-  });
-
-  const selectedFolderId = searchParamsObj.folderId;
-
-  const { folder: selectedFolder } = useFolder({
-    folderId: selectedFolderId,
-  });
 
   const selectedCustomerId = searchParamsObj.customerId;
 
@@ -250,6 +192,21 @@ export function useAnalyticsFilters({
 
   const { data: links } = useAnalyticsFilterOption("top_links", {
     disabled: !isRequested("link"),
+    omitGroupByFilterKey: true,
+    context,
+  });
+  const { data: folders } = useAnalyticsFilterOption("top_folders", {
+    disabled: !isRequested("folderId"),
+    omitGroupByFilterKey: true,
+    context,
+  });
+  const { data: linkTags } = useAnalyticsFilterOption("top_link_tags", {
+    disabled: !isRequested("tagIds"),
+    omitGroupByFilterKey: true,
+    context,
+  });
+  const { data: domains } = useAnalyticsFilterOption("top_domains", {
+    disabled: !isRequested("domain"),
     omitGroupByFilterKey: true,
     context,
   });
@@ -359,14 +316,6 @@ export function useAnalyticsFilters({
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
     () => [
-      ...(dashboardProps || partnerPage
-        ? []
-        : [
-            {
-              value: `Clicks on ${primaryDomain} domain this year`,
-              icon: Globe2,
-            },
-          ]),
       {
         value: "Mobile users, US only",
         icon: MobilePhone,
@@ -384,7 +333,7 @@ export function useAnalyticsFilters({
         icon: QRCode,
       },
     ],
-    [primaryDomain, dashboardProps, partnerPage],
+    [dashboardProps, partnerPage],
   );
 
   const [streaming, setStreaming] = useState<boolean>(false);
@@ -482,13 +431,8 @@ export function useAnalyticsFilters({
                   key: "folderId",
                   icon: Folder,
                   label: "Folder",
-                  shouldFilter: !foldersAsync,
-                  getOptionIcon: (value, props) => {
-                    const folderName = props.option?.label;
-                    const folder = folders?.find(
-                      ({ name }) => name === folderName,
-                    );
-
+                  getOptionIcon: (_value, props) => {
+                    const folder = props.option?.data?.folder;
                     return folder ? (
                       <FolderIcon
                         folder={folder}
@@ -497,63 +441,47 @@ export function useAnalyticsFilters({
                       />
                     ) : null;
                   },
-                  options: loadingFolders
-                    ? null
-                    : [
-                        ...(folders || []),
-                        // Add currently filtered folder if not already in the list
-                        ...(selectedFolder &&
-                        !folders?.find((f) => f.id === selectedFolder.id)
-                          ? [selectedFolder]
-                          : []),
-                      ].map((folder) => ({
-                        value: folder.id,
-                        icon: (
-                          <FolderIcon
-                            folder={folder}
-                            shape="square"
-                            iconClassName="size-3"
-                          />
-                        ),
-                        label: folder.name,
-                      })),
+                  options:
+                    folders?.map(({ folder, ...rest }) => ({
+                      value: folder.id,
+                      icon: (
+                        <FolderIcon
+                          folder={folder}
+                          shape="square"
+                          iconClassName="size-3"
+                        />
+                      ),
+                      label: folder.name,
+                      data: { folder },
+                      right: getFilterOptionTotal(rest),
+                    })) ?? null,
                 },
                 {
                   key: "tagIds",
                   icon: Tag,
                   label: "Tag",
                   multiple: true,
-                  shouldFilter: !tagsAsync,
-                  getOptionIcon: (value, props) => {
-                    const tagColor =
-                      props.option?.data?.color ??
-                      tags?.find(({ id }) => id === value)?.color;
+                  getOptionIcon: (_value, props) => {
+                    const tagColor = props.option?.data?.color;
                     return tagColor ? (
                       <TagBadge color={tagColor} withIcon className="sm:p-1" />
                     ) : null;
                   },
-                  options: loadingTags
-                    ? null
-                    : [
-                        ...(tags || []),
-                        // Add currently filtered tags if not already in the list
-                        ...(selectedTags || []).filter(
-                          ({ id }) => !tags?.some((t) => t.id === id),
-                        ),
-                      ].map(({ id, name, color }) => ({
-                        value: id,
-                        icon: (
-                          <TagBadge color={color} withIcon className="sm:p-1" />
-                        ),
-                        label: name,
-                        data: { color },
-                      })),
+                  options:
+                    linkTags?.map(({ tag: { id, name, color }, ...rest }) => ({
+                      value: id,
+                      icon: (
+                        <TagBadge color={color} withIcon className="sm:p-1" />
+                      ),
+                      label: name,
+                      data: { color },
+                      right: getFilterOptionTotal(rest),
+                    })) ?? null,
                 },
                 {
                   key: "domain",
                   icon: Globe2,
                   label: "Domain",
-                  shouldFilter: !domainsAsync,
                   getOptionIcon: (value) => (
                     <BlurImage
                       src={`${GOOGLE_FAVICON_URL}${value}`}
@@ -563,25 +491,12 @@ export function useAnalyticsFilters({
                       height={16}
                     />
                   ),
-                  options: loadingDomains
-                    ? null
-                    : [
-                        ...domains.map((domain) => ({
-                          value: domain.slug,
-                          label: domain.slug,
-                        })),
-                        // Add currently filtered domain if not already in the list
-                        ...(!searchParamsObj.domain ||
-                        domains.some((d) => d.slug === searchParamsObj.domain)
-                          ? []
-                          : [
-                              {
-                                value: searchParamsObj.domain,
-                                label: searchParamsObj.domain,
-                                hideDuringSearch: true,
-                              },
-                            ]),
-                      ],
+                  options:
+                    domains?.map(({ domain, ...rest }) => ({
+                      value: domain,
+                      label: domain,
+                      right: getFilterOptionTotal(rest),
+                    })) ?? null,
                 },
                 LinkFilterItem,
                 {
@@ -861,11 +776,9 @@ export function useAnalyticsFilters({
       partnerPage,
       domains,
       links,
-      tags,
+      linkTags,
       folders,
-      selectedTags,
       selectedTagIds,
-      selectedFolder,
       selectedCustomerId,
       countries,
       cities,
@@ -876,12 +789,6 @@ export function useAnalyticsFilters({
       refererUrls,
       urls,
       utmData,
-      tagsAsync,
-      domainsAsync,
-      foldersAsync,
-      loadingTags,
-      loadingDomains,
-      loadingFolders,
       searchParamsObj.tagIds,
       searchParamsObj.domain,
     ],
@@ -987,8 +894,6 @@ export function useAnalyticsFilters({
   return {
     filters,
     activeFilters,
-    setSearch,
-    setSelectedFilter,
     onSelect,
     onRemove,
     onRemoveAll,

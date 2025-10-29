@@ -60,6 +60,7 @@ export const GET = withPartnerProfile(
 
     const events = await getEvents({
       ...rest,
+      workspaceId: program.workspaceId,
       ...(linkId ? { linkId } : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });

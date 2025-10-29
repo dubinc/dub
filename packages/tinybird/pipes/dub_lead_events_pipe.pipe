@@ -7,11 +7,11 @@ SQL >
         timestamp,
         click_id,
         toLowCardinality(
-            coalesce(lead_event.workspace_id, link_metadata.workspace_id)
+            coalesce(nullIf(lead_event.workspace_id, ''), link_metadata.workspace_id)
         ) AS workspace_id,
         link_id,
-        coalesce(lead_event.domain, link_metadata.domain) AS domain,
-        coalesce(lead_event.key, link_metadata.key) AS key,
+        coalesce(nullIf(lead_event.domain, ''), link_metadata.domain) AS domain,
+        coalesce(nullIf(lead_event.key, ''), link_metadata.key) AS key,
         url,
         event_id,
         event_name,
