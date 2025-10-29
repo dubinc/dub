@@ -7,6 +7,7 @@ import {
   NetworkPartnerSchema,
   getNetworkPartnersQuerySchema,
 } from "@/lib/zod/schemas/partner-network";
+import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -24,7 +25,7 @@ export const GET = withWorkspace(
         similarPrograms: {
           where: {
             similarityScore: {
-              gt: 0.3,
+              gt: PROGRAM_SIMILARITY_SCORE_THRESHOLD,
             },
           },
           take: 5,

@@ -23,6 +23,9 @@ interface ProgramResult {
   error?: string;
 }
 
+if (!process.env.FIRECRAWL_API_KEY)
+  throw new Error("FIRECRAWL_API_KEY is not set");
+
 // Initialize FireCrawl
 const firecrawl = new FireCrawlApp({
   apiKey: process.env.FIRECRAWL_API_KEY,
@@ -221,6 +224,8 @@ async function main() {
   );
 
   console.log("expanded", JSON.stringify(expanded, null, 2));
+
+  if (!expanded.length) return;
 
   await prisma.programCategory.createMany({
     data: expanded,

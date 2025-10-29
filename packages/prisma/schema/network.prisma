@@ -53,7 +53,8 @@ model ProgramSimilarity {
   partnerSimilarityScore     Float
   performanceSimilarityScore Float
 
-  program Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  program        Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  similarProgram Program @relation("SimilarProgram", fields: [similarProgramId], references: [id], onDelete: Cascade)
 
   @@unique([programId, similarProgramId])
   @@index([programId, similarityScore])

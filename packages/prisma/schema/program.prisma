@@ -85,6 +85,7 @@ model Program {
   discoveredPartners       DiscoveredPartner[]
   industryInterests        ProgramIndustryInterest[]
   similarPrograms          ProgramSimilarity[]
+  similarToPrograms        ProgramSimilarity[] @relation("SimilarProgram")
   categories               ProgramCategory[]
 
   @@index(workspaceId)
