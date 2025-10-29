@@ -17,7 +17,7 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const parsedParams = partnersExportQuerySchema.parse(searchParams);
-    let { columns, ...filters } = parsedParams;
+    const { columns, ...filters } = parsedParams;
 
     const partnersCount = await getPartnersCount<number>({
       ...filters,

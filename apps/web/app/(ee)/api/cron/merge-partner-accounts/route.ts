@@ -199,7 +199,9 @@ export async function POST(req: Request) {
         });
 
         if (deletedUser.image) {
-          await storage.delete(deletedUser.image.replace(`${R2_URL}/`, ""));
+          await storage.delete({
+            key: deletedUser.image.replace(`${R2_URL}/`, ""),
+          });
         }
       }
     }
@@ -212,7 +214,9 @@ export async function POST(req: Request) {
     });
 
     if (deletedPartner.image) {
-      await storage.delete(deletedPartner.image.replace(`${R2_URL}/`, ""));
+      await storage.delete({
+        key: deletedPartner.image.replace(`${R2_URL}/`, ""),
+      });
     }
 
     // Make sure the cache is cleared

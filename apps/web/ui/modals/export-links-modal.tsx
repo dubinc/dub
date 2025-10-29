@@ -13,6 +13,7 @@ import {
   Switch,
   useRouterStuff,
 } from "@dub/ui";
+import { useSession } from "next-auth/react";
 import {
   Dispatch,
   SetStateAction,
@@ -41,6 +42,7 @@ function ExportLinksModal({
   showExportLinksModal: boolean;
   setShowExportLinksModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const { data: session } = useSession();
   const { id: workspaceId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
   const dateRangePickerId = useId();
@@ -49,7 +51,7 @@ function ExportLinksModal({
   const {
     control,
     handleSubmit,
-    formState: { isLoading },
+    formState: { isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
       dateRange: {
@@ -95,6 +97,14 @@ function ExportLinksModal({
       if (!response.ok) {
         const { error } = await response.json();
         throw new Error(error.message);
+      }
+
+      if (response.status === 202) {
+        toast.success(
+          `Your export is being processed and we'll send you an email (${session?.user?.email}) when it's ready to download.`,
+        );
+        setShowExportLinksModal(false);
+        return;
       }
 
       const blob = await response.blob();
@@ -232,7 +242,7 @@ function ExportLinksModal({
           />
           <Button
             type="submit"
-            loading={isLoading}
+            loading={isSubmitting}
             text="Export links"
             className="h-8 w-fit px-3"
           />

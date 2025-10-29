@@ -166,14 +166,14 @@ export const POST = withWorkspace(
 
       if (avatar && !isStored(avatar) && finalCustomerAvatar) {
         waitUntil(
-          storage.upload(
-            finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-            avatar,
-            {
+          storage.upload({
+            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+            body: avatar,
+            opts: {
               width: 128,
               height: 128,
             },
-          ),
+          }),
         );
       }
 

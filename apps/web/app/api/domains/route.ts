@@ -148,7 +148,10 @@ export const POST = withWorkspace(
     const domainId = createId({ prefix: "dom_" });
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     const domainRecord = await prisma.$transaction(

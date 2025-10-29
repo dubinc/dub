@@ -58,7 +58,10 @@ export const createProgram = async ({
 
   const logoUrl = uploadedLogo
     ? await storage
-        .upload(`programs/${programId}/logo_${nanoid(7)}`, uploadedLogo)
+        .upload({
+          key: `programs/${programId}/logo_${nanoid(7)}`,
+          body: uploadedLogo,
+        })
         .then(({ url }) => url)
     : null;
 
@@ -204,7 +207,7 @@ export const createProgram = async ({
       // delete the temporary uploaded logo
       uploadedLogo &&
         isStored(uploadedLogo) &&
-        storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: uploadedLogo.replace(`${R2_URL}/`, "") }),
 
       // send email about the new program
       sendEmail({
