@@ -109,7 +109,7 @@ SQL >
 
     %
             SELECT pl.program_id as programId, COUNT(*) AS sales, sum(amount) as saleAmount
-            FROM dub_sale_events AS se
+            FROM dub_sale_events_mv AS se
             JOIN program_links AS pl ON se.link_id = pl.link_id
             WHERE
                 1

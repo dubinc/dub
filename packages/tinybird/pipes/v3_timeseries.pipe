@@ -346,10 +346,7 @@ SQL >
             {% elif granularity == "month" %} month_intervals
             {% else %} day_intervals
             {% end %}
-        LEFT JOIN
-            {% if defined(saleType) %} timeseries_sales_data_with_type
-            {% else %} timeseries_sales_data
-            {% end %} USING interval
+        LEFT JOIN timeseries_sales_data USING interval
 
 
 
