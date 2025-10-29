@@ -43,8 +43,8 @@ export const CAMPAIGN_STATUS_BADGES = {
     icon: CircleHalfDottedClock,
     iconClassName: "text-neutral-600",
   },
-  cancelled: {
-    label: "Cancelled",
+  canceled: {
+    label: "Canceled",
     variant: "error",
     icon: CircleXmark,
     iconClassName: "text-neutral-600",
