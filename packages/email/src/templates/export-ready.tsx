@@ -1,4 +1,4 @@
-import { DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, pluralize } from "@dub/utils";
 import {
   Body,
   Container,
@@ -18,12 +18,14 @@ export default function ExportReady({
   email = "panic@thedis.co",
   downloadUrl = "https://dev.dubassets.com/exports/partners/xxxx.csv",
   exportType = "partners",
+  expiresInDays = 7,
   program,
   workspace,
 }: {
   email: string;
   downloadUrl: string;
   exportType: "partners" | "commissions" | "links";
+  expiresInDays?: number;
   program?: {
     name: string;
   };
@@ -57,9 +59,10 @@ export default function ExportReady({
                 Download Export
               </Link>
             </Section>
-            {/* <Text className="text-sm leading-6 text-neutral-500">
-              This download link will expire in 7 days.
-            </Text> */}
+            <Text className="text-sm leading-6 text-neutral-500">
+              This download link will expire in {expiresInDays}{" "}
+              {pluralize("day", expiresInDays)}.
+            </Text>
             <Footer email={email} />
           </Container>
         </Body>
