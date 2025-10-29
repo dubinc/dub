@@ -114,14 +114,14 @@ export const QRTabs: FC<
             // handleResetTypeToScrollTo={handleResetTypeToScrollTo}
           />
 
-          <QrBuilder
+          {/* <QrBuilder
             sessionId={sessionId}
             handleSaveQR={handleSaveQR}
             homepageDemo
             typeToScrollTo={typeToScrollTo}
             key={typeToScrollTo}
             handleResetTypeToScrollTo={handleResetTypeToScrollTo}
-          />
+          /> */}
 
           <Rating />
 
