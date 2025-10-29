@@ -130,7 +130,7 @@ export const E2E_LEAD_REWARD = {
         {
           value: "US",
           entity: "partner",
-          operator: "in",
+          operator: "equals_to",
           attribute: "country",
         },
       ],
