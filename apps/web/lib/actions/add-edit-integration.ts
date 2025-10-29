@@ -55,7 +55,9 @@ export const addEditIntegration = authActionClient
             integration.logo !== oldIntegration.logo &&
             oldIntegration.logo.startsWith(`${R2_URL}/integrations/${id}`)
           ) {
-            await storage.delete(oldIntegration.logo.replace(`${R2_URL}/`, ""));
+            await storage.delete({
+              key: oldIntegration.logo.replace(`${R2_URL}/`, ""),
+            });
           }
 
           const removedScreenshots =

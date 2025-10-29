@@ -104,10 +104,14 @@ export const updateGroupBrandingAction = authActionClient
         const res = await Promise.allSettled([
           // Delete old logo/wordmark if they were updated
           ...(logoUpdated && program.logo && isStored(program.logo)
-            ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
+            ? [storage.delete({ key: program.logo.replace(`${R2_URL}/`, "") })]
             : []),
           ...(wordmarkUpdated && program.wordmark && isStored(program.wordmark)
-            ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
+            ? [
+                storage.delete({
+                  key: program.wordmark.replace(`${R2_URL}/`, ""),
+                }),
+              ]
             : []),
 
           /*

@@ -86,10 +86,10 @@ export const updateProgramAction = authActionClient
       Promise.allSettled([
         // Delete old logo/wordmark if they were updated
         ...(logoUrl && program.logo
-          ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
+          ? [storage.delete({ key: program.logo.replace(`${R2_URL}/`, "") })]
           : []),
         ...(wordmarkUrl && program.wordmark
-          ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
+          ? [storage.delete({ key: program.wordmark.replace(`${R2_URL}/`, "") })]
           : []),
 
         /*

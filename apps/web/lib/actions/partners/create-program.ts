@@ -204,7 +204,7 @@ export const createProgram = async ({
       // delete the temporary uploaded logo
       uploadedLogo &&
         isStored(uploadedLogo) &&
-        storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: uploadedLogo.replace(`${R2_URL}/`, "") }),
 
       // send email about the new program
       sendEmail({

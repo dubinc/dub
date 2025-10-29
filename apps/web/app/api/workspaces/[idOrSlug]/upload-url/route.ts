@@ -13,8 +13,9 @@ export const POST = withWorkspace(async ({ req }) => {
   const { folder } = schema.parse(await req.json());
 
   const key = `${folder}/${nanoid(16)}`;
-
-  const signedUrl = await storage.getSignedUrl(key);
+  const signedUrl = await storage.getSignedUploadUrl({
+    key,
+  });
 
   return NextResponse.json({
     key,

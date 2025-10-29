@@ -195,7 +195,7 @@ export const PATCH = withWorkspace(
       (async () => {
         // remove old logo
         if (oldLogo && (logo === null || logoUploaded)) {
-          await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
+          await storage.delete({ key: oldLogo.replace(`${R2_URL}/`, "") });
         }
 
         if (domainUpdated) {

@@ -201,7 +201,7 @@ export async function updateLink({
       oldLink.image &&
         oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
         oldLink.image !== image &&
-        storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: oldLink.image.replace(`${R2_URL}/`, "") }),
 
       webhookIds != undefined &&
         propagateWebhookTriggerChanges({

@@ -107,7 +107,9 @@ export const PATCH = withWorkspace(
             }),
             oldCustomerAvatar &&
               isStored(oldCustomerAvatar) &&
-              storage.delete(oldCustomerAvatar.replace(`${R2_URL}/`, "")),
+              storage.delete({
+                key: oldCustomerAvatar.replace(`${R2_URL}/`, ""),
+              }),
           ]),
         );
       }
@@ -167,7 +169,7 @@ export const DELETE = withWorkspace(
     });
 
     if (customer.avatar && isStored(customer.avatar)) {
-      storage.delete(customer.avatar.replace(`${R2_URL}/`, ""));
+      storage.delete({ key: customer.avatar.replace(`${R2_URL}/`, "") });
     }
 
     return NextResponse.json({

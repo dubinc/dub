@@ -19,7 +19,9 @@ export const uploadLanderImageAction = authActionClient
     try {
       const key = `programs/${programId}/lander/image_${nanoid(7)}`;
 
-      const signedUrl = await storage.getSignedUrl(key);
+      const signedUrl = await storage.getSignedUploadUrl({
+        key,
+      });
 
       return {
         key,

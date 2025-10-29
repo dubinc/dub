@@ -140,7 +140,9 @@ export const PATCH = withSession(async ({ req, session }) => {
         session.user.image &&
         session.user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
       ) {
-        await storage.delete(session.user.image.replace(`${R2_URL}/`, ""));
+        await storage.delete({
+          key: session.user.image.replace(`${R2_URL}/`, ""),
+        });
       }
     })(),
   );
@@ -173,7 +175,7 @@ export const DELETE = withSession(async ({ session }) => {
       // if the user has a custom avatar and it is stored by their userId, delete it
       user.image &&
         user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`) &&
-        storage.delete(user.image.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: user.image.replace(`${R2_URL}/`, "") }),
       unsubscribe({ email: session.user.email }),
     ]);
     return NextResponse.json(response);
