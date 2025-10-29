@@ -1,4 +1,3 @@
-import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { hashToken, withAdmin } from "@/lib/auth";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN, PARTNERS_DOMAIN } from "@dub/utils";
@@ -39,6 +38,39 @@ export const POST = withAdmin(async ({ req }) => {
             },
           },
         },
+        orderBy: {
+          project: {
+            totalClicks: "desc",
+          },
+        },
+      },
+      partners: {
+        select: {
+          partner: {
+            select: {
+              programs: {
+                select: {
+                  program: {
+                    select: {
+                      id: true,
+                      name: true,
+                      slug: true,
+                    },
+                  },
+                  status: true,
+                  totalClicks: true,
+                  totalLeads: true,
+                  totalConversions: true,
+                  totalSaleAmount: true,
+                  totalCommissions: true,
+                },
+                orderBy: {
+                  totalCommissions: "desc",
+                },
+              },
+            },
+          },
+        },
       },
     },
   });
@@ -51,12 +83,17 @@ export const POST = withAdmin(async ({ req }) => {
     email: response.email,
     workspaces: response.projects.map(({ project }) => ({
       ...project,
-      id: prefixWorkspaceId(project.id),
       clicks: project.usage,
       links: project.linksUsage,
       totalClicks: project.totalClicks,
       totalLinks: project.totalLinks,
     })),
+    programs: response.partners[0].partner.programs.map(
+      ({ program, ...rest }) => ({
+        ...program,
+        ...rest,
+      }),
+    ),
     impersonateUrl: await getImpersonateUrl(response.email),
   };
 
