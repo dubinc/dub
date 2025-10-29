@@ -19,6 +19,8 @@ import { RewardSchema } from "./rewards";
 import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 
+export const PROGRAM_SIMILARITY_SCORE_THRESHOLD = 0.3;
+
 export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
 
 export const MAX_PROGRAM_CATEGORIES = 3;

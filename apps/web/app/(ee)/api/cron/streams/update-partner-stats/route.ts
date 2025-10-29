@@ -165,7 +165,11 @@ const processPartnerActivityStreamBatch = () =>
 
         // Calculate consistency score based on days since last conversion
         let consistencyScore = 50;
-        if (lastConversionAt && enrollment.daysSinceLastConversion) {
+        if (
+          lastConversionAt &&
+          enrollment.daysSinceLastConversion !== null &&
+          enrollment.daysSinceLastConversion !== undefined
+        ) {
           if (enrollment.daysSinceLastConversion <= 7) {
             consistencyScore = 100;
           } else if (enrollment.daysSinceLastConversion <= 30) {

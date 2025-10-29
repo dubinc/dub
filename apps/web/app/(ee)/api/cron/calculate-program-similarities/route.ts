@@ -2,6 +2,7 @@ import { handleApiError } from "@/lib/api/errors";
 import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
+import { PROGRAM_SIMILARITY_SCORE_THRESHOLD } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
 import { ProgramSimilarity } from "@dub/prisma/client";
 import { ACME_PROGRAM_ID, APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -21,8 +22,6 @@ const payloadSchema = z.object({
     .optional()
     .describe("Cursor for programs to compare against."),
 });
-
-const SIMILARITY_SCORE_THRESHOLD = 0.3;
 
 const PROGRAMS_PER_BATCH = 10;
 
@@ -82,7 +81,7 @@ async function calculateProgramSimilarity({
         },
       },
       id: {
-        gt: currentProgramId,
+        gt: currentProgram.id,
         notIn: [ACME_PROGRAM_ID],
       },
     },
@@ -150,7 +149,7 @@ async function calculateProgramSimilarity({
         },
       );
 
-      if (similarityScore > SIMILARITY_SCORE_THRESHOLD) {
+      if (similarityScore > PROGRAM_SIMILARITY_SCORE_THRESHOLD) {
         results.push({
           programId: program1.id,
           similarProgramId: program2.id,
@@ -242,12 +241,10 @@ async function findNextProgram({
   // Otherwise, find the first/next program
   return await prisma.program.findFirst({
     where: {
-      ...(afterProgramId && {
-        id: {
-          gt: afterProgramId,
-          notIn: [ACME_PROGRAM_ID],
-        },
-      }),
+      id: {
+        ...(afterProgramId && { gt: afterProgramId }),
+        notIn: [ACME_PROGRAM_ID],
+      },
       workspace: {
         plan: {
           in: ["advanced", "enterprise"],
