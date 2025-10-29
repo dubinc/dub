@@ -88,12 +88,13 @@ export const POST = withAdmin(async ({ req }) => {
       totalClicks: project.totalClicks,
       totalLinks: project.totalLinks,
     })),
-    programs: response.partners[0].partner.programs.map(
-      ({ program, ...rest }) => ({
-        ...program,
-        ...rest,
-      }),
-    ),
+    programs:
+      response.partners.length > 0
+        ? response.partners[0].partner.programs.map(({ program, ...rest }) => ({
+            ...program,
+            ...rest,
+          }))
+        : [],
     impersonateUrl: await getImpersonateUrl(response.email),
   };
 
