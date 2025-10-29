@@ -667,6 +667,7 @@ const getCommonPinningClassNames = (
 ): string => {
   const isPinned = column.getIsPinned();
   return cn(
+    isPinned && "bg-bg-default py-0",
     isPinned &&
       !isLastRow &&
       "animate-table-pinned-shadow [animation-timeline:scroll(inline)]",

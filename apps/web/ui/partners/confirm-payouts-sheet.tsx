@@ -741,7 +741,7 @@ function ConfirmPayoutsButton({
         "relative overflow-hidden",
         isSuccess && "border-green-500 bg-green-500",
       )}
-      textWrapperClassName="!overflow-visible"
+      textWrapperClassName="!overflow-visible select-none"
       {...(!disabled &&
         !disabledTooltip && {
           // TODO: Handle keyboard control
