@@ -1,4 +1,4 @@
-import { storageV2 } from "../storage-v2";
+import { storage } from "../storage";
 
 interface CreateDownloadableExportOptions {
   fileKey: string;
@@ -19,12 +19,15 @@ export async function createDownloadableExport({
   const blob = new Blob([body], { type: contentType });
 
   // Upload
-  const uploadResult = await storageV2.upload({
+  const uploadResult = await storage.upload({
     key: fileKey,
     body: blob,
-    contentType,
-    headers: {
-      "Content-Disposition": `attachment; filename="${fileName}"`,
+    bucket: "private",
+    opts: {
+      contentType,
+      headers: {
+        "Content-Disposition": `attachment; filename="${fileName}"`,
+      },
     },
   });
 
@@ -33,7 +36,7 @@ export async function createDownloadableExport({
   }
 
   // Generate a signed download URL
-  const downloadUrl = await storageV2.getSignedDownloadUrl({
+  const downloadUrl = await storage.getSignedDownloadUrl({
     key: fileKey,
     expiresIn,
   });

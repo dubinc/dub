@@ -32,7 +32,10 @@ export const onboardPartnerAction = authUserActionClient
 
     const imageUrl = image
       ? await storage
-          .upload(`partners/${partnerId}/image_${nanoid(7)}`, image)
+          .upload({
+            key: `partners/${partnerId}/image_${nanoid(7)}`,
+            body: image,
+          })
           .then(({ url }) => url)
       : null;
 

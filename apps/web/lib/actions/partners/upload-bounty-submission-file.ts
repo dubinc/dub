@@ -120,7 +120,9 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
 
     try {
       const key = `programs/${bounty.programId}/bounties/${bounty.id}/submissions/${partner.id}/${nanoid(7)}`;
-      const signedUrl = await storage.getSignedUrl(key);
+      const signedUrl = await storage.getSignedUploadUrl({
+        key,
+      });
 
       return {
         signedUrl,

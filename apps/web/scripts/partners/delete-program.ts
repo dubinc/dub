@@ -89,9 +89,9 @@ async function main() {
   );
 
   if (program.logo) {
-    const deletedLogo = await storage.delete(
-      program.logo.replace(`${R2_URL}/`, ""),
-    );
+    const deletedLogo = await storage.delete({
+      key: program.logo.replace(`${R2_URL}/`, ""),
+    });
 
     console.log("Deleted logo", deletedLogo);
   }

@@ -130,9 +130,13 @@ export async function bulkUpdateLinks(
       proxy &&
         image &&
         isNotHostedImage(image) &&
-        storage.upload(`images/${linkIds[0]}_${imageUrlNonce}`, image, {
-          width: 1200,
-          height: 630,
+        storage.upload({
+          key: `images/${linkIds[0]}_${imageUrlNonce}`,
+          body: image,
+          opts: {
+            width: 1200,
+            height: 630,
+          },
         }),
     ]),
   );

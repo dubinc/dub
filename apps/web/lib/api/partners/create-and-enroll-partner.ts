@@ -205,10 +205,10 @@ export const createAndEnrollPartner = async ({
       partner.image &&
         !isStored(partner.image) &&
         storage
-          .upload(
-            `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
-            partner.image,
-          )
+          .upload({
+            key: `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
+            body: partner.image,
+          })
           .then(async ({ url }) => {
             await prisma.partner.update({
               where: {

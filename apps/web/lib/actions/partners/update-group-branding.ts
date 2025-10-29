@@ -58,12 +58,18 @@ export const updateGroupBrandingAction = authActionClient
     const [logoUrl, wordmarkUrl] = await Promise.all([
       logoUpdated
         ? storage
-            .upload(`programs/${programId}/logo_${nanoid(7)}`, logo)
+            .upload({
+              key: `programs/${programId}/logo_${nanoid(7)}`,
+              body: logo,
+            })
             .then(({ url }) => url)
         : null,
       wordmarkUpdated
         ? storage
-            .upload(`programs/${programId}/wordmark_${nanoid(7)}`, wordmark)
+            .upload({
+              key: `programs/${programId}/wordmark_${nanoid(7)}`,
+              body: wordmark,
+            })
             .then(({ url }) => url)
         : null,
     ]);
@@ -104,10 +110,14 @@ export const updateGroupBrandingAction = authActionClient
         const res = await Promise.allSettled([
           // Delete old logo/wordmark if they were updated
           ...(logoUpdated && program.logo && isStored(program.logo)
-            ? [storage.delete(program.logo.replace(`${R2_URL}/`, ""))]
+            ? [storage.delete({ key: program.logo.replace(`${R2_URL}/`, "") })]
             : []),
           ...(wordmarkUpdated && program.wordmark && isStored(program.wordmark)
-            ? [storage.delete(program.wordmark.replace(`${R2_URL}/`, ""))]
+            ? [
+                storage.delete({
+                  key: program.wordmark.replace(`${R2_URL}/`, ""),
+                }),
+              ]
             : []),
 
           /*
@@ -233,10 +243,10 @@ async function uploadLanderDataImages({
     foreignImageUrls.map(async (url) => ({
       url,
       uploadedUrl: (
-        await storage.upload(
-          `programs/${programId}/lander/image_${nanoid(7)}`,
-          url,
-        )
+        await storage.upload({
+          key: `programs/${programId}/lander/image_${nanoid(7)}`,
+          body: url,
+        })
       ).url,
     })),
   );

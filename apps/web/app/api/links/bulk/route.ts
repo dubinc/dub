@@ -445,7 +445,7 @@ export const PATCH = withWorkspace(
                 link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
                 link.image !== data.image
               ) {
-                storage.delete(link.image.replace(`${R2_URL}/`, ""));
+                storage.delete({ key: link.image.replace(`${R2_URL}/`, "") });
               }
             }),
           );
