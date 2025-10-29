@@ -1,7 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import { recordLink } from "@/lib/tinybird";
-import { TagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
+import { LinkTagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -37,7 +37,7 @@ export const PATCH = withWorkspace(
         },
       });
 
-      return NextResponse.json(TagSchema.parse(response));
+      return NextResponse.json(LinkTagSchema.parse(response));
     } catch (error) {
       if (error.code === "P2002") {
         throw new DubApiError({

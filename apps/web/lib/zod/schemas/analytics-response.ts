@@ -2,6 +2,7 @@ import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
 import { CONTINENT_CODES } from "@dub/utils";
 import { FolderAccessLevel } from "@prisma/client";
+import { LinkTagSchema } from "./tags";
 
 const analyticsTriggersResponse = z
   .object({
@@ -489,15 +490,11 @@ export const analyticsResponse = {
         )
         .default(0),
     })
-    .openapi({ ref: "AnalyticsPartners" }),
+    .openapi({ ref: "AnalyticsTopPartners" }),
   top_link_tags: z
     .object({
       tagId: z.string().describe("The ID of the tag"),
-      tag: z.object({
-        id: z.string().describe("The ID of the tag"),
-        name: z.string().describe("The name of the tag"),
-        color: z.string().describe("The color of the tag"),
-      }),
+      tag: LinkTagSchema,
       clicks: z.number().describe("The total number of clicks").default(0),
       leads: z.number().describe("The total number of leads").default(0),
       sales: z.number().describe("The total number of sales").default(0),

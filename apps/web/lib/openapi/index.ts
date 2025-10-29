@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { DomainSchema } from "@/lib/zod/schemas/domains";
 import { LinkErrorSchema, LinkSchema } from "@/lib/zod/schemas/links";
-import { TagSchema } from "@/lib/zod/schemas/tags";
+import { LinkTagSchema } from "@/lib/zod/schemas/tags";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
@@ -62,7 +62,7 @@ export const document = createDocument({
     schemas: {
       LinkSchema,
       WorkspaceSchema,
-      TagSchema,
+      LinkTagSchema,
       FolderSchema,
       DomainSchema,
       webhookEventSchema,
