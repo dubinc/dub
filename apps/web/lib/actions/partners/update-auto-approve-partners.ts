@@ -12,17 +12,17 @@ const schema = z.object({
   workspaceId: z.string(),
   autoApprovePartners: z.boolean().optional(),
   marketplaceEnabled: z.boolean().optional(),
-  category: z.nativeEnum(Category).nullish(),
+  categories: z.array(z.nativeEnum(Category)).optional(),
 });
 
 export const updateApplicationSettingsAction = authActionClient
   .schema(schema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { autoApprovePartners, marketplaceEnabled, category } = parsedInput;
+    const { autoApprovePartners, marketplaceEnabled, categories } = parsedInput;
 
-    if (marketplaceEnabled && !category)
-      throw new Error("Category is required when marketplace is enabled");
+    if (marketplaceEnabled && !categories?.length)
+      throw new Error("Categories are required when marketplace is enabled");
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -37,14 +37,10 @@ export const updateApplicationSettingsAction = authActionClient
         ...(marketplaceEnabled !== undefined && {
           marketplaceEnabledAt: marketplaceEnabled ? new Date() : null,
         }),
-        ...(category && {
+        ...(categories && {
           categories: {
             deleteMany: {},
-            create: [
-              {
-                category,
-              },
-            ],
+            create: categories.map((category) => ({ category })),
           },
         }),
       },

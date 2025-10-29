@@ -21,7 +21,7 @@ import { ProgramCategorySelect } from "../partners/program-category-select";
 type FormData = {
   autoApprovePartners: boolean;
   marketplaceEnabled: boolean;
-  category: Category | null;
+  categories: Category[];
 };
 
 function ApplicationSettingsModal({
@@ -44,7 +44,7 @@ function ApplicationSettingsModal({
     defaultValues: {
       autoApprovePartners: program?.autoApprovePartnersEnabledAt ? true : false,
       marketplaceEnabled: program?.marketplaceEnabledAt ? true : false,
-      category: program?.categories?.[0] ?? null,
+      categories: program?.categories ?? [],
     },
   });
 
@@ -170,19 +170,21 @@ function ApplicationSettingsModal({
               <div className="min-h-0">
                 <div className="pt-6">
                   <label className="block text-sm font-medium text-neutral-800">
-                    Product industry
+                    Product industries
                   </label>
                   <div className="mt-1">
                     <Controller
                       control={control}
-                      name="category"
+                      name="categories"
                       rules={{ required: marketplaceEnabled }}
                       render={({ field }) => (
                         <ProgramCategorySelect
-                          selected={(field.value as Category) ?? null}
+                          selected={field.value}
                           onChange={field.onChange}
                           buttonProps={{
-                            className: cn(errors.category && "border-red-600"),
+                            className: cn(
+                              errors.categories && "border-red-600",
+                            ),
                           }}
                         />
                       )}

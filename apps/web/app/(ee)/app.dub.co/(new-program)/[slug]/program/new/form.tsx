@@ -5,7 +5,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramData } from "@/lib/types";
 import { ProgramCategorySelect } from "@/ui/partners/program-category-select";
 import { ProgramLinkConfiguration } from "@/ui/partners/program-link-configuration";
-import { Category } from "@dub/prisma/client";
 import { Button, FileUpload, Input, useMediaQuery } from "@dub/ui";
 import { Plus } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -30,12 +29,12 @@ export function Form() {
     formState: { isSubmitting },
   } = useFormContext<ProgramData>();
 
-  const [name, url, domain, logo, category] = watch([
+  const [name, url, domain, logo, categories] = watch([
     "name",
     "url",
     "domain",
     "logo",
-    "category",
+    "categories",
   ]);
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
@@ -104,7 +103,13 @@ export function Form() {
   };
 
   const buttonDisabled =
-    isSubmitting || isPending || !name || !url || !domain || !logo || !category;
+    isSubmitting ||
+    isPending ||
+    !name ||
+    !url ||
+    !domain ||
+    !logo ||
+    !categories?.length;
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -156,16 +161,16 @@ export function Form() {
 
       <div>
         <label className="block text-sm font-medium text-neutral-800">
-          Product industry
+          Product industries
         </label>
         <div className="mt-2">
           <Controller
             control={control}
-            name="category"
+            name="categories"
             rules={{ required: true }}
             render={({ field }) => (
               <ProgramCategorySelect
-                selected={(field.value as Category) ?? null}
+                selected={field.value}
                 onChange={field.onChange}
               />
             )}
