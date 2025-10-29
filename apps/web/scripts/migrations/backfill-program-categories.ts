@@ -36,6 +36,7 @@ async function scrapeWebsite(url: string) {
       onlyMainContent: true,
       parsePDF: false,
       maxAge: 14400000, // 4 hours cache
+      excludeTags: ["img"],
     });
 
     if (!scrapeResult.success) {
@@ -64,12 +65,6 @@ async function categorizeProgram(
   try {
     const prompt = `Analyze this website and categorize it into 1-3 most relevant categories.
 
-Program Name: ${programName}
-Website URL: ${url}
-Page Title: ${title}
-Meta Description: ${description}
-Content Preview: ${content.slice(0, 2000)}...
-
 IMPORTANT: You must select categories from this EXACT list (case-sensitive):
 - Artificial_Intelligence
 - Development
@@ -96,10 +91,17 @@ Category descriptions:
 - Health: Healthcare, fitness, wellness apps, medical services
 - Consumer: General consumer products/services that don't fit other categories
 
-CRITICAL: Only use the exact category names listed above. Do not create new categories or modify existing ones. If a program could fit "Entrepreneurship" or "Business", categorize it as "Education" if it's educational content, "Finance" if it's financial services, or "Consumer" if it's general business services.`;
+CRITICAL: Only use the exact category names listed above. DO NOT create new categories or modify existing ones. Do not select "Entrepreneurship" or "Business" as a category.
+
+Website information:
+Name: ${programName}
+Website URL: ${url}
+Page Title: ${title}
+Meta Description: ${description}
+Website Content Preview: ${content.slice(0, 300)}...`;
 
     const { object } = await generateObject({
-      model: anthropic("claude-3-haiku-20240307"),
+      model: anthropic("claude-3-5-haiku-latest"),
       schema: categorizationSchema,
       prompt,
     });
