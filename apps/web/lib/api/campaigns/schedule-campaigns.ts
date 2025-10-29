@@ -22,7 +22,7 @@ export const scheduleMarketingCampaign = async ({
 
   const statusChanged =
     (campaign.status === "draft" && updatedCampaign.status === "scheduled") ||
-    (campaign.status === "scheduled" && updatedCampaign.status === "cancelled");
+    (campaign.status === "scheduled" && updatedCampaign.status === "canceled");
 
   if (!statusChanged && !scheduleChanged) {
     return;

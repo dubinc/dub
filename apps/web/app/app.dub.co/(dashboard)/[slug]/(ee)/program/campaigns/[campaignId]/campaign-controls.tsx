@@ -166,7 +166,7 @@ export function CampaignControls({ campaign }: CampaignControlsProps) {
       },
 
       [CampaignStatus.sent]: null, // No action once sent
-      [CampaignStatus.cancelled]: null, // No action once cancelled
+      [CampaignStatus.canceled]: null, // No action once canceled
     };
 
     const transactionalActionButtonMap = {

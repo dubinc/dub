@@ -1,9 +1,11 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
 import { useApiMutation } from "@/lib/swr/use-api-mutation";
+import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Campaign, UpdateCampaignFormData } from "@/lib/types";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { CampaignStatus } from "@dub/prisma/client";
+import { pluralize } from "@dub/utils";
 import { isFuture } from "date-fns";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
@@ -69,14 +71,30 @@ export function useCampaignConfirmationModals({
     confirmShortcut: "Enter",
   });
 
+  const { watch } = useCampaignFormContext();
+
+  const { totalPartners } = usePartnersCountByGroupIds({
+    groupIds: campaign.type === "marketing" ? watch("groupIds") : undefined,
+  });
+
   const {
     confirmModal: scheduleConfirmModal,
     setShowConfirmModal: setShowScheduleModal,
   } = useConfirmModal({
     title: isScheduled ? "Schedule Campaign" : "Send Campaign",
-    description: isScheduled
-      ? "Are you sure you want to schedule this email campaign? It will be automatically sent to all selected partner groups at the scheduled date and time you've set."
-      : "Are you sure you want to send this email campaign now? It will start sending immediately to all selected partner groups once published.",
+    description: (
+      <>
+        Are you sure you want to {isScheduled ? "schedule" : "send"} this email
+        campaign? It will{" "}
+        {isScheduled ? "be automatically sent" : "start sending immediately"} to{" "}
+        <strong className="text-neutral-900">
+          {totalPartners} {pluralize("partner", totalPartners)}
+        </strong>
+        {isScheduled
+          ? " at the scheduled date and time you've set."
+          : " once published."}
+      </>
+    ),
     onConfirm: async () => {
       await updateCampaign(
         {
@@ -167,11 +185,11 @@ export function useCampaignConfirmationModals({
     onConfirm: async () => {
       await updateCampaign(
         {
-          status: CampaignStatus.cancelled,
+          status: CampaignStatus.canceled,
           scheduledAt: null,
         },
         () => {
-          toast.success("Email campaign cancelled!");
+          toast.success("Email campaign canceled!");
         },
       );
     },

@@ -11,10 +11,10 @@ export const CAMPAIGN_STATUS_TRANSITIONS: Record<
 > = {
   marketing: {
     draft: ["scheduled"],
-    scheduled: ["sending", "cancelled"],
-    sending: ["sent", "cancelled"],
+    scheduled: ["sending", "canceled"],
+    sending: ["sent", "canceled"],
     sent: [],
-    cancelled: [],
+    canceled: [],
   },
   transactional: {
     draft: ["active"],
@@ -32,5 +32,5 @@ export const CAMPAIGN_EDITABLE_STATUSES: CampaignStatus[] = [
 export const CAMPAIGN_READONLY_STATUSES: CampaignStatus[] = [
   "sending",
   "sent",
-  "cancelled",
+  "canceled",
 ];

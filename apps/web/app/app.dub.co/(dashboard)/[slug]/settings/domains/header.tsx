@@ -22,11 +22,6 @@ export function DomainsHeader({
             label: "Custom domains",
             href: `/${slug}${baseUrl}`,
           },
-          {
-            id: "default",
-            label: "Default domains",
-            href: `/${slug}${baseUrl}/default`,
-          },
           ...(defaultProgramId
             ? [
                 {
@@ -36,6 +31,11 @@ export function DomainsHeader({
                 },
               ]
             : []),
+          {
+            id: "default",
+            label: "Default domains",
+            href: `/${slug}${baseUrl}/default`,
+          },
         ]}
         selected={page}
       />

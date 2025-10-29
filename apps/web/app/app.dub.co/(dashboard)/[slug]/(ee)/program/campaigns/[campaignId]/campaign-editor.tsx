@@ -18,6 +18,7 @@ import {
   SmartDateTimePicker,
   StatusBadge,
   Tooltip,
+  TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
 import { capitalize } from "@dub/utils";
@@ -73,14 +74,16 @@ const DisabledInputWrapper = ({
 const statusMessages = {
   sending: "Edits aren't allowed while sending.",
   sent: "Edits aren't allowed after sending.",
-  cancelled: "Edits aren't allowed after cancellation.",
+  canceled: "Edits aren't allowed after cancellation.",
 };
 
 export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const { program } = useProgram();
   const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
   const { emailDomains } = useEmailDomains();
-  const firstEmailDomain = emailDomains?.[0];
+  const firstVerifiedEmailDomain = emailDomains?.find(
+    (domain) => domain.status === "verified",
+  );
 
   const isActive = campaign.status === CampaignStatus.active;
   const isReadOnly = CAMPAIGN_READONLY_STATUSES.includes(campaign.status);
@@ -295,19 +298,24 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                 name="from"
                 render={({ field }) => {
                   const localPart = field.value?.split("@")[0] || "";
-                  const domainSuffix = firstEmailDomain?.slug
-                    ? `@${firstEmailDomain.slug}`
+                  const domainSuffix = firstVerifiedEmailDomain?.slug
+                    ? `@${firstVerifiedEmailDomain.slug}`
                     : "";
-                  const isDisabled = isReadOnly || !firstEmailDomain;
+                  const isDisabled = isReadOnly || !firstVerifiedEmailDomain;
 
                   return (
                     <DisabledInputWrapper
                       tooltip={
-                        isReadOnly
-                          ? statusMessages[campaign.status]
-                          : !firstEmailDomain
-                            ? "No email domain configured"
-                            : ""
+                        isReadOnly ? (
+                          statusMessages[campaign.status]
+                        ) : !firstVerifiedEmailDomain ? (
+                          <TooltipContent
+                            title="You haven't configured an email domain yet. Please configure an email domain to enable campaign sending."
+                            cta="Configure email domain"
+                            href={`/${workspaceSlug}/settings/domains/email`}
+                            target="_blank"
+                          />
+                        ) : undefined
                       }
                       disabled={isDisabled}
                       hideIcon={true}
@@ -318,19 +326,19 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                         <input
                           type="text"
                           placeholder="Address"
-                          className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-content-default placeholder:text-content-muted focus:outline-none focus:ring-0"
+                          className="text-content-default placeholder:text-content-muted min-w-0 flex-1 border-0 bg-transparent p-0 text-sm focus:outline-none focus:ring-0"
                           disabled={isDisabled}
                           value={localPart}
                           onChange={(e) => {
                             const newLocalPart = e.target.value;
-                            if (firstEmailDomain?.slug) {
+                            if (firstVerifiedEmailDomain?.slug) {
                               field.onChange(
-                                `${newLocalPart}@${firstEmailDomain.slug}`,
+                                `${newLocalPart}@${firstVerifiedEmailDomain.slug}`,
                               );
                             }
                           }}
                         />
-                        <span className="shrink-0 text-sm text-content-muted">
+                        <span className="text-content-muted shrink-0 text-sm">
                           {domainSuffix}
                         </span>
                       </div>

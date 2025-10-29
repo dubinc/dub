@@ -14,7 +14,7 @@ enum CampaignStatus {
   scheduled
   sending
   sent
-  cancelled
+  canceled
 }
 
 model Campaign {
