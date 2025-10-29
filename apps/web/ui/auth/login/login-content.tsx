@@ -6,6 +6,7 @@ import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
 import Link from 'next/link';
 
+
 type LoginContentProps = {
   sessionId: string;
   authModal?: boolean;
