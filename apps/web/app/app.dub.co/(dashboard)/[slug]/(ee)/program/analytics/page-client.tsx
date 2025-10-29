@@ -71,8 +71,6 @@ export function ProgramAnalyticsPageClient() {
   const {
     filters,
     activeFilters,
-    setSearch,
-    setSelectedFilter,
     onSelect,
     onRemove,
     onRemoveAll,
@@ -97,8 +95,6 @@ export function ProgramAnalyticsPageClient() {
             className="w-full md:w-fit"
             filters={filters}
             activeFilters={activeFilters}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
             onSelect={onSelect}
             onRemove={onRemove}
             onOpenFilter={onOpenFilter}

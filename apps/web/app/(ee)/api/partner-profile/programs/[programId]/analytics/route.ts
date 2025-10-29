@@ -45,6 +45,7 @@ export const GET = withPartnerProfile(
       ...(program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X"
         ? { event: rest.event, groupBy: "count", interval: "all" }
         : rest),
+      workspaceId: program.workspaceId,
       ...(linkId ? { linkId } : { linkIds: links.map((link) => link.id) }),
       dataAvailableFrom: program.startedAt ?? program.createdAt,
     });

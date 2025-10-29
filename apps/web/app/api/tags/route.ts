@@ -2,7 +2,7 @@ import { createId } from "@/lib/api/create-id";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { withWorkspace } from "@/lib/auth";
 import {
-  TagSchema,
+  LinkTagSchema,
   createTagBodySchema,
   getTagsQuerySchemaExtended,
 } from "@/lib/zod/schemas/tags";
@@ -108,7 +108,7 @@ export const POST = withWorkspace(
       },
     });
 
-    return NextResponse.json(TagSchema.parse(response), {
+    return NextResponse.json(LinkTagSchema.parse(response), {
       headers,
       status: 201,
     });
