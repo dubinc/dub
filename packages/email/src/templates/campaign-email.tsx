@@ -111,12 +111,13 @@ export default function CampaignEmail({
               <Section className="border-t border-neutral-200">
                 <Hr className="mx-0 my-3 w-full border border-neutral-200" />
                 <Text className="text-[12px] leading-6 text-neutral-500">
-                  Don't want to get marketing emails from {program.name}?{" "}
+                  Don't want to receive marketing emails from any programs on
+                  Dub?{" "}
                   <Link
                     className="text-neutral-700 underline"
                     href="https://partners.dub.co/profile/notifications"
                   >
-                    Unsubscribe here.
+                    Update your notification settings here.
                   </Link>
                 </Text>
               </Section>

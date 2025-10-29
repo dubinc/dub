@@ -21,12 +21,12 @@ export function useCampaignConfirmationModals({
 }: UseCampaignConfirmationModalsProps) {
   const router = useRouter();
   const { slug: workspaceSlug } = useWorkspace();
-  const { getValues } = useCampaignFormContext();
+  const { watch, getValues } = useCampaignFormContext();
 
   const { makeRequest, isSubmitting: isUpdatingCampaign } =
     useApiMutation<Campaign>();
 
-  const { scheduledAt } = getValues();
+  const scheduledAt = watch("scheduledAt");
   const isScheduled = scheduledAt && isFuture(new Date(scheduledAt));
 
   const updateCampaign = useCallback(
@@ -71,8 +71,6 @@ export function useCampaignConfirmationModals({
     confirmShortcut: "Enter",
   });
 
-  const { watch } = useCampaignFormContext();
-
   const { totalPartners } = usePartnersCountByGroupIds({
     groupIds: campaign.type === "marketing" ? watch("groupIds") : undefined,
   });
@@ -107,7 +105,7 @@ export function useCampaignConfirmationModals({
         },
       );
     },
-    confirmText: isScheduled ? "Schedule" : "Send",
+    confirmText: `${isScheduled ? "Schedule" : "Send"} to ${totalPartners} ${pluralize("partner", totalPartners)}`,
     confirmShortcut: "Enter",
   });
 
