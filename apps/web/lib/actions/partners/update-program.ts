@@ -51,12 +51,18 @@ export const updateProgramAction = authActionClient
     const [logoUrl, wordmarkUrl] = await Promise.all([
       logo && !isStored(logo)
         ? storage
-            .upload(`programs/${programId}/logo_${nanoid(7)}`, logo)
+            .upload({
+              key: `programs/${programId}/logo_${nanoid(7)}`,
+              body: logo,
+            })
             .then(({ url }) => url)
         : null,
       wordmark && !isStored(wordmark)
         ? storage
-            .upload(`programs/${programId}/wordmark_${nanoid(7)}`, wordmark)
+            .upload({
+              key: `programs/${programId}/wordmark_${nanoid(7)}`,
+              body: wordmark,
+            })
             .then(({ url }) => url)
         : null,
     ]);
@@ -89,7 +95,11 @@ export const updateProgramAction = authActionClient
           ? [storage.delete({ key: program.logo.replace(`${R2_URL}/`, "") })]
           : []),
         ...(wordmarkUrl && program.wordmark
-          ? [storage.delete({ key: program.wordmark.replace(`${R2_URL}/`, "") })]
+          ? [
+              storage.delete({
+                key: program.wordmark.replace(`${R2_URL}/`, ""),
+              }),
+            ]
           : []),
 
         /*

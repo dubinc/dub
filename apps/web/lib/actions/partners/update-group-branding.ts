@@ -58,12 +58,18 @@ export const updateGroupBrandingAction = authActionClient
     const [logoUrl, wordmarkUrl] = await Promise.all([
       logoUpdated
         ? storage
-            .upload(`programs/${programId}/logo_${nanoid(7)}`, logo)
+            .upload({
+              key: `programs/${programId}/logo_${nanoid(7)}`,
+              body: logo,
+            })
             .then(({ url }) => url)
         : null,
       wordmarkUpdated
         ? storage
-            .upload(`programs/${programId}/wordmark_${nanoid(7)}`, wordmark)
+            .upload({
+              key: `programs/${programId}/wordmark_${nanoid(7)}`,
+              body: wordmark,
+            })
             .then(({ url }) => url)
         : null,
     ]);

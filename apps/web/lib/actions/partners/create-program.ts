@@ -58,7 +58,10 @@ export const createProgram = async ({
 
   const logoUrl = uploadedLogo
     ? await storage
-        .upload(`programs/${programId}/logo_${nanoid(7)}`, uploadedLogo)
+        .upload({
+          key: `programs/${programId}/logo_${nanoid(7)}`,
+          body: uploadedLogo,
+        })
         .then(({ url }) => url)
     : null;
 
