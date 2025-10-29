@@ -1,14 +1,9 @@
 import { generateFilters } from "@/lib/ai/generate-filters";
 import { VALID_ANALYTICS_FILTERS } from "@/lib/analytics/constants";
 import useCustomer from "@/lib/swr/use-customer";
-import useDomains from "@/lib/swr/use-domains";
-import useDomainsCount from "@/lib/swr/use-domains-count";
 import usePartner from "@/lib/swr/use-partner";
 import usePartnerCustomer from "@/lib/swr/use-partner-customer";
-import useTagsCount from "@/lib/swr/use-tags-count";
 import { LinkProps } from "@/lib/types";
-import { DOMAINS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/domains";
-import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import {
   BlurImage,
   Filter,
@@ -64,7 +59,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useDebounce } from "use-debounce";
 import { FolderIcon } from "../folders/folder-icon";
 import { LinkIcon } from "../links/link-icon";
 import TagBadge from "../links/tag-badge";
@@ -101,28 +95,6 @@ export function useAnalyticsFilters({
   const { slug, programSlug } = useParams();
 
   const { queryParams, searchParamsObj } = useRouterStuff();
-
-  // Determine whether filters should be fetched async
-  const { data: tagsCount } = useTagsCount();
-  const { data: domainsCount } = useDomainsCount({ ignoreParams: true });
-  const tagsAsync = Boolean(tagsCount && tagsCount > TAGS_MAX_PAGE_SIZE);
-  const domainsAsync = domainsCount && domainsCount > DOMAINS_MAX_PAGE_SIZE;
-
-  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch] = useDebounce(search, 500);
-
-  const {
-    allDomains: domains,
-    primaryDomain,
-    loading: loadingDomains,
-  } = useDomains({
-    ignoreParams: true,
-    opts: {
-      search:
-        domainsAsync && selectedFilter === "domain" ? debouncedSearch : "",
-    },
-  });
 
   const selectedTagIds = useMemo(
     () => searchParamsObj.tagIds?.split(",")?.filter(Boolean) ?? [],
@@ -223,8 +195,8 @@ export function useAnalyticsFilters({
     omitGroupByFilterKey: true,
     context,
   });
-  const { data: partners } = useAnalyticsFilterOption("top_partners", {
-    disabled: !isRequested("partnerId"),
+  const { data: folders } = useAnalyticsFilterOption("top_folders", {
+    disabled: !isRequested("folderId"),
     omitGroupByFilterKey: true,
     context,
   });
@@ -233,8 +205,13 @@ export function useAnalyticsFilters({
     omitGroupByFilterKey: true,
     context,
   });
-  const { data: linkFolders } = useAnalyticsFilterOption("top_link_folders", {
-    disabled: !isRequested("folderId"),
+  const { data: domains } = useAnalyticsFilterOption("top_domains", {
+    disabled: !isRequested("domain"),
+    omitGroupByFilterKey: true,
+    context,
+  });
+  const { data: partners } = useAnalyticsFilterOption("top_partners", {
+    disabled: !isRequested("partnerId"),
     omitGroupByFilterKey: true,
     context,
   });
@@ -339,14 +316,6 @@ export function useAnalyticsFilters({
   // Some suggestions will only appear if previously requested (see isRequested above)
   const aiFilterSuggestions = useMemo(
     () => [
-      ...(dashboardProps || partnerPage
-        ? []
-        : [
-            {
-              value: `Clicks on ${primaryDomain} domain this year`,
-              icon: Globe2,
-            },
-          ]),
       {
         value: "Mobile users, US only",
         icon: MobilePhone,
@@ -364,7 +333,7 @@ export function useAnalyticsFilters({
         icon: QRCode,
       },
     ],
-    [primaryDomain, dashboardProps, partnerPage],
+    [dashboardProps, partnerPage],
   );
 
   const [streaming, setStreaming] = useState<boolean>(false);
@@ -473,7 +442,7 @@ export function useAnalyticsFilters({
                     ) : null;
                   },
                   options:
-                    linkFolders?.map(({ folder, ...rest }) => ({
+                    folders?.map(({ folder, ...rest }) => ({
                       value: folder.id,
                       icon: (
                         <FolderIcon
@@ -492,7 +461,6 @@ export function useAnalyticsFilters({
                   icon: Tag,
                   label: "Tag",
                   multiple: true,
-                  shouldFilter: !tagsAsync,
                   getOptionIcon: (_value, props) => {
                     const tagColor = props.option?.data?.color;
                     return tagColor ? (
@@ -514,7 +482,6 @@ export function useAnalyticsFilters({
                   key: "domain",
                   icon: Globe2,
                   label: "Domain",
-                  shouldFilter: !domainsAsync,
                   getOptionIcon: (value) => (
                     <BlurImage
                       src={`${GOOGLE_FAVICON_URL}${value}`}
@@ -524,25 +491,12 @@ export function useAnalyticsFilters({
                       height={16}
                     />
                   ),
-                  options: loadingDomains
-                    ? null
-                    : [
-                        ...domains.map((domain) => ({
-                          value: domain.slug,
-                          label: domain.slug,
-                        })),
-                        // Add currently filtered domain if not already in the list
-                        ...(!searchParamsObj.domain ||
-                        domains.some((d) => d.slug === searchParamsObj.domain)
-                          ? []
-                          : [
-                              {
-                                value: searchParamsObj.domain,
-                                label: searchParamsObj.domain,
-                                hideDuringSearch: true,
-                              },
-                            ]),
-                      ],
+                  options:
+                    domains?.map(({ domain, ...rest }) => ({
+                      value: domain,
+                      label: domain,
+                      right: getFilterOptionTotal(rest),
+                    })) ?? null,
                 },
                 LinkFilterItem,
                 {
@@ -823,7 +777,7 @@ export function useAnalyticsFilters({
       domains,
       links,
       linkTags,
-      linkFolders,
+      folders,
       selectedTagIds,
       selectedCustomerId,
       countries,
@@ -835,9 +789,6 @@ export function useAnalyticsFilters({
       refererUrls,
       urls,
       utmData,
-      tagsAsync,
-      domainsAsync,
-      loadingDomains,
       searchParamsObj.tagIds,
       searchParamsObj.domain,
     ],
@@ -943,8 +894,6 @@ export function useAnalyticsFilters({
   return {
     filters,
     activeFilters,
-    setSearch,
-    setSelectedFilter,
     onSelect,
     onRemove,
     onRemoveAll,

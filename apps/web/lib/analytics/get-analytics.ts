@@ -115,7 +115,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const pipe = tb.buildPipe({
     pipe: ["count", "timeseries"].includes(groupBy)
       ? `v3_${groupBy}`
-      : ["top_partners", "top_link_tags", "top_link_folders"].includes(groupBy)
+      : [
+            "top_folders",
+            "top_link_tags",
+            "top_domains",
+            "top_partners",
+          ].includes(groupBy)
         ? "v3_group_by_link_metadata"
         : "v3_group_by",
     parameters: analyticsFilterTB,
@@ -255,7 +260,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
         });
       })
       .filter((d) => d !== null);
-  } else if (groupBy === "top_link_folders") {
+  } else if (groupBy === "top_folders") {
     const folders = await prisma.folder.findMany({
       where: {
         id: {
