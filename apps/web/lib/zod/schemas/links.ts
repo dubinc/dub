@@ -188,70 +188,70 @@ export const exportLinksColumns = [
     id: "link",
     label: "Short link",
     default: true,
-    parse: (value: unknown) => String(value ?? ""),
+    transform: (value: unknown) => String(value ?? ""),
   },
   {
     id: "url",
     label: "Destination URL",
     default: true,
-    parse: (value: unknown) => String(value ?? ""),
+    transform: (value: unknown) => String(value ?? ""),
   },
   {
     id: "clicks",
     label: "Clicks",
     default: true,
-    parse: (value: unknown) => Number(value ?? 0),
+    transform: (value: unknown) => Number(value ?? 0),
   },
   {
     id: "leads",
     label: "Leads",
     default: false,
-    parse: (value: unknown) => Number(value ?? 0),
+    transform: (value: unknown) => Number(value ?? 0),
   },
   {
     id: "conversions",
     label: "Conversions",
     default: false,
-    parse: (value: unknown) => Number(value ?? 0),
+    transform: (value: unknown) => Number(value ?? 0),
   },
   {
     id: "saleAmount",
     label: "Revenue",
     default: false,
-    parse: (value: unknown) => Number(value ?? 0),
+    transform: (value: unknown) => Number(value ?? 0),
   },
   {
     id: "createdAt",
     label: "Created at",
     default: true,
-    parse: (value: unknown) =>
+    transform: (value: unknown) =>
       value instanceof Date ? value.toISOString() : "",
   },
   {
     id: "id",
     label: "Link ID",
     default: false,
-    parse: (value: unknown) => String(value ?? ""),
+    transform: (value: unknown) => String(value ?? ""),
   },
   {
     id: "updatedAt",
     label: "Updated at",
     default: false,
-    parse: (value: unknown) =>
+    transform: (value: unknown) =>
       value instanceof Date ? value.toISOString() : "",
   },
   {
     id: "tags",
     label: "Tags",
     default: false,
-    parse: (value: unknown) =>
+    transform: (value: unknown) =>
       Array.isArray(value) ? value.join(", ") : String(value ?? ""),
   },
   {
     id: "archived",
     label: "Archived",
     default: false,
-    parse: (value: unknown) => (value === 1 ? "Yes" : "No"),
+    transform: (value: unknown) => (value === 1 ? "Yes" : "No"),
   },
 ] as const;
 

@@ -10,7 +10,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { WorkspaceProps } from "@/lib/types";
 import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
 import { sendEmail } from "@dub/email";
-import ExportReady from "@dub/email/templates/partner-export-ready";
+import ExportReady from "@dub/email/templates/export-ready";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";

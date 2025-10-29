@@ -2,20 +2,12 @@ import { exportLinksColumns } from "@/lib/zod/schemas/links";
 import { linkConstructor } from "@dub/utils";
 import { transformLink } from "./utils";
 
-const columnIdToLabel = exportLinksColumns.reduce(
-  (acc, column) => {
-    acc[column.id] = column.label;
-    return acc;
-  },
-  {} as Record<string, string>,
-);
-
-const columnOrderMap = exportLinksColumns.reduce(
+const columnMap = exportLinksColumns.reduce(
   (acc, column, index) => {
-    acc[column.id] = index + 1;
+    acc[column.id] = { ...column, order: index + 1 };
     return acc;
   },
-  {} as Record<string, number>,
+  {} as Record<string, (typeof exportLinksColumns)[number] & { order: number }>,
 );
 
 export function formatLinksForExport(
@@ -28,7 +20,7 @@ export function formatLinksForExport(
   );
 
   const sortedColumns = columns.sort(
-    (a, b) => (columnOrderMap[a] || 999) - (columnOrderMap[b] || 999),
+    (a, b) => (columnMap[a]?.order || 999) - (columnMap[b]?.order || 999),
   );
 
   // Format each link
@@ -47,12 +39,12 @@ export function formatLinksForExport(
         value = link[column];
       }
 
-      const parseFn = exportLinksColumns.find((c) => c.id === column)?.parse;
+      const { label, transform } = columnMap[column];
 
-      if (parseFn) {
-        result[columnIdToLabel[column]] = parseFn(value);
+      if (transform) {
+        result[label] = transform(value);
       } else {
-        result[columnIdToLabel[column]] = value;
+        result[label] = value;
       }
     });
 
