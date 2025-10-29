@@ -73,9 +73,7 @@ export async function POST(req: Request) {
     };
 
     for await (const { partners } of fetchPartnersBatch(partnersFilters)) {
-      const formattedBatch = formatPartnersForExport(partners, columns);
-
-      allPartners.push(...formattedBatch);
+      allPartners.push(...formatPartnersForExport(partners, columns));
     }
 
     const csvData = convertToCSV(allPartners);

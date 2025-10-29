@@ -75,9 +75,7 @@ export async function POST(req: Request) {
     for await (const { commissions } of fetchCommissionsBatch(
       commissionsFilters,
     )) {
-      const formattedBatch = formatCommissionsForExport(commissions, columns);
-
-      allCommissions.push(...formattedBatch);
+      allCommissions.push(...formatCommissionsForExport(commissions, columns));
     }
 
     const csvData = convertToCSV(allCommissions);

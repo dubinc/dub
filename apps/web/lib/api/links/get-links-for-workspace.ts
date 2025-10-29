@@ -5,6 +5,14 @@ import { combineTagIds } from "../tags/combine-tag-ids";
 import { encodeKeyIfCaseSensitive } from "./case-sensitivity";
 import { transformLink } from "./utils";
 
+export interface GetLinksForWorkspaceProps
+  extends z.infer<typeof getLinksQuerySchemaExtended> {
+  workspaceId: string;
+  folderIds?: string[];
+  startDate?: Date;
+  endDate?: Date;
+}
+
 export async function getLinksForWorkspace({
   workspaceId,
   domain,
@@ -31,12 +39,7 @@ export async function getLinksForWorkspace({
   partnerId,
   startDate,
   endDate,
-}: z.infer<typeof getLinksQuerySchemaExtended> & {
-  workspaceId: string;
-  folderIds?: string[];
-  startDate?: Date;
-  endDate?: Date;
-}) {
+}: GetLinksForWorkspaceProps) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   // support legacy sort param
