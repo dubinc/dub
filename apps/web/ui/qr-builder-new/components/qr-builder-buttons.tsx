@@ -3,6 +3,8 @@ import { cn } from "@dub/utils";
 import { Flex, Responsive } from "@radix-ui/themes";
 import { ChevronLeft, Loader2 } from "lucide-react";
 import { FC, useCallback } from "react";
+import QRCodeStyling from "qr-code-styling";
+import { DownloadButton } from "./download-button";
 
 interface IQrBuilderButtonsProps {
   step: number;
@@ -20,6 +22,8 @@ interface IQrBuilderButtonsProps {
   currentFormValues?: Record<string, any>;
   logoData?: { type: string; fileId?: string; file?: File };
   isFormValid?: boolean;
+  qrCode?: QRCodeStyling | null;
+  isMobile?: boolean;
 }
 
 export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
@@ -38,6 +42,8 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   currentFormValues = {},
   logoData,
   isFormValid = true,
+  qrCode = null,
+  isMobile = false,
 }) => {
   const isLastStep = step === maxStep;
   const isContentStep = step === 2;
@@ -60,6 +66,9 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
 
   const isLoading = isProcessing || isFileUploading || isFileProcessing;
 
+  // Show download button on customization step (step 3) on mobile
+  const showDownloadOnCustomizationStep = isCustomizationStep && isMobile && qrCode;
+
   return (
     <Flex
       justify="between"
@@ -71,11 +80,12 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         variant="outline"
         size="lg"
         className={cn(
-          "border-secondary text-secondary hover:bg-secondary/10 flex min-w-0 shrink gap-2",
+          "border-secondary text-secondary hover:bg-secondary/10 flex min-w-0 shrink gap-1 md:gap-2",
           {
             "border-neutral-400 text-neutral-400": isProcessing,
-            "w-full": isLastStep,
-            "basis-1/4": !isLastStep,
+            "w-full": isLastStep && !showDownloadOnCustomizationStep,
+            "basis-1/3": showDownloadOnCustomizationStep,
+            "basis-1/4": !isLastStep && !showDownloadOnCustomizationStep,
           },
         )}
         disabled={step <= minStep || isProcessing}
@@ -86,8 +96,14 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
             "text-neutral-400": isProcessing,
           })}
         />
-        <span className="hidden md:inline">Back</span>
+        <span>Back</span>
       </Button>
+
+      {showDownloadOnCustomizationStep && (
+        <div className="flex-1">
+          <DownloadButton qrCode={qrCode} disabled={false} />
+        </div>
+      )}
 
       {!isLastStep ? (
         <Button

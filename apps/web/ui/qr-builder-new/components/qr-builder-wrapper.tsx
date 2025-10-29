@@ -4,6 +4,7 @@ import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
 import { QrBuilderButtons } from "./qr-builder-buttons";
 import { useMediaQuery } from "@dub/ui";
+import { useQRCodeStyling } from "../hooks/use-qr-code-styling";
 
 export const QRBuilderWrapper = () => {
   const {
@@ -29,6 +30,12 @@ export const QRBuilderWrapper = () => {
   // Show decorative border and blobs only on steps 2 and 3
   const showDecorations = isContentStep || isCustomizationStep;
 
+  // QR code instance for mobile download button on step 2
+  const qrCode = useQRCodeStyling({
+    customizationData,
+    defaultData: "https://getqr.com/qr-complete-setup",
+  });
+
   return (
     <motion.div
       ref={qrBuilderContentWrapperRef}
@@ -45,8 +52,8 @@ export const QRBuilderWrapper = () => {
           "border-border-500 rounded-[20px] border bg-white shadow-lg",
       )}
     >
-      {/* Decorative blobs - only on steps 2 and 3 */}
-      {showDecorations && (
+      {/* Decorative blobs - only on steps 2 and 3, hidden on mobile */}
+      {showDecorations && !isMobile && (
         <>
           <div className="bg-primary/10 absolute -right-20 -top-20 h-72 w-72 animate-pulse rounded-full blur-3xl" />
           <div className="bg-secondary/10 absolute -bottom-20 -left-20 h-72 w-72 animate-pulse rounded-full blur-3xl delay-700" />
@@ -78,6 +85,8 @@ export const QRBuilderWrapper = () => {
             currentFormValues={currentFormValues}
             logoData={customizationData.logo}
             isFormValid={isFormValid}
+            qrCode={qrCode}
+            isMobile={isMobile}
           />
         </div>
       )}

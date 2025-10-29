@@ -43,6 +43,7 @@ export default function Stepper({
                   variant="ghost"
                   className={cn(
                     "h-auto flex-shrink-0 gap-2 rounded !bg-transparent p-0 transition-all disabled:opacity-100",
+                    "flex-col items-center md:flex-row md:items-center",
                     isActive && "cursor-pointer hover:scale-105",
                     !isClickable && "cursor-default",
                   )}
@@ -69,18 +70,28 @@ export default function Stepper({
                       )}
                     </AvatarFallback>
                   </Avatar>
-                  <div className="hidden flex-col items-start md:flex">
+                  <div className="flex flex-col items-center md:items-start">
                     <span
-                      className={cn("text-sm font-medium", {
+                      className={cn("text-xs font-medium md:hidden", {
                         "text-foreground": isActive,
                         "text-muted-foreground opacity-50": !isActive,
                       })}
                     >
-                      Step {step.number}
-                    </span>
-                    <span className="text-muted-foreground text-xs">
                       {step.label}
                     </span>
+                    <div className="hidden flex-col items-start md:flex">
+                      <span
+                        className={cn("text-sm font-medium", {
+                          "text-foreground": isActive,
+                          "text-muted-foreground opacity-50": !isActive,
+                        })}
+                      >
+                        Step {step.number}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {step.label}
+                      </span>
+                    </div>
                   </div>
                 </Button>
               </li>

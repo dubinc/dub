@@ -66,18 +66,26 @@ export const QRBuilderInner = () => {
   }, [qrCodeDemo, currentQRType, currentFormValues]);
 
   return (
-    <Flex
-      direction={{ initial: "column-reverse", md: "row" }}
-      gap={{ initial: "4", md: "6" }}
-      className="items-stretch"
-    >
-      <div className="flex w-full flex-col gap-4 justify-between">
-        <div className="flex w-full flex-col items-start justify-start gap-4">
-          {!isTypeStep && (
-            <div className="w-full">
-              <QRBuilderSteps />
-            </div>
-          )}
+    <>
+      {/* Mobile stepper at the very top */}
+      {!isTypeStep && isMobile && (
+        <div className="w-full pb-4">
+          <QRBuilderSteps />
+        </div>
+      )}
+
+      <Flex
+        direction={{ initial: "column-reverse", md: "row" }}
+        gap={{ initial: "4", md: "6" }}
+        className="items-stretch"
+      >
+        <div className="flex w-full flex-col gap-4 justify-between">
+          <div className="flex w-full flex-col items-start justify-start gap-4">
+            {!isTypeStep && !isMobile && (
+              <div className="w-full">
+                <QRBuilderSteps />
+              </div>
+            )}
 
           {isTypeStep && (
             <Flex
@@ -195,5 +203,6 @@ export const QRBuilderInner = () => {
         )}
       </div>
     </Flex>
+    </>
   );
 };

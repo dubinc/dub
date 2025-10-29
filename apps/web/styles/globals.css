@@ -275,6 +275,7 @@ html body [data-radix-drawer-content]:focus {
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden;
   }
 }
 
