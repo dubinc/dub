@@ -47,10 +47,10 @@ export function formatLinksForExport(
         value = link[column];
       }
 
-      const parseFn = exportLinksColumns.find((c) => c.id === column);
+      const parseFn = exportLinksColumns.find((c) => c.id === column)?.parse;
 
       if (parseFn) {
-        result[columnIdToLabel[column]] = parseFn.parse(value);
+        result[columnIdToLabel[column]] = parseFn(value);
       } else {
         result[columnIdToLabel[column]] = value;
       }
