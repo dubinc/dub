@@ -1,5 +1,5 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
-import { createTagBodySchema, TagSchema } from "@/lib/zod/schemas/tags";
+import { createTagBodySchema, LinkTagSchema } from "@/lib/zod/schemas/tags";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const createTag: ZodOpenApiOperationObject = {
@@ -19,7 +19,7 @@ export const createTag: ZodOpenApiOperationObject = {
       description: "The created tag",
       content: {
         "application/json": {
-          schema: TagSchema,
+          schema: LinkTagSchema,
         },
       },
     },
