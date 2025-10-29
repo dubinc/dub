@@ -31,6 +31,7 @@ const tableCellClassName = (columnId: string, clickable?: boolean) =>
     "py-2.5 text-left text-sm leading-6 whitespace-nowrap border-border-subtle px-4 relative",
     "border-l border-b",
     columnId === "select" && "py-0 pr-0 pl-2",
+    columnId === "menu" && "bg-bg-default border-l-transparent py-0 px-1",
     clickable && "group-hover/row:bg-bg-muted transition-colors duration-75",
     "group-data-[selected=true]/row:bg-blue-50",
   ]);
@@ -666,7 +667,7 @@ const getCommonPinningClassNames = (
 ): string => {
   const isPinned = column.getIsPinned();
   return cn(
-    isPinned && "bg-bg-default border-l-transparent py-0 px-1",
+    isPinned && "bg-bg-default py-0",
     isPinned &&
       !isLastRow &&
       "animate-table-pinned-shadow [animation-timeline:scroll(inline)]",
