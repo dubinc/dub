@@ -21,6 +21,9 @@ export const updateApplicationSettingsAction = authActionClient
     const { workspace, user } = ctx;
     const { autoApprovePartners, marketplaceEnabled, category } = parsedInput;
 
+    if (marketplaceEnabled && !category)
+      throw new Error("Category is required when marketplace is enabled");
+
     const programId = getDefaultProgramIdOrThrow(workspace);
 
     const program = await prisma.program.update({

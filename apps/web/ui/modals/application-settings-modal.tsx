@@ -39,7 +39,7 @@ function ApplicationSettingsModal({
     control,
     handleSubmit,
     setError,
-    formState: { isSubmitting },
+    formState: { errors, isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
       autoApprovePartners: program?.autoApprovePartnersEnabledAt ? true : false,
@@ -165,6 +165,7 @@ function ApplicationSettingsModal({
                   ? "grid-rows-[1fr]"
                   : "grid-rows-[0fr] opacity-0",
               )}
+              inert={!marketplaceEnabled}
             >
               <div className="min-h-0">
                 <div className="pt-6">
@@ -175,10 +176,14 @@ function ApplicationSettingsModal({
                     <Controller
                       control={control}
                       name="category"
+                      rules={{ required: marketplaceEnabled }}
                       render={({ field }) => (
                         <ProgramCategorySelect
                           selected={(field.value as Category) ?? null}
                           onChange={field.onChange}
+                          buttonProps={{
+                            className: cn(errors.category && "border-red-600"),
+                          }}
                         />
                       )}
                     />
