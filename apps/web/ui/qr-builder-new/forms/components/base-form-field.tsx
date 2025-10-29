@@ -55,10 +55,8 @@ export const BaseFormField = ({
 
   const { control, register, setValue, trigger } = useFormContext();
 
-  // Check if this field is a URL field (by name or type)
   const isUrlField = type === "url" || name.toLowerCase().includes("link") || name.toLowerCase().includes("url");
 
-  // Function to handle adding https:// prefix for URL inputs
   const handleUrlBlur = async (
     e: React.FocusEvent<HTMLInputElement>,
     onChange: (value: string) => void,
@@ -104,12 +102,19 @@ export const BaseFormField = ({
   }
 
   return (
-    <div className={cn("flex w-full flex-col gap-2 p-2", className)}>
+    <div className={cn("flex w-full flex-col gap-2 p-3", className)}>
       <label className="text-neutral text-sm font-medium">
         {label}
         {required && <span className="ml-1 text-red-500">*</span>}
       </label>
-      <InputGroup>
+      <InputGroup
+        className={cn(
+          "has-[[data-slot=input-group-control]:focus-visible]:border-secondary",
+          {
+            "border-red-500": error,
+          }
+        )}
+      >
         {type === "textarea" ? (
           <Controller
             name={name}

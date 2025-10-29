@@ -19,7 +19,6 @@ export const LEGAL_LINKS = [
     text: "Refund Policy",
     page_name_code: "refund_policy",
   },
-  { href: "/bill", text: "Billing", page_name_code: "billing" },
 ];
 
 export const GENERAL_LINKS = [

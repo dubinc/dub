@@ -1,12 +1,11 @@
 "use client";
 
+import { AvatarGroup } from "@/components/ui/avatar-group";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MotionPreset } from "@/components/ui/motion-preset";
-import { AvatarGroup } from "@/components/ui/avatar-group";
 import WebsiteQR from "@/ui/landing/assets/png/get-qr-website-full.png";
 import WhatsappQR from "@/ui/landing/assets/png/get-qr-whatsapp-full.png";
-import { SectionTitle } from "@/ui/landing/components/section-title";
 import { ArrowRight, Sparkles, Zap } from "lucide-react";
 import Image from "next/image";
 import { FC } from "react";
@@ -122,11 +121,7 @@ export const CTASection: FC<ICTASectionProps> = ({
                 delay={0.2}
                 transition={{ duration: 0.5 }}
               >
-                Start generating professional, trackable QR codes in seconds.
-                <br />
-                <span className="text-primary font-semibold">
-                  No credit card required.
-                </span>
+                Start generating professional, trackable QR codes in seconds
               </MotionPreset>
 
               <MotionPreset
@@ -138,7 +133,7 @@ export const CTASection: FC<ICTASectionProps> = ({
               >
                 <div className="flex flex-col items-center gap-3 pt-2 sm:flex-row sm:items-start">
                   <Button
-                    className="bg-primary hover:bg-primary/90 group/btn font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                    className="bg-secondary hover:bg-secondary/90 group/btn font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
                     size="lg"
                     onClick={() => handleScrollButtonClick("2")}
                   >
