@@ -83,10 +83,10 @@ export const PATCH = withWorkspace(
 
       // Logo has been changed
       if (logoUpdated) {
-        const result = await storage.upload(
-          `integrations/${params.appId}_${nanoid(7)}`,
-          logo,
-        );
+        const result = await storage.upload({
+          key: `integrations/${params.appId}_${nanoid(7)}`,
+          body: logo,
+        });
 
         logoUrl = result.url;
       }

@@ -100,10 +100,10 @@ export const PATCH = withWorkspace(
       : undefined;
 
     const logoUploaded = logo
-      ? await storage.upload(
-          `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
-          logo,
-        )
+      ? await storage.upload({
+          key: `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     if (enforceSAML) {

@@ -124,7 +124,10 @@ export const PATCH = withWorkspace(
     }
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")

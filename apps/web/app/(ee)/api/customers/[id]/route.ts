@@ -97,14 +97,14 @@ export const PATCH = withWorkspace(
       if (avatar && !isStored(avatar) && finalCustomerAvatar) {
         waitUntil(
           Promise.allSettled([
-            storage.upload(
-              finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-              avatar,
-              {
+            storage.upload({
+              key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+              body: avatar,
+              opts: {
                 width: 128,
                 height: 128,
               },
-            ),
+            }),
             oldCustomerAvatar &&
               isStored(oldCustomerAvatar) &&
               storage.delete(oldCustomerAvatar.replace(`${R2_URL}/`, "")),

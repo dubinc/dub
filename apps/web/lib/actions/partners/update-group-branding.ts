@@ -233,10 +233,10 @@ async function uploadLanderDataImages({
     foreignImageUrls.map(async (url) => ({
       url,
       uploadedUrl: (
-        await storage.upload(
-          `programs/${programId}/lander/image_${nanoid(7)}`,
-          url,
-        )
+        await storage.upload({
+          key: `programs/${programId}/lander/image_${nanoid(7)}`,
+          body: url,
+        })
       ).url,
     })),
   );

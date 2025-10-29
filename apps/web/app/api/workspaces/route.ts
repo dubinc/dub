@@ -170,7 +170,10 @@ export const POST = withSession(async ({ req, session }) => {
         // Upload logo to R2 if uploaded
         logo &&
           uploadedImageUrl &&
-          storage.upload(uploadedImageUrl.replace(`${R2_URL}/`, ""), logo),
+          storage.upload({
+            key: uploadedImageUrl.replace(`${R2_URL}/`, ""),
+            body: logo,
+          }),
       ]),
     );
 

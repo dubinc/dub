@@ -31,10 +31,10 @@ export const addEditIntegration = authActionClient
     const newIntegrationId = createId({ prefix: "int_" });
 
     if (integration.logo && !isStored(integration.logo)) {
-      const result = await storage.upload(
-        `integrations/${id || newIntegrationId}_${nanoid(7)}`,
-        integration.logo,
-      );
+      const result = await storage.upload({
+        key: `integrations/${id || newIntegrationId}_${nanoid(7)}`,
+        body: integration.logo,
+      });
       integration.logo = result.url;
     }
 

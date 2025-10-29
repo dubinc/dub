@@ -70,10 +70,10 @@ export const PATCH = withSession(async ({ req, session }) => {
     await updateUserSchema.parseAsync(await req.json());
 
   if (image) {
-    const { url } = await storage.upload(
-      `avatars/${session.user.id}_${nanoid(7)}`,
-      image,
-    );
+    const { url } = await storage.upload({
+      key: `avatars/${session.user.id}_${nanoid(7)}`,
+      body: image,
+    });
     image = url;
   }
 
