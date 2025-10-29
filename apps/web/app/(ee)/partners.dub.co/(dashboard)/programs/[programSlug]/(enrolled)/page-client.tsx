@@ -26,7 +26,14 @@ import {
   TimeSeriesChart,
   XAxis,
 } from "@dub/ui/charts";
-import { Check, Copy, LoadingSpinner } from "@dub/ui/icons";
+import {
+  Check,
+  Copy,
+  CursorRays,
+  InvoiceDollar,
+  LoadingSpinner,
+  UserPlus,
+} from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
@@ -409,27 +416,38 @@ function StatCardSimple({
     event: "composite",
   });
 
+  const iconMap = {
+    clicks: CursorRays,
+    leads: UserPlus,
+    sales: InvoiceDollar,
+  };
+
+  const Icon = iconMap[event];
+
   return (
-    <div className="group relative block rounded-lg border border-neutral-300 bg-white p-6">
-      <div className="flex flex-col items-center text-center">
-        <span className="mb-3 block text-sm font-medium text-neutral-600">
-          {title}
-        </span>
-        {total !== undefined ? (
-          <div className="flex items-center justify-center">
+    <div className="relative block rounded-lg border border-neutral-300 bg-white px-5 py-4">
+      <div className="flex items-center gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
+          <Icon className="size-5 text-neutral-700" />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="block text-sm font-medium text-neutral-600">
+            {title}
+          </span>
+          {total !== undefined ? (
             <NumberFlow
-              className="text-3xl font-semibold text-neutral-900"
+              className="text-xl font-semibold text-neutral-900"
               value={total[event]}
               format={{
                 notation: total[event] > 999999 ? "compact" : "standard",
               }}
             />
-          </div>
-        ) : (
-          <div className="h-12 w-20 animate-pulse rounded-md bg-neutral-200" />
-        )}
+          ) : (
+            <div className="h-12 w-20 animate-pulse rounded-md bg-neutral-200" />
+          )}
+        </div>
       </div>
-      <div className="absolute bottom-2 right-2 text-xs text-neutral-400">
+      <div className="absolute right-6 top-4 text-xs text-neutral-400">
         All-time data
       </div>
     </div>
