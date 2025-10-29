@@ -67,7 +67,7 @@ export const CancellationFlowFeedbackModule: FC<
       params: {
         page_name: pageName,
         flow_type: "cancel_subscription",
-        trogger: "cancellation_portal",
+        trigger: "cancellation_portal",
         content_value: selectedCancelReason,
         custom_input: cancelReason,
         event_category: "Authorized",

@@ -23,6 +23,7 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
 
   const openLogin = searchParams.get("login");
   const scrollToBuilder = searchParams.get("start");
+  const isFromPaywall = searchParams.get("source") === "paywall";
 
   useEffect(() => {
     if (openLogin) {
@@ -84,12 +85,14 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
           <div className="flex items-center gap-3">
             {!authSession?.user ? (
               <>
-                <Button
-                  variant="outline"
-                  onClick={handleOpenLogin}
-                  text="Log In"
-                  className="text-base font-medium"
-                />
+                {!isFromPaywall && (
+                  <Button
+                    variant="outline"
+                    onClick={handleOpenLogin}
+                    text="Log In"
+                    className="text-base font-medium"
+                  />
+                )}
 
                 <Button
                   variant="primary"

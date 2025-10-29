@@ -32,7 +32,7 @@ NODE browsers_clicks
 SQL >
 
     %
-    SELECT browser, COUNT(browser) as clicks
+    SELECT browser, {% if defined(unique) and Boolean(unique) == 1 %} uniqExact(identity_hash) {% else %} COUNT(browser) {% end %} as clicks
     FROM
         dub_click_events_mv
           {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}

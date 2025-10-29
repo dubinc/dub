@@ -32,7 +32,7 @@ NODE referers_clicks
 SQL >
 
     %
-    SELECT referer, COUNT(referer) as clicks
+    SELECT referer, {% if defined(unique) and Boolean(unique) == 1 %} uniqExact(identity_hash) {% else %} COUNT(referer) {% end %} as clicks
     FROM
         dub_click_events_mv
         {% if not defined(linkId) and (defined(workspaceId) or defined(partnerId) or defined(programId)) %}

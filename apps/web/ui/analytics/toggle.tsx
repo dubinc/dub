@@ -686,7 +686,7 @@ export default function Toggle({
             >
               {filterSelect}
               {dateRangePicker}
-              {/* <div className="flex items-center gap-x-2">
+              <div className="flex items-center gap-x-2">
                 <Switch
                   id="unique"
                   checked={!!searchParamsObj.unique}
@@ -705,7 +705,7 @@ export default function Toggle({
                   }}
                 />
                 <label htmlFor="unique">Unique Scans</label>
-              </div> */}
+              </div>
             </div>
           </div>
         </div>
