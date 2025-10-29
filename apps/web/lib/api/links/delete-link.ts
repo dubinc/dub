@@ -24,7 +24,7 @@ export async function deleteLink(linkId: string) {
       // if there's a valid image and it has the same link ID, delete it
       link.image &&
         link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
-        storage.delete(link.image.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: link.image.replace(`${R2_URL}/`, "") }),
 
       // Remove the link from Redis
       linkCache.delete(link),

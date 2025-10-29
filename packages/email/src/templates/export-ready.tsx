@@ -1,4 +1,4 @@
-import { DUB_WORDMARK } from "@dub/utils";
+import { DUB_WORDMARK, pluralize } from "@dub/utils";
 import {
   Body,
   Container,
@@ -18,17 +18,22 @@ export default function ExportReady({
   email = "panic@thedis.co",
   downloadUrl = "https://dev.dubassets.com/exports/partners/xxxx.csv",
   exportType = "partners",
-  program = {
-    name: "Acme",
-  },
+  expiresInDays = 7,
+  program,
+  workspace,
 }: {
   email: string;
   downloadUrl: string;
-  exportType: "partners" | "commissions";
-  program: {
+  exportType: "partners" | "commissions" | "links";
+  expiresInDays?: number;
+  program?: {
+    name: string;
+  };
+  workspace?: {
     name: string;
   };
 }) {
+  const contextName = program?.name || workspace?.name || "your workspace";
   return (
     <Html>
       <Head />
@@ -43,7 +48,7 @@ export default function ExportReady({
               Your {exportType} export is ready
             </Heading>
             <Text className="text-sm leading-6 text-black">
-              Your export of {exportType} from <strong>{program.name}</strong>{" "}
+              Your export of {exportType} from <strong>{contextName}</strong>{" "}
               has been completed and is ready to download.
             </Text>
             <Section className="my-8">
@@ -54,9 +59,10 @@ export default function ExportReady({
                 Download Export
               </Link>
             </Section>
-            {/* <Text className="text-sm leading-6 text-neutral-500">
-              This download link will expire in 7 days.
-            </Text> */}
+            <Text className="text-sm leading-6 text-neutral-500">
+              This download link will expire in {expiresInDays}{" "}
+              {pluralize("day", expiresInDays)}.
+            </Text>
             <Footer email={email} />
           </Container>
         </Body>

@@ -20,7 +20,7 @@ export async function bulkDeleteLinks(links: ExpandedLink[]) {
     // For links that have an image, delete the image from R2
     links
       .filter((link) => link.image?.startsWith(`${R2_URL}/images/${link.id}`))
-      .map((link) => storage.delete(link.image!.replace(`${R2_URL}/`, ""))),
+      .map((link) => storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") })),
 
     // Update totalLinks for the workspace
     prisma.project.update({

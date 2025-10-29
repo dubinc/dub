@@ -28,11 +28,12 @@ import {
   getApexDomain,
   getDomainWithoutWWW,
   getPathnameFromUrl,
-  // getPathnameFromUrl,
   linkConstructor,
+  nanoid,
   punycode,
 } from "@dub/utils";
 import { AnimatePresence, motion } from "motion/react";
+import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
@@ -180,8 +181,9 @@ function PartnerLinkModalContent({
   const { handleKeyDown } = useEnterSubmit(formRef);
   const [lockKey, setLockKey] = useState(isEditingLink);
   const [isLoading, setIsLoading] = useState(false);
-
+  const { data: session } = useSession();
   const { programEnrollment } = useProgramEnrollment();
+  const [keyInputFocused, setKeyInputFocused] = useState(false);
 
   const { shortLinkDomain, additionalLinks } = useMemo(() => {
     return {
@@ -219,7 +221,7 @@ function PartnerLinkModalContent({
     watch,
     handleSubmit,
     setValue,
-    formState: { isDirty },
+    formState: { isDirty, errors },
   } = useForm<PartnerLinkFormData>({
     defaultValues: link
       ? {
@@ -229,6 +231,20 @@ function PartnerLinkModalContent({
         }
       : undefined,
   });
+
+  const [key, pathname] = watch(["key", "pathname"]);
+
+  // Auto-generate short link key for new links
+  useEffect(() => {
+    const name = session?.user?.name;
+
+    if (!key && name && !keyInputFocused && !isLoading) {
+      const namePrefix = name.split(" ")[0];
+      const randomSuffix = nanoid(4).toLowerCase();
+      const generatedKey = `${namePrefix}-${randomSuffix}`;
+      setValue("key", generatedKey.toLowerCase(), { shouldDirty: false });
+    }
+  }, [key, session, setValue, keyInputFocused, isLoading]);
 
   useEffect(() => {
     if (!selectedAdditionalLink || isEditingLink) {
@@ -241,8 +257,6 @@ function PartnerLinkModalContent({
       setValue("pathname", "", { shouldDirty: true });
     }
   }, [selectedAdditionalLink, isExactMode, isEditingLink]);
-
-  const [key, pathname] = watch(["key", "pathname"]);
 
   const saveDisabled = useMemo(
     () =>
@@ -381,21 +395,32 @@ function PartnerLinkModalContent({
                 {shortLinkDomain}
               </span>
               <input
-                {...register("key", { required: true })}
+                {...register("key", {
+                  required: "Short link key is required.",
+                })}
                 type="text"
                 id="key"
-                autoFocus={!isMobile}
+                autoFocus={Boolean(hideDestinationUrl && !isMobile)}
+                onFocus={() => setKeyInputFocused(true)}
+                onBlur={() => setKeyInputFocused(false)}
                 disabled={lockKey}
                 className={cn(
                   "block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   {
                     "cursor-not-allowed border border-neutral-300 bg-neutral-100 text-neutral-500":
                       lockKey,
+                    "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
+                      errors.key,
                   },
                 )}
                 placeholder="short-link"
               />
             </div>
+            {errors.key && (
+              <p className="mt-2 text-sm text-red-600" id="key-error">
+                {errors.key.message}
+              </p>
+            )}
           </div>
 
           {!hideDestinationUrl && (
@@ -430,6 +455,7 @@ function PartnerLinkModalContent({
                   {...register("pathname", { required: false })}
                   type="text"
                   placeholder="(optional)"
+                  autoFocus={Boolean(!hideDestinationUrl && !isMobile)}
                   disabled={isExactMode}
                   onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
                     if (isExactMode) return;

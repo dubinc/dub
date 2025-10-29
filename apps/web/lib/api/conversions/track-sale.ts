@@ -220,14 +220,14 @@ export const trackSale = async ({
     if (customerAvatar && !isStored(customerAvatar) && finalCustomerAvatar) {
       // persist customer avatar to R2 if it's not already stored
       waitUntil(
-        storage.upload(
-          finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-          customerAvatar,
-          {
+        storage.upload({
+          key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+          body: customerAvatar,
+          opts: {
             width: 128,
             height: 128,
           },
-        ),
+        }),
       );
     }
 

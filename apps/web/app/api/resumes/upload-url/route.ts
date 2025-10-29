@@ -26,7 +26,9 @@ export const POST = async (req: NextRequest) => {
   }
 
   const key = `resumes/${nanoid(16)}`;
-  const signedUrl = await storage.getSignedUrl(key);
+  const signedUrl = await storage.getSignedUploadUrl({
+    key,
+  });
 
   return NextResponse.json(
     {
