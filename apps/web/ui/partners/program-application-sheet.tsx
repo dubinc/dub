@@ -2,14 +2,8 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createProgramApplicationAction } from "@/lib/actions/partners/create-program-application";
-import useGroup from "@/lib/swr/use-group";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import {
-  GroupWithProgramProps,
-  ProgramEnrollmentProps,
-  ProgramProps,
-} from "@/lib/types";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import { ProgramEnrollmentProps, ProgramProps } from "@/lib/types";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
 import {
@@ -45,24 +39,10 @@ type FormData = Omit<
 };
 
 function ProgramApplicationSheetContent({
-  program: programProp,
-  programEnrollment,
+  program,
   onSuccess,
 }: ProgramApplicationSheetProps) {
   const { partner } = usePartnerProfile();
-  const groupId =
-    programEnrollment?.groupId ||
-    programProp?.defaultGroupId ||
-    DEFAULT_PARTNER_GROUP.slug;
-
-  const { group } = useGroup<GroupWithProgramProps>(
-    { groupIdOrSlug: groupId, query: { includeExpandedFields: true } },
-    {
-      keepPreviousData: true,
-    },
-  );
-
-  const program = programProp || group?.program;
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -85,7 +65,12 @@ function ProgramApplicationSheetContent({
   });
 
   const onSubmit = async (data: FormData) => {
-    if (!group || !program || !partner?.email || !partner.country) return;
+    if (!program || !partner?.email || !partner.country) {
+      toast.error(
+        "Submission failed due to missing partner email or country. Please contact support.",
+      );
+      return;
+    }
 
     const result = await executeAsync({
       ...data,
@@ -93,7 +78,6 @@ function ProgramApplicationSheetContent({
       name: partner.name,
       country: partner.country,
       programId: program.id,
-      groupId: group.id,
     });
 
     if (result?.serverError || result?.validationErrors) {
@@ -106,7 +90,7 @@ function ProgramApplicationSheetContent({
 
   if (!program) return null;
 
-  const fields = group?.applicationFormData?.fields || [];
+  const fields = program["group"].applicationFormData?.fields || [];
 
   return (
     <FormProvider {...form}>
