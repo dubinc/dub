@@ -1,28 +1,16 @@
 import { convertToCSV } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getLinksCount } from "@/lib/api/links";
+import { formatLinksForExport } from "@/lib/api/links/format-links-for-export";
 import { getLinksForWorkspace } from "@/lib/api/links/get-links-for-workspace";
-import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
+import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import {
-  exportLinksColumns,
-  linksExportQuerySchema,
-} from "@/lib/zod/schemas/links";
-import { APP_DOMAIN_WITH_NGROK, linkConstructor } from "@dub/utils";
+import { linksExportQuerySchema } from "@/lib/zod/schemas/links";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import { NextResponse } from "next/server";
-import { z } from "zod";
-
-const columnIdToLabel = exportLinksColumns.reduce((acc, column) => {
-  acc[column.id] = column.label;
-  return acc;
-}, {});
-
-const numericColumns = exportLinksColumns
-  .filter((column) => "numeric" in column && column.numeric)
-  .map((column) => column.id);
 
 const MAX_LINKS_TO_EXPORT = 1000;
 
@@ -75,7 +63,6 @@ export const GET = withWorkspace(
         endDate,
       }),
       searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
-      withTags: columns.includes("tags"),
       includeDashboard: false,
       includeUser: false,
       includeWebhooks: false,
@@ -85,56 +72,7 @@ export const GET = withWorkspace(
       folderIds,
     });
 
-    const columnOrderMap = exportLinksColumns.reduce((acc, column, index) => {
-      acc[column.id] = index + 1;
-      return acc;
-    }, {});
-
-    const exportColumns = columns.sort(
-      (a, b) =>
-        (columnOrderMap[a as keyof typeof columnOrderMap] || 999) -
-        (columnOrderMap[b as keyof typeof columnOrderMap] || 999),
-    );
-
-    const schemaFields: Record<string, z.ZodTypeAny> = {};
-    exportColumns.forEach((column) => {
-      if (numericColumns.includes(column as any)) {
-        schemaFields[columnIdToLabel[column as keyof typeof columnIdToLabel]] =
-          z.coerce.number().optional().default(0);
-      } else {
-        schemaFields[columnIdToLabel[column as keyof typeof columnIdToLabel]] =
-          z.string().optional().default("");
-      }
-    });
-
-    const formattedLinks = links.map((link) => {
-      const result: Record<string, any> = {};
-
-      exportColumns.forEach((column) => {
-        let value = link[column as keyof typeof link] || "";
-
-        // Handle special cases
-        if (column === "link") {
-          value = linkConstructor({ domain: link.domain, key: link.key });
-        } else if (column === "tags") {
-          value =
-            link.tags?.map((tag) => (tag as any).tag.name).join(", ") || "";
-        }
-
-        // Handle date fields - convert to ISO string format
-        if (
-          (column === "createdAt" || column === "updatedAt") &&
-          value instanceof Date
-        ) {
-          value = value.toISOString();
-        }
-
-        result[columnIdToLabel[column as keyof typeof columnIdToLabel]] = value;
-      });
-
-      return z.object(schemaFields).parse(result);
-    });
-
+    const formattedLinks = formatLinksForExport(links, columns);
     const csvData = convertToCSV(formattedLinks);
 
     return new Response(csvData, {

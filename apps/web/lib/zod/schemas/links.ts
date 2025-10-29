@@ -184,17 +184,75 @@ export const getLinksCountQuerySchema = LinksQuerySchema.merge(
 );
 
 export const exportLinksColumns = [
-  { id: "link", label: "Short link", default: true },
-  { id: "url", label: "Destination URL", default: true },
-  { id: "clicks", label: "Clicks", default: true, numeric: true },
-  { id: "leads", label: "Leads", default: false, numeric: true },
-  { id: "conversions", label: "Conversions", default: false, numeric: true },
-  { id: "saleAmount", label: "Revenue", default: false, numeric: true },
-  { id: "createdAt", label: "Created at", default: true },
-  { id: "id", label: "Link ID", default: false },
-  { id: "updatedAt", label: "Updated at", default: false },
-  { id: "tags", label: "Tags", default: false },
-  { id: "archived", label: "Archived", default: false },
+  {
+    id: "link",
+    label: "Short link",
+    default: true,
+    parse: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "url",
+    label: "Destination URL",
+    default: true,
+    parse: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "clicks",
+    label: "Clicks",
+    default: true,
+    parse: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "leads",
+    label: "Leads",
+    default: false,
+    parse: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "conversions",
+    label: "Conversions",
+    default: false,
+    parse: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "saleAmount",
+    label: "Revenue",
+    default: false,
+    parse: (value: unknown) => Number(value ?? 0),
+  },
+  {
+    id: "createdAt",
+    label: "Created at",
+    default: true,
+    parse: (value: unknown) =>
+      value instanceof Date ? value.toISOString() : "",
+  },
+  {
+    id: "id",
+    label: "Link ID",
+    default: false,
+    parse: (value: unknown) => String(value ?? ""),
+  },
+  {
+    id: "updatedAt",
+    label: "Updated at",
+    default: false,
+    parse: (value: unknown) =>
+      value instanceof Date ? value.toISOString() : "",
+  },
+  {
+    id: "tags",
+    label: "Tags",
+    default: false,
+    parse: (value: unknown) =>
+      Array.isArray(value) ? value.join(", ") : String(value ?? ""),
+  },
+  {
+    id: "archived",
+    label: "Archived",
+    default: false,
+    parse: (value: unknown) => (value === 1 ? "Yes" : "No"),
+  },
 ] as const;
 
 export type ExportLinksColumn = (typeof exportLinksColumns)[number];
