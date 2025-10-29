@@ -6,13 +6,15 @@ SQL >
         link_id,
         -- here we split tag_ids out of the multiIf because arrayJoin explodes rows
         if(
-            {{ String(groupBy) }} = 'top_tags',
+            {{ String(groupBy) }} = 'top_link_tags',
             arrayJoin(tag_ids),
             multiIf(
-                {{ String(groupBy) }} = 'top_partners',
-                partner_id,
                 {{ String(groupBy) }} = 'top_folders',
                 folder_id,
+                {{ String(groupBy) }} = 'top_domains',
+                domain,
+                {{ String(groupBy) }} = 'top_partners',
+                partner_id,
                 partner_id
             )
         ) AS groupByField
@@ -29,12 +31,14 @@ SQL >
         }}
         AND deleted == 0
         AND multiIf(
-            {{ String(groupBy) }} = 'top_partners',
-            partner_id != '',
             {{ String(groupBy) }} = 'top_folders',
             folder_id != '',
-            {{ String(groupBy) }} = 'top_tags',
+            {{ String(groupBy) }} = 'top_domains',
+            domain != '',
+            {{ String(groupBy) }} = 'top_link_tags',
             length(tag_ids) > 0,
+            {{ String(groupBy) }} = 'top_partners',
+            partner_id != '',
             partner_id != ''
         )
         {% if defined(programId) %} AND program_id = {{ programId }} {% end %}
@@ -242,6 +246,7 @@ SQL >
         {% if eventType == 'clicks' %} group_by_link_metadata_clicks
         {% elif eventType == 'leads' %} group_by_link_metadata_leads
         {% elif eventType == 'sales' %}group_by_link_metadata_sales 
+        {% elif eventType == 'composite' %}group_by_link_metadata_composite
         {% else %} group_by_link_metadata_clicks
         {% end %}
 

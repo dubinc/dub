@@ -41,12 +41,7 @@ export const dubLinksMetadataSchema = z.object({
 
 export const recordLinkTB = tb.buildIngestEndpoint({
   datasource: "dub_links_metadata",
-  event: dubLinksMetadataSchema.extend({
-    workspace_id: z
-      .string()
-      .nullish()
-      .transform((v) => (v ? v : "")),
-  }),
+  event: dubLinksMetadataSchema,
   wait: true,
 });
 

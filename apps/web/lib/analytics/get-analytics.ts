@@ -115,7 +115,12 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
   const pipe = tb.buildPipe({
     pipe: ["count", "timeseries"].includes(groupBy)
       ? `v3_${groupBy}`
-      : ["top_partners"].includes(groupBy)
+      : [
+            "top_folders",
+            "top_link_tags",
+            "top_domains",
+            "top_partners",
+          ].includes(groupBy)
         ? "v3_group_by_link_metadata"
         : "v3_group_by",
     parameters: analyticsFilterTB,
@@ -232,6 +237,51 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
             ...partner,
             payoutsEnabledAt: partner.payoutsEnabledAt?.toISOString() || null,
           },
+        });
+      })
+      .filter((d) => d !== null);
+  } else if (groupBy === "top_link_tags") {
+    const tags = await prisma.tag.findMany({
+      where: {
+        id: {
+          in: response.data.map((item) => item.groupByField),
+        },
+      },
+    });
+
+    return response.data
+      .map((item) => {
+        const tag = tags.find((t) => t.id === item.groupByField);
+        if (!tag) return null;
+        return analyticsResponse[groupBy].parse({
+          ...item,
+          tagId: item.groupByField,
+          tag,
+        });
+      })
+      .filter((d) => d !== null);
+  } else if (groupBy === "top_folders") {
+    const folders = await prisma.folder.findMany({
+      where: {
+        id: {
+          in: response.data.map((item) => item.groupByField),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        accessLevel: true,
+      },
+    });
+
+    return response.data
+      .map((item) => {
+        const folder = folders.find((f) => f.id === item.groupByField);
+        if (!folder) return null;
+        return analyticsResponse[groupBy].parse({
+          ...item,
+          folderId: item.groupByField,
+          folder,
         });
       })
       .filter((d) => d !== null);

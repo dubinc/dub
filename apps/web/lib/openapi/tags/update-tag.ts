@@ -1,6 +1,6 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import z from "@/lib/zod";
-import { TagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
+import { LinkTagSchema, updateTagBodySchema } from "@/lib/zod/schemas/tags";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 
 export const updateTag: ZodOpenApiOperationObject = {
@@ -26,7 +26,7 @@ export const updateTag: ZodOpenApiOperationObject = {
       description: "The updated tag.",
       content: {
         "application/json": {
-          schema: TagSchema,
+          schema: LinkTagSchema,
         },
       },
     },

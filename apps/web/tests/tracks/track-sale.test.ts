@@ -108,9 +108,6 @@ describe("POST /track/sale", async () => {
     });
     expect(response2.status).toEqual(200);
 
-    // pause for 2 seconds for data to be fully processed
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
     await verifyCommission({
       http,
       invoiceId: regularInvoiceId,
@@ -289,9 +286,6 @@ describe("POST /track/sale", async () => {
 
     expect(response2.status).toEqual(200);
     expect(response2.data.sale?.amount).toEqual(largeSaleAmount);
-
-    // Pause for 2 seconds for data to be fully processed
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     await verifyCommission({
       http,
