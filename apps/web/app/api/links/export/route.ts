@@ -2,6 +2,7 @@ import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { getLinksForWorkspace } from "@/lib/api/links/get-links-for-workspace";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
@@ -9,7 +10,7 @@ import {
   exportLinksColumns,
   linksExportQuerySchema,
 } from "@/lib/zod/schemas/links";
-import { prisma } from "@dub/prisma";
+import { Folder } from "@dub/prisma/client";
 import { linkConstructor } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
 import { z } from "zod";
@@ -23,6 +24,8 @@ const numericColumns = exportLinksColumns
   .filter((column) => "numeric" in column && column.numeric)
   .map((column) => column.id);
 
+const MAX_LINKS_TO_EXPORT = 1000;
+
 // GET /api/links/export – export links to CSV
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
@@ -32,23 +35,24 @@ export const GET = withWorkspace(
 
     const {
       domain,
-      tagIds,
+      folderId,
       search,
-      sort,
-      userId,
-      showArchived,
+      tagId,
+      tagIds,
+      tagNames,
+      tenantId,
+      interval,
       start,
       end,
-      interval,
-      folderId,
     } = filters;
 
     if (domain) {
       await getDomainOrThrow({ workspace, domain });
     }
 
+    let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
     if (folderId) {
-      await verifyFolderAccess({
+      selectedFolder = await verifyFolderAccess({
         workspace,
         userId: session.user.id,
         folderId,
@@ -56,10 +60,49 @@ export const GET = withWorkspace(
       });
     }
 
+    /* we only need to get the folder ids if we are:
+      - not filtering by folder
+      - filtering by search, domain, tags, or tenantId
+    */
+    let folderIds: string[] | undefined = undefined;
+    if (
+      !folderId &&
+      (search || domain || tagId || tagIds || tagNames || tenantId)
+    ) {
+      folderIds = await getFolderIdsToFilter({
+        workspace,
+        userId: session.user.id,
+      });
+    }
+
+    if (Array.isArray(folderIds)) {
+      folderIds = folderIds?.filter((id) => id !== "");
+      if (folderIds.length === 0) {
+        folderIds = undefined;
+      }
+    }
+
     const { startDate, endDate } = getStartEndDates({
       interval,
       start: start ? startOfDay(new Date(start)) : undefined,
       end: end ? endOfDay(new Date(end)) : undefined,
+    });
+
+    const links = await getLinksForWorkspace({
+      ...filters,
+      workspaceId: workspace.id,
+      folderIds,
+      searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
+      withTags: columns.includes("tags"),
+      includeDashboard: false,
+      includeUser: false,
+      includeWebhooks: false,
+      page: 1,
+      pageSize: MAX_LINKS_TO_EXPORT,
+      ...(interval !== "all" && {
+        startDate,
+        endDate,
+      }),
     });
 
     const columnOrderMap = exportLinksColumns.reduce((acc, column, index) => {
@@ -82,104 +125,6 @@ export const GET = withWorkspace(
         schemaFields[columnIdToLabel[column as keyof typeof columnIdToLabel]] =
           z.string().optional().default("");
       }
-    });
-
-    /* we only need to get the folder ids if we are:
-      - not filtering by folder
-      - filtering by search, domain, or tags
-    */
-    let folderIds =
-      !folderId && (search || domain || tagIds)
-        ? await getFolderIdsToFilter({
-            workspace,
-            userId: session.user.id,
-          })
-        : undefined;
-
-    if (Array.isArray(folderIds)) {
-      folderIds = folderIds?.filter((id) => id !== "");
-      if (folderIds.length === 0) {
-        folderIds = undefined;
-      }
-    }
-
-    const links = await prisma.link.findMany({
-      include: {
-        ...(columns.includes("tags") && {
-          tags: {
-            select: {
-              tag: {
-                select: {
-                  name: true,
-                },
-              },
-            },
-          },
-        }),
-      },
-      where: {
-        projectId: workspace.id,
-        AND: [
-          ...(folderIds
-            ? [
-                {
-                  OR: [
-                    {
-                      folderId: {
-                        in: folderIds,
-                      },
-                    },
-                    {
-                      folderId: null,
-                    },
-                  ],
-                },
-              ]
-            : [
-                {
-                  folderId: folderId || null,
-                },
-              ]),
-          ...(search
-            ? [
-                {
-                  OR: [
-                    {
-                      key: { contains: search },
-                    },
-                    {
-                      url: { contains: search },
-                    },
-                  ],
-                },
-              ]
-            : []),
-        ],
-        ...(domain && { domain }),
-        ...(tagIds &&
-          tagIds.length > 0 && {
-            tags: {
-              some: {
-                tagId: { in: tagIds },
-              },
-            },
-          }),
-        ...(userId && { userId }),
-        archived: showArchived ? undefined : false,
-        ...(interval === "all"
-          ? {}
-          : {
-              createdAt: {
-                gte: startDate,
-                lte: endDate,
-              },
-            }),
-      },
-
-      // TODO: orderBy is not currently supported
-      orderBy: {
-        [sort]: "desc",
-      },
     });
 
     const formattedLinks = links.map((link) => {
@@ -215,7 +160,7 @@ export const GET = withWorkspace(
     return new Response(csvData, {
       headers: {
         "Content-Type": "application/csv",
-        "Content-Disposition": `attachment; filename=links_export.csv`,
+        "Content-Disposition": "attachment",
       },
     });
   },

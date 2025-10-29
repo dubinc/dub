@@ -29,9 +29,13 @@ export async function getLinksForWorkspace({
   includeDashboard,
   tenantId,
   partnerId,
+  startDate,
+  endDate,
 }: z.infer<typeof getLinksQuerySchemaExtended> & {
   workspaceId: string;
   folderIds?: string[];
+  startDate?: Date;
+  endDate?: Date;
 }) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
@@ -129,6 +133,13 @@ export async function getLinksForWorkspace({
           : {}),
       ...(partnerId && { partnerId }),
       ...(userId && { userId }),
+      ...(startDate &&
+        endDate && {
+          createdAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        }),
     },
     include: {
       tags: {

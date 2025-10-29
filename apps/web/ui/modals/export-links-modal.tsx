@@ -49,7 +49,7 @@ function ExportLinksModal({
   const {
     control,
     handleSubmit,
-    formState: { isLoading },
+    formState: { isSubmitting },
   } = useForm<FormData>({
     defaultValues: {
       dateRange: {
@@ -232,7 +232,7 @@ function ExportLinksModal({
           />
           <Button
             type="submit"
-            loading={isLoading}
+            loading={isSubmitting}
             text="Export links"
             className="h-8 w-fit px-3"
           />
