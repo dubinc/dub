@@ -6,10 +6,12 @@ SQL >
     SELECT
         timestamp,
         click_id,
-        toLowCardinality(coalesce(sale_event.workspace_id, link_metadata.workspace_id)) AS workspace_id,
+        toLowCardinality(
+            coalesce(nullIf(sale_event.workspace_id, ''), link_metadata.workspace_id)
+        ) AS workspace_id,
         link_id,
-        coalesce(sale_event.domain, link_metadata.domain) AS domain,
-        coalesce(sale_event.key, link_metadata.key) AS key,
+        coalesce(nullIf(sale_event.domain, ''), link_metadata.domain) AS domain,
+        coalesce(nullIf(sale_event.key, ''), link_metadata.key) AS key,
         url,
 
         -- sale event fields

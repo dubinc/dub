@@ -11,7 +11,6 @@ import { ProgramOverviewBlock } from "../program-overview-block";
 
 export function SaleTypeBlock() {
   const { slug: workspaceSlug } = useWorkspace();
-
   const { getQueryString } = useRouterStuff();
   const {
     queryString,

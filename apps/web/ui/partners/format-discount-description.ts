@@ -1,20 +1,18 @@
-import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { constructDiscountAmount } from "@/lib/api/sales/construct-discount-amount";
 import { DiscountProps } from "@/lib/types";
 import { pluralize } from "@dub/utils";
 
-export function formatDiscountDescription({
-  discount,
-}: {
+export function formatDiscountDescription(
   discount: Pick<
     DiscountProps,
     "amount" | "type" | "maxDuration" | "description"
-  >;
-}): string {
+  >,
+): string {
   if (discount.description) {
     return discount.description;
   }
 
-  const discountAmount = constructRewardAmount(discount);
+  const discountAmount = constructDiscountAmount(discount);
 
   const parts: string[] = [];
 

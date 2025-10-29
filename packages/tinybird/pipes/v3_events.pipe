@@ -262,12 +262,11 @@ NODE endpoint
 SQL >
 
     %
-        SELECT *
-        FROM
-            {% if eventType == 'leads' %} lead_events
-            {% elif eventType == 'sales' %}
-              {% if defined(saleType) %} sale_events_with_type {% else %} sale_events {% end %}
-            {% else %} click_events
-            {% end %}
+    SELECT *
+    FROM
+        {% if eventType == 'leads' %} lead_events
+        {% elif eventType == 'sales' %} sale_events
+        {% else %} click_events
+        {% end %}
 
 

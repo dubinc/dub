@@ -38,7 +38,8 @@ export function ProgramAnalyticsPageClient() {
 
     return {
       interval: DUB_PARTNERS_ANALYTICS_INTERVAL,
-      selectedTab: event || "sales",
+      selectedTab:
+        event || (program?.primaryRewardEvent === "lead" ? "leads" : "sales"),
       saleUnit: "saleAmount",
       view: "timeseries",
       ...rest,
@@ -47,7 +48,7 @@ export function ProgramAnalyticsPageClient() {
 
   const queryString = editQueryString(
     useAnalyticsQuery({
-      defaultEvent: "sales",
+      defaultEvent: program?.primaryRewardEvent === "lead" ? "leads" : "sales",
       defaultInterval: DUB_PARTNERS_ANALYTICS_INTERVAL,
     }).queryString,
     {
@@ -70,8 +71,6 @@ export function ProgramAnalyticsPageClient() {
   const {
     filters,
     activeFilters,
-    setSearch,
-    setSelectedFilter,
     onSelect,
     onRemove,
     onRemoveAll,
@@ -96,8 +95,6 @@ export function ProgramAnalyticsPageClient() {
             className="w-full md:w-fit"
             filters={filters}
             activeFilters={activeFilters}
-            onSearchChange={setSearch}
-            onSelectedFilterChange={setSelectedFilter}
             onSelect={onSelect}
             onRemove={onRemove}
             onOpenFilter={onOpenFilter}

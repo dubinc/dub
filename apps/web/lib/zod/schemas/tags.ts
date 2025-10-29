@@ -85,12 +85,12 @@ export const createTagBodySchema = z
 
 export const updateTagBodySchema = createTagBodySchema;
 
-export const TagSchema = z
+export const LinkTagSchema = z
   .object({
     id: z.string().describe("The unique ID of the tag."),
     name: z.string().describe("The name of the tag."),
     color: tagColorSchema.describe("The color of the tag."),
   })
   .openapi({
-    title: "Tag",
+    title: "LinkTag",
   });

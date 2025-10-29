@@ -1,13 +1,14 @@
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { inviteUser } from "@/lib/api/users";
 import { withWorkspace } from "@/lib/auth";
-import { redis } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { inviteTeammatesSchema } from "@/lib/zod/schemas/invites";
 import {
   getWorkspaceUsersQuerySchema,
   workspaceUserSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { prisma } from "@dub/prisma";
+import { pluralize } from "@dub/utils";
 import { PartnerRole } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -47,6 +48,18 @@ export const POST = withWorkspace(
   async ({ req, workspace, session }) => {
     const { teammates } = inviteTeammatesSchema.parse(await req.json());
 
+    const { success } = await ratelimit(1, "1 s").limit(
+      `workspace-invites:${workspace.id}`,
+    );
+
+    if (!success) {
+      throw new DubApiError({
+        code: "rate_limit_exceeded",
+        message:
+          "You've reached the rate limit for inviting teammates. Please try again later after few seconds.",
+      });
+    }
+
     if (teammates.length > 10) {
       throw new DubApiError({
         code: "bad_request",
@@ -56,7 +69,7 @@ export const POST = withWorkspace(
 
     const [alreadyInWorkspace, workspaceUserCount, workspaceInviteCount] =
       await Promise.all([
-        prisma.projectUsers.findFirst({
+        prisma.projectUsers.findMany({
           where: {
             projectId: workspace.id,
             user: {
@@ -65,7 +78,15 @@ export const POST = withWorkspace(
               },
             },
           },
+          select: {
+            user: {
+              select: {
+                email: true,
+              },
+            },
+          },
         }),
+
         prisma.projectUsers.count({
           where: {
             projectId: workspace.id,
@@ -74,6 +95,7 @@ export const POST = withWorkspace(
             },
           },
         }),
+
         prisma.projectInvite.count({
           where: {
             projectId: workspace.id,
@@ -81,10 +103,15 @@ export const POST = withWorkspace(
         }),
       ]);
 
-    if (alreadyInWorkspace) {
+    // Check if any of the emails are already in the workspace
+    if (alreadyInWorkspace.length > 0) {
+      const emailsInWorkspace = alreadyInWorkspace.map(
+        (user) => user.user.email,
+      );
+
       throw new DubApiError({
         code: "bad_request",
-        message: "User already exists in this workspace.",
+        message: `${pluralize("User", emailsInWorkspace.length)} ${emailsInWorkspace.join(", ")} already exists in this workspace.`,
       });
     }
 
@@ -118,12 +145,13 @@ export const POST = withWorkspace(
     );
 
     if (results.some((result) => result.status === "rejected")) {
+      const failedInvites = results.filter(
+        (result): result is PromiseRejectedResult =>
+          result.status === "rejected",
+      );
       throw new DubApiError({
         code: "bad_request",
-        message:
-          teammates.length > 1
-            ? "Some invitations could not be sent."
-            : "Invitation could not be sent.",
+        message: `Failed to send ${pluralize("invitation", failedInvites.length)}: ${failedInvites.map((result) => result.reason.message).join(", ")}`,
       });
     }
 
