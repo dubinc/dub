@@ -46,10 +46,9 @@ export const GET = withWorkspace(
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/export`,
         body: {
-          ...filters,
+          ...searchParams,
           workspaceId: workspace.id,
           userId: session.user.id,
-          columns: columns.join(","),
         },
       });
 
