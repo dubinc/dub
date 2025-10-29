@@ -1,18 +1,18 @@
-import { getFolderIdsToFilter } from "@/lib/analytics/get-folder-ids-to-filter";
 import { convertToCSV } from "@/lib/analytics/utils";
 import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
-import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
+import { getLinksCount } from "@/lib/api/links";
 import { getLinksForWorkspace } from "@/lib/api/links/get-links-for-workspace";
+import { validateLinksQueryFilters } from "@/lib/api/links/validate-links-query-filters";
 import { throwIfClicksUsageExceeded } from "@/lib/api/links/usage-checks";
 import { withWorkspace } from "@/lib/auth";
-import { verifyFolderAccess } from "@/lib/folder/permissions";
+import { qstash } from "@/lib/cron";
 import {
   exportLinksColumns,
   linksExportQuerySchema,
 } from "@/lib/zod/schemas/links";
-import { Folder } from "@dub/prisma/client";
-import { linkConstructor } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, linkConstructor } from "@dub/utils";
 import { endOfDay, startOfDay } from "date-fns";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 const columnIdToLabel = exportLinksColumns.reduce((acc, column) => {
@@ -31,56 +31,15 @@ export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
 
-    let { columns, ...filters } = linksExportQuerySchema.parse(searchParams);
+    const { columns, ...filters } = linksExportQuerySchema.parse(searchParams);
 
-    const {
-      domain,
-      folderId,
-      search,
-      tagId,
-      tagIds,
-      tagNames,
-      tenantId,
-      interval,
-      start,
-      end,
-    } = filters;
+    const { selectedFolder, folderIds } = await validateLinksQueryFilters({
+      ...filters,
+      workspace,
+      userId: session.user.id,
+    });
 
-    if (domain) {
-      await getDomainOrThrow({ workspace, domain });
-    }
-
-    let selectedFolder: Pick<Folder, "id" | "type"> | null = null;
-    if (folderId) {
-      selectedFolder = await verifyFolderAccess({
-        workspace,
-        userId: session.user.id,
-        folderId,
-        requiredPermission: "folders.read",
-      });
-    }
-
-    /* we only need to get the folder ids if we are:
-      - not filtering by folder
-      - filtering by search, domain, tags, or tenantId
-    */
-    let folderIds: string[] | undefined = undefined;
-    if (
-      !folderId &&
-      (search || domain || tagId || tagIds || tagNames || tenantId)
-    ) {
-      folderIds = await getFolderIdsToFilter({
-        workspace,
-        userId: session.user.id,
-      });
-    }
-
-    if (Array.isArray(folderIds)) {
-      folderIds = folderIds?.filter((id) => id !== "");
-      if (folderIds.length === 0) {
-        folderIds = undefined;
-      }
-    }
+    const { interval, start, end } = filters;
 
     const { startDate, endDate } = getStartEndDates({
       interval,
@@ -88,10 +47,33 @@ export const GET = withWorkspace(
       end: end ? endOfDay(new Date(end)) : undefined,
     });
 
-    const links = await getLinksForWorkspace({
+    const linksCount = (await getLinksCount({
       ...filters,
       workspaceId: workspace.id,
       folderIds,
+    })) as number;
+
+    // Process the export in the background if the number of links is greater than MAX_LINKS_TO_EXPORT
+    if (linksCount > MAX_LINKS_TO_EXPORT) {
+      await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/export`,
+        body: {
+          ...filters,
+          workspaceId: workspace.id,
+          userId: session.user.id,
+          columns: columns.join(","),
+        },
+      });
+
+      return NextResponse.json({}, { status: 202 });
+    }
+
+    const links = await getLinksForWorkspace({
+      ...filters,
+      ...(interval !== "all" && {
+        startDate,
+        endDate,
+      }),
       searchMode: selectedFolder?.type === "mega" ? "exact" : "fuzzy",
       withTags: columns.includes("tags"),
       includeDashboard: false,
@@ -99,10 +81,8 @@ export const GET = withWorkspace(
       includeWebhooks: false,
       page: 1,
       pageSize: MAX_LINKS_TO_EXPORT,
-      ...(interval !== "all" && {
-        startDate,
-        endDate,
-      }),
+      workspaceId: workspace.id,
+      folderIds,
     });
 
     const columnOrderMap = exportLinksColumns.reduce((acc, column, index) => {
@@ -110,14 +90,14 @@ export const GET = withWorkspace(
       return acc;
     }, {});
 
-    columns = columns.sort(
+    const exportColumns = columns.sort(
       (a, b) =>
         (columnOrderMap[a as keyof typeof columnOrderMap] || 999) -
         (columnOrderMap[b as keyof typeof columnOrderMap] || 999),
     );
 
     const schemaFields: Record<string, z.ZodTypeAny> = {};
-    columns.forEach((column) => {
+    exportColumns.forEach((column) => {
       if (numericColumns.includes(column as any)) {
         schemaFields[columnIdToLabel[column as keyof typeof columnIdToLabel]] =
           z.coerce.number().optional().default(0);
@@ -130,7 +110,7 @@ export const GET = withWorkspace(
     const formattedLinks = links.map((link) => {
       const result: Record<string, any> = {};
 
-      columns.forEach((column) => {
+      exportColumns.forEach((column) => {
         let value = link[column as keyof typeof link] || "";
 
         // Handle special cases
