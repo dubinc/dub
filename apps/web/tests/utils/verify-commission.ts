@@ -19,6 +19,9 @@ export const verifyCommission = async ({
 }: VerifyCommissionProps) => {
   let customerId: string | undefined;
 
+  // Pause for 1.5 seconds for data to be fully processed
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
   // Optional: resolve customer ID if customerExternalId is given
   if (customerExternalId) {
     const { data: customers } = await http.get<Customer[]>({
