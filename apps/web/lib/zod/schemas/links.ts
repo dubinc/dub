@@ -7,7 +7,7 @@ import {
   getPaginationQuerySchema,
   publicHostedImageSchema,
 } from "./misc";
-import { TagSchema } from "./tags";
+import { LinkTagSchema } from "./tags";
 import {
   DESTINATION_URL_MAX_LENGTH,
   parseDateSchema,
@@ -649,7 +649,7 @@ export const LinkSchema = z
       .boolean()
       .default(false)
       .describe("Whether the short link's stats are publicly accessible."),
-    tags: TagSchema.array()
+    tags: LinkTagSchema.array()
       .nullable()
       .describe("The tags assigned to the short link."),
     folderId: z
