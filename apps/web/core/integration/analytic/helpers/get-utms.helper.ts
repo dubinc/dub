@@ -21,8 +21,9 @@ export const getUtmListFromSearch = (): Record<string, string> | null => {
 export const getUTMList = (): Record<string, string> | null => {
   const urlSearch = window.location.search;
 
+  const storedUtms = localStorage.getItem("utmList");
+
   if (!urlSearch.includes("utm")) {
-    const storedUtms = localStorage.getItem("utmList");
     if (storedUtms) {
       return JSON.parse(storedUtms);
     }
@@ -38,6 +39,17 @@ export const getUTMList = (): Record<string, string> | null => {
       acc[key] = value;
       return acc;
     }, {});
+
+  if (storedUtms) {
+    const parsedStoredUtms = JSON.parse(storedUtms);
+
+    localStorage.setItem("utmList", JSON.stringify(utmQueries));
+
+    return {
+      ...parsedStoredUtms,
+      ...utmQueries,
+    };
+  }
 
   localStorage.setItem("utmList", JSON.stringify(utmQueries));
 
