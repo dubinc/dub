@@ -4,8 +4,6 @@ import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processe
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 
-export const SEND_PAYOUTS_BATCH_SIZE = 500;
-
 export async function sendStripePayouts({
   invoiceId,
   chargeId,
@@ -44,7 +42,7 @@ export async function sendStripePayouts({
       },
     },
     include: commonInclude,
-    take: SEND_PAYOUTS_BATCH_SIZE,
+    take: 100,
   });
 
   if (currentInvoicePayouts.length === 0) {
