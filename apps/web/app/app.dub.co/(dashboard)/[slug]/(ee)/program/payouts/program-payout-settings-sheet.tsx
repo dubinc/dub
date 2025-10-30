@@ -9,29 +9,14 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
-import { PayoutMode } from "@dub/prisma/client";
-import {
-  Button,
-  RadioGroup,
-  RadioGroupItem,
-  Sheet,
-  Slider,
-  useScrollProgress,
-} from "@dub/ui";
+import { Button, Sheet, Slider, useScrollProgress } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useAction } from "next-safe-action/hooks";
-import Link from "next/link";
-import {
-  Dispatch,
-  ReactNode,
-  SetStateAction,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ProgramPayoutMethods } from "./program-payout-methods";
+import { ProgramPayoutRouting } from "./program-payout-routing";
 
 type ProgramPayoutSettingsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -41,47 +26,6 @@ type FormData = Pick<
   ProgramProps,
   "holdingPeriodDays" | "minPayoutAmount" | "payoutMode"
 >;
-
-const PAYOUT_MODE_OPTIONS: Array<{
-  value: PayoutMode;
-  label: string;
-  recommended: boolean;
-  description: ReactNode;
-}> = [
-  {
-    value: PayoutMode.internal,
-    label: "Dub only",
-    recommended: true,
-    description: "All payouts are handled by Dub.",
-  },
-  {
-    value: PayoutMode.hybrid,
-    label: "Dub and external",
-    recommended: false,
-    description: (
-      <>
-        Partners with payouts enabled are paid by Dub, others via external
-        payouts.{" "}
-        <Link href="#" className="underline">
-          Payout fees still apply.
-        </Link>
-      </>
-    ),
-  },
-  {
-    value: PayoutMode.external,
-    label: "External only",
-    recommended: false,
-    description: (
-      <>
-        All payouts are processed through your connected external payout method.{" "}
-        <Link href="#" className="underline">
-          Payout fees still apply.
-        </Link>
-      </>
-    ),
-  },
-];
 
 function ProgramPayoutSettingsSheetContent({
   setIsOpen,
@@ -232,53 +176,7 @@ function ProgramPayoutSettingsSheetContent({
           </div>
 
           {program?.externalPayoutEnabledAt && (
-            <div className="space-y-6">
-              <div>
-                <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                  Payout routing
-                </h4>
-                <p className="text-sm font-medium text-neutral-500">
-                  Choose how your payouts are processed on Dub.
-                </p>
-              </div>
-              <div className="space-y-3">
-                <RadioGroup
-                  value={watch("payoutMode")}
-                  onValueChange={(value) => {
-                    setValue(
-                      "payoutMode",
-                      value as ProgramProps["payoutMode"],
-                      {
-                        shouldDirty: true,
-                      },
-                    );
-                  }}
-                  className="space-y-3"
-                >
-                  {PAYOUT_MODE_OPTIONS.map((option) => (
-                    <label
-                      key={option.value}
-                      className="flex cursor-pointer items-start gap-2.5"
-                    >
-                      <div className="flex h-6 shrink-0 items-center">
-                        <RadioGroupItem
-                          value={option.value}
-                          id={option.value}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-content-emphasis cursor-pointer text-sm font-medium">
-                          {option.label} {option.recommended && "(Recommended)"}
-                        </div>
-                        <p className="text-content-subtle mt-0.5 text-xs font-normal leading-4">
-                          {option.description}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
-                </RadioGroup>
-              </div>
-            </div>
+            <ProgramPayoutRouting setValue={setValue} watch={watch} />
           )}
 
           <ProgramPayoutMethods />
