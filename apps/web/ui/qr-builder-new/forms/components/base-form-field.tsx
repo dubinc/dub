@@ -77,7 +77,7 @@ export const BaseFormField = ({
   // For tel type, use the original FormInput as it has special handling
   if (type === "tel") {
     return (
-      <div className={cn("flex w-full flex-col gap-2", className)}>
+      <div className={cn("flex w-full flex-col gap-2 p-3", className)}>
         <label className="text-neutral text-sm font-medium">
           {label}
           {required && <span className="ml-1 text-red-500">*</span>}

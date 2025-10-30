@@ -118,23 +118,22 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
     />
   );
 
-  const styleSelector = (
-    <StyleSelector
-      styleData={customizationData.style}
-      onStyleChange={handleStyleChange}
-      frameSelected={isFrameSelected}
-      disabled={disabled}
-      isMobile={isMobile}
-    />
-  );
-
-  const shapeSelector = (
-    <ShapeSelector
-      shapeData={customizationData.shape}
-      onShapeChange={handleShapeChange}
-      disabled={disabled}
-      isMobile={isMobile}
-    />
+  const styleShapeSelector = (
+    <div className="flex flex-col gap-6">
+      <StyleSelector
+        styleData={customizationData.style}
+        onStyleChange={handleStyleChange}
+        frameSelected={isFrameSelected}
+        disabled={disabled}
+        isMobile={isMobile}
+      />
+      <ShapeSelector
+        shapeData={customizationData.shape}
+        onShapeChange={handleShapeChange}
+        disabled={disabled}
+        isMobile={isMobile}
+      />
+    </div>
   );
 
   const logoSelector = (
@@ -157,8 +156,7 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
       {QR_STYLES_OPTIONS.map((tab) => {
         const selectorContent =
           tab.id === "frame" ? frameSelector :
-          tab.id === "style" ? styleSelector :
-          tab.id === "shape" ? shapeSelector :
+          tab.id === "style-shape" ? styleShapeSelector :
           tab.id === "logo" ? logoSelector : null;
 
         const Icon = tab.icon;

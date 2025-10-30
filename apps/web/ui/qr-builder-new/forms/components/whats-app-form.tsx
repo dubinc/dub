@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { MessageCircle, Tag } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { EQRType } from "../../constants/get-qr-config";
@@ -99,13 +99,13 @@ export const WhatsAppForm = forwardRef<WhatsAppFormRef, WhatsAppFormProps>(
                       WhatsApp
                     </span>
                     <span className="text-muted-foreground text-sm font-normal">
-                      Provide your WhatsApp number and optional message
+                      Provide your WhatsApp details and give a memorable name
                     </span>
                   </div>
                 </div>
               </AccordionTrigger>
               {openAccordion === "details" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2  space-y-4">
+              <AccordionContent className="pt-2">
                 <BaseFormField
                   name="number"
                   label="WhatsApp Number"
@@ -123,30 +123,8 @@ export const WhatsAppForm = forwardRef<WhatsAppFormRef, WhatsAppFormProps>(
                   tooltip="This text will appear in the chat box — the user just needs to tap send."
                   required={false}
                 />
-              </AccordionContent>
-            </AccordionItem>
 
-            <AccordionItem
-              value="name"
-              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex w-full items-start gap-3 text-left">
-                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <Tag className="h-5 w-5 text-secondary" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-foreground text-base font-medium">
-                      Name
-                    </span>
-                    <span className="text-muted-foreground text-sm font-normal">
-                      Give your QR code a memorable name
-                    </span>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              {openAccordion === "name" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2 ">
+                
                 <BaseFormField
                   name="qrName"
                   label="Name your QR Code"

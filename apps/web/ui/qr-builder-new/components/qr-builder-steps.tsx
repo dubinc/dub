@@ -1,5 +1,5 @@
 import { useQrBuilderContext } from "@/ui/qr-builder-new/context";
-import { LayoutGridIcon, FileTextIcon, PaletteIcon } from "lucide-react";
+import { LayoutGridIcon, Edit3Icon, PaletteIcon } from "lucide-react";
 import { useMediaQuery } from "@dub/ui";
 import Stepper from "./stepper";
 
@@ -24,7 +24,7 @@ export const QRBuilderSteps = () => {
         {
           number: 2,
           label: isMobile ? "Step 2" : "Complete Content",
-          icon: FileTextIcon,
+          icon: Edit3Icon,
         },
         {
           number: 3,

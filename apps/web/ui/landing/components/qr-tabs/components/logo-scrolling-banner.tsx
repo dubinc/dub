@@ -39,7 +39,7 @@ export const LogoScrollingBanner = () => {
                   className="w-40 rounded-xl border-none shadow-md sm:w-48"
                 >
                   <CardContent className="flex items-center justify-center px-8 py-5 sm:px-10 sm:py-6">
-                    <Icon className="h-5 w-auto opacity-90 sm:h-6" />
+                    <Icon className="h-5 w-auto opacity-50 grayscale sm:h-6" />
                   </CardContent>
                 </Card>
               );

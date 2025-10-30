@@ -55,18 +55,18 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({ 
   };
 
   return (
-    <section id="features" className="relative py-10 lg:py-14">
+    <section id="features" className="relative overflow-hidden py-10 lg:py-14">
       {/* Background gradient effects */}
       <div className="absolute inset-0 -z-10 overflow-hidden">
         <div className="bg-primary/5 absolute left-1/4 top-0 h-96 w-96 rounded-full blur-3xl" />
         <div className="bg-secondary/5 absolute bottom-0 right-1/4 h-96 w-96 rounded-full blur-3xl" />
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl overflow-hidden px-4 sm:px-6 lg:px-8">
         <div className="mb-12 flex flex-col items-center justify-center gap-3">
           <MotionPreset
             fade
-            slide={{ direction: "down", offset: 50 }}
+            slide={{ direction: "down", offset: 30 }}
             blur
             transition={{ duration: 0.5 }}
           >
@@ -92,7 +92,7 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({ 
             <MotionPreset
               fade
               blur
-              slide={{ direction: "left", offset: 50 }}
+              slide={{ direction: "left", offset: 30 }}
               delay={0.3}
               transition={{ duration: 0.5 }}
               className="w-full lg:w-auto"
@@ -138,7 +138,7 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({ 
                 >
                   <MotionPreset
                     fade
-                    slide={{ direction: "right", offset: 50 }}
+                    slide={{ direction: "right", offset: 30 }}
                     blur
                     transition={{ duration: 0.6, ease: "easeOut" }}
                   >

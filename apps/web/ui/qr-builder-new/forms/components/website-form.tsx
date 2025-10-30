@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Globe, Tag } from "lucide-react";
+import { Globe } from "lucide-react";
 import { forwardRef, useImperativeHandle, useState } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { EQRType } from "../../constants/get-qr-config";
@@ -99,13 +99,13 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
                       Website
                     </span>
                     <span className="text-muted-foreground text-sm font-normal">
-                      Enter the website URL for your QR code
+                      Enter the website URL for your QR code and give a memorable name
                     </span>
                   </div>
                 </div>
               </AccordionTrigger>
               {openAccordion === "details" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2 ">
+              <AccordionContent className="pt-2">
                 <BaseFormField
                   name="websiteLink"
                   label="Enter your website"
@@ -113,30 +113,7 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
                   placeholder={QR_INPUT_PLACEHOLDERS.WEBSITE_URL}
                   tooltip="This is the link people will open when they scan your QR code."
                 />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem
-              value="name"
-              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex w-full items-start gap-3 text-left">
-                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <Tag className="h-5 w-5 text-secondary" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-foreground text-base font-medium">
-                      Name
-                    </span>
-                    <span className="text-muted-foreground text-sm font-normal">
-                      Give your QR code a memorable name
-                    </span>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              {openAccordion === "name" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2 ">
+                
                 <BaseFormField
                   name="qrName"
                   label="Name your QR Code"

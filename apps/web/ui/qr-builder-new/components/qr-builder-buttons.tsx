@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@dub/utils";
 import { Flex, Responsive } from "@radix-ui/themes";
-import { ChevronLeft, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { FC, useCallback } from "react";
 import QRCodeStyling from "qr-code-styling";
 import { DownloadButton } from "./download-button";
@@ -57,10 +57,10 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
     if (isFileUploading) return "Uploading...";
     if (isFileProcessing) return "Processing...";
     if (isEdit) return "Save Changes";
-    if (homepageDemo) return "Continue";
+    if (homepageDemo || isContentStep) return "Customize QR";
 
     return "Create QR Code";
-  }, [isFileUploading, isFileProcessing, isEdit, isLastStep, homepageDemo]);
+  }, [isFileUploading, isFileProcessing, isEdit, isLastStep, homepageDemo, isContentStep]);
 
   const buttonText = getButtonText();
 
@@ -96,7 +96,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
             "text-neutral-400": isProcessing,
           })}
         />
-        <span>Back</span>
+        <span className="hidden md:inline">Back</span>
       </Button>
 
       {showDownloadOnCustomizationStep && (
@@ -127,6 +127,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
         >
           {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {buttonText}
+          {!isLoading && <ChevronRight className="ml-2 h-4 w-4" />}
         </Button>
       ) : null}
     </Flex>

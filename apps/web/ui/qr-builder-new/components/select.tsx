@@ -1,7 +1,7 @@
 import { cn } from "@dub/utils";
 import { Icon } from "@iconify/react";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
-import { TWifiEncryptionOption } from "../constants/wifi-encryption-types.ts";
+import { TWifiEncryptionOption } from "../constants/wifi-encryption-types";
 
 export interface ISelectOption {
   id: string;
@@ -67,3 +67,4 @@ export const Select = ({ options, value, onChange }: ISelectProps) => {
     </DropdownMenu.Root>
   );
 };
+

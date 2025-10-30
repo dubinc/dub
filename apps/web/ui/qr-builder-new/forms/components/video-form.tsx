@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Tag, Video as VideoIcon } from "lucide-react";
+import { Video as VideoIcon } from "lucide-react";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { EQRType } from "../../constants/get-qr-config";
@@ -110,13 +110,13 @@ export const VideoForm = forwardRef<VideoFormRef, VideoFormProps>(
                       Video
                     </span>
                     <span className="text-muted-foreground text-sm font-normal">
-                      Upload your video file
+                      Upload your video file and give a memorable name
                     </span>
                   </div>
                 </div>
               </AccordionTrigger>
               {openAccordion === "details" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2 ">
+              <AccordionContent className="pt-2 space-y-4">
                 <FileUploadField
                   title="Video"
                   name="filesVideo"
@@ -127,30 +127,7 @@ export const VideoForm = forwardRef<VideoFormRef, VideoFormProps>(
                   onUploadStateChange={setIsFileUploading}
                   onProcessingStateChange={setIsFileProcessing}
                 />
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem
-              value="name"
-              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex w-full items-start gap-3 text-left">
-                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <Tag className="h-5 w-5 text-secondary" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-foreground text-base font-medium">
-                      Name
-                    </span>
-                    <span className="text-muted-foreground text-sm font-normal">
-                      Give your QR code a memorable name
-                    </span>
-                  </div>
-                </div>
-              </AccordionTrigger>
-              {openAccordion === "name" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2 ">
+                
                 <BaseFormField
                   name="qrName"
                   label="Name your QR Code"

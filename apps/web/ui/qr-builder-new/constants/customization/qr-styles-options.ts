@@ -1,4 +1,4 @@
-import { Frame, Palette, Shapes, Image } from "lucide-react";
+import { Frame, Palette, Image } from "lucide-react";
 
 export const QR_STYLES_OPTIONS = [
   {
@@ -8,16 +8,10 @@ export const QR_STYLES_OPTIONS = [
     icon: Frame,
   },
   {
-    id: "style",
-    label: "Style",
-    description: "Customize colors and patterns of your QR code",
+    id: "style-shape",
+    label: "Style & Shape",
+    description: "Customize colors, shapes and patterns for your QR code",
     icon: Palette,
-  },
-  {
-    id: "shape",
-    label: "Shape",
-    description: "Choose the shape style for your QR code elements",
-    icon: Shapes,
   },
   {
     id: "logo",
@@ -27,5 +21,5 @@ export const QR_STYLES_OPTIONS = [
   },
 ];
 
-export type TQRStyleOptionId = "frame" | "style" | "shape" | "logo";
+export type TQRStyleOptionId = "frame" | "style-shape" | "logo";
 export type TQRStyleOption = (typeof QR_STYLES_OPTIONS)[number];

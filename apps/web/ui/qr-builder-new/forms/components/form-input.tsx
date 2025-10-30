@@ -1,7 +1,7 @@
 "use client";
 
-import { CountrySelectAutocompleteComponent } from "@/ui/qr-builder/components/country-select-autocomplete";
-import { PhoneNumberInputComponent } from "@/ui/qr-builder/components/phone-number-input";
+import { CountrySelectAutocompleteComponent } from "@/ui/qr-builder-new/components/country-select-autocomplete";
+import { PhoneNumberInputComponent } from "@/ui/qr-builder-new/components/phone-number-input";
 import { Input } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Controller, useFormContext } from "react-hook-form";

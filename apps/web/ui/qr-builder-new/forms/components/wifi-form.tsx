@@ -7,13 +7,13 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Separator } from "@/components/ui/separator";
-import { CheckboxWithLabel } from "@/ui/qr-builder/components/checkbox-with-label";
-import { Select } from "@/ui/qr-builder/components/select";
-import { TooltipComponent } from "@/ui/qr-builder/components/tooltip";
-import { WIFI_ENCRYPTION_TYPES } from "@/ui/qr-builder/constants/wifi-encryption-types";
+import { CheckboxWithLabel } from "@/ui/qr-builder-new/components/checkbox-with-label";
+import { Select } from "@/ui/qr-builder-new/components/select";
+import { TooltipComponent } from "@/ui/qr-builder-new/components/tooltip";
+import { WIFI_ENCRYPTION_TYPES } from "@/ui/qr-builder-new/constants/wifi-encryption-types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Flex, Text } from "@radix-ui/themes";
-import { Info, Tag, Wifi } from "lucide-react";
+import { Info, Wifi } from "lucide-react";
 import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
 import {
   Controller,
@@ -115,13 +115,13 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
                       Wi-Fi
                     </span>
                     <span className="text-muted-foreground text-sm font-normal">
-                      Provide your Wi-Fi name, the type of encryption and your password
+                      Provide your Wi-Fi details and give a memorable name
                     </span>
                   </div>
                 </div>
               </AccordionTrigger>
               {openAccordion === "details" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2  space-y-4">
+              <AccordionContent className="pt-2">
                 <BaseFormField
                   name="networkName"
                   label="WiFi Network Name"
@@ -129,7 +129,7 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
                   tooltip="This is the name of the Wi-Fi network you want to share. You can usually find it on the back of your router."
                 />
 
-                <div className="flex w-full flex-col gap-2">
+                <div className="flex w-full flex-col gap-2 p-3">
                   <Flex gap="1" align="center">
                     <label className="text-neutral text-sm font-medium">
                       Network Security Type
@@ -166,7 +166,7 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
                 )}
 
                 {/* Hidden Network Checkbox - using old component */}
-                <div className="flex w-full flex-col gap-2">
+                <div className="flex w-full flex-col gap-2 p-3">
                   <Controller
                     name="isHiddenNetwork"
                     control={form.control}
@@ -181,37 +181,16 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
                 </div>
 
                 {/* Info box */}
-                <div className="bg-secondary-50 border-secondary-200 flex items-start gap-3 rounded-lg border p-3">
-                  <Info className="text-secondary mt-0.5 h-4 w-4 flex-shrink-0" />
-                  <Text size="2" className="text-secondary">
-                    Not sure where to find this info? Look at the label on your router
-                    — it usually lists your WiFi name, password, and security type.
-                  </Text>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            <AccordionItem
-              value="name"
-              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex w-full items-start gap-3 text-left">
-                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <Tag className="h-5 w-5 text-secondary" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-foreground text-base font-medium">
-                      Name
-                    </span>
-                    <span className="text-muted-foreground text-sm font-normal">
-                      Give your QR code a memorable name
-                    </span>
+                <div className="p-3">
+                  <div className="bg-secondary-50 border-secondary-200 flex items-start gap-3 rounded-lg border p-3">
+                    <Info className="text-secondary mt-0.5 h-4 w-4 flex-shrink-0" />
+                    <Text size="2" className="text-secondary">
+                      Not sure where to find this info? Look at the label on your router
+                      — it usually lists your WiFi name, password, and security type.
+                    </Text>
                   </div>
                 </div>
-              </AccordionTrigger>
-              {openAccordion === "name" && <Separator className="mb-3" />}
-              <AccordionContent className="pt-2 ">
+                
                 <BaseFormField
                   name="qrName"
                   label="Name your QR Code"

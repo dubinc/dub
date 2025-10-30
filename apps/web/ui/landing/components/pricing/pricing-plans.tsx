@@ -121,7 +121,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
                 >
                   {plan.withButton ? (
                     <Button
-                      className="bg-secondary hover:bg-secondary/90 hidden w-full sm:inline-flex"
+                      className="bg-secondary hover:bg-secondary/90  w-full"
                       size="lg"
                       onClick={() => handleScrollButtonClick("3")}
                     >
