@@ -41,6 +41,8 @@ export function ProgramPayoutMethods() {
   }, [webhooks]);
 
   // Process payment methods for display
+  // TODO: Add a custom hook to parse the payment methods and return the display payment methods
+  // We can reuse it confirm-payouts-sheet.tsx and here
   const displayPaymentMethods = useMemo(() => {
     if (!paymentMethods) return [];
 
