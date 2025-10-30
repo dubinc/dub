@@ -6,7 +6,10 @@ import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
-import { sendStripePayouts } from "./send-stripe-payouts";
+import {
+  SEND_PAYOUTS_BATCH_SIZE,
+  sendStripePayouts,
+} from "./send-stripe-payouts";
 
 export const dynamic = "force-dynamic";
 
@@ -86,9 +89,9 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    if (invoice._count.payouts > 100) {
+    if (invoice._count.payouts > SEND_PAYOUTS_BATCH_SIZE) {
       console.log(
-        "More than 100 payouts found for invoice, scheduling next batch...",
+        `More than ${SEND_PAYOUTS_BATCH_SIZE} payouts found for invoice, scheduling next batch...`,
       );
       const qstashResponse = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,

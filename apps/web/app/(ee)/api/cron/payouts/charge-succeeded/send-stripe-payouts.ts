@@ -1,8 +1,10 @@
+import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
-import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
+
+export const SEND_PAYOUTS_BATCH_SIZE = 500;
 
 export async function sendStripePayouts({
   invoiceId,
@@ -42,7 +44,7 @@ export async function sendStripePayouts({
       },
     },
     include: commonInclude,
-    take: 100,
+    take: SEND_PAYOUTS_BATCH_SIZE,
   });
 
   if (currentInvoicePayouts.length === 0) {
@@ -95,21 +97,20 @@ export async function sendStripePayouts({
     });
   }
 
-  const resendBatch = await sendBatchEmail(
+  await queueBatchEmail<typeof PartnerPayoutProcessed>(
     currentInvoicePayouts
       .filter((p) => p.partner.email)
       .map((p) => ({
         variant: "notifications",
         to: p.partner.email!,
         subject: "You've been paid!",
-        react: PartnerPayoutProcessed({
+        templateName: "PartnerPayoutProcessed",
+        templateProps: {
           email: p.partner.email!,
           program: p.program,
           payout: p,
           variant: "stripe",
-        }),
+        },
       })),
   );
-
-  console.log("Sent Resend batch emails", JSON.stringify(resendBatch, null, 2));
 }
