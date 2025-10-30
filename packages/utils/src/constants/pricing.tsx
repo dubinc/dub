@@ -461,10 +461,10 @@ export const getPlanFromPriceId = (priceId: string) => {
   const tier = plan.tiers
     ? Object.entries(plan.tiers).find(([_, { price }]) =>
         price.ids.includes(priceId),
-      )?.[0]
+      )?.[0] ?? null
     : null;
 
-  return { ...plan, tier };
+  return { ...plan, tier: tier ? parseInt(tier) : null };
 };
 
 export const getPlanLimits = (plan: ReturnType<typeof getPlanFromPriceId>) => {
@@ -472,7 +472,7 @@ export const getPlanLimits = (plan: ReturnType<typeof getPlanFromPriceId>) => {
 
   const tierLimits =
     plan.tiers && plan.tier
-      ? plan.tiers[plan.tier as unknown as keyof typeof plan.tiers]?.limits
+      ? plan.tiers[plan.tier as keyof typeof plan.tiers]?.limits
       : {};
 
   return { ...plan.limits, ...tierLimits };

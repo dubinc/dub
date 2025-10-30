@@ -53,6 +53,7 @@ export async function updateWorkspacePlan({
         },
         data: {
           plan: newPlanName,
+          planTier: plan.tier,
           usageLimit: limits.clicks!,
           linksLimit: limits.links!,
           payoutsLimit: limits.payouts!,
