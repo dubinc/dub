@@ -149,6 +149,11 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         ),
       },
       {
+        id: "earnings",
+        header: "Earnings",
+        cell: ({ row }) => currencyFormatter(row.original.earnings / 100),
+      },
+      {
         id: "type",
         header: "Type",
         minSize: 100,
@@ -158,13 +163,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
           <CommissionTypeBadge type={row.original.type ?? "sale"} />
         ),
       },
-      {
-        id: "earnings",
-        header: "Earnings",
-        cell: ({ row }) => currencyFormatter(row.original.earnings / 100),
-      },
     ],
-    columnPinning: { right: ["earnings"] },
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
