@@ -17,7 +17,8 @@ type ManageUsageModalProps = {
 };
 
 function ManageUsageModalContent({ type }: ManageUsageModalProps) {
-  const { plan, planTier, usageLimit } = useWorkspace();
+  const workspace = useWorkspace();
+  const { plan, planTier, usageLimit } = workspace;
 
   const usageSteps = useMemo(() => {
     const limitKey = { events: "clicks" }[type] ?? type;
@@ -36,6 +37,16 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
     ];
   }, [usageLimit]);
 
+  const defaultValue = useMemo(() => {
+    const currentLimit =
+      workspace[{ events: "usageLimit", clicks: "linksLimit" }[type]];
+    return usageSteps.reduce((prev, curr) =>
+      Math.abs(curr - currentLimit) < Math.abs(prev - currentLimit)
+        ? curr
+        : prev,
+    );
+  }, [usageSteps, workspace]);
+
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
 
@@ -53,12 +64,12 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
             `New ${type} per month`}
         </p>
         <NumberFlow
-          value={selectedValue ?? usageSteps[0]}
+          value={selectedValue ?? defaultValue}
           className="text-content-emphasis mb-4 text-lg font-semibold"
         />
 
         <Slider
-          value={usageSteps.indexOf(selectedValue) ?? 0}
+          value={usageSteps.indexOf(selectedValue ?? defaultValue)}
           min={0}
           max={usageSteps.length - 1}
           onChange={(idx) => setSelectedValue(usageSteps[idx])}
