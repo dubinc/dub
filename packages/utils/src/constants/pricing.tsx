@@ -19,12 +19,21 @@ const LEGACY_PRO_PRICE_IDS = [
   "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
 ];
 
+const PRO_TIER_PRICE_IDS = {
+  2: [
+    // TODO: Add prod price IDs here
+    "price_1SO0HZAlJJEpqkPV8Ep3EDuZ", // yearly (test)
+    "price_1SO0GCAlJJEpqkPVbw8SGWuq", // monthly (test)
+  ],
+};
+
 // 2025 pricing
 const NEW_PRO_PRICE_IDS = [
   "price_1R8XtyAlJJEpqkPV5WZ4c0jF", //  yearly
   "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
   "price_1R8XxZAlJJEpqkPVqGi0wOqD", // yearly (test),
   "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly (test),
+  ...Object.values(PRO_TIER_PRICE_IDS).flat(),
 ];
 
 const LEGACY_BUSINESS_PRICE_IDS = [
@@ -37,12 +46,42 @@ const LEGACY_BUSINESS_PRICE_IDS = [
   "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
 ];
 
+const BUSINESS_TIER_PRICE_IDS = {
+  2: [
+    // TODO: Add prod price IDs here
+    "price_1SO0NgAlJJEpqkPVCINwPTUg", // yearly (test)
+    "price_1SO0N6AlJJEpqkPVyxhuGFX8", // monthly (test)
+  ],
+};
+
 // 2025 pricing
 export const NEW_BUSINESS_PRICE_IDS = [
   "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
   "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
   "price_1R8XypAlJJEpqkPVdjzOcYUC", // yearly (test),
   "price_1R7ofLAlJJEpqkPV3MlgDpyx", // monthly (test),
+  ...Object.values(BUSINESS_TIER_PRICE_IDS).flat(),
+];
+
+const ADVANCED_TIER_PRICE_IDS = {
+  2: [
+    // TODO: Add prod price IDs here
+    "price_1SO0bmAlJJEpqkPVmV617aoL", // yearly (test)
+    "price_1SO0N2AlJJEpqkPVJUa43N6P", // monthly (test)
+  ],
+  3: [
+    // TODO: Add prod price IDs here
+    "price_1SO0eGAlJJEpqkPVvuigbn84", // yearly (test)
+    "price_1SO0dqAlJJEpqkPVsIWbOeFW", // monthly (test)
+  ],
+};
+
+const ADVANCED_PRICE_IDS = [
+  "price_1R8Xw4AlJJEpqkPV6nwdink9", //  yearly
+  "price_1R3j0qAlJJEpqkPVkfGNXRwb", // monthly
+  "price_1R8XztAlJJEpqkPVnHmIU2tf", // yearly (test),
+  "price_1R7ofzAlJJEpqkPV0L2TwyJo", // monthly (test),
+  ...Object.values(ADVANCED_TIER_PRICE_IDS).flat(),
 ];
 
 export const PLANS = [
@@ -88,6 +127,19 @@ export const PLANS = [
       ai: 1_000,
       api: 600,
       retention: "1-year",
+    },
+    tiers: {
+      2: {
+        price: {
+          monthly: 60,
+          yearly: 50,
+          ids: PRO_TIER_PRICE_IDS[2],
+        },
+        limits: {
+          links: 5_000,
+          clicks: 150_000,
+        },
+      },
     },
     featureTitle: "Everything in Free, plus:",
     features: [
@@ -163,6 +215,19 @@ export const PLANS = [
       ai: 1_000,
       api: 1_200,
       retention: "3-year",
+    },
+    tiers: {
+      2: {
+        price: {
+          monthly: 180,
+          yearly: 150,
+          ids: BUSINESS_TIER_PRICE_IDS[2],
+        },
+        limits: {
+          links: 25_000,
+          clicks: 500_000,
+        },
+      },
     },
     featureTitle: "Everything in Pro, plus:",
     features: [
@@ -242,12 +307,7 @@ export const PLANS = [
     price: {
       monthly: 300,
       yearly: 250,
-      ids: [
-        "price_1R8Xw4AlJJEpqkPV6nwdink9", //  yearly
-        "price_1R3j0qAlJJEpqkPVkfGNXRwb", // monthly
-        "price_1R8XztAlJJEpqkPVnHmIU2tf", // yearly (test),
-        "price_1R7ofzAlJJEpqkPV0L2TwyJo", // monthly (test),
-      ],
+      ids: ADVANCED_PRICE_IDS,
     },
     limits: {
       links: 50_000,
@@ -262,6 +322,30 @@ export const PLANS = [
       ai: 1_000,
       api: 3_000,
       retention: "5-year",
+    },
+    tiers: {
+      2: {
+        price: {
+          monthly: 600,
+          yearly: 500,
+          ids: ADVANCED_TIER_PRICE_IDS[2],
+        },
+        limits: {
+          links: 150_000,
+          clicks: 2_000_000,
+        },
+      },
+      3: {
+        price: {
+          monthly: 900,
+          yearly: 750,
+          ids: ADVANCED_TIER_PRICE_IDS[3],
+        },
+        limits: {
+          links: 300_000,
+          clicks: 3_500_000,
+        },
+      },
     },
     featureTitle: "Everything in Business, plus:",
     features: [
@@ -370,7 +454,28 @@ export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
 export const FREE_WORKSPACES_LIMIT = 2;
 
 export const getPlanFromPriceId = (priceId: string) => {
-  return PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
+  const plan = PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
+
+  if (!plan) return null;
+
+  const tier = plan.tiers
+    ? Object.entries(plan.tiers).find(([_, { price }]) =>
+        price.ids.includes(priceId),
+      )?.[0]
+    : null;
+
+  return { ...plan, tier };
+};
+
+export const getPlanLimits = (plan: ReturnType<typeof getPlanFromPriceId>) => {
+  if (!plan) return null;
+
+  const tierLimits =
+    plan.tiers && plan.tier
+      ? plan.tiers[plan.tier as unknown as keyof typeof plan.tiers]?.limits
+      : {};
+
+  return { ...plan.limits, ...tierLimits };
 };
 
 export const getPlanDetails = (plan: string) => {

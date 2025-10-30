@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 // POST /api/workspaces/[idOrSlug]/billing/upgrade
 export const POST = withWorkspace(async ({ req, workspace, session }) => {
-  let { plan, period, baseUrl, onboarding } = await req.json();
+  let { plan, period, tier, baseUrl, onboarding } = await req.json();
 
   if (!baseUrl.startsWith(APP_DOMAIN)) {
     throw new DubApiError({
@@ -26,7 +26,7 @@ export const POST = withWorkspace(async ({ req, workspace, session }) => {
   plan = plan.replace(" ", "+");
 
   const prices = await stripe.prices.list({
-    lookup_keys: [`${plan}_${period}`],
+    lookup_keys: [tier ? `${plan}_${period}` : `${plan}${tier}_${period}`],
   });
 
   const activeSubscription = workspace.stripeId
