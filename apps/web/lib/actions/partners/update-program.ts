@@ -4,8 +4,8 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
-import { programLanderSchema } from "@/lib/zod/schemas/program-lander";
 import { prisma } from "@dub/prisma";
+import { PayoutMode } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
@@ -19,7 +19,6 @@ const schema = updateProgramSchema.partial().extend({
   logo: z.string().nullish(),
   wordmark: z.string().nullish(),
   brandColor: z.string().nullish(),
-  landerData: programLanderSchema.nullish(),
 });
 
 export const updateProgramAction = authActionClient
@@ -31,7 +30,6 @@ export const updateProgramAction = authActionClient
       logo,
       wordmark,
       brandColor,
-      landerData: landerDataInput,
       domain,
       url,
       supportEmail,
@@ -40,13 +38,38 @@ export const updateProgramAction = authActionClient
       holdingPeriodDays,
       minPayoutAmount,
       messagingEnabledAt,
+      payoutMode,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
+
     const program = await getProgramOrThrow({
       workspaceId: workspace.id,
       programId,
     });
+
+    // External payout requirement checks
+    if (payoutMode && payoutMode !== PayoutMode.internal) {
+      if (program.externalPayoutEnabledAt === null) {
+        throw new Error("External payout is not enabled for this program.");
+      }
+
+      const webhookWithPayoutConfirmed = await prisma.webhook.findFirst({
+        where: {
+          projectId: workspace.id,
+          disabledAt: null,
+          triggers: {
+            array_contains: ["payout.confirmed"],
+          },
+        },
+      });
+
+      if (!webhookWithPayoutConfirmed) {
+        throw new Error(
+          "A webhook with 'payout.confirmed' event is required when using external payout routing. Please add a webhook with this event before enabling external payout routing.",
+        );
+      }
+    }
 
     const [logoUrl, wordmarkUrl] = await Promise.all([
       logo && !isStored(logo)
@@ -85,6 +108,7 @@ export const updateProgramAction = authActionClient
         ...(messagingEnabledAt !== undefined &&
           (getPlanCapabilities(workspace.plan).canMessagePartners ||
             messagingEnabledAt === null) && { messagingEnabledAt }),
+        ...(payoutMode != null && { payoutMode }),
       },
     });
 

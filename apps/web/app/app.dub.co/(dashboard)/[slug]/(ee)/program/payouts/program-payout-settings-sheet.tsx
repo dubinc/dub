@@ -9,11 +9,21 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
-import { Button, Sheet, Slider, useScrollProgress } from "@dub/ui";
+import { PayoutMode } from "@dub/prisma/client";
+import {
+  Button,
+  RadioGroup,
+  RadioGroupItem,
+  Sheet,
+  Slider,
+  useScrollProgress,
+} from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import {
   Dispatch,
+  ReactNode,
   SetStateAction,
   useEffect,
   useRef,
@@ -26,7 +36,51 @@ type ProgramPayoutSettingsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
-type FormData = Pick<ProgramProps, "holdingPeriodDays" | "minPayoutAmount">;
+type FormData = Pick<
+  ProgramProps,
+  "holdingPeriodDays" | "minPayoutAmount" | "payoutMode"
+>;
+
+const PAYOUT_MODE_OPTIONS: Array<{
+  value: PayoutMode;
+  label: string;
+  recommended: boolean;
+  description: ReactNode;
+}> = [
+  {
+    value: PayoutMode.internal,
+    label: "Dub only",
+    recommended: true,
+    description: "All payouts are handled by Dub.",
+  },
+  {
+    value: PayoutMode.hybrid,
+    label: "Dub and external",
+    recommended: false,
+    description: (
+      <>
+        Partners with payouts enabled are paid by Dub, others via external
+        payouts.{" "}
+        <Link href="#" className="underline">
+          Payout fees still apply.
+        </Link>
+      </>
+    ),
+  },
+  {
+    value: PayoutMode.external,
+    label: "External only",
+    recommended: false,
+    description: (
+      <>
+        All payouts are processed through your connected external payout method.{" "}
+        <Link href="#" className="underline">
+          Payout fees still apply.
+        </Link>
+      </>
+    ),
+  },
+];
 
 function ProgramPayoutSettingsSheetContent({
   setIsOpen,
@@ -48,6 +102,7 @@ function ProgramPayoutSettingsSheetContent({
     if (program) {
       setValue("holdingPeriodDays", program.holdingPeriodDays);
       setValue("minPayoutAmount", program.minPayoutAmount);
+      setValue("payoutMode", program.payoutMode);
     }
   }, [program, setValue]);
 
@@ -74,7 +129,6 @@ function ProgramPayoutSettingsSheetContent({
   };
 
   const minPayoutAmount = watch("minPayoutAmount");
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
@@ -95,11 +149,11 @@ function ProgramPayoutSettingsSheetContent({
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-y-auto">
+      <div className="relative flex-1 overflow-y-auto bg-neutral-50">
         <div
           ref={scrollRef}
           onScroll={updateScrollProgress}
-          className="scrollbar-hide space-y-10 bg-neutral-50 p-4 sm:p-6"
+          className="scrollbar-hide space-y-8 p-4 sm:p-6"
         >
           {/* Payout holding period */}
           <div className="space-y-6">
@@ -175,6 +229,56 @@ function ProgramPayoutSettingsSheetContent({
               />
             </div>
           </div>
+
+          {program?.externalPayoutEnabledAt && (
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-base font-semibold leading-6 text-neutral-900">
+                  Payout routing
+                </h4>
+                <p className="text-sm font-medium text-neutral-500">
+                  Choose how your payouts are processed on Dub.
+                </p>
+              </div>
+              <div className="space-y-3">
+                <RadioGroup
+                  value={watch("payoutMode")}
+                  onValueChange={(value) => {
+                    setValue(
+                      "payoutMode",
+                      value as ProgramProps["payoutMode"],
+                      {
+                        shouldDirty: true,
+                      },
+                    );
+                  }}
+                  className="space-y-3"
+                >
+                  {PAYOUT_MODE_OPTIONS.map((option) => (
+                    <label
+                      key={option.value}
+                      className="flex cursor-pointer items-start gap-2.5"
+                    >
+                      <div className="flex h-6 shrink-0 items-center">
+                        <RadioGroupItem
+                          value={option.value}
+                          id={option.value}
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-content-emphasis cursor-pointer text-sm font-medium">
+                          {option.label} {option.recommended && "(Recommended)"}
+                        </div>
+                        <p className="text-content-subtle mt-0.5 text-xs font-normal leading-4">
+                          {option.description}
+                        </p>
+                      </div>
+                    </label>
+                  ))}
+                </RadioGroup>
+              </div>
+            </div>
+          )}
         </div>
         <div
           className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0"

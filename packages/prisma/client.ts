@@ -22,6 +22,7 @@ export {
   PartnerProfileType,
   PartnerRole,
   PartnerStatus,
+  PayoutMode,
   PayoutStatus,
   PreferredEarningStructure,
   Prisma,
