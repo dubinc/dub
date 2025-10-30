@@ -8,45 +8,29 @@ import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
-import { Button, Modal, Slider, useScrollProgress } from "@dub/ui";
+import { X } from "@/ui/shared/icons";
+import { Button, Sheet, Slider, useScrollProgress } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
   SetStateAction,
-  useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-type ProgramPayoutSettingsModalProps = {
-  showProgramPayoutSettingsModal: boolean;
-  setShowProgramPayoutSettingsModal: Dispatch<SetStateAction<boolean>>;
+type ProgramPayoutSettingsSheetProps = {
+  setIsOpen: Dispatch<SetStateAction<boolean>>;
 };
 
 type FormData = Pick<ProgramProps, "holdingPeriodDays" | "minPayoutAmount">;
 
-function ProgramPayoutSettingsModal(props: ProgramPayoutSettingsModalProps) {
-  const { showProgramPayoutSettingsModal, setShowProgramPayoutSettingsModal } =
-    props;
-
-  return (
-    <Modal
-      showModal={showProgramPayoutSettingsModal}
-      setShowModal={setShowProgramPayoutSettingsModal}
-    >
-      <ProgramPayoutSettingsModalInner {...props} />
-    </Modal>
-  );
-}
-
-function ProgramPayoutSettingsModalInner({
-  setShowProgramPayoutSettingsModal,
-}: ProgramPayoutSettingsModalProps) {
+function ProgramPayoutSettingsSheetContent({
+  setIsOpen,
+}: ProgramPayoutSettingsSheetProps) {
   const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { program } = useProgram();
 
@@ -70,7 +54,7 @@ function ProgramPayoutSettingsModalInner({
   const { executeAsync } = useAction(updateProgramAction, {
     onSuccess: async () => {
       toast.success("Payout settings updated successfully.");
-      setShowProgramPayoutSettingsModal(false);
+      setIsOpen(false);
       mutatePrefix(`/api/programs/${defaultProgramId}`);
     },
     onError: ({ error }) => {
@@ -95,16 +79,27 @@ function ProgramPayoutSettingsModalInner({
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <div className="space-y-4 border-b border-neutral-200 p-4 sm:p-6">
-        <h3 className="text-lg font-medium leading-none">Payout settings</h3>
+    <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
+            Payout settings
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
+        </div>
       </div>
 
-      <div className="relative">
+      <div className="relative flex-1 overflow-y-auto">
         <div
           ref={scrollRef}
           onScroll={updateScrollProgress}
-          className="scrollbar-hide max-h-[calc(100dvh-200px)] space-y-10 overflow-y-auto bg-neutral-50 p-4 sm:p-6"
+          className="scrollbar-hide space-y-10 bg-neutral-50 p-4 sm:p-6"
         >
           {/* Payout holding period */}
           <div className="space-y-6">
@@ -187,45 +182,49 @@ function ProgramPayoutSettingsModalInner({
         />
       </div>
 
-      <div className="flex items-center justify-end gap-2 border-t border-neutral-200 bg-neutral-50 px-4 py-5 sm:px-6">
-        <Button
-          variant="secondary"
-          text="Cancel"
-          disabled={isSubmitting}
-          className="h-8 w-fit px-3"
-          onClick={() => setShowProgramPayoutSettingsModal(false)}
-        />
+      <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
+        <div className="flex items-center justify-end gap-2 p-5">
+          <Button
+            variant="secondary"
+            text="Cancel"
+            disabled={isSubmitting}
+            className="h-8 w-fit px-3"
+            onClick={() => setIsOpen(false)}
+          />
 
-        <Button
-          text="Save"
-          className="h-8 w-fit px-3"
-          loading={isSubmitting}
-          disabled={!isDirty || !isValid}
-          type="submit"
-        />
+          <Button
+            text="Save"
+            className="h-8 w-fit px-3"
+            loading={isSubmitting}
+            disabled={!isDirty || !isValid}
+            type="submit"
+          />
+        </div>
       </div>
     </form>
   );
 }
 
-export function useProgramPayoutSettingsModal() {
-  const [showProgramPayoutSettingsModal, setShowProgramPayoutSettingsModal] =
-    useState(false);
-
-  const ProgramPayoutSettingsModalCallback = useCallback(() => {
-    return (
-      <ProgramPayoutSettingsModal
-        showProgramPayoutSettingsModal={showProgramPayoutSettingsModal}
-        setShowProgramPayoutSettingsModal={setShowProgramPayoutSettingsModal}
-      />
-    );
-  }, [showProgramPayoutSettingsModal, setShowProgramPayoutSettingsModal]);
-
-  return useMemo(
-    () => ({
-      setShowProgramPayoutSettingsModal,
-      ProgramPayoutSettingsModal: ProgramPayoutSettingsModalCallback,
-    }),
-    [setShowProgramPayoutSettingsModal, ProgramPayoutSettingsModalCallback],
+export function ProgramPayoutSettingsSheet({
+  isOpen,
+  ...rest
+}: ProgramPayoutSettingsSheetProps & {
+  isOpen: boolean;
+}) {
+  return (
+    <Sheet open={isOpen} onOpenChange={rest.setIsOpen}>
+      <ProgramPayoutSettingsSheetContent {...rest} />
+    </Sheet>
   );
+}
+
+export function useProgramPayoutSettingsSheet() {
+  const [isOpen, setIsOpen] = useState(false);
+
+  return {
+    programPayoutSettingsSheet: (
+      <ProgramPayoutSettingsSheet setIsOpen={setIsOpen} isOpen={isOpen} />
+    ),
+    setIsOpen,
+  };
 }
