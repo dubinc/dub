@@ -529,101 +529,6 @@ export default function Toggle({
     }
   }
 
-  const filterSelect = (
-    <Filter.Select
-      className="w-full md:w-fit"
-      filters={filters}
-      activeFilters={activeFilters}
-      onSelect={onFilterSelect}
-      onRemove={(key, value) =>
-        queryParams({
-          del: key === "link" ? ["domain", "key"] : key,
-          scroll: false,
-        })
-      }
-      onOpenFilter={(key) =>
-        setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
-      }
-      resetDefaultStates={() => {
-        setSelectedToggleFilterKey(undefined)
-      }}
-      defaultSelectedFilterKey={selectedToggleFilterKey}
-    />
-  );
-
-  const dateRangePicker = (
-    <DateRangePicker
-      className="w-full sm:min-w-[200px] md:w-fit"
-      align={dashboardProps ? "end" : "center"}
-      value={
-        start && end
-          ? {
-              from: start,
-              to: end,
-            }
-          : undefined
-      }
-      presetId={start && end ? undefined : interval ?? "30d"}
-      onChange={(range, preset) => {
-        if (preset) {
-          queryParams({
-            del: ["start", "end"],
-            set: {
-              interval: preset.id,
-            },
-            scroll: false,
-          });
-
-          return;
-        }
-
-        // Regular range
-        if (!range || !range.from || !range.to) return;
-
-        queryParams({
-          del: "preset",
-          set: {
-            start: range.from.toISOString(),
-            end: range.to.toISOString(),
-          },
-          scroll: false,
-        });
-      }}
-      presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-        // const requiresUpgrade =
-        //   partnerPage ||
-        //   DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
-        //     ? false
-        //     : !validDateRangeForPlan({
-        //         plan: plan || dashboardProps?.workspacePlan,
-        //         dataAvailableFrom: createdAt,
-        //         interval: value,
-        //         start,
-        //         end,
-        //       });
-        const requiresUpgrade = false;
-        const { startDate, endDate } = getStartEndDates({
-          interval: value,
-          dataAvailableFrom: createdAt,
-        });
-
-        return {
-          id: value,
-          label: display,
-          dateRange: {
-            from: startDate,
-            to: endDate,
-          },
-          requiresUpgrade,
-          tooltipContent: requiresUpgrade ? (
-            <UpgradeTooltip rangeLabel={display} plan={plan} />
-          ) : undefined,
-          shortcut,
-        };
-      })}
-    />
-  );
-
   return (
     <>
       <div
@@ -680,13 +585,100 @@ export default function Toggle({
             )}
             <div
               className={cn(
-                "flex w-full flex-col-reverse items-center gap-2 min-[550px]:flex-row",
+                "flex w-full flex-col items-center gap-2 min-[500px]:flex-row",
                 dashboardProps && "md:w-auto",
               )}
             >
-              {filterSelect}
-              {dateRangePicker}
-              <div className="flex items-center gap-x-2">
+              <Filter.Select
+                className="w-full min-[500px]:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onFilterSelect}
+                onRemove={(key, value) =>
+                  queryParams({
+                    del: key === "link" ? ["domain", "key"] : key,
+                    scroll: false,
+                  })
+                }
+                onOpenFilter={(key) =>
+                  setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
+                }
+                resetDefaultStates={() => {
+                  setSelectedToggleFilterKey(undefined)
+                }}
+                defaultSelectedFilterKey={selectedToggleFilterKey}
+              />
+              <DateRangePicker
+                className="w-full min-[500px]:w-fit"
+                align={dashboardProps ? "end" : "center"}
+                value={
+                  start && end
+                    ? {
+                        from: start,
+                        to: end,
+                      }
+                    : undefined
+                }
+                presetId={start && end ? undefined : interval ?? "30d"}
+                onChange={(range, preset) => {
+                  if (preset) {
+                    queryParams({
+                      del: ["start", "end"],
+                      set: {
+                        interval: preset.id,
+                      },
+                      scroll: false,
+                    });
+
+                    return;
+                  }
+
+                  // Regular range
+                  if (!range || !range.from || !range.to) return;
+
+                  queryParams({
+                    del: "preset",
+                    set: {
+                      start: range.from.toISOString(),
+                      end: range.to.toISOString(),
+                    },
+                    scroll: false,
+                  });
+                }}
+                presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
+                  // const requiresUpgrade =
+                  //   partnerPage ||
+                  //   DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
+                  //     ? false
+                  //     : !validDateRangeForPlan({
+                  //         plan: plan || dashboardProps?.workspacePlan,
+                  //         dataAvailableFrom: createdAt,
+                  //         interval: value,
+                  //         start,
+                  //         end,
+                  //       });
+                  const requiresUpgrade = false;
+                  const { startDate, endDate } = getStartEndDates({
+                    interval: value,
+                    dataAvailableFrom: createdAt,
+                  });
+
+                  return {
+                    id: value,
+                    label: display,
+                    dateRange: {
+                      from: startDate,
+                      to: endDate,
+                    },
+                    requiresUpgrade,
+                    tooltipContent: requiresUpgrade ? (
+                      <UpgradeTooltip rangeLabel={display} plan={plan} />
+                    ) : undefined,
+                    shortcut,
+                  };
+                })}
+              />
+              <div className="flex items-center h-10 gap-x-2 w-full min-[500px]:w-fit">
                 <Switch
                   id="unique"
                   checked={!!searchParamsObj.unique}
