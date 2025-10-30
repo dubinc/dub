@@ -87,7 +87,10 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    if (invoice._count.payouts > 100) {
+    if (
+      invoice._count.payouts > 100 &&
+      invoice.id !== "inv_1K858PN9HDXYG47RVC6C6ZT7N"
+    ) {
       console.log(
         "More than 100 payouts found for invoice, scheduling next batch...",
       );
