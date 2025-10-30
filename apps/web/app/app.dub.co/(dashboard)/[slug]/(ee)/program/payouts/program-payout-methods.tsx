@@ -5,7 +5,7 @@ import usePaymentMethods from "@/lib/swr/use-payment-methods";
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Badge, Button } from "@dub/ui";
-import { Webhook } from "@dub/ui/icons";
+import { MoneyBill, Webhook } from "@dub/ui/icons";
 import { capitalize } from "@dub/utils";
 import Link from "next/link";
 import { ComponentType, ReactNode, useMemo } from "react";
@@ -158,9 +158,13 @@ export function ProgramPayoutMethods() {
         {!paymentMethodsLoading &&
           displayPaymentMethods.length === 0 &&
           externalPayoutWebhooks.length === 0 && (
-            <div className="rounded-lg border border-neutral-200 bg-neutral-50 px-4 py-8 text-center">
-              <p className="text-sm text-neutral-500">
-                No payout methods connected yet.
+            <div className="flex flex-col items-center justify-center rounded-lg bg-neutral-50 py-6">
+              <MoneyBill className="mb-2 size-6 text-neutral-900" />
+              <h3 className="text-content-emphasis text-xs font-semibold leading-4">
+                No payout methods
+              </h3>
+              <p className="text-content-default text-xs font-medium leading-5">
+                A payout method is required to pay out your partners
               </p>
             </div>
           )}

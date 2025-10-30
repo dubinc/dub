@@ -94,7 +94,7 @@ function ProgramPayoutSettingsSheetContent({
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-y-auto bg-neutral-50">
+      <div className="relative flex-1 overflow-y-auto">
         <div
           ref={scrollRef}
           onScroll={updateScrollProgress}
