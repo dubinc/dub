@@ -12,6 +12,7 @@ import {
 } from "./send-stripe-payouts";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 600; // This function can run for a maximum of 10 minutes
 
 const payloadSchema = z.object({
   invoiceId: z.string(),
