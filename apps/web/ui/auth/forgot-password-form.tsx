@@ -6,15 +6,8 @@ import { Button, Input, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { MessageType } from "../../app/app.dub.co/(auth)/auth.modal";
 
-export const ForgotPasswordForm = ({
-  authModal,
-  setAuthModalMessage,
-}: {
-  authModal?: boolean;
-  setAuthModalMessage?: (message: string | null, type: MessageType) => void;
-}) => {
+export const ForgotPasswordForm = () => {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
   const searchParams = useSearchParams();
@@ -25,8 +18,6 @@ export const ForgotPasswordForm = ({
       showMessage(
         "You will receive an email with instructions to reset your password.",
         "success",
-        authModal,
-        setAuthModalMessage,
       );
       router.push("/login");
     },
@@ -34,8 +25,6 @@ export const ForgotPasswordForm = ({
       showMessage(
         error.serverError || "An error occurred. Please try again.",
         "error",
-        authModal,
-        setAuthModalMessage,
       );
     },
   });
