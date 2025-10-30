@@ -3,9 +3,14 @@ import { PartnerBountyProps } from "@/lib/types";
 import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
-import { DynamicTooltipWrapper, StatusBadge, TooltipContent } from "@dub/ui";
+import {
+  DynamicTooltipWrapper,
+  StatusBadge,
+  TimestampTooltip,
+  TooltipContent,
+} from "@dub/ui";
 import { Calendar6, Gift } from "@dub/ui/icons";
-import { cn, formatDate } from "@dub/utils";
+import { cn, formatDate, formatDateTimeSmart } from "@dub/utils";
 import { useParams } from "next/navigation";
 
 export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
@@ -68,12 +73,21 @@ export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
             <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
               <Calendar6 className="size-3.5" />
               <span>
-                {formatDate(bounty.startsAt, { month: "short" })}
-                {bounty.endsAt && (
+                {bounty.endsAt ? (
                   <>
-                    {" → "}
-                    {formatDate(bounty.endsAt, { month: "short" })}
+                    {expiredBounty ? "Ended" : "Ends"} at{" "}
+                    <TimestampTooltip
+                      timestamp={bounty.endsAt}
+                      side="right"
+                      rows={["local", "utc"]}
+                    >
+                      <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                        {formatDateTimeSmart(bounty.endsAt)}
+                      </span>
+                    </TimestampTooltip>
                   </>
+                ) : (
+                  `${formatDate(bounty.startsAt, { month: "short" })} → No end date`
                 )}
               </span>
             </div>
