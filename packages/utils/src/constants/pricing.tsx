@@ -446,6 +446,9 @@ export const FREE_PLAN = PLANS.find((plan) => plan.name === "Free")!;
 export const PRO_PLAN = PLANS.find((plan) => plan.name === "Pro")!;
 export const BUSINESS_PLAN = PLANS.find((plan) => plan.name === "Business")!;
 export const ADVANCED_PLAN = PLANS.find((plan) => plan.name === "Advanced")!;
+export const ENTERPRISE_PLAN = PLANS.find(
+  (plan) => plan.name === "Enterprise",
+)!;
 
 export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
   ["Pro", "Business", "Advanced"].includes(p.name),

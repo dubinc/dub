@@ -98,14 +98,14 @@ export default function PlanUsage() {
 
     const tabs = [
       {
-        id: "events",
+        id: "events" as const,
         icon: CursorRays,
         title: "Events tracked",
         usage: usage,
         limit: usageLimit,
       },
       {
-        id: "links",
+        id: "links" as const,
         icon: Hyperlink,
         title: "Links created",
         usage:
@@ -269,7 +269,7 @@ function UsageTabCard({
   unit,
   requiresUpgrade,
 }: {
-  id: string;
+  id: "links" | "events";
   icon: Icon;
   title: string;
   usage?: number;
@@ -280,7 +280,9 @@ function UsageTabCard({
   const { queryParams } = useRouterStuff();
   const { slug } = useWorkspace();
 
-  const { ManageUsageModal, setShowManageUsageModal } = useManageUsageModal();
+  const { ManageUsageModal, setShowManageUsageModal } = useManageUsageModal({
+    type: id,
+  });
 
   const { activeResource } = useUsage();
 
