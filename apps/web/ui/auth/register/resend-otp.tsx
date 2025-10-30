@@ -25,20 +25,24 @@ export const ResendOtp = ({
   const { executeAsync, isPending } = useAction(sendOtpAction, {
     onSuccess: () => {
       setState("success");
+      if (authModal && setAuthModalMessage) {
+        setAuthModalMessage("Code resent successfully", "success");
+        return;
+      }
       showMessage(
         "Code resent successfully",
         "success",
-        authModal,
-        setAuthModalMessage,
       );
     },
     onError: () => {
       setState("error");
+      if (authModal && setAuthModalMessage) {
+        setAuthModalMessage("Failed to resend code", "error");
+        return;
+      }
       showMessage(
         "Failed to resend code",
         "error",
-        authModal,
-        setAuthModalMessage,
       );
     },
   });

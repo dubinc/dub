@@ -3,7 +3,7 @@
 import { Session } from '@/lib/auth';
 import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
-import { Button } from "@dub/ui";
+import { Button, useRouterStuff } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { getSession } from 'next-auth/react';
@@ -17,12 +17,12 @@ interface IHeaderProps {
 }
 
 export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) => {
-  const { AuthModal, showModal } = useAuthModal({ sessionId });
+  const { AuthModal, showModal, setShowAuthModal } = useAuthModal({ sessionId });
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { queryParams } = useRouterStuff();
 
   const openLogin = searchParams.get("login");
-  const scrollToBuilder = searchParams.get("start");
   const isFromPaywall = searchParams.get("source") === "paywall";
 
   useEffect(() => {
@@ -52,9 +52,14 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
     router.push("/?start=true");
   }, [router]);
 
+  const scrollToBuilder = searchParams.get("start");
   useEffect(() => {
     if (scrollToBuilder) {
+      setShowAuthModal(false);
       handleScrollToQRGenerationBlock();
+      queryParams({
+        del: ["start"],
+      });
     }
   }, [scrollToBuilder, handleScrollToQRGenerationBlock]);
 
