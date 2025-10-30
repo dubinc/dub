@@ -16,7 +16,7 @@ export const forceWithdrawalAction = authPartnerActionClient.action(
       permission: "payout_settings.update",
     });
 
-    if (!partner.payoutsEnabledAt || !partner.stripeConnectId) {
+    if (!partner.payoutsEnabledAt) {
       throw new Error(
         "You haven't enabled payouts yet. Please enable payouts in your payout settings.",
       );

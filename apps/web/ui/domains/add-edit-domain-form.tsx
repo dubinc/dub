@@ -416,7 +416,7 @@ export function AddEditDomainForm({
                               [id]: checked,
                             }));
                             if (!checked) {
-                              setValue(id, "", {
+                              setValue(id, null, {
                                 shouldDirty: true,
                               });
                             }
@@ -543,7 +543,7 @@ export function AddEditDomainForm({
                                     });
                                   }
                                 } else {
-                                  setValue(id, "", {
+                                  setValue(id, null, {
                                     shouldDirty: true,
                                   });
                                 }
