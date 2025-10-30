@@ -16,6 +16,7 @@ export const WORKSPACE_LEVEL_WEBHOOK_TRIGGERS = [
   "commission.created",
   "bounty.created",
   "bounty.updated",
+  "payout.confirmed",
 ] as const;
 
 export const LINK_LEVEL_WEBHOOK_TRIGGERS = ["link.clicked"] as const;
@@ -36,6 +37,7 @@ export const WEBHOOK_TRIGGER_DESCRIPTIONS = {
   "commission.created": "Commission created",
   "bounty.created": "Bounty created",
   "bounty.updated": "Bounty updated",
+  "payout.confirmed": "Payout confirmed",
 } as const;
 
 export const WEBHOOK_FAILURE_NOTIFY_THRESHOLDS = [5, 10, 15] as const;
