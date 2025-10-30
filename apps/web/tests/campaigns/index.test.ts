@@ -32,6 +32,8 @@ const campaign: z.infer<typeof updateCampaignSchema> = {
 const expectedCampaign: Partial<Campaign> = {
   ...campaign,
   type: "transactional",
+  from: null,
+  scheduledAt: null,
   groups: [{ id: E2E_PARTNER_GROUP.id }],
   createdAt: expect.any(String),
   updatedAt: expect.any(String),
@@ -177,6 +179,7 @@ describe.sequential("/campaigns/**", async () => {
       name: expectedCampaign.name,
       type: expectedCampaign.type,
       status: "active",
+      scheduledAt: null,
       groups: [{ id: E2E_PARTNER_GROUP.id }],
       delivered: 0,
       sent: 0,
