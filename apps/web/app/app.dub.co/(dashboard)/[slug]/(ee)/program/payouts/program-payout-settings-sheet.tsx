@@ -31,6 +31,7 @@ import {
 } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { ProgramPayoutMethods } from "./program-payout-methods";
 
 type ProgramPayoutSettingsSheetProps = {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
@@ -279,6 +280,8 @@ function ProgramPayoutSettingsSheetContent({
               </div>
             </div>
           )}
+
+          <ProgramPayoutMethods />
         </div>
         <div
           className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0"
