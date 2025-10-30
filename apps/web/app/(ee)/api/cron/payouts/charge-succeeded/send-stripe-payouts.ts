@@ -93,9 +93,6 @@ export async function sendStripePayouts({
       ),
       chargeId,
     });
-
-    // sleep for 250ms
-    await new Promise((resolve) => setTimeout(resolve, 250));
   }
 
   const resendBatch = await sendBatchEmail(
