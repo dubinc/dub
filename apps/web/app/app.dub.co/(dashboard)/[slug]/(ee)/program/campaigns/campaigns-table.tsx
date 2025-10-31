@@ -130,19 +130,20 @@ export function CampaignsTable() {
         },
       },
       {
-        id: "partners",
-        header: "Partners",
+        id: "sent",
+        header: "Sent",
+        accessorFn: (d) => d.sent,
         cell: ({ row }) => {
-          const groupIds = row.original.groups.map((g) => g.id);
+          const { sent } = row.original;
 
-          const partnersCount =
-            groupCount
-              ?.filter(
-                (g) => groupIds.length === 0 || groupIds.includes(g.groupId),
-              )
-              .reduce((acc, curr) => acc + curr._count, 0) || 0;
-
-          return nFormatter(partnersCount, { full: true });
+          return (
+            <Tooltip
+              content={`${nFormatter(sent, { full: true })} sent`}
+              side="top"
+            >
+              <span className="cursor-help">{nFormatter(sent)}</span>
+            </Tooltip>
+          );
         },
       },
       {
@@ -218,7 +219,14 @@ export function CampaignsTable() {
     },
     pagination,
     onPaginationChange: setPagination,
-    sortableColumns: ["createdAt", "status", "delivered", "bounced", "opened"],
+    sortableColumns: [
+      "createdAt",
+      "status",
+      "sent",
+      "delivered",
+      "bounced",
+      "opened",
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
