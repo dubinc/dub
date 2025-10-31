@@ -65,7 +65,7 @@ export const POST = withPartnerProfile(
     if (["banned", "deactivated", "rejected"].includes(status)) {
       throw new DubApiError({
         code: "forbidden",
-        message: "You are banned from this program.",
+        message: `You cannot create links in this program because you have been ${status}`,
       });
     }
 
