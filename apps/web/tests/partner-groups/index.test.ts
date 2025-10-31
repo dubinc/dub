@@ -78,7 +78,7 @@ describe.sequential("/groups/**", async () => {
 
   test("PATCH /groups/[groupId] - update group", async () => {
     const toUpdate = {
-      name: `E2E-${generateRandomName}`,
+      name: `E2E-${generateRandomName()}`,
       color: randomValue(RESOURCE_COLORS),
       maxPartnerLinks: 5,
       linkStructure: "query",
