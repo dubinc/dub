@@ -153,7 +153,10 @@ export const POST = async (
           secondary: false,
           twoSteps: false,
         },
-        attributes: { ...metadata, billing_action: "rebill" },
+        attributes: {
+          ...metadata,
+          // billing_action: "rebill"
+        },
       },
       orderAmount: price,
       orderCurrencyCode: user.currency?.currencyForPay || "",
