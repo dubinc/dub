@@ -126,9 +126,12 @@ export const VALID_ANALYTICS_ENDPOINTS = [
   "triggers",
   "referers",
   "referer_urls",
-  "top_partners",
+  "top_folders",
+  "top_link_tags",
+  "top_domains",
   "top_links",
   "top_urls",
+  "top_partners",
   "utm_sources",
   "utm_mediums",
   "utm_campaigns",
@@ -152,6 +155,13 @@ export const SINGULAR_ANALYTICS_ENDPOINTS = {
   utm_campaigns: "utm_campaign",
   utm_terms: "utm_term",
   utm_contents: "utm_content",
+  // extra fields
+  top_folders: "folderId",
+  top_link_tags: "tagIds",
+  top_domains: "domain",
+  top_links: "link",
+  top_urls: "url",
+  timeseries: "start",
 };
 
 export const VALID_ANALYTICS_FILTERS = [
@@ -206,6 +216,7 @@ export const DIMENSIONAL_ANALYTICS_FILTERS = [
   "utm_campaign",
   "utm_term",
   "utm_content",
+  "query",
 ];
 
 export const TRIGGER_TYPES = ["qr", "link", "pageview", "deeplink"] as const;

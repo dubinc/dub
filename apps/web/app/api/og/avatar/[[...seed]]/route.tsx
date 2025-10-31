@@ -4,10 +4,8 @@ import { getTheme } from "./utils";
 
 export const runtime = "edge";
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { seed?: string[] } },
-) {
+export async function GET(req: NextRequest, props: { params: Promise<{ seed?: string[] }> }) {
+  const params = await props.params;
   const origin = req.headers.get("origin");
   // Validate the origin header and set CORS headers accordingly
   const corsHeaders = {

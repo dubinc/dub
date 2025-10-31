@@ -6,6 +6,8 @@ import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { getLeadEvents } from "../tinybird/get-lead-events";
 import { logImportError } from "../tinybird/log-import-error";
@@ -125,7 +127,7 @@ export async function importCommissions(payload: ToltImportPayload) {
 
   if (workspaceUser && workspaceUser.user.email) {
     await sendEmail({
-      email: workspaceUser.user.email,
+      to: workspaceUser.user.email,
       subject: "Tolt program imported",
       react: ProgramImported({
         email: workspaceUser.user.email,
@@ -359,6 +361,10 @@ async function createCommission({
           conversions: {
             increment: 1,
           },
+          lastConversionAt: updateLinkStatsForImporter({
+            currentTimestamp: customerFound.link.lastConversionAt,
+            newTimestamp: new Date(commission.created_at),
+          }),
         }),
         ...(saleAmount > 0 && {
           sales: {
@@ -369,6 +375,12 @@ async function createCommission({
           },
         }),
       },
+    }),
+
+    syncPartnerLinksStats({
+      partnerId: customerFound.link.partnerId,
+      programId: program.id,
+      eventType: "sale",
     }),
 
     // update customer stats (if sale amount is greater than 0)

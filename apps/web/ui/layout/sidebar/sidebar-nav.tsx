@@ -10,8 +10,8 @@ import {
   Tooltip,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -23,7 +23,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import UserDropdown from "./user-dropdown";
+import { UserDropdown } from "./user-dropdown";
 
 export type NavItemCommon = {
   name: string;
@@ -210,7 +210,7 @@ export function SidebarNav<T extends Record<any, any>>({
                 {data.showConversionGuides && (
                   <div className="px-3 pb-2">
                     <Link
-                      href={`/${data.slug}/guides`}
+                      href={`/${data.slug}/settings/analytics`}
                       className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
                     >
                       <BookOpen className="size-4" />
@@ -475,7 +475,7 @@ export function Area({
             ),
       )}
       aria-hidden={!visible ? "true" : undefined}
-      {...{ inert: !visible ? "" : undefined }}
+      inert={!visible}
     >
       {children}
     </div>

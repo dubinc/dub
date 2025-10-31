@@ -1,10 +1,9 @@
-import z from "@/lib/zod";
 import {
   PartnerBountySchema,
   PartnerEarningsSchema,
   PartnerProfileCustomerSchema,
   PartnerProfileLinkSchema,
-  PartnerProgramEnrollmentSchema,
+  partnerUserSchema,
 } from "@/lib/zod/schemas/partner-profile";
 import { DirectorySyncProviders } from "@boxyhq/saml-jackson";
 import {
@@ -12,6 +11,7 @@ import {
   FolderUserRole,
   Link,
   PartnerGroup,
+  PartnerRole,
   PayoutStatus,
   Prisma,
   ProgramEnrollmentStatus,
@@ -19,7 +19,9 @@ import {
   User,
   UtmTemplate,
   Webhook,
+  WorkspaceRole,
 } from "@dub/prisma/client";
+import { z } from "zod";
 import { RESOURCE_COLORS } from "../ui/colors";
 import {
   FOLDER_PERMISSIONS,
@@ -29,11 +31,17 @@ import { WEBHOOK_TRIGGER_DESCRIPTIONS } from "./webhook/constants";
 import {
   BountyListSchema,
   BountySchema,
-  BountySchemaExtended,
   BountySubmissionExtendedSchema,
   getBountySubmissionsQuerySchema,
   SUBMISSION_REQUIREMENTS,
 } from "./zod/schemas/bounties";
+import {
+  CampaignListSchema,
+  CampaignSchema,
+  campaignSummarySchema,
+  EMAIL_TEMPLATE_VARIABLES,
+  updateCampaignSchema,
+} from "./zod/schemas/campaigns";
 import {
   clickEventResponseSchema,
   clickEventSchemaTB,
@@ -45,12 +53,14 @@ import {
   CustomerSchema,
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
-import { DiscountSchema } from "./zod/schemas/discount";
+import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
 import { FolderSchema } from "./zod/schemas/folders";
+import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
-  additionalPartnerLinkSchema,
+  additionalPartnerLinkSchemaOptionalPath,
   GroupSchema,
   GroupSchemaExtended,
+  GroupWithFormDataSchema,
   PartnerGroupDefaultLinkSchema,
 } from "./zod/schemas/groups";
 import { integrationSchema } from "./zod/schemas/integration";
@@ -67,20 +77,31 @@ import {
 import { MessageSchema } from "./zod/schemas/messages";
 import { createOAuthAppSchema, oAuthAppSchema } from "./zod/schemas/oauth";
 import {
+  NetworkPartnerSchema,
+  PartnerConversionScoreSchema,
+} from "./zod/schemas/partner-network";
+import {
   createPartnerSchema,
   EnrolledPartnerSchema,
+  EnrolledPartnerSchemaExtended,
   PartnerSchema,
+  WebhookPartnerSchema,
 } from "./zod/schemas/partners";
 import {
   PartnerPayoutResponseSchema,
   PayoutResponseSchema,
 } from "./zod/schemas/payouts";
+import {
+  programApplicationFormDataWithValuesSchema,
+  programApplicationFormFieldWithValuesSchema,
+  programApplicationFormSchema,
+} from "./zod/schemas/program-application-form";
 import { programLanderSchema } from "./zod/schemas/program-lander";
 import { programDataSchema } from "./zod/schemas/program-onboarding";
 import {
+  PartnerCommentSchema,
   ProgramEnrollmentSchema,
   ProgramSchema,
-  ProgramWithLanderDataSchema,
 } from "./zod/schemas/programs";
 import {
   rewardConditionsArraySchema,
@@ -107,6 +128,7 @@ import {
   workflowConditionSchema,
 } from "./zod/schemas/workflows";
 import { workspacePreferencesSchema } from "./zod/schemas/workspace-preferences";
+import { workspaceUserSchema } from "./zod/schemas/workspaces";
 
 export type LinkProps = Link;
 
@@ -172,9 +194,10 @@ export type UtmTemplateWithUserProps = UtmTemplateProps & {
 
 export type PlanProps = (typeof plans)[number];
 
-export type RoleProps = (typeof roles)[number];
-
-export type BetaFeatures = "noDubLink" | "abTesting";
+export type BetaFeatures =
+  | "noDubLink"
+  | "analyticsSettingsSiteVisitTracking"
+  | "emailCampaigns";
 
 export interface WorkspaceProps extends Project {
   logo: string | null;
@@ -185,7 +208,7 @@ export interface WorkspaceProps extends Project {
     verified: boolean;
   }[];
   users: {
-    role: RoleProps;
+    role: WorkspaceRole;
     defaultFolderId: string | null;
   }[];
   flags?: {
@@ -208,6 +231,8 @@ export interface ExtendedWorkspaceProps extends WorkspaceProps {
 
 export type WorkspaceWithUsers = Omit<WorkspaceProps, "domains">;
 
+export type WorkspaceUserProps = z.infer<typeof workspaceUserSchema>;
+
 export interface UserProps {
   id: string;
   name: string;
@@ -220,10 +245,6 @@ export interface UserProps {
   isMachine: boolean;
   hasPassword: boolean;
   provider: string | null;
-}
-
-export interface WorkspaceUserProps extends UserProps {
-  role: RoleProps;
 }
 
 export type DomainVerificationStatusProps =
@@ -287,6 +308,7 @@ export interface SAMLProviderProps {
 export type NewLinkProps = z.infer<typeof createLinkBodySchema>;
 
 type ProcessedLinkOverrides = "domain" | "key" | "url" | "projectId";
+
 export type ProcessedLinkProps = Omit<NewLinkProps, ProcessedLinkOverrides> &
   Pick<LinkProps, ProcessedLinkOverrides> & { userId?: LinkProps["userId"] } & {
     createdAt?: Date;
@@ -305,19 +327,15 @@ export const plans = [
   "enterprise",
 ] as const;
 
-export const roles = ["owner", "member"] as const;
-
-export type Role = (typeof roles)[number];
-
 export type DashboardProps = z.infer<typeof dashboardSchema>;
 
 export type TokenProps = z.infer<typeof tokenSchema>;
 
 export type OAuthAppProps = z.infer<typeof oAuthAppSchema>;
 
-export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
+export type OAuthAppWithClientSecret = OAuthAppProps & { clientSecret: string };
 
-export type ExistingOAuthApp = OAuthAppProps;
+export type NewOAuthApp = z.infer<typeof createOAuthAppSchema>;
 
 export type IntegrationProps = z.infer<typeof integrationSchema>;
 
@@ -361,7 +379,6 @@ export type InstalledIntegrationInfoProps = Pick<
   | "installUrl"
 > & {
   createdAt: Date;
-  installations: number;
   installed: {
     id: string;
     createdAt: Date;
@@ -373,6 +390,7 @@ export type InstalledIntegrationInfoProps = Pick<
     };
   } | null;
   credentials?: Prisma.JsonValue;
+  settings?: Prisma.JsonValue;
   webhookId?: string; // Only if the webhook is managed by an integration
 };
 
@@ -388,6 +406,8 @@ export type WebhookCacheProps = Pick<
   Webhook,
   "id" | "url" | "secret" | "triggers" | "disabledAt"
 >;
+
+export type WebhookPartner = z.infer<typeof WebhookPartnerSchema>;
 
 export type TrackLeadResponse = z.infer<typeof trackLeadResponseSchema>;
 
@@ -416,8 +436,12 @@ export type PartnerEarningsResponse = z.infer<typeof PartnerEarningsSchema>;
 
 export type CustomerProps = z.infer<typeof CustomerSchema>;
 
-export type PartnerProps = z.infer<typeof PartnerSchema>;
+export type PartnerProps = z.infer<typeof PartnerSchema> & {
+  role: PartnerRole;
+  userId: string;
+};
 
+export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
 export type PartnerProfileCustomerProps = z.infer<
   typeof PartnerProfileCustomerSchema
 >;
@@ -426,21 +450,36 @@ export type PartnerProfileLinkProps = z.infer<typeof PartnerProfileLinkSchema>;
 
 export type EnrolledPartnerProps = z.infer<typeof EnrolledPartnerSchema>;
 
+export type NetworkPartnerProps = z.infer<typeof NetworkPartnerSchema>;
+
+export type PartnerConversionScore = z.infer<
+  typeof PartnerConversionScoreSchema
+>;
+
+export type EnrolledPartnerExtendedProps = z.infer<
+  typeof EnrolledPartnerSchemaExtended
+>;
+
 export type DiscountProps = z.infer<typeof DiscountSchema>;
+
+export type DiscountCodeProps = z.infer<typeof DiscountCodeSchema>;
 
 export type ProgramProps = z.infer<typeof ProgramSchema>;
 
 export type ProgramLanderData = z.infer<typeof programLanderSchema>;
 
-export type ProgramWithLanderDataProps = z.infer<
-  typeof ProgramWithLanderDataSchema
+export type ProgramApplicationFormData = z.infer<
+  typeof programApplicationFormSchema
 >;
 
+export type ProgramApplicationFormDataWithValues = z.infer<
+  typeof programApplicationFormDataWithValuesSchema
+>;
+
+export type ProgramApplicationFormFieldWithValues = z.infer<
+  typeof programApplicationFormFieldWithValuesSchema
+>;
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
-
-export type PartnerProgramEnrollmentProps = z.infer<
-  typeof PartnerProgramEnrollmentSchema
->;
 
 export type PayoutsCount = {
   status: PayoutStatus;
@@ -484,7 +523,10 @@ export type FolderWithPermissions = {
   permissions: FolderPermission[];
 };
 
-export type FolderSummary = Pick<Folder, "id" | "name" | "accessLevel">;
+export type FolderSummary = Pick<
+  Folder,
+  "id" | "name" | "description" | "accessLevel"
+>;
 
 export type RewardProps = z.infer<typeof RewardSchema>;
 
@@ -515,9 +557,11 @@ export type ClickEventTB = z.infer<typeof clickEventSchemaTB>;
 
 export type LeadEventTB = z.infer<typeof leadEventSchemaTB>;
 
-export type GroupProps = z.infer<typeof GroupSchema> & {
-  additionalLinks: PartnerGroupAdditionalLink[] | null;
-};
+export type GroupProps = z.infer<typeof GroupSchema>;
+
+export type GroupWithFormDataProps = z.infer<typeof GroupWithFormDataSchema>;
+
+export type GroupWithProgramProps = z.infer<typeof GroupWithProgramSchema>;
 
 export type GroupExtendedProps = z.infer<typeof GroupSchemaExtended>;
 
@@ -526,16 +570,17 @@ export type PartnerGroupDefaultLink = z.infer<
 >;
 
 export type PartnerGroupAdditionalLink = z.infer<
-  typeof additionalPartnerLinkSchema
+  typeof additionalPartnerLinkSchemaOptionalPath
 >;
 
 export type PartnerGroupProps = PartnerGroup & {
   additionalLinks: PartnerGroupAdditionalLink[];
 };
 
+export type PartnerCommentProps = z.infer<typeof PartnerCommentSchema>;
+
 export type BountyProps = z.infer<typeof BountySchema>;
 export type BountyListProps = z.infer<typeof BountyListSchema>;
-export type BountyExtendedProps = z.infer<typeof BountySchemaExtended>;
 
 export type PartnerBountyProps = z.infer<typeof PartnerBountySchema>;
 
@@ -558,12 +603,22 @@ export type WorkflowAction = z.infer<typeof workflowActionSchema>;
 export type OperatorFn = (a: number, b: number) => boolean;
 
 export interface WorkflowContext {
-  totalLeads: number;
-  totalConversions: number;
-  totalSaleAmount: number;
-  totalCommissions: number;
+  programId: string;
   partnerId: string;
-  groupId: string;
+  groupId?: string;
+  current?: {
+    leads?: number;
+    conversions?: number;
+    saleAmount?: number;
+    commissions?: number;
+  };
+  // Not using at the moment
+  historical?: {
+    leads?: number;
+    conversions?: number;
+    saleAmount?: number;
+    commissions?: number;
+  };
 }
 
 export type BountySubmissionsQueryFilters = z.infer<
@@ -571,3 +626,34 @@ export type BountySubmissionsQueryFilters = z.infer<
 >;
 
 export type Message = z.infer<typeof MessageSchema>;
+
+export type CampaignList = z.infer<typeof CampaignListSchema>;
+
+export type Campaign = z.infer<typeof CampaignSchema>;
+
+export type UpdateCampaignFormData = z.infer<typeof updateCampaignSchema>;
+
+export type CampaignSummary = z.infer<typeof campaignSummarySchema>;
+
+export type StripeMode = "test" | "sandbox" | "live";
+
+export type EmailTemplateVariables = Record<
+  (typeof EMAIL_TEMPLATE_VARIABLES)[number],
+  string | null | undefined
+>;
+
+export interface TiptapNode {
+  type: string;
+  text?: string;
+  attrs?: Record<string, any>;
+  content?: TiptapNode[];
+  marks?: Array<{ type: string; attrs?: Record<string, any> }>;
+}
+
+export interface CampaignWorkflowAttributeConfig {
+  label: string;
+  inputType: "number" | "currency" | "dropdown" | "none";
+  dropdownValues?: number[];
+}
+
+export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];

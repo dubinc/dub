@@ -23,8 +23,8 @@ model Integration {
   oAuthApp      OAuthApp?
   installations InstalledIntegration[]
 
-  @@index([projectId])
-  @@index([userId])
+  @@index(projectId)
+  @@index(userId)
 }
 
 model InstalledIntegration {
@@ -35,6 +35,7 @@ model InstalledIntegration {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   credentials   Json?
+  settings      Json?
 
   user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
   integration   Integration         @relation(fields: [integrationId], references: [id], onDelete: Cascade)
@@ -44,6 +45,6 @@ model InstalledIntegration {
   webhooks      Webhook[]
 
   @@unique([userId, integrationId, projectId])
-  @@index([projectId])
-  @@index([integrationId])
+  @@index(projectId)
+  @@index(integrationId)
 }

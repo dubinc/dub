@@ -5,7 +5,7 @@ import { useWorkspaceStore } from "@/lib/swr/use-workspace-store";
 import { OnboardingUsageSchema } from "@/lib/zod/schemas/workspaces";
 import { Markdown } from "@/ui/shared/markdown";
 import { Button } from "@dub/ui";
-import { LayoutGroup, motion } from "framer-motion";
+import { LayoutGroup, motion } from "motion/react";
 import { useId } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";

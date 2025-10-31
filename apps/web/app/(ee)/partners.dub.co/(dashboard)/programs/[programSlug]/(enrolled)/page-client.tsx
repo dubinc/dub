@@ -26,11 +26,18 @@ import {
   TimeSeriesChart,
   XAxis,
 } from "@dub/ui/charts";
-import { Check, Copy, LoadingSpinner } from "@dub/ui/icons";
+import {
+  Check,
+  Copy,
+  CursorRays,
+  InvoiceDollar,
+  LoadingSpinner,
+  UserPlus,
+} from "@dub/ui/icons";
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import {
@@ -200,9 +207,19 @@ export default function ProgramPageClient() {
 
             <PayoutsCard programId={program?.id} />
             <NumberFlowGroup>
-              <StatCard title="Clicks" event="clicks" />
-              <StatCard title="Leads" event="leads" />
-              <StatCard title="Sales" event="sales" />
+              {programSlug === "perplexity" ? (
+                <>
+                  <StatCardSimple title="Clicks" event="clicks" />
+                  <StatCardSimple title="Leads" event="leads" />
+                  <StatCardSimple title="Sales" event="sales" />
+                </>
+              ) : (
+                <>
+                  <StatCard title="Clicks" event="clicks" />
+                  <StatCard title="Leads" event="leads" />
+                  <StatCard title="Sales" event="sales" />
+                </>
+              )}
             </NumberFlowGroup>
           </div>
         </ChartTooltipSync>
@@ -319,20 +336,26 @@ function StatCard({
   const { getQueryString } = useRouterStuff();
   const { start, end, interval } = useContext(ProgramOverviewContext);
 
-  const { data: total } = usePartnerAnalytics({
+  const { data: timeseries, error } = usePartnerAnalytics({
+    groupBy: "timeseries",
     event: "composite",
     interval,
     start,
     end,
   });
 
-  const { data: timeseries, error } = usePartnerAnalytics({
-    groupBy: "timeseries",
-    interval,
-    start,
-    end,
-    event,
-  });
+  const totals = useMemo(() => {
+    return timeseries && timeseries.length > 0
+      ? timeseries.reduce(
+          (acc, { clicks, leads, sales }) => ({
+            clicks: acc.clicks + clicks,
+            leads: acc.leads + leads,
+            sales: acc.sales + sales,
+          }),
+          { clicks: 0, leads: 0, sales: 0 },
+        )
+      : { clicks: 0, leads: 0, sales: 0 };
+  }, [timeseries]);
 
   return (
     <div className="group block rounded-lg border border-neutral-300 bg-white p-5 pb-3">
@@ -341,12 +364,12 @@ function StatCard({
           <span className="mb-1 block text-base font-semibold leading-none text-neutral-800">
             {title}
           </span>
-          {total !== undefined ? (
+          {totals !== undefined ? (
             <div className="flex items-center gap-1 text-lg font-medium text-neutral-600">
               <NumberFlow
-                value={total[event]}
+                value={totals[event]}
                 format={{
-                  notation: total[event] > 999999 ? "compact" : "standard",
+                  notation: totals[event] > 999999 ? "compact" : "standard",
                 }}
               />
             </div>
@@ -377,6 +400,55 @@ function StatCard({
             )}
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function StatCardSimple({
+  title,
+  event,
+}: {
+  title: string;
+  event: "clicks" | "leads" | "sales";
+}) {
+  const { data: total } = usePartnerAnalytics({
+    event: "composite",
+  });
+
+  const iconMap = {
+    clicks: CursorRays,
+    leads: UserPlus,
+    sales: InvoiceDollar,
+  };
+
+  const Icon = iconMap[event];
+
+  return (
+    <div className="relative block rounded-lg border border-neutral-300 bg-white px-5 py-4">
+      <div className="flex items-center gap-4">
+        <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
+          <Icon className="size-5 text-neutral-700" />
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="block text-sm font-medium text-neutral-600">
+            {title}
+          </span>
+          {total !== undefined ? (
+            <NumberFlow
+              className="text-xl font-semibold text-neutral-900"
+              value={total[event]}
+              format={{
+                notation: total[event] > 999999 ? "compact" : "standard",
+              }}
+            />
+          ) : (
+            <div className="h-12 w-20 animate-pulse rounded-md bg-neutral-200" />
+          )}
+        </div>
+      </div>
+      <div className="absolute right-6 top-4 text-xs text-neutral-400">
+        All-time data
       </div>
     </div>
   );
@@ -426,7 +498,9 @@ function BrandedChart({
                     interval,
                     start,
                     end,
-                    dataAvailableFrom: programEnrollment?.program.createdAt,
+                    dataAvailableFrom:
+                      programEnrollment?.program.startedAt ??
+                      programEnrollment?.program.createdAt,
                   })}
                 </span>
                 <p className="text-right text-neutral-500">

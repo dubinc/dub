@@ -55,7 +55,7 @@ export async function leadCreated(data: LeadCreatedEvent["data"]) {
       ({ user: owner }) =>
         owner.email &&
         sendEmail({
-          email: owner.email,
+          to: owner.email,
           subject: "Someone signed up for Dub via your referral link!",
           react: NewReferralSignup({
             email: owner.email,

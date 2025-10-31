@@ -1,20 +1,18 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { generatePerformanceBountyName } from "@/lib/api/bounties/generate-performance-bounty-name";
 import { getBountyWithDetails } from "@/lib/api/bounties/get-bounty-with-details";
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
+import { validateBounty } from "@/lib/api/bounties/validate-bounty";
 import { DubApiError } from "@/lib/api/errors";
 import { throwIfInvalidGroupIds } from "@/lib/api/groups/throw-if-invalid-group-ids";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { qstash } from "@/lib/cron";
+import { WorkflowCondition } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import {
-  BountySchema,
-  BountySchemaExtended,
-  updateBountySchema,
-} from "@/lib/zod/schemas/bounties";
+import { BountySchema, updateBountySchema } from "@/lib/zod/schemas/bounties";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, arrayEqual } from "@dub/utils";
+import { arrayEqual } from "@dub/utils";
 import { PartnerGroup, Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
@@ -26,12 +24,14 @@ export const GET = withWorkspace(
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
+    console.time("getBountyWithDetails");
     const bounty = await getBountyWithDetails({
       bountyId,
       programId,
     });
+    console.timeEnd("getBountyWithDetails");
 
-    return NextResponse.json(BountySchemaExtended.parse(bounty));
+    return NextResponse.json(BountySchema.parse(bounty));
   },
   {
     requiredPlan: [
@@ -56,20 +56,13 @@ export const PATCH = withWorkspace(
       description,
       startsAt,
       endsAt,
+      submissionsOpenAt,
       rewardAmount,
       rewardDescription,
       submissionRequirements,
       performanceCondition,
       groupIds,
     } = updateBountySchema.parse(await parseRequestBody(req));
-
-    if (startsAt && endsAt && endsAt < startsAt) {
-      throw new DubApiError({
-        message:
-          "Bounty end date (endsAt) must be on or after start date (startsAt).",
-        code: "bad_request",
-      });
-    }
 
     const bounty = await prisma.bounty.findUniqueOrThrow({
       where: {
@@ -78,23 +71,24 @@ export const PATCH = withWorkspace(
       },
       include: {
         groups: true,
+        workflow: true,
+        _count: {
+          select: {
+            submissions: true,
+          },
+        },
       },
     });
 
-    if (rewardAmount === null || rewardAmount === 0) {
-      if (bounty.type === "performance") {
-        throw new DubApiError({
-          code: "bad_request",
-          message: "Reward amount is required for performance bounties",
-        });
-      } else if (!rewardDescription) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "For submission bounties, either reward amount or reward description is required",
-        });
-      }
-    }
+    validateBounty({
+      type: bounty.type,
+      startsAt,
+      endsAt,
+      submissionsOpenAt,
+      rewardAmount,
+      rewardDescription,
+      performanceScope: bounty.performanceScope,
+    });
 
     // TODO:
     // When we do archive, make sure it disables the workflow
@@ -112,6 +106,24 @@ export const PATCH = withWorkspace(
         programId,
         groupIds,
       });
+    }
+
+    // Prevent updates if `performanceCondition.attribute` differs from the current value if there are existing submissions
+    if (performanceCondition && bounty.workflow) {
+      const submissionCount = bounty._count.submissions;
+      const currentCondition = bounty.workflow
+        .triggerConditions?.[0] as WorkflowCondition;
+
+      if (
+        currentCondition &&
+        currentCondition.attribute !== performanceCondition.attribute &&
+        submissionCount > 0
+      ) {
+        throw new DubApiError({
+          code: "bad_request",
+          message: `You cannot change the performance condition from "${PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[currentCondition.attribute].toLowerCase()}" to "${PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute].toLowerCase()}" because the bounty has submissions.`,
+        });
+      }
     }
 
     // Bounty name
@@ -134,6 +146,8 @@ export const PATCH = withWorkspace(
           description,
           startsAt: startsAt!, // Can remove the ! when we're on a newer TS version (currently 5.4.4)
           endsAt,
+          submissionsOpenAt:
+            bounty.type === "submission" ? submissionsOpenAt : null,
           rewardAmount,
           rewardDescription,
           ...(bounty.type === "submission" &&
@@ -200,16 +214,6 @@ export const PATCH = withWorkspace(
           trigger: "bounty.updated",
           data: updatedBounty,
         }),
-
-        // if bounty.startsAt was updated, publish a new message to the queue
-        updatedBounty.startsAt.getTime() !== bounty.startsAt.getTime() &&
-          qstash.publishJSON({
-            url: `${APP_DOMAIN_WITH_NGROK}/api/cron/bounties/notify-partners`,
-            body: {
-              bountyId: updatedBounty.id,
-            },
-            notBefore: Math.floor(updatedBounty.startsAt.getTime() / 1000),
-          }),
       ]),
     );
 

@@ -94,7 +94,7 @@ export function ProgramOnboardingSteps() {
                           "bg-neutral-200 text-neutral-500",
                         )}
                       >
-                        {stepNumber === 6 ? (
+                        {stepNumber === 5 ? (
                           <Lock className="size-3" />
                         ) : (
                           stepNumber
@@ -123,7 +123,7 @@ export function ProgramOnboardingSteps() {
                             "border border-neutral-200 text-neutral-500",
                         )}
                       >
-                        {stepNumber === 6 ? (
+                        {stepNumber === 5 ? (
                           <Lock className="size-3" />
                         ) : completed ? (
                           <Check className="size-3" />

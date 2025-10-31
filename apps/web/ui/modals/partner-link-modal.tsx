@@ -25,13 +25,15 @@ import {
 } from "@dub/ui/icons";
 import {
   cn,
+  getApexDomain,
   getDomainWithoutWWW,
   getPathnameFromUrl,
-  // getPathnameFromUrl,
   linkConstructor,
+  nanoid,
   punycode,
 } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
+import { useSession } from "next-auth/react";
 import { useParams } from "next/navigation";
 import {
   Dispatch,
@@ -169,15 +171,19 @@ function PartnerLinkModalContent({
   link?: PartnerProfileLinkProps;
   setShowPartnerLinkModal: Dispatch<SetStateAction<boolean>>;
 }) {
+  const isEditingLink = Boolean(link?.id); // When duplicating the id will be empty
+  const isCreatingLink = !link;
+
   const { programSlug } = useParams();
-  const { programEnrollment } = useProgramEnrollment();
-  const [lockKey, setLockKey] = useState(Boolean(link));
-  const [isLoading, setIsLoading] = useState(false);
-  const [isExactMode, setIsExactMode] = useState(false);
-  const formRef = useRef<HTMLFormElement>(null);
-  const { handleKeyDown } = useEnterSubmit(formRef);
   const { isMobile } = useMediaQuery();
+  const formRef = useRef<HTMLFormElement>(null);
   const [, copyToClipboard] = useCopyToClipboard();
+  const { handleKeyDown } = useEnterSubmit(formRef);
+  const [lockKey, setLockKey] = useState(isEditingLink);
+  const [isLoading, setIsLoading] = useState(false);
+  const { data: session } = useSession();
+  const { programEnrollment } = useProgramEnrollment();
+  const [keyInputFocused, setKeyInputFocused] = useState(false);
 
   const { shortLinkDomain, additionalLinks } = useMemo(() => {
     return {
@@ -187,7 +193,10 @@ function PartnerLinkModalContent({
   }, [programEnrollment]);
 
   const destinationDomains = useMemo(
-    () => additionalLinks.map((link) => link.domain),
+    () =>
+      additionalLinks
+        .map((link) => link.domain)
+        .filter((d): d is string => d != null),
     [additionalLinks],
   );
 
@@ -197,19 +206,22 @@ function PartnerLinkModalContent({
       : destinationDomains?.[0] ?? null,
   );
 
-  useEffect(() => {
-    const additionalLink = additionalLinks.find(
-      (link) => link.domain === destinationDomain,
-    );
+  const selectedAdditionalLink = useMemo(
+    () => additionalLinks.find((link) => link.domain === destinationDomain),
+    [destinationDomain, additionalLinks],
+  );
 
-    setIsExactMode(additionalLink?.validationMode === "exact");
-  }, [destinationDomain, additionalLinks]);
+  const isExactMode = useMemo(
+    () => selectedAdditionalLink?.validationMode === "exact",
+    [selectedAdditionalLink],
+  );
 
   const {
     register,
     watch,
     handleSubmit,
-    formState: { isDirty },
+    setValue,
+    formState: { isDirty, errors },
   } = useForm<PartnerLinkFormData>({
     defaultValues: link
       ? {
@@ -222,10 +234,37 @@ function PartnerLinkModalContent({
 
   const [key, pathname] = watch(["key", "pathname"]);
 
+  // Auto-generate short link key for new links
+  useEffect(() => {
+    const name = session?.user?.name;
+
+    if (!key && name && !keyInputFocused && !isLoading) {
+      const namePrefix = name.split(" ")[0];
+      const randomSuffix = nanoid(4).toLowerCase();
+      const generatedKey = `${namePrefix}-${randomSuffix}`;
+      setValue("key", generatedKey.toLowerCase(), { shouldDirty: false });
+    }
+  }, [key, session, setValue, keyInputFocused, isLoading]);
+
+  useEffect(() => {
+    if (!selectedAdditionalLink || isEditingLink) {
+      return;
+    }
+
+    if (isExactMode) {
+      setValue("pathname", selectedAdditionalLink.path, { shouldDirty: true });
+    } else {
+      setValue("pathname", "", { shouldDirty: true });
+    }
+  }, [selectedAdditionalLink, isExactMode, isEditingLink]);
+
   const saveDisabled = useMemo(
     () =>
-      Boolean(isLoading || (link ? !isDirty : destinationDomains.length === 0)),
-    [isLoading, link, isDirty, destinationDomains],
+      Boolean(
+        isLoading ||
+          (isEditingLink ? !isDirty : destinationDomains.length === 0),
+      ),
+    [isLoading, isEditingLink, isDirty, destinationDomains],
   );
 
   // we hide the destination URL input if:
@@ -256,10 +295,10 @@ function PartnerLinkModalContent({
         try {
           const response = await fetch(
             `/api/partner-profile/programs/${programEnrollment?.program?.id}/links${
-              link ? `/${link.id}` : ""
+              isEditingLink ? `/${link!.id}` : ""
             }`,
             {
-              method: link ? "PATCH" : "POST",
+              method: isEditingLink ? "PATCH" : "POST",
               headers: {
                 "Content-Type": "application/json",
               },
@@ -286,14 +325,16 @@ function PartnerLinkModalContent({
             mutateSuffix("/links"),
           ]);
 
-          if (!link) {
+          if (isCreatingLink) {
             try {
               await copyToClipboard(result.shortLink);
               toast.success("Copied short link to clipboard!");
             } catch (err) {
               toast.success("Successfully created link!");
             }
-          } else toast.success("Successfully updated short link!");
+          } else {
+            toast.success("Successfully updated short link!");
+          }
 
           setShowPartnerLinkModal(false);
         } finally {
@@ -304,7 +345,7 @@ function PartnerLinkModalContent({
       <div className="flex flex-col items-start justify-between gap-6 px-6 py-4">
         <div className="flex w-full items-center justify-between">
           <h3 className="text-lg font-medium">
-            {link ? "Edit Link" : "New Link"}
+            {isEditingLink ? "Edit Link" : "New Link"}
           </h3>
           <button
             type="button"
@@ -354,21 +395,32 @@ function PartnerLinkModalContent({
                 {shortLinkDomain}
               </span>
               <input
-                {...register("key", { required: true })}
+                {...register("key", {
+                  required: "Short link key is required.",
+                })}
                 type="text"
                 id="key"
-                autoFocus={!isMobile}
+                autoFocus={Boolean(hideDestinationUrl && !isMobile)}
+                onFocus={() => setKeyInputFocused(true)}
+                onBlur={() => setKeyInputFocused(false)}
                 disabled={lockKey}
                 className={cn(
                   "block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
                   {
                     "cursor-not-allowed border border-neutral-300 bg-neutral-100 text-neutral-500":
                       lockKey,
+                    "border-red-300 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500":
+                      errors.key,
                   },
                 )}
                 placeholder="short-link"
               />
             </div>
+            {errors.key && (
+              <p className="mt-2 text-sm text-red-600" id="key-error">
+                {errors.key.message}
+              </p>
+            )}
           </div>
 
           {!hideDestinationUrl && (
@@ -396,26 +448,31 @@ function PartnerLinkModalContent({
                     selectedDomain={destinationDomain}
                     setSelectedDomain={setDestinationDomain}
                     destinationDomains={destinationDomains}
-                    disabled={Boolean(link)}
+                    disabled={isEditingLink}
                   />
                 </div>
                 <input
                   {...register("pathname", { required: false })}
                   type="text"
                   placeholder="(optional)"
+                  autoFocus={Boolean(!hideDestinationUrl && !isMobile)}
                   disabled={isExactMode}
                   onPaste={(e: React.ClipboardEvent<HTMLInputElement>) => {
                     if (isExactMode) return;
 
                     e.preventDefault();
-                    // if pasting in a URL, extract the pathname
+                    // if pasting in a URL, extract the pathname + query params
                     const text = e.clipboardData.getData("text/plain");
+                    let newValue: string;
                     try {
                       const url = new URL(text);
-                      e.currentTarget.value = url.pathname.slice(1);
+                      newValue = url.pathname.slice(1) + url.search;
                     } catch (err) {
-                      e.currentTarget.value = text;
+                      newValue = text;
                     }
+
+                    // Use setValue to properly dirty the form
+                    setValue("pathname", newValue, { shouldDirty: true });
                   }}
                   className={cn(
                     "z-0 block w-full rounded-r-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:z-[1] focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm",
@@ -474,7 +531,7 @@ function PartnerLinkModalContent({
           loading={isLoading}
           text={
             <span className="flex items-center gap-2">
-              {link ? "Save changes" : "Create link"}
+              {isEditingLink ? "Save changes" : "Create link"}
               <div className="rounded border border-white/20 p-1">
                 <ArrowTurnLeft className="size-3.5" />
               </div>
@@ -493,7 +550,7 @@ function DestinationDomainCombobox({
   destinationDomains,
   disabled = false,
 }: {
-  selectedDomain?: string;
+  selectedDomain?: string | null;
   setSelectedDomain: (domain: string) => void;
   destinationDomains: string[];
   disabled?: boolean;
@@ -522,7 +579,7 @@ function DestinationDomainCombobox({
         punycode(domain).toLowerCase().includes(debouncedSearch.toLowerCase()),
       )
       .map((domain) => ({
-        value: domain,
+        value: getApexDomain(domain!),
         label: punycode(domain),
       }));
   }, [selectedDomain, destinationDomains, debouncedSearch]);
@@ -532,7 +589,7 @@ function DestinationDomainCombobox({
       selected={
         selectedDomain
           ? {
-              value: selectedDomain,
+              value: selectedDomain!,
               label: punycode(selectedDomain),
             }
           : null

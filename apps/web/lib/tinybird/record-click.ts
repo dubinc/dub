@@ -19,6 +19,10 @@ import {
 import { conn } from "../planetscale";
 import { WorkspaceProps } from "../types";
 import { redis } from "../upstash";
+import {
+  publishClickEvent,
+  publishPartnerActivityEvent,
+} from "../upstash/redis-streams";
 import { webhookCache } from "../webhook/cache";
 import { sendWebhooks } from "../webhook/qstash";
 import { transformClickEventData } from "../webhook/transform";
@@ -29,12 +33,14 @@ import { transformClickEventData } from "../webhook/transform";
 export async function recordClick({
   req,
   clickId,
+  workspaceId,
   linkId,
   domain,
   key,
   url,
+  programId,
+  partnerId,
   webhookIds,
-  workspaceId,
   skipRatelimit,
   timestamp,
   referrer,
@@ -44,11 +50,13 @@ export async function recordClick({
   req: Request;
   clickId?: string;
   linkId: string;
+  workspaceId?: string;
   domain: string;
   key: string;
   url?: string;
+  programId?: string;
+  partnerId?: string;
   webhookIds?: string[];
-  workspaceId: string | undefined;
   skipRatelimit?: boolean;
   timestamp?: string;
   referrer?: string;
@@ -83,13 +91,17 @@ export async function recordClick({
     return null;
   }
 
-  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
+  const identityHash = await getIdentityHash(req);
 
   // by default, we deduplicate clicks for a domain + key pair from the same IP address – only record 1 click per hour
   // we only need to do these if skipRatelimit is not true (we skip it in /api/track/:path endpoints)
   if (!skipRatelimit) {
     // here, we check if the clickId is cached in Redis within the last hour
-    const cachedClickId = await recordClickCache.get({ domain, key, ip });
+    const cachedClickId = await recordClickCache.get({
+      domain,
+      key,
+      identityHash,
+    });
     if (cachedClickId) {
       return null;
     }
@@ -114,11 +126,10 @@ export async function recordClick({
   const geo =
     process.env.VERCEL === "1" ? geolocation(req) : LOCALHOST_GEO_DATA;
 
+  const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
   const isEuCountry = geo.country && EU_COUNTRY_CODES.includes(geo.country);
 
   const referer = referrer || req.headers.get("referer");
-
-  const identityHash = await getIdentityHash(req);
 
   const finalUrl = url ? getFinalUrlForRecordClick({ req, url }) : "";
 
@@ -126,7 +137,10 @@ export async function recordClick({
     timestamp: timestamp || new Date(Date.now()).toISOString(),
     identity_hash: identityHash,
     click_id: clickId,
+    workspace_id: workspaceId || "",
     link_id: linkId,
+    domain,
+    key,
     url: finalUrl,
     ip:
       // only record IP if it's a valid IP and not from a EU country
@@ -157,10 +171,10 @@ export async function recordClick({
   };
 
   if (shouldCacheClickId) {
-    // cache the click ID and its corresponding click data in Redis for 5 mins
+    // cache the click ID and its corresponding click data in Redis for 1 day
     // we're doing this because ingested click events are not available immediately in Tinybird
     await redis.set(`clickIdCache:${clickId}`, clickData, {
-      ex: 60 * 5,
+      ex: 60 * 60 * 24, // cache for 1 day
     });
   }
 
@@ -179,7 +193,7 @@ export async function recordClick({
         ).then((res) => res.json()),
 
         // cache the recorded click for the corresponding IP address in Redis for 1 hour
-        recordClickCache.set({ domain, key, ip, clickId }),
+        recordClickCache.set({ domain, key, identityHash, clickId }),
 
         // increment the click count for the link (based on their ID)
         // we have to use planetscale connection directly (not prismaEdge) because of connection pooling
@@ -187,13 +201,48 @@ export async function recordClick({
           "UPDATE Link SET clicks = clicks + 1, lastClicked = NOW() WHERE id = ?",
           [linkId],
         ),
-        // if the link has a destination URL, increment the usage count for the workspace
-        // and then we have a cron that will reset it at the start of new billing cycle
-        url &&
-          conn.execute(
-            "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
-            [linkId],
-          ),
+        // if the link is associated with a workspace + has a destination URL
+        // increment the usage count for the workspace
+        workspaceId &&
+          url &&
+          publishClickEvent({
+            linkId,
+            workspaceId,
+            timestamp: clickData.timestamp,
+          }).catch(() => {
+            // Fallback on writing directly to the database
+            return conn.execute(
+              "UPDATE Project p JOIN Link l ON p.id = l.projectId SET p.usage = p.usage + 1, p.totalClicks = p.totalClicks + 1 WHERE l.id = ?",
+              [linkId],
+            );
+          }),
+
+        programId &&
+          partnerId &&
+          publishPartnerActivityEvent({
+            programId,
+            partnerId,
+            eventType: "click",
+            timestamp: new Date().toISOString(),
+          }).catch(() => {
+            // Fallback on writing directly to the database
+            return conn.execute(
+              "UPDATE ProgramEnrollment SET totalClicks = totalClicks + 1 WHERE programId = ? AND partnerId = ?",
+              [programId, partnerId],
+            );
+          }),
+
+        // TODO: Remove after Tinybird migration
+        fetchWithRetry(
+          `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_OLD}`,
+            },
+            body: JSON.stringify(clickData),
+          },
+        ).then((res) => res.json()),
       ]);
 
       // Find the rejected promises and log them
@@ -206,6 +255,7 @@ export async function recordClick({
                 "recordClickCache set",
                 "Link clicks increment",
                 "Workspace usage increment",
+                "Program enrollment totalClicks increment",
               ];
               return {
                 operation: operations[index] || `Operation ${index}`,

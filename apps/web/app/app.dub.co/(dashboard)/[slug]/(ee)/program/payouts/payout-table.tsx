@@ -68,7 +68,7 @@ const PayoutTableInner = memo(
         ? `/api/programs/${defaultProgramId}/payouts${getQueryString(
             { workspaceId },
             {
-              exclude: ["payoutId"],
+              exclude: ["payoutId", "selectedPayoutId", "excludedPayoutIds"],
             },
           )}`
         : undefined,
@@ -266,6 +266,7 @@ const PayoutTableInner = memo(
                     <Filter.List
                       filters={filters}
                       activeFilters={activeFilters}
+                      onSelect={onSelect}
                       onRemove={onRemove}
                       onRemoveAll={onRemoveAll}
                     />

@@ -92,7 +92,7 @@ const Form = () => {
             e.currentTarget.value = text;
           }
         }}
-        placeholder="stey@vercel.com"
+        placeholder="panic@thedis.co"
         aria-invalid="true"
       />
       {pending && (

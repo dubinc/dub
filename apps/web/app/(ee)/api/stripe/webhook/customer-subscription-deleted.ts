@@ -6,10 +6,11 @@ import { stripe } from "@/lib/stripe";
 import { recordLink } from "@/lib/tinybird";
 import { webhookCache } from "@/lib/webhook/cache";
 import { prisma } from "@dub/prisma";
-import { FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
+import { capitalize, FREE_PLAN, getPlanFromPriceId, log } from "@dub/utils";
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { sendCancellationFeedback, updateWorkspacePlan } from "./utils";
+import { sendCancellationFeedback } from "./utils/send-cancellation-feedback";
+import { updateWorkspacePlan } from "./utils/update-workspace-plan";
 
 export async function customerSubscriptionDeleted(event: Stripe.Event) {
   const subscriptionDeleted = event.data.object as Stripe.Subscription;
@@ -29,6 +30,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       foldersUsage: true,
       paymentFailedAt: true,
       payoutsLimit: true,
+      defaultProgramId: true,
       links: {
         where: {
           key: "_root",
@@ -116,6 +118,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
         tagsLimit: FREE_PLAN.limits.tags!,
         foldersLimit: FREE_PLAN.limits.folders!,
         groupsLimit: FREE_PLAN.limits.groups!,
+        networkInvitesLimit: FREE_PLAN.limits.networkInvites!,
         usersLimit: FREE_PLAN.limits.users!,
         paymentFailedAt: null,
         foldersUsage: 0,
@@ -179,7 +182,9 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       message:
         ":cry: Workspace *`" +
         workspace.slug +
-        "`* deleted their subscription" +
+        "`* deleted their *`" +
+        capitalize(workspace.plan) +
+        "`* subscription" +
         (isBlacklistedCancellation ? " (blacklisted / banned)" : ""),
       type: "cron",
       mention: true,

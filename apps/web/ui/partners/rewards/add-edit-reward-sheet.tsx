@@ -1,5 +1,6 @@
 "use client";
 
+import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { createRewardAction } from "@/lib/actions/partners/create-reward";
 import { deleteRewardAction } from "@/lib/actions/partners/delete-reward";
 import { updateRewardAction } from "@/lib/actions/partners/update-reward";
@@ -31,7 +32,7 @@ import {
   useRouterStuff,
 } from "@dub/ui";
 import { capitalize, cn, pluralize } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import {
   Dispatch,
@@ -53,9 +54,8 @@ import {
   InlineBadgePopoverInput,
   InlineBadgePopoverMenu,
 } from "../../shared/inline-badge-popover";
-import { usePartnersUpgradeModal } from "../partners-upgrade-modal";
+import { RewardDiscountPartnersCard } from "../groups/reward-discount-partners-card";
 import { RewardIconSquare } from "./reward-icon-square";
-import { RewardPartnersCard } from "./reward-partners-card";
 import { REWARD_TYPES, RewardsLogic } from "./rewards-logic";
 
 interface RewardSheetProps {
@@ -87,7 +87,12 @@ function RewardSheetContent({
   defaultRewardValues,
 }: RewardSheetProps) {
   const { group, mutateGroup } = useGroup();
-  const { id: workspaceId, defaultProgramId, plan } = useWorkspace();
+  const {
+    id: workspaceId,
+    slug: workspaceSlug,
+    defaultProgramId,
+    plan,
+  } = useWorkspace();
   const formRef = useRef<HTMLFormElement>(null);
   const { mutate: mutateProgram } = useProgram();
   const { queryParams } = useRouterStuff();
@@ -104,13 +109,16 @@ function RewardSheetContent({
           ? Infinity
           : defaultValuesSource.maxDuration
         : Infinity,
-      amount:
-        defaultValuesSource?.type === "flat"
-          ? defaultValuesSource.amount / 100
-          : defaultValuesSource?.amount,
+      amountInCents:
+        defaultValuesSource?.amountInCents != null
+          ? defaultValuesSource.amountInCents / 100
+          : undefined,
+      amountInPercentage:
+        defaultValuesSource?.amountInPercentage != null
+          ? defaultValuesSource.amountInPercentage
+          : undefined,
       description: defaultValuesSource?.description ?? null,
       modifiers: defaultValuesSource?.modifiers?.map((m) => {
-        const type = m.type === undefined ? defaultValuesSource?.type : m.type;
         const maxDuration =
           m.maxDuration === undefined
             ? defaultValuesSource?.maxDuration
@@ -128,7 +136,11 @@ function RewardSheetContent({
                 ? Number(c.value) / 100
                 : c.value,
           })),
-          amount: type === "flat" ? m.amount / 100 : m.amount,
+          amountInCents:
+            m.amountInCents !== undefined && m.amountInCents !== null
+              ? m.amountInCents / 100
+              : undefined,
+          amountInPercentage: m.amountInPercentage ?? undefined,
           maxDuration: m.maxDuration === null ? Infinity : maxDuration,
         };
       }),
@@ -137,15 +149,26 @@ function RewardSheetContent({
 
   const { handleSubmit, watch, setValue, setError } = form;
 
-  const [selectedEvent, amount, type, maxDuration, description, modifiers] =
-    watch([
-      "event",
-      "amount",
-      "type",
-      "maxDuration",
-      "description",
-      "modifiers",
-    ]);
+  const [
+    selectedEvent,
+    amountInCents,
+    amountInPercentage,
+    type,
+    maxDuration,
+    description,
+    modifiers,
+  ] = watch([
+    "event",
+    "amountInCents",
+    "amountInPercentage",
+    "type",
+    "maxDuration",
+    "description",
+    "modifiers",
+  ]);
+
+  // Compute amount based on type
+  const amount = type === "flat" ? amountInCents : amountInPercentage;
 
   const { executeAsync: createReward, isPending: isCreating } = useAction(
     createRewardAction,
@@ -157,7 +180,7 @@ function RewardSheetContent({
         await mutateGroup();
       },
       onError({ error }) {
-        toast.error(error.serverError);
+        toast.error(parseActionError(error, "Failed to create reward"));
       },
     },
   );
@@ -172,7 +195,7 @@ function RewardSheetContent({
         await mutateGroup();
       },
       onError({ error }) {
-        toast.error(error.serverError);
+        toast.error(parseActionError(error, "Failed to update reward"));
       },
     },
   );
@@ -235,7 +258,12 @@ function RewardSheetContent({
                       : Math.round(Number(c.value) * 100)
                     : c.value,
               })),
-              amount: type === "flat" ? Math.round(m.amount * 100) : m.amount,
+              amountInCents:
+                type === "flat" && m.amountInCents !== undefined
+                  ? Math.round(m.amountInCents * 100)
+                  : undefined,
+              amountInPercentage:
+                type === "percentage" ? m.amountInPercentage : undefined,
               maxDuration: maxDuration === Infinity ? null : maxDuration,
             };
           }),
@@ -250,10 +278,21 @@ function RewardSheetContent({
       }
     }
 
+    const amount =
+      type === "flat"
+        ? {
+            amountInCents: Math.round((data.amountInCents ?? 0) * 100),
+            amountInPercentage: undefined,
+          }
+        : {
+            amountInCents: undefined,
+            amountInPercentage: data.amountInPercentage,
+          };
+
     const payload = {
       ...data,
+      ...amount,
       workspaceId,
-      amount: type === "flat" ? Math.round(data.amount * 100) : data.amount,
       maxDuration:
         Infinity === Number(data.maxDuration) ? null : data.maxDuration,
       modifiers,
@@ -287,16 +326,8 @@ function RewardSheetContent({
     });
   };
 
-  const { partnersUpgradeModal, setShowPartnersUpgradeModal } =
-    usePartnersUpgradeModal({
-      plan: "Advanced",
-      description:
-        "When you upgrade to Advanced, you'll get access to higher payout limits, advanced reward structures, embedded referral dashboard, and more.",
-    });
-
   return (
     <FormProvider {...form}>
-      {partnersUpgradeModal}
       <form
         ref={formRef}
         onSubmit={handleSubmit(onSubmit)}
@@ -343,15 +374,18 @@ function RewardSheetContent({
                       )}
                       <InlineBadgePopover
                         text={
-                          !isNaN(amount)
+                          amount != null && !isNaN(amount)
                             ? constructRewardAmount({
-                                amount: type === "flat" ? amount * 100 : amount,
                                 type,
                                 maxDuration,
+                                amountInCents:
+                                  type === "flat" ? amount * 100 : undefined,
+                                amountInPercentage:
+                                  type === "percentage" ? amount : undefined,
                               })
                             : "amount"
                         }
-                        invalid={isNaN(amount)}
+                        invalid={amount == null || isNaN(amount)}
                       >
                         <AmountInput />
                       </InlineBadgePopover>{" "}
@@ -476,7 +510,7 @@ function RewardSheetContent({
 
           <VerticalLine />
 
-          {group && <RewardPartnersCard groupId={group.id} />}
+          {group && <RewardDiscountPartnersCard groupId={group.id} />}
         </div>
 
         <div className="flex items-center justify-between border-t border-neutral-200 p-5">
@@ -517,7 +551,8 @@ function RewardSheetContent({
                   <TooltipContent
                     title="Advanced reward structures are only available on the Advanced plan and above."
                     cta="Upgrade to Advanced"
-                    onClick={() => setShowPartnersUpgradeModal(true)}
+                    href={`/${workspaceSlug}/upgrade?plan=advanced`}
+                    target="_blank"
                   />
                 ) : undefined
               }
@@ -553,9 +588,10 @@ const VerticalLine = () => (
 
 function AmountInput() {
   const { watch, register } = useAddEditRewardForm();
-  const type = watch("type");
-
   const { setIsOpen } = useContext(InlineBadgePopoverContext);
+
+  const type = watch("type");
+  const fieldName = type === "flat" ? "amountInCents" : "amountInPercentage";
 
   return (
     <div className="relative rounded-md shadow-sm">
@@ -569,7 +605,7 @@ function AmountInput() {
           "block w-full rounded-md border-neutral-300 px-1.5 py-1 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:w-32 sm:text-sm",
           type === "flat" ? "pl-4 pr-12" : "pr-7",
         )}
-        {...register("amount", {
+        {...register(fieldName, {
           required: true,
           setValueAs: (value: string) => (value === "" ? undefined : +value),
           min: 0,

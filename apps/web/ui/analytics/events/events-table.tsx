@@ -12,6 +12,7 @@ import {
   EditColumnsButton,
   LinkLogo,
   Table,
+  TimestampTooltip,
   Tooltip,
   useColumnVisibility,
   usePagination,
@@ -184,21 +185,15 @@ export default function EventsTable({
           enableHiding: false,
           size: 160,
           cell: ({ getValue }) => (
-            <Tooltip
-              content={getValue().toLocaleTimeString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "numeric",
-                second: "numeric",
-                hour12: true,
-              })}
+            <TimestampTooltip
+              timestamp={getValue()}
+              side="right"
+              rows={["local", "utc", "unix"]}
             >
-              <div className="w-full truncate">
+              <span className="select-none truncate">
                 {formatDateTimeSmart(getValue())}
-              </div>
-            </Tooltip>
+              </span>
+            </TimestampTooltip>
           ),
         },
         // Sale amount

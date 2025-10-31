@@ -19,6 +19,7 @@ import { Button, useMediaQuery } from "@dub/ui";
 import { ChevronLeft, LoadingSpinner } from "@dub/ui/icons";
 import { OG_AVATAR_URL, cn } from "@dub/utils";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import { redirect, useParams } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -91,11 +92,11 @@ export function ProgramMessagesPartnerPageClient() {
             <button
               type="button"
               onClick={() => setIsRightPanelOpen((o) => !o)}
-              className="-mx-2 -my-1 flex items-center gap-3 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
+              className="-mx-2 -my-1 flex items-center gap-2 rounded-lg px-2 py-1 transition-colors duration-100 hover:bg-black/5 active:bg-black/10"
             >
               {!partner ? (
                 <>
-                  <div className="size-8 animate-pulse rounded-full bg-neutral-200" />
+                  <div className="size-6 animate-pulse rounded-full bg-neutral-200" />
                   <div className="h-8 w-36 animate-pulse rounded-md bg-neutral-200" />
                 </>
               ) : (
@@ -103,7 +104,7 @@ export function ProgramMessagesPartnerPageClient() {
                   <img
                     src={partner?.image || `${OG_AVATAR_URL}${partner?.name}`}
                     alt={`${partner?.name} avatar`}
-                    className="size-8 shrink-0 rounded-full"
+                    className="size-6 shrink-0 rounded-full"
                   />
                   <h2 className="text-content-emphasis text-lg font-semibold leading-7">
                     {partner?.name ?? "Partner"}
@@ -123,7 +124,8 @@ export function ProgramMessagesPartnerPageClient() {
             error={errorMessages}
             currentUserType="user"
             currentUserId={user?.id || ""}
-            programImage={program?.logo}
+            program={program}
+            partner={partner}
             onSendMessage={async (message) => {
               const createdAt = new Date();
 
@@ -168,12 +170,12 @@ export function ProgramMessagesPartnerPageClient() {
                                   programId: program!.id,
                                   partnerId: partnerId,
                                   text: message,
-
+                                  subject: null,
+                                  type: "direct",
                                   readInApp: null,
                                   readInEmail: null,
                                   createdAt,
                                   updatedAt: createdAt,
-
                                   senderPartnerId: null,
                                   senderPartner: null,
                                   senderUserId: user!.id,
@@ -215,17 +217,13 @@ export function ProgramMessagesPartnerPageClient() {
               Profile
             </h2>
             <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                text="View profile"
-                className="h-8 rounded-lg px-3"
-                onClick={() =>
-                  window.open(
-                    `/${workspaceSlug}/program/partners?partnerId=${partnerId}`,
-                    "_blank",
-                  )
-                }
-              />
+              <Link href={`/program/partners/${partnerId}`} target="_blank">
+                <Button
+                  variant="secondary"
+                  text="View profile"
+                  className="h-8 rounded-lg px-3"
+                />
+              </Link>
               <button
                 type="button"
                 onClick={() => setIsRightPanelOpen(false)}

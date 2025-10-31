@@ -5,11 +5,11 @@ import { createToken } from "@/lib/api/oauth/utils";
 import { parseRequestBody } from "@/lib/api/utils";
 import { hashToken, withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
-import z from "@/lib/zod";
 import { createOAuthAppSchema, oAuthAppSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/oauth/apps - get all OAuth apps created by a workspace
 export const GET = withWorkspace(
@@ -118,10 +118,10 @@ export const POST = withWorkspace(
       });
 
       if (logo) {
-        const { url } = await storage.upload(
-          `integrations/${integration.id}_${nanoid(7)}`,
-          logo,
-        );
+        const { url } = await storage.upload({
+          key: `integrations/${integration.id}_${nanoid(7)}`,
+          body: logo,
+        });
 
         await prisma.integration.update({
           where: {

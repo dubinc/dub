@@ -7,3 +7,7 @@ export const isValidDomain = (domain: string) => {
     !/^(dub\.co|.*\.dub\.co|dub\.sh|.*\.dub\.sh|d\.to|.*\.d\.to)$/i.test(domain)
   );
 };
+
+export const isValidDomainFormat = (domain: string) => {
+  return validDomainRegex.test(domain);
+};

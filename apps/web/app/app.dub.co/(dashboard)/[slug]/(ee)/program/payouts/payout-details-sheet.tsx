@@ -61,7 +61,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     return {
       Partner: (
         <ConditionalLink
-          href={`/${slug}/program/partners?partnerId=${payout.partner.id}`}
+          href={`/${slug}/program/partners/${payout.partner.id}`}
           target="_blank"
         >
           <img
@@ -251,12 +251,12 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         {payout.status === "pending" ? (
           <Button
             type="button"
-            variant="secondary"
-            text="Confirm all pending payouts"
+            text="Confirm payout"
             onClick={() => {
               queryParams({
                 set: {
                   confirmPayouts: "true",
+                  selectedPayoutId: payout.id,
                 },
                 del: "payoutId",
                 scroll: false,

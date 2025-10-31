@@ -42,7 +42,11 @@ export const PayoutStatusBadgePartner = ({
   }, [payout, program, partner]);
 
   return badge ? (
-    <StatusBadge icon={badge.icon} variant={badge.variant}>
+    <StatusBadge
+      icon={badge.icon}
+      variant={badge.variant}
+      className={badge.className}
+    >
       <Tooltip content={tooltipContent}>
         <div>{badge.label}</div>
       </Tooltip>

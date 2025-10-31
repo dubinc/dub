@@ -4,18 +4,19 @@ import { deleteProgramInviteAction } from "@/lib/actions/partners/delete-program
 import { resendProgramInviteAction } from "@/lib/actions/partners/resend-program-invite";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import useGroups from "@/lib/swr/use-groups";
-import usePartner from "@/lib/swr/use-partner";
 import usePartnersCount from "@/lib/swr/use-partners-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
-import { useArchivePartnerModal } from "@/ui/partners/archive-partner-modal";
-import { useBanPartnerModal } from "@/ui/partners/ban-partner-modal";
-import { useChangeGroupModal } from "@/ui/partners/change-group-modal";
+import { useArchivePartnerModal } from "@/ui/modals/archive-partner-modal";
+import { useBanPartnerModal } from "@/ui/modals/ban-partner-modal";
+import { useChangeGroupModal } from "@/ui/modals/change-group-modal";
+import { useDeactivatePartnerModal } from "@/ui/modals/deactivate-partner-modal";
+import { useReactivatePartnerModal } from "@/ui/modals/reactivate-partner-modal";
+import { useUnbanPartnerModal } from "@/ui/modals/unban-partner-modal";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
-import { PartnerDetailsSheet } from "@/ui/partners/partner-details-sheet";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
-import { useUnbanPartnerModal } from "@/ui/partners/unban-partner-modal";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { SearchBoxPersisted } from "@/ui/shared/search-box";
 import {
@@ -28,6 +29,7 @@ import {
   Popover,
   StatusBadge,
   Table,
+  TimestampTooltip,
   useColumnVisibility,
   usePagination,
   useRouterStuff,
@@ -35,6 +37,7 @@ import {
 } from "@dub/ui";
 import {
   BoxArchive,
+  CircleXmark,
   Dots,
   EnvelopeArrowRight,
   LoadingSpinner,
@@ -51,12 +54,13 @@ import {
   formatDate,
 } from "@dub/utils";
 import { nFormatter } from "@dub/utils/src/functions";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { Row } from "@tanstack/react-table";
 import { Command } from "cmdk";
 import { LockOpen } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { usePartnerFilters } from "./use-partner-filters";
@@ -68,11 +72,11 @@ const partnersColumns = {
     "createdAt",
     "status",
     "location",
-    "clicks",
-    "leads",
-    "conversions",
-    "sales",
-    "saleAmount",
+    "totalClicks",
+    "totalLeads",
+    "totalConversions",
+    "totalSales",
+    "totalSaleAmount",
     "totalCommissions",
     "netRevenue",
   ],
@@ -80,19 +84,35 @@ const partnersColumns = {
     "partner",
     "group",
     "location",
-    "clicks",
-    "leads",
-    "conversions",
-    "saleAmount",
+    "totalClicks",
+    "totalLeads",
+    "totalConversions",
+    "totalSaleAmount",
     "totalCommissions",
+    "netRevenue",
   ],
 };
 
+const getPartnerUrl = ({
+  workspaceSlug,
+  id,
+}: {
+  workspaceSlug: string;
+  id: string;
+}) => `/${workspaceSlug}/program/partners/${id}`;
+
 export function PartnersTable() {
-  const { id: workspaceId } = useWorkspace();
+  const router = useRouter();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const { id: workspaceId, slug: workspaceSlug } = useWorkspace();
+  const { program } = useProgram();
+
+  const status = (searchParams.get("status") ||
+    "approved") as ProgramEnrollmentStatus;
+  const sortBy =
+    searchParams.get("sortBy") ||
+    (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
@@ -102,43 +122,28 @@ export function PartnersTable() {
     onRemove,
     onRemoveAll,
     isFiltered,
-  } = usePartnerFilters({ sortBy, sortOrder });
+  } = usePartnerFilters({ sortBy, sortOrder, status });
 
-  const { partnersCount, error: countError } = usePartnersCount<number>();
+  const { partnersCount, error: countError } = usePartnersCount<number>({
+    status,
+  });
 
   const {
     data: partners,
     error,
     isLoading,
   } = useSWR<EnrolledPartnerProps[]>(
-    `/api/partners${getQueryString(
-      {
-        workspaceId,
-        includeExpandedFields: true,
-      },
-      { exclude: ["partnerId"] },
-    )}`,
+    `/api/partners${getQueryString({
+      workspaceId,
+      status,
+      sortBy,
+      sortOrder,
+    })}`,
     fetcher,
     {
       keepPreviousData: true,
     },
   );
-
-  const [detailsSheetState, setDetailsSheetState] = useState<
-    | { open: false; partnerId: string | null }
-    | { open: true; partnerId: string }
-  >({ open: false, partnerId: null });
-
-  useEffect(() => {
-    const partnerId = searchParams.get("partnerId");
-    if (partnerId) setDetailsSheetState({ open: true, partnerId });
-  }, [searchParams]);
-
-  const { currentPartner, isLoading: isCurrentPartnerLoading } =
-    useCurrentPartner({
-      partners,
-      partnerId: detailsSheetState.partnerId,
-    });
 
   const { groups } = useGroups();
 
@@ -151,7 +156,7 @@ export function PartnersTable() {
   });
 
   const { columnVisibility, setColumnVisibility } = useColumnVisibility(
-    "partners-table-columns", // TODO: update to v2 once we add partner groups
+    "partners-table-columns-v2",
     partnersColumns,
   );
 
@@ -194,7 +199,18 @@ export function PartnersTable() {
         {
           id: "createdAt",
           header: "Enrolled",
-          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+          cell: ({ row }) => (
+            <TimestampTooltip
+              timestamp={row.original.createdAt}
+              side="right"
+              rows={["local"]}
+              delayDuration={150}
+            >
+              <span>
+                {formatDate(row.original.createdAt, { month: "short" })}
+              </span>
+            </TimestampTooltip>
+          ),
         },
         {
           id: "status",
@@ -233,29 +249,29 @@ export function PartnersTable() {
           },
         },
         {
-          id: "clicks",
+          id: "totalClicks",
           header: "Clicks",
-          accessorFn: (d) => nFormatter(d.clicks),
+          accessorFn: (d) => nFormatter(d.totalClicks),
         },
         {
-          id: "leads",
+          id: "totalLeads",
           header: "Leads",
-          accessorFn: (d) => nFormatter(d.leads),
+          accessorFn: (d) => nFormatter(d.totalLeads),
         },
         {
-          id: "conversions",
+          id: "totalConversions",
           header: "Conversions",
-          accessorFn: (d) => nFormatter(d.conversions),
+          accessorFn: (d) => nFormatter(d.totalConversions),
         },
         {
-          id: "sales",
+          id: "totalSales",
           header: "Sales",
-          accessorFn: (d) => nFormatter(d.sales),
+          accessorFn: (d) => nFormatter(d.totalSales),
         },
         {
-          id: "saleAmount",
+          id: "totalSaleAmount",
           header: "Revenue",
-          accessorFn: (d) => currencyFormatter(d.saleAmount / 100),
+          accessorFn: (d) => currencyFormatter(d.totalSaleAmount / 100),
         },
         {
           id: "totalCommissions",
@@ -286,27 +302,38 @@ export function PartnersTable() {
   const { table, ...tableProps } = useTable({
     data: partners || [],
     columns,
-    onRowClick: (row) => {
-      queryParams({
-        set: {
-          partnerId: row.original.id,
-        },
-        scroll: false,
+    onRowClick: (row, e) => {
+      const url = getPartnerUrl({
+        workspaceSlug: workspaceSlug!,
+        id: row.original.id,
       });
+
+      if (e.metaKey || e.ctrlKey) window.open(url, "_blank");
+      else router.push(url);
     },
+    onRowAuxClick: (row) =>
+      window.open(
+        getPartnerUrl({ workspaceSlug: workspaceSlug!, id: row.original.id }),
+        "_blank",
+      ),
+    rowProps: (row) => ({
+      onPointerEnter: () => {
+        router.prefetch(
+          getPartnerUrl({ workspaceSlug: workspaceSlug!, id: row.original.id }),
+        );
+      },
+    }),
     pagination,
     onPaginationChange: setPagination,
     columnVisibility,
     onColumnVisibilityChange: setColumnVisibility,
     sortableColumns: [
       "createdAt",
-      "clicks",
-      "leads",
-      "conversions",
-      "sales",
-      "saleAmount",
+      "totalClicks",
+      "totalLeads",
+      "totalConversions",
+      "totalSaleAmount",
       "totalCommissions",
-      "netRevenue",
     ],
     sortBy,
     sortOrder,
@@ -372,22 +399,13 @@ export function PartnersTable() {
     tdClassName: "border-l-0",
     resourceName: (p) => `partner${p ? "s" : ""}`,
     rowCount: partnersCount || 0,
-    loading: isLoading || isCurrentPartnerLoading,
+    loading: isLoading,
     error: error || countError ? "Failed to load partners" : undefined,
   });
 
   return (
     <div className="flex flex-col gap-6">
       <ChangeGroupModal />
-      {detailsSheetState.partnerId && currentPartner && (
-        <PartnerDetailsSheet
-          isOpen={detailsSheetState.open}
-          setIsOpen={(open) =>
-            setDetailsSheetState((s) => ({ ...s, open }) as any)
-          }
-          partner={currentPartner}
-        />
-      )}
       <div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <Filter.Select
@@ -398,8 +416,8 @@ export function PartnersTable() {
             onRemove={onRemove}
           />
           <SearchBoxPersisted
-            placeholder="Search by name, email, or link"
-            inputClassName="md:w-72"
+            placeholder="Search by name or email"
+            inputClassName="md:w-[19rem]"
           />
         </div>
         <AnimatedSizeContainer height>
@@ -409,6 +427,7 @@ export function PartnersTable() {
                 <Filter.List
                   filters={filters}
                   activeFilters={activeFilters}
+                  onSelect={onSelect}
                   onRemove={onRemove}
                   onRemoveAll={onRemoveAll}
                 />
@@ -467,6 +486,16 @@ function RowMenuButton({
     partner: row.original,
   });
 
+  const { DeactivatePartnerModal, setShowDeactivatePartnerModal } =
+    useDeactivatePartnerModal({
+      partner: row.original,
+    });
+
+  const { ReactivatePartnerModal, setShowReactivatePartnerModal } =
+    useReactivatePartnerModal({
+      partner: row.original,
+    });
+
   const { executeAsync: resendInvite, isPending: isResendingInvite } =
     useAction(resendProgramInviteAction, {
       onSuccess: async () => {
@@ -498,14 +527,16 @@ function RowMenuButton({
       <ArchivePartnerModal />
       <BanPartnerModal />
       <UnbanPartnerModal />
+      <DeactivatePartnerModal />
+      <ReactivatePartnerModal />
       <Popover
         openPopover={isOpen}
         setOpenPopover={setIsOpen}
         content={
           <Command tabIndex={0} loop className="focus:outline-none">
-            <Command.List className="flex w-screen flex-col gap-1 p-1.5 text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
+            <Command.List className="w-screen text-sm focus-visible:outline-none sm:w-auto sm:min-w-[200px]">
               {row.original.status === "invited" ? (
-                <>
+                <Command.Group className="grid gap-px p-1.5">
                   <MenuItem
                     icon={Users6}
                     label="Change group"
@@ -554,62 +585,92 @@ function RowMenuButton({
                       });
                     }}
                   />
-                </>
+                </Command.Group>
               ) : (
                 <>
-                  <MenuItem
-                    icon={MoneyBill2}
-                    label="View commissions"
-                    onSelect={() => {
-                      router.push(
-                        `/${slug}/program/commissions?partnerId=${row.original.id}&interval=all`,
-                      );
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={Users6}
-                    label="Change group"
-                    onSelect={() => {
-                      setShowChangeGroupModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  <MenuItem
-                    icon={BoxArchive}
-                    label={
-                      row.original.status === "archived"
-                        ? "Unarchive partner"
-                        : "Archive partner"
-                    }
-                    onSelect={() => {
-                      setShowArchivePartnerModal(true);
-                      setIsOpen(false);
-                    }}
-                  />
-
-                  {row.original.status !== "banned" ? (
+                  <Command.Group className="grid gap-px p-1.5">
                     <MenuItem
-                      icon={UserDelete}
-                      label="Ban partner"
-                      variant="danger"
+                      icon={MoneyBill2}
+                      label="View commissions"
                       onSelect={() => {
-                        setShowBanPartnerModal(true);
+                        router.push(
+                          `/${slug}/program/commissions?partnerId=${row.original.id}&interval=all`,
+                        );
                         setIsOpen(false);
                       }}
                     />
-                  ) : (
+
                     <MenuItem
-                      icon={LockOpen}
-                      label="Unban partner"
+                      icon={Users6}
+                      label="Change group"
                       onSelect={() => {
-                        setShowUnbanPartnerModal(true);
+                        setShowChangeGroupModal(true);
                         setIsOpen(false);
                       }}
                     />
-                  )}
+                  </Command.Group>
+
+                  <Command.Separator className="border-t border-neutral-200" />
+
+                  <Command.Group className="grid gap-px p-1.5">
+                    {!["banned", "deactivated"].includes(
+                      row.original.status,
+                    ) && (
+                      <MenuItem
+                        icon={BoxArchive}
+                        label={
+                          row.original.status === "archived"
+                            ? "Unarchive partner"
+                            : "Archive partner"
+                        }
+                        onSelect={() => {
+                          setShowArchivePartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
+
+                    {row.original.status === "deactivated" ? (
+                      <MenuItem
+                        icon={LockOpen}
+                        label="Reactivate partner"
+                        onSelect={() => {
+                          setShowReactivatePartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    ) : row.original.status !== "banned" ? (
+                      <MenuItem
+                        icon={CircleXmark}
+                        label="Deactivate partner"
+                        onSelect={() => {
+                          setShowDeactivatePartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    ) : null}
+
+                    {row.original.status === "banned" ? (
+                      <MenuItem
+                        icon={LockOpen}
+                        label="Unban partner"
+                        onSelect={() => {
+                          setShowUnbanPartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    ) : (
+                      <MenuItem
+                        icon={UserDelete}
+                        label="Ban partner"
+                        variant="danger"
+                        onSelect={() => {
+                          setShowBanPartnerModal(true);
+                          setIsOpen(false);
+                        }}
+                      />
+                    )}
+                  </Command.Group>
                 </>
               )}
             </Command.List>
@@ -665,32 +726,4 @@ function MenuItem({
       {label}
     </Command.Item>
   );
-}
-
-/** Gets the current partner from the loaded partners array if available, or a separate fetch if not */
-function useCurrentPartner({
-  partners,
-  partnerId,
-}: {
-  partners?: EnrolledPartnerProps[];
-  partnerId: string | null;
-}) {
-  let currentPartner = partnerId
-    ? partners?.find(({ id }) => id === partnerId)
-    : null;
-
-  const { partner: fetchedPartner, loading: isLoading } = usePartner(
-    {
-      partnerId: partners && partnerId && !currentPartner ? partnerId : null,
-    },
-    {
-      keepPreviousData: true,
-    },
-  );
-
-  if (!currentPartner && fetchedPartner?.id === partnerId) {
-    currentPartner = fetchedPartner;
-  }
-
-  return { currentPartner, isLoading };
 }

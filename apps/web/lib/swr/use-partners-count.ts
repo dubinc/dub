@@ -15,7 +15,7 @@ export default function usePartnersCount<T>({
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId } = useWorkspace();
   const { getQueryString } = useRouterStuff();
 
   const queryString = ignoreParams
@@ -36,7 +36,9 @@ export default function usePartnersCount<T>({
       );
 
   const { data: partnersCount, error } = useSWR<PartnersCount>(
-    enabled !== false ? `/api/partners/count${queryString}` : null,
+    enabled !== false && defaultProgramId
+      ? `/api/partners/count${queryString}`
+      : null,
     fetcher,
     {
       keepPreviousData: true,

@@ -7,7 +7,6 @@ import {
   DUB_WORDMARK,
   EU_COUNTRY_CODES,
   formatDate,
-  pluralize,
 } from "@dub/utils";
 import {
   Document,
@@ -44,11 +43,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           name: true,
           logo: true,
           supportEmail: true,
-        },
-      },
-      _count: {
-        select: {
-          commissions: true,
         },
       },
     },
@@ -115,11 +109,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       label: "Payout amount",
       value: (
         <Text style={tw("text-neutral-800 w-2/3")}>
-          {currencyFormatter(payout.amount / 100)}{" "}
-          <Text style={tw("text-neutral-500")}>
-            ({payout._count.commissions}{" "}
-            {pluralize("commission", payout._count.commissions)})
-          </Text>
+          {currencyFormatter(payout.amount / 100)}
         </Text>
       ),
     },
@@ -153,8 +143,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         ]
       : []),
   ];
-
-  const supportEmail = payout.program.supportEmail || "support@dub.co";
 
   const invoiceDate = payout.paidAt
     ? formatDate(payout.paidAt, {
@@ -242,12 +230,17 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         <View style={tw("h-0.5 bg-neutral-200 mb-6")} />
 
         {/* Footer */}
-        <Text style={tw("text-sm text-neutral-600 mt-auto")}>
-          If you have any questions, contact the program at{" "}
-          <Link href={`mailto:${supportEmail}`} style={tw("text-neutral-900")}>
-            {supportEmail}
-          </Link>
-        </Text>
+        {payout.program.supportEmail && (
+          <Text style={tw("text-sm text-neutral-600 mt-auto")}>
+            If you have any questions, contact the program at{" "}
+            <Link
+              href={`mailto:${payout.program.supportEmail}`}
+              style={tw("text-neutral-900")}
+            >
+              {payout.program.supportEmail}
+            </Link>
+          </Text>
+        )}
       </Page>
     </Document>,
   );

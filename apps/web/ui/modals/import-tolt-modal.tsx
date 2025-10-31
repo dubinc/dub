@@ -3,8 +3,8 @@ import { startToltImportAction } from "@/lib/actions/partners/start-tolt-import"
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ToltProgram } from "@/lib/tolt/types";
 import { Button, Logo, Modal, useMediaQuery, useRouterStuff } from "@dub/ui";
-import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter, useSearchParams } from "next/navigation";
 import {

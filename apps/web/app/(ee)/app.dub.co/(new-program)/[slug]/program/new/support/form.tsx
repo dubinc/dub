@@ -25,7 +25,7 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      router.push(`/${workspaceSlug}/program/new/connect`);
+      router.push(`/${workspaceSlug}/program/new/overview`);
       mutate();
     },
     onError: ({ error }) => {

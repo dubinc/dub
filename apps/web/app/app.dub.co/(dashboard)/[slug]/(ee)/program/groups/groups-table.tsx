@@ -1,6 +1,7 @@
 "use client";
 
 import useGroupsCount from "@/lib/swr/use-groups-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { GroupExtendedProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
@@ -40,10 +41,13 @@ const getGroupUrl = ({
 export function GroupsTable() {
   const router = useRouter();
   const { id: workspaceId, slug, defaultProgramId } = useWorkspace();
+  const { program } = useProgram();
   const { pagination, setPagination } = usePagination();
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
-  const sortBy = searchParams.get("sortBy") || "totalSaleAmount";
+  const sortBy =
+    searchParams.get("sortBy") ||
+    (program?.primaryRewardEvent === "lead" ? "totalLeads" : "totalSaleAmount");
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const {
@@ -56,6 +60,8 @@ export function GroupsTable() {
       `/api/groups${getQueryString({
         workspaceId: workspaceId,
         includeExpandedFields: "true",
+        sortBy,
+        sortOrder,
       }).toString()}`,
     fetcher,
     {
@@ -100,9 +106,9 @@ export function GroupsTable() {
         ),
       },
       {
-        id: "partners",
+        id: "totalPartners",
         header: "Partners",
-        accessorFn: (d) => nFormatter(d.partners, { full: true }),
+        accessorFn: (d) => nFormatter(d.totalPartners, { full: true }),
       },
       {
         id: "totalClicks",
@@ -161,13 +167,13 @@ export function GroupsTable() {
     pagination,
     onPaginationChange: setPagination,
     sortableColumns: [
-      "partners",
+      "totalPartners",
       "totalClicks",
       "totalLeads",
       "totalConversions",
       "totalSaleAmount",
       "totalCommissions",
-      "netRevenue",
+      // "netRevenue", // TODO: add back when we can sort by this again
     ],
     sortBy,
     sortOrder,

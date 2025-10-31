@@ -1,7 +1,7 @@
+import { createId } from "@/lib/api/create-id";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import NewMessageFromProgram from "@dub/email/templates/new-message-from-program";
 import { prisma } from "@dub/prisma";
 import { NotificationEmailType } from "@dub/prisma/client";
@@ -48,15 +48,16 @@ export async function POST(req: Request) {
             messages: {
               where: {
                 programId,
-                senderPartnerId: null, // Not sent by the partner
                 createdAt: {
-                  gt: subDays(new Date(), 3), // Sent in the last 3 days
+                  gt: subDays(new Date(), 3), // sent in the last 3 days
                 },
-                readInApp: null, // Unread
-                readInEmail: null, // Unread
-                emails: {
-                  none: {}, // No emails sent yet
-                },
+                type: "direct", // only notify for direct messages
+                senderPartnerId: null, // not sent by the partner
+                readInApp: null, // unread messages only
+                readInEmail: null, // unread messages only
+              },
+              orderBy: {
+                createdAt: "desc",
               },
               include: {
                 senderUser: true,
@@ -77,43 +78,45 @@ export async function POST(req: Request) {
       },
     });
 
-    const unreadMessages = programEnrollment.partner.messages.sort(
-      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
-    );
+    // unread messages are already sorted by latest message first
+    const unreadMessages = programEnrollment.partner.messages;
 
     if (unreadMessages.length === 0)
       return logAndRespond(
         `No unread messages found for partner ${partnerId} in program ${programId}. Skipping...`,
       );
 
-    if (unreadMessages[unreadMessages.length - 1].id !== lastMessageId)
+    // if the latest unread message is not the last message id, skip
+    if (unreadMessages[0].id !== lastMessageId)
       return logAndRespond(
         `There is a more recent unread message than ${lastMessageId}. Skipping...`,
       );
 
-    const partnerEmailsToNotify = programEnrollment.partner.users
-      .map(({ user }) => user.email)
-      .filter(Boolean) as string[];
+    const partnerUsersToNotify = programEnrollment.partner.users
+      .map(({ user }) => user)
+      .filter(Boolean) as { email: string; id: string }[];
 
-    if (partnerEmailsToNotify.length === 0)
+    if (partnerUsersToNotify.length === 0)
       return logAndRespond(
         `No partner emails to notify for partner ${partnerId}. Skipping...`,
       );
 
     const program = programEnrollment.program;
 
-    const { data, error } = await resend.batch.send(
-      partnerEmailsToNotify.map((email) => ({
+    const { data, error } = await sendBatchEmail(
+      partnerUsersToNotify.map(({ email }) => ({
         subject: `${program.name} sent ${unreadMessages.length === 1 ? "a message" : `${unreadMessages.length} messages`}`,
-        from: VARIANT_TO_FROM_MAP.notifications,
+        variant: "notifications",
         to: email,
+        replyTo: program.supportEmail || "noreply",
         react: NewMessageFromProgram({
           program: {
             name: program.name,
             logo: program.logo,
             slug: program.slug,
           },
-          messages: unreadMessages.map((message) => ({
+          // can potentially replace this with `.toReversed()` once it's more widely supported
+          messages: [...unreadMessages].reverse().map((message) => ({
             text: message.text,
             createdAt: message.createdAt,
             user: message.senderUser.name
@@ -128,7 +131,7 @@ export async function POST(req: Request) {
           })),
           email,
         }),
-        tags: [{ name: "type", value: "message-notification" }],
+        tags: [{ name: "type", value: "notification-email" }],
       })),
     );
 
@@ -143,13 +146,15 @@ export async function POST(req: Request) {
       );
 
     await prisma.notificationEmail.createMany({
-      data: unreadMessages.flatMap((message) =>
-        data.data.map(({ id }) => ({
-          type: NotificationEmailType.Message,
-          emailId: id,
-          messageId: message.id,
-        })),
-      ),
+      data: partnerUsersToNotify.map(({ id: userId }, idx) => ({
+        id: createId({ prefix: "em_" }),
+        type: NotificationEmailType.Message,
+        emailId: data.data[idx].id,
+        messageId: lastMessageId,
+        programId,
+        partnerId,
+        recipientUserId: userId,
+      })),
     });
 
     return logAndRespond(

@@ -1,28 +1,56 @@
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { EnrolledPartnerProps } from "@/lib/types";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { Button } from "@dub/ui";
+import { cn } from "@dub/utils";
 import Link from "next/link";
-import { useChangeGroupModal } from "./change-group-modal";
+import { useChangeGroupModal } from "../modals/change-group-modal";
 import { GroupColorCircle } from "./groups/group-color-circle";
 
 export function PartnerInfoGroup({
   partner,
+  changeButtonText = "Change group",
+  className,
+
+  selectedGroupId,
+  setSelectedGroupId,
 }: {
-  partner: EnrolledPartnerProps;
+  partner: Pick<EnrolledPartnerProps, "id" | "groupId" | "name" | "image"> &
+    Partial<Pick<EnrolledPartnerProps, "email">>;
+  changeButtonText?: string;
+  className?: string;
+
+  // Only used for a controlled group selector that doesn't persist the selection itself
+  selectedGroupId?: string | null;
+  setSelectedGroupId?: (groupId: string) => void;
 }) {
   const { slug } = useWorkspace();
 
   const { groups } = useGroups();
 
-  const group = groups?.find((g) => g.id === partner.groupId);
+  const group = groups
+    ? groups.find((g) => g.id === (selectedGroupId || partner.groupId)) ||
+      groups.find((g) => g.slug === DEFAULT_PARTNER_GROUP.slug)
+    : undefined;
 
   const { ChangeGroupModal, setShowChangeGroupModal } = useChangeGroupModal({
-    partners: [partner],
+    partners: [{ ...partner, groupId: selectedGroupId || partner.groupId }],
+    onChangeGroup: setSelectedGroupId
+      ? (groupId) => {
+          setSelectedGroupId(groupId);
+          return false; // Prevent persisting the group change
+        }
+      : undefined,
   });
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-100 p-2 pl-3">
+    <div
+      className={cn(
+        "flex items-center justify-between rounded-lg border border-neutral-200 bg-neutral-100 p-2 pl-3",
+        className,
+      )}
+    >
       <ChangeGroupModal />
       <div className="flex min-w-0 items-center gap-2">
         {group ? (
@@ -46,7 +74,7 @@ export function PartnerInfoGroup({
       {group ? (
         <Button
           variant="secondary"
-          text="Change group"
+          text={changeButtonText}
           className="h-7 w-fit rounded-lg px-2.5"
           onClick={() => setShowChangeGroupModal(true)}
         />

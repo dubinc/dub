@@ -255,10 +255,19 @@ function SCIMModal({
               </div>
             </div>
           )}
+
           <Button
-            text="Save changes"
+            text={
+              selectedProvider === provider ? "Complete setup" : "Save changes"
+            }
+            type={selectedProvider === provider ? "button" : "submit"}
+            {...(selectedProvider === provider && {
+              onClick: () => {
+                setShowSCIMModal(false);
+              },
+            })}
             loading={submitting}
-            disabled={!currentProvider || currentProvider.scim === provider}
+            disabled={!currentProvider}
           />
         </form>
       </div>

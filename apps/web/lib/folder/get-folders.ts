@@ -53,6 +53,7 @@ export const getFolders = async ({
     select: {
       id: true,
       name: true,
+      description: true,
       type: true,
       accessLevel: true,
       createdAt: true,

@@ -7,9 +7,9 @@ export const DiscountSchema = z.object({
   amount: z.number(),
   type: z.nativeEnum(RewardStructure),
   maxDuration: z.number().nullable(),
-  description: z.string().nullish(),
   couponId: z.string().nullable(),
   couponTestId: z.string().nullable(),
+  description: z.string().nullish(),
   partnersCount: z.number().nullish(),
 });
 
@@ -32,8 +32,9 @@ export const createDiscountSchema = z.object({
 });
 
 export const updateDiscountSchema = createDiscountSchema
-  .omit({
-    groupId: true,
+  .pick({
+    workspaceId: true,
+    couponTestId: true,
   })
   .extend({
     discountId: z.string(),
@@ -48,3 +49,24 @@ export const discountPartnersQuerySchema = z
       pageSize: 25,
     }),
   );
+
+export const DiscountCodeSchema = z.object({
+  id: z.string(),
+  code: z.string(),
+  discountId: z.string().nullable(),
+  partnerId: z.string(),
+  linkId: z.string(),
+});
+
+export const createDiscountCodeSchema = z.object({
+  code: z
+    .string()
+    .max(100, "Code must be less than 100 characters.")
+    .optional(),
+  partnerId: z.string(),
+  linkId: z.string(),
+});
+
+export const getDiscountCodesQuerySchema = z.object({
+  partnerId: z.string(),
+});

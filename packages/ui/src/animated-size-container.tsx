@@ -1,8 +1,10 @@
 import { cn } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import {
   ComponentPropsWithoutRef,
+  ForwardRefExoticComponent,
   PropsWithChildren,
+  RefAttributes,
   forwardRef,
   useRef,
 } from "react";
@@ -17,10 +19,9 @@ type AnimatedSizeContainerProps = PropsWithChildren<{
 /**
  * A container with animated width and height (each optional) based on children dimensions
  */
-const AnimatedSizeContainer = forwardRef<
-  HTMLDivElement,
-  AnimatedSizeContainerProps
->(
+const AnimatedSizeContainer: ForwardRefExoticComponent<
+  AnimatedSizeContainerProps & RefAttributes<HTMLDivElement>
+> = forwardRef<HTMLDivElement, AnimatedSizeContainerProps>(
   (
     {
       width = false,

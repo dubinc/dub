@@ -30,6 +30,7 @@ export const getGroupOrThrow = async ({
       discount: includeExpandedFields,
       utmTemplate: includeExpandedFields,
       partnerGroupDefaultLinks: includeExpandedFields,
+      program: includeExpandedFields,
     },
   });
 

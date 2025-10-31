@@ -4,7 +4,7 @@ import IntegrationCard from "@/ui/integrations/integration-card";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { buttonVariants, Plus } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { useSearchParams } from "next/navigation";
 import { IntegrationsWithInstallations } from "./integrations-list";
 

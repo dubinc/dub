@@ -1,15 +1,18 @@
 import { parse } from "@/lib/middleware/utils";
 import { NextRequest, NextResponse } from "next/server";
-import EmbedMiddleware from "./embed";
-import NewLinkMiddleware from "./new-link";
+import {
+  ONBOARDING_WINDOW_SECONDS,
+  onboardingStepCache,
+} from "../api/workspaces/onboarding-step-cache";
+import { EmbedMiddleware } from "./embed";
+import { NewLinkMiddleware } from "./new-link";
 import { appRedirect } from "./utils/app-redirect";
 import { getDefaultWorkspace } from "./utils/get-default-workspace";
-import { getOnboardingStep } from "./utils/get-onboarding-step";
 import { getUserViaToken } from "./utils/get-user-via-token";
 import { isTopLevelSettingsRedirect } from "./utils/is-top-level-settings-redirect";
-import WorkspacesMiddleware from "./workspaces";
+import { WorkspacesMiddleware } from "./workspaces";
 
-export default async function AppMiddleware(req: NextRequest) {
+export async function AppMiddleware(req: NextRequest) {
   const { path, fullPath, searchParamsString } = parse(req);
 
   if (path.startsWith("/embed")) {
@@ -49,16 +52,18 @@ export default async function AppMiddleware(req: NextRequest) {
         - User was created less than a day ago
         - User is not invited to a workspace (redirect straight to the workspace)
         - The path does not start with /onboarding
-        - The user has not completed the onboarding step
+        - User doesn't have a default workspace
+        - User has not completed the onboarding flow
       */
     } else if (
-      new Date(user.createdAt).getTime() > Date.now() - 60 * 60 * 24 * 1000 &&
+      new Date(user.createdAt).getTime() >
+        Date.now() - ONBOARDING_WINDOW_SECONDS * 1000 &&
       !isWorkspaceInvite &&
       !["/onboarding", "/account"].some((p) => path.startsWith(p)) &&
       !(await getDefaultWorkspace(user)) &&
-      (await getOnboardingStep(user)) !== "completed"
+      (await onboardingStepCache.get({ userId: user.id })) !== "completed"
     ) {
-      let step = await getOnboardingStep(user);
+      let step = await onboardingStepCache.get({ userId: user.id });
       if (!step) {
         return NextResponse.redirect(new URL("/onboarding", req.url));
       } else if (step === "completed") {
@@ -100,9 +105,12 @@ export default async function AppMiddleware(req: NextRequest) {
       isTopLevelSettingsRedirect(path)
     ) {
       return WorkspacesMiddleware(req, user);
-    } else if (appRedirect(path)) {
+    }
+
+    const appRedirectPath = await appRedirect(path);
+    if (appRedirectPath) {
       return NextResponse.redirect(
-        new URL(`${appRedirect(path)}${searchParamsString}`, req.url),
+        new URL(`${appRedirectPath}${searchParamsString}`, req.url),
       );
     }
   }

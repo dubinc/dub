@@ -9,7 +9,7 @@ import {
   useReactTable,
   VisibilityState,
 } from "@tanstack/react-table";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import {
   CSSProperties,
   HTMLAttributes,
@@ -18,6 +18,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type JSX,
 } from "react";
 import { Button } from "../button";
 import { Checkbox } from "../checkbox";
@@ -666,6 +667,7 @@ const getCommonPinningClassNames = (
 ): string => {
   const isPinned = column.getIsPinned();
   return cn(
+    isPinned && "bg-bg-default py-0",
     isPinned &&
       !isLastRow &&
       "animate-table-pinned-shadow [animation-timeline:scroll(inline)]",

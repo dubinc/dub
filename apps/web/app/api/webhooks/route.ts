@@ -165,7 +165,7 @@ export const POST = withWorkspace(
             workspaceId: workspace.id,
           }),
           sendEmail({
-            email: session.user.email,
+            to: session.user.email,
             subject: "New webhook added",
             react: WebhookAdded({
               email: session.user.email,

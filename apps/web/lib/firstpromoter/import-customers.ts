@@ -2,6 +2,8 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Link, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { recordClick, recordLeadWithTimestamp } from "../tinybird";
 import { logImportError } from "../tinybird/log-import-error";
 import { clickEventSchemaTB } from "../zod/schemas/clicks";
@@ -84,6 +86,9 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
               key: true,
               domain: true,
               url: true,
+              partnerId: true,
+              programId: true,
+              lastLeadAt: true,
             },
           },
         },
@@ -98,6 +103,23 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
         {} as Record<string, (typeof programEnrollments)[number]["links"]>,
       );
 
+      const partnerEmailToLatestLeadAt = customers.reduce(
+        (acc, customer) => {
+          if (!customer.promoter_campaign.promoter.email) {
+            return acc;
+          }
+          const existing =
+            acc[customer.promoter_campaign.promoter.email] ?? new Date(0);
+          if (new Date(customer.created_at) > existing) {
+            acc[customer.promoter_campaign.promoter.email] = new Date(
+              customer.created_at,
+            );
+          }
+          return acc;
+        },
+        {} as Record<string, Date>,
+      );
+
       await Promise.allSettled(
         customers.map((customer) => {
           const links =
@@ -108,6 +130,10 @@ export async function importCustomers(payload: FirstPromoterImportPayload) {
             workspace,
             links,
             customer,
+            latestLeadAt:
+              partnerEmailToLatestLeadAt[
+                customer.promoter_campaign.promoter.email
+              ],
             importId,
           });
         }),
@@ -131,11 +157,16 @@ async function createCustomer({
   workspace,
   links,
   customer,
+  latestLeadAt,
   importId,
 }: {
   workspace: Pick<Project, "id" | "stripeConnectId">;
-  links: Pick<Link, "id" | "key" | "domain" | "url">[];
+  links: Pick<
+    Link,
+    "id" | "key" | "domain" | "url" | "partnerId" | "programId" | "lastLeadAt"
+  >[];
   customer: FirstPromoterCustomer;
+  latestLeadAt: Date;
   importId: string;
 }) {
   const commonImportLogInputs = {
@@ -193,12 +224,12 @@ async function createCustomer({
 
   const clickData = await recordClick({
     req: dummyRequest,
-    linkId: link.id,
     clickId: nanoid(16),
-    url: link.url,
+    workspaceId: workspace.id,
+    linkId: link.id,
     domain: link.domain,
     key: link.key,
-    workspaceId: workspace.id,
+    url: link.url,
     skipRatelimit: true,
     timestamp: new Date(customer.created_at).toISOString(),
   });
@@ -250,8 +281,23 @@ async function createCustomer({
           leads: {
             increment: 1,
           },
+          lastLeadAt: updateLinkStatsForImporter({
+            currentTimestamp: link.lastLeadAt,
+            newTimestamp: latestLeadAt,
+          }),
         },
       }),
+
+      // partner links should always have a partnerId and programId, but we're doing this to make TS happy
+      ...(link.partnerId && link.programId
+        ? [
+            syncPartnerLinksStats({
+              partnerId: link.partnerId,
+              programId: link.programId,
+              eventType: "lead",
+            }),
+          ]
+        : []),
     ]);
   } catch (error) {
     console.error("Error creating customer", customer, error);

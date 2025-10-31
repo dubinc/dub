@@ -3,7 +3,7 @@
 import useGroup from "@/lib/swr/use-group";
 import type { DiscountProps, GroupProps } from "@/lib/types";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
-import { useDiscountSheet } from "@/ui/partners/add-edit-discount-sheet";
+import { useDiscountSheet } from "@/ui/partners/discounts/add-edit-discount-sheet";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { X } from "@/ui/shared/icons";
 import {
@@ -14,8 +14,8 @@ import {
   useLocalStorage,
 } from "@dub/ui";
 import { cn, isClickOnInteractiveChild } from "@dub/utils";
-import { motion } from "framer-motion";
 import { BadgePercent } from "lucide-react";
+import { motion } from "motion/react";
 
 export const GroupDiscounts = () => {
   const { group, loading } = useGroup();
@@ -147,7 +147,7 @@ const Banner = () => {
       }
       initial={false}
       className="overflow-hidden"
-      {...(dismissedBanner && { inert: "" })}
+      inert={dismissedBanner}
     >
       <div className="pb-6">
         <div className="relative isolate overflow-hidden rounded-xl bg-neutral-100">

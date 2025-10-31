@@ -1,10 +1,10 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { sendEmail } from "@dub/email";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
-import PartnerInvite from "@dub/email/templates/partner-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
 import z from "../../zod";
 import { authActionClient } from "../safe-action";
@@ -51,19 +51,27 @@ export const resendProgramInviteAction = authActionClient
     }
 
     await Promise.allSettled([
-      sendEmail({
-        subject: `${program.name} invited you to join Dub Partners`,
-        from: VARIANT_TO_FROM_MAP.notifications,
-        email: partner.email!,
-        react: PartnerInvite({
-          email: partner.email!,
-          program: {
-            name: program.name,
-            slug: program.slug,
-            logo: program.logo,
-          },
-        }),
-      }),
+      (async () => {
+        await sendEmail({
+          subject: `${program.name} invited you to join Dub Partners`,
+          variant: "notifications",
+          to: partner.email!,
+          replyTo: program.supportEmail || "noreply",
+          react: ProgramInvite({
+            email: partner.email!,
+            name: partner.name,
+            program: {
+              name: program.name,
+              slug: program.slug,
+              logo: program.logo,
+            },
+            ...(await getPartnerInviteRewardsAndBounties({
+              programId,
+              groupId: programEnrollment.groupId || program.defaultGroupId,
+            })),
+          }),
+        });
+      })(),
 
       prisma.programEnrollment.update({
         where: {

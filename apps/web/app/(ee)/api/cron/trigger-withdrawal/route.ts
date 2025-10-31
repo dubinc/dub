@@ -2,7 +2,8 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyVercelSignature } from "@/lib/cron/verify-vercel";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@dub/prisma";
-import { NextResponse } from "next/server";
+import { currencyFormatter } from "@dub/utils";
+import { logAndRespond } from "../utils";
 
 export const dynamic = "force-dynamic";
 
@@ -14,14 +15,51 @@ export async function GET(req: Request) {
   try {
     await verifyVercelSignature(req);
 
-    const [stripeBalanceData, toBeSentPayouts] = await Promise.all([
+    const THREE_DAYS_AGO = new Date(
+      new Date().setDate(new Date().getDate() - 3),
+    );
+    const ONE_DAY_AGO = new Date(new Date().setDate(new Date().getDate() - 1));
+
+    const [
+      stripeBalanceData,
+      processingInvoicesDirectDebit,
+      processingInvoicesDirectDebitFast,
+      processedPayouts,
+    ] = await Promise.all([
       stripe.balance.retrieve(),
+      prisma.invoice.aggregate({
+        where: {
+          status: "processing",
+          paymentMethod: {
+            in: ["ach", "sepa", "acss"],
+          },
+          createdAt: {
+            // Why we're doing this: Direct debit payments usually take up to 4 business days to settle
+            // but in case it settles earlier, we'd want to keep the balance on Stripe for payouts
+            // So, we're including "processing" invoices created more than 3 days ago in the reserve balance as well
+            lt: THREE_DAYS_AGO,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
+      prisma.invoice.aggregate({
+        where: {
+          status: "processing",
+          paymentMethod: "ach_fast",
+          createdAt: {
+            // Same reasoning as above, but fast ACH can settle in 2 business days instead of 4
+            lt: ONE_DAY_AGO,
+          },
+        },
+        _sum: {
+          amount: true,
+        },
+      }),
       prisma.payout.aggregate({
         where: {
-          status: {
-            in: ["processing", "processed"],
-          },
-          stripeTransferId: null,
+          status: "processed",
         },
         _sum: {
           amount: true,
@@ -29,41 +67,33 @@ export async function GET(req: Request) {
       }),
     ]);
 
-    const currentAvailableBalance = stripeBalanceData.available[0].amount;
-    const currentPendingBalance = stripeBalanceData.pending[0].amount;
+    const currentAvailableBalance = stripeBalanceData.available[0].amount; // available to withdraw
+    const currentPendingBalance = stripeBalanceData.pending[0].amount; // balance waiting to settle
 
-    // if the pending balance is negative, add it to the available balance
-    // this only happens when we have a connected account transfer that hasn't fully settled yet
-    // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1750185638973479
-    const currentNetBalance =
-      currentPendingBalance < 0
-        ? currentAvailableBalance + currentPendingBalance
-        : currentAvailableBalance;
+    const processingInvoicesAmount =
+      (processingInvoicesDirectDebit._sum.amount ?? 0) +
+      (processingInvoicesDirectDebitFast._sum.amount ?? 0);
+    const processedPayoutsAmount = processedPayouts._sum.amount ?? 0;
+
+    const amountToKeepOnStripe =
+      processingInvoicesAmount + processedPayoutsAmount;
+
+    const balanceToWithdraw = currentAvailableBalance - amountToKeepOnStripe;
 
     console.log({
-      currentAvailableBalance,
-      currentPendingBalance,
-      currentNetBalance,
-      toBeSentPayouts,
-      stripeBalanceData,
+      currentAvailableBalance: `${currencyFormatter(currentAvailableBalance / 100)}`,
+      currentPendingBalance: `${currencyFormatter(currentPendingBalance / 100)}`,
+      processingInvoicesAmount: `${currencyFormatter(processingInvoicesAmount / 100)}`,
+      processedPayoutsAmount: `${currencyFormatter(processedPayoutsAmount / 100)}`,
+      amountToKeepOnStripe: `${currencyFormatter(amountToKeepOnStripe / 100)}`,
+      balanceToWithdraw: `${currencyFormatter(balanceToWithdraw / 100)}`,
     });
 
-    let reservedBalance = 50000; // keep at least $500 in the account
-
-    const totalToBeSentPayouts = toBeSentPayouts._sum.amount;
-    if (totalToBeSentPayouts) {
-      // add the total payouts that are still to be sent to connected accounts
-      // to the reserved balance (to make sure we have enough balance
-      // to pay out partners when chargeSucceeded webhook is triggered)
-      reservedBalance += totalToBeSentPayouts;
-    }
-
-    const balanceToWithdraw = currentNetBalance - reservedBalance;
-
-    if (balanceToWithdraw <= 10000) {
-      return NextResponse.json({
-        message: "Balance to withdraw is less than $100, skipping...",
-      });
+    const reservedBalance = 50000; // keep at least $500 in the account
+    if (balanceToWithdraw <= reservedBalance) {
+      return logAndRespond(
+        `Balance to withdraw is less than ${currencyFormatter(reservedBalance / 100)}, skipping...`,
+      );
     }
 
     const createdPayout = await stripe.payouts.create({
@@ -71,14 +101,9 @@ export async function GET(req: Request) {
       currency: "usd",
     });
 
-    return NextResponse.json({
-      currentAvailableBalance,
-      currentPendingBalance,
-      currentNetBalance,
-      reservedBalance,
-      balanceToWithdraw,
-      createdPayout,
-    });
+    return logAndRespond(
+      `Created payout: ${createdPayout.id} (${currencyFormatter(createdPayout.amount / 100)})`,
+    );
   } catch (error) {
     return handleAndReturnErrorResponse(error);
   }

@@ -80,5 +80,6 @@
     "currency": "usd",
     "paymentProcessor": "stripe",
     "invoiceId": "INV_AUTi534JCiBUVdYmevCSYQ9G"
-  }
+  },
+  "metadata": null
 }

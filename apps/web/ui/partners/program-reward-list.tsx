@@ -1,33 +1,45 @@
 import { constructRewardAmount } from "@/lib/api/sales/construct-reward-amount";
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { DiscountProps, RewardProps } from "@/lib/types";
 import { Gift, Icon } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { PropsWithChildren } from "react";
 import { REWARD_EVENTS } from "./constants";
+import { formatDiscountDescription } from "./format-discount-description";
 import { ProgramRewardModifiersTooltip } from "./program-reward-modifiers-tooltip";
 
 export function ProgramRewardList({
   rewards,
   discount,
+  variant = "default",
   className,
+  iconClassName,
   showModifiersTooltip = true,
 }: {
   rewards: RewardProps[];
   discount?: DiscountProps | null;
+  variant?: "default" | "plain";
   className?: string;
+  iconClassName?: string;
   showModifiersTooltip?: boolean;
 }) {
-  const sortedFilteredRewards = rewards.filter((r) => r.amount >= 0);
+  const sortedFilteredRewards = rewards.filter((r) => getRewardAmount(r) >= 0);
 
   return (
     <ul
       className={cn(
-        "text-content-default border-border-subtle bg-bg-default flex flex-col gap-4 rounded-md border p-4",
+        "text-content-default flex flex-col gap-4 text-sm leading-tight",
+        variant === "default" &&
+          "border-border-subtle bg-bg-default rounded-md border p-4",
         className,
       )}
     >
       {sortedFilteredRewards.map((reward) => (
-        <Item key={reward.id} icon={REWARD_EVENTS[reward.event].icon}>
+        <Item
+          key={reward.id}
+          icon={REWARD_EVENTS[reward.event].icon}
+          iconClassName={iconClassName}
+        >
           {reward.description || (
             <>
               {constructRewardAmount(reward)}{" "}
@@ -65,33 +77,24 @@ export function ProgramRewardList({
           )}
         </Item>
       ))}
+
       {discount && (
-        <Item icon={Gift}>
-          {discount.description || (
-            <>
-              {" "}
-              New users get {constructRewardAmount(discount)} off{" "}
-              {discount.maxDuration === null
-                ? "for their lifetime"
-                : discount.maxDuration === 0
-                  ? "for their first purchase"
-                  : discount.maxDuration === 1
-                    ? "for their first month"
-                    : discount.maxDuration && discount.maxDuration > 1
-                      ? `for ${discount.maxDuration} months`
-                      : null}
-            </>
-          )}
+        <Item icon={Gift} iconClassName={iconClassName}>
+          {formatDiscountDescription(discount)}
         </Item>
       )}
     </ul>
   );
 }
 
-const Item = ({ icon: Icon, children }: PropsWithChildren<{ icon: Icon }>) => {
+const Item = ({
+  icon: Icon,
+  children,
+  iconClassName,
+}: PropsWithChildren<{ icon: Icon; iconClassName?: string }>) => {
   return (
-    <li className="flex items-start gap-2 text-sm leading-tight">
-      <Icon className="size-4 shrink-0 translate-y-px" />
+    <li className="flex items-start gap-2">
+      <Icon className={cn("size-4 shrink-0 translate-y-px", iconClassName)} />
       <div>{children}</div>
     </li>
   );

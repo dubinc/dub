@@ -1,7 +1,7 @@
 import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
-import { queueDomainUpdate } from "@/lib/api/domains/queue";
+import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
 import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
 import { validateDomain } from "@/lib/api/domains/utils";
@@ -124,7 +124,10 @@ export const PATCH = withWorkspace(
     }
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
@@ -192,7 +195,7 @@ export const PATCH = withWorkspace(
       (async () => {
         // remove old logo
         if (oldLogo && (logo === null || logoUploaded)) {
-          await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
+          await storage.delete({ key: oldLogo.replace(`${R2_URL}/`, "") });
         }
 
         if (domainUpdated) {

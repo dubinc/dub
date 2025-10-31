@@ -178,3 +178,35 @@ export const normalizeUrl = (url: string): string => {
     return url;
   }
 };
+
+export function buildUrl(
+  baseUrl: string,
+  params?: Record<string, string | number | boolean | null | undefined>,
+) {
+  const url = new URL(
+    baseUrl,
+    typeof window !== "undefined" ? window.location.origin : "http://localhost",
+  );
+
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== null && value !== undefined && value !== "") {
+        url.searchParams.append(key, String(value));
+      }
+    });
+  }
+
+  return url.toString();
+}
+
+export const getFileExtension = (url: string): string | null => {
+  try {
+    const pathname = new URL(url).pathname;
+    const extension = pathname.split(".").pop();
+    return extension ? extension.toUpperCase() : null;
+  } catch {
+    // If URL parsing fails, try to extract from the string directly
+    const extension = url.split(".").pop()?.split("?")[0];
+    return extension ? extension.toUpperCase() : null;
+  }
+};

@@ -1,9 +1,8 @@
 import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { qstash } from "@/lib/cron";
-import { limiter } from "@/lib/cron/limiter";
 import { sendLimitEmail } from "@/lib/cron/send-limit-email";
 import { WorkspaceProps } from "@/lib/types";
-import { sendEmail } from "@dub/email";
+import { sendBatchEmail } from "@dub/email";
 import ClicksSummary from "@dub/email/templates/clicks-summary";
 import { prisma } from "@dub/prisma";
 import {
@@ -159,24 +158,20 @@ export const updateUsage = async () => {
           (user) => user.user.email,
         ) as string[];
 
-        await Promise.allSettled(
-          emails.map((email) => {
-            limiter.schedule(() =>
-              sendEmail({
-                subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
-                email,
-                react: ClicksSummary({
-                  email,
-                  workspaceName: workspace.name,
-                  workspaceSlug: workspace.slug,
-                  totalClicks,
-                  createdLinks: workspace.linksUsage,
-                  topLinks: topFiveLinks,
-                }),
-                variant: "notifications",
-              }),
-            );
-          }),
+        await sendBatchEmail(
+          emails.map((email) => ({
+            subject: `Your 30-day ${process.env.NEXT_PUBLIC_APP_NAME} summary for ${workspace.name}`,
+            to: email,
+            react: ClicksSummary({
+              email,
+              workspaceName: workspace.name,
+              workspaceSlug: workspace.slug,
+              totalClicks,
+              createdLinks: workspace.linksUsage,
+              topLinks: topFiveLinks,
+            }),
+            variant: "notifications",
+          })),
         );
       }
     }),

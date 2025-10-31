@@ -1,22 +1,20 @@
-import { ALLOWED_MIN_WITHDRAWAL_AMOUNTS } from "@/lib/partners/constants";
 import {
+  IndustryInterest,
+  MonthlyTraffic,
   PartnerBannedReason,
   PartnerProfileType,
   PartnerStatus,
+  PreferredEarningStructure,
   ProgramEnrollmentStatus,
+  SalesChannel,
 } from "@dub/prisma/client";
-import {
-  COUNTRY_CODES,
-  currencyFormatter,
-  GOOGLE_FAVICON_URL,
-} from "@dub/utils";
+import { COUNTRY_CODES, GOOGLE_FAVICON_URL } from "@dub/utils";
 import { z } from "zod";
 import { analyticsQuerySchema } from "./analytics";
 import { analyticsResponse } from "./analytics-response";
 import { createLinkBodySchema } from "./links";
 import {
   base64ImageSchema,
-  booleanQuerySchema,
   getPaginationQuerySchema,
   publicHostedImageSchema,
   storedR2ImageUrlSchema,
@@ -27,37 +25,43 @@ import { parseUrlSchema } from "./utils";
 export const PARTNERS_MAX_PAGE_SIZE = 100;
 
 export const exportPartnerColumns = [
-  { id: "id", label: "ID", default: true, expanded: false },
-  { id: "name", label: "Name", default: true, expanded: false },
-  { id: "email", label: "Email", default: true, expanded: false },
-  { id: "country", label: "Country", default: true, expanded: false },
-  { id: "status", label: "Status", default: true, expanded: false },
-  { id: "createdAt", label: "Enrolled at", default: true, expanded: false },
+  { id: "id", label: "ID", default: true },
+  { id: "name", label: "Name", default: true },
+  { id: "email", label: "Email", default: true },
+  { id: "country", label: "Country", default: true },
+  { id: "status", label: "Status", default: true },
+  { id: "createdAt", label: "Enrolled at", default: true },
   {
     id: "payoutsEnabledAt",
     label: "Payouts enabled at",
     default: true,
     expanded: false,
   },
-  { id: "description", label: "Description", default: false, expanded: false },
-  { id: "clicks", label: "Clicks", default: false, expanded: true },
-  { id: "leads", label: "Leads", default: false, expanded: true },
-  { id: "conversions", label: "Conversions", default: false, expanded: true },
-  { id: "sales", label: "Sales", default: false, expanded: true },
-  { id: "saleAmount", label: "Revenue", default: false, expanded: true },
+  { id: "description", label: "Description", default: false },
+  { id: "totalClicks", label: "Clicks", default: false, numeric: true },
+  { id: "totalLeads", label: "Leads", default: false, numeric: true },
+  {
+    id: "totalConversions",
+    label: "Conversions",
+    default: false,
+    numeric: true,
+  },
+  { id: "totalSales", label: "Sales", default: false, numeric: true },
+  { id: "totalSaleAmount", label: "Revenue", default: false, numeric: true },
   {
     id: "totalCommissions",
     label: "Commissions",
     default: false,
     expanded: true,
+    numeric: true,
   },
-  { id: "netRevenue", label: "Net Revenue", default: false, expanded: true },
-  { id: "website", label: "Website", default: false, expanded: false },
-  { id: "youtube", label: "YouTube", default: false, expanded: false },
-  { id: "twitter", label: "Twitter", default: false, expanded: false },
-  { id: "linkedin", label: "LinkedIn", default: false, expanded: false },
-  { id: "instagram", label: "Instagram", default: false, expanded: false },
-  { id: "tiktok", label: "TikTok", default: false, expanded: false },
+  { id: "netRevenue", label: "Net Revenue", default: false, numeric: true },
+  { id: "website", label: "Website", default: false },
+  { id: "youtube", label: "YouTube", default: false },
+  { id: "twitter", label: "Twitter", default: false },
+  { id: "linkedin", label: "LinkedIn", default: false },
+  { id: "instagram", label: "Instagram", default: false },
+  { id: "tiktok", label: "TikTok", default: false },
 ];
 
 export const BAN_PARTNER_REASONS = {
@@ -86,8 +90,6 @@ export const exportApplicationColumns = [
   { id: "linkedin", label: "LinkedIn" },
   { id: "instagram", label: "Instagram" },
   { id: "tiktok", label: "TikTok" },
-  { id: "proposal", label: "Proposal" },
-  { id: "comments", label: "Comments" },
 ];
 
 export const exportApplicationsColumnsDefault = [
@@ -116,19 +118,17 @@ export const getPartnersQuerySchema = z
     sortBy: z
       .enum([
         "createdAt",
-        "clicks",
-        "leads",
-        "conversions",
-        "sales",
-        "saleAmount",
+        "totalClicks",
+        "totalLeads",
+        "totalConversions",
+        "totalSaleAmount",
         "totalCommissions",
-        "netRevenue",
       ])
-      .default("saleAmount")
+      .default("totalSaleAmount")
       .describe(
-        "The field to sort the partners by. The default is `saleAmount`.",
+        "The field to sort the partners by. The default is `totalSaleAmount`.",
       )
-      .openapi({ example: "saleAmount" }),
+      .openapi({ example: "totalSaleAmount" }),
     sortOrder: z
       .enum(["asc", "desc"])
       .default("desc")
@@ -152,15 +152,9 @@ export const getPartnersQuerySchema = z
       .string()
       .optional()
       .describe(
-        "A search query to filter partners by name, email, or tenantId.",
+        "A search query to filter partners by ID, name, email, or link.",
       )
       .openapi({ example: "john" }),
-    includeExpandedFields: booleanQuerySchema
-      .optional()
-      .describe(
-        "Whether to include stats fields on the partner (`clicks`, `leads`, `conversions`, `sales`, `saleAmount`, `commissions`, `netRevenue`). If false, those fields will be returned as 0.",
-      )
-      .openapi({ example: "true" }),
   })
   .merge(getPaginationQuerySchema({ pageSize: PARTNERS_MAX_PAGE_SIZE }));
 
@@ -195,10 +189,6 @@ export const partnersCountQuerySchema = getPartnersQuerySchemaExtended
   .extend({
     groupBy: z.enum(["status", "country", "groupId"]).optional(),
   });
-
-export const partnerInvitesQuerySchema = getPaginationQuerySchema({
-  pageSize: 100,
-});
 
 export const PartnerOnlinePresenceSchema = z.object({
   website: z
@@ -236,6 +226,36 @@ export const PartnerOnlinePresenceSchema = z.object({
   tiktokVerifiedAt: z.date().nullish(),
 });
 
+export const MAX_PARTNER_INDUSTRY_INTERESTS = 8;
+
+export const PartnerProfileSchema = z.object({
+  monthlyTraffic: z
+    .nativeEnum(MonthlyTraffic)
+    .nullable()
+    .describe("The partner's monthly traffic."),
+  industryInterests: z
+    .array(z.nativeEnum(IndustryInterest))
+    .max(MAX_PARTNER_INDUSTRY_INTERESTS)
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate industry interests are not allowed.",
+    })
+    .describe("The partner's industry interests."),
+  preferredEarningStructures: z
+    .array(z.nativeEnum(PreferredEarningStructure))
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate preferred earning structures are not allowed.",
+    })
+    .describe("The partner's preferred earning structures."),
+  salesChannels: z
+    .array(z.nativeEnum(SalesChannel))
+    .refine((arr) => new Set(arr).size === arr.length, {
+      message: "Duplicate sales channels are not allowed.",
+    })
+    .describe("The partner's sales channels."),
+});
+
+export const MAX_PARTNER_DESCRIPTION_LENGTH = 500;
+
 export const PartnerSchema = z
   .object({
     id: z.string().describe("The partner's unique ID on Dub."),
@@ -260,7 +280,7 @@ export const PartnerSchema = z
     image: z.string().nullable().describe("The partner's avatar image."),
     description: z
       .string()
-      .max(5000)
+      .max(5000) // Left at 5000 instead of MAX_PARTNER_DESCRIPTION_LENGTH to avoid breaking changes
       .nullish()
       .describe("A brief description of the partner and their background."),
     country: z
@@ -293,19 +313,27 @@ export const PartnerSchema = z
       })
       .nullable()
       .describe("The partner's invoice settings."),
-    minWithdrawalAmount: z
-      .number()
-      .describe("The minimum withdrawal amount in cents."),
     createdAt: z
       .date()
       .describe("The date when the partner was created on Dub."),
+    discoverableAt: z
+      .date()
+      .nullable()
+      .describe(
+        "The date when the partner became discoverable in the partner network.",
+      ),
   })
-  .merge(PartnerOnlinePresenceSchema);
+  .merge(PartnerOnlinePresenceSchema)
+  .merge(PartnerProfileSchema.partial());
+
+export const PartnerWithProfileSchema =
+  PartnerSchema.merge(PartnerProfileSchema);
 
 // Used externally by GET+POST /api/partners and partner.enrolled webhook
 export const EnrolledPartnerSchema = PartnerSchema.pick({
   id: true,
   name: true,
+  companyName: true,
   email: true,
   image: true,
   description: true,
@@ -323,50 +351,83 @@ export const EnrolledPartnerSchema = PartnerSchema.pick({
     }),
   )
   .extend({
-    clicks: z
+    totalClicks: z
+      .number()
+      .default(0)
+      .describe("The total number of clicks on the partner's links"),
+    totalLeads: z
+      .number()
+      .default(0)
+      .describe("The total number of leads generated by the partner's links"),
+    totalConversions: z
+      .number()
+      .default(0)
+      .describe("The total number of leads that converted to paying customers"),
+    totalSales: z
       .number()
       .default(0)
       .describe(
-        "The total number of clicks on the partner's links. Defaults to 0 if `includeExpandedFields` is false.",
+        "The total number of sales generated by the partner's links (includes recurring sales)",
       ),
-    leads: z
+    totalSaleAmount: z
       .number()
       .default(0)
       .describe(
-        "The total number of leads generated by the partner's links. Defaults to 0 if `includeExpandedFields` is false.",
-      ),
-    conversions: z
-      .number()
-      .default(0)
-      .describe(
-        "The total number of leads that converted to paying customers. Defaults to 0 if `includeExpandedFields` is false.",
-      ),
-    sales: z
-      .number()
-      .default(0)
-      .describe(
-        "The total number of sales generated by the partner's links (includes recurring sales). Defaults to 0 if `includeExpandedFields` is false.",
-      ),
-    saleAmount: z
-      .number()
-      .default(0)
-      .describe(
-        "The total amount of sales (in cents) generated by the partner's links. Defaults to 0 if `includeExpandedFields` is false.",
+        "The total amount of sales (in cents) generated by the partner's links",
       ),
     totalCommissions: z
       .number()
       .default(0)
       .describe(
-        "The total commissions paid to the partner for their referrals. Defaults to 0 if `includeExpandedFields` is false.",
+        "The total commissions paid to the partner for their referrals",
       ),
     netRevenue: z
       .number()
       .default(0)
-      .describe(
-        "The total net revenue generated by the partner. Defaults to 0 if `includeExpandedFields` is false.",
-      ),
+      .describe("The total net revenue generated by the partner"),
   })
-  .merge(PartnerOnlinePresenceSchema);
+  .merge(
+    PartnerOnlinePresenceSchema.pick({
+      website: true,
+      youtube: true,
+      twitter: true,
+      linkedin: true,
+      instagram: true,
+      tiktok: true,
+    }),
+  );
+
+export const EnrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
+  lastLeadAt: z.date().nullish(),
+  lastConversionAt: z.date().nullish(),
+  customerDataSharingEnabledAt: z.date().nullish(),
+}).merge(
+  PartnerSchema.pick({
+    monthlyTraffic: true,
+    industryInterests: true,
+    preferredEarningStructures: true,
+    salesChannels: true,
+  }).merge(PartnerOnlinePresenceSchema),
+);
+
+export const WebhookPartnerSchema = PartnerSchema.pick({
+  id: true,
+  name: true,
+  email: true,
+  image: true,
+  payoutsEnabledAt: true,
+  country: true,
+}).merge(
+  z.object({
+    groupId: z.string().nullish(),
+    totalClicks: z.number(),
+    totalLeads: z.number(),
+    totalConversions: z.number(),
+    totalSales: z.number(),
+    totalSaleAmount: z.number(),
+    totalCommissions: z.number(),
+  }),
+);
 
 export const LeaderboardPartnerSchema = z.object({
   id: z.string(),
@@ -375,15 +436,11 @@ export const LeaderboardPartnerSchema = z.object({
   totalCommissions: z.number().default(0),
 });
 
-export const PARTNER_CUSTOMERS_MAX_PAGE_SIZE = 100;
-
 export const getPartnerCustomersQuerySchema = z
   .object({
     search: z.string().optional(),
   })
-  .merge(
-    getPaginationQuerySchema({ pageSize: PARTNER_CUSTOMERS_MAX_PAGE_SIZE }),
-  );
+  .merge(getPaginationQuerySchema({ pageSize: 100 }));
 
 export const createPartnerSchema = z.object({
   name: z
@@ -449,7 +506,6 @@ export const createPartnerSchema = z.object({
       publicStats: true,
       tagId: true,
       geo: true,
-      projectId: true,
       programId: true,
       partnerId: true,
       webhookIds: true,
@@ -464,23 +520,19 @@ export const createPartnerSchema = z.object({
 
 // This is a temporary fix to allow arbitrary image URL
 // TODO: Fix this by using file-type
-const partnerImageSchema = z
-  .union([
-    base64ImageSchema,
-    storedR2ImageUrlSchema,
-    publicHostedImageSchema,
-    z
-      .string()
-      .url()
-      .trim()
-      .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
-        message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
-      }),
-  ])
-  .transform((v) => v || "")
-  .refine((v) => v !== "", {
-    message: "Image is required",
-  });
+const partnerImageSchema = z.union([
+  base64ImageSchema,
+  storedR2ImageUrlSchema,
+  publicHostedImageSchema,
+  z
+    .string()
+    .url()
+    .trim()
+    .refine((url) => url.startsWith(GOOGLE_FAVICON_URL), {
+      message: `Image URL must start with ${GOOGLE_FAVICON_URL}`,
+    }),
+  z.string().nullish(), // make image optional
+]);
 
 export const onboardPartnerSchema = createPartnerSchema
   .omit({
@@ -604,9 +656,9 @@ export const partnerAnalyticsResponseSchema = {
 
 export const invitePartnerSchema = z.object({
   workspaceId: z.string(),
-  name: z.string().trim().min(1).max(100),
+  name: z.string().max(100).optional(),
   email: z.string().trim().email().min(1).max(100),
-  linkId: z.string().optional(),
+  username: z.string().max(100).optional(),
   groupId: z.string().nullish().default(null),
 });
 
@@ -680,6 +732,11 @@ export const bulkBanPartnersSchema = z.object({
   ),
 });
 
+export const deactivatePartnerSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+});
+
 export const archivePartnerSchema = z.object({
   workspaceId: z.string(),
   partnerId: z.string(),
@@ -698,11 +755,4 @@ export const partnerPayoutSettingsSchema = z.object({
   companyName: z.string().max(190).trim().nullish(),
   address: z.string().max(500).trim().nullish(),
   taxId: z.string().max(100).trim().nullish(),
-  minWithdrawalAmount: z.coerce
-    .number()
-    .min(1000, "Minimum withdrawal amount must be greater than $10.")
-    .default(10000)
-    .refine((val) => ALLOWED_MIN_WITHDRAWAL_AMOUNTS.includes(val), {
-      message: `Minimum withdrawal amount must be one of ${ALLOWED_MIN_WITHDRAWAL_AMOUNTS.map((amount) => currencyFormatter(amount / 100)).join(", ")}`,
-    }),
 });

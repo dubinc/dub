@@ -7,30 +7,26 @@ import {
   Check2,
   LoadingSpinner,
   Magnifier,
+  ScrollContainer,
   ToggleGroup,
   Users6,
-  useScrollProgress,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { Command } from "cmdk";
-import {
-  PropsWithChildren,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { GroupColorCircle } from "./group-color-circle";
 
 interface GroupSelectorProps {
   selectedGroupIds: string[] | null;
   setSelectedGroupIds: (groupIds: string[] | null) => void;
+  className?: string;
 }
 
 export function GroupsMultiSelect({
   selectedGroupIds,
   setSelectedGroupIds,
+  className,
 }: GroupSelectorProps) {
   const [selectedMode, setSelectedMode] = useState<"all" | "select">(
     selectedGroupIds?.length ? "select" : "all",
@@ -111,8 +107,9 @@ export function GroupsMultiSelect({
   useEffect(() => setShouldSortGroups(true), [groups]);
 
   return (
-    <div>
+    <div className={className}>
       <ToggleGroup
+        layout={false}
         className="flex w-full items-center gap-1 rounded-lg border-none bg-neutral-100 p-1"
         optionClassName="h-8 flex items-center justify-center flex-1 text-sm normal-case"
         indicatorClassName="bg-white"
@@ -159,7 +156,7 @@ export function GroupsMultiSelect({
                     className="grow border-none px-2 text-neutral-900 placeholder-neutral-400 focus:outline-none focus:ring-0 sm:text-sm"
                   />
                 </label>
-                <Scroll>
+                <ScrollContainer className="h-[190px]">
                   <Command.List
                     className={cn("flex w-full flex-col gap-1 py-1")}
                   >
@@ -235,7 +232,7 @@ export function GroupsMultiSelect({
                       </Command.Loading>
                     )}
                   </Command.List>
-                </Scroll>
+                </ScrollContainer>
               </Command>
             )}
           </div>
@@ -244,26 +241,3 @@ export function GroupsMultiSelect({
     </div>
   );
 }
-
-const Scroll = ({ children }: PropsWithChildren) => {
-  const ref = useRef<HTMLDivElement>(null);
-
-  const { scrollProgress, updateScrollProgress } = useScrollProgress(ref);
-
-  return (
-    <div className="relative">
-      <div
-        className="scrollbar-hide h-[190px] w-screen overflow-y-scroll sm:w-auto"
-        ref={ref}
-        onScroll={updateScrollProgress}
-      >
-        {children}
-      </div>
-      {/* Bottom scroll fade */}
-      <div
-        className="pointer-events-none absolute bottom-0 left-0 hidden h-8 w-full rounded-b-lg bg-gradient-to-t from-white sm:block"
-        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-      />
-    </div>
-  );
-};

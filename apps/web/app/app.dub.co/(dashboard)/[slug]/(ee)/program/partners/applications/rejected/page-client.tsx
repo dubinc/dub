@@ -64,7 +64,7 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
   const { queryParams, searchParams, getQueryString } = useRouterStuff();
 
   const search = searchParams.get("search");
-  const sortBy = searchParams.get("sortBy") || "saleAmount";
+  const sortBy = searchParams.get("sortBy") || "createdAt";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
 
   const { partnersCount, error: countError } = usePartnersCount<number>({
@@ -80,6 +80,8 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
       {
         workspaceId,
         status: "rejected",
+        sortBy,
+        sortOrder,
       },
       { exclude: ["partnerId"] },
     )}`,
@@ -288,6 +290,20 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
     error: error || countError ? "Failed to load applications" : undefined,
   });
 
+  const [previousPartnerId, nextPartnerId] = useMemo(() => {
+    if (!partners || !detailsSheetState.partnerId) return [null, null];
+
+    const currentIndex = partners.findIndex(
+      ({ id }) => id === detailsSheetState.partnerId,
+    );
+    if (currentIndex === -1) return [null, null];
+
+    return [
+      currentIndex > 0 ? partners[currentIndex - 1].id : null,
+      currentIndex < partners.length - 1 ? partners[currentIndex + 1].id : null,
+    ];
+  }, [partners, detailsSheetState.partnerId]);
+
   return (
     <div className="flex flex-col gap-6">
       {detailsSheetState.partnerId && currentPartner && (
@@ -297,6 +313,24 @@ export function ProgramPartnersRejectedApplicationsPageClient() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           partner={currentPartner}
+          onPrevious={
+            previousPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: previousPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
+          onNext={
+            nextPartnerId
+              ? () =>
+                  queryParams({
+                    set: { partnerId: nextPartnerId },
+                    scroll: false,
+                  })
+              : undefined
+          }
         />
       )}
       <div className="w-min">

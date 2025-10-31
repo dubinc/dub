@@ -1,9 +1,10 @@
 import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
 import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
-import { LeadEventTB } from "@/lib/types";
+import { LeadEventTB, WebhookPartner } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
@@ -54,6 +55,7 @@ export async function createShopifySale({
 
   const saleData = {
     ...leadData,
+    workspace_id: leadData.workspace_id || workspaceId, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: "Purchase",
     payment_processor: "shopify",
@@ -69,6 +71,11 @@ export async function createShopifySale({
     },
   });
 
+  const firstConversionFlag = isFirstConversion({
+    customer: existingCustomer,
+    linkId,
+  });
+
   const [_sale, link, workspace, customer] = await Promise.all([
     // record sale
     recordSale(saleData),
@@ -79,13 +86,11 @@ export async function createShopifySale({
         id: linkId,
       },
       data: {
-        ...(isFirstConversion({
-          customer: existingCustomer,
-          linkId,
-        }) && {
+        ...(firstConversionFlag && {
           conversions: {
             increment: 1,
           },
+          lastConversionAt: new Date(),
         }),
         sales: {
           increment: 1,
@@ -124,22 +129,10 @@ export async function createShopifySale({
     redis.del(`shopify:checkout:${checkoutToken}`),
   ]);
 
-  waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "sale.created",
-      workspace,
-      data: transformSaleEventData({
-        ...saleData,
-        link,
-        clickedAt: customer.clickedAt || customer.createdAt,
-        customer,
-      }),
-    }),
-  );
-
   // for program links
+  let webhookPartner: WebhookPartner | undefined;
   if (link.programId && link.partnerId) {
-    await createPartnerCommission({
+    const createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -154,15 +147,47 @@ export async function createShopifySale({
         customer: {
           country: customer.country,
         },
+        sale: {
+          amount: saleData.amount,
+        },
       },
     });
+    webhookPartner = createdCommission?.webhookPartner;
 
     waitUntil(
-      executeWorkflows({
-        trigger: WorkflowTrigger.saleRecorded,
-        programId: link.programId,
-        partnerId: link.partnerId,
-      }),
+      Promise.allSettled([
+        executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
+          },
+        }),
+        syncPartnerLinksStats({
+          partnerId: link.partnerId,
+          programId: link.programId,
+          eventType: "sale",
+        }),
+      ]),
     );
   }
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      trigger: "sale.created",
+      workspace,
+      data: transformSaleEventData({
+        ...saleData,
+        link,
+        clickedAt: customer.clickedAt || customer.createdAt,
+        customer,
+        partner: webhookPartner,
+        metadata: null,
+      }),
+    }),
+  );
 }

@@ -6,8 +6,10 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { NewLinkProps } from "@/lib/types";
+import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
+import { getPrettyUrl } from "@dub/utils";
 import { NextResponse } from "next/server";
 
 // PATCH /api/partner-profile/[programId]/links/[linkId] - update a link for a partner
@@ -19,15 +21,22 @@ export const PATCH = withPartnerProfile(
 
     const { programId, linkId } = params;
 
-    const { program, links, status, group } = await getProgramEnrollmentOrThrow(
-      {
-        partnerId: partner.id,
-        programId,
-        includeGroup: true,
+    const {
+      program,
+      links,
+      status,
+      partnerGroup: group,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId,
+      include: {
+        program: true,
+        links: true,
+        partnerGroup: true,
       },
-    );
+    });
 
-    if (status === "banned") {
+    if (["banned", "deactivated"].includes(status)) {
       throw new DubApiError({
         code: "forbidden",
         message: "You are banned from this program.",
@@ -59,19 +68,19 @@ export const PATCH = withPartnerProfile(
       });
     }
 
-    if (link.partnerGroupDefaultLinkId) {
-      const linkUrlChanged = link.url !== url;
+    const linkUrlChanged = getPrettyUrl(link.url) !== getPrettyUrl(url);
 
-      if (linkUrlChanged) {
+    if (linkUrlChanged) {
+      if (link.partnerGroupDefaultLinkId) {
         throw new DubApiError({
           code: "forbidden",
           message:
             "You cannot update the destination URL of your default link.",
         });
+      } else {
+        validatePartnerLinkUrl({ group, url });
       }
     }
-
-    validatePartnerLinkUrl({ group, url });
 
     // check if the group has a UTM template
     const groupUtmTemplate = group.utmTemplateId
@@ -141,6 +150,6 @@ export const PATCH = withPartnerProfile(
       updatedLink: processedLink,
     });
 
-    return NextResponse.json(partnerLink);
+    return NextResponse.json(PartnerProfileLinkSchema.parse(partnerLink));
   },
 );

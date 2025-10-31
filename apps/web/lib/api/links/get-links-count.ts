@@ -1,31 +1,28 @@
 import { combineTagIds } from "@/lib/api/tags/combine-tag-ids";
-import z from "@/lib/zod";
 import { getLinksCountQuerySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
+import { z } from "zod";
 
-export async function getLinksCount({
-  searchParams,
-  workspaceId,
-  folderIds,
-}: {
-  searchParams: z.infer<typeof getLinksCountQuerySchema>;
+interface GetLinksCountParams extends z.infer<typeof getLinksCountQuerySchema> {
   workspaceId: string;
   folderIds?: string[];
-}) {
-  const {
-    groupBy,
-    search,
-    domain,
-    tagId,
-    tagIds,
-    tagNames,
-    userId,
-    showArchived,
-    withTags,
-    folderId,
-    tenantId,
-  } = searchParams;
+}
 
+export async function getLinksCount({
+  groupBy,
+  search,
+  domain,
+  tagId,
+  tagIds,
+  tagNames,
+  userId,
+  showArchived,
+  withTags,
+  folderId,
+  tenantId,
+  workspaceId,
+  folderIds,
+}: GetLinksCountParams) {
   const combinedTagIds = combineTagIds({ tagId, tagIds });
 
   const linksWhere = {

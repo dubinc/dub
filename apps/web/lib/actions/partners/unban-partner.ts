@@ -96,6 +96,16 @@ export const unbanPartnerAction = authActionClient
           status: "pending",
         },
       }),
+
+      prisma.bountySubmission.updateMany({
+        where: {
+          ...where,
+          status: "rejected",
+        },
+        data: {
+          status: "submitted",
+        },
+      }),
     ]);
 
     waitUntil(
@@ -109,8 +119,8 @@ export const unbanPartnerAction = authActionClient
         });
 
         await Promise.allSettled([
-          // Delete links from cache
-          linkCache.deleteMany(links),
+          // Expire links from cache
+          linkCache.expireMany(links),
 
           recordAuditLog({
             workspaceId: workspace.id,

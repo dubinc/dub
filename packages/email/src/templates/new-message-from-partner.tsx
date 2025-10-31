@@ -65,7 +65,7 @@ export default function NewMessageFromPartner({
               </Heading>
               <Link
                 className="text-[13px] font-medium text-neutral-500 underline"
-                href={`https://app.dub.co/${workspaceSlug}/program/partners?partnerId=${partner.id}`}
+                href={`https://app.dub.co/${workspaceSlug}/program/partners/${partner.id}`}
               >
                 View profile in Dub
               </Link>
@@ -84,7 +84,10 @@ export default function NewMessageFromPartner({
                     />
                   </Column>
                   <Column className="w-full pl-2">
-                    <Text className="my-0 rounded-lg rounded-bl-none bg-neutral-100 px-4 py-2.5 text-sm leading-5 text-neutral-800">
+                    <Text
+                      className="my-0 rounded-lg rounded-bl-none bg-neutral-100 px-4 py-2.5 text-sm leading-5 text-neutral-800"
+                      style={{ whiteSpace: "pre-wrap" }}
+                    >
                       {message.text}
                     </Text>
                   </Column>

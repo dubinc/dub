@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Crown } from "@dub/ui";
 import { cn, getNextPlan } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useMemo } from "react";
 

@@ -2,7 +2,12 @@ import {
   DATE_RANGE_INTERVAL_PRESETS,
   DUB_PARTNERS_ANALYTICS_INTERVAL,
 } from "@/lib/analytics/constants";
-import { CommissionType, ProgramEnrollmentStatus } from "@prisma/client";
+import {
+  CommissionType,
+  PartnerProfileType,
+  PartnerRole,
+  ProgramEnrollmentStatus,
+} from "@prisma/client";
 import { z } from "zod";
 import { analyticsQuerySchema, eventsQuerySchema } from "./analytics";
 import { BountySchema, BountySubmissionSchema } from "./bounties";
@@ -14,7 +19,6 @@ import {
 import { customerActivityResponseSchema } from "./customer-activity";
 import { CustomerEnrichedSchema } from "./customers";
 import { LinkSchema } from "./links";
-import { ProgramEnrollmentSchema } from "./programs";
 import { workflowConditionSchema } from "./workflows";
 
 export const PartnerEarningsSchema = CommissionSchema.omit({
@@ -25,9 +29,8 @@ export const PartnerEarningsSchema = CommissionSchema.omit({
     customer: z
       .object({
         id: z.string(),
-        email: z
-          .string()
-          .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
+        email: z.string(),
+        country: z.string().nullish(),
       })
       .nullable(),
     link: LinkSchema.pick({
@@ -88,21 +91,19 @@ export const PartnerProfileLinkSchema = LinkSchema.pick({
 }).extend({
   createdAt: z.string().or(z.date()),
   partnerGroupDefaultLinkId: z.string().nullish(),
+  discountCode: z.string().nullable().default(null),
 });
 
 export const PartnerProfileCustomerSchema = CustomerEnrichedSchema.pick({
   id: true,
+  email: true,
   country: true,
   createdAt: true,
 }).extend({
-  email: z
-    .string()
-    .transform((email) => email.replace(/(?<=^.).+(?=.@)/, "****")),
   activity: customerActivityResponseSchema,
 });
 
 export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
-  workspaceId: true,
   externalId: true,
   tenantId: true,
   programId: true,
@@ -113,7 +114,6 @@ export const partnerProfileAnalyticsQuerySchema = analyticsQuerySchema.omit({
 });
 
 export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
-  workspaceId: true,
   externalId: true,
   tenantId: true,
   programId: true,
@@ -126,10 +126,6 @@ export const partnerProfileEventsQuerySchema = eventsQuerySchema.omit({
 export const partnerProfileProgramsQuerySchema = z.object({
   includeRewardsDiscounts: z.coerce.boolean().optional(),
   status: z.nativeEnum(ProgramEnrollmentStatus).optional(),
-});
-
-export const PartnerProgramEnrollmentSchema = ProgramEnrollmentSchema.extend({
-  messagingEnabled: z.boolean(),
 });
 
 export const partnerProfileProgramsCountQuerySchema =
@@ -155,3 +151,42 @@ export const PartnerBountySchema = BountySchema.omit({
     totalCommissions: z.number(),
   }),
 });
+
+export const invitePartnerUserSchema = z.object({
+  email: z
+    .string()
+    .min(1, "Email is required.")
+    .email("Please enter a valid email."),
+  role: z.nativeEnum(PartnerRole),
+});
+
+export const getPartnerUsersQuerySchema = z.object({
+  search: z.string().optional(),
+  role: z.nativeEnum(PartnerRole).optional(),
+});
+
+export const partnerUserSchema = z.object({
+  id: z.string().nullable(),
+  name: z.string().nullable(),
+  email: z.string(),
+  role: z.nativeEnum(PartnerRole),
+  image: z.string().nullish(),
+  createdAt: z.date(),
+});
+
+export const partnerProfileChangeHistoryLogSchema = z.array(
+  z.union([
+    z.object({
+      field: z.literal("country"),
+      from: z.string(),
+      to: z.string(),
+      changedAt: z.coerce.date(),
+    }),
+    z.object({
+      field: z.literal("profileType"),
+      from: z.nativeEnum(PartnerProfileType),
+      to: z.nativeEnum(PartnerProfileType),
+      changedAt: z.coerce.date(),
+    }),
+  ]),
+);

@@ -77,7 +77,10 @@ export default function NewBountyAvailable({
                   <Text className="m-0 p-0 text-sm font-semibold text-neutral-900">
                     Details
                   </Text>
-                  <Text className="m-0 mt-2 p-0 text-sm font-medium text-neutral-500">
+                  <Text
+                    className="m-0 mt-2 p-0 text-sm font-medium text-neutral-500"
+                    style={{ whiteSpace: "pre-wrap" }}
+                  >
                     {bounty.description}
                   </Text>
                 </Section>

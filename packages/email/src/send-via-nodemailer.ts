@@ -5,12 +5,12 @@ import { CreateEmailOptions } from "resend";
 
 // Send email using NodeMailer (Recommended for local development)
 export const sendViaNodeMailer = async ({
-  email,
+  to,
   subject,
   text,
   react,
 }: Pick<CreateEmailOptions, "subject" | "text" | "react"> & {
-  email: string;
+  to: string;
 }) => {
   const transporter = nodemailer.createTransport({
     // @ts-ignore (Fix this)
@@ -28,7 +28,7 @@ export const sendViaNodeMailer = async ({
 
   return await transporter.sendMail({
     from: "noreply@example.com",
-    to: email,
+    to,
     subject,
     text,
     html: render(react as ReactElement),

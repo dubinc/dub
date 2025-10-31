@@ -28,13 +28,17 @@ const states: Record<
       </>
     ),
   }),
-  rejected: () => ({
-    title: "Application rejected",
-    description: "Your application has been rejected.",
-  }),
   banned: () => ({
     title: "Program unavailable",
     description: "You have been banned from this program.",
+  }),
+  deactivated: () => ({
+    title: "Partnership deactivated",
+    description: "Your partnership has been deactivated.",
+  }),
+  rejected: () => ({
+    title: "Application rejected",
+    description: "Your application has been rejected.",
   }),
 };
 
@@ -86,14 +90,18 @@ export function UnapprovedProgramPage({
           </h2>
           <p className="text-content-subtle [&_strong]:text-content-default mt-2 max-w-sm text-balance text-sm font-medium [&_strong]:font-semibold">
             {description}{" "}
-            {["rejected", "banned"].includes(programEnrollment.status) && (
-              <Link
-                href={`/messages/${programEnrollment.program.slug}`}
-                className="text-neutral-500 underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
-              >
-                Reach out to the {programEnrollment.program.name} team to
-                appeal.
-              </Link>
+            {["banned", "deactivated", "rejected"].includes(
+              programEnrollment.status,
+            ) && (
+              <>
+                <Link
+                  href={`/messages/${programEnrollment.program.slug}`}
+                  className="text-neutral-500 underline decoration-dotted underline-offset-2 transition-colors hover:text-neutral-800"
+                >
+                  Reach out to the {programEnrollment.program.name} team
+                </Link>{" "}
+                if you have any questions.
+              </>
             )}
           </p>
 

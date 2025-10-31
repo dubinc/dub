@@ -1,7 +1,9 @@
 const PARTNERS_REDIRECTS = {
   "/settings": "/profile",
   "/settings/payouts": "/payouts",
-  "/settings/notifications": "/account/settings/notifications",
+  "/settings/notifications": "/profile/notifications",
+  "/account/settings/notifications": "/profile/notifications",
+  "/profile/sites": "/profile",
 };
 
 export const partnersRedirect = (path: string) => {

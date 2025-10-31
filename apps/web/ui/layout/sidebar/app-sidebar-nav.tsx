@@ -5,9 +5,9 @@ import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
-import useCustomersCount from "@/lib/swr/use-customers-count";
 import { usePartnerMessagesCount } from "@/lib/swr/use-partner-messages-count";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useRouterStuff } from "@dub/ui";
 import {
@@ -28,11 +28,13 @@ import {
   LinesY as LinesYStatic,
   MoneyBills2,
   Msgs,
+  PaperPlane,
   Receipt2,
   ShieldCheck,
   Sliders,
   Tag,
   UserCheck,
+  UserPlus,
   Users,
   Users6,
   Webhook,
@@ -63,9 +65,11 @@ type SidebarNavData = {
   showNews?: boolean;
   pendingPayoutsCount?: number;
   applicationsCount?: number;
-  pendingBountySubmissionsCount?: number;
+  submittedBountiesCount?: number;
   unreadMessagesCount?: number;
   showConversionGuides?: boolean;
+  partnerNetworkEnabled?: boolean;
+  emailCampaignsEnabled?: boolean;
 };
 
 const FIVE_YEARS_SECONDS = 60 * 60 * 24 * 365 * 5;
@@ -196,8 +200,10 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
     showNews,
     pendingPayoutsCount,
     applicationsCount,
-    pendingBountySubmissionsCount,
+    submittedBountiesCount,
     unreadMessagesCount,
+    partnerNetworkEnabled,
+    emailCampaignsEnabled,
   }) => ({
     title: "Partner Program",
     showNews,
@@ -240,8 +246,24 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "All Partners",
             icon: Users,
             href: `/${slug}/program/partners`,
-            exact: true,
+            isActive: (pathname: string, href: string) =>
+              pathname.startsWith(href) &&
+              !pathname.startsWith(`${href}/applications`),
           },
+          {
+            name: "Groups",
+            icon: Users6,
+            href: `/${slug}/program/groups`,
+          },
+          ...(partnerNetworkEnabled
+            ? [
+                {
+                  name: "Partner Network",
+                  icon: UserPlus,
+                  href: `/${slug}/program/network` as `/${string}`,
+                },
+              ]
+            : []),
           {
             name: "Applications",
             icon: UserCheck,
@@ -251,11 +273,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
                 ? "99+"
                 : applicationsCount
               : undefined,
-          },
-          {
-            name: "Groups",
-            icon: Users6,
-            href: `/${slug}/program/groups`,
           },
         ],
       },
@@ -286,12 +303,22 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Bounties",
             icon: Trophy,
             href: `/${slug}/program/bounties`,
-            badge: pendingBountySubmissionsCount
-              ? pendingBountySubmissionsCount > 99
+            badge: submittedBountiesCount
+              ? submittedBountiesCount > 99
                 ? "99+"
-                : pendingBountySubmissionsCount
-              : "New",
+                : submittedBountiesCount
+              : "",
           },
+          ...(emailCampaignsEnabled
+            ? [
+                {
+                  name: "Email Campaigns",
+                  icon: PaperPlane,
+                  href: `/${slug}/program/campaigns` as `/${string}`,
+                  badge: "New",
+                },
+              ]
+            : []),
           {
             name: "Resources",
             icon: LifeRing,
@@ -309,15 +336,19 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             arrow: true,
             isActive: () => false,
           },
+          ...(!emailCampaignsEnabled
+            ? [
+                {
+                  name: "Discounts",
+                  icon: Discount,
+                  href: `/${slug}/program/groups/default/discounts` as `/${string}`,
+                  arrow: true,
+                  isActive: () => false,
+                },
+              ]
+            : []),
           {
-            name: "Discounts",
-            icon: Discount,
-            href: `/${slug}/program/groups/default/discounts`,
-            arrow: true,
-            isActive: () => false,
-          },
-          {
-            name: "Link Settings",
+            name: "Links",
             icon: Sliders,
             href: `/${slug}/program/groups/default/links`,
             arrow: true,
@@ -326,7 +357,9 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
           {
             name: "Branding",
             icon: Brush,
-            href: `/${slug}/program/branding`,
+            arrow: true,
+            href: `/${slug}/program/groups/default/branding`,
+            isActive: () => false,
           },
         ],
       },
@@ -368,11 +401,6 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             href: `/${slug}/settings/integrations`,
           },
           {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/${slug}/settings/analytics`,
-          },
-          {
             name: "Security",
             icon: ShieldCheck,
             href: `/${slug}/settings/security`,
@@ -382,6 +410,11 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         name: "Developer",
         items: [
+          {
+            name: "Analytics",
+            icon: LinesY,
+            href: `/${slug}/settings/analytics`,
+          },
           {
             name: "API Keys",
             icon: Key,
@@ -454,25 +487,25 @@ export function AppSidebarNav({
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
   const { data: session } = useSession();
-  const { plan, defaultProgramId } = useWorkspace();
+  const { plan, defaultProgramId, flags } = useWorkspace();
 
   const currentArea = useMemo(() => {
     return pathname.startsWith("/account/settings")
       ? "userSettings"
       : pathname.startsWith(`/${slug}/settings`)
         ? "workspaceSettings"
-        : // hacky fix for guides because slug is undefined at render time
-          // TODO: remove when we migrate to Next.js 15 + PPR
-          pathname.endsWith("/guides") ||
-            pathname.includes("/guides/") ||
+        : pathname.includes("/program/campaigns/") ||
             pathname.includes("/program/messages/") ||
-            // this one is for the payout success page
             pathname.endsWith("/program/payouts/success")
           ? null
           : pathname.startsWith(`/${slug}/program`)
             ? "program"
             : "default";
   }, [slug, pathname]);
+
+  const { program } = useProgram({
+    enabled: Boolean(currentArea === "program" && defaultProgramId),
+  });
 
   const { payoutsCount: pendingPayoutsCount } = usePayoutsCount<
     number | undefined
@@ -492,24 +525,17 @@ export function AppSidebarNav({
     enabled: Boolean(currentArea === "program" && defaultProgramId),
   });
 
-  const pendingBountySubmissionsCount =
-    submissionsCount?.find(({ status }) => status === "pending")?.count || 0;
+  const submittedBountiesCount =
+    submissionsCount?.find(({ status }) => status === "submitted")?.count || 0;
 
   const { count: unreadMessagesCount } = usePartnerMessagesCount({
-    enabled: Boolean(
-      currentArea === "program" &&
-        defaultProgramId &&
-        getPlanCapabilities(plan).canMessagePartners,
-    ),
+    enabled: Boolean(currentArea === "program"),
     query: {
       unread: true,
     },
   });
 
   const { canTrackConversions } = getPlanCapabilities(plan);
-  const { data: customersCount } = useCustomersCount({
-    enabled: canTrackConversions === true,
-  });
 
   return (
     <SidebarNav
@@ -527,9 +553,12 @@ export function AppSidebarNav({
         defaultProgramId: defaultProgramId || undefined,
         pendingPayoutsCount,
         applicationsCount,
-        pendingBountySubmissionsCount,
+        submittedBountiesCount,
         unreadMessagesCount,
-        showConversionGuides: canTrackConversions && customersCount === 0,
+        showConversionGuides: canTrackConversions,
+        partnerNetworkEnabled:
+          program && program.partnerNetworkEnabledAt !== null,
+        emailCampaignsEnabled: flags?.emailCampaigns,
       }}
       toolContent={toolContent}
       newsContent={plan && (plan === "free" ? <SidebarUsage /> : newsContent)}

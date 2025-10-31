@@ -15,12 +15,17 @@ export async function contactUpdated({
     `${email} ${unsubscribed ? "unsubscribed from" : "subscribed to"} mailing list. Updating user...`,
   );
 
-  await prisma.user.update({
-    where: {
-      email,
-    },
-    data: {
-      subscribed: !unsubscribed,
-    },
-  });
+  try {
+    const res = await prisma.user.update({
+      where: {
+        email,
+      },
+      data: {
+        subscribed: !unsubscribed,
+      },
+    });
+    console.log(`Updated user ${email}: ${JSON.stringify(res, null, 2)}`);
+  } catch (error) {
+    console.error(`Error updating user ${email}: ${error.message}`);
+  }
 }

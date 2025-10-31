@@ -9,17 +9,34 @@ import { PartnerProfileLinkSchema } from "@/lib/zod/schemas/partner-profile";
 import { createPartnerLinkSchema } from "@/lib/zod/schemas/partners";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 // GET /api/partner-profile/programs/[programId]/links - get a partner's links in a program
 export const GET = withPartnerProfile(async ({ partner, params }) => {
-  const { links } = await getProgramEnrollmentOrThrow({
+  const { links, discountCodes } = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
+    include: {
+      links: true,
+      discountCodes: true,
+    },
   });
 
-  return NextResponse.json(
-    links.map((link) => PartnerProfileLinkSchema.parse(link)),
+  // Add discount code to the links
+  const linksByDiscountCode = new Map(
+    discountCodes?.map((discountCode) => [discountCode.linkId, discountCode]),
   );
+
+  const result = links.map((link) => {
+    const discountCode = linksByDiscountCode.get(link.id);
+
+    return {
+      ...link,
+      discountCode: discountCode?.code,
+    };
+  });
+
+  return NextResponse.json(z.array(PartnerProfileLinkSchema).parse(result));
 });
 
 // POST /api/partner-profile/[programId]/links - create a link for a partner
@@ -29,14 +46,23 @@ export const POST = withPartnerProfile(
       .pick({ url: true, key: true, comments: true })
       .parse(await parseRequestBody(req));
 
-    const { program, links, tenantId, status, group } =
-      await getProgramEnrollmentOrThrow({
-        partnerId: partner.id,
-        programId: params.programId,
-        includeGroup: true,
-      });
+    const {
+      program,
+      links,
+      tenantId,
+      status,
+      partnerGroup: group,
+    } = await getProgramEnrollmentOrThrow({
+      partnerId: partner.id,
+      programId: params.programId,
+      include: {
+        program: true,
+        links: true,
+        partnerGroup: true,
+      },
+    });
 
-    if (status === "banned") {
+    if (["banned", "deactivated", "rejected"].includes(status)) {
       throw new DubApiError({
         code: "forbidden",
         message: "You are banned from this program.",

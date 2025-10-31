@@ -4,6 +4,8 @@ import { CommissionStatus, Customer, Link, Program } from "@prisma/client";
 import { convertCurrencyWithFxRates } from "../analytics/convert-currency";
 import { isFirstConversion } from "../analytics/is-first-conversion";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { syncTotalCommissions } from "../api/partners/sync-total-commissions";
 import { recordSaleWithTimestamp } from "../tinybird";
 import { getLeadEvents } from "../tinybird/get-lead-events";
@@ -347,6 +349,10 @@ async function createCommission({
           conversions: {
             increment: 1,
           },
+          lastConversionAt: updateLinkStatsForImporter({
+            currentTimestamp: customer.link.lastConversionAt,
+            newTimestamp: new Date(commission.created_at),
+          }),
         }),
         sales: {
           increment: 1,
@@ -355,6 +361,12 @@ async function createCommission({
           increment: amount,
         },
       },
+    }),
+
+    syncPartnerLinksStats({
+      partnerId: customer.link.partnerId,
+      programId: program.id,
+      eventType: "sale",
     }),
 
     // update customer stats

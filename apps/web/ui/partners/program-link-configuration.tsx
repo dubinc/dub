@@ -6,7 +6,7 @@ import { DomainSelector } from "@/ui/domains/domain-selector";
 import { InfoTooltip, Input, LinkLogo, SimpleTooltipContent } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import useSWRImmutable from "swr/immutable";
 
 interface ProgramLinkConfigurationProps {

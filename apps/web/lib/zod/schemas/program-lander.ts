@@ -30,7 +30,12 @@ export const programLanderFileSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  url: z.string().url(),
+  url: z
+    .string()
+    .url()
+    .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
+      message: "Only HTTP and HTTPS URLs are allowed for files.",
+    }),
   external: z.boolean().optional(),
 });
 
@@ -82,9 +87,9 @@ export const programLanderRewardsSchema = z.object({
 });
 
 export const programLanderSchema = z.object({
+  label: z.string().optional(),
   title: z.string().optional(),
   description: z.string().optional(),
-  rewards: programLanderRewardsSchema.optional(), // TODO: Remove this after partner groups are merged and functional
   blocks: z.array(programLanderBlockSchema),
 });
 

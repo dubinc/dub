@@ -58,7 +58,7 @@ export async function GET(req: Request) {
 
     // Get code verifier from cookie if this is X/Twitter
     const codeVerifier = pkce
-      ? cookies().get("online_presence_code_verifier")?.value
+      ? (await cookies()).get("online_presence_code_verifier")?.value
       : null;
 
     // Local development redirect since the verifier cookie won't be present on ngrok
@@ -141,4 +141,4 @@ export async function GET(req: Request) {
 const getRedirectUrl = (source: string) =>
   source === "onboarding"
     ? `${PARTNERS_DOMAIN}/onboarding/online-presence`
-    : `${PARTNERS_DOMAIN}/profile/sites`;
+    : `${PARTNERS_DOMAIN}/profile`;

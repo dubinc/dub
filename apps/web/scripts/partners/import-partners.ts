@@ -1,38 +1,40 @@
 import { prisma } from "@dub/prisma";
-import { nanoid } from "@dub/utils";
-import slugify from "@sindresorhus/slugify";
 import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 import { createAndEnrollPartner } from "../../lib/api/partners/create-and-enroll-partner";
 
-const programId = "xxx";
+const programId = "prog_xxx";
 const userId = "xxx";
-const partnersToImport: { email: string; slug: string; enrolledAt: Date }[] =
-  [];
+const groupId = "grp_xxx";
+const partnersToImport: {
+  name: string;
+  email: string;
+  username: string;
+  tenantId: string;
+  enrolledAt: Date;
+}[] = [];
 
 async function main() {
-  Papa.parse(fs.createReadStream("affiliates.csv", "utf-8"), {
+  Papa.parse(fs.createReadStream("partners.csv", "utf-8"), {
     header: true,
     skipEmptyLines: true,
     step: (result: {
-      data: { payment_email?: string; date_registered: string };
+      data: {
+        userId: string;
+        referral: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+        createdAt: string;
+      };
     }) => {
-      const email = result.data.payment_email;
-      if (!email) {
-        return;
-      }
-
-      let slug = slugify(email.split("@")[0]);
-      // check if slug is already used by another partner in partnersToImport
-      while (partnersToImport.some((partner) => partner.slug === slug)) {
-        slug = `${slug}-${nanoid(4).toLowerCase()}`;
-      }
-
       partnersToImport.push({
-        email,
-        slug,
-        enrolledAt: new Date(result.data.date_registered),
+        name: result.data.firstName + " " + result.data.lastName,
+        email: result.data.email,
+        username: result.data.referral,
+        tenantId: result.data.userId,
+        enrolledAt: new Date(result.data.createdAt),
       });
     },
     complete: async () => {
@@ -47,12 +49,6 @@ async function main() {
       });
 
       for (const partner of partnersToImport) {
-        const partnerToCreate = {
-          name: partner.email.split("@")[0],
-          email: partner.email,
-          username: partner.slug,
-        };
-
         const enrolledPartner = await createAndEnrollPartner({
           workspace: {
             id: program.workspace.id,
@@ -60,7 +56,13 @@ async function main() {
             webhookEnabled: program.workspace.webhookEnabled,
           },
           program,
-          partner: partnerToCreate,
+          partner: {
+            name: partner.name,
+            email: partner.email,
+            username: partner.username,
+            tenantId: partner.tenantId,
+            groupId,
+          },
           enrolledAt: partner.enrolledAt,
           userId,
         });

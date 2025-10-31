@@ -2,6 +2,7 @@ import {
   createResponseWithCookies,
   detectBot,
   getFinalUrl,
+  getIdentityHash,
   isSupportedCustomURIScheme,
   parse,
 } from "@/lib/middleware/utils";
@@ -12,13 +13,12 @@ import {
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
-  LOCALHOST_IP,
   isDubDomain,
   isUnsupportedKey,
   nanoid,
   punyEncode,
 } from "@dub/utils";
-import { ipAddress } from "@vercel/functions";
+import { geolocation } from "@vercel/functions";
 import { cookies } from "next/headers";
 import {
   NextFetchEvent,
@@ -38,10 +38,7 @@ import { isIosAppStoreUrl } from "./utils/is-ios-app-store-url";
 import { isSingularTrackingUrl } from "./utils/is-singular-tracking-url";
 import { resolveABTestURL } from "./utils/resolve-ab-test-url";
 
-export default async function LinkMiddleware(
-  req: NextRequest,
-  ev: NextFetchEvent,
-) {
+export async function LinkMiddleware(req: NextRequest, ev: NextFetchEvent) {
   let { domain, fullKey: originalKey } = parse(req);
 
   if (!domain) {
@@ -143,12 +140,12 @@ export default async function LinkMiddleware(
     id: linkId,
     password,
     trackConversion,
+    geo: geoTargeting,
     proxy,
     rewrite,
     expiresAt,
     ios,
     android,
-    geo,
     expiredUrl,
     doIndex,
     webhookIds,
@@ -157,7 +154,7 @@ export default async function LinkMiddleware(
     projectId: workspaceId,
   } = cachedLink;
 
-  const testUrl = resolveABTestURL({
+  const testUrl = await resolveABTestURL({
     testVariants,
     testCompletedAt,
   });
@@ -245,14 +242,15 @@ export default async function LinkMiddleware(
 
   const dubIdCookieName = `dub_id_${domain}_${key}`;
 
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   let clickId = cookieStore.get(dubIdCookieName)?.value;
   if (!clickId) {
     // if we need to pass the clickId, check if clickId is cached in Redis
     if (shouldCacheClickId) {
-      const ip = process.env.VERCEL === "1" ? ipAddress(req) : LOCALHOST_IP;
-
-      clickId = (await recordClickCache.get({ domain, key, ip })) || undefined;
+      const identityHash = await getIdentityHash(req);
+      clickId =
+        (await recordClickCache.get({ domain, key, identityHash })) ||
+        undefined;
     }
 
     // if there's still no clickId, generate a new one
@@ -274,12 +272,14 @@ export default async function LinkMiddleware(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
         url,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -300,7 +300,9 @@ export default async function LinkMiddleware(
   const ua = userAgent(req);
 
   const { country } =
-    process.env.VERCEL === "1" && req.geo ? req.geo : LOCALHOST_GEO_DATA;
+    process.env.VERCEL === "1" && geolocation(req)
+      ? geolocation(req)
+      : LOCALHOST_GEO_DATA;
 
   // rewrite to proxy page (/proxy/[domain]/[key]) if it's a bot and proxy is enabled
   if (isBot && proxy) {
@@ -323,12 +325,14 @@ export default async function LinkMiddleware(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
         url,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -361,12 +365,14 @@ export default async function LinkMiddleware(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
         url,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -401,12 +407,14 @@ export default async function LinkMiddleware(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
         url: ios,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -470,12 +478,14 @@ export default async function LinkMiddleware(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
         url: android,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
@@ -498,25 +508,27 @@ export default async function LinkMiddleware(
       cookieData,
     );
 
-    // redirect to geo-specific link if it is specified and the user is in the specified country
-  } else if (geo && country && country in geo) {
+    // redirect to geo-targeting link if it is specified and the user is in the specified country
+  } else if (geoTargeting && country && country in geoTargeting) {
     ev.waitUntil(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
-        url: geo[country],
+        url: geoTargeting[country],
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );
 
     return createResponseWithCookies(
       NextResponse.redirect(
-        getFinalUrl(geo[country], {
+        getFinalUrl(geoTargeting[country], {
           req,
           ...(shouldCacheClickId && { clickId }),
           ...(isPartnerLink && { via: key }),
@@ -538,12 +550,14 @@ export default async function LinkMiddleware(
       recordClick({
         req,
         clickId,
+        workspaceId,
         linkId,
         domain,
         key,
         url,
+        programId: cachedLink.programId,
+        partnerId: cachedLink.partnerId,
         webhookIds,
-        workspaceId,
         shouldCacheClickId,
       }),
     );

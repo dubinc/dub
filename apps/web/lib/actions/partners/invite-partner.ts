@@ -2,11 +2,11 @@
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
-import PartnerInvite from "@dub/email/templates/partner-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 import { getProgramOrThrow } from "../../api/programs/get-program-or-throw";
@@ -16,7 +16,7 @@ export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { name, email, groupId } = parsedInput;
+    const { email, username, groupId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -60,8 +60,8 @@ export const invitePartnerAction = authActionClient
       workspace,
       program,
       partner: {
-        name,
         email,
+        username,
         ...(groupId && { groupId }),
       },
       userId: user.id,
@@ -71,19 +71,27 @@ export const invitePartnerAction = authActionClient
 
     waitUntil(
       Promise.allSettled([
-        sendEmail({
-          subject: `${program.name} invited you to join Dub Partners`,
-          from: VARIANT_TO_FROM_MAP.notifications,
-          email,
-          react: PartnerInvite({
-            email,
-            program: {
-              name: program.name,
-              slug: program.slug,
-              logo: program.logo,
-            },
-          }),
-        }),
+        (async () => {
+          await sendEmail({
+            subject: `${program.name} invited you to join Dub Partners`,
+            variant: "notifications",
+            to: email,
+            replyTo: program.supportEmail || "noreply",
+            react: ProgramInvite({
+              email,
+              name: enrolledPartner.name,
+              program: {
+                name: program.name,
+                slug: program.slug,
+                logo: program.logo,
+              },
+              ...(await getPartnerInviteRewardsAndBounties({
+                programId,
+                groupId: enrolledPartner.groupId || program.defaultGroupId,
+              })),
+            }),
+          });
+        })(),
 
         recordAuditLog({
           workspaceId: workspace.id,

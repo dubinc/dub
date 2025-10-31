@@ -50,7 +50,7 @@ export const POST = withSession(async ({ session }) => {
 
 // DELETE /api/user/subscribe – unsubscribe a specific user
 export const DELETE = withSession(async ({ session }) => {
-  const [user, _] = await Promise.all([
+  const [user, _] = await Promise.allSettled([
     prisma.user.update({
       where: {
         id: session.user.id,

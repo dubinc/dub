@@ -13,7 +13,7 @@ import {
 } from "@dub/ui";
 import { Pen2, QRCode as QRCodeIcon } from "@dub/ui/icons";
 import { DUB_QR_LOGO, linkConstructor } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import { useMemo, useRef } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { useDebounce } from "use-debounce";

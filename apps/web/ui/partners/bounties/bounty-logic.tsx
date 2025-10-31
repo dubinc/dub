@@ -1,6 +1,6 @@
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import { handleMoneyInputChange, handleMoneyKeyDown } from "@/lib/form-utils";
-import { WorkflowConditionAttribute } from "@/lib/types";
 import { WORKFLOW_ATTRIBUTES } from "@/lib/zod/schemas/workflows";
 import {
   InlineBadgePopover,
@@ -12,13 +12,6 @@ import { cn, currencyFormatter } from "@dub/utils";
 import { useAddEditBountyForm } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/bounties/add-edit-bounty-sheet";
 import { useContext } from "react";
 import { Controller } from "react-hook-form";
-
-const WORKFLOW_ATTRIBUTE_LABELS: Record<WorkflowConditionAttribute, string> = {
-  totalLeads: "total leads",
-  totalConversions: "total conversions",
-  totalSaleAmount: "total revenue",
-  totalCommissions: "total commissions",
-} as const;
 
 export function BountyLogic({ className }: { className?: string }) {
   const { control, watch } = useAddEditBountyForm();
@@ -39,30 +32,54 @@ export function BountyLogic({ className }: { className?: string }) {
         <Trophy className="size-4 text-neutral-800" />
       </div>
       <span className="text-content-emphasis text-sm font-medium leading-relaxed">
-        When partner{" "}
-        <Controller
-          control={control}
-          name="performanceCondition.attribute"
-          render={({ field }) => (
-            <InlineBadgePopover
-              text={
-                field.value
-                  ? WORKFLOW_ATTRIBUTE_LABELS[field.value]
-                  : "activity"
-              }
-              invalid={!field.value}
-            >
-              <InlineBadgePopoverMenu
-                selectedValue={field.value}
-                onSelect={field.onChange}
-                items={WORKFLOW_ATTRIBUTES.map((attribute) => ({
-                  text: WORKFLOW_ATTRIBUTE_LABELS[attribute],
-                  value: attribute,
-                }))}
-              />
-            </InlineBadgePopover>
-          )}
-        />
+        When partner's{" "}
+        <div className="inline-flex items-center gap-1">
+          <Controller
+            control={control}
+            name="performanceScope"
+            render={({ field }) => (
+              <InlineBadgePopover text={field.value} invalid={!field.value}>
+                <InlineBadgePopoverMenu
+                  selectedValue={field.value}
+                  onSelect={field.onChange}
+                  items={[
+                    { text: "new", value: "new" },
+                    { text: "lifetime", value: "lifetime" },
+                  ]}
+                />
+              </InlineBadgePopover>
+            )}
+          />
+          <Controller
+            control={control}
+            name="performanceCondition.attribute"
+            render={({ field }) => (
+              <InlineBadgePopover
+                text={
+                  field.value
+                    ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[
+                        field.value
+                      ].toLowerCase()
+                    : "activity"
+                }
+                invalid={!field.value}
+              >
+                <InlineBadgePopoverMenu
+                  selectedValue={field.value}
+                  onSelect={field.onChange}
+                  items={WORKFLOW_ATTRIBUTES.filter(
+                    (attr) => PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[attr],
+                  ).map((attribute) => ({
+                    text: PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[
+                      attribute
+                    ].toLowerCase(),
+                    value: attribute,
+                  }))}
+                />
+              </InlineBadgePopover>
+            )}
+          />
+        </div>
         {attribute && (
           <>
             {" "}

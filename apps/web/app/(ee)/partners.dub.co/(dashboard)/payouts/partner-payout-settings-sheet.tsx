@@ -1,27 +1,22 @@
 "use client";
 
 import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
-import {
-  ALLOWED_MIN_WITHDRAWAL_AMOUNTS,
-  BELOW_MIN_WITHDRAWAL_FEE_CENTS,
-  MIN_WITHDRAWAL_AMOUNT_CENTS,
-} from "@/lib/partners/constants";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { PayoutMethodsDropdown } from "@/ui/partners/payout-methods-dropdown";
 import {
-  AnimatedSizeContainer,
   Button,
+  InfoTooltip,
   Sheet,
-  Slider,
+  SimpleTooltipContent,
   useScrollProgress,
 } from "@dub/ui";
-import { CONNECT_SUPPORTED_COUNTRIES, currencyFormatter } from "@dub/utils";
-import NumberFlow from "@number-flow/react";
-import { PartyPopper } from "lucide-react";
+import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES } from "@dub/utils";
+import { COUNTRY_CURRENCY_CODES } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
+import Link from "next/link";
 import {
   Dispatch,
   SetStateAction,
@@ -74,7 +69,6 @@ function PartnerPayoutSettingsSheetInner({
       companyName: partner?.companyName || undefined,
       address: partner?.invoiceSettings?.address || undefined,
       taxId: partner?.invoiceSettings?.taxId || undefined,
-      minWithdrawalAmount: partner?.minWithdrawalAmount,
     },
   });
 
@@ -96,16 +90,23 @@ function PartnerPayoutSettingsSheetInner({
     await executeAsync(data);
   };
 
-  const minWithdrawalAmount = watch("minWithdrawalAmount");
-
   const scrollRef = useRef<HTMLDivElement>(null);
   const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
-        <Sheet.Title className="text-lg font-semibold">
-          Payout settings
+        <Sheet.Title className="flex items-center gap-1 text-lg font-semibold">
+          Payout settings{" "}
+          <InfoTooltip
+            content={
+              <SimpleTooltipContent
+                title="Learn how to set up your payout account and receive payouts."
+                cta="Learn more."
+                href="https://dub.co/help/article/receiving-payouts"
+              />
+            }
+          />
         </Sheet.Title>
       </div>
 
@@ -129,72 +130,34 @@ function PartnerPayoutSettingsSheetInner({
               ) : (
                 <PayoutMethodsDropdown />
               )}
+
+              {partner?.country &&
+                CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) && (
+                  <p className="text-xs text-neutral-500">
+                    For compliance reasons, your payout bank account must match
+                    your local currency. Since you're based in{" "}
+                    <Link
+                      href="/profile"
+                      target="_blank"
+                      className="font-medium text-neutral-900 underline decoration-dotted underline-offset-2"
+                    >
+                      {COUNTRIES[partner.country]}
+                    </Link>{" "}
+                    , you will need to connect a{" "}
+                    <span className="font-medium text-neutral-900">
+                      {COUNTRY_CURRENCY_CODES[partner.country]} bank account
+                    </span>{" "}
+                    to receive payouts.{" "}
+                    <Link
+                      href="https://dub.co/help/article/receiving-payouts"
+                      target="_blank"
+                      className="font-medium text-neutral-900 underline decoration-dotted underline-offset-2"
+                    >
+                      Learn more ↗
+                    </Link>
+                  </p>
+                )}
             </div>
-
-            {/*  Minimum withdrawal amount */}
-            {partner?.country &&
-              CONNECT_SUPPORTED_COUNTRIES.includes(partner.country) && (
-                <div className="space-y-6 py-6">
-                  <div>
-                    <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                      Minimum withdrawal amount
-                    </h4>
-                    <p className="text-sm font-medium text-neutral-500">
-                      Set the minimum amount for funds to be automatically
-                      withdrawn from Dub into your connected payout account.
-                    </p>
-                  </div>
-
-                  <div>
-                    <NumberFlow
-                      value={minWithdrawalAmount / 100}
-                      suffix=" USD"
-                      format={{
-                        style: "currency",
-                        currency: "USD",
-                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
-                        trailingZeroDisplay: "stripIfInteger",
-                      }}
-                      className="mb-2 text-2xl font-medium leading-6 text-neutral-800"
-                    />
-
-                    <Slider
-                      value={minWithdrawalAmount}
-                      min={ALLOWED_MIN_WITHDRAWAL_AMOUNTS[0]}
-                      max={
-                        ALLOWED_MIN_WITHDRAWAL_AMOUNTS[
-                          ALLOWED_MIN_WITHDRAWAL_AMOUNTS.length - 1
-                        ]
-                      }
-                      onChange={(value) => {
-                        const closest = ALLOWED_MIN_WITHDRAWAL_AMOUNTS.reduce(
-                          (prev, curr) =>
-                            Math.abs(curr - value) < Math.abs(prev - value)
-                              ? curr
-                              : prev,
-                        );
-
-                        setValue("minWithdrawalAmount", closest, {
-                          shouldDirty: true,
-                        });
-                      }}
-                      marks={ALLOWED_MIN_WITHDRAWAL_AMOUNTS}
-                      hint={
-                        <AnimatedSizeContainer height>
-                          {minWithdrawalAmount < MIN_WITHDRAWAL_AMOUNT_CENTS ? (
-                            `${currencyFormatter(BELOW_MIN_WITHDRAWAL_FEE_CENTS / 100)} withdrawal fee for balances under ${currencyFormatter(MIN_WITHDRAWAL_AMOUNT_CENTS / 100)}. If you have any previously processed payouts, they will be automatically transferred to your connected bank account once the minimum withdrawal amount is reached.`
-                          ) : (
-                            <div className="flex items-center gap-1 text-xs font-normal leading-4 text-neutral-500">
-                              <PartyPopper className="size-4" />
-                              Free withdrawals unlocked
-                            </div>
-                          )}
-                        </AnimatedSizeContainer>
-                      }
-                    />
-                  </div>
-                </div>
-              )}
 
             {/* Invoice details */}
             <div className="space-y-6 py-6">
@@ -213,7 +176,6 @@ function PartnerPayoutSettingsSheetInner({
                 </label>
                 <div className="relative mt-1.5 rounded-md shadow-sm">
                   <input
-                    autoFocus
                     className="block w-full rounded-md border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"
                     {...register("companyName")}
                   />

@@ -1,48 +1,64 @@
-import { Message } from "@/lib/types";
-import { MAX_MESSAGE_LENGTH } from "@/lib/zod/schemas/messages";
+import { Message, PartnerProps, ProgramProps } from "@/lib/types";
 import {
-  ArrowTurnLeft,
-  Button,
+  AnimatedSizeContainer,
   Check2,
+  Envelope,
   LoadingSpinner,
   Tooltip,
   useMediaQuery,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
 import Linkify from "linkify-react";
-import { Fragment, useRef, useState } from "react";
-import ReactTextareaAutosize from "react-textarea-autosize";
-import { EmojiPicker } from "./emoji-picker";
+import { ChevronRight } from "lucide-react";
+import { Fragment, useMemo, useRef, useState } from "react";
+import { MessageInput } from "../shared/message-input";
+import { MessageMarkdown } from "./message-markdown";
+
+interface Sender {
+  name: string | null;
+  image?: string | null;
+  partnerId?: string;
+  userId?: string;
+}
 
 export function MessagesPanel({
   messages,
   currentUserType,
   currentUserId,
-  programImage,
+  program,
+  partner,
   onSendMessage,
-  placeholder = "Type a message...",
+  placeholder,
   error,
 }: {
   messages?: (Message & { delivered?: boolean })[];
   currentUserType: "partner" | "user";
   currentUserId: string;
-  programImage?: string | null;
+  program?: Pick<ProgramProps, "logo" | "name">;
+  partner?: Pick<PartnerProps, "name">;
   onSendMessage: (message: string) => void;
   placeholder?: string;
   error?: any;
 }) {
   const { isMobile } = useMediaQuery();
-
   const scrollRef = useRef<HTMLDivElement>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
-  const selectionStartRef = useRef<number | null>(null);
-  const [typedMessage, setTypedMessage] = useState("");
 
-  const sendMessage = () => {
-    if (!messages || !typedMessage.trim()) return;
+  // Generate personalized placeholder based on user type
+  const personalizedPlaceholder = useMemo(
+    () =>
+      placeholder ||
+      (currentUserType === "partner" && program?.name
+        ? `Message ${program.name}...`
+        : currentUserType === "user" && partner?.name
+          ? `Message ${partner.name}...`
+          : "Type a message..."),
+    [placeholder, currentUserType, program?.name, partner?.name],
+  );
 
-    onSendMessage(typedMessage.trim());
-    setTypedMessage("");
+  const sendMessage = (message: string) => {
+    if (!messages) return false;
+
+    onSendMessage(message);
     scrollRef.current?.scrollTo({ top: 0 });
   };
 
@@ -89,7 +105,9 @@ export function MessagesPanel({
                 new Date(message.createdAt).getTime() >
                 new Date().getTime() - 10_000;
 
+              // only show status indicator for program owners
               const showStatusIndicator =
+                currentUserType === "user" &&
                 isMySide &&
                 (idx === messages.length - 1 ||
                   messages.slice(idx + 1).findIndex(isMessageMySide) === -1);
@@ -110,88 +128,74 @@ export function MessagesPanel({
                       {formatDate(message.createdAt)}
                     </div>
                   )}
-                  <div
-                    className={cn(
-                      "flex items-end gap-2",
-                      isMySide
-                        ? "origin-bottom-right flex-row-reverse"
-                        : "origin-bottom-left",
-                      isNew && "animate-scale-in-fade",
-                    )}
-                  >
-                    {/* Avatar */}
-                    <Tooltip content={sender?.name}>
-                      <div className="relative shrink-0">
-                        <img
-                          src={
-                            sender?.image || `${OG_AVATAR_URL}${sender?.name}`
-                          }
-                          alt={`${sender?.name} avatar`}
-                          className="size-8 rounded-full"
-                          draggable={false}
-                        />
-                        {programImage && !message.senderPartnerId && (
-                          <img
-                            src={programImage}
-                            alt="program logo"
-                            className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border border-white"
-                          />
-                        )}
-                      </div>
-                    </Tooltip>
 
+                  {message.type === "campaign" ? (
+                    <CampaignMessage
+                      message={message}
+                      isMySide={isMySide}
+                      isMe={isMe}
+                      sender={sender}
+                      showStatusIndicator={showStatusIndicator}
+                      isNewTime={isNewTime}
+                      isNew={isNew}
+                      program={program}
+                    />
+                  ) : (
                     <div
                       className={cn(
-                        "flex flex-col items-start gap-1",
-                        isMySide && "items-end",
+                        "flex items-end gap-2",
+                        isMySide
+                          ? "origin-bottom-right flex-row-reverse"
+                          : "origin-bottom-left",
+                        isNew && "animate-scale-in-fade",
                       )}
                     >
-                      {/* Name / timestamp */}
-                      {(!isMySide || isNewTime || showStatusIndicator) && (
-                        <div className="flex items-center gap-1.5">
-                          {!isMe && (
-                            <span className="text-content-default min-w-0 truncate text-xs font-medium">
-                              {sender?.name}
-                            </span>
-                          )}
-                          {isNewTime && (
-                            <span className="text-content-subtle text-xs font-medium">
-                              {new Date(message.createdAt).toLocaleTimeString(
-                                "en-US",
-                                {
-                                  hour: "numeric",
-                                  minute: "numeric",
-                                },
-                              )}
-                            </span>
-                          )}
-                          {showStatusIndicator && (
-                            <StatusIndicator message={message} />
-                          )}
-                        </div>
-                      )}
-                      {/* Message box */}
+                      {/* Avatar */}
+                      <MessageAvatar
+                        sender={sender}
+                        program={program}
+                        message={message}
+                      />
+
                       <div
                         className={cn(
-                          "max-w-lg whitespace-pre-wrap rounded-xl px-4 py-2.5 text-sm",
-                          isMySide
-                            ? "text-content-inverted rounded-br bg-neutral-700"
-                            : "text-content-default rounded-bl bg-neutral-100",
+                          "flex min-w-0 flex-col items-start gap-1",
+                          isMySide && "items-end",
                         )}
                       >
-                        <Linkify
-                          as="p"
-                          options={{
-                            target: "_blank",
-                            rel: "noopener noreferrer nofollow",
-                            className: "underline underline-offset-4",
-                          }}
+                        {/* Name / timestamp */}
+                        <MessageHeader
+                          isMySide={isMySide}
+                          isMe={isMe}
+                          sender={sender}
+                          message={message}
+                          isNewTime={isNewTime}
+                          showStatusIndicator={showStatusIndicator}
+                          program={program}
+                        />
+                        {/* Message box */}
+                        <div
+                          className={cn(
+                            "max-w-[min(100%,512px)] whitespace-pre-wrap break-words rounded-xl px-4 py-2.5 text-sm",
+                            isMySide
+                              ? "text-content-inverted rounded-br bg-neutral-700"
+                              : "text-content-default rounded-bl bg-neutral-100",
+                          )}
                         >
-                          {message.text}
-                        </Linkify>
+                          <Linkify
+                            as="p"
+                            options={{
+                              target: "_blank",
+                              rel: "noopener noreferrer nofollow",
+                              className: "underline underline-offset-4",
+                            }}
+                          >
+                            {message.text}
+                          </Linkify>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                 </Fragment>
               );
             })}
@@ -207,60 +211,11 @@ export function MessagesPanel({
         </div>
       )}
       <div className="border-border-subtle border-t p-3 sm:p-6">
-        <div className="border-border-subtle overflow-hidden rounded-xl border has-[textarea:focus]:border-neutral-500 has-[textarea:focus]:ring-1 has-[textarea:focus]:ring-neutral-500">
-          <ReactTextareaAutosize
-            ref={textAreaRef}
-            autoFocus={!isMobile}
-            className="placeholder:text-content-subtle block max-h-24 w-full resize-none border-none p-3 text-base focus:ring-0 sm:text-sm"
-            placeholder={placeholder}
-            value={typedMessage}
-            maxLength={MAX_MESSAGE_LENGTH}
-            onChange={(e) => setTypedMessage(e.currentTarget.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-            onBlur={(e) =>
-              (selectionStartRef.current = e.target.selectionStart)
-            }
-          />
-
-          <div className="flex items-center justify-between gap-4 px-3 pb-3">
-            <div className="flex items-center gap-2">
-              <EmojiPicker
-                onSelect={(emoji) => {
-                  const pos = selectionStartRef.current;
-                  setTypedMessage((prev) =>
-                    pos !== null
-                      ? prev.slice(0, pos) + emoji + prev.slice(pos)
-                      : prev + emoji,
-                  );
-                  textAreaRef.current?.focus();
-                }}
-              />
-            </div>
-            <Button
-              variant="primary"
-              text={
-                <span className="flex items-center gap-2">
-                  Send
-                  <span className="hidden items-center gap-1 sm:flex">
-                    <span className="flex size-4 items-center justify-center rounded border border-neutral-700 text-[0.625rem]">
-                      {navigator.platform.startsWith("Mac") ? "⌘" : "^"}
-                    </span>
-                    <span className="flex size-4 items-center justify-center rounded border border-neutral-700">
-                      <ArrowTurnLeft className="text-content-inverted size-2.5" />
-                    </span>
-                  </span>
-                </span>
-              }
-              onClick={sendMessage}
-              className="h-8 w-fit rounded-lg px-4"
-            />
-          </div>
-        </div>
+        <MessageInput
+          placeholder={personalizedPlaceholder}
+          onSendMessage={sendMessage}
+          autoFocus={!isMobile}
+        />
       </div>
     </div>
   );
@@ -286,9 +241,9 @@ function StatusIndicator({
       <div
         className={cn(
           "text-content-subtle flex items-center",
-          message.readInApp 
+          message.readInApp
             ? "text-blue-500"
-            : (message.readInEmail && "text-violet-500"),
+            : message.readInEmail && "text-violet-500",
         )}
       >
         {message.delivered === false ? (
@@ -305,5 +260,207 @@ function StatusIndicator({
         )}
       </div>
     </Tooltip>
+  );
+}
+
+function MessageAvatar({
+  sender,
+  program,
+  message,
+}: {
+  sender: Sender | null;
+  program?: Pick<ProgramProps, "logo" | "name"> | null;
+  message: Message;
+}) {
+  const isCampaign = message.type === "campaign";
+  const avatarName = !isCampaign ? sender?.name : program?.name;
+  const avatarImage = !isCampaign ? sender?.image : program?.logo;
+
+  return (
+    <Tooltip content={avatarName}>
+      <div className="relative shrink-0">
+        <img
+          src={avatarImage ?? `${OG_AVATAR_URL}${avatarName}`}
+          alt={`${avatarName} avatar`}
+          className="size-8 rounded-full"
+          draggable={false}
+        />
+
+        {!isCampaign && program?.logo && !message.senderPartnerId && (
+          <img
+            src={program?.logo}
+            alt="program logo"
+            className="absolute -bottom-0.5 -right-0.5 size-3.5 rounded-full border border-white"
+          />
+        )}
+      </div>
+    </Tooltip>
+  );
+}
+
+function MessageHeader({
+  isMySide,
+  isMe,
+  sender,
+  message,
+  isNewTime,
+  showStatusIndicator,
+  program,
+}: {
+  isMySide: boolean;
+  isMe: boolean;
+  sender: Sender | null;
+  message: Message & { delivered?: boolean };
+  isNewTime: boolean;
+  showStatusIndicator: boolean;
+  program?: Pick<ProgramProps, "logo" | "name"> | null;
+}) {
+  const isCampaign = message.type === "campaign";
+  const name = isCampaign ? program?.name : sender?.name;
+
+  return (
+    (!isMySide || isNewTime || showStatusIndicator) && (
+      <div className="flex items-center gap-1.5">
+        {!isMe && (
+          <>
+            <span className="text-content-default min-w-0 truncate text-xs font-medium">
+              {name}
+            </span>
+
+            {isCampaign && (
+              <>
+                <span className="text-content-default text-xs font-medium">
+                  •
+                </span>
+                <span className="text-content-default text-xs font-medium">
+                  Email sent
+                </span>
+              </>
+            )}
+          </>
+        )}
+
+        {isNewTime && (
+          <span className="text-content-subtle text-xs font-medium">
+            {new Date(message.createdAt).toLocaleTimeString("en-US", {
+              hour: "numeric",
+              minute: "numeric",
+            })}
+          </span>
+        )}
+        {showStatusIndicator && <StatusIndicator message={message} />}
+      </div>
+    )
+  );
+}
+
+function CampaignMessage({
+  message,
+  isMySide,
+  isMe,
+  sender,
+  showStatusIndicator,
+  isNewTime,
+  isNew,
+  program,
+}: {
+  message: Message & { delivered?: boolean };
+  isMySide: boolean;
+  isMe: boolean;
+  sender: Sender | null;
+  showStatusIndicator: boolean;
+  isNewTime: boolean;
+  isNew: boolean;
+  program?: Pick<ProgramProps, "logo" | "name"> | null;
+}) {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div
+      className={cn(
+        "flex items-end gap-2",
+        isMySide
+          ? "origin-bottom-right flex-row-reverse"
+          : "origin-bottom-left",
+        isNew && "animate-scale-in-fade",
+      )}
+    >
+      <MessageAvatar sender={sender} program={program} message={message} />
+
+      <div
+        className={cn(
+          "flex min-w-0 flex-col items-start gap-1",
+          isMySide && "items-end",
+        )}
+      >
+        <MessageHeader
+          isMySide={isMySide}
+          isMe={isMe}
+          sender={sender}
+          message={message}
+          isNewTime={isNewTime}
+          showStatusIndicator={showStatusIndicator}
+          program={program}
+        />
+
+        <div
+          className={cn(
+            "max-w-[min(100%,512px)] rounded-xl text-sm",
+            isMySide
+              ? "text-content-inverted rounded-br bg-neutral-700"
+              : "text-content-default rounded-bl bg-neutral-100",
+          )}
+        >
+          <button
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={cn(
+              "flex w-full items-center justify-between gap-2 rounded-t-xl px-4 py-2.5 pb-2",
+              !isExpanded && "rounded-b-xl",
+              isExpanded && "border-b border-neutral-200",
+            )}
+          >
+            <div className="flex min-w-0 items-center gap-2">
+              <Envelope
+                className={cn(
+                  "text-content-default size-4 shrink-0",
+                  isMySide && "text-content-inverted",
+                )}
+              />
+              <span
+                className={cn(
+                  "text-content-default truncate text-sm font-medium",
+                  isMySide && "text-content-inverted",
+                )}
+              >
+                {message.subject}
+              </span>
+            </div>
+
+            <div className="flex shrink-0 items-center gap-1 text-xs font-semibold">
+              <p>{isExpanded ? "Hide" : "Show"} email</p>
+              <ChevronRight
+                className={cn(
+                  "size-3.5 transition-transform duration-200",
+                  isExpanded && "rotate-90",
+                )}
+              />
+            </div>
+          </button>
+
+          <AnimatedSizeContainer height>
+            <div
+              className={cn(
+                "max-w-lg overflow-hidden",
+                isExpanded ? "px-2 py-2.5" : "max-h-0 px-2 py-0",
+              )}
+            >
+              <MessageMarkdown invert={isMySide}>
+                {message.text}
+              </MessageMarkdown>
+            </div>
+          </AnimatedSizeContainer>
+        </div>
+      </div>
+    </div>
   );
 }

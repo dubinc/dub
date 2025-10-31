@@ -36,15 +36,13 @@ async function main() {
     },
   });
 
-  const clickEvent = await getClickEvent({
+  const clickData = await getClickEvent({
     clickId,
   });
 
-  if (!clickEvent || clickEvent.data.length === 0) {
+  if (!clickData) {
     throw new Error("Click event not found");
   }
-
-  const clickData = clickEvent.data[0];
 
   const existingCustomer = await prisma.customer.findUnique({
     where: {

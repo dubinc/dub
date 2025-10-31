@@ -1,8 +1,6 @@
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
-import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { PartnerProgramEnrollmentSchema } from "@/lib/zod/schemas/partner-profile";
+import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { Reward } from "@prisma/client";
 import { NextResponse } from "next/server";
 
@@ -11,29 +9,28 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId: partner.id,
     programId: params.programId,
-    includeClickReward: true,
-    includeLeadReward: true,
-    includeSaleReward: true,
-    includeDiscount: true,
-    includeGroup: true,
-    includeWorkspace: true,
+    include: {
+      program: true,
+      partner: true,
+      links: true,
+      clickReward: true,
+      leadReward: true,
+      saleReward: true,
+      partnerGroup: true,
+    },
   });
 
-  const rewards = sortRewardsByEventOrder(
-    [
-      programEnrollment.clickReward,
-      programEnrollment.leadReward,
-      programEnrollment.saleReward,
-    ].filter((r): r is Reward => r !== null),
-  );
+  const rewards = [
+    programEnrollment.clickReward,
+    programEnrollment.leadReward,
+    programEnrollment.saleReward,
+  ].filter((r): r is Reward => r !== null);
 
   return NextResponse.json(
-    PartnerProgramEnrollmentSchema.parse({
+    ProgramEnrollmentSchema.parse({
       ...programEnrollment,
       rewards,
-      messagingEnabled: getPlanCapabilities(
-        programEnrollment.program["workspace"].plan,
-      ).canMessagePartners,
+      group: programEnrollment.partnerGroup,
     }),
   );
 });

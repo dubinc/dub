@@ -4,8 +4,7 @@ import { generateOTP } from "@/lib/auth/utils";
 import { qstash } from "@/lib/cron";
 import { ratelimit, redis } from "@/lib/upstash";
 import { emailSchema } from "@/lib/zod/schemas/auth";
-import { resend } from "@dub/email/resend";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
+import { sendBatchEmail } from "@dub/email";
 import VerifyEmailForAccountMerge from "@dub/email/templates/verify-email-for-account-merge";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
@@ -106,6 +105,7 @@ const sendTokens = async ({
     select: {
       id: true,
       email: true,
+      country: true,
       payoutsEnabledAt: true,
     },
   });
@@ -138,7 +138,17 @@ const sendTokens = async ({
 
   if (sourceAccount.payoutsEnabledAt) {
     throw new Error(
-      "Account merging is not available if payouts are enabled on the source account. Please contact our support for assistance.",
+      "Account merging is not available if payouts are enabled on the source account. Please contact support for assistance.",
+    );
+  }
+
+  // if source acocunt country is set and is different from target account country, throw an error
+  if (
+    sourceAccount.country &&
+    sourceAccount.country !== targetAccount.country
+  ) {
+    throw new Error(
+      "You cannot merge partner accounts that are in different countries. Please contact support for assistance.",
     );
   }
 
@@ -171,9 +181,9 @@ const sendTokens = async ({
     ],
   });
 
-  await resend.batch.send([
+  await sendBatchEmail([
     {
-      from: VARIANT_TO_FROM_MAP.notifications,
+      variant: "notifications",
       to: sourceEmail,
       subject: "Verify your email to merge your Dub Partners accounts",
       react: VerifyEmailForAccountMerge({
@@ -183,7 +193,7 @@ const sendTokens = async ({
       }),
     },
     {
-      from: VARIANT_TO_FROM_MAP.notifications,
+      variant: "notifications",
       to: targetEmail,
       subject: "Verify your email to merge your Dub Partners accounts",
       react: VerifyEmailForAccountMerge({

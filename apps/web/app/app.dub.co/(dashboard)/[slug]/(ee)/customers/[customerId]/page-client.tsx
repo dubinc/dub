@@ -97,7 +97,7 @@ export function CustomerPageClient() {
               </h2>
               <div className="flex flex-col gap-4">
                 <Link
-                  href={`/${slug}/program/partners?partnerId=${customer.partner.id}`}
+                  href={`/${slug}/program/partners/${customer.partner.id}`}
                   target="_blank"
                   className="border-border-subtle group flex items-center justify-between overflow-hidden rounded-lg border bg-neutral-100 px-4 py-3"
                 >

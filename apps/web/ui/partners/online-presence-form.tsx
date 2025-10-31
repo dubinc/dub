@@ -2,6 +2,7 @@
 
 import { parseActionError } from "@/lib/actions/parse-action-errors";
 import { updateOnlinePresenceAction } from "@/lib/actions/partners/update-online-presence";
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import {
   sanitizeSocialHandle,
   sanitizeWebsite,
@@ -100,6 +101,11 @@ export const OnlinePresenceForm = forwardRef<
     ref,
   ) => {
     const form = formProp ?? useOnlinePresenceForm({ partner });
+    const { partner: currentPartner } = usePartnerProfile();
+
+    const disabled = currentPartner
+      ? !hasPermission(currentPartner.role, "partner_profile.update")
+      : true;
 
     const {
       register,
@@ -178,12 +184,18 @@ export const OnlinePresenceForm = forwardRef<
               if (result?.data?.success) onSubmitSuccessful?.();
             })}
           >
-            <div className={cn("flex w-full flex-col gap-6 text-left")}>
+            <div
+              className={cn(
+                "flex w-full flex-col gap-6 text-left",
+                variant === "settings" && "gap-4",
+              )}
+            >
               <FormRow
                 label="Website"
                 property="website"
                 verifiedAtField="websiteVerifiedAt"
                 icon={Globe}
+                disabled={disabled}
                 onVerifyClick={async () => {
                   try {
                     const result =
@@ -214,8 +226,11 @@ export const OnlinePresenceForm = forwardRef<
                 input={
                   <input
                     type="text"
+                    disabled={disabled}
                     className={cn(
                       "block w-full rounded-md focus:outline-none sm:text-sm",
+                      disabled &&
+                        "cursor-not-allowed bg-neutral-50 text-neutral-400",
                       errors.website
                         ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                         : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -225,6 +240,7 @@ export const OnlinePresenceForm = forwardRef<
                     {...register("website")}
                   />
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -233,9 +249,11 @@ export const OnlinePresenceForm = forwardRef<
                 prefix="@"
                 verifiedAtField="youtubeVerifiedAt"
                 icon={YouTube}
+                disabled={disabled}
                 onVerifyClick={() =>
                   startVerification("youtube", getValues("youtube"))
                 }
+                verifyDisabledTooltip="YouTube verification is coming soon."
                 input={
                   <div className="flex rounded-md">
                     <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-3 text-neutral-500 sm:text-sm">
@@ -246,8 +264,11 @@ export const OnlinePresenceForm = forwardRef<
                     </span>
                     <input
                       type="text"
+                      disabled={disabled}
                       className={cn(
                         "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
+                        disabled &&
+                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
                         errors.youtube
                           ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -258,6 +279,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -266,6 +288,7 @@ export const OnlinePresenceForm = forwardRef<
                 prefix="@"
                 verifiedAtField="twitterVerifiedAt"
                 icon={Twitter}
+                disabled={disabled}
                 onVerifyClick={() =>
                   startVerification("twitter", getValues("twitter"))
                 }
@@ -276,8 +299,11 @@ export const OnlinePresenceForm = forwardRef<
                     </span>
                     <input
                       type="text"
+                      disabled={disabled}
                       className={cn(
                         "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                        disabled &&
+                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
                         errors.twitter
                           ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -288,6 +314,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -296,6 +323,7 @@ export const OnlinePresenceForm = forwardRef<
                 prefix="in/"
                 verifiedAtField="linkedinVerifiedAt"
                 icon={LinkedIn}
+                disabled={disabled}
                 onVerifyClick={() =>
                   startVerification("linkedin", getValues("linkedin"))
                 }
@@ -307,8 +335,11 @@ export const OnlinePresenceForm = forwardRef<
                     </span>
                     <input
                       type="text"
+                      disabled={disabled}
                       className={cn(
                         "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                        disabled &&
+                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
                         errors.linkedin
                           ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -319,6 +350,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -327,6 +359,7 @@ export const OnlinePresenceForm = forwardRef<
                 prefix="@"
                 verifiedAtField="instagramVerifiedAt"
                 icon={Instagram}
+                disabled={disabled}
                 onVerifyClick={() =>
                   startVerification("instagram", getValues("instagram"))
                 }
@@ -338,8 +371,11 @@ export const OnlinePresenceForm = forwardRef<
                     </span>
                     <input
                       type="text"
+                      disabled={disabled}
                       className={cn(
                         "block w-full rounded-none rounded-r-md focus:outline-none sm:text-sm",
+                        disabled &&
+                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
                         errors.instagram
                           ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -350,6 +386,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
 
               <FormRow
@@ -358,6 +395,7 @@ export const OnlinePresenceForm = forwardRef<
                 prefix="@"
                 verifiedAtField="tiktokVerifiedAt"
                 icon={TikTok}
+                disabled={disabled}
                 onVerifyClick={() =>
                   startVerification("tiktok", getValues("tiktok"))
                 }
@@ -371,8 +409,11 @@ export const OnlinePresenceForm = forwardRef<
                     </span>
                     <input
                       type="text"
+                      disabled={disabled}
                       className={cn(
                         "block w-full rounded-none rounded-r-md pl-7 focus:outline-none sm:text-sm",
+                        disabled &&
+                          "cursor-not-allowed bg-neutral-50 text-neutral-400",
                         errors.tiktok
                           ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
                           : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
@@ -383,6 +424,7 @@ export const OnlinePresenceForm = forwardRef<
                     />
                   </div>
                 }
+                variant={variant}
               />
             </div>
 
@@ -391,6 +433,7 @@ export const OnlinePresenceForm = forwardRef<
                 type="submit"
                 text="Continue"
                 className="mt-6"
+                disabled={disabled}
                 loading={isSubmitting || isSubmitSuccessful}
               />
             )}
@@ -468,12 +511,14 @@ function VerifyButton({
   icon: Icon,
   onClick,
   disabledTooltip,
+  disabled: formDisabled = false,
 }: {
   property: keyof OnlinePresenceFormData;
   verifiedAtField: string;
   icon: Icon;
   onClick: () => Promise<boolean>;
   disabledTooltip?: string;
+  disabled?: boolean;
 }) {
   const { control, getFieldState } = useFormContext<OnlinePresenceFormData>();
   const value = useWatch({ control, name: property });
@@ -501,8 +546,11 @@ function VerifyButton({
         )
       }
       loading={isSaving || loading}
-      disabled={!value || getFieldState(property).invalid || isVerified}
+      disabled={
+        formDisabled || !value || getFieldState(property).invalid || isVerified
+      }
       onClick={async () => {
+        if (formDisabled) return;
         setIsSaving(true);
         const redirecting = await onClick();
 
@@ -524,6 +572,8 @@ function FormRow({
   icon: Icon,
   onVerifyClick,
   verifyDisabledTooltip,
+  variant,
+  disabled = false,
 }: {
   label: string;
   input: ReactNode;
@@ -534,6 +584,8 @@ function FormRow({
   icon: Icon;
   onVerifyClick: () => Promise<boolean>;
   verifyDisabledTooltip?: string;
+  variant: "onboarding" | "settings";
+  disabled?: boolean;
 }) {
   const { partner } = usePartnerProfile();
   const { control, setValue } = useFormContext<OnlinePresenceFormData>();
@@ -565,7 +617,12 @@ function FormRow({
         <div className="p-0.5">
           {isVerified ? (
             <div className="flex flex-col gap-1.5">
-              <span className="text-content-emphasis text-sm font-medium">
+              <span
+                className={cn(
+                  "text-content-emphasis text-sm font-medium",
+                  variant === "settings" && "sr-only",
+                )}
+              >
                 {label}
               </span>
               <OnlinePresenceCard
@@ -579,7 +636,12 @@ function FormRow({
             </div>
           ) : (
             <label className={cn("flex flex-col gap-1.5")}>
-              <span className="text-content-emphasis text-sm font-medium">
+              <span
+                className={cn(
+                  "text-content-emphasis text-sm font-medium",
+                  variant === "settings" && "sr-only",
+                )}
+              >
                 {label}
               </span>
               <div className={cn("relative")}>
@@ -590,6 +652,7 @@ function FormRow({
                   icon={Icon}
                   onClick={onVerifyClick}
                   disabledTooltip={verifyDisabledTooltip}
+                  disabled={disabled}
                 />
               </div>
             </label>

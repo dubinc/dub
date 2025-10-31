@@ -2,6 +2,8 @@ import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
 import { Program, Project } from "@prisma/client";
 import { createId } from "../api/create-id";
+import { updateLinkStatsForImporter } from "../api/links/update-link-stats-for-importer";
+import { syncPartnerLinksStats } from "../api/partners/sync-partner-links-stats";
 import { logImportError } from "../tinybird/log-import-error";
 import { recordClick } from "../tinybird/record-click";
 import { recordLeadWithTimestamp } from "../tinybird/record-lead";
@@ -11,7 +13,7 @@ import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulImportPayload, RewardfulReferral } from "./types";
 
 export async function importCustomers(payload: RewardfulImportPayload) {
-  const { importId, programId, campaignId, page = 1 } = payload;
+  const { importId, programId, campaignIds, page = 1 } = payload;
 
   const { workspace, ...program } = await prisma.program.findUniqueOrThrow({
     where: {
@@ -46,7 +48,7 @@ export async function importCustomers(payload: RewardfulImportPayload) {
           referral,
           workspace,
           program,
-          campaignId,
+          campaignIds,
           importId,
         }),
       ),
@@ -68,22 +70,22 @@ async function createCustomer({
   referral,
   workspace,
   program,
-  campaignId,
+  campaignIds,
   importId,
 }: {
   referral: RewardfulReferral;
   workspace: Project;
   program: Program;
-  campaignId: string;
+  campaignIds: string[];
   importId: string;
 }) {
   const referralId = referral.customer ? referral.customer.email : referral.id;
   if (
     referral.affiliate?.campaign?.id &&
-    referral.affiliate.campaign.id !== campaignId
+    !campaignIds.includes(referral.affiliate.campaign.id)
   ) {
     console.log(
-      `Referral ${referralId} not in campaign ${campaignId} (they're in ${referral.affiliate.campaign.id}). Skipping...`,
+      `Referral ${referralId} not in campaignIds (${campaignIds.join(", ")}) (they're in ${referral.affiliate.campaign.id}). Skipping...`,
     );
 
     return;
@@ -97,11 +99,28 @@ async function createCustomer({
     entity_id: referralId,
   } as const;
 
+  if (!referral.link && !referral.coupon) {
+    await logImportError({
+      ...commonImportLogInputs,
+      code: "LINK_NOT_FOUND",
+      message: `Link or coupon not found for referral ${referralId}.`,
+    });
+
+    return;
+  }
+
+  const shortLinkToken = referral.link?.token || referral.coupon?.token;
+
+  if (!shortLinkToken) {
+    console.error(`Short link token not found for referral ${referralId}.`);
+    return;
+  }
+
   const link = await prisma.link.findUnique({
     where: {
       domain_key: {
         domain: program.domain!,
-        key: referral.link.token,
+        key: shortLinkToken,
       },
     },
   });
@@ -110,7 +129,7 @@ async function createCustomer({
     await logImportError({
       ...commonImportLogInputs,
       code: "LINK_NOT_FOUND",
-      message: `Link not found for referral ${referralId} (token: ${referral.link.token}).`,
+      message: `Link not found for referral ${referralId} (token: ${shortLinkToken}).`,
     });
 
     return;
@@ -170,12 +189,12 @@ async function createCustomer({
 
   const clickData = await recordClick({
     req: dummyRequest,
-    linkId: link.id,
     clickId: nanoid(16),
-    url: link.url,
+    workspaceId: workspace.id,
+    linkId: link.id,
     domain: link.domain,
     key: link.key,
-    workspaceId: workspace.id,
+    url: link.url,
     skipRatelimit: true,
     timestamp: new Date(referral.created_at).toISOString(),
   });
@@ -209,7 +228,7 @@ async function createCustomer({
     },
   });
 
-  await Promise.all([
+  await Promise.allSettled([
     recordLeadWithTimestamp({
       ...clickEvent,
       event_id: nanoid(16),
@@ -220,7 +239,23 @@ async function createCustomer({
 
     prisma.link.update({
       where: { id: link.id },
-      data: { leads: { increment: 1 } },
+      data: {
+        leads: { increment: 1 },
+        lastLeadAt: updateLinkStatsForImporter({
+          currentTimestamp: link.lastLeadAt,
+          newTimestamp: new Date(referral.became_lead_at),
+        }),
+      },
     }),
+    // partner links should always have a partnerId and programId, but we're doing this to make TS happy
+    ...(link.partnerId && link.programId
+      ? [
+          syncPartnerLinksStats({
+            partnerId: link.partnerId,
+            programId: link.programId,
+            eventType: "lead",
+          }),
+        ]
+      : []),
   ]);
 }

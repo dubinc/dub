@@ -1,3 +1,4 @@
+import { createRoot } from "react-dom/client";
 import { useCallback, useEffect, useState } from "react";
 import ReactDom from "react-dom";
 import { DubEmbed } from "../embed";
@@ -18,4 +19,5 @@ const Embed = () => {
   return <DubEmbed data="referrals" token={token} />;
 };
 
-ReactDom.render(<Embed />, document.getElementById("root"));
+const root = createRoot(document.getElementById("root"));
+root.render(<Embed />);

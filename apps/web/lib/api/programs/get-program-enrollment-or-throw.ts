@@ -1,60 +1,37 @@
-import { PartnerGroupProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { DubApiError } from "../errors";
 
-export async function getProgramEnrollmentOrThrow({
+// Type-safe version that accepts an include object directly
+export async function getProgramEnrollmentOrThrow<
+  T extends Prisma.ProgramEnrollmentInclude,
+>({
   partnerId,
   programId,
-  includePartner = false,
-  includeClickReward = false,
-  includeLeadReward = false,
-  includeSaleReward = false,
-  includeDiscount = false,
-  includeGroup = false,
-  includeWorkspace = false,
+  include,
 }: {
   partnerId: string;
   programId: string;
-  includePartner?: boolean;
-  includeClickReward?: boolean;
-  includeLeadReward?: boolean;
-  includeSaleReward?: boolean;
-  includeDiscount?: boolean;
-  includeGroup?: boolean;
-  includeWorkspace?: boolean;
-}) {
-  const include: Prisma.ProgramEnrollmentInclude = {
-    program: includeWorkspace
+  include: T;
+}): Promise<Prisma.ProgramEnrollmentGetPayload<{ include: T }>> {
+  const finalInclude = {
+    ...include,
+    links: include.links
       ? {
-          include: {
-            workspace: true,
+          orderBy: {
+            createdAt: "asc",
           },
         }
-      : true,
-    links: {
-      orderBy: {
-        createdAt: "asc",
-      },
-    },
-    ...(includePartner && {
-      partner: true,
-    }),
-    ...(includeClickReward && {
-      clickReward: true,
-    }),
-    ...(includeLeadReward && {
-      leadReward: true,
-    }),
-    ...(includeSaleReward && {
-      saleReward: true,
-    }),
-    ...(includeDiscount && {
-      discount: true,
-    }),
-    ...(includeGroup && {
-      partnerGroup: true,
-    }),
+      : false,
+    discountCodes: include.discountCodes
+      ? {
+          where: {
+            discountId: {
+              not: null,
+            },
+          },
+        }
+      : false,
   };
 
   const programEnrollment = programId.startsWith("prog_")
@@ -65,7 +42,7 @@ export async function getProgramEnrollmentOrThrow({
             programId,
           },
         },
-        include,
+        include: finalInclude,
       })
     : await prisma.programEnrollment.findFirst({
         where: {
@@ -74,19 +51,17 @@ export async function getProgramEnrollmentOrThrow({
             slug: programId,
           },
         },
-        include,
+        include: finalInclude,
       });
 
-  if (!programEnrollment || !programEnrollment.program) {
+  if (!programEnrollment) {
     throw new DubApiError({
       code: "not_found",
-      message:
-        "You are not enrolled in this program. Contact your program admin to get enrolled.",
+      message: `Partner ${partnerId} is not enrolled in program ${programId}.`,
     });
   }
 
-  return {
-    ...programEnrollment,
-    group: programEnrollment.partnerGroup as PartnerGroupProps,
-  };
+  return programEnrollment as Prisma.ProgramEnrollmentGetPayload<{
+    include: T;
+  }>;
 }

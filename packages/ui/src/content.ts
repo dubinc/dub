@@ -11,7 +11,7 @@ import {
   FeatherFill,
   Github,
   Go,
-  LifeRing,
+  LifeRingFill,
   LinkedIn,
   MicrophoneFill,
   Php,
@@ -139,7 +139,7 @@ export const SOLUTIONS: NavItemChildren = [
 
 export const RESOURCES = [
   {
-    icon: LifeRing,
+    icon: LifeRingFill,
     title: "Help Center",
     description: "Answers to your questions",
     href: "/help",

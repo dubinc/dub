@@ -18,6 +18,7 @@ export const GET = withSession(async ({ session, params }) => {
         select: {
           id: true,
           name: true,
+          slug: true,
           stripeId: true,
         },
       },
@@ -36,7 +37,7 @@ export const GET = withSession(async ({ session, params }) => {
   if (!userInWorkspace) {
     throw new DubApiError({
       code: "unauthorized",
-      message: "You are not authorized to view this invoice",
+      message: "You are not authorized to view this invoice.",
     });
   }
 
@@ -61,10 +62,10 @@ export const GET = withSession(async ({ session, params }) => {
     });
   }
 
-  return new Response(pdf, {
+  return new Response(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="Invoice-${invoice.number}.pdf"`,
+      "Content-Disposition": `inline; filename="dub-invoice-${invoice.number}.pdf"`,
     },
   });
 });

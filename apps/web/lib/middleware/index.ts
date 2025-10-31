@@ -1,6 +1,6 @@
-export { default as AdminMiddleware } from "./admin";
-export { default as ApiMiddleware } from "./api";
-export { default as AppMiddleware } from "./app";
-export { default as AxiomMiddleware } from "./axiom";
-export { default as CreateLinkMiddleware } from "./create-link";
-export { default as LinkMiddleware } from "./link";
+export { AdminMiddleware } from "./admin";
+export { ApiMiddleware } from "./api";
+export { AppMiddleware } from "./app";
+export { AxiomMiddleware } from "./axiom";
+export { CreateLinkMiddleware } from "./create-link";
+export { LinkMiddleware } from "./link";

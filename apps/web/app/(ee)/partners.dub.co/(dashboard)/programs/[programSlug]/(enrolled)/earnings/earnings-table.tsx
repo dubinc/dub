@@ -14,17 +14,18 @@ import {
   LinkLogo,
   StatusBadge,
   Table,
+  TimestampTooltip,
   Tooltip,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleDollar } from "@dub/ui/icons";
+import { CircleDollar, Globe } from "@dub/ui/icons";
 import {
   cn,
+  COUNTRIES,
   currencyFormatter,
   fetcher,
-  formatDateTime,
   formatDateTimeSmart,
   getApexDomain,
   getPrettyUrl,
@@ -79,9 +80,13 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
         accessorKey: "timestamp",
         minSize: 140,
         cell: ({ row }) => (
-          <p title={formatDateTime(row.original.createdAt)}>
-            {formatDateTimeSmart(row.original.createdAt)}
-          </p>
+          <TimestampTooltip
+            timestamp={row.original.createdAt}
+            side="right"
+            rows={["local"]}
+          >
+            <span>{formatDateTimeSmart(row.original.createdAt)}</span>
+          </TimestampTooltip>
         ),
       },
       {
@@ -133,7 +138,11 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
           row.original.customer ? (
             <CustomerRowItem
               customer={row.original.customer}
-              href={`/programs/${programSlug}/customers/${row.original.customer.id}`}
+              href={
+                programSlug === "perplexity"
+                  ? undefined
+                  : `/programs/${programSlug}/customers/${row.original.customer.id}`
+              }
               className="px-4 py-2.5"
             />
           ) : (
@@ -148,15 +157,44 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               : null,
         },
       },
-      {
-        id: "amount",
-        header: "Sale Amount",
-        accessorKey: "amount",
-        cell: ({ row }) =>
-          row.original.amount
-            ? currencyFormatter(row.original.amount / 100)
-            : "-",
-      },
+      ...(programEnrollment?.rewards?.some((r) => r.event === "sale")
+        ? [
+            {
+              id: "amount",
+              header: "Sale Amount",
+              accessorKey: "amount",
+              cell: ({ row }) =>
+                row.original.amount
+                  ? currencyFormatter(row.original.amount / 100)
+                  : "-",
+            },
+          ]
+        : [
+            {
+              id: "country",
+              header: "Country",
+              accessorKey: "customer.country",
+              cell: ({ getValue }) => (
+                <div
+                  className="flex items-center gap-3"
+                  title={COUNTRIES[getValue()] ?? getValue()}
+                >
+                  {getValue() ? (
+                    <img
+                      alt={getValue()}
+                      src={`https://hatscripts.github.io/circle-flags/flags/${getValue().toLowerCase()}.svg`}
+                      className="size-4 shrink-0"
+                    />
+                  ) : (
+                    <Globe className="size-4 shrink-0" />
+                  )}
+                  <span className="truncate">
+                    {COUNTRIES[getValue()] || getValue() || "-"}
+                  </span>
+                </div>
+              ),
+            },
+          ]),
       {
         id: "earnings",
         header: "Earnings",
@@ -207,12 +245,8 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
               icon={null}
               variant={badge.variant}
               tooltip={badge.tooltip({
-                name: programEnrollment?.program.name ?? "Support",
-                slug: programEnrollment?.program.slug ?? "support",
-                holdingPeriodDays:
-                  programEnrollment?.program.holdingPeriodDays ?? 0,
-                minPayoutAmount:
-                  programEnrollment?.program.minPayoutAmount ?? 0,
+                program: programEnrollment?.program,
+                variant: "partner",
               })}
             >
               {badge.label}

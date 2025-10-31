@@ -17,4 +17,3 @@ export function Stripe({ className }: { className?: string }) {
     </svg>
   );
 }
-

@@ -2,12 +2,12 @@ import { allowedHostnamesCache } from "@/lib/analytics/allowed-hostnames-cache";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { validateAllowedHostnames } from "@/lib/api/validate-allowed-hostnames";
-import { prefixWorkspaceId } from "@/lib/api/workspace-id";
-import { deleteWorkspace } from "@/lib/api/workspaces";
+import { deleteWorkspace } from "@/lib/api/workspaces/delete-workspace";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withWorkspace } from "@/lib/auth";
 import { getFeatureFlags } from "@/lib/edge-config";
+import { jackson } from "@/lib/jackson";
 import { storage } from "@/lib/storage";
-import z from "@/lib/zod";
 import {
   createWorkspaceSchema,
   WorkspaceSchema,
@@ -17,6 +17,7 @@ import { prisma } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const updateWorkspaceSchema = createWorkspaceSchema
   .extend({
@@ -32,6 +33,7 @@ const updateWorkspaceSchema = createWorkspaceSchema
         z.null(),
       ])
       .optional(),
+    enforceSAML: z.boolean().nullish(),
   })
   .partial();
 
@@ -75,7 +77,7 @@ export const GET = withWorkspace(
 
 // PATCH /api/workspaces/[idOrSlug] – update a specific workspace by id or slug
 export const PATCH = withWorkspace(
-  async ({ req, workspace }) => {
+  async ({ req, workspace, session }) => {
     const {
       name,
       slug,
@@ -83,6 +85,7 @@ export const PATCH = withWorkspace(
       conversionEnabled,
       allowedHostnames,
       publishableKey,
+      enforceSAML,
     } = await updateWorkspaceSchema.parseAsync(await parseRequestBody(req));
 
     if (["free", "pro"].includes(workspace.plan) && conversionEnabled) {
@@ -97,11 +100,34 @@ export const PATCH = withWorkspace(
       : undefined;
 
     const logoUploaded = logo
-      ? await storage.upload(
-          `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
-          logo,
-        )
+      ? await storage.upload({
+          key: `workspaces/${prefixWorkspaceId(workspace.id)}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
+
+    if (enforceSAML) {
+      if (workspace.plan !== "enterprise") {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "SAML SSO is only available on enterprise plans.",
+        });
+      }
+
+      const { apiController } = await jackson();
+
+      const connections = await apiController.getConnections({
+        tenant: workspace.id,
+        product: "Dub",
+      });
+
+      if (connections.length === 0) {
+        throw new DubApiError({
+          code: "forbidden",
+          message: "SAML SSO is not configured for this workspace.",
+        });
+      }
+    }
 
     try {
       const response = await prisma.project.update({
@@ -117,6 +143,9 @@ export const PATCH = withWorkspace(
             allowedHostnames: validHostnames,
           }),
           ...(publishableKey !== undefined && { publishableKey }),
+          ...(enforceSAML !== undefined && {
+            ssoEnforcedAt: enforceSAML ? new Date() : null,
+          }),
         },
         include: {
           domains: {
@@ -145,7 +174,9 @@ export const PATCH = withWorkspace(
       waitUntil(
         (async () => {
           if (logoUploaded && workspace.logo) {
-            await storage.delete(workspace.logo.replace(`${R2_URL}/`, ""));
+            await storage.delete({
+              key: workspace.logo.replace(`${R2_URL}/`, ""),
+            });
           }
 
           // Sync the allowedHostnames cache for workspace domains

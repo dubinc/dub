@@ -1,6 +1,7 @@
 "use client";
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionResponse } from "@/lib/types";
 import { CLAWBACK_REASONS_MAP } from "@/lib/zod/schemas/commissions";
@@ -17,6 +18,7 @@ import {
   Filter,
   StatusBadge,
   Table,
+  TimestampTooltip,
   Tooltip,
   usePagination,
   useRouterStuff,
@@ -27,7 +29,6 @@ import {
   cn,
   currencyFormatter,
   fetcher,
-  formatDateTime,
   formatDateTimeSmart,
   nFormatter,
 } from "@dub/utils";
@@ -53,7 +54,10 @@ const CommissionTableInner = memo(
     setSearch,
     setSelectedFilter,
   }: { limit?: number } & ReturnType<typeof useCommissionFilters>) => {
-    const { id: workspaceId, slug } = useWorkspace();
+    const workspace = useWorkspace();
+    const { id: workspaceId, slug } = workspace;
+    const { program } = useProgram();
+
     const { pagination, setPagination } = usePagination(limit);
     const { queryParams, getQueryString, searchParamsObj } = useRouterStuff();
     const { sortBy, sortOrder } = searchParamsObj as {
@@ -86,9 +90,14 @@ const CommissionTableInner = memo(
           id: "createdAt",
           header: "Date",
           cell: ({ row }) => (
-            <p title={formatDateTime(row.original.createdAt)}>
-              {formatDateTimeSmart(row.original.createdAt)}
-            </p>
+            <TimestampTooltip
+              timestamp={row.original.createdAt}
+              side="right"
+              rows={["local", "utc", "unix"]}
+              delayDuration={150}
+            >
+              <p>{formatDateTimeSmart(row.original.createdAt)}</p>
+            </TimestampTooltip>
           ),
         },
         {
@@ -190,7 +199,15 @@ const CommissionTableInner = memo(
             const badge = CommissionStatusBadges[row.original.status];
 
             return (
-              <StatusBadge icon={null} variant={badge.variant}>
+              <StatusBadge
+                icon={null}
+                variant={badge.variant}
+                tooltip={badge.tooltip({
+                  variant: "workspace",
+                  program,
+                  workspace,
+                })}
+              >
                 {badge.label}
               </StatusBadge>
             );
@@ -279,6 +296,7 @@ const CommissionTableInner = memo(
                         },
                       ]}
                       activeFilters={activeFilters}
+                      onSelect={onSelect}
                       onRemove={onRemove}
                       onRemoveAll={onRemoveAll}
                     />

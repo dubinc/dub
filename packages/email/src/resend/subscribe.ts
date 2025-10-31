@@ -1,16 +1,14 @@
 import { resend } from "./client";
-import { RESEND_AUDIENCES } from "./constants";
+import { RESEND_AUDIENCE_ID } from "./constants";
 
 export async function subscribe({
   email,
   name,
-  audience = "app.dub.co",
 }: {
   email: string;
   name?: string | null;
-  audience?: keyof typeof RESEND_AUDIENCES;
 }) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!resend) {
     console.error(
       "No RESEND_API_KEY is set in the environment variables. Skipping.",
     );
@@ -22,14 +20,12 @@ export async function subscribe({
     return;
   }
 
-  const audienceId = RESEND_AUDIENCES[audience];
-
   return await resend.contacts.create({
     email,
     ...(name && {
       firstName: name.split(" ")[0],
       lastName: name.split(" ").slice(1).join(" "),
     }),
-    audienceId,
+    audienceId: RESEND_AUDIENCE_ID,
   });
 }

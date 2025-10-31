@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
-import { importCampaign } from "@/lib/rewardful/import-campaign";
+import { importAffiliateCoupons } from "@/lib/rewardful/import-affiliate-coupons";
+import { importCampaigns } from "@/lib/rewardful/import-campaigns";
 import { importCommissions } from "@/lib/rewardful/import-commissions";
 import { importCustomers } from "@/lib/rewardful/import-customers";
 import { importPartners } from "@/lib/rewardful/import-partners";
@@ -17,11 +18,14 @@ export async function POST(req: Request) {
     const payload = rewardfulImportPayloadSchema.parse(JSON.parse(rawBody));
 
     switch (payload.action) {
-      case "import-campaign":
-        await importCampaign(payload);
+      case "import-campaigns":
+        await importCampaigns(payload);
         break;
       case "import-partners":
         await importPartners(payload);
+        break;
+      case "import-affiliate-coupons":
+        await importAffiliateCoupons(payload);
         break;
       case "import-customers":
         await importCustomers(payload);

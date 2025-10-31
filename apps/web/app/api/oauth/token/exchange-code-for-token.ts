@@ -4,12 +4,12 @@ import { createToken, generateCodeChallengeHash } from "@/lib/api/oauth/utils";
 import { hashToken } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
 import { generateRandomName } from "@/lib/names";
-import z from "@/lib/zod";
 import { authCodeExchangeSchema } from "@/lib/zod/schemas/oauth";
 import { prisma } from "@dub/prisma";
 import { getCurrentPlan } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextRequest } from "next/server";
+import { z } from "zod";
 
 // Exchange authorization code with access token
 export const exchangeAuthCodeForToken = async (

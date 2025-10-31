@@ -79,6 +79,7 @@ export function ProgramSidebar({
   const { programApplicationSheet, setIsOpen: setIsApplicationSheetOpen } =
     useProgramApplicationSheet({
       program,
+      programEnrollment,
       onSuccess: () => setJustApplied(true),
     });
 

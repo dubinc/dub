@@ -45,6 +45,7 @@ model User {
   payouts               Payout[]
   bountySubmissions     BountySubmission[]
   sentMessages          Message[]
+  partnerComments       PartnerComment[]
 
   @@index(source)
   @@index(defaultWorkspace)

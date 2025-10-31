@@ -1,5 +1,5 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { trackSingularLeadEvent } from "@/lib/integrations/singular/track-lead";
 import { trackSingularSaleEvent } from "@/lib/integrations/singular/track-sale";
 import { prisma } from "@dub/prisma";

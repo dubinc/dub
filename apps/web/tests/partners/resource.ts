@@ -1,6 +1,6 @@
-import { normalizeWorkspaceId } from "@/lib/api/workspace-id";
-import z from "@/lib/zod";
+import { normalizeWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { expect } from "vitest";
+import { z } from "zod";
 import {
   E2E_PARTNER,
   E2E_PARTNER_GROUP,
@@ -27,6 +27,7 @@ export const partnerLink = {
 
 export const normalizedPartnerDateFields = z.object({
   createdAt: z.string(),
+  bannedAt: z.string().nullish(),
   payoutsEnabledAt: z.string().nullish(),
   websiteVerifiedAt: z.string().nullish(),
   youtubeVerifiedAt: z.string().nullish(),

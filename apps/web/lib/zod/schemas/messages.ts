@@ -1,3 +1,4 @@
+import { MessageType } from "@prisma/client";
 import { z } from "zod";
 import { PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
@@ -5,7 +6,7 @@ import { UserSchema } from "./users";
 
 export const MAX_MESSAGE_LENGTH = 2000;
 
-const messageTextSchema = z.string().min(1).max(MAX_MESSAGE_LENGTH);
+const messageTextSchema = z.string().min(1);
 
 export const MessageSchema = z.object({
   id: z.string(),
@@ -14,6 +15,8 @@ export const MessageSchema = z.object({
   senderPartnerId: z.string().nullable(),
   senderUserId: z.string(),
   text: messageTextSchema,
+  subject: z.string().nullable(),
+  type: z.nativeEnum(MessageType),
   readInApp: z.date().nullable(),
   readInEmail: z.date().nullable(),
   createdAt: z.date(),
@@ -54,7 +57,7 @@ export const countMessagesQuerySchema = z.object({
 
 export const messagePartnerSchema = z.object({
   partnerId: z.string(),
-  text: messageTextSchema,
+  text: messageTextSchema.max(MAX_MESSAGE_LENGTH),
   createdAt: z.coerce
     .date()
     .refine(
@@ -88,7 +91,7 @@ export const getProgramMessagesQuerySchema = z.object({
 
 export const messageProgramSchema = z.object({
   programSlug: z.string(),
-  text: messageTextSchema,
+  text: messageTextSchema.max(MAX_MESSAGE_LENGTH),
   createdAt: z.coerce
     .date()
     .refine(

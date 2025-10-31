@@ -4,15 +4,18 @@ import {
 } from "@/lib/analytics/constants";
 import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
 import {
+  EventType,
   PartnerBannedReason,
   ProgramEnrollmentStatus,
 } from "@dub/prisma/client";
+import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
 import { DiscountSchema } from "./discount";
 import { GroupSchema } from "./groups";
 import { LinkSchema } from "./links";
-import { programLanderSchema } from "./program-lander";
+import { programApplicationFormDataWithValuesSchema } from "./program-application-form";
 import { RewardSchema } from "./rewards";
+import { UserSchema } from "./users";
 import { parseDateSchema } from "./utils";
 
 export const HOLDING_PERIOD_DAYS = [0, 7, 14, 30, 60, 90];
@@ -25,11 +28,13 @@ export const ProgramSchema = z.object({
   brandColor: z.string().nullable(),
   domain: z.string().nullable(),
   url: z.string().nullable(),
-  cookieLength: z.number(),
+  primaryRewardEvent: z.nativeEnum(EventType).default("sale"),
   holdingPeriodDays: z.number(),
   minPayoutAmount: z.number(),
   landerPublishedAt: z.date().nullish(),
   autoApprovePartnersEnabledAt: z.date().nullish(),
+  messagingEnabledAt: z.date().nullish(),
+  partnerNetworkEnabledAt: z.date().nullish(),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string(),
@@ -38,19 +43,13 @@ export const ProgramSchema = z.object({
   supportEmail: z.string().nullish(),
   helpUrl: z.string().nullish(),
   termsUrl: z.string().nullish(),
-  ageVerification: z.number().nullish(),
   createdAt: z.date(),
   updatedAt: z.date(),
-});
-
-export const ProgramWithLanderDataSchema = ProgramSchema.extend({
-  landerData: programLanderSchema.nullish(),
-  landerPublishedAt: z.date().nullish(),
+  startedAt: z.date().nullish(),
 });
 
 export const updateProgramSchema = z.object({
   name: z.string(),
-  cookieLength: z.number().min(1).max(180),
   domain: z.string().nullable(),
   url: z.string().nullable(),
   holdingPeriodDays: z.coerce
@@ -66,6 +65,7 @@ export const updateProgramSchema = z.object({
   supportEmail: z.string().email().max(255).nullish(),
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
+  messagingEnabledAt: z.coerce.date().nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({
@@ -76,6 +76,7 @@ export const ProgramPartnerLinkSchema = LinkSchema.pick({
   url: true,
   clicks: true,
   leads: true,
+  conversions: true,
   sales: true,
   saleAmount: true,
 });
@@ -138,10 +139,6 @@ export const ProgramInviteSchema = z.object({
   createdAt: z.date(),
 });
 
-export const getProgramQuerySchema = z.object({
-  includeLanderData: z.coerce.boolean().optional(),
-});
-
 export const getProgramMetricsQuerySchema = z.object({
   interval: z
     .enum(DATE_RANGE_INTERVAL_PRESETS)
@@ -169,7 +166,50 @@ export const createProgramApplicationSchema = z.object({
   groupId: z.string().optional(),
   name: z.string().trim().min(1).max(100),
   email: z.string().trim().email().min(1).max(100),
-  website: z.string().trim().max(100).optional(),
-  proposal: z.string().trim().min(1).max(5000),
-  comments: z.string().trim().max(5000).optional(),
+  country: z.enum(COUNTRY_CODES),
+  formData: programApplicationFormDataWithValuesSchema,
+});
+
+export const PartnerCommentSchema = z.object({
+  id: z.string(),
+  programId: z.string(),
+  partnerId: z.string(),
+  userId: z.string(),
+  user: UserSchema.pick({
+    id: true,
+    name: true,
+    image: true,
+  }),
+  text: z.string(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
+export const MAX_PROGRAM_PARTNER_COMMENT_LENGTH = 2000;
+
+export const createPartnerCommentSchema = z.object({
+  workspaceId: z.string(),
+  partnerId: z.string(),
+  text: z.string().min(1).max(MAX_PROGRAM_PARTNER_COMMENT_LENGTH),
+  createdAt: z.coerce
+    .date()
+    .refine(
+      (date) =>
+        date.getTime() <= Date.now() &&
+        date.getTime() >= Date.now() - 1000 * 60,
+      {
+        message: "Comment timestamp must be within the last 60 seconds",
+      },
+    ),
+});
+
+export const updatePartnerCommentSchema = z.object({
+  workspaceId: z.string(),
+  id: z.string(),
+  text: z.string().min(1).max(MAX_PROGRAM_PARTNER_COMMENT_LENGTH),
+});
+
+export const deletePartnerCommentSchema = z.object({
+  workspaceId: z.string(),
+  commentId: z.string(),
 });

@@ -1,6 +1,10 @@
 import { prisma } from "@dub/prisma";
-import { PartnerGroup, Program } from "@dub/prisma/client";
-import { nanoid } from "@dub/utils";
+import {
+  PartnerGroup,
+  PartnerGroupDefaultLink,
+  Program,
+} from "@dub/prisma/client";
+import { isRejected, nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
@@ -16,7 +20,11 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
       id: programId,
     },
     include: {
-      groups: true,
+      groups: {
+        include: {
+          partnerGroupDefaultLinks: true,
+        },
+      },
     },
   });
 
@@ -52,7 +60,7 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
     );
 
     if (affiliates.length > 0) {
-      await Promise.allSettled(
+      const results = await Promise.allSettled(
         affiliates.map((affiliate) => {
           const promoterCampaigns = affiliate.promoter_campaigns;
 
@@ -69,6 +77,16 @@ export async function importPartners(payload: FirstPromoterImportPayload) {
           });
         }),
       );
+
+      // Log any errors that occurred
+      results.forEach((result, index) => {
+        if (isRejected(result)) {
+          console.error(
+            `Failed to import affiliate ${affiliates[index]?.email}:`,
+            result.reason,
+          );
+        }
+      });
     }
 
     currentPage++;
@@ -91,7 +109,7 @@ async function createPartnerAndLinks({
 }: {
   program: Program;
   affiliate: FirstPromoterPartner;
-  group: PartnerGroup;
+  group: PartnerGroup & { partnerGroupDefaultLinks: PartnerGroupDefaultLink[] };
   userId: string;
 }) {
   const partner = await prisma.partner.upsert({
@@ -157,7 +175,7 @@ async function createPartnerAndLinks({
     return;
   }
 
-  const links = affiliate.promoter_campaigns.map((campaign) => ({
+  const links = affiliate.promoter_campaigns.map((campaign, idx) => ({
     key: campaign.ref_token || nanoid(),
     domain: program.domain!,
     url: program.url!,
@@ -167,6 +185,8 @@ async function createPartnerAndLinks({
     partnerId: partner.id,
     trackConversion: true,
     userId,
+    partnerGroupDefaultLinkId:
+      idx === 0 ? group.partnerGroupDefaultLinks[0]?.id ?? null : null,
   }));
 
   await bulkCreateLinks({

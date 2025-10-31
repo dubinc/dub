@@ -1,6 +1,5 @@
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { useFolderPermissions } from "@/lib/swr/use-folder-permissions";
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   AnimatedSizeContainer,
@@ -49,9 +48,7 @@ export const LinksToolbar = memo(
     links: ResponseLink[];
     linksCount: number;
   }) => {
-    const { slug, plan } = useWorkspace();
-
-    const { isMegaFolder } = useIsMegaFolder();
+    const { slug, plan, isMegaWorkspace } = useWorkspace();
 
     const { canManageFolderPermissions } = getPlanCapabilities(plan);
     const { folders } = useFolderPermissions();
@@ -206,7 +203,7 @@ export const LinksToolbar = memo(
         {/* Leave room at bottom of list */}
         <div className="h-[90px]" />
 
-        <div className="fixed bottom-4 left-0 w-full sm:max-[1372px]:w-[calc(100%-150px)] md:left-[304px] md:w-[calc(100%-304px)] md:max-[1372px]:w-[calc(100%-304px-150px)]">
+        <div className="fixed bottom-4 left-0 z-10 w-full sm:max-[1372px]:w-[calc(100%-150px)] md:left-[304px] md:w-[calc(100%-304px)] md:max-[1372px]:w-[calc(100%-304px-150px)]">
           <div
             className={cn(
               "relative left-1/2 w-full max-w-[768px] -translate-x-1/2 px-5",
@@ -227,9 +224,9 @@ export const LinksToolbar = memo(
                     setPagination={setPagination}
                     totalCount={linksCount}
                     unit={(plural) => `${plural ? "links" : "link"}`}
-                    showTotalCount={!isMegaFolder}
+                    showTotalCount={!isMegaWorkspace}
                   >
-                    {!isMegaFolder && (
+                    {!isMegaWorkspace && (
                       <>
                         {loading ? (
                           <LoadingSpinner className="size-3.5" />

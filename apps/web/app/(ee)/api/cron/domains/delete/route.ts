@@ -1,4 +1,4 @@
-import { queueDomainDeletion } from "@/lib/api/domains/queue";
+import { queueDomainDeletion } from "@/lib/api/domains/queue-domain-update";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { limiter } from "@/lib/cron/limiter";
@@ -68,7 +68,7 @@ export async function POST(req: Request) {
         .filter((link) => link.image?.startsWith(`${R2_URL}/images/${link.id}`))
         .map((link) =>
           limiter.schedule(() =>
-            storage.delete(link.image!.replace(`${R2_URL}/`, "")),
+            storage.delete({ key: link.image!.replace(`${R2_URL}/`, "") }),
           ),
         ),
 
@@ -128,7 +128,7 @@ export async function POST(req: Request) {
         },
       }),
       domainRecord.logo &&
-        storage.delete(domainRecord.logo.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: domainRecord.logo.replace(`${R2_URL}/`, "") }),
     ]);
 
     return new Response(

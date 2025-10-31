@@ -1,4 +1,4 @@
-import { Button, Modal } from "@dub/ui";
+import { Button, Modal, useKeyboardShortcut } from "@dub/ui";
 import { Dispatch, ReactNode, SetStateAction, useState } from "react";
 
 type PromptModelProps = {
@@ -10,6 +10,12 @@ type PromptModelProps = {
 
   onConfirm: () => Promise<void> | void;
   confirmText?: string;
+
+  confirmShortcut?: string;
+  confirmShortcutOptions?: {
+    modal?: boolean;
+    sheet?: boolean;
+  };
 };
 
 /**
@@ -24,14 +30,33 @@ function ConfirmModal({
   cancelText = "Cancel",
   onConfirm,
   confirmText = "Confirm",
+  confirmShortcut,
+  confirmShortcutOptions = { modal: true },
 }: {
   showConfirmModal: boolean;
   setShowConfirmModal: Dispatch<SetStateAction<boolean>>;
 } & PromptModelProps) {
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleConfirm = async () => {
+    setIsLoading(true);
+    try {
+      await onConfirm();
+      setShowConfirmModal(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <Modal showModal={showConfirmModal} setShowModal={setShowConfirmModal}>
+      {showConfirmModal && confirmShortcut && (
+        <KeyboardShortcut
+          confirmShortcut={confirmShortcut}
+          onConfirm={handleConfirm}
+          confirmShortcutOptions={confirmShortcutOptions}
+        />
+      )}
       <div className="p-5 text-left">
         <h3 className="text-content-emphasis text-base font-semibold">
           {title}
@@ -56,16 +81,27 @@ function ConfirmModal({
           className="h-8 w-fit px-3"
           text={confirmText}
           loading={isLoading}
-          onClick={async () => {
-            setIsLoading(true);
-            await onConfirm();
-            setIsLoading(false);
-            setShowConfirmModal(false);
-          }}
+          shortcut={
+            confirmShortcut === "Enter" ? "↵" : confirmShortcut?.toUpperCase()
+          }
+          onClick={handleConfirm}
         />
       </div>
     </Modal>
   );
+}
+
+function KeyboardShortcut({
+  onConfirm,
+  confirmShortcut,
+  confirmShortcutOptions,
+}: { confirmShortcut: string } & Pick<
+  PromptModelProps,
+  "onConfirm" | "confirmShortcutOptions"
+>) {
+  useKeyboardShortcut(confirmShortcut, onConfirm, confirmShortcutOptions);
+
+  return null;
 }
 
 export function useConfirmModal(props: PromptModelProps) {

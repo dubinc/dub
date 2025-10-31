@@ -38,36 +38,28 @@ export const rejectBountySubmissionAction = authActionClient
       throw new Error("Bounty submission does not belong to this program.");
     }
 
+    if (bountySubmission.status === "draft") {
+      throw new Error(
+        "Bounty submission is in progress and cannot be rejected.",
+      );
+    }
+
     if (bountySubmission.status === "rejected") {
       throw new Error("Bounty submission already rejected.");
     }
 
-    await prisma.$transaction(async (tx) => {
-      await tx.bountySubmission.update({
-        where: {
-          id: submissionId,
-        },
-        data: {
-          status: "rejected",
-          reviewedAt: new Date(),
-          userId: user.id,
-          rejectionReason,
-          rejectionNote,
-          commissionId: null,
-        },
-      });
-
-      if (bountySubmission.commissionId) {
-        await tx.commission.update({
-          where: {
-            id: bountySubmission.commissionId,
-          },
-          data: {
-            status: "canceled",
-            payoutId: null,
-          },
-        });
-      }
+    await prisma.bountySubmission.update({
+      where: {
+        id: submissionId,
+      },
+      data: {
+        status: "rejected",
+        reviewedAt: new Date(),
+        userId: user.id,
+        rejectionReason,
+        rejectionNote,
+        commissionId: null,
+      },
     });
 
     waitUntil(
@@ -89,8 +81,9 @@ export const rejectBountySubmissionAction = authActionClient
         partner.email &&
           sendEmail({
             subject: "Bounty rejected",
-            email: partner.email,
+            to: partner.email,
             variant: "notifications",
+            replyTo: program.supportEmail || "noreply",
             react: BountyRejected({
               email: partner.email,
               program: {

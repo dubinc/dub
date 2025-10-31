@@ -44,8 +44,6 @@ export const GET = withWorkspace(
         return {
           ...partner,
           createdAt: application?.createdAt || programEnrollment.createdAt,
-          proposal: application?.proposal || "",
-          comments: application?.comments || "",
         };
       },
     );

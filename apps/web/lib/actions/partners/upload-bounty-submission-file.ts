@@ -37,6 +37,7 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
       getProgramEnrollmentOrThrow({
         partnerId: partner.id,
         programId,
+        include: {},
       }),
 
       prisma.bounty.findUniqueOrThrow({
@@ -66,7 +67,13 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
 
     // Validate the partner has not already created a submission for this bounty
     if (bounty.submissions.length > 0) {
-      throw new Error("You have already created a submission for this bounty.");
+      const submission = bounty.submissions[0];
+
+      if (submission.status !== "draft") {
+        throw new Error(
+          "You have already created a submission for this bounty.",
+        );
+      }
     }
 
     if (bounty.groups.length > 0) {
@@ -113,7 +120,9 @@ export const uploadBountySubmissionFileAction = authPartnerActionClient
 
     try {
       const key = `programs/${bounty.programId}/bounties/${bounty.id}/submissions/${partner.id}/${nanoid(7)}`;
-      const signedUrl = await storage.getSignedUrl(key);
+      const signedUrl = await storage.getSignedUploadUrl({
+        key,
+      });
 
       return {
         signedUrl,

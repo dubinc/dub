@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { createSafeActionClient } from "next-safe-action";
-import { normalizeWorkspaceId } from "../api/workspace-id";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getSession } from "../auth";
 import { PlanProps } from "../types";
 
@@ -97,6 +97,17 @@ export const authPartnerActionClient = actionClient.use(async ({ next }) => {
         some: { userId: session.user.id },
       },
     },
+    include: {
+      users: {
+        where: {
+          userId: session.user.id,
+        },
+        select: {
+          role: true,
+          userId: true,
+        },
+      },
+    },
   });
 
   if (!partner) {
@@ -107,6 +118,7 @@ export const authPartnerActionClient = actionClient.use(async ({ next }) => {
     ctx: {
       user: session.user,
       partner,
+      partnerUser: partner.users[0],
     },
   });
 });

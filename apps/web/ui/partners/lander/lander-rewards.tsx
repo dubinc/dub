@@ -10,6 +10,10 @@ export function LanderRewards({
   discount: DiscountProps | null;
   className?: string;
 }) {
+  if (!rewards.length && !discount) {
+    return null;
+  }
+
   return (
     <div className={className}>
       <h2 className="mb-2 text-base font-semibold text-neutral-800">Rewards</h2>

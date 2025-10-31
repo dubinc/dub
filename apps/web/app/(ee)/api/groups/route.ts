@@ -6,8 +6,8 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import {
-  additionalPartnerLinkSchema,
   createGroupSchema,
+  DEFAULT_PARTNER_GROUP,
   getGroupsQuerySchema,
   GroupSchema,
   GroupSchemaExtended,
@@ -23,10 +23,12 @@ export const GET = withWorkspace(
     const programId = getDefaultProgramIdOrThrow(workspace);
     const parsedInput = getGroupsQuerySchema.parse(searchParams);
 
+    console.time("getGroups");
     const groups = await getGroups({
       ...parsedInput,
       programId,
     });
+    console.timeEnd("getGroups");
 
     return NextResponse.json(z.array(GroupSchemaExtended).parse(groups));
   },
@@ -56,44 +58,41 @@ export const POST = withWorkspace(
       where: {
         id: programId,
       },
-      select: {
-        defaultGroupId: true,
+      include: {
+        groups: {
+          where: {
+            slug: DEFAULT_PARTNER_GROUP.slug,
+          },
+          include: {
+            partnerGroupDefaultLinks: true,
+          },
+        },
       },
     });
 
-    const [existingGroup, defaultGroup] = await Promise.all([
-      prisma.partnerGroup.findUnique({
-        where: {
-          programId_slug: {
-            programId,
-            slug,
-          },
-        },
-      }),
-
-      prisma.partnerGroup.findUniqueOrThrow({
-        where: {
-          id: program.defaultGroupId,
-        },
-        include: {
-          partnerGroupDefaultLinks: true,
-        },
-      }),
-    ]);
-
-    if (existingGroup) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `Group with slug ${slug} already exists in your program.`,
-      });
-    }
-
     const group = await prisma.$transaction(async (tx) => {
-      const groupsCount = await tx.partnerGroup.count({
-        where: {
-          programId,
-        },
-      });
+      const [existingGroup, groupsCount] = await Promise.all([
+        tx.partnerGroup.findUnique({
+          where: {
+            programId_slug: {
+              programId,
+              slug,
+            },
+          },
+        }),
+        tx.partnerGroup.count({
+          where: {
+            programId,
+          },
+        }),
+      ]);
+
+      if (existingGroup) {
+        throw new DubApiError({
+          code: "conflict",
+          message: `Group with slug ${slug} already exists in your program.`,
+        });
+      }
 
       if (groupsCount >= workspace.groupsLimit) {
         throw new DubApiError({
@@ -106,24 +105,16 @@ export const POST = withWorkspace(
         });
       }
 
-      // Copy over the default group's link settings when creating a new group
+      // copy over the default group's link settings + lander/application data
+      // when creating a new group
       const {
         additionalLinks,
         maxPartnerLinks,
         linkStructure,
         partnerGroupDefaultLinks,
-      } = defaultGroup;
-
-      // Deduplicate additionalLinks by domain, keeping the first occurrence
-      const deduplicatedAdditionalLinks =
-        additionalLinks && Array.isArray(additionalLinks)
-          ? (
-              additionalLinks as z.infer<typeof additionalPartnerLinkSchema>[]
-            ).filter(
-              (link, index, array) =>
-                array.findIndex((l) => l.domain === link.domain) === index,
-            )
-          : additionalLinks;
+        applicationFormData,
+        landerData,
+      } = program.groups[0];
 
       return await tx.partnerGroup.create({
         data: {
@@ -132,11 +123,11 @@ export const POST = withWorkspace(
           name,
           slug,
           color,
-          ...(deduplicatedAdditionalLinks && {
-            additionalLinks: deduplicatedAdditionalLinks,
-          }),
+          ...(additionalLinks && { additionalLinks }),
           ...(maxPartnerLinks && { maxPartnerLinks }),
           ...(linkStructure && { linkStructure }),
+          ...(applicationFormData && { applicationFormData }),
+          ...(landerData && { landerData }),
           partnerGroupDefaultLinks: {
             createMany: {
               data: partnerGroupDefaultLinks.map((link) => ({

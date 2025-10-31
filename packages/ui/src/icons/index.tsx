@@ -15,6 +15,7 @@ export * from "./dub-partners";
 export * from "./dub-product-icon";
 export * from "./expanding-arrow";
 export * from "./ios-app-store";
+export * from "./lock-small";
 export * from "./magic";
 export * from "./markdown-icon";
 export * from "./matrix-lines";

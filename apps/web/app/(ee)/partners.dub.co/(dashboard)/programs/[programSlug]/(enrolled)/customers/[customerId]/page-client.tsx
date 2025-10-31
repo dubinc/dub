@@ -27,7 +27,8 @@ export function ProgramCustomerPageClient() {
     customerId,
   });
 
-  if (!customer && !isLoading) redirect(`/programs/${programSlug}`);
+  if ((!customer && !isLoading) || programSlug === "perplexity")
+    redirect(`/programs/${programSlug}`);
 
   return (
     <div className="mb-10 mt-2">

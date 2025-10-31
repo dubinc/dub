@@ -1,7 +1,7 @@
 import { tb } from "@/lib/tinybird";
-import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { ACME_PROGRAM_ID } from "@dub/utils";
+import { z } from "zod";
 
 export async function getTopProgramsBySales({
   startDate,

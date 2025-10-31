@@ -2,17 +2,20 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
+import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
+import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
 import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { sendEmail } from "@dub/email";
-import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
-import PartnerInvite from "@dub/email/templates/partner-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
-import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
+import { nanoid, R2_URL } from "@dub/utils";
 import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
@@ -39,7 +42,8 @@ export const createProgram = async ({
     url,
     defaultRewardType,
     type,
-    amount,
+    amountInCents,
+    amountInPercentage,
     maxDuration,
     partners,
     supportEmail,
@@ -54,7 +58,10 @@ export const createProgram = async ({
 
   const logoUrl = uploadedLogo
     ? await storage
-        .upload(`programs/${programId}/logo_${nanoid(7)}`, uploadedLogo)
+        .upload({
+          key: `programs/${programId}/logo_${nanoid(7)}`,
+          body: uploadedLogo,
+        })
         .then(({ url }) => url)
     : null;
 
@@ -99,13 +106,21 @@ export const createProgram = async ({
         supportEmail,
         helpUrl,
         termsUrl,
+        messagingEnabledAt: getPlanCapabilities(workspace.plan)
+          .canMessagePartners
+          ? new Date()
+          : null,
         ...(type &&
-          amount && {
+          (amountInCents != null || amountInPercentage != null) && {
             rewards: {
               create: {
                 id: createId({ prefix: "rw_" }),
                 type,
-                amount,
+                amountInCents: type === "flat" ? amountInCents : null,
+                amountInPercentage:
+                  type === "percentage" && amountInPercentage != null
+                    ? amountInPercentage
+                    : null,
                 maxDuration,
                 event: defaultRewardType,
               },
@@ -192,12 +207,12 @@ export const createProgram = async ({
       // delete the temporary uploaded logo
       uploadedLogo &&
         isStored(uploadedLogo) &&
-        storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: uploadedLogo.replace(`${R2_URL}/`, "") }),
 
       // send email about the new program
       sendEmail({
         subject: `Your program ${program.name} is created and ready to share with your partners.`,
-        email: user.email!,
+        to: user.email!,
         react: ProgramWelcome({
           email: user.email!,
           workspace,
@@ -205,6 +220,10 @@ export const createProgram = async ({
         }),
       }),
 
+      // delete the workspace product cache
+      redis.del(`workspace:product:${workspace.slug}`),
+
+      // record the audit log
       recordAuditLog({
         workspaceId: workspace.id,
         programId: program.id,
@@ -256,18 +275,26 @@ async function invitePartner({
   });
 
   waitUntil(
-    sendEmail({
-      subject: `${program.name} invited you to join Dub Partners`,
-      from: VARIANT_TO_FROM_MAP.notifications,
-      email: partner.email,
-      react: PartnerInvite({
-        email: partner.email,
-        program: {
-          name: program.name,
-          slug: program.slug,
-          logo: program.logo,
-        },
-      }),
-    }),
+    (async () => {
+      await sendEmail({
+        subject: `${program.name} invited you to join Dub Partners`,
+        variant: "notifications",
+        to: partner.email,
+        replyTo: program.supportEmail || "noreply",
+        react: ProgramInvite({
+          email: partner.email,
+          name: null,
+          program: {
+            name: program.name,
+            slug: program.slug,
+            logo: program.logo,
+          },
+          ...(await getPartnerInviteRewardsAndBounties({
+            programId: program.id,
+            groupId: program.defaultGroupId,
+          })),
+        }),
+      });
+    })(),
   );
 }

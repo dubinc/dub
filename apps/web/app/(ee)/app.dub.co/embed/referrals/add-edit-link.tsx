@@ -6,6 +6,7 @@ import {
   Combobox,
   InfoTooltip,
   SimpleTooltipContent,
+  TAB_ITEM_ANIMATION_SETTINGS,
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
@@ -15,10 +16,9 @@ import {
   getPathnameFromUrl,
   linkConstructor,
   punycode,
-  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/utils";
 import { Program } from "@prisma/client";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useDebounce } from "use-debounce";

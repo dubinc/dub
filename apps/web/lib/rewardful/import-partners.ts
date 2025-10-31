@@ -4,20 +4,13 @@ import { nanoid } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { bulkCreateLinks } from "../api/links";
 import { logImportError } from "../tinybird/log-import-error";
-import { DEFAULT_PARTNER_GROUP } from "../zod/schemas/groups";
+import { redis } from "../upstash";
 import { RewardfulApi } from "./api";
 import { MAX_BATCHES, rewardfulImporter } from "./importer";
 import { RewardfulAffiliate, RewardfulImportPayload } from "./types";
 
 export async function importPartners(payload: RewardfulImportPayload) {
-  const {
-    importId,
-    programId,
-    groupId,
-    userId,
-    campaignId,
-    page = 1,
-  } = payload;
+  const { importId, programId, campaignIds, userId, page = 1 } = payload;
 
   const program = await prisma.program.findUniqueOrThrow({
     where: {
@@ -25,15 +18,19 @@ export async function importPartners(payload: RewardfulImportPayload) {
     },
     include: {
       groups: {
-        // if groupId is provided, use it, otherwise use the default group
-        where: {
-          ...(groupId ? { id: groupId } : { slug: DEFAULT_PARTNER_GROUP.slug }),
+        include: {
+          partnerGroupDefaultLinks: true,
         },
       },
     },
   });
 
-  const defaultGroup = program.groups[0];
+  const campaignIdToGroupMap = Object.fromEntries(
+    program.groups.map((group) => [
+      group.slug.replace("rewardful-", ""),
+      group.id,
+    ]),
+  );
 
   const { token } = await rewardfulImporter.getCredentials(program.workspaceId);
 
@@ -52,7 +49,6 @@ export async function importPartners(payload: RewardfulImportPayload) {
 
   while (hasMore && processedBatches < MAX_BATCHES) {
     const affiliates = await rewardfulApi.listPartners({
-      campaignId,
       page: currentPage,
     });
 
@@ -65,7 +61,11 @@ export async function importPartners(payload: RewardfulImportPayload) {
     const notImportedAffiliates: typeof affiliates = [];
 
     for (const affiliate of affiliates) {
-      if (affiliate.state === "active" && affiliate.leads > 0) {
+      if (
+        affiliate.state === "active" &&
+        affiliate.leads > 0 &&
+        campaignIds.includes(affiliate.campaign.id)
+      ) {
         activeAffiliates.push(affiliate);
       } else {
         notImportedAffiliates.push(affiliate);
@@ -73,22 +73,53 @@ export async function importPartners(payload: RewardfulImportPayload) {
     }
 
     if (activeAffiliates.length > 0) {
-      await Promise.all(
-        activeAffiliates.map((affiliate) =>
-          createPartnerAndLinks({
+      const partners = await Promise.all(
+        activeAffiliates.map((affiliate) => {
+          const groupId = campaignIdToGroupMap[affiliate.campaign.id];
+          const group = program.groups.find((group) => group.id === groupId);
+
+          if (!group) {
+            console.error(
+              `Group not found for campaign ${affiliate.campaign.id}`,
+              groupId,
+            );
+            return;
+          }
+
+          return createPartnerAndLinks({
             program,
             affiliate,
             userId,
             defaultGroupAttributes: {
-              groupId: defaultGroup.id,
-              saleRewardId: defaultGroup.saleRewardId,
-              leadRewardId: defaultGroup.leadRewardId,
-              clickRewardId: defaultGroup.clickRewardId,
-              discountId: defaultGroup.discountId,
+              groupId: group.id,
+              saleRewardId: group.saleRewardId,
+              leadRewardId: group.leadRewardId,
+              clickRewardId: group.clickRewardId,
+              discountId: group.discountId,
             },
-          }),
-        ),
+            partnerGroupDefaultLinkId:
+              group.partnerGroupDefaultLinks.length > 0
+                ? group.partnerGroupDefaultLinks[0].id
+                : null,
+          });
+        }),
       );
+
+      const filteredPartners = partners.filter(
+        (p): p is NonNullable<typeof p> => p !== undefined,
+      );
+
+      if (filteredPartners.length > 0) {
+        await redis.hset(
+          `rewardful:affiliates:${program.id}`,
+          Object.fromEntries(
+            filteredPartners.map((p) => [
+              p.rewardfulAffiliateId,
+              p.dubPartnerId,
+            ]),
+          ),
+        );
+      }
     }
 
     if (notImportedAffiliates.length > 0) {
@@ -97,7 +128,7 @@ export async function importPartners(payload: RewardfulImportPayload) {
           ...commonImportLogInputs,
           entity_id: affiliate.id,
           code: "INACTIVE_PARTNER",
-          message: `Partner ${affiliate.email} not imported because it is not active or has no leads.`,
+          message: `Partner ${affiliate.email} not imported because it is not active or has no leads or is not in selected campaignIds (${campaignIds.join(", ")}).`,
         })),
       );
     }
@@ -106,12 +137,11 @@ export async function importPartners(payload: RewardfulImportPayload) {
     processedBatches++;
   }
 
-  const action = hasMore ? "import-partners" : "import-customers";
+  const action = hasMore ? "import-partners" : "import-affiliate-coupons";
 
   await rewardfulImporter.queue({
     ...payload,
     action,
-    ...(action === "import-partners" && groupId && { groupId }),
     page: hasMore ? currentPage : undefined,
   });
 }
@@ -122,6 +152,7 @@ async function createPartnerAndLinks({
   affiliate,
   userId,
   defaultGroupAttributes,
+  partnerGroupDefaultLinkId,
 }: {
   program: Program;
   affiliate: RewardfulAffiliate;
@@ -133,6 +164,7 @@ async function createPartnerAndLinks({
     clickRewardId: string | null;
     discountId: string | null;
   };
+  partnerGroupDefaultLinkId?: string | null;
 }) {
   const partner = await prisma.partner.upsert({
     where: {
@@ -173,22 +205,25 @@ async function createPartnerAndLinks({
     return;
   }
 
-  if (programEnrollment.links.length > 0) {
-    console.log("Partner already has links", partner.id);
-    return;
+  if (programEnrollment.links.length === 0) {
+    await bulkCreateLinks({
+      links: affiliate.links.map((link, idx) => ({
+        domain: program.domain!,
+        key: link.token || nanoid(),
+        url: program.url!,
+        trackConversion: true,
+        programId: program.id,
+        partnerId: partner.id,
+        folderId: program.defaultFolderId,
+        userId,
+        projectId: program.workspaceId,
+        partnerGroupDefaultLinkId: idx === 0 ? partnerGroupDefaultLinkId : null,
+      })),
+    });
   }
 
-  await bulkCreateLinks({
-    links: affiliate.links.map((link) => ({
-      domain: program.domain!,
-      key: link.token || nanoid(),
-      url: program.url!,
-      trackConversion: true,
-      programId: program.id,
-      partnerId: partner.id,
-      folderId: program.defaultFolderId,
-      userId,
-      projectId: program.workspaceId,
-    })),
-  });
+  return {
+    rewardfulAffiliateId: affiliate.id,
+    dubPartnerId: partner.id,
+  };
 }

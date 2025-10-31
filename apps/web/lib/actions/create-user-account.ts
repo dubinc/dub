@@ -21,7 +21,7 @@ const OTP_LOCKOUT_DURATION = "24 h"; // Block for 24 hours
 // Sign up a new user using email and password
 export const createUserAccountAction = actionClient
   .schema(schema, {
-    handleValidationErrorsShape: (ve) =>
+    handleValidationErrorsShape: async (ve) =>
       flattenValidationErrors(ve).fieldErrors,
   })
   .use(throwIfAuthenticated)

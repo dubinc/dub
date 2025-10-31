@@ -3,6 +3,9 @@ import {
   CommissionStatus,
   CommissionType,
   EventType,
+  Link,
+  Partner,
+  ProgramEnrollment,
   WorkflowTrigger,
 } from "@dub/prisma/client";
 import { currencyFormatter, log } from "@dub/utils";
@@ -21,6 +24,37 @@ import { sendWorkspaceWebhook } from "../webhook/publish";
 import { CommissionWebhookSchema } from "../zod/schemas/commissions";
 import { aggregatePartnerLinksStats } from "./aggregate-partner-links-stats";
 import { determinePartnerReward } from "./determine-partner-reward";
+import { getRewardAmount } from "./get-reward-amount";
+
+export type CreatePartnerCommissionProps = {
+  event: CommissionType;
+  partnerId: string;
+  programId: string;
+  linkId?: string;
+  customerId?: string;
+  eventId?: string;
+  invoiceId?: string | null;
+  amount?: number;
+  quantity: number;
+  currency?: string;
+  description?: string | null;
+  createdAt?: Date;
+  user?: Session["user"]; // user who created the manual commission
+  context?: RewardContext;
+  skipWorkflow?: boolean;
+};
+
+const constructWebhookPartner = (
+  programEnrollment: ProgramEnrollment & { partner: Partner; links: Link[] },
+  { totalCommissions }: { totalCommissions: number } = { totalCommissions: 0 },
+) => {
+  return {
+    ...programEnrollment.partner,
+    groupId: programEnrollment.groupId,
+    ...aggregatePartnerLinksStats(programEnrollment.links),
+    totalCommissions: totalCommissions || programEnrollment.totalCommissions,
+  };
+};
 
 export const createPartnerCommission = async ({
   event,
@@ -38,23 +72,7 @@ export const createPartnerCommission = async ({
   user,
   context,
   skipWorkflow = false,
-}: {
-  event: CommissionType;
-  partnerId: string;
-  programId: string;
-  linkId?: string;
-  customerId?: string;
-  eventId?: string;
-  invoiceId?: string | null;
-  amount?: number;
-  quantity: number;
-  currency?: string;
-  description?: string | null;
-  createdAt?: Date;
-  user?: Session["user"]; // user who created the manual commission
-  context?: RewardContext;
-  skipWorkflow?: boolean;
-}) => {
+}: CreatePartnerCommissionProps) => {
   let earnings = 0;
   let reward: RewardProps | null = null;
   let status: CommissionStatus = "pending";
@@ -62,10 +80,13 @@ export const createPartnerCommission = async ({
   const programEnrollment = await getProgramEnrollmentOrThrow({
     partnerId,
     programId,
-    ...(event === "click" && { includeClickReward: true }),
-    ...(event === "lead" && { includeLeadReward: true }),
-    ...(event === "sale" && { includeSaleReward: true }),
-    includePartner: true,
+    include: {
+      links: true,
+      partner: true,
+      ...(event === "click" && { clickReward: true }),
+      ...(event === "lead" && { leadReward: true }),
+      ...(event === "sale" && { saleReward: true }),
+    },
   });
 
   if (event === "custom") {
@@ -83,12 +104,15 @@ export const createPartnerCommission = async ({
       console.log(
         `Partner ${partnerId} has no reward for ${event} event, skipping commission creation...`,
       );
-      return;
+      return {
+        commission: null,
+        webhookPartner: constructWebhookPartner(programEnrollment),
+      };
     }
 
     // for click events, it's super simple – just multiply the reward amount by the quantity
     if (event === "click") {
-      earnings = reward.amount * quantity;
+      earnings = getRewardAmount(reward) * quantity;
 
       // for lead and sale events, we need to check if this partner-customer combination was recorded already (for deduplication)
       // for sale rewards specifically, we also need to check:
@@ -117,7 +141,11 @@ export const createPartnerCommission = async ({
           console.log(
             `Partner ${partnerId} has already been issued a lead reward for this customer ${customerId}, skipping commission creation...`,
           );
-          return;
+
+          return {
+            commission: null,
+            webhookPartner: constructWebhookPartner(programEnrollment),
+          };
 
           // for sale rewards, we need to check if partner's reward was updated and different from the first commission's reward
           // we need to make sure it wasn't changed from one-time to recurring so we don't create a new commission
@@ -143,7 +171,10 @@ export const createPartnerCommission = async ({
               console.log(
                 `Partner ${partnerId} is only eligible for first-sale commissions based on the original reward ${originalReward.id}, skipping commission creation...`,
               );
-              return;
+              return {
+                commission: null,
+                webhookPartner: constructWebhookPartner(programEnrollment),
+              };
             }
           }
 
@@ -155,7 +186,10 @@ export const createPartnerCommission = async ({
               console.log(
                 `Partner ${partnerId} is only eligible for first-sale commissions, skipping commission creation...`,
               );
-              return;
+              return {
+                commission: null,
+                webhookPartner: constructWebhookPartner(programEnrollment),
+              };
             }
 
             // Recurring sale reward (maxDuration > 0)
@@ -169,7 +203,10 @@ export const createPartnerCommission = async ({
                 console.log(
                   `Partner ${partnerId} has reached max duration for ${event} event, skipping commission creation...`,
                 );
-                return;
+                return {
+                  commission: null,
+                  webhookPartner: constructWebhookPartner(programEnrollment),
+                };
               }
             }
           }
@@ -186,7 +223,7 @@ export const createPartnerCommission = async ({
 
       // for lead events, we just multiply the reward amount by the quantity
       if (event === "lead") {
-        earnings = reward.amount * quantity;
+        earnings = getRewardAmount(reward) * quantity;
         // for sale events, we need to calculate the earnings based on the sale amount
       } else {
         earnings = calculateSaleEarnings({
@@ -206,8 +243,8 @@ export const createPartnerCommission = async ({
         rewardId: reward?.id,
         customerId,
         linkId,
-        eventId,
-        invoiceId,
+        eventId: eventId || null, // empty string should convert to null
+        invoiceId: invoiceId || null, // empty string should convert to null
         userId: user?.id,
         quantity,
         amount,
@@ -224,8 +261,14 @@ export const createPartnerCommission = async ({
     });
 
     console.log(
-      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings)}) for ${partnerId}: ${JSON.stringify(commission)}`,
+      `Created a ${event} commission ${commission.id} (${currencyFormatter(commission.earnings / 100, { currency: commission.currency })}) for ${partnerId}: ${JSON.stringify(commission)}`,
     );
+
+    const webhookPartner = constructWebhookPartner(programEnrollment, {
+      // check links metrics
+      totalCommissions:
+        programEnrollment.totalCommissions + commission.earnings,
+    });
 
     waitUntil(
       (async () => {
@@ -239,6 +282,7 @@ export const createPartnerCommission = async ({
             slug: true,
             logo: true,
             holdingPeriodDays: true,
+            supportEmail: true,
             workspace: {
               select: {
                 id: true,
@@ -255,24 +299,19 @@ export const createPartnerCommission = async ({
         const isClawback = earnings < 0;
         const shouldTriggerWorkflow = !isClawback && !skipWorkflow;
 
-        // Make sure totalCommissions is up to date before firing the webhook & executing workflows
-        const { totalCommissions } = await syncTotalCommissions({
-          partnerId,
-          programId,
-        });
-
         await Promise.allSettled([
           sendWorkspaceWebhook({
             workspace,
             trigger: "commission.created",
             data: CommissionWebhookSchema.parse({
               ...commission,
-              partner: {
-                ...programEnrollment.partner,
-                ...aggregatePartnerLinksStats(programEnrollment.links),
-                totalCommissions,
-              },
+              partner: webhookPartner,
             }),
+          }),
+
+          syncTotalCommissions({
+            partnerId,
+            programId,
           }),
 
           !isClawback &&
@@ -304,14 +343,22 @@ export const createPartnerCommission = async ({
           shouldTriggerWorkflow &&
             executeWorkflows({
               trigger: WorkflowTrigger.commissionEarned,
-              programId,
-              partnerId,
+              context: {
+                programId,
+                partnerId,
+                current: {
+                  commissions: commission.earnings,
+                },
+              },
             }),
         ]);
       })(),
     );
 
-    return commission;
+    return {
+      commission,
+      webhookPartner,
+    };
   } catch (error) {
     console.error("Error creating commission", error);
 
@@ -321,6 +368,9 @@ export const createPartnerCommission = async ({
       mention: true,
     });
 
-    return;
+    return {
+      commission: null,
+      webhookPartner: constructWebhookPartner(programEnrollment),
+    };
   }
 };

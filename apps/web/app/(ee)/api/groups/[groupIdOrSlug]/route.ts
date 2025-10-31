@@ -1,4 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { isDiscountEquivalent } from "@/lib/api/discounts/is-discount-equivalent";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { DubApiError } from "@/lib/api/errors";
 import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -6,6 +8,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { GroupWithProgramSchema } from "@/lib/zod/schemas/group-with-program";
 import {
   DEFAULT_PARTNER_GROUP,
   GroupSchema,
@@ -13,7 +16,7 @@ import {
 } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, constructURLFromUTMParams } from "@dub/utils";
-import { Prisma } from "@prisma/client";
+import { DiscountCode } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -28,7 +31,7 @@ export const GET = withWorkspace(
       includeExpandedFields: true,
     });
 
-    return NextResponse.json(GroupSchema.parse(group));
+    return NextResponse.json(GroupWithProgramSchema.parse(group));
   },
   {
     requiredPermissions: ["groups.read"],
@@ -61,6 +64,8 @@ export const PATCH = withWorkspace(
       additionalLinks,
       utmTemplateId,
       linkStructure,
+      applicationFormData,
+      landerData,
     } = updateGroupSchema.parse(await parseRequestBody(req));
 
     // Only check slug uniqueness if slug is being updated
@@ -89,6 +94,22 @@ export const PATCH = withWorkspace(
       }
     }
 
+    if (additionalLinks) {
+      // check for duplicate link formats
+      const linkFormatDomains = additionalLinks.reduce((acc, link) => {
+        acc.add(link.domain);
+        return acc;
+      }, new Set<string>());
+
+      if (linkFormatDomains.size !== additionalLinks.length) {
+        throw new DubApiError({
+          code: "bad_request",
+          message:
+            "Duplicate link formats found. Please make sure all link formats have unique domains.",
+        });
+      }
+    }
+
     // Find the UTM template
     const utmTemplate = utmTemplateId
       ? await prisma.utmTemplate.findUniqueOrThrow({
@@ -99,20 +120,6 @@ export const PATCH = withWorkspace(
         })
       : null;
 
-    // Deduplicate additionalLinks by domain, keeping the first occurrence
-    const deduplicatedAdditionalLinks = additionalLinks
-      ? additionalLinks.filter(
-          (link, index, array) =>
-            array.findIndex((l) => l.domain === link.domain) === index,
-        )
-      : additionalLinks;
-
-    const additionalLinksInput = deduplicatedAdditionalLinks
-      ? deduplicatedAdditionalLinks.length > 0
-        ? deduplicatedAdditionalLinks
-        : Prisma.DbNull
-      : undefined;
-
     const updatedGroup = await prisma.partnerGroup.update({
       where: {
         id: group.id,
@@ -121,10 +128,12 @@ export const PATCH = withWorkspace(
         name,
         slug,
         color,
-        ...(additionalLinksInput && { additionalLinks: additionalLinksInput }),
+        additionalLinks,
         maxPartnerLinks,
-        utmTemplateId,
         linkStructure,
+        utmTemplateId,
+        applicationFormData,
+        landerData,
       },
       include: {
         clickReward: true,
@@ -227,14 +236,19 @@ export const DELETE = withWorkspace(
         },
         include: {
           partners: true,
+          discount: true,
         },
       }),
+
       prisma.partnerGroup.findUniqueOrThrow({
         where: {
           programId_slug: {
             programId,
             slug: DEFAULT_PARTNER_GROUP.slug,
           },
+        },
+        include: {
+          discount: true,
         },
       }),
     ]);
@@ -245,7 +259,23 @@ export const DELETE = withWorkspace(
         message: "You cannot delete the default group of your program.",
       });
     }
-    await prisma.$transaction(async (tx) => {
+
+    const keepDiscountCodes = isDiscountEquivalent(
+      group.discount,
+      defaultGroup.discount,
+    );
+
+    // Cache discount codes to delete them later
+    let discountCodesToDelete: DiscountCode[] = [];
+    if (group.discountId && !keepDiscountCodes) {
+      discountCodesToDelete = await prisma.discountCode.findMany({
+        where: {
+          discountId: group.discountId,
+        },
+      });
+    }
+
+    const deletedGroup = await prisma.$transaction(async (tx) => {
       // 1. Update all partners in the group to the default group
       await tx.programEnrollment.updateMany({
         where: {
@@ -275,8 +305,18 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 3. Delete the group's discount
       if (group.discountId) {
+        // 3. Update the discount codes
+        await tx.discountCode.updateMany({
+          where: {
+            discountId: group.discountId,
+          },
+          data: {
+            discountId: keepDiscountCodes ? defaultGroup.discountId : null,
+          },
+        });
+
+        // 4. Delete the group's discount
         await tx.discount.delete({
           where: {
             id: group.discountId,
@@ -284,43 +324,54 @@ export const DELETE = withWorkspace(
         });
       }
 
-      // 4. Delete the group
+      // 5. Delete the group
       await tx.partnerGroup.delete({
         where: {
           id: group.id,
         },
       });
+
+      return true;
     });
 
-    waitUntil(
-      Promise.allSettled([
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
-          body: {
-            programId,
-            groupId: defaultGroup.id,
-            partnerIds: group.partners.map(({ partnerId }) => partnerId),
-            userId: session.user.id,
-            isGroupDeleted: true,
-          },
-        }),
+    const partnerIds = group.partners.map(({ partnerId }) => partnerId);
 
-        recordAuditLog({
-          workspaceId: workspace.id,
-          programId,
-          action: "group.deleted",
-          description: `Group ${group.name} (${group.id}) deleted`,
-          actor: session.user,
-          targets: [
-            {
-              type: "group",
-              id: group.id,
-              metadata: group,
-            },
-          ],
-        }),
-      ]),
-    );
+    if (deletedGroup) {
+      waitUntil(
+        Promise.allSettled([
+          partnerIds.length > 0 &&
+            qstash.publishJSON({
+              url: `${APP_DOMAIN_WITH_NGROK}/api/cron/groups/remap-default-links`,
+              body: {
+                programId,
+                groupId: defaultGroup.id,
+                partnerIds,
+                userId: session.user.id,
+                isGroupDeleted: true,
+              },
+            }),
+
+          ...discountCodesToDelete.map((discountCode) =>
+            queueDiscountCodeDeletion(discountCode.id),
+          ),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "group.deleted",
+            description: `Group ${group.name} (${group.id}) deleted`,
+            actor: session.user,
+            targets: [
+              {
+                type: "group",
+                id: group.id,
+                metadata: group,
+              },
+            ],
+          }),
+        ]),
+      );
+    }
 
     return NextResponse.json({ id: group.id });
   },

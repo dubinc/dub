@@ -6,6 +6,7 @@ import {
   SubmissionsCountByStatus,
   useBountySubmissionsCount,
 } from "@/lib/swr/use-bounty-submissions-count";
+import { usePartnersCountBounty } from "@/lib/swr/use-partners-count-bounty";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { formatDate, nFormatter, pluralize } from "@dub/utils";
 import { CalendarDays, Gift, Users } from "lucide-react";
@@ -22,8 +23,17 @@ export function BountyInfo() {
   });
 
   const totalSubmissions = useMemo(() => {
-    return submissionsCount?.reduce((acc, curr) => acc + curr.count, 0);
+    return submissionsCount
+      ?.filter((s) => s.status === "submitted" || s.status === "approved")
+      ?.reduce((acc, curr) => acc + curr.count, 0);
   }, [submissionsCount]);
+
+  const readyForReviewSubmissions = useMemo(() => {
+    return submissionsCount?.find((s) => s.status === "submitted")?.count ?? 0;
+  }, [submissionsCount]);
+
+  const { totalPartnersForBounty, loading: totalPartnersForBountyLoading } =
+    usePartnersCountBounty({ bounty });
 
   if (loading) {
     return <BountyInfoSkeleton />;
@@ -65,18 +75,39 @@ export function BountyInfo() {
         <div className="flex items-center space-x-2">
           <Users className="size-4 shrink-0" />
           <div className="text-sm text-neutral-500">
-            {totalSubmissions === undefined ? (
-              <div className="h-5 w-32 animate-pulse rounded bg-neutral-200" />
+            {totalSubmissions === totalPartnersForBounty ? (
+              <>All</>
             ) : (
-              <span className="font-medium text-neutral-700">
-                {nFormatter(totalSubmissions, { full: true })}
-              </span>
+              <>
+                <span className="font-medium text-neutral-700">
+                  {nFormatter(totalSubmissions ?? 0, {
+                    full: true,
+                  })}
+                </span>{" "}
+                of
+              </>
             )}{" "}
-            of{" "}
-            <span className="font-medium text-neutral-700">
-              {nFormatter(bounty.partnersCount, { full: true })}
-            </span>{" "}
-            {pluralize("partner", bounty.partnersCount ?? 0)} completed
+            {totalPartnersForBountyLoading ? (
+              <span className="inline-block h-4 w-8 animate-pulse rounded bg-neutral-200 align-middle" />
+            ) : (
+              <>
+                <span className="font-medium text-neutral-700">
+                  {nFormatter(totalPartnersForBounty, { full: true })}
+                </span>
+              </>
+            )}{" "}
+            {pluralize("partner", totalSubmissions ?? totalPartnersForBounty)}{" "}
+            {bounty.type === "performance" ? "completed" : "submitted"}
+            {readyForReviewSubmissions > 0 && (
+              <>
+                {" "}
+                (
+                <span className="font-medium text-neutral-700">
+                  {nFormatter(readyForReviewSubmissions, { full: true })}
+                </span>{" "}
+                awaiting review)
+              </>
+            )}
           </div>
         </div>
       </div>

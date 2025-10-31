@@ -137,7 +137,7 @@ export async function POST(req: Request) {
       const sentEmail = await sendEmail({
         variant: "notifications",
         subject: "Your funds are on their way to your bank",
-        email: partner.email,
+        to: partner.email,
         react: PartnerPayoutWithdrawalInitiated({
           email: partner.email,
           payout: {
@@ -146,6 +146,9 @@ export async function POST(req: Request) {
             arrivalDate: stripePayout.arrival_date,
           },
         }),
+        headers: {
+          "Idempotency-Key": `payout-initiated-${stripePayout.id}`,
+        },
       });
 
       console.log(

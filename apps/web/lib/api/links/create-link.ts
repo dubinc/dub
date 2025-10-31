@@ -157,9 +157,13 @@ export async function createLink(link: ProcessedLinkProps) {
       ...(proxy && image && isNotHostedImage(image)
         ? [
             // upload image to R2
-            storage.upload(`images/${response.id}`, image, {
-              width: 1200,
-              height: 630,
+            storage.upload({
+              key: `images/${response.id}`,
+              body: image,
+              opts: {
+                width: 1200,
+                height: 630,
+              },
             }),
             // update the null image we set earlier to the uploaded image URL
             prisma.link.update({

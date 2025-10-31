@@ -19,12 +19,14 @@ export const markProgramMessagesReadAction = authPartnerActionClient
     const { partnerId, programId } = await getProgramEnrollmentOrThrow({
       programId: programSlug,
       partnerId: partner.id,
+      include: {},
     });
 
     await prisma.message.updateMany({
       where: {
         partnerId,
         programId,
+        readInApp: null,
         senderPartnerId: null,
       },
       data: {

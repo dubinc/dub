@@ -21,7 +21,7 @@ import {
   Wordmark,
 } from "@dub/ui";
 import { cn, getPrettyUrl } from "@dub/utils";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "motion/react";
 import { useEffect, useMemo, useState } from "react";
 import { ReferralsEmbedActivity } from "./activity";
 import { ReferralsEmbedEarnings } from "./earnings";

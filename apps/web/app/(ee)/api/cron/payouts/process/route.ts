@@ -4,7 +4,7 @@ import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
-import z from "zod";
+import { z } from "zod";
 import { processPayouts } from "./process-payouts";
 import { splitPayouts } from "./split-payouts";
 
@@ -16,6 +16,7 @@ const processPayoutsCronSchema = z.object({
   invoiceId: z.string(),
   paymentMethodId: z.string(),
   cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutId: z.string().optional(),
   excludedPayoutIds: z.array(z.string()).optional(),
 });
 
@@ -34,6 +35,7 @@ export async function POST(req: Request) {
       invoiceId,
       paymentMethodId,
       cutoffPeriod,
+      selectedPayoutId,
       excludedPayoutIds,
     } = processPayoutsCronSchema.parse(JSON.parse(rawBody));
 
@@ -53,6 +55,7 @@ export async function POST(req: Request) {
       await splitPayouts({
         program,
         cutoffPeriod,
+        selectedPayoutId,
         excludedPayoutIds,
       });
     }
@@ -64,6 +67,7 @@ export async function POST(req: Request) {
       invoiceId,
       paymentMethodId,
       cutoffPeriod,
+      selectedPayoutId,
       excludedPayoutIds,
     });
 

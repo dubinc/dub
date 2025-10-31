@@ -78,7 +78,6 @@ export const GET = withWorkspace(
           ...parsedParams,
           workspaceId: workspace.id,
           ...(link && { linkId: link.id }),
-          event: "clicks",
           groupBy: endpoint,
           folderIds,
           folderId: folderId || "",

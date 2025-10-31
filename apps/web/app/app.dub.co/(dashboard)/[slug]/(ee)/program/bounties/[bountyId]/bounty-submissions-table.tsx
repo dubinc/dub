@@ -1,11 +1,15 @@
 "use client";
 
+import { PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES } from "@/lib/api/bounties/performance-bounty-scope-attributes";
 import { isCurrencyAttribute } from "@/lib/api/workflows/utils";
 import useBounty from "@/lib/swr/use-bounty";
+import {
+  SubmissionsCountByStatus,
+  useBountySubmissionsCount,
+} from "@/lib/swr/use-bounty-submissions-count";
 import useGroups from "@/lib/swr/use-groups";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountySubmissionProps } from "@/lib/types";
-import { WORKFLOW_ATTRIBUTE_LABELS } from "@/lib/zod/schemas/workflows";
 import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -16,6 +20,7 @@ import {
   ProgressCircle,
   StatusBadge,
   Table,
+  TimestampTooltip,
   usePagination,
   useRouterStuff,
   useTable,
@@ -33,15 +38,9 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import useSWR from "swr";
 import { BountySubmissionDetailsSheet } from "./bounty-submission-details-sheet";
+import { BountySubmissionRowMenu } from "./bounty-submission-row-menu";
 import { BOUNTY_SUBMISSION_STATUS_BADGES } from "./bounty-submission-status-badges";
 import { useBountySubmissionFilters } from "./use-bounty-submission-filters";
-
-const PERFORMANCE_ATTRIBUTE_TO_SORTABLE_COLUMNS = {
-  totalLeads: "leads",
-  totalConversions: "conversions",
-  totalSaleAmount: "saleAmount",
-  totalCommissions: "commissions",
-} as const;
 
 export function BountySubmissionsTable() {
   const { bounty, loading: isBountyLoading } = useBounty();
@@ -53,16 +52,14 @@ export function BountySubmissionsTable() {
 
   // Decide the columns to show based on the bounty type
   const showColumns = useMemo(() => {
-    const columns = ["partner", "group", "createdAt"];
+    const columns = ["partner", "group", "status", "completedAt", "reviewedAt"];
 
     if (!bounty) {
       return columns;
     }
 
-    if (bounty.type === "submission") {
-      columns.push(...["status", "reviewedAt"]);
-    } else if (bounty.type === "performance") {
-      columns.push(...["performanceMetrics"]);
+    if (bounty.type === "performance") {
+      columns.push("performanceMetrics");
     }
 
     return columns;
@@ -71,19 +68,15 @@ export function BountySubmissionsTable() {
   // Performance based bounty columns
   const performanceCondition = bounty?.performanceCondition;
 
-  const metricColumnId = performanceCondition?.attribute
-    ? PERFORMANCE_ATTRIBUTE_TO_SORTABLE_COLUMNS[performanceCondition.attribute]
-    : "leads";
-
   const metricColumnLabel = performanceCondition?.attribute
-    ? WORKFLOW_ATTRIBUTE_LABELS[performanceCondition.attribute]
+    ? PERFORMANCE_BOUNTY_SCOPE_ATTRIBUTES[performanceCondition.attribute]
     : "Progress";
 
-  const sortBy =
-    searchParams.get("sortBy") || bounty?.type === "performance"
-      ? metricColumnId
-      : "createdAt";
-  const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
+  const sortBy = searchParams.get("sortBy") || "completedAt";
+  const sortOrder = searchParams.get("sortOrder") === "desc" ? "desc" : "asc";
+
+  const { submissionsCount } =
+    useBountySubmissionsCount<SubmissionsCountByStatus[]>();
 
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     useBountySubmissionFilters({ bounty });
@@ -94,10 +87,14 @@ export function BountySubmissionsTable() {
     data: submissions,
   } = useSWR<BountySubmissionProps[]>(
     workspaceId && bountyId
-      ? `/api/bounties/${bountyId}/submissions${getQueryString({
-          workspaceId,
-          sortBy,
-        })}`
+      ? `/api/bounties/${bountyId}/submissions${getQueryString(
+          {
+            workspaceId,
+            sortBy,
+            sortOrder,
+          },
+          { exclude: ["submissionId"] },
+        )}`
       : null,
     fetcher,
     {
@@ -119,14 +116,39 @@ export function BountySubmissionsTable() {
       setDetailsSheetState({ open: false, submission: null });
     }
 
-    const submission = submissions?.find(
-      (s) => s.submission?.id === submissionId,
-    );
+    const submission = submissions?.find((s) => s.id === submissionId);
 
-    if (submission?.submission) {
+    if (submission) {
       setDetailsSheetState({ open: true, submission });
     }
   }, [searchParams, submissions]);
+
+  // Navigation functions for the details sheet
+  const [previousSubmissionId, nextSubmissionId] = useMemo(() => {
+    if (!submissions || !detailsSheetState.submission) return [null, null];
+
+    const currentIndex = submissions.findIndex(
+      (s) => s.id === detailsSheetState.submission!.id,
+    );
+
+    // if the current submission is not found, return the current details sheet submission id
+    // and the first submission id as the previous and next submission ids
+    if (currentIndex === -1) return [null, submissions[0].id];
+
+    return [
+      currentIndex > 0 ? submissions[currentIndex - 1].id : null,
+      currentIndex < submissions.length - 1
+        ? submissions[currentIndex + 1].id
+        : null,
+    ];
+  }, [submissions, detailsSheetState.submission]);
+
+  const onNext = nextSubmissionId
+    ? () => queryParams({ set: { submissionId: nextSubmissionId } })
+    : undefined;
+  const onPrevious = previousSubmissionId
+    ? () => queryParams({ set: { submissionId: previousSubmissionId } })
+    : undefined;
 
   const columns = useMemo(
     () => [
@@ -165,10 +187,8 @@ export function BountySubmissionsTable() {
               id: "status",
               header: "Status",
               cell: ({ row }) => {
-                const badge = row.original.submission
-                  ? BOUNTY_SUBMISSION_STATUS_BADGES[
-                      row.original.submission.status
-                    ]
+                const badge = row.original
+                  ? BOUNTY_SUBMISSION_STATUS_BADGES[row.original.status]
                   : null;
 
                 return badge ? (
@@ -183,50 +203,55 @@ export function BountySubmissionsTable() {
           ]
         : []),
 
-      {
-        id: "createdAt",
-        header: bounty?.type === "submission" ? "Submitted" : "Completed",
-        accessorFn: (d) =>
-          d.submission
-            ? formatDate(d.submission.createdAt, { month: "short" })
-            : "-",
-      },
+      ...(showColumns.includes("completedAt")
+        ? [
+            {
+              id: "completedAt",
+              header:
+                bounty?.type === "performance" ? "Completed" : "Submitted",
+              cell: ({ row }) => {
+                if (!row.original.completedAt) return "-";
 
-      // TODO: fix this
+                return (
+                  <TimestampTooltip
+                    timestamp={row.original.completedAt}
+                    side="left"
+                    delayDuration={150}
+                  >
+                    <span>
+                      {formatDate(row.original.completedAt, { month: "short" })}
+                    </span>
+                  </TimestampTooltip>
+                );
+              },
+            },
+          ]
+        : []),
+
       ...(showColumns.includes("performanceMetrics")
         ? [
             {
-              id: metricColumnId,
+              id: "performanceCount",
               header: capitalize(metricColumnLabel)!,
               cell: ({ row }: { row: Row<BountySubmissionProps> }) => {
                 if (!performanceCondition) {
                   return "-";
                 }
 
+                const value = row.original.performanceCount ?? 0;
                 const attribute = performanceCondition.attribute;
                 const target = performanceCondition.value;
-                let value: number | undefined = undefined;
-
-                if (attribute === "totalLeads") {
-                  value = row.original.partner.leads;
-                } else if (attribute === "totalConversions") {
-                  value = row.original.partner.conversions;
-                } else if (attribute === "totalSaleAmount") {
-                  value = row.original.partner.saleAmount;
-                } else if (attribute === "totalCommissions") {
-                  value = row.original.partner.totalCommissions;
-                }
-
-                if (value === undefined) {
-                  return "-";
-                }
 
                 const formattedValue = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(value / 100)
+                  ? currencyFormatter(value / 100, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
                   : nFormatter(value, { full: true });
 
                 const formattedTarget = isCurrencyAttribute(attribute)
-                  ? currencyFormatter(target / 100)
+                  ? currencyFormatter(target / 100, {
+                      trailingZeroDisplay: "stripIfInteger",
+                    })
                   : nFormatter(target, { full: true });
 
                 return (
@@ -248,12 +273,12 @@ export function BountySubmissionsTable() {
               id: "reviewedAt",
               header: "Reviewed",
               cell: ({ row }) => {
-                return row.original.submission?.reviewedAt ? (
+                return row.original.reviewedAt ? (
                   <UserRowItem
                     user={row.original.user!}
-                    date={row.original.submission?.reviewedAt}
+                    date={row.original.reviewedAt}
                     label={
-                      row.original.submission?.status === "approved"
+                      row.original.status === "approved"
                         ? "Approved at"
                         : "Rejected at"
                     }
@@ -265,12 +290,21 @@ export function BountySubmissionsTable() {
             },
           ]
         : []),
+
+      // Menu
+      {
+        id: "menu",
+        enableHiding: false,
+        minSize: 43,
+        size: 43,
+        maxSize: 43,
+        cell: ({ row }) => <BountySubmissionRowMenu row={row} />,
+      },
     ],
     [
       groups,
       bounty,
       showColumns,
-      metricColumnId,
       metricColumnLabel,
       performanceCondition,
       workspaceId,
@@ -280,22 +314,23 @@ export function BountySubmissionsTable() {
   const { table, ...tableProps } = useTable({
     data: submissions || [],
     columns,
+    columnPinning: { right: ["menu"] },
     onRowClick: (row) => {
-      if (!row.original.submission) {
+      if (!row.original.id) {
         return;
       }
 
       queryParams({
         set: {
-          submissionId: row.original.submission.id,
+          submissionId: row.original.id,
         },
         scroll: false,
       });
     },
-    sortableColumns:
-      bounty?.type === "submission"
-        ? ["createdAt"]
-        : ["createdAt", "leads", "conversions", "saleAmount", "commissions"],
+    sortableColumns: [
+      "completedAt",
+      ...(bounty?.type === "performance" ? ["performanceCount"] : []),
+    ],
     sortBy,
     sortOrder,
     onSortChange: ({ sortBy, sortOrder }) =>
@@ -311,12 +346,15 @@ export function BountySubmissionsTable() {
     onPaginationChange: setPagination,
     thClassName: "border-l-0",
     tdClassName: "border-l-0",
-    resourceName: (p) =>
-      `${bounty?.type === "performance" ? "partner" : "submission"}${p ? "s" : ""}`,
-    rowCount:
-      bounty?.type === "performance"
-        ? bounty.partnersCount
-        : submissions?.length || 0,
+    resourceName: (p) => `submission${p ? "s" : ""}`,
+    // if status is not set, we count submitted and approved submissions
+    // else, we count the submissions for the status
+    rowCount: searchParams.get("status")
+      ? submissionsCount?.find((s) => s.status === searchParams.get("status"))
+          ?.count || 0
+      : submissionsCount
+          ?.filter((s) => s.status === "submitted" || s.status === "approved")
+          .reduce((acc, curr) => acc + curr.count, 0) || 0,
     loading: isLoading || isBountyLoading,
     error: error ? "Failed to load bounty submissions" : undefined,
   });
@@ -330,6 +368,8 @@ export function BountySubmissionsTable() {
             setDetailsSheetState((s) => ({ ...s, open }) as any)
           }
           submission={detailsSheetState.submission}
+          onNext={onNext}
+          onPrevious={onPrevious}
         />
       )}
 
@@ -357,6 +397,7 @@ export function BountySubmissionsTable() {
                       },
                     ]}
                     activeFilters={activeFilters}
+                    onSelect={onSelect}
                     onRemove={onRemove}
                     onRemoveAll={onRemoveAll}
                   />

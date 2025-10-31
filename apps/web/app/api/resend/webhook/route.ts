@@ -1,16 +1,19 @@
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { contactUpdated } from "./contact-updated";
+import { emailBounced } from "./email-bounced";
+import { emailDelivered } from "./email-delivered";
 import { emailOpened } from "./email-opened";
+
+const webhookSecret = process.env.RESEND_WEBHOOK_SECRET!;
 
 // POST /api/resend/webhook – listen to Resend webhooks
 export const POST = async (req: Request) => {
   const rawBody = await req.text();
-  const secret = process.env.RESEND_WEBHOOK_SECRET!;
+  const webhook = new Webhook(webhookSecret);
 
-  const wh = new Webhook(secret);
   // Throws on error, returns the verified content on success
-  wh.verify(rawBody, {
+  webhook.verify(rawBody, {
     "svix-id": req.headers.get("svix-id")!,
     "svix-timestamp": req.headers.get("svix-timestamp")!,
     "svix-signature": req.headers.get("svix-signature")!,
@@ -24,6 +27,12 @@ export const POST = async (req: Request) => {
       break;
     case "email.opened":
       await emailOpened(data);
+      break;
+    case "email.delivered":
+      await emailDelivered(data);
+      break;
+    case "email.bounced":
+      await emailBounced(data);
       break;
   }
 

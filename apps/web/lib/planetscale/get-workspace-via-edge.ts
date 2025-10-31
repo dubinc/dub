@@ -1,4 +1,4 @@
-import { normalizeWorkspaceId } from "../api/workspace-id";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { WorkspaceProps } from "../types";
 import { conn } from "./connection";
 

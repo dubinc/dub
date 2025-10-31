@@ -3,96 +3,111 @@ import { PartnerBountyProps } from "@/lib/types";
 import { BountyPerformance } from "@/ui/partners/bounties/bounty-performance";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
 import { useClaimBountyModal } from "@/ui/partners/bounties/claim-bounty-modal";
-import { StatusBadge } from "@dub/ui";
+import {
+  DynamicTooltipWrapper,
+  StatusBadge,
+  TimestampTooltip,
+  TooltipContent,
+} from "@dub/ui";
 import { Calendar6, Gift } from "@dub/ui/icons";
-import { formatDate } from "@dub/utils";
+import { cn, formatDate, formatDateTimeSmart } from "@dub/utils";
+import { useParams } from "next/navigation";
 
 export function PartnerBountyCard({ bounty }: { bounty: PartnerBountyProps }) {
-  const { submission } = bounty;
-
+  const { programSlug } = useParams();
   const { claimBountyModal, setShowClaimBountyModal } = useClaimBountyModal({
     bounty,
-    submission,
   });
+
+  const expiredBounty =
+    bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
 
   return (
     <>
       {claimBountyModal}
-      <button
-        type="button"
-        onClick={() => setShowClaimBountyModal(true)}
-        className="border-border-subtle hover:border-border-default group relative flex cursor-pointer flex-col gap-5 overflow-hidden rounded-xl border bg-white p-5 text-left transition-all hover:shadow-lg"
+      <DynamicTooltipWrapper
+        tooltipProps={
+          expiredBounty
+            ? {
+                content: (
+                  <TooltipContent
+                    title={`This bounty is no longer eligible for submission since it ended on ${formatDate(bounty.endsAt!, { month: "short" })}`}
+                    cta="Contact program"
+                    href={`/messages/${programSlug}`}
+                  />
+                ),
+              }
+            : undefined
+        }
       >
-        <div className="relative flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
-          <div className="relative size-full">
-            <BountyThumbnailImage bounty={bounty} />
+        <button
+          type="button"
+          onClick={() => setShowClaimBountyModal(true)}
+          disabled={expiredBounty}
+          className={cn(
+            "border-border-subtle group relative flex w-full cursor-pointer flex-col gap-5 overflow-hidden rounded-xl border bg-white p-5 text-left",
+            expiredBounty
+              ? "cursor-not-allowed"
+              : "hover:border-border-default transition-all hover:shadow-lg",
+          )}
+        >
+          <div className="relative flex h-[132px] items-center justify-center rounded-lg bg-neutral-100 py-1.5">
+            <div className="relative size-full">
+              <BountyThumbnailImage bounty={bounty} />
+            </div>
+
+            {expiredBounty && (
+              <div className="absolute left-2 top-2 z-10">
+                <div className="flex h-5 items-center gap-1 rounded-md bg-red-100 px-2 py-1 text-xs font-semibold text-red-600">
+                  Expired {formatDate(bounty.endsAt!, { month: "short" })}
+                </div>
+              </div>
+            )}
           </div>
-        </div>
 
-        <div className="flex min-w-0 flex-col gap-1.5">
-          <h3 className="text-content-emphasis truncate text-sm font-semibold">
-            {bounty.name}
-          </h3>
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <h3 className="text-content-emphasis truncate text-sm font-semibold">
+              {bounty.name}
+            </h3>
 
-          <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-            <Calendar6 className="size-3.5" />
-            <span>
-              {bounty.endsAt ? (
-                <>Ends {formatDate(bounty.endsAt, { month: "short" })}</>
-              ) : (
-                "No end date"
-              )}
-            </span>
-          </div>
-
-          <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
-            <Gift className="size-3.5 shrink-0" />
-            <span className="truncate">
-              {getBountyRewardDescription(bounty)}
-            </span>
-          </div>
-        </div>
-
-        <div className="flex grow flex-col justify-end">
-          {submission ? (
-            submission.status === "pending" ? (
-              <StatusBadge variant="pending" icon={null}>
-                Submitted{" "}
-                {submission.createdAt &&
-                  formatDate(submission.createdAt, { month: "short" })}
-              </StatusBadge>
-            ) : submission.status === "rejected" ? (
-              <StatusBadge variant="error" icon={null}>
-                Rejected
-              </StatusBadge>
-            ) : (
-              <StatusBadge variant="success">
-                {bounty.type === "performance" ? (
+            <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+              <Calendar6 className="size-3.5" />
+              <span>
+                {bounty.endsAt ? (
                   <>
-                    Completed{" "}
-                    {formatDate(submission.createdAt, { month: "short" })}
+                    {expiredBounty ? "Ended" : "Ends"} at{" "}
+                    <TimestampTooltip
+                      timestamp={bounty.endsAt}
+                      side="right"
+                      rows={["local", "utc"]}
+                    >
+                      <span className="hover:text-content-emphasis underline decoration-dotted underline-offset-2">
+                        {formatDateTimeSmart(bounty.endsAt)}
+                      </span>
+                    </TimestampTooltip>
                   </>
                 ) : (
-                  <>
-                    Confirmed{" "}
-                    {submission.reviewedAt &&
-                      formatDate(submission.reviewedAt, { month: "short" })}
-                  </>
+                  `${formatDate(bounty.startsAt, { month: "short" })} → No end date`
                 )}
-              </StatusBadge>
-            )
-          ) : bounty.type === "performance" ? (
-            <BountyPerformance bounty={bounty} />
-          ) : (
-            <div
-              className="group-hover:ring-border-subtle flex h-7 w-fit items-center rounded-lg bg-black px-2.5 text-sm text-white transition-all group-hover:ring-2"
-              onClick={() => setShowClaimBountyModal(true)}
-            >
-              Claim bounty
+              </span>
             </div>
-          )}
-        </div>
-      </button>
+
+            <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
+              <Gift className="size-3.5 shrink-0" />
+              <span className="truncate">
+                {getBountyRewardDescription(bounty)}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex grow flex-col justify-end">
+            {renderSubmissionStatus({
+              bounty,
+              setShowClaimBountyModal,
+            })}
+          </div>
+        </button>
+      </DynamicTooltipWrapper>
     </>
   );
 }
@@ -115,3 +130,80 @@ export const PartnerBountyCardSkeleton = () => {
     </div>
   );
 };
+
+function renderSubmissionStatus({
+  bounty,
+  setShowClaimBountyModal,
+}: {
+  bounty: PartnerBountyProps;
+  setShowClaimBountyModal: (show: boolean) => void;
+}) {
+  const expiredBounty =
+    bounty.endsAt && new Date(bounty.endsAt) < new Date() ? true : false;
+
+  const { submission } = bounty;
+  // When there is no submission, we show the performance or claim bounty button
+  if (!submission) {
+    return bounty.type === "performance" ? (
+      <BountyPerformance bounty={bounty} />
+    ) : (
+      <div
+        className={cn(
+          "flex h-7 w-fit items-center rounded-lg bg-black px-2.5 text-sm text-white",
+          expiredBounty
+            ? "cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400"
+            : "group-hover:ring-border-subtle transition-all group-hover:ring-2",
+        )}
+        onClick={() => setShowClaimBountyModal(true)}
+      >
+        Claim bounty
+      </div>
+    );
+  }
+
+  switch (submission.status) {
+    case "draft":
+      return bounty.type === "performance" ? (
+        <BountyPerformance bounty={bounty} />
+      ) : (
+        <div
+          className={cn(
+            "flex h-7 w-fit items-center rounded-lg bg-black px-2.5 text-sm text-white",
+            expiredBounty
+              ? "cursor-not-allowed border border-neutral-200 bg-neutral-100 text-neutral-400"
+              : "group-hover:ring-border-subtle transition-all group-hover:ring-2",
+          )}
+          onClick={() => setShowClaimBountyModal(true)}
+        >
+          Continue submission
+        </div>
+      );
+
+    case "submitted":
+      return (
+        <StatusBadge variant="new" icon={null}>
+          Pending Review |{" "}
+          {bounty.type === "performance" ? "Completed" : "Submitted"}{" "}
+          {submission.completedAt &&
+            formatDate(submission.completedAt, { month: "short" })}
+        </StatusBadge>
+      );
+
+    case "rejected":
+      return (
+        <StatusBadge variant="error" icon={null}>
+          Rejected
+        </StatusBadge>
+      );
+
+    case "approved":
+    default:
+      return (
+        <StatusBadge variant="success">
+          Confirmed{" "}
+          {submission.reviewedAt &&
+            formatDate(submission.reviewedAt, { month: "short" })}
+        </StatusBadge>
+      );
+  }
+}
