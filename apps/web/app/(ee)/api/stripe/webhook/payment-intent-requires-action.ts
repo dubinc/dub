@@ -4,7 +4,7 @@ import { processDomainRenewalFailure } from "./utils/process-domain-renewal-fail
 import { processPayoutInvoiceFailure } from "./utils/process-payout-invoice-failure";
 
 export async function paymentIntentRequiresAction(event: Stripe.Event) {
-  const { transfer_group: invoiceId, latest_charge: charge } = event.data
+  const { transfer_group: invoiceId } = event.data
     .object as Stripe.PaymentIntent;
 
   if (!invoiceId) {

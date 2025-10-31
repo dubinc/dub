@@ -94,11 +94,10 @@ const payoutSchema = PayoutSchema.pick({
   id: true,
   invoiceId: true,
   amount: true,
-  periodStart: true,
-  periodEnd: true,
 }).extend({
+  periodStart: z.coerce.date().nullable(),
+  periodEnd: z.coerce.date().nullable(),
   program: ProgramSchema.pick({
-    id: true,
     name: true,
     logo: true,
   }),

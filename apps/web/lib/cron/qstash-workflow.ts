@@ -44,11 +44,12 @@ export async function triggerWorkflows(
 
     const results = await client.trigger(
       workflows.map(({ workflowId, body }) => {
-        const { url, retries, parallelism } = WORKFLOW_CONFIG[workflowId];
+        const { url, retries, parallelism, schema } =
+          WORKFLOW_CONFIG[workflowId];
 
         return {
           url,
-          body,
+          body: schema.parse(body),
           retries,
           flowControl: {
             key: workflowId,

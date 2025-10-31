@@ -81,19 +81,23 @@ export async function sendStripePayouts({
   const workflows: QStashWorkflow<"create-stripe-transfer">[] = [];
 
   for (const [partnerId, partnerPayouts] of partnerPayoutsMap) {
+    const previouslyProcessedPayouts = partnerPayouts.filter(
+      (p) => p.status === "processed",
+    );
+
+    // this is usually just one payout, but we're doing this
+    // just in case there are multiple payouts for the same partner in the same invoice
+    const currentInvoicePayouts = partnerPayouts.filter(
+      (p) => p.invoiceId === invoiceId,
+    );
+
     workflows.push({
       workflowId: "create-stripe-transfer",
       body: {
         partnerId,
         chargeId,
-        previouslyProcessedPayouts: partnerPayouts.filter(
-          (p) => p.status === "processed",
-        ),
-        // this is usually just one payout, but we're doing this
-        // just in case there are multiple payouts for the same partner in the same invoice
-        currentInvoicePayouts: partnerPayouts.filter(
-          (p) => p.invoiceId === invoiceId,
-        ),
+        previouslyProcessedPayouts,
+        currentInvoicePayouts,
       },
     });
   }
