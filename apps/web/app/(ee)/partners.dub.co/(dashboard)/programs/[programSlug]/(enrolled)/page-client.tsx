@@ -11,11 +11,13 @@ import { usePartnerEarningsTimeseries } from "@/lib/swr/use-partner-earnings-tim
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
 import { HeroBackground } from "@/ui/partners/hero-background";
+import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { ProgramRewardList } from "@/ui/partners/program-reward-list";
 import SimpleDateRangePicker from "@/ui/shared/simple-date-range-picker";
 import {
   Button,
   buttonVariants,
+  StatusBadge,
   useCopyToClipboard,
   useRouterStuff,
 } from "@dub/ui";
@@ -93,6 +95,8 @@ export default function ProgramPageClient() {
     link: defaultProgramLink,
   });
 
+  const isDeactivated = programEnrollment?.status === "deactivated";
+
   return (
     <PageWidthWrapper className="pb-10">
       {partnerLink && (
@@ -110,7 +114,12 @@ export default function ProgramPageClient() {
               }}
               className="overflow-hidden"
             >
-              <div className="relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6">
+              <div
+                className={cn(
+                  "relative z-0 mb-4 flex flex-col overflow-hidden rounded-lg border border-neutral-300 p-4 sm:mb-10 md:p-6",
+                  isDeactivated && "opacity-80",
+                )}
+              >
                 {program && (
                   <HeroBackground
                     logo={program.logo}
@@ -127,40 +136,60 @@ export default function ProgramPageClient() {
                       type="text"
                       readOnly
                       value={getPrettyUrl(partnerLink)}
-                      className="border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500"
+                      disabled={isDeactivated}
+                      className={cn(
+                        "border-border-default text-content-default focus:border-border-emphasis bg-bg-default h-10 min-w-0 shrink grow rounded-md border px-3 text-sm focus:outline-none focus:ring-neutral-500",
+                        isDeactivated && "text-content-subtle cursor-default",
+                      )}
                     />
                   ) : (
                     <div className="h-10 w-16 animate-pulse rounded-md bg-neutral-200 lg:w-72" />
                   )}
-                  <Button
-                    icon={
-                      <div className="relative size-4">
-                        <div
-                          className={cn(
-                            "absolute inset-0 transition-[transform,opacity]",
-                            copied && "translate-y-1 opacity-0",
-                          )}
-                        >
-                          <Copy className="size-4" />
-                        </div>
-                        <div
-                          className={cn(
-                            "absolute inset-0 transition-[transform,opacity]",
-                            !copied && "translate-y-1 opacity-0",
-                          )}
-                        >
-                          <Check className="size-4" />
-                        </div>
-                      </div>
-                    }
-                    text={copied ? "Copied link" : "Copy link"}
-                    className="xs:w-fit"
-                    onClick={() => {
-                      if (partnerLink) {
-                        copyToClipboard(partnerLink);
-                      }
-                    }}
-                  />
+                  {isDeactivated
+                    ? (() => {
+                        const deactivatedBadge =
+                          PartnerStatusBadges.deactivated;
+                        return (
+                          <StatusBadge
+                            variant={deactivatedBadge.variant}
+                            icon={deactivatedBadge.icon}
+                            className="xs:w-fit absolute right-4 top-1/2 -translate-y-1/2 px-1.5 py-0.5"
+                          >
+                            {deactivatedBadge.label}
+                          </StatusBadge>
+                        );
+                      })()
+                    : !isDeactivated && (
+                        <Button
+                          icon={
+                            <div className="relative size-4">
+                              <div
+                                className={cn(
+                                  "absolute inset-0 transition-[transform,opacity]",
+                                  copied && "translate-y-1 opacity-0",
+                                )}
+                              >
+                                <Copy className="size-4" />
+                              </div>
+                              <div
+                                className={cn(
+                                  "absolute inset-0 transition-[transform,opacity]",
+                                  !copied && "translate-y-1 opacity-0",
+                                )}
+                              >
+                                <Check className="size-4" />
+                              </div>
+                            </div>
+                          }
+                          text={copied ? "Copied link" : "Copy link"}
+                          className="xs:w-fit"
+                          onClick={() => {
+                            if (partnerLink) {
+                              copyToClipboard(partnerLink);
+                            }
+                          }}
+                        />
+                      )}
                 </div>
 
                 {programEnrollment.group?.linkStructure === "query" && (

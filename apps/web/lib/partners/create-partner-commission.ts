@@ -136,6 +136,17 @@ export const createPartnerCommission = async ({
       });
 
       if (firstCommission) {
+        // if first commission is fraud or canceled, skip commission creation
+        if (["fraud", "canceled"].includes(firstCommission.status)) {
+          console.log(
+            `Partner ${partnerId} has a first commission that is ${firstCommission.status}, skipping commission creation...`,
+          );
+          return {
+            commission: null,
+            webhookPartner: constructWebhookPartner(programEnrollment),
+          };
+        }
+
         // for lead events, we need to check if the partner has already been issued a lead reward for this customer
         if (event === "lead") {
           console.log(
@@ -209,14 +220,6 @@ export const createPartnerCommission = async ({
                 };
               }
             }
-          }
-
-          // if first commission is fraud or canceled, the commission will be set to fraud or canceled as well
-          if (
-            firstCommission.status === "fraud" ||
-            firstCommission.status === "canceled"
-          ) {
-            status = firstCommission.status;
           }
         }
       }

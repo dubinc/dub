@@ -309,7 +309,10 @@ export function PartnersSidebarNav({
         queryString: getQueryString(),
         programSlug: programSlug || "",
         isUnapproved:
-          !!programEnrollment && programEnrollment.status !== "approved",
+          !!programEnrollment &&
+          !["approved", "deactivated", "archived"].includes(
+            programEnrollment.status,
+          ),
         invitationsCount,
         unreadMessagesCount,
         programBountiesCount: bountiesCount.active,

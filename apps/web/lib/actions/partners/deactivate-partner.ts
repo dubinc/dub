@@ -6,6 +6,8 @@ import { linkCache } from "@/lib/api/links/cache";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { deactivatePartnerSchema } from "@/lib/zod/schemas/partners";
+import { sendEmail } from "@dub/email";
+import PartnerDeactivated from "@dub/email/templates/partner-deactivated";
 import { prisma } from "@dub/prisma";
 import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
@@ -24,6 +26,7 @@ export const deactivatePartnerAction = authActionClient
       partnerId,
       programId,
       include: {
+        program: true,
         partner: true,
         links: true,
         discountCodes: true,
@@ -59,10 +62,26 @@ export const deactivatePartnerAction = authActionClient
 
     waitUntil(
       (async () => {
-        const { links, discountCodes } = programEnrollment;
+        const { program, partner, links, discountCodes } = programEnrollment;
 
         await Promise.allSettled([
-          // TODO send email to partner
+          partner.email &&
+            sendEmail({
+              subject: `Your partnership with ${program.name} has been deactivated`,
+              to: partner.email,
+              replyTo: program.supportEmail || "noreply",
+              react: PartnerDeactivated({
+                partner: {
+                  name: partner.name,
+                  email: partner.email,
+                },
+                program: {
+                  name: program.name,
+                  slug: program.slug,
+                },
+              }),
+              variant: "notifications",
+            }),
           linkCache.expireMany(links),
           queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
           recordAuditLog({
