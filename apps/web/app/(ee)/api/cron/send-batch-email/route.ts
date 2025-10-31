@@ -142,7 +142,9 @@ export async function POST(req: Request) {
 
     console.log(`Sending ${emailsToSend.length} email(s) via Resend.`);
 
-    const { data, error } = await sendBatchEmail(emailsToSend, idempotencyKey);
+    const { data, error } = await sendBatchEmail(emailsToSend, {
+      idempotencyKey,
+    });
 
     if (error) {
       console.error("Resend API error:", error);

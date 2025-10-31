@@ -30,10 +30,10 @@ export const sendEmail = async (opts: ResendEmailOptions) => {
 
 export const sendBatchEmail = async (
   payload: ResendBulkEmailOptions,
-  idempotencyKey?: string,
+  options?: { idempotencyKey?: string },
 ) => {
   if (resend) {
-    return await sendBatchEmailViaResend(payload, idempotencyKey);
+    return await sendBatchEmailViaResend(payload, options);
   }
 
   // Fallback to SMTP if Resend is not configured

@@ -245,7 +245,9 @@ export async function POST(req: Request) {
           }),
         },
       ],
-      `merge-partner-accounts/${userId}`,
+      {
+        idempotencyKey: `merge-partner-accounts/${userId}`,
+      },
     );
 
     return new Response(

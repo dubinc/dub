@@ -56,7 +56,7 @@ export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
 
 export const sendBatchEmailViaResend = async (
   opts: ResendBulkEmailOptions,
-  idempotencyKey?: string,
+  options?: { idempotencyKey?: string },
 ) => {
   if (!resend) {
     console.info(
@@ -70,6 +70,8 @@ export const sendBatchEmailViaResend = async (
   }
 
   const payload = opts.map(resendEmailForOptions);
+
+  const idempotencyKey = options?.idempotencyKey || undefined;
 
   return await resend.batch.send(
     payload,

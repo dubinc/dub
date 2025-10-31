@@ -133,7 +133,9 @@ export async function POST(req: Request) {
         }),
         tags: [{ name: "type", value: "notification-email" }],
       })),
-      `bounty-notify/${bountyId}-page-${page}`,
+      {
+        idempotencyKey: `bounty-notify/${bountyId}-page-${page}`,
+      },
     );
 
     if (data) {
