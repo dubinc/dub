@@ -54,7 +54,10 @@ export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
   return await resend.emails.send(resendEmailForOptions(opts));
 };
 
-export const sendBatchEmailViaResend = async (opts: ResendBulkEmailOptions) => {
+export const sendBatchEmailViaResend = async (
+  opts: ResendBulkEmailOptions,
+  options?: { idempotencyKey?: string },
+) => {
   if (!resend) {
     console.info(
       "RESEND_API_KEY is not set in the .env. Skipping sending email.",
@@ -75,5 +78,10 @@ export const sendBatchEmailViaResend = async (opts: ResendBulkEmailOptions) => {
 
   const payload = opts.map(resendEmailForOptions);
 
-  return await resend.batch.send(payload);
+  const idempotencyKey = options?.idempotencyKey || undefined;
+
+  return await resend.batch.send(
+    payload,
+    idempotencyKey ? { idempotencyKey } : undefined,
+  );
 };
