@@ -170,7 +170,7 @@ function WorkspaceList({
       <div
         ref={scrollRef}
         onScroll={updateScrollProgress}
-        className="w-xs relative max-h-80 w-full overflow-auto rounded-xl bg-white text-base sm:w-72 sm:text-sm"
+        className="w-xs max-h-84 relative w-full overflow-auto rounded-xl bg-white text-base sm:w-72 sm:text-sm"
       >
         {/* Current workspace section */}
         <div className="flex flex-col gap-2.5 border-b border-neutral-200 p-3">
