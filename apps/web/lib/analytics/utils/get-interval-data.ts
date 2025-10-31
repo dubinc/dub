@@ -46,8 +46,10 @@ export const INTERVAL_DATA: Record<
         ),
     granularity: "day",
   }),
-  ytd: () => ({
-    startDate: new Date(new Date().getFullYear(), 0, 1),
+  ytd: ({ timezone }) => ({
+    startDate: timezone
+      ? DateTime.now().setZone(timezone).startOf("year").toJSDate()
+      : new Date(new Date().getFullYear(), 0, 1),
     granularity: "month",
   }),
   all: () => ({
