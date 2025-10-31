@@ -55,7 +55,12 @@ export default function PartnerDeactivated({
             <Text className="text-sm leading-6 text-neutral-600">
               Hello {partner.name}! {program.name} has deactivated your
               partnership with their program
-              {deactivatedReason ? ` ${deactivatedReason}` : ""}.
+              {deactivatedReason ? (
+                <span className="font-bold">{` ${deactivatedReason}`}</span>
+              ) : (
+                ""
+              )}
+              .
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
