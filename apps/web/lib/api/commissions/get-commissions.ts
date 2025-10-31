@@ -21,6 +21,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     start,
     end,
     interval,
+    timezone,
     page,
     pageSize,
     sortBy,
@@ -32,6 +33,7 @@ export async function getCommissions(filters: CommissionsFilters) {
     interval,
     start,
     end,
+    timezone,
   });
 
   return await prisma.commission.findMany({

@@ -127,7 +127,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
 
   const formattedTimeseriesData: FormattedTimeseriesPoint[] = [];
 
-  while (currentDate < endDate) {
+  while (currentDate.toJSDate() < endDate) {
     const periodKey = currentDate.toFormat(formatString);
 
     formattedTimeseriesData.push({
