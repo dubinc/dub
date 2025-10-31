@@ -131,6 +131,7 @@
   "devDependencies": {
     "@types/he": "^1.2.3",
     "@types/html-escaper": "^3.0.0",
+    "@types/luxon": "^3.7.1",
     "@types/ms": "^0.7.31",
     "@types/node": "18.11.9",
     "@types/react": "19.1.14",

@@ -14,6 +14,7 @@ export const GET = withAdmin(async ({ searchParams }) => {
     start: start ? startOfDay(new Date(start)) : undefined,
     end: end ? endOfDay(new Date(end)) : undefined,
     dataAvailableFrom: DUB_FOUNDING_DATE,
+    timezone,
   });
 
   const [programs, timeseries] = await Promise.all([

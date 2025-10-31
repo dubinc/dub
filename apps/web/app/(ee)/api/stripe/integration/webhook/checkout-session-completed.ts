@@ -262,7 +262,11 @@ export async function checkoutSessionCompleted(
     return "No stripeCustomerId or dubCustomerExternalId found in Stripe checkout session metadata, skipping...";
   }
 
-  if (charge.amount_total === 0) {
+  let chargeAmountTotal =
+    (charge.amount_total ?? 0) - (charge.total_details?.amount_tax ?? 0);
+
+  // should never be below 0, but just in case
+  if (chargeAmountTotal <= 0) {
     return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
   }
 
@@ -282,7 +286,7 @@ export async function checkoutSessionCompleted(
         invoiceId,
         customerId: customer.id,
         workspaceId: customer.projectId,
-        amount: charge.amount_total,
+        amount: chargeAmountTotal,
         currency: charge.currency,
       },
       {
@@ -300,11 +304,11 @@ export async function checkoutSessionCompleted(
     }
   }
 
-  if (charge.currency && charge.currency !== "usd" && charge.amount_total) {
+  if (charge.currency && charge.currency !== "usd" && chargeAmountTotal) {
     // support for Stripe Adaptive Pricing: https://docs.stripe.com/payments/checkout/adaptive-pricing
     if (charge.currency_conversion) {
       charge.currency = charge.currency_conversion.source_currency;
-      charge.amount_total = charge.currency_conversion.amount_total;
+      chargeAmountTotal = charge.currency_conversion.amount_total;
 
       // if Stripe Adaptive Pricing is not enabled, we convert the amount to USD based on the current FX rate
       // TODO: allow custom "defaultCurrency" on workspace table in the future
@@ -312,11 +316,11 @@ export async function checkoutSessionCompleted(
       const { currency: convertedCurrency, amount: convertedAmount } =
         await convertCurrency({
           currency: charge.currency,
-          amount: charge.amount_total,
+          amount: chargeAmountTotal,
         });
 
       charge.currency = convertedCurrency;
-      charge.amount_total = convertedAmount;
+      chargeAmountTotal = convertedAmount;
     }
   }
 
@@ -328,7 +332,7 @@ export async function checkoutSessionCompleted(
     event_name:
       charge.mode === "payment" ? "Purchase" : "Subscription creation",
     payment_processor: "stripe",
-    amount: charge.amount_total!,
+    amount: chargeAmountTotal,
     currency: charge.currency!,
     invoice_id: invoiceId || "",
     metadata: JSON.stringify({
@@ -374,7 +378,7 @@ export async function checkoutSessionCompleted(
             increment: 1,
           },
           saleAmount: {
-            increment: charge.amount_total!,
+            increment: chargeAmountTotal,
           },
         },
         include: includeTags,
@@ -402,7 +406,7 @@ export async function checkoutSessionCompleted(
           increment: 1,
         },
         saleAmount: {
-          increment: charge.amount_total!,
+          increment: chargeAmountTotal,
         },
       },
     }),

@@ -45,7 +45,7 @@ function SheetRoot({
             } as React.CSSProperties
           }
         >
-          <div className="scrollbar-hide flex size-full grow flex-col overflow-y-auto rounded-lg bg-white">
+          <div className="scrollbar-hide flex size-full grow flex-col overflow-y-auto rounded-xl bg-white">
             {children}
           </div>
         </Drawer.Content>

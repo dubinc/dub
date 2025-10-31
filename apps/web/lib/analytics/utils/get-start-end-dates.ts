@@ -1,16 +1,18 @@
 import { getDaysDifference } from "@dub/utils";
-import { INTERVAL_DATA } from "../constants";
+import { getIntervalData } from "./get-interval-data";
 
 export const getStartEndDates = ({
   interval,
   start,
   end,
   dataAvailableFrom,
+  timezone,
 }: {
   interval?: string;
   start?: string | Date | null;
   end?: string | Date | null;
   dataAvailableFrom?: Date;
+  timezone?: string;
 }) => {
   let startDate: Date;
   let endDate: Date;
@@ -34,9 +36,10 @@ export const getStartEndDates = ({
     }
   } else {
     interval = interval ?? "30d";
-    startDate = INTERVAL_DATA[interval].startDate;
+    const intervalData = getIntervalData(interval, { timezone });
+    startDate = intervalData.startDate;
+    granularity = intervalData.granularity;
     endDate = new Date(Date.now());
-    granularity = INTERVAL_DATA[interval].granularity;
   }
 
   return { startDate, endDate, granularity };

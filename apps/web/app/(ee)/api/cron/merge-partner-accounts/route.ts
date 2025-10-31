@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -147,7 +148,6 @@ export async function POST(req: Request) {
       await Promise.all([
         prisma.link.updateMany(updateManyPayload),
         prisma.commission.updateMany(updateManyPayload),
-        prisma.bountySubmission.updateMany(updateManyPayload),
         prisma.payout.updateMany(updateManyPayload),
       ]);
 
@@ -168,11 +168,45 @@ export async function POST(req: Request) {
         include: includeTags,
       });
 
-      await Promise.all([
+      // Bounty submissions to transfer to the target partner
+      const bountySubmissions = await prisma.bountySubmission.findMany({
+        where: {
+          programId: {
+            in: programIdsToTransfer,
+          },
+          partnerId: sourcePartnerId,
+        },
+      });
+
+      // Attempting to update all source submissions to the target partnerId fails
+      // if the target already has submissions for the same bounties.
+      if (bountySubmissions.length > 0) {
+        await Promise.allSettled(
+          bountySubmissions.map((submission) =>
+            prisma.bountySubmission.update({
+              where: {
+                id: submission.id,
+              },
+              data: {
+                partnerId: targetPartnerId,
+              },
+            }),
+          ),
+        );
+      }
+
+      await Promise.allSettled([
         // update link metadata in Tinybird
         recordLink(updatedLinks),
         // expire link cache in Redis
         linkCache.expireMany(updatedLinks),
+        // Sync total commissions for the target partner in each program
+        ...programIdsToTransfer.map((programId) =>
+          syncTotalCommissions({
+            partnerId: targetPartnerId,
+            programId,
+          }),
+        ),
       ]);
     }
 
@@ -188,35 +222,47 @@ export async function POST(req: Request) {
       });
 
       if (workspaceCount === 0) {
-        const deletedUser = await prisma.user.delete({
-          where: {
-            id: sourcePartnerUser.userId,
-          },
-          select: {
-            image: true,
-            email: true,
-          },
-        });
-
-        if (deletedUser.image) {
-          await storage.delete({
-            key: deletedUser.image.replace(`${R2_URL}/`, ""),
+        try {
+          const deletedUser = await prisma.user.delete({
+            where: {
+              id: sourcePartnerUser.userId,
+            },
+            select: {
+              image: true,
+              email: true,
+            },
           });
+
+          if (deletedUser.image) {
+            await storage.delete({
+              key: deletedUser.image.replace(`${R2_URL}/`, ""),
+            });
+          }
+        } catch (error) {
+          console.error(
+            `Error deleting user ${sourcePartnerUser.userId}: ${error.message}`,
+          );
         }
       }
     }
 
-    // Finally, delete the partner account
-    const deletedPartner = await prisma.partner.delete({
-      where: {
-        id: sourcePartnerId,
-      },
-    });
-
-    if (deletedPartner.image) {
-      await storage.delete({
-        key: deletedPartner.image.replace(`${R2_URL}/`, ""),
+    try {
+      // Finally, delete the partner account
+      const deletedPartner = await prisma.partner.delete({
+        where: {
+          id: sourcePartnerId,
+        },
       });
+
+      if (deletedPartner.image) {
+        await storage.delete({
+          key: deletedPartner.image.replace(`${R2_URL}/`, ""),
+        });
+      }
+    } catch (error) {
+      console.error(
+        `Error deleting partner ${sourcePartnerId}: ${error.message}`,
+      );
     }
 
     // Make sure the cache is cleared
