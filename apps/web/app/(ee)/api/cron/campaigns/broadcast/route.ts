@@ -17,12 +17,20 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
-const MAX_PARTNERS_SIZE = 100;
-
 const schema = z.object({
   campaignId: z.string(),
   startingAfter: z.string().optional(),
+  batchNumber: z
+    .number()
+    .optional()
+    .default(1)
+    .describe("Keep track of the batches sent."),
 });
+
+const EMAIL_BATCH_SIZE = 100; // Batch size
+const BATCH_DELAY_SECONDS = 2; // Delay between batches
+const EXTENDED_DELAY_SECONDS = 30; // Extended delay after 25 batches
+const EXTENDED_DELAY_INTERVAL = 25; // Number of batches after which to extend the delay
 
 // POST /api/cron/campaigns/broadcast
 // Send marketing campaigns to partners in batches
@@ -35,7 +43,9 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { campaignId, startingAfter } = schema.parse(JSON.parse(rawBody));
+    let { campaignId, startingAfter, batchNumber } = schema.parse(
+      JSON.parse(rawBody),
+    );
 
     const campaign = await prisma.campaign.findUnique({
       where: {
@@ -72,7 +82,7 @@ export async function POST(req: Request) {
     }
 
     // This is a safety check to ensure the campaign is not scheduled to broadcast too far in the future
-    // Idealy this should not happen but just in case
+    // Ideally this should not happen but just in case
     if (campaign.scheduledAt) {
       const diffMinutes = differenceInMinutes(campaign.scheduledAt, new Date());
 
@@ -93,7 +103,7 @@ export async function POST(req: Request) {
     const upstashMessageId = headersList.get("Upstash-Message-Id");
 
     if (
-      !startingAfter &&
+      !startingAfter && // First run
       campaign.qstashMessageId &&
       upstashMessageId !== campaign.qstashMessageId
     ) {
@@ -104,7 +114,7 @@ export async function POST(req: Request) {
 
     const program = campaign.program;
 
-    // TODO: We should make the from address required. There are existing campaign without from adress
+    // TODO: We should make the from address required. There are existing campaign without from address
     if (campaign.from) {
       validateCampaignFromAddress({
         campaign,
@@ -113,15 +123,19 @@ export async function POST(req: Request) {
     }
 
     // Mark the campaign as sending
-    await prisma.campaign.update({
-      where: {
-        id: campaignId,
-        status: "scheduled",
-      },
-      data: {
-        status: "sending",
-      },
-    });
+    try {
+      await prisma.campaign.update({
+        where: {
+          id: campaignId,
+          status: "scheduled",
+        },
+        data: {
+          status: "sending",
+        },
+      });
+    } catch (error) {
+      //
+    }
 
     const campaignGroupIds = campaign.groups.map(({ groupId }) => groupId);
 
@@ -160,7 +174,7 @@ export async function POST(req: Request) {
           },
         },
       },
-      take: MAX_PARTNERS_SIZE,
+      take: EMAIL_BATCH_SIZE,
       skip: startingAfter ? 1 : 0,
       ...(startingAfter && {
         cursor: {
@@ -168,7 +182,7 @@ export async function POST(req: Request) {
         },
       }),
       orderBy: {
-        createdAt: "asc",
+        id: "asc",
       },
     });
 
@@ -197,7 +211,7 @@ export async function POST(req: Request) {
     );
 
     if (partnerUsers.length > 0) {
-      const { data } = await sendBatchEmail(
+      const { data, error } = await sendBatchEmail(
         partnerUsers.map((partnerUser) => ({
           variant: "marketing",
           from: `${program.name} <${campaign.from}>`,
@@ -229,6 +243,10 @@ export async function POST(req: Request) {
         })),
       );
 
+      if (error) {
+        console.error(error);
+      }
+
       if (data) {
         await prisma.notificationEmail.createMany({
           data: partnerUsers.map((partnerUser, idx) => ({
@@ -245,34 +263,47 @@ export async function POST(req: Request) {
       }
     }
 
-    if (programEnrollments.length === MAX_PARTNERS_SIZE) {
-      const nextStartingAfter =
-        programEnrollments[programEnrollments.length - 1].id;
+    if (programEnrollments.length === EMAIL_BATCH_SIZE) {
+      startingAfter = programEnrollments[programEnrollments.length - 1].id;
+
+      // Add BATCH_DELAY_SECONDS pause between each batch, and a longer EXTENDED_DELAY_SECONDS cooldown after every EXTENDED_DELAY_INTERVAL batches.
+      let delay = 0;
+      if (batchNumber > 0 && batchNumber % EXTENDED_DELAY_INTERVAL === 0) {
+        delay = EXTENDED_DELAY_SECONDS;
+      } else {
+        delay = BATCH_DELAY_SECONDS;
+      }
 
       await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/campaigns/broadcast`,
         method: "POST",
+        delay,
         body: {
           campaignId,
-          startingAfter: nextStartingAfter,
+          startingAfter,
+          batchNumber: batchNumber + 1,
         },
       });
 
       return logAndRespond(
-        `Enqueued next page (${nextStartingAfter}) for campaign ${campaignId}.`,
+        `Enqueued next page (${startingAfter}) for campaign ${campaignId} to run after ${delay} seconds.`,
       );
     }
 
     // Mark the campaign as sent
-    await prisma.campaign.update({
-      where: {
-        id: campaignId,
-        status: "sending",
-      },
-      data: {
-        status: "sent",
-      },
-    });
+    try {
+      await prisma.campaign.update({
+        where: {
+          id: campaignId,
+          status: "sending",
+        },
+        data: {
+          status: "sent",
+        },
+      });
+    } catch (error) {
+      //
+    }
 
     return logAndRespond(`Finished broadcasting campaign ${campaignId}.`);
   } catch (error) {
