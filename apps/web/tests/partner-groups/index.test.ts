@@ -35,7 +35,7 @@ describe.sequential("/groups/**", async () => {
     const groupName = generateRandomName();
 
     const newGroup = {
-      name: groupName,
+      name: `E2E-${groupName}`,
       slug: slugify(groupName),
       color: randomValue(RESOURCE_COLORS),
     };
@@ -78,7 +78,7 @@ describe.sequential("/groups/**", async () => {
 
   test("PATCH /groups/[groupId] - update group", async () => {
     const toUpdate = {
-      name: generateRandomName(),
+      name: `E2E-${generateRandomName}`,
       color: randomValue(RESOURCE_COLORS),
       maxPartnerLinks: 5,
       linkStructure: "query",
