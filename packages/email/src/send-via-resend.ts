@@ -66,6 +66,13 @@ export const sendBatchEmailViaResend = async (opts: ResendBulkEmailOptions) => {
     };
   }
 
+  if (opts.length === 0) {
+    return {
+      data: null,
+      error: null,
+    };
+  }
+
   const payload = opts.map(resendEmailForOptions);
 
   return await resend.batch.send(payload);
