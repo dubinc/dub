@@ -11,7 +11,7 @@ import {
   useScrollProgress,
 } from "@dub/ui";
 import { Check2, Gear, Plus, UserPlus } from "@dub/ui/icons";
-import { cn } from "@dub/utils";
+import { cn, pluralize } from "@dub/utils";
 import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import { useSession } from "next-auth/react";
 import Link from "next/link";
@@ -195,7 +195,7 @@ function WorkspaceList({
                   )}
                 >
                   {selected.plan} · {membersCount}{" "}
-                  {membersCount === 1 ? "member" : "members"}
+                  {pluralize("member", membersCount)}
                 </div>
               )}
             </div>
