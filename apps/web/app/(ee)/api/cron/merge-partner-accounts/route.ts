@@ -201,7 +201,7 @@ export async function POST(req: Request) {
         // expire link cache in Redis
         linkCache.expireMany(updatedLinks),
         // Sync total commissions for the target partner in each program
-        programIdsToTransfer.map((programId) =>
+        ...programIdsToTransfer.map((programId) =>
           syncTotalCommissions({
             partnerId: targetPartnerId,
             programId,
