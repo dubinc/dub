@@ -1,6 +1,4 @@
-import { queueBatchEmail } from "@/lib/email/queue-batch-email";
-import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
-import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
+import { QStashWorkflow, triggerWorkflows } from "@/lib/cron/qstash-workflow";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@prisma/client";
 
@@ -79,36 +77,26 @@ export async function sendStripePayouts({
     return map;
   }, new Map<string, typeof currentInvoicePayouts>());
 
-  // Process payouts for each partner
-  for (const [_, partnerPayouts] of partnerPayoutsMap) {
-    await createStripeTransfer({
-      partner: partnerPayouts[0].partner,
-      previouslyProcessedPayouts: partnerPayouts.filter(
-        (p) => p.status === "processed",
-      ),
-      // this is usually just one payout, but we're doing this
-      // just in case there are multiple payouts for the same partner in the same invoice
-      currentInvoicePayouts: partnerPayouts.filter(
-        (p) => p.invoiceId === invoiceId,
-      ),
-      chargeId,
+  // Create a workflow for each transfer
+  const workflows: QStashWorkflow<"create-stripe-transfer">[] = [];
+
+  for (const [partnerId, partnerPayouts] of partnerPayoutsMap) {
+    workflows.push({
+      workflowId: "create-stripe-transfer",
+      body: {
+        partnerId,
+        chargeId,
+        previouslyProcessedPayouts: partnerPayouts.filter(
+          (p) => p.status === "processed",
+        ),
+        // this is usually just one payout, but we're doing this
+        // just in case there are multiple payouts for the same partner in the same invoice
+        currentInvoicePayouts: partnerPayouts.filter(
+          (p) => p.invoiceId === invoiceId,
+        ),
+      },
     });
   }
 
-  await queueBatchEmail<typeof PartnerPayoutProcessed>(
-    currentInvoicePayouts
-      .filter((p) => p.partner.email)
-      .map((p) => ({
-        variant: "notifications",
-        to: p.partner.email!,
-        subject: "You've been paid!",
-        templateName: "PartnerPayoutProcessed",
-        templateProps: {
-          email: p.partner.email!,
-          program: p.program,
-          payout: p,
-          variant: "stripe",
-        },
-      })),
-  );
+  await triggerWorkflows(workflows);
 }

@@ -756,3 +756,9 @@ export const partnerPayoutSettingsSchema = z.object({
   address: z.string().max(500).trim().nullish(),
   taxId: z.string().max(100).trim().nullish(),
 });
+
+export const partnerApprovedWorkflowSchema = z.object({
+  programId: z.string(),
+  partnerId: z.string(),
+  userId: z.string(),
+});

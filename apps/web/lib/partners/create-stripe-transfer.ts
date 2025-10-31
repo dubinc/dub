@@ -128,29 +128,29 @@ export const createStripeTransfer = async ({
     )} ${allPayouts.map((p) => p.id).join(", ")}`,
   );
 
-  await Promise.allSettled([
-    prisma.payout.updateMany({
-      where: {
-        id: {
-          in: allPayouts.map((p) => p.id),
-        },
+  await prisma.payout.updateMany({
+    where: {
+      id: {
+        in: allPayouts.map((p) => p.id),
       },
-      data: {
-        stripeTransferId: transfer.id,
-        status: "sent",
-        paidAt: new Date(),
-      },
-    }),
+    },
+    data: {
+      stripeTransferId: transfer.id,
+      status: "sent",
+      paidAt: new Date(),
+    },
+  });
 
-    prisma.commission.updateMany({
-      where: {
-        payoutId: {
-          in: allPayouts.map((p) => p.id),
-        },
+  await prisma.commission.updateMany({
+    where: {
+      payoutId: {
+        in: allPayouts.map((p) => p.id),
       },
-      data: {
-        status: "paid",
-      },
-    }),
-  ]);
+    },
+    data: {
+      status: "paid",
+    },
+  });
+
+  return transfer;
 };

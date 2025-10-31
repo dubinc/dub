@@ -91,12 +91,14 @@ export async function POST(req: Request) {
       console.log(
         "More than 100 payouts found for invoice, scheduling next batch...",
       );
+
       const qstashResponse = await qstash.publishJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
         body: {
           invoiceId: invoiceId,
         },
       });
+
       if (qstashResponse.messageId) {
         console.log(
           `Message sent to Qstash with id ${qstashResponse.messageId}`,

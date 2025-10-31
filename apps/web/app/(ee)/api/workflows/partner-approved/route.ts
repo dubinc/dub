@@ -6,7 +6,10 @@ import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
 import { PlanProps, RewardProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import {
+  EnrolledPartnerSchema,
+  partnerApprovedWorkflowSchema,
+} from "@/lib/zod/schemas/partners";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
 import { resend } from "@dub/email/resend/client";
 import { VARIANT_TO_FROM_MAP } from "@dub/email/resend/constants";
@@ -14,14 +17,6 @@ import PartnerApplicationApproved from "@dub/email/templates/partner-application
 import { prisma } from "@dub/prisma";
 import { serve } from "@upstash/workflow/nextjs";
 import { z } from "zod";
-
-const payloadSchema = z.object({
-  programId: z.string(),
-  partnerId: z.string(),
-  userId: z.string(),
-});
-
-type Payload = z.infer<typeof payloadSchema>;
 
 /**
  * Partner Approved Workflow
@@ -45,7 +40,7 @@ type Payload = z.infer<typeof payloadSchema>;
  */
 
 // POST /api/workflows/partner-approved
-export const { POST } = serve<Payload>(
+export const { POST } = serve<z.infer<typeof partnerApprovedWorkflowSchema>>(
   async (context) => {
     const input = context.requestPayload;
     const { programId, partnerId, userId } = input;
@@ -334,7 +329,7 @@ export const { POST } = serve<Payload>(
   },
   {
     initialPayloadParser: (requestPayload) => {
-      return payloadSchema.parse(JSON.parse(requestPayload));
+      return partnerApprovedWorkflowSchema.parse(JSON.parse(requestPayload));
     },
   },
 );
