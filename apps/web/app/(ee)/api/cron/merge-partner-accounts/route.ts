@@ -1,6 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { includeTags } from "@/lib/api/links/include-tags";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { storage } from "@/lib/storage";
 import { recordLink } from "@/lib/tinybird";
@@ -167,13 +168,6 @@ export async function POST(req: Request) {
         include: includeTags,
       });
 
-      await Promise.all([
-        // update link metadata in Tinybird
-        recordLink(updatedLinks),
-        // expire link cache in Redis
-        linkCache.expireMany(updatedLinks),
-      ]);
-
       // Bounty submissions to transfer to the target partner
       const bountySubmissions = await prisma.bountySubmission.findMany({
         where: {
@@ -200,6 +194,20 @@ export async function POST(req: Request) {
           ),
         );
       }
+
+      await Promise.allSettled([
+        // update link metadata in Tinybird
+        recordLink(updatedLinks),
+        // expire link cache in Redis
+        linkCache.expireMany(updatedLinks),
+        // Sync total commissions for the target partner in each program
+        programIdsToTransfer.map((programId) =>
+          syncTotalCommissions({
+            partnerId: targetPartnerId,
+            programId,
+          }),
+        ),
+      ]);
     }
 
     // Remove the user if there are no workspaces left
