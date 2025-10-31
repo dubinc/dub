@@ -63,7 +63,11 @@ export async function queueBatchEmail<TTemplate extends (props: any) => any>(
       messageIds.push(response.messageId);
 
       console.log(
-        `Enqueued batch ${i + 1}/${batches.length} with ${batch.length} email(s): ${response.messageId}`,
+        `Enqueued batch ${i + 1}/${batches.length} with ${batch.length} email(s):`,
+        {
+          messageId: response.messageId,
+          ...(idempotencyKey && { idempotencyKey }),
+        },
       );
     }
 
