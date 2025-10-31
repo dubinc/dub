@@ -265,7 +265,8 @@ export async function checkoutSessionCompleted(
   let chargeAmountTotal =
     (charge.amount_total ?? 0) - (charge.total_details?.amount_tax ?? 0);
 
-  if (chargeAmountTotal === 0) {
+  // should never be below 0, but just in case
+  if (chargeAmountTotal <= 0) {
     return `Checkout session completed for Stripe customer ${stripeCustomerId} with invoice ID ${invoiceId} but amount is 0, skipping...`;
   }
 

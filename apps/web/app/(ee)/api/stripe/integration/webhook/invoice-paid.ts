@@ -66,7 +66,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`;
   }
 
-  let invoiceSaleAmount = invoice.total_excluding_tax || invoice.amount_paid;
+  let invoiceSaleAmount = invoice.total_excluding_tax ?? invoice.amount_paid;
 
   // Skip if invoice id is already processed
   const ok = await redis.set(
