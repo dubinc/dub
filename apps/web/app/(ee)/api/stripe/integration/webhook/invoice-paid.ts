@@ -96,7 +96,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     return `Invoice with ID ${invoiceId} already processed, skipping...`;
   }
 
-  if (invoiceSaleAmount === 0) {
+  // Stripe can sometimes return a negative amount for some reason, so we skip if it's below 0
+  if (invoiceSaleAmount <= 0) {
     return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
   }
 
