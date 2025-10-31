@@ -184,6 +184,8 @@ export async function POST(req: Request) {
         },
       });
 
+      // Attempting to update all source submissions to the target partnerId fails
+      // if the target already has submissions for the same bounties.
       if (bountySubmissions.length > 0) {
         await Promise.allSettled(
           bountySubmissions.map((submission) =>
