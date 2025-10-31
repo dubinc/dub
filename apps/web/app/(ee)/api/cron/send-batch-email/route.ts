@@ -46,6 +46,8 @@ export async function POST(req: Request) {
 
     const payload = batchEmailPayloadSchema.parse(JSON.parse(rawBody));
 
+    const idempotencyKey = req.headers.get("Idempotency-Key") || undefined;
+
     console.log(`Processing batch of ${payload.length} email(s)`);
 
     // Process all emails in parallel and build Resend payload
@@ -140,7 +142,9 @@ export async function POST(req: Request) {
 
     console.log(`Sending ${emailsToSend.length} email(s) via Resend.`);
 
-    const { data, error } = await sendBatchEmail(emailsToSend);
+    const { data, error } = await sendBatchEmail(emailsToSend, {
+      idempotencyKey,
+    });
 
     if (error) {
       console.error("Resend API error:", error);

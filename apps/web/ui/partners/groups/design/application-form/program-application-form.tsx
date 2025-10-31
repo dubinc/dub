@@ -85,8 +85,6 @@ export function ProgramApplicationForm({
           return;
         }
 
-        toast.success("Your application submitted successfully.");
-
         const { programApplicationId, programEnrollmentId, partnerData } = data;
 
         setSubmissionInfo({
@@ -240,7 +238,7 @@ export function ProgramApplicationForm({
         )}
 
         <Button
-          text="Submit application"
+          text="Continue"
           className="mt-4 enabled:border-[var(--brand)] enabled:bg-[var(--brand)] enabled:hover:bg-[var(--brand)] enabled:hover:ring-[var(--brand-ring)]"
           loading={isLoading}
         />
