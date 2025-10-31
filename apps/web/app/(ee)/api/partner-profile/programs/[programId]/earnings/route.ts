@@ -35,12 +35,14 @@ export const GET = withPartnerProfile(
       interval,
       start,
       end,
+      timezone,
     } = getPartnerEarningsQuerySchema.parse(searchParams);
 
     const { startDate, endDate } = getStartEndDates({
       interval,
       start,
       end,
+      timezone,
     });
 
     const earnings = await prisma.commission.findMany({

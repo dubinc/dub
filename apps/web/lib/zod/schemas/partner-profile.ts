@@ -51,6 +51,7 @@ export const getPartnerEarningsQuerySchema = getCommissionsQuerySchema
       interval: z
         .enum(DATE_RANGE_INTERVAL_PRESETS)
         .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+      timezone: z.string().optional(),
       type: z.nativeEnum(CommissionType).optional(),
       linkId: z.string().optional(),
       sortBy: z.enum(["createdAt", "amount", "earnings"]).default("createdAt"),
@@ -66,6 +67,7 @@ export const getPartnerEarningsCountQuerySchema = getCommissionsCountQuerySchema
       interval: z
         .enum(DATE_RANGE_INTERVAL_PRESETS)
         .default(DUB_PARTNERS_ANALYTICS_INTERVAL),
+      timezone: z.string().optional(),
       type: z.nativeEnum(CommissionType).optional(),
       linkId: z.string().optional(),
       groupBy: z.enum(["linkId", "customerId", "status", "type"]).optional(),
