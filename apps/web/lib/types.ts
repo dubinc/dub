@@ -443,7 +443,6 @@ export type PartnerProps = z.infer<typeof PartnerSchema> & {
 };
 
 export type PartnerUserProps = z.infer<typeof partnerUserSchema>;
-
 export type PartnerProfileCustomerProps = z.infer<
   typeof PartnerProfileCustomerSchema
 >;
@@ -481,7 +480,6 @@ export type ProgramApplicationFormDataWithValues = z.infer<
 export type ProgramApplicationFormFieldWithValues = z.infer<
   typeof programApplicationFormFieldWithValuesSchema
 >;
-
 export type ProgramEnrollmentProps = z.infer<typeof ProgramEnrollmentSchema>;
 
 export type PayoutsCount = {

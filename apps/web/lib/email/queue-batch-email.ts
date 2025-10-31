@@ -18,7 +18,7 @@ const queue = qstash.queue({
 export async function queueBatchEmail<TTemplate extends (props: any) => any>(
   emails: QueueBatchProps<TTemplate>[],
   options?: {
-    deduplicationId?: string;
+    idempotencyKey?: string; // Used for both QStash deduplication AND Resend idempotency
   },
 ): Promise<string[]> {
   if (emails.length === 0) {
@@ -39,19 +39,35 @@ export async function queueBatchEmail<TTemplate extends (props: any) => any>(
     for (let i = 0; i < batches.length; i++) {
       const batch = batches[i];
 
+      // Generate batch-specific idempotency key
+      const idempotencyKey = options?.idempotencyKey
+        ? batches.length > 1
+          ? `${options.idempotencyKey}-batch-${i}`
+          : options.idempotencyKey
+        : undefined;
+
       const response = await queue.enqueueJSON({
         url: `${APP_DOMAIN_WITH_NGROK}/api/cron/send-batch-email`,
         method: "POST",
         body: batch,
-        ...(options?.deduplicationId && {
-          deduplicationId: `${options.deduplicationId}-batch-${i}`,
+        ...(idempotencyKey && {
+          deduplicationId: idempotencyKey, // QStash deduplication
+        }),
+        ...(idempotencyKey && {
+          headers: {
+            "Idempotency-Key": idempotencyKey, // Resend idempotency
+          },
         }),
       });
 
       messageIds.push(response.messageId);
 
       console.log(
-        `Enqueued batch ${i + 1}/${batches.length} with ${batch.length} email(s): ${response.messageId}`,
+        `Enqueued batch ${i + 1}/${batches.length} with ${batch.length} email(s):`,
+        {
+          messageId: response.messageId,
+          ...(idempotencyKey && { idempotencyKey }),
+        },
       );
     }
 

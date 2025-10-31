@@ -243,10 +243,10 @@ export const { POST } = serve<Payload>(
               showModifiersTooltip: false,
             }),
           }),
-          headers: {
-            "Idempotency-Key": `application-approved-${programEnrollment.id}`,
-          },
         })),
+        {
+          idempotencyKey: `application-approved/${programEnrollment.id}`,
+        },
       );
 
       if (data) {
