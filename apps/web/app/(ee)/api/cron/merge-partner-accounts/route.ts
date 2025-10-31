@@ -222,28 +222,31 @@ export async function POST(req: Request) {
     // Make sure the cache is cleared
     await redis.del(`${CACHE_KEY_PREFIX}:${userId}`);
 
-    await sendBatchEmail([
-      {
-        variant: "notifications",
-        to: sourceEmail,
-        subject: "Your Dub partner accounts are now merged",
-        react: PartnerAccountMerged({
-          email: sourceEmail,
-          sourceEmail,
-          targetEmail,
-        }),
-      },
-      {
-        variant: "notifications",
-        to: targetEmail,
-        subject: "Your Dub partner accounts are now merged",
-        react: PartnerAccountMerged({
-          email: targetEmail,
-          sourceEmail,
-          targetEmail,
-        }),
-      },
-    ]);
+    await sendBatchEmail(
+      [
+        {
+          variant: "notifications",
+          to: sourceEmail,
+          subject: "Your Dub partner accounts are now merged",
+          react: PartnerAccountMerged({
+            email: sourceEmail,
+            sourceEmail,
+            targetEmail,
+          }),
+        },
+        {
+          variant: "notifications",
+          to: targetEmail,
+          subject: "Your Dub partner accounts are now merged",
+          react: PartnerAccountMerged({
+            email: targetEmail,
+            sourceEmail,
+            targetEmail,
+          }),
+        },
+      ],
+      `merge-partner-accounts/${userId}`,
+    );
 
     return new Response(
       `Partner account ${sourceEmail} merged into ${targetEmail}.`,

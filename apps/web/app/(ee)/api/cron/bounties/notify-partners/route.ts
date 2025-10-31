@@ -132,10 +132,8 @@ export async function POST(req: Request) {
           },
         }),
         tags: [{ name: "type", value: "notification-email" }],
-        headers: {
-          "Idempotency-Key": `${bountyId}-page-${page}`,
-        },
       })),
+      `bounty-notify/${bountyId}-page-${page}`,
     );
 
     if (data) {

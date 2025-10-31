@@ -337,6 +337,7 @@ async function handler(req: Request) {
           }),
           variant: "notifications",
         })),
+        `partner-summary/${program.id}/${format(currentMonth, "yyyy-MM")}`,
       );
     }
 
