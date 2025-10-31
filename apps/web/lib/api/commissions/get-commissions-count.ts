@@ -21,6 +21,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     start,
     end,
     interval,
+    timezone,
     programId,
   } = filters;
 
@@ -28,6 +29,7 @@ export async function getCommissionsCount(filters: CommissionsCountFilters) {
     interval,
     start,
     end,
+    timezone,
   });
 
   const commissionsCount = await prisma.commission.groupBy({

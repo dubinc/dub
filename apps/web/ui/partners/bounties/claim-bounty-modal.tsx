@@ -5,6 +5,7 @@ import { mutatePrefix } from "@/lib/swr/mutate";
 import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
 import { PartnerBountyProps } from "@/lib/types";
 import {
+  MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH,
   MAX_SUBMISSION_FILES,
   MAX_SUBMISSION_URLS,
   REJECT_BOUNTY_SUBMISSION_REASONS,
@@ -582,9 +583,22 @@ function ClaimBountyModalContent({ bounty }: ClaimBountyModalProps) {
                           "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
                         )}
                         minRows={2}
+                        maxLength={MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH}
                         value={description}
-                        onChange={(e) => setDescription(e.target.value)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value.length <= MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH) {
+                            setDescription(value);
+                          }
+                        }}
                       />
+                      <div className="mt-1 text-left">
+                        <span className="text-xs text-neutral-500">
+                          {MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH -
+                            description.length}{" "}
+                          / {MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </motion.div>

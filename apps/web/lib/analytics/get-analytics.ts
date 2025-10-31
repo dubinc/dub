@@ -99,6 +99,7 @@ export const getAnalytics = async (params: AnalyticsFilters) => {
     start,
     end,
     dataAvailableFrom,
+    timezone,
   });
 
   if (qr) {

@@ -1,4 +1,5 @@
-import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import { INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import { getIntervalData } from "@/lib/analytics/utils";
 import { DateRangePicker, useRouterStuff } from "@dub/ui";
 
 export default function SimpleDateRangePicker({
@@ -58,7 +59,7 @@ export default function SimpleDateRangePicker({
         });
       }}
       presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-        const start = INTERVAL_DATA[value].startDate;
+        const start = getIntervalData(value).startDate;
         const end = new Date();
 
         return {
