@@ -13,7 +13,7 @@ import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { PAYOUT_STATUS_DESCRIPTIONS } from "@/ui/partners/payout-status-descriptions";
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
-import { Button, Tooltip } from "@dub/ui";
+import { Tooltip } from "@dub/ui";
 import {
   cn,
   CONNECT_SUPPORTED_COUNTRIES,
@@ -92,14 +92,14 @@ function PayoutStatsCard({
                   <>{amount > 0 ? currencyFormatter(amount / 100) : "$0.00"}</>
                 )}
               </span>
-              {label === "Processed" && amount > 0 && (
+              {/* {label === "Processed" && amount > 0 && (
                 <Button
                   variant="secondary"
                   text="Pay out now"
                   className="ml-2 h-7 px-2 py-1"
                   onClick={() => setShowForceWithdrawalModal(true)}
                 />
-              )}
+              )} */}
             </div>
           ) : (
             <div className="h-5 w-20 animate-pulse rounded bg-neutral-200 sm:h-7 sm:w-24" />
