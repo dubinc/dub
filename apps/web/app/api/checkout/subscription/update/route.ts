@@ -132,23 +132,12 @@ export const POST = withSession(
     );
 
     try {
-      if (
-        subscription.status === "cancelled" ||
-        subscription.status === "dunning" ||
-        subscription.status === "scheduled_for_cancellation"
-      ) {
-        await paymentService.reactivateClientSubscription(
-          subscription?.id || paymentData?.paymentInfo?.subscriptionId || "",
-          { skipFirstPayment: true, skipTrial: true },
-        );
-      }
-
       const attributes = {
         //**** antifraud sessions ****//
         ...(paymentData?.sessions && { ...paymentData.sessions }),
 
         //**** for analytics ****//
-        payment_id: body.paymentId,
+        ...(body.paymentId && { payment_id: body.paymentId }),
         email: email,
         flow_type: "internal",
         locale: "en",
@@ -195,6 +184,17 @@ export const POST = withSession(
           attributes,
         },
       );
+
+      if (
+        subscription.status === "cancelled" ||
+        subscription.status === "dunning" ||
+        subscription.status === "scheduled_for_cancellation"
+      ) {
+        await paymentService.reactivateClientSubscription(
+          subscription?.id || paymentData?.paymentInfo?.subscriptionId || "",
+          { skipFirstPayment: !!body.paymentId, skipTrial: true },
+        );
+      }
 
       const subDataAfterUpdate =
         await paymentService.getClientSubscriptionDataByEmail({ email: email });
@@ -251,7 +251,10 @@ export const POST = withSession(
         }),
       ]);
 
-      return NextResponse.json({ success: true });
+      return NextResponse.json({
+        success: true,
+        data: { nextBillingDate: newSubData.nextBillingDate },
+      });
     } catch (error: any) {
       return NextResponse.json(
         { success: false, error: error?.message },

@@ -28,11 +28,13 @@ export interface ICreateSubscriptionRes extends IDataRes {
 }
 
 export interface IUpdateSubscriptionBody {
-  paymentId: string;
+  paymentId?: string;
   paymentPlan: TPaymentPlan;
 }
 
-export interface IUpdateSubscriptionRes extends IDataRes {}
+export interface IUpdateSubscriptionRes extends IDataRes {
+  data?: { nextBillingDate?: string };
+}
 
 export interface IUpdateSubscriptionPaymentMethodBody {
   email: string;

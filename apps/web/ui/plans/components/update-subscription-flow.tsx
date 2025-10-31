@@ -10,7 +10,11 @@ import {
   getSubscriptionRenewalAction,
   subscriptionPlansWeight,
 } from "core/constants/subscription-plans-weight.ts";
-import { setPeopleAnalytic } from "core/integration/analytic";
+import {
+  setPeopleAnalytic,
+  trackClientEvents,
+} from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { pollPaymentStatus } from "core/integration/payment/client/services/payment-status.service.ts";
 import {
   getChargePeriodDaysIdByPlan,
@@ -19,9 +23,10 @@ import {
 } from "core/integration/payment/config";
 import { IGetPrimerClientPaymentInfoRes } from "core/integration/payment/server";
 import { generateTrackingUpsellEvent } from "core/services/events/upsell-events.service.ts";
+import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Dispatch, FC, SetStateAction, useMemo } from "react";
+import { Dispatch, FC, SetStateAction, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
@@ -72,7 +77,7 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
       featuresAccess.status !== "scheduled_for_cancellation") ||
     isProcessing;
 
-  const handleUpdatePlan = async () => {
+  const payAndUpdatePlan = async () => {
     setIsProcessing(true);
 
     generateTrackingUpsellEvent({
@@ -151,9 +156,18 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
             },
           });
 
-          toast.success(
-            `The plan ${getSubscriptionRenewalAction(selectedPlan.paymentPlan, currentSubscriptionPlan as TPaymentPlan)} was successful!`,
-          );
+          if (
+            featuresAccess.isSubscribed &&
+            featuresAccess.status !== "scheduled_for_cancellation"
+          ) {
+            toast.success(
+              `You’ve successfully upgraded to ${selectedPlan.name} plan.`,
+            );
+          } else {
+            toast.success(
+              `You’ve successfully activated your subscription. Your current plan is ${selectedPlan.name} plan.`,
+            );
+          }
 
           const chargePeriodDays = getChargePeriodDaysIdByPlan({
             paymentPlan: selectedPlan.paymentPlan,
@@ -187,6 +201,83 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
       initialStatus: createPaymentRes!.data!.status,
     });
   };
+
+  const justDowngradePlan = useCallback(async () => {
+    await triggerUpdateSubscription({
+      paymentPlan: selectedPlan.paymentPlan,
+    })
+      .then(async (res) => {
+        const chargePeriodDays = getChargePeriodDaysIdByPlan({
+          paymentPlan: selectedPlan.paymentPlan,
+          user,
+        });
+
+        if (
+          featuresAccess.isSubscribed &&
+          featuresAccess.status !== "scheduled_for_cancellation"
+        ) {
+          toast.success(
+            `You’ve downgraded to ${selectedPlan.name} plan. It will take effect on ${format(
+              new Date(res?.data?.nextBillingDate || ""),
+              "yyyy-MM-dd",
+            )}. No charge today!`,
+          );
+        } else {
+          toast.success(
+            `You’ve successfully activated your subscription. Your current plan is ${selectedPlan.name} plan.`,
+          );
+        }
+
+        setPeopleAnalytic({
+          plan_name: selectedPlan.paymentPlan,
+          charge_period_days: chargePeriodDays,
+        });
+        setIsTrialOver(false);
+
+        await updateSession();
+        await mutate("/api/user");
+
+        // Force refresh the page cache
+
+        router.refresh();
+        router.push("/");
+      })
+      .catch((error) => {
+        setIsProcessing(false);
+        toast.error(
+          `The plan updating failed: ${error?.code ?? error?.message}`,
+        );
+      });
+
+    return;
+  }, [selectedPlan, currentSubscriptionPlan]);
+
+  const handleUpdatePlan = useCallback(async () => {
+    setIsProcessing(true);
+
+    trackClientEvents({
+      event: EAnalyticEvents.PLAN_PICKER_CLICKED,
+      params: {
+        event_category: "Authorized",
+        email: user.email,
+        plan_name: selectedPlan.paymentPlan,
+        page_name: "profile",
+        content_group: "plans",
+      },
+      sessionId: user.id,
+    });
+
+    if (
+      subscriptionPlansWeight[selectedPlan.paymentPlan] <
+      subscriptionPlansWeight?.[currentSubscriptionPlan!]
+    ) {
+      await justDowngradePlan();
+
+      return;
+    }
+
+    await payAndUpdatePlan();
+  }, [selectedPlan, currentSubscriptionPlan, featuresAccess, user]);
 
   return (
     <Button
