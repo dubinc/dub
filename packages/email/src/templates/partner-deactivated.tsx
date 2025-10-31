@@ -14,16 +14,16 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export default function PartnerBanned({
+export default function PartnerDeactivated({
   partner = {
     name: "John",
     email: "panic@thedis.co",
   },
   program = {
-    name: "Acme",
+    name: "Perplexity",
     slug: "acme",
   },
-  bannedReason = "violating our terms of service",
+  deactivatedReason,
 }: {
   partner: {
     name: string;
@@ -33,14 +33,13 @@ export default function PartnerBanned({
     name: string;
     slug: string;
   };
-  bannedReason: string;
+  deactivatedReason?: string;
 }) {
   return (
     <Html>
       <Head />
       <Preview>
-        You've been banned from the {program.name} Partner Program for{" "}
-        {bannedReason}
+        {program.name} has deactivated your partnership with their program.
       </Preview>
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
@@ -50,18 +49,19 @@ export default function PartnerBanned({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-600">
-              Hello {partner.name},
+              Your partnership with {program.name} has been deactivated
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              You've been banned from the {program.name} Partner Program for{" "}
-              <strong>{bannedReason}</strong>.
+              Hello {partner.name}! {program.name} has deactivated your
+              partnership with their program
+              {deactivatedReason ? ` ${deactivatedReason}` : ""}.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              All your links have been deactivated, and your pending commissions
-              have been canceled. You cannot apply to the {program.name} Partner
-              Program again.
+              All your links have been disabled, but your pending commissions
+              and payouts will remain until they are approved and paid out by
+              the {program.name} team.
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
