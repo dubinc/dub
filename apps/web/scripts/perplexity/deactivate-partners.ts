@@ -49,6 +49,11 @@ async function main() {
       where,
       data: {
         status: "deactivated",
+        groupId: null,
+        clickRewardId: null,
+        leadRewardId: null,
+        saleRewardId: null,
+        discountId: null,
       },
     }),
   ]);
