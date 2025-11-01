@@ -238,10 +238,10 @@ export const { POST } = serve<z.infer<typeof partnerApprovedWorkflowSchema>>(
               showModifiersTooltip: false,
             }),
           }),
-          headers: {
-            "Idempotency-Key": `application-approved-${programEnrollment.id}`,
-          },
         })),
+        {
+          idempotencyKey: `application-approved/${programEnrollment.id}`,
+        },
       );
 
       if (data) {

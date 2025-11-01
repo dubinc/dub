@@ -1,4 +1,5 @@
-import { INTERVAL_DATA, INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import { INTERVAL_DISPLAYS } from "@/lib/analytics/constants";
+import { getIntervalData } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
 import {
   exportLinksColumns,
@@ -169,7 +170,7 @@ function ExportLinksModal({
                       id: value,
                       label: display,
                       dateRange: {
-                        from: INTERVAL_DATA[value].startDate,
+                        from: getIntervalData(value).startDate,
                         to: new Date(),
                       },
                     }))}

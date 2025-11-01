@@ -51,7 +51,7 @@ export const ProgramHelpLinks = memo(() => {
           href={href}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-content-default hover:text-content-emphasis hover:bg-bg-inverted/5 active:bg-bg-inverted/10 flex items-center gap-2 rounded-md py-1.5 text-sm transition-all hover:px-2.5"
+          className="text-content-default hover:text-content-emphasis hover:bg-bg-inverted/5 active:bg-bg-inverted/10 flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-sm transition-all"
         >
           <Icon className="size-4" />
           {label}

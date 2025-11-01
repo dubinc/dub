@@ -51,9 +51,9 @@ export function ProgramLinksPageClient() {
     interval?: IntervalOptions;
   };
 
-  const program = programEnrollment?.program;
-  const maxPartnerLinks = programEnrollment?.group?.maxPartnerLinks;
-  const additionalLinks = programEnrollment?.group?.additionalLinks;
+  const { program, group, status } = programEnrollment ?? {};
+  const maxPartnerLinks = group?.maxPartnerLinks;
+  const additionalLinks = group?.additionalLinks;
 
   const hasLinksLimitReached =
     links && maxPartnerLinks && links.length >= maxPartnerLinks;
@@ -81,11 +81,13 @@ export function ProgramLinksPageClient() {
           onClick={() => setShowPartnerLinkModal(true)}
           disabled={!canCreateNewLink}
           disabledTooltip={
-            hasLinksLimitReached
-              ? `You have reached the limit of ${maxPartnerLinks} referral links.`
-              : !hasAdditionalLinks
-                ? `${program?.name ?? "This"} program does not allow partners to create new links.`
-                : undefined
+            status === "deactivated"
+              ? "You cannot create links in this program because your partnership has been deactivated."
+              : hasLinksLimitReached
+                ? `You have reached the limit of ${maxPartnerLinks} referral links.`
+                : !hasAdditionalLinks
+                  ? `${program?.name ?? "This"} program does not allow partners to create new links.`
+                  : undefined
           }
         />
       </div>

@@ -5,6 +5,7 @@ import { getWorkspaceUsers } from "@/lib/api/get-workspace-users";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
   BountySubmissionFileSchema,
+  MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH,
   MAX_SUBMISSION_FILES,
   MAX_SUBMISSION_URLS,
   submissionRequirementsSchema,
@@ -27,7 +28,11 @@ const schema = z.object({
     .max(MAX_SUBMISSION_FILES)
     .default([]),
   urls: z.array(z.string().url()).max(MAX_SUBMISSION_URLS).default([]),
-  description: z.string().trim().max(1000).optional(),
+  description: z
+    .string()
+    .trim()
+    .max(MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH)
+    .optional(),
   isDraft: z
     .boolean()
     .default(false)
