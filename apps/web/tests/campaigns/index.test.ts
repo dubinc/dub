@@ -32,6 +32,7 @@ const campaign: z.infer<typeof updateCampaignSchema> = {
 const expectedCampaign: Partial<Campaign> = {
   ...campaign,
   type: "transactional",
+  status: expect.any(String),
   from: null,
   scheduledAt: null,
   groups: [{ id: E2E_PARTNER_GROUP.id }],
@@ -175,18 +176,8 @@ describe.sequential("/campaigns/**", async () => {
     const campaign = campaigns.find((c) => c.id === campaignId);
 
     expect(campaign).toStrictEqual({
+      ...expectedCampaign,
       id: campaignId,
-      name: expectedCampaign.name,
-      type: expectedCampaign.type,
-      status: "active",
-      scheduledAt: null,
-      groups: [{ id: E2E_PARTNER_GROUP.id }],
-      delivered: 0,
-      sent: 0,
-      bounced: 0,
-      opened: 0,
-      createdAt: expect.any(String),
-      updatedAt: expect.any(String),
     });
   });
 

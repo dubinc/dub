@@ -5,6 +5,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { WorkflowAction, WorkflowCondition } from "@/lib/types";
 import {
+  CampaignSchema,
   createCampaignSchema,
   getCampaignsQuerySchema,
 } from "@/lib/zod/schemas/campaigns";
@@ -36,6 +37,10 @@ export const GET = withWorkspace(
           ],
         }),
       },
+      include: {
+        groups: true,
+        workflow: true,
+      },
       orderBy: {
         createdAt: "desc",
       },
@@ -43,7 +48,15 @@ export const GET = withWorkspace(
       take: pageSize,
     });
 
-    return NextResponse.json(campaigns);
+    return NextResponse.json(
+      campaigns.map((campaign) =>
+        CampaignSchema.parse({
+          ...campaign,
+          groups: campaign.groups.map(({ groupId }) => ({ id: groupId })),
+          triggerCondition: campaign.workflow?.triggerConditions?.[0],
+        }),
+      ),
+    );
   },
   {
     requiredPlan: ["advanced", "enterprise"],
