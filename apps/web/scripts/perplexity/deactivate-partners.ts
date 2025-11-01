@@ -30,6 +30,11 @@ async function main() {
     take: 500,
   });
 
+  if (partners.length === 0) {
+    console.log("No partners found");
+    return;
+  }
+
   const where = {
     programId,
     partnerId: {
