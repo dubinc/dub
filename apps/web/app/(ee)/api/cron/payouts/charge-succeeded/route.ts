@@ -61,6 +61,7 @@ export async function POST(req: Request) {
     const parsedChargeMetadata = stripeChargeMetadataSchema.safeParse(
       invoice.stripeChargeMetadata,
     );
+
     const chargeId = parsedChargeMetadata.success
       ? parsedChargeMetadata.data.id
       : undefined;
