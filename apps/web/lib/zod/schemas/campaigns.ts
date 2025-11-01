@@ -107,19 +107,6 @@ export const getCampaignsQuerySchema = z
   .object({
     type: z.nativeEnum(CampaignType).optional(),
     status: z.nativeEnum(CampaignStatus).optional(),
-    sortBy: z
-      .enum([
-        "createdAt",
-        "updatedAt",
-        "status",
-        "sent",
-        "delivered",
-        "opened",
-        "bounced",
-      ])
-      .optional()
-      .default("createdAt"),
-    sortOrder: z.enum(["asc", "desc"]).optional().default("desc"),
     search: z.string().optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));

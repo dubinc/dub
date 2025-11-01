@@ -1,5 +1,4 @@
 import { DEFAULT_CAMPAIGN_BODY } from "@/lib/api/campaigns/constants";
-import { getCampaigns } from "@/lib/api/campaigns/get-campaigns";
 import { createId } from "@/lib/api/create-id";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
@@ -22,9 +21,26 @@ export const GET = withWorkspace(
   async ({ workspace, searchParams }) => {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const campaigns = await getCampaigns({
-      ...getCampaignsQuerySchema.parse(searchParams),
-      programId,
+    const { type, status, search, page, pageSize } =
+      getCampaignsQuerySchema.parse(searchParams);
+
+    const campaigns = await prisma.campaign.findMany({
+      where: {
+        programId,
+        type,
+        status,
+        ...(search && {
+          OR: [
+            { name: { contains: search } },
+            { subject: { contains: search } },
+          ],
+        }),
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
     });
 
     return NextResponse.json(campaigns);
