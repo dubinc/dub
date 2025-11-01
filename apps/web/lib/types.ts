@@ -54,6 +54,7 @@ import {
 } from "./zod/schemas/customers";
 import { dashboardSchema } from "./zod/schemas/dashboard";
 import { DiscountCodeSchema, DiscountSchema } from "./zod/schemas/discount";
+import { EmailDomainSchema } from "./zod/schemas/email-domains";
 import { FolderSchema } from "./zod/schemas/folders";
 import { GroupWithProgramSchema } from "./zod/schemas/group-with-program";
 import {
@@ -657,3 +658,5 @@ export interface CampaignWorkflowAttributeConfig {
 }
 
 export type WorkflowAttribute = (typeof WORKFLOW_ATTRIBUTES)[number];
+
+export type EmailDomainProps = z.infer<typeof EmailDomainSchema>;

@@ -27,9 +27,9 @@ function SendEmailPreviewModal({
   const { control } = useCampaignFormContext();
   const [emailAddresses, setEmailAddresses] = useState(user?.email ?? "");
 
-  const [subject, bodyJson] = useWatch({
+  const [subject, bodyJson, from] = useWatch({
     control,
-    name: ["subject", "bodyJson"],
+    name: ["subject", "bodyJson", "from"],
   });
 
   const { executeAsync: sendEmailPreview, isPending } = useAction(
@@ -82,6 +82,7 @@ function SendEmailPreviewModal({
       campaignId,
       subject,
       bodyJson,
+      from,
       emailAddresses: emails,
     });
   };

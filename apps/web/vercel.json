@@ -5,6 +5,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/email-domains/verify",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/domains/renewal-reminders",
       "schedule": "0 8 * * *"
     },

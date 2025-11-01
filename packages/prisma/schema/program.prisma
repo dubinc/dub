@@ -70,6 +70,7 @@ model Program {
   campaigns                Campaign[]
   discoveredPartners       DiscoveredPartner[]
   industryInterests        ProgramIndustryInterest[]
+  emailDomains             EmailDomain[]
 
   @@index(workspaceId)
   @@index(domain)
