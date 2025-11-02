@@ -66,17 +66,17 @@ export async function POST(req: Request) {
       if (pendingBalance > 0) {
         const res = await qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
-          delay: 3 * 60 * 60, // check again in 3 hours
+          delay: 1 * 60 * 60, // check again in 1 hour
           body: {
             stripeAccount,
           },
         });
         console.log(
-          `Scheduled another check for partner ${partner.email} (${stripeAccount}) in 3 hours: ${res.messageId}`,
+          `Scheduled another check for partner ${partner.email} (${stripeAccount}) in 1 hour: ${res.messageId}`,
         );
 
         return logAndRespond(
-          `Pending balance found for partner ${partner.email} (${stripeAccount}): ${currencyFormatter(pendingBalance / 100, { currency: "USD" })}. Scheduling another check in 3 hours...`,
+          `Pending balance found for partner ${partner.email} (${stripeAccount}): ${currencyFormatter(pendingBalance / 100, { currency: "USD" })}. Scheduling another check in 1 hour...`,
         );
       }
 
