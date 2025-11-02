@@ -72,9 +72,6 @@ export default async function LinkMiddleware(
   if (link) {
     const linkData = await getLinkViaEdge({ id: link.id });
 
-    console.log("hererherhehrewfseded");
-    console.log("APP_DOMAIN", APP_DOMAIN);
-
     const redirectToQrDisabledPlug = NextResponse.redirect(
       new URL(
         `${APP_DOMAIN}/qr-disabled`,
@@ -110,6 +107,9 @@ export default async function LinkMiddleware(
 
   if (!link) {
     const linkData = await getLinkViaEdge({ domain, key });
+
+    console.log("hererherhehrewfseded");
+    console.log("APP_DOMAIN", APP_DOMAIN);
 
     const redirectToQrDisabledPlug = NextResponse.redirect(
       new URL(

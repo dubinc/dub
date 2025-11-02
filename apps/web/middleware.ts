@@ -31,6 +31,11 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, key, fullKey, path } = parse(req);
 
+  console.log("domain", domain);
+  console.log("path", path);
+  console.log("APP_HOSTNAMES", APP_HOSTNAMES);
+  console.log(APP_HOSTNAMES.has(domain));
+
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
 
@@ -93,6 +98,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
+    console.log("entered app middleware");
     return AppMiddleware(req, user, false, country);
   }
 
