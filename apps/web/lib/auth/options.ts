@@ -26,6 +26,8 @@ import {
   incrementLoginAttempts,
 } from "./lock-account";
 import { validatePassword } from "./password";
+import { createAutoLoginURL } from './jwt-signin';
+import { APP_URL } from '@dub/utils';
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -48,13 +50,17 @@ export const authOptions: NextAuthOptions = {
               return;
             }
 
+            const loginUrl = process.env.NEXTAUTH_URL ? url : await createAutoLoginURL(user?.id as string);
+            console.log("loginUrl", loginUrl);
+            console.log("process.env.NEXTAUTH_URL", process.env.NEXTAUTH_URL);
+
             waitUntil(
               sendEmail({
                 email: identifier,
                 subject: `Your ${process.env.NEXT_PUBLIC_APP_NAME} Login Link`,
                 template: CUSTOMER_IO_TEMPLATES.MAGIC_LINK,
                 messageData: {
-                  url,
+                  url: loginUrl,
                 },
                 customerId: user?.id,
               }),
@@ -179,7 +185,7 @@ export const authOptions: NextAuthOptions = {
         // domain: VERCEL_DEPLOYMENT
         //   ? `.${APP_URL}`
         //   : undefined,
-        domain: VERCEL_DEPLOYMENT ? `.getqr.com` : undefined,
+        domain: VERCEL_DEPLOYMENT ? `.${APP_URL}` : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },
