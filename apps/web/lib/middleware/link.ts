@@ -8,6 +8,7 @@ import {
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
 import {
+  APP_DOMAIN,
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
@@ -106,6 +107,9 @@ export default async function LinkMiddleware(
 
   if (!link) {
     const linkData = await getLinkViaEdge({ domain, key });
+
+    console.log("hererehrerscdcesde");
+    console.log("APP_DOMAIN", APP_DOMAIN);
 
     const redirectToQrDisabledPlug = NextResponse.redirect(
       new URL(
