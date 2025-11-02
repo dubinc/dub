@@ -108,7 +108,7 @@ export default async function LinkMiddleware(
   if (!link) {
     const linkData = await getLinkViaEdge({ domain, key });
 
-    console.log("hererherhehrewfseded");
+    console.log("hererehrerscdcesde");
     console.log("APP_DOMAIN", APP_DOMAIN);
 
     const redirectToQrDisabledPlug = NextResponse.redirect(
