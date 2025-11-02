@@ -64,7 +64,7 @@ export async function POST(req: Request) {
 
     // if available balance is 0, check if there's any pending balance
     if (availableBalance === 0) {
-      const pendingBalance = balance.pending[0].amount;
+      const pendingBalance = balance.pending?.[0]?.amount ?? 0;
 
       // if there's a pending balance, schedule another check in 1 hour
       if (pendingBalance > 0) {
@@ -80,7 +80,7 @@ export async function POST(req: Request) {
         );
 
         return logAndRespond(
-          `Pending balance found for partner ${partner.email} (${stripeAccount}): ${currencyFormatter(pendingBalance / 100, { currency: "USD" })}. Scheduling another check in 1 hour...`,
+          `Pending balance found for partner ${partner.email} (${stripeAccount}): ${currencyFormatter(pendingBalance / 100, { currency })}. Scheduling another check in 1 hour...`,
         );
       }
 
