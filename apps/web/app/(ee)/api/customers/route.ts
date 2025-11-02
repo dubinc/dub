@@ -71,7 +71,6 @@ export const GET = withWorkspace(
                 : {
                     email: { search: sanitizeFullTextSearch(search) },
                     name: { search: sanitizeFullTextSearch(search) },
-                    externalId: { search: sanitizeFullTextSearch(search) },
                   }
               : {}),
         ...(country && {
