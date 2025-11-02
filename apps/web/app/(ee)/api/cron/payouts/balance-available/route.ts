@@ -50,23 +50,27 @@ export async function POST(req: Request) {
       stripeAccount,
     });
 
-    const availableBalance = balance.available.reduce(
-      (acc, { amount }) => acc + amount,
-      0,
-    );
-
-    // if there's no available balance, check if there's any pending balance
-    if (availableBalance === 0) {
-      const pendingBalance = balance.pending.reduce(
-        (acc, { amount }) => acc + amount,
-        0,
+    if (balance.available.length === 0) {
+      // should never happen, but just in case
+      return logAndRespond(
+        `Partner ${partner.email} (${stripeAccount}) has no available balance. Skipping...`,
+        {
+          logLevel: "error",
+        },
       );
+    }
 
-      // if there's a pending balance, schedule another check in 3 hours
+    let { amount: availableBalance, currency } = balance.available[0];
+
+    // if available balance is 0, check if there's any pending balance
+    if (availableBalance === 0) {
+      const pendingBalance = balance.pending[0].amount;
+
+      // if there's a pending balance, schedule another check in 1 hour
       if (pendingBalance > 0) {
         const res = await qstash.publishJSON({
           url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
-          delay: 1 * 60 * 60, // check again in 1 hour
+          delay: 60 * 60, // check again in 1 hour
           body: {
             stripeAccount,
           },
@@ -81,47 +85,14 @@ export async function POST(req: Request) {
       }
 
       return logAndRespond(
-        `No available balance found for partner ${partner.email} (${stripeAccount}). Skipping...`,
-      );
-    }
-
-    const { amount, currency } = balance.available[0];
-
-    const { data: stripePayouts } = await stripe.payouts.list(
-      {
-        status: "pending",
-      },
-      {
-        stripeAccount,
-      },
-    );
-
-    let balanceToWithdraw = amount;
-
-    // Subtract the pending/in-transit payouts from the available balance
-    if (stripePayouts.length > 0) {
-      const pendingOrInTransitPayouts = stripePayouts.filter(
-        ({ status }) => status === "pending" || status === "in_transit",
-      );
-
-      const alreadyPaidOutAmount = pendingOrInTransitPayouts.reduce(
-        (acc, payout) => acc + payout.amount,
-        0,
-      );
-
-      balanceToWithdraw = balanceToWithdraw - alreadyPaidOutAmount;
-    }
-
-    if (balanceToWithdraw <= 0) {
-      return logAndRespond(
-        `The balance to withdraw (${currencyFormatter(balanceToWithdraw / 100, { currency })}) for partner ${partner.email} (${stripeAccount}) is less than or equal to 0 after subtracting pending payouts. Skipping...`,
+        `Partner ${partner.email} (${stripeAccount})'s available balance is 0. Skipping...`,
       );
     }
 
     if (["huf", "twd"].includes(currency)) {
       // For HUF and TWD, Stripe requires payout amounts to be evenly divisible by 100
       // We need to round down to the nearest 100 units
-      balanceToWithdraw = Math.floor(balanceToWithdraw / 100) * 100;
+      availableBalance = Math.floor(availableBalance / 100) * 100;
     }
 
     const stripePayout = await stripe.payouts.create(
