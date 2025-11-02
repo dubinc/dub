@@ -27,6 +27,7 @@ import {
 } from "./lock-account";
 import { validatePassword } from "./password";
 import { createAutoLoginURL } from './jwt-signin';
+import { APP_URL } from '@dub/utils';
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -184,7 +185,7 @@ export const authOptions: NextAuthOptions = {
         // domain: VERCEL_DEPLOYMENT
         //   ? `.${APP_URL}`
         //   : undefined,
-        domain: VERCEL_DEPLOYMENT ? `.vercel.app` : undefined,
+        domain: VERCEL_DEPLOYMENT ? `.${APP_URL}` : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },
