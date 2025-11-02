@@ -179,7 +179,7 @@ export const authOptions: NextAuthOptions = {
         // domain: VERCEL_DEPLOYMENT
         //   ? `.${APP_URL}`
         //   : undefined,
-        domain: VERCEL_DEPLOYMENT ? `.getqr.com` : undefined,
+        domain: VERCEL_DEPLOYMENT ? `.vercel.app` : undefined,
         secure: VERCEL_DEPLOYMENT,
       },
     },
