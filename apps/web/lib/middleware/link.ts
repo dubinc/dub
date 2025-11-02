@@ -36,6 +36,9 @@ export default async function LinkMiddleware(
 ) {
   let { domain, fullKey: originalKey } = parse(req);
 
+  console.log("Link middleware");
+  console.log("domain", domain);
+
   if (!domain) {
     return NextResponse.next();
   }
@@ -74,7 +77,7 @@ export default async function LinkMiddleware(
 
     const redirectToQrDisabledPlug = NextResponse.redirect(
       new URL(
-        `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
+        `${APP_DOMAIN}/qr-disabled`,
         req.url,
       ),
       {
@@ -85,9 +88,6 @@ export default async function LinkMiddleware(
         status: 302,
       },
     );
-
-    console.log("here1");
-    console.log(linkData);
 
     if (linkData?.archived) {
       return redirectToQrDisabledPlug;
@@ -113,7 +113,7 @@ export default async function LinkMiddleware(
 
     const redirectToQrDisabledPlug = NextResponse.redirect(
       new URL(
-        `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
+        `${APP_DOMAIN}/qr-disabled`,
         req.url,
       ),
       {

@@ -2,7 +2,7 @@
 
 import { AlertCircleFill } from "@/ui/shared/icons";
 import { Button, InfoTooltip, useMediaQuery } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { APP_URL, cn } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { useSession } from "next-auth/react";
 import { usePlausible } from "next-plausible";
@@ -120,7 +120,7 @@ export function CreateWorkspaceForm({
         </label>
         <div className="relative mt-2 flex rounded-md shadow-sm">
           <span className="inline-flex items-center rounded-l-md border border-r-0 border-neutral-300 bg-neutral-50 px-5 text-neutral-500 sm:text-sm">
-            app.{process.env.NEXT_PUBLIC_APP_DOMAIN}
+            app.{APP_URL}
           </span>
           <input
             id="slug"

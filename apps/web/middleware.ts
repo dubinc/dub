@@ -31,6 +31,7 @@ export const config = {
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, key, fullKey, path } = parse(req);
 
+  console.log("env app domain", process.env.NEXT_PUBLIC_APP_DOMAIN);
   console.log("domain", domain);
   console.log("path", path);
   console.log("APP_HOSTNAMES", APP_HOSTNAMES);
@@ -99,6 +100,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
+    console.log("entered app middleware");
     return AppMiddleware(req, user, false, country);
   }
 
