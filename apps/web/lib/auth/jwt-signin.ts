@@ -3,6 +3,7 @@ import { SignJWT, jwtVerify } from "jose";
 import { encode } from "next-auth/jwt";
 import { cookies } from "next/headers";
 import { Session } from "./utils";
+import { APP_URL } from '@dub/utils';
 
 // JWT secret for server-side authentication
 const JWT_SECRET = process.env.NEXTAUTH_SECRET || "fallback-secret";
@@ -122,7 +123,7 @@ export async function setServerAuthSession(userId: string): Promise<void> {
         sameSite: "lax",
         expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30), // Match NextAuth calculation exactly
         path: "/",
-        domain: VERCEL_DEPLOYMENT ? `.getqr.com` : undefined,
+        domain: VERCEL_DEPLOYMENT ? `.${APP_URL}` : undefined,
         secure: VERCEL_DEPLOYMENT, // Add the missing secure flag
       },
     );
