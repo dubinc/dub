@@ -1,5 +1,4 @@
 import { cn, truncate } from "@dub/utils";
-import { Command } from "cmdk";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
@@ -274,9 +273,9 @@ function FilterCombobox({
     if (hasEmptyOptions) {
       if (!search) {
         return (
-          <Command.Empty className="p-2 text-center text-sm text-neutral-400">
+          <div className="p-2 text-center text-sm text-neutral-400">
             Start typing to search...
-          </Command.Empty>
+          </div>
         );
       }
       // When search exists and filter has empty options, the onCreate handler will show the create option
@@ -284,9 +283,9 @@ function FilterCombobox({
     }
 
     return (
-      <Command.Empty className="p-2 text-center text-sm text-neutral-400">
+      <div className="p-2 text-center text-sm text-neutral-400">
         No matching options
-      </Command.Empty>
+      </div>
     );
   })();
 
