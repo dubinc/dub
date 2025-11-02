@@ -1,3 +1,4 @@
+import { APP_DOMAIN } from '@dub/utils';
 import { EQRType } from "../constants/get-qr-config";
 
 // Function to escape special characters in Wi-Fi QR code
@@ -72,21 +73,21 @@ export const qrTypeDataEncoders = {
   [EQRType.PDF]: (_values: Record<string, any>, fileId?: string) => {
     if (fileId) {
       // Construct a valid URL for QR rendering
-      return `${process.env.NEXT_PUBLIC_APP_DOMAIN || "https://getqr.com"}/qrs-content/${fileId}`;
+      return `${APP_DOMAIN}/qrs-content/${fileId}`;
     }
     return "";
   },
 
   [EQRType.IMAGE]: (_values: Record<string, any>, fileId?: string) => {
     if (fileId) {
-      return `${process.env.NEXT_PUBLIC_APP_DOMAIN || "https://getqr.com"}/qrs-content/${fileId}`;
+      return `${APP_DOMAIN}/qrs-content/${fileId}`;
     }
     return "";
   },
 
   [EQRType.VIDEO]: (_values: Record<string, any>, fileId?: string) => {
     if (fileId) {
-      return `${process.env.NEXT_PUBLIC_APP_DOMAIN || "https://getqr.com"}/qrs-content/${fileId}`;
+      return `${APP_DOMAIN}/qrs-content/${fileId}`;
     }
     return "";
   },
