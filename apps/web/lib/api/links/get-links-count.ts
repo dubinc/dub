@@ -43,11 +43,13 @@ export async function getLinksCount({
               ],
             },
           ]
-        : [
-            {
-              folderId: folderId || null,
-            },
-          ]),
+        : groupBy !== "folderId"
+          ? [
+              {
+                folderId: folderId || null,
+              },
+            ]
+          : []),
       ...(search
         ? [
             {
