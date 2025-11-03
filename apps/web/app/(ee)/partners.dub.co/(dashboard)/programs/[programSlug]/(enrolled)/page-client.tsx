@@ -39,6 +39,7 @@ import {
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
+import { endOfDay, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -222,8 +223,8 @@ export default function ProgramPageClient() {
       )}
       <ProgramOverviewContext.Provider
         value={{
-          start: start ? new Date(start) : undefined,
-          end: end ? new Date(end) : undefined,
+          start: start ? startOfDay(new Date(start)) : undefined,
+          end: end ? endOfDay(new Date(end)) : undefined,
           interval,
           color: program?.brandColor ?? undefined,
         }}
