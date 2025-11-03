@@ -31,7 +31,7 @@ export async function emailBounced({
     return;
   }
 
-  await prisma.notificationEmail.update({
+  const res = await prisma.notificationEmail.update({
     where: {
       emailId,
     },
@@ -39,4 +39,8 @@ export async function emailBounced({
       bouncedAt: new Date(),
     },
   });
+
+  console.log(
+    `Updated notification email ${res.id} with Resend email id ${emailId} to bouncedAt: ${res.bouncedAt}`,
+  );
 }
