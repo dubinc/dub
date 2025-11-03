@@ -227,7 +227,7 @@ export const Footer: FC<Readonly<IFooterProps>> = ({
       <Separator />
 
       {/* Bottom section with copyright and payments */}
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-3 sm:px-6 pb-0">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-2 sm:px-6 pb-0">
         <div className="flex items-center gap-4">
           <p className="text-sm text-neutral-600">
             © GetQR - {new Date().getFullYear()}. All rights reserved.

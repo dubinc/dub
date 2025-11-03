@@ -20,7 +20,7 @@ export const CTASection: FC<ICTASectionProps> = ({
   return (
     <section className="relative py-10 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Card className="group relative overflow-hidden rounded-3xl border-2 shadow-2xl">
+        <Card className="group relative overflow-hidden rounded-3xl border-2 shadow">
           {/* Animated gradient background */}
           <div className="from-background to-muted/30 absolute inset-0 bg-gradient-to-br" />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
@@ -55,7 +55,7 @@ export const CTASection: FC<ICTASectionProps> = ({
                   <div className="absolute -right-2 -top-2 z-10 rounded-full bg-gradient-to-br from-blue-500/80 to-blue-600/80 p-1.5 shadow-lg">
                     <Sparkles className="h-4 w-4 text-white" />
                   </div>
-                  <div className="bg-card relative w-32 -translate-y-4 overflow-hidden rounded-2xl border-2 border-gray-200 p-2 shadow-2xl backdrop-blur-sm transition-transform duration-300 hover:scale-105 sm:w-40">
+                  <div className="bg-card relative w-32 -translate-y-4 overflow-hidden rounded-2xl border-2 border-gray-200 p-2 shadow backdrop-blur-sm transition-transform duration-300 hover:scale-105 sm:w-40">
                     <Image
                       src={WebsiteQR}
                       alt="Website QR Code"

@@ -109,7 +109,7 @@ export const BaseFormField = ({
       </label>
       <InputGroup
         className={cn(
-          "has-[[data-slot=input-group-control]:focus-visible]:border-secondary",
+          "has-[[data-slot=input-group-control]:focus-visible]:!border-secondary has-[[data-slot=input-group-control]:focus-visible]:ring-0",
           {
             "border-red-500": error,
           }

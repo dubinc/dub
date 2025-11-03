@@ -130,6 +130,9 @@ export function QrBuilderProvider({
     useState<IQRCustomizationData>(initialState.customizationData);
   const [customizationActiveTab, setCustomizationActiveTab] =
     useState<string>("Frame");
+  
+  // Dialog state for mobile homepage demo
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const contentStepRef = useRef<QRContentStepRef>(null);
   const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
@@ -178,8 +181,16 @@ export function QrBuilderProvider({
   }, [initialQrData]);
 
   const handleNextStep = useCallback(() => {
+    // Prevent scroll on step change
+    const scrollPosition = window.scrollY;
+    
     // @ts-ignore
     setBuilderStep((prev) => Math.min(prev + 1, 3));
+    
+    // Restore scroll position after state update
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollPosition);
+    });
   }, []);
 
   const handleChangeStep = useCallback(
@@ -201,8 +212,16 @@ export function QrBuilderProvider({
         }
       }
 
+      // Prevent scroll on step change
+      const scrollPosition = window.scrollY;
+      
       setTypeSelectionError("");
       setBuilderStep(newStep as TStepState);
+      
+      // Restore scroll position after state update
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPosition);
+      });
 
       // Reset form validity appropriately
       if (newStep !== 2) {
@@ -283,15 +302,14 @@ export function QrBuilderProvider({
 
     handleChangeStep(newStep);
 
-    // Scroll on mobile
-    handleScroll();
+    // Scroll on mobile - Commented out to prevent scroll on step change
+    // handleScroll();
   }, [
     builderStep,
     handleChangeStep,
     homepageDemo,
     user,
     sessionId,
-    handleScroll,
   ]);
 
   // Methods
@@ -389,8 +407,8 @@ export function QrBuilderProvider({
 
     handleNextStep();
 
-    // Scroll on mobile
-    handleScroll();
+    // Scroll on mobile - Commented out to prevent scroll on step change
+    // handleScroll();
   }, [
     isContentStep,
     isCustomizationStep,
@@ -428,6 +446,13 @@ export function QrBuilderProvider({
     handleSelectQRType,
     handleResetTypeToScrollTo,
   ]);
+  
+  // Open dialog when on steps 2 or 3 in mobile homepage demo
+  useEffect(() => {
+    if (isMobile && homepageDemo && !isTypeStep) {
+      setIsDialogOpen(true);
+    }
+  }, [isMobile, homepageDemo, isTypeStep]);
 
   const contextValue: IQrBuilderContextType = {
     // States
@@ -459,6 +484,10 @@ export function QrBuilderProvider({
     isCustomizationStep,
     isEditMode: isEdit,
     homepageDemo,
+    
+    // Dialog state
+    isDialogOpen,
+    setIsDialogOpen,
 
     // Methods
     onSave,

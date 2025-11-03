@@ -183,14 +183,14 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
   return (
     <motion.div
       layout
-      className="flex max-w-[788px] w-full flex-col gap-4"
+      className="flex max-w-[788px] w-full flex-col gap-4 pb-6"
     >
       <StylePicker
         label="Select a logo"
         styleOptions={sortedLogos}
         value={selectedStyle}
         onSelect={handleSuggestedLogoSelect}
-        optionsWrapperClassName={`${
+        optionsWrapperClassName={`${isMobile ? "pb-2" : "pb-0"} ${
           disabled ? "pointer-events-none cursor-not-allowed" : ""
         }`}
         styleButtonClassName="[&_img]:h-10 [&_img]:w-10 p-2"

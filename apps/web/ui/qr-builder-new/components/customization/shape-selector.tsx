@@ -41,14 +41,14 @@ export const ShapeSelector: FC<ShapeSelectorProps> = ({
     [shapeData, onShapeChange],
   );
   return (
-    <div className="flex w-full flex-col gap-4">
+    <div className="flex w-full flex-col gap-4 pb-6">
       <div className="flex flex-col gap-4">
         <StylePicker
           label="Corner Square Style"
           styleOptions={CORNER_SQUARE_STYLES}
           value={shapeData.cornerSquareStyle}
           onSelect={handleCornerSquareStyleChange}
-          optionsWrapperClassName="gap-2 md:flex-nowrap"
+          optionsWrapperClassName={`gap-2 md:flex-nowrap ${isMobile ? "pb-2" : "pb-0"}`}
           iconSize={30}
           styleButtonClassName="[&_img]:h-5 [&_img]:w-5 p-3.5"
           disabled={disabled}
@@ -59,7 +59,7 @@ export const ShapeSelector: FC<ShapeSelectorProps> = ({
           styleOptions={CORNER_DOT_STYLES}
           value={shapeData.cornerDotStyle}
           onSelect={handleCornerDotStyleChange}
-          optionsWrapperClassName="gap-2 md:flex-nowrap"
+          optionsWrapperClassName={`gap-2 md:flex-nowrap ${isMobile ? "pb-2" : "pb-0"}`}
           iconSize={30}
           styleButtonClassName="[&_img]:h-5 [&_img]:w-5 p-3.5"
           disabled={disabled}

@@ -14,7 +14,7 @@ import { WIFI_ENCRYPTION_TYPES } from "@/ui/qr-builder-new/constants/wifi-encryp
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Flex, Text } from "@radix-ui/themes";
 import { Info, Wifi } from "lucide-react";
-import { forwardRef, useEffect, useImperativeHandle, useState } from "react";
+import { forwardRef, useEffect, useImperativeHandle } from "react";
 import {
   Controller,
   FormProvider,
@@ -48,7 +48,7 @@ interface WiFiFormProps {
 
 export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
-    const [openAccordion, setOpenAccordion] = useState<string | undefined>("details");
+    const openAccordion = "details";
 
     const { getDefaultValues, encodeFormData } = useQRFormData({
       qrType: EQRType.WIFI,
@@ -96,19 +96,17 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
         <form className="w-full">
           <Accordion
             type="single"
-            collapsible
             value={openAccordion}
-            onValueChange={(value) => setOpenAccordion(value as string | undefined)}
             className="w-full space-y-2"
           >
             <AccordionItem
               value="details"
               className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
             >
-              <AccordionTrigger className="hover:no-underline">
+              <AccordionTrigger className="hover:no-underline pointer-events-none [&>svg]:hidden">
                 <div className="flex w-full items-start gap-3 text-left">
-                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <Wifi className="h-5 w-5 text-secondary" />
+                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Wifi className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-foreground text-base font-medium">
@@ -183,8 +181,8 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
                 {/* Info box */}
                 <div className="p-3">
                   <div className="bg-secondary-50 border-secondary-200 flex items-start gap-3 rounded-lg border p-3">
-                    <Info className="text-secondary mt-0.5 h-4 w-4 flex-shrink-0" />
-                    <Text size="2" className="text-secondary">
+                    <Info className="text-primary mt-0.5 h-4 w-4 flex-shrink-0" />
+                    <Text size="2" className="text-primary">
                       Not sure where to find this info? Look at the label on your router
                       — it usually lists your WiFi name, password, and security type.
                     </Text>

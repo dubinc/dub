@@ -65,6 +65,10 @@ export interface IQrBuilderContextType {
   isCustomizationStep: boolean;
   isEditMode: boolean;
   homepageDemo?: boolean;
+  
+  // Dialog state (for mobile homepage demo)
+  isDialogOpen: boolean;
+  setIsDialogOpen: (open: boolean) => void;
 
   // Methods
   onSave: (providedFormData?: TQRFormData) => Promise<void>;

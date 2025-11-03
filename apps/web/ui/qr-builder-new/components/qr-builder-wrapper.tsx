@@ -49,7 +49,7 @@ export const QRBuilderWrapper = () => {
       className={cn(
         "mx-auto flex h-full w-full flex-col justify-between",
         !isTypeStep &&
-          "border-border-500 rounded-[20px] border bg-white shadow-lg",
+          "border-secondary/20 rounded-[20px] border bg-white shadow",
       )}
     >
       {/* Decorative blobs - only on steps 2 and 3, hidden on mobile */}
@@ -60,7 +60,7 @@ export const QRBuilderWrapper = () => {
         </>
       )}
 
-      <div className="relative">
+      <div className="relative ">
         <div
           className={cn(
             "flex w-full flex-col items-stretch justify-between gap-4 p-6 md:gap-6",

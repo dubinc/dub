@@ -32,9 +32,9 @@ export const StylePicker: FC<StylePickerProps> = ({
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
       <label className="text-sm font-medium">{label}</label>
-      <div className="dub-scrollbar max-h-[170px] overflow-y-auto">
+      <div className="dub-scrollbar overflow-x-auto overflow-y-hidden md:max-h-[170px] md:overflow-x-visible md:overflow-y-auto">
         <div
-          className={cn("flex flex-wrap gap-3", optionsWrapperClassName)}
+          className={cn("flex flex-nowrap gap-3 md:flex-wrap", optionsWrapperClassName)}
         >
           {styleOptions.map((styleOption) => (
             <StyleButton

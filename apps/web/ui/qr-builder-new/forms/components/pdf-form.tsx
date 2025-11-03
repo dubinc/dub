@@ -42,7 +42,7 @@ interface PdfFormProps {
 export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
     const [fileId, setFileId] = useState<string>(initialData?.fileId!);
-    const [openAccordion, setOpenAccordion] = useState<string | undefined>("details");
+    const openAccordion = "details";
     const { setIsFileUploading, setIsFileProcessing } = useQrBuilderContext();
 
     const { getDefaultValues, encodeFormData } = useQRFormData({
@@ -91,19 +91,17 @@ export const PdfForm = forwardRef<PdfFormRef, PdfFormProps>(
         <form className="w-full">
           <Accordion
             type="single"
-            collapsible
             value={openAccordion}
-            onValueChange={(value) => setOpenAccordion(value as string | undefined)}
             className="w-full space-y-2"
           >
             <AccordionItem
               value="details"
               className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
             >
-              <AccordionTrigger className="hover:no-underline">
+              <AccordionTrigger className="hover:no-underline pointer-events-none [&>svg]:hidden">
                 <div className="flex w-full items-start gap-3 text-left">
-                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <FileText className="h-5 w-5 text-secondary" />
+                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <FileText className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-foreground text-base font-medium">

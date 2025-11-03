@@ -73,8 +73,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
     <Flex
       justify="between"
       display={display}
-      gap="4"
-      className={cn("w-full", className)}
+      className={cn("w-full gap-2", className)}
     >
       <Button
         variant="outline"
@@ -84,8 +83,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
           {
             "border-neutral-400 text-neutral-400": isProcessing,
             "w-full": isLastStep && !showDownloadOnCustomizationStep,
-            "basis-1/3": showDownloadOnCustomizationStep,
-            "basis-1/4": !isLastStep && !showDownloadOnCustomizationStep,
+            "basis-1/4": showDownloadOnCustomizationStep || !isLastStep,
           },
         )}
         disabled={step <= minStep || isProcessing}
@@ -100,7 +98,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
       </Button>
 
       {showDownloadOnCustomizationStep && (
-        <div className="flex-1">
+        <div className="flex-[3]">
           <DownloadButton qrCode={qrCode} disabled={false} />
         </div>
       )}
@@ -114,6 +112,7 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
             "border-secondary text-secondary hover:bg-secondary/10 w-full shrink",
             {
               "border-neutral-400 text-neutral-400": isProcessing,
+              "bg-secondary hover:bg-secondary/90 text-white border-secondary": isMobile && isContentStep,
             },
           )}
           onClick={onContinue}

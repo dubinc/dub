@@ -142,7 +142,7 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({ 
                     blur
                     transition={{ duration: 0.6, ease: "easeOut" }}
                   >
-                    <div className="border-border/50 from-background via-background to-muted/20 relative h-full overflow-hidden rounded-3xl border bg-gradient-to-br p-8 shadow-xl backdrop-blur-sm sm:p-10 lg:p-12">
+                    <div className="border-border/50 from-background via-background to-muted/20 relative h-full overflow-hidden rounded-3xl border bg-gradient-to-br p-8 shadow backdrop-blur-sm sm:p-10 lg:p-12">
                       {/* Decorative corner accents */}
                       <div className="from-primary/10 absolute right-0 top-0 h-32 w-32 bg-gradient-to-bl to-transparent" />
                       <div className="from-secondary/10 absolute bottom-0 left-0 h-32 w-32 bg-gradient-to-tr to-transparent" />
@@ -152,7 +152,7 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({ 
                           <div className="relative inline-flex flex-shrink-0">
                             <Avatar
                               className={cn(
-                                "h-20 w-20 rounded-2xl border-2 shadow-lg sm:h-24 sm:w-24",
+                                "h-20 w-20 rounded-2xl border-2 shadow sm:h-24 sm:w-24",
                                 feature.avatarTextColor,
                               )}
                             >

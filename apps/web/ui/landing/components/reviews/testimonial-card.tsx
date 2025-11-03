@@ -8,7 +8,7 @@ export const TestimonialCard = ({
   testimonial: Testimonial;
 }) => {
   return (
-    <Card className="group relative max-w-sm overflow-hidden border-gray-200 bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <Card className="group relative max-w-sm overflow-hidden border-gray-200 bg-white shadow transition-all duration-300 hover:-translate-y-1">
       {/* Colored top accent */}
       <div className="bg-primary absolute left-0 right-0 top-0 h-1" />
 

@@ -59,7 +59,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
               className={cn(
                 "sm:max-lg:w-lg relative h-full w-full overflow-hidden pt-3 sm:max-lg:mx-auto",
                 {
-                  "border-primary border-2 shadow-lg": plan.withButton,
+                  "border-primary border-2 shadow": plan.withButton,
                 },
               )}
             >

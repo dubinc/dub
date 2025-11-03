@@ -56,7 +56,9 @@ export default function Stepper({
                         "!bg-primary !text-primary-foreground shadow-sm":
                           isActive,
                         "bg-muted text-muted-foreground opacity-50":
-                          !isActive,
+                          !isActive && step.number === 1,
+                        "bg-white border border-secondary/20 text-muted-foreground opacity-50":
+                          !isActive && (step.number === 2 || step.number === 3),
                       })}
                     >
                       {isCompleted ? (

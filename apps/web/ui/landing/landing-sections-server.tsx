@@ -9,7 +9,6 @@ import { LogoScrollingBanner } from "@/ui/landing/components/qr-tabs/components/
 import { ReviewsSection } from "@/ui/landing/components/reviews/reviews-section.tsx";
 import { Rating } from "@/ui/qr-rating/rating";
 import { EQRType } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
-import { useMediaQuery } from "@dub/ui";
 import { CTASection } from "./components/cta-section/cta-section.tsx";
 import { GetQRFeaturesCardsSection } from "./components/get-qr-features-cards/get-qr-features.tsx";
 import { GetQRInfoCardsSection } from "./components/get-qr-info-cards/get-qr-info.tsx";
@@ -27,7 +26,6 @@ export const LandingSectionsServer = ({
   handleFeatureClick,
   featureToOpen,
 }: ILandingSectionsServerProps) => {
-  const { isMobile } = useMediaQuery();
 
   return (
     <>
@@ -52,8 +50,10 @@ export const LandingSectionsServer = ({
       {/* 7. Pricing (keep in same place) */}
       <PricingSection handleScrollButtonClick={handleScrollButtonClick} />
 
-      {/* 7.5. Scrolling Banner */}
-      {!isMobile && <LogoScrollingBanner />}
+      {/* 7.5. Scrolling Banner - Hidden on mobile using CSS */}
+      <div className="hidden md:block">
+        <LogoScrollingBanner />
+      </div>
 
       {/* 8. CTA */}
       <CTASection handleScrollButtonClick={handleScrollButtonClick} />

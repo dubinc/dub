@@ -157,14 +157,14 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
   return (
     <motion.div
       layout
-      className="flex w-full flex-col gap-4"
+      className="flex w-full flex-col gap-4 pb-6"
     >
       <StylePicker
         label="Frame around QR code"
         styleOptions={FRAMES}
         value={frameData.id}
         onSelect={handleFrameSelect}
-        optionsWrapperClassName={`gap-2 ${
+        optionsWrapperClassName={`gap-2 ${isMobile ? "pb-2" : "pb-0"} ${
           disabled ? "pointer-events-none cursor-not-allowed" : ""
         }`}
         styleButtonClassName="[&_img]:h-[60px] [&_img]:w-[60px] p-2"

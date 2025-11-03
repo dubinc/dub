@@ -4,6 +4,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/ui/contexts/user";
 import { cn } from "@dub/utils";
 import { trackClientEvents } from "core/integration/analytic";
@@ -119,7 +120,7 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
   );
 
   const styleShapeSelector = (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col">
       <StyleSelector
         styleData={customizationData.style}
         onStyleChange={handleStyleChange}
@@ -145,6 +146,47 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
     />
   );
 
+  // Mobile: Tabs
+  if (isMobile) {
+    return (
+      <Tabs value={activeTab} onValueChange={handleAccordionChange} className="w-full">
+        <TabsList className="w-full grid grid-cols-3 gap-2 bg-transparent h-auto p-0">
+          {QR_STYLES_OPTIONS.map((tab) => {
+            return (
+              <TabsTrigger
+                key={tab.id}
+                value={tab.label}
+                disabled={disabled}
+                className={cn(
+                  "flex flex-col items-center justify-center rounded-lg bg-[#fbfbfb] p-3 data-[state=active]:bg-primary/10 data-[state=active]:shadow-sm",
+                  {
+                    "cursor-not-allowed opacity-50": disabled,
+                  }
+                )}
+              >
+                <span className="text-xs font-medium">{tab.label}</span>
+              </TabsTrigger>
+            );
+          })}
+        </TabsList>
+        
+        {QR_STYLES_OPTIONS.map((tab) => {
+          const selectorContent =
+            tab.id === "frame" ? frameSelector :
+            tab.id === "style-shape" ? styleShapeSelector :
+            tab.id === "logo" ? logoSelector : null;
+
+          return (
+            <TabsContent key={tab.id} value={tab.label} className="mt-4">
+              {selectorContent}
+            </TabsContent>
+          );
+        })}
+      </Tabs>
+    );
+  }
+
+  // Desktop: Accordion
   return (
     <Accordion
       type="single"
@@ -177,8 +219,8 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
               )}
             >
               <div className="flex items-start gap-3 text-left">
-                <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                  <Icon className="h-5 w-5 text-secondary" />
+                <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex flex-col gap-1">
                   <span className="text-foreground text-base font-medium">

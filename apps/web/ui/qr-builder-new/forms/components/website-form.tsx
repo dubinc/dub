@@ -9,7 +9,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Globe } from "lucide-react";
-import { forwardRef, useImperativeHandle, useState } from "react";
+import { forwardRef, useImperativeHandle } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { EQRType } from "../../constants/get-qr-config";
 import {
@@ -38,7 +38,7 @@ interface WebsiteFormProps {
 
 export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
-    const [openAccordion, setOpenAccordion] = useState<string | undefined>("details");
+    const openAccordion = "details";
 
     const { getDefaultValues, encodeFormData } = useQRFormData({
       qrType: EQRType.WEBSITE,
@@ -80,19 +80,17 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
         <form className="w-full">
           <Accordion
             type="single"
-            collapsible
             value={openAccordion}
-            onValueChange={(value) => setOpenAccordion(value as string | undefined)}
             className="w-full space-y-2"
           >
             <AccordionItem
               value="details"
               className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
             >
-              <AccordionTrigger className="hover:no-underline">
+              <AccordionTrigger className="hover:no-underline pointer-events-none [&>svg]:hidden">
                 <div className="flex w-full items-start gap-3 text-left">
-                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <Globe className="h-5 w-5 text-secondary" />
+                  <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Globe className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex flex-col gap-1">
                     <span className="text-foreground text-base font-medium">

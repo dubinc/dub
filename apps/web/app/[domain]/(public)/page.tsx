@@ -10,7 +10,7 @@ const MainPage: NextPage = async () => {
   initRedis();
 
   return (
-    <main className="relative mx-auto min-h-screen w-full pb-6">
+    <main className="relative mx-auto min-h-screen w-full pb-3">
       <LandingSectionsClient sessionId={sessionId!} />
 
       <PageViewedTrackerComponent

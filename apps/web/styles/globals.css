@@ -84,7 +84,7 @@ code .line::before {
 /* Implement a custom scrollbar to preventing ugly looking scroll-overflows */
 .dub-scrollbar {
   scrollbar-width: auto;
-  scrollbar-color: #d1d5db #ffffff;
+  scrollbar-color: hsl(var(--primary)) #ffffff;
 }
 
 .dub-scrollbar::-webkit-scrollbar {
@@ -97,7 +97,7 @@ code .line::before {
 }
 
 .dub-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #d1d5db;
+  background-color: hsl(var(--primary));
   border-radius: 10px;
 }
 
