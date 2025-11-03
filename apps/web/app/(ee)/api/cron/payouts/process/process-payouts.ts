@@ -108,6 +108,14 @@ export async function processPayouts({
         select: {
           email: true,
           payoutsEnabledAt: true,
+          programs: {
+            where: {
+              programId: program.id,
+            },
+            select: {
+              tenantId: true,
+            },
+          },
         },
       },
     },
@@ -117,7 +125,7 @@ export async function processPayouts({
     return;
   }
 
-  const externalPayouts = payouts.filter(({ partner }) =>
+  let externalPayouts = payouts.filter(({ partner }) =>
     isPayoutExternalForProgram({
       program,
       partner,
@@ -125,7 +133,11 @@ export async function processPayouts({
   );
 
   const internalPayouts = payouts.filter(
-    (payout) => !externalPayouts.includes(payout),
+    ({ partner }) =>
+      !isPayoutExternalForProgram({
+        program,
+        partner,
+      }),
   );
 
   const externalPayoutAmount = externalPayouts.reduce(
@@ -181,6 +193,8 @@ export async function processPayouts({
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
   const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
   const totalFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
+
+  // Charges are still apply for external payouts
   const total = totalPayoutAmount + totalFee;
   let convertedTotal = total - externalPayoutAmount;
 
@@ -387,6 +401,9 @@ export async function processPayouts({
       },
     });
 
+    // TODO(kiran):
+    // This won't scale well if we have a lot of external payouts
+    // Should move to a dedicated job to send the webhooks for external payouts
     for (const externalPayout of updatedExternalPayouts) {
       const { partner, ...payout } = externalPayout;
       const { programs, ...partnerInfo } = partner;
