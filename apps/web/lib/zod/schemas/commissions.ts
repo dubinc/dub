@@ -110,6 +110,7 @@ export const getCommissionsQuerySchema = z
     end: parseDateSchema
       .optional()
       .describe("The end date of the date range to filter the commissions by."),
+    timezone: z.string().optional(),
   })
   .merge(getPaginationQuerySchema({ pageSize: 100 }));
 

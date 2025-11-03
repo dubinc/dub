@@ -1,6 +1,6 @@
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
-import { usePartnersCountBounty } from "@/lib/swr/use-partners-count-bounty";
+import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
@@ -48,8 +48,8 @@ function ConfirmCreateBountyModal({
     canSendEmailCampaigns,
   );
 
-  const { totalPartnersForBounty, loading } = usePartnersCountBounty({
-    bounty,
+  const { totalPartners, loading } = usePartnersCountByGroupIds({
+    groupIds: bounty?.groups.map((group) => group.id),
   });
 
   const handleConfirm = async () => {
@@ -149,9 +149,9 @@ function ConfirmCreateBountyModal({
                 {loading ? (
                   <span className="inline-block h-4 w-6 animate-pulse rounded bg-neutral-200 align-text-bottom" />
                 ) : (
-                  nFormatter(totalPartnersForBounty, { full: true })
+                  nFormatter(totalPartners, { full: true })
                 )}{" "}
-                selected {pluralize("partner", totalPartnersForBounty)}
+                selected {pluralize("partner", totalPartners)}
               </strong>
             </span>
           </label>

@@ -79,8 +79,8 @@ export function MainNav({
           <Sidebar toolContent={toolContent} newsContent={newsContent} />
         </div>
       </div>
-      <div className="bg-neutral-200 [--page-top-margin:0px] md:pt-[var(--page-top-margin)] md:[--page-top-margin:0.5rem]">
-        <div className="relative min-h-full bg-neutral-100 pt-px md:rounded-tl-xl md:bg-white">
+      <div className="bg-neutral-200 [--page-top-margin:0px] md:h-screen md:pb-2 md:pr-2 md:pt-[var(--page-top-margin)] md:[--page-top-margin:0.5rem]">
+        <div className="relative h-full overflow-y-auto bg-neutral-100 pt-px md:rounded-xl md:bg-white">
           <SideNavContext.Provider value={{ isOpen, setIsOpen }}>
             {children}
           </SideNavContext.Provider>

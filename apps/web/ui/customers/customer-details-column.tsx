@@ -179,7 +179,11 @@ export function CustomerDetailsColumn({
           <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-100" />
         ) : link ? (
           <ConditionalLink
-            href={`/${programSlug ? `programs/${programSlug}` : slug}/analytics?domain=${link.domain}&key=${link.key}`}
+            href={
+              programSlug
+                ? `/programs/${programSlug}/analytics?domain=${link.domain}&key=${link.key}`
+                : `/${slug}/links/${link.domain}/${link.key}`
+            }
             target="_blank"
             className="min-w-0 overflow-hidden truncate"
           >

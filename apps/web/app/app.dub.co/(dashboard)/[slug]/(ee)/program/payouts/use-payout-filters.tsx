@@ -77,7 +77,6 @@ export function usePayoutFilters() {
         icon: InvoiceDollar,
         label: "Invoice",
         options: [],
-        hideInFilterDropdown: true,
       },
     ],
     [payoutsCount, partners, partnersAsync],

@@ -29,7 +29,13 @@ export function CampaignEditorSkeleton() {
           <span className={labelClassName}>Name</span>
           <div className="h-8 w-full animate-pulse rounded-md bg-neutral-100" />
 
+          <span className={labelClassName}>From</span>
+          <div className="h-8 w-full animate-pulse rounded-md bg-neutral-100" />
+
           <span className={labelClassName}>To</span>
+          <div className="h-8 w-full animate-pulse rounded-md bg-neutral-100" />
+
+          <span className={labelClassName}>When</span>
           <div className="h-8 w-full animate-pulse rounded-md bg-neutral-100" />
 
           <span className={labelClassName}>Subject</span>

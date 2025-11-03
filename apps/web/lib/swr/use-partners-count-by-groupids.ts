@@ -1,11 +1,10 @@
 import { useMemo } from "react";
-import { BountyProps } from "../types";
 import usePartnersCount from "./use-partners-count";
 
-export function usePartnersCountBounty({
-  bounty,
+export function usePartnersCountByGroupIds({
+  groupIds,
 }: {
-  bounty?: Pick<BountyProps, "groups">;
+  groupIds?: string[] | null;
 }) {
   const { partnersCount: groupCount, loading } = usePartnersCount<
     | {
@@ -16,24 +15,24 @@ export function usePartnersCountBounty({
   >({
     groupBy: "groupId",
     ignoreParams: true,
-    enabled: !!bounty,
+    enabled: !!groupIds,
   });
 
-  const totalPartnersForBounty = useMemo(() => {
-    if (!bounty || bounty.groups.length === 0) {
+  const totalPartners = useMemo(() => {
+    if (!groupIds || groupIds.length === 0) {
       // if no groups set, return all partners
       return groupCount?.reduce((acc, curr) => acc + curr._count, 0) ?? 0;
     }
 
     return (
       groupCount?.reduce((acc, curr) => {
-        if (bounty.groups.some((group) => group.id === curr.groupId)) {
+        if (groupIds.includes(curr.groupId)) {
           return acc + curr._count;
         }
         return acc;
       }, 0) ?? 0
     );
-  }, [groupCount, bounty]);
+  }, [groupCount, groupIds]);
 
-  return { totalPartnersForBounty, loading };
+  return { totalPartners, loading };
 }

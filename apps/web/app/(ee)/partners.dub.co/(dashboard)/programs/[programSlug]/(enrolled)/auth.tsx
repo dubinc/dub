@@ -24,7 +24,10 @@ export function ProgramEnrollmentAuth({
     redirect(`/programs/${programSlug}/apply`);
   }
 
-  if (programEnrollment && programEnrollment.status !== "approved") {
+  if (
+    programEnrollment &&
+    !["approved", "deactivated", "archived"].includes(programEnrollment.status)
+  ) {
     return <UnapprovedProgramPage programEnrollment={programEnrollment} />;
   }
 

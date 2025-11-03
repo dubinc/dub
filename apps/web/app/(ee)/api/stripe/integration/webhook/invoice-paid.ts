@@ -66,6 +66,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`;
   }
 
+  let invoiceSaleAmount = invoice.total_excluding_tax ?? invoice.amount_paid;
+
   // Skip if invoice id is already processed
   const ok = await redis.set(
     `trackSale:stripe:invoiceId:${invoiceId}`, // here we assume that Stripe's invoice ID is unique across all customers
@@ -77,7 +79,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
       invoiceId,
       customerId: customer.id,
       workspaceId: customer.projectId,
-      amount: invoice.amount_paid,
+      amount: invoiceSaleAmount,
       currency: invoice.currency,
     },
     {
@@ -94,7 +96,8 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     return `Invoice with ID ${invoiceId} already processed, skipping...`;
   }
 
-  if (invoice.amount_paid === 0) {
+  // Stripe can sometimes return a negative amount for some reason, so we skip if it's below 0
+  if (invoiceSaleAmount <= 0) {
     return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
   }
 
@@ -104,11 +107,11 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     const { currency: convertedCurrency, amount: convertedAmount } =
       await convertCurrency({
         currency: invoice.currency,
-        amount: invoice.amount_paid,
+        amount: invoiceSaleAmount,
       });
 
     invoice.currency = convertedCurrency;
-    invoice.amount_paid = convertedAmount;
+    invoiceSaleAmount = convertedAmount;
   }
 
   // Find lead
@@ -130,7 +133,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
     event_id: eventId,
     event_name: isOneTimePayment ? "Purchase" : "Invoice paid",
     payment_processor: "stripe",
-    amount: invoice.amount_paid,
+    amount: invoiceSaleAmount,
     currency: invoice.currency,
     invoice_id: invoiceId,
     metadata: JSON.stringify({
@@ -173,7 +176,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
           increment: 1,
         },
         saleAmount: {
-          increment: invoice.amount_paid,
+          increment: invoiceSaleAmount,
         },
       },
       include: includeTags,
@@ -200,7 +203,7 @@ export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
           increment: 1,
         },
         saleAmount: {
-          increment: invoice.amount_paid,
+          increment: invoiceSaleAmount,
         },
       },
     }),
