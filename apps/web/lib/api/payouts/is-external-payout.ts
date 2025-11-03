@@ -9,6 +9,10 @@ interface IsExternalPayoutProps {
   };
 }
 
+// Determines whether a given payout should be treated as "external"
+// - internal → always handled internally
+// - external → all payouts are external
+// - hybrid   → payouts are external only if the payoutsEnabledAt is null
 export function isExternalPayout({
   payout,
   program,
