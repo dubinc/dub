@@ -27,7 +27,7 @@ type ManageUsageModalProps = {
 
 function ManageUsageModalContent({ type }: ManageUsageModalProps) {
   const workspace = useWorkspace();
-  const { plan, planTier, usageLimit, linksLimit } = workspace;
+  const { slug, plan, planTier, usageLimit, linksLimit } = workspace;
 
   const usageSteps = useMemo(() => {
     const limitKey = { events: "clicks" }[type] ?? type;
@@ -118,7 +118,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
             selectAction={(period) => setPeriod(period as "monthly" | "yearly")}
           />
 
-          <div className="border-border-default bg-bg-default mt-3 flex flex-col gap-5 rounded-xl border p-4">
+          <div className="border-border-subtle bg-bg-default mt-3 flex flex-col gap-5 rounded-xl border p-4 shadow-sm">
             <div>
               <span className="text-content-emphasis block text-xl font-semibold">
                 {suggestedPlan.name}
@@ -163,6 +163,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
             ) : (
               <UpgradePlanButton
                 plan={suggestedPlan.name.toLowerCase()}
+                tier={suggestedPlan.tier}
                 period={period}
                 disabled={isCurrentPlanSuggested}
                 text={
@@ -210,6 +211,15 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
                 </div>
               ))}
             </div>
+          </div>
+
+          <div className="mt-4 text-center">
+            <Link
+              href={`/${slug}/settings/billing/upgrade`}
+              className="text-content-subtle hover:text-content-default text-xs font-medium underline underline-offset-2"
+            >
+              View all plans
+            </Link>
           </div>
         </div>
       </div>
