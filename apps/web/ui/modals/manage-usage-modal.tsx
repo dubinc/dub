@@ -6,7 +6,6 @@ import {
   cn,
   getSuggestedPlan,
   isDowngradePlan,
-  nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
@@ -182,20 +181,32 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
               {[
                 {
                   icon: CursorRays,
-                  label: `${nFormatter(suggestedPlan.limits.clicks)} total tracked events/mo`,
+                  value: suggestedPlan.limits.clicks,
+                  label: `total tracked events/mo`,
                   difference: suggestedPlan.limits.clicks - (usageLimit ?? 0),
                 },
                 {
                   icon: Hyperlink,
-                  label: `${nFormatter(suggestedPlan.limits.links)} new links/mo`,
+                  value: suggestedPlan.limits.links,
+                  label: `new links/mo`,
                   difference: suggestedPlan.limits.links - (linksLimit ?? 0),
                 },
-              ].map(({ icon: Icon, label, difference }) => (
+              ].map(({ icon: Icon, value, label, difference }) => (
                 <div className="text-content-default flex items-center gap-2 text-sm">
                   <Icon
                     className={cn("size-4", difference > 0 && "text-blue-600")}
                   />
-                  <span className="tabular-nums">{label}</span>
+                  <span>
+                    <NumberFlow
+                      value={value}
+                      className="tabular-nums"
+                      format={{
+                        notation: "compact",
+                      }}
+                      continuous
+                    />{" "}
+                    {label}
+                  </span>
                   {difference !== 0 && (
                     <span
                       className={cn(
