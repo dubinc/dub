@@ -472,7 +472,7 @@ function StatCardSimple({
               }}
             />
           ) : (
-            <div className="h-12 w-20 animate-pulse rounded-md bg-neutral-200" />
+            <div className="mt-0.5 h-7 w-12 animate-pulse rounded-md bg-neutral-200" />
           )}
         </div>
       </div>
