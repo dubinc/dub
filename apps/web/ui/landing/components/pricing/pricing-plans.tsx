@@ -32,8 +32,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
           className="lg:!leading-[52px]"
         />
         <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
-          Create without limits, make scanning a breeze, Try seven days for
-          $0.99, upgrade when you please.
+          Unlock advanced features and evaluate performance risk-free.
         </p>
       </div>
 
@@ -121,7 +120,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
                 >
                   {plan.withButton ? (
                     <Button
-                      className="bg-secondary hover:bg-secondary/90  w-full"
+                      className="bg-secondary hover:bg-secondary/90 w-full"
                       size="lg"
                       onClick={() => handleScrollButtonClick("3")}
                     >
