@@ -78,6 +78,13 @@ const publishWebhookEventToQStash = async ({
     console.error("Failed to publish webhook event to QStash", response);
   }
 
+  if (process.env.NODE_ENV === "development") {
+    console.debug("Published webhook event to QStash", {
+      ...response,
+      payload: finalPayload,
+    });
+  }
+
   return response;
 };
 

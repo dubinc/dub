@@ -1,5 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
+import { isExternalPayout } from "@/lib/api/payouts/is-external-payout";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
@@ -14,6 +15,8 @@ import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { PlanProps } from "@/lib/types";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { currencyFormatter, log } from "@dub/utils";
@@ -24,16 +27,7 @@ const paymentMethodToCurrency = {
   acss_debit: "cad",
 } as const;
 
-export async function processPayouts({
-  workspace,
-  program,
-  userId,
-  invoiceId,
-  paymentMethodId,
-  cutoffPeriod,
-  selectedPayoutId,
-  excludedPayoutIds,
-}: {
+interface ProcessPayoutsProps {
   workspace: Pick<
     Project,
     | "id"
@@ -43,10 +37,11 @@ export async function processPayouts({
     | "payoutsUsage"
     | "payoutsLimit"
     | "payoutFee"
+    | "webhookEnabled"
   >;
   program: Pick<
     Program,
-    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail"
+    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail" | "payoutMode"
   >;
   userId: string;
   invoiceId: string;
@@ -54,7 +49,18 @@ export async function processPayouts({
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
   selectedPayoutId?: string;
   excludedPayoutIds?: string[];
-}) {
+}
+
+export async function processPayouts({
+  workspace,
+  program,
+  userId,
+  invoiceId,
+  paymentMethodId,
+  cutoffPeriod,
+  selectedPayoutId,
+  excludedPayoutIds,
+}: ProcessPayoutsProps) {
   const cutoffPeriodValue = CUTOFF_PERIOD.find(
     (c) => c.id === cutoffPeriod,
   )?.value;
@@ -72,11 +78,13 @@ export async function processPayouts({
       amount: {
         gte: program.minPayoutAmount,
       },
-      partner: {
-        payoutsEnabledAt: {
-          not: null,
+      ...(program.payoutMode === "internal" && {
+        partner: {
+          payoutsEnabledAt: {
+            not: null,
+          },
         },
-      },
+      }),
       ...(cutoffPeriodValue && {
         OR: [
           {
@@ -99,6 +107,7 @@ export async function processPayouts({
       partner: {
         select: {
           email: true,
+          payoutsEnabledAt: true,
         },
       },
     },
@@ -108,12 +117,33 @@ export async function processPayouts({
     return;
   }
 
-  const payoutAmount = payouts.reduce(
+  const externalPayouts = payouts.filter((payout) =>
+    isExternalPayout({ payout, program }),
+  );
+
+  const internalPayouts = payouts.filter(
+    (payout) => !externalPayouts.includes(payout),
+  );
+
+  const externalPayoutAmount = externalPayouts.reduce(
     (total, payout) => total + payout.amount,
     0,
   );
 
-  if (workspace.payoutsUsage + payoutAmount > workspace.payoutsLimit) {
+  // This is the total amount of payouts that will be processed (included external and internal payouts)
+  const totalPayoutAmount = payouts.reduce(
+    (total, payout) => total + payout.amount,
+    0,
+  );
+
+  console.log({
+    totalPayoutAmount,
+    externalPayoutAmount,
+    internalPayouts: internalPayouts.map((p) => p.id),
+    externalPayouts: externalPayouts.map((p) => p.id),
+  });
+
+  if (workspace.payoutsUsage + totalPayoutAmount > workspace.payoutsLimit) {
     throw new Error(
       exceededLimitError({
         plan: workspace.plan as PlanProps,
@@ -147,9 +177,9 @@ export async function processPayouts({
   const fastAchFee =
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
   const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
-  const totalFee = Math.round(payoutAmount * payoutFee) + fastAchFee;
-  const total = payoutAmount + totalFee;
-  let convertedTotal = total;
+  const totalFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
+  const total = totalPayoutAmount + totalFee;
+  let convertedTotal = total - externalPayoutAmount;
 
   // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
   if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
@@ -182,7 +212,7 @@ export async function processPayouts({
       id: invoiceId,
     },
     data: {
-      amount: payoutAmount,
+      amount: totalPayoutAmount,
       fee: totalFee,
       total,
     },
@@ -209,18 +239,37 @@ export async function processPayouts({
     description: `Dub Partners payout invoice (${invoice.id})`,
   });
 
-  await prisma.payout.updateMany({
-    where: {
-      id: {
-        in: payouts.map((p) => p.id),
+  // Mark internal payouts as processing
+  if (internalPayouts.length > 0) {
+    await prisma.payout.updateMany({
+      where: {
+        id: {
+          in: internalPayouts.map((p) => p.id),
+        },
       },
-    },
-    data: {
-      invoiceId: invoice.id,
-      status: "processing",
-      userId,
-    },
-  });
+      data: {
+        invoiceId: invoice.id,
+        status: "processing",
+        userId,
+      },
+    });
+  }
+
+  // Mark external payouts as completed
+  if (externalPayouts.length > 0) {
+    await prisma.payout.updateMany({
+      where: {
+        id: {
+          in: externalPayouts.map((p) => p.id),
+        },
+      },
+      data: {
+        invoiceId: invoice.id,
+        status: "completed",
+        userId,
+      },
+    });
+  }
 
   await prisma.project.update({
     where: {
@@ -228,13 +277,13 @@ export async function processPayouts({
     },
     data: {
       payoutsUsage: {
-        increment: payoutAmount,
+        increment: totalPayoutAmount,
       },
     },
   });
 
   await log({
-    message: `*${program.name}* just sent a payout of *${currencyFormatter(payoutAmount / 100)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee / 100)} (${payoutFee * 100}%)* :money_mouth_face:`,
+    message: `*${program.name}* just sent a payout of *${currencyFormatter(totalPayoutAmount / 100)}* :money_with_wings: \n\n Fees earned: *${currencyFormatter(totalFee / 100)} (${payoutFee * 100}%)* :money_mouth_face:`,
     type: "payouts",
   });
 
@@ -247,6 +296,8 @@ export async function processPayouts({
       name: true,
     },
   });
+
+  const externalPayoutsMap = new Map(externalPayouts.map((p) => [p.id, p]));
 
   await recordAuditLog(
     payouts.map((payout) => ({
@@ -265,7 +316,9 @@ export async function processPayouts({
           metadata: {
             ...payout,
             invoiceId: invoice.id,
-            status: "processing",
+            status: externalPayoutsMap.has(payout.id)
+              ? "completed"
+              : "processing",
             userId,
           },
         },
@@ -308,5 +361,45 @@ export async function processPayouts({
         idempotencyKey: `payout-confirmed/${invoice.id}`,
       },
     );
+  }
+
+  // Send the webhooks for the external payouts
+  if (externalPayouts.length > 0) {
+    const updatedExternalPayouts = await prisma.payout.findMany({
+      where: {
+        id: {
+          in: externalPayouts.map((p) => p.id),
+        },
+      },
+      include: {
+        partner: {
+          include: {
+            programs: {
+              where: {
+                programId: program.id,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    for (const externalPayout of updatedExternalPayouts) {
+      const { partner, ...payout } = externalPayout;
+      const { programs, ...partnerInfo } = partner;
+
+      await sendWorkspaceWebhook({
+        workspace,
+        trigger: "payout.confirmed",
+        data: payoutWebhookEventSchema.parse({
+          ...payout,
+          external: true,
+          partner: {
+            ...partnerInfo,
+            ...programs[0],
+          },
+        }),
+      });
+    }
   }
 }

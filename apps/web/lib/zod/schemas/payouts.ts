@@ -1,7 +1,7 @@
 import { PayoutStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
-import { PartnerSchema } from "./partners";
+import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
 import { ProgramSchema } from "./programs";
 
 export const createManualPayoutSchema = z.object({
@@ -89,3 +89,18 @@ export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
     }),
   }),
 );
+
+export const payoutWebhookEventSchema = PayoutSchema.omit({
+  failureReason: true,
+}).extend({
+  external: z.boolean().default(false),
+  partner: EnrolledPartnerSchema.pick({
+    id: true,
+    name: true,
+    email: true,
+    image: true,
+    country: true,
+    tenantId: true,
+    status: true,
+  }),
+});

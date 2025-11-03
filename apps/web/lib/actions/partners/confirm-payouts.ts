@@ -112,7 +112,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           id: createId({ prefix: "inv_" }),
           number: invoiceNumber,
-          programId: workspace.defaultProgramId!,
+          programId: workspace.defaultProgramId,
           workspaceId: workspace.id,
           // these numbers will be updated later in the payouts/process cron job
           // but we're adding them now for the program/payouts/success screen
