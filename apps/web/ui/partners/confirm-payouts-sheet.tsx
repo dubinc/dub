@@ -14,6 +14,7 @@ import {
   STRIPE_PAYMENT_METHODS,
 } from "@/lib/stripe/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse, PlanProps } from "@/lib/types";
 import { X } from "@/ui/shared/icons";
@@ -40,15 +41,16 @@ import {
   fetcher,
   formatDate,
   nFormatter,
-  OG_AVATAR_URL,
   truncate,
 } from "@dub/utils";
+import { CircleArrowRight } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Stripe from "stripe";
 import useSWR from "swr";
+import { PartnerRowItem } from "./partner-row-item";
 
 type SelectPaymentMethod =
   (typeof STRIPE_PAYMENT_METHODS)[keyof typeof STRIPE_PAYMENT_METHODS] & {
@@ -59,6 +61,7 @@ type SelectPaymentMethod =
 
 function ConfirmPayoutsSheetContent() {
   const router = useRouter();
+  const { program } = useProgram();
   const {
     id: workspaceId,
     slug,
@@ -221,19 +224,42 @@ function ConfirmPayoutsSheetContent() {
     }
   }, [finalPaymentMethods, selectedPaymentMethod]);
 
-  const { amount, fee, total, fastAchFee } = useMemo(() => {
+  const { amount, fee, total, fastAchFee, externalAmount } = useMemo(() => {
     const amount = finalEligiblePayouts?.reduce((acc, payout) => {
       return acc + payout.amount;
     }, 0);
 
-    if (amount === undefined || selectedPaymentMethod === null) {
+    if (
+      amount === undefined ||
+      selectedPaymentMethod === null ||
+      program?.payoutMode === undefined
+    ) {
       return {
         amount: undefined,
+        externalAmount: undefined,
         fee: undefined,
         total: undefined,
         fastAchFee: undefined,
       };
     }
+
+    // Calculate the total external amount
+    const externalAmount = finalEligiblePayouts?.reduce((acc, payout) => {
+      // If the payout mode is external, all payouts are external
+      if (program.payoutMode === "external") {
+        return acc + payout.amount;
+      }
+
+      // If the payout mode is hybrid, only payouts from partners with payouts enabled are external
+      if (
+        program.payoutMode === "hybrid" &&
+        payout.partner.payoutsEnabledAt == null
+      ) {
+        return acc + payout.amount;
+      }
+
+      return acc + 0;
+    }, 0);
 
     const fastAchFee = selectedPaymentMethod.fastSettlement
       ? FAST_ACH_FEE_CENTS
@@ -244,11 +270,12 @@ function ConfirmPayoutsSheetContent() {
 
     return {
       amount,
+      externalAmount,
       fee,
       total,
       fastAchFee,
     };
-  }, [finalEligiblePayouts, selectedPaymentMethod]);
+  }, [finalEligiblePayouts, selectedPaymentMethod, program?.payoutMode]);
 
   const invoiceData = useMemo(() => {
     return [
@@ -362,6 +389,24 @@ function ConfirmPayoutsSheetContent() {
             currencyFormatter(amount / 100)
           ),
       },
+      ...(program?.payoutMode !== "internal"
+        ? [
+            {
+              key: "External Amount",
+              value:
+                externalAmount === undefined ? (
+                  <div className="h-4 w-24 animate-pulse rounded-md bg-neutral-200" />
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    {currencyFormatter(externalAmount / 100)}
+                    <CircleArrowRight className="size-3.5 text-neutral-500" />
+                  </div>
+                ),
+              tooltipContent:
+                "Payouts being made through external methods, but still processed through Dub.",
+            },
+          ]
+        : []),
       {
         key: "Fee",
         value:
@@ -398,6 +443,7 @@ function ConfirmPayoutsSheetContent() {
     ];
   }, [
     amount,
+    externalAmount,
     paymentMethods,
     selectedPaymentMethod,
     cutoffPeriod,
@@ -409,19 +455,14 @@ function ConfirmPayoutsSheetContent() {
     () => ({
       header: "Partner",
       cell: ({ row }) => (
-        <div className="flex items-center gap-2">
-          <img
-            src={
-              row.original.partner.image ||
-              `${OG_AVATAR_URL}${row.original.partner.name}`
-            }
-            alt={row.original.partner.name}
-            className="size-6 rounded-full"
-          />
-          <span className="text-sm text-neutral-700">
-            {row.original.partner.name}
-          </span>
-        </div>
+        <PartnerRowItem
+          partner={{
+            id: row.original.partner.id,
+            name: row.original.partner.name,
+            image: row.original.partner.image,
+          }}
+          showPermalink={false}
+        />
       ),
     }),
     [],
@@ -436,7 +477,7 @@ function ConfirmPayoutsSheetContent() {
         header: "Total",
         cell: ({ row }) => (
           <>
-            <div className="relative">
+            <div className="relative flex items-center justify-end gap-1.5">
               <span
                 className={cn(
                   !selectedPayoutId && "group-hover/row:opacity-0",
@@ -446,7 +487,7 @@ function ConfirmPayoutsSheetContent() {
                 {currencyFormatter(row.original.amount / 100)}
               </span>
               {!selectedPayoutId && (
-                <div className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
+                <div className="pointer-events-none absolute right-[calc(14px+0.375rem)] top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
                   <Button
                     variant="secondary"
                     text={
@@ -473,6 +514,8 @@ function ConfirmPayoutsSheetContent() {
                   />
                 </div>
               )}
+
+              <CircleArrowRight className="size-3.5 flex-shrink-0" />
             </div>
           </>
         ),

@@ -2,7 +2,7 @@ import useProgram from "@/lib/swr/use-program";
 import { DynamicTooltipWrapper, GreekTemple } from "@dub/ui";
 import { cn } from "@dub/utils";
 import { OG_AVATAR_URL } from "@dub/utils/src/constants";
-import { CircleArrowOutUpRightIcon, CircleMinus } from "lucide-react";
+import { CircleArrowRight, CircleMinus } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 
@@ -21,7 +21,7 @@ const PAYOUT_STATUS_CONFIG = {
     title: "External payouts enabled",
     description:
       "This partner has external payouts enabled, which means they will be able to receive payouts from this program externally.",
-    icon: CircleArrowOutUpRightIcon, // TODO: Fix the icon
+    icon: CircleArrowRight, // TODO: Fix the icon
     iconClassName: "border-purple-300 bg-purple-200 text-purple-800",
     indicatorColor: "bg-purple-500",
   },
