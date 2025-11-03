@@ -23,10 +23,11 @@ import { toast } from "sonner";
 import { mutate } from "swr";
 import { z } from "zod";
 import { ProgramApplicationFormField } from "./groups/design/application-form/fields";
+import { formDataForApplicationFormData } from "./groups/design/application-form/form-data-for-application-form-data";
 
 interface ProgramApplicationSheetProps {
   setIsOpen: Dispatch<SetStateAction<boolean>>;
-  program?: ProgramProps;
+  program: ProgramProps;
   programEnrollment?: ProgramEnrollmentProps;
   onSuccess?: () => void;
 }
@@ -47,6 +48,9 @@ function ProgramApplicationSheetContent({
   const form = useForm<FormData>({
     defaultValues: {
       termsAgreement: false,
+      formData: formDataForApplicationFormData(
+        program["group"].applicationFormData?.fields ?? [],
+      ),
     },
   });
 
@@ -87,8 +91,6 @@ function ProgramApplicationSheetContent({
       toast.error(parseActionError(result, "Failed to submit application"));
     }
   };
-
-  if (!program) return null;
 
   const fields = program["group"].applicationFormData?.fields || [];
 

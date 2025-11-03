@@ -38,6 +38,7 @@ export const GET = withPartnerProfile(
       start,
       end,
       dataAvailableFrom: program.startedAt ?? program.createdAt,
+      timezone,
     });
 
     const { dateFormat, dateIncrement, startFunction, formatString } =
@@ -88,12 +89,12 @@ export const GET = withPartnerProfile(
       return acc;
     }, {});
 
-    while (currentDate < endDate) {
+    while (currentDate.toJSDate() < endDate) {
       const periodKey = currentDate.toFormat(formatString);
       const { earnings, ...rest } = commissionLookup[periodKey] || {};
 
       timeseries.push({
-        start: currentDate.toISO(),
+        start: currentDate.toISO()!,
         earnings: earnings || 0,
         groupBy: groupBy || undefined,
         data: groupBy

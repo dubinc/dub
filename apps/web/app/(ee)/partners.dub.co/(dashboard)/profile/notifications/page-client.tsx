@@ -4,6 +4,7 @@ import { updatePartnerNotificationPreference } from "@/lib/actions/partners/upda
 import { partnerNotificationTypes } from "@/lib/zod/schemas/partner-profile";
 import {
   CircleCheck,
+  Flag6,
   InvoiceDollar,
   Msgs,
   Switch,
@@ -33,6 +34,12 @@ const notifications = [
     icon: Msgs,
     title: "New message from program",
     description: "Alert when a new message is received from a program.",
+  },
+  {
+    type: "marketingCampaign",
+    icon: Flag6,
+    title: "Marketing campaigns",
+    description: "Receive marketing emails from your programs.",
   },
 ] as const;
 

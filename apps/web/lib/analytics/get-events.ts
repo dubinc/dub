@@ -33,6 +33,7 @@ export const getEvents = async (params: EventsFilters) => {
     interval,
     start,
     end,
+    timezone,
     qr,
     trigger,
     region,
@@ -48,6 +49,7 @@ export const getEvents = async (params: EventsFilters) => {
     start,
     end,
     dataAvailableFrom,
+    timezone,
   });
 
   if (qr) {

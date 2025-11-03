@@ -337,6 +337,9 @@ async function handler(req: Request) {
           }),
           variant: "notifications",
         })),
+        {
+          idempotencyKey: `partner-summary/${program.id}/${format(currentMonth, "yyyy-MM")}`,
+        },
       );
     }
 

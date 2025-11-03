@@ -17,5 +17,6 @@ export const getPlanCapabilities = (
     canMessagePartners: !!plan && ["enterprise", "advanced"].includes(plan),
     canSendEmailCampaigns: !!plan && ["enterprise", "advanced"].includes(plan),
     canDiscoverPartners: !!plan && ["enterprise"].includes(plan),
+    canManageEmailDomains: !!plan && ["enterprise", "advanced"].includes(plan),
   };
 };

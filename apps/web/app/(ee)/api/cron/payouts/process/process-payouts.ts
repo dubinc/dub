@@ -305,7 +305,7 @@ export async function processPayouts({
           },
         })),
       {
-        deduplicationId: invoice.id,
+        idempotencyKey: `payout-confirmed/${invoice.id}`,
       },
     );
   }

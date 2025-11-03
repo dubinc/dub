@@ -108,6 +108,9 @@ export const POST = withWorkspace(
       Promise.all([
         linkCache.set(updatedLink),
 
+        // set the link with the old workspace ID to be deleted in Tinybird
+        recordLink(link, { deleted: true }),
+        // set the link with the new workspace ID to be created in Tinybird
         recordLink(updatedLink),
 
         // Remove the webhooks associated with the link

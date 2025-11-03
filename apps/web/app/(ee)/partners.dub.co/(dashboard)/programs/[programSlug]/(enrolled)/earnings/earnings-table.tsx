@@ -42,7 +42,7 @@ type ColumnMeta = {
 
 export function EarningsTablePartner({ limit }: { limit?: number }) {
   const { programSlug } = useParams();
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { queryParams, searchParamsObj, getQueryString } = useRouterStuff();
 
   const { sortBy = "createdAt", sortOrder = "desc" } = searchParamsObj as {
@@ -139,9 +139,9 @@ export function EarningsTablePartner({ limit }: { limit?: number }) {
             <CustomerRowItem
               customer={row.original.customer}
               href={
-                programSlug === "perplexity"
-                  ? undefined
-                  : `/programs/${programSlug}/customers/${row.original.customer.id}`
+                showDetailedAnalytics
+                  ? `/programs/${programSlug}/customers/${row.original.customer.id}`
+                  : undefined
               }
               className="px-4 py-2.5"
             />

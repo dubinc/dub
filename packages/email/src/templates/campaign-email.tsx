@@ -1,15 +1,18 @@
 import { DUB_WORDMARK } from "@dub/utils";
+
 import {
   Body,
   Container,
   Head,
   Heading,
+  Hr,
   Html,
   Img,
   Link,
   Preview,
   Section,
   Tailwind,
+  Text,
 } from "@react-email/components";
 
 export default function CampaignEmail({
@@ -20,7 +23,7 @@ export default function CampaignEmail({
     messagingEnabledAt: new Date(),
   },
   campaign = {
-    type: "transactional",
+    type: "marketing",
     subject: "Test Subject",
     body: `<p xmlns="http://www.w3.org/1999/xhtml">Hi <span class="px-1 py-0.5 bg-blue-100 text-blue-700 rounded font-semibold" data-type="mention" data-id="PartnerName">{{PartnerName}}</span>,</p><p xmlns="http://www.w3.org/1999/xhtml">Thrilled to have you officially join the Acme Ambassador Program!</p><p xmlns="http://www.w3.org/1999/xhtml">As a Acme Ambassador, you're joining the front line of change. You're freeing people from broken healthcare and giving them back control of their health.</p><p xmlns="http://www.w3.org/1999/xhtml">Your 3 quick steps to get started:</p><ol xmlns="http://www.w3.org/1999/xhtml"><li><p>Activate your membership with your 50% off code: <strong>ACME50OFF</strong></p></li><li><p><a target="_blank" rel="noopener noreferrer nofollow" href="https://partners.dub.co/programs/acme">Open your dashboard</a> and copy your referral link</p></li><li><p>Share Acme with your loved ones! Use our <a target="_blank" rel="noopener noreferrer nofollow" href="http://acme.dub.sh">Ambassador Hub</a> for all the information you need like message templates, images, and information about Acme.</p></li></ol><p xmlns="http://www.w3.org/1999/xhtml">And a bonus: make your first referral within 7 days and you'll also receive a limited-edition Acme hoodie.</p><img xmlns="http://www.w3.org/1999/xhtml" src="https://dubassets.com/programs/prog_CYCu7IMAapjkRpTnr8F1azjN/lander/image_JjbkiaM" /><p xmlns="http://www.w3.org/1999/xhtml">We're here with you every step of the way.</p><p xmlns="http://www.w3.org/1999/xhtml">To your health,</p><p xmlns="http://www.w3.org/1999/xhtml">The Acme team</p>`,
   },
@@ -29,7 +32,7 @@ export default function CampaignEmail({
     name: string;
     slug: string;
     logo: string | null;
-    messagingEnabledAt: Date | null | undefined;
+    messagingEnabledAt?: Date | null | undefined;
   };
   campaign?: {
     type: "transactional" | "marketing";
@@ -103,6 +106,22 @@ export default function CampaignEmail({
                   </Link>
                 </Section>
               )}
+
+            {campaign.type === "marketing" && (
+              <Section className="border-t border-neutral-200">
+                <Hr className="mx-0 my-3 w-full border border-neutral-200" />
+                <Text className="text-[12px] leading-6 text-neutral-500">
+                  Don't want to receive marketing emails from any programs on
+                  Dub?{" "}
+                  <Link
+                    className="text-neutral-700 underline"
+                    href="https://partners.dub.co/profile/notifications"
+                  >
+                    Update your notification settings here.
+                  </Link>
+                </Text>
+              </Section>
+            )}
           </Container>
         </Body>
       </Tailwind>

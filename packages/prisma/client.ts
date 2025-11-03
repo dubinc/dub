@@ -9,6 +9,7 @@ export {
   CampaignType,
   CommissionStatus,
   CommissionType,
+  EmailDomainStatus,
   EventType,
   FolderType,
   FolderUserRole,

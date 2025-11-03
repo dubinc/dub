@@ -55,6 +55,7 @@ export type ComboboxProps<
   searchPlaceholder?: string;
   emptyState?: ReactNode;
   createLabel?: (search: string) => ReactNode;
+  createIcon?: Icon;
   onCreate?: (search: string) => Promise<boolean>;
   buttonProps?: ButtonProps;
   labelProps?: { className?: string };
@@ -94,6 +95,7 @@ export function Combobox({
   searchPlaceholder = "Search...",
   emptyState,
   createLabel,
+  createIcon: CreateIcon = Plus,
   onCreate,
   buttonProps,
   labelProps,
@@ -289,7 +291,7 @@ export function Combobox({
                         {isCreating ? (
                           <LoadingSpinner className="size-4 shrink-0" />
                         ) : (
-                          <Plus className="size-4 shrink-0" />
+                          <CreateIcon className="size-4 shrink-0" />
                         )}
                         <div className="grow truncate">
                           {createLabel?.(search) || `Create "${search}"`}

@@ -5,6 +5,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/email-domains/verify",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/domains/renewal-reminders",
       "schedule": "0 8 * * *"
     },
@@ -38,7 +42,7 @@
     },
     {
       "path": "/api/cron/trigger-withdrawal",
-      "schedule": "0 0,12 * * *"
+      "schedule": "0 0 * * *"
     },
     {
       "path": "/api/cron/partner-program-summary",

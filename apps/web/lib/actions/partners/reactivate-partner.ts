@@ -1,6 +1,7 @@
 "use server";
 
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { linkCache } from "@/lib/api/links/cache";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { deactivatePartnerSchema } from "@/lib/zod/schemas/partners";
@@ -36,6 +37,11 @@ export const reactivatePartnerAction = authActionClient
       throw new Error("This partner is not deactivated.");
     }
 
+    const defaultGroup = await getGroupOrThrow({
+      programId,
+      groupId: programEnrollment.program.defaultGroupId,
+    });
+
     await prisma.$transaction([
       prisma.link.updateMany({
         where,
@@ -50,6 +56,11 @@ export const reactivatePartnerAction = authActionClient
         },
         data: {
           status: "approved",
+          groupId: defaultGroup.id,
+          clickRewardId: defaultGroup.clickRewardId,
+          leadRewardId: defaultGroup.leadRewardId,
+          saleRewardId: defaultGroup.saleRewardId,
+          discountId: defaultGroup.discountId,
         },
       }),
     ]);
@@ -70,8 +81,8 @@ export const reactivatePartnerAction = authActionClient
           recordAuditLog({
             workspaceId: workspace.id,
             programId,
-            action: "partner.unbanned",
-            description: `Partner ${partnerId} unbanned`,
+            action: "partner.reactivated",
+            description: `Partner ${partnerId} reactivated`,
             actor: user,
             targets: [
               {
