@@ -39,6 +39,7 @@ import {
 import { cn, currencyFormatter, getPrettyUrl, nFormatter } from "@dub/utils";
 import NumberFlow, { NumberFlowGroup } from "@number-flow/react";
 import { LinearGradient } from "@visx/gradient";
+import { endOfDay, startOfDay } from "date-fns";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -283,8 +284,8 @@ function EarningsChart() {
 
   const { data: timeseries, error } = usePartnerEarningsTimeseries({
     interval,
-    start,
-    end,
+    start: start ? startOfDay(new Date(start)) : undefined,
+    end: end ? endOfDay(new Date(end)) : undefined,
   });
 
   const total = useMemo(
