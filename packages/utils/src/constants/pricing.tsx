@@ -10,6 +10,49 @@ export type PlanFeature = {
   };
 };
 
+export type Plan = {
+  name: string;
+  link?: string;
+  price: {
+    monthly: number | null;
+    yearly: number | null;
+    ids?: string[];
+  };
+  limits: {
+    links: number;
+    clicks: number;
+    payouts: number;
+    domains: number;
+    tags: number;
+    folders: number;
+    groups: number;
+    networkInvites: number;
+    users: number;
+    ai: number;
+    api: number;
+    retention: string;
+  };
+  tiers?: {
+    [key: number]: {
+      price: {
+        monthly: number | null;
+        yearly: number | null;
+        ids: string[];
+      };
+      limits: {
+        links: number;
+        clicks: number;
+      };
+    };
+  };
+  featureTitle?: string;
+  features?: PlanFeature[];
+};
+
+export type PlanWithTier = Plan & {
+  tier: number;
+};
+
 const LEGACY_PRO_PRICE_IDS = [
   "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
   "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
@@ -84,7 +127,7 @@ const ADVANCED_PRICE_IDS = [
   ...Object.values(ADVANCED_TIER_PRICE_IDS).flat(),
 ];
 
-export const PLANS = [
+export const PLANS: Plan[] = [
   {
     name: "Free",
     price: {
@@ -505,14 +548,74 @@ export const getNextPlan = (plan?: string | null) => {
   ];
 };
 
-export const isDowngradePlan = (currentPlan: string, newPlan: string) => {
+export const isDowngradePlan = ({
+  currentPlan,
+  newPlan,
+  currentTier,
+  newTier,
+}: {
+  currentPlan: string;
+  newPlan: string;
+  currentTier?: number;
+  newTier?: number;
+}) => {
   const currentPlanIndex = PLANS.findIndex(
     (p) => p.name.toLowerCase() === currentPlan.toLowerCase(),
   );
   const newPlanIndex = PLANS.findIndex(
     (p) => p.name.toLowerCase() === newPlan.toLowerCase(),
   );
-  return currentPlanIndex > newPlanIndex;
+  return (
+    currentPlanIndex > newPlanIndex ||
+    (currentPlanIndex === newPlanIndex && (currentTier ?? 0) > (newTier ?? 0))
+  );
+};
+
+export const getSuggestedPlan = ({
+  events,
+  links,
+  suggestFree = false,
+}: {
+  events?: number;
+  links?: number;
+  suggestFree?: boolean;
+}): PlanWithTier => {
+  let match: PlanWithTier | null = null;
+
+  for (const p of PLANS) {
+    if (!suggestFree && p.price.monthly === 0) continue;
+
+    const matchingTier = [0, ...Object.keys(p.tiers ?? {}).map(Number)].find(
+      (tier) => {
+        const limits =
+          tier == 0
+            ? p.limits
+            : p.tiers?.[tier as keyof typeof p.tiers]?.limits ?? p.limits;
+        return limits.clicks >= (events ?? 0) && limits.links >= (links ?? 0);
+      },
+    );
+
+    if (matchingTier !== undefined) {
+      const matchingTierData = p.tiers?.[matchingTier as keyof typeof p.tiers];
+
+      match = {
+        ...p,
+        limits: {
+          ...p.limits,
+          ...matchingTierData?.limits,
+        },
+        price: {
+          ...p.price,
+          ...matchingTierData?.price,
+        },
+        tier: Number(matchingTier),
+      };
+
+      break;
+    }
+  }
+
+  return match ?? { ...ENTERPRISE_PLAN, tier: 0 };
 };
 
 export const isLegacyBusinessPlan = ({

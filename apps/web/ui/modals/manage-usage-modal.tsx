@@ -1,7 +1,14 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Modal, Slider, ToggleGroup } from "@dub/ui";
-import { ENTERPRISE_PLAN, SELF_SERVE_PAID_PLANS } from "@dub/utils";
+import {
+  ENTERPRISE_PLAN,
+  SELF_SERVE_PAID_PLANS,
+  cn,
+  getSuggestedPlan,
+  isDowngradePlan,
+} from "@dub/utils";
 import NumberFlow from "@number-flow/react";
+import Link from "next/link";
 import {
   Dispatch,
   SetStateAction,
@@ -9,6 +16,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { UpgradePlanButton } from "../workspaces/upgrade-plan-button";
 
 type ManageUsageModalProps = {
   type: "links" | "events";
@@ -39,7 +47,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
 
   const defaultValue = useMemo(() => {
     const currentLimit =
-      workspace[{ events: "usageLimit", clicks: "linksLimit" }[type]];
+      workspace[{ events: "usageLimit", links: "linksLimit" }[type]];
     return usageSteps.reduce((prev, curr) =>
       Math.abs(curr - currentLimit) < Math.abs(prev - currentLimit)
         ? curr
@@ -49,6 +57,23 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
 
   const [selectedValue, setSelectedValue] = useState<number | null>(null);
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
+
+  const suggestedPlan = getSuggestedPlan({
+    [type]: selectedValue ?? defaultValue,
+  });
+
+  const isCurrentPlanSuggested =
+    plan === suggestedPlan.name.toLowerCase() &&
+    suggestedPlan.tier === (planTier ?? 0);
+
+  const isDowngradeSuggested =
+    plan &&
+    isDowngradePlan({
+      currentPlan: plan,
+      newPlan: suggestedPlan.name,
+      currentTier: planTier ?? 0,
+      newTier: suggestedPlan.tier,
+    });
 
   if (usageSteps.length < 2) return null;
 
@@ -91,6 +116,66 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
             selected={period}
             selectAction={(period) => setPeriod(period as "monthly" | "yearly")}
           />
+
+          <div className="border-border-default bg-bg-default mt-3 flex flex-col gap-5 rounded-xl border p-4">
+            <div>
+              <span className="text-content-emphasis block text-xl font-semibold">
+                {suggestedPlan.name}
+              </span>
+              <div className="relative flex items-center gap-1">
+                {!suggestedPlan.price[period] ? (
+                  <span className="pb-px text-sm font-medium text-neutral-900">
+                    Custom
+                  </span>
+                ) : (
+                  <>
+                    <NumberFlow
+                      value={suggestedPlan.price[period]!}
+                      className="text-sm font-medium tabular-nums text-neutral-700"
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        minimumFractionDigits: 0,
+                      }}
+                      continuous
+                    />
+                    <span className="text-sm font-medium text-neutral-400">
+                      per month
+                      {period === "yearly" && ", billed yearly"}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {suggestedPlan.name === "Enterprise" ? (
+              <Link
+                href="https://dub.co/contact/sales"
+                target="_blank"
+                className={cn(
+                  "flex h-8 w-full items-center justify-center rounded-lg text-center text-sm transition-all duration-200 ease-in-out",
+                  "hover:ring-border-subtle border border-black bg-black text-white shadow-sm hover:ring-4",
+                )}
+              >
+                Contact us
+              </Link>
+            ) : (
+              <UpgradePlanButton
+                plan={suggestedPlan.name.toLowerCase()}
+                period={period}
+                disabled={isCurrentPlanSuggested}
+                text={
+                  isCurrentPlanSuggested
+                    ? "Current plan"
+                    : isDowngradeSuggested
+                      ? "Downgrade"
+                      : "Upgrade"
+                }
+                variant={isDowngradeSuggested ? "secondary" : "primary"}
+                className="h-8 rounded-lg shadow-sm"
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>

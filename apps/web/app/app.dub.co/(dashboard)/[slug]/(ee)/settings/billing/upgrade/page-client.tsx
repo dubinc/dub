@@ -121,7 +121,11 @@ export function WorkspaceBillingUpgradePageClient() {
 
                 // show downgrade button if user has a stripe id and is on the current plan
                 const isDowngrade = Boolean(
-                  stripeId && isDowngradePlan(currentPlan || "free", plan.name),
+                  stripeId &&
+                    isDowngradePlan({
+                      currentPlan: currentPlan || "free",
+                      newPlan: plan.name,
+                    }),
                 );
 
                 return (
