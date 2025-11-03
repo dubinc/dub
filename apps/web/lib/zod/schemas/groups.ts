@@ -18,7 +18,11 @@ export const DEFAULT_PARTNER_GROUP = {
   color: null,
 } as const;
 
-export const MAX_DEFAULT_PARTNER_LINKS = 5;
+// max number of partnerGroupDefaultLinks per group
+export const MAX_DEFAULT_LINKS_PER_GROUP = 5;
+
+// for the maxPartnerLinks setting (alongside additionalLinks)
+export const DEFAULT_ADDITIONAL_PARTNER_LINKS = 10;
 export const MAX_ADDITIONAL_PARTNER_LINKS = 100;
 
 export const GROUPS_MAX_PAGE_SIZE = 100;

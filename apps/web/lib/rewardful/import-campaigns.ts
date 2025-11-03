@@ -7,6 +7,7 @@ import { createId } from "../api/create-id";
 
 import { serializeReward } from "../api/partners/serialize-reward";
 import { getRewardAmount } from "../partners/get-reward-amount";
+import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "../zod/schemas/groups";
 import { RewardfulApi } from "./api";
 import { rewardfulImporter } from "./importer";
 import { RewardfulImportPayload } from "./types";
@@ -69,7 +70,7 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
             validationMode: "domain",
           },
         ],
-        maxPartnerLinks: 10,
+        maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
         partnerGroupDefaultLinks: {
           create: {
             id: createId({ prefix: "pgdl_" }),

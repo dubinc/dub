@@ -2,6 +2,7 @@ import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
 import { getDomainWithoutWWW, randomValue } from "@dub/utils";
 import { createId } from "../api/create-id";
+import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "../zod/schemas/groups";
 import { PartnerStackApi } from "./api";
 import { partnerStackImporter } from "./importer";
 import { PartnerStackImportPayload } from "./types";
@@ -61,7 +62,7 @@ export async function importGroups(payload: PartnerStackImportPayload) {
               validationMode: "domain",
             },
           ],
-          maxPartnerLinks: 10,
+          maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
           partnerGroupDefaultLinks: {
             create: {
               id: createId({ prefix: "pgdl_" }),

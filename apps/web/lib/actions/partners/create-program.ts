@@ -8,7 +8,10 @@ import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
 import { PlanProps } from "@/lib/types";
 import { redis } from "@/lib/upstash";
-import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
+import {
+  DEFAULT_ADDITIONAL_PARTNER_LINKS,
+  DEFAULT_PARTNER_GROUP,
+} from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
 import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { sendEmail } from "@dub/email";
@@ -156,7 +159,7 @@ export const createProgram = async ({
             validationMode: "domain",
           },
         ],
-        maxPartnerLinks: 10,
+        maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
         partnerGroupDefaultLinks: {
           create: {
             id: createId({ prefix: "pgdl_" }),

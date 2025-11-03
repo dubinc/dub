@@ -5,7 +5,7 @@ import useGroup from "@/lib/swr/use-group";
 import usePartnerGroupDefaultLinks from "@/lib/swr/use-partner-group-default-links";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PartnerGroupDefaultLink } from "@/lib/types";
-import { MAX_DEFAULT_PARTNER_LINKS } from "@/lib/zod/schemas/groups";
+import { MAX_DEFAULT_LINKS_PER_GROUP } from "@/lib/zod/schemas/groups";
 import { useConfirmModal } from "@/ui/modals/confirm-modal";
 import { ThreeDots } from "@/ui/shared/icons";
 import {
@@ -28,7 +28,7 @@ export function GroupDefaultLinks() {
     usePartnerGroupDefaultLinks();
 
   const hasReachedMaxLinks = defaultLinks
-    ? defaultLinks.length >= MAX_DEFAULT_PARTNER_LINKS
+    ? defaultLinks.length >= MAX_DEFAULT_LINKS_PER_GROUP
     : false;
 
   return (
@@ -97,7 +97,7 @@ function CreateDefaultLinkButton({
         disabled={hasReachedMaxLinks || isLoadingGroup}
         disabledTooltip={
           hasReachedMaxLinks
-            ? `You can only create up to ${MAX_DEFAULT_PARTNER_LINKS} default links.`
+            ? `You can only create up to ${MAX_DEFAULT_LINKS_PER_GROUP} default links.`
             : undefined
         }
       />
