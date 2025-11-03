@@ -49,12 +49,12 @@ export default function PartnerDeactivated({
             </Section>
 
             <Heading className="mx-0 p-0 text-lg font-medium text-neutral-600">
-              Your partnership with {program.name} has been deactivated
+              {program.name} has deactivated your partnership
             </Heading>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              Hello {partner.name}! {program.name} has deactivated your
-              partnership with their program
+              Hello {partner.name}! Your partnership with the {program.name}{" "}
+              program has been deactivated
               {deactivatedReason ? (
                 <span className="font-bold">{` ${deactivatedReason}`}</span>
               ) : (
