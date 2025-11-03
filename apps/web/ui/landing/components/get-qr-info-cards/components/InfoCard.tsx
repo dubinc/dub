@@ -108,15 +108,15 @@ const DownloadVisual = () => (
     {/* Format Options */}
     <div className="grid grid-cols-3 gap-3">
       {[
-        { icon: FileImage, label: "PNG", color: "text-primary" },
-        { icon: Code, label: "SVG", color: "text-secondary" },
-        { icon: FileImage, label: "JPEG", color: "text-primary" },
+        { icon: FileImage, label: "PNG" },
+        { icon: Code, label: "SVG" },
+        { icon: FileImage, label: "JPEG" },
       ].map((format, idx) => (
         <div
           key={idx}
           className="flex flex-col items-center justify-center gap-2 rounded-lg bg-white/80 p-3 transition-all hover:bg-white hover:shadow-md"
         >
-          <format.icon className={`h-6 w-6 ${format.color}`} />
+          <format.icon className={`h-6 w-6 text-primary`} />
           <span className="text-foreground text-xs font-semibold">
             {format.label}
           </span>

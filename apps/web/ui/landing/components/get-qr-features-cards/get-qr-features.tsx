@@ -14,7 +14,9 @@ interface GetQRFeaturesCardsSectionProps {
   initialTab?: string;
 }
 
-export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({ initialTab }) => {
+export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({
+  initialTab,
+}) => {
   const [activeTab, setActiveTab] = useState(
     initialTab || GET_QR_FEATURES[0].title.toLowerCase().replace(/\s+/g, "-"),
   );
@@ -77,8 +79,7 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({ 
             />
           </MotionPreset>
           <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
-            Make every code on-brand, easy to refine, swap links anytime and see
-            your metrics align.
+            Unlock advanced features and evaluate performance risk-free.
           </p>
         </div>
 

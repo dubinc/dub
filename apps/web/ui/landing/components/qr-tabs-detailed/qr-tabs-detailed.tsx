@@ -56,8 +56,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
               transition={{ duration: 0.5 }}
             >
               <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
-                GetQR brings every QR code type in one place. Create, customize,
-                share, scan and analyze.
+                All QR formats in one platform built for scale and precision.
               </p>
             </MotionPreset>
           </div>

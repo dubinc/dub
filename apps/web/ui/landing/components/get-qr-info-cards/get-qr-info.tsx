@@ -17,8 +17,7 @@ export const GetQRInfoCardsSection: FC = () => {
             titleSecondPart={"Simple Steps"}
           />
           <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
-            Choose your type, personalize in three quick steps, your QR code's
-            ready to share.
+            From selection to personalization — transparency at every step.
           </p>
         </div>
 

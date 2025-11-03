@@ -31,8 +31,7 @@ export const FAQSection: FC<IFaqSectionProps> = ({ faqItems }) => {
             titleSecondPart="Questions"
           />
           <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
-            Need help fast so projects don't stall? Browse these FAQs— we've
-            covered it all.
+            Get answers for your full QR-code journey
           </p>
         </div>
 
