@@ -88,7 +88,7 @@ export async function POST(req: Request) {
 
     await qstash.publishJSON({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/program-application-reminder`,
-      // repeat every 24 hours, but it'll be cancelled if the application is more than 3 days old or is associated with a partner
+      // repeat every 24 hours, but it'll be canceled if the application is more than 3 days old or is associated with a partner
       delay: 24 * 60 * 60,
       body: {
         applicationId: application.id,

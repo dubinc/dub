@@ -435,6 +435,30 @@ export const createManualCommissionAction = authActionClient
           // Track the sale event timestamp for link stats update
           saleEventTimestamp = new Date(saleEventData.timestamp);
         }
+
+        const updatedCustomer = await prisma.customer.update({
+          where: {
+            id: customer.id,
+          },
+          data: {
+            linkId: link.id,
+            clickId: clickId,
+            clickedAt: new Date(clickTimestamp),
+            country: generatedClickEvent.country,
+            ...(saleAmount && {
+              sales: {
+                increment: 1,
+              },
+              saleAmount: {
+                increment: saleAmount,
+              },
+            }),
+          },
+        });
+        console.log(
+          "Updated customer to include link & sale attributes: ",
+          updatedCustomer,
+        );
       }
     }
 
