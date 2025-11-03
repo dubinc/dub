@@ -12,17 +12,16 @@ export async function validateWebhook({
   input,
   workspace,
   webhook,
-  user
+  user,
 }: {
   input: Partial<z.infer<typeof createWebhookSchema>>;
   workspace: Pick<WorkspaceProps, "id" | "defaultProgramId">;
   webhook?: Webhook;
-  user: Session["user"]
+  user: Session["user"];
 }) {
   const { url, linkIds, triggers } = input;
 
   // payout.confirmed trigger requires external payouts enabled
-  // We'll shift this limit in the future
   if (triggers && triggers.includes("payout.confirmed")) {
     const programId = getDefaultProgramIdOrThrow(workspace);
 
