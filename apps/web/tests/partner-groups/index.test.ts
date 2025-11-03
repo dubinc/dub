@@ -4,7 +4,10 @@ import {
   GroupProps,
   GroupWithProgramProps,
 } from "@/lib/types";
-import { GroupSchema } from "@/lib/zod/schemas/groups";
+import {
+  DEFAULT_ADDITIONAL_PARTNER_LINKS,
+  GroupSchema,
+} from "@/lib/zod/schemas/groups";
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
@@ -20,7 +23,7 @@ const expectedGroup: Partial<GroupProps> = {
   leadReward: null,
   saleReward: null,
   discount: null,
-  maxPartnerLinks: 10,
+  maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
   linkStructure: "short",
   additionalLinks: expect.any(Array),
 };

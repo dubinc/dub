@@ -1,8 +1,9 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
-import { randomValue } from "@dub/utils";
+import { getDomainWithoutWWW, randomValue } from "@dub/utils";
 import slugify from "@sindresorhus/slugify";
 import { createId } from "../api/create-id";
+import { DEFAULT_ADDITIONAL_PARTNER_LINKS } from "../zod/schemas/groups";
 import { FirstPromoterApi } from "./api";
 import { firstPromoterImporter, MAX_BATCHES } from "./importer";
 import { FirstPromoterImportPayload } from "./types";
@@ -64,6 +65,13 @@ export async function importCampaigns(payload: FirstPromoterImportPayload) {
           slug: slugify(campaign.campaign.name),
           name: campaign.campaign.name,
           color: randomValue(RESOURCE_COLORS),
+          additionalLinks: [
+            {
+              domain: getDomainWithoutWWW(program.url!),
+              validationMode: "domain",
+            },
+          ],
+          maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
         })),
         skipDuplicates: true,
       });
