@@ -52,7 +52,7 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
               as="span"
               size="3"
               weight="regular"
-              className="text-muted-foreground"
+              className="text-muted-foreground text-center"
             >
               Their QR codes have been scanned{" "}
               <strong className="tabular-nums font-semibold">

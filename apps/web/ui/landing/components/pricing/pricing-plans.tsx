@@ -31,7 +31,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
           highlightedTitlePart={"You Need"}
           className="lg:!leading-[52px]"
         />
-        <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
+        <p className="text-muted-foreground text-center max-w-4xl text-base md:text-lg">
           Unlock advanced features and evaluate performance risk-free.
         </p>
       </div>

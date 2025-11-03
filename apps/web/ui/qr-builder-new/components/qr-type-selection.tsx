@@ -27,7 +27,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
   );
 
   return (
-    <div className="max-w-7xl w-full mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
+    <div className="max-w-7xl w-full mx-auto max-w-7xl px-0 sm:px-6 lg:px-8 grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
       {filteredQrTypes.map((type, idx) => {
         const isSelected = selectedQRType === type.id;
 

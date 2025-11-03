@@ -52,7 +52,7 @@ export const Links: FC<ILinksProps> = ({ title, links, sessionId }) => {
             {link.href.startsWith("#") ? (
               <button
                 onClick={() => handleScrollToSection(link.href, link.page_name_code)}
-                className="cursor-pointer text-left"
+                className="cursor-pointer text-left transition-colors hover:text-foreground"
               >
                 {link.text}
               </button>
@@ -61,6 +61,7 @@ export const Links: FC<ILinksProps> = ({ title, links, sessionId }) => {
                 href={link.href}
                 target="_blank"
                 onClick={() => onClickHandler(link?.page_name_code ?? "")}
+                className="transition-colors hover:text-foreground"
               >
                 {link.text}
               </Link>

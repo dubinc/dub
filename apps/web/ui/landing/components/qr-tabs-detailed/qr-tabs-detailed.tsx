@@ -55,7 +55,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
               delay={0.2}
               transition={{ duration: 0.5 }}
             >
-              <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
+              <p className="text-muted-foreground text-center max-w-4xl text-base md:text-lg">
                 All QR formats in one platform built for scale and precision.
               </p>
             </MotionPreset>

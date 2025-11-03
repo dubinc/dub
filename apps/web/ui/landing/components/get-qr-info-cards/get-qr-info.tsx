@@ -16,7 +16,7 @@ export const GetQRInfoCardsSection: FC = () => {
             highlightedTitlePart={"In 3"}
             titleSecondPart={"Simple Steps"}
           />
-          <p className="text-muted-foreground max-w-4xl text-base md:text-lg">
+          <p className="text-muted-foreground text-center max-w-4xl text-base md:text-lg">
             From selection to personalization — transparency at every step.
           </p>
         </div>
