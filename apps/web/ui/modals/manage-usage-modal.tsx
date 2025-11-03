@@ -1,11 +1,12 @@
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Modal, Slider, ToggleGroup } from "@dub/ui";
+import { CursorRays, Hyperlink, Modal, Slider, ToggleGroup } from "@dub/ui";
 import {
   ENTERPRISE_PLAN,
   SELF_SERVE_PAID_PLANS,
   cn,
   getSuggestedPlan,
   isDowngradePlan,
+  nFormatter,
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
@@ -26,7 +27,7 @@ type ManageUsageModalProps = {
 
 function ManageUsageModalContent({ type }: ManageUsageModalProps) {
   const workspace = useWorkspace();
-  const { plan, planTier, usageLimit } = workspace;
+  const { plan, planTier, usageLimit, linksLimit } = workspace;
 
   const usageSteps = useMemo(() => {
     const limitKey = { events: "clicks" }[type] ?? type;
@@ -43,7 +44,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
           .sort((a, b) => a - b),
       ),
     ];
-  }, [usageLimit]);
+  }, [type]);
 
   const defaultValue = useMemo(() => {
     const currentLimit =
@@ -175,6 +176,40 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
                 className="h-8 rounded-lg shadow-sm"
               />
             )}
+
+            <div className="flex flex-col gap-2.5">
+              {[
+                {
+                  icon: CursorRays,
+                  label: `${nFormatter(suggestedPlan.limits.clicks)} total tracked events/mo`,
+                  difference: suggestedPlan.limits.clicks - (usageLimit ?? 0),
+                },
+                {
+                  icon: Hyperlink,
+                  label: `${nFormatter(suggestedPlan.limits.links)} new links/mo`,
+                  difference: suggestedPlan.limits.links - (linksLimit ?? 0),
+                },
+              ].map(({ icon: Icon, label, difference }) => (
+                <div className="text-content-default flex items-center gap-2 text-sm">
+                  <Icon
+                    className={cn("size-4", difference > 0 && "text-blue-600")}
+                  />
+                  <span className="tabular-nums">{label}</span>
+                  {difference !== 0 && (
+                    <span
+                      className={cn(
+                        "flex h-[18px] items-center rounded-full px-1.5 text-[0.5rem] font-semibold uppercase leading-none",
+                        difference > 0
+                          ? "bg-blue-100 text-blue-600"
+                          : "text-content-default bg-bg-subtle",
+                      )}
+                    >
+                      {difference > 0 ? "Increases" : "Decreases"}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
