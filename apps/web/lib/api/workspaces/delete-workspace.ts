@@ -51,7 +51,7 @@ export async function deleteWorkspace(
       // Delete workspace logo if it's a custom logo stored in R2
       workspace.logo &&
         workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
-        storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: workspace.logo.replace(`${R2_URL}/`, "") }),
 
       // queue the workspace for deletion
       queueWorkspaceDeletion({
@@ -133,7 +133,7 @@ export async function deleteWorkspaceAdmin(
     // delete workspace logo if it's a custom logo stored in R2
     workspace.logo &&
       workspace.logo.startsWith(`${R2_URL}/logos/${workspace.id}`) &&
-      storage.delete(workspace.logo.replace(`${R2_URL}/`, "")),
+      storage.delete({ key: workspace.logo.replace(`${R2_URL}/`, "") }),
     // if they have a Stripe subscription, cancel it
     workspace.stripeId && cancelSubscription(workspace.stripeId),
     // delete the workspace

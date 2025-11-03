@@ -38,6 +38,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
             programId,
           }).then((program) => program.startedAt ?? program.createdAt)
         : undefined,
+    timezone,
   });
 
   const { dateFormat, dateIncrement, startFunction, formatString } =
@@ -71,11 +72,11 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
 
   const timeseries: Commission[] = [];
 
-  while (currentDate < endDate) {
+  while (currentDate.toJSDate() < endDate) {
     const periodKey = currentDate.toFormat(formatString);
 
     timeseries.push({
-      start: currentDate.toISO(),
+      start: currentDate.toISO()!,
       ...(earningsLookup[periodKey] || {
         earnings: 0,
       }),

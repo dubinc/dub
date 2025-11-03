@@ -49,7 +49,7 @@ export const POST = withAdmin(async ({ req }) => {
       await Promise.all([
         user.image &&
           isStored(user.image) &&
-          storage.delete(user.image.replace(`${R2_URL}/`, "")),
+          storage.delete({ key: user.image.replace(`${R2_URL}/`, "") }),
         unsubscribe({ email }),
         updateConfig({
           key: "emails",

@@ -12,6 +12,7 @@ import { prisma } from "@dub/prisma";
 import { NotificationEmailType, Prisma, Workflow } from "@dub/prisma/client";
 import { chunk } from "@dub/utils";
 import { addHours, differenceInDays, subDays } from "date-fns";
+import { validateCampaignFromAddress } from "../campaigns/validate-campaign";
 import { createId } from "../create-id";
 import { evaluateWorkflowCondition } from "./execute-workflows";
 import { parseWorkflowConfig } from "./parse-workflow-config";
@@ -45,8 +46,16 @@ export const executeSendCampaignWorkflow = async ({
       id: campaignId,
     },
     include: {
-      program: true,
       groups: true,
+      program: {
+        include: {
+          emailDomains: {
+            where: {
+              status: "verified",
+            },
+          },
+        },
+      },
     },
   });
 
@@ -114,6 +123,16 @@ export const executeSendCampaignWorkflow = async ({
     return;
   }
 
+  const program = campaign.program;
+
+  // TODO: We should make the from address required. There are existing campaign without from adress
+  if (campaign.from) {
+    validateCampaignFromAddress({
+      campaign,
+      emailDomains: program.emailDomains,
+    });
+  }
+
   const programEnrollmentsChunks = chunk(programEnrollments, 100);
 
   for (const programEnrollmentChunk of programEnrollmentsChunks) {
@@ -156,12 +175,11 @@ export const executeSendCampaignWorkflow = async ({
       `Workflow ${workflow.id} created ${messages.count} messages for campaign ${campaignId}.`,
     );
 
-    const { program } = campaign;
-
     // Send emails
     const { data } = await sendBatchEmail(
       partnerUsers.map((partnerUser) => ({
         variant: "notifications",
+        ...(campaign.from ? { from: campaign.from } : {}),
         to: partnerUser.email!,
         subject: campaign.subject,
         replyTo: program.supportEmail || "noreply",

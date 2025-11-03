@@ -20,6 +20,8 @@ export const MAX_SUBMISSION_FILES = 4;
 
 export const MAX_SUBMISSION_URLS = 20;
 
+export const MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH = 1000;
+
 export const REJECT_BOUNTY_SUBMISSION_REASONS = {
   invalidProof: "Invalid proof",
   duplicateSubmission: "Duplicate submission",

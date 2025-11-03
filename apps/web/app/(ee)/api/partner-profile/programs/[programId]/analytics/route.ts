@@ -2,20 +2,22 @@ import { getAnalytics } from "@/lib/analytics/get-analytics";
 import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS } from "@/lib/partners/constants";
 import { partnerProfileAnalyticsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { NextResponse } from "next/server";
 
 // GET /api/partner-profile/programs/[programId]/analytics – get analytics for a program enrollment link
 export const GET = withPartnerProfile(
   async ({ partner, params, searchParams }) => {
-    const { program, links } = await getProgramEnrollmentOrThrow({
-      partnerId: partner.id,
-      programId: params.programId,
-      include: {
-        program: true,
-        links: true,
-      },
-    });
+    const { program, links, totalCommissions } =
+      await getProgramEnrollmentOrThrow({
+        partnerId: partner.id,
+        programId: params.programId,
+        include: {
+          program: true,
+          links: true,
+        },
+      });
 
     let { linkId, domain, key, ...rest } =
       partnerProfileAnalyticsQuerySchema.parse(searchParams);
@@ -42,7 +44,8 @@ export const GET = withPartnerProfile(
     }
 
     const response = await getAnalytics({
-      ...(program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X"
+      ...(program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" &&
+      totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
         ? { event: rest.event, groupBy: "count", interval: "all" }
         : rest),
       workspaceId: program.workspaceId,

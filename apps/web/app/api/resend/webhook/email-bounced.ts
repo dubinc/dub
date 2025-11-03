@@ -2,11 +2,9 @@ import { prisma } from "@dub/prisma";
 
 export async function emailBounced({
   email_id: emailId,
-  subject,
   tags,
 }: {
   email_id: string;
-  subject?: string;
   tags?: Record<string, string>;
 }) {
   if (tags?.type !== "notification-email") {

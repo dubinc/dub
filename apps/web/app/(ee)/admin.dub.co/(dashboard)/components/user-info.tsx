@@ -1,7 +1,7 @@
 "use client";
 import { PartnerStatusBadges } from "@/ui/partners/partner-status-badges";
 import { Badge, Copy, StatusBadge, Tick, useCopyToClipboard } from "@dub/ui";
-import { capitalize, nFormatter } from "@dub/utils";
+import { capitalize, currencyFormatter, nFormatter } from "@dub/utils";
 import { toast } from "sonner";
 
 export interface UserInfoProps {
@@ -140,7 +140,7 @@ export default function UserInfo({ data }: { data: UserInfoProps }) {
                     </span>
                     <span className="text-neutral-500">
                       {item.isCurrency
-                        ? `$${nFormatter(program[item.id], { full: true })}`
+                        ? currencyFormatter(program[item.id] / 100)
                         : nFormatter(program[item.id], { full: true })}
                     </span>
                   </div>

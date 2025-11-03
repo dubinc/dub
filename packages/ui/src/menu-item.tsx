@@ -13,14 +13,14 @@ import { DynamicTooltipWrapper } from "./tooltip";
 export const menuItemVariants = cva(
   [
     "flex h-9 w-full rounded-md px-2 items-center justify-center gap-2 transition-colors cursor-pointer",
-    "whitespace-nowrap text-sm font-medium text-content-default enabled:hover:bg-bg-subtle transition-colors",
+    "whitespace-nowrap text-sm font-medium text-content-default transition-colors",
     "disabled:opacity-50 disabled:cursor-default",
   ],
   {
     variants: {
       variant: {
         default: "text-content-default hover:bg-bg-subtle",
-        danger: "text-content-error hover:bg-bg-error",
+        danger: "text-content-error hover:bg-red-50 dark:hover:bg-red-950/20",
       },
       disabled: {
         true: "opacity-50 cursor-default text-content-disabled hover:bg-bg-default",

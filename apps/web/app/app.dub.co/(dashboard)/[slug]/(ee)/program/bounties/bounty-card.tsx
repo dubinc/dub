@@ -1,5 +1,5 @@
 import { getBountyRewardDescription } from "@/lib/partners/get-bounty-reward-description";
-import { usePartnersCountBounty } from "@/lib/swr/use-partners-count-bounty";
+import { usePartnersCountByGroupIds } from "@/lib/swr/use-partners-count-by-groupids";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { BountyListProps } from "@/lib/types";
 import { BountyThumbnailImage } from "@/ui/partners/bounties/bounty-thumbnail-image";
@@ -10,8 +10,8 @@ import Link from "next/link";
 export function BountyCard({ bounty }: { bounty: BountyListProps }) {
   const { slug: workspaceSlug } = useWorkspace();
 
-  const { totalPartnersForBounty, loading } = usePartnersCountBounty({
-    bounty,
+  const { totalPartners, loading } = usePartnersCountByGroupIds({
+    groupIds: bounty.groups.map((group) => group.id),
   });
 
   return (
@@ -66,7 +66,7 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
           <div className="text-content-subtle flex items-center gap-2 text-sm font-medium">
             <Users className="size-3.5" />
             <div className="h-5">
-              {bounty.submissionsCountData?.total === totalPartnersForBounty ? (
+              {bounty.submissionsCountData?.total === totalPartners ? (
                 <>All</>
               ) : (
                 <>
@@ -83,13 +83,13 @@ export function BountyCard({ bounty }: { bounty: BountyListProps }) {
               ) : (
                 <>
                   <span className="text-content-default">
-                    {nFormatter(totalPartnersForBounty, { full: true })}
+                    {nFormatter(totalPartners, { full: true })}
                   </span>{" "}
                 </>
               )}{" "}
               {pluralize(
                 "partner",
-                bounty.submissionsCountData?.total || totalPartnersForBounty,
+                bounty.submissionsCountData?.total || totalPartners,
               )}{" "}
               {bounty.type === "performance" ? "completed" : "submitted"}
             </div>

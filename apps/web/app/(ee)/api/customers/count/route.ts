@@ -1,6 +1,6 @@
 import { withWorkspace } from "@/lib/auth";
 import { getCustomersCountQuerySchema } from "@/lib/zod/schemas/customers";
-import { prisma } from "@dub/prisma";
+import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
@@ -15,25 +15,24 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       ? { email }
       : externalId
         ? { externalId }
-        : {
-            ...(search && {
-              OR: [
-                { email: { startsWith: search } },
-                { externalId: { startsWith: search } },
-                { name: { startsWith: search } },
-              ],
-            }),
-            // only filter by country if not grouping by country
-            ...(country &&
-              groupBy !== "country" && {
-                country,
-              }),
-            // only filter by linkId if not grouping by linkId
-            ...(linkId &&
-              groupBy !== "linkId" && {
-                linkId,
-              }),
-          }),
+        : search
+          ? search.includes("@")
+            ? { email: search }
+            : {
+                email: { search: sanitizeFullTextSearch(search) },
+                name: { search: sanitizeFullTextSearch(search) },
+              }
+          : {}),
+    // only filter by country if not grouping by country
+    ...(country &&
+      groupBy !== "country" && {
+        country,
+      }),
+    // only filter by linkId if not grouping by linkId
+    ...(linkId &&
+      groupBy !== "linkId" && {
+        linkId,
+      }),
   };
 
   // Get customer count by country
@@ -63,6 +62,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
           linkId: "desc",
         },
       },
+      take: 10000,
     });
 
     const links = await prisma.link.findMany({

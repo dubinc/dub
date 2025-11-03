@@ -86,8 +86,10 @@ export const updatePartnerProfileAction = authPartnerActionClient
 
     // Upload the new image
     if (image) {
-      const path = `partners/${partner.id}/image_${nanoid(7)}`;
-      const uploaded = await storage.upload(path, image);
+      const uploaded = await storage.upload({
+        key: `partners/${partner.id}/image_${nanoid(7)}`,
+        body: image,
+      });
       imageUrl = uploaded.url;
     }
 

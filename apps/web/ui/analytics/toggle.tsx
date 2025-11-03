@@ -117,7 +117,7 @@ export default function Toggle({
         if (!range || !range.from || !range.to) return;
 
         queryParams({
-          del: "preset",
+          del: "interval",
           set: {
             start: range.from.toISOString(),
             end: range.to.toISOString(),

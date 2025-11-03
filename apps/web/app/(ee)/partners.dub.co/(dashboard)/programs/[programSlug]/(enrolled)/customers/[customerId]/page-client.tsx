@@ -17,7 +17,7 @@ import { memo } from "react";
 import useSWR from "swr";
 
 export function ProgramCustomerPageClient() {
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const { programSlug, customerId } = useParams<{
     programSlug: string;
     customerId: string;
@@ -27,8 +27,9 @@ export function ProgramCustomerPageClient() {
     customerId,
   });
 
-  if ((!customer && !isLoading) || programSlug === "perplexity")
+  if ((!customer && !isLoading) || !showDetailedAnalytics) {
     redirect(`/programs/${programSlug}`);
+  }
 
   return (
     <div className="mb-10 mt-2">

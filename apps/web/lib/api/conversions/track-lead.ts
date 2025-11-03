@@ -230,14 +230,14 @@ export const trackLead = async ({
           finalCustomerAvatar
         ) {
           // persist customer avatar to R2
-          await storage.upload(
-            finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-            customerAvatar,
-            {
+          await storage.upload({
+            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+            body: customerAvatar,
+            opts: {
               width: 128,
               height: 128,
             },
-          );
+          });
         }
 
         // if not deferred mode, process the following right away:

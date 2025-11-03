@@ -89,7 +89,7 @@ export async function GET(req: Request) {
       balanceToWithdraw: `${currencyFormatter(balanceToWithdraw / 100)}`,
     });
 
-    const reservedBalance = 50000; // keep at least $500 in the account
+    const reservedBalance = 30_000_00; // keep at least $30,000 in the account
     if (balanceToWithdraw <= reservedBalance) {
       return logAndRespond(
         `Balance to withdraw is less than ${currencyFormatter(reservedBalance / 100)}, skipping...`,

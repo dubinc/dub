@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       });
     }
 
-    let diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
+    const diffMinutes = differenceInMinutes(bounty.startsAt, new Date());
 
     if (diffMinutes >= 10) {
       return logAndRespond(
@@ -132,10 +132,10 @@ export async function POST(req: Request) {
           },
         }),
         tags: [{ name: "type", value: "notification-email" }],
-        headers: {
-          "Idempotency-Key": `${bountyId}-page-${page}`,
-        },
       })),
+      {
+        idempotencyKey: `bounty-notify/${bountyId}-page-${page}`,
+      },
     );
 
     if (data) {

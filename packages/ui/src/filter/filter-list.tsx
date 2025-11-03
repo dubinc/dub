@@ -2,10 +2,11 @@ import { cn, truncate } from "@dub/utils";
 import { X } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
-import { ReactNode, isValidElement } from "react";
+import { ReactNode, isValidElement, useState } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { Combobox, ComboboxOption } from "../combobox";
 import { useKeyboardShortcut } from "../hooks";
+import { Icon } from "../icons";
 import { Filter, FilterOption } from "./types";
 
 type FilterListProps = {
@@ -190,44 +191,17 @@ export function FilterList({
                           );
 
                           return (
-                            <Combobox
-                              selected={selectedOption ?? null}
-                              setSelected={(
-                                newOption: ComboboxOption | null,
-                              ) => {
-                                if (
-                                  newOption &&
-                                  newOption.value !== String(value)
-                                ) {
-                                  // Remove the current value and add the new one
-                                  onRemove(key, value);
-                                  onSelect(key, newOption.value);
-                                }
-                              }}
+                            <FilterCombobox
+                              key={`${key}-${value}`}
+                              filter={filter}
+                              value={value}
+                              filterKey={key}
                               options={options}
-                              optionRight={(option) => {
-                                if (option.value === String(value)) {
-                                  return;
-                                }
-                                const filterOption = filter.options?.find(
-                                  (opt) =>
-                                    typeof String(opt.value) === "string" &&
-                                    typeof option.value === "string"
-                                      ? String(opt.value).toLowerCase() ===
-                                        option.value.toLowerCase()
-                                      : String(opt.value) === option.value,
-                                );
-                                return filterOption ? (
-                                  <span className="ml-2 text-neutral-500">
-                                    {filterOption.right}
-                                  </span>
-                                ) : null;
-                              }}
-                              placeholder={truncate(optionLabel, 30)}
-                              caret={false}
-                              trigger={OptionDisplay({
-                                className: "cursor-pointer hover:bg-neutral-50",
-                              })}
+                              selectedOption={selectedOption}
+                              onRemove={onRemove}
+                              onSelect={onSelect}
+                              OptionDisplay={OptionDisplay}
+                              optionLabel={optionLabel}
                             />
                           );
                         })()
@@ -264,6 +238,102 @@ export function FilterList({
         )}
       </div>
     </AnimatedSizeContainer>
+  );
+}
+
+function FilterCombobox({
+  filter,
+  value,
+  filterKey,
+  options,
+  selectedOption,
+  onRemove,
+  onSelect,
+  OptionDisplay,
+  optionLabel,
+}: {
+  filter: Filter;
+  value: FilterOption["value"];
+  filterKey: string;
+  options: ComboboxOption[];
+  selectedOption: ComboboxOption | undefined;
+  onRemove: (key: string, value: FilterOption["value"]) => void;
+  onSelect: (key: string, value: FilterOption["value"]) => void;
+  OptionDisplay: ({ className }: { className?: string }) => ReactNode;
+  optionLabel: string;
+}) {
+  const [search, setSearch] = useState("");
+
+  // Check if filter has empty options array
+  const hasEmptyOptions = filter.options && filter.options.length === 0;
+
+  // Create emptyState based on CommandEmpty logic
+  const emptyState = (() => {
+    // If the filter has no options, show the search input as an option or "Start typing to search..."
+    if (hasEmptyOptions) {
+      if (!search) {
+        return (
+          <div className="p-2 text-center text-sm text-neutral-400">
+            Start typing to search...
+          </div>
+        );
+      }
+      // When search exists and filter has empty options, the onCreate handler will show the create option
+      return null; // onCreate will handle showing the option
+    }
+
+    return (
+      <div className="p-2 text-center text-sm text-neutral-400">
+        No matching options
+      </div>
+    );
+  })();
+
+  return (
+    <Combobox
+      selected={selectedOption ?? null}
+      setSelected={(newOption: ComboboxOption | null) => {
+        if (newOption && newOption.value !== String(value)) {
+          // Remove the current value and add the new one
+          onRemove(filterKey, value);
+          onSelect(filterKey, newOption.value);
+        }
+      }}
+      options={options}
+      onSearchChange={setSearch}
+      onCreate={
+        hasEmptyOptions && onSelect
+          ? async (searchValue: string) => {
+              // Select the search value as a new option
+              onRemove(filterKey, value);
+              onSelect(filterKey, searchValue);
+              return true;
+            }
+          : undefined
+      }
+      createLabel={hasEmptyOptions ? (searchValue) => searchValue : undefined}
+      createIcon={filter.icon as Icon}
+      optionRight={(option) => {
+        if (option.value === String(value)) {
+          return;
+        }
+        const filterOption = filter.options?.find((opt) =>
+          typeof String(opt.value) === "string" &&
+          typeof option.value === "string"
+            ? String(opt.value).toLowerCase() === option.value.toLowerCase()
+            : String(opt.value) === option.value,
+        );
+        return filterOption ? (
+          <span className="ml-2 text-neutral-500">{filterOption.right}</span>
+        ) : null;
+      }}
+      placeholder={truncate(optionLabel, 30)}
+      caret={false}
+      emptyState={emptyState}
+      trigger={OptionDisplay({
+        className: "cursor-pointer hover:bg-neutral-50",
+      })}
+    />
   );
 }
 
