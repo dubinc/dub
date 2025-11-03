@@ -499,7 +499,9 @@ export const SELF_SERVE_PAID_PLANS = PLANS.filter((p) =>
 
 export const FREE_WORKSPACES_LIMIT = 2;
 
-export const getPlanFromPriceId = (priceId: string) => {
+export const getPlanFromPriceId = (
+  priceId: string,
+): (Plan & { tier: number | null }) | null => {
   const plan = PLANS.find((plan) => plan.price.ids?.includes(priceId)) || null;
 
   if (!plan) return null;
@@ -513,7 +515,7 @@ export const getPlanFromPriceId = (priceId: string) => {
   return { ...plan, tier: tier ? parseInt(tier) : null };
 };
 
-export const getPlanLimits = (plan: ReturnType<typeof getPlanFromPriceId>) => {
+export const getPlanLimits = (plan: PlanWithTier) => {
   if (!plan) return null;
 
   const tierLimits =
