@@ -32,7 +32,6 @@ import {
 } from "@dub/utils";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
 import {
   ComponentProps,
   memo,
@@ -67,8 +66,7 @@ const CHARTS = [
 ];
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
-  const { programSlug } = useParams();
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
@@ -205,12 +203,12 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                 </div>
               </Tooltip>
             )}
-            {programSlug == "perplexity" && <StatsBadge link={link} />}
+            {!showDetailedAnalytics && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>
         </div>
       </div>
-      {programSlug !== "perplexity" && <StatsCharts link={link} />}
+      {showDetailedAnalytics && <StatsCharts link={link} />}
     </CardList.Card>
   );
 }

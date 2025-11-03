@@ -20,7 +20,7 @@ export default function PartnerDeactivated({
     email: "panic@thedis.co",
   },
   program = {
-    name: "Perplexity",
+    name: "Acme",
     slug: "acme",
   },
   deactivatedReason,
