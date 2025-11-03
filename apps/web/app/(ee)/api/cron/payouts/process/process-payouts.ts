@@ -1,6 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
-import { isExternalPayout } from "@/lib/api/payouts/is-external-payout";
+import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
@@ -117,8 +117,11 @@ export async function processPayouts({
     return;
   }
 
-  const externalPayouts = payouts.filter((payout) =>
-    isExternalPayout({ payout, program }),
+  const externalPayouts = payouts.filter(({ partner }) =>
+    isPayoutExternalForProgram({
+      program,
+      partner,
+    }),
   );
 
   const internalPayouts = payouts.filter(

@@ -58,7 +58,18 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       }),
     },
     include: {
-      partner: true,
+      partner: {
+        include: {
+          programs: {
+            where: {
+              programId,
+            },
+            select: {
+              tenantId: true,
+            },
+          },
+        },
+      },
       ...(cutoffPeriodValue && {
         commissions: {
           where: {
@@ -94,5 +105,15 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       .filter((payout) => payout.amount >= minPayoutAmount);
   }
 
-  return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));
+  const transformedPayouts = payouts.map(({ partner, ...payout }) => ({
+    ...payout,
+    partner: {
+      ...partner,
+      ...partner.programs[0],
+    },
+  }));
+
+  return NextResponse.json(
+    z.array(PayoutResponseSchema).parse(transformedPayouts),
+  );
 });

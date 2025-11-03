@@ -1,5 +1,4 @@
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
 import {
   PayoutResponseSchema,
@@ -12,43 +11,30 @@ import { z } from "zod";
 // GET /api/programs/[programId]/payouts - get all payouts for a program
 export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const programId = getDefaultProgramIdOrThrow(workspace);
-  const parsed = payoutsQuerySchema.parse(searchParams);
 
-  const { minPayoutAmount } = await getProgramOrThrow({
-    workspaceId: workspace.id,
-    programId,
-  });
-
-  const {
-    status,
-    partnerId,
-    eligibility,
-    invoiceId,
-    sortBy,
-    sortOrder,
-    page,
-    pageSize,
-  } = parsed;
+  const { status, partnerId, invoiceId, sortBy, sortOrder, page, pageSize } =
+    payoutsQuerySchema.parse(searchParams);
 
   const payouts = await prisma.payout.findMany({
     where: {
       programId,
       ...(status && { status }),
       ...(partnerId && { partnerId }),
-      ...(eligibility === "eligible" && {
-        amount: {
-          gte: minPayoutAmount,
-        },
-        partner: {
-          payoutsEnabledAt: {
-            not: null,
-          },
-        },
-      }),
       ...(invoiceId && { invoiceId }),
     },
     include: {
-      partner: true,
+      partner: {
+        include: {
+          programs: {
+            where: {
+              programId,
+            },
+            select: {
+              tenantId: true,
+            },
+          },
+        },
+      },
       user: true,
     },
     skip: (page - 1) * pageSize,
@@ -58,5 +44,15 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
   });
 
-  return NextResponse.json(z.array(PayoutResponseSchema).parse(payouts));
+  const transformedPayouts = payouts.map(({ partner, ...payout }) => ({
+    ...payout,
+    partner: {
+      ...partner,
+      ...partner.programs[0],
+    },
+  }));
+
+  return NextResponse.json(
+    z.array(PayoutResponseSchema).parse(transformedPayouts),
+  );
 });

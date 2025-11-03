@@ -65,7 +65,11 @@ export const PayoutSchema = z.object({
 
 export const PayoutResponseSchema = PayoutSchema.merge(
   z.object({
-    partner: PartnerSchema,
+    partner: PartnerSchema.merge(
+      z.object({
+        tenantId: z.string().nullable(),
+      }),
+    ),
     user: z
       .object({
         id: z.string(),

@@ -1,5 +1,6 @@
 "use client";
 
+import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -203,7 +204,7 @@ const PayoutTableInner = memo(
             <AmountRowItem
               amount={row.original.amount}
               status={row.original.status}
-              payoutsEnabled={Boolean(row.original.partner.payoutsEnabledAt)}
+              partner={row.original.partner}
             />
           ),
         },
@@ -302,18 +303,26 @@ const PayoutTableInner = memo(
 function AmountRowItem({
   amount,
   status,
-  payoutsEnabled,
+  partner,
 }: {
   amount: number;
   status: PayoutStatus;
-  payoutsEnabled: boolean;
+  partner: PayoutResponse["partner"];
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
 
   const minPayoutAmount = program?.minPayoutAmount || 0;
-  const payoutMode = program?.payoutMode || "internal";
   const display = currencyFormatter(amount / 100);
+
+  if (!program) {
+    return null;
+  }
+
+  const isExternal = isPayoutExternalForProgram({
+    program,
+    partner,
+  });
 
   if (status === PayoutStatus.pending) {
     if (amount < minPayoutAmount) {
@@ -335,7 +344,24 @@ function AmountRowItem({
           </span>
         </Tooltip>
       );
-    } else if (!payoutsEnabled && payoutMode === "internal") {
+    } else if (isExternal && !partner.tenantId) {
+      return (
+        <Tooltip
+          content={
+            <TooltipContent
+              title="Partner has external payouts enabled but no tenant ID. A tenant ID is required to process external payouts."
+              cta="Learn more"
+              href="https://dub.co/help/article/managing-program-partners#tenant-id"
+              target="_blank"
+            />
+          }
+        >
+          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+            {display}
+          </span>
+        </Tooltip>
+      );
+    } else if (!partner.payoutsEnabledAt) {
       return (
         <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
