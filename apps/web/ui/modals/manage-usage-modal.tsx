@@ -213,10 +213,10 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
             </div>
           </div>
 
-          <div className="mt-4 text-center">
+          <div className="mt-4 flex justify-center">
             <Link
               href={`/${slug}/settings/billing/upgrade`}
-              className="text-content-subtle hover:text-content-default text-xs font-medium underline underline-offset-2"
+              className="text-content-subtle hover:text-content-default block text-xs font-medium underline underline-offset-2"
             >
               View all plans
             </Link>
