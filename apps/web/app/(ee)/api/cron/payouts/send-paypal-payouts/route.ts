@@ -1,10 +1,11 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createPayPalBatchPayout } from "@/lib/paypal/create-batch-payout";
 import { sendBatchEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
-import { log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
@@ -12,6 +13,8 @@ export const dynamic = "force-dynamic";
 
 const payloadSchema = z.object({
   invoiceId: z.string(),
+  startingAfter: z.string().optional(),
+  batchNumber: z.number().optional().default(1),
 });
 
 const PAYOUT_BATCH_SIZE = 100;
@@ -27,7 +30,9 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { invoiceId } = payloadSchema.parse(JSON.parse(rawBody));
+    let { invoiceId, startingAfter, batchNumber } = payloadSchema.parse(
+      JSON.parse(rawBody),
+    );
 
     const payouts = await prisma.payout.findMany({
       where: {
@@ -56,6 +61,15 @@ export async function POST(req: Request) {
           },
         },
       },
+      ...(startingAfter && {
+        skip: 1,
+        cursor: {
+          id: startingAfter,
+        },
+      }),
+      orderBy: {
+        id: "asc",
+      },
       take: PAYOUT_BATCH_SIZE,
     });
 
@@ -65,7 +79,7 @@ export async function POST(req: Request) {
 
     const batchPayout = await createPayPalBatchPayout({
       payouts,
-      invoiceId,
+      invoiceId: `${invoiceId}-${batchNumber}`,
     });
 
     console.log("PayPal batch payout created", batchPayout);
@@ -103,6 +117,28 @@ export async function POST(req: Request) {
     );
 
     console.log("Resend batch emails sent", batchEmails);
+
+    // Schedule the next batch if not the last batch
+    if (payouts.length === PAYOUT_BATCH_SIZE) {
+      const response = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-paypal-payouts`,
+        body: {
+          invoiceId,
+          startingAfter: payouts[payouts.length - 1].id,
+          batchNumber: batchNumber + 1,
+        },
+      });
+
+      if (!response.messageId) {
+        throw new Error(
+          `Failed to schedule next batch for invoice ${invoiceId}, error: ${JSON.stringify(response)}`,
+        );
+      }
+
+      return logAndRespond(
+        `Scheduled next batch of payouts for invoice ${invoiceId} with QStash message ${response.messageId}`,
+      );
+    }
 
     return logAndRespond(
       `Completed processing all payouts for invoice ${invoiceId}.`,
