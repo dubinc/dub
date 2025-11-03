@@ -88,13 +88,27 @@ export const POST = withWorkspace(
 
       waitUntil(
         (async () => {
-          const { error: resendError } = await resend.domains.verify(
+          // Verify an existing domain
+          let { error: resendVerifyError } = await resend.domains.verify(
             resendDomain.id,
           );
 
-          if (resendError) {
+          if (resendVerifyError) {
             console.error(
-              `Resend domain verify failed - ${resendError.message}`,
+              `Resend domain verify failed - ${resendVerifyError.message}`,
+            );
+          }
+
+          // Enable open tracking for the domain
+          let { error: resendUpdateError } = await resend.domains.update({
+            id: resendDomain.id,
+            openTracking: true,
+            tls: "enforced",
+          });
+
+          if (resendUpdateError) {
+            console.error(
+              `Resend domain update failed - ${resendUpdateError.message}`,
             );
           }
         })(),

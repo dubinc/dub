@@ -54,8 +54,8 @@ export const PATCH = withWorkspace(
       }
 
       waitUntil(
-        Promise.allSettled([
-          prisma.emailDomain.update({
+        (async () => {
+          await prisma.emailDomain.update({
             where: {
               id: emailDomain.id,
             },
@@ -63,10 +63,32 @@ export const PATCH = withWorkspace(
               resendDomainId: resendDomain.id,
               status: "pending",
             },
-          }),
+          });
 
-          resend.domains.verify(resendDomain.id),
-        ]),
+          // Verify an existing domain
+          let { error: resendVerifyError } = await resend.domains.verify(
+            resendDomain.id,
+          );
+
+          if (resendVerifyError) {
+            console.error(
+              `Resend domain verify failed - ${resendVerifyError.message}`,
+            );
+          }
+
+          // Enable open tracking for the domain
+          let { error: resendUpdateError } = await resend.domains.update({
+            id: resendDomain.id,
+            openTracking: true,
+            tls: "enforced",
+          });
+
+          if (resendUpdateError) {
+            console.error(
+              `Resend domain update failed - ${resendUpdateError.message}`,
+            );
+          }
+        })(),
       );
     }
 
