@@ -224,10 +224,6 @@ function ConfirmPayoutsSheetContent() {
     }
   }, [finalPaymentMethods, selectedPaymentMethod]);
 
-  // Determines whether a given payout should be treated as "external"
-  // - internal → always handled internally
-  // - external → all payouts are external
-  // - hybrid   → payouts are external only if the payoutsEnabledAt is null
   const isExternalPayout = (payout: PayoutResponse) => {
     switch (program?.payoutMode) {
       case "internal":
