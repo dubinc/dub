@@ -38,7 +38,7 @@ export async function validateWebhook({
     if (program.externalPayoutEnabledAt === null) {
       throw new DubApiError({
         code: "bad_request",
-        message: `The 'payout.confirmed' doesn't currently available for your workspace.`,
+        message: `The 'payout.confirmed' trigger is not currently available for your workspace.`,
       });
     }
   }

@@ -224,6 +224,23 @@ function ConfirmPayoutsSheetContent() {
     }
   }, [finalPaymentMethods, selectedPaymentMethod]);
 
+  // Determines whether a given payout should be treated as "external"
+  // - internal → always handled internally
+  // - external → all payouts are external
+  // - hybrid   → payouts are external only if the payoutsEnabledAt is null
+  const isExternalPayout = (payout: PayoutResponse) => {
+    switch (program?.payoutMode) {
+      case "internal":
+        return false;
+      case "external":
+        return true;
+      case "hybrid":
+        return payout.partner.payoutsEnabledAt === null;
+      default:
+        return false;
+    }
+  };
+
   const { amount, fee, total, fastAchFee, externalAmount } = useMemo(() => {
     const amount = finalEligiblePayouts?.reduce((acc, payout) => {
       return acc + payout.amount;
@@ -244,22 +261,11 @@ function ConfirmPayoutsSheetContent() {
     }
 
     // Calculate the total external amount
-    const externalAmount = finalEligiblePayouts?.reduce((acc, payout) => {
-      // If the payout mode is external, all payouts are external
-      if (program.payoutMode === "external") {
-        return acc + payout.amount;
-      }
-
-      // If the payout mode is hybrid, only payouts from partners with payouts enabled are external
-      if (
-        program.payoutMode === "hybrid" &&
-        payout.partner.payoutsEnabledAt == null
-      ) {
-        return acc + payout.amount;
-      }
-
-      return acc + 0;
-    }, 0);
+    const externalAmount = finalEligiblePayouts?.reduce(
+      (acc, payout) =>
+        isExternalPayout(payout) ? acc + payout.amount : acc + 0,
+      0,
+    );
 
     const fastAchFee = selectedPaymentMethod.fastSettlement
       ? FAST_ACH_FEE_CENTS
@@ -389,7 +395,7 @@ function ConfirmPayoutsSheetContent() {
             currencyFormatter(amount / 100)
           ),
       },
-      ...(program?.payoutMode !== "internal"
+      ...(eligiblePayouts && eligiblePayouts.some(isExternalPayout)
         ? [
             {
               key: "External Amount",
@@ -486,6 +492,7 @@ function ConfirmPayoutsSheetContent() {
               >
                 {currencyFormatter(row.original.amount / 100)}
               </span>
+
               {!selectedPayoutId && (
                 <div className="pointer-events-none absolute right-[calc(14px+0.375rem)] top-1/2 -translate-y-1/2 opacity-0 group-hover/row:pointer-events-auto group-hover/row:opacity-100">
                   <Button
@@ -515,7 +522,9 @@ function ConfirmPayoutsSheetContent() {
                 </div>
               )}
 
-              <CircleArrowRight className="size-3.5 flex-shrink-0" />
+              {isExternalPayout(row.original) && (
+                <CircleArrowRight className="size-3.5 text-neutral-500" />
+              )}
             </div>
           </>
         ),

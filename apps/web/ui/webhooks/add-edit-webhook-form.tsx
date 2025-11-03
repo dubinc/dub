@@ -40,7 +40,7 @@ export default function AddEditWebhookForm({
   const availableWorkspaceTriggers = useMemo(() => {
     return WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter((trigger) => {
       if (trigger === "payout.confirmed") {
-        return program?.externalPayoutEnabledAt !== null;
+        return program?.externalPayoutEnabledAt != null;
       }
 
       return true;

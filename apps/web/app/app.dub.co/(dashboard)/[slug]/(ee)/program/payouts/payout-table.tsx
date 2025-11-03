@@ -310,9 +310,10 @@ function AmountRowItem({
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
-  const display = currencyFormatter(amount / 100);
 
   const minPayoutAmount = program?.minPayoutAmount || 0;
+  const payoutMode = program?.payoutMode || "internal";
+  const display = currencyFormatter(amount / 100);
 
   if (status === PayoutStatus.pending) {
     if (amount < minPayoutAmount) {
@@ -334,7 +335,7 @@ function AmountRowItem({
           </span>
         </Tooltip>
       );
-    } else if (!payoutsEnabled) {
+    } else if (!payoutsEnabled && payoutMode === "internal") {
       return (
         <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
