@@ -19,7 +19,7 @@ const stripeChargeMetadataSchema = z.object({
   id: z.string(), // Stripe charge id
 });
 
-const PAYOUT_BATCH_SIZE = 1;
+const PAYOUT_BATCH_SIZE = 100;
 
 // POST /api/cron/payouts/send-stripe-payouts
 // Send payouts via Stripe for a given invoice
