@@ -147,7 +147,7 @@ export const POST = withSession(
         plan_price: priceForPay,
         charge_period_days: chargePeriodDays,
         payment_subtype: "SUBSCRIPTION",
-        billing_action: "rebill",
+        // billing_action: "rebill",
         //**** for analytics ****//
 
         //**** fields for subscription system ****//
