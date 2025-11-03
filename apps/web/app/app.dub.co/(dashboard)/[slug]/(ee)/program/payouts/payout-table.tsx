@@ -31,6 +31,7 @@ import {
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { PayoutDetailsSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-details-sheet";
+import { CircleArrowRight } from "lucide-react";
 import { useParams } from "next/navigation";
 import { memo, useEffect, useState } from "react";
 import useSWR from "swr";
@@ -361,7 +362,7 @@ function AmountRowItem({
           </span>
         </Tooltip>
       );
-    } else if (!partner.payoutsEnabledAt) {
+    } else if (!isExternal && !partner.payoutsEnabledAt) {
       return (
         <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
@@ -372,5 +373,12 @@ function AmountRowItem({
     }
   }
 
-  return display;
+  return (
+    <div className="flex items-center gap-1.5">
+      {display}
+      {isExternal && (
+        <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
+      )}
+    </div>
+  );
 }
