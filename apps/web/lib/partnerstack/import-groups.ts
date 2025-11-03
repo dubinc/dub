@@ -1,6 +1,6 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
-import { randomValue } from "@dub/utils";
+import { getDomainWithoutWWW, randomValue } from "@dub/utils";
 import { createId } from "../api/create-id";
 import { PartnerStackApi } from "./api";
 import { partnerStackImporter } from "./importer";
@@ -55,6 +55,13 @@ export async function importGroups(payload: PartnerStackImportPayload) {
           name: group.name,
           slug: group.slug,
           color: randomValue(RESOURCE_COLORS),
+          additionalLinks: [
+            {
+              domain: getDomainWithoutWWW(program.url),
+              validationMode: "domain",
+            },
+          ],
+          maxPartnerLinks: 10,
           partnerGroupDefaultLinks: {
             create: {
               id: createId({ prefix: "pgdl_" }),

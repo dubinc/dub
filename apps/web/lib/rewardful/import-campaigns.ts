@@ -1,7 +1,7 @@
 import { RESOURCE_COLORS } from "@/ui/colors";
 import { prisma } from "@dub/prisma";
 import { EventType, Prisma, RewardStructure } from "@dub/prisma/client";
-import { randomValue } from "@dub/utils";
+import { getDomainWithoutWWW, randomValue } from "@dub/utils";
 import { differenceInSeconds } from "date-fns";
 import { createId } from "../api/create-id";
 
@@ -63,6 +63,13 @@ export async function importCampaigns(payload: RewardfulImportPayload) {
         name: `(Rewardful) ${campaign.name}`,
         slug: groupSlug,
         color: randomValue(RESOURCE_COLORS),
+        additionalLinks: [
+          {
+            domain: getDomainWithoutWWW(program.url),
+            validationMode: "domain",
+          },
+        ],
+        maxPartnerLinks: 10,
         partnerGroupDefaultLinks: {
           create: {
             id: createId({ prefix: "pgdl_" }),
