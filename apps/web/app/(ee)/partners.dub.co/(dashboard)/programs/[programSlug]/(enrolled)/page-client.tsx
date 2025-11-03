@@ -70,7 +70,7 @@ export default function ProgramPageClient() {
     false,
   );
 
-  const { programEnrollment } = useProgramEnrollment();
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const [copied, copyToClipboard] = useCopyToClipboard();
 
   const {
@@ -236,17 +236,17 @@ export default function ProgramPageClient() {
 
             <PayoutsCard programId={program?.id} />
             <NumberFlowGroup>
-              {programSlug === "perplexity" ? (
-                <>
-                  <StatCardSimple title="Clicks" event="clicks" />
-                  <StatCardSimple title="Leads" event="leads" />
-                  <StatCardSimple title="Sales" event="sales" />
-                </>
-              ) : (
+              {showDetailedAnalytics ? (
                 <>
                   <StatCard title="Clicks" event="clicks" />
                   <StatCard title="Leads" event="leads" />
                   <StatCard title="Sales" event="sales" />
+                </>
+              ) : (
+                <>
+                  <StatCardSimple title="Clicks" event="clicks" />
+                  <StatCardSimple title="Leads" event="leads" />
+                  <StatCardSimple title="Sales" event="sales" />
                 </>
               )}
             </NumberFlowGroup>

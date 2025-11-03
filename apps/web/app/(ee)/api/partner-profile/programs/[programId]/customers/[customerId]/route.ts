@@ -4,6 +4,7 @@ import { DubApiError } from "@/lib/api/errors";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import { withPartnerProfile } from "@/lib/auth/partner";
 import { generateRandomName } from "@/lib/names";
+import { LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS } from "@/lib/partners/constants";
 import { PartnerProfileCustomerSchema } from "@/lib/zod/schemas/partner-profile";
 import { prisma } from "@dub/prisma";
 import { NextResponse } from "next/server";
@@ -13,7 +14,7 @@ import { z } from "zod";
 export const GET = withPartnerProfile(async ({ partner, params }) => {
   const { customerId, programId } = params;
 
-  const { program, links, customerDataSharingEnabledAt } =
+  const { program, links, totalCommissions, customerDataSharingEnabledAt } =
     await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: programId,
@@ -23,7 +24,10 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       },
     });
 
-  if (program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X") {
+  if (
+    program.id === "prog_1K0QHV7MP3PR05CJSCF5VN93X" &&
+    totalCommissions < LARGE_PROGRAM_MIN_TOTAL_COMMISSIONS_CENTS
+  ) {
     throw new DubApiError({
       code: "forbidden",
       message: "This feature is not available for your program.",
