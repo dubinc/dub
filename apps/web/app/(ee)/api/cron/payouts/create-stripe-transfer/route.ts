@@ -1,4 +1,3 @@
-import { createWorkflowLogger } from "@/lib/cron/qstash-workflow-logger";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
 import { createStripeTransferWorkflowSchema } from "@/lib/zod/schemas/payouts";
 import { sendBatchEmail } from "@dub/email";
@@ -9,6 +8,7 @@ import { serve } from "@upstash/workflow/nextjs";
 import { z } from "zod";
 
 // POST /api/cron/payouts/create-stripe-transfer
+// Create a Stripe transfer for a given partner for current and previous invoices
 export const { POST } = serve<
   z.infer<typeof createStripeTransferWorkflowSchema>
 >(
@@ -16,15 +16,7 @@ export const { POST } = serve<
     const input = context.requestPayload;
     const { partnerId, invoiceId, chargeId } = input;
 
-    const logger = createWorkflowLogger({
-      workflowId: "create-stripe-transfer",
-      workflowRunId: context.workflowRunId,
-    });
-
-    logger.info({
-      message: "Started executing workflow....",
-      data: input,
-    });
+    console.log("Started executing workflow....", input);
 
     // Find the partner
     const partner = await prisma.partner.findUnique({
