@@ -223,8 +223,8 @@ export default function ProgramPageClient() {
       )}
       <ProgramOverviewContext.Provider
         value={{
-          start: start ? new Date(start) : undefined,
-          end: end ? new Date(end) : undefined,
+          start: start ? startOfDay(new Date(start)) : undefined,
+          end: end ? endOfDay(new Date(end)) : undefined,
           interval,
           color: program?.brandColor ?? undefined,
         }}
@@ -284,8 +284,8 @@ function EarningsChart() {
 
   const { data: timeseries, error } = usePartnerEarningsTimeseries({
     interval,
-    start: start ? startOfDay(new Date(start)) : undefined,
-    end: end ? endOfDay(new Date(end)) : undefined,
+    start,
+    end,
   });
 
   const total = useMemo(
