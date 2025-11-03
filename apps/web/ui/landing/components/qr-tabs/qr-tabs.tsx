@@ -90,9 +90,9 @@ export const QRTabs: FC<
     };
 
     return (
-      <section className="bg-primary-100 w-full px-3">
+      <>
         <div
-          className="mx-auto flex max-w-7xl flex-col items-center justify-center"
+          className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center"
           ref={ref}
         >
           <QrTabsTitle />
@@ -106,7 +106,7 @@ export const QRTabs: FC<
         </div>
 
         <AuthModal />
-      </section>
+      </>
     );
   },
 );
