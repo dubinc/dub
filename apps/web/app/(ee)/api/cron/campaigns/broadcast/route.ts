@@ -29,7 +29,7 @@ const schema = z.object({
 
 const EMAIL_BATCH_SIZE = 100; // Batch size
 const BATCH_DELAY_SECONDS = 2; // Delay between batches
-const EXTENDED_DELAY_SECONDS = 30; // Extended delay after 25 batches
+const EXTENDED_DELAY_SECONDS = 30; // Extended delay after EXTENDED_DELAY_INTERVAL batches
 const EXTENDED_DELAY_INTERVAL = 25; // Number of batches after which to extend the delay
 
 // POST /api/cron/campaigns/broadcast

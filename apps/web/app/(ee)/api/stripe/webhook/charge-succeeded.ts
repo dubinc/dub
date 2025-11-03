@@ -70,17 +70,41 @@ async function processPayoutInvoice({ invoice }: { invoice: Invoice }) {
     return;
   }
 
-  const qstashResponse = await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/charge-succeeded`,
-    body: {
-      invoiceId: invoice.id,
-    },
-  });
+  // Queue Stripe and PayPal payouts to be sent via QStash
+  const [stripeResult, paypalResult] = await Promise.allSettled([
+    qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-stripe-payouts`,
+      body: { invoiceId: invoice.id },
+      deduplicationId: `${invoice.id}-stripe-payouts`,
+    }),
 
-  if (qstashResponse.messageId) {
-    console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+    qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-paypal-payouts`,
+      body: { invoiceId: invoice.id },
+      deduplicationId: `${invoice.id}-paypal-payouts`,
+    }),
+  ]);
+
+  if (stripeResult.status === "fulfilled" && stripeResult.value.messageId) {
+    console.log(
+      `Queued Stripe payout for invoice ${invoice.id} (QStash ID: ${stripeResult.value.messageId})`,
+    );
   } else {
-    console.error("Error sending message to Qstash", qstashResponse);
+    console.error(
+      `Failed to queue Stripe payout for invoice ${invoice.id}:`,
+      stripeResult,
+    );
+  }
+
+  if (paypalResult.status === "fulfilled" && paypalResult.value.messageId) {
+    console.log(
+      `Queued PayPal payout for invoice ${invoice.id} (QStash ID: ${paypalResult.value.messageId})`,
+    );
+  } else {
+    console.error(
+      `Failed to queue PayPal payout for invoice ${invoice.id}:`,
+      paypalResult,
+    );
   }
 }
 

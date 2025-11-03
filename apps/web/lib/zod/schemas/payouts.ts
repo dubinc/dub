@@ -90,22 +90,8 @@ export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
   }),
 );
 
-const payoutSchema = PayoutSchema.pick({
-  id: true,
-  invoiceId: true,
-  amount: true,
-}).extend({
-  periodStart: z.coerce.date().nullable(),
-  periodEnd: z.coerce.date().nullable(),
-  program: ProgramSchema.pick({
-    name: true,
-    logo: true,
-  }),
-});
-
 export const createStripeTransferWorkflowSchema = z.object({
   partnerId: z.string(),
+  invoiceId: z.string(),
   chargeId: z.string().optional(),
-  previouslyProcessedPayouts: z.array(payoutSchema),
-  currentInvoicePayouts: z.array(payoutSchema),
 });
