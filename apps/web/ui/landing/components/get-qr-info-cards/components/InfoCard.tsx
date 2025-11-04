@@ -12,7 +12,6 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Cursor, CursorFollow, CursorProvider } from "@/components/ui/cursor";
 import { Icon } from "@iconify/react";
 import { cn } from "@dub/utils";
-import { motion } from "framer-motion";
 import {
   Code,
   Download,
@@ -77,28 +76,14 @@ const CustomizationVisual = () => (
 
     {/* Design Tools */}
     <div className="grid grid-cols-2 gap-2">
-      <motion.div
-        className="flex items-center gap-2 rounded-lg bg-white/80 p-2"
-        whileHover={{
-          scale: 1.05,
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-      >
+      <div className="flex items-center gap-2 rounded-lg bg-white/80 p-2 transition-all hover:scale-105 hover:shadow-md">
         <ImageIcon className="text-secondary h-4 w-4" />
         <span className="text-foreground text-xs font-medium">Add Logo</span>
-      </motion.div>
-      <motion.div
-        className="flex items-center gap-2 rounded-lg bg-white/80 p-2"
-        whileHover={{
-          scale: 1.05,
-          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
-        }}
-        transition={{ duration: 0.2, ease: "easeInOut" }}
-      >
+      </div>
+      <div className="flex items-center gap-2 rounded-lg bg-white/80 p-2 transition-all hover:scale-105 hover:shadow-md">
         <Sparkles className="text-secondary h-4 w-4" />
         <span className="text-foreground text-xs font-medium">Styles</span>
-      </motion.div>
+      </div>
     </div>
   </div>
 );
@@ -125,16 +110,12 @@ const DownloadVisual = () => (
     </div>
 
     {/* Download Action */}
-    <motion.div
-      className="bg-primary/10 flex items-center justify-center gap-2 rounded-lg px-4 py-3 "
-      whileHover={{ y: -4, boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)" }}
-      transition={{ duration: 0.2, ease: "easeInOut" }}
-    >
+    <div className="bg-primary/10 flex items-center justify-center gap-2 rounded-lg px-4 py-3 transition-all hover:-translate-y-1 hover:shadow-md">
       <Download className="text-primary h-5 w-5" />
       <span className="text-primary text-sm font-semibold">
         High Quality Export
       </span>
-    </motion.div>
+    </div>
   </div>
 );
 

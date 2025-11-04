@@ -218,8 +218,8 @@ export const QRCustomization: FC<QRCustomizationProps> = ({
                 },
               )}
             >
-              <div className="flex items-start gap-3 text-left">
-                <div className="mt-0.5 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+              <div className="flex items-center gap-3 text-left">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
                   <Icon className="h-5 w-5 text-primary" />
                 </div>
                 <div className="flex flex-col gap-1">

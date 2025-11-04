@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Marquee } from "@/components/ui/marquee";
 import {
   BarchartIcon,
@@ -30,18 +29,16 @@ export const LogoScrollingBanner = () => {
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-24 bg-gradient-to-r from-[rgb(248,252,252)] to-transparent sm:w-32" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-24 bg-gradient-to-l from-[rgb(248,252,252)] to-transparent sm:w-32" />
         <div className="overflow-hidden px-4 sm:px-6 lg:px-8">
-          <Marquee pauseOnHover duration={40} gap={1.5}>
+          <Marquee pauseOnHover duration={40}>
             {newsLogos.map((logo, index) => {
               const Icon = logo.Icon;
               return (
-                <Card
+                <div
                   key={index}
-                  className="w-40 rounded-xl border-none shadow-md sm:w-48"
+                  className="flex w-40 items-center justify-center "
                 >
-                  <CardContent className="flex items-center justify-center px-8 py-5 sm:px-10 sm:py-6">
-                    <Icon className="h-5 w-auto opacity-50 grayscale sm:h-6" />
-                  </CardContent>
-                </Card>
+                  <Icon className="h-7 w-auto opacity-50 grayscale sm:h-6" />
+                </div>
               );
             })}
           </Marquee>

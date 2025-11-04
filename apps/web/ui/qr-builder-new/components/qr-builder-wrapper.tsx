@@ -71,7 +71,7 @@ export const QRBuilderWrapper = () => {
         </div>
       </div>
 
-      {showDecorations && isMobile && (
+      {showDecorations && isMobile && !homepageDemo && (
         <div className="border-border-500 relative sticky bottom-0 z-10 mt-auto w-full border-t bg-white px-6 py-3">
           <QrBuilderButtons
             step={builderStep || 1}

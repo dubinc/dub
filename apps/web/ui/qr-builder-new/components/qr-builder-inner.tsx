@@ -231,7 +231,7 @@ export const QRBuilderInner = () => {
       {shouldUseDialog && (
         <Drawer.Root
           open={isDialogOpen}
-          dismissible={true}
+          dismissible={false}
           onOpenChange={(open) => {
             if (!open) {
               handleDialogClose();
@@ -239,16 +239,16 @@ export const QRBuilderInner = () => {
           }}
         >
           <Drawer.Portal>
-            <Drawer.Overlay className="fixed inset-0 z-50 bg-neutral-100 bg-opacity-10 backdrop-blur" />
+            <Drawer.Overlay className="fixed inset-0 z-[100] bg-white" />
            <Drawer.Content
              className={cn(
-               "fixed inset-0 z-50 flex h-[100dvh] flex-col",
+               "fixed inset-0 z-[101] flex h-[100svh] flex-col",
                "bg-white",
              )}
            >
-             <div className="flex h-[100dvh] flex-col">
+             <div className="flex h-[100svh] flex-col">
                {/* Header with close button and stepper */}
-               <div className="flex-shrink-0 border-b p-3">
+               <div className="sticky top-0 z-10 flex-shrink-0 border-b bg-white p-3">
                  <QRBuilderSteps />
                </div>
 

@@ -33,7 +33,7 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
       {/* <Separator /> */}
       <div
         className={cn(
-          "flex flex-col items-center py-8 justify-center gap-2",
+          "flex flex-col items-center pb-8 md:pt-2 justify-center gap-2",
           `items-${alignItems}`,
         )}
       >

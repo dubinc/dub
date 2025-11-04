@@ -7,7 +7,6 @@ import { NumberTicker } from "@/components/ui/number-ticker";
 import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
 import { cn } from "@dub/utils";
 import { CheckIcon } from "lucide-react";
-import { motion } from "motion/react";
 import { FC } from "react";
 import { PRICING_PLANS } from "./config.ts";
 
@@ -38,22 +37,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
 
       <div className="relative grid items-end gap-6 lg:grid-cols-4">
         {PRICING_PLANS.map((plan, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 50 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{
-              duration: 0.5,
-              delay: index * 0.1,
-              ease: "easeOut",
-            }}
-            whileHover={{
-              y: -8,
-              transition: { duration: 0.3, ease: "easeOut" },
-            }}
-            className="h-full"
-          >
+          <div key={index} className="h-full transition-transform duration-300 hover:-translate-y-2">
             <Card
               className={cn(
                 "sm:max-lg:w-lg relative h-full w-full overflow-hidden pt-3 sm:max-lg:mx-auto",
@@ -91,33 +75,16 @@ export const PricingSection: FC<IPricingSectionProps> = ({
                     What's included:
                   </h4>
                   {plan.planFeatures.map((feature, featureIndex) => (
-                    <motion.div
-                      key={featureIndex}
-                      className="flex items-center gap-3"
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{
-                        duration: 0.4,
-                        delay: index * 0.1 + featureIndex * 0.1 + 0.3,
-                        ease: "easeOut",
-                      }}
-                    >
+                    <div key={featureIndex} className="flex items-center gap-3">
                       <CheckIcon className="text-muted-foreground h-5 w-5 flex-shrink-0" />
                       <span className="text-card-foreground font-medium">
                         {feature}
                       </span>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
 
-                <motion.div
-                  className="mt-auto"
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: index * 0.1 + 0.4 }}
-                >
+                <div className="mt-auto">
                   {plan.withButton ? (
                     <Button
                       className="bg-secondary hover:bg-secondary/90 w-full"
@@ -129,10 +96,10 @@ export const PricingSection: FC<IPricingSectionProps> = ({
                   ) : (
                     <div className="h-10" />
                   )}
-                </motion.div>
+                </div>
               </CardContent>
             </Card>
-          </motion.div>
+          </div>
         ))}
       </div>
     </section>

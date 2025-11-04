@@ -1,11 +1,12 @@
 "use client";
 
-import { AvatarGroup } from "@/components/ui/avatar-group";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { MotionPreset } from "@/components/ui/motion-preset";
+import { AvatarGroup } from "@/components/ui/avatar-group";
 import WebsiteQR from "@/ui/landing/assets/png/get-qr-website-full.png";
 import WhatsappQR from "@/ui/landing/assets/png/get-qr-whatsapp-full.png";
+import { SectionTitle } from "@/ui/landing/components/section-title";
 import { ArrowRight, Sparkles, Zap } from "lucide-react";
 import Image from "next/image";
 import { FC } from "react";
@@ -20,7 +21,7 @@ export const CTASection: FC<ICTASectionProps> = ({
   return (
     <section className="relative py-10 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Card className="group relative overflow-hidden rounded-3xl border-2 shadow">
+        <Card className="group relative overflow-hidden rounded-3xl border-2 shadow-2xl">
           {/* Animated gradient background */}
           <div className="from-background to-muted/30 absolute inset-0 bg-gradient-to-br" />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
@@ -55,7 +56,7 @@ export const CTASection: FC<ICTASectionProps> = ({
                   <div className="absolute -right-2 -top-2 z-10 rounded-full bg-gradient-to-br from-blue-500/80 to-blue-600/80 p-1.5 shadow-lg">
                     <Sparkles className="h-4 w-4 text-white" />
                   </div>
-                  <div className="bg-card relative w-32 -translate-y-4 overflow-hidden rounded-2xl border-2 border-gray-200 p-2 shadow backdrop-blur-sm transition-transform duration-300 hover:scale-105 sm:w-40">
+                  <div className="bg-card relative w-32 -translate-y-4 overflow-hidden rounded-2xl border-2 border-gray-200 p-2 shadow-2xl backdrop-blur-sm transition-transform duration-300 hover:scale-105 sm:w-40">
                     <Image
                       src={WebsiteQR}
                       alt="Website QR Code"
@@ -133,7 +134,7 @@ export const CTASection: FC<ICTASectionProps> = ({
               >
                 <div className="flex flex-col items-center gap-3 pt-2 sm:flex-row sm:items-start">
                   <Button
-                    className="bg-secondary hover:bg-secondary/90 group/btn font-semibold shadow-lg transition-all hover:scale-105 hover:shadow-xl"
+                    className="bg-secondary hover:bg-secondary/90"
                     size="lg"
                     onClick={() => handleScrollButtonClick("2")}
                   >

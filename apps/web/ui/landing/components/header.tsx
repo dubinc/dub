@@ -77,7 +77,7 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
       <header className="border-border sticky top-0 z-50 border-b bg-white backdrop-blur-lg">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-8 px-4 py-3 sm:px-6">
           <Link href="/">
-            <Logo className="gap-3" />
+            <Logo />
           </Link>
 
           <div className="flex items-center gap-4 md:gap-6">

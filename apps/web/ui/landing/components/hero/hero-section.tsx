@@ -1,7 +1,6 @@
 "use client";
 
 import { Badge } from "@/components/ui/badge";
-import { MotionPreset } from "@/components/ui/motion-preset";
 import { Icon } from "@iconify/react";
 import { FC } from "react";
 
@@ -51,59 +50,31 @@ export const HeroSection: FC<IHeroSectionProps> = ({ onCreateQRClick }) => {
           {/* Hero Content */}
           <div className="flex flex-col justify-center gap-6 py-4 max-lg:items-center max-lg:text-center sm:gap-8 sm:py-8 lg:gap-10 lg:py-12">
             <div className="flex flex-col gap-4 max-lg:items-center sm:gap-6">
-              <MotionPreset fade slide transition={{ duration: 0.5 }}>
-                <Badge className="bg-primary/10 text-primary hover:bg-primary/20 rounded-full">
-                  <Icon icon="solar:qr-code-bold" className="mr-1.5 size-3.5" />
-                  QR Code Generator
-                </Badge>
-              </MotionPreset>
+              <Badge className="bg-primary/10 text-primary hover:bg-primary/20 rounded-full">
+                <Icon icon="solar:qr-code-bold" className="mr-1.5 size-3.5" />
+                QR Code Generator
+              </Badge>
 
-              <MotionPreset
-                component="h1"
-                fade
-                slide
-                delay={0.2}
-                transition={{ duration: 0.5 }}
-                className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl"
-              >
+              <h1 className="text-balance text-3xl font-bold sm:text-4xl md:text-5xl lg:text-6xl">
                 Create Professional
                 <br />
                 <span className="text-primary">QR Codes</span> in Seconds
-              </MotionPreset>
+              </h1>
 
-              <MotionPreset
-                component="p"
-                fade
-                slide
-                delay={0.4}
-                transition={{ duration: 0.5 }}
-                className="text-muted-foreground max-w-2xl text-sm sm:text-base lg:text-lg"
-              >
+              <p className="text-muted-foreground max-w-2xl text-sm sm:text-base lg:text-lg">
                 Generate customizable, high-quality QR codes for websites, PDFs,
                 images, videos, and more. Track analytics, design with your
                 brand colors, and download in multiple formats—all in one
                 powerful platform.
-              </MotionPreset>
+              </p>
             </div>
           </div>
 
           {/* Floating Cards Section */}
           <div className="relative flex items-center justify-center max-lg:hidden">
-            <MotionPreset
-              fade
-              slide={{ direction: "down", offset: 64 }}
-              delay={1}
-              transition={{ duration: 0.5 }}
-              className="relative h-full w-full"
-            >
+            <div className="relative h-full w-full">
               {/* Central QR Code Display */}
-              <MotionPreset
-                fade
-                zoom={{ initialScale: 0.8 }}
-                delay={1.3}
-                transition={{ duration: 0.5 }}
-                className="from-background to-muted/30 absolute left-1/2 top-1/2 flex h-80 w-80 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-3xl border-2 bg-gradient-to-br p-8 shadow-2xl"
-              >
+              <div className="from-background to-muted/30 absolute left-1/2 top-1/2 flex h-80 w-80 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-3xl border-2 bg-gradient-to-br p-8 shadow-2xl">
                 <div className="relative h-full w-full">
                   <Icon
                     icon="solar:qr-code-bold"
@@ -111,31 +82,12 @@ export const HeroSection: FC<IHeroSectionProps> = ({ onCreateQRClick }) => {
                   />
                   <div className="border-primary/30 absolute inset-4 rounded-xl border-4 border-dashed" />
                 </div>
-              </MotionPreset>
+              </div>
 
               {/* Stat Cards */}
               {QR_STATS.map((stat, index) => (
-                <MotionPreset
+                <div
                   key={index}
-                  fade
-                  motionProps={{
-                    animate: {
-                      y: [0, -12, 0],
-                      opacity: 1,
-                    },
-                    transition: {
-                      y: {
-                        duration: 2.5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 1.5 + index * 0.2,
-                      },
-                      opacity: {
-                        duration: 0.5,
-                        delay: 1.5 + index * 0.2,
-                      },
-                    },
-                  }}
                   className={`absolute ${
                     index === 0
                       ? "left-0 top-20"
@@ -169,9 +121,9 @@ export const HeroSection: FC<IHeroSectionProps> = ({ onCreateQRClick }) => {
                       {stat.changePercentage} this month
                     </div>
                   </div>
-                </MotionPreset>
+                </div>
               ))}
-            </MotionPreset>
+            </div>
           </div>
         </div>
       </div>
