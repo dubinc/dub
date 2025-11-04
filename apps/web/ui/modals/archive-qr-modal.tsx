@@ -57,7 +57,7 @@ function ArchiveQRModal({
           <div className="relative flex w-full items-center justify-center px-2 py-4">
             <h3 className="!mt-0 max-w-xs text-center text-lg font-semibold">
               {props.archived
-                ? "Are you sure you want to resume"
+                ? "Are you sure you want to activate"
                 : "Are you sure you want to pause"}
               <br />"{props.title}"?
             </h3>
@@ -172,7 +172,7 @@ function ArchiveQRModal({
                   variant={props.archived ? "primary" : "warning"}
                   onClick={handleArchiveRequest}
                   loading={archiving}
-                  text={props.archived ? "Confirm unpause" : "Confirm pause"}
+                  text={props.archived ? "Confirm activation" : "Confirm pause"}
                 />
               </div>
             </div>

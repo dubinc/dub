@@ -8,7 +8,7 @@ import {
 import { parse } from "@/lib/middleware/utils";
 import { getUserViaToken } from "@/lib/middleware/utils/get-user-via-token.ts";
 import { supportedWellKnownFiles } from "@/lib/well-known.ts";
-import { API_HOSTNAMES, APP_HOSTNAMES, isValidUrl } from "@dub/utils";
+import { API_HOSTNAMES, APP_DOMAIN, APP_HOSTNAMES, isValidUrl } from "@dub/utils";
 import { NextFetchEvent, NextRequest, NextResponse } from "next/server";
 import { ALLOWED_REGIONS, PUBLIC_ROUTES } from "./constants/links.ts";
 import { userSessionIdInit } from "./core/services/cookie/user-session-id-init.service.ts";
@@ -30,6 +30,13 @@ export const config = {
 
 export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
   const { domain, key, fullKey, path } = parse(req);
+
+  console.log("env app domain", process.env.NEXT_PUBLIC_APP_DOMAIN);
+  console.log("domain", domain);
+  console.log("path", path);
+  console.log("APP_HOSTNAMES", APP_HOSTNAMES);
+  console.log(APP_HOSTNAMES.has(domain));
+  console.log(APP_DOMAIN);
 
   const country = await getUserCountry(req);
   const user = await getUserViaToken(req);
@@ -93,6 +100,7 @@ export default async function middleware(req: NextRequest, ev: NextFetchEvent) {
 
   // for App
   if (APP_HOSTNAMES.has(domain)) {
+    console.log("entered app middleware");
     return AppMiddleware(req, user, false, country);
   }
 

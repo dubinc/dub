@@ -218,6 +218,11 @@ export const analyticsQuerySchema = z
       .enum(QR_TYPES.map((type) => type.id) as [EQRType, ...EQRType[]])
       .optional()
       .describe("The type of QR to retrieve analytics for."),
+    unique: booleanQuerySchema
+      .optional()
+      .describe(
+        "If true (clicks only), return 1 event per unique identity_hash.",
+      ),
   })
   .merge(utmTagsSchema);
 
@@ -251,6 +256,8 @@ export const analyticsFilterTB = z
       .transform((v) => (Array.isArray(v) ? v : v.split(",")))
       .optional()
       .describe("The folder IDs to retrieve analytics for."),
+    // Server-side TB param expects a boolean, not querystring enum
+    unique: z.boolean().optional(),
   })
   .merge(
     analyticsQuerySchema.pick({

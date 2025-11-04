@@ -103,12 +103,6 @@ export const POST = withWorkspace(
       },
     });
 
-    const existingQrCount = await prisma.qr.count({
-      where: {
-        userId: session.user.id,
-      },
-    });
-
     return NextResponse.json(
       { createdQr, createdLink },
       {

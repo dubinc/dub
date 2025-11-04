@@ -35,7 +35,7 @@ type FilterSelectProps = {
   askAI?: boolean;
   children?: ReactNode;
   emptyState?: ReactNode | Record<string, ReactNode>;
-  defaultIsOpen?: boolean;
+  hideIcons?: boolean;
   defaultSelectedFilterKey?: Filter["key"];
   className?: string;
 };
@@ -52,7 +52,7 @@ export function FilterSelect({
   askAI,
   children,
   emptyState,
-  defaultIsOpen,
+  hideIcons,
   defaultSelectedFilterKey,
   className,
 }: FilterSelectProps) {
@@ -80,6 +80,7 @@ export function FilterSelect({
     setSearch("");
     setSelectedFilterKey(null);
     resetDefaultStates?.();
+    hideIcons && setIsOpen(false);
   }, []);
 
   // Reset state when closed
@@ -159,13 +160,10 @@ export function FilterSelect({
   }, [selectedFilter?.options]);
 
   useEffect(() => {
-    if (defaultIsOpen) {
-      setIsOpen(true);
-      if (!!defaultSelectedFilterKey) {
-        setSelectedFilterKey(defaultSelectedFilterKey);
-      }
+    if (!!defaultSelectedFilterKey) {
+      setSelectedFilterKey(defaultSelectedFilterKey);
     }
-  }, [defaultIsOpen, defaultSelectedFilterKey]);
+  }, [defaultSelectedFilterKey, isOpen]);
 
   return (
     <Popover
@@ -299,25 +297,26 @@ export function FilterSelect({
       <button
         type="button"
         className={cn(
-          "group flex h-10 cursor-pointer appearance-none items-center gap-x-2 truncate rounded-md border px-3 text-sm outline-none transition-all",
-          "border-border-500 bg-white text-neutral-900 placeholder-neutral-400",
-          "focus-visible:border-border-500 data-[state=open]:border-border-500 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200/40",
+          "group flex cursor-pointer appearance-none items-center gap-x-2 truncate text-sm outline-none transition-all",
+          "bg-white text-neutral-900 placeholder-neutral-400",
+          {
+            "border-border-500 focus-visible:border-border-500 data-[state=open]:border-border-500 h-10 rounded-md border px-3 data-[state=open]:ring-4 data-[state=open]:ring-neutral-200/40":
+              !hideIcons,
+          },
           className,
         )}
       >
-        <ListFilter className="size-4 shrink-0" />
+        {!hideIcons && <ListFilter className="size-4 shrink-0" />}
         <span className="flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-left text-neutral-900">
           {children ?? "Filter"}
         </span>
-        {activeFilters?.length ? (
+        {activeFilters?.length && !hideIcons ? (
           <div className="bg-neutral flex size-4 shrink-0 items-center justify-center rounded-full text-[0.625rem] text-white">
             {activeFilters.length}
           </div>
-        ) : (
-          <ChevronDown
-            className={`size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[state=open]:rotate-180`}
-          />
-        )}
+        ) : !hideIcons ? (
+          <ChevronDown className="size-4 shrink-0 text-neutral-400 transition-transform duration-75 group-data-[state=open]:rotate-180" />
+        ) : null}
       </button>
     </Popover>
   );

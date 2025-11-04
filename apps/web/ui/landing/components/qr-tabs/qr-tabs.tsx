@@ -31,13 +31,13 @@ export const QRTabs: FC<
       saveQrDataToRedisAction,
     );
 
+    const [isProcessingSignup, setIsProcessingSignup] = useState(false);
+
     const [qrDataToCreate, setQrDataToCreate] =
       useLocalStorage<TQRBuilderDataForStorage | null>(
         `qr-data-to-create`,
         null,
       );
-
-    const [isProcessingSignup, setIsProcessingSignup] = useState(false);
 
     const { isMobile } = useMediaQuery();
 
@@ -103,7 +103,6 @@ export const QRTabs: FC<
             typeToScrollTo={typeToScrollTo}
             handleResetTypeToScrollTo={handleResetTypeToScrollTo}
           />
-
         </div>
 
         <AuthModal />

@@ -16,6 +16,7 @@ model User {
   emailVerified DateTime?
   image         String?
   isMachine     Boolean   @default(false)
+  hasRated      Boolean   @default(false)
 
   // password data
   passwordHash         String?

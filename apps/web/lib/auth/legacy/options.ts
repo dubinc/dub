@@ -15,7 +15,6 @@ import { PrismaClient } from "@prisma/client/extension";
 import { waitUntil } from "@vercel/functions";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
 import { ERedisArg } from "core/interfaces/redis.interface.ts";
-import { CustomerIOClient } from "core/lib/customerio/customerio.config.ts";
 import {
   applyUserSession,
   getUserCookieService,
@@ -406,7 +405,7 @@ export const authOptions: NextAuthOptions = {
         path: "/",
         // When working on localhost, the cookie domain must be omitted entirely (https://stackoverflow.com/a/1188145)
         // domain: VERCEL_DEPLOYMENT
-        //   ? `.${process.env.NEXT_PUBLIC_APP_DOMAIN}`
+        //   ? `.${APP_URL}`
         //   : undefined,
         domain: VERCEL_DEPLOYMENT ? `.getqr.com` : undefined,
         secure: VERCEL_DEPLOYMENT,
@@ -619,93 +618,33 @@ export const authOptions: NextAuthOptions = {
           // process.env.NEXT_PUBLIC_IS_DUB
         ) {
           if (message?.account?.provider === "google") {
-            const qrDataToCreate: NewQrProps | null = await redis.get(
-              `${ERedisArg.QR_DATA_REG}:${user.id}`,
-            );
-
-            cookieStore.set(
-              ECookieArg.OAUTH_FLOW,
-              JSON.stringify({
-                flow: "signup",
-                provider: "google",
-                email,
-                userId: user.id,
-                signupOrigin: qrDataToCreate ? "qr" : "none",
-              }),
-              {
-                httpOnly: true,
-                maxAge: 20,
-              },
-            );
-
             // const loginUrl = await createAutoLoginURL(user.id);
-
-            waitUntil(
-              CustomerIOClient.identify(user.id, {
-                email,
-              }),
-            );
-          }
-
-          //   waitUntil(
-          //     Promise.all([
-          //       CustomerIOClient.identify(user.id, {
-          //         email,
-          //       }),
-          //       qrDataToCreate
-          //         ? sendEmail({
-          //             email: email,
-          //             subject: "Welcome to GetQR",
-          //             template: CUSTOMER_IO_TEMPLATES.WELCOME_EMAIL,
-          //             messageData: {
-          //               qr_name: qrDataToCreate?.title || "Untitled QR",
-          //               qr_type:
-          //                 QR_TYPES.find(
-          //                   (item) => item.id === qrDataToCreate?.qrType,
-          //                 )!.label || "Undefined type",
-          //               url: loginUrl,
-          //             },
-          //             customerId: user.id,
-          //           })
-          //         : sendEmail({
-          //             email: email,
-          //             subject: "Welcome to GetQR",
-          //             template: CUSTOMER_IO_TEMPLATES.GOOGLE_WELCOME_EMAIL,
-          //             messageData: {
-          //               url: loginUrl,
-          //             },
-          //             customerId: user.id,
-          //           }),
-          //     ]),
-          //   );
-          // }
-        }
-      } else {
-        const hasOauthFlowCookie = !!cookieStore.get(ECookieArg.OAUTH_FLOW)
-          ?.value;
-
-        if (!hasOauthFlowCookie) {
-          if (
-            message?.account?.provider === "google" ||
-            message?.account?.provider === "email"
-          ) {
-            const { id, email } = message.user;
-
-            cookieStore.set(
-              ECookieArg.OAUTH_FLOW,
-              JSON.stringify({
-                flow: "login",
-                provider: message?.account?.provider,
-                email,
-                userId: id,
-              }),
-              {
-                httpOnly: true,
-                maxAge: 20,
-              },
-            );
+            // waitUntil(
+            //   CustomerIOClient.identify(user.id, {
+            //     email,
+            //   }),
+            // );
           }
         }
+      } else if (
+        message?.account?.provider === "google" ||
+        message?.account?.provider === "email"
+      ) {
+        const { id, email } = message.user;
+
+        cookieStore.set(
+          ECookieArg.OAUTH_FLOW,
+          JSON.stringify({
+            flow: "login",
+            provider: message?.account?.provider,
+            email,
+            userId: id,
+          }),
+          {
+            httpOnly: true,
+            maxAge: 20,
+          },
+        );
       }
 
       // lazily backup user avatar to R2

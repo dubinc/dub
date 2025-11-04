@@ -12,6 +12,7 @@
 // }
 
 import { getSession } from "@/lib/auth";
+import { Footer } from "@/ui/landing/components/footer";
 import { Header } from "@/ui/landing/components/header.tsx";
 import { getUserCookieService } from "core/services/cookie/user-session.service.ts";
 
@@ -20,12 +21,11 @@ const Layout = async ({ children }) => {
   const authSession = await getSession();
 
   return (
-    <>
-      <div className="flex min-h-screen flex-col bg-neutral-50/80">
-        <Header sessionId={sessionId!} authSession={authSession} />
-        {children}
-      </div>
-    </>
+    <div className="flex min-h-screen flex-col bg-neutral-50/80">
+      <Header sessionId={sessionId!} authSession={authSession} />
+      {children}
+      <Footer sessionId={sessionId!} />
+    </div>
   );
 };
 

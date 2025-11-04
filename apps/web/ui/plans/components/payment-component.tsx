@@ -5,8 +5,6 @@ import { PricingPlanCard } from "@/ui/plans/components/pricing-plan-card.tsx";
 import { IPricingPlan, PRICING_PLANS } from "@/ui/plans/constants.ts";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import { Flex, Heading, Text } from "@radix-ui/themes";
-import { trackClientEvents } from "core/integration/analytic";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import {
   getCalculatePriceForView,
   getPaymentPlanPrice,
@@ -45,18 +43,6 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
     const plan = PRICING_PLANS.find((p) => p.id === value);
 
     if (plan) {
-      trackClientEvents({
-        event: EAnalyticEvents.PLAN_PICKER_CLICKED,
-        params: {
-          event_category: "Authorized",
-          email: user.email,
-          plan_name: plan.paymentPlan,
-          page_name: "profile",
-          content_group: "plans",
-        },
-        sessionId: user.id,
-      });
-
       setSelectedPlan(plan);
     }
   };
@@ -108,6 +94,7 @@ export const PaymentComponent: FC<Readonly<IPaymentComponentProps>> = ({
             selectedPlan={selectedPlan}
             isProcessing={isProcessing}
             setIsProcessing={setIsProcessing}
+            featuresAccess={featuresAccess}
           />
         </div>
 

@@ -1,11 +1,9 @@
 "use client";
 
 import { Session } from "@/lib/auth";
-import { useQuerySearchParams } from "@/lib/hooks/query-search-params.hook.tsx";
 import {
   initPeopleAnalytic,
   setPeopleAnalytic,
-  setPeopleAnalyticOnce,
   startSessionRecording,
 } from "core/integration/analytic";
 import { useEffect } from "react";
@@ -19,8 +17,8 @@ export const AnalyticInitializerComponent = ({
   sessionId,
   authSession,
 }: IAnalyticInitializerProps) => {
-  const { searchParams, changeQuery } = useQuerySearchParams();
-  const fromEmailQuery = searchParams.get("marketing");
+  // const { searchParams, changeQuery } = useQuerySearchParams();
+  // const fromEmailQuery = searchParams.get("marketing");
 
   useEffect(() => {
     startSessionRecording();
@@ -28,24 +26,24 @@ export const AnalyticInitializerComponent = ({
     if (!authSession || !authSession?.user) {
       initPeopleAnalytic(sessionId);
 
-      if (fromEmailQuery && fromEmailQuery === "true") {
-        localStorage.setItem("fromEmailQuery", "true");
-      }
+      // if (fromEmailQuery && fromEmailQuery === "true") {
+      //   localStorage.setItem("fromEmailQuery", "true");
+      // }
     }
 
     if (authSession?.user) {
       initPeopleAnalytic(authSession.user.id);
       setPeopleAnalytic({ $email: authSession.user.email });
 
-      const emailMarketingFromLS = localStorage.getItem("fromEmailQuery");
-      if (fromEmailQuery && fromEmailQuery === "true") {
-        setPeopleAnalyticOnce({ email_marketing: true });
-        changeQuery("marketing", "");
-        localStorage.removeItem("fromEmailQuery");
-      } else if (emailMarketingFromLS && emailMarketingFromLS === "true") {
-        setPeopleAnalyticOnce({ email_marketing: true });
-        localStorage.removeItem("fromEmailQuery");
-      }
+      // const emailMarketingFromLS = localStorage.getItem("fromEmailQuery");
+      // if (fromEmailQuery && fromEmailQuery === "true") {
+      //   setPeopleAnalyticOnce({ email_marketing: true });
+      //   changeQuery("marketing", "");
+      //   localStorage.removeItem("fromEmailQuery");
+      // } else if (emailMarketingFromLS && emailMarketingFromLS === "true") {
+      //   setPeopleAnalyticOnce({ email_marketing: true });
+      //   localStorage.removeItem("fromEmailQuery");
+      // }
     }
   }, []);
 

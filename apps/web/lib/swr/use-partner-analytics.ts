@@ -31,6 +31,7 @@ export default function usePartnerAnalytics(
             }),
             {},
           ),
+          ...(searchParams?.has("unique") && { unique: searchParams.get("unique") as string }),
           ...(params?.start && params?.end
             ? {
                 start: params.start.toISOString(),

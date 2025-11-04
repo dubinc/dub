@@ -1,5 +1,6 @@
 "use client";
 
+import { FeaturesAccess } from "@/lib/actions/check-features-access-auth-less";
 import { useTrialStatus } from "@/lib/contexts/trial-status-context.tsx";
 import { IPricingPlan } from "@/ui/plans/constants";
 import { Button } from "@dub/ui";
@@ -9,7 +10,11 @@ import {
   getSubscriptionRenewalAction,
   subscriptionPlansWeight,
 } from "core/constants/subscription-plans-weight.ts";
-import { setPeopleAnalytic } from "core/integration/analytic";
+import {
+  setPeopleAnalytic,
+  trackClientEvents,
+} from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import { pollPaymentStatus } from "core/integration/payment/client/services/payment-status.service.ts";
 import {
   getChargePeriodDaysIdByPlan,
@@ -18,14 +23,16 @@ import {
 } from "core/integration/payment/config";
 import { IGetPrimerClientPaymentInfoRes } from "core/integration/payment/server";
 import { generateTrackingUpsellEvent } from "core/services/events/upsell-events.service.ts";
+import { format } from "date-fns";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { Dispatch, FC, SetStateAction, useMemo } from "react";
+import { Dispatch, FC, SetStateAction, useCallback, useMemo } from "react";
 import { toast } from "sonner";
 import { mutate } from "swr";
 
 interface IUpdateSubscriptionProps {
   user: ICustomerBody;
+  featuresAccess: FeaturesAccess;
   currentSubscriptionPlan: string | undefined;
   selectedPlan: IPricingPlan;
   isProcessing: boolean;
@@ -34,6 +41,7 @@ interface IUpdateSubscriptionProps {
 
 export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
   user,
+  featuresAccess,
   selectedPlan,
   currentSubscriptionPlan,
   isProcessing,
@@ -50,6 +58,9 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
 
   const buttonText = useMemo(() => {
     switch (true) {
+      case !featuresAccess.isSubscribed ||
+        featuresAccess.status === "scheduled_for_cancellation":
+        return "Reactivate subscription";
       case selectedPlan.paymentPlan === currentSubscriptionPlan:
         return "Your Active Plan";
       case subscriptionPlansWeight[selectedPlan.paymentPlan] <
@@ -60,7 +71,13 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     }
   }, [selectedPlan, currentSubscriptionPlan]);
 
-  const handleUpdatePlan = async () => {
+  const isDisabled =
+    (currentSubscriptionPlan === selectedPlan.paymentPlan &&
+      featuresAccess.isSubscribed &&
+      featuresAccess.status !== "scheduled_for_cancellation") ||
+    isProcessing;
+
+  const payAndUpdatePlan = async () => {
     setIsProcessing(true);
 
     generateTrackingUpsellEvent({
@@ -121,7 +138,10 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     };
 
     const onPurchased = async (info: IGetPrimerClientPaymentInfoRes) => {
-      await triggerUpdateSubscription({ paymentPlan: selectedPlan.paymentPlan })
+      await triggerUpdateSubscription({
+        paymentId: info.id,
+        paymentPlan: selectedPlan.paymentPlan,
+      })
         .then(async () => {
           generateTrackingUpsellEvent({
             user,
@@ -136,9 +156,18 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
             },
           });
 
-          toast.success(
-            `The plan ${getSubscriptionRenewalAction(selectedPlan.paymentPlan, currentSubscriptionPlan as TPaymentPlan)} was successful!`,
-          );
+          if (
+            featuresAccess.isSubscribed &&
+            featuresAccess.status !== "scheduled_for_cancellation"
+          ) {
+            toast.success(
+              `You’ve successfully upgraded to ${selectedPlan.name} plan.`,
+            );
+          } else {
+            toast.success(
+              `You’ve successfully activated your subscription. Your current plan is ${selectedPlan.name} plan.`,
+            );
+          }
 
           const chargePeriodDays = getChargePeriodDaysIdByPlan({
             paymentPlan: selectedPlan.paymentPlan,
@@ -173,13 +202,88 @@ export const UpdateSubscriptionFlow: FC<Readonly<IUpdateSubscriptionProps>> = ({
     });
   };
 
+  const justDowngradePlan = useCallback(async () => {
+    await triggerUpdateSubscription({
+      paymentPlan: selectedPlan.paymentPlan,
+    })
+      .then(async (res) => {
+        const chargePeriodDays = getChargePeriodDaysIdByPlan({
+          paymentPlan: selectedPlan.paymentPlan,
+          user,
+        });
+
+        if (
+          featuresAccess.isSubscribed &&
+          featuresAccess.status !== "scheduled_for_cancellation"
+        ) {
+          toast.success(
+            `You’ve downgraded to ${selectedPlan.name} plan. It will take effect on ${format(
+              new Date(res?.data?.nextBillingDate || ""),
+              "yyyy-MM-dd",
+            )}. No charge today!`,
+          );
+        } else {
+          toast.success(
+            `You’ve successfully activated your subscription. Your current plan is ${selectedPlan.name} plan.`,
+          );
+        }
+
+        setPeopleAnalytic({
+          plan_name: selectedPlan.paymentPlan,
+          charge_period_days: chargePeriodDays,
+        });
+        setIsTrialOver(false);
+
+        await updateSession();
+        await mutate("/api/user");
+
+        // Force refresh the page cache
+
+        router.refresh();
+        router.push("/");
+      })
+      .catch((error) => {
+        setIsProcessing(false);
+        toast.error(
+          `The plan updating failed: ${error?.code ?? error?.message}`,
+        );
+      });
+
+    return;
+  }, [selectedPlan, currentSubscriptionPlan]);
+
+  const handleUpdatePlan = useCallback(async () => {
+    setIsProcessing(true);
+
+    trackClientEvents({
+      event: EAnalyticEvents.PLAN_PICKER_CLICKED,
+      params: {
+        event_category: "Authorized",
+        email: user.email,
+        plan_name: selectedPlan.paymentPlan,
+        page_name: "profile",
+        content_group: "plans",
+      },
+      sessionId: user.id,
+    });
+
+    if (
+      subscriptionPlansWeight[selectedPlan.paymentPlan] <
+      subscriptionPlansWeight?.[currentSubscriptionPlan!]
+    ) {
+      await justDowngradePlan();
+
+      return;
+    }
+
+    await payAndUpdatePlan();
+  }, [selectedPlan, currentSubscriptionPlan, featuresAccess, user]);
+
   return (
     <Button
       className="block"
       loading={isProcessing}
-      disabled={
-        currentSubscriptionPlan === selectedPlan.paymentPlan || isProcessing
-      }
+      disabled={isDisabled}
       onClick={handleUpdatePlan}
       text={isProcessing ? null : buttonText}
     />

@@ -29,7 +29,15 @@ export enum EAnalyticEvents {
 
   THRESHOLD_PASSED = "thresholdPassed",
 
+  USER_FEEDBACK = "userFeedback",
+
   EMAIL_SUBMITTED = "emailSubmitted",
+  CODE_SUBMITTED = "codeSubmitted",
+
+  SUBSCRIPTION_CANCELLED = "subscriptionCancelled",
+  SUBSCRIPTION_CANCELLED_ERROR = "subscriptionCancelledError",
+
+  TRIAL_ACTIVATED = "trial_activated",
 }
 
 // purchase related events

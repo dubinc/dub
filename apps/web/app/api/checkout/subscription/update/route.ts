@@ -132,6 +132,41 @@ export const POST = withSession(
     );
 
     try {
+      const attributes = {
+        //**** antifraud sessions ****//
+        ...(paymentData?.sessions && { ...paymentData.sessions }),
+
+        //**** for analytics ****//
+        ...(body.paymentId && { payment_id: body.paymentId }),
+        email: email,
+        flow_type: "internal",
+        locale: "en",
+        mixpanel_user_id:
+          user?.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
+        plan_name: body.paymentPlan,
+        plan_price: priceForPay,
+        charge_period_days: chargePeriodDays,
+        payment_subtype: "SUBSCRIPTION",
+        // billing_action: "rebill",
+        //**** for analytics ****//
+
+        //**** fields for subscription system ****//
+        sub_user_id_primer: paymentData?.paymentInfo?.customerId || null,
+        sub_order_country: paymentData.currency?.countryCode || null,
+        ipAddress: getUserIp(headerStore)!,
+        subscriptionType: "APP_SUBSCRIPTION",
+        application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
+        ...subProcessorData,
+        //**** fields for subscription system ****//
+      };
+
+      await paymentService.updateClientSubscriptionAttributes(
+        paymentData?.paymentInfo?.subscriptionId || "",
+        {
+          attributes,
+        },
+      );
+
       await paymentService.updateClientSubscription(
         paymentData?.paymentInfo?.subscriptionId || "",
         {
@@ -146,43 +181,26 @@ export const POST = withSession(
             secondary: false,
             twoSteps: false,
           },
-          attributes: {
-            //**** antifraud sessions ****//
-            ...(paymentData?.sessions && { ...paymentData.sessions }),
-
-            //**** for analytics ****//
-            email: email,
-            flow_type: "internal",
-            locale: "en",
-            mixpanel_user_id:
-              user?.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,
-            plan_name: body.paymentPlan,
-            plan_price: priceForPay,
-            charge_period_days: chargePeriodDays,
-            payment_subtype: "SUBSCRIPTION",
-            billing_action: "rebill",
-            //**** for analytics ****//
-
-            //**** fields for subscription system ****//
-            sub_user_id_primer: paymentData?.paymentInfo?.customerId || null,
-            sub_order_country: paymentData.currency?.countryCode || null,
-            ipAddress: getUserIp(headerStore)!,
-            subscriptionType: "APP_SUBSCRIPTION",
-            application: `${process.env.NEXT_PUBLIC_PAYMENT_ENV}`,
-            ...subProcessorData,
-            //**** fields for subscription system ****//
-            ...subProcessorData,
-          },
+          attributes,
         },
       );
+
+      if (
+        subscription.status === "cancelled" ||
+        subscription.status === "dunning" ||
+        subscription.status === "scheduled_for_cancellation"
+      ) {
+        await paymentService.reactivateClientSubscription(
+          subscription?.id || paymentData?.paymentInfo?.subscriptionId || "",
+          { skipFirstPayment: !!body.paymentId, skipTrial: true },
+        );
+      }
 
       const subDataAfterUpdate =
         await paymentService.getClientSubscriptionDataByEmail({ email: email });
       const newSubData = subDataAfterUpdate.subscriptions.at(
         -1,
       ) as IGetSystemUserDataRes["subscriptions"][0];
-
-      console.log("sub data after update", newSubData);
 
       const carryoverDays = subscription?.nextBillingDate
         ? differenceInCalendarDays(
@@ -233,7 +251,10 @@ export const POST = withSession(
         }),
       ]);
 
-      return NextResponse.json({ success: true });
+      return NextResponse.json({
+        success: true,
+        data: { nextBillingDate: newSubData.nextBillingDate },
+      });
     } catch (error: any) {
       return NextResponse.json(
         { success: false, error: error?.message },

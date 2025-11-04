@@ -9,6 +9,7 @@ import {
   ICreateSubscriptionBody,
   ICreateSubscriptionRes,
 } from "core/api/user/subscription/subscription.interface.ts";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import {
   getChargePeriodDaysIdByPlan,
   getPaymentPlanPrice,
@@ -16,6 +17,7 @@ import {
 } from "core/integration/payment/config";
 import { PaymentService } from "core/integration/payment/server";
 import { ECookieArg } from "core/interfaces/cookie.interface.ts";
+import { CustomerIOClient } from "core/lib/customerio/customerio.config";
 import {
   getUserCookieService,
   updateUserCookieService,
@@ -151,16 +153,16 @@ export const POST = async (
           secondary: false,
           twoSteps: false,
         },
-        attributes: { ...metadata, billing_action: "rebill" },
+        attributes: {
+          ...metadata,
+          // billing_action: "rebill"
+        },
       },
       orderAmount: price,
       orderCurrencyCode: user.currency?.currencyForPay || "",
       orderPaymentID: body.payment.id,
       orderExternalID: body.payment.orderId,
     };
-
-    console.log("createSubscriptionBody user", user);
-    console.log("createSubscriptionBody", period, createSubscriptionBody);
 
     const { tokenOnboardingData, paymentMethodToken } =
       await paymentService.createClientSubscription(createSubscriptionBody);
@@ -179,6 +181,11 @@ export const POST = async (
         { status: 500 },
       );
     }
+
+    await CustomerIOClient.track(user.id, {
+      name: EAnalyticEvents.TRIAL_ACTIVATED,
+      email: user?.email,
+    });
 
     const updatedUser = await updateUserCookieService({
       paymentInfo: {

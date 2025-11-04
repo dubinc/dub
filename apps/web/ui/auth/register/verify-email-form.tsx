@@ -44,12 +44,14 @@ export const VerifyEmailForm = ({
     async onSuccess() {
       setPeopleAnalyticOnce({ signup_method: "email" });
 
-      showMessage(
-        "Account created! Redirecting to dashboard...",
-        "success",
-        authModal,
-        setAuthModalMessage,
-      );
+      if (authModal && setAuthModalMessage) {
+        setAuthModalMessage("Account created! Redirecting to dashboard...", "success");
+      } else {
+        showMessage(
+          "Account created! Redirecting to dashboard...",
+          "success",
+        );
+      }
       setIsRedirecting(true);
       setQrDataToCreate(null);
       const response = await signIn("credentials", {
@@ -61,11 +63,13 @@ export const VerifyEmailForm = ({
       if (response?.ok) {
         router.push(`/${slugify(email)}?onboarded=true`);
       } else {
+        if (authModal && setAuthModalMessage) {
+          setAuthModalMessage("Failed to sign in with credentials. Please try again or contact support.", "error");
+          return;
+        }
         showMessage(
           "Failed to sign in with credentials. Please try again or contact support.",
           "error",
-          authModal,
-          setAuthModalMessage,
         );
       }
     },
@@ -83,7 +87,14 @@ export const VerifyEmailForm = ({
 
       console.error("Auth error:", { code: errorCode, message: errorMessage });
 
-      showMessage(errorMessage, "error", authModal, setAuthModalMessage);
+      if (authModal && setAuthModalMessage) {
+        setAuthModalMessage(errorMessage, "error");
+      } else {
+        showMessage(
+          errorMessage,
+          "error",
+        );
+      }
       setCode("");
       setIsInvalidCode(true);
     },

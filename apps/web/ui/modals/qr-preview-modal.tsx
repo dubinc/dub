@@ -15,6 +15,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { Theme } from "@radix-ui/themes";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
+import { Share2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
 import {
@@ -68,6 +69,7 @@ function QRPreviewModal({
   const { downloadQrCode } = useQrDownload(qrCode);
 
   const isWelcomeModal = searchParams.has("onboarded") || isNewQr;
+  const [canShare, setCanShare] = useState(false);
 
   const handleClose = () => {
     if (!isDownloading) {
@@ -113,6 +115,61 @@ function QRPreviewModal({
     }
   };
 
+  const onShareClick = async () => {
+    if (!qrCode) {
+      return;
+    }
+
+    trackClientEvents({
+      event: EAnalyticEvents.ELEMENT_CLICKED,
+      params: {
+        page_name: "dashboard",
+        element_name: "qr_preview",
+        content_group: "my_qr_codes",
+        content_value: "share",
+        email: user?.email,
+        qrId: qrCodeId,
+        event_category: "Authorized",
+      },
+      sessionId: user?.id,
+    });
+
+    try {
+      setIsDownloading(true);
+      const blob = await qrCode.getRawData(
+        selectedFormat === "jpg" ? "jpeg" : selectedFormat,
+      );
+
+      if (!blob) {
+        toast.error("Failed to generate QR data");
+        return;
+      }
+
+      const file = new File([blob], `qr-code.${selectedFormat}`, {
+        type:
+          selectedFormat === "svg"
+            ? "image/svg+xml"
+            : selectedFormat === "png"
+              ? "image/png"
+              : "image/jpeg",
+      });
+
+      if (navigator.share && navigator.canShare?.({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+        });
+      }
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") {
+        return;
+      }
+      console.error("Failed to share QR code:", error);
+      toast.error("Failed to share QR code");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   useEffect(() => {
     if (showQRPreviewModal) {
       trackClientEvents({
@@ -129,6 +186,14 @@ function QRPreviewModal({
       });
     }
   }, [showQRPreviewModal]);
+
+  useEffect(() => {
+    setCanShare(
+      typeof navigator !== "undefined" &&
+        !!navigator.share &&
+        !!navigator.canShare
+    );
+  }, []);
 
   return (
     <Modal
@@ -198,12 +263,12 @@ function QRPreviewModal({
                 />
               </div>
 
-              <div className="flex w-full items-center gap-2">
+              <div className="flex w-full flex-col items-center gap-2">
                 <DropdownMenu.Root>
-                  <DropdownMenu.Trigger>
+                  <DropdownMenu.Trigger className="w-full">
                     <div
                       className={cn(
-                        "border-border-300 flex h-10 w-[94px] cursor-pointer items-center justify-between gap-3.5 rounded-md border bg-white px-3 text-sm text-neutral-200 transition-colors",
+                        "border-border-300 flex h-10 w-full cursor-pointer items-center justify-between gap-3.5 rounded-md border bg-white px-3 text-sm text-neutral-200 transition-colors",
                         "focus-within:border-secondary",
                       )}
                     >
@@ -219,7 +284,6 @@ function QRPreviewModal({
                       />
                     </div>
                   </DropdownMenu.Trigger>
-
                   <DropdownMenu.Content
                     className="border-border-100 !z-10 flex w-[94px] flex-col items-center justify-start gap-2 rounded-lg border bg-white p-3 shadow-md"
                     sideOffset={5}
@@ -249,12 +313,23 @@ function QRPreviewModal({
                     ))}
                   </DropdownMenu.Content>
                 </DropdownMenu.Root>
-                <Button
-                  text="Download QR"
-                  variant="primary"
-                  onClick={handleDownload}
-                  className="flex-1"
-                />
+                <div className="flex w-full gap-2">
+                  <Button
+                    text="Download QR"
+                    variant="primary"
+                    onClick={handleDownload}
+                    className="flex-1"
+                  />
+                  {canShare && (
+                    <Button
+                      icon={<Share2 className="size-6" />}
+                      variant="primary"
+                      disabled={isDownloading}
+                      className="flex w-fit items-center justify-center gap-2"
+                      onClick={onShareClick}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </div>

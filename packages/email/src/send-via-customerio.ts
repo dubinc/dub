@@ -8,10 +8,6 @@ export const sendViaCustomerIO = (
   messageData?: Record<string, string>,
   customerId?: string,
 ) => {
-  console.log(
-    "process.env.CUSTOMER_IO_API_KEY",
-    process.env.CUSTOMER_IO_API_KEY,
-  );
   const request = new SendEmailRequest({
     transactional_message_id: template,
     to: recipient,

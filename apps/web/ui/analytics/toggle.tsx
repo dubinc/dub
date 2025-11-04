@@ -61,8 +61,8 @@ import { ANALYTICS_QR_TYPES_DATA } from "../qr-builder/constants/get-qr-config";
 import { AnalyticsContext } from "./analytics-provider";
 import ContinentIcon from "./continent-icon";
 import DeviceIcon from "./device-icon";
-import EventsOptions from "./events/events-options";
 import { useAnalyticsFilterOption } from "./utils";
+import { Switch } from '@radix-ui/themes';
 
 export default function Toggle({
   page = "analytics",
@@ -144,51 +144,67 @@ export default function Toggle({
 
   const { data: links } = useAnalyticsFilterOption("top_links", {
     cacheOnly: !isRequested("link"),
+    filterKey: "domain"
   });
   const { data: countries } = useAnalyticsFilterOption("countries", {
     cacheOnly: !isRequested("country"),
+    filterKey: "country"
   });
   const { data: regions } = useAnalyticsFilterOption("regions", {
     cacheOnly: !isRequested("region"),
+    filterKey: "region"
   });
   const { data: cities } = useAnalyticsFilterOption("cities", {
     cacheOnly: !isRequested("city"),
+    filterKey: "city"
   });
   const { data: continents } = useAnalyticsFilterOption("continents", {
     cacheOnly: !isRequested("continent"),
+    filterKey: "continent"
   });
   const { data: devices } = useAnalyticsFilterOption("devices", {
     cacheOnly: !isRequested("device"),
+    filterKey: "device"
   });
   const { data: browsers } = useAnalyticsFilterOption("browsers", {
     cacheOnly: !isRequested("browser"),
+    filterKey: "browser"
   });
   const { data: os } = useAnalyticsFilterOption("os", {
     cacheOnly: !isRequested("os"),
+    filterKey: "os"
   });
   const { data: referers } = useAnalyticsFilterOption("referers", {
     cacheOnly: !isRequested("referer"),
+    filterKey: "referer"
   });
   const { data: refererUrls } = useAnalyticsFilterOption("referer_urls", {
     cacheOnly: !isRequested("refererUrl"),
+    filterKey: "refererUrl"
   });
   const { data: urls } = useAnalyticsFilterOption("top_urls", {
     cacheOnly: !isRequested("url"),
+    filterKey: "url"
   });
   const { data: utmSources } = useAnalyticsFilterOption("utm_sources", {
     cacheOnly: !isRequested("utm_source"),
+    filterKey: "utm_source"
   });
   const { data: utmMediums } = useAnalyticsFilterOption("utm_mediums", {
     cacheOnly: !isRequested("utm_medium"),
+    filterKey: "utm_medium"
   });
   const { data: utmCampaigns } = useAnalyticsFilterOption("utm_campaigns", {
     cacheOnly: !isRequested("utm_campaign"),
+    filterKey: "utm_campaign"
   });
   const { data: utmTerms } = useAnalyticsFilterOption("utm_terms", {
     cacheOnly: !isRequested("utm_term"),
+    filterKey: "utm_term"
   });
   const { data: utmContents } = useAnalyticsFilterOption("utm_contents", {
     cacheOnly: !isRequested("utm_content"),
+    filterKey: "utm_content"
   });
   const utmData = {
     utm_source: utmSources,
@@ -474,146 +490,49 @@ export default function Toggle({
 
   const { isMobile } = useMediaQuery();
 
-  const filterSelect = (
-    <Filter.Select
-      className="w-full md:w-fit"
-      filters={filters}
-      activeFilters={activeFilters}
-      onSearchChange={setSearch}
-      onSelectedFilterChange={setSelectedFilter}
-      onSelect={async (key, value) => {
-        if (key === "ai") {
-          setStreaming(true);
-          const prompt = value.replace("Ask AI ", "");
-          const { object } = await generateFilters(prompt);
-          for await (const partialObject of readStreamableValue(object)) {
-            if (partialObject) {
-              queryParams({
-                set: Object.fromEntries(
-                  Object.entries(partialObject).map(([key, value]) => [
-                    key,
-                    // Convert Dates to ISO strings
-                    value instanceof Date ? value.toISOString() : String(value),
-                  ]),
-                ),
-              });
-            }
-          }
-          setStreaming(false);
-        } else {
-          let del: string | string[] = "page";
-          if (key === "qrType") {
-            del = ["domain", "key", "page"];
-          }
-          if (key === "link") {
-            del = ["qrType", "page"];
-          }
+  const onFilterSelect = async (key, value) => {
+    if (key === "ai") {
+      setStreaming(true);
+      const prompt = value.replace("Ask AI ", "");
+      const { object } = await generateFilters(prompt);
+      for await (const partialObject of readStreamableValue(object)) {
+        if (partialObject) {
           queryParams({
-            set:
-              key === "link"
-                ? {
-                    domain: new URL(`https://${value}`).hostname,
-                    key:
-                      new URL(`https://${value}`).pathname.slice(1) || "_root",
-                  }
-                : {
-                    [key]: value,
-                  },
-            del,
-            scroll: false,
+            set: Object.fromEntries(
+              Object.entries(partialObject).map(([key, value]) => [
+                key,
+                // Convert Dates to ISO strings
+                value instanceof Date ? value.toISOString() : String(value),
+              ]),
+            ),
           });
         }
-      }}
-      onRemove={(key, value) =>
-        queryParams({
-          del: key === "link" ? ["domain", "key"] : key,
-          scroll: false,
-        })
       }
-      onOpenFilter={(key) =>
-        setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
+      setStreaming(false);
+    } else {
+      let del: string | string[] = "page";
+      if (key === "qrType") {
+        del = ["domain", "key", "page"];
       }
-      resetDefaultStates={() => {
-        setIsToggleOpen(false);
-        setSelectedToggleFilterKey(undefined);
-      }}
-      defaultIsOpen={isToggleOpen}
-      defaultSelectedFilterKey={selectedToggleFilterKey}
-    />
-  );
-
-  const dateRangePicker = (
-    <DateRangePicker
-      className="w-full sm:min-w-[200px] md:w-fit"
-      align={dashboardProps ? "end" : "center"}
-      value={
-        start && end
-          ? {
-              from: start,
-              to: end,
-            }
-          : undefined
+      if (key === "link") {
+        del = ["qrType", "page"];
       }
-      presetId={start && end ? undefined : interval ?? "30d"}
-      onChange={(range, preset) => {
-        if (preset) {
-          queryParams({
-            del: ["start", "end"],
-            set: {
-              interval: preset.id,
-            },
-            scroll: false,
-          });
-
-          return;
-        }
-
-        // Regular range
-        if (!range || !range.from || !range.to) return;
-
-        queryParams({
-          del: "preset",
-          set: {
-            start: range.from.toISOString(),
-            end: range.to.toISOString(),
-          },
-          scroll: false,
-        });
-      }}
-      presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
-        // const requiresUpgrade =
-        //   partnerPage ||
-        //   DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
-        //     ? false
-        //     : !validDateRangeForPlan({
-        //         plan: plan || dashboardProps?.workspacePlan,
-        //         dataAvailableFrom: createdAt,
-        //         interval: value,
-        //         start,
-        //         end,
-        //       });
-        const requiresUpgrade = false;
-        const { startDate, endDate } = getStartEndDates({
-          interval: value,
-          dataAvailableFrom: createdAt,
-        });
-
-        return {
-          id: value,
-          label: display,
-          dateRange: {
-            from: startDate,
-            to: endDate,
-          },
-          requiresUpgrade,
-          tooltipContent: requiresUpgrade ? (
-            <UpgradeTooltip rangeLabel={display} plan={plan} />
-          ) : undefined,
-          shortcut,
-        };
-      })}
-    />
-  );
+      queryParams({
+        set:
+          key === "link"
+            ? {
+                domain: new URL(`https://${value}`).hostname,
+                key:
+                  new URL(`https://${value}`).pathname.slice(1) || "_root",
+              }
+            : {
+                [key]: value,
+              },
+        del,
+        scroll: false,
+      });
+    }
+  }
 
   return (
     <>
@@ -671,60 +590,118 @@ export default function Toggle({
             )}
             <div
               className={cn(
-                "flex w-full flex-col-reverse items-center gap-2 min-[550px]:flex-row",
+                "flex w-full flex-col items-center gap-2 min-[500px]:flex-row",
                 dashboardProps && "md:w-auto",
               )}
             >
-              {isMobile ? dateRangePicker : filterSelect}
-              <div
-                className={cn("flex w-full grow items-center gap-2 md:w-auto", {
-                  "grow-0": dashboardProps,
+              <Filter.Select
+                className="w-full min-[500px]:w-fit"
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onFilterSelect}
+                onRemove={(key, value) =>
+                  queryParams({
+                    del: key === "link" ? ["domain", "key"] : key,
+                    scroll: false,
+                  })
+                }
+                onOpenFilter={(key) =>
+                  setRequestedFilters((rf) => (rf.includes(key) ? rf : [...rf, key]))
+                }
+                resetDefaultStates={() => {
+                  setSelectedToggleFilterKey(undefined)
+                }}
+                defaultSelectedFilterKey={selectedToggleFilterKey}
+              />
+              <DateRangePicker
+                className="w-full min-[500px]:w-fit"
+                align={dashboardProps ? "end" : "center"}
+                value={
+                  start && end
+                    ? {
+                        from: start,
+                        to: end,
+                      }
+                    : undefined
+                }
+                presetId={start && end ? undefined : interval ?? "30d"}
+                onChange={(range, preset) => {
+                  if (preset) {
+                    queryParams({
+                      del: ["start", "end"],
+                      set: {
+                        interval: preset.id,
+                      },
+                      scroll: false,
+                    });
+
+                    return;
+                  }
+
+                  // Regular range
+                  if (!range || !range.from || !range.to) return;
+
+                  queryParams({
+                    del: "preset",
+                    set: {
+                      start: range.from.toISOString(),
+                      end: range.to.toISOString(),
+                    },
+                    scroll: false,
+                  });
+                }}
+                presets={INTERVAL_DISPLAYS.map(({ display, value, shortcut }) => {
+                  // const requiresUpgrade =
+                  //   partnerPage ||
+                  //   DUB_DEMO_LINKS.find((l) => l.domain === domain && l.key === key)
+                  //     ? false
+                  //     : !validDateRangeForPlan({
+                  //         plan: plan || dashboardProps?.workspacePlan,
+                  //         dataAvailableFrom: createdAt,
+                  //         interval: value,
+                  //         start,
+                  //         end,
+                  //       });
+                  const requiresUpgrade = false;
+                  const { startDate, endDate } = getStartEndDates({
+                    interval: value,
+                    dataAvailableFrom: createdAt,
+                  });
+
+                  return {
+                    id: value,
+                    label: display,
+                    dateRange: {
+                      from: startDate,
+                      to: endDate,
+                    },
+                    requiresUpgrade,
+                    tooltipContent: requiresUpgrade ? (
+                      <UpgradeTooltip rangeLabel={display} plan={plan} />
+                    ) : undefined,
+                    shortcut,
+                  };
                 })}
-              >
-                {isMobile ? filterSelect : dateRangePicker}
-                {!dashboardProps && (
-                  <div className="flex grow justify-end gap-2">
-                    {/*{page === "analytics" && !partnerPage && (*/}
-                    {/*  <>*/}
-                    {/*    {domain && key && <ShareButton />}*/}
-                    {/*    <Button*/}
-                    {/*      variant="secondary"*/}
-                    {/*      className="border-border-500 w-fit"*/}
-                    {/*      icon={*/}
-                    {/*        <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />*/}
-                    {/*      }*/}
-                    {/*      text={isMobile ? undefined : "Switch to Events"}*/}
-                    {/*      onClick={() => {*/}
-                    {/*        if (dashboardProps) {*/}
-                    {/*          window.open("https://d.to/events");*/}
-                    {/*        } else {*/}
-                    {/*          router.push(*/}
-                    {/*            `/${slug}/events${getQueryString({}, { exclude: ["view"] })}`,*/}
-                    {/*          );*/}
-                    {/*        }*/}
-                    {/*      }}*/}
-                    {/*    />*/}
-                    {/*    <AnalyticsOptions />*/}
-                    {/*  </>*/}
-                    {/*)}*/}
-                    {page === "events" && !partnerPage && (
-                      <>
-                        <Button
-                          variant="secondary"
-                          className="w-fit"
-                          icon={
-                            <ChartLine className="h-4 w-4 text-neutral-600" />
-                          }
-                          text={isMobile ? undefined : "Switch to Analytics"}
-                          onClick={() =>
-                            router.push(`/${slug}/analytics${getQueryString()}`)
-                          }
-                        />
-                        <EventsOptions />
-                      </>
-                    )}
-                  </div>
-                )}
+              />
+              <div className="flex items-center h-10 gap-x-2 w-full min-[500px]:w-fit">
+                <Switch
+                  id="unique"
+                  checked={!!searchParamsObj.unique}
+                  onCheckedChange={(checked: boolean) => {
+                    if (checked) {
+                      queryParams({
+                        set: { unique: "true"},
+                        scroll: false,
+                      });
+                    } else {
+                      queryParams({
+                        del: "unique",
+                        scroll: false,
+                      });
+                    }
+                  }}
+                />
+                <label htmlFor="unique">Unique Scans</label>
               </div>
             </div>
           </div>
@@ -743,11 +720,12 @@ export default function Toggle({
                 }))
               : []),
           ]}
-          onRemove={(key, value) =>
-            queryParams({
-              del: key === "link" ? ["domain", "key", "url"] : key,
-              scroll: false,
-            })
+          onRemove={(key, value) => {
+              queryParams({
+                del: key === "link" ? ["domain", "key", "url"] : key,
+                scroll: false,
+              })
+            }
           }
           onRemoveAll={() =>
             queryParams({
@@ -758,10 +736,8 @@ export default function Toggle({
               scroll: false,
             })
           }
-          onSelect={(key) => {
-            setIsToggleOpen(true);
-            setSelectedToggleFilterKey(key);
-          }}
+          onSelect={onFilterSelect}
+          isOptionDropdown
         />
         <div
           className={cn(

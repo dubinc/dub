@@ -17,6 +17,8 @@ import { NextRequest, NextResponse } from "next/server";
  */
 export async function GET(req: NextRequest) {
   try {
+    console.log('autologin route');
+
     const url = new URL(req.url);
     const token = url.searchParams.get("token");
     const redirectUrl = url.searchParams.get("redirect") || "/";
@@ -39,6 +41,8 @@ export async function GET(req: NextRequest) {
 
     // Verify the JWT token
     const session = await verifyServerAuthJWT(token);
+
+    console.log("session", session);
 
     if (!session) {
       return NextResponse.json(

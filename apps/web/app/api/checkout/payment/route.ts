@@ -70,6 +70,15 @@ export const POST = withSession(
       user: cookieUser,
     });
 
+    const { isCancelled, isDunning, isScheduledForCancellation } =
+      await paymentService.checkClientSubscriptionStatus({
+        email: user.email,
+      });
+
+    const isInternalPayment =
+      (isCancelled || isDunning || isScheduledForCancellation) &&
+      paymentData?.paymentInfo?.subscriptionPlanCode === body.paymentPlan;
+
     const metadata: { [key: string]: string | number | null } = {
       ...body.metadata,
 
@@ -78,7 +87,7 @@ export const POST = withSession(
 
       //**** for analytics ****//
       email: user.email || null,
-      flow_type: "upgrade",
+      flow_type: isInternalPayment ? "internal" : "upgrade",
       locale: "en",
       mixpanel_user_id:
         user.id || cookieStore.get(ECookieArg.SESSION_ID)?.value || null,

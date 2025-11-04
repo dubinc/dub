@@ -5,6 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Session } from "@/lib/auth";
 import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
+import { Button, useRouterStuff } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import Link from "next/link";
@@ -16,16 +17,14 @@ interface IHeaderProps {
   authSession: Session;
 }
 
-export const Header: FC<Readonly<IHeaderProps>> = ({
-  sessionId,
-  authSession,
-}) => {
-  const { AuthModal, showModal } = useAuthModal({ sessionId });
+export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) => {
+  const { AuthModal, showModal, setShowAuthModal } = useAuthModal({ sessionId });
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { queryParams } = useRouterStuff();
 
   const openLogin = searchParams.get("login");
-  const scrollToBuilder = searchParams.get("start");
+  const isFromPaywall = searchParams.get("source") === "paywall";
 
   useEffect(() => {
     if (openLogin) {
@@ -54,9 +53,14 @@ export const Header: FC<Readonly<IHeaderProps>> = ({
     router.push("/?start=true");
   }, [router, sessionId]);
 
+  const scrollToBuilder = searchParams.get("start");
   useEffect(() => {
     if (scrollToBuilder) {
+      setShowAuthModal(false);
       handleScrollToQRGenerationBlock();
+      queryParams({
+        del: ["start"],
+      });
     }
   }, [scrollToBuilder, handleScrollToQRGenerationBlock]);
 
@@ -79,18 +83,21 @@ export const Header: FC<Readonly<IHeaderProps>> = ({
           <div className="flex items-center gap-4 md:gap-6">
             {!authSession?.user ? (
               <>
-                <Button
-                  variant="ghost"
-                  onClick={handleOpenLogin}
-                  className="hover:text-secondary p-0 text-base font-medium text-neutral-200 transition-colors duration-300 hover:bg-transparent"
-                  size="lg"
-                >
-                  Log In
-                </Button>
+                {!isFromPaywall && (
+                  <Button
+                    variant="ghost"
+                    onClick={handleOpenLogin}
+                    className="hover:text-secondary p-0 text-base font-medium text-neutral-200 transition-colors duration-300 hover:bg-transparent"
+                    size="lg"
+                  >
+                    Log In
+                  </Button>
+                )}
                 <Separator
                   orientation="vertical"
                   className="!h-6 max-md:hidden"
                 />
+
                 <Button
                   onClick={handleScrollToQRGenerationBlock}
                   className="bg-secondary hover:bg-secondary/90 hidden sm:inline-flex"

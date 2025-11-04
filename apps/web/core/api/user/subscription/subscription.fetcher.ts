@@ -1,5 +1,6 @@
 import { apiInstance } from "../../../lib/rest-api";
 import {
+  ICancelSubscriptionScheduleRes,
   ICheckSubscriptionStatusRes,
   ICreateSubscriptionBody,
   ICreateSubscriptionRes,
@@ -43,6 +44,13 @@ export const updateSubscriptionPaymentMethod = async (
 ) => {
   const res = await apiInstance.post<IUpdateSubscriptionPaymentMethodRes>(url, {
     json: arg,
+    throwHttpErrors: false,
+  });
+  return await res.json();
+};
+
+export const cancelSubscriptionScheduleFetcher = async (url: string) => {
+  const res = await apiInstance.post<ICancelSubscriptionScheduleRes>(url, {
     throwHttpErrors: false,
   });
   return await res.json();

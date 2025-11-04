@@ -21,6 +21,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { FC, useMemo, useRef, useState } from "react";
 import { MOCK_QR } from "../constants/mock-qr";
+import { APP_DOMAIN } from '@dub/utils';
 
 const FEATURES = [
   "Download your QR code in PNG, JPG, or SVG",
@@ -45,7 +46,7 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
   const { isMobile } = useMediaQuery();
 
   const [clientToken, setClientToken] = useState<string | null>(null);
-  const [signupMethod, setSignupMethod] = useLocalStorage<
+  const [signupMethod] = useLocalStorage<
     "email" | "google" | null
   >("signup-method", null);
 
@@ -55,9 +56,7 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
       ? ({
           ...firstQr,
           link: {
-            shortLink: process.env.NEXT_PUBLIC_APP_DOMAIN
-              ? `${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-              : "http://localhost:8888",
+            shortLink: APP_DOMAIN,
           },
         } as QRBuilderData)
       : MOCK_QR;
@@ -88,7 +87,6 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
           page_name: "paywall",
           auth_type: "signup",
           auth_method: signupMethod ?? "email",
-          auth_origin: "qr",
           email: user?.email,
           event_category: "nonAuthorized",
           error_code: errorCode,
@@ -125,7 +123,6 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
         page_name: "dashboard",
         auth_type: "signup",
         auth_method: signupMethod ?? "email",
-        auth_origin: "qr",
         email: user?.email,
         event_category: "Authorized",
       },
@@ -148,6 +145,24 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
         "error",
       );
     }
+  };
+
+  const onSignupError = (error: any) => {
+    const errorCode = error?.code || null;
+    const errorMessage = error?.message || null;
+
+    trackClientEvents({
+      event: EAnalyticEvents.AUTH_ERROR,
+      params: {
+        page_name: "paywall",
+          auth_type: "signup",
+          auth_method: signupMethod ?? "email",
+          email: user?.email,
+          event_category: "nonAuthorized",
+          error_code: errorCode,
+          error_message: errorMessage,
+      },
+    });
   };
 
   return (
@@ -245,6 +260,7 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
               }}
               onSubscriptionCreating={onSubscriptionCreating}
               onSubcriptionCreated={onSubcriptionCreated}
+              onSignupError={onSignupError}
             />
           )}
         </div>

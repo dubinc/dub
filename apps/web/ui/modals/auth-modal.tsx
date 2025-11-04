@@ -262,6 +262,7 @@ export function useAuthModal({ sessionId }: { sessionId: string }) {
     () => ({
       AuthModal: AuthModalCallback,
       showModal,
+      setShowAuthModal,
     }),
     [AuthModalCallback, showModal],
   );

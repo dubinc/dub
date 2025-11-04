@@ -1,9 +1,11 @@
-import { cn, truncate } from "@dub/utils";
+import { cn } from "@dub/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import { ReactNode, isValidElement } from "react";
 import { AnimatedSizeContainer } from "../animated-size-container";
 import { useKeyboardShortcut } from "../hooks";
+import { FilterOptionContent } from "./filter-option-content";
+import { FilterSelect } from "./filter-select";
 import { Filter, FilterOption } from "./types";
 
 type FilterListProps = {
@@ -14,7 +16,8 @@ type FilterListProps = {
   }[];
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onRemoveAll: () => void;
-  onSelect?: (arg1: Filter["key"]) => void;
+  onSelect?: (key: Filter["key"], value: any) => void;
+  isOptionDropdown?: boolean;
   className?: string;
 };
 
@@ -24,9 +27,11 @@ export function FilterList({
   onRemove,
   onRemoveAll,
   onSelect,
+  isOptionDropdown,
   className,
 }: FilterListProps) {
   useKeyboardShortcut("Escape", onRemoveAll, { priority: 1 });
+
   return (
     <AnimatedSizeContainer
       height
@@ -91,7 +96,6 @@ export function FilterList({
                     initial={{ opacity: 0, y: 4 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="flex items-center divide-x rounded-md border border-neutral-200 bg-white text-sm text-black"
-                    onClick={() => onSelect?.(filter.key)}
                   >
                     {/* Filter */}
                     <div className="flex items-center gap-2.5 px-3 py-2">
@@ -109,23 +113,28 @@ export function FilterList({
                     <div className="px-3 py-2 text-neutral-500">is</div>
 
                     {/* Option */}
-                    <div className="flex items-center gap-2.5 px-3 py-2">
-                      {filter.options ? (
-                        <>
-                          <span className="shrink-0 text-neutral-600">
-                            {isReactNode(OptionIcon) ? (
-                              OptionIcon
-                            ) : (
-                              <OptionIcon className="h-4 w-4" />
-                            )}
-                          </span>
-                          {truncate(optionLabel, 30)}
-                        </>
-                      ) : (
-                        <div className="h-5 w-12 animate-pulse rounded-md bg-neutral-200" />
-                      )}
-                    </div>
-
+                    {isOptionDropdown && onSelect ? (
+                      <FilterSelect
+                        filters={filters}
+                        activeFilters={activeFilters}
+                        onSelect={onSelect}
+                        onRemove={onRemove}
+                        defaultSelectedFilterKey={filter.key}
+                        hideIcons
+                      >
+                        <FilterOptionContent
+                          filter={filter}
+                          optionLabel={optionLabel}
+                          OptionIcon={OptionIcon}
+                        />
+                      </FilterSelect>
+                    ) : (
+                      <FilterOptionContent
+                        filter={filter}
+                        optionLabel={optionLabel}
+                        OptionIcon={OptionIcon}
+                      />
+                    )}
                     {/* Remove */}
                     <button
                       type="button"

@@ -61,7 +61,7 @@ export const CustomGoogleButton = ({
             event_category: "nonAuthorized",
             error_code: "google-userinfo-failed",
             error_message:
-              error instanceof Error ? error.message : "Unknown error",
+              error instanceof Error ? error.message : "Error getting user info",
           },
           sessionId,
         });
@@ -74,9 +74,6 @@ export const CustomGoogleButton = ({
       }
     },
     onError: (error) => {
-      console.error("Google login error:", error);
-
-      // Трекинг ошибки авторизации
       trackClientEvents({
         event: EAnalyticEvents.AUTH_ERROR,
         params: {
@@ -84,8 +81,8 @@ export const CustomGoogleButton = ({
           auth_type: "signup",
           auth_method: "google",
           event_category: "nonAuthorized",
-          error_code: "google-login-failed",
-          error_message: "Google login failed",
+          error_code: "google-email-getting-failed",
+          error_message: "Google signup failed",
         },
         sessionId,
       });
@@ -103,7 +100,7 @@ export const CustomGoogleButton = ({
       params: {
         page_name: "landing",
         element_name: "signup",
-        content_value: "google_custom",
+        content_value: "google",
         event_category: "nonAuthorized",
       },
       sessionId,
