@@ -41,8 +41,10 @@ interface ProcessPayoutsProps {
   >;
   program: Pick<
     Program,
-    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail" | "payoutMode"
-  >;
+    "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail"
+  > & {
+    payoutMode: "internal" | "hybrid" | "external";
+  };
   userId: string;
   invoiceId: string;
   paymentMethodId: string;
@@ -383,6 +385,11 @@ export async function processPayouts({
               id: program.id,
               name: program.name,
               logo: program.logo,
+              payoutMode: program.payoutMode as
+                | "internal"
+                | "hybrid"
+                | "external"
+                | undefined,
             },
             payout: {
               id: payout.id,
