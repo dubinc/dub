@@ -9,9 +9,9 @@ const stripeChargeMetadataSchema = z.object({
 });
 
 export async function queueStripePayouts(
-  invoice: Pick<Invoice, "id" | "stripeChargeMetadata">,
+  invoice: Pick<Invoice, "id" | "paymentMethod" | "stripeChargeMetadata">,
 ) {
-  const { id: invoiceId, stripeChargeMetadata } = invoice;
+  const { id: invoiceId, paymentMethod, stripeChargeMetadata } = invoice;
 
   // Find the id of the charge that was used to fund the transfer
   const parsedChargeMetadata =
@@ -51,7 +51,11 @@ export async function queueStripePayouts(
       body: {
         invoiceId,
         partnerId,
-        chargeId,
+        // only pass chargeId if payment method is card
+        // this is because we're passing chargeId as source_transaction for card payouts since card payouts can take a short time to settle fully
+        // we omit chargeId/source_transaction for other payment methods (ACH, SEPA, etc.) since those settle via charge.succeeded webhook after ~4 days
+        // x-slack-ref: https://dub.slack.com/archives/C074P7LMV9C/p1758776038825219?thread_ts=1758769780.982089&cid=C074P7LMV9C
+        ...(paymentMethod === "card" && { chargeId }),
       },
     });
     console.log(
