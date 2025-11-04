@@ -21,7 +21,7 @@ interface IFaqSectionProps {
 
 export const FAQSection: FC<IFaqSectionProps> = ({ faqItems }) => {
   return (
-    <section className="py-10 lg:py-14">
+    <section className="py-6 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         {/* FAQ Header */}
         <div className="mb-12 flex flex-col items-center justify-center gap-3">
@@ -38,7 +38,7 @@ export const FAQSection: FC<IFaqSectionProps> = ({ faqItems }) => {
         <Accordion type="single" collapsible className="w-full">
           {faqItems.map((item, index) => (
             <AccordionItem key={index} value={`item-${index}`}>
-              <AccordionTrigger className="text-lg">
+              <AccordionTrigger className="text-left text-lg">
                 {item.title}
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">

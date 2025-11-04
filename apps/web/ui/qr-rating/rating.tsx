@@ -39,7 +39,7 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
       >
         <div className="flex flex-col items-center gap-3 sm:flex-row">
           <AvatarGroup />
-          <div className="flex flex-col items-center gap-2 sm:items-start">
+          <div className="flex flex-col items-center gap-1 sm:items-start">
             <Text
               as="span"
               size="4"
@@ -50,11 +50,11 @@ export const Rating: FC<IRatingProps> = ({ alignItems = "center" }) => {
             </Text>
             <Text
               as="span"
-              size="3"
+              size="2"
               weight="regular"
               className="text-muted-foreground text-center"
             >
-              Their QR codes have been scanned{" "}
+              Their QR codes are scanned{" "}
               <strong className="tabular-nums font-semibold">
                 <NumberFlow value={scans} />
               </strong>{" "}

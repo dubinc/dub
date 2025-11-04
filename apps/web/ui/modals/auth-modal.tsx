@@ -104,7 +104,7 @@ export function AuthModal({
   return (
     <Dialog.Root open={showAuthModal} onOpenChange={handleOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-neutral-100 bg-opacity-10 backdrop-blur" />
+        <Dialog.Overlay className="fixed inset-0 z-[10000] bg-neutral-100 bg-opacity-10 backdrop-blur" />
         <Dialog.Content
           onPointerDownOutside={(e) => {
             e.preventDefault();
@@ -112,7 +112,7 @@ export function AuthModal({
           onEscapeKeyDown={(e) => {
             e.preventDefault();
           }}
-          className="border-border-500 fixed left-[50%] top-[50%] z-50 flex w-[90%] max-w-[420px] -translate-x-[50%] -translate-y-[50%] flex-col overflow-hidden rounded-xl border bg-neutral-50 p-0 pt-4 shadow-xl focus:outline-none"
+          className="border-border-500 fixed left-[50%] top-[50%] z-[10001] flex w-[90%] max-w-[420px] -translate-x-[50%] -translate-y-[50%] flex-col overflow-hidden rounded-xl border bg-neutral-50 p-0 pt-4 shadow-xl focus:outline-none"
         >
           {/* Decorative gradient background */}
           <div className="to-primary/10 pointer-events-none absolute top-0 h-52 w-full rounded-t-xl bg-gradient-to-t from-transparent" />

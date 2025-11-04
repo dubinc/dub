@@ -27,7 +27,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
   );
 
   return (
-    <div className="max-w-7xl w-full mx-auto max-w-7xl px-0 sm:px-6 lg:px-8 grid grid-cols-2 gap-3 md:gap-6 lg:grid-cols-3">
+    <div className="max-w-7xl w-full mx-auto max-w-7xl px-0 sm:px-6 lg:px-8 grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-6 lg:grid-cols-3">
       {filteredQrTypes.map((type, idx) => {
         const isSelected = selectedQRType === type.id;
 
@@ -36,7 +36,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
             key={type.id}
             className={cn(
               "qr-type-card group relative cursor-pointer overflow-hidden rounded-xl transition-all duration-300 ease-in-out",
-              "border-secondary/20 hover:border-primary border shadow",
+              "border-secondary/20 hover:border-primary border-2 shadow",
               // isSelected && "border-pr",
             )}
             onClick={() => onSelect(type.id)}
@@ -69,7 +69,7 @@ export const QrTypeSelection: FC<QrTypeSelectionProps> = ({
               </h3>
               <div className="flex w-full items-center justify-between gap-2 md:gap-3">
                 <p className="text-muted-foreground text-xs leading-relaxed md:text-sm">{type.info}</p>
-                <ArrowRight className="text-primary size-4 shrink-0 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-110 md:size-7" />
+                <ArrowRight className="text-primary size-4 shrink-0 transition-all duration-300 group-hover:translate-x-1 group-hover:scale-[1.4] md:size-7" />
               </div>
             </div>
           </div>

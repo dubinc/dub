@@ -19,9 +19,9 @@ export const CTASection: FC<ICTASectionProps> = ({
   handleScrollButtonClick,
 }) => {
   return (
-    <section className="relative py-10 lg:py-14">
+    <section className="relative py-6 lg:py-14">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Card className="group relative overflow-hidden rounded-3xl border-2 shadow-2xl">
+        <Card className="group relative overflow-hidden rounded-3xl border-2 shadow pt-6">
           {/* Animated gradient background */}
           <div className="from-background to-muted/30 absolute inset-0 bg-gradient-to-br" />
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#8080800a_1px,transparent_1px),linear-gradient(to_bottom,#8080800a_1px,transparent_1px)] bg-[size:14px_24px]" />
@@ -30,7 +30,7 @@ export const CTASection: FC<ICTASectionProps> = ({
           <div className="bg-primary/10 absolute -right-20 -top-20 h-72 w-72 animate-pulse rounded-full blur-3xl" />
           <div className="bg-secondary/10 absolute -bottom-20 -left-20 h-72 w-72 animate-pulse rounded-full blur-3xl delay-700" />
 
-          <CardContent className="relative flex items-center gap-8 px-6 py-12 sm:max-lg:flex-col md:gap-16 md:px-12 lg:py-14">
+          <CardContent className="relative flex items-center gap-8 px-6 sm:max-lg:flex-col md:gap-16 md:px-12 lg:py-14">
             {/* Images Section */}
             <MotionPreset
               className="relative w-full max-sm:hidden"
@@ -53,10 +53,10 @@ export const CTASection: FC<ICTASectionProps> = ({
               <div className="flex gap-3 max-lg:mx-auto max-lg:max-h-80 lg:absolute lg:-translate-y-1/2 lg:scale-105">
                 {/* First Image - Higher with sparkle */}
                 <div className="relative">
-                  <div className="absolute -right-2 -top-2 z-10 rounded-full bg-gradient-to-br from-blue-500/80 to-blue-600/80 p-1.5 shadow-lg">
+                  <div className="absolute -right-2 -top-2 z-10 rounded-full bg-gradient-to-br from-blue-500/80 to-blue-600/80 p-1.5 shadow-sm">
                     <Sparkles className="h-4 w-4 text-white" />
                   </div>
-                  <div className="bg-card relative w-32 -translate-y-4 overflow-hidden rounded-2xl border-2 border-gray-200 p-2 shadow-2xl backdrop-blur-sm transition-transform duration-300 hover:scale-105 sm:w-40">
+                  <div className="bg-card relative w-32 -translate-y-4 overflow-hidden rounded-2xl border-2 border-gray-200 p-2 shadow backdrop-blur-sm transition-transform duration-300 hover:scale-105 sm:w-40">
                     <Image
                       src={WebsiteQR}
                       alt="Website QR Code"

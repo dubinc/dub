@@ -3,7 +3,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { NumberTicker } from "@/components/ui/number-ticker";
 import { SectionTitle } from "@/ui/landing/components/section-title.tsx";
 import { cn } from "@dub/utils";
 import { CheckIcon } from "lucide-react";
@@ -14,16 +13,16 @@ interface IPricingSectionProps {
   handleScrollButtonClick: (type: "1" | "2" | "3") => void;
 }
 
-const extractPrice = (planText: string): number => {
+const extractPrice = (planText: string): string => {
   const match = planText.match(/\$(\d+\.?\d*)/);
-  return match ? parseFloat(match[1]) : 0;
+  return match ? match[1] : "0";
 };
 
 export const PricingSection: FC<IPricingSectionProps> = ({
   handleScrollButtonClick,
 }) => {
   return (
-    <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+    <section className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 lg:py-14">
       <div className="mb-12 flex flex-col items-center justify-center gap-3">
         <SectionTitle
           titleFirstPart={"Start 7-Day Trial Today, Upgrade when"}
@@ -56,11 +55,9 @@ export const PricingSection: FC<IPricingSectionProps> = ({
 
                   <div className="mb-2 flex items-end gap-1">
                     <span className="text-muted-foreground text-lg">$</span>
-                    <NumberTicker
-                      value={extractPrice(plan.plan)}
-                      className="text-card-foreground text-5xl font-bold leading-none"
-                      decimalPlaces={2}
-                    />
+                    <span className="text-card-foreground text-5xl font-bold leading-none">
+                      {extractPrice(plan.plan)}
+                    </span>
                     <span className="text-muted-foreground pb-1 text-lg">
                       /{plan.plan.split("/")[1]}
                     </span>
