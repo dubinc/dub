@@ -17,6 +17,7 @@ model Payout {
   amount           Int          @default(0)
   currency         String       @default("USD")
   status           PayoutStatus @default(pending)
+  payoutMode       PayoutMode?
   description      String?
   periodStart      DateTime?
   periodEnd        DateTime?

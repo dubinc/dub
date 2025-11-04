@@ -91,11 +91,12 @@ export const confirmPayoutsAction = authActionClient
       const webhooks = await getWebhooks({
         workspaceId: workspace.id,
         triggers: ["payout.confirmed"],
+        disabled: false,
       });
 
       if (webhooks.length === 0) {
         throw new Error(
-          "A webhook need to be set up receive payout confirmation notification for external payouts before you can confirm payouts.",
+          `External payout routing requires an active webhook subscribed to the "payout.confirmed" trigger. Please configure one before confirming payouts.`,
         );
       }
     }
@@ -144,6 +145,7 @@ export const confirmPayoutsAction = authActionClient
           paymentMethod: fastSettlement
             ? "ach_fast"
             : STRIPE_PAYMENT_METHOD_NORMALIZATION[paymentMethod.type],
+          payoutMode: program.payoutMode,
         },
       });
     });

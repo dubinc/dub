@@ -24,6 +24,7 @@ model Invoice {
   number               String?        @unique // This starts with the customer's unique invoicePrefix
   status               InvoiceStatus  @default(processing)
   type                 InvoiceType    @default(partnerPayout)
+  payoutMode           PayoutMode?
   paymentMethod        PaymentMethod?
   amount               Int            @default(0) // amount in usd cents
   fee                  Int            @default(0) // fee in usd cents

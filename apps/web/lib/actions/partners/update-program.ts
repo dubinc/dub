@@ -63,7 +63,7 @@ export const updateProgramAction = authActionClient
 
       if (webhooksForPayoutConfirmed.length === 0) {
         throw new Error(
-          "WEBHOOK_REQUIRED: An active webhook with 'payout.confirmed' event is required when using external payout routing. Please add a webhook with this event before enabling external payout routing.",
+          `WEBHOOK_REQUIRED: External payout routing requires an active webhook subscribed to the "payout.confirmed" trigger. Please configure one before enabling this option.`,
         );
       }
     }

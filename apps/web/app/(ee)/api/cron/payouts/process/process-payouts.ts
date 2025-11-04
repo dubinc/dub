@@ -115,14 +115,20 @@ export async function processPayouts({
     return;
   }
 
+  let invoice = await prisma.invoice.findUniqueOrThrow({
+    where: {
+      id: invoiceId,
+    },
+  });
+
   let externalPayouts: Pick<Payout, "id" | "amount">[] = [];
   let internalPayouts: Pick<Payout, "id" | "amount">[] = [];
 
-  if (program.payoutMode === "internal") {
+  if (invoice.payoutMode === "internal") {
     internalPayouts = payouts;
-  } else if (program.payoutMode === "external") {
+  } else if (invoice.payoutMode === "external") {
     externalPayouts = payouts;
-  } else if (program.payoutMode === "hybrid") {
+  } else if (invoice.payoutMode === "hybrid") {
     payouts.forEach((payout) => {
       if (
         isPayoutExternalForProgram({
@@ -189,11 +195,7 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
-  let invoice = await prisma.invoice.findUniqueOrThrow({
-    where: {
-      id: invoiceId,
-    },
-  });
+
 
   const fastAchFee =
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
