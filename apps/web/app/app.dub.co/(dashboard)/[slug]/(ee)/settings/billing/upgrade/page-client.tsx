@@ -15,13 +15,22 @@ import {
   ToggleGroup,
   Users2,
 } from "@dub/ui";
-import { cn, isDowngradePlan, PLAN_COMPARE_FEATURES, PLANS } from "@dub/utils";
+import {
+  cn,
+  getSuggestedPlan,
+  isDowngradePlan,
+  Plan,
+  PLAN_COMPARE_FEATURES,
+  PLANS,
+  PlanWithTier,
+} from "@dub/utils";
 import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CSSProperties, useEffect, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useState } from "react";
+import { AdjustUsageRow } from "./adjust-usage-row";
 
 const COMPARE_FEATURE_ICONS: Record<
   (typeof PLAN_COMPARE_FEATURES)[number]["category"],
@@ -36,12 +45,14 @@ const COMPARE_FEATURE_ICONS: Record<
   API: Plug2,
 };
 
-const plans = ["Pro", "Business", "Advanced", "Enterprise"].map(
-  (p) => PLANS.find(({ name }) => name === p)!,
-);
-
 export function WorkspaceBillingUpgradePageClient() {
-  const { slug, plan: currentPlan, stripeId, payoutsLimit } = useWorkspace();
+  const {
+    slug,
+    plan: currentPlan,
+    planTier: currentPlanTier,
+    stripeId,
+    payoutsLimit,
+  } = useWorkspace();
 
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
   const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
@@ -57,6 +68,25 @@ export function WorkspaceBillingUpgradePageClient() {
       setShowPartnersUpgradeModal(true);
     }
   }, [searchParams]);
+
+  const [eventsUsage, setEventsUsage] = useState<number | null>(null);
+  const [linksUsage, setLinksUsage] = useState<number | null>(null);
+
+  const recommendedPlan = useMemo(() => {
+    if (!eventsUsage || !linksUsage) return null;
+
+    return getSuggestedPlan({ events: eventsUsage, links: linksUsage });
+  }, [linksUsage, eventsUsage]);
+
+  const plans: (Plan | PlanWithTier)[] = useMemo(
+    () =>
+      ["Pro", "Business", "Advanced", "Enterprise"].map((p) =>
+        p === recommendedPlan?.name
+          ? recommendedPlan
+          : PLANS.find(({ name }) => name === p)!,
+      ),
+    [recommendedPlan],
+  );
 
   return (
     <div>
@@ -113,6 +143,9 @@ export function WorkspaceBillingUpgradePageClient() {
                 const disableCurrentPlan = Boolean(
                   stripeId &&
                     plan.name.toLowerCase() === currentPlan &&
+                    ("tier" in plan
+                      ? (plan.tier ?? 0) === (currentPlanTier ?? 0)
+                      : true) &&
                     !isLegacyBusinessPlan({
                       plan: currentPlan,
                       payoutsLimit,
@@ -124,7 +157,9 @@ export function WorkspaceBillingUpgradePageClient() {
                   stripeId &&
                     isDowngradePlan({
                       currentPlan: currentPlan || "free",
+                      currentTier: currentPlanTier ?? 0,
                       newPlan: plan.name,
+                      newTier: "tier" in plan ? plan.tier : 0,
                     }),
                 );
 
@@ -132,16 +167,24 @@ export function WorkspaceBillingUpgradePageClient() {
                   <div
                     key={plan.name}
                     className={cn(
-                      "relative top-0 flex h-full flex-col gap-6 bg-white p-5",
+                      "relative top-0 flex h-full flex-col gap-6 bg-white p-5 lg:p-3 xl:p-5",
                       "max-lg:rounded-xl max-lg:border max-lg:border-neutral-200",
 
                       idx !== mobilePlanIndex && "max-lg:opacity-0",
                     )}
                   >
                     <div>
-                      <h3 className="py-1 text-base font-semibold leading-none text-neutral-800">
-                        {plan.name}
-                      </h3>
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="py-1 text-base font-semibold leading-none text-neutral-800">
+                          {plan.name}
+                        </h3>
+                        {plan.name === recommendedPlan?.name &&
+                          !disableCurrentPlan && (
+                            <div className="animate-fade-in flex h-6 min-w-0 items-center rounded-lg border border-blue-100 bg-blue-50 px-1.5 text-xs font-medium text-blue-600">
+                              <span className="truncate">Recommended</span>
+                            </div>
+                          )}
+                      </div>
                       <div className="relative mt-0.5 flex items-center gap-1">
                         {plan.name === "Enterprise" ? (
                           <span className="text-sm font-medium text-neutral-900">
@@ -192,6 +235,7 @@ export function WorkspaceBillingUpgradePageClient() {
                       ) : (
                         <UpgradePlanButton
                           plan={plan.name.toLowerCase()}
+                          tier={"tier" in plan ? plan.tier : undefined}
                           period={period}
                           disabled={disableCurrentPlan}
                           text={
@@ -219,6 +263,16 @@ export function WorkspaceBillingUpgradePageClient() {
               })}
             </div>
           </div>
+
+          <div className="relative -z-10 bg-white">
+            <div className="bg-bg-muted border-subtle absolute inset-x-0 -top-2.5 bottom-0 rounded-b-[12px] border" />
+
+            <AdjustUsageRow
+              onLinksUsageChange={(value) => setLinksUsage(value)}
+              onEventsUsageChange={(value) => setEventsUsage(value)}
+            />
+          </div>
+
           <div className="h-8 bg-gradient-to-b from-white" />
         </div>
         <div className="flex flex-col gap-8 pb-12">

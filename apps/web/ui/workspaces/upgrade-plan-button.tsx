@@ -16,7 +16,7 @@ export function UpgradePlanButton({
   ...rest
 }: {
   plan: string;
-  tier: number;
+  tier?: number;
   period: "monthly" | "yearly";
 } & Partial<ButtonProps>) {
   const router = useRouter();
