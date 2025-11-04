@@ -13,6 +13,7 @@ import { X } from "@/ui/shared/icons";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
+  CircleArrowRight,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -31,7 +32,6 @@ import {
   pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
-import { CircleArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
 import useSWR from "swr";

@@ -21,6 +21,7 @@ import { X } from "@/ui/shared/icons";
 import {
   Button,
   buttonVariants,
+  CircleArrowRight,
   Combobox,
   ComboboxOption,
   DynamicTooltipWrapper,
@@ -43,7 +44,6 @@ import {
   nFormatter,
   truncate,
 } from "@dub/utils";
-import { CircleArrowRight } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";

@@ -20,14 +20,13 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { InvoiceDollar, MoneyBill2 } from "@dub/ui/icons";
+import { CircleArrowRight, InvoiceDollar, MoneyBill2 } from "@dub/ui/icons";
 import {
   OG_AVATAR_URL,
   currencyFormatter,
   formatDate,
   formatPeriod,
 } from "@dub/utils";
-import { CircleArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./partner-payout-details-sheet";

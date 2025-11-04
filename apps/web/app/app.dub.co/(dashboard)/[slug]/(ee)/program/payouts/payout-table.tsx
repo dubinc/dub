@@ -21,7 +21,7 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { MoneyBill2 } from "@dub/ui/icons";
+import { CircleArrowRight, MoneyBill2 } from "@dub/ui/icons";
 import {
   currencyFormatter,
   formatDate,
@@ -31,7 +31,6 @@ import {
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
 import { fetcher } from "@dub/utils/src/functions/fetcher";
 import { PayoutDetailsSheet } from "app/app.dub.co/(dashboard)/[slug]/(ee)/program/payouts/payout-details-sheet";
-import { CircleArrowRight } from "lucide-react";
 import { useParams } from "next/navigation";
 import { memo, useEffect, useState } from "react";
 import useSWR from "swr";
