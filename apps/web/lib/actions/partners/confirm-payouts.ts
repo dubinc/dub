@@ -2,6 +2,7 @@
 
 import { createId } from "@/lib/api/create-id";
 import { exceededLimitError } from "@/lib/api/errors";
+import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { qstash } from "@/lib/cron";
 import {
   PAYMENT_METHOD_TYPES,
@@ -9,6 +10,7 @@ import {
 } from "@/lib/partners/constants";
 import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { stripe } from "@/lib/stripe";
+import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { z } from "zod";
@@ -42,9 +44,16 @@ export const confirmPayoutsAction = authActionClient
       total,
     } = parsedInput;
 
-    if (!workspace.defaultProgramId) {
-      throw new Error("Workspace does not have a default program.");
-    }
+    const programId = getDefaultProgramIdOrThrow(workspace);
+
+    const program = await prisma.program.findUniqueOrThrow({
+      where: {
+        id: programId,
+      },
+      select: {
+        payoutMode: true,
+      },
+    });
 
     if (workspace.role !== "owner") {
       throw new Error("Only workspace owners can confirm payouts.");
@@ -76,6 +85,21 @@ export const confirmPayoutsAction = authActionClient
       throw new Error(
         "Your payout total is less than the minimum invoice amount of $10.",
       );
+    }
+
+    // TODO:
+    // Do this only when there are external payouts exists in the current invoice
+    if (program.payoutMode !== "internal") {
+      const webhooks = await getWebhooks({
+        workspaceId: workspace.id,
+        triggers: ["payout.confirmed"],
+      });
+
+      if (webhooks.length === 0) {
+        throw new Error(
+          `A webhook need to be set up receive payout confirmation notification for external payouts before you can confirm payouts.`,
+        );
+      }
     }
 
     const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);

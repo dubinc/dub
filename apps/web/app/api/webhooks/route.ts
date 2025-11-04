@@ -4,6 +4,7 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { webhookCache } from "@/lib/webhook/cache";
 import { createWebhook } from "@/lib/webhook/create-webhook";
+import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import {
@@ -23,24 +24,8 @@ import { NextResponse } from "next/server";
 // GET /api/webhooks - get all webhooks for the given workspace
 export const GET = withWorkspace(
   async ({ workspace }) => {
-    const webhooks = await prisma.webhook.findMany({
-      where: {
-        projectId: workspace.id,
-      },
-      select: {
-        id: true,
-        name: true,
-        url: true,
-        secret: true,
-        triggers: true,
-        disabledAt: true,
-        links: true,
-        receiver: true,
-        installationId: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
+    const webhooks = await getWebhooks({
+      workspaceId: workspace.id,
     });
 
     return NextResponse.json(webhooks.map(transformWebhook));

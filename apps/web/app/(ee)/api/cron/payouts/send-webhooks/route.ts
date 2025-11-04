@@ -9,6 +9,8 @@ import { logAndRespond } from "../../utils";
 
 export const dynamic = "force-dynamic";
 
+export const maxDuration = 600;
+
 const payloadSchema = z.object({
   invoiceId: z.string(),
   externalPayoutIds: z.array(z.string()),
@@ -51,7 +53,7 @@ export async function POST(req: Request) {
       );
     }
 
-    const externalPayouts = await prisma.payout.findMany({
+    const payouts = await prisma.payout.findMany({
       where: {
         id: {
           in: externalPayoutIds,
@@ -74,7 +76,7 @@ export async function POST(req: Request) {
       },
     });
 
-    if (externalPayouts.length === 0) {
+    if (payouts.length === 0) {
       return logAndRespond(
         `No external payouts found for invoice ${invoiceId}. Skipping...`,
       );
@@ -101,13 +103,13 @@ export async function POST(req: Request) {
       );
     }
 
-    for (const externalPayout of externalPayouts) {
+    for (const payout of payouts) {
       const data = payoutWebhookEventSchema.parse({
-        ...externalPayout,
+        ...payout,
         external: true,
         partner: {
-          ...externalPayout.partner,
-          ...externalPayout.partner.programs[0],
+          ...payout.partner,
+          ...payout.partner.programs[0],
         },
       });
 
@@ -123,9 +125,7 @@ export async function POST(req: Request) {
       }
     }
 
-    return new Response(
-      `Webhooks published for ${externalPayouts.length} payouts.`,
-    );
+    return new Response(`Webhooks published for ${payouts.length} payouts.`);
   } catch (error) {
     await log({
       message: `Error sending "payout.confirmed" webhooks: ${error.message}`,

@@ -1,3 +1,4 @@
+import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -13,7 +14,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const { partnerId, groupBy, eligibility, status, invoiceId } =
     payoutsCountQuerySchema.parse(searchParams);
 
-  const { minPayoutAmount } = await getProgramOrThrow({
+  const program = await getProgramOrThrow({
     workspaceId: workspace.id,
     programId,
   });
@@ -22,14 +23,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     programId,
     ...(partnerId && { partnerId }),
     ...(eligibility === "eligible" && {
-      amount: {
-        gte: minPayoutAmount,
-      },
-      partner: {
-        payoutsEnabledAt: {
-          not: null,
-        },
-      },
+      ...getPayoutEligibilityFilter(program),
     }),
     ...(invoiceId && { invoiceId }),
   };
