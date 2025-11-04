@@ -55,7 +55,10 @@ export const BaseFormField = ({
 
   const { control, register, setValue, trigger } = useFormContext();
 
-  const isUrlField = type === "url" || name.toLowerCase().includes("link") || name.toLowerCase().includes("url");
+  const isUrlField =
+    type === "url" ||
+    name.toLowerCase().includes("link") ||
+    name.toLowerCase().includes("url");
 
   const handleUrlBlur = async (
     e: React.FocusEvent<HTMLInputElement>,
@@ -112,7 +115,7 @@ export const BaseFormField = ({
           "has-[[data-slot=input-group-control]:focus-visible]:!border-secondary has-[[data-slot=input-group-control]:focus-visible]:ring-0",
           {
             "border-red-500": error,
-          }
+          },
         )}
       >
         {type === "textarea" ? (
@@ -148,13 +151,12 @@ export const BaseFormField = ({
                 className={cn({
                   "border-red-500": error,
                 })}
-           
                 onFocus={(e) => {
                   if (initFromPlaceholder && !e.target.value && placeholder) {
                     field.onChange(placeholder);
                   }
                 }}
-                 onBlur={(e) => {
+                onBlur={(e) => {
                   field.onBlur();
                   if (isUrlField) {
                     handleUrlBlur(e, field.onChange);

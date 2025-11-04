@@ -87,7 +87,7 @@ export const PricingSection: FC<IPricingSectionProps> = ({
                 <div className="mt-auto">
                   {plan.withButton ? (
                     <Button
-                      className="bg-secondary hover:bg-secondary/90 w-full"
+                      className="bg-secondary hover:bg-secondary/90 w-full text-white"
                       size="lg"
                       onClick={() => handleScrollButtonClick("3")}
                     >

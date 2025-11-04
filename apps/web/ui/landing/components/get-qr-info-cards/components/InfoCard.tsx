@@ -167,7 +167,7 @@ export const InfoCard: FC<IGetInfoCardProps> = ({
         <div className="flex items-center gap-2">
           <Avatar className="size-10">
             <AvatarFallback className="!bg-primary !text-primary-foreground shadow-sm">
-              <span className="text-sm font-semibold">
+              <span className="text-sm font-semibold text-white">
                 {cardNumber}
               </span>
             </AvatarFallback>

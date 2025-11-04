@@ -134,7 +134,7 @@ export const CTASection: FC<ICTASectionProps> = ({
               >
                 <div className="flex flex-col items-center gap-3 pt-2 sm:flex-row sm:items-start">
                   <Button
-                    className="bg-secondary hover:bg-secondary/90"
+                    className="bg-secondary hover:bg-secondary/90 text-white"
                     size="lg"
                     onClick={() => handleScrollButtonClick("2")}
                   >

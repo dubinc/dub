@@ -101,7 +101,7 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
                     </p>
 
                     <Button
-                      className="bg-secondary hover:bg-secondary/90 w-fit"
+                      className="bg-secondary hover:bg-secondary/90 text-white w-fit"
                       size="lg"
                       onClick={() =>
                         handleScrollButtonClick("2", type.scrollTo)

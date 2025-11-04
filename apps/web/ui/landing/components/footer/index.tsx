@@ -100,7 +100,7 @@ export const Footer: FC<Readonly<IFooterProps>> = ({
           <div suppressHydrationWarning>
             <Button
               onClick={handleScrollToQRGenerationBlock}
-              className="bg-secondary hover:bg-secondary/90"
+              className="bg-secondary hover:bg-secondary/90 text-white"
               size="lg"
             >
               Create QR code

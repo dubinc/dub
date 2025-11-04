@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import { Session } from "@/lib/auth";
 import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
-import { Button, useRouterStuff } from "@dub/ui";
+import { useRouterStuff } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import Link from "next/link";
@@ -100,7 +100,7 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
 
                 <Button
                   onClick={handleScrollToQRGenerationBlock}
-                  className="bg-secondary hover:bg-secondary/90 hidden sm:inline-flex"
+                  className="bg-secondary hover:bg-secondary/90 hidden sm:inline-flex text-white"
                   size="lg"
                 >
                   Create QR code
