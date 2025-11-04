@@ -38,16 +38,8 @@ export default function CampaignEmail({
     body: string;
   };
 }) {
-  // Wrap the HTML with styles to prevent overflow from large images
   const styledHtml = `
     <div style="max-width: 100%; overflow: hidden;">
-      <style>
-        #campaign-email-body img { 
-          max-width: 100% !important; 
-          height: auto !important; 
-          margin: 12px auto !important;
-        }
-      </style>
       ${campaign.body}
     </div>
   `;
