@@ -184,89 +184,96 @@ select:-webkit-autofill:focus {
   background-color: #e6f0ff !important;
 }
 
-/* Remove ALL focus outlines - more aggressive approach */
-*,
-*:focus,
-*:active,
-*[tabindex],
-*[tabindex="-1"],
-*[role="dialog"],
-*[data-radix-dialog-content],
-*[data-radix-drawer-content] {
-  outline: none !important;
-  -webkit-focus-ring-color: transparent !important;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
 }
 
-/* Remove Chrome's default focus ring completely */
-*:focus {
-  outline: 0 !important;
-  outline-width: 0 !important;
-  outline-style: none !important;
-  outline-color: transparent !important;
+/* Sonner error toast styling */
+[data-sonner-toast][data-type="error"] {
+  border-color: #ef4444 !important;
+  border-width: 2px !important;
 }
 
-/* Remove any webkit focus ring */
-*::-webkit-focus-ring {
-  outline: none !important;
+[data-sonner-toast][data-type="error"] svg,
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: #ef4444 !important;
 }
 
-/* Chrome/Safari specific: remove blue highlight on tap/click */
-* {
-  -webkit-tap-highlight-color: transparent !important;
-  -webkit-user-select: none;
-  -webkit-touch-callout: none;
+/* Sonner close button styling */
+[data-sonner-toast] [data-close-button],
+[data-sonner-toast] button[data-button] {
+  background-color: white !important;
 }
 
-/* Override any Tailwind focus styles */
-.focus\:outline-none:focus {
-  outline: none !important;
+/* Remove browser autofill styling */
+input:-webkit-autofill,
+input:-webkit-autofill::first-line,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000 !important;
+  background-color: transparent !important;
+  background-clip: content-box !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  border-radius: inherit !important;
+  border: inherit !important;
+  transition: background-color 5000s ease-in-out 0s !important;
 }
 
-/* Radix UI specific overrides */
-[data-radix-dialog-content],
-[data-radix-drawer-content],
-[data-state="open"][role="dialog"] {
-  outline: none !important;
+/* For InputGroup inputs */
+[data-slot="input-group-control"]:-webkit-autofill,
+[data-slot="input-group-control"]:-webkit-autofill::first-line,
+[data-slot="input-group-control"]:-webkit-autofill:hover,
+[data-slot="input-group-control"]:-webkit-autofill:focus,
+[data-slot="input-group-control"]:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000 !important;
+  background-color: transparent !important;
+  background-clip: content-box !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  border-radius: inherit !important;
+  border: none !important;
+  transition: background-color 5000s ease-in-out 0s !important;
 }
 
-/* Modal specific overrides */
-.modal,
-.modal *,
-[class*="modal"] {
-  outline: none !important;
-}
-
-/* Only show focus outline when navigating with keyboard for accessibility */
-*:focus-visible {
-  outline: 2px solid #0066cc !important;
-  outline-offset: 2px !important;
-}
-
-/* Force remove outline even if browser tries to add it */
-html * {
-  outline: none !important;
-}
-
-html *:focus {
-  outline: none !important;
-  outline-width: 0 !important;
-  outline-style: none !important;
-  outline-color: transparent !important;
-}
-
-/* Ultimate nuclear option - highest specificity possible */
-html body *:focus,
-html body *:active,
-html body *[tabindex]:focus,
-html body *[tabindex="-1"]:focus,
-html body [role="dialog"]:focus,
-html body [data-radix-dialog-content]:focus,
-html body [data-radix-drawer-content]:focus {
-  outline: 0px solid transparent !important;
-  outline-width: 0 !important;
-  outline-style: none !important;
-  outline-color: transparent !important;
-  outline-offset: 0 !important;
+@theme inline {
+  @keyframes marquee {
+  from {
+    transform: translateX(0);
+    }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+    }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
 }
 
 @layer base {
