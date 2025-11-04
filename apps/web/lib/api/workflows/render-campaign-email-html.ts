@@ -88,7 +88,7 @@ const sanitizeHtmlBody = (body: string) => {
     ],
     allowedAttributes: {
       a: ["href", "name", "target", "rel"],
-      img: ["src", "alt", "title"],
+      img: ["src", "alt", "title", "style"],
       ul: ["style"],
       ol: ["style"],
       li: ["style"],
