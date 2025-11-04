@@ -35,7 +35,7 @@ export default function PartnerPayoutConfirmed({
     id: string;
     name: string;
     logo: string | null;
-    payoutMode?: "internal" | "hybrid" | "external";
+    payoutMode?: "internal" | "external";
   };
   payout: {
     id: string;

@@ -387,7 +387,6 @@ export async function processPayouts({
               logo: program.logo,
               payoutMode: program.payoutMode as
                 | "internal"
-                | "hybrid"
                 | "external"
                 | undefined,
             },
