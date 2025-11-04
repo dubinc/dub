@@ -35,6 +35,7 @@ export default function PartnerPayoutConfirmed({
     id: string;
     name: string;
     logo: string | null;
+    payoutMode?: "internal" | "external";
   };
   payout: {
     id: string;
@@ -101,14 +102,25 @@ export default function PartnerPayoutConfirmed({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              The payout is currently being processed and is expected to be
-              credited to your account within
-              <strong>
-                {payout.paymentMethod === "ach_fast"
-                  ? " 2 business days"
-                  : " 5 business days"}
-              </strong>{" "}
-              (excluding weekends and public holidays).
+              {program.payoutMode === "external" ? (
+                <>
+                  The payout is currently being processed and is expected to be
+                  credited to your{" "}
+                  <strong className="text-black">{program.name}</strong> account{" "}
+                  <strong className="text-black">shortly</strong>.
+                </>
+              ) : (
+                <>
+                  The payout is currently being processed and is expected to be
+                  credited to your account within
+                  <strong>
+                    {payout.paymentMethod === "ach_fast"
+                      ? " 2 business days"
+                      : " 5 business days"}
+                  </strong>{" "}
+                  (excluding weekends and public holidays).
+                </>
+              )}
             </Text>
 
             <Section className="mb-12 mt-8">
