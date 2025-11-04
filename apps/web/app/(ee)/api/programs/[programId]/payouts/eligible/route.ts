@@ -1,3 +1,4 @@
+import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
@@ -32,7 +33,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   const { cutoffPeriod, selectedPayoutId } =
     eligiblePayoutsQuerySchema.parse(searchParams);
 
-  const { minPayoutAmount, payoutMode } = await getProgramOrThrow({
+  const program = await getProgramOrThrow({
     workspaceId: workspace.id,
     programId,
   });
@@ -44,18 +45,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
   let payouts = await prisma.payout.findMany({
     where: {
       ...(selectedPayoutId && { id: selectedPayoutId }),
-      programId,
-      status: "pending",
-      amount: {
-        gte: minPayoutAmount,
-      },
-      ...(payoutMode === "internal" && {
-        partner: {
-          payoutsEnabledAt: {
-            not: null,
-          },
-        },
-      }),
+      ...getPayoutEligibilityFilter(program),
     },
     include: {
       partner: {
@@ -102,7 +92,7 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
           amount: newPayoutAmount,
         };
       })
-      .filter((payout) => payout.amount >= minPayoutAmount);
+      .filter((payout) => payout.amount >= program.minPayoutAmount);
   }
 
   const transformedPayouts = payouts.map(({ partner, ...payout }) => ({
