@@ -1,3 +1,4 @@
+import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
 import {
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
   PAYOUTS_SHEET_ITEMS_LIMIT,
@@ -9,6 +10,7 @@ import { CommissionTypeBadge } from "@/ui/partners/commission-type-badge";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
+import { PayoutStatus } from "@dub/prisma/client";
 import {
   Button,
   InvoiceDollar,
@@ -29,6 +31,7 @@ import {
   pluralize,
 } from "@dub/utils";
 import { formatPeriod } from "@dub/utils/src/functions/datetime";
+import { CircleArrowRight } from "lucide-react";
 import Link from "next/link";
 import { Dispatch, Fragment, SetStateAction, useMemo } from "react";
 import useSWR from "swr";
@@ -51,6 +54,15 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       : undefined,
     fetcher,
   );
+
+  const isExternal = isPayoutExternalForProgram({
+    program: {
+      payoutMode: payout.program.payoutMode,
+    },
+    partner: {
+      payoutsEnabledAt: partner?.payoutsEnabledAt ?? null,
+    },
+  });
 
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
@@ -83,6 +95,18 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
       Amount: (
         <div className="flex items-center gap-2">
           <strong>{currencyFormatter(payout.amount / 100)}</strong>
+
+          {isExternal && (
+            <Tooltip
+              content={
+                payout.status === PayoutStatus.pending
+                  ? `This payout will be made externally through your ${payout.program.name} account after approval.`
+                  : `This payout was made externally through your ${payout.program.name} account.`
+              }
+            >
+              <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
+            </Tooltip>
+          )}
 
           {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
             <Tooltip content="View invoice">

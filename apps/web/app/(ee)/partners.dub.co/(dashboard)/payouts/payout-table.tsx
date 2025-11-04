@@ -30,7 +30,7 @@ import {
 import { CircleArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PayoutDetailsSheet } from "./payout-details-sheet";
+import { PayoutDetailsSheet } from "./partner-payout-details-sheet";
 import { usePayoutFilters } from "./use-payout-filters";
 
 export function PayoutTable() {
