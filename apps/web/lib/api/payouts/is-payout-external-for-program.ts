@@ -1,28 +1,22 @@
-import { ProgramProps } from "@/lib/types";
+import { PayoutMode } from "@prisma/client";
 
 interface IsPayoutExternalForProgramProps {
-  program: Pick<ProgramProps, "payoutMode">;
-  partner: {
-    payoutsEnabledAt: Date | null;
-  };
+  payoutMode: PayoutMode | null;
+  payoutsEnabledAt: Date | null;
 }
 
-// Determines whether a given payout should be treated as "external"
-// - internal → always handled internally
-// - external → all payouts are external
-// - hybrid   → payouts are external only if the payoutsEnabledAt is null
-export function isPayoutExternalForProgram({
-  partner,
-  program,
+export function isPayoutExternal({
+  payoutMode,
+  payoutsEnabledAt,
 }: IsPayoutExternalForProgramProps): boolean {
-  switch (program.payoutMode) {
+  switch (payoutMode) {
     case "internal":
       return false;
     case "external":
       return true;
     case "hybrid":
-      return partner.payoutsEnabledAt === null;
+      return payoutsEnabledAt === null;
     default:
-      throw new Error(`Invalid payout mode: ${program.payoutMode}`);
+      throw new Error(`Invalid payout mode: ${payoutMode}`);
   }
 }

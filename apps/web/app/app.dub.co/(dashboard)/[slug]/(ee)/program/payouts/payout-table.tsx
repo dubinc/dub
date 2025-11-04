@@ -1,6 +1,6 @@
 "use client";
 
-import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
+import { isPayoutExternal } from "@/lib/api/payouts/is-payout-external-for-program";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -319,9 +319,9 @@ function AmountRowItem({
     return null;
   }
 
-  const isExternal = isPayoutExternalForProgram({
-    program,
-    partner,
+  const isExternal = isPayoutExternal({
+    payoutMode: program?.payoutMode,
+    payoutsEnabledAt: partner?.payoutsEnabledAt,
   });
 
   if (status === PayoutStatus.pending) {

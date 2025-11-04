@@ -1,4 +1,4 @@
-import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
+import { isPayoutExternal } from "@/lib/api/payouts/is-payout-external-for-program";
 import {
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
   PAYOUTS_SHEET_ITEMS_LIMIT,
@@ -55,13 +55,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     fetcher,
   );
 
-  const isExternal = isPayoutExternalForProgram({
-    program: {
-      payoutMode: payout.program.payoutMode,
-    },
-    partner: {
-      payoutsEnabledAt: partner?.payoutsEnabledAt ?? null,
-    },
+  const isExternal = isPayoutExternal({
+    payoutMode: payout.program.payoutMode,
+    payoutsEnabledAt: partner?.payoutsEnabledAt ?? null,
   });
 
   const invoiceData = useMemo(() => {

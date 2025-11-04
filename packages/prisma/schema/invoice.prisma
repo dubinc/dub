@@ -29,6 +29,7 @@ model Invoice {
   amount               Int            @default(0) // amount in usd cents
   fee                  Int            @default(0) // fee in usd cents
   total                Int            @default(0) // amount + fee in usd cents
+  externalAmount       Int            @default(0) // amount in usd cents for external payouts
   receiptUrl           String?        @db.Text
   failedReason         String?        @db.Text
   registeredDomains    Json?          @db.Json // Array of RegisteredDomain

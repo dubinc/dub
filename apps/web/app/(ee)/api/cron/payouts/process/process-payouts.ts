@@ -1,6 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
-import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
+import { isPayoutExternal } from "@/lib/api/payouts/is-payout-external-for-program";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { qstash } from "@/lib/cron";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
@@ -130,12 +130,12 @@ export async function processPayouts({
     externalPayouts = payouts;
   } else if (invoice.payoutMode === "hybrid") {
     payouts.forEach((payout) => {
-      if (
-        isPayoutExternalForProgram({
-          program,
-          partner: payout.partner,
-        })
-      ) {
+      const isExternal = isPayoutExternal({
+        payoutMode: invoice.payoutMode,
+        payoutsEnabledAt: payout.partner.payoutsEnabledAt,
+      });
+
+      if (isExternal) {
         externalPayouts.push(payout);
       } else {
         internalPayouts.push(payout);
@@ -195,8 +195,6 @@ export async function processPayouts({
     `Using payout fee of ${payoutFee} for payment method ${paymentMethod.type}`,
   );
 
-
-
   const fastAchFee =
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
   const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
@@ -236,6 +234,7 @@ export async function processPayouts({
     },
     data: {
       amount: totalPayoutAmount,
+      externalAmount: externalPayoutAmount,
       fee: totalFee,
       total,
     },
@@ -279,6 +278,7 @@ export async function processPayouts({
         invoiceId: invoice.id,
         status: "processing",
         userId,
+        payoutMode: invoice.payoutMode,
       },
     });
   }
@@ -296,6 +296,7 @@ export async function processPayouts({
         status: "completed",
         userId,
         paidAt: new Date(),
+        payoutMode: invoice.payoutMode,
       },
     });
 

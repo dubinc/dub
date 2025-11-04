@@ -1,6 +1,6 @@
 "use client";
 
-import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
+import { isPayoutExternal } from "@/lib/api/payouts/is-payout-external-for-program";
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
@@ -229,13 +229,9 @@ function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
     return null;
   }
 
-  const isExternal = isPayoutExternalForProgram({
-    program: {
-      payoutMode: payout.program.payoutMode,
-    },
-    partner: {
-      payoutsEnabledAt: partner?.payoutsEnabledAt,
-    },
+  const isExternal = isPayoutExternal({
+    payoutMode: payout.program.payoutMode,
+    payoutsEnabledAt: partner?.payoutsEnabledAt,
   });
 
   const display = currencyFormatter(payout.amount / 100);

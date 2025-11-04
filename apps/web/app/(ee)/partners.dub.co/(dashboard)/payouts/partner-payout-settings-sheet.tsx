@@ -1,7 +1,7 @@
 "use client";
 
 import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
-import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
+import { isPayoutExternal } from "@/lib/api/payouts/is-payout-external-for-program";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
@@ -54,13 +54,9 @@ function useExternalPayoutEnrollments() {
     if (!programEnrollments || !partner) return [];
 
     return programEnrollments.filter((enrollment) =>
-      isPayoutExternalForProgram({
-        program: {
-          payoutMode: enrollment.program.payoutMode,
-        },
-        partner: {
-          payoutsEnabledAt: partner.payoutsEnabledAt,
-        },
+      isPayoutExternal({
+        payoutMode: enrollment.program.payoutMode,
+        payoutsEnabledAt: partner.payoutsEnabledAt,
       }),
     );
   }, [programEnrollments, partner]);
