@@ -1,30 +1,33 @@
 import { Session } from "@/lib/auth/utils";
-import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
+import useWorkspace from "@/lib/swr/use-workspace.ts";
 import { useArchiveQRModal } from "@/ui/modals/archive-qr-modal.tsx";
 import { useDeleteQRModal } from "@/ui/modals/delete-qr-modal.tsx";
-import { QRBuilderModal } from "@/ui/modals/qr-builder-new";
+import { useQRBuilder } from "@/ui/modals/qr-builder";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal.tsx";
-import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
+import { QrStorageData } from "@/ui/qr-builder/types/types.ts";
 import { QrCodesListContext } from "@/ui/qr-code/qr-codes-container.tsx";
-import {
-  Button,
-  CardList,
-  Popover,
-  useKeyboardShortcut,
-  useMediaQuery,
-} from "@dub/ui";
-import { BoxArchive, Download } from "@dub/ui/icons";
+import { Button, Popover, useMediaQuery } from "@dub/ui";
+import { Download } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
-import { Delete, Palette } from "lucide-react";
-import { useSearchParams } from "next/navigation";
+import {
+  ArrowRightLeft,
+  ChartNoAxesColumn,
+  CirclePause,
+  Copy,
+  Palette,
+  Play,
+  Trash2,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
 import QRCodeStyling from "qr-code-styling";
-import { RefObject, useContext, useState } from "react";
+import { RefObject, useContext } from "react";
+import { useDuplicateQRModal } from "../modals/duplicate-qr-modal";
 import { ThreeDots } from "../shared/icons";
 
-interface IQrCodeControlsProps {
-  qrCode: TQrStorageData;
+interface QrCodeControlsProps {
+  qrCode: QrStorageData;
   canvasRef: RefObject<HTMLCanvasElement>;
   builtQrCodeObject: QRCodeStyling | null;
   featuresAccess?: boolean;
@@ -39,11 +42,12 @@ export function QrCodeControls({
   featuresAccess,
   setShowTrialExpiredModal,
   user,
-}: IQrCodeControlsProps) {
-  const { hovered } = useContext(CardList.Card.Context);
-  const searchParams = useSearchParams();
+}: QrCodeControlsProps) {
+  const { domain, key } = qrCode.link;
+  const { slug } = useWorkspace();
 
   const { isMobile } = useMediaQuery();
+  const router = useRouter();
 
   const { openMenuQrCodeId, setOpenMenuQrCodeId } =
     useContext(QrCodesListContext);
@@ -52,6 +56,10 @@ export function QrCodeControls({
     setOpenMenuQrCodeId(open ? qrCode.id : null);
   };
 
+  const { handleToggleModal: setShowDuplicateQRModal, DuplicateQRModal } =
+    useDuplicateQRModal({
+      props: qrCode,
+    });
   const { setShowArchiveQRModal, ArchiveQRModal } = useArchiveQRModal({
     props: qrCode,
   });
@@ -67,32 +75,21 @@ export function QrCodeControls({
     user,
   });
 
-  const [showQRCustomizeModal, setShowQRCustomizeModal] = useState(false);
+  const {
+    setShowQRBuilderModal: setShowQRTypeModal,
+    QRBuilderModal: QRChangeTypeModal,
+  } = useQRBuilder({
+    props: qrCode,
+    initialStep: 1,
+  });
 
-  const folderId = qrCode.link.folderId || searchParams.get("folderId");
-
-  const canManageLink = useCheckFolderPermission(
-    folderId,
-    "folders.links.write",
-  );
-
-  useKeyboardShortcut(
-    ["e", "a", "x", "b"],
-    (e) => {
-      setOpenPopover(false);
-      switch (e.key) {
-        case "a":
-          canManageLink && setShowArchiveQRModal(true);
-          break;
-        case "x":
-          canManageLink && setShowDeleteQRModal(true);
-          break;
-      }
-    },
-    {
-      enabled: openPopover || (hovered && openMenuQrCodeId === null),
-    },
-  );
+  const {
+    setShowQRBuilderModal: setShowQRCustomizeModal,
+    QRBuilderModal: QRCustomizeModal,
+  } = useQRBuilder({
+    props: qrCode,
+    initialStep: 3, // design customization
+  });
 
   const onDownloadButtonClick = () => {
     trackClientEvents({
@@ -157,21 +154,13 @@ export function QrCodeControls({
 
   return (
     <div className="flex flex-col-reverse items-end justify-end gap-2 lg:flex-row lg:items-center">
+      <DuplicateQRModal />
       <QRPreviewModal />
-      <QRBuilderModal
-        qrData={qrCode as any}
-        showModal={showQRCustomizeModal}
-        setShowModal={setShowQRCustomizeModal}
-      />
+      <QRChangeTypeModal />
+      <QRCustomizeModal />
       <ArchiveQRModal />
       <DeleteLinkModal />
       {canvasRef && (
-        // <DownloadPopover
-        //   qrCode={qrCode}
-        //   canvasRef={canvasRef}
-        //   isTrialOver={isTrialOver}
-        //   setShowTrialExpiredModal={setShowTrialExpiredModal}
-        // >
         <Button
           onClick={onDownloadButtonClick}
           variant="secondary"
@@ -182,14 +171,73 @@ export function QrCodeControls({
           )}
           icon={<Download className="h-5 w-5 shrink-0" />}
         />
-        // </DownloadPopover>
       )}
       <Popover
         content={
           <div className="w-full sm:w-48">
             <div className="grid gap-1 p-2">
-              {/* TODO: Implement Change QR Type functionality with new builder */}
-              {/* <Button
+              <Button
+                text="View Statistics"
+                variant="outline"
+                onClick={() => {
+                  router.push(
+                    `/${slug}/analytics?domain=${domain}&key=${key}&interval=all`,
+                  );
+                }}
+                icon={<ChartNoAxesColumn className="size-4" />}
+                className="h-9 w-full justify-start px-2 font-medium"
+              />
+              <Button
+                text="Duplicate"
+                variant="outline"
+                onClick={() => {
+                  onActionClick("duplicate");
+
+                  setOpenPopover(false);
+
+                  if (!featuresAccess) {
+                    setShowTrialExpiredModal?.(true);
+                    setOpenPopover(false);
+                    return;
+                  }
+
+                  setShowDuplicateQRModal(true);
+                }}
+                icon={<Copy className="size-4" />}
+                className="h-9 w-full justify-start px-2 font-medium"
+              />
+              <Button
+                text={qrCode.archived ? "Activate" : "Pause"}
+                variant="outline"
+                onClick={() => {
+                  onActionClick("pause");
+
+                  setOpenPopover(false);
+
+                  if (!featuresAccess) {
+                    setShowTrialExpiredModal?.(true);
+                    setOpenPopover(false);
+                    return;
+                  }
+
+                  setShowArchiveQRModal(true);
+                }}
+                icon={
+                  qrCode.archived ? (
+                    <Play className="size-4" />
+                  ) : (
+                    <CirclePause className="size-4" />
+                  )
+                }
+                shortcut="A"
+                className="h-9 w-full justify-start px-2 font-medium"
+              />
+            </div>
+            <div className="w-full px-6">
+              <div className="border-border-500 w-full border-t" />
+            </div>
+            <div className="grid gap-1 p-2">
+              <Button
                 text="Change QR Type"
                 variant="outline"
                 onClick={() => {
@@ -200,16 +248,11 @@ export function QrCodeControls({
                     setShowTrialExpiredModal?.(true);
                     return;
                   }
-                  // setShowQRTypeModal(true);
+                  setShowQRTypeModal(true);
                 }}
-                icon={<RefreshCw className="size-4" />}
+                icon={<ArrowRightLeft className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to update this link."
-                    : undefined
-                }
-              /> */}
+              />
               <Button
                 text="Customize QR"
                 variant="outline"
@@ -227,41 +270,30 @@ export function QrCodeControls({
                 }}
                 icon={<Palette className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to update this link."
-                    : undefined
-                }
               />
-            </div>
-            <div className="border-t border-neutral-200/10" />
-            <div className="grid gap-1 p-2">
-              <Button
-                text={qrCode.archived ? "Unpause" : "Pause"}
+              {/* <Button
+                text="Reset scans"
                 variant="outline"
                 onClick={() => {
-                  onActionClick("pause");
+                  onActionClick("reset_scans");
 
                   setOpenPopover(false);
 
                   if (!featuresAccess) {
                     setShowTrialExpiredModal?.(true);
-                    setOpenPopover(false);
                     return;
                   }
 
-                  setShowArchiveQRModal(true);
+                  setShowResetScansModal(true);
                 }}
-                icon={<BoxArchive className="size-4" />}
-                shortcut="A"
+                icon={<RotateCcw className="size-4" />}
                 className="h-9 w-full justify-start px-2 font-medium"
-                disabledTooltip={
-                  !canManageLink
-                    ? "You don't have permission to archive this link."
-                    : undefined
-                }
-              />
-
+              /> */}
+            </div>
+            <div className="w-full px-6">
+              <div className="border-border-500 w-full border-t" />
+            </div>
+            <div className="grid gap-1 p-2">
               <Button
                 text="Delete"
                 variant="danger-outline"
@@ -277,7 +309,7 @@ export function QrCodeControls({
 
                   setShowDeleteQRModal(true);
                 }}
-                icon={<Delete className="size-4" />}
+                icon={<Trash2 className="size-4" />}
                 shortcut="X"
                 className="h-9 w-full justify-start px-2 font-medium"
               />
