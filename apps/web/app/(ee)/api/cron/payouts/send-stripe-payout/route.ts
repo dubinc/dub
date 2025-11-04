@@ -1,7 +1,7 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { createStripeTransfer } from "@/lib/partners/create-stripe-transfer";
-import { sendBatchEmail } from "@dub/email";
+import { sendEmail } from "@dub/email";
 import PartnerPayoutProcessed from "@dub/email/templates/partner-payout-processed";
 import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
@@ -30,6 +30,7 @@ export async function POST(req: Request) {
       JSON.parse(rawBody),
     );
 
+    // there should only be one payout per partner in a given invoice, but just in case there are multiple
     const currentInvoicePayouts = await prisma.payout.findMany({
       where: {
         invoiceId,
@@ -69,25 +70,23 @@ export async function POST(req: Request) {
       chargeId,
     });
 
-    const batchEmails = await sendBatchEmail(
-      currentInvoicePayouts
-        .filter((p) => p.partner.email)
-        .map((p) => ({
-          variant: "notifications",
-          to: p.partner.email!,
-          subject: "You've been paid!",
-          react: PartnerPayoutProcessed({
-            email: p.partner.email!,
-            program: p.program,
-            payout: p,
-            variant: "stripe",
-          }),
-        })),
-    );
+    // again, there should only be one payout per partner in a given invoice
+    const payout = currentInvoicePayouts[0];
+    if (payout.partner.email) {
+      const emailRes = await sendEmail({
+        variant: "notifications",
+        to: payout.partner.email!,
+        subject: "You've been paid!",
+        react: PartnerPayoutProcessed({
+          email: payout.partner.email!,
+          program: payout.program,
+          payout,
+          variant: "stripe",
+        }),
+      });
 
-    console.log(
-      `Resend batch emails sent: ${JSON.stringify(batchEmails, null, 2)}`,
-    );
+      console.log(`Resend email sent: ${JSON.stringify(emailRes, null, 2)}`);
+    }
 
     return logAndRespond(
       `Processed send-stripe-payout job for partner ${partnerId} and invoice ${invoiceId}`,
