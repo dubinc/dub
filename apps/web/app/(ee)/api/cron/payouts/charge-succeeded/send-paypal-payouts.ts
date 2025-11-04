@@ -31,7 +31,6 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
         },
       },
     },
-    take: 100,
   });
 
   if (payouts.length === 0) {
