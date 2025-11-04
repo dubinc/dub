@@ -42,7 +42,7 @@ export async function POST(req: Request) {
       },
     });
 
-    if (!currentInvoicePayouts) {
+    if (currentInvoicePayouts.length === 0) {
       return logAndRespond(
         `No "processing" payouts found for partner ${partnerId} and invoice ${invoiceId}`,
       );
@@ -69,18 +69,28 @@ export async function POST(req: Request) {
       chargeId,
     });
 
-    await sendBatchEmail(
-      currentInvoicePayouts.map((p) => ({
-        variant: "notifications",
-        to: p.partner.email!,
-        subject: "You've been paid!",
-        react: PartnerPayoutProcessed({
-          email: p.partner.email!,
-          program: p.program,
-          payout: p,
-          variant: "stripe",
-        }),
-      })),
+    const batchEmails = await sendBatchEmail(
+      currentInvoicePayouts
+        .filter((p) => p.partner.email)
+        .map((p) => ({
+          variant: "notifications",
+          to: p.partner.email!,
+          subject: "You've been paid!",
+          react: PartnerPayoutProcessed({
+            email: p.partner.email!,
+            program: p.program,
+            payout: p,
+            variant: "stripe",
+          }),
+        })),
+    );
+
+    console.log(
+      `Resend batch emails sent: ${JSON.stringify(batchEmails, null, 2)}`,
+    );
+
+    return logAndRespond(
+      `Processed send-stripe-payout job for partner ${partnerId} and invoice ${invoiceId}`,
     );
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
