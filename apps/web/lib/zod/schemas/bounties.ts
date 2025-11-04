@@ -22,6 +22,8 @@ export const MAX_SUBMISSION_URLS = 20;
 
 export const MAX_BOUNTY_SUBMISSION_DESCRIPTION_LENGTH = 1000;
 
+export const MAX_BOUNTY_SUBMISSION_REJECTION_NOTE_LENGTH = 5000;
+
 export const REJECT_BOUNTY_SUBMISSION_REASONS = {
   invalidProof: "Invalid proof",
   duplicateSubmission: "Duplicate submission",
@@ -163,7 +165,11 @@ export const rejectBountySubmissionSchema = z.object({
   workspaceId: z.string(),
   submissionId: z.string(),
   rejectionReason: z.nativeEnum(BountySubmissionRejectionReason),
-  rejectionNote: z.string().trim().max(500).optional(),
+  rejectionNote: z
+    .string()
+    .trim()
+    .max(MAX_BOUNTY_SUBMISSION_REJECTION_NOTE_LENGTH)
+    .optional(),
 });
 
 export const getBountySubmissionsQuerySchema = z

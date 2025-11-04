@@ -2,7 +2,7 @@ import { qstash } from "@/lib/cron";
 import { APP_DOMAIN_WITH_NGROK, chunk } from "@dub/utils";
 
 const queue = qstash.queue({
-  queueName: "discount-code-deletion",
+  queueName: "delete-discount-code",
 });
 
 // Triggered in the following cases:
@@ -18,10 +18,6 @@ export async function queueDiscountCodeDeletion(
   if (discountCodeIds.length === 0) {
     return;
   }
-
-  await queue.upsert({
-    parallelism: 10,
-  });
 
   // TODO:
   // Check if we can use the batchJSON (I tried it but didn't work)
