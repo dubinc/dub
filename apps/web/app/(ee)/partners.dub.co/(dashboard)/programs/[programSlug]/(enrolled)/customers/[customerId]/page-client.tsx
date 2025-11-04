@@ -47,11 +47,18 @@ export function ProgramCustomerPageClient() {
 
         <div className="flex flex-col gap-1">
           {customer ? (
-            customer.email && (
-              <span className="text-sm font-medium text-neutral-500">
-                {customer.email}
-              </span>
-            )
+            <>
+              {customer["name"] && (
+                <h1 className="text-base font-semibold leading-tight text-neutral-900">
+                  {customer["name"]}
+                </h1>
+              )}
+              {customer.email && (
+                <span className="text-sm font-medium text-neutral-500">
+                  {customer.email}
+                </span>
+              )}
+            </>
           ) : (
             <div className="h-5 w-24 animate-pulse rounded-md bg-neutral-200" />
           )}
