@@ -9,6 +9,7 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
+import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button, Sheet, Slider, useScrollProgress } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useAction } from "next-safe-action/hooks";
@@ -30,7 +31,7 @@ type FormData = Pick<
 function ProgramPayoutSettingsSheetContent({
   setIsOpen,
 }: ProgramPayoutSettingsSheetProps) {
-  const { id: workspaceId, defaultProgramId } = useWorkspace();
+  const { id: workspaceId, defaultProgramId, slug } = useWorkspace();
   const { program } = useProgram();
 
   const {
@@ -58,7 +59,23 @@ function ProgramPayoutSettingsSheetContent({
       mutatePrefix(`/api/programs/${defaultProgramId}`);
     },
     onError: ({ error }) => {
-      toast.error(parseActionError(error, "Failed to update payout settings."));
+      const message = parseActionError(
+        error,
+        "Failed to update payout settings.",
+      );
+
+      if (message.startsWith("WEBHOOK_REQUIRED")) {
+        return toast.custom(() => (
+          <UpgradeRequiredToast
+            title="External payout requires webhook"
+            message={message.replace("WEBHOOK_REQUIRED: ", "")}
+            ctaLabel="Add webhook"
+            ctaUrl={`/${slug}/settings/webhooks`}
+          />
+        ));
+      }
+
+      toast.error(message);
     },
   });
 

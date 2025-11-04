@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
+import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { prisma } from "@dub/prisma";
 import { PayoutMode } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
@@ -54,19 +55,15 @@ export const updateProgramAction = authActionClient
         throw new Error("External payout is not enabled for this program.");
       }
 
-      const webhookWithPayoutConfirmed = await prisma.webhook.findFirst({
-        where: {
-          projectId: workspace.id,
-          disabledAt: null,
-          triggers: {
-            array_contains: ["payout.confirmed"],
-          },
-        },
+      const webhooksForPayoutConfirmed = await getWebhooks({
+        workspaceId: workspace.id,
+        triggers: ["payout.confirmed"],
+        disabled: false,
       });
 
-      if (!webhookWithPayoutConfirmed) {
+      if (webhooksForPayoutConfirmed.length === 0) {
         throw new Error(
-          "A webhook with 'payout.confirmed' event is required when using external payout routing. Please add a webhook with this event before enabling external payout routing.",
+          "WEBHOOK_REQUIRED: An active webhook with 'payout.confirmed' event is required when using external payout routing. Please add a webhook with this event before enabling external payout routing.",
         );
       }
     }

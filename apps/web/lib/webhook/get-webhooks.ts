@@ -1,22 +1,23 @@
 import { prisma } from "@dub/prisma";
 import { WebhookTrigger } from "../types";
 
+interface GetWebhooksProps {
+  workspaceId: string;
+  triggers?: WebhookTrigger[];
+  disabled?: boolean;
+}
+
 export async function getWebhooks({
   workspaceId,
   triggers,
-}: {
-  workspaceId: string;
-  triggers?: WebhookTrigger[];
-}) {
+  disabled,
+}: GetWebhooksProps) {
   return await prisma.webhook.findMany({
     where: {
       projectId: workspaceId,
-      ...(triggers
-        ? {
-            triggers: {
-              array_contains: triggers,
-            },
-          }
+      ...(triggers ? { triggers: { array_contains: triggers } } : {}),
+      ...(disabled !== undefined
+        ? { disabledAt: disabled ? { not: null } : null }
         : {}),
     },
     select: {
