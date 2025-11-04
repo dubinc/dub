@@ -1,5 +1,6 @@
 "use client";
 
+import { getRewardAmount } from "@/lib/partners/get-reward-amount";
 import { ProgramProps } from "@/lib/types";
 import { programLanderEarningsCalculatorBlockSchema } from "@/lib/zod/schemas/program-lander";
 import { InvoiceDollar } from "@dub/ui";
@@ -22,14 +23,12 @@ export function EarningsCalculatorBlock({
   const id = useId();
   const [value, setValue] = useState(10);
 
-  // Find the default sale reward
-  const reward = program?.rewards?.find((r) => r.default && r.event === "sale");
+  if (!program.rewards?.length) return null;
 
-  if (!reward) {
-    return null;
-  }
+  const reward = program.rewards.find((r) => r.event === "sale");
+  if (!reward) return null;
 
-  const rewardAmount = reward.amount ?? 0;
+  const rewardAmount = getRewardAmount(reward);
   const revenue = value * ((block.data.productPrice || 30_00) / 100);
 
   return (
@@ -49,7 +48,7 @@ export function EarningsCalculatorBlock({
             htmlFor={`${id}-slider`}
             className="text-base font-semibold text-neutral-700"
           >
-            Customer sales
+            Customer referrals
           </label>
           <div className="mt-1.5">
             <NumberFlow
@@ -70,7 +69,7 @@ export function EarningsCalculatorBlock({
           <div className="mt-2 flex items-center gap-1">
             <InvoiceDollar className="size-3.5 text-neutral-400" />
             <p className="text-xs text-neutral-500">
-              {formatRewardDescription({ reward })}
+              {formatRewardDescription(reward)}
             </p>
           </div>
         </div>

@@ -79,27 +79,17 @@ function ModalInner({
       ),
 
       Partner: (
-        <PartnerRowItem
-          partner={commission.partner!}
-          showPayoutsEnabled={false}
-          showPermalink={false}
-        />
+        <PartnerRowItem partner={commission.partner!} showPermalink={false} />
       ),
 
       Type: <CommissionTypeBadge type={commission.type!} />,
 
       Amount:
         commission.type === "sale"
-          ? currencyFormatter(commission.amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })
+          ? currencyFormatter(commission.amount / 100)
           : nFormatter(commission.quantity),
 
-      Commission: currencyFormatter(commission.earnings / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      Commission: currencyFormatter(commission.earnings / 100),
 
       Status: (
         <StatusBadge icon={null} variant={badge.variant}>

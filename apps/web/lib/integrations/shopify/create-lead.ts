@@ -1,4 +1,5 @@
 import { createId } from "@/lib/api/create-id";
+import { DubApiError } from "@/lib/api/errors";
 import { includeTags } from "@/lib/api/links/include-tags";
 import { generateRandomName } from "@/lib/names";
 import { getClickEvent, recordLead } from "@/lib/tinybird";
@@ -19,24 +20,39 @@ export async function createShopifyLead({
   workspaceId: string;
   event: any;
 }) {
-  const {
-    customer: { id: externalId, email, first_name, last_name },
-  } = orderSchema.parse(event);
+  const { customer: orderCustomer } = orderSchema.parse(event);
+
+  const customerId = createId({ prefix: "cus_" });
+  /*
+     if orderCustomer is undefined (guest checkout):
+    - use the customerId as the externalId
+    - generate random name + email
+  */
+  const externalId = orderCustomer?.id?.toString() || customerId; // need to convert to string because Shopify customer ID is a number
+  const name = orderCustomer
+    ? `${orderCustomer.first_name} ${orderCustomer.last_name}`.trim()
+    : generateRandomName();
+  const email = orderCustomer?.email;
 
   // find click
-  const clickEvent = await getClickEvent({ clickId });
+  const clickData = await getClickEvent({ clickId });
 
-  const clickData = clickEvent.data[0];
+  if (!clickData) {
+    throw new DubApiError({
+      code: "not_found",
+      message: `Click event not found for clickId: ${clickId}`,
+    });
+  }
+
   const { link_id: linkId, country, timestamp } = clickData;
 
   // create customer
   const customer = await prisma.customer.create({
     data: {
-      id: createId({ prefix: "cus_" }),
-      // need to convert to string because Shopify customer ID is a number
-      externalId: externalId.toString(),
-      name: `${first_name} ${last_name}`.trim() || generateRandomName(),
-      email: email || null,
+      id: customerId,
+      externalId,
+      name,
+      email,
       projectId: workspaceId,
       clickedAt: new Date(timestamp + "Z"),
       clickId,
@@ -49,6 +65,7 @@ export async function createShopifyLead({
 
   const leadData = leadEventSchemaTB.parse({
     ...clickData,
+    workspace_id: clickData.workspace_id || customer.projectId, // in case for some reason the click event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: eventName,
     customer_id: customer.id,
@@ -58,7 +75,7 @@ export async function createShopifyLead({
     // record lead
     recordLead(leadData),
 
-    // update link leads count
+    // update link leads count + lastLeadAt date
     prisma.link.update({
       where: {
         id: linkId,
@@ -67,6 +84,7 @@ export async function createShopifyLead({
         leads: {
           increment: 1,
         },
+        lastLeadAt: new Date(),
       },
       include: includeTags,
     }),
@@ -93,6 +111,7 @@ export async function createShopifyLead({
         eventName,
         link,
         customer,
+        metadata: null,
       }),
     }),
   );

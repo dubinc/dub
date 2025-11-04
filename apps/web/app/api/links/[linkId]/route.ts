@@ -11,7 +11,10 @@ import { withWorkspace } from "@/lib/auth";
 import { verifyFolderAccess } from "@/lib/folder/permissions";
 import { NewLinkProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { linkEventSchema, updateLinkBodySchema } from "@/lib/zod/schemas/links";
+import {
+  linkEventSchema,
+  updateLinkBodySchemaExtended,
+} from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { deepEqual, UTMTags } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -75,8 +78,9 @@ export const PATCH = withWorkspace(
     });
 
     const body =
-      (await updateLinkBodySchema.parseAsync(await parseRequestBody(req))) ||
-      {};
+      (await updateLinkBodySchemaExtended.parseAsync(
+        await parseRequestBody(req),
+      )) || {};
 
     await Promise.all([
       ...(link.folderId

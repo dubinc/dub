@@ -1,6 +1,6 @@
 import { fetcher } from "@dub/utils";
-import { useSession } from "next-auth/react";
 import { useParams, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import useSWR, { SWRConfiguration } from "swr";
 import {
   DUB_PARTNERS_ANALYTICS_INTERVAL,
@@ -15,16 +15,13 @@ export default function usePartnerAnalytics(
   },
   options?: SWRConfiguration,
 ) {
-  const { data: session } = useSession();
   const { programSlug } = useParams();
   const searchParams = useSearchParams();
 
-  const partnerId = session?.user?.["defaultPartnerId"];
   const programIdToUse = params?.programId ?? programSlug;
 
   const { data, error } = useSWR<any>(
-    partnerId &&
-      programIdToUse &&
+    programIdToUse &&
       params.enabled !== false &&
       `/api/partner-profile/programs/${programIdToUse}/analytics?${new URLSearchParams(
         {
@@ -55,6 +52,10 @@ export default function usePartnerAnalytics(
     {
       dedupingInterval: 60000,
       keepPreviousData: true,
+      onError: (error) => {
+        const errorMessage = error.message;
+        toast.error(errorMessage);
+      },
       ...options,
     },
   );
@@ -62,6 +63,9 @@ export default function usePartnerAnalytics(
   return {
     data,
     error,
-    loading: partnerId && programIdToUse && !data && !error ? true : false,
+    loading:
+      programIdToUse && params.enabled !== false && !data && !error
+        ? true
+        : false,
   };
 }

@@ -1,7 +1,4 @@
-import {
-  SINGULAR_ANALYTICS_ENDPOINTS,
-  TRIGGER_DISPLAY,
-} from "@/lib/analytics/constants";
+import { SINGULAR_ANALYTICS_ENDPOINTS } from "@/lib/analytics/constants";
 import { DeviceTabs } from "@/lib/analytics/types";
 import { useRouterStuff } from "@dub/ui";
 import { Cube, CursorRays, MobilePhone, Window } from "@dub/ui/icons";
@@ -11,6 +8,7 @@ import { AnalyticsLoadingSpinner } from "./analytics-loading-spinner";
 import { AnalyticsContext } from "./analytics-provider";
 import BarList from "./bar-list";
 import DeviceIcon from "./device-icon";
+import { TRIGGER_DISPLAY } from "./trigger-display";
 import { useAnalyticsFilterOption } from "./utils";
 
 export default function Devices() {
@@ -20,7 +18,7 @@ export default function Devices() {
   const dataKey = selectedTab === "sales" ? saleUnit : "count";
 
   const [tab, setTab] = useState<DeviceTabs>("devices");
-  const { data, loading } = useAnalyticsFilterOption(tab);
+  const { data } = useAnalyticsFilterOption(tab);
   const singularTabName = SINGULAR_ANALYTICS_ENDPOINTS[tab];
 
   return (
@@ -53,7 +51,7 @@ export default function Devices() {
                     ),
                     title:
                       tab === "triggers"
-                        ? TRIGGER_DISPLAY[d.trigger]
+                        ? TRIGGER_DISPLAY[d.trigger].title
                         : d[singularTabName],
                     href: queryParams({
                       ...(searchParams.has(singularTabName)

@@ -14,14 +14,14 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function PartnerBanned({
+export default function PartnerBanned({
   partner = {
     name: "John",
     email: "panic@thedis.co",
   },
   program = {
     name: "Acme",
-    supportEmail: "support@acme.com",
+    slug: "acme",
   },
   bannedReason = "violating our terms of service",
 }: {
@@ -31,7 +31,7 @@ export function PartnerBanned({
   };
   program: {
     name: string;
-    supportEmail: string;
+    slug: string;
   };
   bannedReason: string;
 }) {
@@ -65,12 +65,12 @@ export function PartnerBanned({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              If you wish to appeal this ban, please reach out to{" "}
+              If you have any questions, please{" "}
               <Link
-                href={`mailto:${program.supportEmail}`}
-                className="text-neutral-600 underline underline-offset-4"
+                href={`https://partners.dub.co/messages/${program.slug}`}
+                className="font-semibold text-neutral-700 underline underline-offset-2"
               >
-                {program.supportEmail}
+                reach out to the {program.name} team ↗
               </Link>
               .
             </Text>
@@ -82,5 +82,3 @@ export function PartnerBanned({
     </Html>
   );
 }
-
-export default PartnerBanned;

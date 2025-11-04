@@ -6,7 +6,7 @@ import { Hero } from "@/ui/placeholders/hero";
 import { GlobeSearch } from "@dub/ui";
 import { cn, constructMetadata, createHref } from "@dub/utils";
 
-export const runtime = "edge";
+export const revalidate = false; // cache indefinitely
 
 export const metadata = constructMetadata({
   title: "Link Not Found",
@@ -17,15 +17,16 @@ export const metadata = constructMetadata({
 });
 
 const UTM_PARAMS = {
-  utm_source: "Expired Link",
-  utm_medium: "Expired Link Page",
+  utm_source: "Link Not Found",
+  utm_medium: "Link Not Found Page",
 };
 
-export default function NotFoundLinkPage({
-  params,
-}: {
-  params: { domain: string };
-}) {
+export default async function NotFoundLinkPage(
+  props: {
+    params: Promise<{ domain: string }>;
+  }
+) {
+  const params = await props.params;
   return (
     <main className="flex min-h-screen flex-col justify-between">
       <Hero>
@@ -47,8 +48,7 @@ export default function NotFoundLinkPage({
               "animate-slide-up-fade motion-reduce:animate-fade-in [--offset:10px] [animation-delay:200ms] [animation-duration:1s] [animation-fill-mode:both]",
             )}
           >
-            This link has expired. Please contact the owner of this link to get
-            a new one.
+            This link does not exist on Dub. Please check the URL and try again.
           </p>
         </div>
 

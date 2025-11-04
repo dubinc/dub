@@ -3,9 +3,9 @@
 import { onboardProgramAction } from "@/lib/actions/partners/onboard-program";
 import { getLinkStructureOptions } from "@/lib/partners/get-link-structure-options";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { ProgramData } from "@/lib/types";
+import { ProgramData, RewardProps } from "@/lib/types";
 import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { EventType, RewardStructure } from "@dub/prisma/client";
+import { RewardStructure } from "@dub/prisma/client";
 import { Button } from "@dub/ui";
 import { Pencil } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
@@ -34,50 +34,32 @@ export function PageClient() {
     if (!workspaceId) return;
 
     await executeAsync({
-      ...data,
       workspaceId,
       step: "create-program",
     });
   };
 
   const isValid = useMemo(() => {
-    const { name, url, domain, logo, programType, rewardful, type, amount } =
+    const { name, url, domain, logo, type, amountInCents, amountInPercentage } =
       data;
 
-    if (!name || !url || !domain || !logo) {
-      return false;
-    }
+    const hasAmount =
+      type === "flat" ? amountInCents != null : amountInPercentage != null;
 
-    if (programType === "new" && (!amount || !type)) {
-      return false;
-    }
-
-    if (programType === "import" && (!rewardful || !rewardful.id)) {
+    if (!name || !url || !domain || !logo || !type || !hasAmount) {
       return false;
     }
 
     return true;
   }, [data]);
 
-  const reward = data.rewardful
-    ? {
-        type:
-          data.rewardful.reward_type === "amount"
-            ? ("flat" as const)
-            : ("percentage" as const),
-        amount:
-          data.rewardful.reward_type === "amount"
-            ? data.rewardful.commission_amount_cents ?? 0
-            : data.rewardful.commission_percent ?? 0,
-        maxDuration: data.rewardful.max_commission_period_months,
-        event: "sale" as EventType,
-      }
-    : {
-        type: (data.type ?? "flat") as RewardStructure,
-        amount: data.amount ?? 0,
-        maxDuration: data.maxDuration ?? 0,
-        event: data.defaultRewardType,
-      };
+  const reward: Omit<RewardProps, "id"> = {
+    type: (data.type ?? "flat") as RewardStructure,
+    amountInCents: data.amountInCents != null ? data.amountInCents * 100 : null,
+    amountInPercentage: data.amountInPercentage,
+    maxDuration: data.maxDuration ?? 0,
+    event: data.defaultRewardType,
+  };
 
   const SECTIONS = [
     {
@@ -94,7 +76,7 @@ export function PageClient() {
       href: `/${workspaceSlug}/program/new`,
     },
     {
-      title: "Destination URL",
+      title: "Website URL",
       content: data.url,
       href: `/${workspaceSlug}/program/new`,
     },

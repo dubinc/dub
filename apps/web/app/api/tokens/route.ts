@@ -7,7 +7,7 @@ import { generateRandomName } from "@/lib/names";
 import { ratelimit } from "@/lib/upstash";
 import { createTokenSchema, tokenSchema } from "@/lib/zod/schemas/token";
 import { sendEmail } from "@dub/email";
-import { APIKeyCreated } from "@dub/email/templates/api-key-created";
+import APIKeyCreated from "@dub/email/templates/api-key-created";
 import { prisma } from "@dub/prisma";
 import { Prisma, User } from "@dub/prisma/client";
 import { getCurrentPlan, nanoid } from "@dub/utils";
@@ -167,7 +167,7 @@ export const POST = withWorkspace(
 
     waitUntil(
       sendEmail({
-        email: session.user.email,
+        to: session.user.email,
         subject: `A new API key has been created for your workspace ${workspace.name} on Dub`,
         react: APIKeyCreated({
           email: session.user.email,

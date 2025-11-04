@@ -16,6 +16,7 @@ export const UA_BOTS = [
   "bluesky", // Bluesky crawler
   "facebookexternalhit", // Facebook crawler
   "meta-externalagent", // Meta external agent
+  "thirdLandingPageFeInfra", // TikTok preloader (https://ads.tiktok.com/help/article/preloading-web-content)
   "WhatsApp", // WhatsApp crawler
   "google", // Google crawler
   "baidu", // Baidu crawler
@@ -144,6 +145,10 @@ export const IP_BOTS = [
   "35.185.193.22", // The Dalles
   "34.105.67.76", // The Dalles
   "154.28.229.7", // Ashburn
+  "156.242.43.111", // Ashburn
+  "156.242.42.55", // Ashburn
+
+  "154.214.1.137", // suspicious "unknown city" IP
 
   "207.46.13.111", // microsoft IP
 ];

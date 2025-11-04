@@ -1,21 +1,21 @@
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
 import useCustomers from "@/lib/swr/use-customers";
-import useCustomersCount from "@/lib/swr/use-customers-count";
+import useGroups from "@/lib/swr/use-groups";
 import usePartners from "@/lib/swr/use-partners";
-import usePartnersCount from "@/lib/swr/use-partners-count";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CustomerProps, EnrolledPartnerProps } from "@/lib/types";
-import { CUSTOMERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/customers";
-import { PARTNERS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/partners";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
+import { GroupColorCircle } from "@/ui/partners/groups/group-color-circle";
 import { CircleDotted, useRouterStuff } from "@dub/ui";
-import { Sliders, User, Users } from "@dub/ui/icons";
+import { Sliders, User, Users, Users6 } from "@dub/ui/icons";
 import { capitalize, cn, nFormatter, OG_AVATAR_URL } from "@dub/utils";
 import { CommissionType } from "@prisma/client";
 import { useCallback, useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 
 export function useCommissionFilters() {
+  const { slug } = useWorkspace();
   const { commissionsCount } = useCommissionsCount();
   const { searchParamsObj, queryParams } = useRouterStuff();
 
@@ -23,13 +23,15 @@ export function useCommissionFilters() {
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
 
-  const { partners, partnersAsync } = usePartnerFilterOptions(
+  const { partners } = usePartnerFilterOptions(
     selectedFilter === "partnerId" ? debouncedSearch : "",
   );
 
-  const { customers, customersAsync } = useCustomerFilterOptions(
+  const { customers } = useCustomerFilterOptions(
     selectedFilter === "customerId" ? debouncedSearch : "",
   );
+
+  const { groups } = useGroups();
 
   const filters = useMemo(
     () => [
@@ -37,7 +39,7 @@ export function useCommissionFilters() {
         key: "customerId",
         icon: User,
         label: "Customer",
-        shouldFilter: !customersAsync,
+        shouldFilter: false,
         options:
           customers?.map(({ id, email, name, avatar }) => {
             return {
@@ -57,7 +59,7 @@ export function useCommissionFilters() {
         key: "partnerId",
         icon: Users,
         label: "Partner",
-        shouldFilter: !partnersAsync,
+        shouldFilter: false,
         options:
           partners?.map(({ id, name, image }) => {
             return {
@@ -70,6 +72,20 @@ export function useCommissionFilters() {
                   className="size-4 rounded-full"
                 />
               ),
+            };
+          }) ?? null,
+      },
+      {
+        key: "groupId",
+        icon: Users6,
+        label: "Partner Group",
+        options:
+          groups?.map((group) => {
+            return {
+              value: group.id,
+              label: group.name,
+              icon: <GroupColorCircle group={group} />,
+              permalink: `/${slug}/program/groups/${group.slug}/rewards`,
             };
           }) ?? null,
       },
@@ -109,11 +125,12 @@ export function useCommissionFilters() {
         ),
       },
     ],
-    [commissionsCount, partners, customers],
+    [commissionsCount, partners, customers, groups],
   );
 
   const activeFilters = useMemo(() => {
-    const { customerId, partnerId, status, type, payoutId } = searchParamsObj;
+    const { customerId, partnerId, status, type, payoutId, groupId } =
+      searchParamsObj;
 
     return [
       ...(customerId ? [{ key: "customerId", value: customerId }] : []),
@@ -121,6 +138,7 @@ export function useCommissionFilters() {
       ...(status ? [{ key: "status", value: status }] : []),
       ...(type ? [{ key: "type", value: type }] : []),
       ...(payoutId ? [{ key: "payoutId", value: payoutId }] : []),
+      ...(groupId ? [{ key: "groupId", value: groupId }] : []),
     ];
   }, [
     searchParamsObj.customerId,
@@ -128,6 +146,7 @@ export function useCommissionFilters() {
     searchParamsObj.status,
     searchParamsObj.type,
     searchParamsObj.payoutId,
+    searchParamsObj.groupId,
   ]);
 
   const onSelect = useCallback(
@@ -152,7 +171,7 @@ export function useCommissionFilters() {
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["status", "partnerId", "customerId", "payoutId"],
+        del: ["status", "partnerId", "customerId", "payoutId", "groupId"],
       }),
     [queryParams],
   );
@@ -177,23 +196,16 @@ export function useCommissionFilters() {
 function usePartnerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { partnersCount } = usePartnersCount<number>({
-    ignoreParams: true,
-  });
-
-  const partnersAsync = Boolean(
-    partnersCount && partnersCount > PARTNERS_MAX_PAGE_SIZE,
-  );
-
   const { partners, loading: partnersLoading } = usePartners({
-    query: { search: partnersAsync ? search : "" },
+    query: { search },
   });
 
   const { partners: selectedPartners } = usePartners({
     query: {
-      ids: searchParamsObj.partnerId ? [searchParamsObj.partnerId] : undefined,
+      partnerIds: searchParamsObj.partnerId
+        ? [searchParamsObj.partnerId]
+        : undefined,
     },
-    enabled: partnersAsync,
   });
 
   const result = useMemo(() => {
@@ -213,19 +225,14 @@ function usePartnerFilterOptions(search: string) {
         ] as (EnrolledPartnerProps & { hideDuringSearch?: boolean })[]);
   }, [partnersLoading, partners, selectedPartners, searchParamsObj.partnerId]);
 
-  return { partners: result, partnersAsync };
+  return { partners: result };
 }
 
 function useCustomerFilterOptions(search: string) {
   const { searchParamsObj } = useRouterStuff();
 
-  const { data: customersCount } = useCustomersCount();
-  const customersAsync = Boolean(
-    customersCount && customersCount > CUSTOMERS_MAX_PAGE_SIZE,
-  );
-
   const { customers, loading: customersLoading } = useCustomers({
-    query: { search: customersAsync ? search : "" },
+    query: { search },
   });
 
   const { customers: selectedCustomers } = useCustomers({
@@ -234,7 +241,6 @@ function useCustomerFilterOptions(search: string) {
         ? [searchParamsObj.customerId]
         : undefined,
     },
-    enabled: customersAsync,
   });
 
   const result = useMemo(() => {
@@ -259,5 +265,5 @@ function useCustomerFilterOptions(search: string) {
     searchParamsObj.customerId,
   ]);
 
-  return { customers: result, customersAsync };
+  return { customers: result };
 }

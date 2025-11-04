@@ -25,7 +25,7 @@ export function Form() {
 
   const { executeAsync, isPending } = useAction(onboardProgramAction, {
     onSuccess: () => {
-      router.push(`/${workspaceSlug}/program/new/connect`);
+      router.push(`/${workspaceSlug}/program/new/overview`);
       mutate();
     },
     onError: ({ error }) => {
@@ -92,7 +92,7 @@ export function Form() {
           <Input
             type="url"
             {...register("termsUrl")}
-            placeholder="https://dub.co/legal/terms"
+            placeholder="https://dub.co/legal/affiliates"
             className="mt-2 w-full max-w-none"
           />
         </div>

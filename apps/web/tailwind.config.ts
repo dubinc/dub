@@ -30,6 +30,7 @@ const config: Pick<Config, "presets"> = {
             // Pulse scale animation used for onboarding/welcome
             "pulse-scale": "pulse-scale 6s ease-out infinite",
             "gradient-move": "gradient-move 5s linear infinite",
+            "ellipsis-wave": "ellipsis-wave 1.5s ease-in-out infinite",
           },
           keyframes: {
             ...sharedConfig?.theme?.extend?.keyframes,
@@ -73,6 +74,11 @@ const config: Pick<Config, "presets"> = {
             "gradient-move": {
               "0%": { backgroundPosition: "0% 50%" },
               "100%": { backgroundPosition: "200% 50%" },
+            },
+            // Ellipsis wave animation for loading/generating
+            "ellipsis-wave": {
+              "0%,40%": { transform: "translateY(0)" },
+              "20%": { transform: "translateY(var(--offset, -10%))" },
             },
           },
         },

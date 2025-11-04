@@ -2,6 +2,7 @@
 
 import { editQueryString } from "@/lib/analytics/utils";
 import useWorkspace from "@/lib/swr/use-workspace";
+import { useWorkspacePreferences } from "@/lib/swr/use-workspace-preferences";
 import { ClickEvent, LeadEvent, SaleEvent } from "@/lib/types";
 import { CustomerRowItem } from "@/ui/customers/customer-row-item";
 import EmptyState from "@/ui/shared/empty-state";
@@ -11,12 +12,14 @@ import {
   EditColumnsButton,
   LinkLogo,
   Table,
+  TimestampTooltip,
   Tooltip,
+  useColumnVisibility,
   usePagination,
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CursorRays, Globe, Magnifier, QRCode } from "@dub/ui/icons";
+import { Globe, Magnifier } from "@dub/ui/icons";
 import {
   CONTINENTS,
   COUNTRIES,
@@ -33,15 +36,92 @@ import { Cell, ColumnDef } from "@tanstack/react-table";
 import { Link2 } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { ReactNode, useContext, useEffect, useMemo } from "react";
+import { ReactNode, useCallback, useContext, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import { AnalyticsContext } from "../analytics-provider";
 import ContinentIcon from "../continent-icon";
 import DeviceIcon from "../device-icon";
+import { TRIGGER_DISPLAY } from "../trigger-display";
 import { EventsContext } from "./events-provider";
 import { EXAMPLE_EVENTS_DATA } from "./example-data";
+import { MetadataViewer } from "./metadata-viewer";
 import { RowMenuButton } from "./row-menu-button";
-import { eventColumns, useColumnVisibility } from "./use-column-visibility";
+
+const eventColumns = {
+  clicks: {
+    all: [
+      "timestamp",
+      "trigger",
+      "link",
+      "url",
+      "country",
+      "city",
+      "region",
+      "continent",
+      "device",
+      "browser",
+      "os",
+      "referer",
+      "refererUrl",
+      "clickId",
+      "ip",
+    ],
+    defaultVisible: ["timestamp", "link", "referer", "country", "device"],
+  },
+  leads: {
+    all: [
+      "timestamp",
+      "event",
+      "link",
+      "url",
+      "customer",
+      "country",
+      "city",
+      "region",
+      "continent",
+      "device",
+      "browser",
+      "os",
+      "referer",
+      "refererUrl",
+      "ip",
+      "clickId",
+      "metadata",
+    ],
+    defaultVisible: ["timestamp", "event", "link", "customer", "referer"],
+  },
+  sales: {
+    all: [
+      "timestamp",
+      "saleAmount",
+      "event",
+      "customer",
+      "link",
+      "url",
+      "invoiceId",
+      "country",
+      "city",
+      "region",
+      "continent",
+      "device",
+      "browser",
+      "os",
+      "referer",
+      "refererUrl",
+      "ip",
+      "clickId",
+      "metadata",
+    ],
+    defaultVisible: [
+      "timestamp",
+      "saleAmount",
+      "event",
+      "customer",
+      "referer",
+      "link",
+    ],
+  },
+};
 
 export type EventDatum = ClickEvent | LeadEvent | SaleEvent;
 
@@ -70,7 +150,26 @@ export default function EventsTable({
   } = useContext(AnalyticsContext);
 
   const { programSlug } = useParams<{ programSlug: string }>();
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "events-table-columns",
+    eventColumns,
+  );
+
+  const [persisted] = useWorkspacePreferences("linksDisplay");
+
+  const shortLinkTitle = useCallback(
+    (d: { url?: string; title?: string; shortLink?: string }) => {
+      const displayProperties = persisted?.displayProperties;
+
+      if (displayProperties?.includes("title") && d.title) {
+        return d.title;
+      }
+
+      return d.shortLink || "Unknown";
+    },
+    [persisted],
+  );
 
   const sortBy = searchParams.get("sortBy") || "timestamp";
   const sortOrder = searchParams.get("sortOrder") === "asc" ? "asc" : "desc";
@@ -86,21 +185,15 @@ export default function EventsTable({
           enableHiding: false,
           size: 160,
           cell: ({ getValue }) => (
-            <Tooltip
-              content={getValue().toLocaleTimeString("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "numeric",
-                second: "numeric",
-                hour12: true,
-              })}
+            <TimestampTooltip
+              timestamp={getValue()}
+              side="right"
+              rows={["local", "utc", "unix"]}
             >
-              <div className="w-full truncate">
+              <span className="select-none truncate">
                 {formatDateTimeSmart(getValue())}
-              </div>
-            </Tooltip>
+              </span>
+            </TimestampTooltip>
           ),
         },
         // Sale amount
@@ -113,8 +206,6 @@ export default function EventsTable({
             <div className="flex items-center gap-2">
               <span>
                 {currencyFormatter(getValue() / 100, {
-                  maximumFractionDigits: undefined,
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                   trailingZeroDisplay: "stripIfInteger",
                 })}
               </span>
@@ -125,32 +216,27 @@ export default function EventsTable({
         // Click trigger
         {
           id: "trigger",
-          header: "Event",
-          accessorKey: "qr",
+          header: "Trigger",
+          accessorKey: "click.trigger",
+          minSize: 150,
+          size: 150,
+          maxSize: 150,
           meta: {
             filterParams: ({ getValue }) => ({
-              qr: !!getValue(),
+              trigger: getValue() ?? "link",
             }),
           },
-          cell: ({ getValue }) => (
-            <div className="flex items-center gap-3">
-              {getValue() ? (
-                <>
-                  <QRCode className="size-4 shrink-0" />
-                  <span className="truncate" title="QR scan">
-                    QR scan
-                  </span>
-                </>
-              ) : (
-                <>
-                  <CursorRays className="size-4 shrink-0" />
-                  <span className="truncate" title="Link click">
-                    Link click
-                  </span>
-                </>
-              )}
-            </div>
-          ),
+          cell: ({ getValue }) => {
+            const { title, icon: Icon } = TRIGGER_DISPLAY[getValue() ?? "link"];
+            return (
+              <div className="flex items-center gap-3">
+                <Icon className="size-4 shrink-0" />
+                <span className="truncate" title={title}>
+                  {title}
+                </span>
+              </div>
+            );
+          },
         },
         // Lead/sale event name
         {
@@ -216,8 +302,8 @@ export default function EventsTable({
                   apexDomain={getApexDomain(getValue().url)}
                   className="size-4 shrink-0 sm:size-4"
                 />
-                <span className="truncate" title={getValue().shortLink}>
-                  {getPrettyUrl(getValue().shortLink)}
+                <span className="truncate" title={shortLinkTitle(getValue())}>
+                  {getPrettyUrl(shortLinkTitle(getValue()))}
                 </span>
               </div>
             );
@@ -233,6 +319,32 @@ export default function EventsTable({
               </Link>
             );
           },
+        },
+        {
+          id: "url",
+          header: "Destination URL",
+          accessorKey: "click.url",
+          minSize: 250,
+          size: 250,
+          meta: {
+            filterParams: ({ getValue }) => ({ url: getValue() }),
+          },
+          cell: ({ getValue }) => (
+            <div className="flex items-center gap-3">
+              <LinkLogo
+                apexDomain={getApexDomain(getValue())}
+                className="size-4 shrink-0 sm:size-4"
+              />
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referrer URL to clipboard!"
+              >
+                <span className="overflow-scroll" title={getValue()}>
+                  {getPrettyUrl(getValue())}
+                </span>
+              </CopyText>
+            </div>
+          ),
         },
         {
           id: "referer",
@@ -251,7 +363,12 @@ export default function EventsTable({
                   className="size-4 shrink-0 sm:size-4"
                 />
               )}
-              <span className="truncate">{getValue()}</span>
+              <CopyText
+                value={getValue()}
+                successMessage="Copied referrer to clipboard!"
+              >
+                <span className="truncate">{getValue()}</span>
+              </CopyText>
             </div>
           ),
         },
@@ -460,6 +577,44 @@ export default function EventsTable({
                     <span className="text-neutral-400">-</span>
                   ),
               },
+              // Click ID
+              {
+                id: "clickId",
+                header: "Click ID",
+                accessorKey: "click.id",
+                maxSize: 200,
+                cell: ({ getValue }) =>
+                  getValue() ? (
+                    <CopyText
+                      value={getValue()}
+                      successMessage="Copied click ID to clipboard!"
+                    >
+                      <span className="truncate font-mono" title={getValue()}>
+                        {getValue()}
+                      </span>
+                    </CopyText>
+                  ) : (
+                    <span className="text-neutral-400">-</span>
+                  ),
+              },
+              // Metadata
+              {
+                id: "metadata",
+                header: "Metadata",
+                accessorKey: "metadata",
+                minSize: 120,
+                size: 120,
+                maxSize: 120,
+                cell: ({ getValue }) => {
+                  const metadata = getValue();
+                  if (!metadata || Object.keys(metadata).length === 0) {
+                    return <span className="text-neutral-400">-</span>;
+                  }
+                  return (
+                    <MetadataViewer metadata={metadata} previewItems={0} />
+                  );
+                },
+              },
             ]),
         // Menu
         {
@@ -521,7 +676,6 @@ export default function EventsTable({
       keepPreviousData: true,
     },
   );
-
   const { table, ...tableProps } = useTable({
     data: (data ??
       (requiresUpgrade ? EXAMPLE_EVENTS_DATA[tab] : [])) as EventDatum[],

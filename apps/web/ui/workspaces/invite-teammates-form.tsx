@@ -1,21 +1,22 @@
+import { mutatePrefix } from "@/lib/swr/mutate";
 import useWorkspace from "@/lib/swr/use-workspace";
-import { Role, roles } from "@/lib/types";
 import { Invite } from "@/lib/zod/schemas/invites";
-import { Button, useMediaQuery } from "@dub/ui";
+import { WorkspaceRole } from "@dub/prisma/client";
+import { Button, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { Trash } from "@dub/ui/icons";
 import { capitalize, cn, pluralize } from "@dub/utils";
 import { Plus } from "lucide-react";
 import posthog from "posthog-js";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { mutate } from "swr";
+import { CustomToast } from "../shared/custom-toast";
 import { CheckCircleFill } from "../shared/icons";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 
 type FormData = {
   teammates: {
     email: string;
-    role: Role;
+    role: WorkspaceRole;
   }[];
 };
 
@@ -32,6 +33,7 @@ export function InviteTeammatesForm({
 }) {
   const { id, slug } = useWorkspace();
   const { isMobile } = useMediaQuery();
+  const { queryParams } = useRouterStuff();
 
   const maxTeammates = saveOnly ? 4 : 10;
 
@@ -64,15 +66,24 @@ export function InviteTeammatesForm({
         );
 
         if (res.ok) {
-          await mutate(`/api/workspaces/${id}/invites`);
+          await mutatePrefix(`/api/workspaces/${id}/invites`);
 
           if (saveOnly) {
             toast.custom(
-              () => <InviteSavedToast teammates={teammates.length} />,
+              () => (
+                <CustomToast icon={CheckCircleFill}>
+                  {`${pluralize("Invitation", teammates.length)} saved. You'll need a pro plan to invite teammates. [Learn more](https://dub.co/help/article/how-to-invite-teammates)`}
+                </CustomToast>
+              ),
               { duration: 7000 },
             );
           } else {
             toast.success(`${pluralize("Invitation", teammates.length)} sent!`);
+            queryParams({
+              set: {
+                status: "invited",
+              },
+            });
 
             teammates.forEach(({ email }) =>
               posthog.capture("teammate_invited", {
@@ -129,7 +140,7 @@ export function InviteTeammatesForm({
                   defaultValue="member"
                   className="rounded-r-md border border-l-0 border-neutral-300 bg-white pl-4 pr-8 text-neutral-600 focus:border-neutral-300 focus:outline-none focus:ring-0 sm:text-sm"
                 >
-                  {roles.map((role) => (
+                  {["owner", "member"].map((role) => (
                     <option key={role} value={role}>
                       {capitalize(role)}
                     </option>
@@ -165,24 +176,5 @@ export function InviteTeammatesForm({
         }
       />
     </form>
-  );
-}
-
-function InviteSavedToast({ teammates }: { teammates: number }) {
-  return (
-    <div className="flex items-center gap-1.5 rounded-lg bg-white p-4 text-sm shadow-[0_4px_12px_#0000001a]">
-      <CheckCircleFill className="size-5 shrink-0 text-black" />
-      <p className="text-[13px] font-medium text-neutral-900">
-        {pluralize("Invitation", teammates)} saved. You'll need a pro plan to
-        invite teammates.{" "}
-        <a
-          href="https://dub.co/help/article/how-to-invite-teammates"
-          target="_blank"
-          className="text-neutral-500 underline transition-colors hover:text-neutral-800"
-        >
-          Learn more
-        </a>
-      </p>
-    </div>
   );
 }

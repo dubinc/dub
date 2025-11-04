@@ -1,6 +1,7 @@
 "use client";
 
 import { getIntegrationInstallUrl } from "@/lib/actions/get-integration-install-url";
+import { HubSpotSettings } from "@/lib/integrations/hubspot/ui/settings";
 import { SegmentSettings } from "@/lib/integrations/segment/ui/settings";
 import { SlackSettings } from "@/lib/integrations/slack/ui/settings";
 import { ZapierSettings } from "@/lib/integrations/zapier/ui/settings";
@@ -46,15 +47,17 @@ import {
   SLACK_INTEGRATION_ID,
   ZAPIER_INTEGRATION_ID,
 } from "@dub/utils";
+import { HUBSPOT_INTEGRATION_ID } from "@dub/utils/src/constants/integrations";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { memo, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 const integrationSettings = {
   [ZAPIER_INTEGRATION_ID]: ZapierSettings,
   [SLACK_INTEGRATION_ID]: SlackSettings,
   [SEGMENT_INTEGRATION_ID]: SegmentSettings,
+  [HUBSPOT_INTEGRATION_ID]: HubSpotSettings,
 };
 
 export default function IntegrationPageClient({
@@ -62,7 +65,7 @@ export default function IntegrationPageClient({
 }: {
   integration: InstalledIntegrationInfoProps;
 }) {
-  const { slug, id: workspaceId } = useWorkspace();
+  const { id: workspaceId, slug, plan } = useWorkspace();
   const { isMobile } = useMediaQuery();
 
   const [openPopover, setOpenPopover] = useState(false);
@@ -265,7 +268,19 @@ export default function IntegrationPageClient({
                 loading={isPending}
                 text="Enable"
                 variant="primary"
+                className="h-9 px-3"
                 icon={<ConnectedDots className="size-4" />}
+                disabledTooltip={
+                  integration.id === HUBSPOT_INTEGRATION_ID &&
+                  plan &&
+                  ["free", "pro"].includes(plan) ? (
+                    <TooltipContent
+                      title="Hubspot integration is only available on Business plans and above. Upgrade to get started."
+                      cta="Upgrade to Business"
+                      href={`/${slug}/settings/billing/upgrade`}
+                    />
+                  ) : null
+                }
               />
             )}
         </div>
@@ -278,7 +293,7 @@ export default function IntegrationPageClient({
               <CarouselContent>
                 {integration.screenshots.map((src, idx) => (
                   <CarouselItem key={idx}>
-                    <BlurImageMemo
+                    <BlurImage
                       src={src}
                       alt={`Screenshot ${idx + 1} of ${integration.name}`}
                       width={900}
@@ -310,7 +325,7 @@ export default function IntegrationPageClient({
                         )
                       }
                     >
-                      <BlurImageMemo
+                      <BlurImage
                         src={src}
                         alt={`Screenshot ${idx + 1} thumbnail`}
                         width={900}
@@ -335,5 +350,3 @@ export default function IntegrationPageClient({
     </MaxWidthWrapper>
   );
 }
-
-const BlurImageMemo = memo(BlurImage);

@@ -1,14 +1,16 @@
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { recordSale } from "@/lib/tinybird";
+import { LeadEventTB, WebhookPartner } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
-import z from "@/lib/zod";
-import { leadEventSchemaTB } from "@/lib/zod/schemas/leads";
 import { prisma } from "@dub/prisma";
 import { nanoid } from "@dub/utils";
+import { WorkflowTrigger } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { orderSchema } from "./schema";
 
@@ -21,7 +23,7 @@ export async function createShopifySale({
   event: any;
   customerId: string;
   workspaceId: string;
-  leadData: z.infer<typeof leadEventSchemaTB>;
+  leadData: LeadEventTB;
 }) {
   const order = orderSchema.parse(event);
 
@@ -31,7 +33,7 @@ export async function createShopifySale({
     current_subtotal_price_set: { shop_money: shopMoney },
   } = order;
 
-  const amount = Number(shopMoney.amount) * 100;
+  const amount = Math.round(Number(shopMoney.amount) * 100); // round to nearest cent
   const { link_id: linkId } = leadData;
   const currency = shopMoney.currency_code.toLowerCase();
 
@@ -53,6 +55,7 @@ export async function createShopifySale({
 
   const saleData = {
     ...leadData,
+    workspace_id: leadData.workspace_id || workspaceId, // in case for some reason the lead event doesn't have workspace_id
     event_id: nanoid(16),
     event_name: "Purchase",
     payment_processor: "shopify",
@@ -61,6 +64,17 @@ export async function createShopifySale({
     invoice_id: invoiceId,
     metadata: JSON.stringify(order),
   };
+
+  const existingCustomer = await prisma.customer.findUniqueOrThrow({
+    where: {
+      id: customerId,
+    },
+  });
+
+  const firstConversionFlag = isFirstConversion({
+    customer: existingCustomer,
+    linkId,
+  });
 
   const [_sale, link, workspace, customer] = await Promise.all([
     // record sale
@@ -72,6 +86,12 @@ export async function createShopifySale({
         id: linkId,
       },
       data: {
+        ...(firstConversionFlag && {
+          conversions: {
+            increment: 1,
+          },
+          lastConversionAt: new Date(),
+        }),
         sales: {
           increment: 1,
         },
@@ -93,7 +113,6 @@ export async function createShopifySale({
         },
       },
     }),
-
     prisma.customer.update({
       where: {
         id: customerId,
@@ -107,26 +126,13 @@ export async function createShopifySale({
         },
       },
     }),
-
     redis.del(`shopify:checkout:${checkoutToken}`),
   ]);
 
-  waitUntil(
-    sendWorkspaceWebhook({
-      trigger: "sale.created",
-      workspace,
-      data: transformSaleEventData({
-        ...saleData,
-        link,
-        clickedAt: customer.clickedAt || customer.createdAt,
-        customer,
-      }),
-    }),
-  );
-
   // for program links
+  let webhookPartner: WebhookPartner | undefined;
   if (link.programId && link.partnerId) {
-    const commission = await createPartnerCommission({
+    const createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -137,15 +143,51 @@ export async function createShopifySale({
       quantity: 1,
       invoiceId: saleData.invoice_id,
       currency: saleData.currency,
+      context: {
+        customer: {
+          country: customer.country,
+        },
+        sale: {
+          amount: saleData.amount,
+        },
+      },
     });
+    webhookPartner = createdCommission?.webhookPartner;
 
-    if (commission) {
-      waitUntil(
-        notifyPartnerSale({
-          link,
-          commission,
+    waitUntil(
+      Promise.allSettled([
+        executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
+          },
         }),
-      );
-    }
+        syncPartnerLinksStats({
+          partnerId: link.partnerId,
+          programId: link.programId,
+          eventType: "sale",
+        }),
+      ]),
+    );
   }
+
+  waitUntil(
+    sendWorkspaceWebhook({
+      trigger: "sale.created",
+      workspace,
+      data: transformSaleEventData({
+        ...saleData,
+        link,
+        clickedAt: customer.clickedAt || customer.createdAt,
+        customer,
+        partner: webhookPartner,
+        metadata: null,
+      }),
+    }),
+  );
 }

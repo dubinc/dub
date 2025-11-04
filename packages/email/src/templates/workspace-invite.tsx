@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function WorkspaceInvite({
+export default function WorkspaceInvite({
   email = "panic@thedis.co",
   url = "http://localhost:8888/api/auth/callback/email?callbackUrl=http%3A%2F%2Fapp.localhost%3A3000%2Flogin&token=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx&email=youremail@gmail.com",
   workspaceName = "Acme",
@@ -79,5 +79,3 @@ export function WorkspaceInvite({
     </Html>
   );
 }
-
-export default WorkspaceInvite;

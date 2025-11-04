@@ -14,7 +14,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function FolderEditAccessRequested({
+export default function FolderEditAccessRequested({
   email = "panic@thedis.co",
   folderUrl = "http://localhost:8888/acme/settings/library/folders/cm1elre430005nf59czif340u/members",
   folder = {
@@ -80,5 +80,3 @@ export function FolderEditAccessRequested({
     </Html>
   );
 }
-
-export default FolderEditAccessRequested;

@@ -1,11 +1,13 @@
 "use client";
 
-import { BookOpen, Button, buttonVariants, ChevronLeft } from "@dub/ui";
+import { Button, buttonVariants, ChevronLeft } from "@dub/ui";
 import { cn } from "@dub/utils";
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { GuideActionButton } from "./guide-action-button";
+import { InstallStripeIntegrationButton } from "./install-stripe-integration-button";
 import { guides, IntegrationType } from "./integrations";
-import { Markdown } from "./markdown";
+import { GuidesMarkdown } from "./markdown";
 
 const integrationTypeToTitle: Record<IntegrationType, string> = {
   "client-sdk": "Install client-side script",
@@ -35,14 +37,7 @@ export function Guide({ markdown }: { markdown: string }) {
             />
           </Link>
 
-          <Link href={selectedGuide.url} target="_blank">
-            <Button
-              text="Read full guide"
-              variant="secondary"
-              className="h-8 w-fit rounded-lg px-3"
-              icon={<BookOpen className="size-3.5" />}
-            />
-          </Link>
+          <GuideActionButton guide={selectedGuide} markdown={markdown} />
         </div>
 
         <div>
@@ -59,7 +54,11 @@ export function Guide({ markdown }: { markdown: string }) {
         </div>
 
         <div className="space-y-6 rounded-2xl bg-white p-0 shadow-none">
-          <Markdown>{markdown}</Markdown>
+          {selectedGuide.type === "track-sale" &&
+            selectedGuide.key.startsWith("stripe") && (
+              <InstallStripeIntegrationButton />
+            )}
+          <GuidesMarkdown>{markdown}</GuidesMarkdown>
 
           <Link
             href={backHref}

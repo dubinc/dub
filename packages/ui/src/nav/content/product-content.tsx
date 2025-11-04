@@ -19,7 +19,7 @@ const products = [
     ),
     title: "Dub Links",
     description: "Short links with superpowers for modern marketing teams.",
-    href: "/home",
+    href: "/links",
     color: "#f4950c",
     graphicsContainerClassName: "px-2",
     graphic: <LinksGraphic className="absolute left-0 top-0 h-auto w-full" />,

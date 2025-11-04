@@ -58,7 +58,7 @@ export default function PlaceholderContent() {
           </ButtonLink>
           <ButtonLink
             variant="secondary"
-            href={createHref("/home", domain, {
+            href={createHref("/links", domain, {
               ...UTM_PARAMS,
               utm_campaign: domain,
               utm_content: "Learn more",

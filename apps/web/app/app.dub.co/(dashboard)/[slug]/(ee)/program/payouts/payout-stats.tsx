@@ -3,9 +3,15 @@
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutsCount } from "@/lib/types";
-import { PayoutInvoiceSheet } from "@/ui/partners/payout-invoice-sheet";
+import { ConfirmPayoutsSheet } from "@/ui/partners/confirm-payouts-sheet";
 import { PayoutStatus } from "@dub/prisma/client";
-import { Button, buttonVariants, Tooltip, useRouterStuff } from "@dub/ui";
+import {
+  Button,
+  buttonVariants,
+  Tooltip,
+  useKeyboardShortcut,
+  useRouterStuff,
+} from "@dub/ui";
 import { cn, currencyFormatter } from "@dub/utils";
 import Link from "next/link";
 
@@ -40,20 +46,29 @@ export function PayoutStats() {
 
   const confirmButtonDisabled = eligiblePendingPayouts?.amount === 0;
 
-  const completedPayouts = payoutsCount?.find(
-    (p) => p.status === PayoutStatus.completed,
-  );
+  const completedPayoutsAmount =
+    payoutsCount
+      ?.filter((p) => ["processed", "sent", "completed"].includes(p.status))
+      .reduce((acc, payout) => acc + payout.amount, 0) ?? 0;
 
-  const processingPayouts = payoutsCount?.find(
-    (p) => p.status === PayoutStatus.processing,
-  );
+  const processingPayoutsAmount =
+    payoutsCount?.find((p) => p.status === PayoutStatus.processing)?.amount ??
+    0;
 
-  const totalPaid =
-    (completedPayouts?.amount || 0) + (processingPayouts?.amount || 0);
+  const totalPaid = completedPayoutsAmount + processingPayoutsAmount;
+
+  useKeyboardShortcut("c", () => {
+    queryParams({
+      set: {
+        confirmPayouts: "true",
+      },
+      scroll: false,
+    });
+  });
 
   return (
     <>
-      <PayoutInvoiceSheet />
+      <ConfirmPayoutsSheet />
       <div className="grid grid-cols-1 divide-neutral-200 rounded-lg border border-neutral-200 bg-neutral-50 max-sm:divide-y sm:grid-cols-2 sm:divide-x">
         <div className="flex flex-col p-4">
           <div className="flex justify-between gap-5">
@@ -62,6 +77,8 @@ export function PayoutStats() {
             </div>
             <Button
               text="Confirm payouts"
+              shortcut="C"
+              shortcutClassName="px-1 py-px"
               className="h-7 w-fit px-2"
               onClick={() => {
                 queryParams({
@@ -111,9 +128,7 @@ export function PayoutStats() {
                             {display}
                           </div>
                           <div className="text-sm text-neutral-500">
-                            {currencyFormatter(amount / 100, {
-                              maximumFractionDigits: 2,
-                            })}
+                            {currencyFormatter(amount / 100, {})}
                           </div>
                         </div>
                       ))}
@@ -126,9 +141,7 @@ export function PayoutStats() {
                     eligiblePendingPayouts?.amount
                       ? eligiblePendingPayouts.amount / 100
                       : 0,
-                    {
-                      maximumFractionDigits: 2,
-                    },
+                    {},
                   ) + " USD"}
                 </span>
               </Tooltip>
@@ -142,7 +155,7 @@ export function PayoutStats() {
               <div className="text-sm text-neutral-500">Total paid</div>
             </div>
             <Link
-              href={`/${slug}/settings/billing/invoices?type=payout`}
+              href={`/${slug}/settings/billing/invoices?type=partnerPayout`}
               className={cn(
                 buttonVariants({ variant: "secondary" }),
                 "flex h-7 items-center rounded-md border px-2 text-sm",
@@ -165,11 +178,11 @@ export function PayoutStats() {
                       {[
                         {
                           display: "Completed payouts",
-                          amount: completedPayouts?.amount || 0,
+                          amount: completedPayoutsAmount,
                         },
                         {
                           display: "Processing payouts",
-                          amount: processingPayouts?.amount || 0,
+                          amount: processingPayoutsAmount,
                         },
                       ].map(({ display, amount }, index) => (
                         <div className="flex justify-between" key={index}>
@@ -177,9 +190,7 @@ export function PayoutStats() {
                             {display}
                           </div>
                           <div className="text-sm text-neutral-500">
-                            {currencyFormatter(amount / 100, {
-                              maximumFractionDigits: 2,
-                            })}
+                            {currencyFormatter(amount / 100, {})}
                           </div>
                         </div>
                       ))}
@@ -188,9 +199,7 @@ export function PayoutStats() {
                 }
               >
                 <span className="underline decoration-dotted underline-offset-2">
-                  {currencyFormatter(totalPaid / 100, {
-                    maximumFractionDigits: 2,
-                  }) + " USD"}
+                  {currencyFormatter(totalPaid / 100, {}) + " USD"}
                 </span>
               </Tooltip>
             )}

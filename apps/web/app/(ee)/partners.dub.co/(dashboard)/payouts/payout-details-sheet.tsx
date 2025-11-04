@@ -1,4 +1,7 @@
-import { PAYOUTS_SHEET_ITEMS_LIMIT } from "@/lib/partners/constants";
+import {
+  INVOICE_AVAILABLE_PAYOUT_STATUSES,
+  PAYOUTS_SHEET_ITEMS_LIMIT,
+} from "@/lib/partners/constants";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerEarningsResponse, PartnerPayoutResponse } from "@/lib/types";
 import { CommissionTypeIcon } from "@/ui/partners/comission-type-icon";
@@ -8,7 +11,6 @@ import { ConditionalLink } from "@/ui/shared/conditional-link";
 import { X } from "@/ui/shared/icons";
 import {
   Button,
-  buttonVariants,
   InvoiceDollar,
   LoadingSpinner,
   Sheet,
@@ -80,14 +82,9 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
       Amount: (
         <div className="flex items-center gap-2">
-          <strong>
-            {currencyFormatter(payout.amount / 100, {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}
-          </strong>
+          <strong>{currencyFormatter(payout.amount / 100)}</strong>
 
-          {["completed", "processing"].includes(payout.status) && (
+          {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
             <Tooltip content="View invoice">
               <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
                 <Link
@@ -110,8 +107,8 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
   const table = useTable({
     data:
-      earnings?.filter(
-        ({ status }) => !["duplicate", "fraud"].includes(status),
+      earnings?.filter(({ status }) =>
+        ["pending", "processed", "paid"].includes(status),
       ) || [],
     columns: [
       {
@@ -152,6 +149,11 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         ),
       },
       {
+        id: "earnings",
+        header: "Earnings",
+        cell: ({ row }) => currencyFormatter(row.original.earnings / 100),
+      },
+      {
         id: "type",
         header: "Type",
         minSize: 100,
@@ -161,17 +163,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
           <CommissionTypeBadge type={row.original.type ?? "sale"} />
         ),
       },
-      {
-        id: "earnings",
-        header: "Earnings",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
-      },
     ],
-    columnPinning: { right: ["earnings"] },
     thClassName: (id) =>
       cn(id === "total" && "[&>div]:justify-end", "border-l-0"),
     tdClassName: (id) => cn(id === "total" && "text-right", "border-l-0"),
@@ -183,57 +175,61 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
   } as any);
 
   return (
-    <div>
-      <div className="flex items-start justify-between border-b border-neutral-200 p-6">
-        <Sheet.Title className="text-xl font-semibold">
-          Payout details
-        </Sheet.Title>
-        <Sheet.Close asChild>
-          <Button
-            variant="outline"
-            icon={<X className="size-5" />}
-            className="h-auto w-fit p-1"
-          />
-        </Sheet.Close>
-      </div>
-      <div className="flex flex-col gap-4 p-6">
-        <div className="text-base font-medium text-neutral-900">
-          Invoice details
-        </div>
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          {Object.entries(invoiceData).map(([key, value]) => (
-            <Fragment key={key}>
-              <div className="flex items-center font-medium text-neutral-500">
-                {key}
-              </div>
-              <div className="text-neutral-800">{value}</div>
-            </Fragment>
-          ))}
+    <div className="flex h-full flex-col">
+      <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
+            Payout details
+          </Sheet.Title>
+          <Sheet.Close asChild>
+            <Button
+              variant="outline"
+              icon={<X className="size-5" />}
+              className="h-auto w-fit p-1"
+            />
+          </Sheet.Close>
         </div>
       </div>
-      {isLoading ? (
-        <div className="flex h-full items-center justify-center">
-          <LoadingSpinner />
+
+      <div className="flex grow flex-col">
+        <div className="flex flex-col gap-4 p-6">
+          <div className="text-base font-medium text-neutral-900">
+            Invoice details
+          </div>
+          <div className="grid grid-cols-2 gap-3 text-sm">
+            {Object.entries(invoiceData).map(([key, value]) => (
+              <Fragment key={key}>
+                <div className="flex items-center font-medium text-neutral-500">
+                  {key}
+                </div>
+                <div className="text-neutral-800">{value}</div>
+              </Fragment>
+            ))}
+          </div>
         </div>
-      ) : earnings?.length ? (
-        <>
+
+        {isLoading ? (
+          <div className="flex h-full items-center justify-center">
+            <LoadingSpinner />
+          </div>
+        ) : earnings?.length ? (
           <div className="p-6 pt-2">
             <Table {...table} />
           </div>
-          <div className="sticky bottom-0 z-10 flex justify-end border-t border-neutral-200 bg-white px-6 py-4">
-            <Link
-              href={`/programs/${payout.program.slug}/earnings?interval=all&payoutId=${payout.id}`}
-              target="_blank"
-              className={cn(
-                buttonVariants({ variant: "secondary" }),
-                "flex h-7 items-center rounded-lg border px-2 text-sm",
-              )}
-            >
-              View all
-            </Link>
-          </div>
-        </>
-      ) : null}
+        ) : null}
+      </div>
+
+      <div className="sticky bottom-0 z-10 border-t border-neutral-200 bg-white">
+        <div className="flex items-center justify-between gap-2 p-5">
+          <Link
+            href={`/programs/${payout.program.slug}/earnings?payoutId=${payout.id}&start=${payout.periodStart}&end=${payout.periodEnd}`}
+            target="_blank"
+            className="w-full"
+          >
+            <Button variant="secondary" text="View all" />
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }

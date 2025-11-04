@@ -108,7 +108,7 @@ export const TagSelect = memo(() => {
   const { complete } = useCompletion({
     api: `/api/ai/completion?workspaceId=${workspaceId}`,
     body: {
-      model: "claude-3-haiku-20240307",
+      model: "claude-3-5-haiku-latest",
     },
     onFinish: (_, completion) => {
       mutateWorkspace();

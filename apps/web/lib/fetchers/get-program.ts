@@ -1,41 +1,80 @@
 import { prisma } from "@dub/prisma";
+import { Program, Reward } from "@prisma/client";
 import { cache } from "react";
-import { sortRewardsByEventOrder } from "../partners/sort-rewards-by-event-order";
+import { serializeReward } from "../api/partners/serialize-reward";
+import { DiscountProps, GroupWithFormDataProps, RewardProps } from "../types";
+
+type Result = Program & {
+  groups: GroupWithFormDataProps[];
+};
 
 export const getProgram = cache(
-  async ({
-    slug,
-    include,
-  }: {
-    slug: string;
-    include?: ("defaultRewards" | "defaultDiscount")[];
-  }) => {
-    const program = await prisma.program.findUnique({
+  async ({ slug, groupSlug }: { slug: string; groupSlug?: string }) => {
+    const programData = await prisma.program.findUnique({
       where: {
         slug,
       },
-      include: {
-        ...(include?.includes("defaultRewards") && {
-          rewards: {
+      ...(groupSlug && {
+        include: {
+          groups: {
             where: {
-              default: true, // program-wide rewards only
+              slug: groupSlug,
+            },
+            include: {
+              clickReward: true,
+              leadReward: true,
+              saleReward: true,
+              discount: true,
             },
           },
-        }),
-        ...(include?.includes("defaultDiscount") && {
-          defaultDiscount: true,
-        }),
-      },
+        },
+      }),
     });
 
-    if (!program) {
+    if (!programData) {
       return null;
     }
 
-    if (include?.includes("defaultRewards")) {
-      program.rewards = sortRewardsByEventOrder(program.rewards);
+    // If no group slug is provided, return the program data with no rewards or discount
+    if (!groupSlug) {
+      return {
+        ...programData,
+        group: null,
+        rewards: [],
+        discount: null,
+      };
     }
 
-    return program;
+    // Extract the group data and find its rewards and discount
+    const { groups, ...program } = programData as unknown as Result;
+
+    // Group not found
+    if (groups.length === 0) {
+      return;
+    }
+
+    const group = groups[0];
+
+    const rewards = [group.clickReward, group.leadReward, group.saleReward]
+      .filter((r) => r !== null)
+      .map((r) => serializeReward(r as Reward));
+
+    const discount = group.discount;
+
+    return {
+      ...program,
+      group: {
+        id: group.id,
+        name: group.name,
+        slug: group.slug,
+        color: group.color,
+        applicationFormData: group.applicationFormData,
+        applicationFormPublishedAt: group.applicationFormPublishedAt,
+        landerData: group.landerData,
+        landerPublishedAt: group.landerPublishedAt,
+      },
+      rewards: rewards as RewardProps[],
+      discount: discount as DiscountProps | null,
+    };
   },
 );

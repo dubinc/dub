@@ -19,6 +19,8 @@ import {
   MenuItem,
   Popover,
   Table,
+  TimestampTooltip,
+  useColumnVisibility,
   useCopyToClipboard,
   usePagination,
   useRouterStuff,
@@ -42,8 +44,12 @@ import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import useSWR from "swr";
 import { EXAMPLE_CUSTOMER_DATA } from "./example-data";
-import { customersColumns, useColumnVisibility } from "./use-column-visibility";
 import { useCustomerFilters } from "./use-customer-filters";
+
+const customersColumns = {
+  all: ["customer", "country", "saleAmount", "createdAt", "link", "externalId"],
+  defaultVisible: ["customer", "country", "saleAmount", "createdAt", "link"],
+};
 
 type ColumnMeta = {
   filterParams?: (
@@ -93,7 +99,11 @@ export function CustomerTable() {
     },
   );
 
-  const { columnVisibility, setColumnVisibility } = useColumnVisibility();
+  const { columnVisibility, setColumnVisibility } = useColumnVisibility(
+    "customers-table-columns",
+    customersColumns,
+  );
+
   const { pagination, setPagination } = usePagination();
 
   if (!canManageCustomers) columnVisibility.link = false;
@@ -152,8 +162,6 @@ export function CustomerTable() {
             <div className="flex items-center gap-2">
               <span>
                 {currencyFormatter(getValue() / 100, {
-                  maximumFractionDigits: undefined,
-                  // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                   trailingZeroDisplay: "stripIfInteger",
                 })}
               </span>
@@ -164,7 +172,18 @@ export function CustomerTable() {
         {
           id: "createdAt",
           header: "Created",
-          accessorFn: (d) => formatDate(d.createdAt, { month: "short" }),
+          cell: ({ row }) => (
+            <TimestampTooltip
+              timestamp={row.original.createdAt}
+              rows={["local"]}
+              side="left"
+              delayDuration={150}
+            >
+              <span>
+                {formatDate(row.original.createdAt, { month: "short" })}
+              </span>
+            </TimestampTooltip>
+          ),
         },
         {
           id: "link",
@@ -275,8 +294,8 @@ export function CustomerTable() {
             onRemove={onRemove}
           />
           <SearchBoxPersisted
-            placeholder="Search by email, name, or external ID"
-            inputClassName="md:w-[21rem]"
+            placeholder="Search by email or name"
+            inputClassName="md:w-[16rem]"
           />
         </div>
         <AnimatedSizeContainer height>
@@ -286,6 +305,7 @@ export function CustomerTable() {
                 <Filter.List
                   filters={filters}
                   activeFilters={activeFilters}
+                  onSelect={onSelect}
                   onRemove={onRemove}
                   onRemoveAll={onRemoveAll}
                 />
@@ -360,7 +380,7 @@ export function CustomerTable() {
               : "No customers have been recorded for your workspace yet. Learn how to track your first customer."
           }
           {...(!isFiltered && {
-            learnMoreHref: `/${workspaceSlug}/guides`,
+            learnMoreHref: `/${workspaceSlug}/settings/analytics`,
             learnMoreTarget: "_self",
             learnMoreText: "Read the guides",
           })}

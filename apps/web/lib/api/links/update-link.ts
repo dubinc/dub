@@ -102,9 +102,9 @@ export async function updateLink({
       utm_term: utm_term || null,
       utm_content: utm_content || null,
       expiresAt: expiresAt ? new Date(expiresAt) : null,
-      geo: geo || Prisma.JsonNull,
+      geo: geo || Prisma.DbNull,
 
-      testVariants: testVariants || Prisma.JsonNull,
+      testVariants: testVariants || Prisma.DbNull,
       testCompletedAt: testCompletedAt ? new Date(testCompletedAt) : null,
       testStartedAt: testStartedAt ? new Date(testStartedAt) : null,
 
@@ -189,15 +189,19 @@ export async function updateLink({
       proxy &&
         image &&
         isNotHostedImage(image) &&
-        storage.upload(`images/${id}_${imageUrlNonce}`, image, {
-          width: 1200,
-          height: 630,
+        storage.upload({
+          key: `images/${id}_${imageUrlNonce}`,
+          body: image,
+          opts: {
+            width: 1200,
+            height: 630,
+          },
         }),
       // if there's a valid old image and it starts with the same link ID but is different from the new image, delete it
       oldLink.image &&
         oldLink.image.startsWith(`${R2_URL}/images/${id}`) &&
         oldLink.image !== image &&
-        storage.delete(oldLink.image.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: oldLink.image.replace(`${R2_URL}/`, "") }),
 
       webhookIds != undefined &&
         propagateWebhookTriggerChanges({

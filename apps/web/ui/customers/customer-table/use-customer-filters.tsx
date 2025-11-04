@@ -1,7 +1,7 @@
 import useCustomersCount from "@/lib/swr/use-customers-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { LinkLogo, useRouterStuff } from "@dub/ui";
-import { FlagWavy, Hyperlink } from "@dub/ui/icons";
+import { FlagWavy, Hyperlink, SquareUserSparkle2 } from "@dub/ui/icons";
 import { COUNTRIES, getApexDomain, getPrettyUrl, nFormatter } from "@dub/utils";
 import { useCallback, useMemo } from "react";
 
@@ -49,8 +49,8 @@ export function useCustomerFilters(
         getOptionIcon: (value) => (
           <img
             alt={value}
-            src={`https://flag.vercel.app/m/${value}.svg`}
-            className="h-2.5 w-4"
+            src={`https://hatscripts.github.io/circle-flags/flags/${value.toLowerCase()}.svg`}
+            className="size-4 shrink-0"
           />
         ),
         getOptionLabel: (value) => COUNTRIES[value],
@@ -93,16 +93,28 @@ export function useCustomerFilters(
           }),
         },
       },
+      {
+        key: "externalId",
+        icon: SquareUserSparkle2,
+        label: "External ID",
+        options: [],
+        meta: {
+          filterParams: ({ getValue }) => ({
+            externalId: getValue(),
+          }),
+        },
+      },
     ],
-    [countriesCount, linksCount],
+    [countriesCount, linksCount, slug],
   );
 
   const activeFilters = useMemo(() => {
-    const { country, linkId } = searchParamsObj;
+    const { country, linkId, externalId } = searchParamsObj;
 
     return [
       ...(country ? [{ key: "country", value: country }] : []),
       ...(linkId ? [{ key: "linkId", value: linkId }] : []),
+      ...(externalId ? [{ key: "externalId", value: externalId }] : []),
     ];
   }, [searchParamsObj]);
 
@@ -128,7 +140,7 @@ export function useCustomerFilters(
   const onRemoveAll = useCallback(
     () =>
       queryParams({
-        del: ["country", "search"],
+        del: ["country", "linkId", "externalId", "search"],
       }),
     [queryParams],
   );

@@ -1,9 +1,14 @@
 import { programResourcesSchema } from "@/lib/zod/schemas/program-resources";
 import { ResourceCard } from "@/ui/partners/resources/resource-card";
 import { ResourceSection } from "@/ui/partners/resources/resource-section";
-import { FileContent } from "@dub/ui";
-import { formatFileSize, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { motion } from "framer-motion";
+import { FileContent, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/ui";
+import {
+  formatFileSize,
+  getApexDomain,
+  getFileExtension,
+  GOOGLE_FAVICON_URL,
+} from "@dub/utils";
+import { motion } from "motion/react";
 import { z } from "zod";
 
 export function ReferralsEmbedResources({
@@ -32,12 +37,36 @@ export function ReferralsEmbedResources({
                 </div>
               }
               title={logo.name || "Logo"}
-              description={formatFileSize(logo.size, 0)}
+              description={`${getFileExtension(logo.url) || "Unknown"}・${formatFileSize(logo.size, 0)}`}
               downloadUrl={logo.url}
             />
           ))}
         </ResourceSection>
       )}
+
+      {!!resources?.links?.length && (
+        <ResourceSection resource="link" title="Links">
+          {resources?.links?.map((link) => (
+            <ResourceCard
+              key={link.id}
+              resourceType="link"
+              icon={
+                <div className="flex size-full items-center justify-center bg-neutral-50">
+                  <img
+                    src={`${GOOGLE_FAVICON_URL}${getApexDomain(link.url)}`}
+                    alt={link.name}
+                    className="size-6 rounded-full object-contain"
+                  />
+                </div>
+              }
+              title={link.name}
+              description={link.url}
+              copyText={link.url}
+            />
+          ))}
+        </ResourceSection>
+      )}
+
       {!!resources?.colors?.length && (
         <ResourceSection resource="color" title="Colors">
           {resources?.colors?.map((color) => (
@@ -57,6 +86,7 @@ export function ReferralsEmbedResources({
           ))}
         </ResourceSection>
       )}
+
       {!!resources?.files?.length && (
         <ResourceSection resource="file" title="Additional files">
           {resources?.files?.map((file) => (
@@ -69,7 +99,7 @@ export function ReferralsEmbedResources({
                 </div>
               }
               title={file.name || "File"}
-              description={formatFileSize(file.size, 0)}
+              description={`${getFileExtension(file.url) || "Unknown"}・${formatFileSize(file.size, 0)}`}
               downloadUrl={file.url}
             />
           ))}

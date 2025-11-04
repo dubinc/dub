@@ -7,7 +7,7 @@ import {
   AnimatedSizeContainer,
   BlurImage,
   Popover,
-  useScrollProgress,
+  ScrollContainer,
 } from "@dub/ui";
 import { Check2, GridIcon, Magnifier } from "@dub/ui/icons";
 import { cn, OG_AVATAR_URL } from "@dub/utils";
@@ -15,17 +15,7 @@ import { Command } from "cmdk";
 import { ChevronsUpDown } from "lucide-react";
 import Link from "next/link";
 import { useParams, usePathname, useRouter } from "next/navigation";
-import {
-  memo,
-  PropsWithChildren,
-  useCallback,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-
-// Helps prevent flickering from re-rendering. We might be able to just add this to `BlurImage` itself in the future.
-const MemoBlurImage = memo(BlurImage);
+import { useCallback, useMemo, useState } from "react";
 
 export function PartnerProgramDropdown() {
   const { programSlug } = useParams() as { programSlug?: string };
@@ -108,7 +98,7 @@ export function PartnerProgramDropdown() {
         >
           <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
             {selectedProgram?.logo && (
-              <MemoBlurImage
+              <BlurImage
                 src={selectedProgram.logo}
                 referrerPolicy="no-referrer"
                 width={40}
@@ -133,32 +123,10 @@ export function PartnerProgramDropdown() {
 
 function PartnerDropdownPlaceholder() {
   return (
-    <div className="flex w-full animate-pulse items-center gap-x-1.5 rounded-lg p-1.5">
-      <div className="size-7 animate-pulse rounded-full bg-neutral-200" />
-      <div className="mb-px mt-0.5 h-8 w-28 grow animate-pulse rounded-md bg-neutral-200" />
+    <div className="flex w-full animate-pulse items-center gap-x-2.5 rounded-lg px-2 py-1.5">
+      <div className="size-6 animate-pulse rounded-full bg-neutral-200" />
+      <div className="h-7 w-28 grow animate-pulse rounded-md bg-neutral-200" />
       <ChevronsUpDown className="h-4 w-4 text-neutral-400" aria-hidden="true" />
-    </div>
-  );
-}
-
-function ScrollContainer({ children }: PropsWithChildren) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { scrollProgress, updateScrollProgress } = useScrollProgress(scrollRef);
-
-  return (
-    <div className="relative w-full">
-      <div
-        ref={scrollRef}
-        onScroll={updateScrollProgress}
-        className="relative max-h-[min(260px,calc(100vh-300px))] space-y-0.5 overflow-auto rounded-lg bg-white"
-      >
-        {children}
-      </div>
-      {/* Bottom scroll fade */}
-      <div
-        className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0"
-        style={{ opacity: 1 - Math.pow(scrollProgress, 2) }}
-      />
     </div>
   );
 }
@@ -194,7 +162,7 @@ function ProgramList({
             placeholder="Find program..."
           />
         </label>
-        <ScrollContainer>
+        <ScrollContainer className="max-h-[min(260px,calc(100vh-300px))]">
           <div className="p-2">
             <div className="flex items-center justify-between py-2">
               <p className="px-1 text-xs font-medium text-neutral-500">
@@ -208,7 +176,7 @@ function ProgramList({
             >
               <div className="flex flex-col gap-0.5">
                 <Command.List>
-                  {programs.map(({ slug, name, logo }) => (
+                  {programs.map(({ id, slug, name, logo }) => (
                     <Command.Item
                       key={slug}
                       asChild
@@ -230,8 +198,8 @@ function ProgramList({
                         onClick={() => setOpenPopover(false)}
                         tabIndex={-1}
                       >
-                        <MemoBlurImage
-                          src={logo || `${OG_AVATAR_URL}${name}`}
+                        <BlurImage
+                          src={logo || `https://avatar.vercel.sh/${id}`}
                           width={40}
                           height={40}
                           alt={name}

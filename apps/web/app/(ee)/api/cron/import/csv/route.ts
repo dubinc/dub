@@ -1,5 +1,5 @@
 import { createId } from "@/lib/api/create-id";
-import { addDomainToVercel } from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { bulkCreateLinks, createLink, processLink } from "@/lib/api/links";
 import { qstash } from "@/lib/cron";
@@ -352,7 +352,7 @@ const processMappedLinks = async ({
   }
 
   if (selectedDomains.length > 0) {
-    await redis.sadd(`${redisKey}:domains`, ...selectedDomains);
+    await redis.sadd(`${redisKey}:domains`, ...(selectedDomains as [string]));
   }
 
   // Process the links

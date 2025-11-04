@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import { IntegrationInstalled } from "@dub/email/templates/integration-installed";
+import IntegrationInstalled from "@dub/email/templates/integration-installed";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
 
@@ -80,7 +80,7 @@ export const installIntegration = async ({
 
       if (email && integration) {
         await sendEmail({
-          email: email!,
+          to: email!,
           subject: `The "${integration.name}" integration has been added to your workspace`,
           react: IntegrationInstalled({
             email: email!,

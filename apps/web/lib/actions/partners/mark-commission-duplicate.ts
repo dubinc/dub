@@ -1,5 +1,6 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { DubApiError } from "@/lib/api/errors";
 import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
@@ -13,11 +14,11 @@ const markCommissionDuplicateSchema = z.object({
   commissionId: z.string(),
 });
 
-// Mark a sale as duplicate or fraud or pending
+// Mark a commission as duplicate
 export const markCommissionDuplicateAction = authActionClient
   .schema(markCommissionDuplicateSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { commissionId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -73,10 +74,29 @@ export const markCommissionDuplicateAction = authActionClient
     });
 
     waitUntil(
-      syncTotalCommissions({
-        partnerId: commission.partnerId,
-        programId,
-      }),
+      (async () => {
+        await Promise.allSettled([
+          syncTotalCommissions({
+            partnerId: commission.partnerId,
+            programId,
+          }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "commission.marked_duplicate",
+            description: `Commission ${commissionId} marked as duplicate`,
+            actor: user,
+            targets: [
+              {
+                type: "commission",
+                id: commissionId,
+                metadata: commission,
+              },
+            ],
+          }),
+        ]);
+      })(),
     );
 
     // TODO: We might want to store the history of the sale status changes

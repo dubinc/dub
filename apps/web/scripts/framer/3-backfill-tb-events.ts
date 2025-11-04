@@ -156,8 +156,10 @@ async function main() {
             timestamp: p.creationDate.toISOString(),
             identity_hash: p.externalId,
             click_id: customerMap.get(p.externalId)!.clickId,
+            workspace_id: workspace.id,
             link_id: link.id,
-            alias_link_id: "",
+            domain: link.domain,
+            key: link.key,
             url: link.url,
             ip: "",
             continent: "NA",
@@ -182,6 +184,7 @@ async function main() {
             qr: 0,
             referer: "(direct)",
             referer_url: "(direct)",
+            trigger: "link",
           };
 
           const clickEvent = clickEventSchemaTB.parse(clickData);

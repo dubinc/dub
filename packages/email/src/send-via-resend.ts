@@ -1,6 +1,46 @@
 import { resend } from "./resend";
 import { VARIANT_TO_FROM_MAP } from "./resend/constants";
-import { ResendEmailOptions } from "./resend/types";
+import { ResendBulkEmailOptions, ResendEmailOptions } from "./resend/types";
+
+const resendEmailForOptions = (opts: ResendEmailOptions) => {
+  const {
+    to,
+    from,
+    variant = "primary",
+    bcc,
+    replyTo,
+    subject,
+    text,
+    react,
+    scheduledAt,
+    headers,
+    tags,
+  } = opts;
+
+  return {
+    to,
+    from: from || VARIANT_TO_FROM_MAP[variant],
+    bcc: bcc,
+    // if replyTo is set to "noreply@dub.co", don't set replyTo
+    // else set it to the value of replyTo or fallback to support@dub.co
+    ...(replyTo === "noreply" ? {} : { replyTo: replyTo || "support@dub.co" }),
+    subject,
+    text,
+    react,
+    scheduledAt,
+    tags,
+    ...(variant === "marketing"
+      ? {
+          headers: {
+            ...(headers || {}),
+            "List-Unsubscribe": "https://app.dub.co/account/settings",
+          },
+        }
+      : {
+          headers,
+        }),
+  };
+};
 
 // Send email using Resend (Recommended for production)
 export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
@@ -11,31 +51,37 @@ export const sendEmailViaResend = async (opts: ResendEmailOptions) => {
     return;
   }
 
-  const {
-    email,
-    from,
-    variant = "primary",
-    bcc,
-    replyTo,
-    subject,
-    text,
-    react,
-    scheduledAt,
-  } = opts;
+  return await resend.emails.send(resendEmailForOptions(opts));
+};
 
-  return await resend.emails.send({
-    to: email,
-    from: from || VARIANT_TO_FROM_MAP[variant],
-    bcc: bcc,
-    replyTo: replyTo || "support@dub.co",
-    subject,
-    text,
-    react,
-    scheduledAt,
-    ...(variant === "marketing" && {
-      headers: {
-        "List-Unsubscribe": "https://app.dub.co/account/settings",
-      },
-    }),
-  });
+export const sendBatchEmailViaResend = async (
+  opts: ResendBulkEmailOptions,
+  options?: { idempotencyKey?: string },
+) => {
+  if (!resend) {
+    console.info(
+      "RESEND_API_KEY is not set in the .env. Skipping sending email.",
+    );
+
+    return {
+      data: null,
+      error: null,
+    };
+  }
+
+  if (opts.length === 0) {
+    return {
+      data: null,
+      error: null,
+    };
+  }
+
+  const payload = opts.map(resendEmailForOptions);
+
+  const idempotencyKey = options?.idempotencyKey || undefined;
+
+  return await resend.batch.send(
+    payload,
+    idempotencyKey ? { idempotencyKey } : undefined,
+  );
 };

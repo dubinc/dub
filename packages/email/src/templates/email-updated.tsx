@@ -14,12 +14,14 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function EmailUpdated({
+export default function EmailUpdated({
   oldEmail = "panic@thedis.co",
   newEmail = "panic@thedis.co",
+  isPartnerProfile = false,
 }: {
   oldEmail: string;
   newEmail: string;
+  isPartnerProfile?: boolean;
 }) {
   return (
     <Html>
@@ -35,8 +37,10 @@ export function EmailUpdated({
               Your email address has been changed
             </Heading>
             <Text className="mx-auto text-sm leading-6">
-              The e-mail address for your Dub account has been changed from{" "}
-              <strong>{oldEmail}</strong> to <strong>{newEmail}</strong>.
+              The e-mail address for your Dub{" "}
+              {isPartnerProfile ? "partner profile" : "account"} has been
+              changed from <strong>{oldEmail}</strong> to{" "}
+              <strong>{newEmail}</strong>.
             </Text>
             <Text className="text-sm leading-6 text-black">
               If you did not make this change, please contact our support team
@@ -56,5 +60,3 @@ export function EmailUpdated({
     </Html>
   );
 }
-
-export default EmailUpdated;

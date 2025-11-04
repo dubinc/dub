@@ -1,6 +1,8 @@
 import { TRIGGER_TYPES } from "@/lib/analytics/constants";
 import z from "@/lib/zod";
-import { CONTINENT_CODES, COUNTRY_CODES } from "@dub/utils";
+import { CONTINENT_CODES } from "@dub/utils";
+import { FolderAccessLevel } from "@prisma/client";
+import { LinkTagSchema } from "./tags";
 
 const analyticsTriggersResponse = z
   .object({
@@ -29,10 +31,13 @@ const analyticsTriggersResponse = z
 export const analyticsResponse = {
   count: z
     .object({
-      clicks: z.number().describe("The total number of clicks").default(0),
-      leads: z.number().describe("The total number of leads").default(0),
-      sales: z.number().describe("The total number of sales").default(0),
-      saleAmount: z
+      clicks: z.coerce
+        .number()
+        .describe("The total number of clicks")
+        .default(0),
+      leads: z.coerce.number().describe("The total number of leads").default(0),
+      sales: z.coerce.number().describe("The total number of sales").default(0),
+      saleAmount: z.coerce
         .number()
         .describe("The total amount of sales, in cents")
         .default(0),
@@ -89,9 +94,9 @@ export const analyticsResponse = {
   countries: z
     .object({
       country: z
-        .enum(COUNTRY_CODES)
+        .string()
         .describe(
-          "The 2-letter ISO 3166-1 country code for the country associated with the location of the user. Learn more: https://d.to/geo",
+          "The 2-letter ISO 3166-1 country code of the country. Learn more: https://d.to/geo",
         ),
       region: z.literal("*").default("*"),
       city: z.literal("*").default("*"),
@@ -117,13 +122,13 @@ export const analyticsResponse = {
   regions: z
     .object({
       country: z
-        .enum(COUNTRY_CODES)
-        .describe("The 2-letter country code of the region: https://d.to/geo"),
-      region: z
         .string()
         .describe(
-          "The 2-letter ISO 3166-2 region code representing the region associated with the location of the user.",
+          "The 2-letter ISO 3166-1 country code of the country. Learn more: https://d.to/geo",
         ),
+      region: z
+        .string()
+        .describe("The 2-letter ISO 3166-2 region code of the region."),
       city: z.literal("*").default("*"),
       clicks: z
         .number()
@@ -147,8 +152,10 @@ export const analyticsResponse = {
   cities: z
     .object({
       country: z
-        .enum(COUNTRY_CODES)
-        .describe("The 2-letter country code of the city: https://d.to/geo"),
+        .string()
+        .describe(
+          "The 2-letter ISO 3166-1 country code of the country where this city is located. Learn more: https://d.to/geo",
+        ),
       region: z
         .string()
         .describe(
@@ -460,6 +467,50 @@ export const analyticsResponse = {
         .default(0),
     })
     .openapi({ ref: "AnalyticsUTMContents" }),
+  top_folders: z
+    .object({
+      folderId: z.string().describe("The ID of the folder"),
+      folder: z.object({
+        id: z.string().describe("The ID of the folder"),
+        name: z.string().describe("The name of the folder"),
+        accessLevel: z
+          .nativeEnum(FolderAccessLevel)
+          .describe("The access level of the folder"),
+      }),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this link folder, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopFolders" }),
+  top_link_tags: z
+    .object({
+      tagId: z.string().describe("The ID of the tag"),
+      tag: LinkTagSchema,
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this link tag, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopLinkTags" }),
+  top_domains: z
+    .object({
+      domain: z.string().describe("The unique domain name"),
+      clicks: z.number().describe("The total number of clicks").default(0),
+      leads: z.number().describe("The total number of leads").default(0),
+      sales: z.number().describe("The total number of sales").default(0),
+      saleAmount: z
+        .number()
+        .describe("The total amount of sales from this domain, in cents")
+        .default(0),
+    })
+    .openapi({ ref: "AnalyticsTopDomains" }),
   top_partners: z
     .object({
       partnerId: z.string().describe("The ID of the partner"),
@@ -483,5 +534,5 @@ export const analyticsResponse = {
         )
         .default(0),
     })
-    .openapi({ ref: "AnalyticsPartners" }),
+    .openapi({ ref: "AnalyticsTopPartners" }),
 } as const;

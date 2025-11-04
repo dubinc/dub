@@ -1,10 +1,10 @@
 import { isNotHostedImage, storage } from "@/lib/storage";
-import z from "@/lib/zod";
 import { bulkUpdateLinksBodySchema } from "@/lib/zod/schemas/links";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
 import { R2_URL, getParamsFromURL, nanoid, truncate } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { z } from "zod";
 import { combineTagIds } from "../tags/combine-tag-ids";
 import { propagateBulkLinkChanges } from "./propagate-bulk-link-changes";
 import { transformLink } from "./utils";
@@ -47,15 +47,15 @@ export async function bulkUpdateLinks(
           ...rest,
           url,
           proxy,
-          title: truncate(title, 120),
-          description: truncate(description, 240),
+          title: title ? truncate(title, 120) : title,
+          description: description ? truncate(description, 240) : description,
           image:
             proxy && image && isNotHostedImage(image)
               ? `${R2_URL}/images/${linkIds[0]}_${imageUrlNonce}`
               : image,
-          expiresAt: expiresAt ? new Date(expiresAt) : null,
-          geo: geo || Prisma.JsonNull,
-          testVariants: testVariants || Prisma.JsonNull,
+          expiresAt: expiresAt ? new Date(expiresAt) : expiresAt,
+          geo: geo === null ? Prisma.DbNull : geo,
+          testVariants: testVariants === null ? Prisma.DbNull : testVariants,
 
           ...(url && getParamsFromURL(url)),
           // Associate tags by tagNames
@@ -130,9 +130,13 @@ export async function bulkUpdateLinks(
       proxy &&
         image &&
         isNotHostedImage(image) &&
-        storage.upload(`images/${linkIds[0]}_${imageUrlNonce}`, image, {
-          width: 1200,
-          height: 630,
+        storage.upload({
+          key: `images/${linkIds[0]}_${imageUrlNonce}`,
+          body: image,
+          opts: {
+            width: 1200,
+            height: 630,
+          },
         }),
     ]),
   );

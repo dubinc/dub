@@ -8,7 +8,6 @@ export function useFolderLinkCount({ folderId }: { folderId: string | null }) {
       groupBy: "folderId",
     },
     ignoreParams: true,
-    enabled: Boolean(folderId && folderId !== "unsorted"),
   });
 
   const folderLinkCount = useMemo(() => {

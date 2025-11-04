@@ -1,15 +1,17 @@
 import {
   AnimatedSizeContainer,
+  ArrowUpRight2,
   BookOpen,
   ChevronLeft,
   ClientOnly,
   Icon,
+  Lock,
   NavWordmark,
   Tooltip,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -21,7 +23,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import UserDropdown from "./user-dropdown";
+import { UserDropdown } from "./user-dropdown";
 
 export type NavItemCommon = {
   name: string;
@@ -29,6 +31,8 @@ export type NavItemCommon = {
   exact?: boolean;
   isActive?: (pathname: string, href: string) => boolean;
   badge?: ReactNode;
+  arrow?: boolean;
+  locked?: boolean;
 };
 
 export type NavSubItemType = NavItemCommon;
@@ -47,6 +51,7 @@ export type NavGroupType = {
   popup?: ComponentType<{
     referenceElement: HTMLElement | null;
   }>;
+  badge?: ReactNode;
 
   description: string;
   learnMoreHref?: string;
@@ -201,15 +206,17 @@ export function SidebarNav<T extends Record<any, any>>({
               </div>
 
               {/* Fixed bottom sections */}
-              <div className="flex flex-col gap-2 p-3 pt-0">
+              <div className="flex flex-col gap-2">
                 {data.showConversionGuides && (
-                  <Link
-                    href={`/${data.slug}/guides`}
-                    className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
-                  >
-                    <BookOpen className="size-4" />
-                    Set up conversion tracking
-                  </Link>
+                  <div className="px-3 pb-2">
+                    <Link
+                      href={`/${data.slug}/settings/analytics`}
+                      className="flex items-center gap-2 rounded-lg bg-neutral-200/75 px-2.5 py-2 text-xs text-neutral-700 transition-colors hover:bg-neutral-200"
+                    >
+                      <BookOpen className="size-4" />
+                      Set up conversion tracking
+                    </Link>
+                  </div>
                 )}
 
                 <AnimatePresence>
@@ -298,6 +305,7 @@ function NavGroupItem({
     icon: Icon,
     href,
     active,
+    badge,
     onClick,
     popup: Popup,
   },
@@ -322,7 +330,7 @@ function NavGroupItem({
             onPointerLeave={() => setHovered(false)}
             onClick={onClick}
             className={cn(
-              "flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
+              "relative flex size-11 items-center justify-center rounded-lg transition-colors duration-150",
               "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
               active
                 ? "bg-white"
@@ -333,6 +341,11 @@ function NavGroupItem({
               className="text-content-default size-5"
               data-hovered={hovered}
             />
+            {badge && (
+              <div className="absolute right-0.5 top-0.5 flex size-3.5 items-center justify-center rounded-full bg-blue-600 text-[0.625rem] font-semibold text-white">
+                {badge}
+              </div>
+            )}
           </Link>
         </div>
       </NavGroupTooltip>
@@ -342,7 +355,7 @@ function NavGroupItem({
 }
 
 function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
-  const { name, href, exact, isActive: customIsActive } = item;
+  const { name, href, exact, isActive: customIsActive, locked } = item;
 
   const Icon = "icon" in item ? item.icon : undefined;
   const items = "items" in item ? item.items : undefined;
@@ -365,27 +378,34 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
   return (
     <div>
       <Link
-        href={href}
+        href={locked ? "#" : href}
         data-active={isActive}
-        onPointerEnter={() => setHovered(true)}
-        onPointerLeave={() => setHovered(false)}
+        onPointerEnter={() => !locked && setHovered(true)}
+        onPointerLeave={() => !locked && setHovered(false)}
         className={cn(
           "text-content-default group flex h-8 items-center justify-between rounded-lg p-2 text-sm leading-none transition-[background-color,color,font-weight] duration-75",
           "outline-none focus-visible:ring-2 focus-visible:ring-black/50",
           isActive && !items
             ? "bg-blue-100/50 font-medium text-blue-600 hover:bg-blue-100/80 active:bg-blue-100"
-            : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
+            : locked
+              ? "cursor-not-allowed opacity-75"
+              : "hover:bg-bg-inverted/5 active:bg-bg-inverted/10",
         )}
+        aria-disabled={locked}
       >
         <span className="flex items-center gap-2.5">
-          {Icon && (
-            <Icon
-              className={cn(
-                "size-4",
-                !items && "group-data-[active=true]:text-blue-600",
-              )}
-              data-hovered={hovered}
-            />
+          {locked ? (
+            <Lock className="size-4" />
+          ) : (
+            Icon && (
+              <Icon
+                className={cn(
+                  "size-4",
+                  !items && "group-data-[active=true]:text-blue-600",
+                )}
+                data-hovered={hovered}
+              />
+            )
           )}
           {name}
         </span>
@@ -404,6 +424,9 @@ function NavItem({ item }: { item: NavItemType | NavSubItemType }) {
           )}
           {items && (
             <ChevronDown className="size-3.5 text-neutral-500 transition-transform duration-75 group-data-[active=true]:rotate-180" />
+          )}
+          {item.arrow && (
+            <ArrowUpRight2 className="text-content-default size-3.5 transition-transform duration-75 group-hover:-translate-y-px group-hover:translate-x-px" />
           )}
         </span>
       </Link>
@@ -452,7 +475,7 @@ export function Area({
             ),
       )}
       aria-hidden={!visible ? "true" : undefined}
-      {...{ inert: !visible ? "" : undefined }}
+      inert={!visible}
     >
       {children}
     </div>

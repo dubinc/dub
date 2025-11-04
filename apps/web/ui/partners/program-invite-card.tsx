@@ -7,13 +7,13 @@ import {
   Button,
   buttonVariants,
   Envelope,
-  Link4,
   StatusBadge,
 } from "@dub/ui";
-import { OG_AVATAR_URL } from "@dub/utils";
+import { formatDateSmart, OG_AVATAR_URL } from "@dub/utils";
 import { cn } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 export function ProgramInviteCard({
@@ -21,12 +21,14 @@ export function ProgramInviteCard({
 }: {
   programEnrollment: ProgramEnrollmentProps;
 }) {
+  const router = useRouter();
   const { program } = programEnrollment;
 
   const { executeAsync, isPending } = useAction(acceptProgramInviteAction, {
     onSuccess: async () => {
       await mutatePrefix("/api/partner-profile/programs");
       toast.success("Program invite accepted!");
+      router.push(`/programs/${program.slug}`);
     },
     onError: ({ error }) => {
       toast.error(error.serverError);
@@ -34,12 +36,7 @@ export function ProgramInviteCard({
   });
 
   const reward = programEnrollment.rewards?.[0];
-
-  const discount =
-    program.discounts && program.discounts.length > 0
-      ? program.discounts.find((d) => d.id !== program.defaultDiscountId) ||
-        program.discounts[0]
-      : null;
+  const discount = programEnrollment.discount;
 
   return (
     <div className="hover:drop-shadow-card-hover relative flex flex-col rounded-xl border border-neutral-200 bg-neutral-50 p-5 transition-[filter]">
@@ -52,18 +49,13 @@ export function ProgramInviteCard({
           className="size-8 rounded-full"
         />
         <StatusBadge variant="new" icon={Envelope} className="py-0.5">
-          Invited
+          Invited {formatDateSmart(programEnrollment.createdAt)}
         </StatusBadge>
       </div>
 
       <p className="mt-3 font-medium text-neutral-900">{program.name}</p>
-      {program.domain && (
-        <p className="flex items-center gap-1 text-neutral-500">
-          <Link4 className="size-3" />
-          <span className="text-sm font-medium">{program.domain}</span>
-        </p>
-      )}
-      <p className="mt-2 text-balance text-xs text-neutral-600">
+
+      <p className="my-2 text-balance text-xs text-neutral-600">
         <ProgramRewardDescription
           reward={reward}
           discount={discount}
@@ -89,7 +81,6 @@ export function ProgramInviteCard({
             loading={isPending}
             onClick={async () =>
               await executeAsync({
-                partnerId: programEnrollment.partnerId,
                 programId: programEnrollment.programId,
               })
             }

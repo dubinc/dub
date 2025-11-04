@@ -9,6 +9,7 @@ import { PartnerSelector } from "@/ui/partners/partner-selector";
 import { X } from "@/ui/shared/icons";
 import { Button, Sheet } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
+import { useParams } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -28,6 +29,8 @@ function CreateClawbackSheetContent(
   const { setIsOpen } = props;
   const { id: workspaceId, defaultProgramId } = useWorkspace();
 
+  const params = useParams() as { partnerId: string };
+
   const {
     control,
     handleSubmit,
@@ -37,6 +40,7 @@ function CreateClawbackSheetContent(
     formState: { errors, isSubmitting, isSubmitSuccessful },
   } = useForm<FormData>({
     defaultValues: {
+      partnerId: params.partnerId,
       description: "",
     },
   });
@@ -77,8 +81,8 @@ function CreateClawbackSheetContent(
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="flex h-full flex-col">
       <div className="sticky top-0 z-10 border-b border-neutral-200 bg-white">
-        <div className="flex items-start justify-between p-6">
-          <Sheet.Title className="text-xl font-semibold">
+        <div className="flex h-16 items-center justify-between px-6 py-4">
+          <Sheet.Title className="text-lg font-semibold">
             Create clawback
           </Sheet.Title>
           <Sheet.Close asChild>
@@ -138,6 +142,7 @@ function CreateClawbackSheetContent(
                   <input
                     id="amount"
                     type="number"
+                    onWheel={(e) => e.currentTarget.blur()}
                     min="0"
                     step="0.01"
                     className="block w-full rounded-md border-neutral-300 pl-6 pr-12 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:outline-none focus:ring-neutral-500 sm:text-sm"

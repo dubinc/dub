@@ -2,8 +2,8 @@ import { handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendEmail } from "@dub/email";
 import { subscribe } from "@dub/email/resend/subscribe";
-import { WelcomeEmail } from "@dub/email/templates/welcome-email";
-import { WelcomeEmailPartner } from "@dub/email/templates/welcome-email-partner";
+import WelcomeEmail from "@dub/email/templates/welcome-email";
+import WelcomeEmailPartner from "@dub/email/templates/welcome-email-partner";
 import { prisma } from "@dub/prisma";
 
 export const dynamic = "force-dynamic";
@@ -41,15 +41,10 @@ export async function POST(req: Request) {
 
     const isPartner = user.partners.length > 0;
 
-    await Promise.all([
-      subscribe({
-        email: user.email,
-        name: user.name || undefined,
-        audience: isPartner ? "partners.dub.co" : "app.dub.co",
-      }),
+    await Promise.allSettled([
       sendEmail({
-        email: user.email,
-        replyTo: "steven.tey@dub.co",
+        to: user.email,
+        replyTo: isPartner ? "noreply" : "steven.tey@dub.co",
         subject: `Welcome to Dub${isPartner ? " Partners" : ""}!`,
         react: isPartner
           ? WelcomeEmailPartner({
@@ -62,6 +57,13 @@ export async function POST(req: Request) {
             }),
         variant: "marketing",
       }),
+      // only subscribe non-partner users to the mailing list
+      !isPartner
+        ? subscribe({
+            email: user.email,
+            name: user.name || undefined,
+          })
+        : Promise.resolve(),
     ]);
 
     return new Response("Welcome email sent and user subscribed.", {

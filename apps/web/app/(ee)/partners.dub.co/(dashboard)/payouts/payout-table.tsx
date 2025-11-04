@@ -1,18 +1,17 @@
 "use client";
 
+import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
-import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
+import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
 import { PayoutStatus } from "@dub/prisma/client";
 import {
   AnimatedSizeContainer,
-  DynamicTooltipWrapper,
   Filter,
   SimpleTooltipContent,
-  StatusBadge,
   Table,
   Tooltip,
   usePagination,
@@ -39,6 +38,7 @@ export function PayoutTable() {
 
   const { payouts, error, loading } = usePartnerPayouts();
   const { payoutsCount } = usePartnerPayoutsCount<number>();
+
   const { filters, activeFilters, onSelect, onRemove, onRemoveAll } =
     usePayoutFilters();
 
@@ -87,37 +87,12 @@ export function PayoutTable() {
       },
       {
         header: "Status",
-        cell: ({ row }) => {
-          const badge = PayoutStatusBadges[row.original.status];
-          const tooltip = (() => {
-            if (
-              row.original.status === "failed" &&
-              row.original.failureReason
-            ) {
-              return row.original.failureReason;
-            }
-            if (row.original.status === "pending") {
-              return row.original.amount >= row.original.program.minPayoutAmount
-                ? "This payout will be processed depends on your program's payment schedule, which is usually at the beginning or the end of the month."
-                : `This program's minimum payout amount is ${currencyFormatter(
-                    row.original.program.minPayoutAmount / 100,
-                  )}. This payout will be accrued and processed during the next payout period.`;
-            }
-            return undefined;
-          })();
-
-          return badge ? (
-            <StatusBadge icon={badge.icon} variant={badge.variant}>
-              <DynamicTooltipWrapper
-                tooltipProps={tooltip ? { content: tooltip } : undefined}
-              >
-                {badge.label}
-              </DynamicTooltipWrapper>
-            </StatusBadge>
-          ) : (
-            "-"
-          );
-        },
+        cell: ({ row }) => (
+          <PayoutStatusBadgePartner
+            payout={row.original}
+            program={row.original.program}
+          />
+        ),
       },
       {
         id: "paidAt",
@@ -140,7 +115,9 @@ export function PayoutTable() {
               minPayoutAmount={row.original.program.minPayoutAmount}
             />
 
-            {["completed", "processing"].includes(row.original.status) && (
+            {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(
+              row.original.status,
+            ) && (
               <Tooltip content="View invoice">
                 <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
                   <Link
@@ -208,7 +185,7 @@ export function PayoutTable() {
         />
       )}
       <div className="flex flex-col gap-3">
-        <div>
+        <div className="flex flex-col gap-3">
           <Filter.Select
             className="w-full md:w-fit"
             filters={filters}
@@ -217,18 +194,15 @@ export function PayoutTable() {
             onRemove={onRemove}
           />
           <AnimatedSizeContainer height>
-            <div>
-              {activeFilters.length > 0 && (
-                <div className="pt-3">
-                  <Filter.List
-                    filters={filters}
-                    activeFilters={activeFilters}
-                    onRemove={onRemove}
-                    onRemoveAll={onRemoveAll}
-                  />
-                </div>
-              )}
-            </div>
+            {activeFilters.length > 0 && (
+              <Filter.List
+                filters={filters}
+                activeFilters={activeFilters}
+                onSelect={onSelect}
+                onRemove={onRemove}
+                onRemoveAll={onRemoveAll}
+              />
+            )}
           </AnimatedSizeContainer>
         </div>
         {payouts?.length !== 0 ? (
@@ -259,10 +233,7 @@ function AmountRowItem({
   status: PayoutStatus;
   minPayoutAmount: number;
 }) {
-  const display = currencyFormatter(amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const display = currencyFormatter(amount / 100);
 
   if (status === PayoutStatus.pending && amount < minPayoutAmount) {
     return (

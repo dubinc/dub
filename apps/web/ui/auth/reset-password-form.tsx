@@ -1,11 +1,11 @@
 "use client";
 
-import z from "@/lib/zod";
 import { resetPasswordSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input } from "@dub/ui";
 import { useParams, useRouter } from "next/navigation";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import { PasswordRequirements } from "../shared/password-requirements";
 
 export const ResetPasswordForm = () => {

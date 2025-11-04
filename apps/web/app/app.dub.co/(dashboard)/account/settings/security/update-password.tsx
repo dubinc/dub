@@ -1,10 +1,10 @@
 "use client";
 
-import z from "@/lib/zod";
 import { updatePasswordSchema } from "@/lib/zod/schemas/auth";
 import { Button, Input, Label, Tooltip } from "@dub/ui";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
 // Allow the user to update their existing password
 export const UpdatePassword = () => {

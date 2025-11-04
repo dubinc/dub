@@ -12,7 +12,7 @@ import { CSSProperties, useState } from "react";
 export const PLAN_SELECTOR_PLANS = [PRO_PLAN, BUSINESS_PLAN, ADVANCED_PLAN];
 
 export function PlanSelector() {
-  const [period, setPeriod] = useState<"monthly" | "yearly">("yearly");
+  const [period, setPeriod] = useState<"monthly" | "yearly">("monthly");
   const [mobilePlanIndex, setMobilePlanIndex] = useState(0);
 
   const searchParams = useSearchParams();

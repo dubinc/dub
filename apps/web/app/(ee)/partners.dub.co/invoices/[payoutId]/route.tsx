@@ -1,12 +1,12 @@
 import { DubApiError } from "@/lib/api/errors";
 import { withPartnerProfile } from "@/lib/auth/partner";
+import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
 import { prisma } from "@dub/prisma";
 import {
   currencyFormatter,
   DUB_WORDMARK,
   EU_COUNTRY_CODES,
   formatDate,
-  pluralize,
 } from "@dub/utils";
 import {
   Document,
@@ -45,11 +45,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
           supportEmail: true,
         },
       },
-      _count: {
-        select: {
-          commissions: true,
-        },
-      },
     },
   });
 
@@ -60,17 +55,13 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
     });
   }
 
-  if (!["completed", "processing"].includes(payout.status)) {
+  if (!INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status)) {
     throw new DubApiError({
       code: "unauthorized",
       message:
         "This payout is not completed yet, hence no invoice is generated.",
     });
   }
-
-  const EU_PARTNER =
-    partner.country && EU_COUNTRY_CODES.includes(partner.country);
-  const AU_PARTNER = partner.country && partner.country === "AU";
 
   const invoiceMetadata = [
     {
@@ -118,14 +109,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       label: "Payout amount",
       value: (
         <Text style={tw("text-neutral-800 w-2/3")}>
-          {currencyFormatter(payout.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}{" "}
-          <Text style={tw("text-neutral-500")}>
-            ({payout._count.commissions}{" "}
-            {pluralize("commission", payout._count.commissions)})
-          </Text>
+          {currencyFormatter(payout.amount / 100)}
         </Text>
       ),
     },
@@ -160,8 +144,6 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
       : []),
   ];
 
-  const supportEmail = payout.program.supportEmail || "support@dub.co";
-
   const invoiceDate = payout.paidAt
     ? formatDate(payout.paidAt, {
         month: "short",
@@ -189,6 +171,9 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
             </Text>
             <Text style={tw("text-sm text-neutral-500 leading-6")}>
               San Francisco, CA 94114
+            </Text>
+            <Text style={tw("text-sm text-neutral-500 leading-6")}>
+              Tax ID: US EIN {process.env.DUB_EIN}
             </Text>
             <Text style={tw("text-sm text-neutral-800 leading-6")}>
               Invoice Number: <Text style={tw("font-bold")}>{payout.id}</Text>
@@ -245,12 +230,17 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
         <View style={tw("h-0.5 bg-neutral-200 mb-6")} />
 
         {/* Footer */}
-        <Text style={tw("text-sm text-neutral-600 mt-auto")}>
-          If you have any questions, contact the program at{" "}
-          <Link href={`mailto:${supportEmail}`} style={tw("text-neutral-900")}>
-            {supportEmail}
-          </Link>
-        </Text>
+        {payout.program.supportEmail && (
+          <Text style={tw("text-sm text-neutral-600 mt-auto")}>
+            If you have any questions, contact the program at{" "}
+            <Link
+              href={`mailto:${payout.program.supportEmail}`}
+              style={tw("text-neutral-900")}
+            >
+              {payout.program.supportEmail}
+            </Link>
+          </Text>
+        )}
       </Page>
     </Document>,
   );

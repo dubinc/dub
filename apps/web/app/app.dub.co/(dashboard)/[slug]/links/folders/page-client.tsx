@@ -23,8 +23,11 @@ export const FoldersPageClient = () => {
   const searchParams = useSearchParams();
   const { queryParams } = useRouterStuff();
 
-  const { folders, loading, isValidating } = useFolders({
+  const { folders, isValidating } = useFolders({
     includeParams: ["search", "page"],
+    options: {
+      keepPreviousData: true,
+    },
   });
 
   const { data: foldersCount } = useFoldersCount({
@@ -55,7 +58,7 @@ export const FoldersPageClient = () => {
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {loading ? (
+          {!folders ? (
             Array.from({ length: 6 }).map((_, idx) => (
               <FolderCardPlaceholder key={idx} />
             ))

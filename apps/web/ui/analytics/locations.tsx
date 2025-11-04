@@ -58,8 +58,8 @@ export default function Locations() {
                       ) : (
                         <img
                           alt={d.country}
-                          src={`https://flag.vercel.app/m/${d.country}.svg`}
-                          className="h-3 w-5"
+                          src={`https://hatscripts.github.io/circle-flags/flags/${d.country.toLowerCase()}.svg`}
+                          className="size-4 shrink-0"
                         />
                       ),
                     title:
@@ -67,7 +67,12 @@ export default function Locations() {
                         ? CONTINENTS[d.continent]
                         : tab === "countries"
                           ? COUNTRIES[d.country]
-                          : `${tab === "cities" ? `${d.city}, ` : ""}${REGIONS[d.region] || d.region.split("-")[1]}`,
+                          : `${tab === "cities" ? `${d.city}, ` : ""}${
+                              REGIONS[d.region] ||
+                              (d.region.endsWith("-Unknown")
+                                ? COUNTRIES[d.country]
+                                : d.region.split("-")[1])
+                            }`,
                     href: queryParams({
                       ...(searchParams.has(singularTabName)
                         ? { del: singularTabName }

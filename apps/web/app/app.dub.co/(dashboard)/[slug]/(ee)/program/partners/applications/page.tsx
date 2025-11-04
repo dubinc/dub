@@ -5,7 +5,15 @@ import { ProgramPartnersApplicationsPageClient } from "./page-client";
 
 export default function ProgramPartnersApplications() {
   return (
-    <PageContent title="Applications" controls={<ApplicationsMenu />}>
+    <PageContent
+      title="Applications"
+      titleInfo={{
+        title:
+          "Learn how to manage your pending applications, and to bring the best partners to your program.",
+        href: "https://dub.co/help/article/program-applications",
+      }}
+      controls={<ApplicationsMenu />}
+    >
       <PageWidthWrapper>
         <ProgramPartnersApplicationsPageClient />
       </PageWidthWrapper>

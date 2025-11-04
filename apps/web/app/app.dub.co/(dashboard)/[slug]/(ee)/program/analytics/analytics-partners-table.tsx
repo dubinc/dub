@@ -101,11 +101,7 @@ export function AnalyticsPartnersTable() {
             {
               id: "saleAmount",
               header: "Revenue",
-              accessorFn: (d) =>
-                currencyFormatter(d.saleAmount / 100, {
-                  minimumFractionDigits: 2,
-                  maximumFractionDigits: 2,
-                }),
+              accessorFn: (d) => currencyFormatter(d.saleAmount / 100),
             },
           ]
         : [

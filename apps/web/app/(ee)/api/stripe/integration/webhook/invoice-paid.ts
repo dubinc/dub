@@ -1,19 +1,23 @@
 import { convertCurrency } from "@/lib/analytics/convert-currency";
+import { isFirstConversion } from "@/lib/analytics/is-first-conversion";
 import { includeTags } from "@/lib/api/links/include-tags";
-import { notifyPartnerSale } from "@/lib/api/partners/notify-partner-sale";
+import { syncPartnerLinksStats } from "@/lib/api/partners/sync-partner-links-stats";
+import { executeWorkflows } from "@/lib/api/workflows/execute-workflows";
 import { createPartnerCommission } from "@/lib/partners/create-partner-commission";
 import { getLeadEvent, recordSale } from "@/lib/tinybird";
+import { StripeMode, WebhookPartner } from "@/lib/types";
 import { redis } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { transformSaleEventData } from "@/lib/webhook/transform";
 import { prisma } from "@dub/prisma";
+import { WorkflowTrigger } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import type Stripe from "stripe";
-import { getConnectedCustomer } from "./utils";
+import { getConnectedCustomer } from "./utils/get-connected-customer";
 
 // Handle event "invoice.paid"
-export async function invoicePaid(event: Stripe.Event) {
+export async function invoicePaid(event: Stripe.Event, mode: StripeMode) {
   const invoice = event.data.object as Stripe.Invoice;
   const stripeAccountId = event.account as string;
   const stripeCustomerId = invoice.customer as string;
@@ -26,24 +30,24 @@ export async function invoicePaid(event: Stripe.Event) {
     },
   });
 
-  // if customer is not found, we check if the connected customer has a dubCustomerId
+  // if customer is not found, we check if the connected customer has a dubCustomerExternalId
   if (!customer) {
     const connectedCustomer = await getConnectedCustomer({
       stripeCustomerId,
       stripeAccountId,
-      livemode: event.livemode,
+      mode,
     });
 
-    const dubCustomerId = connectedCustomer?.metadata.dubCustomerId;
+    const dubCustomerExternalId = connectedCustomer?.metadata.dubCustomerId; // TODO: need to update to dubCustomerExternalId in the future for consistency
 
-    if (dubCustomerId) {
+    if (dubCustomerExternalId) {
       try {
         // Update customer with stripeCustomerId if exists – for future events
         customer = await prisma.customer.update({
           where: {
             projectConnectId_externalId: {
               projectConnectId: stripeAccountId,
-              externalId: dubCustomerId,
+              externalId: dubCustomerExternalId,
             },
           },
           data: {
@@ -52,21 +56,37 @@ export async function invoicePaid(event: Stripe.Event) {
         });
       } catch (error) {
         console.log(error);
-        return `Customer with dubCustomerId ${dubCustomerId} not found, skipping...`;
+        return `Customer with dubCustomerExternalId ${dubCustomerExternalId} not found, skipping...`;
       }
     }
   }
 
   // if customer is still not found, we skip the event
   if (!customer) {
-    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerId), skipping...`;
+    return `Customer with stripeCustomerId ${stripeCustomerId} not found on Dub (nor does the connected customer ${stripeCustomerId} have a valid dubCustomerExternalId), skipping...`;
   }
 
+  let invoiceSaleAmount = invoice.total_excluding_tax ?? invoice.amount_paid;
+
   // Skip if invoice id is already processed
-  const ok = await redis.set(`dub_sale_events:invoiceId:${invoiceId}`, 1, {
-    ex: 60 * 60 * 24 * 7,
-    nx: true,
-  });
+  const ok = await redis.set(
+    `trackSale:stripe:invoiceId:${invoiceId}`, // here we assume that Stripe's invoice ID is unique across all customers
+    {
+      timestamp: new Date().toISOString(),
+      dubCustomerExternalId: customer.externalId,
+      stripeCustomerId,
+      stripeAccountId,
+      invoiceId,
+      customerId: customer.id,
+      workspaceId: customer.projectId,
+      amount: invoiceSaleAmount,
+      currency: invoice.currency,
+    },
+    {
+      ex: 60 * 60 * 24 * 7,
+      nx: true,
+    },
+  );
 
   if (!ok) {
     console.info(
@@ -76,7 +96,8 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Invoice with ID ${invoiceId} already processed, skipping...`;
   }
 
-  if (invoice.amount_paid === 0) {
+  // Stripe can sometimes return a negative amount for some reason, so we skip if it's below 0
+  if (invoiceSaleAmount <= 0) {
     return `Invoice with ID ${invoiceId} has an amount of 0, skipping...`;
   }
 
@@ -86,11 +107,11 @@ export async function invoicePaid(event: Stripe.Event) {
     const { currency: convertedCurrency, amount: convertedAmount } =
       await convertCurrency({
         currency: invoice.currency,
-        amount: invoice.amount_paid,
+        amount: invoiceSaleAmount,
       });
 
     invoice.currency = convertedCurrency;
-    invoice.amount_paid = convertedAmount;
+    invoiceSaleAmount = convertedAmount;
   }
 
   // Find lead
@@ -108,10 +129,11 @@ export async function invoicePaid(event: Stripe.Event) {
 
   const saleData = {
     ...leadEvent.data[0],
+    workspace_id: leadEvent.data[0].workspace_id || customer.projectId, // in case for some reason the lead event doesn't have workspace_id
     event_id: eventId,
     event_name: isOneTimePayment ? "Purchase" : "Invoice paid",
     payment_processor: "stripe",
-    amount: invoice.amount_paid,
+    amount: invoiceSaleAmount,
     currency: invoice.currency,
     invoice_id: invoiceId,
     metadata: JSON.stringify({
@@ -130,20 +152,31 @@ export async function invoicePaid(event: Stripe.Event) {
     return `Link with ID ${linkId} not found, skipping...`;
   }
 
+  const firstConversionFlag = isFirstConversion({
+    customer,
+    linkId,
+  });
+
   const [_sale, linkUpdated, workspace] = await Promise.all([
     recordSale(saleData),
 
-    // update link sales count
+    // update link stats
     prisma.link.update({
       where: {
         id: linkId,
       },
       data: {
+        ...(firstConversionFlag && {
+          conversions: {
+            increment: 1,
+          },
+          lastConversionAt: new Date(),
+        }),
         sales: {
           increment: 1,
         },
         saleAmount: {
-          increment: invoice.amount_paid,
+          increment: invoiceSaleAmount,
         },
       },
       include: includeTags,
@@ -170,15 +203,16 @@ export async function invoicePaid(event: Stripe.Event) {
           increment: 1,
         },
         saleAmount: {
-          increment: invoice.amount_paid,
+          increment: invoiceSaleAmount,
         },
       },
     }),
   ]);
 
   // for program links
+  let webhookPartner: WebhookPartner | undefined;
   if (link.programId && link.partnerId) {
-    const commission = await createPartnerCommission({
+    const createdCommission = await createPartnerCommission({
       event: "sale",
       programId: link.programId,
       partnerId: link.partnerId,
@@ -189,16 +223,38 @@ export async function invoicePaid(event: Stripe.Event) {
       quantity: 1,
       invoiceId,
       currency: saleData.currency,
+      context: {
+        customer: {
+          country: customer.country,
+        },
+        sale: {
+          productId: invoice.lines.data[0]?.pricing?.price_details?.product,
+          amount: saleData.amount,
+        },
+      },
     });
+    webhookPartner = createdCommission?.webhookPartner;
 
-    if (commission) {
-      waitUntil(
-        notifyPartnerSale({
-          link,
-          commission,
+    waitUntil(
+      Promise.allSettled([
+        executeWorkflows({
+          trigger: WorkflowTrigger.saleRecorded,
+          context: {
+            programId: link.programId,
+            partnerId: link.partnerId,
+            current: {
+              saleAmount: saleData.amount,
+              conversions: firstConversionFlag ? 1 : 0,
+            },
+          },
         }),
-      );
-    }
+        syncPartnerLinksStats({
+          partnerId: link.partnerId,
+          programId: link.programId,
+          eventType: "sale",
+        }),
+      ]),
+    );
   }
 
   // send workspace webhook
@@ -211,6 +267,8 @@ export async function invoicePaid(event: Stripe.Event) {
         clickedAt: customer.clickedAt || customer.createdAt,
         link: linkUpdated,
         customer,
+        partner: webhookPartner,
+        metadata: null,
       }),
     }),
   );

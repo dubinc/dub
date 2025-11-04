@@ -1,37 +1,61 @@
 import { HeroBackground } from "@/ui/partners/hero-background";
 import { Button, Copy, Wordmark } from "@dub/ui";
 import { Suspense } from "react";
+import { DynamicHeightMessenger } from "./dynamic-height-messenger";
 import { ReferralsEmbedPageClient } from "./page-client";
 import { parseThemeOptions, ThemeOptions } from "./theme-options";
 import { getReferralsEmbedData } from "./utils";
 
-export default function ReferralsEmbedPage({
-  searchParams,
-}: {
-  searchParams: { token: string; themeOptions?: string };
-}) {
-  const { token, themeOptions: themeOptionsRaw } = searchParams;
+export default async function ReferralsEmbedPage(
+  props: {
+    searchParams: Promise<{
+      token: string;
+      themeOptions?: string;
+      dynamicHeight?: string;
+    }>;
+  }
+) {
+  const searchParams = await props.searchParams;
+  const {
+    token,
+    themeOptions: themeOptionsRaw,
+    dynamicHeight: dynamicHeightRaw,
+  } = searchParams;
 
   const themeOptions = parseThemeOptions(themeOptionsRaw);
+  const dynamicHeight = !!dynamicHeightRaw && dynamicHeightRaw !== "false";
 
   return (
-    <Suspense fallback={<EmbedInlineLoading themeOptions={themeOptions} />}>
-      <ReferralsEmbedRSC token={token} themeOptions={themeOptions} />
-    </Suspense>
+    <>
+      <Suspense fallback={<EmbedInlineLoading themeOptions={themeOptions} />}>
+        <ReferralsEmbedRSC
+          token={token}
+          themeOptions={themeOptions}
+          dynamicHeight={dynamicHeight}
+        />
+      </Suspense>
+      {dynamicHeight && <DynamicHeightMessenger />}
+    </>
   );
 }
 
 async function ReferralsEmbedRSC({
   token,
   themeOptions,
+  dynamicHeight,
 }: {
   token: string;
   themeOptions: ThemeOptions;
+  dynamicHeight: boolean;
 }) {
   const embedData = await getReferralsEmbedData(token);
 
   return (
-    <ReferralsEmbedPageClient {...embedData} themeOptions={themeOptions} />
+    <ReferralsEmbedPageClient
+      {...embedData}
+      themeOptions={themeOptions}
+      dynamicHeight={dynamicHeight}
+    />
   );
 }
 

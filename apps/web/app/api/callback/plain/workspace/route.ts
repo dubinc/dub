@@ -1,4 +1,4 @@
-import { prefixWorkspaceId } from "@/lib/api/workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { plain } from "@/lib/plain";
 import { prisma } from "@dub/prisma";
 import { capitalize, formatDate } from "@dub/utils";

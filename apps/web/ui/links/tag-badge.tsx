@@ -1,6 +1,7 @@
-import { TagColorProps } from "@/lib/types";
+import { ResourceColorsEnum } from "@/lib/types";
+import { RESOURCE_COLORS } from "@/ui/colors";
 import { useMediaQuery } from "@dub/ui";
-import { cn, truncate } from "@dub/utils";
+import { cn, randomValue, truncate } from "@dub/utils";
 import { Tag } from "lucide-react";
 
 export default function TagBadge({
@@ -11,7 +12,7 @@ export default function TagBadge({
   className,
 }: {
   name?: string;
-  color: TagColorProps;
+  color: ResourceColorsEnum;
   withIcon?: boolean;
   plus?: number;
   className?: string;
@@ -48,34 +49,6 @@ export default function TagBadge({
   );
 }
 
-export const COLORS_LIST: { color: TagColorProps; css: string }[] = [
-  {
-    color: "red",
-    css: "bg-red-100 text-red-600",
-  },
-  {
-    color: "yellow",
-    css: "bg-yellow-100 text-yellow-600",
-  },
-  {
-    color: "green",
-    css: "bg-green-100 text-green-600",
-  },
-  {
-    color: "blue",
-    css: "bg-blue-100 text-blue-600",
-  },
-  {
-    color: "purple",
-    css: "bg-purple-100 text-purple-600",
-  },
-  {
-    color: "brown",
-    css: "bg-brown-100 text-brown-600",
-  },
-];
-
 export function randomBadgeColor() {
-  const randomIndex = Math.floor(Math.random() * COLORS_LIST.length);
-  return COLORS_LIST[randomIndex].color;
+  return randomValue(RESOURCE_COLORS);
 }

@@ -10,6 +10,11 @@ import useWorkspace from "./use-workspace";
 
 export function useWorkspaceStore<T>(
   key: z.infer<typeof workspaceStoreKeys>,
+  {
+    mutateOnSet = false,
+  }: {
+    mutateOnSet?: boolean;
+  } = {},
 ): [
   T | undefined,
   (value: T) => Promise<void>,
@@ -33,6 +38,10 @@ export function useWorkspaceStore<T>(
     }
   }, [store, loadingWorkspace]);
 
+  const mutateWorkspace = () => {
+    mutate(`/api/workspaces/${slug}`);
+  };
+
   const setItem = async (value: T) => {
     setItemState(value);
 
@@ -41,10 +50,8 @@ export function useWorkspaceStore<T>(
       value,
       workspaceId: workspaceId!,
     });
-  };
 
-  const mutateWorkspace = () => {
-    mutate(`/api/workspaces/${slug}`);
+    mutateOnSet && mutateWorkspace();
   };
 
   return [item, setItem, { loading, mutateWorkspace }];

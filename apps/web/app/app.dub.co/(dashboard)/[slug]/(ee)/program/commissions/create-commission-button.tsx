@@ -1,13 +1,13 @@
 "use client";
 
-import { Button, useKeyboardShortcut } from "@dub/ui";
+import { Button, useKeyboardShortcut, useMediaQuery } from "@dub/ui";
 import { useCreateCommissionSheet } from "./create-commission-sheet";
 
 export function CreateCommissionButton() {
+  const { isMobile } = useMediaQuery();
   const { createCommissionSheet, setIsOpen: setShowCreateCommissionSheet } =
     useCreateCommissionSheet({
       nested: false,
-      partnerId: "",
     });
 
   useKeyboardShortcut("c", () => setShowCreateCommissionSheet(true));
@@ -18,8 +18,9 @@ export function CreateCommissionButton() {
       <Button
         type="button"
         onClick={() => setShowCreateCommissionSheet(true)}
-        text="Create commission"
+        text={`Create${isMobile ? "" : " commission"}`}
         shortcut="C"
+        className="h-8 px-3 sm:h-9"
       />
     </>
   );

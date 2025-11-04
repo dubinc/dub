@@ -6,7 +6,7 @@ import { DomainSelector } from "@/ui/domains/domain-selector";
 import { InfoTooltip, Input, LinkLogo, SimpleTooltipContent } from "@dub/ui";
 import { ArrowTurnRight2 } from "@dub/ui/icons";
 import { fetcher, getApexDomain, getPrettyUrl } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import useSWRImmutable from "swr/immutable";
 
 interface ProgramLinkConfigurationProps {
@@ -89,7 +89,7 @@ export function ProgramLinkConfiguration({
 
       <div className="space-y-2">
         <label className="block text-sm font-medium text-neutral-800">
-          Destination URL
+          Website URL
         </label>
         <Input
           value={url || ""}

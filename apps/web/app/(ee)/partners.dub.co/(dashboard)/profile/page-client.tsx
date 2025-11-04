@@ -1,378 +1,199 @@
 "use client";
 
 import { updatePartnerProfileAction } from "@/lib/actions/partners/update-partner-profile";
-import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
+import { hasPermission } from "@/lib/auth/partner-user-permissions";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
-import { PartnerProps, PayoutsCount } from "@/lib/types";
+import { PartnerProps } from "@/lib/types";
 import { PageContent } from "@/ui/layout/page-content";
 import { PageWidthWrapper } from "@/ui/layout/page-width-wrapper";
-import { CountryCombobox } from "@/ui/partners/country-combobox";
+import { useMergePartnerAccountsModal } from "@/ui/partners/merge-accounts/merge-partner-accounts-modal";
+import { ThreeDots } from "@/ui/shared/icons";
 import {
   Button,
-  buttonVariants,
-  DotsPattern,
-  FileUpload,
-  LoadingSpinner,
-  ToggleGroup,
-  useEnterSubmit,
+  Popover,
+  Switch,
+  Tooltip,
+  useOptimisticUpdate,
+  Users2,
+  UserSearch,
 } from "@dub/ui";
-import { cn, OG_AVATAR_URL } from "@dub/utils";
-import { PartnerProfileType } from "@prisma/client";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { cn } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
-import { PropsWithChildren, RefObject, useRef } from "react";
-import {
-  Controller,
-  FormProvider as FormContextProvider,
-  useForm,
-  useFormContext,
-} from "react-hook-form";
-import ReactTextareaAutosize from "react-textarea-autosize";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
+import { AboutYouForm } from "./about-you-form";
+import { HowYouWorkForm } from "./how-you-work-form";
+import { ProfileDetailsForm } from "./profile-details-form";
+import { ProfileDiscoveryGuide } from "./profile-discovery-guide";
+import { usePartnerDiscoveryRequirements } from "./use-partner-discovery-requirements";
 
 export function ProfileSettingsPageClient() {
-  const { partner, error } = usePartnerProfile();
+  const { partner } = usePartnerProfile();
+  const tasks = usePartnerDiscoveryRequirements();
 
-  const formRef = useRef<HTMLFormElement>(null);
+  const allTasksCompleted = useMemo(
+    () => tasks?.every(({ completed }) => completed) ?? false,
+    [tasks],
+  );
 
   return (
-    <FormWrapper partner={partner}>
-      <PageContent
-        title="Profile info"
-        controls={<Controls formRef={formRef} />}
-      >
-        <PageWidthWrapper className="mb-20 flex flex-col gap-8">
-          <div className="relative m-1 mb-8">
-            <div
-              className="pointer-events-none absolute inset-0 rounded-2xl bg-neutral-100/50 [mask-image:linear-gradient(black,transparent_60%)]"
-              aria-hidden
-            >
-              <div className="absolute inset-4 overflow-hidden">
-                <div className="absolute inset-y-0 left-1/2 w-[1200px] -translate-x-1/2">
-                  <DotsPattern className="text-neutral-200/80" />
-                </div>
-              </div>
-            </div>
-            <div className="relative mx-auto my-12 w-full max-w-[400px]">
-              {partner ? (
-                <ProfileForm partner={partner} formRef={formRef} />
-              ) : (
-                <div className="flex h-32 w-full items-center justify-center">
-                  {error ? (
-                    <span className="text-sm text-neutral-500">
-                      Failed to load profile data
-                    </span>
-                  ) : (
-                    <LoadingSpinner />
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </PageWidthWrapper>
-      </PageContent>
-    </FormWrapper>
+    <PageContent
+      title="Profile"
+      titleInfo={{
+        title:
+          "Build a stronger partner profile and increase trust by adding and verifying your website and social accounts.",
+        href: "https://dub.co/help/article/partner-profile",
+      }}
+      controls={
+        <Controls
+          showDiscoverableToggle={Boolean(
+            allTasksCompleted || partner?.discoverableAt,
+          )}
+        />
+      }
+    >
+      <PageWidthWrapper className="mb-20 flex flex-col gap-6">
+        {partner && !allTasksCompleted && (
+          <ProfileDiscoveryGuide partner={partner} />
+        )}
+        <ProfileDetailsForm partner={partner} />
+        <AboutYouForm partner={partner} />
+        <HowYouWorkForm partner={partner} />
+      </PageWidthWrapper>
+    </PageContent>
   );
 }
 
-function FormWrapper({
-  partner,
-  children,
-}: PropsWithChildren<{ partner?: PartnerProps }>) {
-  return partner ? (
-    <FormProvider partner={partner}>{children}</FormProvider>
-  ) : (
-    children
-  );
-}
-
-type ProfileFormData = {
-  name: string;
-  image: string | null;
-  description: string | null;
-  country: string;
-  profileType: PartnerProfileType;
-  companyName: string | null;
-};
-
-function FormProvider({
-  partner,
-  children,
-}: PropsWithChildren<{ partner: PartnerProps }>) {
-  const form = useForm<ProfileFormData>({
-    defaultValues: {
-      name: partner.name,
-      image: partner.image,
-      description: partner.description ?? null,
-      country: partner.country ?? "",
-      profileType: partner.profileType ?? "individual",
-      companyName: partner.companyName ?? null,
-    },
-  });
-
-  return <FormContextProvider {...form}>{children}</FormContextProvider>;
-}
-
-function Controls({ formRef }: { formRef: RefObject<HTMLFormElement> }) {
-  const {
-    formState: { isSubmitting },
-  } = useFormContext();
-
-  return (
-    <Button
-      text="Save changes"
-      className="h-8 w-fit px-2.5"
-      loading={isSubmitting}
-      onClick={() => formRef.current?.requestSubmit()}
-    />
-  );
-}
-
-function ProfileForm({
-  partner,
-  formRef,
+function Controls({
+  showDiscoverableToggle,
 }: {
-  partner: PartnerProps;
-  formRef: RefObject<HTMLFormElement>;
+  showDiscoverableToggle: boolean;
 }) {
-  const {
-    register,
-    control,
-    handleSubmit,
-    setError,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useFormContext<ProfileFormData>();
+  const { data: partner, update } = useOptimisticUpdate<PartnerProps>(
+    "/api/partner-profile",
+    {
+      loading: "Updating profile...",
+      success: "Profile updated",
+      error: "Failed to update profile",
+    },
+  );
 
-  const { profileType } = watch();
+  const disabled = partner
+    ? !hasPermission(partner.role, "partner_profile.update")
+    : true;
 
-  const { payoutsCount } = usePartnerPayoutsCount<PayoutsCount[]>({
-    groupBy: "status",
-  });
+  const [isOpen, setIsOpen] = useState(false);
 
-  const completedPayoutsCount =
-    payoutsCount?.find((payout) => payout.status === "completed")?.count ?? 0;
-
-  const { handleKeyDown } = useEnterSubmit();
+  const { MergePartnerAccountsModal, setShowMergePartnerAccountsModal } =
+    useMergePartnerAccountsModal();
 
   const { executeAsync } = useAction(updatePartnerProfileAction, {
-    onSuccess: async () => {
-      toast.success("Profile updated successfully.");
-    },
     onError({ error }) {
-      setError("root.serverError", {
-        message: error.serverError,
-      });
-
       toast.error(error.serverError);
     },
   });
 
+  const handleDiscoverableUpdate = async ({
+    checked,
+    currentPartner,
+  }: {
+    checked: boolean;
+    currentPartner: PartnerProps;
+  }) => {
+    await executeAsync({
+      discoverable: checked,
+    });
+
+    return {
+      ...currentPartner,
+      discoverableAt: checked ? new Date() : null,
+    };
+  };
+
   return (
-    <form
-      ref={formRef}
-      onSubmit={handleSubmit(async (data) => {
-        const imageChanged = data.image !== partner.image;
-
-        await executeAsync({
-          ...data,
-          image: imageChanged ? data.image : null,
-        });
-      })}
-    >
-      <div className="px-5">
-        <div className="flex flex-col gap-6">
-          <label>
-            <div className="flex items-center gap-5">
-              <Controller
-                control={control}
-                name="image"
-                render={({ field }) => (
-                  <FileUpload
-                    accept="images"
-                    className="size-20 shrink-0 rounded-full border border-neutral-300 sm:size-32"
-                    iconClassName="w-5 h-5"
-                    previewClassName="size-20 sm:size-32 rounded-full"
-                    variant="plain"
-                    imageSrc={field.value || `${OG_AVATAR_URL}${partner?.name}`}
-                    readFile
-                    onChange={({ src }) => field.onChange(src)}
-                    content={null}
-                    maxFileSizeMB={2}
-                    targetResolution={{ width: 160, height: 160 }}
-                  />
-                )}
-              />
-              <div>
-                <div
-                  className={cn(
-                    buttonVariants({ variant: "secondary" }),
-                    "flex h-8 w-fit cursor-pointer items-center rounded-md border px-2.5 text-xs",
-                  )}
-                >
-                  Upload image
-                </div>
-                <p className="mt-1.5 text-xs text-neutral-500">
-                  Recommended size: 160x160px
-                </p>
-              </div>
-            </div>
-          </label>
-          <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-neutral-800">
-              Full name
-            </span>
-            <div>
-              <input
-                type="text"
-                className={cn(
-                  "block w-full rounded-md focus:outline-none sm:text-sm",
-                  errors.name
-                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                )}
-                placeholder="Acme, Inc."
-                {...register("name", {
-                  required: true,
-                })}
-              />
-            </div>
-          </label>
-          <label className="flex flex-col">
-            <span className="text-sm font-medium text-neutral-800">
-              Country
-            </span>
-            <div>
-              <Controller
-                control={control}
-                name="country"
-                rules={{ required: true }}
-                render={({ field }) => (
-                  <CountryCombobox
-                    value={field.value || ""}
-                    onChange={field.onChange}
-                    error={errors.country ? true : false}
-                    disabledTooltip={
-                      completedPayoutsCount > 0
-                        ? "Since you've already received payouts on Dub, you cannot change your country. If you need to update your country, please contact support."
-                        : undefined
-                    }
-                  />
-                )}
-              />
-            </div>
-          </label>
-
-          <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-neutral-800">
-              About yourself
-            </span>
-            <div>
-              <ReactTextareaAutosize
-                className={cn(
-                  "block w-full rounded-md focus:outline-none sm:text-sm",
-                  errors.name
-                    ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                    : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                )}
-                placeholder="Tell us about the kind of content you create – e.g. tech, travel, fashion, etc."
-                minRows={3}
-                maxRows={10}
-                onKeyDown={handleKeyDown}
-                {...register("description")}
-              />
-            </div>
-          </label>
-
-          <label className="flex flex-col gap-1.5">
-            <span className="text-sm font-medium text-neutral-800">
-              Profile type
-            </span>
-            <div className="w-full">
-              <LayoutGroup>
-                <div className="w-full">
-                  <ToggleGroup
-                    options={[
-                      {
-                        value: "individual",
-                        label: "Individual",
-                      },
-                      {
-                        value: "company",
-                        label: "Company",
-                      },
-                    ]}
-                    selected={profileType}
-                    selectAction={(option: "individual" | "company") => {
-                      if (completedPayoutsCount === 0) {
-                        setValue("profileType", option);
-                      }
-                    }}
-                    className={cn(
-                      "flex w-full items-center gap-0.5 rounded-lg border-neutral-300 bg-neutral-100 p-0.5",
-                      completedPayoutsCount > 0 && "cursor-not-allowed",
-                    )}
-                    optionClassName={cn(
-                      "h-9 flex items-center justify-center rounded-lg flex-1",
-                      completedPayoutsCount > 0 && "pointer-events-none",
-                    )}
-                    indicatorClassName="bg-white"
-                  />
-                </div>
-              </LayoutGroup>
-            </div>
-          </label>
-
-          <AnimatePresence mode="popLayout">
-            {profileType === "company" && (
-              <motion.div
-                layout
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{
-                  type: "spring",
-                  stiffness: 300,
-                  damping: 30,
-                  opacity: { duration: 0.2 },
-                  layout: { duration: 0.3, type: "spring" },
-                }}
-                className="contents"
-              >
-                <label className="flex flex-col gap-1.5">
-                  <span className="text-sm font-medium text-neutral-800">
-                    Legal company name
-                  </span>
-                  <div>
-                    <input
-                      type="text"
-                      className={cn(
-                        "block w-full rounded-md focus:outline-none sm:text-sm",
-                        errors.companyName
-                          ? "border-red-300 pr-10 text-red-900 placeholder-red-300 focus:border-red-500 focus:ring-red-500"
-                          : "border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-500 focus:ring-neutral-500",
-                      )}
-                      disabled={completedPayoutsCount > 0}
-                      {...register("companyName", {
-                        required: profileType === "company",
-                      })}
-                    />
-                  </div>
-                </label>
-              </motion.div>
+    <>
+      {showDiscoverableToggle && partner && (
+        <Tooltip
+          content={
+            <p className="text-content-default max-w-xs p-3 text-xs">
+              <strong className="font-semibold">
+                Discoverable is {partner.discoverableAt ? "on" : "off"}
+              </strong>{" "}
+              - Programs {partner.discoverableAt ? "will" : "won't"} be able to
+              discover your profile and send invites.
+            </p>
+          }
+        >
+          <label
+            className={cn(
+              "bg-bg-subtle text-content-default border-border-subtle flex h-9 cursor-pointer items-center gap-2 rounded-lg border px-3",
+              "transition-colors duration-100 ease-out",
+              !!partner.discoverableAt &&
+                "bg-bg-inverted text-content-inverted border-bg-inverted",
             )}
-          </AnimatePresence>
-        </div>
-      </div>
-      {/* <div className="flex justify-end rounded-b-lg border-t border-neutral-200 bg-neutral-100 px-5 py-3.5">
+          >
+            <UserSearch className="size-4 shrink-0" />
+            <span className="text-sm font-medium">Discoverable</span>
+            <Switch
+              checked={!!partner.discoverableAt}
+              disabled={disabled}
+              fn={(checked: boolean) => {
+                if (!partner || disabled) return;
+
+                update(
+                  () =>
+                    handleDiscoverableUpdate({
+                      checked,
+                      currentPartner: partner,
+                    }),
+                  {
+                    ...partner,
+                    discoverableAt: checked ? new Date() : null,
+                  },
+                );
+              }}
+              trackDimensions="radix-state-checked:bg-neutral-600 focus-visible:ring-black/20"
+            />
+          </label>
+        </Tooltip>
+      )}
+      <MergePartnerAccountsModal />
+      <Popover
+        openPopover={isOpen}
+        setOpenPopover={setIsOpen}
+        content={
+          <div className="w-full p-2 md:w-56">
+            <button
+              onClick={() => {
+                if (!disabled) {
+                  setShowMergePartnerAccountsModal(true);
+                  setIsOpen(false);
+                }
+              }}
+              disabled={disabled}
+              className={cn(
+                "w-full rounded-md p-2",
+                disabled
+                  ? "cursor-not-allowed bg-neutral-50 text-neutral-400"
+                  : "hover:bg-neutral-100 active:bg-neutral-200",
+              )}
+            >
+              <div className="flex items-center gap-2 text-left">
+                <Users2 className="size-4 shrink-0" />
+                <span className="text-sm font-medium">Merge accounts</span>
+              </div>
+            </button>
+          </div>
+        }
+        align="end"
+      >
         <Button
-          type="submit"
-          text="Save changes"
-          className="h-8 w-fit px-2.5"
-          loading={isSubmitting || isPending}
+          type="button"
+          className="h-9 whitespace-nowrap px-2"
+          variant="secondary"
+          icon={<ThreeDots className="size-4 shrink-0" />}
         />
-      </div> */}
-    </form>
+      </Popover>
+    </>
   );
 }

@@ -14,6 +14,10 @@ export const GET = withPartnerProfile(
     const { program, links } = await getProgramEnrollmentOrThrow({
       partnerId: partner.id,
       programId: params.programId,
+      include: {
+        program: true,
+        links: true,
+      },
     });
 
     const {
@@ -33,7 +37,8 @@ export const GET = withPartnerProfile(
       interval,
       start,
       end,
-      dataAvailableFrom: program.createdAt,
+      dataAvailableFrom: program.startedAt ?? program.createdAt,
+      timezone,
     });
 
     const { dateFormat, dateIncrement, startFunction, formatString } =
@@ -84,12 +89,12 @@ export const GET = withPartnerProfile(
       return acc;
     }, {});
 
-    while (currentDate < endDate) {
+    while (currentDate.toJSDate() < endDate) {
       const periodKey = currentDate.toFormat(formatString);
       const { earnings, ...rest } = commissionLookup[periodKey] || {};
 
       timeseries.push({
-        start: currentDate.toISO(),
+        start: currentDate.toISO()!,
         earnings: earnings || 0,
         groupBy: groupBy || undefined,
         data: groupBy

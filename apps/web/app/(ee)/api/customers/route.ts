@@ -5,7 +5,6 @@ import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { generateRandomName } from "@/lib/names";
 import { isStored, storage } from "@/lib/storage";
-import z from "@/lib/zod";
 import {
   createCustomerBodySchema,
   CustomerEnrichedSchema,
@@ -13,7 +12,7 @@ import {
   getCustomersQuerySchemaExtended,
 } from "@/lib/zod/schemas/customers";
 import { DiscountSchemaWithDeprecatedFields } from "@/lib/zod/schemas/discount";
-import { prisma } from "@dub/prisma";
+import { prisma, sanitizeFullTextSearch } from "@dub/prisma";
 import { nanoid, R2_URL } from "@dub/utils";
 import {
   Customer,
@@ -25,13 +24,12 @@ import {
 } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 interface CustomerResponse extends Customer {
   link: Link & {
     programEnrollment: ProgramEnrollment & {
-      program: Program & {
-        defaultDiscount: Discount;
-      };
+      program: Program;
       partner: Partner;
       discount: Discount | null;
     };
@@ -67,21 +65,20 @@ export const GET = withWorkspace(
           ? { email }
           : externalId
             ? { externalId }
-            : {
-                ...(search && {
-                  OR: [
-                    { email: { startsWith: search } },
-                    { externalId: { startsWith: search } },
-                    { name: { startsWith: search } },
-                  ],
-                }),
-                ...(country && {
-                  country,
-                }),
-                ...(linkId && {
-                  linkId,
-                }),
-              }),
+            : search
+              ? search.includes("@")
+                ? { email: search }
+                : {
+                    email: { search: sanitizeFullTextSearch(search) },
+                    name: { search: sanitizeFullTextSearch(search) },
+                  }
+              : {}),
+        ...(country && {
+          country,
+        }),
+        ...(linkId && {
+          linkId,
+        }),
       },
       orderBy: {
         [sortBy]: sortOrder,
@@ -95,11 +92,6 @@ export const GET = withWorkspace(
                 include: {
                   programEnrollment: {
                     include: {
-                      program: {
-                        include: {
-                          defaultDiscount: true,
-                        },
-                      },
                       partner: {
                         select: {
                           id: true,
@@ -147,9 +139,8 @@ export const GET = withWorkspace(
 // POST /api/customers – Create a customer
 export const POST = withWorkspace(
   async ({ req, workspace }) => {
-    const { email, name, avatar, externalId } = createCustomerBodySchema.parse(
-      await parseRequestBody(req),
-    );
+    const { email, name, avatar, externalId, stripeCustomerId } =
+      createCustomerBodySchema.parse(await parseRequestBody(req));
 
     const customerId = createId({ prefix: "cus_" });
     const finalCustomerName = name || email || generateRandomName();
@@ -166,6 +157,7 @@ export const POST = withWorkspace(
           email,
           avatar: finalCustomerAvatar,
           externalId,
+          stripeCustomerId,
           projectId: workspace.id,
           projectConnectId: workspace.stripeConnectId,
         },
@@ -173,14 +165,14 @@ export const POST = withWorkspace(
 
       if (avatar && !isStored(avatar) && finalCustomerAvatar) {
         waitUntil(
-          storage.upload(
-            finalCustomerAvatar.replace(`${R2_URL}/`, ""),
-            avatar,
-            {
+          storage.upload({
+            key: finalCustomerAvatar.replace(`${R2_URL}/`, ""),
+            body: avatar,
+            opts: {
               width: 128,
               height: 128,
             },
-          ),
+          }),
         );
       }
 

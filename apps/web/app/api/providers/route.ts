@@ -42,6 +42,9 @@ export async function GET(req: NextRequest) {
     urlObject.pathname = "/xyz";
 
     const headers = await fetchWithTimeout(urlObject.toString(), {
+      headers: {
+        method: "HEAD",
+      },
       redirect: "manual",
     })
       .then((r) => ({

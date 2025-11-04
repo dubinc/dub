@@ -13,10 +13,10 @@ const dub = new Dub({
 await dub.track.sale({
   externalId: "cus_oFUYbZYqHFR0knk0MjsMC6b0",
   amount: 3000, // sale amount in cents
+  currency: "usd",
   paymentProcessor: "stripe",
   eventName: "Invoice paid",
   invoiceId: "INV_1234567890",
-  currency: "usd",
 });
 ```
 

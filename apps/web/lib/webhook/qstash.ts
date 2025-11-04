@@ -9,7 +9,7 @@ import { WebhookTrigger } from "../types";
 import z from "../zod";
 import { createWebhookSignature } from "./signature";
 import { prepareWebhookPayload } from "./transform";
-import { EventDataProps } from "./types";
+import { WebhookEventPayload } from "./types";
 import { identifyWebhookReceiver } from "./utils";
 
 // Send webhooks to multiple webhooks
@@ -20,7 +20,7 @@ export const sendWebhooks = async ({
 }: {
   webhooks: Pick<Webhook, "id" | "url" | "secret">[];
   trigger: WebhookTrigger;
-  data: EventDataProps;
+  data: WebhookEventPayload;
 }) => {
   if (webhooks.length === 0) {
     return;
@@ -35,7 +35,7 @@ export const sendWebhooks = async ({
   );
 };
 
-// Publish webhook event to QStash
+// publish webhook event to QStash
 const publishWebhookEventToQStash = async ({
   webhook,
   payload,
@@ -51,6 +51,9 @@ const publishWebhookEventToQStash = async ({
   const receiver = identifyWebhookReceiver(webhook.url);
   const finalPayload = transformPayload({ payload, receiver });
   const signature = await createWebhookSignature(webhook.secret, finalPayload);
+
+  // TODO:
+  // Add deduplicationId to the webhook
 
   const response = await qstash.publishJSON({
     url: webhook.url,

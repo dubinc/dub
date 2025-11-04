@@ -1,23 +1,24 @@
 import { resend } from "./client";
-import { RESEND_AUDIENCES } from "./constants";
+import { RESEND_AUDIENCE_ID } from "./constants";
 
 export async function subscribe({
   email,
   name,
-  audience = "app.dub.co",
 }: {
   email: string;
   name?: string | null;
-  audience?: keyof typeof RESEND_AUDIENCES;
 }) {
   if (!resend) {
     console.error(
-      "Resend client is not initialized. This may be due to a missing or invalid RESEND_API_KEY in the .env file. Skipping.",
+      "No RESEND_API_KEY is set in the environment variables. Skipping.",
     );
     return;
   }
 
-  const audienceId = RESEND_AUDIENCES[audience];
+  if (email.endsWith("@dub-internal-test.com")) {
+    // don't subscribe internal test emails
+    return;
+  }
 
   return await resend.contacts.create({
     email,
@@ -25,6 +26,6 @@ export async function subscribe({
       firstName: name.split(" ")[0],
       lastName: name.split(" ").slice(1).join(" "),
     }),
-    audienceId,
+    audienceId: RESEND_AUDIENCE_ID,
   });
 }

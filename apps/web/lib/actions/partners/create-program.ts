@@ -1,17 +1,25 @@
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
-import { createPartnerLink } from "@/lib/api/partners/create-partner-link";
-import { rewardfulImporter } from "@/lib/rewardful/importer";
+import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
+import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
-import { WorkspaceProps } from "@/lib/types";
+import { PlanProps } from "@/lib/types";
+import { redis } from "@/lib/upstash";
+import {
+  DEFAULT_ADDITIONAL_PARTNER_LINKS,
+  DEFAULT_PARTNER_GROUP,
+} from "@/lib/zod/schemas/groups";
 import { programDataSchema } from "@/lib/zod/schemas/program-onboarding";
+import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { sendEmail } from "@dub/email";
-import { PartnerInvite } from "@dub/email/templates/partner-invite";
+import ProgramInvite from "@dub/email/templates/program-invite";
 import ProgramWelcome from "@dub/email/templates/program-welcome";
 import { prisma } from "@dub/prisma";
-import { generateRandomString, nanoid, R2_URL } from "@dub/utils";
-import { Program, Project, Reward, User } from "@prisma/client";
+import { getDomainWithoutWWW, nanoid, R2_URL } from "@dub/utils";
+import { Program, Project, User } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { redirect } from "next/navigation";
 
@@ -37,11 +45,10 @@ export const createProgram = async ({
     url,
     defaultRewardType,
     type,
-    amount,
+    amountInCents,
+    amountInPercentage,
     maxDuration,
     partners,
-    rewardful,
-    linkStructure,
     supportEmail,
     helpUrl,
     termsUrl,
@@ -50,53 +57,75 @@ export const createProgram = async ({
 
   await getDomainOrThrow({ workspace, domain });
 
-  const programFolder = await prisma.folder.upsert({
-    where: {
-      name_projectId: {
-        name: "Partner Links",
-        projectId: workspace.id,
-      },
-    },
-    update: {},
-    create: {
-      id: createId({ prefix: "fold_" }),
-      name: "Partner Links",
-      projectId: workspace.id,
-      accessLevel: "write",
-      users: {
-        create: {
-          userId: user.id,
-          role: "owner",
-        },
-      },
-    },
-  });
+  const programId = createId({ prefix: "prog_" });
+
+  const logoUrl = uploadedLogo
+    ? await storage
+        .upload({
+          key: `programs/${programId}/logo_${nanoid(7)}`,
+          body: uploadedLogo,
+        })
+        .then(({ url }) => url)
+    : null;
 
   // create a new program
   const program = await prisma.$transaction(async (tx) => {
+    const folderId = createId({ prefix: "fold_" });
+    const defaultGroupId = createId({ prefix: "grp_" });
+
+    const programFolder = await tx.folder.upsert({
+      where: {
+        name_projectId: {
+          name: "Partner Links",
+          projectId: workspace.id,
+        },
+      },
+      update: {},
+      create: {
+        id: folderId,
+        name: "Partner Links",
+        projectId: workspace.id,
+        accessLevel: "write",
+        users: {
+          create: {
+            userId: user.id,
+            role: "owner",
+          },
+        },
+      },
+    });
+
     const programData = await tx.program.create({
       data: {
-        id: createId({ prefix: "prog_" }),
+        id: programId,
         workspaceId: workspace.id,
         name,
         slug: workspace.slug,
+        ...(logoUrl && { logo: logoUrl }),
         domain,
         url,
         defaultFolderId: programFolder.id,
-        linkStructure,
+        defaultGroupId,
         supportEmail,
         helpUrl,
         termsUrl,
+        messagingEnabledAt: getPlanCapabilities(workspace.plan)
+          .canMessagePartners
+          ? new Date()
+          : null,
         ...(type &&
-          amount && {
+          (amountInCents != null || amountInPercentage != null) && {
             rewards: {
               create: {
                 id: createId({ prefix: "rw_" }),
                 type,
-                amount,
+                amountInCents: type === "flat" ? amountInCents : null,
+                amountInPercentage:
+                  type === "percentage" && amountInPercentage != null
+                    ? amountInPercentage
+                    : null,
                 maxDuration,
                 event: defaultRewardType,
-                default: true,
               },
             },
           }),
@@ -106,15 +135,57 @@ export const createProgram = async ({
       },
     });
 
+    const createdReward = programData.rewards?.[0];
+
+    await tx.partnerGroup.upsert({
+      where: {
+        programId_slug: {
+          programId,
+          slug: DEFAULT_PARTNER_GROUP.slug,
+        },
+      },
+      create: {
+        id: defaultGroupId,
+        programId,
+        slug: DEFAULT_PARTNER_GROUP.slug,
+        name: DEFAULT_PARTNER_GROUP.name,
+        color: DEFAULT_PARTNER_GROUP.color,
+        ...(createdReward && {
+          [REWARD_EVENT_COLUMN_MAPPING[createdReward.event]]: createdReward.id,
+        }),
+        additionalLinks: [
+          {
+            domain: getDomainWithoutWWW(programData.url!)!,
+            validationMode: "domain",
+          },
+        ],
+        maxPartnerLinks: DEFAULT_ADDITIONAL_PARTNER_LINKS,
+        partnerGroupDefaultLinks: {
+          create: {
+            id: createId({ prefix: "pgdl_" }),
+            programId,
+            domain: programData.domain!,
+            url: programData.url!,
+          },
+        },
+      },
+      update: {}, // noop
+    });
+
+    // folder might be upserted, so we need to check if it was created
+    const didCreateFolder = programFolder.id === folderId;
+
     await tx.project.update({
       where: {
         id: workspace.id,
       },
       data: {
         defaultProgramId: programData.id,
-        foldersUsage: {
-          increment: 1,
-        },
+        ...(didCreateFolder && {
+          foldersUsage: {
+            increment: 1,
+          },
+        }),
         store: {
           ...store,
           programOnboarding: undefined,
@@ -129,29 +200,6 @@ export const createProgram = async ({
     return programData;
   });
 
-  const logoUrl = uploadedLogo
-    ? await storage
-        .upload(`programs/${program.id}/logo_${nanoid(7)}`, uploadedLogo)
-        .then(({ url }) => url)
-    : null;
-
-  // import the rewardful campaign if it exists
-  if (rewardful && rewardful.id) {
-    const credentials = await rewardfulImporter.getCredentials(workspace.id);
-
-    await rewardfulImporter.setCredentials(workspace.id, {
-      ...credentials,
-      campaignId: rewardful.id,
-    });
-
-    await rewardfulImporter.queue({
-      programId: program.id,
-      action: "import-campaign",
-    });
-  }
-
-  const reward = program.rewards?.[0];
-
   waitUntil(
     Promise.allSettled([
       // invite partners
@@ -160,40 +208,45 @@ export const createProgram = async ({
             invitePartner({
               workspace,
               program,
-              reward,
               partner,
               userId: user.id,
             }),
           )
         : []),
 
-      // update the program with the logo and default reward
-      prisma.program.update({
-        where: {
-          id: program.id,
-        },
-        data: {
-          ...(logoUrl && { logo: logoUrl }),
-        },
-      }),
-
       // delete the temporary uploaded logo
       uploadedLogo &&
         isStored(uploadedLogo) &&
-        storage.delete(uploadedLogo.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: uploadedLogo.replace(`${R2_URL}/`, "") }),
 
       // send email about the new program
       sendEmail({
         subject: `Your program ${program.name} is created and ready to share with your partners.`,
-        email: user.email!,
+        to: user.email!,
         react: ProgramWelcome({
           email: user.email!,
           workspace,
-          program: {
-            ...program,
-            logo: logoUrl,
-          },
+          program,
         }),
+      }),
+
+      // delete the workspace product cache
+      redis.del(`workspace:product:${workspace.slug}`),
+
+      // record the audit log
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId: program.id,
+        action: "program.created",
+        description: `Program ${program.name} created`,
+        actor: user,
+        targets: [
+          {
+            type: "program",
+            id: program.id,
+            metadata: program,
+          },
+        ],
       }),
     ]),
   );
@@ -204,54 +257,54 @@ export const createProgram = async ({
 // Invite a partner to the program
 async function invitePartner({
   program,
-  reward,
   workspace,
   partner,
   userId,
 }: {
   program: Program;
-  reward?: Pick<Reward, "id" | "event">;
   workspace: Pick<Project, "id" | "plan" | "webhookEnabled">;
   partner: {
     email: string;
   };
   userId: string;
 }) {
-  const partnerLink = await createPartnerLink({
-    workspace: workspace as WorkspaceProps,
+  await createAndEnrollPartner({
+    workspace: {
+      id: workspace.id,
+      plan: workspace.plan as PlanProps,
+      webhookEnabled: false,
+    },
     program,
     partner: {
       name: partner.email.split("@")[0],
       email: partner.email,
     },
     userId,
-  });
-
-  await createAndEnrollPartner({
-    program,
-    link: partnerLink,
-    workspace,
-    partner: {
-      name: partner.email.split("@")[0],
-      email: partner.email,
-    },
     skipEnrollmentCheck: true,
     status: "invited",
-    ...(reward && { reward }),
   });
 
   waitUntil(
-    sendEmail({
-      subject: `${program.name} invited you to join Dub Partners`,
-      email: partner.email,
-      react: PartnerInvite({
-        email: partner.email,
-        program: {
-          name: program.name,
-          slug: program.slug,
-          logo: program.logo,
-        },
-      }),
-    }),
+    (async () => {
+      await sendEmail({
+        subject: `${program.name} invited you to join Dub Partners`,
+        variant: "notifications",
+        to: partner.email,
+        replyTo: program.supportEmail || "noreply",
+        react: ProgramInvite({
+          email: partner.email,
+          name: null,
+          program: {
+            name: program.name,
+            slug: program.slug,
+            logo: program.logo,
+          },
+          ...(await getPartnerInviteRewardsAndBounties({
+            programId: program.id,
+            groupId: program.defaultGroupId,
+          })),
+        }),
+      });
+    })(),
   );
 }

@@ -358,6 +358,7 @@ function AddTokenButton({
             customPermissionDescription: "create new API keys",
           }).error || undefined
         }
+        className="h-9 px-3"
         {...buttonProps}
       />
     </div>

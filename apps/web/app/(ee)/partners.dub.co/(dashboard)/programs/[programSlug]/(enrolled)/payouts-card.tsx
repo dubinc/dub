@@ -3,8 +3,9 @@
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
 import { PartnerPayoutResponse } from "@/lib/types";
+import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
-import { CircleWarning, MoneyBills2, StatusBadge } from "@dub/ui";
+import { CircleWarning, MoneyBills2 } from "@dub/ui";
 import { currencyFormatter, formatPeriod } from "@dub/utils";
 import Link from "next/link";
 import { useState } from "react";
@@ -42,7 +43,7 @@ export function PayoutsCard({ programId }: { programId?: string }) {
           </span>
           {payouts?.length ? (
             <Link
-              href={`/settings/payouts?programId=${programId}`}
+              href={`/payouts?programId=${programId}`}
               className="text-sm font-medium leading-none text-neutral-500 hover:text-neutral-600"
             >
               {payouts.length} of {payoutsCount} results
@@ -63,20 +64,16 @@ export function PayoutsCard({ programId }: { programId?: string }) {
                   >
                     <div className="flex flex-col">
                       <span className="text-xs font-medium text-neutral-800">
-                        {currencyFormatter(payout.amount / 100, {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
+                        {currencyFormatter(payout.amount / 100)}
                       </span>
                       <span className="text-[0.7rem] text-neutral-500">
                         {formatPeriod(payout)}
                       </span>
                     </div>
-                    <span>
-                      <StatusBadge variant={badge.variant} className="">
-                        {badge.label}
-                      </StatusBadge>
-                    </span>
+                    <PayoutStatusBadgePartner
+                      payout={payout}
+                      program={payout.program}
+                    />
                   </button>
                 );
               })}

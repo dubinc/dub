@@ -17,7 +17,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function LinksImported({
+export default function LinksImported({
   email = "panic@thedis.co",
   provider = "Bitly",
   count = 1020,
@@ -150,5 +150,3 @@ export function LinksImported({
     </Html>
   );
 }
-
-export default LinksImported;

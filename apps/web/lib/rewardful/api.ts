@@ -1,6 +1,7 @@
 import { DubApiError } from "@/lib/api/errors";
 import {
   RewardfulAffiliate,
+  RewardfulCoupon,
   RewardfulCampaign,
   RewardfulCommission,
   RewardfulReferral,
@@ -40,15 +41,7 @@ export class RewardfulApi {
 
     const data = await response.json();
 
-    console.debug("Rewardful API Response:", { url, data });
-
     return data as T;
-  }
-
-  async retrieveCampaign(campaignId: string) {
-    return this.fetch<RewardfulCampaign>(
-      `${this.baseUrl}/campaigns/${campaignId}`,
-    );
   }
 
   async listCampaigns() {
@@ -59,16 +52,10 @@ export class RewardfulApi {
     return data;
   }
 
-  async listAffiliates({
-    campaignId,
-    page = 1,
-  }: {
-    campaignId: string;
-    page?: number;
-  }) {
+  async listPartners({ page = 1 }: { page?: number }) {
     const searchParams = new URLSearchParams();
+    searchParams.append("expand[]", "campaign");
     searchParams.append("expand[]", "links");
-    searchParams.append("campaign_id", campaignId);
     searchParams.append("page", page.toString());
     searchParams.append("limit", PAGE_LIMIT.toString());
 
@@ -79,7 +66,7 @@ export class RewardfulApi {
     return data;
   }
 
-  async listReferrals({ page = 1 }: { page?: number }) {
+  async listCustomers({ page = 1 }: { page?: number }) {
     const searchParams = new URLSearchParams();
     searchParams.append("expand[]", "affiliate");
     searchParams.append("conversion_state[]", "lead");
@@ -103,6 +90,18 @@ export class RewardfulApi {
 
     const { data } = await this.fetch<{ data: RewardfulCommission[] }>(
       `${this.baseUrl}/commissions?${searchParams.toString()}`,
+    );
+
+    return data;
+  }
+
+  async listAffiliateCoupons({ page = 1 }: { page?: number }) {
+    const searchParams = new URLSearchParams();
+    searchParams.append("page", page.toString());
+    searchParams.append("limit", PAGE_LIMIT.toString());
+
+    const { data } = await this.fetch<{ data: RewardfulCoupon[] }>(
+      `${this.baseUrl}/affiliate_coupons?${searchParams.toString()}`,
     );
 
     return data;

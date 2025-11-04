@@ -43,7 +43,7 @@ export const POST = withWorkspace(
     const links = bulkCreateLinksBodySchema.parse(await parseRequestBody(req));
     if (
       workspace.linksUsage + links.length > workspace.linksLimit &&
-      (workspace.plan === "free" || workspace.plan === "pro")
+      workspace.plan !== "enterprise" //  don't throw an error for enterprise plans
     ) {
       throw new DubApiError({
         code: "exceeded_limit",
@@ -343,11 +343,9 @@ export const PATCH = withWorkspace(
     }
 
     if (checkIfLinksHaveFolders(links)) {
-      const folderIds = [
-        ...new Set(
-          links.map((link) => link.folderId).filter(Boolean) as string[],
-        ),
-      ];
+      const folderIds = Array.from(
+        new Set(links.map((link) => link.folderId).filter(Boolean) as string[]),
+      );
 
       const folderPermissions = await checkFolderPermissions({
         workspaceId: workspace.id,
@@ -447,7 +445,7 @@ export const PATCH = withWorkspace(
                 link.image.startsWith(`${R2_URL}/images/${link.id}`) &&
                 link.image !== data.image
               ) {
-                storage.delete(link.image.replace(`${R2_URL}/`, ""));
+                storage.delete({ key: link.image.replace(`${R2_URL}/`, "") });
               }
             }),
           );
@@ -501,7 +499,6 @@ export const DELETE = withWorkspace(
     let links = await prisma.link.findMany({
       where: {
         projectId: workspace.id,
-        programId: null,
         OR: [
           ...(linkIds.size > 0 ? [{ id: { in: Array.from(linkIds) } }] : []),
           ...(externalIds.size > 0

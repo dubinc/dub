@@ -8,11 +8,13 @@ import {
   leadWebhookEventSchema,
   saleWebhookEventSchema,
 } from "@/lib/webhook/schemas";
-import z from "@/lib/zod";
+import { BountySchema } from "@/lib/zod/schemas/bounties";
+import { CommissionWebhookSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
 import { describe, expect, test } from "vitest";
+import { z } from "zod";
 
 const webhook = {
   id: "wh_IFL4j0toU6RAMz4R7mXjJ6C5", // dummy id
@@ -33,11 +35,25 @@ const saleWebhookEventSchemaExtended = saleWebhookEventSchema.extend({
 });
 
 const enrolledPartnerSchemaExtended = EnrolledPartnerSchema.extend({
+  payoutsEnabledAt: z.string().nullable(),
+  createdAt: z.string(),
+});
+
+const commissionWebhookEventSchemaExtended = CommissionWebhookSchema.extend({
   createdAt: z.string().transform((str) => new Date(str)),
-  payoutsEnabledAt: z
-    .string()
-    .transform((str) => (str ? new Date(str) : null))
-    .nullable(),
+  updatedAt: z.string().transform((str) => new Date(str)),
+  partner: CommissionWebhookSchema.shape.partner.extend({
+    payoutsEnabledAt: z
+      .string()
+      .transform((str) => (str ? new Date(str) : null))
+      .nullable(),
+  }),
+  customer: customerSchemaExtended,
+});
+
+const bountyWebhookEventSchemaExtended = BountySchema.extend({
+  startsAt: z.string().transform((str) => new Date(str)),
+  endsAt: z.string().transform((str) => (str ? new Date(str) : null)),
 });
 
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
@@ -48,6 +64,9 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "lead.created": leadWebhookEventSchemaExtended,
   "sale.created": saleWebhookEventSchemaExtended,
   "partner.enrolled": enrolledPartnerSchemaExtended,
+  "commission.created": commissionWebhookEventSchemaExtended,
+  "bounty.created": bountyWebhookEventSchemaExtended,
+  "bounty.updated": bountyWebhookEventSchemaExtended,
 };
 
 describe("Webhooks", () => {

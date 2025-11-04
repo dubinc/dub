@@ -17,7 +17,7 @@ export default function PaymentMethods() {
   const router = useRouter();
   const { paymentMethods } = usePaymentMethods();
   const [isLoading, setIsLoading] = useState(false);
-  const { slug, stripeId, partnersEnabled, plan } = useWorkspace();
+  const { slug, stripeId, plan } = useWorkspace();
 
   const regularPaymentMethods = paymentMethods?.filter(
     (pm) => !DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(pm.type),
@@ -90,25 +90,21 @@ export default function PaymentMethods() {
           <PaymentMethodCardSkeleton />
         )}
 
-        {partnersEnabled && (
-          <>
-            {partnerPaymentMethods ? (
-              partnerPaymentMethods.length > 0 ? (
-                partnerPaymentMethods.map((paymentMethod) => (
-                  <PaymentMethodCard
-                    key={paymentMethod.id}
-                    type={paymentMethod.type}
-                    paymentMethod={paymentMethod}
-                    forPayouts={true}
-                  />
-                ))
-              ) : (
-                <NoPartnerPaymentMethods />
-              )
-            ) : (
-              <PaymentMethodCardSkeleton />
-            )}
-          </>
+        {partnerPaymentMethods ? (
+          partnerPaymentMethods.length > 0 ? (
+            partnerPaymentMethods.map((paymentMethod) => (
+              <PaymentMethodCard
+                key={paymentMethod.id}
+                type={paymentMethod.type}
+                paymentMethod={paymentMethod}
+                forPayouts={true}
+              />
+            ))
+          ) : (
+            <NoPartnerPaymentMethods />
+          )
+        ) : (
+          <PaymentMethodCardSkeleton />
         )}
       </div>
     </div>

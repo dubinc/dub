@@ -1,5 +1,5 @@
-import { getAnalytics } from "@/lib/analytics/get-analytics";
-import { getLinkViaEdge } from "@/lib/planetscale";
+import { getStartEndDates } from "@/lib/analytics/utils/get-start-end-dates";
+import { prismaEdge } from "@dub/prisma/edge";
 import {
   GOOGLE_FAVICON_URL,
   getApexDomain,
@@ -19,23 +19,61 @@ export async function GET(req: NextRequest) {
   const domain = req.nextUrl.searchParams.get("domain") || "dub.sh";
   const key = req.nextUrl.searchParams.get("key") || "github";
 
-  const link = await getLinkViaEdge({ domain, key });
-  if (!link?.publicStats) {
-    return new Response(`Stats for this link are not public`, {
+  const link = await prismaEdge.link.findUnique({
+    where: {
+      domain_key: {
+        domain,
+        key,
+      },
+    },
+    include: {
+      dashboard: true,
+    },
+  });
+
+  if (!link) {
+    return new Response(`Link not found`, {
+      status: 404,
+    });
+  }
+
+  if (!link.dashboard) {
+    return new Response("Link does not have a public analytics dashboard", {
       status: 403,
     });
   }
 
-  const data = await getAnalytics({
-    event: "clicks",
-    groupBy: "timeseries",
-    // workspaceId can be undefined (for public links that haven't been claimed/synced to a workspace)
-    ...(link.projectId && { workspaceId: link.projectId }),
-    linkId: link.id,
-    interval: "24h",
+  const { startDate, endDate, granularity } = getStartEndDates({
+    interval: "30d",
   });
 
-  const clicks = data.reduce((acc, { clicks }) => acc + clicks, 0);
+  const timeseriesData = await fetch(
+    `https://api.us-east.tinybird.co/v0/pipes/v2_timeseries.json?${new URLSearchParams(
+      {
+        event: "clicks",
+        linkId: link.id,
+        start: startDate.toISOString().replace("T", " ").replace("Z", ""),
+        end: endDate.toISOString().replace("T", " ").replace("Z", ""),
+        granularity,
+      },
+    )}`,
+    {
+      headers: {
+        Authorization: `Bearer ${process.env.TINYBIRD_API_KEY}`,
+      },
+      next: {
+        revalidate: 60, // revalidate every minute
+      },
+    },
+  )
+    .then((res) => res.json())
+    .then((res) => res.data)
+    .catch(() => []);
+
+  const totalClicks = timeseriesData.reduce(
+    (acc, { clicks }) => acc + clicks,
+    0,
+  );
 
   return new ImageResponse(
     (
@@ -87,7 +125,9 @@ export async function GET(req: NextRequest) {
         <div tw="flex flex-col h-full w-full rounded-lg border border-neutral-200 bg-white shadow-lg overflow-hidden">
           <div tw="flex flex-col px-12 py-4">
             <div tw="flex items-center">
-              <h1 tw="font-bold text-5xl leading-none">{nFormatter(clicks)}</h1>
+              <h1 tw="font-bold text-5xl leading-none">
+                {nFormatter(totalClicks)}
+              </h1>
               <svg
                 fill="none"
                 shapeRendering="geometricPrecision"
@@ -109,7 +149,7 @@ export async function GET(req: NextRequest) {
             </p>
           </div>
 
-          <Chart data={data} />
+          <Chart data={timeseriesData} />
         </div>
       </div>
     ),
@@ -150,7 +190,11 @@ const Chart = ({ data }) => {
   return (
     <svg
       viewBox={`0 0 ${width} ${height}`}
-      style={{ color: "#3B82F6", marginLeft: "-4px", marginTop: "-32px" }}
+      style={{
+        color: "#3B82F6",
+        marginLeft: "-4px",
+        marginTop: "-32px",
+      }}
     >
       <defs>
         <linearGradient id="customGradient" x1="0" y1="0" x2="0" y2="1">

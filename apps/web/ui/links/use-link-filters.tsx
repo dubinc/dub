@@ -1,8 +1,8 @@
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useTags from "@/lib/swr/use-tags";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useUsers from "@/lib/swr/use-users";
-import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import { TagProps } from "@/lib/types";
 import { TAGS_MAX_PAGE_SIZE } from "@/lib/zod/schemas/tags";
 import { Avatar, BlurImage, Globe, Tag, User, useRouterStuff } from "@dub/ui";
@@ -13,31 +13,22 @@ import { LinksDisplayContext } from "./links-display-provider";
 import TagBadge from "./tag-badge";
 
 export function useLinkFilters() {
-  const { defaultFolderId } = useWorkspace();
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [debouncedSearch] = useDebounce(search, 500);
-  const { searchParams } = useRouterStuff();
-
-  // Decide on the folderId to use
-  let folderId = searchParams.get("folderId");
-  if (folderId) {
-    folderId = folderId === "unsorted" ? "" : folderId;
-  } else {
-    folderId = defaultFolderId ?? "";
-  }
+  const { folderId } = useCurrentFolderId();
 
   const { tags, tagsAsync } = useTagFilterOptions({
     search: selectedFilter === "tagIds" ? debouncedSearch : "",
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const domains = useDomainFilterOptions({
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const users = useUserFilterOptions({
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const { queryParams, searchParamsObj } = useRouterStuff();
@@ -92,10 +83,9 @@ export function useLinkFilters() {
         icon: User,
         label: "Creator",
         options:
-          // @ts-expect-error
-          users?.map(({ id, name, email, image, count }) => ({
+          users?.map(({ id, name, image, count }) => ({
             value: id,
-            label: name || email,
+            label: name,
             icon: (
               <Avatar
                 user={{
@@ -272,7 +262,7 @@ function useDomainFilterOptions({ folderId }: { folderId: string }) {
 }
 
 function useUserFilterOptions({ folderId }: { folderId: string }) {
-  const { users } = useUsers();
+  const { users } = useWorkspaceUsers();
   const { showArchived } = useContext(LinksDisplayContext);
 
   const { data: usersCount } = useLinksCount<
@@ -299,13 +289,7 @@ function useUserFilterOptions({ folderId }: { folderId: string }) {
                 0,
             }))
             .sort((a, b) => b.count - a.count)
-        : usersCount
-          ? usersCount.map(({ userId, _count }) => ({
-              id: userId,
-              name: userId,
-              count: _count,
-            }))
-          : null,
+        : null,
     [users, usersCount],
   );
 }

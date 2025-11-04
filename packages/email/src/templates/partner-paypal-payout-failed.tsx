@@ -40,10 +40,7 @@ export default function PartnerPaypalPayoutFailed({
   };
   email: string;
 }) {
-  const amountFormatted = currencyFormatter(payout.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const amountFormatted = currencyFormatter(payout.amount / 100);
 
   return (
     <Html>
@@ -87,7 +84,10 @@ export default function PartnerPaypalPayoutFailed({
               To resolve this, please verify that your PayPal account is active
               and able to receive payments. Please update your account details
               at your earliest convenience and retry the payout from your{" "}
-              <Link href="https://partners.dub.co/settings/payouts">
+              <Link
+                href="https://partners.dub.co/payouts"
+                className="font-medium text-black underline"
+              >
                 Payout settings
               </Link>
               .
@@ -96,7 +96,7 @@ export default function PartnerPaypalPayoutFailed({
             <Section className="my-8">
               <Link
                 className="rounded-lg bg-neutral-900 px-6 py-3 text-[13px] font-medium text-white no-underline"
-                href="https://partners.dub.co/settings/payouts"
+                href="https://partners.dub.co/payouts"
               >
                 Payout settings
               </Link>

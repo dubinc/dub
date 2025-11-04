@@ -1,158 +1,100 @@
-import { ProgramRewardDescription } from "@/ui/partners/program-reward-description";
-import { sendEmail } from "@dub/email";
-import PartnerApplicationApproved from "@dub/email/templates/partner-application-approved";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
-import { getLinkOrThrow } from "../api/links/get-link-or-throw";
-import { createPartnerLink } from "../api/partners/create-partner-link";
-import { recordLink } from "../tinybird/record-link";
-import {
-  ProgramPartnerLinkProps,
-  ProgramProps,
-  WorkspaceProps,
-} from "../types";
-import { sendWorkspaceWebhook } from "../webhook/publish";
-import { EnrolledPartnerSchema } from "../zod/schemas/partners";
-import { REWARD_EVENT_COLUMN_MAPPING } from "../zod/schemas/rewards";
+import { recordAuditLog } from "../api/audit-logs/record-audit-log";
+import { getGroupOrThrow } from "../api/groups/get-group-or-throw";
+import { triggerWorkflows } from "../cron/qstash-workflow";
+import { WorkspaceProps } from "../types";
 
 export async function approvePartnerEnrollment({
-  workspace,
-  program,
+  programId,
   partnerId,
-  linkId,
   userId,
+  groupId,
 }: {
-  workspace: Pick<WorkspaceProps, "id" | "plan" | "webhookEnabled">;
-  program: ProgramProps;
+  programId: string;
   partnerId: string;
-  linkId: string | null;
   userId: string;
+  groupId?: string | null;
 }) {
-  const { id: workspaceId } = workspace;
-  const { id: programId } = program;
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: programId,
+    },
+    include: {
+      rewards: true,
+      discounts: true,
+      workspace: true,
+    },
+  });
 
-  const [link, defaultRewards] = await Promise.all([
-    linkId
-      ? getLinkOrThrow({
-          workspaceId,
-          linkId,
-        })
-      : Promise.resolve(null),
+  if (!groupId && !program.defaultGroupId) {
+    throw new Error("No group ID provided and no default group ID found.");
+  }
 
-    prisma.reward.findMany({
-      where: {
+  const group = await getGroupOrThrow({
+    programId,
+    groupId: groupId || program.defaultGroupId,
+  });
+
+  const programEnrollment = await prisma.programEnrollment.update({
+    where: {
+      partnerId_programId: {
+        partnerId,
         programId,
-        default: true,
       },
-    }),
-  ]);
-
-  if (link?.partnerId) {
-    throw new Error("This link is already associated with another partner.");
-  }
-
-  const [programEnrollment, updatedLink] = await Promise.all([
-    prisma.programEnrollment.update({
-      where: {
-        partnerId_programId: {
-          partnerId,
-          programId,
-        },
-      },
-      data: {
-        status: "approved",
-        createdAt: new Date(),
-        ...(defaultRewards.length > 0 && {
-          ...Object.fromEntries(
-            defaultRewards.map((r) => [
-              REWARD_EVENT_COLUMN_MAPPING[r.event],
-              r.id,
-            ]),
-          ),
-        }),
-      },
-      include: {
-        partner: true,
-      },
-    }),
-
-    // Update link to have programId and partnerId
-    link
-      ? prisma.link.update({
-          where: {
-            id: link.id,
-          },
-          data: {
-            programId,
-            partnerId,
-            folderId: program.defaultFolderId,
-          },
-          include: {
-            tags: {
-              select: {
-                tag: true,
-              },
-            },
-          },
-        })
-      : Promise.resolve(null),
-  ]);
-
-  let partnerLink: ProgramPartnerLinkProps;
-  const { partner, ...enrollment } = programEnrollment;
-
-  if (updatedLink) {
-    partnerLink = updatedLink;
-  } else {
-    partnerLink = await createPartnerLink({
-      workspace,
-      program,
-      partner: {
-        name: partner.name,
-        email: partner.email!,
-      },
-      userId,
-      partnerId,
-    });
-  }
+    },
+    data: {
+      status: "approved",
+      createdAt: new Date(),
+      groupId: group.id,
+      clickRewardId: group.clickRewardId,
+      leadRewardId: group.leadRewardId,
+      saleRewardId: group.saleRewardId,
+      discountId: group.discountId,
+    },
+    include: {
+      partner: true,
+    },
+  });
 
   waitUntil(
     (async () => {
-      const enrolledPartner = EnrolledPartnerSchema.parse({
-        ...partner,
-        ...enrollment,
-        id: partner.id,
-        links: [partnerLink],
+      const { partner } = programEnrollment;
+      const workspace = program.workspace as WorkspaceProps;
+
+      const user = await prisma.user.findUniqueOrThrow({
+        where: {
+          id: userId,
+        },
+        select: {
+          id: true,
+          name: true,
+        },
       });
 
       await Promise.allSettled([
-        updatedLink ? recordLink(updatedLink) : Promise.resolve(null),
-
-        sendEmail({
-          subject: `Your application to join ${program.name} partner program has been approved!`,
-          email: partner.email!,
-          react: PartnerApplicationApproved({
-            program: {
-              name: program.name,
-              logo: program.logo,
-              slug: program.slug,
-              supportEmail: program.supportEmail,
+        recordAuditLog({
+          workspaceId: workspace.id,
+          programId,
+          action: "partner_application.approved",
+          description: `Partner application approved for ${partner.id}`,
+          actor: user,
+          targets: [
+            {
+              type: "partner",
+              id: partner.id,
+              metadata: partner,
             },
-            partner: {
-              name: partner.name,
-              email: partner.email!,
-              payoutsEnabled: Boolean(partner.payoutsEnabledAt),
-            },
-            rewardDescription: ProgramRewardDescription({
-              reward: defaultRewards.find((r) => r.event === "sale"),
-            }),
-          }),
+          ],
         }),
 
-        sendWorkspaceWebhook({
-          workspace,
-          trigger: "partner.enrolled",
-          data: enrolledPartner,
+        triggerWorkflows({
+          workflowId: "partner-approved",
+          body: {
+            programId,
+            partnerId,
+            userId,
+          },
         }),
       ]);
     })(),

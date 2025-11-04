@@ -31,10 +31,10 @@ export const addEditIntegration = authActionClient
     const newIntegrationId = createId({ prefix: "int_" });
 
     if (integration.logo && !isStored(integration.logo)) {
-      const result = await storage.upload(
-        `integrations/${id || newIntegrationId}_${nanoid(7)}`,
-        integration.logo,
-      );
+      const result = await storage.upload({
+        key: `integrations/${id || newIntegrationId}_${nanoid(7)}`,
+        body: integration.logo,
+      });
       integration.logo = result.url;
     }
 
@@ -55,7 +55,9 @@ export const addEditIntegration = authActionClient
             integration.logo !== oldIntegration.logo &&
             oldIntegration.logo.startsWith(`${R2_URL}/integrations/${id}`)
           ) {
-            await storage.delete(oldIntegration.logo.replace(`${R2_URL}/`, ""));
+            await storage.delete({
+              key: oldIntegration.logo.replace(`${R2_URL}/`, ""),
+            });
           }
 
           const removedScreenshots =

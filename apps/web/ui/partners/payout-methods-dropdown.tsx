@@ -208,42 +208,42 @@ export function PayoutMethodsDropdown() {
         openPopover={openPopover}
         setOpenPopover={setOpenPopover}
       >
-        {isBankAccountLoading || isPartnerLoading ? (
-          <div className="rounded-lg border border-neutral-200">
+        <button
+          onClick={() => setOpenPopover(!openPopover)}
+          className={cn(
+            "flex w-full items-center justify-between rounded-lg bg-white p-2 text-left text-sm transition-all duration-75",
+            "border border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-black/50",
+          )}
+        >
+          {isBankAccountLoading || isPartnerLoading ? (
             <PayoutMethodSkeleton />
-          </div>
-        ) : (
-          <button
-            onClick={() => setOpenPopover(!openPopover)}
-            className={cn(
-              "flex w-full items-center justify-between rounded-lg p-1.5 text-left text-sm transition-all duration-75",
-              "border border-neutral-200 outline-none focus-visible:ring-2 focus-visible:ring-black/50",
-            )}
-          >
-            <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
-              <div
-                className={cn(
-                  "size-8 shrink-0 rounded-lg p-2",
-                  selectedMethod?.color,
-                )}
-              >
-                {selectedMethod?.icon}
+          ) : (
+            <>
+              <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
+                <div
+                  className={cn(
+                    "size-8 shrink-0 rounded-lg p-2",
+                    selectedMethod?.color,
+                  )}
+                >
+                  {selectedMethod?.icon}
+                </div>
+                <div className="min-w-0">
+                  <span className="block text-xs font-medium text-neutral-900">
+                    {selectedMethod?.label}
+                  </span>
+                  <span className="block w-44 truncate text-xs text-neutral-500">
+                    {selectedMethod?.getAccountDetails(partner)}
+                  </span>
+                </div>
               </div>
-              <div className="min-w-0">
-                <span className="block text-xs font-medium text-neutral-900">
-                  {selectedMethod?.label}
-                </span>
-                <span className="block w-44 truncate text-xs text-neutral-500">
-                  {selectedMethod?.getAccountDetails(partner)}
-                </span>
-              </div>
-            </div>
-            <ChevronsUpDown
-              className="size-4 shrink-0 text-neutral-400"
-              aria-hidden="true"
-            />
-          </button>
-        )}
+              <ChevronsUpDown
+                className="size-4 shrink-0 text-neutral-400"
+                aria-hidden="true"
+              />
+            </>
+          )}
+        </button>
       </Popover>
     </div>
   );
@@ -251,15 +251,15 @@ export function PayoutMethodsDropdown() {
 
 function PayoutMethodSkeleton() {
   return (
-    <div className="flex w-full items-center justify-between rounded-lg p-1.5">
+    <>
       <div className="flex min-w-0 items-center gap-x-2.5 pr-2">
         <div className="size-8 shrink-0 animate-pulse rounded-lg bg-neutral-200" />
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0">
           <div className="h-3 w-24 animate-pulse rounded bg-neutral-200" />
           <div className="mt-1 h-3 w-44 animate-pulse rounded bg-neutral-200" />
         </div>
       </div>
       <div className="size-4 shrink-0 animate-pulse rounded bg-neutral-200" />
-    </div>
+    </>
   );
 }

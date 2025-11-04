@@ -110,7 +110,7 @@ export function TooltipContent({
             {...(target ? { target } : {})}
             className={cn(
               buttonVariants({ variant: "primary" }),
-              "flex h-9 w-full items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
+              "flex h-8 w-full items-center justify-center whitespace-nowrap rounded-lg border px-4 text-sm",
             )}
           >
             {cta}
@@ -120,7 +120,7 @@ export function TooltipContent({
             onClick={onClick}
             text={cta}
             variant="primary"
-            className="h-9"
+            className="h-8"
           />
         ) : null)}
     </div>
@@ -133,21 +133,26 @@ export function SimpleTooltipContent({
   href,
 }: {
   title: string;
-  cta: string;
-  href: string;
+  cta?: string;
+  href?: string;
 }) {
   return (
     <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
-      {title}{" "}
-      <a
-        href={href}
-        target="_blank"
-        rel="noopener noreferrer"
-        onClick={(e) => e.stopPropagation()}
-        className="inline-flex text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
-      >
-        {cta}
-      </a>
+      {title}
+      {cta && href && (
+        <>
+          {" "}
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="inline-flex text-neutral-500 underline underline-offset-4 hover:text-neutral-800"
+          >
+            {cta}
+          </a>
+        </>
+      )}
     </div>
   );
 }

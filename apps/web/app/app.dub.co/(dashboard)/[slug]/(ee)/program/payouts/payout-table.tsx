@@ -1,6 +1,5 @@
 "use client";
 
-import { DUB_MIN_PAYOUT_AMOUNT_CENTS } from "@/lib/partners/constants";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -69,7 +68,7 @@ const PayoutTableInner = memo(
         ? `/api/programs/${defaultProgramId}/payouts${getQueryString(
             { workspaceId },
             {
-              exclude: ["payoutId"],
+              exclude: ["payoutId", "selectedPayoutId", "excludedPayoutIds"],
             },
           )}`
         : undefined,
@@ -267,6 +266,7 @@ const PayoutTableInner = memo(
                     <Filter.List
                       filters={filters}
                       activeFilters={activeFilters}
+                      onSelect={onSelect}
                       onRemove={onRemove}
                       onRemoveAll={onRemoveAll}
                     />
@@ -310,13 +310,9 @@ function AmountRowItem({
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
-  const display = currencyFormatter(amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const display = currencyFormatter(amount / 100);
 
-  const minPayoutAmount =
-    program?.minPayoutAmount || DUB_MIN_PAYOUT_AMOUNT_CENTS;
+  const minPayoutAmount = program?.minPayoutAmount || 0;
 
   if (status === PayoutStatus.pending) {
     if (amount < minPayoutAmount) {

@@ -60,7 +60,7 @@ export const MoveLinkForm = ({
       { revalidate: true },
     );
 
-    toast.success("Link moved successfully!");
+    toast.success(`${pluralize("Link", links.length)} moved successfully!`);
     onSuccess(selectedFolderId === "unsorted" ? null : selectedFolderId);
   };
 

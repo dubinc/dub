@@ -10,6 +10,7 @@ import { eventsQuerySchema } from "@/lib/zod/schemas/analytics";
 import { Folder, Link } from "@dub/prisma/client";
 import { NextResponse } from "next/server";
 
+// GET /api/events
 export const GET = withWorkspace(
   async ({ searchParams, workspace, session }) => {
     throwIfClicksUsageExceeded(workspace);
@@ -79,7 +80,6 @@ export const GET = withWorkspace(
       workspaceId: workspace.id,
       folderIds,
       folderId: folderId || "",
-      isMegaFolder: selectedFolder?.type === "mega",
     });
 
     return NextResponse.json(response);

@@ -1,25 +1,16 @@
 import { BadgeCheck2Fill, Tooltip } from "@dub/ui";
-import { getUrlFromString } from "@dub/utils";
-import Link from "next/link";
 
 export function PartnerSocialColumn({
   at,
   value,
   verified,
-  href,
 }: {
   at?: boolean;
   value: string;
   verified: boolean;
-  href: string;
 }) {
-  return value && href ? (
-    <Link
-      href={getUrlFromString(href)}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="flex items-center gap-2 hover:underline"
-    >
+  return value ? (
+    <div className="flex items-center gap-2">
       <span className="min-w-0 truncate">
         {at && "@"}
         {value}
@@ -31,7 +22,7 @@ export function PartnerSocialColumn({
           </div>
         </Tooltip>
       )}
-    </Link>
+    </div>
   ) : (
     "-"
   );

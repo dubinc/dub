@@ -28,10 +28,10 @@ export async function getCommissionsTimeseries({
           SUM(earnings) AS commissions
         FROM Commission
         WHERE 
-          earnings > 0
-          AND programId != ${ACME_PROGRAM_ID}
+          programId != ${ACME_PROGRAM_ID}
           AND createdAt >= ${startDate}
           AND createdAt < ${endDate}
+          AND status IN ("pending", "processed", "paid")
         GROUP BY start
         ORDER BY start ASC;`;
 
@@ -50,11 +50,11 @@ export async function getCommissionsTimeseries({
 
   const timeseries: Commission[] = [];
 
-  while (currentDate < endDate) {
+  while (currentDate.toJSDate() < endDate) {
     const periodKey = currentDate.toFormat(formatString);
 
     timeseries.push({
-      start: currentDate.toISO(),
+      start: currentDate.toISO()!,
       ...(commissionsLookup[periodKey] || {
         commissions: 0,
       }),
@@ -62,6 +62,5 @@ export async function getCommissionsTimeseries({
 
     currentDate = dateIncrement(currentDate);
   }
-
   return timeseries;
 }

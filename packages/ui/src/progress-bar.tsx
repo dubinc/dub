@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export function ProgressBar({
   value = 0,

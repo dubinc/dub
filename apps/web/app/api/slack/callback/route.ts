@@ -1,34 +1,21 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
 import { getSession } from "@/lib/auth";
 import { installIntegration } from "@/lib/integrations/install";
-import { getSlackEnv } from "@/lib/integrations/slack/env";
-import { SlackCredential } from "@/lib/integrations/slack/type";
-import { redis } from "@/lib/upstash";
+import { slackOAuthProvider } from "@/lib/integrations/slack/oauth";
+import { SlackAuthToken } from "@/lib/integrations/types";
 import { createWebhook } from "@/lib/webhook/create-webhook";
-import z from "@/lib/zod";
 import { prisma } from "@dub/prisma";
 import { Project, WebhookReceiver } from "@dub/prisma/client";
-import {
-  APP_DOMAIN_WITH_NGROK,
-  getSearchParams,
-  SLACK_INTEGRATION_ID,
-} from "@dub/utils";
 import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
-const oAuthCallbackSchema = z.object({
-  code: z.string(),
-  state: z.string(),
-});
-
 export const GET = async (req: Request) => {
-  const env = getSlackEnv();
-
-  let workspace: Pick<
-    Project,
-    "id" | "slug" | "plan" | "partnersEnabled"
-  > | null = null;
+  let workspace:
+    | (Pick<Project, "id" | "slug" | "plan"> & {
+        users: Array<{ role: string }>;
+      })
+    | null = null;
 
   try {
     const session = await getSession();
@@ -40,17 +27,8 @@ export const GET = async (req: Request) => {
       });
     }
 
-    const { code, state } = oAuthCallbackSchema.parse(getSearchParams(req.url));
-
-    // Find workspace that initiated the Stripe app install
-    const workspaceId = await redis.get<string>(`slack:install:state:${state}`);
-
-    if (!workspaceId) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Unknown state",
-      });
-    }
+    const { token, contextId: workspaceId } =
+      await slackOAuthProvider.exchangeCodeForToken<string>(req);
 
     workspace = await prisma.project.findUniqueOrThrow({
       where: {
@@ -60,42 +38,47 @@ export const GET = async (req: Request) => {
         id: true,
         slug: true,
         plan: true,
-        partnersEnabled: true,
+        users: {
+          where: {
+            userId: session.user.id,
+          },
+        },
       },
     });
 
-    const formData = new FormData();
-    formData.append("code", code);
-    formData.append("client_id", env.SLACK_CLIENT_ID);
-    formData.append("client_secret", env.SLACK_CLIENT_SECRET);
-    formData.append(
-      "redirect_uri",
-      `${APP_DOMAIN_WITH_NGROK}/api/slack/callback`,
-    );
+    // Check if the user is a member of the workspace
+    if (workspace.users.length === 0) {
+      throw new DubApiError({
+        code: "bad_request",
+        message: "You are not a member of this workspace. ",
+      });
+    }
 
-    const response = await fetch("https://slack.com/api/oauth.v2.access", {
-      method: "POST",
-      body: formData,
+    const integration = await prisma.integration.findUniqueOrThrow({
+      where: {
+        slug: "slack",
+      },
+      select: {
+        id: true,
+      },
     });
 
-    const data = await response.json();
-
-    const credentials: SlackCredential = {
-      appId: data.app_id,
-      botUserId: data.bot_user_id,
-      scope: data.scope,
-      accessToken: data.access_token,
-      tokenType: data.token_type,
-      authUser: data.authed_user,
-      team: data.team,
+    const credentials: SlackAuthToken = {
+      appId: token.app_id,
+      botUserId: token.bot_user_id,
+      scope: token.scope,
+      accessToken: token.access_token,
+      tokenType: token.token_type,
+      authUser: token.authed_user,
+      team: token.team,
       incomingWebhook: {
-        channel: data.incoming_webhook.channel,
-        channelId: data.incoming_webhook.channel_id,
+        channel: token.incoming_webhook.channel,
+        channelId: token.incoming_webhook.channel_id,
       },
     };
 
     const installation = await installIntegration({
-      integrationId: SLACK_INTEGRATION_ID,
+      integrationId: integration.id,
       userId: session.user.id,
       workspaceId,
       credentials,
@@ -103,7 +86,7 @@ export const GET = async (req: Request) => {
 
     await createWebhook({
       name: "Slack",
-      url: data.incoming_webhook.url,
+      url: token.incoming_webhook.url,
       receiver: WebhookReceiver.slack,
       triggers: [],
       workspace,

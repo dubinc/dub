@@ -1,15 +1,19 @@
 import { DubApiError } from "@/lib/api/errors";
-import { hashToken, withSession } from "@/lib/auth";
+import { withSession } from "@/lib/auth";
+import { confirmEmailChange } from "@/lib/auth/confirm-email-change";
 import { storage } from "@/lib/storage";
-import { ratelimit, redis } from "@/lib/upstash";
 import { uploadedImageSchema } from "@/lib/zod/schemas/misc";
-import { sendEmail } from "@dub/email";
 import { unsubscribe } from "@dub/email/resend/unsubscribe";
-import ConfirmEmailChange from "@dub/email/templates/confirm-email-change";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN, R2_URL, nanoid, trim } from "@dub/utils";
+import {
+  APP_DOMAIN,
+  APP_HOSTNAMES,
+  PARTNERS_DOMAIN,
+  R2_URL,
+  nanoid,
+  trim,
+} from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { randomBytes } from "crypto";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -66,10 +70,10 @@ export const PATCH = withSession(async ({ req, session }) => {
     await updateUserSchema.parseAsync(await req.json());
 
   if (image) {
-    const { url } = await storage.upload(
-      `avatars/${session.user.id}_${nanoid(7)}`,
-      image,
-    );
+    const { url } = await storage.upload({
+      key: `avatars/${session.user.id}_${nanoid(7)}`,
+      body: image,
+    });
     image = url;
   }
 
@@ -106,51 +110,14 @@ export const PATCH = withSession(async ({ req, session }) => {
       });
     }
 
-    const { success } = await ratelimit(10, "1 d").limit(
-      `email-change-request:${session.user.id}`,
-    );
+    const hostName = req.headers.get("host") || "";
 
-    if (!success) {
-      throw new DubApiError({
-        code: "rate_limit_exceeded",
-        message:
-          "You've requested too many email change requests. Please try again later.",
-      });
-    }
-
-    const token = randomBytes(32).toString("hex");
-    const expiresIn = 15 * 60 * 1000;
-
-    await prisma.verificationToken.create({
-      data: {
-        identifier: session.user.id,
-        token: await hashToken(token, { secret: true }),
-        expires: new Date(Date.now() + expiresIn),
-      },
+    await confirmEmailChange({
+      email: session.user.email,
+      newEmail: email,
+      identifier: session.user.id,
+      hostName: APP_HOSTNAMES.has(hostName) ? APP_DOMAIN : PARTNERS_DOMAIN,
     });
-
-    await redis.set(
-      `email-change-request:user:${session.user.id}`,
-      {
-        email: session.user.email,
-        newEmail: email,
-      },
-      {
-        px: expiresIn,
-      },
-    );
-
-    waitUntil(
-      sendEmail({
-        subject: "Confirm your email address change",
-        email,
-        react: ConfirmEmailChange({
-          email: session.user.email,
-          newEmail: email,
-          confirmUrl: `${APP_DOMAIN}/auth/confirm-email-change/${token}`,
-        }),
-      }),
-    );
   }
 
   const response = await prisma.user.update({
@@ -173,7 +140,9 @@ export const PATCH = withSession(async ({ req, session }) => {
         session.user.image &&
         session.user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`)
       ) {
-        await storage.delete(session.user.image.replace(`${R2_URL}/`, ""));
+        await storage.delete({
+          key: session.user.image.replace(`${R2_URL}/`, ""),
+        });
       }
     })(),
   );
@@ -206,7 +175,7 @@ export const DELETE = withSession(async ({ session }) => {
       // if the user has a custom avatar and it is stored by their userId, delete it
       user.image &&
         user.image.startsWith(`${R2_URL}/avatars/${session.user.id}`) &&
-        storage.delete(user.image.replace(`${R2_URL}/`, "")),
+        storage.delete({ key: user.image.replace(`${R2_URL}/`, "") }),
       unsubscribe({ email: session.user.email }),
     ]);
     return NextResponse.json(response);

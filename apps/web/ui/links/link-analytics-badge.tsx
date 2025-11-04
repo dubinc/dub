@@ -98,6 +98,7 @@ export function LinkAnalyticsBadge({
       <Tooltip
         key={modalShowCount}
         side="top"
+        delayDuration={500}
         content={
           <div className="flex flex-col gap-2.5 whitespace-nowrap p-3 text-neutral-600">
             {stats.map(({ id: tab, value }) => (
@@ -105,8 +106,6 @@ export function LinkAnalyticsBadge({
                 <span className="font-medium text-neutral-950">
                   {tab === "sales"
                     ? currencyFormatter(value / 100, {
-                        maximumFractionDigits: 2,
-                        // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                         trailingZeroDisplay: "stripIfInteger",
                       })
                     : nFormatter(value, { full: value < INFINITY_NUMBER })}
@@ -171,7 +170,6 @@ export function LinkAnalyticsBadge({
                   <span>
                     {tab === "sales"
                       ? currencyFormatter(value / 100, {
-                          maximumFractionDigits: 2,
                           // @ts-ignore – trailingZeroDisplay is a valid option but TS is outdated
                           trailingZeroDisplay: "stripIfInteger",
                         })

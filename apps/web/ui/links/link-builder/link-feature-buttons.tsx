@@ -26,9 +26,7 @@ export function LinkFeatureButtons({
       <PasswordModal />
       <UTMModal />
       <TargetingModal />
-      <ExpirationModal />
-      {flags?.abTesting && <ABTestingModal />}
-
+      <ExpirationModal /> <ABTestingModal />
       <div className={cn("flex min-w-0 items-center gap-2", className)}>
         <UTMButton />
         <div className="contents max-[380px]:hidden">
@@ -40,11 +38,11 @@ export function LinkFeatureButtons({
             variant === "page" && "max-[960px]:hidden",
           )}
         >
-          {flags?.abTesting && <ABTestingButton />}
+          <ABTestingButton />
           <PasswordButton />
           <ExpirationButton />
         </div>
-        <MoreDropdown />
+        <MoreDropdown variant={variant} />
       </div>
     </>
   );

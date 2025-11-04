@@ -1,40 +1,25 @@
-import { tb } from "@/lib/tinybird";
 import { prisma } from "@dub/prisma";
 import { Link } from "@dub/prisma/client";
 import { transformLink } from "../api/links";
 import { decodeLinkIfCaseSensitive } from "../api/links/case-sensitivity";
-import z from "../zod";
+import { getCustomerEventsTB } from "../tinybird/get-customer-events-tb";
 import {
   clickEventResponseSchema,
   clickEventSchema,
 } from "../zod/schemas/clicks";
-import {
-  leadEventResponseSchema,
-  leadEventResponseSchemaExtended,
-} from "../zod/schemas/leads";
-import {
-  saleEventResponseSchema,
-  saleEventResponseSchemaExtended,
-} from "../zod/schemas/sales";
+import { leadEventResponseSchema } from "../zod/schemas/leads";
+import { saleEventResponseSchema } from "../zod/schemas/sales";
 
 export const getCustomerEvents = async ({
   customerId,
   linkIds,
-  includeMetadata,
 }: {
   customerId: string;
   linkIds?: string[];
-  includeMetadata?: boolean;
 }) => {
-  const pipe = tb.buildPipe({
-    pipe: "v2_customer_events",
-    parameters: z.any(), // TODO
-    data: z.any(), // TODO
-  });
-
-  const response = await pipe({
+  const response = await getCustomerEventsTB({
     customerId,
-    ...(linkIds ? { linkIds } : {}),
+    linkIds,
   });
 
   const linksMap = await getLinksMap(response.data.map((d) => d.link_id));
@@ -68,6 +53,7 @@ export const getCustomerEvents = async ({
           ? {
               eventId: evt.event_id,
               eventName: evt.event_name,
+              metadata: evt.metadata ? JSON.parse(evt.metadata) : undefined,
               ...(evt.event === "sale"
                 ? {
                     sale: {
@@ -83,14 +69,8 @@ export const getCustomerEvents = async ({
 
       return {
         click: clickEventResponseSchema,
-        lead: (includeMetadata
-          ? leadEventResponseSchemaExtended
-          : leadEventResponseSchema
-        ).omit({ customer: true }),
-        sale: (includeMetadata
-          ? saleEventResponseSchemaExtended
-          : saleEventResponseSchema
-        ).omit({ customer: true }),
+        lead: leadEventResponseSchema.omit({ customer: true }),
+        sale: saleEventResponseSchema.omit({ customer: true }),
       }[evt.event].parse(eventData);
     })
     .filter((d) => d !== null);

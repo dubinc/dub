@@ -15,8 +15,8 @@ export function CardAmex(props: SVGProps<SVGSVGElement>) {
         fill="#306FC5"
       />
       <path
-        fill-rule="evenodd"
-        clip-rule="evenodd"
+        fillRule="evenodd"
+        clipRule="evenodd"
         d="M5.5378 2.01274L2.25117 9.38854H4.42952L4.96455 7.93631H8.51869L9.09194 9.38854H11.2321L7.94544 2.01274H5.5378ZM7.90723 6.40765L6.72251 3.57962L5.5378 6.40765H7.90723Z"
         fill="white"
       />

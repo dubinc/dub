@@ -22,13 +22,13 @@ export default function ConnectPayoutReminder({
     {
       id: "1",
       name: "Acme",
-      logo: "https://dubassets.com/logos/clrei1gld0002vs9mzn93p8ik_384uSfo",
+      logo: "https://dubassets.com/programs/prog_CYCu7IMAapjkRpTnr8F1azjN/logo_ObfFYsM",
       amount: 120_00,
     },
     {
       id: "2",
       name: "Dub",
-      logo: "https://dubassets.com/programs/prog_d8pl69xXCv4AoHNT281pHQdo/logo_MJb5L8D",
+      logo: "https://dubassets.com/programs/prog_d8pl69xXCv4AoHNT281pHQdo/logo_TMLMTHs",
       amount: 40_24,
     },
   ],
@@ -96,10 +96,7 @@ export default function ConnectPayoutReminder({
                     </Row>
                   </Column>
                   <Column className="text-right text-sm">
-                    {currencyFormatter(program.amount / 100, {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}
+                    {currencyFormatter(program.amount / 100)}
                   </Column>
                 </Row>
               ))}
@@ -113,7 +110,7 @@ export default function ConnectPayoutReminder({
 
             <Section className="mt-8 text-center">
               <Link
-                href="https://partners.dub.co/register?next=/settings/payouts"
+                href={`https://partners.dub.co/register?email=${email}&next=/payouts`}
                 className="box-border block w-full rounded-md bg-black px-0 py-4 text-center text-sm font-medium leading-none text-white no-underline"
               >
                 Connect payout details

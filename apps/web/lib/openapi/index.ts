@@ -1,7 +1,7 @@
 import { openApiErrorResponses } from "@/lib/openapi/responses";
 import { DomainSchema } from "@/lib/zod/schemas/domains";
 import { LinkErrorSchema, LinkSchema } from "@/lib/zod/schemas/links";
-import { TagSchema } from "@/lib/zod/schemas/tags";
+import { LinkTagSchema } from "@/lib/zod/schemas/tags";
 import { WorkspaceSchema } from "@/lib/zod/schemas/workspaces";
 import { createDocument } from "zod-openapi";
 import { webhookEventSchema } from "../webhook/schemas";
@@ -25,7 +25,7 @@ export const document = createDocument({
   info: {
     title: "Dub API",
     description:
-      "Dub is link management infrastructure for companies to create marketing campaigns, link sharing features, and referral programs.",
+      "Dub is the modern link attribution platform for short links, conversion tracking, and affiliate programs.",
     version: "0.0.1",
     contact: {
       name: "Dub Support",
@@ -62,7 +62,7 @@ export const document = createDocument({
     schemas: {
       LinkSchema,
       WorkspaceSchema,
-      TagSchema,
+      LinkTagSchema,
       FolderSchema,
       DomainSchema,
       webhookEventSchema,

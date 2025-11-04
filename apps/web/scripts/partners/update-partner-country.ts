@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import "dotenv-flow/config";
-import { stripeConnectClient } from "./stripe";
+import { stripeConnectClient } from "../stripe/connect-client";
 
 const email = "xxx";
 

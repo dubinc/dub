@@ -42,8 +42,7 @@ export default function ProgramWelcome({
     logo: string | null;
   };
 }) {
-  const programLandingUrl = `https://partners.dub.co/${program.slug}`;
-  const programDashboardUrl = `https://app.dub.co/${workspace.slug}/program`;
+  const workspaceUrlPrefix = `https://app.dub.co/${workspace.slug}`;
 
   return (
     <Html>
@@ -86,10 +85,10 @@ export default function ProgramWelcome({
                   </Text>
 
                   <Link
-                    href={programLandingUrl}
+                    href={`${workspaceUrlPrefix}/program`}
                     className="m-0 text-xs font-medium text-neutral-800 underline"
                   >
-                    {getPrettyUrl(programLandingUrl)}
+                    {getPrettyUrl(`${workspaceUrlPrefix}/program`)}
                   </Link>
                 </Column>
               </Row>
@@ -103,16 +102,16 @@ export default function ProgramWelcome({
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
               1.{" "}
               <span className="font-medium">
-                Create your program application page
+                Create your program application form
               </span>
               : Use our{" "}
               <Link
-                href={`${programDashboardUrl}/branding`}
+                href={`${workspaceUrlPrefix}/program/groups/default/branding`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 interactive builder
               </Link>{" "}
-              to create a beautiful, branded program application page to get
+              to create a beautiful, branded program application form to get
               more partners applying to join your program.
             </Text>
             <Text className="mb-4 text-sm leading-5 text-neutral-800">
@@ -129,7 +128,7 @@ export default function ProgramWelcome({
               3. <span className="font-medium">Set up conversion tracking</span>
               :{" "}
               <Link
-                href="https://dub.co/docs/partners/quickstart"
+                href={`${workspaceUrlPrefix}/settings/analytics`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 Follow our quickstart guide
@@ -140,14 +139,14 @@ export default function ProgramWelcome({
               4. <span className="font-medium">Invite your partners</span>:
               Easily{" "}
               <Link
-                href={`${programDashboardUrl}/partners`}
+                href={`${workspaceUrlPrefix}/program/partners`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 invite influencers, affiliates, and users
               </Link>{" "}
               to your program, or{" "}
               <Link
-                href="https://dub.co/docs/partners/white-labeling"
+                href="https://dub.co/docs/partners/embedded-referrals"
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 enroll them automatically.
@@ -157,7 +156,7 @@ export default function ProgramWelcome({
               5. <span className="font-medium">Create more rewards</span> - Set
               up{" "}
               <Link
-                href={`${programDashboardUrl}/rewards`}
+                href={`${workspaceUrlPrefix}/program/rewards`}
                 className="font-semibold text-neutral-800 underline underline-offset-2"
               >
                 click, lead, and sale-based rewards
@@ -167,7 +166,7 @@ export default function ProgramWelcome({
             </Text>
             <Section className="my-10">
               <Link
-                href={programDashboardUrl}
+                href={`${workspaceUrlPrefix}/program`}
                 className="box-border h-10 w-fit rounded-lg bg-black px-4 py-3 text-center text-sm leading-none text-white no-underline"
               >
                 Go to your dashboard

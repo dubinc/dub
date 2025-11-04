@@ -10,6 +10,41 @@ export type PlanFeature = {
   };
 };
 
+const LEGACY_PRO_PRICE_IDS = [
+  "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
+  "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
+  "price_1OTcQBAlJJEpqkPViGtGEsbb", // new monthly (test)
+  "price_1OYJeBAlJJEpqkPVLjTsjX0E", // new monthly (prod)
+  "price_1OTcQBAlJJEpqkPVYlCMqdLL", // new yearly (test)
+  "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
+];
+
+// 2025 pricing
+const NEW_PRO_PRICE_IDS = [
+  "price_1R8XtyAlJJEpqkPV5WZ4c0jF", //  yearly
+  "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
+  "price_1R8XxZAlJJEpqkPVqGi0wOqD", // yearly (test),
+  "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly (test),
+];
+
+const LEGACY_BUSINESS_PRICE_IDS = [
+  "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
+  "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
+  "price_1OZgmnAlJJEpqkPVOj4kV64R", // old yearly
+  "price_1OzNlmAlJJEpqkPV7s9HXNAC", // new monthly (test)
+  "price_1OzNmXAlJJEpqkPVYO89lTdx", // new yearly (test)
+  "price_1OzOFIAlJJEpqkPVJxzc9irl", // new monthly (prod)
+  "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
+];
+
+// 2025 pricing
+export const NEW_BUSINESS_PRICE_IDS = [
+  "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
+  "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
+  "price_1R8XypAlJJEpqkPVdjzOcYUC", // yearly (test),
+  "price_1R7ofLAlJJEpqkPV3MlgDpyx", // monthly (test),
+];
+
 export const PLANS = [
   {
     name: "Free",
@@ -19,11 +54,13 @@ export const PLANS = [
     },
     limits: {
       links: 25,
-      clicks: 1000,
+      clicks: 1_000,
       payouts: 0,
       domains: 3,
       tags: 5,
       folders: 0,
+      groups: 0,
+      networkInvites: 0,
       users: 1,
       ai: 10,
       api: 60,
@@ -36,20 +73,7 @@ export const PLANS = [
     price: {
       monthly: 30,
       yearly: 25,
-      ids: [
-        "price_1LodNLAlJJEpqkPVQSrt33Lc", // old monthly
-        "price_1LodNLAlJJEpqkPVRxUyCQgZ", // old yearly
-        "price_1OTcQBAlJJEpqkPViGtGEsbb", // new monthly (test)
-        "price_1OYJeBAlJJEpqkPVLjTsjX0E", // new monthly (prod)
-        "price_1OTcQBAlJJEpqkPVYlCMqdLL", // new yearly (test)
-        "price_1OYJeBAlJJEpqkPVnPGEZeb0", // new yearly (prod)
-
-        // 2025 pricing
-        "price_1R8XtyAlJJEpqkPV5WZ4c0jF", //  yearly
-        "price_1R8XtEAlJJEpqkPV4opVvVPq", // monthly
-        "price_1R8XxZAlJJEpqkPVqGi0wOqD", // yearly (test),
-        "price_1R7oeBAlJJEpqkPVh6q5q3h8", // monthly (test),
-      ],
+      ids: [...LEGACY_PRO_PRICE_IDS, ...NEW_PRO_PRICE_IDS],
     },
     limits: {
       links: 1_000,
@@ -58,8 +82,10 @@ export const PLANS = [
       domains: 10,
       tags: 25,
       folders: 3,
+      groups: 0,
+      networkInvites: 0,
       users: 3,
-      ai: 1000,
+      ai: 1_000,
       api: 600,
       retention: "1-year",
     },
@@ -112,7 +138,7 @@ export const PLANS = [
           title:
             "Redirect users to a specific page within your mobile application using deep links.",
           cta: "Learn more.",
-          href: "https://dub.co//help/article/custom-domain-deep-links",
+          href: "https://dub.co/docs/concepts/deep-links/quickstart",
         },
       },
     ] as PlanFeature[],
@@ -122,21 +148,7 @@ export const PLANS = [
     price: {
       monthly: 90,
       yearly: 75,
-      ids: [
-        "price_1LodLoAlJJEpqkPV9rD0rlNL", // old monthly
-        "price_1LodLoAlJJEpqkPVJdwv5zrG", // oldest yearly
-        "price_1OZgmnAlJJEpqkPVOj4kV64R", // old yearly
-        "price_1OzNlmAlJJEpqkPV7s9HXNAC", // new monthly (test)
-        "price_1OzNmXAlJJEpqkPVYO89lTdx", // new yearly (test)
-        "price_1OzOFIAlJJEpqkPVJxzc9irl", // new monthly (prod)
-        "price_1OzOXMAlJJEpqkPV9ERrjjbw", // new yearly (prod)
-
-        // 2025 pricing
-        "price_1R3j01AlJJEpqkPVXuG1eNzm", //  yearly
-        "price_1R6JedAlJJEpqkPVMUkfjch4", // monthly
-        "price_1R8XypAlJJEpqkPVdjzOcYUC", // yearly (test),
-        "price_1R7ofLAlJJEpqkPV3MlgDpyx", // monthly (test),
-      ],
+      ids: [...LEGACY_BUSINESS_PRICE_IDS, ...NEW_BUSINESS_PRICE_IDS],
     },
     limits: {
       links: 10_000,
@@ -145,9 +157,11 @@ export const PLANS = [
       domains: 100,
       tags: INFINITY_NUMBER,
       folders: 20,
+      groups: 3,
+      networkInvites: 0,
       users: 10,
-      ai: 1000,
-      api: 1200,
+      ai: 1_000,
+      api: 1_200,
       retention: "3-year",
     },
     featureTitle: "Everything in Pro, plus:",
@@ -199,7 +213,7 @@ export const PLANS = [
       },
       {
         id: "tests",
-        text: "A/B testing (beta)",
+        text: "A/B testing",
       },
       {
         id: "roles",
@@ -242,9 +256,11 @@ export const PLANS = [
       domains: 250,
       tags: INFINITY_NUMBER,
       folders: 50,
+      groups: 10,
+      networkInvites: 0,
       users: 20,
-      ai: 1000,
-      api: 3000,
+      ai: 1_000,
+      api: 3_000,
       retention: "5-year",
     },
     featureTitle: "Everything in Business, plus:",
@@ -276,13 +292,31 @@ export const PLANS = [
         text: "20 users",
       },
       {
-        id: "whitelabel",
-        text: "White-labeling support",
+        id: "flexiblerewards",
+        text: "Advanced reward structures",
         tooltip: {
           title:
-            "Embed a white-labeled referral dashboard directly in your app in just a few lines of code.",
+            "Create dynamic click, lead, or sale-based rewards with country and product-specific modifiers.",
           cta: "Learn more.",
-          href: "https://dub.co/docs/partners/white-labeling",
+          href: "https://dub.co/help/article/partner-rewards",
+        },
+      },
+      {
+        id: "embeddedreferrals",
+        text: "Embedded referral dashboard",
+        tooltip: {
+          title:
+            "Create an embedded referral dashboard directly in your app in just a few lines of code.",
+          cta: "Learn more.",
+          href: "https://dub.co/docs/partners/embedded-referrals",
+        },
+      },
+      {
+        id: "messages",
+        text: "Messaging center",
+        tooltip: {
+          title:
+            "Easily communicate with your partners using our messaging center.",
         },
       },
       {
@@ -308,15 +342,17 @@ export const PLANS = [
       yearly: null,
     },
     limits: {
-      links: 250000,
-      clicks: 5000000,
+      links: 500_000,
+      clicks: 5_000_000,
       payouts: INFINITY_NUMBER,
-      domains: 1000,
+      domains: 250,
       tags: INFINITY_NUMBER,
       folders: INFINITY_NUMBER,
-      users: 500,
-      ai: 10000,
-      api: 10000,
+      groups: INFINITY_NUMBER,
+      networkInvites: 20,
+      users: 30,
+      ai: 1_000,
+      api: 3_000,
       retention: "Unlimited",
     },
   },
@@ -370,3 +406,11 @@ export const isDowngradePlan = (currentPlan: string, newPlan: string) => {
   );
   return currentPlanIndex > newPlanIndex;
 };
+
+export const isLegacyBusinessPlan = ({
+  plan = "business",
+  payoutsLimit = 0,
+}: {
+  plan?: string;
+  payoutsLimit?: number;
+}) => plan === "business" && payoutsLimit === 0;

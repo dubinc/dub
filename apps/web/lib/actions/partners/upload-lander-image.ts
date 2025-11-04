@@ -8,7 +8,6 @@ import { authActionClient } from "../safe-action";
 
 const schema = z.object({
   workspaceId: z.string(),
-  programId: z.string(),
 });
 
 export const uploadLanderImageAction = authActionClient
@@ -20,7 +19,9 @@ export const uploadLanderImageAction = authActionClient
     try {
       const key = `programs/${programId}/lander/image_${nanoid(7)}`;
 
-      const signedUrl = await storage.getSignedUrl(key);
+      const signedUrl = await storage.getSignedUploadUrl({
+        key,
+      });
 
       return {
         key,

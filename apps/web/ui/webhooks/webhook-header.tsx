@@ -17,7 +17,7 @@ import {
 } from "@dub/ui";
 import { CircleX, Send, Trash } from "lucide-react";
 import { useAction } from "next-safe-action/hooks";
-import { notFound, useRouter, useSelectedLayoutSegment } from "next/navigation";
+import { redirect, useRouter, useSelectedLayoutSegment } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useDeleteWebhookModal } from "../modals/delete-webhook-modal";
@@ -62,7 +62,7 @@ export default function WebhookHeader({ webhookId }: { webhookId: string }) {
   });
 
   if (!isLoading && !webhook) {
-    return notFound();
+    redirect(`/${slug}/settings/webhooks`);
   }
 
   const copyWebhookId = () => {

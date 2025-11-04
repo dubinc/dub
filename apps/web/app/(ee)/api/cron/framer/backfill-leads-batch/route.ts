@@ -9,7 +9,6 @@ import {
   tb,
 } from "@/lib/tinybird";
 import { redis } from "@/lib/upstash";
-import z from "@/lib/zod";
 import { clickEventSchemaTB } from "@/lib/zod/schemas/clicks";
 import { parseDateSchema } from "@/lib/zod/schemas/utils";
 import { prisma } from "@dub/prisma";
@@ -17,6 +16,7 @@ import { Prisma } from "@dub/prisma/client";
 import { linkConstructorSimple, nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 const schema = z.array(
   z.object({
@@ -212,8 +212,10 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
         timestamp: p.creationDate.toISOString(),
         identity_hash: p.externalId,
         click_id: customerMap.get(p.externalId)!.clickId,
+        workspace_id: workspace.id,
         link_id: link.id,
-        alias_link_id: "",
+        domain: link.domain,
+        key: link.key,
         url: link.url,
         ip: "",
         continent: "NA",
@@ -238,6 +240,7 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
         qr: 0,
         referer: "(direct)",
         referer_url: "(direct)",
+        trigger: "link",
       };
 
       const clickEvent = clickEventSchemaTB.parse(clickData);
@@ -300,6 +303,18 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
           body: dataArray.map((d) => JSON.stringify(d.clickData)).join("\n"),
         },
       ),
+      // TODO: Remove after Tinybird migration
+      fetch(
+        `${process.env.TINYBIRD_API_URL}/v0/events?name=dub_click_events&wait=true`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.TINYBIRD_API_KEY_OLD}`,
+            "Content-Type": "application/x-ndjson",
+          },
+          body: dataArray.map((d) => JSON.stringify(d.clickData)).join("\n"),
+        },
+      ),
 
       // Record leads
       recordLeadWithTimestamp(dataArray.map((d) => d.leadEventData)),
@@ -316,10 +331,10 @@ export const POST = withWorkspace(async ({ req, workspace }) => {
       // Cache the externalId:eventName pairs
       redis.sadd(
         CACHE_KEY,
-        ...dataArray.map(
+        ...(dataArray.map(
           ({ payload: { externalId, eventName } }) =>
             `${externalId}:${eventName}`,
-        ),
+        ) as [string]),
       ),
     ]);
 

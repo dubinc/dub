@@ -1,7 +1,6 @@
 import { z } from "zod";
 
 const programLanderBlockTitleSchema = z.string().optional();
-const programLanderBlockDescriptionSchema = z.string().optional();
 
 export const programLanderBlockCommonSchema = z.object({
   id: z.string(),
@@ -31,7 +30,12 @@ export const programLanderFileSchema = z.object({
   id: z.string(),
   name: z.string(),
   description: z.string().optional(),
-  url: z.string().url(),
+  url: z
+    .string()
+    .url()
+    .refine((url) => url.startsWith("http://") || url.startsWith("https://"), {
+      message: "Only HTTP and HTTPS URLs are allowed for files.",
+    }),
   external: z.boolean().optional(),
 });
 
@@ -63,7 +67,7 @@ export const programLanderEarningsCalculatorBlockSchema =
   programLanderBlockCommonSchema.extend({
     type: z.literal("earnings-calculator"),
     data: z.object({
-      productPrice: z.number(),
+      productPrice: z.number().describe("Average product price in cents"),
     }),
   });
 
@@ -75,8 +79,28 @@ export const programLanderBlockSchema = z.discriminatedUnion("type", [
   programLanderEarningsCalculatorBlockSchema,
 ]);
 
+export const programLanderRewardsSchema = z.object({
+  saleRewardId: z.string().or(z.literal("none")).optional(),
+  leadRewardId: z.string().or(z.literal("none")).optional(),
+  clickRewardId: z.string().or(z.literal("none")).optional(),
+  discountId: z.string().or(z.literal("none")).optional(),
+});
+
 export const programLanderSchema = z.object({
+  label: z.string().optional(),
   title: z.string().optional(),
   description: z.string().optional(),
   blocks: z.array(programLanderBlockSchema),
+});
+
+// Simpler schemas for AI generation
+export const programLanderSimpleBlockSchema = z.discriminatedUnion("type", [
+  programLanderImageBlockSchema,
+  programLanderTextBlockSchema,
+  programLanderAccordionBlockSchema,
+  programLanderEarningsCalculatorBlockSchema,
+]);
+
+export const programLanderSimpleSchema = z.object({
+  blocks: z.array(programLanderSimpleBlockSchema),
 });

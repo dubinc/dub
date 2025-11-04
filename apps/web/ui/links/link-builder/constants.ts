@@ -9,10 +9,12 @@ import {
   Flask,
   Icon,
   Incognito,
+  InfinityIcon,
   InputPassword,
   WindowSearch,
 } from "@dub/ui/icons";
 import { Settings, User2 } from "lucide-react";
+import { UseFormSetValue } from "react-hook-form";
 
 type MoreItem = {
   key: string;
@@ -24,6 +26,8 @@ type MoreItem = {
   type: string;
   badgeLabel?: (data: LinkFormData) => string;
   enabled?: (data: LinkFormData) => boolean;
+  enable?: (setValue: UseFormSetValue<LinkFormData>) => void;
+  remove?: (setValue: UseFormSetValue<LinkFormData>) => void;
   add?: boolean;
 };
 
@@ -47,6 +51,21 @@ export const MORE_ITEMS: MoreItem[] = [
     learnMoreUrl: "https://dub.co/help/article/how-noindex-works",
     shortcutKey: "s",
     type: "boolean",
+  },
+  {
+    key: "linkRetentionCleanupDisabledAt",
+    icon: InfinityIcon,
+    label: "Permanent Retention",
+    description: "Exclude this link from link retention settings.",
+    shortcutKey: "r",
+    type: "boolean",
+    enabled: (data) => Boolean(data.linkRetentionCleanupDisabledAt),
+    enable: (setValue) =>
+      setValue("linkRetentionCleanupDisabledAt", new Date(), {
+        shouldDirty: true,
+      }),
+    remove: (setValue) =>
+      setValue("linkRetentionCleanupDisabledAt", null, { shouldDirty: true }),
   },
   {
     key: "partnerId",

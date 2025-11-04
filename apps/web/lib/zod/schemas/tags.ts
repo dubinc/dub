@@ -1,5 +1,5 @@
-import { tagColors } from "@/lib/types";
 import z from "@/lib/zod";
+import { RESOURCE_COLORS } from "@/ui/colors";
 import { booleanQuerySchema, getPaginationQuerySchema } from "./misc";
 
 export const TAGS_MAX_PAGE_SIZE = 100;
@@ -41,6 +41,9 @@ export const getTagsCountQuerySchema = getTagsQuerySchema.omit({
   pageSize: true,
 });
 
+// TODO: Remove "pink" after confirming we don't have any pink tags in the database
+const tagColors = [...RESOURCE_COLORS, "pink"] as const;
+
 export const tagColorSchema = z
   .enum(tagColors, {
     errorMap: () => {
@@ -60,7 +63,7 @@ export const createTagBodySchema = z
       .max(50)
       .describe("The name of the tag to create."),
     color: tagColorSchema.describe(
-      `The color of the tag. If not provided, a random color will be used from the list: ${tagColors.join(", ")}.`,
+      `The color of the tag. If not provided, a random color will be used from the list: ${RESOURCE_COLORS.join(", ")}.`,
     ),
     tag: z
       .string()
@@ -82,12 +85,12 @@ export const createTagBodySchema = z
 
 export const updateTagBodySchema = createTagBodySchema;
 
-export const TagSchema = z
+export const LinkTagSchema = z
   .object({
     id: z.string().describe("The unique ID of the tag."),
     name: z.string().describe("The name of the tag."),
     color: tagColorSchema.describe("The color of the tag."),
   })
   .openapi({
-    title: "Tag",
+    title: "LinkTag",
   });

@@ -1,5 +1,6 @@
 "use client";
 
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useDomain from "@/lib/swr/use-domain";
 import useFolder from "@/lib/swr/use-folder";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -11,6 +12,7 @@ import {
   CopyButton,
   LinkLogo,
   Switch,
+  TimestampTooltip,
   Tooltip,
   TooltipContent,
   useInViewport,
@@ -31,7 +33,6 @@ import {
 } from "@dub/ui/icons";
 import {
   cn,
-  formatDateTime,
   getApexDomain,
   getPrettyUrl,
   isDubDomain,
@@ -41,7 +42,7 @@ import {
 import * as HoverCard from "@radix-ui/react-hover-card";
 import { Mail } from "lucide-react";
 import Link from "next/link";
-import { useParams, useSearchParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   memo,
   PropsWithChildren,
@@ -74,6 +75,7 @@ const LOGO_SIZE_CLASS_NAME =
 
 export function LinkTitleColumn({ link }: { link: ResponseLink }) {
   const { domain, key } = link;
+  const { slug } = useWorkspace();
 
   const { variant, loading } = useContext(CardList.Context);
   const { displayProperties } = useContext(LinksDisplayContext);
@@ -82,18 +84,13 @@ export function LinkTitleColumn({ link }: { link: ResponseLink }) {
 
   const hasQuickViewSettings = quickViewSettings.some(({ key }) => link?.[key]);
 
-  const searchParams = useSearchParams();
-  const selectedFolderId = searchParams.get("folderId");
-
-  const { slug, defaultFolderId } = useWorkspace();
+  const { folderId: currentFolderId } = useCurrentFolderId();
 
   const showFolderIcon = useMemo(() => {
     return Boolean(
-      !loading &&
-        link.folderId &&
-        ![defaultFolderId, selectedFolderId].includes(link.folderId),
+      !loading && link.folderId && currentFolderId !== link.folderId,
     );
-  }, [loading, link.folderId, defaultFolderId, selectedFolderId]);
+  }, [loading, link.folderId, currentFolderId]);
 
   const { folder } = useFolder({
     folderId: link.folderId,
@@ -384,9 +381,13 @@ const Details = memo(
             displayProperties.includes("createdAt") && "sm:block",
           )}
         >
-          <Tooltip content={formatDateTime(createdAt)} delayDuration={150}>
+          <TimestampTooltip
+            timestamp={createdAt}
+            rows={["local"]}
+            delayDuration={150}
+          >
             <span className="text-neutral-400">{timeAgo(createdAt)}</span>
-          </Tooltip>
+          </TimestampTooltip>
         </div>
       </div>
     );

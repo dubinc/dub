@@ -1,9 +1,9 @@
 import { webhookPayloadSchema } from "@/lib/webhook/schemas";
 import {
-  ClickEventWebhookData,
-  LeadEventWebhookData,
-  PartnerEventDataProps,
-  SaleEventWebhookData,
+  ClickEventWebhookPayload,
+  LeadEventWebhookPayload,
+  PartnerEventWebhookPayload,
+  SaleEventWebhookPayload,
 } from "@/lib/webhook/types";
 import { Link } from "@dub/prisma/client";
 import { capitalize } from "@dub/utils";
@@ -33,7 +33,7 @@ export const formatEventForSegment = (
   }
 };
 
-const transformClickEvent = (data: ClickEventWebhookData) => {
+const transformClickEvent = (data: ClickEventWebhookPayload) => {
   const { click, link } = data;
 
   return {
@@ -52,7 +52,7 @@ const transformClickEvent = (data: ClickEventWebhookData) => {
   };
 };
 
-const transformLeadEvent = (data: LeadEventWebhookData) => {
+const transformLeadEvent = (data: LeadEventWebhookPayload) => {
   const { link, click, customer, eventName } = data;
 
   return {
@@ -72,7 +72,7 @@ const transformLeadEvent = (data: LeadEventWebhookData) => {
   };
 };
 
-const transformSaleEvent = (data: SaleEventWebhookData) => {
+const transformSaleEvent = (data: SaleEventWebhookPayload) => {
   const { link, click, customer, sale, eventName } = data;
 
   return {
@@ -95,7 +95,7 @@ const transformSaleEvent = (data: SaleEventWebhookData) => {
   };
 };
 
-const transformPartnerEnrolledEvent = (data: PartnerEventDataProps) => {
+const transformPartnerEnrolledEvent = (data: PartnerEventWebhookPayload) => {
   const { links, ...partner } = data;
 
   return {

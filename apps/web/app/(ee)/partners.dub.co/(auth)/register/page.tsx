@@ -1,14 +1,20 @@
 import { getProgram } from "@/lib/fetchers/get-program";
 import { prisma } from "@dub/prisma";
 import { cookies } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import RegisterPageClient from "./page-client";
 
-export default async function RegisterPage({
-  params: { programSlug },
-}: {
-  params: { programSlug?: string };
-}) {
+export default async function RegisterPage(
+  props: {
+    params: Promise<{ programSlug?: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    programSlug
+  } = params;
+
   if (programSlug === "framer") {
     redirect("/framer/login");
   }
@@ -18,14 +24,14 @@ export default async function RegisterPage({
     : undefined;
 
   if (programSlug && !program) {
-    notFound();
+    redirect("/register");
   }
 
   let email: string | undefined = undefined;
   let lockEmail = false;
 
   if (program) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const programApplicationIds = cookieStore
       .get("programApplicationIds")
       ?.value?.split(",");

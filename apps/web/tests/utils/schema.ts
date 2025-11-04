@@ -1,10 +1,11 @@
-import z from "@/lib/zod";
 import { LinkSchema as LinkSchemaOld } from "@/lib/zod/schemas/links";
 import { Link, Project, Tag } from "@dub/prisma/client";
 import { expect } from "vitest";
+import { z } from "zod";
 
 export const LinkSchema = LinkSchemaOld.extend({
   identifier: z.null(),
+  linkRetentionCleanupDisabledAt: z.null(),
 });
 
 export const expectedLink: Partial<Link> & {
@@ -40,6 +41,7 @@ export const expectedLink: Partial<Link> & {
   clicks: 0,
   lastClicked: null,
   leads: 0,
+  conversions: 0,
   sales: 0,
   saleAmount: 0,
   identifier: null, // backwards compatibility
@@ -58,6 +60,7 @@ export const expectedLink: Partial<Link> & {
   testCompletedAt: null,
   testStartedAt: null,
   testVariants: null,
+  linkRetentionCleanupDisabledAt: null,
 };
 
 export const expectedTag: Partial<Tag> = {

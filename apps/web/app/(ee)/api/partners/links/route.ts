@@ -1,8 +1,10 @@
 import { DubApiError, ErrorCodes } from "@/lib/api/errors";
 import { createLink, processLink } from "@/lib/api/links";
+import { validatePartnerLinkUrl } from "@/lib/api/links/validate-partner-link-url";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { parseRequestBody } from "@/lib/api/utils";
+import { extractUtmParams } from "@/lib/api/utm/extract-utm-params";
 import { withWorkspace } from "@/lib/auth";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
@@ -12,7 +14,7 @@ import {
 } from "@/lib/zod/schemas/partners";
 import { ProgramPartnerLinkSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
-import { getApexDomain } from "@dub/utils";
+import { constructURLFromUTMParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 import { z } from "zod";
@@ -81,13 +83,6 @@ export const POST = withWorkspace(
       });
     }
 
-    if (url && getApexDomain(url) !== getApexDomain(program.url)) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: `The provided URL domain (${getApexDomain(url)}) does not match the program's domain (${getApexDomain(program.url)}).`,
-      });
-    }
-
     if (!partnerId && !tenantId) {
       throw new DubApiError({
         code: "bad_request",
@@ -99,6 +94,14 @@ export const POST = withWorkspace(
       where: partnerId
         ? { partnerId_programId: { partnerId, programId } }
         : { tenantId_programId: { tenantId: tenantId!, programId } },
+      include: {
+        partnerGroup: {
+          include: {
+            partnerGroupDefaultLinks: true,
+            utmTemplate: true,
+          },
+        },
+      },
     });
 
     if (!partner) {
@@ -108,12 +111,28 @@ export const POST = withWorkspace(
       });
     }
 
+    const partnerGroup = partner.partnerGroup;
+
+    // shouldn't happen but just in case
+    if (!partnerGroup) {
+      throw new DubApiError({
+        code: "not_found",
+        message: "This partner is not part of a partner group.",
+      });
+    }
+
+    validatePartnerLinkUrl({ group: partnerGroup, url });
+
     const { link, error, code } = await processLink({
       payload: {
         ...linkProps,
         domain: program.domain,
         key: key || undefined,
-        url: url || program.url,
+        url: constructURLFromUTMParams(
+          url || partnerGroup.partnerGroupDefaultLinks[0].url,
+          extractUtmParams(partnerGroup.utmTemplate),
+        ),
+        ...extractUtmParams(partnerGroup.utmTemplate, { excludeRef: true }),
         programId: program.id,
         tenantId: partner.tenantId,
         partnerId: partner.partnerId,

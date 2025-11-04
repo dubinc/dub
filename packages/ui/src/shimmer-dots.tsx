@@ -18,6 +18,7 @@ uniform float time;
 uniform float dotSize;
 uniform float cellSize;
 uniform float speed;
+uniform vec3 color;
 
 // Gold noise: https://stackoverflow.com/a/28095165
 float PHI = 1.61803398874989484820459; 
@@ -38,7 +39,7 @@ void main(void) {
 
   float opacity = dot * fadeEffect;
 
-  vec4 fragColor = vec4(vec3(0.0), opacity);
+  vec4 fragColor = vec4(color, opacity);
   fragColor.rgb *= fragColor.a;
 
   gl_FragColor = fragColor;
@@ -52,11 +53,13 @@ export function ShimmerDots({
   dotSize = 1,
   cellSize = 3,
   speed = 5,
+  color = [0, 0, 0],
   className,
 }: {
   dotSize?: number;
   cellSize?: number;
   speed?: number;
+  color?: [number, number, number];
   className?: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -116,6 +119,7 @@ export function ShimmerDots({
     const dotSizeUniform = gl.getUniformLocation(shaderProgram, "dotSize");
     const cellSizeUniform = gl.getUniformLocation(shaderProgram, "cellSize");
     const speedUniform = gl.getUniformLocation(shaderProgram, "speed");
+    const colorUniform = gl.getUniformLocation(shaderProgram, "color");
 
     gl.useProgram(shaderProgram);
 
@@ -130,6 +134,7 @@ export function ShimmerDots({
     gl.uniform1f(dotSizeUniform, dotSize * window.devicePixelRatio);
     gl.uniform1f(cellSizeUniform, cellSize * window.devicePixelRatio);
     gl.uniform1f(speedUniform, speed);
+    gl.uniform3f(colorUniform, color[0], color[1], color[2]);
 
     let animationFrameId: number;
     let lastTimestamp = 0;

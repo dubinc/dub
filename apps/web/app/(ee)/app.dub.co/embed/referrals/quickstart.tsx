@@ -7,11 +7,12 @@ import {
   CarouselNavBar,
   Check,
   Copy,
+  TAB_ITEM_ANIMATION_SETTINGS,
   useCopyToClipboard,
   useMediaQuery,
 } from "@dub/ui";
-import { cn, DUB_LOGO, TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { motion } from "framer-motion";
+import { cn, DUB_LOGO } from "@dub/utils";
+import { motion } from "motion/react";
 import { ReferralsEmbedLink } from "./types";
 
 const BUTTON_CLASSNAME = "h-9 rounded-lg bg-bg-inverted hover:bg-neutral-800";
@@ -92,7 +93,7 @@ export function ReferralsEmbedQuickstart({
     {
       title: "Receive earnings",
       description:
-        "After you payouts are connected, you'll get paid out automatically for all your sales.",
+        "After your payouts are connected, you'll get paid out automatically for all your sales.",
       illustration: <ConnectPayouts logo={program.logo ?? DUB_LOGO} />,
       cta: (
         <Button
@@ -103,7 +104,7 @@ export function ReferralsEmbedQuickstart({
               : undefined
           }
           onClick={() =>
-            window.open("https://partners.dub.co/settings/payouts", "_blank")
+            window.open("https://partners.dub.co/payouts", "_blank")
           }
           text="Connect payouts"
         />

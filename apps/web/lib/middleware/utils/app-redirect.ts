@@ -1,5 +1,5 @@
-import { getDubProductFromCookie } from "@/lib/middleware/utils/get-dub-product-from-cookie";
 import { RESERVED_SLUGS } from "@dub/utils";
+import { getWorkspaceProduct } from "./get-workspace-product";
 
 const APP_REDIRECTS = {
   "/account": "/account/settings",
@@ -8,7 +8,18 @@ const APP_REDIRECTS = {
   "/welcome": "/onboarding/welcome",
 };
 
-export const appRedirect = (path: string) => {
+const PROGRAM_REDIRECTS = {
+  "/program/settings": "/program",
+  "/program/settings/links": "/program/link-settings",
+  "/program/sales": "/program/commissions",
+  "/program/communication": "/program/resources",
+  "/program/rewards": "/program/groups/default/rewards",
+  "/program/discounts": "/program/groups/default/discounts",
+  "/program/link-settings": "/program/groups/default/links",
+  "/program/branding": "/program/groups/default/branding",
+};
+
+export const appRedirect = async (path: string) => {
   if (APP_REDIRECTS[path]) {
     return APP_REDIRECTS[path];
   }
@@ -16,7 +27,7 @@ export const appRedirect = (path: string) => {
   // Redirect "/[slug]" to "/[slug]/[product]"
   const rootRegex = /^\/([^\/]+)$/;
   if (rootRegex.test(path) && !RESERVED_SLUGS.includes(path.split("/")[1])) {
-    const product = getDubProductFromCookie(path.split("/")[1]);
+    const product = await getWorkspaceProduct(path.split("/")[1]);
     return path.replace(rootRegex, `/$1/${product}`);
   }
 
@@ -25,44 +36,53 @@ export const appRedirect = (path: string) => {
   if (upgradeRegex.test(path))
     return path.replace(upgradeRegex, "/$1/settings/billing/upgrade");
 
+  // Redirect "/[slug]/guides" and all child paths to "/[slug]/settings/analytics"
+  const guidesRegex = /^\/([^\/]+)\/guides(?:\/(.*))?$/;
+  if (guidesRegex.test(path))
+    return path.replace(guidesRegex, "/$1/settings/analytics");
+
   // Redirect "/[slug]/settings/library/:path*" to "/[slug]/links/:path*"
   const libraryRegex = /^\/([^\/]+)\/settings\/library\/(.*)$/;
   if (libraryRegex.test(path))
     return path.replace(libraryRegex, "/$1/links/$2");
 
+  // Redirect "/[slug]/settings/people" to "/[slug]/settings/members"
+  const peopleRegex = /^\/([^\/]+)\/settings\/people$/;
+  if (peopleRegex.test(path))
+    return path.replace(peopleRegex, "/$1/settings/members");
+
   // Redirect "/[slug]/programs/prog_[id]/:path*" to "/[slug]/program/:path*"
-  const programPagesRegex = /^\/([^\/]+)\/programs\/prog_[^\/]+\/(.*)$/;
-  if (programPagesRegex.test(path))
-    return path.replace(programPagesRegex, "/$1/program/$2");
+  const oldProgramPagesRegex = /^\/([^\/]+)\/programs\/prog_[^\/]+\/(.*)$/;
+  if (oldProgramPagesRegex.test(path))
+    return path.replace(oldProgramPagesRegex, "/$1/program/$2");
 
   // Redirect "/[slug]/programs/:path*" to "/[slug]/program/:path*" (including root path)
-  const programRootRegex = /^\/([^\/]+)\/programs(?:\/(.*))?$/;
-  if (programRootRegex.test(path))
+  const programsPluralRegex = /^\/([^\/]+)\/programs(?:\/(.*))?$/;
+  if (programsPluralRegex.test(path))
     return path.replace(
-      programRootRegex,
+      programsPluralRegex,
       (_match, slug, subPath) =>
         `/${slug}/program${subPath ? `/${subPath}` : ""}`,
     );
 
-  // Redirect "/[slug]/program/settings" to "/[slug]/program"
-  const programSettingsRootRegex = /\/program\/settings$/;
-  if (programSettingsRootRegex.test(path))
-    return path.replace(programSettingsRootRegex, "/program");
+  // Redirect "/[slug]/program/groups/:groupSlug" to "/[slug]/program/groups/:groupSlug/rewards"
+  const groupRegex = /^\/([^\/]+)\/program\/groups\/([^\/]+)$/;
+  if (groupRegex.test(path))
+    return path.replace(groupRegex, "/$1/program/groups/$2/rewards");
 
-  // Redirect "/[slug]/program/settings/links" to "/[slug]/program/link-settings"
-  const programSettingsLinksRegex = /\/program\/settings\/links$/;
-  if (programSettingsLinksRegex.test(path))
-    return path.replace(programSettingsLinksRegex, "/program/link-settings");
+  // Redirect "/[slug]/program/partners/:partnerId" to "/[slug]/program/partners/:partnerId/links"
+  // Only applies when partnerId starts with "pn_" (exclude /applications)
+  const partnerPageRegex = /^\/([^\/]+)\/program\/partners\/(pn_[^\/]+)$/;
+  if (partnerPageRegex.test(path))
+    return path.replace(partnerPageRegex, "/$1/program/partners/$2/links");
 
-  // Redirect "/[slug]/program/settings/:path" to "/[slug]/program/:path"
-  const programSettingsPathRegex = /^\/([^\/]+)\/program\/settings\/(.*)$/;
-  if (programSettingsPathRegex.test(path))
-    return path.replace(programSettingsPathRegex, "/$1/program/$2");
-
-  // Redirect "/[slug]/program/sales" to "/[slug]/program/commissions"
-  const programSalesRegex = /^\/([^\/]+)\/program\/sales$/;
-  if (programSalesRegex.test(path))
-    return path.replace(programSalesRegex, "/$1/program/commissions");
+  // Handle additional simpler program redirects
+  const programRedirect = Object.keys(PROGRAM_REDIRECTS).find((redirect) =>
+    path.endsWith(redirect),
+  );
+  if (programRedirect) {
+    return path.replace(programRedirect, PROGRAM_REDIRECTS[programRedirect]);
+  }
 
   return null;
 };

@@ -1,9 +1,11 @@
 "use client";
 
+import useGroupsCount from "@/lib/swr/use-groups-count";
 import usePartnersCount from "@/lib/swr/use-partners-count";
 import useTagsCount from "@/lib/swr/use-tags-count";
-import useUsers from "@/lib/swr/use-users";
+import useUsage from "@/lib/swr/use-usage";
 import useWorkspace from "@/lib/swr/use-workspace";
+import useWorkspaceUsers from "@/lib/swr/use-workspace-users";
 import SubscriptionMenu from "@/ui/workspaces/subscription-menu";
 import { buttonVariants, Icon, Tooltip, useRouterStuff } from "@dub/ui";
 import {
@@ -25,6 +27,7 @@ import {
   INFINITY_NUMBER,
   nFormatter,
 } from "@dub/utils";
+import { isLegacyBusinessPlan } from "@dub/utils/src/constants/pricing";
 import NumberFlow from "@number-flow/react";
 import Link from "next/link";
 import { CSSProperties, useMemo } from "react";
@@ -48,19 +51,21 @@ export default function PlanUsage() {
     domainsLimit,
     foldersUsage,
     foldersLimit,
+    groupsLimit,
     tagsLimit,
     usersLimit,
-    partnersEnabled,
     billingCycleStart,
   } = useWorkspace();
+
+  const { data: tags } = useTagsCount();
+  const { users } = useWorkspaceUsers();
 
   const { partnersCount } = usePartnersCount<number>({
     programId: defaultProgramId ?? undefined,
     status: "approved",
   });
 
-  const { data: tags } = useTagsCount();
-  const { users } = useUsers();
+  const { groupsCount } = useGroupsCount();
 
   const [billingStart, billingEnd] = useMemo(() => {
     if (billingCycleStart) {
@@ -80,7 +85,16 @@ export default function PlanUsage() {
     return [];
   }, [billingCycleStart]);
 
+  const { usage: usageTimeseries, hasActiveFilters } = useUsage({
+    disabledWhenNoFilters: true,
+  });
+
   const usageTabs = useMemo(() => {
+    const linksTabFilteredUsage = usageTimeseries?.reduce((acc, curr) => {
+      acc += curr.value;
+      return acc;
+    }, 0);
+
     const tabs = [
       {
         id: "events",
@@ -93,7 +107,10 @@ export default function PlanUsage() {
         id: "links",
         icon: Hyperlink,
         title: "Links created",
-        usage: linksUsage,
+        usage:
+          linksTabFilteredUsage !== undefined && hasActiveFilters
+            ? linksTabFilteredUsage
+            : linksUsage,
         limit: linksLimit,
       },
     ];
@@ -106,13 +123,26 @@ export default function PlanUsage() {
       }
     }
     return tabs;
-  }, [plan, usage, usageLimit, linksUsage, linksLimit, totalLinks]);
+  }, [
+    usage,
+    usageLimit,
+    linksUsage,
+    linksLimit,
+    totalLinks,
+    usageTimeseries,
+    hasActiveFilters,
+  ]);
 
   return (
     <div className="rounded-lg border border-neutral-200 bg-white">
       <div className="flex flex-col items-start justify-between gap-y-4 p-6 md:px-8 lg:flex-row">
         <div>
-          <h2 className="text-xl font-medium">{capitalize(plan)} Plan</h2>
+          <h2 className="text-xl font-medium">
+            {plan && isLegacyBusinessPlan({ plan, payoutsLimit })
+              ? "Business (Legacy)"
+              : capitalize(plan)}{" "}
+            Plan
+          </h2>
           {billingStart && billingEnd && (
             <p className="mt-1.5 text-balance text-sm font-medium leading-normal text-neutral-700">
               <>
@@ -150,7 +180,7 @@ export default function PlanUsage() {
       </div>
       <div className="grid grid-cols-[minmax(0,1fr)] divide-y divide-neutral-200 border-t border-neutral-200">
         <div>
-          <div className="grid gap-4 p-6 sm:grid-cols-2 md:p-8 lg:gap-6">
+          <div className="grid gap-4 p-6 pb-0 sm:grid-cols-2 md:p-8 md:pb-0 lg:gap-6">
             {usageTabs.map((tab) => (
               <UsageTabCard key={tab.id} {...tab} />
             ))}
@@ -163,7 +193,6 @@ export default function PlanUsage() {
           className={cn(
             "grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3",
             "md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4",
-            !partnersEnabled && "rounded-b-lg",
           )}
         >
           <UsageCategory
@@ -195,31 +224,36 @@ export default function PlanUsage() {
             href={`/${slug}/settings/people`}
           />
         </div>
-        {partnersEnabled && defaultProgramId && (
-          <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-3">
-            <UsageCategory
-              title="Partners"
-              icon={Users6}
-              usage={partnersCount}
-              usageLimit={INFINITY_NUMBER}
-              href={`/${slug}/program/partners`}
-            />
-            <UsageCategory
-              title="Partner payouts"
-              icon={CreditCard}
-              usage={payoutsUsage}
-              usageLimit={payoutsLimit}
-              unit="$"
-              href={`/${slug}/program/payouts`}
-            />
-            <UsageCategory
-              title="Payout fees"
-              icon={CirclePercentage}
-              usage={plan && payoutFee && `${payoutFee * 100}%`}
-              href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
-            />
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-[1px] overflow-hidden rounded-b-lg bg-neutral-200 md:grid-cols-4">
+          <UsageCategory
+            title="Partners"
+            icon={Users}
+            usage={partnersCount ?? 0}
+            usageLimit={INFINITY_NUMBER}
+            href={`/${slug}/program/partners`}
+          />
+          <UsageCategory
+            title="Partner Groups"
+            icon={Users6}
+            usage={groupsCount ?? 0}
+            usageLimit={groupsLimit}
+            href={`/${slug}/program/groups`}
+          />
+          <UsageCategory
+            title="Partner payouts"
+            icon={CreditCard}
+            usage={payoutsUsage}
+            usageLimit={payoutsLimit}
+            unit="$"
+            href={`/${slug}/program/payouts`}
+          />
+          <UsageCategory
+            title="Payout fees"
+            icon={CirclePercentage}
+            usage={plan && payoutFee && `${payoutFee * 100}%`}
+            href="https://dub.co/help/article/partner-payouts#payout-fees-and-timing"
+          />
+        </div>
       </div>
     </div>
   );
@@ -242,23 +276,10 @@ function UsageTabCard({
   unit?: string;
   requiresUpgrade?: boolean;
 }) {
-  const { searchParams, queryParams } = useRouterStuff();
-  const { slug, totalLinks } = useWorkspace();
+  const { queryParams } = useRouterStuff();
+  const { slug } = useWorkspace();
 
-  const defaultActiveTab = useMemo(() => {
-    if (totalLinks && totalLinks > 10_000) {
-      return "links";
-    }
-    return "events";
-  }, [totalLinks]);
-
-  const isActive = useMemo(() => {
-    if (searchParams.get("tab")) {
-      return searchParams.get("tab") === id;
-    } else {
-      return id === defaultActiveTab;
-    }
-  }, [searchParams, id, defaultActiveTab]);
+  const { activeResource } = useUsage();
 
   const [usage, limit] =
     unit === "$" && usageProp !== undefined && limitProp !== undefined
@@ -277,12 +298,12 @@ function UsageTabCard({
       className={cn(
         "rounded-lg border border-neutral-300 bg-white px-4 py-3 text-left transition-colors duration-75",
         "outline-none focus-visible:border-blue-600 focus-visible:ring-1 focus-visible:ring-blue-600",
-        isActive && "border-neutral-900 ring-1 ring-neutral-900",
+        activeResource === id && "border-neutral-900 ring-1 ring-neutral-900",
         requiresUpgrade
           ? "border-neutral-100 bg-neutral-100 hover:bg-neutral-100"
           : "hover:bg-neutral-50 lg:px-5 lg:py-4",
       )}
-      aria-selected={isActive}
+      aria-selected={activeResource === id}
       onClick={() => !requiresUpgrade && queryParams({ set: { tab: id } })}
       disabled={requiresUpgrade}
     >

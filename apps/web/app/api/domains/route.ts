@@ -1,13 +1,14 @@
 import { createId } from "@/lib/api/create-id";
-import { addDomainToVercel, validateDomain } from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
+import { validateDomain } from "@/lib/api/domains/utils";
 import { DubApiError, exceededLimitError } from "@/lib/api/errors";
 import { createLink, transformLink } from "@/lib/api/links";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
 import { storage } from "@/lib/storage";
 import {
-  createDomainBodySchema,
+  createDomainBodySchemaExtended,
   getDomainsQuerySchemaExtended,
 } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
@@ -96,7 +97,8 @@ export const POST = withWorkspace(
       placeholder,
       assetLinks,
       appleAppSiteAssociation,
-    } = await createDomainBodySchema.parseAsync(body);
+      deepviewData,
+    } = await createDomainBodySchemaExtended.parseAsync(body);
 
     if (workspace.plan === "free") {
       if (
@@ -104,15 +106,17 @@ export const POST = withWorkspace(
         expiredUrl ||
         notFoundUrl ||
         assetLinks ||
-        appleAppSiteAssociation
+        appleAppSiteAssociation ||
+        deepviewData
       ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
-            assetLinks && "asset links",
+            assetLinks && "Asset Links",
             appleAppSiteAssociation && "Apple App Site Association",
+            deepviewData && "Deep View",
           ].filter(Boolean) as string[],
         );
 
@@ -132,19 +136,25 @@ export const POST = withWorkspace(
       });
     }
 
-    const vercelResponse = await addDomainToVercel(slug);
+    // Add domain to Vercel if preview/production
+    if (process.env.VERCEL === "1") {
+      const vercelResponse = await addDomainToVercel(slug);
 
-    if (
-      vercelResponse.error &&
-      vercelResponse.error.code !== "domain_already_in_use" // ignore this error
-    ) {
-      return new Response(vercelResponse.error.message, { status: 422 });
+      if (
+        vercelResponse.error &&
+        vercelResponse.error.code !== "domain_already_in_use" // ignore this error
+      ) {
+        return new Response(vercelResponse.error.message, { status: 422 });
+      }
     }
 
     const domainId = createId({ prefix: "dom_" });
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     const domainRecord = await prisma.$transaction(
@@ -178,6 +188,9 @@ export const POST = withWorkspace(
             ...(assetLinks && { assetLinks: JSON.parse(assetLinks) }),
             ...(appleAppSiteAssociation && {
               appleAppSiteAssociation: JSON.parse(appleAppSiteAssociation),
+            }),
+            ...(deepviewData && {
+              deepviewData: JSON.parse(deepviewData),
             }),
           },
         });

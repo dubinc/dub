@@ -1,10 +1,8 @@
-import { useRouterStuff } from "@dub/ui";
+import { useCurrentSubdomain, useRouterStuff } from "@dub/ui";
 import { fetcher } from "@dub/utils";
-import { useEffect, useState } from "react";
 import useSWR from "swr";
 import z from "../zod";
 import { getLinksCountQuerySchema } from "../zod/schemas/links";
-import { useIsMegaFolder } from "./use-is-mega-folder";
 import useWorkspace from "./use-workspace";
 
 const partialQuerySchema = getLinksCountQuerySchema.partial();
@@ -18,19 +16,12 @@ export default function useLinksCount<T = any>({
   ignoreParams?: boolean;
   enabled?: boolean;
 } = {}) {
-  const { id: workspaceId } = useWorkspace();
+  const { id: workspaceId, isMegaWorkspace } = useWorkspace();
   const { getQueryString } = useRouterStuff();
-
-  const [admin, setAdmin] = useState(false);
-  useEffect(() => {
-    if (window.location.host.startsWith("admin.")) {
-      setAdmin(true);
-    }
-  }, []);
-  const { isMegaFolder } = useIsMegaFolder();
+  const { subdomain } = useCurrentSubdomain();
 
   const { data, error } = useSWR<any>(
-    workspaceId && !isMegaFolder && enabled
+    workspaceId && !isMegaWorkspace && enabled
       ? `/api/links/count${getQueryString(
           {
             workspaceId,
@@ -42,7 +33,7 @@ export default function useLinksCount<T = any>({
                 exclude: ["import", "upgrade", "newLink"],
               },
         )}`
-      : admin
+      : subdomain === "admin"
         ? `/api/admin/links/count${getQueryString({
             ...query,
           })}`

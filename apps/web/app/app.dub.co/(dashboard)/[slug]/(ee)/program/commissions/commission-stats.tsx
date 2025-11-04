@@ -1,14 +1,16 @@
 "use client";
 
 import useCommissionsCount from "@/lib/swr/use-commissions-count";
+import useProgram from "@/lib/swr/use-program";
+import useWorkspace from "@/lib/swr/use-workspace";
 import { CommissionStatusBadges } from "@/ui/partners/commission-status-badges";
 import { ProgramStatsFilter } from "@/ui/partners/program-stats-filter";
 import { useRouterStuff } from "@dub/ui";
 import { Users } from "@dub/ui/icons";
-import { useParams } from "next/navigation";
 
 export function CommissionStats() {
-  const { slug } = useParams();
+  const { slug } = useWorkspace();
+  const { program } = useProgram();
   const { queryParams } = useRouterStuff();
   const { commissionsCount, error } = useCommissionsCount({
     exclude: ["status", "page"],
@@ -39,6 +41,7 @@ export function CommissionStats() {
         icon={CommissionStatusBadges.pending.icon}
         iconClassName={CommissionStatusBadges.pending.className}
         variant="loose"
+        tooltip={`Commissions that are pending and will be eligible for payout after your program's ${program?.holdingPeriodDays}-day holding period.`}
         error={!!error}
       />
       <ProgramStatsFilter
@@ -54,6 +57,7 @@ export function CommissionStats() {
         icon={CommissionStatusBadges.processed.icon}
         iconClassName={CommissionStatusBadges.processed.className}
         variant="loose"
+        tooltip="Commissions that have been processed and are now eligible for payout."
         error={!!error}
       />
       <ProgramStatsFilter
@@ -69,6 +73,7 @@ export function CommissionStats() {
         icon={CommissionStatusBadges.paid.icon}
         iconClassName={CommissionStatusBadges.paid.className}
         variant="loose"
+        tooltip="Commissions that have been paid."
         error={!!error}
       />
     </div>

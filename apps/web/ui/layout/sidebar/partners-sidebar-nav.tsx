@@ -1,18 +1,24 @@
 "use client";
 
+import usePartnerProgramBounties from "@/lib/swr/use-partner-program-bounties";
+import useProgramEnrollment from "@/lib/swr/use-program-enrollment";
+import useProgramEnrollmentsCount from "@/lib/swr/use-program-enrollments-count";
+import { useProgramMessagesCount } from "@/lib/swr/use-program-messages-count";
 import { useRouterStuff } from "@dub/ui";
 import {
+  Bell,
   CircleDollar,
-  CircleUser,
   ColorPalette2,
   Gauge6,
   Gear2,
-  Globe,
   GridIcon,
   MoneyBills2,
+  Msgs,
   ShieldCheck,
   SquareUserSparkle2,
+  Trophy,
   UserCheck,
+  Users2,
 } from "@dub/ui/icons";
 import { useParams, usePathname } from "next/navigation";
 import { ReactNode, useMemo } from "react";
@@ -26,11 +32,19 @@ import { SidebarNav, SidebarNavAreas, SidebarNavGroups } from "./sidebar-nav";
 
 type SidebarNavData = {
   pathname: string;
-  programSlug?: string;
   queryString?: string;
+  programSlug?: string;
+  isUnapproved: boolean;
+  invitationsCount?: number;
+  unreadMessagesCount?: number;
+  programBountiesCount?: number;
+  showDetailedAnalytics?: boolean;
 };
 
-const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
+const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({
+  pathname,
+  unreadMessagesCount,
+}) => [
   {
     name: "Programs",
     description:
@@ -55,11 +69,19 @@ const NAV_GROUPS: SidebarNavGroups<SidebarNavData> = ({ pathname }) => [
     href: "/profile",
     active: pathname.startsWith("/profile"),
   },
+  {
+    name: "Messages",
+    description: "Chat with programs you're enrolled in",
+    icon: Msgs,
+    href: "/messages",
+    active: pathname.startsWith("/messages"),
+    badge: unreadMessagesCount ? Math.min(9, unreadMessagesCount) : undefined,
+  },
 ];
 
 const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
   // Top-level
-  programs: () => ({
+  programs: ({ invitationsCount }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -82,13 +104,52 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Invitations",
             icon: UserCheck,
             href: "/programs/invitations",
+            badge: invitationsCount || undefined,
           },
         ],
       },
     ],
   }),
 
-  program: ({ programSlug, queryString }) => ({
+  profile: () => ({
+    title: "Partner profile",
+    direction: "left",
+    content: [
+      {
+        items: [
+          {
+            name: "Profile",
+            icon: SquareUserSparkle2,
+            href: "/profile",
+            exact: true,
+          },
+          {
+            name: "Members",
+            icon: Users2,
+            href: "/profile/members",
+          },
+        ],
+      },
+      {
+        name: "Account",
+        items: [
+          {
+            name: "Notifications",
+            icon: Bell,
+            href: "/profile/notifications",
+          },
+        ],
+      },
+    ],
+  }),
+
+  program: ({
+    programSlug,
+    isUnapproved,
+    queryString,
+    programBountiesCount,
+    showDetailedAnalytics,
+  }) => ({
     title: (
       <div className="mb-3">
         <PartnerProgramDropdown />
@@ -98,8 +159,8 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
       {
         items: [
           {
-            name: "Overview",
-            icon: Gauge6,
+            name: isUnapproved ? "Application" : "Overview",
+            icon: isUnapproved ? UserCheck : Gauge6,
             href: `/programs/${programSlug}`,
             exact: true,
           },
@@ -107,11 +168,14 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Links",
             icon: Hyperlink,
             href: `/programs/${programSlug}/links`,
+            locked: isUnapproved,
           },
           {
-            name: "Resources",
-            icon: ColorPalette2,
-            href: `/programs/${programSlug}/resources`,
+            name: "Messages",
+            icon: Msgs,
+            href: `/messages/${programSlug}` as `/${string}`,
+            locked: isUnapproved,
+            arrow: true,
           },
         ],
       },
@@ -122,55 +186,45 @@ const NAV_AREAS: SidebarNavAreas<SidebarNavData> = {
             name: "Earnings",
             icon: CircleDollar,
             href: `/programs/${programSlug}/earnings${queryString}`,
+            locked: isUnapproved,
           },
-          {
-            name: "Analytics",
-            icon: LinesY,
-            href: `/programs/${programSlug}/analytics`,
-          },
-          {
-            name: "Events",
-            icon: CursorRays,
-            href: `/programs/${programSlug}/events`,
-          },
+          ...(showDetailedAnalytics
+            ? [
+                {
+                  name: "Analytics",
+                  icon: LinesY,
+                  href: `/programs/${programSlug}/analytics` as `/${string}`,
+                  locked: isUnapproved,
+                },
+                {
+                  name: "Events",
+                  icon: CursorRays,
+                  href: `/programs/${programSlug}/events` as `/${string}`,
+                  locked: isUnapproved,
+                },
+              ]
+            : []),
         ],
       },
-    ],
-  }),
-
-  // Partner profile
-  profile: () => ({
-    title: "Partner profile",
-    direction: "left",
-    content: [
       {
+        name: "Engage",
         items: [
           {
-            name: "Profile info",
-            icon: CircleUser,
-            href: "/profile",
-            exact: true,
+            name: "Bounties",
+            icon: Trophy,
+            href: `/programs/${programSlug}/bounties` as `/${string}`,
+            badge: programBountiesCount
+              ? programBountiesCount > 99
+                ? "99+"
+                : programBountiesCount
+              : "New",
+            locked: isUnapproved,
           },
           {
-            name: "Website and socials",
-            icon: Globe,
-            href: "/profile/sites",
-          },
-        ],
-      },
-    ],
-  }),
-
-  // Payouts
-  payouts: () => ({
-    title: "Payouts",
-    content: [
-      {
-        items: [
-          {
-            name: "Payouts",
-            icon: MoneyBills2,
-            href: "/payouts",
+            name: "Resources",
+            icon: ColorPalette2,
+            href: `/programs/${programSlug}/resources`,
+            locked: isUnapproved,
           },
         ],
       },
@@ -212,6 +266,7 @@ export function PartnersSidebarNav({
   const { programSlug } = useParams() as {
     programSlug?: string;
   };
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
   const pathname = usePathname();
   const { getQueryString } = useRouterStuff();
 
@@ -224,12 +279,27 @@ export function PartnersSidebarNav({
       ? "userSettings"
       : pathname.startsWith("/profile")
         ? "profile"
-        : pathname.startsWith("/payouts")
+        : ["/payouts", "/messages"].some((p) => pathname.startsWith(p))
           ? null
           : isEnrolledProgramPage
             ? "program"
             : "programs";
   }, [pathname, programSlug, isEnrolledProgramPage]);
+
+  const { count: invitationsCount } = useProgramEnrollmentsCount({
+    status: "invited",
+  });
+
+  const { bountiesCount } = usePartnerProgramBounties({
+    enabled: isEnrolledProgramPage,
+  });
+
+  const { count: unreadMessagesCount } = useProgramMessagesCount({
+    enabled: true,
+    query: {
+      unread: true,
+    },
+  });
 
   return (
     <SidebarNav
@@ -238,14 +308,21 @@ export function PartnersSidebarNav({
       currentArea={currentArea}
       data={{
         pathname,
-        programSlug: programSlug || "",
         queryString: getQueryString(),
+        programSlug: programSlug || "",
+        isUnapproved:
+          !!programEnrollment &&
+          !["approved", "deactivated", "archived"].includes(
+            programEnrollment.status,
+          ),
+        invitationsCount,
+        unreadMessagesCount,
+        programBountiesCount: bountiesCount.active,
+        showDetailedAnalytics,
       }}
       toolContent={toolContent}
       newsContent={newsContent}
-      bottom={
-        <>{isEnrolledProgramPage ? <ProgramHelpSupport /> : <PayoutStats />}</>
-      }
+      bottom={isEnrolledProgramPage ? <ProgramHelpSupport /> : <PayoutStats />}
     />
   );
 }

@@ -1,7 +1,6 @@
 "use client";
 
 import { sendOtpAction } from "@/lib/actions/send-otp";
-import z from "@/lib/zod";
 import { signUpSchema } from "@/lib/zod/schemas/auth";
 import { PasswordRequirements } from "@/ui/shared/password-requirements";
 import { Button, Input, useMediaQuery } from "@dub/ui";
@@ -9,6 +8,7 @@ import { useAction } from "next-safe-action/hooks";
 import { FormEvent, useCallback, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 import { useRegisterContext } from "./context";
 
 type SignUpProps = z.infer<typeof signUpSchema>;

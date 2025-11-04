@@ -1,5 +1,4 @@
 import { withPartnerProfile } from "@/lib/auth/partner";
-import { sortRewardsByEventOrder } from "@/lib/partners/sort-rewards-by-event-order";
 import { partnerProfileProgramsQuerySchema } from "@/lib/zod/schemas/partner-profile";
 import { ProgramEnrollmentSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
@@ -12,7 +11,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { includeRewardsDiscounts, status } =
     partnerProfileProgramsQuerySchema.parse(searchParams);
 
-  const programEnrollments = await prisma.programEnrollment.findMany({
+  let programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
       ...(status && { status }),
@@ -24,37 +23,20 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
           createdAt: "asc",
         },
       },
-      program: includeRewardsDiscounts
-        ? {
-            include: {
-              discounts: {
-                where: {
-                  OR: [
-                    // program-wide discounts
-                    {
-                      programEnrollments: {
-                        none: {},
-                      },
-                    },
-
-                    // partner-specific discounts
-                    {
-                      programEnrollments: {
-                        some: {
-                          partnerId: partner.id,
-                        },
-                      },
-                    },
-                  ],
-                },
-              },
+      program: {
+        include: {
+          workspace: {
+            select: {
+              plan: true,
             },
-          }
-        : true,
+          },
+        },
+      },
       ...(includeRewardsDiscounts && {
         clickReward: true,
         leadReward: true,
         saleReward: true,
+        discount: true,
       }),
     },
     orderBy: [
@@ -71,13 +53,11 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
     return {
       ...enrollment,
       rewards: includeRewardsDiscounts
-        ? sortRewardsByEventOrder(
-            [
-              enrollment.clickReward,
-              enrollment.leadReward,
-              enrollment.saleReward,
-            ].filter((r): r is Reward => r !== null),
-          )
+        ? [
+            enrollment.clickReward,
+            enrollment.leadReward,
+            enrollment.saleReward,
+          ].filter((r): r is Reward => r !== null)
         : [],
     };
   });

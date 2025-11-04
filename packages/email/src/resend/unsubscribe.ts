@@ -1,19 +1,16 @@
 import { resend } from "./client";
-import { RESEND_AUDIENCES } from "./constants";
+import { RESEND_AUDIENCE_ID } from "./constants";
 
 export async function unsubscribe({ email }: { email: string }) {
   if (!resend) {
     console.error(
-      "Resend client is not properly initialized. Skipping operation.",
+      "No RESEND_API_KEY is set in the environment variables. Skipping.",
     );
     return;
   }
 
-  // TODO: Update this to support partners.dub.co in the future
-  const audienceId = RESEND_AUDIENCES["app.dub.co"];
-
   return await resend.contacts.remove({
     email,
-    audienceId,
+    audienceId: RESEND_AUDIENCE_ID,
   });
 }

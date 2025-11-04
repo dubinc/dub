@@ -43,7 +43,6 @@ export const getCustomersQuerySchema = z
       .describe(
         "Whether to include expanded fields on the customer (`link`, `partner`, `discount`).",
       ),
-
     sortBy: z
       .enum(["createdAt", "saleAmount"])
       .optional()
@@ -99,10 +98,17 @@ export const createCustomerBodySchema = z.object({
   externalId: z
     .string()
     .describe("Unique identifier for the customer in the client's app."),
+  stripeCustomerId: z
+    .string()
+    .nullish()
+    .describe(
+      "The customer's Stripe customer ID. Useful for attribution recurring sale events to the partner who referred the customer.",
+    ),
 });
 
 export const updateCustomerBodySchema = createCustomerBodySchema.partial();
 
+// used in webhook responses + regular /customers endpoints (without expanded fields)
 export const CustomerSchema = z.object({
   id: z
     .string()

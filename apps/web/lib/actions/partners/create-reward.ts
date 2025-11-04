@@ -1,111 +1,117 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createId } from "@/lib/api/create-id";
+import { getGroupOrThrow } from "@/lib/api/groups/get-group-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { validateReward } from "@/lib/api/rewards/validate-reward";
+import { serializeReward } from "@/lib/api/partners/serialize-reward";
+import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import {
   createRewardSchema,
   REWARD_EVENT_COLUMN_MAPPING,
 } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
+import { Prisma } from "@dub/prisma/client";
+import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
 export const createRewardAction = authActionClient
   .schema(createRewardSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    let {
+    const { workspace, user } = ctx;
+    const {
       event,
-      amount,
       type,
+      amountInCents,
+      amountInPercentage,
       maxDuration,
-      isDefault,
-      includedPartnerIds,
-      excludedPartnerIds,
+      description,
+      modifiers,
+      groupId,
     } = parsedInput;
 
-    includedPartnerIds = includedPartnerIds || [];
-    excludedPartnerIds = excludedPartnerIds || [];
-
     const programId = getDefaultProgramIdOrThrow(workspace);
+    const { canUseAdvancedRewardLogic } = getPlanCapabilities(workspace.plan);
 
-    // Only one default reward is allowed for each event
-    if (isDefault) {
-      const defaultReward = await prisma.reward.findFirst({
-        where: {
+    if (modifiers && !canUseAdvancedRewardLogic) {
+      throw new Error(
+        "Advanced reward structures are only available on the Advanced plan and above.",
+      );
+    }
+
+    const group = await getGroupOrThrow({
+      groupId,
+      programId,
+    });
+
+    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[event];
+
+    if (group[rewardIdColumn]) {
+      throw new Error(
+        `You can't create a ${event} reward for this group because it already has a ${event} reward.`,
+      );
+    }
+
+    validateReward(parsedInput);
+
+    const reward = await prisma.$transaction(async (tx) => {
+      const reward = await tx.reward.create({
+        data: {
+          id: createId({ prefix: "rw_" }),
           programId,
           event,
-          default: true,
-        },
-      });
-
-      if (defaultReward) {
-        throw new Error(
-          `There is an existing default ${event} reward already. A program can only have one ${event} default reward.`,
-        );
-      }
-    }
-
-    const finalPartnerIds = [...includedPartnerIds, ...excludedPartnerIds];
-
-    if (finalPartnerIds && finalPartnerIds.length > 0) {
-      const programEnrollments = await prisma.programEnrollment.findMany({
-        where: {
-          programId,
-          partnerId: {
-            in: finalPartnerIds,
-          },
-        },
-        select: {
-          partnerId: true,
-        },
-      });
-
-      const invalidPartnerIds = finalPartnerIds.filter(
-        (id) =>
-          !programEnrollments.some((enrollment) => enrollment.partnerId === id),
-      );
-
-      if (invalidPartnerIds.length > 0) {
-        throw new Error(
-          `Invalid partner IDs provided: ${invalidPartnerIds.join(", ")}`,
-        );
-      }
-    }
-
-    const reward = await prisma.reward.create({
-      data: {
-        id: createId({ prefix: "rw_" }),
-        programId,
-        event,
-        type,
-        amount,
-        maxDuration,
-        default: isDefault,
-      },
-    });
-
-    const rewardIdColumn = REWARD_EVENT_COLUMN_MAPPING[reward.event];
-
-    await prisma.programEnrollment.updateMany({
-      where: {
-        programId,
-        ...(reward.default
-          ? {
-              [rewardIdColumn]: null,
-              ...(excludedPartnerIds.length > 0 && {
-                partnerId: {
-                  notIn: excludedPartnerIds,
-                },
+          type,
+          maxDuration,
+          description: description || null,
+          modifiers: modifiers || Prisma.DbNull,
+          ...(type === "flat"
+            ? {
+                amountInCents,
+                amountInPercentage: null,
+              }
+            : {
+                amountInCents: null,
+                amountInPercentage: new Prisma.Decimal(amountInPercentage!),
               }),
-            }
-          : {
-              partnerId: {
-                in: includedPartnerIds,
-              },
-            }),
-      },
-      data: {
-        [rewardIdColumn]: reward.id,
-      },
+        },
+      });
+
+      await tx.partnerGroup.update({
+        where: {
+          id: groupId,
+        },
+        data: {
+          [rewardIdColumn]: reward.id,
+        },
+      });
+
+      await tx.programEnrollment.updateMany({
+        where: {
+          groupId,
+        },
+        data: {
+          [rewardIdColumn]: reward.id,
+        },
+      });
+
+      return reward;
     });
+
+    waitUntil(
+      recordAuditLog({
+        workspaceId: workspace.id,
+        programId,
+        action: "reward.created",
+        description: `Reward ${reward.id} created`,
+        actor: user,
+        targets: [
+          {
+            type: "reward",
+            id: reward.id,
+            metadata: serializeReward(reward),
+          },
+        ],
+      }),
+    );
   });

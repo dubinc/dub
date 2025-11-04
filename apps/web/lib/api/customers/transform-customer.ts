@@ -14,9 +14,6 @@ export interface CustomerWithLink extends Customer {
           | (ProgramEnrollment & {
               partner: Partner;
               discount?: Discount | null;
-              program?: {
-                defaultDiscount: Discount;
-              };
             })
           | null;
       })
@@ -33,9 +30,17 @@ export const transformCustomer = (customer: CustomerWithLink) => {
     link: customer.link || undefined,
     programId: programEnrollment?.programId || undefined,
     partner: programEnrollment?.partner || undefined,
-    discount:
-      programEnrollment?.discount ||
-      programEnrollment?.program?.defaultDiscount ||
-      undefined,
+    discount: programEnrollment?.discount || undefined,
+  };
+};
+
+export const transformCustomerForCommission = (customer?: Customer | null) => {
+  if (!customer) {
+    return customer;
+  }
+
+  return {
+    ...customer,
+    name: customer.name || customer.email || generateRandomName(),
   };
 };

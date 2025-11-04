@@ -28,12 +28,13 @@ const BLOCKS = [
   ConversionBlock,
   CountriesBlock,
   LinksBlock,
+  // SaleTypeBlock, // TODO: figure out how to best show sales by type
 ];
 
 export default function ProgramOverviewPageClient() {
-  const { searchParamsObj } = useRouterStuff();
-
   const { defaultProgramId, id: workspaceId } = useWorkspace();
+
+  const { searchParamsObj } = useRouterStuff();
 
   const { start, end, interval } = useMemo(() => {
     const { event, ...rest } = searchParamsObj;
@@ -52,13 +53,15 @@ export default function ProgramOverviewPageClient() {
         end: new Date(end).toISOString(),
       }),
     ...(interval && { interval: interval.toString() }),
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
   }).toString();
 
-  const { data: totalEvents } = useSWR<{
+  const { data: totalEvents, isLoading: totalEventsLoading } = useSWR<{
     [key in AnalyticsResponseOptions]: number;
   }>(
     `/api/analytics?${editQueryString(queryString, {
       event: "composite",
+      saleType: "new",
     })}`,
     fetcher,
     {
@@ -81,6 +84,7 @@ export default function ProgramOverviewPageClient() {
           end: end ? new Date(end) : undefined,
           interval: interval as string | undefined,
           totalEvents,
+          totalEventsLoading,
         }}
       >
         <div className="@4xl:grid-cols-[minmax(0,1fr)_400px] grid grid-cols-1 gap-6 rounded-2xl bg-neutral-100 p-4">

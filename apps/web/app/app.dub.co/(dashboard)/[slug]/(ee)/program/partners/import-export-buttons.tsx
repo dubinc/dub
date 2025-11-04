@@ -1,8 +1,12 @@
 "use client";
 
+import { PROGRAM_IMPORT_SOURCES } from "@/lib/partners/constants";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { useExportPartnersModal } from "@/ui/modals/export-partners-modal";
+import { useImportFirstPromoterModal } from "@/ui/modals/import-firstpromoter-modal";
+import { useImportPartnerStackModal } from "@/ui/modals/import-partnerstack-modal";
 import { useImportRewardfulModal } from "@/ui/modals/import-rewardful-modal";
+import { useImportToltModal } from "@/ui/modals/import-tolt-modal";
 import { Download, ThreeDots } from "@/ui/shared/icons";
 import { Button, IconMenu, Popover } from "@dub/ui";
 import { useRouter } from "next/navigation";
@@ -13,38 +17,51 @@ export function ImportExportButtons() {
   const { slug } = useWorkspace();
   const [openPopover, setOpenPopover] = useState(false);
 
+  const { ImportToltModal } = useImportToltModal();
   const { ImportRewardfulModal } = useImportRewardfulModal();
+  const { ImportPartnerStackModal } = useImportPartnerStackModal();
+  const { ImportFirstPromoterModal } = useImportFirstPromoterModal();
+
   const { ExportPartnersModal, setShowExportPartnersModal } =
     useExportPartnersModal();
 
   return (
     <>
+      <ImportToltModal />
       <ImportRewardfulModal />
+      <ImportFirstPromoterModal />
+      <ImportPartnerStackModal />
       <ExportPartnersModal />
       <Popover
         content={
-          <div className="w-full md:w-52">
+          <div className="w-full md:w-[16rem]">
             <div className="grid gap-px p-2">
               <p className="mb-1.5 mt-1 flex items-center gap-2 px-1 text-xs font-medium text-neutral-500">
                 Import Partners
               </p>
-              <ImportOption
-                onClick={() => {
-                  setOpenPopover(false);
-                  router.push(`/${slug}/program/partners?import=rewardful`);
-                }}
-              >
-                <IconMenu
-                  text="Import from Rewardful"
-                  icon={
-                    <img
-                      src="https://assets.dub.co/misc/icons/rewardful.svg"
-                      alt="Rewardful logo"
-                      className="h-4 w-4"
-                    />
-                  }
-                />
-              </ImportOption>
+
+              {PROGRAM_IMPORT_SOURCES.map((source) => (
+                <ImportOption
+                  key={source.id}
+                  onClick={() => {
+                    setOpenPopover(false);
+                    router.push(
+                      `/${slug}/program/partners?import=${source.id}`,
+                    );
+                  }}
+                >
+                  <IconMenu
+                    text={`Import from ${source.value}`}
+                    icon={
+                      <img
+                        src={source.image}
+                        alt={`${source.value} logo`}
+                        className="h-4 w-4"
+                      />
+                    }
+                  />
+                </ImportOption>
+              ))}
             </div>
 
             <div className="border-t border-neutral-200" />
@@ -75,8 +92,8 @@ export function ImportExportButtons() {
         <Button
           onClick={() => setOpenPopover(!openPopover)}
           variant="secondary"
-          className="w-auto px-1.5"
-          icon={<ThreeDots className="h-5 w-5 text-neutral-500" />}
+          className="h-8 w-auto px-1.5 sm:h-9"
+          icon={<ThreeDots className="size-4 text-neutral-500" />}
         />
       </Popover>
     </>

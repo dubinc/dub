@@ -8,9 +8,9 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  TAB_ITEM_ANIMATION_SETTINGS,
 } from "@dub/ui";
-import { TAB_ITEM_ANIMATION_SETTINGS } from "@dub/utils";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 
 export function ReferralsEmbedFAQ({
   program,
@@ -20,10 +20,7 @@ export function ReferralsEmbedFAQ({
   reward: RewardProps | null;
 }) {
   const rewardDescription = reward
-    ? `For each new customer you refer, you'll earn a ${constructRewardAmount({
-        amount: reward.amount,
-        type: reward.type,
-      })} commission on their subscription${
+    ? `For each new customer you refer, you'll earn a ${constructRewardAmount(reward)} commission on their subscription${
         reward.maxDuration === null
           ? " for their lifetime"
           : reward.maxDuration && reward.maxDuration > 1
@@ -42,7 +39,7 @@ export function ReferralsEmbedFAQ({
 
     {
       title: "What counts as a successful conversion?",
-      content: `New customers that sign up for a paid plan within ${program.cookieLength} days of using your referral link will be counted as a successful conversion. Attributions are done on a last-click basis, so your link must be the last link clicked before the customer signs up for an account on ${program.name}.`,
+      content: `New customers that sign up for a paid plan within 90 days of using your referral link will be counted as a successful conversion. Attributions are done on a last-click basis, so your link must be the last link clicked before the customer signs up for an account on ${program.name}.`,
     },
     {
       title: "How should I promote the program?",

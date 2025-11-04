@@ -19,11 +19,12 @@ import LinkInspectorCard from "./card";
 
 export const runtime = "edge";
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { domain: string; key: string };
-}) {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ domain: string; key: string }>;
+  }
+) {
+  const params = await props.params;
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 
@@ -44,11 +45,12 @@ export async function generateMetadata({
   });
 }
 
-export default async function InspectPage({
-  params,
-}: {
-  params: { domain: string; key: string };
-}) {
+export default async function InspectPage(
+  props: {
+    params: Promise<{ domain: string; key: string }>;
+  }
+) {
+  const params = await props.params;
   const domain = params.domain;
   const key = decodeURIComponent(params.key).slice(0, -1);
 

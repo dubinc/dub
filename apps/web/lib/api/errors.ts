@@ -122,7 +122,7 @@ export function fromZodError(error: ZodError): ErrorResponse {
 }
 
 export function handleApiError(error: any): ErrorResponse & { status: number } {
-  console.error("API error occurred", error.message);
+  console.error(error.message);
 
   // Zod errors
   if (error instanceof ZodError) {
@@ -172,10 +172,7 @@ export function handleApiError(error: any): ErrorResponse & { status: number } {
   };
 }
 
-export function handleAndReturnErrorResponse(
-  err: unknown,
-  headers?: Record<string, string>,
-) {
+export function handleAndReturnErrorResponse(err: unknown, headers?: Headers) {
   const { error, status } = handleApiError(err);
   return NextResponse.json<ErrorResponse>({ error }, { headers, status });
 }
@@ -241,7 +238,8 @@ export const exceededLimitError = ({
     | "tags"
     | "users"
     | "folders"
-    | "payouts";
+    | "payouts"
+    | "groups";
 }) => {
   return `You've reached your ${
     ["links", "AI", "payouts"].includes(type) ? "monthly" : ""

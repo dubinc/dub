@@ -4,12 +4,6 @@ import { ArrowUpRight } from "@dub/ui/icons";
 import { currencyFormatter, OG_AVATAR_URL } from "@dub/utils";
 import Link from "next/link";
 
-const formatCurrency = (value: number) =>
-  currencyFormatter(value / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
 export function LinkPartnerDetails({
   link,
   partner,
@@ -22,7 +16,7 @@ export function LinkPartnerDetails({
   return (
     <div>
       <Link
-        href={`/${slug}/program/partners?partnerId=${link.partnerId}`}
+        href={`/${slug}/program/partners/${link.partnerId}`}
         className="border-border-subtle group flex items-center justify-between overflow-hidden rounded-t-lg border bg-neutral-100 px-4 py-3"
         target="_blank"
       >
@@ -60,14 +54,21 @@ export function LinkPartnerDetails({
       </Link>
       <div className="border-border-subtle grid grid-cols-1 divide-y divide-neutral-200 rounded-b-lg border-x border-b sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {[
-          ["Revenue", partner ? formatCurrency(partner.saleAmount) : undefined],
+          [
+            "Revenue",
+            partner
+              ? currencyFormatter(partner.totalSaleAmount / 100)
+              : undefined,
+          ],
           [
             "Commissions",
-            partner ? formatCurrency(partner.totalCommissions) : undefined,
+            partner
+              ? currencyFormatter(partner.totalCommissions / 100)
+              : undefined,
           ],
           [
             "Net revenue",
-            partner ? formatCurrency(partner.netRevenue) : undefined,
+            partner ? currencyFormatter(partner.netRevenue / 100) : undefined,
           ],
         ].map(([label, value]) => (
           <div key={label} className="flex flex-col gap-1 px-4 py-3">

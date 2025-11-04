@@ -1,4 +1,5 @@
 import { mutatePrefix } from "@/lib/swr/mutate";
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import { useCheckFolderPermission } from "@/lib/swr/use-folder-permissions";
 import { ExpandedLinkProps } from "@/lib/types";
 import { useArchiveLinkModal } from "@/ui/modals/archive-link-modal";
@@ -21,7 +22,7 @@ import {
 } from "@dub/ui/icons";
 import { cn, isDubDomain, nanoid } from "@dub/utils";
 import { CopyPlus, Delete, FolderInput } from "lucide-react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
 import { useLinkBuilder } from "../modals/link-builder";
@@ -67,7 +68,6 @@ export function LinkControls({
 }) {
   const router = useRouter();
   const { slug } = useParams() as { slug?: string };
-  const searchParams = useSearchParams();
 
   const [copiedLinkId, copyToClipboard] = useCopyToClipboard();
 
@@ -99,8 +99,9 @@ export function LinkControls({
     useMoveLinkToFolderModal({ link, onSuccess: onMoveSuccess });
 
   const isRootLink = link.key === "_root";
-  const isProgramLink = link.programId !== null;
-  const folderId = link.folderId || searchParams.get("folderId");
+  const isProgramLinkWithLeads = link.programId !== null && link.leads > 0;
+  const { folderId: currentFolderId } = useCurrentFolderId();
+  const folderId = link.folderId || currentFolderId;
 
   // Duplicate link Modal
   const {
@@ -178,7 +179,7 @@ export function LinkControls({
         case "x":
           canManageLink &&
             !isRootLink &&
-            !isProgramLink &&
+            !isProgramLinkWithLeads &&
             setShowDeleteLinkModal(true);
           break;
         case "b":
@@ -343,14 +344,14 @@ export function LinkControls({
                   icon={<Delete className="size-4" />}
                   shortcut="X"
                   className="h-9 px-2 font-medium"
-                  disabled={isRootLink || isProgramLink}
+                  disabled={isRootLink || isProgramLinkWithLeads}
                   disabledTooltip={
                     !canManageLink
                       ? "You don't have permission to delete this link."
                       : isRootLink
                         ? "You can't delete a custom domain link. You can delete the domain instead."
-                        : isProgramLink
-                          ? "You can't delete a link that's part of a program."
+                        : isProgramLinkWithLeads
+                          ? "You can't delete a partner link that has existing leads. We recommend archiving it instead."
                           : undefined
                   }
                 />

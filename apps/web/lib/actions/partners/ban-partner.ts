@@ -1,6 +1,9 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
+import { queueDiscountCodeDeletion } from "@/lib/api/discounts/queue-discount-code-deletion";
 import { linkCache } from "@/lib/api/links/cache";
+import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramEnrollmentOrThrow } from "@/lib/api/programs/get-program-enrollment-or-throw";
 import {
@@ -8,8 +11,9 @@ import {
   banPartnerSchema,
 } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
-import { PartnerBanned } from "@dub/email/templates/partner-banned";
+import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
+import { ProgramEnrollmentStatus } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { authActionClient } from "../safe-action";
 
@@ -17,7 +21,7 @@ import { authActionClient } from "../safe-action";
 export const banPartnerAction = authActionClient
   .schema(banPartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
+    const { workspace, user } = ctx;
     const { partnerId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -25,6 +29,12 @@ export const banPartnerAction = authActionClient
     const programEnrollment = await getProgramEnrollmentOrThrow({
       partnerId,
       programId,
+      include: {
+        program: true,
+        partner: true,
+        links: true,
+        discountCodes: true,
+      },
     });
 
     if (programEnrollment.status === "banned") {
@@ -49,80 +59,105 @@ export const banPartnerAction = authActionClient
           partnerId_programId: where,
         },
         data: {
-          status: "banned",
+          status: ProgramEnrollmentStatus.banned,
           bannedAt: new Date(),
           bannedReason: parsedInput.reason,
+          groupId: null,
           clickRewardId: null,
           leadRewardId: null,
           saleRewardId: null,
+          discountId: null,
         },
       }),
 
       prisma.commission.updateMany({
-        where,
+        where: {
+          ...where,
+          status: {
+            not: "paid",
+          },
+        },
         data: {
           status: "canceled",
         },
       }),
 
       prisma.payout.updateMany({
-        where,
+        where: {
+          ...where,
+          status: "pending",
+        },
         data: {
           status: "canceled",
+        },
+      }),
+
+      prisma.bountySubmission.updateMany({
+        where: {
+          ...where,
+          status: {
+            not: "approved",
+          },
+        },
+        data: {
+          status: "rejected",
+        },
+      }),
+
+      prisma.discountCode.updateMany({
+        where,
+        data: {
+          discountId: null,
         },
       }),
     ]);
 
     waitUntil(
       (async () => {
-        // Send email to partner
-        const partner = await prisma.partner.findUniqueOrThrow({
-          where: {
-            id: partnerId,
-          },
-          select: {
-            email: true,
-            name: true,
-          },
-        });
+        // Sync total commissions
+        await syncTotalCommissions({ partnerId, programId });
 
-        if (!partner.email) {
-          console.error("Partner has no email address.");
-          return;
-        }
+        const { program, partner, links, discountCodes } = programEnrollment;
 
-        const { program } = programEnrollment;
+        await Promise.allSettled([
+          linkCache.expireMany(links),
 
-        const supportEmail = program.supportEmail || "support@dub.co";
+          queueDiscountCodeDeletion(discountCodes.map(({ id }) => id)),
 
-        await sendEmail({
-          subject: `You've been banned from the ${program.name} Partner Program`,
-          email: partner.email,
-          replyTo: supportEmail,
-          react: PartnerBanned({
-            partner: {
-              name: partner.name,
-              email: partner.email,
-            },
-            program: {
-              name: program.name,
-              supportEmail,
-            },
-            bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+          partner.email &&
+            sendEmail({
+              subject: `You've been banned from the ${program.name} Partner Program`,
+              to: partner.email,
+              replyTo: program.supportEmail || "noreply",
+              react: PartnerBanned({
+                partner: {
+                  name: partner.name,
+                  email: partner.email,
+                },
+                program: {
+                  name: program.name,
+                  slug: program.slug,
+                },
+                bannedReason: BAN_PARTNER_REASONS[parsedInput.reason],
+              }),
+              variant: "notifications",
+            }),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
+            programId,
+            action: "partner.banned",
+            description: `Partner ${partnerId} banned`,
+            actor: user,
+            targets: [
+              {
+                type: "partner",
+                id: partnerId,
+                metadata: partner,
+              },
+            ],
           }),
-          variant: "notifications",
-        });
-
-        // Delete links from cache
-        const links = await prisma.link.findMany({
-          where,
-          select: {
-            domain: true,
-            key: true,
-          },
-        });
-
-        await linkCache.deleteMany(links);
+        ]);
       })(),
     );
   });

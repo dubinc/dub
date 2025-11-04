@@ -151,31 +151,19 @@ export default function PayoutsPageClient() {
         id: "amount",
         header: "Amount",
         accessorKey: "amount",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.amount / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => currencyFormatter(row.original.amount / 100),
       },
       {
         id: "fee",
         header: "Fee",
         accessorKey: "fee",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.fee / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => currencyFormatter(row.original.fee / 100),
       },
       {
         id: "total",
         header: "Total",
         accessorKey: "total",
-        cell: ({ row }) =>
-          currencyFormatter(row.original.total / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => currencyFormatter(row.original.total / 100),
       },
     ],
     pagination,

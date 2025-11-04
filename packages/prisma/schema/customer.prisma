@@ -25,10 +25,11 @@ model Customer {
 
   @@unique([projectId, externalId])
   @@unique([projectConnectId, externalId])
+  @@index([projectId, email])
   @@index([projectId, createdAt])
   @@index([projectId, saleAmount])
-  @@index([projectId, email, externalId, name])
   @@index(externalId)
   @@index(linkId)
   @@index(country)
+  @@fulltext([email, name]) // For full-text search
 }

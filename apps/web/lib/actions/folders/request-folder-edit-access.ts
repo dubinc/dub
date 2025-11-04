@@ -1,7 +1,7 @@
 "use server";
 
 import { sendEmail } from "@dub/email";
-import { FolderEditAccessRequested } from "@dub/email/templates/folder-edit-access-requested";
+import FolderEditAccessRequested from "@dub/email/templates/folder-edit-access-requested";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -71,7 +71,7 @@ export const requestFolderEditAccessAction = authActionClient
 
         await sendEmail({
           subject: `Request to edit folder ${folder.name} on ${workspace.name}`,
-          email: folderOwnerEmail,
+          to: folderOwnerEmail,
           react: FolderEditAccessRequested({
             email: folderOwnerEmail,
             folderUrl: `${APP_DOMAIN_WITH_NGROK}/${workspace.slug}/settings/library/folders/${folder.id}/members`,

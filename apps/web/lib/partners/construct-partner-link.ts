@@ -1,24 +1,28 @@
-import { ProgramProps } from "../types";
+import { getUrlObjFromString } from "@dub/utils";
+import { GroupProps, PartnerProfileLinkProps } from "../types";
 
 export function constructPartnerLink({
-  program,
-  linkKey,
+  group,
+  link,
 }: {
-  program: Pick<
-    ProgramProps,
-    "domain" | "url" | "linkStructure" | "linkParameter"
-  >;
-  linkKey: string;
+  group?: Pick<GroupProps, "linkStructure"> | null;
+  link?: Pick<PartnerProfileLinkProps, "key" | "url" | "shortLink">;
 }) {
-  const { domain, url, linkStructure, linkParameter } = program;
-
-  if (linkStructure === "query") {
-    return `${url}?${linkParameter ?? "via"}=${linkKey}`;
+  if (!link) {
+    return "";
   }
 
-  if (linkStructure === "path") {
-    return `${url}/${linkParameter ?? "refer"}/${linkKey}`;
+  const { linkStructure } = group ?? {};
+
+  const urlObj = link?.url ? getUrlObjFromString(link.url) : null;
+
+  if (linkStructure === "query" && urlObj) {
+    return `https://${urlObj.hostname}?via=${link.key}`;
   }
 
-  return `https://${domain}/${linkKey}`;
+  // if (linkStructure === "path" && urlObj) {
+  //   return `https://${urlObj.hostname}/refer/${link.key}`;
+  // }
+
+  return link.shortLink;
 }

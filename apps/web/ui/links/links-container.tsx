@@ -1,11 +1,11 @@
 "use client";
 
-import { useIsMegaFolder } from "@/lib/swr/use-is-mega-folder";
+import useCurrentFolderId from "@/lib/swr/use-current-folder-id";
 import useLinks from "@/lib/swr/use-links";
 import useLinksCount from "@/lib/swr/use-links-count";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ExpandedLinkProps, UserProps } from "@/lib/types";
-import { CardList, useRouterStuff } from "@dub/ui";
+import { CardList } from "@dub/ui";
 import { CursorRays, Hyperlink } from "@dub/ui/icons";
 import { useSearchParams } from "next/navigation";
 import {
@@ -14,6 +14,7 @@ import {
   SetStateAction,
   useContext,
   useState,
+  type JSX,
 } from "react";
 import { PageWidthWrapper } from "../layout/page-width-wrapper";
 import { AnimatedEmptyState } from "../shared/animated-empty-state";
@@ -32,28 +33,20 @@ export default function LinksContainer({
 }: {
   CreateLinkButton: () => JSX.Element;
 }) {
-  const { defaultFolderId } = useWorkspace();
-  const { searchParams } = useRouterStuff();
   const { viewMode, sortBy, showArchived } = useContext(LinksDisplayContext);
 
-  // Decide on the folderId to use
-  let folderId = searchParams.get("folderId");
-  if (folderId) {
-    folderId = folderId === "unsorted" ? "" : folderId;
-  } else {
-    folderId = defaultFolderId ?? "";
-  }
+  const { folderId } = useCurrentFolderId();
 
   const { links, isValidating } = useLinks({
     sortBy,
     showArchived,
-    folderId,
+    folderId: folderId ?? "",
   });
 
   const { data: count } = useLinksCount<number>({
     query: {
       showArchived,
-      folderId,
+      folderId: folderId ?? "",
     },
   });
 
@@ -92,7 +85,7 @@ function LinksList({
   compact: boolean;
 }) {
   const searchParams = useSearchParams();
-  const { isMegaFolder } = useIsMegaFolder();
+  const { isMegaWorkspace } = useWorkspace();
 
   const [openMenuLinkId, setOpenMenuLinkId] = useState<string | null>(null);
 
@@ -159,7 +152,9 @@ function LinksList({
           <LinksToolbar
             loading={!!loading}
             links={links}
-            linksCount={isMegaFolder ? Infinity : count ?? links?.length ?? 0}
+            linksCount={
+              isMegaWorkspace ? Infinity : count ?? links?.length ?? 0
+            }
           />
         )}
       </LinkSelectionProvider>

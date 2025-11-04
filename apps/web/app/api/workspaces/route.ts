@@ -1,19 +1,18 @@
 import { DubApiError } from "@/lib/api/errors";
-import { createWorkspaceId, prefixWorkspaceId } from "@/lib/api/workspace-id";
+import { generateRandomString } from "@/lib/api/utils/generate-random-string";
+import { createWorkspaceId } from "@/lib/api/workspaces/create-workspace-id";
+import { prefixWorkspaceId } from "@/lib/api/workspaces/workspace-id";
 import { withSession } from "@/lib/auth";
 import { checkIfUserExists } from "@/lib/planetscale";
+import { storage } from "@/lib/storage";
 import {
-  WorkspaceSchema,
   createWorkspaceSchema,
+  WorkspaceSchema,
 } from "@/lib/zod/schemas/workspaces";
 import { subscribe } from "@dub/email/resend/subscribe";
 import { prisma } from "@dub/prisma";
 import { Prisma } from "@dub/prisma/client";
-import {
-  FREE_WORKSPACES_LIMIT,
-  generateRandomString,
-  nanoid,
-} from "@dub/utils";
+import { FREE_WORKSPACES_LIMIT, nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
 
@@ -61,7 +60,7 @@ export const GET = withSession(async ({ session }) => {
 });
 
 export const POST = withSession(async ({ req, session }) => {
-  const { name, slug } = await createWorkspaceSchema.parseAsync(
+  const { name, slug, logo } = await createWorkspaceSchema.parseAsync(
     await req.json(),
   );
 
@@ -75,6 +74,8 @@ export const POST = withSession(async ({ req, session }) => {
   }
 
   try {
+    let uploadedImageUrl: string | undefined;
+
     const workspace = await prisma.$transaction(
       async (tx) => {
         const freeWorkspaces = await tx.project.count({
@@ -96,11 +97,17 @@ export const POST = withSession(async ({ req, session }) => {
           });
         }
 
+        const workspaceId = createWorkspaceId();
+        uploadedImageUrl = logo
+          ? `${R2_URL}/workspaces/${workspaceId}/logo_${nanoid(7)}`
+          : undefined;
+
         return await tx.project.create({
           data: {
-            id: createWorkspaceId(),
+            id: workspaceId,
             name,
             slug,
+            logo: uploadedImageUrl,
             users: {
               create: {
                 userId: session.user.id,
@@ -155,12 +162,18 @@ export const POST = withSession(async ({ req, session }) => {
               defaultWorkspace: workspace.slug,
             },
           }),
-        // Subscribe the user to the app.dub.co Resend audience
+        // Subscribe the user to the Resend audience
         subscribe({
           email: session.user.email,
           name: session.user.name || undefined,
-          audience: "app.dub.co",
         }),
+        // Upload logo to R2 if uploaded
+        logo &&
+          uploadedImageUrl &&
+          storage.upload({
+            key: uploadedImageUrl.replace(`${R2_URL}/`, ""),
+            body: logo,
+          }),
       ]),
     );
 

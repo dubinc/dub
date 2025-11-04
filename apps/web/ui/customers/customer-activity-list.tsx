@@ -1,5 +1,5 @@
 import { CustomerActivityResponse } from "@/lib/types";
-import { DynamicTooltipWrapper, LinkLogo } from "@dub/ui";
+import { DynamicTooltipWrapper, LinkLogo, TimestampTooltip } from "@dub/ui";
 import { CursorRays, MoneyBill2, UserCheck } from "@dub/ui/icons";
 import { formatDateTimeSmart, getApexDomain, getPrettyUrl } from "@dub/utils";
 import Link from "next/link";
@@ -85,18 +85,10 @@ const activityData = {
   lead: {
     icon: UserCheck,
     content: (event) => {
-      let metadata = null;
-
-      try {
-        metadata = event.metadata ? JSON.parse(event.metadata) : null;
-      } catch (e) {
-        //
-      }
-
       return (
         <div className="flex flex-col gap-1">
           <span>{event.eventName || "New lead"}</span>
-          {metadata && <MetadataViewer metadata={metadata} />}
+          {event.metadata && <MetadataViewer metadata={event.metadata} />}
         </div>
       );
     },
@@ -105,18 +97,10 @@ const activityData = {
   sale: {
     icon: MoneyBill2,
     content: (event) => {
-      let metadata = null;
-
-      try {
-        metadata = event.metadata ? JSON.parse(event.metadata) : null;
-      } catch (e) {
-        //
-      }
-
       return (
         <div className="flex flex-col gap-1">
           <span>{event.eventName || "New sale"}</span>
-          {metadata && <MetadataViewer metadata={metadata} />}
+          {event.metadata && <MetadataViewer metadata={event.metadata} />}
         </div>
       );
     },
@@ -152,9 +136,15 @@ export function CustomerActivityList({
             </div>
             <div className="flex min-w-0 flex-col gap-x-4 gap-y-1 whitespace-nowrap text-sm text-neutral-800 lg:grow lg:flex-row lg:justify-between">
               <div className="truncate">{content(event)}</div>
-              <span className="shrink-0 truncate text-sm text-neutral-500">
-                {formatDateTimeSmart(event.timestamp)}
-              </span>
+              <TimestampTooltip
+                timestamp={event.timestamp}
+                side="right"
+                rows={["local", "utc", "unix"]}
+              >
+                <span className="shrink-0 truncate text-sm text-neutral-500">
+                  {formatDateTimeSmart(event.timestamp)}
+                </span>
+              </TimestampTooltip>
             </div>
           </li>
         );

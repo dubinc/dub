@@ -15,7 +15,7 @@ import {
 import { WorkspaceProps } from "../../../../apps/web/lib/types";
 import { Footer } from "../components/footer";
 
-export function LinksLimitAlert({
+export default function LinksLimitAlert({
   email = "panic@thedis.co",
   workspace = {
     id: "ckqf1q3xw0000gk5u2q1q2q1q",
@@ -71,7 +71,7 @@ export function LinksLimitAlert({
               links) in your current billing cycle.
             </Text>
 
-            {plan === "business-max" || plan === "enterprise" ? (
+            {plan === "enterprise" ? (
               <Text className="text-sm leading-6 text-black">
                 Since you're on the {capitalize(plan)} plan, you will still be
                 able to create links even after you hit your limit. We're
@@ -118,5 +118,3 @@ export function LinksLimitAlert({
     </Html>
   );
 }
-
-export default LinksLimitAlert;

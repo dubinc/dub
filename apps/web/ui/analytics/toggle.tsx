@@ -31,9 +31,8 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useContext } from "react";
-import AnalyticsOptions from "./analytics-options";
+import { AnalyticsOptions } from "./analytics-options";
 import { AnalyticsContext } from "./analytics-provider";
-import EventsOptions from "./events/events-options";
 import { ShareButton } from "./share-button";
 import { useAnalyticsFilters } from "./use-analytics-filters";
 
@@ -66,8 +65,6 @@ export default function Toggle({
   const {
     filters,
     activeFilters,
-    setSearch,
-    setSelectedFilter,
     onSelect,
     onRemove,
     onRemoveAll,
@@ -81,8 +78,6 @@ export default function Toggle({
       className="w-full md:w-fit"
       filters={filters}
       activeFilters={activeFilters}
-      onSearchChange={setSearch}
-      onSelectedFilterChange={setSelectedFilter}
       onSelect={onSelect}
       onRemove={onRemove}
       onOpenFilter={onOpenFilter}
@@ -122,7 +117,7 @@ export default function Toggle({
         if (!range || !range.from || !range.to) return;
 
         queryParams({
-          del: "preset",
+          del: "interval",
           set: {
             start: range.from.toISOString(),
             end: range.to.toISOString(),
@@ -240,7 +235,7 @@ export default function Toggle({
                   <div className="flex grow justify-end gap-2">
                     {page === "analytics" && (
                       <>
-                        {domain && key && <ShareButton />}
+                        <ShareButton />
                         <Link
                           href={`/${partnerPage ? `programs/${programSlug}/` : adminPage ? "" : `${slug}/`}events${getQueryString()}`}
                         >
@@ -250,10 +245,9 @@ export default function Toggle({
                             icon={
                               <SquareLayoutGrid6 className="h-4 w-4 text-neutral-600" />
                             }
-                            text={isMobile ? undefined : "Switch to Events"}
+                            text={isMobile ? undefined : "View Events"}
                           />
                         </Link>
-                        <AnalyticsOptions />
                       </>
                     )}
                     {page === "events" && (
@@ -267,12 +261,12 @@ export default function Toggle({
                             icon={
                               <ChartLine className="h-4 w-4 text-neutral-600" />
                             }
-                            text={isMobile ? undefined : "Switch to Analytics"}
+                            text={isMobile ? undefined : "View Analytics"}
                           />
                         </Link>
-                        <EventsOptions />
                       </>
                     )}
+                    {!partnerPage && <AnalyticsOptions page={page} />}
                   </div>
                 )}
               </div>
@@ -290,6 +284,7 @@ export default function Toggle({
         <Filter.List
           filters={filters}
           activeFilters={activeFiltersWithStreaming}
+          onSelect={onSelect}
           onRemove={onRemove}
           onRemoveAll={onRemoveAll}
         />

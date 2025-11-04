@@ -2,53 +2,40 @@
 
 import { createId } from "@/lib/api/create-id";
 import { isStored, storage } from "@/lib/storage";
-import { recordLink } from "@/lib/tinybird";
-import {
-  CreatePartnerProps,
-  ProgramPartnerLinkProps,
-  ProgramProps,
-  RewardProps,
-  WorkspaceProps,
-} from "@/lib/types";
+import { CreatePartnerProps, ProgramProps, WorkspaceProps } from "@/lib/types";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
-import { REWARD_EVENT_COLUMN_MAPPING } from "@/lib/zod/schemas/rewards";
 import { prisma } from "@dub/prisma";
 import { Prisma, ProgramEnrollmentStatus } from "@dub/prisma/client";
 import { nanoid } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { DubApiError } from "../errors";
-import { linkCache } from "../links/cache";
-import { includeTags } from "../links/include-tags";
-import { backfillLinkCommissions } from "./backfill-link-commissions";
+import { getGroupOrThrow } from "../groups/get-group-or-throw";
+import { createPartnerDefaultLinks } from "./create-partner-default-links";
 
-export const createAndEnrollPartner = async ({
-  program,
-  workspace,
-  link,
-  partner,
-  reward,
-  discountId,
-  tenantId,
-  status = "approved",
-  skipEnrollmentCheck = false,
-  enrolledAt,
-}: {
-  program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultDiscountId">;
-  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled">;
-  link: ProgramPartnerLinkProps;
-  partner: Pick<
-    CreatePartnerProps,
-    "email" | "name" | "image" | "country" | "description"
-  >;
-  reward?: Pick<RewardProps, "id" | "event">;
-  discountId?: string;
-  tenantId?: string;
+interface CreateAndEnrollPartnerInput {
+  workspace: Pick<WorkspaceProps, "id" | "webhookEnabled" | "plan">;
+  program: Pick<ProgramProps, "id" | "defaultFolderId" | "defaultGroupId">;
+  partner: Omit<CreatePartnerProps, "linkProps">;
+  link?: CreatePartnerProps["linkProps"];
   status?: ProgramEnrollmentStatus;
   skipEnrollmentCheck?: boolean;
   enrolledAt?: Date;
-}) => {
-  if (!skipEnrollmentCheck && partner.email) {
+  userId: string;
+}
+
+export const createAndEnrollPartner = async ({
+  workspace,
+  program,
+  partner,
+  link,
+  status = "approved",
+  skipEnrollmentCheck = false,
+  enrolledAt,
+  userId,
+}: CreateAndEnrollPartnerInput) => {
+  if (!skipEnrollmentCheck) {
+    // Check if the partner is already enrolled in the program by email
     const programEnrollment = await prisma.programEnrollment.findFirst({
       where: {
         programId: program.id,
@@ -56,73 +43,100 @@ export const createAndEnrollPartner = async ({
           email: partner.email,
         },
       },
-    });
-
-    if (programEnrollment) {
-      throw new DubApiError({
-        message: `Partner ${partner.email} already enrolled in this program.`,
-        code: "conflict",
-      });
-    }
-  }
-
-  // Check if the tenantId is already enrolled in the program
-  if (tenantId) {
-    const tenantEnrollment = await prisma.programEnrollment.findUnique({
-      where: {
-        tenantId_programId: {
-          tenantId,
-          programId: program.id,
-        },
+      include: {
+        partner: true,
+        links: true,
       },
     });
 
-    if (tenantEnrollment) {
-      throw new DubApiError({
-        message: `Tenant ${tenantId} already enrolled in this program.`,
-        code: "conflict",
-      });
+    // If the partner is already enrolled in the program
+    if (programEnrollment) {
+      // If there is no tenantId passed, or the tenantId is the same as the existing enrollment
+      // return the existing enrollment
+      if (
+        !partner.tenantId ||
+        partner.tenantId === programEnrollment.tenantId
+      ) {
+        return EnrolledPartnerSchema.parse({
+          ...programEnrollment.partner,
+          ...programEnrollment,
+          id: programEnrollment.partner.id,
+          links: programEnrollment.links,
+        });
+        // else, if the passed tenantId is different from the existing enrollment...
+      } else if (partner.tenantId) {
+        const existingTenantEnrollment =
+          await prisma.programEnrollment.findUnique({
+            where: {
+              tenantId_programId: {
+                tenantId: partner.tenantId,
+                programId: program.id,
+              },
+            },
+          });
+
+        // check if the tenantId already exists for a different enrolled partner
+        // if so, throw an error
+        if (existingTenantEnrollment) {
+          throw new DubApiError({
+            message: `Partner with tenantId '${partner.tenantId}' already enrolled in this program.`,
+            code: "conflict",
+          });
+        }
+
+        // else, update the existing enrollment with the new tenantId
+        const updatedProgramEnrollment = await prisma.programEnrollment.update({
+          where: {
+            id: programEnrollment.id,
+          },
+          data: {
+            tenantId: partner.tenantId,
+          },
+          include: {
+            partner: true,
+            links: true,
+          },
+        });
+
+        return EnrolledPartnerSchema.parse({
+          ...updatedProgramEnrollment.partner,
+          ...updatedProgramEnrollment,
+          id: updatedProgramEnrollment.partner.id,
+          links: updatedProgramEnrollment.links,
+        });
+      }
     }
   }
 
-  const defaultRewards = await prisma.reward.findMany({
-    where: {
-      programId: program.id,
-      // if a specific reward is provided, exclude it from the default rewards because it'll be added below
-      ...(reward && {
-        event: {
-          not: reward.event,
-        },
-      }),
-      default: true,
-    },
-  });
+  const finalGroupId = partner.groupId || program.defaultGroupId;
 
-  const finalAssignedRewards = {
-    ...Object.fromEntries(
-      defaultRewards.map((r) => [REWARD_EVENT_COLUMN_MAPPING[r.event], r.id]),
-    ),
-    ...(reward && {
-      [REWARD_EVENT_COLUMN_MAPPING[reward.event]]: reward.id,
-    }),
-  };
+  // this should never happen, but just in case
+  if (!finalGroupId) {
+    throw new DubApiError({
+      message:
+        "There was no group ID provided, and the program does not have a default group. Please contact support.",
+      code: "bad_request",
+    });
+  }
+
+  const group = await getGroupOrThrow({
+    programId: program.id,
+    groupId: finalGroupId,
+    includeExpandedFields: true,
+  });
 
   const payload: Pick<Prisma.PartnerUpdateInput, "programs"> = {
     programs: {
       create: {
+        id: createId({ prefix: "pge_" }),
         programId: program.id,
-        tenantId,
+        tenantId: partner.tenantId,
         status,
-        links: {
-          connect: {
-            id: link.id,
-          },
-        },
-        ...finalAssignedRewards,
-        ...(discountId &&
-          discountId !== program.defaultDiscountId && {
-            discountId,
-          }),
+        groupId: group.id,
+        clickRewardId: group.clickRewardId,
+        leadRewardId: group.leadRewardId,
+        saleRewardId: group.saleRewardId,
+        discountId: group.discountId,
         ...(enrolledAt && {
           createdAt: enrolledAt,
         }),
@@ -138,7 +152,7 @@ export const createAndEnrollPartner = async ({
     create: {
       ...payload,
       id: createId({ prefix: "pn_" }),
-      name: partner.name,
+      name: partner.name || partner.email,
       email: partner.email,
       image: partner.image && !isStored(partner.image) ? null : partner.image,
       country: partner.country,
@@ -153,55 +167,48 @@ export const createAndEnrollPartner = async ({
     },
   });
 
+  // Create the partner links based on group defaults
+  const links = await createPartnerDefaultLinks({
+    workspace: {
+      id: workspace.id,
+      plan: workspace.plan,
+    },
+    program: {
+      id: program.id,
+      defaultFolderId: program.defaultFolderId,
+    },
+    partner: {
+      id: upsertedPartner.id,
+      name: partner.name,
+      email: partner.email,
+      username: partner.username,
+      tenantId: partner.tenantId,
+    },
+    group: {
+      defaultLinks: group.partnerGroupDefaultLinks,
+      utmTemplate: group.utmTemplate,
+    },
+    link,
+    userId,
+  });
+
   const enrolledPartner = EnrolledPartnerSchema.parse({
     ...upsertedPartner,
     ...upsertedPartner.programs[0],
     id: upsertedPartner.id,
-    links: [link],
+    links,
   });
 
   waitUntil(
     Promise.all([
-      // update and record link
-      prisma.link
-        .update({
-          where: {
-            id: link.id,
-          },
-          data: {
-            programId: program.id,
-            partnerId: upsertedPartner.id,
-            folderId: program.defaultFolderId,
-            trackConversion: true,
-          },
-          include: includeTags,
-        })
-        .then((link) =>
-          Promise.allSettled([
-            linkCache.delete({
-              domain: link.domain,
-              key: link.key,
-            }),
-
-            recordLink(link),
-
-            link.saleAmount > 0 &&
-              backfillLinkCommissions({
-                id: link.id,
-                partnerId: upsertedPartner.id,
-                programId: program.id,
-              }),
-          ]),
-        ),
-
       // upload partner image to R2
       partner.image &&
         !isStored(partner.image) &&
         storage
-          .upload(
-            `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
-            partner.image,
-          )
+          .upload({
+            key: `partners/${upsertedPartner.id}/image_${nanoid(7)}`,
+            body: partner.image,
+          })
           .then(async ({ url }) => {
             await prisma.partner.update({
               where: {

@@ -16,25 +16,23 @@ import {
 import { ReactNode } from "react";
 import { Footer } from "../components/footer";
 
-export function PartnerApplicationApproved({
+export default function PartnerApplicationApproved({
   program = {
     name: "Acme",
     logo: DUB_WORDMARK,
     slug: "acme",
-    supportEmail: "support@acme.com",
   },
   partner = {
     name: "John Doe",
     email: "panic@thedis.co",
     payoutsEnabled: false,
   },
-  rewardDescription = "Earn 30% for each sale and again every month for 12 months.",
+  rewardDescription = "Earn 30% for each sale for 12 months.",
 }: {
   program: {
     name: string;
     logo: string | null;
     slug: string;
-    supportEmail?: string | null;
   };
   partner: {
     name: string;
@@ -115,9 +113,20 @@ export function PartnerApplicationApproved({
               in real-time.
             </Text>
 
+            <Text className="ml-1 text-sm leading-5 text-black">
+              4. Learn how to{" "}
+              <Link
+                href="https://dub.co/help/article/navigating-partner-program"
+                className="font-semibold text-black underline"
+              >
+                navigate the program dashboard
+              </Link>{" "}
+              and get the most out of your program.
+            </Text>
+
             {!partner.payoutsEnabled && (
               <Text className="ml-1 text-sm leading-5 text-black">
-                4. Connect your Stripe account to{" "}
+                5. Connect your Stripe account to{" "}
                 <Link
                   href="https://dub.co/help/article/receiving-payouts"
                   className="font-semibold text-black underline"
@@ -141,15 +150,13 @@ export function PartnerApplicationApproved({
 
             <Text className="text-sm leading-6 text-neutral-600">
               If you have any questions about the program please don't hesitate
-              to reach out to the <strong>{program.name}</strong> team
-              {program.supportEmail ? (
-                <Link href={`mailto:${program.supportEmail}`}>
-                  {" "}
-                  ({program.supportEmail})
-                </Link>
-              ) : (
-                ""
-              )}
+              to{" "}
+              <Link
+                href={`https://partners.dub.co/messages/${program.slug}`}
+                className="font-semibold text-neutral-700 underline underline-offset-2"
+              >
+                reach out to the {program.name} team ↗
+              </Link>
               .
             </Text>
 
@@ -158,12 +165,13 @@ export function PartnerApplicationApproved({
               success!
             </Text>
 
-            <Footer email={partner.email} />
+            <Footer
+              email={partner.email}
+              notificationSettingsUrl="https://partners.dub.co/settings/notifications"
+            />
           </Container>
         </Body>
       </Tailwind>
     </Html>
   );
 }
-
-export default PartnerApplicationApproved;

@@ -1,4 +1,7 @@
-import { updateCommissionSchema } from "@/lib/zod/schemas/commissions";
+import {
+  CommissionEnrichedSchema,
+  updateCommissionSchema,
+} from "@/lib/zod/schemas/commissions";
 import { ZodOpenApiOperationObject } from "zod-openapi";
 import { CommissionSchema } from "../../zod/schemas/commissions";
 import { openApiErrorResponses } from "../responses";
@@ -24,7 +27,7 @@ export const updateCommission: ZodOpenApiOperationObject = {
       description: "The updated commission.",
       content: {
         "application/json": {
-          schema: CommissionSchema,
+          schema: CommissionEnrichedSchema,
         },
       },
     },

@@ -61,7 +61,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     return {
       Partner: (
         <ConditionalLink
-          href={`/${slug}/program/partners?partnerId=${payout.partner.id}`}
+          href={`/${slug}/program/partners/${payout.partner.id}`}
           target="_blank"
         >
           <img
@@ -83,10 +83,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         </StatusBadge>
       ),
 
-      Total: currencyFormatter(payout.amount / 100, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      }),
+      Total: currencyFormatter(payout.amount / 100),
 
       ...(payout.invoiceId && {
         Invoice: (
@@ -165,11 +162,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         minSize: 100,
         size: 120,
         maxSize: 150,
-        cell: ({ row }) =>
-          currencyFormatter(row.original.earnings / 100, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          }),
+        cell: ({ row }) => currencyFormatter(row.original.earnings / 100),
       },
       // Menu
       {
@@ -207,8 +200,8 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="sticky top-0 z-10 flex items-start justify-between border-b border-neutral-200 bg-white p-6">
-        <Sheet.Title className="text-xl font-semibold">
+      <div className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-neutral-200 bg-white px-6 py-4">
+        <Sheet.Title className="text-lg font-semibold">
           {capitalize(payout.status)} payout
         </Sheet.Title>
         <Sheet.Close asChild>
@@ -258,12 +251,12 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         {payout.status === "pending" ? (
           <Button
             type="button"
-            variant="secondary"
-            text="Confirm all pending payouts"
+            text="Confirm payout"
             onClick={() => {
               queryParams({
                 set: {
                   confirmPayouts: "true",
+                  selectedPayoutId: payout.id,
                 },
                 del: "payoutId",
                 scroll: false,

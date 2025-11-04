@@ -1,5 +1,6 @@
 "use client";
 
+import { PartnerData } from "@/lib/actions/partners/create-program-application";
 import { onboardPartnerAction } from "@/lib/actions/partners/onboard-partner";
 import { onboardPartnerSchema } from "@/lib/zod/schemas/partners";
 import { CountryCombobox } from "@/ui/partners/country-combobox";
@@ -9,11 +10,13 @@ import {
   buttonVariants,
   FileUpload,
   ToggleGroup,
+  TooltipContent,
   useEnterSubmit,
+  useLocalStorage,
   useMediaQuery,
 } from "@dub/ui";
 import { cn } from "@dub/utils/src/functions";
-import { AnimatePresence, LayoutGroup, motion } from "framer-motion";
+import { AnimatePresence, LayoutGroup, motion } from "motion/react";
 import { useSession } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
@@ -65,14 +68,20 @@ export function OnboardingForm({
     },
   });
 
-  const { name, image, profileType } = watch();
+  const { name, image, country, profileType } = watch();
+
+  const [partnerData] = useLocalStorage<PartnerData | null>(
+    `application-form-partner-data`,
+    null,
+  );
 
   useEffect(() => {
     if (session?.user) {
-      !name && setValue("name", session.user.name ?? "");
+      !name && setValue("name", partnerData?.name ?? session.user.name ?? "");
       !image && setValue("image", session.user.image ?? "");
+      !country && setValue("country", partnerData?.country ?? "");
     }
-  }, [session?.user, name, image]);
+  }, [session?.user, name, image, country, partnerData]);
 
   // refresh the session after the Partner account is created
   useEffect(() => {
@@ -126,7 +135,6 @@ export function OnboardingForm({
           <Controller
             control={control}
             name="image"
-            rules={{ required: true }}
             render={({ field }) => (
               <FileUpload
                 accept="images"
@@ -171,12 +179,17 @@ export function OnboardingForm({
           render={({ field }) => (
             <CountryCombobox
               {...field}
-              disabledTooltip={
-                partner?.payoutsEnabledAt
-                  ? "Since you've already received payouts, you cannot change your country. Contact support if you need to update your country."
-                  : undefined
-              }
               error={errors.country ? true : false}
+              disabledTooltip={
+                partner?.payoutsEnabledAt ? (
+                  <TooltipContent
+                    title="Since you've already connected your bank account for payouts, you cannot change your profile country."
+                    cta="Contact support"
+                    href="https://dub.co/support"
+                    target="_blank"
+                  />
+                ) : undefined
+              }
             />
           )}
         />
@@ -237,6 +250,9 @@ export function OnboardingForm({
               )}
               indicatorClassName="bg-white"
             />
+            <p className="mt-1.5 text-xs text-neutral-500">
+              You can update this later in your partner profile settings.
+            </p>
           </div>
         </div>
 
@@ -272,9 +288,6 @@ export function OnboardingForm({
                     required: profileType === "company",
                   })}
                 />
-                <p className="mt-1.5 text-xs text-neutral-500">
-                  This cannot be changed once set.
-                </p>
               </label>
             </motion.div>
           )}

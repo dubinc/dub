@@ -22,6 +22,8 @@ export const CommissionTypeIcon = ({
   type: z.infer<typeof PartnerEarningsSchema>["type"];
   className?: string;
 }) => {
+  if (!type) return null;
+
   const { icon: Icon, className: iconClassName } = ICONS_MAP[type];
 
   return <Icon className={cn("size-4", iconClassName, className)} />;

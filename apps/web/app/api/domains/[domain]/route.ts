@@ -1,21 +1,27 @@
-import {
-  addDomainToVercel,
-  markDomainAsDeleted,
-  removeDomainFromVercel,
-  validateDomain,
-} from "@/lib/api/domains";
+import { addDomainToVercel } from "@/lib/api/domains/add-domain-vercel";
 import { getDomainOrThrow } from "@/lib/api/domains/get-domain-or-throw";
-import { queueDomainUpdate } from "@/lib/api/domains/queue";
+import { markDomainAsDeleted } from "@/lib/api/domains/mark-domain-deleted";
+import { queueDomainUpdate } from "@/lib/api/domains/queue-domain-update";
+import { removeDomainFromVercel } from "@/lib/api/domains/remove-domain-vercel";
 import { transformDomain } from "@/lib/api/domains/transform-domain";
+import { validateDomain } from "@/lib/api/domains/utils";
 import { DubApiError } from "@/lib/api/errors";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
+import { setRenewOption } from "@/lib/dynadot/set-renew-option";
 import { storage } from "@/lib/storage";
 import { updateDomainBodySchema } from "@/lib/zod/schemas/domains";
 import { prisma } from "@dub/prisma";
 import { combineWords, nanoid, R2_URL } from "@dub/utils";
+import { Prisma } from "@prisma/client";
 import { waitUntil } from "@vercel/functions";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+
+const updateDomainBodySchemaExtended = updateDomainBodySchema.extend({
+  deepviewData: z.string().nullish(),
+  autoRenew: z.boolean().nullish(),
+});
 
 // GET /api/domains/[domain] – get a workspace's domain
 export const GET = withWorkspace(
@@ -56,7 +62,11 @@ export const PATCH = withWorkspace(
       archived,
       assetLinks,
       appleAppSiteAssociation,
-    } = await updateDomainBodySchema.parseAsync(await parseRequestBody(req));
+      deepviewData,
+      autoRenew,
+    } = await updateDomainBodySchemaExtended.parseAsync(
+      await parseRequestBody(req),
+    );
 
     if (workspace.plan === "free") {
       if (
@@ -64,15 +74,17 @@ export const PATCH = withWorkspace(
         expiredUrl ||
         notFoundUrl ||
         assetLinks ||
-        appleAppSiteAssociation
+        appleAppSiteAssociation ||
+        deepviewData
       ) {
         const proFeaturesString = combineWords(
           [
             logo && "custom QR code logos",
             expiredUrl && "default expiration URLs",
             notFoundUrl && "not found URLs",
-            assetLinks && "asset links",
+            assetLinks && "Asset Links",
             appleAppSiteAssociation && "Apple App Site Association",
+            deepviewData && "Deep View",
           ].filter(Boolean) as string[],
         );
 
@@ -93,6 +105,7 @@ export const PATCH = withWorkspace(
           message: "You cannot update a Dub-provisioned domain.",
         });
       }
+
       const validDomain = await validateDomain(newDomain);
       if (validDomain.error && validDomain.code) {
         throw new DubApiError({
@@ -100,6 +113,7 @@ export const PATCH = withWorkspace(
           message: validDomain.error,
         });
       }
+
       const vercelResponse = await addDomainToVercel(newDomain);
       if (vercelResponse.error) {
         throw new DubApiError({
@@ -110,7 +124,10 @@ export const PATCH = withWorkspace(
     }
 
     const logoUploaded = logo
-      ? await storage.upload(`domains/${domainId}/logo_${nanoid(7)}`, logo)
+      ? await storage.upload({
+          key: `domains/${domainId}/logo_${nanoid(7)}`,
+          body: logo,
+        })
       : null;
 
     // If logo is null, we want to delete the logo (explicitly set in the request body to null or "")
@@ -127,21 +144,58 @@ export const PATCH = withWorkspace(
         expiredUrl,
         notFoundUrl,
         logo: deleteLogo ? null : logoUploaded?.url || oldLogo,
-        assetLinks: assetLinks ? JSON.parse(assetLinks) : null,
-        appleAppSiteAssociation: appleAppSiteAssociation
-          ? JSON.parse(appleAppSiteAssociation)
-          : null,
+        ...(assetLinks !== undefined && {
+          assetLinks: assetLinks ? JSON.parse(assetLinks) : Prisma.DbNull,
+        }),
+        ...(appleAppSiteAssociation !== undefined && {
+          appleAppSiteAssociation: appleAppSiteAssociation
+            ? JSON.parse(appleAppSiteAssociation)
+            : Prisma.DbNull,
+        }),
+        ...(deepviewData !== undefined && {
+          deepviewData: deepviewData ? JSON.parse(deepviewData) : Prisma.DbNull,
+        }),
       },
       include: {
         registeredDomain: true,
       },
     });
 
+    // Sync the autoRenew setting with the registered domain
+    if (registeredDomain && autoRenew !== undefined) {
+      const { autoRenewalDisabledAt } = registeredDomain;
+
+      const shouldUpdate =
+        (autoRenew === false && autoRenewalDisabledAt === null) ||
+        (autoRenew === true && autoRenewalDisabledAt !== null);
+
+      if (shouldUpdate) {
+        await prisma.registeredDomain.update({
+          where: {
+            domainId: domainId,
+          },
+          data: {
+            autoRenewalDisabledAt: autoRenew ? null : new Date(),
+          },
+        });
+
+        // only set the autoRenew option on Dynadot if it's been explicitly disabled
+        if (autoRenew === false) {
+          waitUntil(
+            setRenewOption({
+              domain,
+              autoRenew,
+            }),
+          );
+        }
+      }
+    }
+
     waitUntil(
       (async () => {
         // remove old logo
         if (oldLogo && (logo === null || logoUploaded)) {
-          await storage.delete(oldLogo.replace(`${R2_URL}/`, ""));
+          await storage.delete({ key: oldLogo.replace(`${R2_URL}/`, "") });
         }
 
         if (domainUpdated) {

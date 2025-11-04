@@ -16,7 +16,7 @@ import {
 } from "@react-email/components";
 import { Footer } from "../components/footer";
 
-export function NewSaleAlertProgramOwner({
+export default function NewSaleAlertProgramOwner({
   user = {
     name: "Brendan Urie",
     email: "panic@thedis.co",
@@ -35,7 +35,7 @@ export function NewSaleAlertProgramOwner({
     name: "Steven",
     email: "steven@dub.co",
   },
-  sale = {
+  commission = {
     amount: 1330,
     earnings: 399,
   },
@@ -58,7 +58,7 @@ export function NewSaleAlertProgramOwner({
     name: string | null;
     email: string | null;
   };
-  sale: {
+  commission: {
     amount: number;
     earnings: number;
   };
@@ -66,22 +66,12 @@ export function NewSaleAlertProgramOwner({
   const salesLink = `https://app.dub.co/${workspace.slug}/program/commissions?partnerId=${partner.id}`;
   const notificationPreferencesLink = `https://app.dub.co/${workspace.slug}/settings/notifications`;
 
-  const saleAmountInDollars = currencyFormatter(sale.amount / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const saleAmountInDollars = currencyFormatter(commission.amount / 100);
 
-  const earningsInDollars = currencyFormatter(sale.earnings / 100, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  const earningsInDollars = currencyFormatter(commission.earnings / 100);
 
   const profitInDollars = currencyFormatter(
-    (sale.amount - sale.earnings) / 100,
-    {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    },
+    (commission.amount - commission.earnings) / 100,
   );
 
   let formattedDueDate = "";
@@ -211,5 +201,3 @@ export function NewSaleAlertProgramOwner({
     </Html>
   );
 }
-
-export default NewSaleAlertProgramOwner;

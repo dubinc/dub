@@ -1,4 +1,4 @@
-import { ExpandedWorkspaceProps } from "@/lib/types";
+import { ExtendedWorkspaceProps } from "@/lib/types";
 import { PRO_PLAN, fetcher, getNextPlan } from "@dub/utils";
 import { useParams, useSearchParams } from "next/navigation";
 import useSWR, { SWRConfiguration } from "swr";
@@ -18,7 +18,7 @@ export default function useWorkspace({
     data: workspace,
     error,
     mutate,
-  } = useSWR<ExpandedWorkspaceProps>(
+  } = useSWR<ExtendedWorkspaceProps>(
     slug && `/api/workspaces/${slug}`,
     fetcher,
     {
@@ -37,6 +37,7 @@ export default function useWorkspace({
     exceededAI: workspace && workspace.aiUsage >= workspace.aiLimit,
     exceededDomains:
       workspace?.domains && workspace.domains.length >= workspace.domainsLimit,
+    isMegaWorkspace: workspace && workspace.totalLinks > 1_000_000,
     error,
     defaultFolderId: workspace?.users && workspace.users[0].defaultFolderId,
     mutate,

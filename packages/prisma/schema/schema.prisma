@@ -43,6 +43,9 @@ model User {
   folderAccessRequests  FolderAccessRequest[]
   utmTemplates          UtmTemplate[]
   payouts               Payout[]
+  bountySubmissions     BountySubmission[]
+  sentMessages          Message[]
+  partnerComments       PartnerComment[]
 
   @@index(source)
   @@index(defaultWorkspace)

@@ -1,5 +1,5 @@
 import { sendEmail } from "@dub/email";
-import { NewReferralSignup } from "@dub/email/templates/new-referral-signup";
+import NewReferralSignup from "@dub/email/templates/new-referral-signup";
 import { prisma } from "@dub/prisma";
 import { LeadCreatedEvent } from "dub/models/components";
 
@@ -55,7 +55,7 @@ export async function leadCreated(data: LeadCreatedEvent["data"]) {
       ({ user: owner }) =>
         owner.email &&
         sendEmail({
-          email: owner.email,
+          to: owner.email,
           subject: "Someone signed up for Dub via your referral link!",
           react: NewReferralSignup({
             email: owner.email,

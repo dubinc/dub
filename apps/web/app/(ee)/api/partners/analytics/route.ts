@@ -25,6 +25,7 @@ export const GET = withWorkspace(
       start,
       end,
       timezone,
+      query,
     } = partnerAnalyticsQuerySchema.parse(searchParams);
 
     if (!partnerId && !tenantId) {
@@ -50,13 +51,11 @@ export const GET = withWorkspace(
           },
       include: {
         program: true,
-        ...(groupBy === "top_links" && {
-          links: {
-            orderBy: {
-              clicks: "desc",
-            },
+        links: {
+          orderBy: {
+            clicks: "desc",
           },
-        }),
+        },
       },
     });
 
@@ -68,21 +67,21 @@ export const GET = withWorkspace(
     }
 
     const analytics = await getAnalytics({
-      programId,
-      partnerId,
-      tenantId,
+      event: "composite",
       groupBy,
+      linkIds: programEnrollment.links.map((link) => link.id),
       interval,
       start,
       end,
       timezone,
-      event: "composite",
+      query,
     });
 
     const { startDate, endDate, granularity } = getStartEndDates({
       interval,
       start,
       end,
+      timezone,
     });
 
     // Group by count

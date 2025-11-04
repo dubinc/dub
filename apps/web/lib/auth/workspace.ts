@@ -5,16 +5,18 @@ import { prisma } from "@dub/prisma";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { AxiomRequest, withAxiom } from "next-axiom";
+import { headers } from "next/headers";
 import {
   PermissionAction,
   getPermissionsByRole,
 } from "../api/rbac/permissions";
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
-import { normalizeWorkspaceId } from "../api/workspace-id";
+import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
 import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
+import { tokenCache } from "./token-cache";
 import { Session, getSession } from "./utils";
 
 interface WithWorkspaceHandler {
@@ -30,7 +32,7 @@ interface WithWorkspaceHandler {
     req: Request;
     params: Record<string, string>;
     searchParams: Record<string, string>;
-    headers?: Record<string, string>;
+    headers?: Headers;
     session: Session;
     permissions: PermissionAction[];
     workspace: WorkspaceWithUsers;
@@ -63,16 +65,18 @@ export const withWorkspace = (
   return withAxiom(
     async (
       req: AxiomRequest,
-      { params = {} }: { params: Record<string, string> | undefined },
+      { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
+      const params = (await initialParams) || {};
       const searchParams = getSearchParams(req.url);
 
       let apiKey: string | undefined = undefined;
-      let headers = {};
+      let requestHeaders = await headers();
+      let responseHeaders = new Headers();
       let workspace: WorkspaceWithUsers | undefined;
 
       try {
-        const authorizationHeader = req.headers.get("Authorization");
+        const authorizationHeader = requestHeaders.get("Authorization");
         if (authorizationHeader) {
           if (!authorizationHeader.includes("Bearer ")) {
             throw new DubApiError({
@@ -106,7 +110,7 @@ export const withWorkspace = (
         if (!idOrSlug && !isRestrictedToken) {
           // special case for anonymous link creation
           if (
-            req.headers.has("dub-anonymous-link-creation") &&
+            requestHeaders.has("dub-anonymous-link-creation") &&
             ["/links", "/api/links"].includes(req.nextUrl.pathname)
           ) {
             // @ts-expect-error
@@ -114,7 +118,7 @@ export const withWorkspace = (
               req,
               params,
               searchParams,
-              headers,
+              headers: responseHeaders,
             });
             // missing authorization header
           } else if (!authorizationHeader) {
@@ -142,34 +146,43 @@ export const withWorkspace = (
 
         if (apiKey) {
           const hashedKey = await hashToken(apiKey);
-          const prismaArgs = {
-            where: {
-              hashedKey,
-            },
-            select: {
-              ...(isRestrictedToken && {
-                scopes: true,
-                rateLimit: true,
-                projectId: true,
-                expires: true,
-                installationId: true,
-              }),
-              user: {
-                select: {
-                  id: true,
-                  name: true,
-                  email: true,
-                  isMachine: true,
+
+          const cachedToken = await tokenCache.get({
+            hashedKey,
+          });
+
+          if (!cachedToken) {
+            const prismaArgs = {
+              where: {
+                hashedKey,
+              },
+              select: {
+                ...(isRestrictedToken && {
+                  scopes: true,
+                  rateLimit: true,
+                  projectId: true,
+                  expires: true,
+                  installationId: true,
+                }),
+                user: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                    isMachine: true,
+                  },
                 },
               },
-            },
-          };
+            };
 
-          if (isRestrictedToken) {
-            token = await prisma.restrictedToken.findUnique(prismaArgs);
-          } else {
-            token = await prisma.token.findUnique(prismaArgs);
+            if (isRestrictedToken) {
+              token = await prisma.restrictedToken.findUnique(prismaArgs);
+            } else {
+              token = await prisma.token.findUnique(prismaArgs);
+            }
           }
+
+          token = cachedToken || token;
 
           if (!token || !token.user) {
             throw new DubApiError({
@@ -185,6 +198,15 @@ export const withWorkspace = (
             });
           }
 
+          if (!cachedToken) {
+            waitUntil(
+              tokenCache.set({
+                hashedKey,
+                token,
+              }),
+            );
+          }
+
           // Rate limit checks for API keys
           const rateLimit = token.rateLimit || 600;
 
@@ -193,12 +215,10 @@ export const withWorkspace = (
             "1 m",
           ).limit(apiKey);
 
-          headers = {
-            "Retry-After": reset.toString(),
-            "X-RateLimit-Limit": limit.toString(),
-            "X-RateLimit-Remaining": remaining.toString(),
-            "X-RateLimit-Reset": reset.toString(),
-          };
+          responseHeaders.set("Retry-After", reset.toString());
+          responseHeaders.set("X-RateLimit-Limit", limit.toString());
+          responseHeaders.set("X-RateLimit-Remaining", remaining.toString());
+          responseHeaders.set("X-RateLimit-Reset", reset.toString());
 
           if (!success) {
             throw new DubApiError({
@@ -213,21 +233,31 @@ export const withWorkspace = (
           }
 
           waitUntil(
-            // update last used time for the token
+            // update last used time for the token (only once every minute)
             (async () => {
-              const prismaArgs = {
-                where: {
-                  hashedKey,
-                },
-                data: {
-                  lastUsed: new Date(),
-                },
-              };
+              try {
+                const { success } = await ratelimit(1, "1 m").limit(
+                  `last-used-${hashedKey}`,
+                );
 
-              if (isRestrictedToken) {
-                await prisma.restrictedToken.update(prismaArgs);
-              } else {
-                await prisma.token.update(prismaArgs);
+                if (success) {
+                  const prismaArgs = {
+                    where: {
+                      hashedKey,
+                    },
+                    data: {
+                      lastUsed: new Date(),
+                    },
+                  };
+
+                  if (isRestrictedToken) {
+                    await prisma.restrictedToken.update(prismaArgs);
+                  } else {
+                    await prisma.token.update(prismaArgs);
+                  }
+                }
+              } catch (error) {
+                console.error(error);
               }
             })(),
           );
@@ -376,7 +406,7 @@ export const withWorkspace = (
           req,
           params,
           searchParams,
-          headers,
+          headers: responseHeaders,
           session,
           workspace,
           permissions,
@@ -399,7 +429,7 @@ export const withWorkspace = (
           })(),
         );
 
-        return handleAndReturnErrorResponse(error, headers);
+        return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
   );

@@ -1,137 +1,84 @@
 "use server";
 
+import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDiscountOrThrow } from "@/lib/api/partners/get-discount-or-throw";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
-import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
 import { updateDiscountSchema } from "@/lib/zod/schemas/discount";
+import { DEFAULT_PARTNER_GROUP } from "@/lib/zod/schemas/groups";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, deepEqual } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
+import { revalidatePath } from "next/cache";
 import { authActionClient } from "../safe-action";
 
 export const updateDiscountAction = authActionClient
   .schema(updateDiscountSchema)
   .action(async ({ parsedInput, ctx }) => {
-    const { workspace } = ctx;
-    const {
-      discountId,
-      partnerIds,
-      amount,
-      type,
-      maxDuration,
-      couponId,
-      couponTestId,
-    } = parsedInput;
+    const { workspace, user } = ctx;
+    const { discountId, couponTestId } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
-
-    const program = await getProgramOrThrow({
-      workspaceId: workspace.id,
-      programId,
-    });
 
     const discount = await getDiscountOrThrow({
       programId,
       discountId,
     });
 
-    if (partnerIds) {
-      const programEnrollments = await prisma.programEnrollment.findMany({
+    const { program, partnerGroup, ...updatedDiscount } =
+      await prisma.discount.update({
         where: {
-          programId,
-          partnerId: {
-            in: partnerIds,
-          },
+          id: discountId,
         },
-        select: {
-          id: true,
+        data: {
+          couponTestId: couponTestId || null,
+        },
+        include: {
+          program: true,
+          partnerGroup: true,
         },
       });
 
-      if (programEnrollments.length !== partnerIds.length) {
-        throw new Error("Invalid partner IDs provided.");
-      }
-    }
-
-    const isDefault = program.defaultDiscountId === discountId;
-
-    if (isDefault && partnerIds && partnerIds.length > 0) {
-      throw new Error("Default discount cannot be updated with partners.");
-    }
-
-    const updatedDiscount = await prisma.discount.update({
-      where: {
-        id: discountId,
-      },
-      data: {
-        amount,
-        type,
-        maxDuration,
-        couponId,
-        couponTestId,
-      },
-    });
-
-    if (partnerIds && partnerIds.length > 0) {
-      await prisma.$transaction([
-        // assign discountId to partners in partnerIds
-        prisma.programEnrollment.updateMany({
-          where: {
-            programId,
-            partnerId: {
-              in: partnerIds,
-            },
-          },
-          data: {
-            discountId,
-          },
-        }),
-
-        // remove discountId from partners not in partnerIds
-        prisma.programEnrollment.updateMany({
-          where: {
-            programId,
-            partnerId: {
-              notIn: partnerIds,
-            },
-            discountId,
-          },
-          data: {
-            discountId: null,
-          },
-        }),
-      ]);
-    }
-
     waitUntil(
       (async () => {
-        const shouldExpireCache = !deepEqual(
-          {
-            amount: discount.amount,
-            type: discount.type,
-            maxDuration: discount.maxDuration,
-          },
-          {
-            amount: updatedDiscount.amount,
-            type: updatedDiscount.type,
-            maxDuration: updatedDiscount.maxDuration,
-          },
-        );
+        const shouldExpireCache =
+          discount.couponTestId !== updatedDiscount.couponTestId;
 
-        if (!shouldExpireCache) {
-          return;
-        }
+        await Promise.allSettled([
+          ...(shouldExpireCache
+            ? [
+                qstash.publishJSON({
+                  url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
+                  body: {
+                    groupId: partnerGroup?.id,
+                  },
+                }),
 
-        qstash.publishJSON({
-          url: `${APP_DOMAIN_WITH_NGROK}/api/cron/links/invalidate-for-discounts`,
-          body: {
+                // we only cache default group pages for now so we need to invalidate them
+                ...(partnerGroup?.slug === DEFAULT_PARTNER_GROUP.slug
+                  ? [
+                      revalidatePath(`/partners.dub.co/${program.slug}`),
+                      revalidatePath(`/partners.dub.co/${program.slug}/apply`),
+                    ]
+                  : []),
+              ]
+            : []),
+
+          recordAuditLog({
+            workspaceId: workspace.id,
             programId,
-            discountId,
-            isDefault,
-            action: "discount-updated",
-          },
-        });
+            action: "discount.updated",
+            description: `Discount ${discount.id} updated`,
+            actor: user,
+            targets: [
+              {
+                type: "discount",
+                id: discount.id,
+                metadata: updatedDiscount,
+              },
+            ],
+          }),
+        ]);
       })(),
     );
   });

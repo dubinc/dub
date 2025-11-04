@@ -53,7 +53,7 @@ export const deleteProgramResourceAction = authActionClient
     // Delete file-based resources from storage
     if ((resourceType === "logo" || resourceType === "file") && resource.url) {
       try {
-        await storage.delete(resource.url.replace(`${R2_URL}/`, ""));
+        await storage.delete({ key: resource.url.replace(`${R2_URL}/`, "") });
       } catch (error) {
         console.error(
           "Failed to delete program resource file from storage:",

@@ -1,5 +1,3 @@
-import { sendEmail } from "@dub/email";
-import PartnerPayoutSent from "@dub/email/templates/partner-payout-sent";
 import { prisma } from "@dub/prisma";
 import { payoutsItemSchema } from "./utils";
 
@@ -47,7 +45,7 @@ export async function payoutsItemSucceeded(event: any) {
       data: {
         paypalTransferId: payoutItemId,
         status: "completed",
-        paidAt: new Date(),
+        paidAt: payout.paidAt ?? new Date(), // preserve the paidAt if it already exists
       },
     }),
 
@@ -59,22 +57,5 @@ export async function payoutsItemSucceeded(event: any) {
         status: "paid",
       },
     }),
-
-    payout.partner.email &&
-      sendEmail({
-        subject: "You've been paid!",
-        email: payout.partner.email,
-        react: PartnerPayoutSent({
-          email: payout.partner.email,
-          program: payout.program,
-          payout: {
-            id: payout.id,
-            amount: payout.amount,
-            startDate: payout.periodStart,
-            endDate: payout.periodEnd,
-          },
-        }),
-        variant: "notifications",
-      }),
   ]);
 }

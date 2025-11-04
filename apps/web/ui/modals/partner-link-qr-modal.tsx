@@ -18,7 +18,7 @@ import {
 } from "@dub/ui";
 import { Check, Copy, Download, Hyperlink, Photo } from "@dub/ui/icons";
 import { API_DOMAIN, linkConstructor } from "@dub/utils";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion } from "motion/react";
 import {
   Dispatch,
   PropsWithChildren,
@@ -50,7 +50,6 @@ export type QRCodeDesign = {
 
 type PartnerLinkQRModalProps = {
   props: QRLinkProps;
-  programId: string;
   onSave?: (data: QRCodeDesign) => void;
 };
 
@@ -73,7 +72,6 @@ function PartnerLinkQRModal(
 
 function PartnerLinkQRModalInner({
   props,
-  programId,
   onSave,
   setShowLinkQRModal,
 }: {
@@ -91,7 +89,7 @@ function PartnerLinkQRModalInner({
   }, [props.key, props.domain]);
 
   const [dataPersisted, setDataPersisted] = useLocalStorage<QRCodeDesign>(
-    `qr-code-design-program-${programId}`,
+    `qr-code-design-program-${programEnrollment?.program?.id}`,
     {
       fgColor: "#000000",
       logo: logo ?? undefined,
