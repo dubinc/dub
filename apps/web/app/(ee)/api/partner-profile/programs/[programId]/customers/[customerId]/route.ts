@@ -90,7 +90,7 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
   return NextResponse.json(
     PartnerProfileCustomerSchema.extend({
-      email: z.string(),
+      ...(customerDataSharingEnabledAt && { name: z.string().nullish() }),
     }).parse({
       ...transformCustomer({
         ...customer,
