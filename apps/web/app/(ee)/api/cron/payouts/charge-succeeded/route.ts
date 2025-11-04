@@ -13,6 +13,7 @@ export const maxDuration = 600; // This function can run for a maximum of 10 min
 const payloadSchema = z.object({
   invoiceId: z.string(),
 });
+
 // POST /api/cron/payouts/charge-succeeded
 // This route is used to process the charge-succeeded event from Stripe.
 // We're intentionally offloading this to a cron job so we can return a 200 to Stripe immediately.
