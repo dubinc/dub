@@ -31,7 +31,6 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
         },
       },
     },
-    take: 100,
   });
 
   if (payouts.length === 0) {
@@ -74,5 +73,5 @@ export async function sendPaypalPayouts({ invoiceId }: { invoiceId: string }) {
       })),
   );
 
-  console.log("Resend batch emails sent", batchEmails);
+  console.log("Resend batch emails sent", JSON.stringify(batchEmails, null, 2));
 }

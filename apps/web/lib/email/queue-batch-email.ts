@@ -12,7 +12,7 @@ type QueueBatchProps<TTemplate extends (props: any) => any> =
 const BATCH_SIZE = 100;
 
 const queue = qstash.queue({
-  queueName: "batch-email",
+  queueName: "send-batch-email",
 });
 
 export async function queueBatchEmail<TTemplate extends (props: any) => any>(
@@ -27,10 +27,6 @@ export async function queueBatchEmail<TTemplate extends (props: any) => any>(
   }
 
   try {
-    await queue.upsert({
-      parallelism: 10,
-    });
-
     // Chunk emails into batches of BATCH_SIZE
     const batches = chunk(emails, BATCH_SIZE);
     const messageIds: string[] = [];
