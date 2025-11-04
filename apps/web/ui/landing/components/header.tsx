@@ -11,6 +11,7 @@ import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.i
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useCallback, useEffect } from "react";
+import { scrollToBuilder } from '../helpers/scrollToBuilder.tsx';
 
 interface IHeaderProps {
   sessionId: string;
@@ -47,22 +48,21 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
         sessionId,
       });
 
-      qrGenerationBlock.scrollIntoView({ behavior: "smooth" });
+      scrollToBuilder();
       return;
     }
     router.push("/?start=true");
   }, [router, sessionId]);
 
-  const scrollToBuilder = searchParams.get("start");
   useEffect(() => {
-    if (scrollToBuilder) {
+    if (searchParams.get("start")) {
       setShowAuthModal(false);
       handleScrollToQRGenerationBlock();
       queryParams({
         del: ["start"],
       });
     }
-  }, [scrollToBuilder, handleScrollToQRGenerationBlock]);
+  }, [searchParams.get("start"), handleScrollToQRGenerationBlock]);
 
   const handleOpenLogin = useCallback(() => {
     showModal("login");

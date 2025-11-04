@@ -6,6 +6,7 @@ import { FC, useCallback, useRef, useState } from "react";
 import { trackClientEvents } from "../../core/integration/analytic";
 import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 import { EQRType } from "../qr-builder/constants/get-qr-config.ts";
+import { scrollToBuilder } from './helpers/scrollToBuilder.tsx';
 
 interface ILandingSectionsClientProps {
   sessionId: string;
@@ -14,7 +15,6 @@ interface ILandingSectionsClientProps {
 export const LandingSectionsClient: FC<
   Readonly<ILandingSectionsClientProps>
 > = ({ sessionId }) => {
-  const qrGenerationBlockRef = useRef<HTMLDivElement>(null);
   const [typeToScrollTo, setTypeToScrollTo] = useState<EQRType | null>(null);
   const [featureToOpen, setFeatureToOpen] = useState<string | null>(null);
 
@@ -35,11 +35,8 @@ export const LandingSectionsClient: FC<
     });
 
     setTypeToScrollTo(scrollTo || null);
-
-    qrGenerationBlockRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
+    
+    setTimeout(scrollToBuilder);
   };
 
   const handleFeatureClick = useCallback((feature: string) => {
@@ -59,7 +56,6 @@ export const LandingSectionsClient: FC<
       {/* 1. New Builder */}
       <section
         id="qr-generation-block"
-        ref={qrGenerationBlockRef}
         className="bg-primary-100 w-full px-3 py-6 lg:py-14 min-h-[100dvh] md:min-h-0 flex items-center justify-center"
       >
         <QRTabs
