@@ -1,19 +1,26 @@
 "use client";
 
 import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
+import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
+import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
 import { partnerPayoutSettingsSchema } from "@/lib/zod/schemas/partners";
 import { ConnectPayoutButton } from "@/ui/partners/connect-payout-button";
 import { PayoutMethodsDropdown } from "@/ui/partners/payout-methods-dropdown";
 import {
+  BlurImage,
   Button,
   InfoTooltip,
   Sheet,
   SimpleTooltipContent,
   useScrollProgress,
 } from "@dub/ui";
-import { CONNECT_SUPPORTED_COUNTRIES, COUNTRIES } from "@dub/utils";
+import {
+  CONNECT_SUPPORTED_COUNTRIES,
+  COUNTRIES,
+  OG_AVATAR_URL,
+} from "@dub/utils";
 import { COUNTRY_CURRENCY_CODES } from "@dub/utils/src";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
@@ -39,6 +46,30 @@ type PartnerPayoutSettingsFormData = z.infer<
   typeof partnerPayoutSettingsSchema
 >;
 
+function useExternalPayoutEnrollments() {
+  const { partner } = usePartnerProfile();
+  const { programEnrollments } = useProgramEnrollments();
+
+  const externalPayoutEnrollments = useMemo(() => {
+    if (!programEnrollments || !partner) return [];
+
+    return programEnrollments.filter((enrollment) =>
+      isPayoutExternalForProgram({
+        program: {
+          payoutMode: enrollment.program.payoutMode,
+        },
+        partner: {
+          payoutsEnabledAt: partner.payoutsEnabledAt,
+        },
+      }),
+    );
+  }, [programEnrollments, partner]);
+
+  return {
+    externalPayoutEnrollments,
+  };
+}
+
 function PartnerPayoutSettingsSheet(props: PartnerPayoutSettingsSheetProps) {
   const { showPartnerPayoutSettingsSheet, setShowPartnerPayoutSettingsSheet } =
     props;
@@ -57,12 +88,11 @@ function PartnerPayoutSettingsSheetInner({
   setShowPartnerPayoutSettingsSheet,
 }: PartnerPayoutSettingsSheetProps) {
   const { partner } = usePartnerProfile();
+  const { externalPayoutEnrollments } = useExternalPayoutEnrollments();
 
   const {
     register,
     handleSubmit,
-    watch,
-    setValue,
     formState: { isDirty },
   } = useForm<PartnerPayoutSettingsFormData>({
     defaultValues: {
@@ -119,10 +149,16 @@ function PartnerPayoutSettingsSheetInner({
           <div className="divide-y divide-neutral-200">
             {/* Connected payout account */}
             <div className="space-y-3 pb-6">
-              <div>
+              <div className="flex items-center justify-between gap-2">
                 <h4 className="text-base font-semibold leading-6 text-neutral-900">
                   Connected payout account
                 </h4>
+                {externalPayoutEnrollments &&
+                  externalPayoutEnrollments.length > 0 && (
+                    <span className="rounded-md border border-neutral-200 bg-neutral-200 px-1 py-0.5 text-xs font-semibold text-neutral-700">
+                      For all other programs
+                    </span>
+                  )}
               </div>
 
               {!partner?.payoutsEnabledAt ? (
@@ -158,6 +194,9 @@ function PartnerPayoutSettingsSheetInner({
                   </p>
                 )}
             </div>
+
+            {/* Connected external accounts */}
+            <ConnectedExternalAccounts />
 
             {/* Invoice details */}
             <div className="space-y-6 py-6">
@@ -231,6 +270,64 @@ function PartnerPayoutSettingsSheetInner({
         />
       </div>
     </form>
+  );
+}
+
+function ConnectedExternalAccounts() {
+  const { externalPayoutEnrollments } = useExternalPayoutEnrollments();
+
+  if (!externalPayoutEnrollments || externalPayoutEnrollments.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="space-y-3 py-6">
+      <div>
+        <h4 className="text-content-emphasis text-base font-semibold leading-6">
+          Connected external accounts
+        </h4>
+      </div>
+
+      <div className="space-y-2">
+        {externalPayoutEnrollments.map((enrollment) => (
+          <div
+            key={enrollment.programId}
+            className="flex h-12 items-center justify-between gap-4 rounded-lg border border-neutral-200 bg-white px-3 py-2"
+          >
+            <div className="flex min-w-0 flex-1 items-center gap-2">
+              <BlurImage
+                width={24}
+                height={24}
+                src={
+                  enrollment.program.logo ||
+                  `${OG_AVATAR_URL}${enrollment.program.name}`
+                }
+                alt={enrollment.program.name}
+                className="size-6 shrink-0 rounded-full"
+              />
+              <span className="text-content-emphasis truncate text-sm font-semibold">
+                {enrollment.program.name}
+              </span>
+            </div>
+            <Link
+              href={`/programs/${enrollment.program.slug}`}
+              className="shrink-0"
+              target="_blank"
+            >
+              <Button
+                variant="secondary"
+                text="View program"
+                className="border-border-subtle h-6 rounded-md px-2 py-3.5 text-sm"
+              />
+            </Link>
+          </div>
+        ))}
+      </div>
+
+      <p className="text-content-subtle text-xs font-normal leading-4">
+        Payout methods for these programs cannot be changed.
+      </p>
+    </div>
   );
 }
 

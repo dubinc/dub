@@ -1,8 +1,10 @@
 "use client";
 
+import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
+import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
@@ -25,6 +27,7 @@ import {
   formatDate,
   formatPeriod,
 } from "@dub/utils";
+import { CircleArrowRight } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { PayoutDetailsSheet } from "./payout-details-sheet";
@@ -109,11 +112,7 @@ export function PayoutTable() {
         header: "Amount",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            <AmountRowItem
-              amount={row.original.amount}
-              status={row.original.status}
-              minPayoutAmount={row.original.program.minPayoutAmount}
-            />
+            <AmountRowItem payout={row.original} />
 
             {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(
               row.original.status,
@@ -224,24 +223,34 @@ export function PayoutTable() {
   );
 }
 
-function AmountRowItem({
-  amount,
-  status,
-  minPayoutAmount,
-}: {
-  amount: number;
-  status: PayoutStatus;
-  minPayoutAmount: number;
-}) {
-  const display = currencyFormatter(amount / 100);
+function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
+  const { partner, loading: partnerLoading } = usePartnerProfile();
 
-  if (status === PayoutStatus.pending && amount < minPayoutAmount) {
+  if (partnerLoading || !partner) {
+    return null;
+  }
+
+  const isExternal = isPayoutExternalForProgram({
+    program: {
+      payoutMode: payout.program.payoutMode,
+    },
+    partner: {
+      payoutsEnabledAt: partner?.payoutsEnabledAt,
+    },
+  });
+
+  const display = currencyFormatter(payout.amount / 100);
+
+  if (
+    payout.status === PayoutStatus.pending &&
+    payout.amount < payout.program.minPayoutAmount
+  ) {
     return (
       <Tooltip
         content={
           <SimpleTooltipContent
             title={`This program's minimum payout amount is ${currencyFormatter(
-              minPayoutAmount / 100,
+              payout.program.minPayoutAmount / 100,
             )}. This payout will be accrued and processed during the next payout period.`}
             cta="Learn more."
             href="https://dub.co/help/article/receiving-payouts"
@@ -255,5 +264,20 @@ function AmountRowItem({
     );
   }
 
-  return display;
+  return (
+    <div className="flex items-center gap-1.5">
+      {display}
+      {isExternal && (
+        <Tooltip
+          content={
+            payout.status === PayoutStatus.pending
+              ? `This payout will be made externally through your ${payout.program.name} account after approval.`
+              : `This payout was made externally through your ${payout.program.name} account.`
+          }
+        >
+          <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
+        </Tooltip>
+      )}
+    </div>
+  );
 }

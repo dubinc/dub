@@ -90,6 +90,7 @@ export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
       slug: true,
       logo: true,
       minPayoutAmount: true,
+      payoutMode: true,
     }),
   }),
 );
