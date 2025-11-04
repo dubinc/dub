@@ -87,9 +87,7 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
-    // TODO:
-    // Do this only when there are external payouts exists in the current invoice
-    if (program.payoutMode !== "internal") {
+    if (program.payoutMode === "external") {
       const webhooks = await getWebhooks({
         workspaceId: workspace.id,
         triggers: ["payout.confirmed"],
@@ -97,7 +95,7 @@ export const confirmPayoutsAction = authActionClient
 
       if (webhooks.length === 0) {
         throw new Error(
-          `A webhook need to be set up receive payout confirmation notification for external payouts before you can confirm payouts.`,
+          "A webhook need to be set up receive payout confirmation notification for external payouts before you can confirm payouts.",
         );
       }
     }
