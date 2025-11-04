@@ -30,6 +30,8 @@ export const PATCH = withWorkspace(
 
     const domainChanged = slug && slug !== emailDomain.slug;
 
+    let resendDomainId: string | undefined;
+
     if (domainChanged) {
       if (!resend) {
         throw new DubApiError({
@@ -53,18 +55,10 @@ export const PATCH = withWorkspace(
         });
       }
 
+      resendDomainId = resendDomain.id;
+
       waitUntil(
         (async () => {
-          await prisma.emailDomain.update({
-            where: {
-              id: emailDomain.id,
-            },
-            data: {
-              resendDomainId: resendDomain.id,
-              status: "pending",
-            },
-          });
-
           // Verify an existing domain
           const { error: resendVerifyError } = await resend.domains.verify(
             resendDomain.id,
@@ -94,16 +88,20 @@ export const PATCH = withWorkspace(
     }
 
     try {
-      await prisma.emailDomain.update({
+      const updatedEmailDomain = await prisma.emailDomain.update({
         where: {
           id: emailDomain.id,
         },
         data: {
           slug,
+          ...(domainChanged && {
+            resendDomainId,
+            status: "pending",
+          }),
         },
       });
 
-      return NextResponse.json(EmailDomainSchema.parse(emailDomain));
+      return NextResponse.json(EmailDomainSchema.parse(updatedEmailDomain));
     } catch (error) {
       console.error(error);
 
