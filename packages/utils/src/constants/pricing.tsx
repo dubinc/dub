@@ -110,7 +110,7 @@ const ADVANCED_TIER_PRICE_IDS = {
   2: [
     // TODO: Add prod price IDs here
     "price_1SO0bmAlJJEpqkPVmV617aoL", // yearly (test)
-    "price_1SO0N2AlJJEpqkPVJUa43N6P", // monthly (test)
+    "price_1SO0bOAlJJEpqkPV0shPp7Og", // monthly (test)
   ],
   3: [
     // TODO: Add prod price IDs here
