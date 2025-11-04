@@ -3,7 +3,7 @@ import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import Stripe from "stripe";
 
 const queue = qstash.queue({
-  queueName: "stripe-balance-available",
+  queueName: "withdraw-stripe-balance",
 });
 
 export async function balanceAvailable(event: Stripe.Event) {
@@ -12,10 +12,6 @@ export async function balanceAvailable(event: Stripe.Event) {
   if (!stripeAccount) {
     return "No stripeConnectId found in event. Skipping...";
   }
-
-  await queue.upsert({
-    parallelism: 10,
-  });
 
   const response = await queue.enqueueJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/balance-available`,
