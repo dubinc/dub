@@ -1,6 +1,8 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
 import { isPayoutExternalForProgram } from "@/lib/api/payouts/is-payout-external-for-program";
+import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
+import { qstash } from "@/lib/cron";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
@@ -15,12 +17,10 @@ import { stripe } from "@/lib/stripe";
 import { createFxQuote } from "@/lib/stripe/create-fx-quote";
 import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { PlanProps } from "@/lib/types";
-import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
-import { currencyFormatter, log } from "@dub/utils";
-import { Program, Project } from "@prisma/client";
+import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
+import { Payout, Program, Project } from "@prisma/client";
 
 const paymentMethodToCurrency = {
   sepa_debit: "eur",
@@ -72,19 +72,7 @@ export async function processPayouts({
         : excludedPayoutIds && excludedPayoutIds.length > 0
           ? { id: { notIn: excludedPayoutIds } }
           : {}),
-      programId: program.id,
-      status: "pending",
-      invoiceId: null,
-      amount: {
-        gte: program.minPayoutAmount,
-      },
-      ...(program.payoutMode === "internal" && {
-        partner: {
-          payoutsEnabledAt: {
-            not: null,
-          },
-        },
-      }),
+      ...getPayoutEligibilityFilter(program),
       ...(cutoffPeriodValue && {
         OR: [
           {
@@ -125,25 +113,27 @@ export async function processPayouts({
     return;
   }
 
-  let externalPayouts = payouts.filter(({ partner }) =>
-    isPayoutExternalForProgram({
-      program,
-      partner,
-    }),
-  );
+  let externalPayouts: Pick<Payout, "id" | "amount">[] = [];
+  let internalPayouts: Pick<Payout, "id" | "amount">[] = [];
 
-  const internalPayouts = payouts.filter(
-    ({ partner }) =>
-      !isPayoutExternalForProgram({
-        program,
-        partner,
-      }),
-  );
-
-  const externalPayoutAmount = externalPayouts.reduce(
-    (total, payout) => total + payout.amount,
-    0,
-  );
+  if (program.payoutMode === "internal") {
+    internalPayouts = payouts;
+  } else if (program.payoutMode === "external") {
+    externalPayouts = payouts;
+  } else if (program.payoutMode === "hybrid") {
+    payouts.forEach((payout) => {
+      if (
+        isPayoutExternalForProgram({
+          program,
+          partner: payout.partner,
+        })
+      ) {
+        externalPayouts.push(payout);
+      } else {
+        internalPayouts.push(payout);
+      }
+    });
+  }
 
   // This is the total amount of payouts that will be processed (included external and internal payouts)
   const totalPayoutAmount = payouts.reduce(
@@ -151,11 +141,25 @@ export async function processPayouts({
     0,
   );
 
+  const externalPayoutAmount = externalPayouts.reduce(
+    (total, payout) => total + payout.amount,
+    0,
+  );
+
   console.log({
-    totalPayoutAmount,
-    externalPayoutAmount,
-    internalPayouts: internalPayouts.map((p) => p.id),
-    externalPayouts: externalPayouts.map((p) => p.id),
+    internalPayouts: internalPayouts.map((p) => {
+      return {
+        id: p.id,
+        amount: p.amount,
+      };
+    }),
+
+    externalPayouts: externalPayouts.map((p) => {
+      return {
+        id: p.id,
+        amount: p.amount,
+      };
+    }),
   });
 
   if (workspace.payoutsUsage + totalPayoutAmount > workspace.payoutsLimit) {
@@ -193,8 +197,6 @@ export async function processPayouts({
     invoice.paymentMethod === "ach_fast" ? FAST_ACH_FEE_CENTS : 0;
   const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
   const totalFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
-
-  // Charges are still apply for external payouts
   const total = totalPayoutAmount + totalFee;
   let convertedTotal = total - externalPayoutAmount;
 
@@ -235,26 +237,31 @@ export async function processPayouts({
     },
   });
 
-  await stripe.paymentIntents.create({
-    amount: convertedTotal,
-    customer: workspace.stripeId!,
-    payment_method_types: [paymentMethod.type],
-    payment_method: paymentMethod.id,
-    ...(paymentMethod.type === "us_bank_account" && {
-      payment_method_options: {
-        us_bank_account: {
-          preferred_settlement_speed:
-            invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+  await stripe.paymentIntents.create(
+    {
+      amount: convertedTotal,
+      customer: workspace.stripeId!,
+      payment_method_types: [paymentMethod.type],
+      payment_method: paymentMethod.id,
+      ...(paymentMethod.type === "us_bank_account" && {
+        payment_method_options: {
+          us_bank_account: {
+            preferred_settlement_speed:
+              invoice.paymentMethod === "ach_fast" ? "fastest" : "standard",
+          },
         },
-      },
-    }),
-    currency,
-    confirmation_method: "automatic",
-    confirm: true,
-    transfer_group: invoice.id,
-    statement_descriptor: "Dub Partners",
-    description: `Dub Partners payout invoice (${invoice.id})`,
-  });
+      }),
+      currency,
+      confirmation_method: "automatic",
+      confirm: true,
+      transfer_group: invoice.id,
+      statement_descriptor: "Dub Partners",
+      description: `Dub Partners payout invoice (${invoice.id})`,
+    },
+    {
+      idempotencyKey: `payout-processing/${invoice.id}`,
+    },
+  );
 
   // Mark internal payouts as processing
   if (internalPayouts.length > 0) {
@@ -382,44 +389,19 @@ export async function processPayouts({
 
   // Send the webhooks for the external payouts
   if (externalPayouts.length > 0) {
-    const updatedExternalPayouts = await prisma.payout.findMany({
-      where: {
-        id: {
-          in: externalPayouts.map((p) => p.id),
-        },
+    const qstashResponse = await qstash.publishJSON({
+      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-webhooks`,
+      body: {
+        invoiceId: invoice.id,
+        externalPayoutIds: externalPayouts.map((p) => p.id),
       },
-      include: {
-        partner: {
-          include: {
-            programs: {
-              where: {
-                programId: program.id,
-              },
-            },
-          },
-        },
-      },
+      deduplicationId: `publish-payout-confirmed-webhooks-${invoice.id}`,
     });
 
-    // TODO(kiran):
-    // This won't scale well if we have a lot of external payouts
-    // Should move to a dedicated job to send the webhooks for external payouts
-    for (const externalPayout of updatedExternalPayouts) {
-      const { partner, ...payout } = externalPayout;
-      const { programs, ...partnerInfo } = partner;
-
-      await sendWorkspaceWebhook({
-        workspace,
-        trigger: "payout.confirmed",
-        data: payoutWebhookEventSchema.parse({
-          ...payout,
-          external: true,
-          partner: {
-            ...partnerInfo,
-            ...programs[0],
-          },
-        }),
-      });
+    if (qstashResponse.messageId) {
+      console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+    } else {
+      console.error("Error sending message to Qstash", qstashResponse);
     }
   }
 }
