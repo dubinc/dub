@@ -1,17 +1,18 @@
 "use client";
 
-import { EQRType, QR_TYPES } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { Button, useMediaQuery } from "@dub/ui";
-import { cn } from "@dub/utils";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  EQRType,
+  QR_TYPES,
+} from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import { Icon } from "@iconify/react";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
-import * as Tabs from "@radix-ui/react-tabs";
-import { Heading, Text } from "@radix-ui/themes";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
+import Image from "next/image";
 import { FC, useState } from "react";
-import { QrTabsDetailedImage } from "./components/qr-tabs-detailed-image.tsx";
-import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title.tsx";
+import { QrTabsDetailedTitle } from "./components/qr-tabs-detailed-title";
 
 interface IQrTabsDetailedProps {
   sessionId: string;
@@ -22,8 +23,6 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
   sessionId,
   handleScrollButtonClick,
 }) => {
-  const { isMobile } = useMediaQuery();
-
   const [activeTab, setActiveTab] = useState<string>("website");
 
   const onQrTypeClick = (newActiveTab: string) => {
@@ -42,114 +41,93 @@ export const QrTabsDetailed: FC<IQrTabsDetailedProps> = ({
   };
 
   return (
-    <section className="bg-primary-100 w-full px-3 py-10 lg:py-14">
-      <div className="mx-auto flex max-w-[1172px] flex-col items-center justify-center gap-6 lg:gap-10">
-        <div className="flex flex-col items-center justify-center gap-4 md:gap-6">
-          <QrTabsDetailedTitle />
-          <Text
-            align={{ initial: "left", md: "center" }}
-            size={{ initial: "4", md: "5" }}
-            className="text-neutral-300"
-          >
-            From websites and social media to PDFs, business cards, and Wi-Fi
-            access—there’s no limit to <br /> what you can create a QR code for.
-            GetQR offers every type of QR code you need, all in one place.
-          </Text>
+    <section className="py-6 lg:py-14">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {/* Header with Title */}
+        <div className="mb-8 flex items-center justify-center text-center">
+          <div className="flex max-w-3xl flex-col items-center justify-center gap-3">
+            <QrTabsDetailedTitle />
+            <p className="text-muted-foreground text-center max-w-4xl text-base md:text-lg">
+              All QR formats in one platform built for scale and precision.
+            </p>
+          </div>
         </div>
-        <Tabs.Root
+
+        <Tabs
           value={activeTab}
           onValueChange={onQrTypeClick}
-          className="flex w-full flex-col items-center justify-center gap-6"
+          className="w-full"
         >
-          <ScrollArea.Root
-            type={isMobile ? "always" : undefined}
-            className="w-full p-0"
-          >
-            <ScrollArea.Viewport className="overflow-x-scroll">
-              <Tabs.List className="flex flex-row justify-between gap-4">
-                {QR_TYPES.map((type, idx) => (
-                  <Tabs.Trigger
+          <ScrollArea.Root className="w-full">
+            <ScrollArea.Viewport className="w-full overflow-x-auto pt-3">
+              <TabsList className="mb-4 flex h-auto w-max min-w-full justify-start gap-3 bg-transparent p-0 sm:gap-4">
+                {QR_TYPES.map((type) => (
+                  <TabsTrigger
                     key={type.id}
                     value={type.id}
-                    className={cn(
-                      "bg-primary-200 text-neutral group flex h-24 w-24 flex-col items-center justify-center gap-2 rounded-lg border border-transparent px-2 py-3 transition-colors md:h-[104px] md:w-[116px] md:gap-3",
-                      "hover:bg-secondary-100 hover:text-secondary",
-                      "data-[state=active]:bg-secondary-100 data-[state=active]:text-secondary",
-                    )}
+                    className="bg-card hover:border-primary/30 data-[state=active]:border-primary data-[state=active]:bg-primary/5 group relative flex h-24 w-24 flex-shrink-0 flex-col items-center justify-center gap-2 overflow-hidden rounded-xl border-2 border-transparent px-3 py-4 shadow-sm transition-all duration-300 data-[state=active]:shadow-md sm:h-28 sm:w-28"
                   >
                     <Icon
                       icon={type.icon}
-                      className={cn(
-                        "h-7 w-7 flex-none",
-                        idx === 2
-                          ? "group-hover:[&>path]:fill-secondary [&>path]:fill-neutral-200"
-                          : "group-hover:[&>g]:stroke-secondary group-hover:[&>path]:stroke-secondary [&>g]:stroke-neutral-200 [&>path]:stroke-neutral-200",
-                        activeTab === type.id &&
-                          (idx === 2
-                            ? "[&>path]:fill-secondary group-hover:[&>path]:fill-secondary"
-                            : "[&>g]:stroke-secondary group-hover:[&>g]:stroke-secondary [&>path]:stroke-secondary group-hover:[&>path]:stroke-secondary"),
-                      )}
+                      className="text-muted-foreground group-data-[state=active]:text-primary relative z-10 h-7 w-7 transition-colors duration-300 sm:h-8 sm:w-8"
                     />
-                    <span className="text-wrap text-xs font-normal">
+                    <span className="text-muted-foreground group-data-[state=active]:text-primary relative z-10 text-center text-xs font-medium transition-colors duration-300">
                       {type.label}
                     </span>
-                  </Tabs.Trigger>
+                  </TabsTrigger>
                 ))}
-              </Tabs.List>
+              </TabsList>
             </ScrollArea.Viewport>
             <ScrollArea.Scrollbar
               orientation="horizontal"
-              className="!bg-border-100 !-bottom-[14%] !h-1 rounded-[3px] border border-[#00002D17]"
+              className="bg-muted/50 flex h-2 translate-y-1 touch-none select-none flex-col transition-colors"
             >
-              <ScrollArea.Thumb className="!bg-primary !h-full rounded-lg" />
+              <ScrollArea.Thumb className="bg-primary/50 hover:bg-primary/70 relative flex-1 rounded-full transition-colors" />
             </ScrollArea.Scrollbar>
           </ScrollArea.Root>
 
-          {QR_TYPES.map((type, idx) => {
-            return (
-              <Tabs.Content
-                key={type.id}
-                value={type.id}
-                className={cn("w-full focus:outline-none md:mt-0")}
-              >
-                <div className="flex w-full flex-col items-center justify-start gap-[14px] rounded-lg md:flex-row md:gap-8">
-                  <div className="bg-border-100 relative h-[413px] w-full max-w-[534px] flex-shrink-0 overflow-hidden rounded-lg">
-                    <QrTabsDetailedImage
-                      imgSrc={type.img}
-                      {...(!isMobile && { width: 270, height: 420 })}
-                      className={idx === 1 ? "top-[61.5%] md:top-[57%]" : ""}
-                    />
-                  </div>
-                  <div className="flex max-w-[520px] flex-col items-start justify-start gap-3 md:gap-4">
-                    <div className="flex flex-col items-start justify-start gap-2 md:gap-3">
-                      <Heading
-                        as="h3"
-                        size="4"
-                        align="left"
-                        weight="medium"
-                        className="text-neutral"
-                      >
-                        {type.label}
-                      </Heading>
-                      <Text size="3" align="left" className="text-neutral-300">
-                        {type.content}
-                      </Text>
-                    </div>
+          {QR_TYPES.map((type) => (
+            <TabsContent key={type.id} value={type.id}>
+              <div className="flex flex-col items-center justify-between gap-8 lg:flex-row lg:gap-12">
+                {/* Left side - Content */}
+                <div className="w-full lg:w-1/2">
+                  <div className="flex flex-col gap-6">
+                    <h3 className="text-card-foreground text-2xl font-bold md:text-3xl">
+                      {type.label}
+                    </h3>
+
+                    <p className="text-muted-foreground text-base md:text-lg">
+                      {type.content}
+                    </p>
+
                     <Button
-                      className="flex w-full flex-row items-center justify-center gap-2 md:max-w-[201px]"
-                      size={{ initial: "4", md: "3" }}
-                      color="blue"
+                      className="bg-secondary hover:bg-secondary/90 text-white w-fit"
+                      size="lg"
                       onClick={() =>
                         handleScrollButtonClick("2", type.scrollTo)
                       }
-                      text="Create QR code"
+                    >
+                      Create QR code
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Right side - Image */}
+                <div className="w-full lg:w-1/2">
+                  <div className="from-primary/10 via-primary/5 to-secondary/10 relative h-[280px] w-full overflow-hidden rounded-2xl bg-gradient-to-br">
+                    <Image
+                      src={type.img}
+                      alt={type.label}
+                      fill
+                      className="object-contain p-6"
+                      priority
                     />
                   </div>
                 </div>
-              </Tabs.Content>
-            );
-          })}
-        </Tabs.Root>
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
     </section>
   );

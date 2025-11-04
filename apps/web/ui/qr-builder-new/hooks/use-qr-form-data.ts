@@ -56,7 +56,7 @@ export const useQRFormData = ({
 
       return parsed;
     } catch (error) {
-      console.error('Error parsing initial data:', error);
+      console.error("Error parsing initial data:", error);
       return {};
     }
   }, [qrType, initialData]);

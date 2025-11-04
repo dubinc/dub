@@ -1,7 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
 import { cn } from "@dub/utils";
-import { Button } from "@radix-ui/themes";
 import { Upload, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Controller, useFormContext } from "react-hook-form";
@@ -28,6 +28,7 @@ interface FileUploadFieldProps {
   onUploadStateChange?: (uploading: boolean) => void;
   onProcessingStateChange?: (processing: boolean) => void;
   title: string;
+  required?: boolean;
 }
 
 export const FileUploadField = ({
@@ -40,6 +41,7 @@ export const FileUploadField = ({
   onUploadStateChange,
   onProcessingStateChange,
   title,
+  required = true,
 }: FileUploadFieldProps) => {
   const { control } = useFormContext();
   const [uploadError, setUploadError] = useState<string>("");
@@ -67,6 +69,17 @@ export const FileUploadField = ({
     const sizes = ["Bytes", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+  };
+
+  const formatAcceptTypes = (accept: string) => {
+    if (accept === "image/*") return "PNG, JPG, JPEG, etc.";
+    if (accept === "application/pdf") return "PDF";
+    if (accept === "video/*") return "MP4, MOV, AVI, etc.";
+    // Fallback: clean up the accept string
+    return accept
+      .split(",")
+      .map((type) => type.trim().replace("application/", "").replace("/*", "").toUpperCase())
+      .join(", ");
   };
 
   const handleFileValidation = useCallback(
@@ -123,10 +136,10 @@ export const FileUploadField = ({
   );
 
   return (
-    <div className={cn("flex flex-col gap-2", className)}>
+    <div className={cn("flex w-full flex-col gap-2", className)}>
       <label className="text-neutral text-sm font-medium">
         {label}
-        <span className="text-red-500">*</span>
+        {required && <span className="ml-1 text-red-500">*</span>}
       </label>
 
       <Controller
@@ -137,7 +150,7 @@ export const FileUploadField = ({
             <FileUpload
               maxFiles={1}
               maxSize={maxSize}
-              className="w-full max-w-xl"
+              className="w-full max-w-none"
               value={value || []}
               onValueChange={onChange}
               onFileAccept={handleFileAccept}
@@ -148,32 +161,27 @@ export const FileUploadField = ({
               disabled={isUploading}
             >
               <FileUploadDropzone
-                className={cn("border-secondary-100", {
-                  "border-red-500": fieldState.error || uploadError,
-                })}
+                className={cn(
+                  "border-border hover:border-secondary hover:bg-muted/30 min-h-[240px] w-full cursor-pointer px-6 py-12 transition-all duration-200",
+                  {
+                    "border-red-500 hover:border-red-500":
+                      fieldState.error || uploadError,
+                  },
+                )}
               >
-                <div className="mb-2 flex flex-col items-center gap-1 text-center">
-                  <div className="border-secondary-100 flex items-center justify-center rounded-full border p-2.5">
-                    <Upload className="text-secondary size-6" />
+                <div className="flex flex-col items-center gap-3 text-center">
+                  <div className="border-border group-hover:border-secondary flex items-center justify-center rounded-full border p-3 transition-colors duration-200">
+                    <Upload className="text-secondary size-8 transition-colors duration-200" />
                   </div>
-                  <p className="text-neutral text-sm font-medium">
-                    {`Drag & drop your ${title}`}
-                  </p>
-                  <p className="text-xs text-neutral-800">
-                    {`or click to browse (1 file, up to ${formatFileSize(maxSize)})`}
-                  </p>
+                  <div className="flex flex-col gap-1">
+                    <p className="text-neutral text-base font-medium">
+                      Click to upload or drag & drop your {title}
+                    </p>
+                    <p className="text-muted-foreground text-xs">
+                      Max size: {formatFileSize(maxSize)} • {formatAcceptTypes(accept)}
+                    </p>
+                  </div>
                 </div>
-
-                <Button
-                  type="button"
-                  variant="solid"
-                  color="blue"
-                  size="2"
-                  className="mt-2 w-fit"
-                  disabled={isUploading}
-                >
-                  {isUploading ? "Uploading..." : "Browse files"}
-                </Button>
               </FileUploadDropzone>
 
               <FileUploadList>
@@ -183,7 +191,7 @@ export const FileUploadField = ({
                       <FileUploadItemPreview />
                       <FileUploadItemMetadata />
                       <FileUploadItemDelete asChild>
-                        <Button variant="ghost" size="1">
+                        <Button variant="ghost" size="sm">
                           <X className="stroke-neutral-200" />
                         </Button>
                       </FileUploadItemDelete>

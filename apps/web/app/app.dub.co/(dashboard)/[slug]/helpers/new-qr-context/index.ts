@@ -1,1 +1,5 @@
-export { NewQrProvider, useNewQrContext, Context as NewQrContext } from "./Provider";
+export {
+  Context as NewQrContext,
+  NewQrProvider,
+  useNewQrContext,
+} from "./Provider";

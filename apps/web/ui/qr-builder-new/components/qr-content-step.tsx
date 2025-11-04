@@ -7,6 +7,8 @@ import { QRFormRef } from "../forms/types";
 
 export interface QRContentStepRef {
   validateForm: () => Promise<boolean>;
+  form: any;
+  getValues: () => any;
 }
 
 export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
@@ -16,6 +18,7 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
     formData,
     updateCurrentFormValues,
     initialQrData,
+    setIsFormValid,
   } = useQrBuilderContext();
   const formRef = useRef<QRFormRef>(null);
 
@@ -26,17 +29,30 @@ export const QrContentStep = forwardRef<QRContentStepRef, {}>((_, ref) => {
       }
       return false;
     },
+    form: formRef.current?.form,
+    getValues: () => {
+      if (formRef.current) {
+        return formRef.current.getValues();
+      }
+      return null;
+    },
   }));
 
   useEffect(() => {
     if (formRef.current?.form) {
+      const hasExistingData = formData || initialQrData;
+      setIsFormValid(hasExistingData ? true : false);
+
       const subscription = formRef.current.form.watch((values) => {
         updateCurrentFormValues(values);
+
+        const isValid = formRef.current?.form.formState.isValid ?? false;
+        setIsFormValid(isValid);
       });
 
       return () => subscription.unsubscribe();
     }
-  }, [selectedQrType, updateCurrentFormValues]);
+  }, [selectedQrType, updateCurrentFormValues, setIsFormValid, formData, initialQrData]);
 
   if (!selectedQrType) {
     return (

@@ -1,5 +1,4 @@
 import { cn } from "@dub/utils";
-import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { StaticImageData } from "next/image";
 import { FC } from "react";
 import { IStyleOption } from "../../types/customization";
@@ -33,37 +32,27 @@ export const StylePicker: FC<StylePickerProps> = ({
   return (
     <div className={cn("flex flex-col gap-2", stylePickerWrapperClassName)}>
       <label className="text-sm font-medium">{label}</label>
-      <ScrollArea.Root type="auto" className="relative w-full overflow-hidden">
-        <ScrollArea.Viewport className="overflow-x-auto">
-          <div
-            className={cn("flex flex-nowrap gap-3", optionsWrapperClassName)}
-          >
-            {styleOptions.map((styleOption) => (
-              <StyleButton
-                key={styleOption.id}
-                icon={styleOption.icon}
-                selected={value === styleOption.id}
-                onClick={() => {
-                  if (!disabled) {
-                    onSelect(styleOption.id, styleOption.icon);
-                  }
-                }}
-                iconSize={iconSize}
-                className={cn("shrink-0", styleButtonClassName)}
-                disabled={disabled}
-              />
-            ))}
-          </div>
-        </ScrollArea.Viewport>
-        <div className="mt-2">
-          <ScrollArea.Scrollbar
-            orientation="horizontal"
-            className="bg-border-100 h-1 cursor-pointer rounded-[3px]"
-          >
-            <ScrollArea.Thumb className="!bg-primary !h-full rounded-lg" />
-          </ScrollArea.Scrollbar>
+      <div className="dub-scrollbar overflow-x-auto overflow-y-hidden md:max-h-[170px] md:overflow-x-visible md:overflow-y-auto">
+        <div
+          className={cn("flex flex-nowrap gap-3 md:flex-wrap", optionsWrapperClassName)}
+        >
+          {styleOptions.map((styleOption) => (
+            <StyleButton
+              key={styleOption.id}
+              icon={styleOption.icon}
+              selected={value === styleOption.id}
+              onClick={() => {
+                if (!disabled) {
+                  onSelect(styleOption.id, styleOption.icon);
+                }
+              }}
+              iconSize={iconSize}
+              className={cn("shrink-0", styleButtonClassName)}
+              disabled={disabled}
+            />
+          ))}
         </div>
-      </ScrollArea.Root>
+      </div>
     </div>
   );
 };

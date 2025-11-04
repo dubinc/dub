@@ -26,8 +26,8 @@ export const Select = ({ options, value, onChange }: ISelectProps) => {
       <DropdownMenu.Trigger>
         <div
           className={cn(
-            "border-border-300 text-neutral flex h-11 w-full cursor-pointer items-center justify-between gap-3.5 rounded-md border bg-white px-3 text-sm transition-colors",
-            "focus-within:border-secondary",
+            "border-input shadow-xs text-neutral flex h-9 w-full cursor-pointer items-center justify-between gap-3.5 rounded-md border bg-white px-3 text-sm transition-colors",
+            "focus-within:border-secondary focus-within:ring-ring focus-within:ring-1",
           )}
         >
           <span>{selectedLabel}</span>

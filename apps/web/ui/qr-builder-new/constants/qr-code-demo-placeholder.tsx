@@ -8,6 +8,7 @@ export const QRCodeDemoPlaceholder: FC = () => {
       viewBox="0 0 270 352"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      className="shadow-lg"
     >
       <path
         d="M0 22C0 9.84974 9.84974 0 22 0H248C260.15 0 270 9.84974 270 22V352H0V22Z"

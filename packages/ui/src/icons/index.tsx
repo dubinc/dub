@@ -15,6 +15,7 @@ export { default as Photo } from "./photo";
 export { default as SortOrder } from "./sort-order";
 export { default as Success } from "./success";
 export { default as Tick } from "./tick";
+export * from "./usa-flag";
 
 // loaders
 export * from "./loading-circle";

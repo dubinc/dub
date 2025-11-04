@@ -7,9 +7,9 @@ interface LogoProps {
 
 export const Logo = ({ className }: LogoProps) => {
   return (
-    <div className={cn("flex items-center gap-1.5", className)}>
-      <QRIcon className="text-primary h-5 w-5" />
-      <div className="font-default text-neutral text-lg">
+    <div className={cn("flex items-center gap-1", className)}>
+      <QRIcon className="text-primary h-7 w-7" />
+      <div className="font-default text-neutral text-xl">
         <span className="font-medium">Get</span>
         <span className="font-bold">QR</span>
       </div>

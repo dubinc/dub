@@ -1,9 +1,14 @@
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { cn } from "@dub/utils/src";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, ChevronRightIcon, LucideIcon } from "lucide-react";
+import { Fragment } from "react";
 
 type TStep = {
   number: number;
   label: string;
+  description?: string;
+  icon?: LucideIcon;
 };
 
 interface IStepperProps {
@@ -20,78 +25,89 @@ export default function Stepper({
   disabled = false,
 }: IStepperProps) {
   return (
-    <div className="flex w-full items-center justify-center md:w-3/4">
-      {steps.map((step, index) => {
-        const isCompleted = currentStep > step.number;
-        const isActive = currentStep === step.number;
-        const isLast = index === steps.length - 1;
-        const isClickable =
-          !disabled &&
-          onStepClick &&
-          (isCompleted || step.number === currentStep + 1);
+    <nav aria-label="QR Builder Steps" className="w-full">
+      <ol className="flex items-center justify-between gap-x-2 gap-y-4 md:flex-row md:items-center items-start">
+        {steps.map((step, index) => {
+          const isCompleted = currentStep > step.number;
+          const isActive = currentStep === step.number;
+          const isLast = index === steps.length - 1;
+          const isClickable =
+            !disabled &&
+            onStepClick &&
+            (isCompleted || step.number === currentStep + 1);
 
-        return (
-          <div
-            key={step.number}
-            className={cn("flex items-center", isLast ? "flex-0" : "flex-1")}
-          >
-            <div
-              className={cn(
-                "flex flex-col items-center",
-                isClickable && "cursor-pointer",
-                disabled && "cursor-not-allowed opacity-50",
-              )}
-              onClick={() => isClickable && onStepClick(step.number)}
-            >
-              <div className="relative flex h-6 w-6 items-center justify-center transition-all duration-300 ease-in-out">
-                <div
-                  className={cn("absolute inset-0 -m-[2px] rounded-full", {
-                    "bg-[linear-gradient(90deg,_#115740_20.53%,_#25BD8B_37.79%)] p-[2px]":
-                      isActive || isCompleted,
-                    "border border-gray-300 bg-white":
-                      !isActive && !isCompleted,
-                  })}
-                />
-
-                <div
+          return (
+            <Fragment key={step.number}>
+              <li>
+                <Button
+                  variant="ghost"
                   className={cn(
-                    "relative z-10 flex h-full w-full items-center justify-center rounded-full text-sm font-medium",
-                    {
-                      "bg-green-100 text-green-700": isCompleted,
-                      "text-primary bg-white": isActive && !isCompleted,
-                      "bg-white text-neutral-500": !isActive && !isCompleted,
-                    },
+                    "h-auto flex-shrink-0 gap-2 rounded !bg-transparent p-0 transition-all disabled:opacity-100",
+                    "flex-col items-center md:flex-row md:items-center",
+                    isActive && "cursor-pointer hover:scale-105",
+                    !isClickable && "cursor-default",
                   )}
+                  onClick={() => isClickable && onStepClick(step.number)}
+                  disabled={!isClickable}
                 >
-                  {isCompleted ? (
-                    <CheckIcon className="h-5 w-5" />
-                  ) : (
-                    step.number
-                  )}
-                </div>
-              </div>
-
-              <span
-                className={cn(
-                  "mt-1 whitespace-nowrap text-xs font-medium md:text-sm",
-                  isCompleted || isActive ? "text-primary" : "text-neutral-500",
-                )}
-              >
-                {step.label}
-              </span>
-            </div>
-
-            {!isLast && (
-              <div
-                className={cn(
-                  "mx-2 mb-6 h-0.5 min-w-6 flex-1 shrink-0 rounded-md",
-                  isCompleted ? "bg-primary" : "bg-border-500",
-                )}
-              />
-            )}
-          </div>
-        );
-      })}
-    </div>
+                  <Avatar className="size-10">
+                    <AvatarFallback
+                      className={cn("transition-colors", {
+                        "!bg-primary !text-primary-foreground shadow-sm":
+                          isActive,
+                        "bg-muted text-muted-foreground opacity-50":
+                          !isActive && step.number === 1,
+                        "bg-white border border-secondary/20 text-muted-foreground opacity-50":
+                          !isActive && (step.number === 2 || step.number === 3),
+                      })}
+                    >
+                      {isCompleted ? (
+                        <CheckIcon className="size-4.5" strokeWidth={2.5} />
+                      ) : step.icon ? (
+                        <step.icon className="size-4.5" strokeWidth={2} />
+                      ) : (
+                        <span className="text-sm font-semibold">
+                          {step.number}
+                        </span>
+                      )}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex flex-col items-center md:items-start">
+                    <span
+                      className={cn("text-xs font-medium md:hidden", {
+                        "text-foreground": isActive,
+                        "text-muted-foreground opacity-50": !isActive,
+                      })}
+                    >
+                      {step.label}
+                    </span>
+                    <div className="hidden flex-col items-start md:flex">
+                      <span
+                        className={cn("text-sm font-medium", {
+                          "text-foreground": isActive,
+                          "text-muted-foreground opacity-50": !isActive,
+                        })}
+                      >
+                        Step {step.number}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        {step.label}
+                      </span>
+                    </div>
+                  </div>
+                </Button>
+              </li>
+              {!isLast && (
+                <li>
+                  <ChevronRightIcon
+                    className="size-4 text-muted-foreground/50 transition-colors"
+                  />
+                </li>
+              )}
+            </Fragment>
+          );
+        })}
+      </ol>
+    </nav>
   );
 }

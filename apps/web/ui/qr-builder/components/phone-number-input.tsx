@@ -9,7 +9,7 @@ export const PhoneNumberInputComponent = forwardRef<HTMLInputElement>(
         {...props}
         ref={ref}
         className={cn(
-          "border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-l-none rounded-r-md border border-l p-3 text-base focus:ring-0",
+          "border-input shadow-xs h-9 w-full max-w-2xl rounded-l-none rounded-r-md border border-l px-3 text-sm focus:border-secondary focus:ring-ring focus:ring-1",
         )}
         type="tel"
       />

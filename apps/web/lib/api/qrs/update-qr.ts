@@ -38,10 +38,8 @@ export async function updateQr(
       description,
       styles,
       frameOptions,
-      // Always update logoOptions - if undefined/null, it will clear the logo
       logoOptions: logoOptions === undefined ? null : logoOptions,
       archived: archived || false,
-      // Clear fileId when switching from file QR type to non-file QR type
       fileId: shouldClearFileId ? null : fileId,
     },
     include: {

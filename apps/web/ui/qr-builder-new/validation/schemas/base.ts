@@ -3,8 +3,8 @@ import { z } from "zod";
 export const qrNameSchema = z.object({
   qrName: z
     .string()
-    .min(1, "QR name is required")
-    .max(100, "QR name must be less than 100 characters"),
+    .optional()
+    .transform((val) => !val || val?.trim() === "" ? "My QR Code" : val),
 });
 
 export const websiteUrlSchema = z

@@ -109,7 +109,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
   return (
     <motion.div
       layout
-      className={cn("flex max-w-[680px] flex-col gap-4", {
+      className={cn("flex w-full flex-col gap-4", {
         "border-border-500 rounded-lg border p-3": !isMobile,
       })}
     >
@@ -143,7 +143,7 @@ export const FrameSelector: FC<IFrameSelectorProps> = ({
               <Input
                 type="text"
                 className={cn(
-                  "border-border-500 focus:border-secondary h-11 w-full max-w-2xl rounded-md border p-3 text-base",
+                  "border-border-500 focus:border-secondary h-11 w-full rounded-md border p-3 text-base",
                   {
                     "border-red-500": false,
                   },

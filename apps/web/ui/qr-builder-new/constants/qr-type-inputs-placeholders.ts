@@ -8,7 +8,7 @@ export const QR_NAME_PLACEHOLDERS = {
 } as const;
 
 export const QR_INPUT_PLACEHOLDERS = {
-  WEBSITE_URL: "https://www.getqr.com/",
+  WEBSITE_URL: "https://www.example.com/",
   WHATSAPP_NUMBER: "Type your number",
   WHATSAPP_MESSAGE:
     "Hi GetQR team! 👋 I saw your awesome QR code platform and I'd love to start using it for my restaurant. Digital menus sound perfect — physical ones are just sooo outdated! Can you help me get set up?",
@@ -23,7 +23,7 @@ export const QR_FILE_TITLES = {
 } as const;
 
 export const QR_DEMO_DEFAULTS = {
-  WEBSITE_URL: "https://www.getqr.com/",
+  WEBSITE_URL: "https://www.example.com/",
   WHATSAPP_NUMBER: "+1 123 456 789",
   WHATSAPP_MESSAGE:
     "Hi GetQR team! 👋 I saw your awesome QR code platform and I'd love to start using it for my restaurant. Digital menus sound perfect — physical ones are just sooo outdated! Can you help me get set up?",

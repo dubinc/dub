@@ -89,7 +89,12 @@ export default function Toggle({
 
   const scrolled = useScroll(120);
 
-  const [selectedToggleFilterKey, setSelectedToggleFilterKey] = useState<string | undefined>(undefined)
+  const [selectedFilter, setSelectedFilter] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [isToggleOpen, setIsToggleOpen] = useState(false);
+  const [selectedToggleFilterKey, setSelectedToggleFilterKey] = useState<
+    string | undefined
+  >(undefined);
 
   const [requestedFilters, setRequestedFilters] = useState<string[]>([]);
 

@@ -1,13 +1,20 @@
 "use client";
 
-import { CheckboxWithLabel } from "@/ui/qr-builder/components/checkbox-with-label";
-import { Select } from "@/ui/qr-builder/components/select";
-import { TooltipComponent } from "@/ui/qr-builder/components/tooltip";
-import { WIFI_ENCRYPTION_TYPES } from "@/ui/qr-builder/constants/wifi-encryption-types";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
+import { CheckboxWithLabel } from "@/ui/qr-builder-new/components/checkbox-with-label";
+import { Select } from "@/ui/qr-builder-new/components/select";
+import { TooltipComponent } from "@/ui/qr-builder-new/components/tooltip";
+import { WIFI_ENCRYPTION_TYPES } from "@/ui/qr-builder-new/constants/wifi-encryption-types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Flex, Text } from "@radix-ui/themes";
-import { Info } from "lucide-react";
-import { forwardRef, useImperativeHandle } from "react";
+import { Info, Wifi } from "lucide-react";
+import { forwardRef, useEffect, useImperativeHandle } from "react";
 import {
   Controller,
   FormProvider,
@@ -41,6 +48,8 @@ interface WiFiFormProps {
 
 export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
+    const openAccordion = "details";
+
     const { getDefaultValues, encodeFormData } = useQRFormData({
       qrType: EQRType.WIFI,
       initialData,
@@ -58,6 +67,7 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
     const form = useForm<TWifiQRFormData>({
       resolver: zodResolver(wifiQRSchema),
       defaultValues: formDefaults,
+      mode: "all",
     });
 
     const watchEncryption = form.watch("networkEncryption");
@@ -83,81 +93,113 @@ export const WifiForm = forwardRef<WiFiFormRef, WiFiFormProps>(
 
     return (
       <FormProvider {...form}>
-        <form className="flex w-full flex-col gap-4">
-          <BaseFormField
-            name="qrName"
-            label="Name your QR Code"
-            placeholder={QR_NAME_PLACEHOLDERS.WIFI}
-            tooltip="Only you can see this. It helps you recognize your QR codes later."
-            initFromPlaceholder
-          />
-
-          <BaseFormField
-            name="networkName"
-            label="WiFi Network Name"
-            placeholder={QR_INPUT_PLACEHOLDERS.WIFI_NETWORK_NAME}
-            tooltip="This is the name of the Wi-Fi network you want to share. You can usually find it on the back of your router."
-          />
-
-          <div className="flex w-full flex-col gap-2">
-            <Flex gap="1" align="center">
-              <label className="text-neutral text-sm font-medium">
-                Network Security Type
-              </label>
-              <TooltipComponent tooltip="Most routers today use WPA/WPA2. If you're not sure, choose this. You can also check on your router label." />
-            </Flex>
-
-            <Controller
-              name="networkEncryption"
-              control={form.control}
-              render={({ field }) => (
-                <Select
-                  options={WIFI_ENCRYPTION_TYPES}
-                  value={
-                    WIFI_ENCRYPTION_TYPES.find(
-                      (option) => option.id === field.value,
-                    ) || null
-                  }
-                  onChange={(option) => field.onChange(option.id)}
+        <form className="w-full">
+          <Accordion
+            type="single"
+            value={openAccordion}
+            className="w-full space-y-2"
+          >
+            <AccordionItem
+              value="details"
+              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
+            >
+              <AccordionTrigger className="hover:no-underline pointer-events-none [&>svg]:hidden">
+                <div className="flex w-full items-center gap-3 text-left">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Wifi className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-foreground text-base font-medium">
+                      Wi-Fi
+                    </span>
+                    <span className="text-muted-foreground text-sm font-normal">
+                      Provide your Wi-Fi details and give a memorable name
+                    </span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              {openAccordion === "details" && <Separator className="mb-3" />}
+              <AccordionContent className="pt-2">
+                <BaseFormField
+                  name="networkName"
+                  label="WiFi Network Name"
+                  placeholder={QR_INPUT_PLACEHOLDERS.WIFI_NETWORK_NAME}
+                  tooltip="This is the name of the Wi-Fi network you want to share. You can usually find it on the back of your router."
                 />
-              )}
-            />
-          </div>
 
-          {showPassword && (
-            <BaseFormField
-              name="networkPassword"
-              label="Network Password"
-              type="password"
-              placeholder={QR_INPUT_PLACEHOLDERS.WIFI_PASSWORD}
-              tooltip="People will automatically connect using this password after scanning your QR code."
-              required={showPassword}
-            />
-          )}
+                <div className="flex w-full flex-col gap-2 p-3">
+                  <Flex gap="1" align="center">
+                    <label className="text-neutral text-sm font-medium">
+                      Network Security Type
+                    </label>
+                    <TooltipComponent tooltip="Most routers today use WPA/WPA2. If you're not sure, choose this. You can also check on your router label." />
+                  </Flex>
 
-          {/* Hidden Network Checkbox - using old component */}
-          <div className="flex w-full flex-col gap-2">
-            <Controller
-              name="isHiddenNetwork"
-              control={form.control}
-              render={({ field }) => (
-                <CheckboxWithLabel
-                  label="WiFi is not visible to others (hidden network)"
-                  checked={field.value || false}
-                  onCheckedChange={field.onChange}
+                  <Controller
+                    name="networkEncryption"
+                    control={form.control}
+                    render={({ field }) => (
+                      <Select
+                        options={WIFI_ENCRYPTION_TYPES}
+                        value={
+                          WIFI_ENCRYPTION_TYPES.find(
+                            (option) => option.id === field.value,
+                          ) || null
+                        }
+                        onChange={(option) => field.onChange(option.id)}
+                      />
+                    )}
+                  />
+                </div>
+
+                {showPassword && (
+                  <BaseFormField
+                    name="networkPassword"
+                    label="Network Password"
+                    type="password"
+                    placeholder={QR_INPUT_PLACEHOLDERS.WIFI_PASSWORD}
+                    tooltip="People will automatically connect using this password after scanning your QR code."
+                    required={showPassword}
+                  />
+                )}
+
+                {/* Hidden Network Checkbox - using old component */}
+                <div className="flex w-full flex-col gap-2 p-3">
+                  <Controller
+                    name="isHiddenNetwork"
+                    control={form.control}
+                    render={({ field }) => (
+                      <CheckboxWithLabel
+                        label="WiFi is not visible to others (hidden network)"
+                        checked={field.value || false}
+                        onCheckedChange={field.onChange}
+                      />
+                    )}
+                  />
+                </div>
+
+                {/* Info box */}
+                <div className="p-3">
+                  <div className="bg-secondary-50 border-secondary-200 flex items-start gap-3 rounded-lg border p-3">
+                    <Info className="text-primary mt-0.5 h-4 w-4 flex-shrink-0" />
+                    <Text size="2" className="text-primary">
+                      Not sure where to find this info? Look at the label on your router
+                      — it usually lists your WiFi name, password, and security type.
+                    </Text>
+                  </div>
+                </div>
+                
+                <BaseFormField
+                  name="qrName"
+                  label="Name your QR Code"
+                  placeholder={QR_NAME_PLACEHOLDERS.WIFI}
+                  tooltip="Only you can see this. It helps you recognize your QR codes later."
+                  initFromPlaceholder
+                  required={false}
                 />
-              )}
-            />
-          </div>
-
-          {/* Info box */}
-          <div className="bg-secondary-50 border-secondary-200 flex items-start gap-3 rounded-lg border p-3">
-            <Info className="text-secondary mt-0.5 h-4 w-4 flex-shrink-0" />
-            <Text size="2" className="text-secondary">
-              Not sure where to find this info? Look at the label on your router
-              — it usually lists your WiFi name, password, and security type.
-            </Text>
-          </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </form>
       </FormProvider>
     );

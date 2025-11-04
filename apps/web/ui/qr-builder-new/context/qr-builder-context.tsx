@@ -1,21 +1,22 @@
 "use client";
 
+import { useUser } from "@/ui/contexts/user";
 import { QRContentStepRef } from "@/ui/qr-builder-new/components/qr-content-step.tsx";
+import { useMediaQuery } from "@dub/ui";
 import { linkConstructor } from "@dub/utils";
+import { trackClientEvents } from "core/integration/analytic";
+import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import {
   createContext,
   ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useRef,
   useState,
 } from "react";
 import { toast } from "sonner";
-import { trackClientEvents } from "core/integration/analytic";
-import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
-import { useUser } from "@/ui/contexts/user";
-import { useMediaQuery } from "@dub/ui";
 import { EQRType } from "../constants/get-qr-config.ts";
 import {
   convertServerQRToNewBuilder,
@@ -47,6 +48,8 @@ interface QrBuilderProviderProps {
   homepageDemo?: boolean;
   sessionId?: string;
   onSave?: (builderData: TNewQRBuilderData) => Promise<any>;
+  typeToScrollTo?: EQRType | null;
+  handleResetTypeToScrollTo?: () => void;
 }
 
 // Provider component
@@ -57,6 +60,8 @@ export function QrBuilderProvider({
   homepageDemo = false,
   sessionId,
   onSave: onSaveProp,
+  typeToScrollTo,
+  handleResetTypeToScrollTo,
 }: QrBuilderProviderProps) {
   const user = useUser();
   const { isMobile } = useMediaQuery();
@@ -117,11 +122,17 @@ export function QrBuilderProvider({
   const [isFileUploading, setIsFileUploading] = useState<boolean>(false);
   const [isFileProcessing, setIsFileProcessing] = useState<boolean>(false);
 
+  // Form validation state
+  const [isFormValid, setIsFormValid] = useState<boolean>(true);
+
   // Customization states
   const [customizationData, setCustomizationData] =
     useState<IQRCustomizationData>(initialState.customizationData);
   const [customizationActiveTab, setCustomizationActiveTab] =
     useState<string>("Frame");
+  
+  // Dialog state for mobile homepage demo
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const contentStepRef = useRef<QRContentStepRef>(null);
   const qrBuilderButtonsWrapperRef = useRef<HTMLDivElement>(null);
@@ -170,8 +181,16 @@ export function QrBuilderProvider({
   }, [initialQrData]);
 
   const handleNextStep = useCallback(() => {
+    // Prevent scroll on step change
+    const scrollPosition = window.scrollY;
+    
     // @ts-ignore
     setBuilderStep((prev) => Math.min(prev + 1, 3));
+    
+    // Restore scroll position after state update
+    requestAnimationFrame(() => {
+      window.scrollTo(0, scrollPosition);
+    });
   }, []);
 
   const handleChangeStep = useCallback(
@@ -181,8 +200,36 @@ export function QrBuilderProvider({
         return;
       }
 
+      // Prevent going to step 3 if step 2 is not completed with valid data
+      if (newStep === 3) {
+        if (!formData) {
+          toast.error("Please complete the required fields in step 2 first");
+          return;
+        }
+        if (!isFormValid) {
+          toast.error("Please fix the errors in step 2 before continuing");
+          return;
+        }
+      }
+
+      // Prevent scroll on step change
+      const scrollPosition = window.scrollY;
+      
       setTypeSelectionError("");
       setBuilderStep(newStep as TStepState);
+      
+      // Restore scroll position after state update
+      requestAnimationFrame(() => {
+        window.scrollTo(0, scrollPosition);
+      });
+
+      // Reset form validity appropriately
+      if (newStep !== 2) {
+        setIsFormValid(true);
+      } else if (newStep === 2 && formData) {
+        // When navigating back to step 2, if formData exists, form was previously valid
+        setIsFormValid(true);
+      }
 
       // Track step navigation via stepper
       trackClientEvents({
@@ -197,7 +244,7 @@ export function QrBuilderProvider({
         sessionId: sessionId || user?.id,
       });
     },
-    [selectedQrType, homepageDemo, user, sessionId],
+    [selectedQrType, formData, isFormValid, homepageDemo, user, sessionId],
   );
 
   const handleSelectQRType = useCallback(
@@ -255,13 +302,21 @@ export function QrBuilderProvider({
 
     handleChangeStep(newStep);
 
-    // Scroll on mobile
-    handleScroll();
-  }, [builderStep, handleChangeStep, homepageDemo, user, sessionId, handleScroll]);
+    // Scroll on mobile - Commented out to prevent scroll on step change
+    // handleScroll();
+  }, [
+    builderStep,
+    handleChangeStep,
+    homepageDemo,
+    user,
+    sessionId,
+  ]);
 
   // Methods
-  const onSave = useCallback(async () => {
-    if (!selectedQrType || !formData) {
+  const onSave = useCallback(async (providedFormData?: TQRFormData) => {
+    const dataToSave = providedFormData || formData;
+    
+    if (!selectedQrType || !dataToSave) {
       toast.error("Please complete all required fields");
       return;
     }
@@ -277,10 +332,10 @@ export function QrBuilderProvider({
     try {
       const builderData: TNewQRBuilderData = {
         qrType: selectedQrType,
-        formData,
+        formData: dataToSave,
         customizationData,
         title: initialState.qrTitle || `${selectedQrType} QR Code`,
-        fileId: (formData as any)?.fileId || initialState.fileId,
+        fileId: (dataToSave as any)?.fileId || initialState.fileId,
       };
 
       await onSaveProp(builderData);
@@ -310,7 +365,7 @@ export function QrBuilderProvider({
         params: {
           page_name: homepageDemo ? "landing" : "dashboard",
           content_group: "customize_qr",
-          content_value: homepageDemo ? "download" : (isEdit ? "save" : "create"),
+          content_value: homepageDemo ? "download" : isEdit ? "save" : "create",
           email: user?.email,
           event_category: homepageDemo ? "nonAuthorized" : "Authorized",
         },
@@ -324,6 +379,7 @@ export function QrBuilderProvider({
     if (isContentStep && contentStepRef.current) {
       const isValid = await contentStepRef.current.validateForm();
       if (!isValid) {
+        // toast.error("Please fill in all required fields correctly");
         return;
       }
 
@@ -351,8 +407,8 @@ export function QrBuilderProvider({
 
     handleNextStep();
 
-    // Scroll on mobile
-    handleScroll();
+    // Scroll on mobile - Commented out to prevent scroll on step change
+    // handleScroll();
   }, [
     isContentStep,
     isCustomizationStep,
@@ -378,6 +434,26 @@ export function QrBuilderProvider({
     setCustomizationData(data);
   }, []);
 
+  // Handle typeToScrollTo from landing page buttons
+  useEffect(() => {
+    if (typeToScrollTo && homepageDemo) {
+      handleSelectQRType(typeToScrollTo);
+      handleResetTypeToScrollTo?.();
+    }
+  }, [
+    typeToScrollTo,
+    homepageDemo,
+    handleSelectQRType,
+    handleResetTypeToScrollTo,
+  ]);
+  
+  // Open dialog when on steps 2 or 3 in mobile homepage demo
+  useEffect(() => {
+    if (isMobile && homepageDemo && !isTypeStep) {
+      setIsDialogOpen(true);
+    }
+  }, [isMobile, homepageDemo, isTypeStep]);
+
   const contextValue: IQrBuilderContextType = {
     // States
     builderStep,
@@ -395,6 +471,9 @@ export function QrBuilderProvider({
     isFileUploading,
     isFileProcessing,
 
+    // Form validation state
+    isFormValid,
+
     // Customization states
     customizationData,
     customizationActiveTab,
@@ -405,6 +484,10 @@ export function QrBuilderProvider({
     isCustomizationStep,
     isEditMode: isEdit,
     homepageDemo,
+    
+    // Dialog state
+    isDialogOpen,
+    setIsDialogOpen,
 
     // Methods
     onSave,
@@ -423,8 +506,10 @@ export function QrBuilderProvider({
     setBuilderStep,
     setDestinationData,
     setSelectedQrType,
+    setFormData,
     setIsFileUploading,
     setIsFileProcessing,
+    setIsFormValid,
 
     //Buttons
     handleBack,

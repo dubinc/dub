@@ -274,15 +274,15 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
         )}
 
         <Button
-          text={`Continue with ${password ? "Password" : "Email"}`}
+          text={"Continue"}
           variant="primary"
-          icon={
-            password ? (
-              <InputPassword className="size-4 text-neutral-600" />
-            ) : (
-              <Mail className="size-4 text-white" />
-            )
-          }
+          // icon={
+          //   password ? (
+          //     <InputPassword className="size-4 text-neutral-600" />
+          //   ) : (
+          //     <Mail className="size-4 text-white" />
+          //   )
+          // }
           type="submit"
           /*
           {...(authMethod !== "email" && {

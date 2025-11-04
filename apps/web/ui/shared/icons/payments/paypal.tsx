@@ -1,8 +1,8 @@
 export default function Paypal({ className }: { className?: string }) {
   return (
     <svg
-      width="34"
-      height="10"
+      width="50"
+      height="15"
       viewBox="0 0 34 10"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

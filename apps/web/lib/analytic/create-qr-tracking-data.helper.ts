@@ -1,15 +1,15 @@
-import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 import { TNewQRBuilderData } from "@/ui/qr-builder-new/helpers/data-converters";
+import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
 
 export const createQRTrackingParams = (
   qrBuilderData: QRBuilderData | TNewQRBuilderData,
   qrId?: string,
 ) => {
   // Check if it's new builder format (has customizationData)
-  if ('customizationData' in qrBuilderData) {
+  if ("customizationData" in qrBuilderData) {
     const { customizationData, qrType } = qrBuilderData;
     const frameId = customizationData.frame?.id || "frame-none";
-    const frameType = frameId.replace('frame-', '');
+    const frameType = frameId.replace("frame-", "");
 
     return {
       qrId,
@@ -22,7 +22,10 @@ export const createQRTrackingParams = (
       qrBorderColour: customizationData.style?.foregroundColor,
       qrBorderStyle: customizationData.shape?.cornerSquareStyle,
       qrCenterStyle: customizationData.shape?.cornerDotStyle,
-      qrLogo: customizationData.logo?.type !== "none" ? customizationData.logo?.type : "none",
+      qrLogo:
+        customizationData.logo?.type !== "none"
+          ? customizationData.logo?.type
+          : "none",
       qrLogoUpload: customizationData.logo?.type === "uploaded",
     };
   }

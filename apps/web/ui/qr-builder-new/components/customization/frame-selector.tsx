@@ -157,16 +157,14 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
   return (
     <motion.div
       layout
-      className={cn("flex max-w-[680px] flex-col gap-4", {
-        "border-border-500 rounded-lg border p-3": !isMobile,
-      })}
+      className="flex w-full flex-col gap-4 pb-6"
     >
       <StylePicker
         label="Frame around QR code"
         styleOptions={FRAMES}
         value={frameData.id}
         onSelect={handleFrameSelect}
-        optionsWrapperClassName={`gap-2 ${
+        optionsWrapperClassName={`gap-2 ${isMobile ? "pb-2" : "pb-0"} ${
           disabled ? "pointer-events-none cursor-not-allowed" : ""
         }`}
         styleButtonClassName="[&_img]:h-[60px] [&_img]:w-[60px] p-2"
@@ -176,7 +174,7 @@ export const FrameSelector: FC<FrameSelectorProps> = ({
       <AnimatePresence>
         {isFrameSelected && (
           <motion.div
-            className="flex w-full flex-col gap-4 overflow-hidden md:flex-row"
+            className="flex w-full flex-col gap-4 md:flex-row"
             variants={animationVariants}
             initial="closed"
             animate="open"

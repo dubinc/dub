@@ -108,6 +108,6 @@ export const QrFormResolver = forwardRef<QRFormRef, QRFormResolverProps>(
       </div>
     );
 
-    return <div className="w-full">{selectedForm}</div>;
+    return <div className="flex w-full flex-col">{selectedForm}</div>;
   },
 );

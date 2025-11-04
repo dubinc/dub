@@ -1,12 +1,12 @@
 import { useCallback, useMemo, useState } from "react";
+import { EQRType } from "../constants/get-qr-config";
 import { convertServerQRToNewBuilder } from "../helpers/data-converters";
-import { TQrStorageData } from "../types/database";
 import {
   DEFAULT_QR_CUSTOMIZATION,
   IQRCustomizationData,
 } from "../types/customization";
+import { TQrStorageData } from "../types/database";
 import { useQRCodeStyling } from "./use-qr-code-styling";
-import { EQRType } from "../constants/get-qr-config";
 
 /**
  * Hook for managing QR customization in workspace contexts (outside QrBuilderProvider)
@@ -43,9 +43,7 @@ export function useWorkspaceQrCustomization(
     }
 
     return (
-      initialQrData.link?.shortLink ||
-      initialQrData.data ||
-      "https://getqr.com"
+      initialQrData.link?.shortLink || initialQrData.data || "https://getqr.com"
     );
   }, [initialQrData, homepageDemo]);
 
@@ -54,12 +52,9 @@ export function useWorkspaceQrCustomization(
     defaultData: qrContent,
   });
 
-  const updateCustomizationData = useCallback(
-    (data: IQRCustomizationData) => {
-      setCustomizationData(data);
-    },
-    [],
-  );
+  const updateCustomizationData = useCallback((data: IQRCustomizationData) => {
+    setCustomizationData(data);
+  }, []);
 
   return {
     qrCode,

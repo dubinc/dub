@@ -42,7 +42,7 @@ export const QRCodeDemoPDF: FC<QRCodeDemoPDFProps> = ({
       width="270"
       height="352"
       viewBox="0 0 270 352"
-      className={cn("", {
+      className={cn("shadow-lg", {
         "h-[180px] w-[138px] lg:h-[209px] lg:w-[158px]": smallPreview,
       })}
       fill="none"

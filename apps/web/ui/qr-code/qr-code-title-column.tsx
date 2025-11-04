@@ -3,9 +3,9 @@
 import { Session } from "@/lib/auth";
 import { useQRPreviewModal } from "@/ui/modals/qr-preview-modal";
 import { QRType } from "@/ui/qr-builder-new/constants/get-qr-config";
+import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import { useQrCustomization } from "@/ui/qr-builder/hooks/use-qr-customization.ts";
 import { QRCanvas } from "@/ui/qr-builder/qr-canvas.tsx";
-import { TQrStorageData } from "@/ui/qr-builder-new/types/database";
 import { QRCardDetails } from "@/ui/qr-code/qr-code-card-details.tsx";
 import { QRCardTitle } from "@/ui/qr-code/qr-code-card-title.tsx";
 import { QrCardType } from "@/ui/qr-code/qr-code-card-type.tsx";

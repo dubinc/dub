@@ -1,6 +1,14 @@
 "use client";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Globe } from "lucide-react";
 import { forwardRef, useImperativeHandle } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { EQRType } from "../../constants/get-qr-config";
@@ -30,13 +38,15 @@ interface WebsiteFormProps {
 
 export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
+    const openAccordion = "details";
+
     const { getDefaultValues, encodeFormData } = useQRFormData({
       qrType: EQRType.WEBSITE,
       initialData,
     });
 
     const formDefaults = getDefaultValues({
-      qrName: "",
+      qrName: "My QR Code",
       websiteLink: "",
       ...defaultValues,
     });
@@ -44,6 +54,7 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
     const form = useForm<TWebsiteQRFormData>({
       resolver: zodResolver(websiteQRSchema),
       defaultValues: formDefaults,
+      mode: "all",
     });
 
     useImperativeHandle(ref, () => ({
@@ -66,22 +77,53 @@ export const WebsiteForm = forwardRef<WebsiteFormRef, WebsiteFormProps>(
 
     return (
       <FormProvider {...form}>
-        <form className="flex w-full flex-col gap-4">
-          <BaseFormField
-            name="qrName"
-            label="Name your QR Code"
-            placeholder={QR_NAME_PLACEHOLDERS.WEBSITE}
-            tooltip="Only you can see this. It helps you recognize your QR codes later."
-            initFromPlaceholder
-          />
-
-          <BaseFormField
-            name="websiteLink"
-            label="Enter your website"
-            type="url"
-            placeholder={QR_INPUT_PLACEHOLDERS.WEBSITE_URL}
-            tooltip="This is the link people will open when they scan your QR code."
-          />
+        <form className="w-full">
+          <Accordion
+            type="single"
+            value={openAccordion}
+            className="w-full space-y-2"
+          >
+            <AccordionItem
+              value="details"
+              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
+            >
+              <AccordionTrigger className="hover:no-underline pointer-events-none [&>svg]:hidden">
+                <div className="flex w-full items-center gap-3 text-left">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-lg bg-primary/10">
+                    <Globe className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-foreground text-base font-medium">
+                      Website
+                    </span>
+                    <span className="text-muted-foreground text-sm font-normal">
+                      Enter the website URL for your QR code and give a memorable name
+                    </span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              {openAccordion === "details" && <Separator className="mb-3" />}
+              <AccordionContent className="pt-2">
+                <BaseFormField
+                  name="websiteLink"
+                  label="Enter your website"
+                  type="url"
+                  placeholder={QR_INPUT_PLACEHOLDERS.WEBSITE_URL}
+                  tooltip="This is the link people will open when they scan your QR code."
+                />
+                
+                <BaseFormField
+                  name="qrName"
+                  label="Name your QR Code"
+                  placeholder={QR_NAME_PLACEHOLDERS.WEBSITE}
+                  tooltip="Only you can see this. It helps you recognize your QR codes later."
+                  initFromPlaceholder
+                  className="w-full"
+                  required={false}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </form>
       </FormProvider>
     );

@@ -1,13 +1,12 @@
 "use client";
 
-import { PricingSection } from "@/ui/landing/components/pricing/pricing-plans.tsx";
-import { QrTabsDetailed } from "@/ui/landing/components/qr-tabs-detailed/qr-tabs-detailed.tsx";
 import { QRTabs } from "@/ui/landing/components/qr-tabs/qr-tabs.tsx";
-import { ReviewsSection } from "@/ui/landing/components/reviews/reviews-section.tsx";
+import { LandingSectionsServer } from "@/ui/landing/landing-sections-server.tsx";
 import { FC, useCallback, useRef, useState } from "react";
 import { trackClientEvents } from "../../core/integration/analytic";
 import { EAnalyticEvents } from "../../core/integration/analytic/interfaces/analytic.interface.ts";
 import { EQRType } from "../qr-builder/constants/get-qr-config.ts";
+import { scrollToBuilder } from './helpers/scrollToBuilder.tsx';
 
 interface ILandingSectionsClientProps {
   sessionId: string;
@@ -16,8 +15,8 @@ interface ILandingSectionsClientProps {
 export const LandingSectionsClient: FC<
   Readonly<ILandingSectionsClientProps>
 > = ({ sessionId }) => {
-  const qrGenerationBlockRef = useRef<HTMLDivElement>(null);
   const [typeToScrollTo, setTypeToScrollTo] = useState<EQRType | null>(null);
+  const [featureToOpen, setFeatureToOpen] = useState<string | null>(null);
 
   const handleScrollButtonClick = (
     type: "1" | "2" | "3",
@@ -36,12 +35,17 @@ export const LandingSectionsClient: FC<
     });
 
     setTypeToScrollTo(scrollTo || null);
-
-    qrGenerationBlockRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
+    
+    setTimeout(scrollToBuilder);
   };
+
+  const handleFeatureClick = useCallback((feature: string) => {
+    setFeatureToOpen(feature);
+    const featuresSection = document.getElementById("features");
+    if (featuresSection) {
+      featuresSection.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, []);
 
   const handleResetTypeToScrollTo = useCallback(() => {
     setTypeToScrollTo(null);
@@ -49,10 +53,10 @@ export const LandingSectionsClient: FC<
 
   return (
     <>
+      {/* 1. New Builder */}
       <section
         id="qr-generation-block"
-        ref={qrGenerationBlockRef}
-        className="bg-primary-100 w-full px-3 py-10 lg:py-14"
+        className="bg-primary-100 w-full px-3 py-6 lg:py-14 min-h-[100dvh] md:min-h-0 flex items-center justify-center"
       >
         <QRTabs
           sessionId={sessionId}
@@ -61,12 +65,13 @@ export const LandingSectionsClient: FC<
         />
       </section>
 
-      <QrTabsDetailed
+      {/* 2-8. Other sections */}
+      <LandingSectionsServer
         sessionId={sessionId}
         handleScrollButtonClick={handleScrollButtonClick}
+        handleFeatureClick={handleFeatureClick}
+        featureToOpen={featureToOpen}
       />
-      <ReviewsSection />
-      <PricingSection handleScrollButtonClick={handleScrollButtonClick} />
     </>
   );
 };

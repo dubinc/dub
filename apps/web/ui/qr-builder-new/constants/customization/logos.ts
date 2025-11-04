@@ -1,31 +1,31 @@
 // Logo constants for QR Builder New
 
-import AirbnbLogoIcon from "@/ui/qr-builder/icons/logos/airbnb.svg";
-import AppleLogoIcon from "@/ui/qr-builder/icons/logos/apple.svg";
-import BinanceLogoIcon from "@/ui/qr-builder/icons/logos/binance.svg";
-import BitcoinLogoIcon from "@/ui/qr-builder/icons/logos/bitcoin.svg";
-import BoltFoodLogoIcon from "@/ui/qr-builder/icons/logos/bolt-food.svg";
-import BookingLogoIcon from "@/ui/qr-builder/icons/logos/booking.svg";
-import FacebookLogoIcon from "@/ui/qr-builder/icons/logos/facebook.svg";
-import GlovoLogoIcon from "@/ui/qr-builder/icons/logos/glovo.svg";
-import GoogleMapsLogoIcon from "@/ui/qr-builder/icons/logos/google-maps.svg";
-import GooglePlayLogoIcon from "@/ui/qr-builder/icons/logos/google-play.svg";
-import GoogleLogoIcon from "@/ui/qr-builder/icons/logos/google.svg";
-import InstagramLogoIcon from "@/ui/qr-builder/icons/logos/instagram.svg";
-import LinkLogoIcon from "@/ui/qr-builder/icons/logos/link.svg";
-import LinkedInLogoIcon from "@/ui/qr-builder/icons/logos/linkedin.svg";
-import LocationLogoIcon from "@/ui/qr-builder/icons/logos/location.svg";
-import MailLogoIcon from "@/ui/qr-builder/icons/logos/mail.svg";
-import PayPalLogoIcon from "@/ui/qr-builder/icons/logos/paypal.svg";
-import RestaurantLogoIcon from "@/ui/qr-builder/icons/logos/restaurant.svg";
-import ScanMeLogoIcon from "@/ui/qr-builder/icons/logos/scan-me.svg";
-import TripAdvisorLogoIcon from "@/ui/qr-builder/icons/logos/tripadvisor.svg";
-import TrustPilotLogoIcon from "@/ui/qr-builder/icons/logos/trustpilot.svg";
-import UberEatsLogoIcon from "@/ui/qr-builder/icons/logos/uber-eats.svg";
-import WhatsAppLogoIcon from "@/ui/qr-builder/icons/logos/whatsapp.svg";
-import WifiLogoIcon from "@/ui/qr-builder/icons/logos/wifi.svg";
-import YoutubeLogoIcon from "@/ui/qr-builder/icons/logos/youtube.svg";
-import NoLogoIcon from "@/ui/qr-builder/icons/no-logo.svg";
+import AirbnbLogoIcon from "../../icons/logos/airbnb.svg";
+import AppleLogoIcon from "../../icons/logos/apple.svg";
+import BinanceLogoIcon from "../../icons/logos/binance.svg";
+import BitcoinLogoIcon from "../../icons/logos/bitcoin.svg";
+import BoltFoodLogoIcon from "../../icons/logos/bolt-food.svg";
+import BookingLogoIcon from "../../icons/logos/booking.svg";
+import FacebookLogoIcon from "../../icons/logos/facebook.svg";
+import GlovoLogoIcon from "../../icons/logos/glovo.svg";
+import GoogleMapsLogoIcon from "../../icons/logos/google-maps.svg";
+import GooglePlayLogoIcon from "../../icons/logos/google-play.svg";
+import GoogleLogoIcon from "../../icons/logos/google.svg";
+import InstagramLogoIcon from "../../icons/logos/instagram.svg";
+import LinkLogoIcon from "../../icons/logos/link.svg";
+import LinkedInLogoIcon from "../../icons/logos/linkedin.svg";
+import LocationLogoIcon from "../../icons/logos/location.svg";
+import MailLogoIcon from "../../icons/logos/mail.svg";
+import PayPalLogoIcon from "../../icons/logos/paypal.svg";
+import RestaurantLogoIcon from "../../icons/logos/restaurant.svg";
+import ScanMeLogoIcon from "../../icons/logos/scan-me.svg";
+import TripAdvisorLogoIcon from "../../icons/logos/tripadvisor.svg";
+import TrustPilotLogoIcon from "../../icons/logos/trustpilot.svg";
+import UberEatsLogoIcon from "../../icons/logos/uber-eats.svg";
+import WhatsAppLogoIcon from "../../icons/logos/whatsapp.svg";
+import WifiLogoIcon from "../../icons/logos/wifi.svg";
+import YoutubeLogoIcon from "../../icons/logos/youtube.svg";
+import NoLogoIcon from "../../icons/no-logo.svg";
 
 // PDF logos
 import PdfIcon1 from "../../icons/logos/pdf/774684_pdf_document_extension_file_format_icon.svg";
@@ -36,22 +36,17 @@ import PdfIcon3 from "../../icons/logos/pdf/pdf-svgrepo-com.svg";
 import PictureIcon1 from "../../icons/logos/picture/image-landscape-png-svgrepo-com.svg";
 import PictureIcon2 from "../../icons/logos/picture/image-media-photo-picture-svgrepo-com.svg";
 import PictureIcon3 from "../../icons/logos/picture/image-picture-971-svgrepo-com.svg";
-import PictureIcon4 from "../../icons/logos/picture/image-svgrepo-com (2) (1).svg";
 import PictureIcon5 from "../../icons/logos/picture/image-svgrepo-com (2).svg";
-import PictureIcon6 from "../../icons/logos/picture/image-svgrepo-com (3).svg";
 import PictureIcon7 from "../../icons/logos/picture/image-svgrepo-com.svg";
 import PictureIcon8 from "../../icons/logos/picture/picture-svgrepo-com.svg";
 
 // Video logos
 import VideoIcon1 from "../../icons/logos/video/video-call-svgrepo-com.svg";
-import VideoIcon2 from "../../icons/logos/video/video-camera-svgrepo-com.svg";
 import VideoIcon3 from "../../icons/logos/video/video-file-svgrepo-com (1).svg";
 import VideoIcon4 from "../../icons/logos/video/video-movie-svgrepo-com.svg";
 import VideoIcon5 from "../../icons/logos/video/video-svgrepo-com.svg";
 
 // Website logos
-import WebsiteIcon1 from "../../icons/logos/website/1873909_world_social media_earth_website_world wide web_icon.svg";
-import WebsiteIcon2 from "../../icons/logos/website/532738_browser_checked_domain_internet_url_icon.svg";
 import WebsiteIcon3 from "../../icons/logos/website/copy-link-svgrepo-com.svg";
 import WebsiteIcon4 from "../../icons/logos/website/unlink-alt-5-svgrepo-com.svg";
 
@@ -74,28 +69,6 @@ export const SUGGESTED_LOGOS: IStyleOption[] = [
     icon: NoLogoIcon,
   },
   // Website logos
-  {
-    id: "logo-website-1",
-    type: "website",
-    icon: WebsiteIcon1,
-    relevantFor: [
-      EQRType.WEBSITE,
-      EQRType.SOCIAL,
-      EQRType.APP_LINK,
-      EQRType.FEEDBACK,
-    ],
-  },
-  {
-    id: "logo-website-2",
-    type: "website",
-    icon: WebsiteIcon2,
-    relevantFor: [
-      EQRType.WEBSITE,
-      EQRType.SOCIAL,
-      EQRType.APP_LINK,
-      EQRType.FEEDBACK,
-    ],
-  },
   {
     id: "logo-website-3",
     type: "website",
@@ -168,21 +141,9 @@ export const SUGGESTED_LOGOS: IStyleOption[] = [
     relevantFor: [EQRType.IMAGE],
   },
   {
-    id: "logo-picture-4",
-    type: "picture",
-    icon: PictureIcon4,
-    relevantFor: [EQRType.IMAGE],
-  },
-  {
     id: "logo-picture-5",
     type: "picture",
     icon: PictureIcon5,
-    relevantFor: [EQRType.IMAGE],
-  },
-  {
-    id: "logo-picture-6",
-    type: "picture",
-    icon: PictureIcon6,
     relevantFor: [EQRType.IMAGE],
   },
   {
@@ -202,12 +163,6 @@ export const SUGGESTED_LOGOS: IStyleOption[] = [
     id: "logo-video-1",
     type: "video",
     icon: VideoIcon1,
-    relevantFor: [EQRType.VIDEO],
-  },
-  {
-    id: "logo-video-2",
-    type: "video",
-    icon: VideoIcon2,
     relevantFor: [EQRType.VIDEO],
   },
   {

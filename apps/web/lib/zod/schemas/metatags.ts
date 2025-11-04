@@ -14,7 +14,7 @@ export const metaTagsSchema = z.object({
     .describe("The meta description tag for the URL.")
     .openapi({
       example:
-        "Design dynamic QR codes with logos, frames, and colors. Track scans, edit content anytime, and download in JPG, PNG, or SVG. Start free—no credit card needed.",
+        "Design dynamic QR codes with logos, frames, and colors. Track scans, edit content anytime, and download in JPG, PNG, or SVG.",
     }),
   image: z
     .string()
