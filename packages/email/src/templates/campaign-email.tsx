@@ -1,5 +1,3 @@
-import { DUB_WORDMARK } from "@dub/utils";
-
 import {
   Body,
   Container,
@@ -61,10 +59,6 @@ export default function CampaignEmail({
       <Tailwind>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-10 max-w-[600px] px-10 py-5">
-            <Section className="mt-8">
-              <Img src={DUB_WORDMARK} height="32" alt="Dub" />
-            </Section>
-
             <Section className="my-8">
               <div className="flex items-center">
                 <Img
