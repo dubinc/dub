@@ -291,6 +291,18 @@ export async function processPayouts({
         invoiceId: invoice.id,
         status: "completed",
         userId,
+        paidAt: new Date(),
+      },
+    });
+
+    await prisma.commission.updateMany({
+      where: {
+        payoutId: {
+          in: externalPayouts.map((p) => p.id),
+        },
+      },
+      data: {
+        status: "paid",
       },
     });
   }
