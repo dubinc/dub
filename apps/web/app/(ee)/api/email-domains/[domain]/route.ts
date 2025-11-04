@@ -30,6 +30,8 @@ export const PATCH = withWorkspace(
 
     const domainChanged = slug && slug !== emailDomain.slug;
 
+    let resendDomainId: string | undefined;
+
     if (domainChanged) {
       if (!resend) {
         throw new DubApiError({
@@ -53,34 +55,53 @@ export const PATCH = withWorkspace(
         });
       }
 
-      waitUntil(
-        Promise.allSettled([
-          prisma.emailDomain.update({
-            where: {
-              id: emailDomain.id,
-            },
-            data: {
-              resendDomainId: resendDomain.id,
-              status: "pending",
-            },
-          }),
+      resendDomainId = resendDomain.id;
 
-          resend.domains.verify(resendDomain.id),
-        ]),
+      waitUntil(
+        (async () => {
+          // Verify an existing domain
+          const { error: resendVerifyError } = await resend.domains.verify(
+            resendDomain.id,
+          );
+
+          if (resendVerifyError) {
+            console.error(
+              `Resend domain verify failed - ${resendVerifyError.message}`,
+            );
+          }
+
+          // Enable open tracking for the domain
+          const { error: resendUpdateError } = await resend.domains.update({
+            id: resendDomain.id,
+            openTracking: true,
+            clickTracking: false,
+            tls: "opportunistic",
+          });
+
+          if (resendUpdateError) {
+            console.error(
+              `Resend domain update failed - ${resendUpdateError.message}`,
+            );
+          }
+        })(),
       );
     }
 
     try {
-      await prisma.emailDomain.update({
+      const updatedEmailDomain = await prisma.emailDomain.update({
         where: {
           id: emailDomain.id,
         },
         data: {
           slug,
+          ...(domainChanged && {
+            resendDomainId,
+            status: "pending",
+          }),
         },
       });
 
-      return NextResponse.json(EmailDomainSchema.parse(emailDomain));
+      return NextResponse.json(EmailDomainSchema.parse(updatedEmailDomain));
     } catch (error) {
       console.error(error);
 
