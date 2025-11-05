@@ -98,20 +98,21 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
             </Tooltip>
           )}
 
-          {INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
-            <Tooltip content="View invoice">
-              <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
-                <Link
-                  href={`/invoices/${payout.id}`}
-                  className="text-neutral-700"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  <InvoiceDollar className="size-4" />
-                </Link>
-              </div>
-            </Tooltip>
-          )}
+          {payout.mode === "internal" &&
+            INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status) && (
+              <Tooltip content="View invoice">
+                <div className="flex h-5 w-5 items-center justify-center rounded-md transition-colors duration-150 hover:border hover:border-neutral-200 hover:bg-neutral-100">
+                  <Link
+                    href={`/invoices/${payout.id}`}
+                    className="text-neutral-700"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <InvoiceDollar className="size-4" />
+                  </Link>
+                </div>
+              </Tooltip>
+            )}
         </div>
       ),
 
