@@ -21,10 +21,17 @@ import {
   TooltipContent,
   useKeyboardShortcut,
 } from "@dub/ui";
-import { capitalize } from "@dub/utils";
+import { capitalize, cn } from "@dub/utils";
+import { motion } from "motion/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useCallback, useEffect, useRef } from "react";
+import {
+  PropsWithChildren,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useDebouncedCallback } from "use-debounce";
@@ -38,7 +45,7 @@ import { TransactionalCampaignLogic } from "./transactional-campaign-logic";
 import { isValidTriggerCondition } from "./utils";
 
 const inputClassName =
-  "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
+  "hover:border-border-subtle h-8 w-full rounded-md transition-colors duration-150 focus:border-black/75 border focus:ring-black/75 border-transparent px-1.5 py-0 sm:text-sm text-content-default placeholder:text-content-muted hover:bg-neutral-100 hover:cursor-pointer";
 
 const labelClassName = "text-sm font-medium text-content-subtle";
 
@@ -95,6 +102,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     defaultValues: {
       name: campaign.name,
       subject: campaign.subject,
+      preview: campaign.preview,
       from: campaign.from ?? undefined,
       bodyJson: campaign.bodyJson,
       groupIds: campaign.groups.map(({ id }) => id),
@@ -111,6 +119,26 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     reset,
     formState: { dirtyFields },
   } = form;
+
+  const previewInputRef = useRef<HTMLInputElement>(null);
+
+  const [showPreviewText, setShowPreviewText] = useState(
+    Boolean(campaign.preview),
+  );
+
+  // Show preview text when preview is set
+  useEffect(() => {
+    const { unsubscribe } = watch(({ preview }) => {
+      if (preview) setShowPreviewText(true);
+    });
+    return () => unsubscribe();
+  }, [watch]);
+
+  // Focus preview input when opened
+  useEffect(() => {
+    if (showPreviewText && !getValues("preview"))
+      previewInputRef.current?.focus();
+  }, [showPreviewText, getValues]);
 
   const saveCampaign = useCallback(
     async ({ isDraft = false }: { isDraft?: boolean }) => {
@@ -215,6 +243,11 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
   const statusBadge = CAMPAIGN_STATUS_BADGES[campaign.status];
 
   const editorRef = useRef<{ setContent: (content: any) => void }>(null);
+  const previewInputProps = register("preview", {
+    onBlur: (e) => {
+      if (!e.target.value) setShowPreviewText(false);
+    },
+  });
 
   return (
     <FormProvider {...form}>
@@ -275,7 +308,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         contentWrapperClassName="flex flex-col"
       >
         <PageWidthWrapper className="mb-8 max-w-[600px]">
-          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
+          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+2)]:mt-2">
             <span className={labelClassName}>Name</span>
             <DisabledInputWrapper
               tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
@@ -326,7 +359,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
                         <input
                           type="text"
                           placeholder="Address"
-                          className="text-content-default placeholder:text-content-muted min-w-0 flex-1 border-0 bg-transparent p-0 text-sm focus:outline-none focus:ring-0"
+                          className="text-content-default placeholder:text-content-muted min-w-0 flex-1 border-0 bg-transparent p-0 focus:outline-none focus:ring-0 sm:text-sm"
                           disabled={isDisabled}
                           value={localPart}
                           onChange={(e) => {
@@ -402,14 +435,54 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
               disabled={isReadOnly}
               hideIcon={true}
             >
+              <div className="relative">
+                <input
+                  type="text"
+                  placeholder="Enter a subject..."
+                  className={cn(
+                    inputClassName,
+                    !isReadOnly && !showPreviewText && "pr-24",
+                  )}
+                  disabled={isReadOnly}
+                  {...register("subject")}
+                />
+                {!isReadOnly && (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2">
+                    <button
+                      type="button"
+                      onClick={() => setShowPreviewText(true)}
+                      className={cn(
+                        "text-content-subtle hover:text-content-default px-2 py-1 text-sm font-medium",
+                        "transition-[transform,opacity] duration-150 ease-out",
+                        showPreviewText && "translate-y-1 opacity-0",
+                      )}
+                      inert={showPreviewText}
+                    >
+                      Preview text
+                    </button>
+                  </div>
+                )}
+              </div>
+            </DisabledInputWrapper>
+
+            <ConditionalColumn show={showPreviewText}>
+              <span className={cn(labelClassName, "flex h-8 items-center")}>
+                Preview
+              </span>
+            </ConditionalColumn>
+            <ConditionalColumn show={showPreviewText}>
               <input
                 type="text"
-                placeholder="Enter a subject..."
+                placeholder="Enter preview text..."
                 className={inputClassName}
                 disabled={isReadOnly}
-                {...register("subject")}
+                {...previewInputProps}
+                ref={(e) => {
+                  previewInputProps.ref(e);
+                  previewInputRef.current = e;
+                }}
               />
-            </DisabledInputWrapper>
+            </ConditionalColumn>
 
             {campaign.type === "transactional" && (
               <>
@@ -515,3 +588,23 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     </FormProvider>
   );
 }
+
+const ConditionalColumn = ({
+  show,
+  children,
+}: PropsWithChildren<{ show: boolean }>) => {
+  return (
+    <motion.div
+      initial={false}
+      animate={{ height: show ? "auto" : 0 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
+      className={cn(
+        "transition-[margin,opacity] duration-150",
+        !show && "!mt-0 opacity-0",
+      )}
+      inert={!show}
+    >
+      {children}
+    </motion.div>
+  );
+};

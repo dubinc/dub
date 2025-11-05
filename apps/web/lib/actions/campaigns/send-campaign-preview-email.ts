@@ -16,6 +16,7 @@ const sendPreviewEmailSchema = z
     campaignId: z.string(),
     workspaceId: z.string(),
     subject: z.string().min(1, "Email subject is required."),
+    preview: z.string().nullish(),
     from: z.string().email().optional(),
     emailAddresses: z
       .array(z.string().email())
@@ -32,7 +33,8 @@ export const sendCampaignPreviewEmail = authActionClient
   .schema(sendPreviewEmailSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace } = ctx;
-    const { campaignId, subject, from, bodyJson, emailAddresses } = parsedInput;
+    const { campaignId, subject, preview, from, bodyJson, emailAddresses } =
+      parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -66,7 +68,7 @@ export const sendCampaignPreviewEmail = authActionClient
           },
           campaign: {
             type: campaign.type,
-            subject,
+            preview,
             body: renderCampaignEmailHTML({
               content: bodyJson as unknown as TiptapNode,
               variables: {
