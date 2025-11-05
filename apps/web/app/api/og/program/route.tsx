@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
   ).then((res) => res.arrayBuffer());
 
   const slug = req.nextUrl.searchParams.get("slug");
+  const groupSlug = req.nextUrl.searchParams.get("groupSlug");
 
   if (!slug) {
     return new Response("Missing 'slug' parameter", {
@@ -37,7 +38,7 @@ export async function GET(req: NextRequest) {
     include: {
       groups: {
         where: {
-          slug: DEFAULT_PARTNER_GROUP.slug,
+          slug: groupSlug ?? DEFAULT_PARTNER_GROUP.slug,
         },
         include: {
           clickReward: true,
