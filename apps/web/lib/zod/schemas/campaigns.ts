@@ -50,7 +50,7 @@ export const CampaignSchema = z.object({
   id: z.string(),
   name: z.string(),
   subject: z.string(),
-  preview: z.string().nullable().default(null),
+  preview: z.string().nullish(),
   from: z.string().nullable(),
   bodyJson: z.record(z.string(), z.any()),
   type: z.nativeEnum(CampaignType),
