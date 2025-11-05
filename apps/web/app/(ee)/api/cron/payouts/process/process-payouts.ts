@@ -136,14 +136,14 @@ export async function processPayouts({
   let externalPayouts: ExtendedPayout[] = [];
   let internalPayouts: ExtendedPayout[] = [];
 
-  if (invoice.mode === "internal") {
+  if (invoice.payoutMode === "internal") {
     internalPayouts = payouts;
-  } else if (invoice.mode === "external") {
+  } else if (invoice.payoutMode === "external") {
     externalPayouts = payouts;
-  } else if (invoice.mode === "hybrid") {
+  } else if (invoice.payoutMode === "hybrid") {
     payouts.forEach((payout) => {
       const payoutMode = getEffectivePayoutMode({
-        payoutMode: invoice.mode,
+        payoutMode: invoice.payoutMode,
         payoutsEnabledAt: payout.partner.payoutsEnabledAt,
       });
 
