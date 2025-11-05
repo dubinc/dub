@@ -3,7 +3,6 @@
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
-import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import { PartnerPayoutResponse } from "@/lib/types";
 import { PayoutRowMenu } from "@/ui/partners/payout-row-menu";
 import { PayoutStatusBadgePartner } from "@/ui/partners/payout-status-badge-partner";
@@ -223,12 +222,6 @@ export function PayoutTable() {
 }
 
 function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
-  const { partner, loading: partnerLoading } = usePartnerProfile();
-
-  if (partnerLoading || !partner) {
-    return null;
-  }
-
   const display = currencyFormatter(payout.amount / 100);
 
   if (

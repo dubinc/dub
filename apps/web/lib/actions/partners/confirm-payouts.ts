@@ -2,7 +2,9 @@
 
 import { createId } from "@/lib/api/create-id";
 import { exceededLimitError } from "@/lib/api/errors";
+import { getEligiblePayouts } from "@/lib/api/payouts/get-eligible-payouts";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { qstash } from "@/lib/cron";
 import {
   PAYMENT_METHOD_TYPES,
@@ -46,15 +48,6 @@ export const confirmPayoutsAction = authActionClient
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
-    const program = await prisma.program.findUniqueOrThrow({
-      where: {
-        id: programId,
-      },
-      select: {
-        payoutMode: true,
-      },
-    });
-
     if (workspace.role !== "owner") {
       throw new Error("Only workspace owners can confirm payouts.");
     }
@@ -87,16 +80,35 @@ export const confirmPayoutsAction = authActionClient
       );
     }
 
-    if (program.payoutMode === "external") {
-      const webhooks = await getWebhooks({
-        workspaceId: workspace.id,
-        triggers: ["payout.confirmed"],
-        disabled: false,
-      });
+    const program = await getProgramOrThrow({
+      workspaceId: workspace.id,
+      programId,
+    });
 
-      if (webhooks.length === 0) {
+    if (program.payoutMode !== "internal") {
+      const [eligiblePayouts, payoutWebhooks] = await Promise.all([
+        getEligiblePayouts({
+          program,
+          cutoffPeriod,
+          selectedPayoutId,
+          excludedPayoutIds,
+        }),
+
+        getWebhooks({
+          workspaceId: workspace.id,
+          triggers: ["payout.confirmed"],
+          disabled: false,
+        }),
+      ]);
+
+      // Check if the invoice includes any external payouts
+      const hasExternalPayouts = eligiblePayouts.find(
+        (payout) => payout.mode === "external",
+      );
+
+      if (hasExternalPayouts && payoutWebhooks.length === 0) {
         throw new Error(
-          `External payout routing requires an active webhook subscribed to the "payout.confirmed" trigger. Please configure one before confirming payouts.`,
+          `EXTERNAL_WEBHOOK_REQUIRED: This invoice includes at least one external payout, which requires an active webhook subscribed to the "payout.confirmed" event. Please set one up before proceeding.`,
         );
       }
     }
@@ -135,7 +147,7 @@ export const confirmPayoutsAction = authActionClient
         data: {
           id: createId({ prefix: "inv_" }),
           number: invoiceNumber,
-          programId: workspace.defaultProgramId,
+          programId,
           workspaceId: workspace.id,
           // these numbers will be updated later in the payouts/process cron job
           // but we're adding them now for the program/payouts/success screen

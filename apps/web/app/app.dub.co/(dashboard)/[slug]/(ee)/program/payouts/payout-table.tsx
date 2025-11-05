@@ -301,10 +301,6 @@ function AmountRowItem({
   const { slug } = useParams();
   const { program } = useProgram();
 
-  if (!program) {
-    return null;
-  }
-
   const minPayoutAmount = program?.minPayoutAmount || 0;
   const display = currencyFormatter(payout.amount / 100);
 

@@ -1,3 +1,4 @@
+import { CUTOFF_PERIOD_ENUM } from "@/lib/partners/cutoff-period";
 import { PayoutMode, PayoutStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
@@ -108,4 +109,9 @@ export const payoutWebhookEventSchema = PayoutSchema.omit({
     tenantId: true,
     status: true,
   }),
+});
+
+export const eligiblePayoutsQuerySchema = z.object({
+  cutoffPeriod: CUTOFF_PERIOD_ENUM,
+  selectedPayoutId: z.string().optional(),
 });

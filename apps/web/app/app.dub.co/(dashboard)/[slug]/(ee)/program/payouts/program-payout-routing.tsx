@@ -1,12 +1,10 @@
 "use client";
 
-import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { ProgramPayoutMode } from "@dub/prisma/client";
 import { RadioGroup, RadioGroupItem } from "@dub/ui";
 import Link from "next/link";
-import { useMemo } from "react";
 import { UseFormSetValue, UseFormWatch } from "react-hook-form";
 
 type FormData = Pick<
@@ -23,21 +21,7 @@ export function ProgramPayoutRouting({
   setValue,
   watch,
 }: ProgramPayoutRoutingProps) {
-  const { webhooks, isLoading: isWebhooksLoading } = useWebhooks();
-
   const payoutMode = watch("payoutMode");
-
-  // Filter webhooks with payout.confirmed trigger
-  const externalPayoutWebhooks = useMemo(() => {
-    if (!webhooks) return [];
-
-    return webhooks.filter(
-      (webhook) =>
-        webhook.triggers &&
-        Array.isArray(webhook.triggers) &&
-        webhook.triggers.includes("payout.confirmed"),
-    );
-  }, [webhooks]);
 
   const payoutModeOptions = [
     {
@@ -51,10 +35,7 @@ export function ProgramPayoutRouting({
       value: ProgramPayoutMode.hybrid,
       label: "Dub and external",
       recommended: false,
-      displayWebhookWarning:
-        payoutMode === ProgramPayoutMode.hybrid &&
-        externalPayoutWebhooks.length === 0 &&
-        !isWebhooksLoading,
+      displayWebhookWarning: payoutMode === ProgramPayoutMode.hybrid,
       description: (
         <>
           Partners with payouts enabled are paid by Dub, others via external
@@ -69,10 +50,7 @@ export function ProgramPayoutRouting({
       value: ProgramPayoutMode.external,
       label: "External only",
       recommended: false,
-      displayWebhookWarning:
-        payoutMode === ProgramPayoutMode.external &&
-        externalPayoutWebhooks.length === 0 &&
-        !isWebhooksLoading,
+      displayWebhookWarning: payoutMode === ProgramPayoutMode.external,
       description: (
         <>
           All payouts are processed through your connected external payout

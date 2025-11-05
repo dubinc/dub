@@ -50,6 +50,7 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import Stripe from "stripe";
 import useSWR from "swr";
+import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
 import { PartnerRowItem } from "./partner-row-item";
 
 type SelectPaymentMethod =
@@ -114,7 +115,36 @@ function ConfirmPayoutsSheetContent() {
   }, [eligiblePayouts, selectedPayoutId, excludedPayoutIds]);
 
   const { executeAsync: confirmPayouts } = useAction(confirmPayoutsAction, {
-    onError({ error }) {
+    onError: ({ error }) => {
+      const PAYOUT_ERROR_MAP = {
+        EXTERNAL_WEBHOOK_REQUIRED: {
+          title: "Webhook required",
+          ctaLabel: "Set up webhook",
+          ctaUrl: `/${slug}/settings/webhooks`,
+        },
+      };
+
+      if (error.serverError) {
+        const code = Object.keys(PAYOUT_ERROR_MAP).find((key) =>
+          error.serverError?.startsWith(key),
+        );
+
+        if (code) {
+          const { title, ctaLabel, ctaUrl } = PAYOUT_ERROR_MAP[code];
+          const message =
+            error.serverError.replace(`${code}: `, "") || "An error occurred.";
+
+          return toast.custom(() => (
+            <UpgradeRequiredToast
+              title={title}
+              message={message}
+              ctaLabel={ctaLabel}
+              ctaUrl={ctaUrl}
+            />
+          ));
+        }
+      }
+
       toast.error(error.serverError);
     },
   });
