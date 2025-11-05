@@ -65,8 +65,8 @@ const LEGACY_PRO_PRICE_IDS = [
 const PRO_TIER_PRICE_IDS = {
   2: [
     // TODO: Add prod price IDs here
-    "price_1SO0HZAlJJEpqkPV8Ep3EDuZ", // yearly (test)
-    "price_1SO0GCAlJJEpqkPVbw8SGWuq", // monthly (test)
+    "price_1SQ8hiAlJJEpqkPVIy8pfvAC", // yearly (test)
+    "price_1SQ8gwAlJJEpqkPVb78Oc9Yc", // monthly (test)
   ],
 };
 
@@ -92,8 +92,8 @@ const LEGACY_BUSINESS_PRICE_IDS = [
 const BUSINESS_TIER_PRICE_IDS = {
   2: [
     // TODO: Add prod price IDs here
-    "price_1SO0NgAlJJEpqkPVCINwPTUg", // yearly (test)
-    "price_1SO0N6AlJJEpqkPVyxhuGFX8", // monthly (test)
+    "price_1SQ8iwAlJJEpqkPVEGmKd6Lg", // yearly (test)
+    "price_1SQ8iSAlJJEpqkPVQ5crmBtF", // monthly (test)
   ],
 };
 
@@ -109,13 +109,13 @@ export const NEW_BUSINESS_PRICE_IDS = [
 const ADVANCED_TIER_PRICE_IDS = {
   2: [
     // TODO: Add prod price IDs here
-    "price_1SO0bmAlJJEpqkPVmV617aoL", // yearly (test)
-    "price_1SO0bOAlJJEpqkPV0shPp7Og", // monthly (test)
+    "price_1SQ8jlAlJJEpqkPV6EanvSXl", // yearly (test)
+    "price_1SQ8jJAlJJEpqkPVIwY9QZSP", // monthly (test)
   ],
   3: [
     // TODO: Add prod price IDs here
-    "price_1SO0eGAlJJEpqkPVvuigbn84", // yearly (test)
-    "price_1SO0dqAlJJEpqkPVsIWbOeFW", // monthly (test)
+    "price_1SQ8lqAlJJEpqkPVzBaioV3I", // yearly (test)
+    "price_1SQ8lOAlJJEpqkPVz2R8SRss", // monthly (test)
   ],
 };
 
