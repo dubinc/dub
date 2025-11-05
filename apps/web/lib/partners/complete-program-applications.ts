@@ -5,7 +5,7 @@ import { createId } from "../api/create-id";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { qstash } from "../cron";
 import { sendWorkspaceWebhook } from "../webhook/publish";
-import { partnerApplicationSchema } from "../zod/schemas/program-application";
+import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
 import { formatApplicationFormData } from "./format-application-form-data";
 
 /**
@@ -195,7 +195,7 @@ export async function completeProgramApplications(userEmail: string) {
           sendWorkspaceWebhook({
             workspace: workspacesByProgramId.get(program.id)!,
             trigger: "partner.application_submitted",
-            data: partnerApplicationSchema.parse({
+            data: partnerApplicationWebhookSchema.parse({
               id: application.id,
               partner: {
                 ...partner,

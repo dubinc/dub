@@ -2,7 +2,7 @@ import { z } from "zod";
 import { EnrolledPartnerSchema, PartnerOnlinePresenceSchema } from "./partners";
 import { ProgramEnrollmentSchema } from "./programs";
 
-export const partnerApplicationSchema = z.object({
+export const partnerApplicationWebhookSchema = z.object({
   id: z.string(),
   partner: EnrolledPartnerSchema.pick({
     id: true,

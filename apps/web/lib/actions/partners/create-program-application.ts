@@ -12,7 +12,7 @@ import {
 } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
-import { partnerApplicationSchema } from "@/lib/zod/schemas/program-application";
+import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
@@ -270,7 +270,7 @@ async function createApplicationAndEnrollment({
         sendWorkspaceWebhook({
           workspace,
           trigger: "partner.application_submitted",
-          data: partnerApplicationSchema.parse({
+          data: partnerApplicationWebhookSchema.parse({
             id: application.id,
             partner: {
               ...partner,

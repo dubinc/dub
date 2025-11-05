@@ -13,6 +13,7 @@ import { CommissionWebhookSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { partnerApplicationWebhookSchema } from "@/lib/zod/schemas/program-application";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
 
@@ -67,6 +68,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "commission.created": commissionWebhookEventSchemaExtended,
   "bounty.created": bountyWebhookEventSchemaExtended,
   "bounty.updated": bountyWebhookEventSchemaExtended,
+  "partner.application_submitted": partnerApplicationWebhookSchema,
 };
 
 describe("Webhooks", () => {
