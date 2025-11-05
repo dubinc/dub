@@ -51,7 +51,7 @@ function CreateCommissionSheetContent({
 
   const [hasCustomLeadEventDate, setHasCustomLeadEventDate] = useState(false);
   const [hasCustomLeadEventName, setHasCustomLeadEventName] = useState(false);
-  const [useExistingEvents, setUseExistingEvents] = useState(true);
+  const [useExistingEvents, setUseExistingEvents] = useState(false);
 
   const [commissionType, setCommissionType] =
     useState<CommissionType>("custom");
@@ -540,11 +540,11 @@ function CreateCommissionSheetContent({
                           optionClassName="h-8 flex items-center justify-center rounded-md flex-1 text-sm normal-case"
                           indicatorClassName="bg-white"
                           options={[
+                            { value: "new", label: "Create new events" },
                             {
                               value: "existing",
                               label: "Use existing events",
                             },
-                            { value: "new", label: "Create new events" },
                           ]}
                           selected={useExistingEvents ? "existing" : "new"}
                           selectAction={(value: string) =>
