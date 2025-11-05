@@ -3,7 +3,7 @@
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
-import { PayoutMode } from "@dub/prisma/client";
+import { ProgramPayoutMode } from "@dub/prisma/client";
 import { RadioGroup, RadioGroupItem } from "@dub/ui";
 import Link from "next/link";
 import { useMemo } from "react";
@@ -41,18 +41,18 @@ export function ProgramPayoutRouting({
 
   const payoutModeOptions = [
     {
-      value: PayoutMode.internal,
+      value: ProgramPayoutMode.internal,
       label: "Dub only",
       recommended: true,
       displayWebhookWarning: false,
       description: "All payouts are handled by Dub.",
     },
     {
-      value: PayoutMode.hybrid,
+      value: ProgramPayoutMode.hybrid,
       label: "Dub and external",
       recommended: false,
       displayWebhookWarning:
-        payoutMode === PayoutMode.hybrid &&
+        payoutMode === ProgramPayoutMode.hybrid &&
         externalPayoutWebhooks.length === 0 &&
         !isWebhooksLoading,
       description: (
@@ -66,11 +66,11 @@ export function ProgramPayoutRouting({
       ),
     },
     {
-      value: PayoutMode.external,
+      value: ProgramPayoutMode.external,
       label: "External only",
       recommended: false,
       displayWebhookWarning:
-        payoutMode === PayoutMode.external &&
+        payoutMode === ProgramPayoutMode.external &&
         externalPayoutWebhooks.length === 0 &&
         !isWebhooksLoading,
       description: (

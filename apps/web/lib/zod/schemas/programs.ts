@@ -6,8 +6,8 @@ import { ALLOWED_MIN_PAYOUT_AMOUNTS } from "@/lib/partners/constants";
 import {
   EventType,
   PartnerBannedReason,
-  PayoutMode,
   ProgramEnrollmentStatus,
+  ProgramPayoutMode,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
@@ -37,7 +37,7 @@ export const ProgramSchema = z.object({
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
   externalPayoutEnabledAt: z.date().nullish(),
-  payoutMode: z.nativeEnum(PayoutMode),
+  payoutMode: z.nativeEnum(ProgramPayoutMode),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string(),
@@ -69,7 +69,7 @@ export const updateProgramSchema = z.object({
   helpUrl: z.string().url().max(500).nullish(),
   termsUrl: z.string().url().max(500).nullish(),
   messagingEnabledAt: z.coerce.date().nullish(),
-  payoutMode: z.nativeEnum(PayoutMode).nullish(),
+  payoutMode: z.nativeEnum(ProgramPayoutMode).nullish(),
 });
 
 export const ProgramPartnerLinkSchema = LinkSchema.pick({

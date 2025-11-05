@@ -1,9 +1,10 @@
 import { handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { qstash } from "@/lib/cron";
 import { verifyQstashSignature } from "@/lib/cron/verify-qstash";
 import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
 import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
 import { prisma } from "@dub/prisma";
-import { log } from "@dub/utils";
+import { APP_DOMAIN_WITH_NGROK, log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
 
@@ -13,11 +14,13 @@ export const maxDuration = 600;
 
 const payloadSchema = z.object({
   invoiceId: z.string(),
-  externalPayoutIds: z.array(z.string()),
+  startingAfter: z.string().optional(),
 });
 
+const PAYOUT_BATCH_SIZE = 100;
+
 // POST /api/cron/payouts/send-webhooks
-// This route is used to send webhooks for external payouts in the background
+// Note: Currently we send webhooks for external payouts only
 export async function POST(req: Request) {
   try {
     const rawBody = await req.text();
@@ -27,7 +30,7 @@ export async function POST(req: Request) {
       rawBody,
     });
 
-    const { invoiceId, externalPayoutIds } = payloadSchema.parse(
+    const { invoiceId, startingAfter } = payloadSchema.parse(
       JSON.parse(rawBody),
     );
 
@@ -55,9 +58,8 @@ export async function POST(req: Request) {
 
     const payouts = await prisma.payout.findMany({
       where: {
-        id: {
-          in: externalPayoutIds,
-        },
+        invoiceId,
+        mode: "external",
       },
       include: {
         partner: {
@@ -74,11 +76,21 @@ export async function POST(req: Request) {
           },
         },
       },
+      take: PAYOUT_BATCH_SIZE,
+      ...(startingAfter && {
+        cursor: {
+          id: startingAfter,
+        },
+        skip: 1,
+      }),
+      orderBy: {
+        id: "asc",
+      },
     });
 
     if (payouts.length === 0) {
       return logAndRespond(
-        `No external payouts found for invoice ${invoiceId}. Skipping...`,
+        `No payouts found for invoice ${invoiceId} starting after ${startingAfter}. Skipping...`,
       );
     }
 
@@ -125,7 +137,30 @@ export async function POST(req: Request) {
       }
     }
 
-    return new Response(`Webhooks published for ${payouts.length} payouts.`);
+    if (payouts.length === PAYOUT_BATCH_SIZE) {
+      const response = await qstash.publishJSON({
+        url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-webhooks`,
+        method: "POST",
+        body: {
+          invoiceId,
+          startingAfter: payouts[payouts.length - 1].id,
+        },
+      });
+
+      if (response.messageId) {
+        console.log(`Message sent to Qstash with id ${response.messageId}`);
+      } else {
+        console.error("Error sending message to Qstash", response);
+      }
+
+      return logAndRespond(
+        `Enqueued next page to send webhooks for invoice ${invoiceId}.`,
+      );
+    }
+
+    return new Response(
+      `Finished sending "payout.confirmed" webhooks for invoice ${invoiceId}.`,
+    );
   } catch (error) {
     await log({
       message: `Error sending "payout.confirmed" webhooks: ${error.message}`,

@@ -28,6 +28,7 @@ export {
   PreferredEarningStructure,
   Prisma,
   ProgramEnrollmentStatus,
+  ProgramPayoutMode,
   RewardStructure,
   SalesChannel,
   WebhookReceiver,

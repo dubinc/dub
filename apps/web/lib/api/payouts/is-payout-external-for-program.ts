@@ -1,7 +1,7 @@
-import { PayoutMode } from "@prisma/client";
+import { ProgramPayoutMode } from "@prisma/client";
 
 interface IsPayoutExternalForProgramProps {
-  payoutMode: PayoutMode | null;
+  payoutMode: ProgramPayoutMode | null;
   payoutsEnabledAt: Date | null;
 }
 

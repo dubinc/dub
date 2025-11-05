@@ -9,7 +9,6 @@ import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { HOLDING_PERIOD_DAYS } from "@/lib/zod/schemas/programs";
 import { X } from "@/ui/shared/icons";
-import { UpgradeRequiredToast } from "@/ui/shared/upgrade-required-toast";
 import { Button, Sheet, Slider, useScrollProgress } from "@dub/ui";
 import NumberFlow from "@number-flow/react";
 import { useAction } from "next-safe-action/hooks";
@@ -59,23 +58,7 @@ function ProgramPayoutSettingsSheetContent({
       mutatePrefix(`/api/programs/${defaultProgramId}`);
     },
     onError: ({ error }) => {
-      const message = parseActionError(
-        error,
-        "Failed to update payout settings.",
-      );
-
-      if (message.startsWith("WEBHOOK_REQUIRED")) {
-        return toast.custom(() => (
-          <UpgradeRequiredToast
-            title="External payout requires webhook"
-            message={message.replace("WEBHOOK_REQUIRED: ", "")}
-            ctaLabel="Add webhook"
-            ctaUrl={`/${slug}/settings/webhooks`}
-          />
-        ));
-      }
-
-      toast.error(message);
+      toast.error(parseActionError(error, "Failed to update payout settings."));
     },
   });
 

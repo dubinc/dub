@@ -4,9 +4,8 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
-import { getWebhooks } from "@/lib/webhook/get-webhooks";
 import { prisma } from "@dub/prisma";
-import { PayoutMode } from "@dub/prisma/client";
+import { ProgramPayoutMode } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
@@ -50,21 +49,9 @@ export const updateProgramAction = authActionClient
     });
 
     // External payout requirement checks
-    if (payoutMode && payoutMode !== PayoutMode.internal) {
+    if (payoutMode && payoutMode !== ProgramPayoutMode.internal) {
       if (program.externalPayoutEnabledAt === null) {
         throw new Error("External payout is not enabled for this program.");
-      }
-
-      const webhooksForPayoutConfirmed = await getWebhooks({
-        workspaceId: workspace.id,
-        triggers: ["payout.confirmed"],
-        disabled: false,
-      });
-
-      if (webhooksForPayoutConfirmed.length === 0) {
-        throw new Error(
-          `WEBHOOK_REQUIRED: External payout routing requires an active webhook subscribed to the "payout.confirmed" trigger. Please configure one before enabling this option.`,
-        );
       }
     }
 

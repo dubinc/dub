@@ -28,6 +28,7 @@ export default function PartnerPayoutConfirmed({
     startDate: new Date("2024-11-01"),
     endDate: new Date("2024-11-30"),
     paymentMethod: "ach_fast",
+    mode: "internal",
   },
 }: {
   email: string;
@@ -35,7 +36,6 @@ export default function PartnerPayoutConfirmed({
     id: string;
     name: string;
     logo: string | null;
-    payoutMode?: "internal" | "external";
   };
   payout: {
     id: string;
@@ -43,6 +43,7 @@ export default function PartnerPayoutConfirmed({
     startDate?: Date | null;
     endDate?: Date | null;
     paymentMethod: string;
+    mode: "internal" | "external" | null;
   };
 }) {
   const saleAmountInDollars = currencyFormatter(payout.amount / 100);
@@ -102,7 +103,7 @@ export default function PartnerPayoutConfirmed({
             </Text>
 
             <Text className="text-sm leading-6 text-neutral-600">
-              {program.payoutMode === "external" ? (
+              {payout.mode === "external" ? (
                 <>
                   The payout is currently being processed and is expected to be
                   credited to your{" "}

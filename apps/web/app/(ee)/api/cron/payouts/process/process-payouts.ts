@@ -94,6 +94,7 @@ export async function processPayouts({
       amount: true,
       periodStart: true,
       periodEnd: true,
+      mode: true,
       partner: {
         select: {
           email: true,
@@ -121,17 +122,17 @@ export async function processPayouts({
     },
   });
 
-  let externalPayouts: Pick<Payout, "id" | "amount">[] = [];
-  let internalPayouts: Pick<Payout, "id" | "amount">[] = [];
+  let externalPayouts: Pick<Payout, "id" | "amount" | "mode">[] = [];
+  let internalPayouts: Pick<Payout, "id" | "amount" | "mode">[] = [];
 
-  if (invoice.payoutMode === "internal") {
+  if (invoice.mode === "internal") {
     internalPayouts = payouts;
-  } else if (invoice.payoutMode === "external") {
+  } else if (invoice.mode === "external") {
     externalPayouts = payouts;
-  } else if (invoice.payoutMode === "hybrid") {
+  } else if (invoice.mode === "hybrid") {
     payouts.forEach((payout) => {
       const isExternal = isPayoutExternal({
-        payoutMode: invoice.payoutMode,
+        payoutMode: invoice.mode,
         payoutsEnabledAt: payout.partner.payoutsEnabledAt,
       });
 
@@ -278,37 +279,39 @@ export async function processPayouts({
         invoiceId: invoice.id,
         status: "processing",
         userId,
-        payoutMode: invoice.payoutMode,
+        mode: "internal",
       },
     });
   }
 
   // Mark external payouts as completed
   if (externalPayouts.length > 0) {
-    await prisma.payout.updateMany({
-      where: {
-        id: {
-          in: externalPayouts.map((p) => p.id),
+    await prisma.$transaction(async (tx) => {
+      await tx.payout.updateMany({
+        where: {
+          id: {
+            in: externalPayouts.map((p) => p.id),
+          },
         },
-      },
-      data: {
-        invoiceId: invoice.id,
-        status: "completed",
-        userId,
-        paidAt: new Date(),
-        payoutMode: invoice.payoutMode,
-      },
-    });
+        data: {
+          invoiceId: invoice.id,
+          status: "completed",
+          userId,
+          paidAt: new Date(),
+          mode: "external",
+        },
+      });
 
-    await prisma.commission.updateMany({
-      where: {
-        payoutId: {
-          in: externalPayouts.map((p) => p.id),
+      await tx.commission.updateMany({
+        where: {
+          payoutId: {
+            in: externalPayouts.map((p) => p.id),
+          },
         },
-      },
-      data: {
-        status: "paid",
-      },
+        data: {
+          status: "paid",
+        },
+      });
     });
   }
 
@@ -388,16 +391,13 @@ export async function processPayouts({
               id: program.id,
               name: program.name,
               logo: program.logo,
-              payoutMode: program.payoutMode as
-                | "internal"
-                | "external"
-                | undefined,
             },
             payout: {
               id: payout.id,
               amount: payout.amount,
               startDate: payout.periodStart,
               endDate: payout.periodEnd,
+              mode: payout.mode,
               paymentMethod: invoice.paymentMethod ?? "ach",
             },
           },
@@ -414,9 +414,8 @@ export async function processPayouts({
       url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-webhooks`,
       body: {
         invoiceId: invoice.id,
-        externalPayoutIds: externalPayouts.map((p) => p.id),
       },
-      deduplicationId: `publish-payout-confirmed-webhooks-${invoice.id}`,
+      deduplicationId: `payout-confirmed-webhooks-${invoice.id}`,
     });
 
     if (qstashResponse.messageId) {

@@ -162,6 +162,7 @@ export const confirmPayoutsAction = authActionClient
         selectedPayoutId,
         excludedPayoutIds,
       },
+      deduplicationId: `process-payouts-${invoice.id}`,
     });
 
     if (qstashResponse.messageId) {
