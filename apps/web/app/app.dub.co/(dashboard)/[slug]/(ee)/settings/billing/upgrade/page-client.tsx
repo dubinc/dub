@@ -143,9 +143,8 @@ export function WorkspaceBillingUpgradePageClient() {
                 const disableCurrentPlan = Boolean(
                   stripeId &&
                     plan.name.toLowerCase() === currentPlan &&
-                    ("tier" in plan
-                      ? (plan.tier ?? 0) === (currentPlanTier ?? 0)
-                      : true) &&
+                    (("tier" in plan ? plan.tier : 0) ?? 0) ===
+                      (currentPlanTier ?? 0) &&
                     !isLegacyBusinessPlan({
                       plan: currentPlan,
                       payoutsLimit,
