@@ -1,4 +1,4 @@
-import { PayoutStatus } from "@dub/prisma/client";
+import { PayoutMode, PayoutStatus } from "@dub/prisma/client";
 import { z } from "zod";
 import { getPaginationQuerySchema } from "./misc";
 import { EnrolledPartnerSchema, PartnerSchema } from "./partners";
@@ -61,6 +61,7 @@ export const PayoutSchema = z.object({
   createdAt: z.date(),
   paidAt: z.date().nullable(),
   failureReason: z.string().nullish(),
+  mode: z.nativeEnum(PayoutMode).nullable(),
 });
 
 export const PayoutResponseSchema = PayoutSchema.merge(
@@ -98,7 +99,6 @@ export const PartnerPayoutResponseSchema = PayoutResponseSchema.omit({
 export const payoutWebhookEventSchema = PayoutSchema.omit({
   failureReason: true,
 }).extend({
-  external: z.boolean().default(false),
   partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,

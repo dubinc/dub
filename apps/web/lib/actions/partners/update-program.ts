@@ -50,7 +50,7 @@ export const updateProgramAction = authActionClient
 
     // External payout requirement checks
     if (payoutMode && payoutMode !== ProgramPayoutMode.internal) {
-      if (program.externalPayoutEnabledAt === null) {
+      if (program.externalPayoutsEnabledAt === null) {
         throw new Error("External payout is not enabled for this program.");
       }
     }

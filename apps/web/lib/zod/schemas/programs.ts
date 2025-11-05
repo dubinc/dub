@@ -36,7 +36,7 @@ export const ProgramSchema = z.object({
   autoApprovePartnersEnabledAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
-  externalPayoutEnabledAt: z.date().nullish(),
+  externalPayoutsEnabledAt: z.date().nullish(),
   payoutMode: z.nativeEnum(ProgramPayoutMode),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),

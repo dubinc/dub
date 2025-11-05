@@ -1,3 +1,4 @@
+import { getEffectivePayoutMode } from "@/lib/api/payouts/is-payout-external-for-program";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
@@ -101,6 +102,10 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
       ...partner,
       ...partner.programs[0],
     },
+    mode: getEffectivePayoutMode({
+      payoutMode: program.payoutMode,
+      payoutsEnabledAt: partner.payoutsEnabledAt,
+    }),
   }));
 
   return NextResponse.json(

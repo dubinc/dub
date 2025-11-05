@@ -145,7 +145,7 @@ export const confirmPayoutsAction = authActionClient
           paymentMethod: fastSettlement
             ? "ach_fast"
             : STRIPE_PAYMENT_METHOD_NORMALIZATION[paymentMethod.type],
-          payoutMode: program.payoutMode,
+          mode: program.payoutMode,
         },
       });
     });

@@ -30,11 +30,11 @@ export async function validateWebhook({
         id: programId,
       },
       select: {
-        externalPayoutEnabledAt: true,
+        externalPayoutsEnabledAt: true,
       },
     });
 
-    if (program.externalPayoutEnabledAt === null) {
+    if (program.externalPayoutsEnabledAt === null) {
       throw new DubApiError({
         code: "bad_request",
         message: `The 'payout.confirmed' trigger is not currently available for your workspace.`,

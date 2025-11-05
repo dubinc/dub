@@ -1,6 +1,5 @@
 "use client";
 
-import { isPayoutExternal } from "@/lib/api/payouts/is-payout-external-for-program";
 import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
@@ -200,13 +199,7 @@ const PayoutTableInner = memo(
         {
           id: "amount",
           header: "Amount",
-          cell: ({ row }) => (
-            <AmountRowItem
-              amount={row.original.amount}
-              status={row.original.status}
-              partner={row.original.partner}
-            />
-          ),
+          cell: ({ row }) => <AmountRowItem payout={row.original} />,
         },
       ],
       pagination,
@@ -301,31 +294,22 @@ const PayoutTableInner = memo(
 );
 
 function AmountRowItem({
-  amount,
-  status,
-  partner,
+  payout,
 }: {
-  amount: number;
-  status: PayoutStatus;
-  partner: PayoutResponse["partner"];
+  payout: Pick<PayoutResponse, "amount" | "status" | "mode" | "partner">;
 }) {
   const { slug } = useParams();
   const { program } = useProgram();
-
-  const minPayoutAmount = program?.minPayoutAmount || 0;
-  const display = currencyFormatter(amount / 100);
 
   if (!program) {
     return null;
   }
 
-  const isExternal = isPayoutExternal({
-    payoutMode: program?.payoutMode,
-    payoutsEnabledAt: partner?.payoutsEnabledAt,
-  });
+  const minPayoutAmount = program?.minPayoutAmount || 0;
+  const display = currencyFormatter(payout.amount / 100);
 
-  if (status === PayoutStatus.pending) {
-    if (amount < minPayoutAmount) {
+  if (payout.status === PayoutStatus.pending) {
+    if (payout.amount < minPayoutAmount) {
       return (
         <Tooltip
           content={
@@ -344,7 +328,9 @@ function AmountRowItem({
           </span>
         </Tooltip>
       );
-    } else if (isExternal && !partner.tenantId) {
+    }
+
+    if (payout.mode === "external" && !payout.partner?.tenantId) {
       return (
         <Tooltip
           content={
@@ -356,12 +342,17 @@ function AmountRowItem({
             />
           }
         >
-          <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
-            {display}
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+              {display}
+            </span>
+            <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
+          </div>
         </Tooltip>
       );
-    } else if (!isExternal && !partner.payoutsEnabledAt) {
+    }
+
+    if (payout.mode === "internal" && !payout.partner?.payoutsEnabledAt) {
       return (
         <Tooltip content="This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.">
           <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
@@ -375,7 +366,7 @@ function AmountRowItem({
   return (
     <div className="flex items-center gap-1.5">
       {display}
-      {isExternal && (
+      {payout.mode === "external" && (
         <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
       )}
     </div>

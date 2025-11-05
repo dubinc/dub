@@ -263,7 +263,7 @@ export async function processPayouts({
       description: `Dub Partners payout invoice (${invoice.id})`,
     },
     {
-      idempotencyKey: `payout-processing/${invoice.id}`,
+      idempotencyKey: `process-payout-invoice/${invoice.id}`,
     },
   );
 

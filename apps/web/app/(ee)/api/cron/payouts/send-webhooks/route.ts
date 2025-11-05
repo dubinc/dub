@@ -118,7 +118,6 @@ export async function POST(req: Request) {
     for (const payout of payouts) {
       const data = payoutWebhookEventSchema.parse({
         ...payout,
-        external: true,
         partner: {
           ...payout.partner,
           ...payout.partner.programs[0],

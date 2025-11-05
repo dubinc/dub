@@ -176,7 +176,7 @@ function ProgramPayoutSettingsSheetContent({
             </div>
           </div>
 
-          {program?.externalPayoutEnabledAt && (
+          {program?.externalPayoutsEnabledAt && (
             <ProgramPayoutRouting setValue={setValue} watch={watch} />
           )}
 

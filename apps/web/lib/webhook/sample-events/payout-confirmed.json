@@ -13,7 +13,7 @@
     "periodEnd": "2025-10-31T18:29:59.999Z",
     "createdAt": "2025-10-22T15:50:13.661Z",
     "paidAt": null,
-    "external": true,
+    "mode": "external",
     "partner": {
       "id": "cm6v2l38p000zubyl5fly3i7w",
       "name": "Matthew Hayden",
