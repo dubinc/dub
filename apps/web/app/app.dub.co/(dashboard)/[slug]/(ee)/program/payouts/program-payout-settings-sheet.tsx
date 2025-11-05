@@ -176,11 +176,11 @@ function ProgramPayoutSettingsSheetContent({
             </div>
           </div>
 
+          <ProgramPayoutMethods />
+
           {program?.externalPayoutsEnabledAt && (
             <ProgramPayoutRouting setValue={setValue} watch={watch} />
           )}
-
-          <ProgramPayoutMethods />
         </div>
         <div
           className="pointer-events-none absolute -bottom-px left-0 h-16 w-full rounded-b-lg bg-gradient-to-t from-white sm:bottom-0"
