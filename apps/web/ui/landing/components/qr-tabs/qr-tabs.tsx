@@ -12,10 +12,10 @@ import {
 import { QRBuilderNew } from "@/ui/qr-builder-new/index.tsx";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
 import { useQrOperations } from '@/ui/qr-code/hooks/use-qr-operations';
-import { useLocalStorage, useMediaQuery } from "@dub/ui";
+import { useMediaQuery } from "@dub/ui";
 import { getSession } from 'next-auth/react';
 import { useAction } from "next-safe-action/hooks";
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { FC, forwardRef, Ref, useEffect, useState } from "react";
 
 interface IQRTabsProps {

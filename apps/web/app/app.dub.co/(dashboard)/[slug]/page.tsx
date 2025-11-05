@@ -9,6 +9,11 @@ import WorkspaceQRsClient from "./custom-page-client";
 import { LinksTitle } from "./links-title";
 import { getQrDataFromRedis } from '@/lib/actions/pre-checkout-flow/get-qr-data-from-redis';
 import { QRBuilderData } from '@/ui/qr-builder/types/types';
+import { getWorkspace } from '@/lib/fetchers';
+import { createQrWithLinkUniversal } from '@/lib/api/qrs/create-qr-with-link-universal';
+import { R2_URL } from '@dub/utils';
+import { WorkspaceProps } from '@/lib/types';
+import { removeQrDataFromRedis } from '@/lib/actions/pre-checkout-flow/remove-qr-data-from-redis';
 
 export const viewport: Viewport = {
   themeColor: "#f6f6f7",
@@ -21,6 +26,41 @@ const WorkspaceQRsPage = async () => {
   console.log("authUser", authUser);
 
   const { qrData: qrDataFromLanding } = await getQrDataFromRedis(authUser.id, "qr-from-landing") as { qrData: QRBuilderData | null };
+  console.log("qrDataFromLanding", qrDataFromLanding);
+  const workspace = await getWorkspace({ slug: authUser.defaultWorkspace as string });
+
+  console.log("workspace", workspace);
+
+  const linkUrl = qrDataFromLanding?.fileId
+    ? `${R2_URL}/qrs-content/${qrDataFromLanding.fileId}`
+    : (qrDataFromLanding!.styles!.data! as string);
+
+  const qrCreateResponse = await createQrWithLinkUniversal({
+    qrData: {
+      data: qrDataFromLanding?.styles?.data as string,
+      qrType: qrDataFromLanding?.qrType as any,
+      title: qrDataFromLanding?.title,
+      description: undefined,
+      styles: qrDataFromLanding?.styles,
+      frameOptions: qrDataFromLanding?.frameOptions,
+      fileId: qrDataFromLanding?.fileId,
+      link: {
+        url: linkUrl,
+      },
+    },
+    linkData: {
+      url: linkUrl,
+    },
+    workspace: workspace as Pick<
+      WorkspaceProps,
+      "id" | "plan" | "flags"
+    >,
+    userId: authUser.id,
+  });
+
+  console.log("qrCreateResponse", qrCreateResponse);
+
+  removeQrDataFromRedis(authUser.id, "qr-from-landing");
 
   const qrs = await getQrs({
     userId: authUser.id,
@@ -42,7 +82,6 @@ const WorkspaceQRsPage = async () => {
       <PageContent title={<LinksTitle />}>
         <WorkspaceQRsClient
           initialQrs={qrs as any}
-          qrDataFromLanding={qrDataFromLanding}
           featuresAccess={featuresAccess}
           user={authUser}
           cookieUser={user}
