@@ -132,8 +132,8 @@ export const rewardConditionSchema = z.object({
 export const PERCENTAGE_REWARD_AMOUNT_SCHEMA = z
   .number()
   .min(0, { message: "Reward percentage amount cannot be less than 0%" })
-  .max(99.99, {
-    message: "Reward percentage amount cannot be greater than 99.99%",
+  .max(100, {
+    message: "Reward percentage amount cannot be greater than 100%",
   });
 
 export const FLAT_REWARD_AMOUNT_SCHEMA = z

@@ -66,7 +66,8 @@ const CHARTS = [
 ];
 
 export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
-  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+  const { programEnrollment } = useProgramEnrollment();
+  const { displayOption } = usePartnerLinksContext();
 
   const partnerLink = constructPartnerLink({
     group: programEnrollment?.group,
@@ -203,19 +204,24 @@ export function PartnerLinkCard({ link }: { link: PartnerProfileLinkProps }) {
                 </div>
               </Tooltip>
             )}
-            {!showDetailedAnalytics && <StatsBadge link={link} />}
+            {displayOption === "cards" && <StatsBadge link={link} />}
             <Controls link={link} />
           </div>
         </div>
       </div>
-      {showDetailedAnalytics && <StatsCharts link={link} />}
+      {displayOption === "full" && <StatsCharts link={link} />}
     </CardList.Card>
   );
 }
 
 const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
+  const { programEnrollment, showDetailedAnalytics } = useProgramEnrollment();
+  const As = showDetailedAnalytics ? Link : "div";
   return (
-    <div className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600">
+    <As
+      href={`/programs/${programEnrollment?.program.slug}/analytics?domain=${link.domain}&key=${link.key}`}
+      className="flex items-center gap-0.5 rounded-md border border-neutral-200 bg-neutral-50 p-0.5 text-sm text-neutral-600"
+    >
       {[
         {
           id: "clicks",
@@ -258,7 +264,7 @@ const StatsBadge = memo(({ link }: { link: PartnerProfileLinkProps }) => {
           </span>
         </div>
       ))}
-    </div>
+    </As>
   );
 });
 
