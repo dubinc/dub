@@ -4,6 +4,9 @@ import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { qstash } from "../cron";
+import { sendWorkspaceWebhook } from "../webhook/publish";
+import { partnerApplicationSchema } from "../zod/schemas/program-application";
+import { formatApplicationFormData } from "./format-application-form-data";
 
 /**
  * Completes any outstanding program applications for a user
@@ -22,6 +25,9 @@ export async function completeProgramApplications(userEmail: string) {
                 programs: {
                   select: {
                     programId: true,
+                    tenantId: true,
+                    status: true,
+                    groupId: true,
                   },
                 },
               },
@@ -92,10 +98,32 @@ export async function completeProgramApplications(userEmail: string) {
       skipDuplicates: true,
     });
 
+    // Fetch the programs' workspaces
+    const workspaces = await prisma.project.findMany({
+      where: {
+        defaultProgramId: {
+          in: filteredProgramApplications.map((p) => p.programId),
+        },
+      },
+      select: {
+        id: true,
+        defaultProgramId: true,
+        webhookEnabled: true,
+      },
+    });
+
+    // Map workspaces by their defaultProgramId for quick lookup
+    const workspacesByProgramId = new Map(
+      workspaces.map((ws) => [ws.defaultProgramId, ws]),
+    );
+
     for (const programApplication of filteredProgramApplications) {
       const partner = user.partners[0].partner;
       const program = programApplication.program;
       const application = programApplication;
+      const programEnrollment = partner.programs.find(
+        (p) => p.programId === programApplication.programId,
+      );
 
       const missingSocialFields = {
         website:
@@ -155,6 +183,30 @@ export async function completeProgramApplications(userEmail: string) {
             })
           : Promise.resolve(null),
       ]);
+
+      if (!workspacesByProgramId.has(program.id)) {
+        continue;
+      }
+
+      const applicationForm = formatApplicationFormData(application).map(
+        ({ title, value }) => ({
+          label: title,
+          value,
+        }),
+      );
+
+      await sendWorkspaceWebhook({
+        workspace: workspacesByProgramId.get(program.id)!,
+        trigger: "partner.application_submitted",
+        data: partnerApplicationSchema.parse({
+          id: application.id,
+          partner: {
+            ...partner,
+            ...programEnrollment,
+          },
+          applicationForm,
+        }),
+      });
     }
   } catch (error) {
     console.error("Failed to complete program applications", error);
