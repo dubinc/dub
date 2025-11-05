@@ -12,9 +12,6 @@ export const partnerApplicationSchema = z.object({
     image: true,
     description: true,
     country: true,
-    paypalEmail: true,
-    stripeConnectId: true,
-    payoutsEnabledAt: true,
   })
     .merge(
       ProgramEnrollmentSchema.pick({

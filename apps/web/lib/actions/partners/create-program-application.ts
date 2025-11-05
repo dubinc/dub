@@ -5,11 +5,14 @@ import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-appl
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
+import { formatApplicationFormData } from "@/lib/partners/format-application-form-data";
 import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
 } from "@/lib/types";
 import { ratelimit } from "@/lib/upstash";
+import { sendWorkspaceWebhook } from "@/lib/webhook/publish";
+import { partnerApplicationSchema } from "@/lib/zod/schemas/program-application";
 import { programApplicationFormWebsiteAndSocialsFieldWithValueSchema } from "@/lib/zod/schemas/program-application-form";
 import { createProgramApplicationSchema } from "@/lib/zod/schemas/programs";
 import { prisma } from "@dub/prisma";
@@ -18,6 +21,7 @@ import {
   PartnerGroup,
   Program,
   ProgramEnrollment,
+  Project,
 } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
@@ -126,6 +130,12 @@ export const createProgramApplicationAction = actionClient
             ...(groupId ? { id: groupId } : { slug: "default" }),
           },
         },
+        workspace: {
+          select: {
+            id: true,
+            webhookEnabled: true,
+          },
+        },
       },
     });
 
@@ -156,10 +166,11 @@ export const createProgramApplicationAction = actionClient
 
     if (existingPartner) {
       return createApplicationAndEnrollment({
+        workspace: program.workspace,
         program,
-        data: parsedInput,
         partner: existingPartner,
         group,
+        data: parsedInput,
       });
     }
 
@@ -181,15 +192,17 @@ export const createProgramApplicationAction = actionClient
   });
 
 async function createApplicationAndEnrollment({
-  partner,
+  workspace,
   program,
-  data,
+  partner,
   group,
+  data,
 }: {
-  partner: Partner & { programs: ProgramEnrollment[] };
+  workspace: Pick<Project, "id" | "webhookEnabled">;
   program: Program;
-  data: z.infer<typeof createProgramApplicationSchema>;
+  partner: Partner & { programs: ProgramEnrollment[] };
   group: PartnerGroup;
+  data: z.infer<typeof createProgramApplicationSchema>;
 }) {
   // Check if ProgramEnrollment already exists
   if (partner.programs.some((p) => p.programId === program.id)) {
@@ -199,7 +212,7 @@ async function createApplicationAndEnrollment({
   const applicationId = createId({ prefix: "pga_" });
   const enrollmentId = createId({ prefix: "pge_" });
 
-  const [application, _] = await Promise.all([
+  const [application, programEnrollment] = await Promise.all([
     prisma.programApplication.create({
       data: {
         ...sanitizeData(data, group),
@@ -227,6 +240,13 @@ async function createApplicationAndEnrollment({
 
   waitUntil(
     (async () => {
+      const applicationForm = formatApplicationFormData(application).map(
+        ({ title, value }) => ({
+          label: title,
+          value,
+        }),
+      );
+
       await Promise.all([
         notifyPartnerApplication({
           partner,
@@ -245,6 +265,20 @@ async function createApplicationAndEnrollment({
               },
             })
           : Promise.resolve(null),
+
+        // Send "partner.application_submitted" webhook
+        sendWorkspaceWebhook({
+          workspace,
+          trigger: "partner.application_submitted",
+          data: partnerApplicationSchema.parse({
+            id: application.id,
+            partner: {
+              ...partner,
+              ...programEnrollment,
+            },
+            applicationForm,
+          }),
+        }),
       ]);
     })(),
   );

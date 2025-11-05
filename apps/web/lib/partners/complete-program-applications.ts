@@ -156,6 +156,13 @@ export async function completeProgramApplications(userEmail: string) {
         (field) => field !== undefined,
       );
 
+      const applicationForm = formatApplicationFormData(application).map(
+        ({ title, value }) => ({
+          label: title,
+          value,
+        }),
+      );
+
       await Promise.allSettled([
         notifyPartnerApplication({
           partner,
@@ -182,31 +189,22 @@ export async function completeProgramApplications(userEmail: string) {
               },
             })
           : Promise.resolve(null),
+
+        // Send "partner.application_submitted" webhook
+        workspacesByProgramId.has(program.id) &&
+          sendWorkspaceWebhook({
+            workspace: workspacesByProgramId.get(program.id)!,
+            trigger: "partner.application_submitted",
+            data: partnerApplicationSchema.parse({
+              id: application.id,
+              partner: {
+                ...partner,
+                ...programEnrollment,
+              },
+              applicationForm,
+            }),
+          }),
       ]);
-
-      if (!workspacesByProgramId.has(program.id)) {
-        continue;
-      }
-
-      const applicationForm = formatApplicationFormData(application).map(
-        ({ title, value }) => ({
-          label: title,
-          value,
-        }),
-      );
-
-      await sendWorkspaceWebhook({
-        workspace: workspacesByProgramId.get(program.id)!,
-        trigger: "partner.application_submitted",
-        data: partnerApplicationSchema.parse({
-          id: application.id,
-          partner: {
-            ...partner,
-            ...programEnrollment,
-          },
-          applicationForm,
-        }),
-      });
     }
   } catch (error) {
     console.error("Failed to complete program applications", error);
