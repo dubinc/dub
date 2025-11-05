@@ -36,7 +36,7 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
         [...SELF_SERVE_PAID_PLANS, ENTERPRISE_PLAN]
           .flatMap((p) => [
             p.limits[limitKey],
-            ...Object.values(p.tiers ?? {})?.map(
+            ...Object.values(p.tiers ?? {}).map(
               ({ limits }) => limits[limitKey],
             ),
           ])
@@ -192,7 +192,10 @@ function ManageUsageModalContent({ type }: ManageUsageModalProps) {
                   difference: suggestedPlan.limits.links - (linksLimit ?? 0),
                 },
               ].map(({ icon: Icon, value, label, difference }) => (
-                <div className="text-content-default flex items-center gap-2 text-sm">
+                <div
+                  key={label}
+                  className="text-content-default flex items-center gap-2 text-sm"
+                >
                   <Icon
                     className={cn("size-4", difference > 0 && "text-blue-600")}
                   />
