@@ -98,7 +98,7 @@ function UsageSlider({
 
   return (
     <div className="flex flex-col">
-      <span className="text-content-deafult text-sm font-medium">
+      <span className="text-content-default text-sm font-medium">
         {{ events: "Events tracked per month" }[type] ??
           `New ${type} per month`}
       </span>
