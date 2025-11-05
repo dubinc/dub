@@ -421,7 +421,7 @@ function ConfirmPayoutsSheetContent() {
             currencyFormatter(amount / 100)
           ),
       },
-      ...(eligiblePayouts && eligiblePayouts.some(isExternalPayout)
+      ...(finalEligiblePayouts && finalEligiblePayouts.some(isExternalPayout)
         ? [
             {
               key: "External Amount",
