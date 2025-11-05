@@ -40,53 +40,52 @@ export function ProgramPayoutMethods() {
     );
   }, [webhooks]);
 
-  // Process payment methods for display
-  // TODO: Add a custom hook to parse the payment methods and return the display payment methods
-  // We can reuse it confirm-payouts-sheet.tsx and here
+  // Only show the default payment method (ACH if configured, or card if not)
   const displayPaymentMethods = useMemo(() => {
-    if (!paymentMethods) return [];
+    if (!paymentMethods || paymentMethods.length === 0) return [];
 
-    return paymentMethods
-      .map((pm) => {
-        const paymentMethod = STRIPE_PAYMENT_METHODS[pm.type];
-        if (!paymentMethod) return null;
+    // Take only the first payment method (ACH if configured, otherwise card)
+    const pm = paymentMethods[0];
+    const paymentMethod = STRIPE_PAYMENT_METHODS[pm.type];
 
-        let title = "";
-        let details = "";
+    if (!paymentMethod) return [];
 
-        if (pm.link) {
-          title = "Link";
-          details = pm.link.email
-            ? `Account ending in ••••${pm.link.email.slice(-4)}`
-            : "Link payment method";
-        } else if (pm.card) {
-          title = pm.card.brand
-            ? capitalize(pm.card.brand) || pm.card.brand
-            : "Card";
-          details = `Account ending in ••••${pm.card.last4}`;
-        } else if (pm.us_bank_account) {
-          title = "ACH";
-          details = `Account ending in ••••${pm.us_bank_account.last4}`;
-        } else if (pm.acss_debit) {
-          title = "ACSS Debit";
-          details = `Account ending in ••••${pm.acss_debit.last4}`;
-        } else if (pm.sepa_debit) {
-          title = "SEPA Debit";
-          details = `Account ending in ••••${pm.sepa_debit.last4}`;
-        } else {
-          title = paymentMethod.label;
-          details = `Account ending in ••••${pm[paymentMethod.type]?.last4 || "****"}`;
-        }
+    let title = "";
+    let details = "";
 
-        return {
-          id: pm.id,
-          title,
-          details,
-          icon: paymentMethod.icon,
-          type: "connected" as const,
-        };
-      })
-      .filter((m): m is NonNullable<typeof m> => m !== null);
+    if (pm.link) {
+      title = "Link";
+      details = pm.link.email
+        ? `Account ending in ••••${pm.link.email.slice(-4)}`
+        : "Link payment method";
+    } else if (pm.card) {
+      title = pm.card.brand
+        ? capitalize(pm.card.brand) || pm.card.brand
+        : "Card";
+      details = `Account ending in ••••${pm.card.last4}`;
+    } else if (pm.us_bank_account) {
+      title = "ACH";
+      details = `Account ending in ••••${pm.us_bank_account.last4}`;
+    } else if (pm.acss_debit) {
+      title = "ACSS Debit";
+      details = `Account ending in ••••${pm.acss_debit.last4}`;
+    } else if (pm.sepa_debit) {
+      title = "SEPA Debit";
+      details = `Account ending in ••••${pm.sepa_debit.last4}`;
+    } else {
+      title = paymentMethod.label;
+      details = `Account ending in ••••${pm[paymentMethod.type]?.last4 || "****"}`;
+    }
+
+    return [
+      {
+        id: pm.id,
+        title,
+        details,
+        icon: paymentMethod.icon,
+        type: "connected",
+      },
+    ];
   }, [paymentMethods]);
 
   return (
@@ -146,6 +145,7 @@ export function ProgramPayoutMethods() {
                 target="_blank"
               >
                 <Button
+                  type="button"
                   variant="secondary"
                   text="View"
                   className="h-7 w-fit px-2.5 py-2"
