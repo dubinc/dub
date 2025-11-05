@@ -1,4 +1,3 @@
-import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import {
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
   PAYOUTS_SHEET_ITEMS_LIMIT,
@@ -55,11 +54,6 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     fetcher,
   );
 
-  const payoutMode = getEffectivePayoutMode({
-    payoutMode: payout.program.payoutMode,
-    payoutsEnabledAt: partner?.payoutsEnabledAt ?? null,
-  });
-
   const invoiceData = useMemo(() => {
     const statusBadge = PayoutStatusBadges[payout.status];
 
@@ -92,7 +86,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         <div className="flex items-center gap-2">
           <strong>{currencyFormatter(payout.amount / 100)}</strong>
 
-          {payoutMode === "external" && (
+          {payout.mode === "external" && (
             <Tooltip
               content={
                 payout.status === PayoutStatus.pending

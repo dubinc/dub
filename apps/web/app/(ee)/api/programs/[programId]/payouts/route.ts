@@ -51,17 +51,23 @@ export const GET = withWorkspace(async ({ workspace, searchParams }) => {
     },
   });
 
-  const transformedPayouts = payouts.map(({ partner, ...payout }) => ({
-    ...payout,
-    partner: {
-      ...partner,
-      ...partner.programs[0],
-    },
-    mode: getEffectivePayoutMode({
-      payoutMode: program.payoutMode,
-      payoutsEnabledAt: partner.payoutsEnabledAt,
-    }),
-  }));
+  const transformedPayouts = payouts.map(({ partner, ...payout }) => {
+    const mode =
+      payout.mode ??
+      getEffectivePayoutMode({
+        payoutMode: program.payoutMode,
+        payoutsEnabledAt: partner.payoutsEnabledAt,
+      });
+
+    return {
+      ...payout,
+      mode,
+      partner: {
+        ...partner,
+        ...partner.programs[0],
+      },
+    };
+  });
 
   return NextResponse.json(
     z.array(PayoutResponseSchema).parse(transformedPayouts),

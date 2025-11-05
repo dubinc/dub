@@ -1,6 +1,5 @@
 "use client";
 
-import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { INVOICE_AVAILABLE_PAYOUT_STATUSES } from "@/lib/partners/constants";
 import usePartnerPayouts from "@/lib/swr/use-partner-payouts";
 import usePartnerPayoutsCount from "@/lib/swr/use-partner-payouts-count";
@@ -81,7 +80,7 @@ export function PayoutTable() {
                 `${OG_AVATAR_URL}${row.original.program.name}`
               }
               alt={row.original.program.name}
-              className="size-4 rounded-sm"
+              className="size-4 rounded-full"
             />
             <span>{row.original.program.name}</span>
           </div>
@@ -229,11 +228,6 @@ function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
     return null;
   }
 
-  const payoutMode = getEffectivePayoutMode({
-    payoutMode: payout.program.payoutMode,
-    payoutsEnabledAt: partner?.payoutsEnabledAt ?? null,
-  });
-
   const display = currencyFormatter(payout.amount / 100);
 
   if (
@@ -262,7 +256,7 @@ function AmountRowItem({ payout }: { payout: PartnerPayoutResponse }) {
   return (
     <div className="flex items-center gap-1.5">
       {display}
-      {payoutMode === "external" && (
+      {payout.mode === "external" && (
         <Tooltip
           content={
             payout.status === PayoutStatus.pending
