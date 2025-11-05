@@ -13,9 +13,7 @@ import { PropsWithChildren } from "react";
 export async function generateMetadata(props: {
   params: Promise<{ programSlug: string; groupSlug?: string }>;
 }) {
-  const params = await props.params;
-
-  const { programSlug, groupSlug } = params;
+  const { programSlug, groupSlug } = await props.params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
@@ -35,7 +33,7 @@ export async function generateMetadata(props: {
         ? formatRewardDescription(program.rewards[0]).toLowerCase()
         : "earn commissions"
     } by referring ${program.name} to your friends and followers.`,
-    image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}`,
+    image: `${APP_DOMAIN}/api/og/program?slug=${program.slug}${groupSlug ? `&groupSlug=${groupSlug}` : ""}`,
     canonicalUrl: `${PARTNERS_DOMAIN}/${program.slug}`,
   });
 }
@@ -49,15 +47,16 @@ export async function generateStaticParams() {
 
   return programs.map((program) => ({
     programSlug: program.slug,
+    groupSlug: DEFAULT_PARTNER_GROUP.slug,
   }));
 }
 
 export default async function ApplyLayout(
-  props: PropsWithChildren<{ params: Promise<{ programSlug: string }> }>,
+  props: PropsWithChildren<{
+    params: Promise<{ programSlug: string }>;
+  }>,
 ) {
-  const params = await props.params;
-
-  const { programSlug } = params;
+  const { programSlug } = await props.params;
 
   const { children } = props;
 
