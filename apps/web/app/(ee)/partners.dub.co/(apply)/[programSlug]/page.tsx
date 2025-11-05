@@ -12,9 +12,7 @@ import { ApplyHeader } from "./header";
 export default async function ApplyPage(props: {
   params: Promise<{ programSlug: string; groupSlug?: string }>;
 }) {
-  const params = await props.params;
-
-  const { programSlug, groupSlug } = params;
+  const { programSlug, groupSlug } = await props.params;
 
   const partnerGroupSlug = groupSlug ?? DEFAULT_PARTNER_GROUP.slug;
 
