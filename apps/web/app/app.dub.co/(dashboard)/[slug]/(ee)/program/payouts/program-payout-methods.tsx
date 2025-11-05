@@ -36,7 +36,9 @@ export function ProgramPayoutMethods() {
       (webhook) =>
         webhook.triggers &&
         Array.isArray(webhook.triggers) &&
-        webhook.triggers.includes("payout.confirmed"),
+        webhook.triggers.includes("payout.confirmed") &&
+        webhook.disabledAt === null &&
+        webhook.installationId === null,
     );
   }, [webhooks]);
 
