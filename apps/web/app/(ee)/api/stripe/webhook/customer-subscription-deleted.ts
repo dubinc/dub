@@ -27,6 +27,7 @@ export async function customerSubscriptionDeleted(event: Stripe.Event) {
       id: true,
       slug: true,
       plan: true,
+      planTier: true,
       foldersUsage: true,
       paymentFailedAt: true,
       payoutsLimit: true,
