@@ -29,9 +29,9 @@ const qrDataSchema = z.object({
 });
 
 // get qr data from redis by sessionId
-export async function getQrDataFromRedis(sessionId: string) {
+export async function getQrDataFromRedis(sessionId: string, extraKey?: string) {
   try {
-    const key = `${ERedisArg.QR_DATA_REG}:${sessionId}`;
+    const key = `${ERedisArg.QR_DATA_REG}:${sessionId}${extraKey ? `:${extraKey}` : ""}`;
 
     const data = await redis.get(key);
 

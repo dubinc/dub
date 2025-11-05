@@ -44,6 +44,7 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
 }) => {
   const router = useRouter();
   const { isMobile } = useMediaQuery();
+  console.log("firstQr", firstQr);
 
   const [clientToken, setClientToken] = useState<string | null>(null);
   const [signupMethod] = useLocalStorage<

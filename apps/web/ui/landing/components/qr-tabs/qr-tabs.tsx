@@ -1,6 +1,7 @@
 "use client";
 
 import { saveQrDataToRedisAction } from "@/lib/actions/pre-checkout-flow/save-qr-data-to-redis.ts";
+import { Session } from '@/lib/auth';
 import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
 import { EQRType } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
 import {
@@ -10,8 +11,11 @@ import {
 } from "@/ui/qr-builder-new/helpers/data-converters";
 import { QRBuilderNew } from "@/ui/qr-builder-new/index.tsx";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
-import { useLocalStorage, useMediaQuery } from "@dub/ui";
+import { useQrOperations } from '@/ui/qr-code/hooks/use-qr-operations';
+import { useMediaQuery } from "@dub/ui";
+import { getSession } from 'next-auth/react';
 import { useAction } from "next-safe-action/hooks";
+import { useRouter } from 'next/navigation';
 import { FC, forwardRef, Ref, useEffect, useState } from "react";
 
 interface IQRTabsProps {
@@ -24,20 +28,15 @@ export const QRTabs: FC<
   Readonly<IQRTabsProps> & { ref?: Ref<HTMLDivElement> }
 > = forwardRef(
   ({ sessionId, typeToScrollTo, handleResetTypeToScrollTo }, ref) => {
-    console.log("qr tabs");
     const { AuthModal, showModal } = useAuthModal({ sessionId });
+    const router = useRouter();
+    const { createQr } = useQrOperations();
 
     const { executeAsync: saveQrDataToRedis } = useAction(
       saveQrDataToRedisAction,
     );
 
     const [isProcessingSignup, setIsProcessingSignup] = useState(false);
-
-    const [qrDataToCreate, setQrDataToCreate] =
-      useLocalStorage<TQRBuilderDataForStorage | null>(
-        `qr-data-to-create`,
-        null,
-      );
 
     const { isMobile } = useMediaQuery();
 
@@ -71,9 +70,19 @@ export const QRTabs: FC<
       if (isProcessingSignup) return;
       setIsProcessingSignup(true);
 
+      const existingSession = await getSession();
+      console.log("existingSession", existingSession);
+      const user = existingSession?.user as Session['user'] || undefined;
+
+      if (existingSession?.user) {
+        const createdQrId = await createQr(data, user?.defaultWorkspace);
+        console.log("createdQrId", createdQrId);
+        router.push(`/?qrId=${createdQrId}`);
+        return;
+      }
+
       try {
         const storageData = convertNewBuilderToStorageFormat(data);
-        setQrDataToCreate(storageData);
 
         await saveQrDataToRedis({
           sessionId,

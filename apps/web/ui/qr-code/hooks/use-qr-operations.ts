@@ -26,10 +26,9 @@ export const useQrOperations = () => {
   const { setNewQrId } = useNewQrContext();
 
   const createQr = useCallback(
-    async (qrBuilderData: TNewQRBuilderData) => {
-      console.log("createQr", qrBuilderData);
+    async (qrBuilderData: TNewQRBuilderData, projectSlug?: string) => {
       try {
-        if (!workspaceId) {
+        if (!workspaceId && !projectSlug) {
           toast.error("Workspace ID not found");
           return false;
         }
@@ -43,7 +42,7 @@ export const useQrOperations = () => {
         );
         console.log("serverData", serverData);
 
-        const res = await fetch(`/api/qrs?workspaceId=${workspaceId}`, {
+        const res = await fetch(`/api/qrs?${projectSlug ? `projectSlug=${projectSlug}` : `workspaceId=${workspaceId}`}`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -79,7 +78,7 @@ export const useQrOperations = () => {
           });
 
           toast.success("Successfully created QR!");
-          return true;
+          return createdQrId;
         } else {
           const { error } = await res.json();
           toast.error(error?.message || "Failed to create QR");
