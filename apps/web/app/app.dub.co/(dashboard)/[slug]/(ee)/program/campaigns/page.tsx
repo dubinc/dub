@@ -6,7 +6,15 @@ import { CreateCampaignButton } from "./create-campaign-button";
 
 export default function ProgramCampaignsPage() {
   return (
-    <PageContent title="Email campaigns" controls={<CreateCampaignButton />}>
+    <PageContent
+      title="Email campaigns"
+      titleInfo={{
+        title:
+          "Send marketing and transactional emails to your partners to increase engagement and drive conversions.",
+        href: "https://dub.co/help/article/email-campaigns",
+      }}
+      controls={<CreateCampaignButton />}
+    >
       <PageWidthWrapper>
         <div className="space-y-4">
           <CampaignStats />
