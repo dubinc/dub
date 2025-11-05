@@ -226,7 +226,7 @@ export async function POST(req: Request) {
             },
             campaign: {
               type: campaign.type,
-              subject: campaign.subject,
+              preview: campaign.preview,
               body: renderCampaignEmailHTML({
                 content: campaign.bodyJson as unknown as TiptapNode,
                 variables: {

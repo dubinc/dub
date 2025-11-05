@@ -27,6 +27,7 @@ model Campaign {
   status          CampaignStatus      @default(draft)
   name            String
   subject         String
+  preview         String?             @db.Text
   from            String?
   bodyJson        Json                @db.Json
   scheduledAt     DateTime?

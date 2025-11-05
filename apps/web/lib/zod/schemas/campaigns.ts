@@ -50,6 +50,7 @@ export const CampaignSchema = z.object({
   id: z.string(),
   name: z.string(),
   subject: z.string(),
+  preview: z.string().nullable().default(null),
   from: z.string().nullable(),
   bodyJson: z.record(z.string(), z.any()),
   type: z.nativeEnum(CampaignType),
@@ -84,6 +85,7 @@ export const updateCampaignSchema = z
       .string()
       .trim()
       .max(100, "Subject must be less than 100 characters."),
+    preview: z.string().nullish(),
     from: z.string().email().trim().toLowerCase(),
     bodyJson: z.record(z.string(), z.any()),
     triggerCondition: workflowConditionSchema.nullish(),
