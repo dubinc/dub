@@ -213,3 +213,7 @@ export const deletePartnerCommentSchema = z.object({
   workspaceId: z.string(),
   commentId: z.string(),
 });
+
+export const partnerApplicationSubmittedWebhookSchema = z.object({
+  //
+});

@@ -7,6 +7,7 @@ import {
   EnrolledPartnerSchema,
   WebhookPartnerSchema,
 } from "../zod/schemas/partners";
+import { partnerApplicationSubmittedWebhookSchema } from "../zod/schemas/programs";
 import { WEBHOOK_TRIGGERS } from "./constants";
 
 const webhookSaleSchema = z.object({
@@ -117,6 +118,18 @@ export const webhookEventSchema = z
       .openapi({
         ref: "PartnerEnrolledEvent",
         description: "Triggered when a partner is enrolled.",
+      }),
+
+    z
+      .object({
+        id: z.string(),
+        event: z.literal("partner.application_submitted"),
+        createdAt: z.string(),
+        data: partnerApplicationSubmittedWebhookSchema,
+      })
+      .openapi({
+        ref: "PartnerApplicationSubmittedEvent",
+        description: "Triggered when a partner submits an application to join a program.",
       }),
 
     z
