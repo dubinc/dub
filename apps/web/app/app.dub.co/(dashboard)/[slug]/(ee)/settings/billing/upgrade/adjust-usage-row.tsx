@@ -69,7 +69,7 @@ function UsageSlider({
         [...SELF_SERVE_PAID_PLANS, ENTERPRISE_PLAN]
           .flatMap((p) => [
             p.limits[limitKey],
-            ...Object.values(p.tiers ?? {})?.map(
+            ...Object.values(p.tiers ?? {}).map(
               ({ limits }) => limits[limitKey],
             ),
           ])
