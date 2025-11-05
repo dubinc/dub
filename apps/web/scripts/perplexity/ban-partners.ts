@@ -1,4 +1,3 @@
-import { syncTotalCommissions } from "@/lib/api/partners/sync-total-commissions";
 import { BAN_PARTNER_REASONS } from "@/lib/zod/schemas/partners";
 import PartnerBanned from "@dub/email/templates/partner-banned";
 import { prisma } from "@dub/prisma";
@@ -6,6 +5,7 @@ import "dotenv-flow/config";
 import * as fs from "fs";
 import * as Papa from "papaparse";
 import { linkCache } from "../../lib/api/links/cache";
+import { syncTotalCommissions } from "../../lib/api/partners/sync-total-commissions";
 import { queueBatchEmail } from "../../lib/email/queue-batch-email";
 
 let partnersToBan: string[] = [];
@@ -38,12 +38,15 @@ async function main() {
           partnerId: {
             in: partnersToBan,
           },
+          status: {
+            not: "banned",
+          },
         },
         include: {
           links: true,
           partner: true,
         },
-        take: 100,
+        take: 200,
       });
 
       if (programEnrollments.length === 0) {
@@ -126,6 +129,8 @@ async function main() {
           }),
         ),
       );
+
+      console.log("commissionsRes", commissionsRes);
 
       const qstashRes = await queueBatchEmail<typeof PartnerBanned>(
         programEnrollments
