@@ -313,6 +313,7 @@ function ConnectedExternalAccounts() {
               target="_blank"
             >
               <Button
+                type="button"
                 variant="secondary"
                 text="View program"
                 className="border-border-subtle h-6 rounded-md px-2 py-3.5 text-sm"
