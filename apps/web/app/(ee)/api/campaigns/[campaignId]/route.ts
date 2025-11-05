@@ -122,7 +122,7 @@ export const PATCH = withWorkspace(
         data: {
           ...(name && { name }),
           ...(subject && { subject }),
-          ...(preview && { preview }),
+          ...(preview !== undefined && { preview }),
           ...(from && { from }),
           ...(status && { status }),
           ...(bodyJson && { bodyJson }),

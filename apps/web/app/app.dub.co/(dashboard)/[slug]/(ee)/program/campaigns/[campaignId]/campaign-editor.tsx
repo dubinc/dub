@@ -102,6 +102,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
     defaultValues: {
       name: campaign.name,
       subject: campaign.subject,
+      preview: campaign.preview,
       from: campaign.from ?? undefined,
       bodyJson: campaign.bodyJson,
       groupIds: campaign.groups.map(({ id }) => id),
@@ -135,8 +136,9 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
 
   // Focus preview input when opened
   useEffect(() => {
-    if (showPreviewText) previewInputRef.current?.focus();
-  }, [showPreviewText]);
+    if (showPreviewText && !getValues("preview"))
+      previewInputRef.current?.focus();
+  }, [showPreviewText, getValues]);
 
   const saveCampaign = useCallback(
     async ({ isDraft = false }: { isDraft?: boolean }) => {
@@ -306,7 +308,7 @@ export function CampaignEditor({ campaign }: { campaign: Campaign }) {
         contentWrapperClassName="flex flex-col"
       >
         <PageWidthWrapper className="mb-8 max-w-[600px]">
-          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 gap-y-2">
+          <div className="grid grid-cols-[max-content_minmax(0,1fr)] items-center gap-x-6 [&>*:nth-child(n+2)]:mt-2">
             <span className={labelClassName}>Name</span>
             <DisabledInputWrapper
               tooltip={isReadOnly ? statusMessages[campaign.status] : ""}
@@ -596,7 +598,10 @@ const ConditionalColumn = ({
       initial={false}
       animate={{ height: show ? "auto" : 0 }}
       transition={{ duration: 0.15, ease: "easeOut" }}
-      className={cn("transition-opacity duration-150", !show && "opacity-0")}
+      className={cn(
+        "transition-[margin,opacity] duration-150",
+        !show && "!mt-0 opacity-0",
+      )}
       inert={!show}
     >
       {children}
