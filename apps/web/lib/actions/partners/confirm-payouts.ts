@@ -98,6 +98,7 @@ export const confirmPayoutsAction = authActionClient
           workspaceId: workspace.id,
           triggers: ["payout.confirmed"],
           disabled: false,
+          installationId: null,
         }),
       ]);
 
