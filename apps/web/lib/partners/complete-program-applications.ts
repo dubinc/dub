@@ -1,6 +1,6 @@
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
-import { Partner, Prisma, ProgramApplication } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { createId } from "../api/create-id";
 import { notifyPartnerApplication } from "../api/partners/notify-partner-application";
 import { qstash } from "../cron";
@@ -98,15 +98,35 @@ export async function completeProgramApplications(userEmail: string) {
       const application = programApplication;
 
       const missingSocialFields = {
-        website: application.website && !partner.website ? application.website : undefined,
-        youtube: application.youtube && !partner.youtube ? application.youtube : undefined,
-        twitter: application.twitter && !partner.twitter ? application.twitter : undefined,
-        linkedin: application.linkedin && !partner.linkedin ? application.linkedin : undefined,
-        instagram: application.instagram && !partner.instagram ? application.instagram : undefined,
-        tiktok: application.tiktok && !partner.tiktok ? application.tiktok : undefined,
-      }
+        website:
+          application.website && !partner.website
+            ? application.website
+            : undefined,
+        youtube:
+          application.youtube && !partner.youtube
+            ? application.youtube
+            : undefined,
+        twitter:
+          application.twitter && !partner.twitter
+            ? application.twitter
+            : undefined,
+        linkedin:
+          application.linkedin && !partner.linkedin
+            ? application.linkedin
+            : undefined,
+        instagram:
+          application.instagram && !partner.instagram
+            ? application.instagram
+            : undefined,
+        tiktok:
+          application.tiktok && !partner.tiktok
+            ? application.tiktok
+            : undefined,
+      };
 
-      const hasMissingSocialFields = Object.values(missingSocialFields).some((field) => field !== undefined);
+      const hasMissingSocialFields = Object.values(missingSocialFields).some(
+        (field) => field !== undefined,
+      );
 
       await Promise.allSettled([
         notifyPartnerApplication({
