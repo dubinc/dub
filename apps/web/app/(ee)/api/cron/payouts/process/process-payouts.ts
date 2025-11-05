@@ -1,6 +1,6 @@
 import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
-import { isPayoutExternal } from "@/lib/api/payouts/is-payout-external-for-program";
+import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
 import { qstash } from "@/lib/cron";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
@@ -142,12 +142,12 @@ export async function processPayouts({
     externalPayouts = payouts;
   } else if (invoice.mode === "hybrid") {
     payouts.forEach((payout) => {
-      const isExternal = isPayoutExternal({
+      const payoutMode = getEffectivePayoutMode({
         payoutMode: invoice.mode,
         payoutsEnabledAt: payout.partner.payoutsEnabledAt,
       });
 
-      if (isExternal) {
+      if (payoutMode === "external") {
         externalPayouts.push(payout);
       } else {
         internalPayouts.push(payout);

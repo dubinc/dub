@@ -1,4 +1,4 @@
-import { isPayoutExternal } from "@/lib/api/payouts/is-payout-external-for-program";
+import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import {
   INVOICE_AVAILABLE_PAYOUT_STATUSES,
   PAYOUTS_SHEET_ITEMS_LIMIT,
@@ -55,7 +55,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
     fetcher,
   );
 
-  const isExternal = isPayoutExternal({
+  const payoutMode = getEffectivePayoutMode({
     payoutMode: payout.program.payoutMode,
     payoutsEnabledAt: partner?.payoutsEnabledAt ?? null,
   });
@@ -92,7 +92,7 @@ function PayoutDetailsSheetContent({ payout }: PayoutDetailsSheetProps) {
         <div className="flex items-center gap-2">
           <strong>{currencyFormatter(payout.amount / 100)}</strong>
 
-          {isExternal && (
+          {payoutMode === "external" && (
             <Tooltip
               content={
                 payout.status === PayoutStatus.pending

@@ -1,7 +1,7 @@
 "use client";
 
 import { updatePartnerPayoutSettingsAction } from "@/lib/actions/partners/update-partner-payout-settings";
-import { isPayoutExternal } from "@/lib/api/payouts/is-payout-external-for-program";
+import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { mutatePrefix } from "@/lib/swr/mutate";
 import usePartnerProfile from "@/lib/swr/use-partner-profile";
 import useProgramEnrollments from "@/lib/swr/use-program-enrollments";
@@ -53,12 +53,14 @@ function useExternalPayoutEnrollments() {
   const externalPayoutEnrollments = useMemo(() => {
     if (!programEnrollments || !partner) return [];
 
-    return programEnrollments.filter((enrollment) =>
-      isPayoutExternal({
+    return programEnrollments.filter((enrollment) => {
+      const payoutMode = getEffectivePayoutMode({
         payoutMode: enrollment.program.payoutMode,
         payoutsEnabledAt: partner.payoutsEnabledAt,
-      }),
-    );
+      });
+
+      return payoutMode === "external";
+    });
   }, [programEnrollments, partner]);
 
   return {

@@ -1,4 +1,4 @@
-import { getEffectivePayoutMode } from "@/lib/api/payouts/is-payout-external-for-program";
+import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
 import { getProgramOrThrow } from "@/lib/api/programs/get-program-or-throw";
 import { withWorkspace } from "@/lib/auth";
