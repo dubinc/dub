@@ -20,7 +20,13 @@ import { PlanProps } from "@/lib/types";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
 import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
-import { Payout, Program, Project } from "@prisma/client";
+import {
+  Partner,
+  Payout,
+  Program,
+  ProgramPayoutMode,
+  Project,
+} from "@prisma/client";
 
 const paymentMethodToCurrency = {
   sepa_debit: "eur",
@@ -43,7 +49,7 @@ interface ProcessPayoutsProps {
     Program,
     "id" | "name" | "logo" | "minPayoutAmount" | "supportEmail"
   > & {
-    payoutMode: "internal" | "hybrid" | "external";
+    payoutMode: ProgramPayoutMode;
   };
   userId: string;
   invoiceId: string;
@@ -51,6 +57,11 @@ interface ProcessPayoutsProps {
   cutoffPeriod?: CUTOFF_PERIOD_TYPES;
   selectedPayoutId?: string;
   excludedPayoutIds?: string[];
+}
+
+interface ExtendedPayout
+  extends Pick<Payout, "id" | "amount" | "mode" | "periodStart" | "periodEnd"> {
+  partner: Pick<Partner, "email" | "payoutsEnabledAt">;
 }
 
 export async function processPayouts({
@@ -122,8 +133,8 @@ export async function processPayouts({
     },
   });
 
-  let externalPayouts: Pick<Payout, "id" | "amount" | "mode">[] = [];
-  let internalPayouts: Pick<Payout, "id" | "amount" | "mode">[] = [];
+  let externalPayouts: ExtendedPayout[] = [];
+  let internalPayouts: ExtendedPayout[] = [];
 
   if (invoice.mode === "internal") {
     internalPayouts = payouts;
@@ -374,10 +385,11 @@ export async function processPayouts({
   // This is because Direct Debit takes 4 business days to process, so we want to give partners a heads up
   if (
     invoice &&
+    internalPayouts.length > 0 &&
     DIRECT_DEBIT_PAYMENT_METHOD_TYPES.includes(paymentMethod.type)
   ) {
     await queueBatchEmail<typeof PartnerPayoutConfirmed>(
-      payouts
+      internalPayouts
         .filter((payout) => payout.partner.email)
         .map((payout) => ({
           to: payout.partner.email!,
@@ -397,31 +409,62 @@ export async function processPayouts({
               amount: payout.amount,
               startDate: payout.periodStart,
               endDate: payout.periodEnd,
-              mode: payout.mode,
+              mode: "internal",
               paymentMethod: invoice.paymentMethod ?? "ach",
             },
           },
         })),
       {
-        idempotencyKey: `payout-confirmed/${invoice.id}`,
+        idempotencyKey: `payout-confirmed-internal/${invoice.id}`,
       },
     );
   }
 
-  // Send the webhooks for the external payouts
   if (externalPayouts.length > 0) {
-    const qstashResponse = await qstash.publishJSON({
-      url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-webhooks`,
-      body: {
-        invoiceId: invoice.id,
+    await queueBatchEmail<typeof PartnerPayoutConfirmed>(
+      externalPayouts
+        .filter((payout) => payout.partner.email)
+        .map((payout) => ({
+          to: payout.partner.email!,
+          subject: "You've got money coming your way!",
+          variant: "notifications",
+          replyTo: program.supportEmail || "noreply",
+          templateName: "PartnerPayoutConfirmed",
+          templateProps: {
+            email: payout.partner.email!,
+            program: {
+              id: program.id,
+              name: program.name,
+              logo: program.logo,
+            },
+            payout: {
+              id: payout.id,
+              amount: payout.amount,
+              startDate: payout.periodStart,
+              endDate: payout.periodEnd,
+              mode: "external",
+              paymentMethod: invoice.paymentMethod ?? "ach",
+            },
+          },
+        })),
+      {
+        idempotencyKey: `payout-confirmed-external/${invoice.id}`,
       },
-      deduplicationId: `payout-confirmed-webhooks-${invoice.id}`,
-    });
+    );
+  }
 
-    if (qstashResponse.messageId) {
-      console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
-    } else {
-      console.error("Error sending message to Qstash", qstashResponse);
-    }
+  // Send "payout.confirmed" webhooks
+  const qstashResponse = await qstash.publishJSON({
+    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-webhooks`,
+    body: {
+      invoiceId: invoice.id,
+    },
+    deduplicationId: `payout-confirmed-webhooks-${invoice.id}`,
+  });
+
+  if (qstashResponse.messageId) {
+    console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
+  } else {
+    console.error("Error sending message to Qstash", qstashResponse);
   }
 }
