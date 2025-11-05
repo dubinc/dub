@@ -113,7 +113,7 @@ function ProgramPayoutSettingsModalInner({
                 Payout holding period
               </h4>
               <p className="text-sm font-medium text-neutral-500">
-                Set how long to hold funds before they can be withdrawn.
+                Set how long to hold funds before they are eligible for payout.
               </p>
             </div>
             <div>
@@ -139,7 +139,8 @@ function ProgramPayoutSettingsModalInner({
                 Minimum payout amount
               </h4>
               <p className="text-sm font-medium text-neutral-500">
-                Set the minimum amount required for payouts to be processed.
+                Set the minimum amount required for funds to be eligible for
+                payout.
               </p>
             </div>
 
