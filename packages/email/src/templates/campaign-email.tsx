@@ -75,10 +75,7 @@ export default function CampaignEmail({
             </Section>
 
             <Section>
-              <div
-                id="campaign-email-body"
-                dangerouslySetInnerHTML={{ __html: styledHtml }}
-              />
+              <div dangerouslySetInnerHTML={{ __html: styledHtml }} />
             </Section>
 
             {program?.messagingEnabledAt &&
