@@ -10,7 +10,7 @@ import {
 } from "@/ui/qr-builder-new/helpers/data-converters";
 import { useToastWithUndo } from "@dub/ui";
 import { SHORT_DOMAIN } from "@dub/utils/src";
-import { useNewQrContext } from 'app/app.dub.co/(dashboard)/[slug]/helpers/new-qr-context';
+import { useNewQrContext } from "app/app.dub.co/(dashboard)/[slug]/helpers/new-qr-context";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
 import { useParams } from "next/navigation";
@@ -34,9 +34,12 @@ export const useQrOperations = () => {
         }
 
         console.log("qrBuilderData", qrBuilderData);
-        const serverData = await convertNewQRBuilderDataToServer(qrBuilderData, {
-          domain: SHORT_DOMAIN!,
-        });
+        const serverData = await convertNewQRBuilderDataToServer(
+          qrBuilderData,
+          {
+            domain: SHORT_DOMAIN!,
+          },
+        );
         console.log("serverData", serverData);
 
         const res = await fetch(`/api/qrs?${projectSlug ? `projectSlug=${projectSlug}` : `workspaceId=${workspaceId}`}`, {

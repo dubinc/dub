@@ -19,11 +19,12 @@ export const LEGAL_LINKS = [
     text: "Refund Policy",
     page_name_code: "refund_policy",
   },
-  { href: "/bill", text: "Billing", page_name_code: "billing" },
 ];
 
 export const GENERAL_LINKS = [
   { href: "/help", text: "Help", page_name_code: "help" },
+  { href: "#reviews", text: "Reviews", page_name_code: "reviews" },
+  { href: "/help/cancel-my-subscription", text: "How to Cancel", page_name_code: "how_to_cancel" },
 ];
 
 export const ALLOWED_REGIONS = ["au", "ca", "eu", "uk", "us"];

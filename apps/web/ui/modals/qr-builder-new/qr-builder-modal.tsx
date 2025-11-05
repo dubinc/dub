@@ -5,16 +5,16 @@ import { Theme } from "@radix-ui/themes";
 import { useCallback, useEffect, useState } from "react";
 import { Drawer } from "vaul";
 
+import { useUser } from "@/ui/contexts/user";
 import { QRBuilderNew } from "@/ui/qr-builder-new";
 import { TQrServerData } from "@/ui/qr-builder-new/helpers/data-converters";
 import { useNewQrOperations } from "@/ui/qr-builder-new/hooks/use-qr-operations";
 import { X } from "@/ui/shared/icons";
 import QRIcon from "@/ui/shared/icons/qr.tsx";
 import { Modal } from "@dub/ui";
-import { LoaderCircle } from "lucide-react";
-import { useUser } from "@/ui/contexts/user";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface.ts";
+import { LoaderCircle } from "lucide-react";
 
 interface QRBuilderModalProps {
   qrData?: TQrServerData;

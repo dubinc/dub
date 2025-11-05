@@ -120,7 +120,7 @@ export const CountrySelectAutocompleteComponent = ({
       <button
         type="button"
         className={cn(
-          "border-border-500 flex h-11 w-full max-w-36 basis-1/3 items-center justify-between gap-2 rounded-md rounded-l-md rounded-r-none border border-r-0 bg-white px-3 py-2 text-sm",
+          "border-input shadow-xs flex h-9 w-full max-w-36 basis-1/3 items-center justify-between gap-2 rounded-md rounded-l-md rounded-r-none border border-r-0 bg-white px-3 text-sm",
           disabled && "cursor-not-allowed opacity-50",
           className,
         )}

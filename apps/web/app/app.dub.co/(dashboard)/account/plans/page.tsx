@@ -8,8 +8,8 @@ import { MaxWidthWrapper } from "@dub/ui";
 import { PageViewedTrackerComponent } from "core/integration/analytic/components/page-viewed-tracker/page-viewed-tracker.component";
 import { NextPage } from "next";
 
-export const revalidate = 0;
-export const dynamic = "force-dynamic";
+// export const revalidate = 0;
+// export const dynamic = "force-dynamic";
 
 const PlansPage: NextPage = async () => {
   const { user: sessionUser } = await getSession();

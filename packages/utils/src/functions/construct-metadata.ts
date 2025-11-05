@@ -4,7 +4,7 @@ import { HOME_DOMAIN } from "../constants";
 export function constructMetadata({
   title,
   fullTitle,
-  description = "Design dynamic QR codes with logos, frames, and colors. Track scans, edit content anytime, and download in JPG, PNG, or SVG. Start free—no credit card needed.",
+  description = "Design dynamic QR codes with logos, frames, and colors. Track scans, edit content anytime, and download in JPG, PNG, or SVG",
   image = `${HOME_DOMAIN}/images/thumbnail.jpg`,
   video,
   icons = [

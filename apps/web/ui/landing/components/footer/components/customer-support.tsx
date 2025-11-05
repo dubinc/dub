@@ -26,26 +26,21 @@ export const CustomerSupport: FC<Readonly<ICustomerSupportProps>> = ({
   };
 
   return (
-    <div className="text-neutral mr-20 max-md:mt-6">
-      <p className="mb-4 text-lg font-semibold">Customer Support</p>
-      <Link
-        className="text-neutral text-base font-medium"
-        href="/help/cancel-my-subscription"
-        target="_blank"
-        onClick={() => onClickHandler("how_to_cancel")}
-      >
-        How to Cancel
-      </Link>
-      <Link
-        className="my-3 flex h-[44px] w-full items-center justify-center gap-3 rounded-full border border-black px-4 py-2 text-sm font-medium"
-        href="/help"
-        target="_blank"
-        onClick={() => onClickHandler("customer_support")}
-      >
-        <HelpPhone className="h-6 w-6" />
-        Customer Support <br />
-        24/7/365
-      </Link>
-    </div>
+    <Link
+      className="border-border bg-card hover:border-primary hover:bg-primary/5 group inline-flex items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-medium transition-all"
+      href="/help"
+      target="_blank"
+      onClick={() => onClickHandler("customer_support")}
+    >
+      <div className="bg-primary/10 group-hover:bg-primary/20 rounded-full p-2 transition-colors">
+        <HelpPhone className="text-primary h-5 w-5" />
+      </div>
+      <div className="flex flex-col items-start">
+        <span className="text-foreground font-semibold">
+          Customer Support
+        </span>
+        <span className="text-muted-foreground text-xs">24/7/365</span>
+      </div>
+    </Link>
   );
 };

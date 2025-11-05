@@ -2,19 +2,17 @@
 
 import { saveQrDataToRedisAction } from "@/lib/actions/pre-checkout-flow/save-qr-data-to-redis.ts";
 import { useAuthModal } from "@/ui/modals/auth-modal.tsx";
-import { EQRType } from "@/ui/qr-builder/constants/get-qr-config.ts";
-import { QrBuilder } from "@/ui/qr-builder/qr-builder.tsx";
+import { EQRType } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
+import {
+  convertNewBuilderToStorageFormat,
+  TNewQRBuilderData,
+  TQRBuilderDataForStorage,
+} from "@/ui/qr-builder-new/helpers/data-converters";
+import { QRBuilderNew } from "@/ui/qr-builder-new/index.tsx";
 import { QrTabsTitle } from "@/ui/qr-builder/qr-tabs-title.tsx";
-import { QRBuilderData } from "@/ui/qr-builder/types/types.ts";
-import { Rating } from "@/ui/qr-rating/rating.tsx";
-import { useMediaQuery } from "@dub/ui";
+import { useLocalStorage, useMediaQuery } from "@dub/ui";
 import { useAction } from "next-safe-action/hooks";
-import { FC, forwardRef, Ref, useEffect } from "react";
-import { LogoScrollingBanner } from "./components/logo-scrolling-banner.tsx";
-import { getSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useQrOperations } from '@/ui/qr-code/hooks/use-qr-operations.ts';
-import { Session } from '@/lib/auth';
+import { FC, forwardRef, Ref, useEffect, useState } from "react";
 
 interface IQRTabsProps {
   sessionId: string;
@@ -33,6 +31,14 @@ export const QRTabs: FC<
     const { executeAsync: saveQrDataToRedis } = useAction(
       saveQrDataToRedisAction,
     );
+
+    const [isProcessingSignup, setIsProcessingSignup] = useState(false);
+
+    const [qrDataToCreate, setQrDataToCreate] =
+      useLocalStorage<TQRBuilderDataForStorage | null>(
+        `qr-data-to-create`,
+        null,
+      );
 
     const { isMobile } = useMediaQuery();
 
@@ -62,48 +68,46 @@ export const QRTabs: FC<
       };
     }, [isMobile]);
 
-    const handleSaveQR = async (data: QRBuilderData) => {
-      const existingSession = await getSession();
-      console.log("existingSession", existingSession);
-      const user = existingSession?.user as Session['user'] || undefined;
+    const handleNewBuilderDownload = async (data: TNewQRBuilderData) => {
+      if (isProcessingSignup) return;
+      setIsProcessingSignup(true);
 
-      if (existingSession?.user) {
-        const createdQrId = await createQr(data, user?.defaultWorkspace);
-        console.log("createdQrId", createdQrId);
-        router.push(`/?qrId=${createdQrId}`);
-        return;
+      try {
+        const storageData = convertNewBuilderToStorageFormat(data);
+        setQrDataToCreate(storageData);
+
+        await saveQrDataToRedis({
+          sessionId,
+          qrData: storageData,
+        });
+
+        showModal("signup");
+      } catch (error) {
+        console.error("❌ Error saving new builder QR data:", error);
+        showModal("signup"); // Still show signup even if save fails
+      } finally {
+        setTimeout(() => setIsProcessingSignup(false), 1000);
       }
-
-      console.log("handleSaveQR", sessionId);
-      saveQrDataToRedis({ sessionId, qrData: data });
-
-      showModal("signup");
     };
 
     return (
-      <section className="bg-primary-100 w-full px-3 py-10 lg:py-14">
+      <>
         <div
-          className="mx-auto flex max-w-[992px] flex-col items-center justify-center gap-6 lg:gap-12"
+          className="mx-auto flex w-full max-w-7xl flex-col items-center justify-center"
           ref={ref}
         >
           <QrTabsTitle />
-
-          <QrBuilder
+          <QRBuilderNew
+            homepageDemo={true}
             sessionId={sessionId}
-            handleSaveQR={handleSaveQR}
-            homepageDemo
+            onSave={handleNewBuilderDownload}
             typeToScrollTo={typeToScrollTo}
-            key={typeToScrollTo}
             handleResetTypeToScrollTo={handleResetTypeToScrollTo}
           />
-
-          <Rating />
-
-          {!isMobile && <LogoScrollingBanner />}
         </div>
 
         <AuthModal />
-      </section>
+      </>
     );
   },
 );

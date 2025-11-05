@@ -1,11 +1,10 @@
 import { QrStorageData } from "@/ui/qr-builder/types/types";
+import { APP_DOMAIN } from '@dub/utils';
 
 export const MOCK_QR: QrStorageData = {
   id: "demo-qr-id",
   title: "Universal QR Code",
-  data: process.env.NEXT_PUBLIC_APP_DOMAIN
-    ? `${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-    : "http://localhost:8888",
+  data: APP_DOMAIN,
   qrType: "website" as any,
   description: null,
   archived: false,
@@ -13,9 +12,7 @@ export const MOCK_QR: QrStorageData = {
     width: 300,
     height: 300,
     type: "svg",
-    data: process.env.NEXT_PUBLIC_APP_DOMAIN
-      ? `${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-      : "http://localhost:8888",
+    data: APP_DOMAIN,
     margin: 10,
     qrOptions: { typeNumber: 0, mode: "Byte", errorCorrectionLevel: "Q" },
     dotsOptions: { type: "rounded", color: "#265F31" },
@@ -44,8 +41,6 @@ export const MOCK_QR: QrStorageData = {
   user: {} as any,
   link: {
     id: "demo-link-id",
-    shortLink: process.env.NEXT_PUBLIC_APP_DOMAIN
-      ? `${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-      : "http://localhost:8888",
+    shortLink: APP_DOMAIN,
   } as any,
 };

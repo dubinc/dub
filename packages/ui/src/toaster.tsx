@@ -7,7 +7,10 @@ type ToasterProps = React.ComponentProps<typeof Toaster>;
 
 export const ToasterProvider = ({ ...props }: ToasterProps) => {
   const toasterContent = (
-    <Toaster closeButton className="pointer-events-auto" />
+    <Toaster 
+      closeButton 
+      className="pointer-events-auto"
+    />
   );
 
   // Only render in the browser

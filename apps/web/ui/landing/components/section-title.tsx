@@ -20,7 +20,7 @@ export const SectionTitle: FC<ISectionTitleProps> = ({
     weight="bold"
     align="center"
     className={cn(
-      "text-neutral max-w-[300px] !text-[28px] lg:max-w-none lg:!text-[48px] lg:!leading-10",
+      "text-neutral mx-auto max-w-[300px] !text-[28px] lg:max-w-none lg:!text-[48px] lg:!leading-10",
       className,
     )}
   >

@@ -32,10 +32,27 @@ const FileUploadItemMetadata = React.forwardRef<
   const originalFileName = file?.originalFileName;
   const originalFileSize = file?.originalFileSize;
 
-  const displayName =
-    isThumbnail && originalFileName
-      ? originalFileName
-      : itemContext.fileState.file.name;
+  const truncateFilename = (filename: string, maxLength: number = 40) => {
+    if (filename.length <= maxLength) return filename;
+
+    // Get file extension
+    const lastDotIndex = filename.lastIndexOf('.');
+    const extension = lastDotIndex > -1 ? filename.slice(lastDotIndex) : '';
+    const nameWithoutExt = lastDotIndex > -1 ? filename.slice(0, lastDotIndex) : filename;
+
+    // Calculate how many characters we can show
+    const availableLength = maxLength - extension.length - 3; // 3 for "..."
+    const halfLength = Math.floor(availableLength / 2);
+
+    // Show start and end of filename with ellipsis in middle
+    return nameWithoutExt.slice(0, halfLength) + '...' + nameWithoutExt.slice(-halfLength) + extension;
+  };
+
+  const rawName = isThumbnail && originalFileName
+    ? originalFileName
+    : itemContext.fileState.file.name;
+  const displayName = truncateFilename(rawName);
+
   const displaySize =
     isThumbnail && originalFileSize
       ? formatBytes(originalFileSize)

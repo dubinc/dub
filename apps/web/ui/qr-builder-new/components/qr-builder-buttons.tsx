@@ -1,8 +1,10 @@
-import { Button } from "@dub/ui";
+import { Button } from "@/components/ui/button";
 import { cn } from "@dub/utils";
 import { Flex, Responsive } from "@radix-ui/themes";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
 import { FC, useCallback } from "react";
+import QRCodeStyling from "qr-code-styling";
+import { DownloadButton } from "./download-button";
 
 interface IQrBuilderButtonsProps {
   step: number;
@@ -11,7 +13,6 @@ interface IQrBuilderButtonsProps {
   maxStep?: number;
   minStep?: number;
   className?: string;
-  size?: Responsive<"3" | "4" | "1" | "2"> | undefined;
   display?: Responsive<"none" | "inline-flex" | "flex"> | undefined;
   isEdit?: boolean;
   isProcessing?: boolean;
@@ -20,6 +21,9 @@ interface IQrBuilderButtonsProps {
   homepageDemo?: boolean;
   currentFormValues?: Record<string, any>;
   logoData?: { type: string; fileId?: string; file?: File };
+  isFormValid?: boolean;
+  qrCode?: QRCodeStyling | null;
+  isMobile?: boolean;
 }
 
 export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
@@ -29,7 +33,6 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   maxStep = 3,
   minStep = 1,
   className,
-  size = "4",
   display = "flex",
   isEdit = false,
   isProcessing = false,
@@ -38,16 +41,15 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
   homepageDemo = false,
   currentFormValues = {},
   logoData,
+  isFormValid = true,
+  qrCode = null,
+  isMobile = false,
 }) => {
   const isLastStep = step === maxStep;
-
-  // Check if QR title is filled (required on content step)
   const isContentStep = step === 2;
-  const qrName = currentFormValues?.qrName;
-  const isTitleEmpty = isContentStep && (!qrName || qrName.trim() === "");
+  const isCustomizationStep = step === 3;
 
   // Check if logo upload is incomplete (on customization step)
-  const isCustomizationStep = step === 3;
   const hasUploadedLogoWithoutFileId =
     isCustomizationStep && logoData?.type === "uploaded" && !logoData?.fileId;
 
@@ -55,54 +57,78 @@ export const QrBuilderButtons: FC<IQrBuilderButtonsProps> = ({
     if (isFileUploading) return "Uploading...";
     if (isFileProcessing) return "Processing...";
     if (isEdit) return "Save Changes";
-    if (!isLastStep) return "Continue";
-    if (homepageDemo) return "Download QR Code";
+    if (homepageDemo || isContentStep) return "Customize QR";
 
     return "Create QR Code";
-  }, [isFileUploading, isFileProcessing, isEdit, isLastStep, homepageDemo]);
+  }, [isFileUploading, isFileProcessing, isEdit, isLastStep, homepageDemo, isContentStep]);
 
   const buttonText = getButtonText();
+
+  const isLoading = isProcessing || isFileUploading || isFileProcessing;
+
+  // Show download button on customization step (step 3) on mobile
+  const showDownloadOnCustomizationStep = isCustomizationStep && isMobile && qrCode;
 
   return (
     <Flex
       justify="between"
       display={display}
-      gap="4"
-      className={cn("w-full md:w-auto", className)}
+      className={cn("w-full gap-2", className)}
     >
       <Button
-        size={size}
-        variant="secondary"
-        color="blue"
-        className="border-secondary focus-visible:border-secondary-500 hover:bg-secondary-50 text-secondary data-[state=open]:border-secondary-500 data-[state=open]:ring-secondary-200 flex min-h-10 min-w-0 shrink basis-1/4"
+        variant="outline"
+        size="lg"
+        className={cn(
+          "border-secondary text-secondary hover:bg-secondary/10 flex min-w-0 shrink gap-1 md:gap-2",
+          {
+            "border-neutral-400 text-neutral-400": isProcessing,
+            "w-full": isLastStep && !showDownloadOnCustomizationStep,
+            "basis-1/4": showDownloadOnCustomizationStep || !isLastStep,
+          },
+        )}
         disabled={step <= minStep || isProcessing}
         onClick={onBack}
-        icon={
-          <ChevronLeft
-            className={cn("text-secondary", {
-              "text-neutral-400": isProcessing,
-            })}
-          />
-        }
-        text={<span className="hidden md:inline">Back</span>}
-      />
+      >
+        <ChevronLeft
+          className={cn("h-4 w-4", {
+            "text-neutral-400": isProcessing,
+          })}
+        />
+        <span className="hidden md:inline">Back</span>
+      </Button>
 
-      <Button
-        type="submit"
-        size={size}
-        color="blue"
-        className="grow basis-3/4"
-        onClick={onContinue}
-        disabled={
-          isProcessing ||
-          isFileUploading ||
-          isFileProcessing ||
-          isTitleEmpty ||
-          hasUploadedLogoWithoutFileId
-        }
-        loading={isProcessing || isFileUploading || isFileProcessing}
-        text={buttonText}
-      />
+      {showDownloadOnCustomizationStep && (
+        <div className="flex-[3]">
+          <DownloadButton qrCode={qrCode} disabled={false} />
+        </div>
+      )}
+
+      {!isLastStep ? (
+        <Button
+          type="submit"
+          variant="outline"
+          size="lg"
+          className={cn(
+            "border-secondary text-secondary hover:bg-secondary/10 w-full shrink",
+            {
+              "border-neutral-400 text-neutral-400": isProcessing,
+              "bg-secondary hover:bg-secondary/90 text-white border-secondary": isMobile && isContentStep,
+            },
+          )}
+          onClick={onContinue}
+          disabled={
+            isProcessing ||
+            isFileUploading ||
+            isFileProcessing ||
+            hasUploadedLogoWithoutFileId ||
+            isCustomizationStep
+          }
+        >
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {buttonText}
+          {!isLoading && <ChevronRight className="ml-2 h-4 w-4" />}
+        </Button>
+      ) : null}
     </Flex>
   );
 };

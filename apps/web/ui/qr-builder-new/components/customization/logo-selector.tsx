@@ -1,8 +1,20 @@
+import { Button } from "@/components/ui/button";
 import { cn } from "@dub/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { Upload, X } from "lucide-react";
 import { FC, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, FormProvider, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
-
+import {
+  FileUpload,
+  FileUploadDropzone,
+  FileUploadItem,
+  FileUploadItemDelete,
+  FileUploadItemMetadata,
+  FileUploadItemPreview,
+  FileUploadItemProgress,
+  FileUploadList,
+} from "../../components/file-upload";
 import { getSortedLogos } from "../../constants/customization/logos";
 import { useQrBuilderContext } from "../../context";
 import { useFileUpload } from "../../hooks/use-file-upload";
@@ -11,6 +23,14 @@ import { StylePicker } from "./style-picker";
 
 const FILE_UPLOAD_FIELD_NAME = "fileUploadLogo";
 const MAX_LOGO_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+
+const formatFileSize = (bytes: number) => {
+  if (bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
 
 interface LogoFormValues {
   fileUploadLogo: File[];
@@ -161,127 +181,164 @@ export const LogoSelector: FC<LogoSelectorProps> = ({
   // }, [methods]);
 
   return (
-    <div
-      className={cn("flex max-w-[540px] flex-col gap-4", {
-        "border-border-500 rounded-lg border p-3": !isMobile,
-      })}
+    <motion.div
+      layout
+      className="flex max-w-[788px] w-full flex-col gap-4 pb-6"
     >
       <StylePicker
         label="Select a logo"
         styleOptions={sortedLogos}
         value={selectedStyle}
         onSelect={handleSuggestedLogoSelect}
-        optionsWrapperClassName={`${
+        optionsWrapperClassName={`${isMobile ? "pb-2" : "pb-0"} ${
           disabled ? "pointer-events-none cursor-not-allowed" : ""
         }`}
         styleButtonClassName="[&_img]:h-10 [&_img]:w-10 p-2"
         disabled={disabled}
       />
 
-      <FormProvider {...methods}>
-        <form>
-          <Controller
-            name={FILE_UPLOAD_FIELD_NAME}
-            control={control}
-            render={({
-              field: { onChange, value = [] },
-              fieldState: { error },
-            }) => (
-              <div className="flex flex-col gap-2">
-                <div
-                  className={cn(
-                    "border-border-500 rounded-lg border-2 border-dashed p-4 text-center transition-colors",
-                    disabled && "pointer-events-none opacity-50",
-                    isUploading && "border-blue-500 bg-blue-50",
-                  )}
-                >
-                  {value.length > 0 || (logoData.type === "uploaded" && logoData.fileId) ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <img
-                        src={
-                          value.length > 0
-                            ? URL.createObjectURL(value[0])
-                            : `${process.env.NEXT_PUBLIC_STORAGE_BASE_URL || "https://dev-assets.getqr.com"}/qrs-content/${logoData.fileId}`
+      <AnimatePresence>
+        <FormProvider {...methods}>
+          <form>
+            <Controller
+              name={FILE_UPLOAD_FIELD_NAME}
+              control={control}
+              render={({ field: { onChange, value }, fieldState }) => {
+                const handleFileValidation = (file: File) => {
+                  if (file.size > MAX_LOGO_FILE_SIZE) {
+                    return `File too large. Maximum size is ${formatFileSize(MAX_LOGO_FILE_SIZE)}`;
+                  }
+                  if (!file.type.startsWith("image/")) {
+                    return "Please select an image file";
+                  }
+                  return null;
+                };
+
+                const handleFileReject = (_file: File, message: string) => {
+                  setUploadError(message);
+                  toast.error(message);
+                };
+
+                const handleFileAccept = () => {
+                  setUploadError(null);
+                };
+
+                const handleUpload = async (
+                  files: File[],
+                  {
+                    onProgress,
+                    onSuccess,
+                    onError,
+                  }: {
+                    onProgress: (file: File, progress: number) => void;
+                    onSuccess: (file: File) => void;
+                    onError: (file: File, error: Error) => void;
+                  },
+                ) => {
+                  try {
+                    await Promise.all(
+                      files.map(async (file: File) => {
+                        try {
+                          onProgress(file, 0);
+                          await uploadFile(file);
+                          onSuccess(file);
+                        } catch (error) {
+                          const err =
+                            error instanceof Error
+                              ? error
+                              : new Error("Upload failed");
+                          onError(file, err);
+                          setUploadError(err.message);
                         }
-                        alt="Uploaded logo"
-                        className="h-16 w-16 object-contain"
-                      />
-                      {value.length > 0 && (
-                        <p className="text-sm text-gray-700">{value[0].name}</p>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onChange([]);
-                          trigger(FILE_UPLOAD_FIELD_NAME);
-                          // Reset logo to none
-                          onLogoChange({
-                            type: "none",
-                            id: undefined,
-                            file: undefined,
-                            fileId: undefined,
-                          });
-                        }}
-                        disabled={isUploading}
-                        className="text-xs text-red-600 hover:text-red-800 disabled:opacity-50"
+                      }),
+                    );
+                  } catch (error) {
+                    console.error("Upload error:", error);
+                  }
+                };
+
+                return (
+                  <>
+                    <FileUpload
+                      maxFiles={1}
+                      maxSize={MAX_LOGO_FILE_SIZE}
+                      className="w-full max-w-none"
+                      value={value || []}
+                      onValueChange={onChange}
+                      onFileAccept={handleFileAccept}
+                      onFileReject={handleFileReject}
+                      onFileValidate={handleFileValidation}
+                      onUpload={handleUpload}
+                      accept="image/*"
+                      disabled={disabled || isUploading}
+                    >
+                      <FileUploadDropzone
+                        className={cn(
+                          "border-border hover:border-secondary hover:bg-muted/30 w-full h-[140px] cursor-pointer py-12 px-6 transition-all duration-200",
+                          {
+                            "border-red-500 hover:border-red-500": fieldState.error || uploadError,
+                          },
+                        )}
                       >
-                        Remove
-                      </button>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="mb-2 text-sm text-gray-600">
-                        Upload your logo (max 5MB)
-                      </p>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={(e) => {
-                          const files = Array.from(e.target.files || []);
-                          onChange(files);
-                          trigger(FILE_UPLOAD_FIELD_NAME);
-                        }}
-                        disabled={disabled || isUploading}
-                        className="text-sm"
-                      />
-                    </>
-                  )}
-                </div>
+                        <div className="flex flex-col items-center gap-3 text-center">
+                          <div className="border-border group-hover:border-secondary flex items-center justify-center rounded-full border p-3 transition-colors duration-200">
+                            <Upload className="text-secondary size-5 transition-colors duration-200" />
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <p className="text-neutral text-base font-medium">
+                            Click to upload or drag & drop your logo
+                            </p>
+                            <p className="text-muted-foreground text-xs">
+                              Max size: {formatFileSize(MAX_LOGO_FILE_SIZE)} • .jpg, .png, .svg, etc.
+                            </p>
+                          </div>
+                        </div>
+                      </FileUploadDropzone>
 
-                {/* Upload Progress */}
-                {isUploading && uploadProgress.length > 0 && (
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center justify-between text-xs text-gray-600">
-                      <span>
-                        {uploadProgress[0].status === "uploading"
-                          ? "Uploading..."
-                          : "Processing..."}
+                      <FileUploadList>
+                        {(value || []).map((file: File, index: number) => (
+                          <FileUploadItem key={index} value={file}>
+                            <div className="flex w-full items-center gap-2">
+                              <FileUploadItemPreview />
+                              <FileUploadItemMetadata />
+                              <FileUploadItemDelete asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    onChange([]);
+                                    trigger(FILE_UPLOAD_FIELD_NAME);
+                                    // Reset logo to none
+                                    onLogoChange({
+                                      type: "none",
+                                      id: undefined,
+                                      file: undefined,
+                                      fileId: undefined,
+                                    });
+                                  }}
+                                >
+                                  <X className="stroke-neutral-200" />
+                                </Button>
+                              </FileUploadItemDelete>
+                            </div>
+                            <FileUploadItemProgress />
+                          </FileUploadItem>
+                        ))}
+                      </FileUploadList>
+                    </FileUpload>
+
+                    {(fieldState.error || uploadError) && (
+                      <span className="text-sm text-red-500">
+                        {fieldState.error?.message || uploadError}
                       </span>
-                      <span>{uploadProgress[0].progress}%</span>
-                    </div>
-                    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div
-                        className="h-full bg-blue-600 transition-all duration-300"
-                        style={{ width: `${uploadProgress[0].progress}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* Upload Error */}
-                {uploadError && (
-                  <p className="text-xs text-red-600">{uploadError}</p>
-                )}
-
-                {/* Form Error */}
-                {error && (
-                  <p className="text-xs text-red-600">{error.message}</p>
-                )}
-              </div>
-            )}
-          />
-        </form>
-      </FormProvider>
-    </div>
+                    )}
+                  </>
+                );
+              }}
+            />
+          </form>
+        </FormProvider>
+      </AnimatePresence>
+    </motion.div>
   );
 };

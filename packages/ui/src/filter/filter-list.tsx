@@ -16,7 +16,7 @@ type FilterListProps = {
   }[];
   onRemove: (key: string, value: FilterOption["value"]) => void;
   onRemoveAll: () => void;
-  onSelect?: (key: Filter['key'], value: any) => void;
+  onSelect?: (key: Filter["key"], value: any) => void;
   isOptionDropdown?: boolean;
   className?: string;
 };

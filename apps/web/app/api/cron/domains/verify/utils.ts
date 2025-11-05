@@ -4,7 +4,7 @@ import { sendEmail } from "@dub/email";
 import { DomainDeleted } from "@dub/email/templates/domain-deleted";
 import { InvalidDomain } from "@dub/email/templates/invalid-domain";
 import { prisma } from "@dub/prisma";
-import { log } from "@dub/utils";
+import { log, APP_URL } from "@dub/utils";
 
 export const handleDomainUpdates = async ({
   domain,
@@ -200,7 +200,7 @@ const sendDomainInvalidEmail = async ({
           subject: `Your domain ${domain} needs to be configured`,
           email,
           react: InvalidDomain({
-            appDomain: process.env.NEXT_PUBLIC_APP_DOMAIN as string,
+            appDomain: APP_URL as string,
             email,
             domain,
             workspaceSlug,

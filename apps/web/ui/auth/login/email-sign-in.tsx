@@ -1,7 +1,6 @@
 import { checkAccountExistsAction } from "@/lib/actions/check-account-exists";
 import { showMessage } from "@/ui/auth/helpers";
-import { MessageType } from "@/ui/modals/auth-modal.tsx";
-import { Button, Input, useMediaQuery } from "@dub/ui";
+import { Button, Input, useMediaQuery, useRouterStuff } from "@dub/ui";
 import { InputPassword } from "@dub/ui/icons";
 import { cn } from "@dub/utils";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
@@ -10,25 +9,23 @@ import { Mail } from "lucide-react";
 import { getSession, signIn } from "next-auth/react";
 import { useAction } from "next-safe-action/hooks";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { FC, useContext, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { FC, useCallback, useContext, useState } from "react";
 import { errorCodes, LoginFormContext } from "./login-form";
 
 interface IEmailSignInProps {
   sessionId: string;
   redirectTo?: string;
-  authModal?: boolean;
-  setAuthModalMessage?: (message: string | null, type: MessageType) => void;
 }
 
 export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
   sessionId,
   redirectTo,
-  authModal,
-  setAuthModalMessage,
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { queryParams } = useRouterStuff();
   const next = searchParams?.get("next");
   const { isMobile } = useMediaQuery();
   const [email, setEmail] = useState("");
@@ -38,18 +35,27 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
     showPasswordField,
     // setShowPasswordField,
     setClickedMethod,
-    authMethod,
-    setAuthMethod,
     clickedMethod,
     setLastUsedAuthMethod,
-    setShowSSOOption,
   } = useContext(LoginFormContext);
 
   const { executeAsync, isPending } = useAction(checkAccountExistsAction, {
     onError: ({ error }) => {
-      showMessage(error.serverError, "error", authModal, setAuthModalMessage);
+      showMessage(error.serverError, "error");
     },
   });
+
+  const handleScrollToQRCreate = useCallback(() => {
+    if (pathname === "/") {
+      queryParams({
+        set: {
+          start: "true",
+        },
+      });
+      return;
+    }
+    router.push("/?start=true");
+  }, [router]);
 
   return (
     <>
@@ -123,10 +129,11 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
               });
 
               showMessage(
-                "No account found with that email address.",
+                <div className="flex flex-col gap-y-2">
+                  We couldn’t find an account for that email. To get started, please create your first QR code.
+                  <Button onClick={handleScrollToQRCreate} text="Create QR code" />
+                </div>,
                 "error",
-                authModal,
-                setAuthModalMessage,
               );
               return;
             }
@@ -160,10 +167,11 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
             });
 
             showMessage(
-              "No account found with that email address.",
+              <div className="flex flex-col gap-y-2">
+                We couldn’t find an account for that email. To get started, please create your first QR code.
+                <Button onClick={handleScrollToQRCreate} text="Create QR code" />
+              </div>,
               "error",
-              authModal,
-              setAuthModalMessage,
             );
             return;
           }
@@ -186,15 +194,11 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
               showMessage(
                 errorCodes[response.error],
                 "error",
-                authModal,
-                setAuthModalMessage,
               );
             } else {
               showMessage(
                 response.error,
                 "error",
-                authModal,
-                setAuthModalMessage,
               );
             }
 
@@ -224,8 +228,6 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
             showMessage(
               `We’ve sent a login link to ${email}. Check your inbox.`,
               "success",
-              authModal,
-              setAuthModalMessage,
             );
             setEmail("");
             setClickedMethod(undefined);
@@ -272,15 +274,15 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
         )}
 
         <Button
-          text={`Continue with ${password ? "Password" : "Email"}`}
+          text={"Continue"}
           variant="primary"
-          icon={
-            password ? (
-              <InputPassword className="size-4 text-neutral-600" />
-            ) : (
-              <Mail className="size-4 text-white" />
-            )
-          }
+          // icon={
+          //   password ? (
+          //     <InputPassword className="size-4 text-neutral-600" />
+          //   ) : (
+          //     <Mail className="size-4 text-white" />
+          //   )
+          // }
           type="submit"
           /*
           {...(authMethod !== "email" && {

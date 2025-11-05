@@ -2,6 +2,67 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+  .theme {
+    --animate-marquee: marquee var(--duration) infinite linear;
+    --animate-marquee-vertical: marquee-vertical var(--duration) linear infinite;
+  }
+}
+
 code {
   counter-reset: step;
   counter-increment: step 0;
@@ -23,7 +84,7 @@ code .line::before {
 /* Implement a custom scrollbar to preventing ugly looking scroll-overflows */
 .dub-scrollbar {
   scrollbar-width: auto;
-  scrollbar-color: #d1d5db #ffffff;
+  scrollbar-color: hsl(var(--primary)) #ffffff;
 }
 
 .dub-scrollbar::-webkit-scrollbar {
@@ -36,7 +97,7 @@ code .line::before {
 }
 
 .dub-scrollbar::-webkit-scrollbar-thumb {
-  background-color: #d1d5db;
+  background-color: hsl(var(--primary));
   border-radius: 10px;
 }
 
@@ -121,4 +182,96 @@ select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
   background-color: #e6f0ff !important;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    overflow-x: hidden;
+  }
+}
+
+/* Sonner error toast styling */
+[data-sonner-toast][data-type="error"] {
+  border-color: #ef4444 !important;
+  border-width: 2px !important;
+}
+
+[data-sonner-toast][data-type="error"] svg,
+[data-sonner-toast][data-type="error"] [data-icon] {
+  color: #ef4444 !important;
+}
+
+/* Sonner close button styling */
+[data-sonner-toast] [data-close-button],
+[data-sonner-toast] button[data-button] {
+  background-color: white !important;
+}
+
+/* Remove browser autofill styling */
+input:-webkit-autofill,
+input:-webkit-autofill::first-line,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+textarea:-webkit-autofill:active,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus,
+select:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000 !important;
+  background-color: transparent !important;
+  background-clip: content-box !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  border-radius: inherit !important;
+  border: inherit !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* For InputGroup inputs */
+[data-slot="input-group-control"]:-webkit-autofill,
+[data-slot="input-group-control"]:-webkit-autofill::first-line,
+[data-slot="input-group-control"]:-webkit-autofill:hover,
+[data-slot="input-group-control"]:-webkit-autofill:focus,
+[data-slot="input-group-control"]:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  box-shadow: 0 0 0 1000px transparent inset !important;
+  -webkit-text-fill-color: #000000 !important;
+  color: #000000 !important;
+  background-color: transparent !important;
+  background-clip: content-box !important;
+  font-size: inherit !important;
+  font-family: inherit !important;
+  border-radius: inherit !important;
+  border: none !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+@theme inline {
+  @keyframes marquee {
+  from {
+    transform: translateX(0);
+    }
+  to {
+    transform: translateX(calc(-100% - var(--gap)));
+    }
+  }
+  @keyframes marquee-vertical {
+  from {
+    transform: translateY(0);
+    }
+  to {
+    transform: translateY(calc(-100% - var(--gap)));
+    }
+  }
 }

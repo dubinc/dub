@@ -8,6 +8,7 @@ import {
 import { recordClick } from "@/lib/tinybird";
 import { formatRedisLink } from "@/lib/upstash";
 import {
+  APP_DOMAIN,
   DUB_HEADERS,
   LEGAL_WORKSPACE_ID,
   LOCALHOST_GEO_DATA,
@@ -34,6 +35,9 @@ export default async function LinkMiddleware(
   ev: NextFetchEvent,
 ) {
   let { domain, fullKey: originalKey } = parse(req);
+
+  console.log("Link middleware");
+  console.log("domain", domain);
 
   if (!domain) {
     return NextResponse.next();
@@ -73,7 +77,7 @@ export default async function LinkMiddleware(
 
     const redirectToQrDisabledPlug = NextResponse.redirect(
       new URL(
-        `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
+        `${APP_DOMAIN}/qr-disabled`,
         req.url,
       ),
       {
@@ -84,9 +88,6 @@ export default async function LinkMiddleware(
         status: 302,
       },
     );
-
-    console.log("here1");
-    console.log(linkData);
 
     if (linkData?.archived) {
       return redirectToQrDisabledPlug;
@@ -107,9 +108,12 @@ export default async function LinkMiddleware(
   if (!link) {
     const linkData = await getLinkViaEdge({ domain, key });
 
+    console.log("hererehrerscdcesde");
+    console.log("APP_DOMAIN", APP_DOMAIN);
+
     const redirectToQrDisabledPlug = NextResponse.redirect(
       new URL(
-        `https://${process.env.NEXT_PUBLIC_APP_DOMAIN}/qr-disabled`,
+        `${APP_DOMAIN}/qr-disabled`,
         req.url,
       ),
       {

@@ -1,18 +1,16 @@
-import { Heading } from "@radix-ui/themes";
 import { FC } from "react";
+import { SectionTitle } from "../landing/components/section-title";
 
 export const QrTabsTitle: FC = () => {
   return (
-    <Heading
-      as="h1"
-      weight="bold"
-      size={{ initial: "8", md: "9" }}
-      className="text-neutral text-center"
-    >
-      Create Your{" "}
-      <span className="bg-qr-gradient inline-block bg-clip-text text-transparent">
-        QR Code
-      </span>
-    </Heading>
+    <div className="mb-6 md:mb-12 flex flex-col items-center justify-center gap-3">
+      <SectionTitle
+        titleFirstPart={"Create Your"}
+        highlightedTitlePart={"QR Code"}
+      />
+      <p className="text-muted-foreground text-center max-w-4xl text-base hidden sm:block md:text-lg">
+        Create your QR and unlock scan analytics with one platform.
+      </p>
+    </div>
   );
 };

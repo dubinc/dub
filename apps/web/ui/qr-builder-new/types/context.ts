@@ -9,6 +9,7 @@ export type TQrType = EQRType | null;
 // Import form data types
 import { QRContentStepRef } from "@/ui/qr-builder-new/components/qr-content-step.tsx";
 import { RefObject } from "react";
+import { TQrServerData } from "../helpers/data-converters";
 import {
   TAppLinkQRFormData,
   TFeedbackQRFormData,
@@ -21,7 +22,6 @@ import {
   TWifiQRFormData,
 } from "../validation/schemas";
 import { IQRCustomizationData } from "./customization";
-import { TQrServerData } from "../helpers/data-converters";
 
 export type TQRFormData =
   | TWebsiteQRFormData
@@ -52,6 +52,9 @@ export interface IQrBuilderContextType {
   isFileUploading: boolean;
   isFileProcessing: boolean;
 
+  // Form validation state
+  isFormValid: boolean;
+
   // Customization states
   customizationData: IQRCustomizationData;
   customizationActiveTab: string;
@@ -62,9 +65,13 @@ export interface IQrBuilderContextType {
   isCustomizationStep: boolean;
   isEditMode: boolean;
   homepageDemo?: boolean;
+  
+  // Dialog state (for mobile homepage demo)
+  isDialogOpen: boolean;
+  setIsDialogOpen: (open: boolean) => void;
 
   // Methods
-  onSave: () => Promise<void>;
+  onSave: (providedFormData?: TQRFormData) => Promise<void>;
   handleNextStep: () => void;
   handleChangeStep: (step: number) => void;
   handleSelectQRType: (type: EQRType) => void;
@@ -80,8 +87,10 @@ export interface IQrBuilderContextType {
   setBuilderStep: (state: TStepState) => void;
   setDestinationData: (data: TDestinationData) => void;
   setSelectedQrType: (type: TQrType) => void;
+  setFormData: (data: TQRFormData | null) => void;
   setIsFileUploading: (uploading: boolean) => void;
   setIsFileProcessing: (processing: boolean) => void;
+  setIsFormValid: (valid: boolean) => void;
 
   // Buttons
   handleContinue: () => Promise<void>;

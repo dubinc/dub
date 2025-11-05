@@ -1,15 +1,17 @@
 "use client";
 
-import { Session } from '@/lib/auth';
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Session } from "@/lib/auth";
 import { useAuthModal } from "@/ui/modals/auth-modal";
 import { Logo } from "@/ui/shared/logo.tsx";
-import { Button } from "@dub/ui";
+import { useRouterStuff } from "@dub/ui";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
-import { getSession } from 'next-auth/react';
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FC, useCallback, useEffect } from "react";
+import { scrollToBuilder } from '../helpers/scrollToBuilder.tsx';
 
 interface IHeaderProps {
   sessionId: string;
@@ -17,12 +19,12 @@ interface IHeaderProps {
 }
 
 export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) => {
-  const { AuthModal, showModal } = useAuthModal({ sessionId });
+  const { AuthModal, showModal, setShowAuthModal } = useAuthModal({ sessionId });
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { queryParams } = useRouterStuff();
 
   const openLogin = searchParams.get("login");
-  const scrollToBuilder = searchParams.get("start");
   const isFromPaywall = searchParams.get("source") === "paywall";
 
   useEffect(() => {
@@ -46,73 +48,75 @@ export const Header: FC<Readonly<IHeaderProps>> = ({ sessionId, authSession }) =
         sessionId,
       });
 
-      qrGenerationBlock.scrollIntoView({ behavior: "smooth" });
+      scrollToBuilder();
       return;
     }
     router.push("/?start=true");
-  }, [router]);
+  }, [router, sessionId]);
 
   useEffect(() => {
-    if (scrollToBuilder) {
+    if (searchParams.get("start")) {
+      setShowAuthModal(false);
       handleScrollToQRGenerationBlock();
+      queryParams({
+        del: ["start"],
+      });
     }
-  }, [scrollToBuilder, handleScrollToQRGenerationBlock]);
+  }, [searchParams.get("start"), handleScrollToQRGenerationBlock]);
 
-  const handleOpenLogin = useCallback(async () => {
-    const existingSession = await getSession();
-    console.log("existingSession", existingSession);
-    if (existingSession?.user) {
-      router.push('/workspaces');
-      return;
-    }
+  const handleOpenLogin = useCallback(() => {
     showModal("login");
-  }, [showModal, router]);
+  }, [showModal]);
 
   const handleOpenMyQRCodes = useCallback(() => {
-    router.push('/workspaces');
+    router.push("/workspaces");
   }, [router]);
 
   return (
     <>
-      <header className="border-border sticky left-0 right-0 top-0 z-50 h-[52px] border-b bg-white backdrop-blur-lg md:h-16">
-        <nav className="mx-auto flex h-full w-full max-w-screen-xl items-center justify-between px-3 md:container lg:px-20">
-          <div className="flex h-[28px] items-center md:h-auto md:gap-6">
-            <Link href="/">
-              <Logo />
-            </Link>
-          </div>
+      <header className="border-border sticky top-0 z-50 border-b bg-white backdrop-blur-lg">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-8 px-4 py-3 sm:px-6">
+          <Link href="/">
+            <Logo />
+          </Link>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4 md:gap-6">
             {!authSession?.user ? (
               <>
                 {!isFromPaywall && (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     onClick={handleOpenLogin}
-                    text="Log In"
-                    className="text-base font-medium"
-                  />
+                    className="hover:text-secondary p-0 text-base font-medium text-neutral-200 transition-colors duration-300 hover:bg-transparent"
+                    size="lg"
+                  >
+                    Log In
+                  </Button>
                 )}
+                <Separator
+                  orientation="vertical"
+                  className="!h-6 max-md:hidden"
+                />
 
                 <Button
-                  variant="primary"
-                  color="blue"
                   onClick={handleScrollToQRGenerationBlock}
-                  text="Create QR code"
-                  className="hidden text-base font-medium sm:block"
-                />
+                  className="bg-secondary hover:bg-secondary/90 hidden sm:inline-flex text-white"
+                  size="lg"
+                >
+                  Create QR code
+                </Button>
               </>
             ) : (
               <Button
-                variant="primary"
-                color="blue"
                 onClick={handleOpenMyQRCodes}
-                text="My QR Codes"
-                className="text-base font-medium"
-              />
+                className="bg-secondary hover:bg-secondary/90 text-base font-medium text-white"
+                size="lg"
+              >
+                My QR Codes
+              </Button>
             )}
           </div>
-        </nav>
+        </div>
       </header>
       <AuthModal />
     </>

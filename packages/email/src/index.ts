@@ -29,6 +29,7 @@ export const sendEmail = async ({
 }) => {
   console.log("Sending email");
   console.log("template", template);
+  console.log("messageData", messageData);
   console.log(
     "process.env.CUSTOMER_IO_API_KEY",
     process.env.CUSTOMER_IO_API_KEY,

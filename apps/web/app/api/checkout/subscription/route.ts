@@ -153,7 +153,10 @@ export const POST = async (
           secondary: false,
           twoSteps: false,
         },
-        attributes: { ...metadata, billing_action: "rebill" },
+        attributes: {
+          ...metadata,
+          // billing_action: "rebill"
+        },
       },
       orderAmount: price,
       orderCurrencyCode: user.currency?.currencyForPay || "",
@@ -181,6 +184,7 @@ export const POST = async (
 
     await CustomerIOClient.track(user.id, {
       name: EAnalyticEvents.TRIAL_ACTIVATED,
+      email: user?.email,
     });
 
     const updatedUser = await updateUserCookieService({

@@ -1,6 +1,14 @@
 "use client";
 
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Separator } from "@/components/ui/separator";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { MessageCircle } from "lucide-react";
 import { forwardRef, useImperativeHandle } from "react";
 import { FormProvider, useForm, UseFormReturn } from "react-hook-form";
 import { EQRType } from "../../constants/get-qr-config";
@@ -30,6 +38,8 @@ interface WhatsAppFormProps {
 
 export const WhatsAppForm = forwardRef<WhatsAppFormRef, WhatsAppFormProps>(
   ({ onSubmit, defaultValues, initialData }, ref) => {
+    const openAccordion = "details";
+
     const { getDefaultValues, encodeFormData } = useQRFormData({
       qrType: EQRType.WHATSAPP,
       initialData,
@@ -67,32 +77,63 @@ export const WhatsAppForm = forwardRef<WhatsAppFormRef, WhatsAppFormProps>(
 
     return (
       <FormProvider {...form}>
-        <form className="flex w-full flex-col gap-4">
-          <BaseFormField
-            name="qrName"
-            label="Name your QR Code"
-            placeholder={QR_NAME_PLACEHOLDERS.WHATSAPP}
-            tooltip="Only you can see this. It helps you recognize your QR codes later."
-            initFromPlaceholder
-          />
+        <form className="w-full">
+          <Accordion
+            type="single"
+            value={openAccordion}
+            className="w-full space-y-2"
+          >
+            <AccordionItem
+              value="details"
+              className="border-none rounded-[20px] px-4 bg-[#fbfbfb]"
+            >
+              <AccordionTrigger className="hover:no-underline pointer-events-none [&>svg]:hidden">
+                <div className="flex w-full items-center gap-3 text-left">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white/80 p-3 transition-all hover:bg-white hover:shadow-md">
+                    <MessageCircle className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-foreground text-base font-medium">
+                      WhatsApp
+                    </span>
+                    <span className="text-muted-foreground text-sm font-normal">
+                      Provide your WhatsApp details and give a memorable name
+                    </span>
+                  </div>
+                </div>
+              </AccordionTrigger>
+              {openAccordion === "details" && <Separator className="mb-3" />}
+              <AccordionContent className="pt-2">
+                <BaseFormField
+                  name="number"
+                  label="WhatsApp Number"
+                  type="tel"
+                  placeholder={QR_INPUT_PLACEHOLDERS.WHATSAPP_NUMBER}
+                  tooltip="This is the number people will message on WhatsApp after scanning your QR code."
+                />
 
-          <BaseFormField
-            name="number"
-            label="WhatsApp Number"
-            type="tel"
-            placeholder={QR_INPUT_PLACEHOLDERS.WHATSAPP_NUMBER}
-            tooltip="This is the number people will message on WhatsApp after scanning your QR code."
-          />
+                <BaseFormField
+                  name="message"
+                  label="Pre-typed Message"
+                  type="textarea"
+                  placeholder={QR_INPUT_PLACEHOLDERS.WHATSAPP_MESSAGE}
+                  maxLength={160}
+                  tooltip="This text will appear in the chat box — the user just needs to tap send."
+                  required={false}
+                />
 
-          <BaseFormField
-            name="message"
-            label="Pre-typed Message"
-            type="textarea"
-            placeholder={QR_INPUT_PLACEHOLDERS.WHATSAPP_MESSAGE}
-            maxLength={160}
-            tooltip="This text will appear in the chat box — the user just needs to tap send."
-            required={false}
-          />
+                
+                <BaseFormField
+                  name="qrName"
+                  label="Name your QR Code"
+                  placeholder={QR_NAME_PLACEHOLDERS.WHATSAPP}
+                  tooltip="Only you can see this. It helps you recognize your QR codes later."
+                  initFromPlaceholder
+                  required={false}
+                />
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </form>
       </FormProvider>
     );

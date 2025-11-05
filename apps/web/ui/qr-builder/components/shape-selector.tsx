@@ -18,7 +18,7 @@ export const ShapeSelector: FC<IShapeSelectorProps> = ({
   onCenterStyleChange,
 }) => {
   return (
-    <div className="flex max-w-[680px] flex-col gap-4">
+    <div className="flex w-full flex-col gap-4">
       <div className="border-border-500 rounded-lg border p-3">
         <StylePicker
           label="Border Style"

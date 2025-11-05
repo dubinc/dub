@@ -4,6 +4,7 @@ import LoginForm from "@/ui/auth/login/login-form.tsx";
 import { AuthType, MessageType } from "@/ui/modals/auth-modal.tsx";
 import { cn } from "@dub/utils/src";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 type LoginContentProps = {
   sessionId: string;
@@ -30,18 +31,21 @@ export function LoginContent({
             !authModal,
         })}
       >
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.1 }}
-          className={cn("text-center", {
-            "border-border-500 border-b bg-white pb-6 pt-8": !authModal,
-          })}
-        >
-          <h3 className="text-lg font-semibold">
-            Log in to your GetQR account
-          </h3>
-        </motion.div>
+        {!authModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+            className="text-left border-border-500 border-b bg-white pb-6 pt-8 px-4 sm:px-16"
+          >
+            <h3 className="text-2xl font-semibold text-neutral-900">
+              Log In
+            </h3>
+            <p className="mt-1 text-sm text-neutral-400">
+              Welcome back! Your QR codes are awaiting.
+            </p>
+          </motion.div>
+        )}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -59,7 +63,7 @@ export function LoginContent({
             No account? Create your first QR.{" "}
             <Link
               href="/"
-              className="underline hover:text-neutral-800"
+              className="underline text-secondary hover:text-neutral-800"
               onClick={() => handleClose?.()}
             >
               Get started

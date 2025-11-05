@@ -21,6 +21,7 @@ import { useAction } from "next-safe-action/hooks";
 import { useRouter } from "next/navigation";
 import { FC, useMemo, useRef, useState } from "react";
 import { MOCK_QR } from "../constants/mock-qr";
+import { APP_DOMAIN } from '@dub/utils';
 
 const FEATURES = [
   "Download your QR code in PNG, JPG, or SVG",
@@ -56,9 +57,7 @@ export const TrialOfferInner: FC<Readonly<ITrialOfferProps>> = ({
       ? ({
           ...firstQr,
           link: {
-            shortLink: process.env.NEXT_PUBLIC_APP_DOMAIN
-              ? `${process.env.NEXT_PUBLIC_APP_DOMAIN}`
-              : "http://localhost:8888",
+            shortLink: APP_DOMAIN,
           },
         } as QRBuilderData)
       : MOCK_QR;

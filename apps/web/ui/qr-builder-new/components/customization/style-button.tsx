@@ -25,10 +25,10 @@ export const StyleButton: FC<StyleButtonProps> = ({
   return (
     <button
       className={cn(
-        "rounded-md border p-4 transition",
+        "rounded-md border p-3 transition",
         selected
-          ? "border-secondary bg-blue-100"
-          : "border-border-300 hover:border-secondary bg-white",
+          ? "border-secondary"
+          : "border-border-300 hover:border-secondary",
         {
           "cursor-not-allowed opacity-50": disabled,
         },
