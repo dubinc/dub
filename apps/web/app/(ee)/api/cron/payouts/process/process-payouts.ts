@@ -2,7 +2,6 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { exceededLimitError } from "@/lib/api/errors";
 import { getEffectivePayoutMode } from "@/lib/api/payouts/get-effective-payout-mode";
 import { getPayoutEligibilityFilter } from "@/lib/api/payouts/payout-eligibility-filter";
-import { qstash } from "@/lib/cron";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import {
   DIRECT_DEBIT_PAYMENT_METHOD_TYPES,
@@ -19,7 +18,7 @@ import { calculatePayoutFeeForMethod } from "@/lib/stripe/payment-methods";
 import { PlanProps } from "@/lib/types";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
-import { APP_DOMAIN_WITH_NGROK, currencyFormatter, log } from "@dub/utils";
+import { currencyFormatter, log } from "@dub/utils";
 import {
   Partner,
   Payout,
@@ -212,7 +211,7 @@ export async function processPayouts({
   const currency = paymentMethodToCurrency[paymentMethod.type] || "usd";
   const totalFee = Math.round(totalPayoutAmount * payoutFee) + fastAchFee;
   const total = totalPayoutAmount + totalFee;
-  let convertedTotal = total - externalPayoutAmount;
+  let totalToSend = total - externalPayoutAmount;
 
   // convert the amount to EUR/CAD if the payment method is sepa_debit or acss_debit
   if (["sepa_debit", "acss_debit"].includes(paymentMethod.type)) {
@@ -230,12 +229,10 @@ export async function processPayouts({
       );
     }
 
-    convertedTotal = Math.round(
-      (total / exchangeRate) * (1 + FOREX_MARKUP_RATE),
-    );
+    totalToSend = Math.round((total / exchangeRate) * (1 + FOREX_MARKUP_RATE));
 
     console.log(
-      `Currency conversion: ${total} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
+      `Currency conversion: ${total} usd -> ${totalToSend} ${currency} using exchange rate ${exchangeRate}.`,
     );
   }
 
@@ -254,7 +251,7 @@ export async function processPayouts({
 
   await stripe.paymentIntents.create(
     {
-      amount: convertedTotal,
+      amount: totalToSend,
       customer: workspace.stripeId!,
       payment_method_types: [paymentMethod.type],
       payment_method: paymentMethod.id,
@@ -295,34 +292,20 @@ export async function processPayouts({
     });
   }
 
-  // Mark external payouts as completed
+  // Mark external payouts as processing
   if (externalPayouts.length > 0) {
-    await prisma.$transaction(async (tx) => {
-      await tx.payout.updateMany({
-        where: {
-          id: {
-            in: externalPayouts.map((p) => p.id),
-          },
+    await prisma.payout.updateMany({
+      where: {
+        id: {
+          in: externalPayouts.map((p) => p.id),
         },
-        data: {
-          invoiceId: invoice.id,
-          status: "completed",
-          userId,
-          paidAt: new Date(),
-          mode: "external",
-        },
-      });
-
-      await tx.commission.updateMany({
-        where: {
-          payoutId: {
-            in: externalPayouts.map((p) => p.id),
-          },
-        },
-        data: {
-          status: "paid",
-        },
-      });
+      },
+      data: {
+        invoiceId: invoice.id,
+        status: "processing",
+        userId,
+        mode: "external",
+      },
     });
   }
 
@@ -418,53 +401,5 @@ export async function processPayouts({
         idempotencyKey: `payout-confirmed-internal/${invoice.id}`,
       },
     );
-  }
-
-  if (externalPayouts.length > 0) {
-    await queueBatchEmail<typeof PartnerPayoutConfirmed>(
-      externalPayouts
-        .filter((payout) => payout.partner.email)
-        .map((payout) => ({
-          to: payout.partner.email!,
-          subject: "You've got money coming your way!",
-          variant: "notifications",
-          replyTo: program.supportEmail || "noreply",
-          templateName: "PartnerPayoutConfirmed",
-          templateProps: {
-            email: payout.partner.email!,
-            program: {
-              id: program.id,
-              name: program.name,
-              logo: program.logo,
-            },
-            payout: {
-              id: payout.id,
-              amount: payout.amount,
-              startDate: payout.periodStart,
-              endDate: payout.periodEnd,
-              mode: "external",
-              paymentMethod: invoice.paymentMethod ?? "ach",
-            },
-          },
-        })),
-      {
-        idempotencyKey: `payout-confirmed-external/${invoice.id}`,
-      },
-    );
-  }
-
-  // Send "payout.confirmed" webhooks
-  const qstashResponse = await qstash.publishJSON({
-    url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-webhooks`,
-    body: {
-      invoiceId: invoice.id,
-    },
-    deduplicationId: `payout-confirmed-webhooks-${invoice.id}`,
-  });
-
-  if (qstashResponse.messageId) {
-    console.log(`Message sent to Qstash with id ${qstashResponse.messageId}`);
-  } else {
-    console.error("Error sending message to Qstash", qstashResponse);
   }
 }
