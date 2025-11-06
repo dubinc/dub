@@ -12,7 +12,32 @@ export async function queueExternalPayouts(
   >,
 ) {
   // All payouts are processed internally, hence no need to queue external payouts
-  if (invoice.payoutMode === "internal" || !invoice.programId) {
+  if (invoice.payoutMode === "internal") {
+    console.log(`Invoice ${invoice.id} is paid internally. Skipping...`);
+    return;
+  }
+
+  // should never happen, but just in case
+  if (!invoice.programId) {
+    console.log(`Invoice ${invoice.id} has no program ID. Skipping...`);
+    return;
+  }
+
+  const program = await prisma.program.findUnique({
+    where: {
+      id: invoice.programId,
+    },
+    select: {
+      id: true,
+      name: true,
+      logo: true,
+      supportEmail: true,
+    },
+  });
+
+  // should never happen, but just in case
+  if (!program) {
+    console.log(`Program not found for invoice ${invoice.id}. Skipping...`);
     return;
   }
 
@@ -27,7 +52,7 @@ export async function queueExternalPayouts(
         include: {
           programs: {
             where: {
-              programId: invoice.programId,
+              programId: program.id,
             },
             select: {
               tenantId: true,
@@ -89,18 +114,6 @@ export async function queueExternalPayouts(
       console.error(error.message);
     }
   }
-
-  const program = await prisma.program.findUniqueOrThrow({
-    where: {
-      id: invoice.programId!,
-    },
-    select: {
-      id: true,
-      name: true,
-      logo: true,
-      supportEmail: true,
-    },
-  });
 
   await queueBatchEmail<typeof PartnerPayoutConfirmed>(
     externalPayouts

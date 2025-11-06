@@ -234,7 +234,7 @@ export async function processPayouts({
     );
 
     console.log(
-      `Currency conversion: ${convertedTotal} usd -> ${totalToSend} ${currency} using exchange rate ${exchangeRate}.`,
+      `Currency conversion: ${totalToSend} usd -> ${convertedTotal} ${currency} using exchange rate ${exchangeRate}.`,
     );
 
     totalToSend = convertedTotal;
@@ -358,9 +358,8 @@ export async function processPayouts({
           metadata: {
             ...payout,
             invoiceId: invoice.id,
-            status: externalPayoutsMap.has(payout.id)
-              ? "completed"
-              : "processing",
+            status: "processing",
+            mode: externalPayoutsMap.has(payout.id) ? "external" : "internal",
             userId,
           },
         },
