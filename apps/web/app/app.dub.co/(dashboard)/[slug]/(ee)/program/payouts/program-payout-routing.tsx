@@ -33,7 +33,7 @@ export function ProgramPayoutRouting({
     },
     {
       value: ProgramPayoutMode.hybrid,
-      label: "Dub and external (Hybird)",
+      label: "Dub and external (Hybrid)",
       recommended: false,
       displayWebhookWarning: payoutMode === ProgramPayoutMode.hybrid,
       description: (
