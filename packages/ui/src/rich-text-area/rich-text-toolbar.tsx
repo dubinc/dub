@@ -11,13 +11,10 @@ import {
   TextBold,
   TextItalic,
 } from "../icons";
+import { useRichTextContext } from "./rich-text-provider";
 
-export function RichTextToolbar({
-  onImageUpload,
-}: {
-  onImageUpload?: (file: File) => void;
-}) {
-  const { editor } = useCurrentEditor();
+export function RichTextToolbar() {
+  const { editor, handleImageUpload, isUploading } = useRichTextContext();
 
   const editorState = useEditorState({
     editor,
@@ -33,7 +30,12 @@ export function RichTextToolbar({
   const inputImageRef = useRef<HTMLInputElement>(null);
 
   return (
-    <div className="flex gap-1">
+    <div
+      className={cn(
+        "flex gap-1",
+        isUploading && "pointer-events-none opacity-50",
+      )}
+    >
       <ToolbarButton
         icon={TextBold}
         label="Bold"
@@ -77,7 +79,7 @@ export function RichTextToolbar({
         }}
       />
 
-      {onImageUpload && (
+      {handleImageUpload && editor && (
         <>
           <input
             ref={inputImageRef}
@@ -87,7 +89,7 @@ export function RichTextToolbar({
               const file = e.target.files?.[0];
               if (!file) return;
 
-              onImageUpload(file);
+              handleImageUpload(file, editor, editor.state.selection.anchor);
               e.target.value = "";
             }}
           />
