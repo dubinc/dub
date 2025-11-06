@@ -229,11 +229,15 @@ export async function processPayouts({
       );
     }
 
-    totalToSend = Math.round((total / exchangeRate) * (1 + FOREX_MARKUP_RATE));
+    const convertedTotal = Math.round(
+      (totalToSend / exchangeRate) * (1 + FOREX_MARKUP_RATE),
+    );
 
     console.log(
-      `Currency conversion: ${total} usd -> ${totalToSend} ${currency} using exchange rate ${exchangeRate}.`,
+      `Currency conversion: ${convertedTotal} usd -> ${totalToSend} ${currency} using exchange rate ${exchangeRate}.`,
     );
+
+    totalToSend = convertedTotal;
   }
 
   // Update the invoice with the finalized payout amount, fee, and total
