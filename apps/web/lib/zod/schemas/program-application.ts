@@ -4,6 +4,7 @@ import { ProgramEnrollmentSchema } from "./programs";
 
 export const partnerApplicationWebhookSchema = z.object({
   id: z.string(),
+  createdAt: z.coerce.date(),
   partner: EnrolledPartnerSchema.pick({
     id: true,
     name: true,
@@ -30,10 +31,12 @@ export const partnerApplicationWebhookSchema = z.object({
         tiktok: true,
       }),
     ),
-  applicationForm: z.array(
-    z.object({
-      label: z.string(),
-      value: z.string(),
-    }),
-  ),
+  applicationFormData: z
+    .array(
+      z.object({
+        label: z.string(),
+        value: z.string().nullable(),
+      }),
+    )
+    .nullable(),
 });

@@ -5,7 +5,10 @@ import { notifyPartnerApplication } from "@/lib/api/partners/notify-partner-appl
 import { getIP } from "@/lib/api/utils/get-ip";
 import { getSession } from "@/lib/auth";
 import { qstash } from "@/lib/cron";
-import { formatApplicationFormData } from "@/lib/partners/format-application-form-data";
+import {
+  formatApplicationFormData,
+  formatWebsiteAndSocialsFields,
+} from "@/lib/partners/format-application-form-data";
 import {
   ProgramApplicationFormData,
   ProgramApplicationFormDataWithValues,
@@ -240,10 +243,10 @@ async function createApplicationAndEnrollment({
 
   waitUntil(
     (async () => {
-      const applicationForm = formatApplicationFormData(application).map(
+      const applicationFormData = formatApplicationFormData(application).map(
         ({ title, value }) => ({
           label: title,
-          value,
+          value: value !== "" ? value : null,
         }),
       );
 
@@ -272,11 +275,14 @@ async function createApplicationAndEnrollment({
           trigger: "partner.application_submitted",
           data: partnerApplicationWebhookSchema.parse({
             id: application.id,
+            createdAt: application.createdAt,
             partner: {
               ...partner,
               ...programEnrollment,
+              id: partner.id,
+              ...formatWebsiteAndSocialsFields(application),
             },
-            applicationForm,
+            applicationFormData,
           }),
         }),
       ]);

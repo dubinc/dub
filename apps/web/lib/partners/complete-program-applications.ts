@@ -6,7 +6,10 @@ import { notifyPartnerApplication } from "../api/partners/notify-partner-applica
 import { qstash } from "../cron";
 import { sendWorkspaceWebhook } from "../webhook/publish";
 import { partnerApplicationWebhookSchema } from "../zod/schemas/program-application";
-import { formatApplicationFormData } from "./format-application-form-data";
+import {
+  formatApplicationFormData,
+  formatWebsiteAndSocialsFields,
+} from "./format-application-form-data";
 
 /**
  * Completes any outstanding program applications for a user
@@ -156,10 +159,10 @@ export async function completeProgramApplications(userEmail: string) {
         (field) => field !== undefined,
       );
 
-      const applicationForm = formatApplicationFormData(application).map(
+      const applicationFormData = formatApplicationFormData(application).map(
         ({ title, value }) => ({
           label: title,
-          value,
+          value: value !== "" ? value : null,
         }),
       );
 
@@ -197,11 +200,14 @@ export async function completeProgramApplications(userEmail: string) {
             trigger: "partner.application_submitted",
             data: partnerApplicationWebhookSchema.parse({
               id: application.id,
+              createdAt: application.createdAt,
               partner: {
                 ...partner,
                 ...programEnrollment,
+                id: partner.id,
+                ...formatWebsiteAndSocialsFields(application),
               },
-              applicationForm,
+              applicationFormData,
             }),
           }),
       ]);
