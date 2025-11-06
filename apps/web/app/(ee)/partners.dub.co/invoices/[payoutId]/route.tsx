@@ -57,9 +57,16 @@ export const GET = withPartnerProfile(async ({ partner, params }) => {
 
   if (!INVOICE_AVAILABLE_PAYOUT_STATUSES.includes(payout.status)) {
     throw new DubApiError({
-      code: "unauthorized",
+      code: "bad_request",
       message:
         "This payout is not completed yet, hence no invoice is generated.",
+    });
+  }
+
+  if (payout.mode === "external") {
+    throw new DubApiError({
+      code: "bad_request",
+      message: "This payout is made externally, hence no invoice is generated.",
     });
   }
 

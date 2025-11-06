@@ -33,6 +33,7 @@ const expectedCampaign: Partial<Campaign> = {
   ...campaign,
   type: "transactional",
   status: expect.any(String),
+  preview: null,
   from: null,
   scheduledAt: null,
   groups: [{ id: E2E_PARTNER_GROUP.id }],

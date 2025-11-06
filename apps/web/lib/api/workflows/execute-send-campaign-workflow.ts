@@ -192,7 +192,7 @@ export const executeSendCampaignWorkflow = async ({
           },
           campaign: {
             type: campaign.type,
-            subject: campaign.subject,
+            preview: campaign.preview,
             body: renderCampaignEmailHTML({
               content: campaign.bodyJson as unknown as TiptapNode,
               variables: {

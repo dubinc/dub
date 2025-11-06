@@ -8,6 +8,11 @@ enum PayoutStatus {
   canceled
 }
 
+enum PayoutMode {
+  internal
+  external
+}
+
 model Payout {
   id               String       @id @default(cuid())
   programId        String
@@ -17,6 +22,7 @@ model Payout {
   amount           Int          @default(0)
   currency         String       @default("USD")
   status           PayoutStatus @default(pending)
+  mode             PayoutMode?
   description      String?
   periodStart      DateTime?
   periodEnd        DateTime?
@@ -24,6 +30,7 @@ model Payout {
   stripeTransferId String?
   stripePayoutId   String?
   failureReason    String?      @db.Text
+  webhookEventId   String?      @unique // only for external payouts
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   paidAt           DateTime?
