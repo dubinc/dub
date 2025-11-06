@@ -2,7 +2,7 @@ import { convertSessionUserToCustomerBody, Session } from "@/lib/auth/utils.ts";
 import { isBlacklistedEmail } from "@/lib/edge-config";
 import { isStored, storage } from "@/lib/storage";
 import { UserProps } from "@/lib/types";
-import { ratelimit } from "@/lib/upstash";
+import { ratelimit, redis } from "@/lib/upstash";
 import { CUSTOMER_IO_TEMPLATES, sendEmail } from "@dub/email";
 import { prisma } from "@dub/prisma";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
@@ -35,6 +35,7 @@ import { createQrWithLinkUniversal } from '@/lib/api/qrs/create-qr-with-link-uni
 import { R2_URL } from '@dub/utils';
 import { WorkspaceProps } from '@/lib/types';
 import { removeQrDataFromRedis } from '@/lib/actions/pre-checkout-flow/remove-qr-data-from-redis';
+import { ERedisArg } from 'core/interfaces/redis.interface';
 
 const VERCEL_DEPLOYMENT = !!process.env.VERCEL_URL;
 
@@ -348,6 +349,11 @@ export const authOptions: NextAuthOptions = {
         console.log("qrCreateResponse", qrCreateResponse);
 
         removeQrDataFromRedis(message.user.id, "qr-from-landing");
+
+        await redis
+          .set(`${ERedisArg.NEW_QR_ID_REG}:${message.user.id}`, qrCreateResponse.createdQr.id, {
+            ex: 60 * 60 * 24 * 10, // 10 days
+          })
       }
 
       if (message.isNewUser) {

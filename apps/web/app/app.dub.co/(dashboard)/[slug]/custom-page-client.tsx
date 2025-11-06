@@ -26,16 +26,18 @@ interface WorkspaceQRsClientProps {
   featuresAccess: FeaturesAccess;
   user: Session["user"];
   cookieUser: ICustomerBody | null;
+  newQrId?: string | null;
 }
 
 export default function WorkspaceQRsClient({
   initialQrs,
   featuresAccess,
   user,
+  newQrId,
 }: WorkspaceQRsClientProps) {
   return (
     <UserProvider user={user}>
-      <NewQrProvider>
+      <NewQrProvider newQrId={newQrId}>
         <QrCodesDisplayProvider>
           <WorkspaceQRs
             initialQrs={initialQrs}
