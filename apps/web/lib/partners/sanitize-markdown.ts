@@ -32,15 +32,15 @@ export function sanitizeMarkdown(markdown: string | null | undefined): string | 
   }
 
   // Check for suspicious patterns that could cause DoS or rendering issues
-  // Truncate extremely long lines (potential DoS) instead of rejecting
-  const lines = sanitized.split("\n");
+  // Reject content with excessively long lines to avoid malformed markdown
   const maxLineLength = 1000;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].length > maxLineLength) {
-      lines[i] = lines[i].substring(0, maxLineLength);
-    }
+  const hasExcessivelyLongLine = sanitized
+    .split("\n")
+    .some((line) => line.length > maxLineLength);
+
+  if (hasExcessivelyLongLine) {
+    return null;
   }
-  sanitized = lines.join("\n");
 
   // Normalize line endings
   sanitized = sanitized.replace(/\r\n/g, "\n").replace(/\r/g, "\n");

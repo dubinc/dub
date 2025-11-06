@@ -19,6 +19,45 @@ import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 import { Footer } from "../components/footer";
 
+const pixelBasedPreset = {
+  theme: {
+    fontSize: {
+      xs: ["12px", { lineHeight: "18px" }],
+      sm: ["14px", { lineHeight: "20px" }],
+      base: ["16px", { lineHeight: "24px" }],
+      lg: ["18px", { lineHeight: "28px" }],
+    },
+    lineHeight: {
+      6: "24px",
+      relaxed: "24px",
+    },
+    spacing: {
+      0: "0px",
+      1: "4px",
+      2: "8px",
+      3: "12px",
+      4: "16px",
+      5: "20px",
+      6: "24px",
+      8: "32px",
+      10: "40px",
+    },
+    borderRadius: {
+      none: "0px",
+      sm: "2px",
+      DEFAULT: "4px",
+      md: "6px",
+      lg: "8px",
+      xl: "12px",
+      full: "9999px",
+    },
+  },
+} as const;
+
+const tailwindConfig = {
+  presets: [pixelBasedPreset],
+} as const;
+
 const markdownComponents: Components = {
   p({ children }) {
     return (
@@ -38,20 +77,48 @@ const markdownComponents: Components = {
   },
   ul({ children }) {
     return (
-      <ul className="mb-4 list-disc pl-5 text-sm leading-6 text-neutral-600">
+      <ul
+        style={{
+          margin: "0 0 16px",
+          paddingLeft: "20px",
+          listStylePosition: "outside",
+          listStyleType: "disc",
+          color: "#525252",
+          fontSize: "14px",
+          lineHeight: "20px",
+        }}
+      >
         {children}
       </ul>
     );
   },
   ol({ children }) {
     return (
-      <ol className="mb-4 list-decimal pl-5 text-sm leading-6 text-neutral-600">
+      <ol
+        style={{
+          margin: "0 0 16px",
+          paddingLeft: "20px",
+          listStylePosition: "outside",
+          listStyleType: "decimal",
+          color: "#525252",
+          fontSize: "14px",
+          lineHeight: "20px",
+        }}
+      >
         {children}
       </ol>
     );
   },
   li({ children }) {
-    return <li className="marker:text-neutral-400">{children}</li>;
+    return (
+      <li
+        style={{
+          marginBottom: "8px",
+        }}
+      >
+        {children}
+      </li>
+    );
   },
   strong({ children }) {
     return <strong className="font-semibold text-neutral-800">{children}</strong>;
@@ -61,7 +128,17 @@ const markdownComponents: Components = {
   },
   blockquote({ children }) {
     return (
-      <blockquote className="my-4 border-l-2 border-neutral-200 pl-4 text-sm leading-6 text-neutral-600">
+      <blockquote
+        style={{
+          margin: "16px 0",
+          padding: "0 0 0 16px",
+          borderLeft: "4px solid #e5e7eb",
+          backgroundColor: "#f9fafb",
+          color: "#525252",
+          fontSize: "14px",
+          lineHeight: "20px",
+        }}
+      >
         {children}
       </blockquote>
     );
@@ -69,14 +146,39 @@ const markdownComponents: Components = {
   code({ inline, className, children }) {
     if (inline) {
       return (
-        <code className="rounded-md bg-neutral-100 px-1 py-0.5 text-[12px] font-mono text-neutral-800">
+        <code
+          style={{
+            display: "inline-block",
+            padding: "2px 4px",
+            borderRadius: "4px",
+            backgroundColor: "#f4f4f5",
+            border: "1px solid #e4e4e7",
+            fontFamily:
+              "'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+            fontSize: "12px",
+            lineHeight: "18px",
+            color: "#1f2937",
+          }}
+        >
           {children}
         </code>
       );
     }
 
     return (
-      <pre className="my-4 overflow-x-auto rounded-md bg-neutral-900 px-3 py-3 text-[12px] leading-relaxed text-white">
+      <pre
+        style={{
+          margin: "16px 0",
+          overflowX: "auto",
+          borderRadius: "8px",
+          backgroundColor: "#111827",
+          border: "1px solid #1f2937",
+          padding: "12px",
+          fontSize: "12px",
+          lineHeight: "20px",
+          color: "#f9fafb",
+        }}
+      >
         <code className={className}>{children}</code>
       </pre>
     );
@@ -139,7 +241,7 @@ export default function ProgramInvite({
     <Html>
       <Head />
       <Preview>Sign up for {program.name}</Preview>
-      <Tailwind>
+      <Tailwind config={tailwindConfig}>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
             <Section className="mb-8 mt-6">
@@ -187,7 +289,7 @@ export default function ProgramInvite({
 
             <Section className="my-8">
               <Link
-                className="rounded-lg bg-neutral-900 px-4 py-3 text-[12px] font-semibold text-white no-underline"
+                className="rounded-lg bg-neutral-900 px-4 py-3 text-xs font-semibold text-white no-underline"
                 href={`https://partners.dub.co/${program.slug}/register?email=${encodeURIComponent(email)}&next=/programs/${program.slug}`}
               >
                 Accept Invite

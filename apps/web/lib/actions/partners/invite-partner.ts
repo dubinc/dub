@@ -73,37 +73,56 @@ export const invitePartnerAction = authActionClient
     // Sanitize emailBody before passing to template
     const sanitizedEmailBody = emailBody ? sanitizeMarkdown(emailBody) : null;
 
-    try {
-      await sendEmail({
-        subject:
-          emailSubject || `${program.name} invited you to join Dub Partners`,
-        variant: "notifications",
-        to: email,
-        replyTo: program.supportEmail || "noreply",
-        react: ProgramInvite({
-          email,
-          name: enrolledPartner.name,
-          program: {
-            name: program.name,
-            slug: program.slug,
-            logo: program.logo,
-          },
-          ...(emailSubject && { subject: emailSubject }),
-          ...(emailTitle && { title: emailTitle }),
-          ...(sanitizedEmailBody && { body: sanitizedEmailBody }),
-          ...(await getPartnerInviteRewardsAndBounties({
-            programId,
-            groupId: enrolledPartner.groupId || program.defaultGroupId,
-          })),
-        }),
-      });
-    } catch (error) {
-      console.error("Failed to send partner invite email", error);
-      throw error;
-    }
+    const sendPartnerInvitePromise = (async () => {
+      try {
+        const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
+          programId,
+          groupId: enrolledPartner.groupId || program.defaultGroupId,
+        });
+
+        await sendEmail({
+          subject:
+            emailSubject || `${program.name} invited you to join Dub Partners`,
+          variant: "notifications",
+          to: email,
+          replyTo: program.supportEmail || "noreply",
+          react: ProgramInvite({
+            email,
+            name: enrolledPartner.name,
+            program: {
+              name: program.name,
+              slug: program.slug,
+              logo: program.logo,
+            },
+            ...(emailSubject && { subject: emailSubject }),
+            ...(emailTitle && { title: emailTitle }),
+            ...(sanitizedEmailBody && { body: sanitizedEmailBody }),
+            ...rewardsAndBounties,
+          }),
+        });
+      } catch (error) {
+        console.error("Failed to send partner invite email", error);
+        try {
+          await prisma.programEnrollment.delete({
+            where: {
+              partnerId_programId: {
+                partnerId: enrolledPartner.partnerId || enrolledPartner.id,
+                programId,
+              },
+            },
+          });
+        } catch (rollbackError) {
+          console.error(
+            "Failed to rollback partner enrollment after email failure",
+            rollbackError,
+          );
+        }
+      }
+    })();
 
     waitUntil(
       Promise.allSettled([
+        sendPartnerInvitePromise,
         recordAuditLog({
           workspaceId: workspace.id,
           programId,
