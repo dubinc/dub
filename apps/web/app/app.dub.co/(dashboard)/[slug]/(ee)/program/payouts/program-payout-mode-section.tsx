@@ -39,13 +39,20 @@ export function ProgramPayoutModeSection() {
         Payout method
       </h4>
       <div className="rounded-lg border border-neutral-200 bg-white">
-        <div className="flex items-center gap-4 border-b border-neutral-200 p-3">
+        <div className="flex items-center gap-3 border-b border-neutral-200 p-3">
           <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
             <CircleDollarOut className="text-content-emphasis size-4" />
           </div>
           <h3 className="text-content-emphasis text-sm font-semibold leading-4">
             {selectedOption.label}
           </h3>
+          <a
+            href="http://dub.co/docs/partners/external-payouts"
+            target="_blank"
+            className="text-content-subtle rounded-md bg-neutral-100 px-2 py-1 text-xs font-medium transition-colors hover:bg-neutral-200/75"
+          >
+            Learn more ↗
+          </a>
         </div>
 
         <div className="space-y-4 p-3">

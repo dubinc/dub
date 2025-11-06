@@ -1,4 +1,4 @@
-import { CircleArrowRight, Tooltip } from "@dub/ui";
+import { Button, CircleArrowRight, Tooltip } from "@dub/ui";
 import { useParams } from "next/navigation";
 
 export function ExternalPayoutsIndicator({
@@ -23,6 +23,12 @@ export function ExternalPayoutsIndicator({
             className="cursor-alias underline decoration-dotted underline-offset-2"
           >
             webhook event.
+          </a>
+          <a
+            href="http://dub.co/docs/partners/external-payouts"
+            target="_blank"
+          >
+            <Button text="Learn more" className="mt-2 h-7 px-3" />
           </a>
         </div>
       }

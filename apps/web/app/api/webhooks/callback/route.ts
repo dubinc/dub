@@ -63,7 +63,7 @@ export const POST = async (req: Request) => {
     return new Response(`Unsubscribed Zapier webhook ${webhookId}`);
   }
 
-  await Promise.all([
+  await Promise.allSettled([
     // Record the webhook event
     recordWebhookEvent({
       url,
@@ -85,7 +85,7 @@ export const POST = async (req: Request) => {
       : []),
 
     // Handle payout events
-    event === "payout.confirmed"
+    ...(event === "payout.confirmed"
       ? [
           handleExternalPayoutEvent({
             webhook,
@@ -97,7 +97,7 @@ export const POST = async (req: Request) => {
                 : "success",
           }),
         ]
-      : [],
+      : []),
   ]);
 
   return new Response(`Webhook ${webhookId} processed`);

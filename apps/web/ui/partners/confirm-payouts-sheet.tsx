@@ -442,6 +442,12 @@ function ConfirmPayoutsSheetContent() {
                     payout.confirmed
                   </code>{" "}
                   webhook event.
+                  <a
+                    href="http://dub.co/docs/partners/external-payouts"
+                    target="_blank"
+                  >
+                    <Button text="Learn more" className="mt-2 h-7 px-3" />
+                  </a>
                 </div>
               ),
             },

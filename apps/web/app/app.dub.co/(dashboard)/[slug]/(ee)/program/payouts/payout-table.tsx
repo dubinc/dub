@@ -316,7 +316,7 @@ function AmountRowItem({
                 minPayoutAmount / 100,
               )}. This payout will be accrued and processed during the next payout period.`}
               cta="Update minimum payout amount"
-              href={`/${slug}/program/settings/rewards`}
+              href={`/${slug}/program/payouts?status=pending&sortBy=amount`}
               target="_blank"
             />
           }
@@ -335,9 +335,9 @@ function AmountRowItem({
             tooltipProps={{
               content: payout.partner?.tenantId ? undefined : (
                 <TooltipContent
-                  title="This partner does not have a tenant ID, which is required to process external payouts."
+                  title="This partner does not have a tenant ID configured, which is required to process external payouts."
                   cta="Learn more"
-                  href="https://dub.co/help/article/managing-program-partners#tenant-id"
+                  href="http://dub.co/docs/partners/external-payouts"
                   target="_blank"
                 />
               ),

@@ -128,6 +128,13 @@ function ProgramPayoutSettingsSheetContent({
           </div>
 
           <div>
+            <input
+              type="hidden"
+              {...register("minPayoutAmount", {
+                required: true,
+                valueAsNumber: true,
+              })}
+            />
             <NumberFlow
               value={minPayoutAmount ? minPayoutAmount / 100 : 0}
               suffix=" USD"
@@ -158,6 +165,7 @@ function ProgramPayoutSettingsSheetContent({
 
                 setValue("minPayoutAmount", closest, {
                   shouldDirty: true,
+                  shouldValidate: true,
                 });
               }}
               marks={ALLOWED_MIN_PAYOUT_AMOUNTS}
