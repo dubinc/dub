@@ -109,14 +109,6 @@ export async function processPayouts({
         select: {
           email: true,
           payoutsEnabledAt: true,
-          programs: {
-            where: {
-              programId: program.id,
-            },
-            select: {
-              tenantId: true,
-            },
-          },
         },
       },
     },
