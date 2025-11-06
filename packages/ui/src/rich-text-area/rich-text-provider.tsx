@@ -16,9 +16,19 @@ import {
 } from "react";
 import { suggestions } from "./variables";
 
+const FEATURES = [
+  "images",
+  "variables",
+  "links",
+  "headings",
+  "bold",
+  "italic",
+] as const;
+
 type RichTextProviderProps = PropsWithChildren<{
   placeholder?: string;
   initialValue?: any;
+  features?: (typeof FEATURES)[number][];
   onChange?: (editor: Editor) => void;
   uploadImage?: (file: File) => Promise<string | null>;
   variables?: string[];
@@ -48,6 +58,7 @@ export const RichTextProvider = forwardRef<
   (
     {
       children,
+      features = FEATURES as any,
       placeholder = "Start typing...",
       uploadImage,
       editable,
@@ -93,9 +104,14 @@ export const RichTextProvider = forwardRef<
       editable: editable,
       extensions: [
         StarterKit.configure({
-          heading: {
-            levels: [1, 2],
-          },
+          heading: features.includes("headings")
+            ? {
+                levels: [1, 2],
+              }
+            : false,
+          bold: features.includes("bold") ? undefined : false,
+          italic: features.includes("italic") ? undefined : false,
+          link: features.includes("links") ? undefined : false,
         }),
         Placeholder.configure({
           placeholder,
@@ -104,7 +120,7 @@ export const RichTextProvider = forwardRef<
         }),
 
         // Images
-        ...(handleImageUpload
+        ...(features.includes("images") && handleImageUpload
           ? [
               Image.configure({
                 inline: false,
@@ -137,7 +153,7 @@ export const RichTextProvider = forwardRef<
               }),
             ]
           : []),
-        ...(variables
+        ...(features.includes("variables") && variables
           ? [
               Mention.extend({
                 renderHTML({ node }: { node: any }) {
@@ -184,6 +200,7 @@ export const RichTextProvider = forwardRef<
     return (
       <RichTextContext.Provider
         value={{
+          features,
           placeholder,
           editable,
           variables,

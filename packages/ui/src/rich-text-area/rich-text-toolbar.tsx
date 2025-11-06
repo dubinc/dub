@@ -14,7 +14,8 @@ import {
 import { useRichTextContext } from "./rich-text-provider";
 
 export function RichTextToolbar() {
-  const { editor, handleImageUpload, isUploading } = useRichTextContext();
+  const { editor, features, handleImageUpload, isUploading } =
+    useRichTextContext();
 
   const editorState = useEditorState({
     editor,
@@ -36,50 +37,59 @@ export function RichTextToolbar() {
         isUploading && "pointer-events-none opacity-50",
       )}
     >
-      <ToolbarButton
-        icon={TextBold}
-        label="Bold"
-        isActive={editorState?.isBold}
-        onClick={() => editor?.chain().focus().toggleBold().run()}
-      />
-      <ToolbarButton
-        icon={TextItalic}
-        label="Italic"
-        isActive={editorState?.isItalic}
-        onClick={() => editor?.chain().focus().toggleItalic().run()}
-      />
-      <ToolbarButton
-        icon={Heading1}
-        label="Heading 1"
-        isActive={editorState?.isHeading1}
-        onClick={() =>
-          editor?.chain().focus().toggleHeading({ level: 1 }).run()
-        }
-      />
-      <ToolbarButton
-        icon={Heading2}
-        label="Heading 2"
-        isActive={editorState?.isHeading2}
-        onClick={() =>
-          editor?.chain().focus().toggleHeading({ level: 2 }).run()
-        }
-      />
+      {features?.includes("bold") && (
+        <ToolbarButton
+          icon={TextBold}
+          label="Bold"
+          isActive={editorState?.isBold}
+          onClick={() => editor?.chain().focus().toggleBold().run()}
+        />
+      )}
+      {features?.includes("italic") && (
+        <ToolbarButton
+          icon={TextItalic}
+          label="Italic"
+          isActive={editorState?.isItalic}
+          onClick={() => editor?.chain().focus().toggleItalic().run()}
+        />
+      )}
+      {features?.includes("headings") && (
+        <>
+          <ToolbarButton
+            icon={Heading1}
+            label="Heading 1"
+            isActive={editorState?.isHeading1}
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 1 }).run()
+            }
+          />
+          <ToolbarButton
+            icon={Heading2}
+            label="Heading 2"
+            isActive={editorState?.isHeading2}
+            onClick={() =>
+              editor?.chain().focus().toggleHeading({ level: 2 }).run()
+            }
+          />
+        </>
+      )}
+      {features?.includes("links") && <LinkButton />}
+      {features?.includes("variables") && (
+        <ToolbarButton
+          icon={AtSign}
+          label="Variable"
+          isActive={false}
+          onClick={() => {
+            if (editor?.state.selection.$from.nodeBefore?.text?.endsWith("@")) {
+              editor?.commands.focus();
+              return;
+            }
+            editor?.chain().focus().insertContent("@").run();
+          }}
+        />
+      )}
 
-      <LinkButton />
-      <ToolbarButton
-        icon={AtSign}
-        label="Variable"
-        isActive={false}
-        onClick={() => {
-          if (editor?.state.selection.$from.nodeBefore?.text?.endsWith("@")) {
-            editor?.commands.focus();
-            return;
-          }
-          editor?.chain().focus().insertContent("@").run();
-        }}
-      />
-
-      {handleImageUpload && editor && (
+      {features?.includes("images") && handleImageUpload && editor && (
         <>
           <input
             ref={inputImageRef}
