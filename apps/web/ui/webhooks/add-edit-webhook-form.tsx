@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
@@ -32,8 +33,19 @@ export default function AddEditWebhookForm({
   newSecret?: string;
 }) {
   const router = useRouter();
+  const { program } = useProgram();
   const [saving, setSaving] = useState(false);
   const { id: workspaceId, slug: workspaceSlug, role } = useWorkspace();
+
+  const availableWorkspaceTriggers = useMemo(() => {
+    return WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.filter((trigger) => {
+      if (trigger === "payout.confirmed") {
+        return program?.payoutMode !== "internal"; // TODO: Maybe show this for all in the future?
+      }
+
+      return true;
+    });
+  }, [program]);
 
   const [data, setData] = useState<NewWebhook | WebhookProps>(
     webhook || {
@@ -191,7 +203,7 @@ export default function AddEditWebhookForm({
             </span>
           </label>
           <div className="mt-3 flex flex-col gap-2">
-            {WORKSPACE_LEVEL_WEBHOOK_TRIGGERS.map((trigger) => (
+            {availableWorkspaceTriggers.map((trigger) => (
               <div key={trigger} className="group flex gap-2">
                 <Checkbox
                   value={trigger}

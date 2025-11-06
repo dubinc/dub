@@ -2,11 +2,11 @@ import { DubApiError } from "@/lib/api/errors";
 import { linkCache } from "@/lib/api/links/cache";
 import { parseRequestBody } from "@/lib/api/utils";
 import { withWorkspace } from "@/lib/auth";
-import { getFolders } from "@/lib/folder/get-folders";
 import { webhookCache } from "@/lib/webhook/cache";
 import { transformWebhook } from "@/lib/webhook/transform";
 import { toggleWebhooksForWorkspace } from "@/lib/webhook/update-webhook";
 import { isLinkLevelWebhook } from "@/lib/webhook/utils";
+import { validateWebhook } from "@/lib/webhook/validate-webhook";
 import { updateWebhookSchema } from "@/lib/zod/schemas/webhooks";
 import { prisma } from "@dub/prisma";
 import { waitUntil } from "@vercel/functions";
@@ -54,9 +54,7 @@ export const PATCH = withWorkspace(
   async ({ workspace, params, req, session }) => {
     const { webhookId } = params;
 
-    const { name, url, triggers, linkIds } = updateWebhookSchema.parse(
-      await parseRequestBody(req),
-    );
+    const input = updateWebhookSchema.parse(await parseRequestBody(req));
 
     const existingWebhook = await prisma.webhook.findUniqueOrThrow({
       where: {
@@ -64,6 +62,8 @@ export const PATCH = withWorkspace(
         projectId: workspace.id,
       },
     });
+
+    const { name, url, triggers, linkIds } = input;
 
     // If the webhook is managed by an integration, only the linkIds & triggers can be updated manually.
     if (existingWebhook.installationId && (name || url)) {
@@ -74,55 +74,12 @@ export const PATCH = withWorkspace(
       });
     }
 
-    if (url) {
-      const webhookUrlExists = await prisma.webhook.findFirst({
-        where: {
-          projectId: workspace.id,
-          url,
-          id: {
-            not: webhookId,
-          },
-        },
-      });
-
-      if (webhookUrlExists) {
-        throw new DubApiError({
-          code: "conflict",
-          message: "A Webhook with this URL already exists.",
-        });
-      }
-    }
-
-    if (linkIds && linkIds.length > 0) {
-      const folders = await getFolders({
-        workspaceId: workspace.id,
-        userId: session.user.id,
-      });
-
-      const links = await prisma.link.findMany({
-        where: {
-          id: {
-            in: linkIds,
-          },
-          projectId: workspace.id,
-          OR: [
-            { folderId: null },
-            { folderId: { in: folders.map((folder) => folder.id) } },
-          ],
-        },
-        select: {
-          id: true,
-        },
-      });
-
-      if (links.length !== linkIds.length) {
-        throw new DubApiError({
-          code: "bad_request",
-          message:
-            "Invalid link IDs provided. Please check the links you are adding the webhook to.",
-        });
-      }
-    }
+    await validateWebhook({
+      input,
+      workspace,
+      webhook: existingWebhook,
+      user: session.user,
+    });
 
     const oldLinks = await prisma.linkWebhook.findMany({
       where: {

@@ -8,6 +8,7 @@ import linkCreated from "./link-created.json";
 import linkDeleted from "./link-deleted.json";
 import linkUpdated from "./link-updated.json";
 import partnerEnrolled from "./partner-enrolled.json";
+import payoutConfirmed from "./payout-confirmed.json";
 import saleCreated from "./sale-created.json";
 
 export const samplePayload: Record<WebhookTrigger, any> = {
@@ -21,4 +22,5 @@ export const samplePayload: Record<WebhookTrigger, any> = {
   "commission.created": commissionCreated,
   "bounty.created": bountyCreated,
   "bounty.updated": bountyUpdated,
+  "payout.confirmed": payoutConfirmed,
 };

@@ -13,6 +13,7 @@ import { CommissionWebhookSchema } from "@/lib/zod/schemas/commissions";
 import { CustomerSchema } from "@/lib/zod/schemas/customers";
 import { linkEventSchema } from "@/lib/zod/schemas/links";
 import { EnrolledPartnerSchema } from "@/lib/zod/schemas/partners";
+import { payoutWebhookEventSchema } from "@/lib/zod/schemas/payouts";
 import { describe, expect, test } from "vitest";
 import { z } from "zod";
 
@@ -56,6 +57,22 @@ const bountyWebhookEventSchemaExtended = BountySchema.extend({
   endsAt: z.string().transform((str) => (str ? new Date(str) : null)),
 });
 
+const payoutWebhookEventSchemaExtended = payoutWebhookEventSchema.extend({
+  periodStart: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+  periodEnd: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+  createdAt: z.string().transform((str) => new Date(str)),
+  paidAt: z
+    .string()
+    .nullable()
+    .transform((str) => (str ? new Date(str) : null)),
+});
+
 const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "link.created": linkEventSchema,
   "link.updated": linkEventSchema,
@@ -67,6 +84,7 @@ const eventSchemas: Record<WebhookTrigger, z.ZodSchema> = {
   "commission.created": commissionWebhookEventSchemaExtended,
   "bounty.created": bountyWebhookEventSchemaExtended,
   "bounty.updated": bountyWebhookEventSchemaExtended,
+  "payout.confirmed": payoutWebhookEventSchemaExtended,
 };
 
 describe("Webhooks", () => {

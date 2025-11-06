@@ -11,7 +11,7 @@ export const GET = withPartnerProfile(async ({ partner, searchParams }) => {
   const { includeRewardsDiscounts, status } =
     partnerProfileProgramsQuerySchema.parse(searchParams);
 
-  let programEnrollments = await prisma.programEnrollment.findMany({
+  const programEnrollments = await prisma.programEnrollment.findMany({
     where: {
       partnerId: partner.id,
       ...(status && { status }),
