@@ -42,8 +42,6 @@ import PictureIcon8 from "../../icons/logos/picture/picture-svgrepo-com.svg";
 
 // Video logos
 import VideoIcon1 from "../../icons/logos/video/video-call-svgrepo-com.svg";
-import VideoIcon3 from "../../icons/logos/video/video-file-svgrepo-com (1).svg";
-import VideoIcon4 from "../../icons/logos/video/video-movie-svgrepo-com.svg";
 import VideoIcon5 from "../../icons/logos/video/video-svgrepo-com.svg";
 
 // Website logos
@@ -163,18 +161,6 @@ export const SUGGESTED_LOGOS: IStyleOption[] = [
     id: "logo-video-1",
     type: "video",
     icon: VideoIcon1,
-    relevantFor: [EQRType.VIDEO],
-  },
-  {
-    id: "logo-video-3",
-    type: "video",
-    icon: VideoIcon3,
-    relevantFor: [EQRType.VIDEO],
-  },
-  {
-    id: "logo-video-4",
-    type: "video",
-    icon: VideoIcon4,
     relevantFor: [EQRType.VIDEO],
   },
   {

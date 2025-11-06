@@ -122,7 +122,7 @@ export function AuthModal({
 
           <VisuallyHidden.Root>
             <Dialog.Title>
-              {authType === "login" ? "Log In" : "Sign Up"}
+              {authType === "login" ? "Log In" : "Create account"}
             </Dialog.Title>
           </VisuallyHidden.Root>
 
@@ -150,12 +150,12 @@ export function AuthModal({
               transition={{ duration: 0.3 }}
             >
               <h3 className="text-2xl font-semibold text-neutral-900">
-                {authType === "login" ? "Welcome Back" : "Sign Up"}
+                {authType === "login" ? "Welcome Back" : "Create account"}
               </h3>
               <p className="mt-1.5 text-base text-neutral-400">
                 {authType === "login"
                   ? "Please enter your details to sign in"
-                  : "Create your GetQR account to download your QR code instantly"}
+                  : "Download your QR code instantly"}
               </p>
             </motion.div>
           </div>
