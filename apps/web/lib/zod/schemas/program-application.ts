@@ -17,7 +17,6 @@ export const partnerApplicationWebhookSchema = z.object({
     .merge(
       ProgramEnrollmentSchema.pick({
         groupId: true,
-        tenantId: true,
         status: true,
       }),
     )

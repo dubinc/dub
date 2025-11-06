@@ -205,6 +205,7 @@ export async function completeProgramApplications(userEmail: string) {
                 ...partner,
                 ...programEnrollment,
                 id: partner.id,
+                status: "pending",
                 ...formatWebsiteAndSocialsFields(application),
               },
               applicationFormData,

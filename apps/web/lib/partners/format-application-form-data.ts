@@ -63,7 +63,7 @@ export const formatWebsiteAndSocialsFields = (
   (formData?.fields ?? []).forEach((field) => {
     if (field.type === "website-and-socials") {
       field.data.forEach((item) => {
-        result[item.type] = item.value !== "" ? item.value : "";
+        result[item.type] = item.value !== "" ? item.value : null;
       });
     }
   });
