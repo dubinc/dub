@@ -15,6 +15,7 @@ import {
   Text,
 } from "@react-email/components";
 import ReactMarkdown, { type Components } from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
 import remarkGfm from "remark-gfm";
 import { Footer } from "../components/footer";
 
@@ -156,6 +157,7 @@ export default function ProgramInvite({
             {body ? (
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeSanitize]}
                 components={markdownComponents}
               >
                 {body}

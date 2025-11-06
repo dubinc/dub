@@ -662,7 +662,7 @@ export const invitePartnerSchema = z.object({
   groupId: z.string().nullish().default(null),
   emailSubject: z.string().optional(),
   emailTitle: z.string().optional(),
-  emailBody: z.string().optional(),
+  emailBody: z.string().max(3000).optional(),
 });
 
 export const approvePartnerSchema = z.object({

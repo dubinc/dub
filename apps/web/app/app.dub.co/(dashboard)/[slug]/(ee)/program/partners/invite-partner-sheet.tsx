@@ -104,7 +104,13 @@ function InvitePartnerSheetContent({ setIsOpen }: InvitePartnerSheetProps) {
   const handleSaveEmail = () => {
     const sanitizedSubject = draftEmailContent.subject.trim();
     const sanitizedTitle = draftEmailContent.title.trim();
-    const sanitizedBody = draftEmailContent.body.trim();
+    let sanitizedBody = draftEmailContent.body.trim();
+
+    // Enforce max length validation (matches schema)
+    if (sanitizedBody.length > 3000) {
+      sanitizedBody = sanitizedBody.substring(0, 3000);
+      toast.error("Email body was truncated to 3000 characters");
+    }
 
     const updatedContent: EmailContent = {
       subject: sanitizedSubject || defaultEmailContent.subject,
@@ -390,7 +396,7 @@ function EmailPreview({
                   <textarea
                     id="email-body"
                     rows={8}
-                    maxLength={10000}
+                    maxLength={3000}
                     onKeyDown={handleKeyDown}
                     value={draftEmailContent.body}
                     onChange={(e) =>

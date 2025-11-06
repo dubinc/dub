@@ -14,6 +14,7 @@
     "nodemailer": "^6.9.3",
     "react-email": "^2.1.6",
     "react-markdown": "^9.0.3",
+    "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.0",
     "resend": "^6.1.2"
   },

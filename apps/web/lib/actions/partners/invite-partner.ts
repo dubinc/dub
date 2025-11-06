@@ -4,6 +4,7 @@ import { recordAuditLog } from "@/lib/api/audit-logs/record-audit-log";
 import { createAndEnrollPartner } from "@/lib/api/partners/create-and-enroll-partner";
 import { getPartnerInviteRewardsAndBounties } from "@/lib/api/partners/get-partner-invite-rewards-and-bounties";
 import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-program-id-or-throw";
+import { sanitizeMarkdown } from "@/lib/partners/sanitize-markdown";
 import { invitePartnerSchema } from "@/lib/zod/schemas/partners";
 import { sendEmail } from "@dub/email";
 import ProgramInvite from "@dub/email/templates/program-invite";
@@ -69,6 +70,9 @@ export const invitePartnerAction = authActionClient
       status: "invited",
     });
 
+    // Sanitize emailBody before passing to template
+    const sanitizedEmailBody = emailBody ? sanitizeMarkdown(emailBody) : null;
+
     try {
       await sendEmail({
         subject:
@@ -86,7 +90,7 @@ export const invitePartnerAction = authActionClient
           },
           ...(emailSubject && { subject: emailSubject }),
           ...(emailTitle && { title: emailTitle }),
-          ...(emailBody && { body: emailBody }),
+          ...(sanitizedEmailBody && { body: sanitizedEmailBody }),
           ...(await getPartnerInviteRewardsAndBounties({
             programId,
             groupId: enrolledPartner.groupId || program.defaultGroupId,
