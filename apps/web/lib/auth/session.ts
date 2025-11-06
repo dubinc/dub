@@ -134,4 +134,7 @@ export const withSession = (handler: WithSessionHandler) =>
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
+    {
+      logRequestDetails: ["body"],
+    },
   );

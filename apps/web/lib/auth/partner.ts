@@ -128,5 +128,8 @@ export const withPartnerProfile = (
         return handleAndReturnErrorResponse(error);
       }
     },
+    {
+      logRequestDetails: ["body"],
+    },
   );
 };

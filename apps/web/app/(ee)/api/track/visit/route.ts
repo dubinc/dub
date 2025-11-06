@@ -15,103 +15,109 @@ import { AxiomRequest, withAxiom } from "next-axiom";
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
+
 // POST /api/track/visit – Track a visit event from the client-side
-export const POST = withAxiom(async (req: AxiomRequest) => {
-  try {
-    const { domain, url, referrer } = await parseRequestBody(req);
+export const POST = withAxiom(
+  async (req: AxiomRequest) => {
+    try {
+      const { domain, url, referrer } = await parseRequestBody(req);
 
-    if (!domain || !url) {
-      throw new DubApiError({
-        code: "bad_request",
-        message: "Missing domain or url",
-      });
-    }
-
-    const urlObj = new URL(url);
-
-    let key = urlObj.pathname.slice(1);
-    if (key === "") {
-      key = "_root";
-    }
-
-    const identityHash = await getIdentityHash(req);
-
-    let [clickId, cachedLink] = await redis.mget<[string, RedisLinkProps]>([
-      recordClickCache._createKey({ domain, key, identityHash }),
-      linkCache._createKey({ domain, key }),
-    ]);
-
-    // if the clickId is already cached in Redis, return it
-    if (clickId) {
-      return NextResponse.json({ clickId }, { headers: COMMON_CORS_HEADERS });
-    }
-
-    // Otherwise, track the visit event
-    clickId = nanoid(16);
-
-    if (!cachedLink) {
-      const link = await getLinkViaEdge({
-        domain,
-        key,
-      });
-
-      if (!link) {
+      if (!domain || !url) {
         throw new DubApiError({
-          code: "not_found",
-          message: `Link not found for domain: ${domain} and key: ${key}.`,
+          code: "bad_request",
+          message: "Missing domain or url",
         });
       }
 
-      cachedLink = formatRedisLink(link as any);
+      const urlObj = new URL(url);
 
-      waitUntil(linkCache.set(link as any));
-    }
+      let key = urlObj.pathname.slice(1);
+      if (key === "") {
+        key = "_root";
+      }
 
-    const finalUrl = isValidUrl(url) ? url : cachedLink.url;
+      const identityHash = await getIdentityHash(req);
 
-    waitUntil(
-      (async () => {
-        const workspace = await getWorkspaceViaEdge({
-          workspaceId: cachedLink.projectId!,
+      let [clickId, cachedLink] = await redis.mget<[string, RedisLinkProps]>([
+        recordClickCache._createKey({ domain, key, identityHash }),
+        linkCache._createKey({ domain, key }),
+      ]);
+
+      // if the clickId is already cached in Redis, return it
+      if (clickId) {
+        return NextResponse.json({ clickId }, { headers: COMMON_CORS_HEADERS });
+      }
+
+      // Otherwise, track the visit event
+      clickId = nanoid(16);
+
+      if (!cachedLink) {
+        const link = await getLinkViaEdge({
+          domain,
+          key,
         });
 
-        const allowedHostnames = workspace?.allowedHostnames as string[];
-
-        if (
-          verifyAnalyticsAllowedHostnames({
-            allowedHostnames,
-            req,
-          })
-        ) {
-          await recordClick({
-            req,
-            clickId,
-            workspaceId: cachedLink.projectId,
-            linkId: cachedLink.id,
-            domain,
-            key,
-            url: finalUrl,
-            skipRatelimit: true,
-            ...(referrer && { referrer }),
-            trigger: "pageview",
-            shouldCacheClickId: true,
+        if (!link) {
+          throw new DubApiError({
+            code: "not_found",
+            message: `Link not found for domain: ${domain} and key: ${key}.`,
           });
         }
-      })(),
-    );
 
-    return NextResponse.json(
-      {
-        clickId,
-      },
-      {
-        headers: COMMON_CORS_HEADERS,
-      },
-    );
-  } catch (error) {
-    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
-  }
-});
+        cachedLink = formatRedisLink(link as any);
+
+        waitUntil(linkCache.set(link as any));
+      }
+
+      const finalUrl = isValidUrl(url) ? url : cachedLink.url;
+
+      waitUntil(
+        (async () => {
+          const workspace = await getWorkspaceViaEdge({
+            workspaceId: cachedLink.projectId!,
+          });
+
+          const allowedHostnames = workspace?.allowedHostnames as string[];
+
+          if (
+            verifyAnalyticsAllowedHostnames({
+              allowedHostnames,
+              req,
+            })
+          ) {
+            await recordClick({
+              req,
+              clickId,
+              workspaceId: cachedLink.projectId,
+              linkId: cachedLink.id,
+              domain,
+              key,
+              url: finalUrl,
+              skipRatelimit: true,
+              ...(referrer && { referrer }),
+              trigger: "pageview",
+              shouldCacheClickId: true,
+            });
+          }
+        })(),
+      );
+
+      return NextResponse.json(
+        {
+          clickId,
+        },
+        {
+          headers: COMMON_CORS_HEADERS,
+        },
+      );
+    } catch (error) {
+      return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
+    }
+  },
+  {
+    logRequestDetails: ["body"],
+  },
+);
 
 export const OPTIONS = () => {
   return new Response(null, {

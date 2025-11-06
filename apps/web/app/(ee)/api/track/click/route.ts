@@ -47,128 +47,134 @@ const trackClickResponseSchema = z.object({
 });
 
 // POST /api/track/click – Track a click event for a link
-export const POST = withAxiom(async (req: AxiomRequest) => {
-  try {
-    const { domain, key, url, referrer } = trackClickSchema.parse(
-      await parseRequestBody(req),
-    );
+export const POST = withAxiom(
+  async (req: AxiomRequest) => {
+    try {
+      const { domain, key, url, referrer } = trackClickSchema.parse(
+        await parseRequestBody(req),
+      );
 
-    const identityHash = await getIdentityHash(req);
+      const identityHash = await getIdentityHash(req);
 
-    let [cachedClickId, cachedLink, cachedAllowedHostnames] = await redis.mget<
-      [string, RedisLinkProps, string[]]
-    >([
-      recordClickCache._createKey({ domain, key, identityHash }),
-      linkCache._createKey({ domain, key }),
-      allowedHostnamesCache._createKey({ domain }),
-    ]);
+      let [cachedClickId, cachedLink, cachedAllowedHostnames] =
+        await redis.mget<[string, RedisLinkProps, string[]]>([
+          recordClickCache._createKey({ domain, key, identityHash }),
+          linkCache._createKey({ domain, key }),
+          allowedHostnamesCache._createKey({ domain }),
+        ]);
 
-    // assign a new clickId if there's no cached clickId
-    // else, reuse the cached clickId
-    const clickId = cachedClickId ?? nanoid(16);
+      // assign a new clickId if there's no cached clickId
+      // else, reuse the cached clickId
+      const clickId = cachedClickId ?? nanoid(16);
 
-    if (!cachedLink) {
-      const link = await getLinkWithPartner({
-        domain,
-        key,
-      });
+      if (!cachedLink) {
+        const link = await getLinkWithPartner({
+          domain,
+          key,
+        });
 
-      if (!link) {
+        if (!link) {
+          throw new DubApiError({
+            code: "not_found",
+            message: `Link not found for domain: ${domain} and key: ${key}.`,
+          });
+        }
+
+        cachedLink = formatRedisLink(link as any);
+
+        waitUntil(linkCache.set(link as any));
+      }
+
+      if (!cachedLink.projectId) {
         throw new DubApiError({
           code: "not_found",
-          message: `Link not found for domain: ${domain} and key: ${key}.`,
+          message: "Link does not belong to a workspace.",
         });
       }
 
-      cachedLink = formatRedisLink(link as any);
+      const finalUrl = url
+        ? isValidUrl(url)
+          ? url
+          : cachedLink.url
+        : cachedLink.url;
 
-      waitUntil(linkCache.set(link as any));
-    }
+      // if there's no cached clickId, track the click event
+      if (!cachedClickId) {
+        if (!cachedAllowedHostnames) {
+          const workspace = await getWorkspaceViaEdge({
+            workspaceId: cachedLink.projectId,
+            includeDomains: true,
+          });
 
-    if (!cachedLink.projectId) {
-      throw new DubApiError({
-        code: "not_found",
-        message: "Link does not belong to a workspace.",
-      });
-    }
+          cachedAllowedHostnames = (workspace?.allowedHostnames ??
+            []) as string[];
 
-    const finalUrl = url
-      ? isValidUrl(url)
-        ? url
-        : cachedLink.url
-      : cachedLink.url;
+          waitUntil(
+            allowedHostnamesCache.mset({
+              allowedHostnames: JSON.stringify(cachedAllowedHostnames),
+              domains: workspace?.domains.map(({ slug }) => slug) ?? [],
+            }),
+          );
+        }
 
-    // if there's no cached clickId, track the click event
-    if (!cachedClickId) {
-      if (!cachedAllowedHostnames) {
-        const workspace = await getWorkspaceViaEdge({
+        const allowRequest = verifyAnalyticsAllowedHostnames({
+          allowedHostnames: cachedAllowedHostnames,
+          req,
+        });
+
+        if (!allowRequest) {
+          throw new DubApiError({
+            code: "forbidden",
+            message: `Request origin '${getHostnameFromRequest(req)}' is not included in the allowed hostnames for this workspace. Update your allowed hostnames here: https://app.dub.co/settings/analytics`,
+          });
+        }
+
+        await recordClick({
+          req,
+          clickId,
           workspaceId: cachedLink.projectId,
-          includeDomains: true,
-        });
-
-        cachedAllowedHostnames = (workspace?.allowedHostnames ??
-          []) as string[];
-
-        waitUntil(
-          allowedHostnamesCache.mset({
-            allowedHostnames: JSON.stringify(cachedAllowedHostnames),
-            domains: workspace?.domains.map(({ slug }) => slug) ?? [],
-          }),
-        );
-      }
-
-      const allowRequest = verifyAnalyticsAllowedHostnames({
-        allowedHostnames: cachedAllowedHostnames,
-        req,
-      });
-
-      if (!allowRequest) {
-        throw new DubApiError({
-          code: "forbidden",
-          message: `Request origin '${getHostnameFromRequest(req)}' is not included in the allowed hostnames for this workspace. Update your allowed hostnames here: https://app.dub.co/settings/analytics`,
+          linkId: cachedLink.id,
+          domain,
+          key,
+          url: finalUrl,
+          programId: cachedLink.programId,
+          partnerId: cachedLink.partnerId,
+          skipRatelimit: true,
+          ...(referrer && { referrer }),
+          shouldCacheClickId: true,
         });
       }
 
-      await recordClick({
-        req,
+      const isPartnerLink = Boolean(
+        cachedLink.programId && cachedLink.partnerId,
+      );
+      const { partner = null, discount = null } = cachedLink;
+
+      const response = trackClickResponseSchema.parse({
         clickId,
-        workspaceId: cachedLink.projectId,
-        linkId: cachedLink.id,
-        domain,
-        key,
-        url: finalUrl,
-        programId: cachedLink.programId,
-        partnerId: cachedLink.partnerId,
-        skipRatelimit: true,
-        ...(referrer && { referrer }),
-        shouldCacheClickId: true,
+        ...(isPartnerLink && {
+          partner,
+          discount: discount
+            ? {
+                ...discount,
+                // Support backwards compatibility with old cache format
+                // We could potentially remove after 24 hours
+                couponId: discount?.couponId ?? null,
+                couponTestId: discount?.couponTestId ?? null,
+              }
+            : null,
+        }),
       });
+
+      return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });
+    } catch (error) {
+      return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
     }
-
-    const isPartnerLink = Boolean(cachedLink.programId && cachedLink.partnerId);
-    const { partner = null, discount = null } = cachedLink;
-
-    const response = trackClickResponseSchema.parse({
-      clickId,
-      ...(isPartnerLink && {
-        partner,
-        discount: discount
-          ? {
-              ...discount,
-              // Support backwards compatibility with old cache format
-              // We could potentially remove after 24 hours
-              couponId: discount?.couponId ?? null,
-              couponTestId: discount?.couponTestId ?? null,
-            }
-          : null,
-      }),
-    });
-
-    return NextResponse.json(response, { headers: COMMON_CORS_HEADERS });
-  } catch (error) {
-    return handleAndReturnErrorResponse(error, COMMON_CORS_HEADERS);
-  }
-});
+  },
+  {
+    logRequestDetails: ["body"],
+  },
+);
 
 export const OPTIONS = () => {
   return new Response(null, {

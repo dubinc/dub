@@ -432,5 +432,8 @@ export const withWorkspace = (
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
+    {
+      logRequestDetails: ["body"],
+    },
   );
 };

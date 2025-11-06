@@ -112,4 +112,7 @@ export const withPublishableKey = (
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
+    {
+      logRequestDetails: ["body"],
+    },
   );

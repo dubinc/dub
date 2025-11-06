@@ -131,5 +131,8 @@ export const withReferralsEmbedToken = (
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
+    {
+      logRequestDetails: ["body"],
+    },
   );
 };
