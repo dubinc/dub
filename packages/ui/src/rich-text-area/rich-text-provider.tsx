@@ -3,6 +3,7 @@ import FileHandler from "@tiptap/extension-file-handler";
 import Image from "@tiptap/extension-image";
 import Mention from "@tiptap/extension-mention";
 import { Placeholder } from "@tiptap/extensions";
+import { Markdown } from "@tiptap/markdown";
 import { Editor, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import {
@@ -29,15 +30,22 @@ type RichTextProviderProps = PropsWithChildren<{
   placeholder?: string;
   initialValue?: any;
   features?: (typeof FEATURES)[number][];
+  markdown?: boolean;
   onChange?: (editor: Editor) => void;
   uploadImage?: (file: File) => Promise<string | null>;
   variables?: string[];
   editable?: boolean;
+  autoFocus?: boolean;
+
+  editorProps?: Parameters<typeof useEditor>[0]["editorProps"];
   editorClassName?: string;
 }>;
 
 export const RichTextContext = createContext<
-  | (RichTextProviderProps & {
+  | (Pick<
+      RichTextProviderProps,
+      "features" | "markdown" | "variables" | "editable"
+    > & {
       editor: Editor | null;
       isUploading: boolean;
       handleImageUpload:
@@ -59,13 +67,16 @@ export const RichTextProvider = forwardRef<
     {
       children,
       features = FEATURES as any,
+      markdown = false,
       placeholder = "Start typing...",
       uploadImage,
       editable,
-      editorClassName,
+      autoFocus,
       variables,
       initialValue,
       onChange,
+      editorProps,
+      editorClassName,
     }: RichTextProviderProps,
     ref,
   ) => {
@@ -102,7 +113,9 @@ export const RichTextProvider = forwardRef<
 
     const editor = useEditor({
       editable: editable,
+      autofocus: autoFocus ? "end" : false,
       extensions: [
+        ...(markdown ? [Markdown] : []),
         StarterKit.configure({
           heading: features.includes("headings")
             ? {
@@ -179,12 +192,14 @@ export const RichTextProvider = forwardRef<
       ],
       editorProps: {
         attributes: {
+          ...editorProps?.attributes,
           class: cn(
             "prose prose-sm prose-neutral max-w-none focus:outline-none",
             "[&_.ProseMirror-selectednode]:outline [&_.ProseMirror-selectednode]:outline-2 [&_.ProseMirror-selectednode]:outline-blue-500 [&_.ProseMirror-selectednode]:outline-offset-2",
             editorClassName,
           ),
         },
+        ...editorProps,
       },
       content: initialValue,
       onUpdate: ({ editor }) => onChange?.(editor),
@@ -201,13 +216,9 @@ export const RichTextProvider = forwardRef<
       <RichTextContext.Provider
         value={{
           features,
-          placeholder,
+          markdown,
           editable,
           variables,
-          initialValue,
-          onChange,
-          uploadImage,
-          editorClassName,
           editor,
           isUploading,
           handleImageUpload,

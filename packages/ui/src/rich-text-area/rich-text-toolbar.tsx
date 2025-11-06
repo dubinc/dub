@@ -1,6 +1,6 @@
 import { cn } from "@dub/utils";
-import { useCurrentEditor, useEditorState } from "@tiptap/react";
-import { forwardRef, useRef } from "react";
+import { useEditorState } from "@tiptap/react";
+import { ReactNode, forwardRef, useRef } from "react";
 import {
   AtSign,
   Heading1,
@@ -13,7 +13,13 @@ import {
 } from "../icons";
 import { useRichTextContext } from "./rich-text-provider";
 
-export function RichTextToolbar() {
+export function RichTextToolbar({
+  toolsStart,
+  toolsEnd,
+}: {
+  toolsStart?: ReactNode;
+  toolsEnd?: ReactNode;
+}) {
   const { editor, features, handleImageUpload, isUploading } =
     useRichTextContext();
 
@@ -37,8 +43,10 @@ export function RichTextToolbar() {
         isUploading && "pointer-events-none opacity-50",
       )}
     >
+      {toolsStart}
+
       {features?.includes("bold") && (
-        <ToolbarButton
+        <RichTextToolbarButton
           icon={TextBold}
           label="Bold"
           isActive={editorState?.isBold}
@@ -46,7 +54,7 @@ export function RichTextToolbar() {
         />
       )}
       {features?.includes("italic") && (
-        <ToolbarButton
+        <RichTextToolbarButton
           icon={TextItalic}
           label="Italic"
           isActive={editorState?.isItalic}
@@ -55,7 +63,7 @@ export function RichTextToolbar() {
       )}
       {features?.includes("headings") && (
         <>
-          <ToolbarButton
+          <RichTextToolbarButton
             icon={Heading1}
             label="Heading 1"
             isActive={editorState?.isHeading1}
@@ -63,7 +71,7 @@ export function RichTextToolbar() {
               editor?.chain().focus().toggleHeading({ level: 1 }).run()
             }
           />
-          <ToolbarButton
+          <RichTextToolbarButton
             icon={Heading2}
             label="Heading 2"
             isActive={editorState?.isHeading2}
@@ -75,7 +83,7 @@ export function RichTextToolbar() {
       )}
       {features?.includes("links") && <LinkButton />}
       {features?.includes("variables") && (
-        <ToolbarButton
+        <RichTextToolbarButton
           icon={AtSign}
           label="Variable"
           isActive={false}
@@ -103,7 +111,7 @@ export function RichTextToolbar() {
               e.target.value = "";
             }}
           />
-          <ToolbarButton
+          <RichTextToolbarButton
             icon={ImageIcon}
             label="Image"
             isActive={false}
@@ -111,12 +119,14 @@ export function RichTextToolbar() {
           />
         </>
       )}
+
+      {toolsEnd}
     </div>
   );
 }
 
 function LinkButton() {
-  const { editor } = useCurrentEditor();
+  const { editor } = useRichTextContext();
 
   const editorState = useEditorState({
     editor,
@@ -126,7 +136,7 @@ function LinkButton() {
   });
 
   return (
-    <ToolbarButton
+    <RichTextToolbarButton
       icon={Hyperlink}
       label="Link"
       onClick={() => {
@@ -152,7 +162,7 @@ function LinkButton() {
   );
 }
 
-type ToolbarButtonProps = {
+type RichTextToolbarButtonProps = {
   icon: Icon;
   label?: string;
   isActive?: boolean;
@@ -160,9 +170,18 @@ type ToolbarButtonProps = {
   disabled?: boolean;
 };
 
-const ToolbarButton = forwardRef<HTMLButtonElement, ToolbarButtonProps>(
+export const RichTextToolbarButton = forwardRef<
+  HTMLButtonElement,
+  RichTextToolbarButtonProps
+>(
   (
-    { icon: Icon, label, isActive, onClick, disabled }: ToolbarButtonProps,
+    {
+      icon: Icon,
+      label,
+      isActive,
+      onClick,
+      disabled,
+    }: RichTextToolbarButtonProps,
     ref,
   ) => {
     return (
