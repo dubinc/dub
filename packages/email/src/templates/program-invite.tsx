@@ -242,7 +242,7 @@ export default function ProgramInvite({
   return (
     <Html>
       <Head />
-      <Preview>Sign up for {program.name}</Preview>
+      <Preview>{emailSubject}</Preview>
       <Tailwind config={tailwindConfig}>
         <Body className="mx-auto my-auto bg-white font-sans">
           <Container className="mx-auto my-8 max-w-[600px] px-8 py-8">
