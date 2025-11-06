@@ -73,6 +73,12 @@ export const invitePartnerAction = authActionClient
     // Sanitize emailBody before passing to template
     const sanitizedEmailBody = emailBody ? sanitizeMarkdown(emailBody) : null;
 
+    if (emailBody && !sanitizedEmailBody) {
+      throw new Error(
+        "Custom email message contains invalid content. Please remove excessively long lines or unsupported characters.",
+      );
+    }
+
     const sendPartnerInvitePromise = (async () => {
       try {
         const rewardsAndBounties = await getPartnerInviteRewardsAndBounties({
@@ -101,22 +107,11 @@ export const invitePartnerAction = authActionClient
           }),
         });
       } catch (error) {
-        console.error("Failed to send partner invite email", error);
-        try {
-          await prisma.programEnrollment.delete({
-            where: {
-              partnerId_programId: {
-                partnerId: enrolledPartner.partnerId || enrolledPartner.id,
-                programId,
-              },
-            },
-          });
-        } catch (rollbackError) {
-          console.error(
-            "Failed to rollback partner enrollment after email failure",
-            rollbackError,
-          );
-        }
+        console.error("Failed to send partner invite email", {
+          error,
+          partnerId: enrolledPartner.partnerId || enrolledPartner.id,
+          programId,
+        });
       }
     })();
 
