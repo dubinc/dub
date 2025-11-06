@@ -108,7 +108,6 @@ export const withPublishableKey = (
           });
         }
       } catch (error) {
-        req.log.error(error);
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },

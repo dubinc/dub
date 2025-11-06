@@ -127,7 +127,6 @@ export const withReferralsEmbedToken = (
           embedToken,
         });
       } catch (error) {
-        req.log.error(error);
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
     },
