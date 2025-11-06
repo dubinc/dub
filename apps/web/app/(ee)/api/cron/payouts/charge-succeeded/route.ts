@@ -53,13 +53,12 @@ export async function POST(req: Request) {
     }
 
     await Promise.allSettled([
+      // Queue Stripe payouts
       queueStripePayouts(invoice),
-      sendPaypalPayouts({
-        invoiceId,
-      }),
-      ...(invoice.payoutMode !== "internal"
-        ? [queueExternalPayouts(invoice)]
-        : []),
+      // Send PayPal payouts
+      sendPaypalPayouts(invoice),
+      // Queue external payouts
+      queueExternalPayouts(invoice),
     ]);
 
     return logAndRespond(

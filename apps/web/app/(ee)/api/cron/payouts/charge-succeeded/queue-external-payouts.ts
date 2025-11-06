@@ -6,8 +6,16 @@ import { prisma } from "@dub/prisma";
 import { Invoice } from "@dub/prisma/client";
 
 export async function queueExternalPayouts(
-  invoice: Pick<Invoice, "id" | "paymentMethod" | "programId" | "workspaceId">,
+  invoice: Pick<
+    Invoice,
+    "id" | "paymentMethod" | "programId" | "workspaceId" | "payoutMode"
+  >,
 ) {
+  // All payouts are processed internally, hence no need to queue external payouts
+  if (invoice.payoutMode === "internal") {
+    return;
+  }
+
   const externalPayouts = await prisma.payout.findMany({
     where: {
       invoiceId: invoice.id,
@@ -28,7 +36,6 @@ export async function queueExternalPayouts(
           },
         },
       },
-      program: true,
     },
   });
 
@@ -83,6 +90,18 @@ export async function queueExternalPayouts(
     }
   }
 
+  const program = await prisma.program.findUniqueOrThrow({
+    where: {
+      id: invoice.programId!,
+    },
+    select: {
+      id: true,
+      name: true,
+      logo: true,
+      supportEmail: true,
+    },
+  });
+
   await queueBatchEmail<typeof PartnerPayoutConfirmed>(
     externalPayouts
       .filter((payout) => payout.partner.email)
@@ -90,14 +109,14 @@ export async function queueExternalPayouts(
         to: payout.partner.email!,
         subject: "You've got money coming your way!",
         variant: "notifications",
-        replyTo: payout.program.supportEmail || "noreply",
+        replyTo: program.supportEmail || "noreply",
         templateName: "PartnerPayoutConfirmed",
         templateProps: {
           email: payout.partner.email!,
           program: {
-            id: payout.program.id,
-            name: payout.program.name,
-            logo: payout.program.logo,
+            id: program.id,
+            name: program.name,
+            logo: program.logo,
           },
           payout: {
             id: payout.id,
