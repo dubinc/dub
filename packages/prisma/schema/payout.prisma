@@ -30,6 +30,7 @@ model Payout {
   stripeTransferId String?
   stripePayoutId   String?
   failureReason    String?      @db.Text
+  webhookEventId   String?      @unique // only for external payouts
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
   paidAt           DateTime?
