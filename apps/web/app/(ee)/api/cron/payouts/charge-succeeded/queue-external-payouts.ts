@@ -12,7 +12,7 @@ export async function queueExternalPayouts(
   >,
 ) {
   // All payouts are processed internally, hence no need to queue external payouts
-  if (invoice.payoutMode === "internal") {
+  if (invoice.payoutMode === "internal" || !invoice.programId) {
     return;
   }
 
@@ -27,7 +27,7 @@ export async function queueExternalPayouts(
         include: {
           programs: {
             where: {
-              programId: invoice.programId!,
+              programId: invoice.programId,
             },
             select: {
               tenantId: true,
@@ -61,7 +61,7 @@ export async function queueExternalPayouts(
 
   if (webhooks.length === 0) {
     console.log(
-      `No webhooks found for workspace ${invoice.workspaceId} for invoice ${invoice.id}m skpi`,
+      `No webhooks found for workspace ${invoice.workspaceId} for invoice ${invoice.id}. Skipping...`,
     );
     return;
   }
