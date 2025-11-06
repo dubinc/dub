@@ -2,33 +2,35 @@ import { qstash } from "@/lib/cron";
 import { queueBatchEmail } from "@/lib/email/queue-batch-email";
 import type PartnerPayoutConfirmed from "@dub/email/templates/partner-payout-confirmed";
 import { prisma } from "@dub/prisma";
+import { Invoice } from "@dub/prisma/client";
 import { APP_DOMAIN_WITH_NGROK } from "@dub/utils";
 
-export async function processExternalPayouts({
-  invoiceId,
-}: {
-  invoiceId: string;
-}) {
+export async function processExternalPayouts(
+  invoice: Pick<Invoice, "id" | "paymentMethod">,
+) {
   const externalPayouts = await prisma.payout.findMany({
     where: {
-      invoiceId,
+      invoiceId: invoice.id,
       status: "processing",
       mode: "external",
     },
     include: {
       partner: true,
       program: true,
-      invoice: true,
     },
   });
+
+  if (externalPayouts.length === 0) {
+    return;
+  }
 
   // Send "payout.confirmed" webhooks
   const qstashResponse = await qstash.publishJSON({
     url: `${APP_DOMAIN_WITH_NGROK}/api/cron/payouts/send-webhooks`,
     body: {
-      invoiceId,
+      invoiceId: invoice.id,
     },
-    deduplicationId: `payout-confirmed-webhooks-${invoiceId}`,
+    deduplicationId: `payout-confirmed-webhooks-${invoice.id}`,
   });
 
   if (qstashResponse.messageId) {
@@ -36,31 +38,6 @@ export async function processExternalPayouts({
   } else {
     console.error("Error sending message to Qstash", qstashResponse);
   }
-
-  await prisma.$transaction(async (tx) => {
-    await tx.payout.updateMany({
-      where: {
-        id: {
-          in: externalPayouts.map((p) => p.id),
-        },
-      },
-      data: {
-        status: "completed",
-        paidAt: new Date(),
-      },
-    });
-
-    await tx.commission.updateMany({
-      where: {
-        payoutId: {
-          in: externalPayouts.map((p) => p.id),
-        },
-      },
-      data: {
-        status: "paid",
-      },
-    });
-  });
 
   await queueBatchEmail<typeof PartnerPayoutConfirmed>(
     externalPayouts
@@ -84,12 +61,12 @@ export async function processExternalPayouts({
             startDate: payout.periodStart,
             endDate: payout.periodEnd,
             mode: "external",
-            paymentMethod: payout.invoice?.paymentMethod ?? "ach",
+            paymentMethod: invoice.paymentMethod ?? "ach",
           },
         },
       })),
     {
-      idempotencyKey: `payout-confirmed-external/${invoiceId}`,
+      idempotencyKey: `payout-confirmed-external/${invoice.id}`,
     },
   );
 }

@@ -116,15 +116,15 @@ export async function POST(req: Request) {
     }
 
     for (const payout of payouts) {
-      const data = payoutWebhookEventSchema.parse({
-        ...payout,
-        partner: {
-          ...payout.partner,
-          ...payout.partner.programs[0],
-        },
-      });
-
       try {
+        const data = payoutWebhookEventSchema.parse({
+          ...payout,
+          partner: {
+            ...payout.partner,
+            ...payout.partner.programs[0],
+          },
+        });
+
         await sendWorkspaceWebhook({
           workspace,
           webhooks,

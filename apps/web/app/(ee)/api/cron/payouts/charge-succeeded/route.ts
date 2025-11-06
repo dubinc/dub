@@ -58,11 +58,7 @@ export async function POST(req: Request) {
         invoiceId,
       }),
       ...(invoice.payoutMode !== "internal"
-        ? [
-            processExternalPayouts({
-              invoiceId,
-            }),
-          ]
+        ? [processExternalPayouts(invoice)]
         : []),
     ]);
 
