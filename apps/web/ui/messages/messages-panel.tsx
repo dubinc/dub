@@ -8,9 +8,10 @@ import {
   useMediaQuery,
 } from "@dub/ui";
 import { OG_AVATAR_URL, cn, formatDate } from "@dub/utils";
-import Linkify from "linkify-react";
 import { ChevronRight } from "lucide-react";
 import { Fragment, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { MessageInput } from "../shared/message-input";
 import { MessageMarkdown } from "./message-markdown";
 
@@ -176,22 +177,40 @@ export function MessagesPanel({
                         {/* Message box */}
                         <div
                           className={cn(
-                            "max-w-[min(100%,512px)] whitespace-pre-wrap break-words rounded-xl px-4 py-2.5 text-sm",
+                            "max-w-[min(100%,512px)] rounded-xl px-4 py-2.5 text-sm",
                             isMySide
                               ? "text-content-inverted rounded-br bg-neutral-700"
                               : "text-content-default rounded-bl bg-neutral-100",
                           )}
                         >
-                          <Linkify
-                            as="p"
-                            options={{
-                              target: "_blank",
-                              rel: "noopener noreferrer nofollow",
-                              className: "underline underline-offset-4",
+                          <ReactMarkdown
+                            className={cn(
+                              "prose prose-sm prose-invert prose-p:m-0 break-words text-white",
+                              "prose-a:font-medium prose-a:text-white prose-a:underline-offset-4 hover:prose-a:text-neutral-100",
+                            )}
+                            allowedElements={[
+                              "p",
+                              "a",
+                              "code",
+                              "strong",
+                              "em",
+                              "ul",
+                              "ol",
+                              "li",
+                            ]}
+                            components={{
+                              a: ({ node, ...props }) => (
+                                <a
+                                  {...props}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                />
+                              ),
                             }}
+                            remarkPlugins={[remarkGfm] as any}
                           >
                             {message.text}
-                          </Linkify>
+                          </ReactMarkdown>
                         </div>
                       </div>
                     </div>

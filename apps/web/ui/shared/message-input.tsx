@@ -10,7 +10,7 @@ import {
   useRichTextContext,
 } from "@dub/ui";
 import { cn } from "@dub/utils";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { EmojiPicker } from "../shared/emoji-picker";
 
 export function MessageInput({
@@ -21,7 +21,6 @@ export function MessageInput({
   placeholder = "Type a message...",
   sendButtonText = "Send",
   className,
-  onMount,
 }: {
   onSendMessage: (message: string) => void | false;
   defaultValue?: string;
@@ -30,10 +29,8 @@ export function MessageInput({
   placeholder?: string;
   sendButtonText?: string;
   className?: string;
-  onMount?: (props: { textarea: HTMLTextAreaElement | null }) => void;
 }) {
   const richTextRef = useRef<{ setContent: (content: any) => void }>(null);
-  const textAreaRef = useRef<HTMLTextAreaElement>(null);
   const [typedMessage, setTypedMessage] = useState(defaultValue);
 
   const sendMessage = () => {
@@ -45,8 +42,6 @@ export function MessageInput({
       richTextRef.current?.setContent("");
     }
   };
-
-  useEffect(() => onMount?.({ textarea: textAreaRef.current }), [onMount]);
 
   return (
     <div
