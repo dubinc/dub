@@ -7,6 +7,8 @@ import { getUserCookieService } from "core/services/cookie/user-session.service"
 import { Viewport } from "next";
 import WorkspaceQRsClient from "./custom-page-client";
 import { LinksTitle } from "./links-title";
+import { redis } from '@/lib/upstash';
+import { ERedisArg } from 'core/interfaces/redis.interface';
 
 export const viewport: Viewport = {
   themeColor: "#f6f6f7",
@@ -31,6 +33,9 @@ const WorkspaceQRsPage = async () => {
 
   const featuresAccess = await checkFeaturesAccessAuthLess(authUser.id);
 
+  const newQrId: string | null = await redis.get(`${ERedisArg.NEW_QR_ID_REG}:${authUser.id}`);
+  await redis.del(`${ERedisArg.NEW_QR_ID_REG}:${authUser.id}`);
+
   return (
     <>
       <PageContent title={<LinksTitle />}>
@@ -39,6 +44,7 @@ const WorkspaceQRsPage = async () => {
           featuresAccess={featuresAccess}
           user={authUser}
           cookieUser={user}
+          newQrId={newQrId}
         />
       </PageContent>
       <PageViewedTrackerComponent
