@@ -16,7 +16,7 @@ export const invitePartnerAction = authActionClient
   .schema(invitePartnerSchema)
   .action(async ({ parsedInput, ctx }) => {
     const { workspace, user } = ctx;
-    const { email, username, groupId } = parsedInput;
+    const { email, username, groupId, emailSubject, emailTitle, emailBody } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
 
@@ -69,30 +69,37 @@ export const invitePartnerAction = authActionClient
       status: "invited",
     });
 
+    try {
+      await sendEmail({
+        subject:
+          emailSubject || `${program.name} invited you to join Dub Partners`,
+        variant: "notifications",
+        to: email,
+        replyTo: program.supportEmail || "noreply",
+        react: ProgramInvite({
+          email,
+          name: enrolledPartner.name,
+          program: {
+            name: program.name,
+            slug: program.slug,
+            logo: program.logo,
+          },
+          ...(emailSubject && { subject: emailSubject }),
+          ...(emailTitle && { title: emailTitle }),
+          ...(emailBody && { body: emailBody }),
+          ...(await getPartnerInviteRewardsAndBounties({
+            programId,
+            groupId: enrolledPartner.groupId || program.defaultGroupId,
+          })),
+        }),
+      });
+    } catch (error) {
+      console.error("Failed to send partner invite email", error);
+      throw error;
+    }
+
     waitUntil(
       Promise.allSettled([
-        (async () => {
-          await sendEmail({
-            subject: `${program.name} invited you to join Dub Partners`,
-            variant: "notifications",
-            to: email,
-            replyTo: program.supportEmail || "noreply",
-            react: ProgramInvite({
-              email,
-              name: enrolledPartner.name,
-              program: {
-                name: program.name,
-                slug: program.slug,
-                logo: program.logo,
-              },
-              ...(await getPartnerInviteRewardsAndBounties({
-                programId,
-                groupId: enrolledPartner.groupId || program.defaultGroupId,
-              })),
-            }),
-          });
-        })(),
-
         recordAuditLog({
           workspaceId: workspace.id,
           programId,

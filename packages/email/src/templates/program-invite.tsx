@@ -14,7 +14,57 @@ import {
   Tailwind,
   Text,
 } from "@react-email/components";
+import { Fragment } from "react";
 import { Footer } from "../components/footer";
+
+type MarkdownSegment =
+  | { type: "text"; content: string }
+  | { type: "link"; content: string; href: string };
+
+function parseMarkdown(markdown: string): MarkdownSegment[][] {
+  if (!markdown) {
+    return [];
+  }
+
+  const paragraphs = markdown
+    .split(/\n\s*\n/)
+    .map((paragraph) => paragraph.replace(/\n/g, " "))
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+
+  return paragraphs.map((paragraph) => {
+    const segments: MarkdownSegment[] = [];
+    const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = linkRegex.exec(paragraph)) !== null) {
+      const [fullMatch, text, href] = match;
+      const startIndex = match.index;
+
+      if (startIndex > lastIndex) {
+        segments.push({
+          type: "text",
+          content: paragraph.slice(lastIndex, startIndex),
+        });
+      }
+
+      segments.push({ type: "link", content: text, href });
+      lastIndex = startIndex + fullMatch.length;
+    }
+
+    if (lastIndex < paragraph.length) {
+      segments.push({
+        type: "text",
+        content: paragraph.slice(lastIndex),
+      });
+    }
+
+    return segments.length > 0
+      ? segments
+      : [{ type: "text", content: paragraph }];
+  });
+}
 
 export default function ProgramInvite({
   email = "panic@thedis.co",
@@ -44,6 +94,9 @@ export default function ProgramInvite({
       label: "Earn $100 after generating $1,000 in revenue",
     },
   ],
+  subject,
+  title,
+  body,
 }: {
   email: string;
   name: string | null;
@@ -54,7 +107,19 @@ export default function ProgramInvite({
   };
   rewards: { icon: string; label: string }[] | null;
   bounties: { icon: string; label: string }[] | null;
+  subject?: string;
+  title?: string;
+  body?: string;
 }) {
+  const emailTitle = title || "You've been invited";
+  const emailSubject =
+    subject || `${program.name} invited you to join Dub Partners`;
+
+  // Default body content
+  const defaultBody = `${program.name} invited you to join their program on Dub Partners.\n\n${program.name} uses [Dub Partners](https://dub.co/partners) to power their partner program and wants to work with great people like you!`;
+  const emailBody = body || defaultBody;
+  const bodyParagraphs = parseMarkdown(emailBody);
+
   return (
     <Html>
       <Head />
@@ -71,26 +136,57 @@ export default function ProgramInvite({
             </Section>
 
             <Heading className="bt-5 mx-0 mt-10 p-0 text-lg font-medium text-black">
-              You've been invited
+              {emailTitle}
             </Heading>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              {name && !name.includes("@") && <>Hi {name}, </>}
-              {program.name} invited you to join their program on Dub Partners.
-            </Text>
+            {body ? (
+              <>
+                {bodyParagraphs.map((paragraph, paragraphIndex) => (
+                  <Text
+                    key={paragraphIndex}
+                    className="text-sm leading-6 text-neutral-600"
+                  >
+                    {paragraph.map((segment, segmentIndex) =>
+                      segment.type === "link" ? (
+                        <Link
+                          key={`${paragraphIndex}-${segmentIndex}`}
+                          href={segment.href}
+                          target="_blank"
+                          className="font-semibold text-neutral-800 underline underline-offset-2"
+                        >
+                          {segment.content}
+                        </Link>
+                      ) : (
+                        <Fragment key={`${paragraphIndex}-${segmentIndex}`}>
+                          {segment.content}
+                        </Fragment>
+                      ),
+                    )}
+                  </Text>
+                ))}
+              </>
+            ) : (
+              <>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  {name && !name.includes("@") && <>Hi {name}, </>}
+                  {program.name} invited you to join their program on Dub
+                  Partners.
+                </Text>
 
-            <Text className="text-sm leading-6 text-neutral-600">
-              {program.name} uses{" "}
-              <Link
-                href="https://dub.co/partners"
-                target="_blank"
-                className="font-semibold text-neutral-800 underline underline-offset-2"
-              >
-                Dub Partners
-              </Link>{" "}
-              to power their partner program and wants to work with great people
-              like you!
-            </Text>
+                <Text className="text-sm leading-6 text-neutral-600">
+                  {program.name} uses{" "}
+                  <Link
+                    href="https://dub.co/partners"
+                    target="_blank"
+                    className="font-semibold text-neutral-800 underline underline-offset-2"
+                  >
+                    Dub Partners
+                  </Link>{" "}
+                  to power their partner program and wants to work with great
+                  people like you!
+                </Text>
+              </>
+            )}
 
             <Section className="my-8">
               <Link
