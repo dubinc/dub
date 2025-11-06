@@ -81,8 +81,8 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({
           className="w-full"
         >
           <div className="flex flex-col gap-8 lg:flex-row lg:gap-12">
-            {/* Simple tabs on the left */}
-            <div className="w-full lg:w-auto">
+            {/* Simple tabs on the left - hidden on mobile */}
+            <div className="hidden w-full lg:block lg:w-auto">
               <TabsList className="flex h-auto w-full flex-col items-start gap-2 bg-transparent p-0 lg:sticky lg:top-24">
                 {GET_QR_FEATURES.map((feature) => (
                   <TabsTrigger
@@ -107,59 +107,140 @@ export const GetQRFeaturesCardsSection: FC<GetQRFeaturesCardsSectionProps> = ({
               </TabsList>
             </div>
 
-            {/* Content on the right */}
+            {/* Content on the right - auto-sliding carousel on mobile, tabs on desktop */}
             <div className="flex-1">
-              {GET_QR_FEATURES.map((feature) => (
-                <TabsContent
-                  key={feature.title}
-                  value={feature.title.toLowerCase().replace(/\s+/g, "-")}
-                  className="mt-0"
-                >
-                  <div className="border-border/50 from-background via-background to-muted/20 relative h-full overflow-hidden rounded-3xl border bg-gradient-to-br p-8 shadow backdrop-blur-sm sm:p-10 lg:p-12">
-                    {/* Decorative corner accents */}
-                    <div className="from-primary/10 absolute right-0 top-0 h-32 w-32 bg-gradient-to-bl to-transparent" />
-                    <div className="from-secondary/10 absolute bottom-0 left-0 h-32 w-32 bg-gradient-to-tr to-transparent" />
+              {/* Mobile: Auto-sliding carousel */}
+              <div className="flex flex-col gap-6 lg:hidden">
+                {/* Active card */}
+                {GET_QR_FEATURES.map((feature) => {
+                  const featureValue = feature.title.toLowerCase().replace(/\s+/g, "-");
+                  if (featureValue !== activeTab) return null;
+                  
+                  return (
+                    <div
+                      key={feature.title}
+                      className="border-border/50 from-background via-background to-muted/20 relative h-full overflow-hidden rounded-3xl border bg-gradient-to-br p-8 shadow backdrop-blur-sm transition-all duration-500"
+                    >
+                      {/* Decorative corner accents */}
+                      <div className="from-primary/10 absolute right-0 top-0 h-32 w-32 bg-gradient-to-bl to-transparent" />
+                      <div className="from-secondary/10 absolute bottom-0 left-0 h-32 w-32 bg-gradient-to-tr to-transparent" />
 
-                    <div className="relative flex flex-col gap-6 sm:gap-8">
-                      <div className="flex items-start gap-6">
-                        <div className="relative inline-flex flex-shrink-0">
-                          <Avatar
-                            className={cn(
-                              "h-20 w-20 rounded-2xl border-2 shadow sm:h-24 sm:w-24",
-                              feature.avatarTextColor,
-                            )}
-                          >
-                            <AvatarFallback
+                      <div className="relative flex flex-col gap-6">
+                        <div className="flex items-start gap-6">
+                          <div className="relative inline-flex flex-shrink-0">
+                            <Avatar
                               className={cn(
-                                "from-background to-muted rounded-2xl bg-gradient-to-br [&>svg]:size-10 sm:[&>svg]:size-12",
+                                "h-20 w-20 rounded-2xl border-2 shadow",
                                 feature.avatarTextColor,
                               )}
                             >
-                              <Icon icon={feature.icon} />
-                            </AvatarFallback>
-                          </Avatar>
-                          {/* Enhanced glow effect */}
-                          <div
-                            className={cn(
-                              "absolute -inset-3 -z-10 rounded-2xl opacity-30 blur-2xl",
-                              feature.avatarTextColor,
-                            )}
-                          />
-                        </div>
+                              <AvatarFallback
+                                className={cn(
+                                  "from-background to-muted rounded-2xl bg-gradient-to-br [&>svg]:size-10",
+                                  feature.avatarTextColor,
+                                )}
+                              >
+                                <Icon icon={feature.icon} />
+                              </AvatarFallback>
+                            </Avatar>
+                            {/* Enhanced glow effect */}
+                            <div
+                              className={cn(
+                                "absolute -inset-3 -z-10 rounded-2xl opacity-30 blur-2xl",
+                                feature.avatarTextColor,
+                              )}
+                            />
+                          </div>
 
-                        <div className="flex-1 space-y-3">
-                          <h3 className="from-foreground to-foreground/70 bg-gradient-to-br bg-clip-text text-2xl font-bold text-transparent sm:text-3xl lg:text-4xl">
-                            {feature.title}
-                          </h3>
-                          <p className="text-muted-foreground text-base leading-relaxed sm:text-lg">
-                            {feature.content}
-                          </p>
+                          <div className="flex-1 space-y-3">
+                            <h3 className="from-foreground to-foreground/70 bg-gradient-to-br bg-clip-text text-2xl font-bold text-transparent">
+                              {feature.title}
+                            </h3>
+                            <p className="text-muted-foreground text-base leading-relaxed">
+                              {feature.content}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </TabsContent>
-              ))}
+                  );
+                })}
+                
+                {/* Slider indicators */}
+                <div className="flex items-center justify-center gap-2">
+                  {GET_QR_FEATURES.map((feature) => {
+                    const featureValue = feature.title.toLowerCase().replace(/\s+/g, "-");
+                    const isActive = featureValue === activeTab;
+                    
+                    return (
+                      <button
+                        key={feature.title}
+                        onClick={() => handleTabChange(featureValue)}
+                        className={cn(
+                          "h-2 rounded-full transition-all duration-300",
+                          isActive ? "bg-primary w-8" : "bg-muted-foreground/30 w-2"
+                        )}
+                        aria-label={`Go to ${feature.title}`}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Desktop: Show tabs content */}
+              <div className="hidden lg:block">
+                {GET_QR_FEATURES.map((feature) => (
+                  <TabsContent
+                    key={feature.title}
+                    value={feature.title.toLowerCase().replace(/\s+/g, "-")}
+                    className="mt-0"
+                  >
+                    <div className="border-border/50 from-background via-background to-muted/20 relative h-full overflow-hidden rounded-3xl border bg-gradient-to-br p-8 shadow backdrop-blur-sm sm:p-10 lg:p-12">
+                      {/* Decorative corner accents */}
+                      <div className="from-primary/10 absolute right-0 top-0 h-32 w-32 bg-gradient-to-bl to-transparent" />
+                      <div className="from-secondary/10 absolute bottom-0 left-0 h-32 w-32 bg-gradient-to-tr to-transparent" />
+
+                      <div className="relative flex flex-col gap-6 sm:gap-8">
+                        <div className="flex items-start gap-6">
+                          <div className="relative inline-flex flex-shrink-0">
+                            <Avatar
+                              className={cn(
+                                "h-20 w-20 rounded-2xl border-2 shadow sm:h-24 sm:w-24",
+                                feature.avatarTextColor,
+                              )}
+                            >
+                              <AvatarFallback
+                                className={cn(
+                                  "from-background to-muted rounded-2xl bg-gradient-to-br [&>svg]:size-10 sm:[&>svg]:size-12",
+                                  feature.avatarTextColor,
+                                )}
+                              >
+                                <Icon icon={feature.icon} />
+                              </AvatarFallback>
+                            </Avatar>
+                            {/* Enhanced glow effect */}
+                            <div
+                              className={cn(
+                                "absolute -inset-3 -z-10 rounded-2xl opacity-30 blur-2xl",
+                                feature.avatarTextColor,
+                              )}
+                            />
+                          </div>
+
+                          <div className="flex-1 space-y-3">
+                            <h3 className="from-foreground to-foreground/70 bg-gradient-to-br bg-clip-text text-2xl font-bold text-transparent sm:text-3xl lg:text-4xl">
+                              {feature.title}
+                            </h3>
+                            <p className="text-muted-foreground text-base leading-relaxed sm:text-lg">
+                              {feature.content}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </TabsContent>
+                ))}
+              </div>
             </div>
           </div>
         </Tabs>

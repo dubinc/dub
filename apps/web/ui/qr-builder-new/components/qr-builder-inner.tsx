@@ -242,17 +242,17 @@ export const QRBuilderInner = () => {
             <Drawer.Overlay className="fixed inset-0 z-[100] bg-white" />
            <Drawer.Content
              className={cn(
-               "fixed inset-0 z-[101] flex h-[100svh] flex-col",
+               "fixed inset-0 z-[101] flex h-[100svh] flex-col overflow-hidden",
                "bg-white",
              )}
            >
-             <div className="flex h-[100svh] flex-col">
+             <div className="flex h-full flex-col overflow-hidden">
                {/* Header with close button and stepper */}
                <div className="sticky top-0 z-10 flex-shrink-0 border-b bg-white p-3">
                  <QRBuilderSteps />
                </div>
 
-               <div className="flex-1 overflow-y-auto p-3 pb-20">
+               <div className="flex-1 overflow-y-auto p-3 pb-[72px]">
                  <Flex
                    direction="column-reverse"
                    gap="4"

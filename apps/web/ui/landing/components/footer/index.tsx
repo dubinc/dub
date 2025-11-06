@@ -7,9 +7,9 @@ import { Links } from "@/ui/landing/components/footer/components/links.tsx";
 import { Payments } from "@/ui/landing/components/footer/components/payments.tsx";
 import { SocialMedia } from "@/ui/landing/components/footer/components/social-media.tsx";
 import { USAFlag } from "@/ui/landing/components/footer/components/usa-flag.tsx";
-import { Logo } from "@/ui/shared/logo.tsx";
-import { GENERAL_LINKS, LEGAL_LINKS } from "constants/links";
 import { EQRType } from "@/ui/qr-builder-new/constants/get-qr-config.ts";
+import { Logo } from "@/ui/shared/logo.tsx";
+import { LEGAL_LINKS } from "constants/links";
 import { trackClientEvents } from "core/integration/analytic";
 import { EAnalyticEvents } from "core/integration/analytic/interfaces/analytic.interface";
 import Link from "next/link";
@@ -35,7 +35,11 @@ const COMPANY_LINKS = [
   { href: "/pricing", text: "Pricing", page_name_code: "pricing" },
   { href: "#reviews", text: "Reviews", page_name_code: "reviews" },
   { href: "/help", text: "Help Center", page_name_code: "help" },
-  { href: "/help/cancel-my-subscription", text: "How to Cancel", page_name_code: "how_to_cancel" },
+  {
+    href: "/help/cancel-my-subscription",
+    text: "How to Cancel",
+    page_name_code: "how_to_cancel",
+  },
 ];
 
 interface IFooterProps {
@@ -109,12 +113,13 @@ export const Footer: FC<Readonly<IFooterProps>> = ({
 
           <div className="text-xs text-neutral-500">
             <p className="flex items-center gap-2">
-              <span className="font-bold text-sm">Designed in USA</span>
+              <span className="text-sm font-bold">Designed in USA</span>
               <USAFlag className="h-5 w-5" />
             </p>
-            <p>
-              2093 Philadelphia Pike #3129, Claymont, DE 19703
-            </p>
+            <p>2093 Philadelphia Pike #3129, Claymont, DE 19703</p>
+          </div>
+          <div>
+            <CustomerSupport sessionId={sessionId} />
           </div>
         </div>
 
@@ -129,7 +134,7 @@ export const Footer: FC<Readonly<IFooterProps>> = ({
                   <li key={link.qrType}>
                     <button
                       onClick={() => handleProductClick(link.qrType)}
-                      className="text-left transition-colors hover:text-foreground"
+                      className="hover:text-foreground text-left transition-colors"
                     >
                       {link.text}
                     </button>
@@ -160,7 +165,7 @@ export const Footer: FC<Readonly<IFooterProps>> = ({
                           sessionId,
                         });
                       }}
-                      className="cursor-pointer text-left transition-colors hover:text-foreground"
+                      className="hover:text-foreground cursor-pointer text-left transition-colors"
                     >
                       {link.text}
                     </button>
@@ -187,7 +192,7 @@ export const Footer: FC<Readonly<IFooterProps>> = ({
                         onClick={() =>
                           handleCompanyLinkClick(link.href, link.page_name_code)
                         }
-                        className="cursor-pointer text-left transition-colors hover:text-foreground"
+                        className="hover:text-foreground cursor-pointer text-left transition-colors"
                       >
                         {link.text}
                       </button>
@@ -208,17 +213,14 @@ export const Footer: FC<Readonly<IFooterProps>> = ({
                             });
                           }
                         }}
-                        className="transition-colors hover:text-foreground"
+                        className="hover:text-foreground transition-colors"
                       >
                         {link.text}
                       </Link>
                     )}
                   </li>
                 ))}
-                <li>
-                  <CustomerSupport sessionId={sessionId} />
-                </li>
-            </ul>
+              </ul>
             </div>
           </div>
         </div>
@@ -227,7 +229,7 @@ export const Footer: FC<Readonly<IFooterProps>> = ({
       <Separator />
 
       {/* Bottom section with copyright and payments */}
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-2 sm:px-6 pb-0">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 py-2 pb-0 sm:px-6">
         <div className="flex items-center gap-4">
           <p className="text-sm text-neutral-600">
             © GetQR - {new Date().getFullYear()}. All rights reserved.
