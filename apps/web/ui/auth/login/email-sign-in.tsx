@@ -206,7 +206,7 @@ export const EmailSignIn: FC<Readonly<IEmailSignInProps>> = ({
               event: EAnalyticEvents.AUTH_ERROR,
               params: {
                 page_name: "landing",
-                auth_type: "login",
+                auth_type: "logsin",
                 auth_method: "email",
                 email: email,
                 event_category: "nonAuthorized",

@@ -61,7 +61,7 @@ export const changePreSignupEmailAction = actionClient
           extraKey: "qr-from-landing",
         });
       }
-      return { success: false, userToken: null, signupMethod, email, error: "email-exists" };
+      return { success: true, userToken: null, signupMethod, email, error: "email-exists" };
     }
 
     await updateUserCookieService({ email });
