@@ -4,7 +4,6 @@ import { ratelimit } from "@/lib/upstash";
 import { prisma } from "@dub/prisma";
 import { API_DOMAIN, getSearchParams } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { headers } from "next/headers";
 import {
   PermissionAction,
@@ -13,6 +12,7 @@ import {
 import { throwIfNoAccess } from "../api/tokens/permissions";
 import { Scope, mapScopesToPermissions } from "../api/tokens/scopes";
 import { normalizeWorkspaceId } from "../api/workspaces/workspace-id";
+import { withAxiom } from "../axiom/server";
 import { getFeatureFlags } from "../edge-config";
 import { logConversionEvent } from "../tinybird/log-conversion-events";
 import { hashToken } from "./hash-token";
@@ -64,7 +64,7 @@ export const withWorkspace = (
 ) => {
   return withAxiom(
     async (
-      req: AxiomRequest,
+      req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
@@ -412,8 +412,6 @@ export const withWorkspace = (
           permissions,
         });
       } catch (error) {
-        req.log.error(error);
-
         // Log the conversion events for debugging purposes
         waitUntil(
           (async () => {
@@ -431,9 +429,6 @@ export const withWorkspace = (
 
         return handleAndReturnErrorResponse(error, responseHeaders);
       }
-    },
-    {
-      logRequestDetails: ["body"],
     },
   );
 };

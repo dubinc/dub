@@ -1,9 +1,9 @@
 import { DubApiError, handleAndReturnErrorResponse } from "@/lib/api/errors";
+import { withAxiom } from "@/lib/axiom/server";
 import { PartnerProps } from "@/lib/types";
 import { prisma } from "@dub/prisma";
 import { getSearchParams } from "@dub/utils";
 import { PartnerUser } from "@prisma/client";
-import { AxiomRequest, withAxiom } from "next-axiom";
 import { Permission, throwIfNoPermission } from "./partner-user-permissions";
 import { Session, getSession } from "./utils";
 
@@ -37,7 +37,7 @@ export const withPartnerProfile = (
 ) => {
   return withAxiom(
     async (
-      req: AxiomRequest,
+      req,
       { params: initialParams }: { params: Promise<Record<string, string>> },
     ) => {
       const params = (await initialParams) || {};
@@ -124,12 +124,8 @@ export const withPartnerProfile = (
           },
         });
       } catch (error) {
-        req.log.error(error);
         return handleAndReturnErrorResponse(error);
       }
-    },
-    {
-      logRequestDetails: ["body"],
     },
   );
 };
