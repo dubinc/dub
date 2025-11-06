@@ -117,6 +117,7 @@ export const SignUpForm: FC<Readonly<ISignUpFormProps>> = ({
 
         if (error === "email-exists") {
           if (signupMethod !== "email") {
+            setSignupMethod(signupMethod!);
             return;
           }
           const response = await signIn("email", {
@@ -125,6 +126,7 @@ export const SignUpForm: FC<Readonly<ISignUpFormProps>> = ({
             callbackUrl: `/workspaces`,
           });
           if (response?.ok) {
+            setSignupMethod(signupMethod);
             showMessage(
               `You’re already registered. A login link has been emailed to you. After logging in, you’ll find your QR code waiting in your account`,
               "success",
