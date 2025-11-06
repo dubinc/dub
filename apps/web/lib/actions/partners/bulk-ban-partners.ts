@@ -86,6 +86,7 @@ export const bulkBanPartnersAction = authActionClient
           ...commonWhere,
         },
         data: {
+          disabledAt: new Date(),
           expiresAt: new Date(),
         },
       }),
@@ -107,6 +108,18 @@ export const bulkBanPartnersAction = authActionClient
         },
         data: {
           status: "canceled",
+        },
+      }),
+
+      prisma.bountySubmission.updateMany({
+        where: {
+          ...commonWhere,
+          status: {
+            not: "approved",
+          },
+        },
+        data: {
+          status: "rejected",
         },
       }),
 

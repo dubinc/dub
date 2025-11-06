@@ -20,7 +20,11 @@ export function renderCampaignEmailHTML({
         levels: [1, 2],
       },
     }),
-    Image,
+    Image.configure({
+      HTMLAttributes: {
+        style: "max-width: 100%; height: auto; margin: 12px auto;",
+      },
+    }),
     Mention.extend({
       renderHTML({ node }: { node: any }) {
         return [
@@ -84,7 +88,7 @@ const sanitizeHtmlBody = (body: string) => {
     ],
     allowedAttributes: {
       a: ["href", "name", "target", "rel"],
-      img: ["src", "alt", "title"],
+      img: ["src", "alt", "title", "style"],
       ul: ["style"],
       ol: ["style"],
       li: ["style"],
