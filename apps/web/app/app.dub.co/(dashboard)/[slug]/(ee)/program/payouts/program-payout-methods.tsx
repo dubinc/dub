@@ -2,13 +2,15 @@
 
 import { STRIPE_PAYMENT_METHODS } from "@/lib/stripe/payment-methods";
 import usePaymentMethods from "@/lib/swr/use-payment-methods";
+import useProgram from "@/lib/swr/use-program";
 import useWebhooks from "@/lib/swr/use-webhooks";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { Badge, Button } from "@dub/ui";
 import { MoneyBill, Webhook } from "@dub/ui/icons";
 import { capitalize } from "@dub/utils";
 import Link from "next/link";
-import { ComponentType, ReactNode, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { ComponentType, ReactNode, useMemo, useState } from "react";
 
 interface PayoutMethodCardProps {
   icon: ComponentType<{ className?: string }>;
@@ -22,25 +24,25 @@ interface PayoutMethodCardProps {
 }
 
 export function ProgramPayoutMethods() {
+  const router = useRouter();
   const { slug } = useWorkspace();
-  const { webhooks } = useWebhooks();
-
+  const { program } = useProgram();
   const { paymentMethods, loading: paymentMethodsLoading } =
     usePaymentMethods();
 
-  // Filter webhooks with payout.confirmed trigger
-  const externalPayoutWebhooks = useMemo(() => {
-    if (!webhooks) return [];
+  const [isLoading, setIsLoading] = useState(false);
+  const managePaymentMethods = async () => {
+    setIsLoading(true);
+    const { url } = await fetch(
+      `/api/workspaces/${slug}/billing/payment-methods`,
+      {
+        method: "POST",
+        body: JSON.stringify({}),
+      },
+    ).then((res) => res.json());
 
-    return webhooks.filter(
-      (webhook) =>
-        webhook.triggers &&
-        Array.isArray(webhook.triggers) &&
-        webhook.triggers.includes("payout.confirmed") &&
-        webhook.disabledAt === null &&
-        webhook.installationId === null,
-    );
-  }, [webhooks]);
+    router.push(url);
+  };
 
   // Only show the default payment method (ACH if configured, or card if not)
   const displayPaymentMethods = useMemo(() => {
@@ -101,13 +103,13 @@ export function ProgramPayoutMethods() {
             Your connected payout methods.
           </p>
         </div>
-        <Link href={`/${slug}/settings/billing`}>
-          <Button
-            variant="secondary"
-            text="Manage"
-            className="h-7 w-fit px-2.5 py-2"
-          />
-        </Link>
+        <Button
+          variant="secondary"
+          text="Manage"
+          className="h-7 w-fit px-2.5 py-2"
+          onClick={managePaymentMethods}
+          loading={isLoading}
+        />
       </div>
 
       <div className="space-y-2">
@@ -131,45 +133,19 @@ export function ProgramPayoutMethods() {
           ))
         ) : null}
 
-        {externalPayoutWebhooks.map((webhook) => (
-          <PayoutMethodCard
-            key={webhook.id}
-            icon={Webhook}
-            title={webhook.name}
-            description={webhook.url}
-            badge={{
-              label: "External",
-              variant: "violet",
-            }}
-            action={
-              <Link
-                href={`/${slug}/settings/webhooks/${webhook.id}`}
-                target="_blank"
-              >
-                <Button
-                  type="button"
-                  variant="secondary"
-                  text="View"
-                  className="h-7 w-fit px-2.5 py-2"
-                />
-              </Link>
-            }
-          />
-        ))}
+        {program?.payoutMode !== "internal" && <ExternalPayoutMethods />}
 
-        {!paymentMethodsLoading &&
-          displayPaymentMethods.length === 0 &&
-          externalPayoutWebhooks.length === 0 && (
-            <div className="flex flex-col items-center justify-center rounded-lg bg-neutral-50 py-6">
-              <MoneyBill className="mb-2 size-6 text-neutral-900" />
-              <h3 className="text-content-emphasis text-xs font-semibold leading-4">
-                No payout methods
-              </h3>
-              <p className="text-content-default text-xs font-medium leading-5">
-                A payout method is required to pay out your partners
-              </p>
-            </div>
-          )}
+        {!paymentMethodsLoading && displayPaymentMethods.length === 0 && (
+          <div className="flex flex-col items-center justify-center rounded-lg bg-neutral-50 py-6">
+            <MoneyBill className="mb-2 size-6 text-neutral-900" />
+            <h3 className="text-content-emphasis text-xs font-semibold leading-4">
+              No payout methods
+            </h3>
+            <p className="text-content-default text-xs font-medium leading-5">
+              A payout method is required to pay out your partners
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -206,4 +182,44 @@ function PayoutMethodCard({
       {action}
     </div>
   );
+}
+
+function ExternalPayoutMethods() {
+  const { slug } = useWorkspace();
+  const { webhooks } = useWebhooks();
+  // Filter webhooks with payout.confirmed trigger
+  const externalPayoutWebhooks = useMemo(() => {
+    if (!webhooks) return [];
+
+    return webhooks.filter(
+      (webhook) =>
+        webhook.triggers &&
+        Array.isArray(webhook.triggers) &&
+        webhook.triggers.includes("payout.confirmed") &&
+        webhook.disabledAt === null &&
+        webhook.installationId === null,
+    );
+  }, [webhooks]);
+  return externalPayoutWebhooks.map((webhook) => (
+    <PayoutMethodCard
+      key={webhook.id}
+      icon={Webhook}
+      title={webhook.name}
+      description={webhook.url}
+      badge={{
+        label: "External",
+        variant: "violet",
+      }}
+      action={
+        <Link href={`/${slug}/settings/webhooks/${webhook.id}`} target="_blank">
+          <Button
+            type="button"
+            variant="secondary"
+            text="View"
+            className="h-7 w-fit px-2.5 py-2"
+          />
+        </Link>
+      }
+    />
+  ));
 }

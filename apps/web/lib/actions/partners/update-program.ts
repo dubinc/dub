@@ -5,7 +5,6 @@ import { getDefaultProgramIdOrThrow } from "@/lib/api/programs/get-default-progr
 import { getPlanCapabilities } from "@/lib/plan-capabilities";
 import { isStored, storage } from "@/lib/storage";
 import { prisma } from "@dub/prisma";
-import { ProgramPayoutMode } from "@dub/prisma/client";
 import { nanoid, R2_URL } from "@dub/utils";
 import { waitUntil } from "@vercel/functions";
 import { revalidatePath } from "next/cache";
@@ -38,7 +37,6 @@ export const updateProgramAction = authActionClient
       holdingPeriodDays,
       minPayoutAmount,
       messagingEnabledAt,
-      payoutMode,
     } = parsedInput;
 
     const programId = getDefaultProgramIdOrThrow(workspace);
@@ -47,13 +45,6 @@ export const updateProgramAction = authActionClient
       workspaceId: workspace.id,
       programId,
     });
-
-    // External payout requirement checks
-    if (payoutMode && payoutMode !== ProgramPayoutMode.internal) {
-      if (program.externalPayoutsEnabledAt === null) {
-        throw new Error("External payout is not enabled for this program.");
-      }
-    }
 
     const [logoUrl, wordmarkUrl] = await Promise.all([
       logo && !isStored(logo)
@@ -92,7 +83,6 @@ export const updateProgramAction = authActionClient
         ...(messagingEnabledAt !== undefined &&
           (getPlanCapabilities(workspace.plan).canMessagePartners ||
             messagingEnabledAt === null) && { messagingEnabledAt }),
-        ...(payoutMode != null && { payoutMode }),
       },
     });
 

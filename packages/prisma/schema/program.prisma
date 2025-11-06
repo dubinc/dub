@@ -47,7 +47,6 @@ model Program {
   autoApprovePartnersEnabledAt DateTime?
   messagingEnabledAt           DateTime?
   partnerNetworkEnabledAt      DateTime?
-  externalPayoutsEnabledAt     DateTime?
   payoutMode                   ProgramPayoutMode @default(internal)
   createdAt                    DateTime          @default(now())
   updatedAt                    DateTime          @updatedAt

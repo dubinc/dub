@@ -22,7 +22,7 @@ export function ExternalPayoutsIndicator() {
         </div>
       }
     >
-      <CircleArrowRight className="size-3.5 text-neutral-500" />
+      <CircleArrowRight className="size-3.5 text-purple-800" />
     </Tooltip>
   );
 }
