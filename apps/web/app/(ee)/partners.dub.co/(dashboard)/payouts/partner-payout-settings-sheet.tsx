@@ -86,7 +86,6 @@ function PartnerPayoutSettingsSheetInner({
   setShowPartnerPayoutSettingsSheet,
 }: PartnerPayoutSettingsSheetProps) {
   const { partner } = usePartnerProfile();
-  const { externalPayoutEnrollments } = useExternalPayoutEnrollments();
 
   const {
     register,
@@ -147,17 +146,9 @@ function PartnerPayoutSettingsSheetInner({
           <div className="divide-y divide-neutral-200">
             {/* Connected payout account */}
             <div className="space-y-3 pb-6">
-              <div className="flex items-center justify-between gap-2">
-                <h4 className="text-base font-semibold leading-6 text-neutral-900">
-                  Connected payout account
-                </h4>
-                {externalPayoutEnrollments &&
-                  externalPayoutEnrollments.length > 0 && (
-                    <span className="rounded-md border border-neutral-200 bg-neutral-200 px-1 py-0.5 text-xs font-semibold text-neutral-700">
-                      For all other programs
-                    </span>
-                  )}
-              </div>
+              <h4 className="text-base font-semibold leading-6 text-neutral-900">
+                Connected payout account
+              </h4>
 
               {!partner?.payoutsEnabledAt ? (
                 <ConnectPayoutButton className="h-10 rounded-lg px-4 py-2" />
@@ -324,7 +315,14 @@ function ConnectedExternalAccounts() {
       </div>
 
       <p className="text-content-subtle text-xs font-normal leading-4">
-        Payout methods for these programs cannot be changed.
+        These programs manage payouts externally through their own systems.
+        <Link
+          href="https://dub.co/help/article/receiving-payouts"
+          target="_blank"
+          className="ml-1 underline underline-offset-2"
+        >
+          Learn more
+        </Link>
       </p>
     </div>
   );
