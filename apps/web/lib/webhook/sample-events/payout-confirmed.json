@@ -1,0 +1,22 @@
+{
+  "id": "po_1K869T6CWEH4NB78NS3QYHDJE",
+  "invoiceId": "inv_1K94KX5ZWHTWFG07NP96AY90F",
+  "amount": 5000,
+  "currency": "USD",
+  "status": "completed",
+  "description": "Dub Partners payout (Acme)",
+  "periodStart": "2025-10-22T15:49:33.343Z",
+  "periodEnd": "2025-10-31T18:29:59.999Z",
+  "createdAt": "2025-10-22T15:50:13.661Z",
+  "paidAt": null,
+  "mode": "external",
+  "partner": {
+    "id": "cm6v2l38p000zubyl5fly3i7w",
+    "name": "Matthew Hayden",
+    "email": "matthew@example.com",
+    "image": null,
+    "country": "US",
+    "tenantId": "64dc9a8c-5cf9-4446-b53b-cdc15199fafc",
+    "status": "approved"
+  }
+}

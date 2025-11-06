@@ -16,7 +16,7 @@ export default function usePayouts({
     workspaceId &&
       defaultProgramId &&
       `/api/programs/${defaultProgramId}/payouts?${new URLSearchParams({
-        workspaceId: workspaceId,
+        workspaceId,
         ...query,
       } as Record<string, any>).toString()}`,
     fetcher,

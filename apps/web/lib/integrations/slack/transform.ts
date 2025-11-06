@@ -11,6 +11,7 @@ import {
   LeadEventWebhookPayload,
   PartnerApplicationWebhookPayload,
   PartnerEventWebhookPayload,
+  PayoutEventWebhookPayload,
   SaleEventWebhookPayload,
 } from "../../webhook/types";
 
@@ -471,6 +472,67 @@ const bountyTemplates = ({
   };
 };
 
+const payoutConfirmedTemplate = ({
+  data,
+}: {
+  data: PayoutEventWebhookPayload;
+}) => {
+  const { id, amount, currency, partner, invoiceId } = data;
+  const formattedAmount = currencyFormatter(amount / 100, { currency });
+  const linkToPayout = `${APP_DOMAIN}/program/payouts?payoutId=${id}`;
+
+  return {
+    blocks: [
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: `*Payout confirmed* :money_with_wings:`,
+        },
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Partner*\n${partner.name}`,
+          },
+          {
+            type: "mrkdwn",
+            text: `*Email*\n<mailto:${partner.email}|${partner.email}>`,
+          },
+        ],
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: `*Amount*\n${formattedAmount}`,
+          },
+          ...(invoiceId
+            ? [
+                {
+                  type: "mrkdwn",
+                  text: `*Invoice ID*\n${invoiceId}`,
+                },
+              ]
+            : []),
+        ],
+      },
+      {
+        type: "context",
+        elements: [
+          {
+            type: "mrkdwn",
+            text: `Payout ID: ${id} | <${linkToPayout}|View on Dub>`,
+          },
+        ],
+      },
+    ],
+  };
+};
+
 const slackTemplates: Record<WebhookTrigger, any> = {
   "link.created": linkTemplates,
   "link.updated": linkTemplates,
@@ -483,6 +545,7 @@ const slackTemplates: Record<WebhookTrigger, any> = {
   "commission.created": commissionCreatedTemplate,
   "bounty.created": bountyTemplates,
   "bounty.updated": bountyTemplates,
+  "payout.confirmed": payoutConfirmedTemplate,
 };
 
 export const formatEventForSlack = (

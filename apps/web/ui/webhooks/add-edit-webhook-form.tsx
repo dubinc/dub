@@ -1,6 +1,7 @@
 "use client";
 
 import { clientAccessCheck } from "@/lib/api/tokens/permissions";
+import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { NewWebhook, WebhookProps } from "@/lib/types";
 import {
@@ -33,6 +34,7 @@ export default function AddEditWebhookForm({
   newSecret?: string;
 }) {
   const router = useRouter();
+  const { program } = useProgram();
   const [saving, setSaving] = useState(false);
   const {
     id: workspaceId,
@@ -119,10 +121,19 @@ export default function AddEditWebhookForm({
     triggers.includes(trigger),
   );
 
-  const availableWebhookTriggers = [
-    ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
-    ...(defaultProgramId ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS : []),
-  ];
+  const availableWebhookTriggers = useMemo(
+    () => [
+      ...WORKSPACE_LEVEL_WEBHOOK_TRIGGERS,
+      ...(defaultProgramId
+        ? PROGRAM_LEVEL_WEBHOOK_TRIGGERS.filter(
+            (trigger) =>
+              trigger !== "payout.confirmed" ||
+              program?.payoutMode !== "internal",
+          )
+        : []),
+    ],
+    [defaultProgramId, program?.payoutMode],
+  );
 
   return (
     <>

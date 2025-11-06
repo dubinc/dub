@@ -7,6 +7,7 @@ import {
   EventType,
   PartnerBannedReason,
   ProgramEnrollmentStatus,
+  ProgramPayoutMode,
 } from "@dub/prisma/client";
 import { COUNTRY_CODES } from "@dub/utils";
 import { z } from "zod";
@@ -35,6 +36,7 @@ export const ProgramSchema = z.object({
   autoApprovePartnersEnabledAt: z.date().nullish(),
   messagingEnabledAt: z.date().nullish(),
   partnerNetworkEnabledAt: z.date().nullish(),
+  payoutMode: z.nativeEnum(ProgramPayoutMode).default("internal"),
   rewards: z.array(RewardSchema).nullish(),
   discounts: z.array(DiscountSchema).nullish(),
   defaultFolderId: z.string(),
