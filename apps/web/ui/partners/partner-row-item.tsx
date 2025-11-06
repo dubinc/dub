@@ -19,8 +19,23 @@ interface PartnerRowItemProps {
 const PAYOUT_STATUS_CONFIG = {
   external: {
     title: "External payouts enabled",
-    description:
-      "This partner has external payouts enabled, which means they will be able to receive payouts from this program externally.",
+    description: (
+      <div className="text-sm text-neutral-700">
+        This program has external payouts enabled, which means partners will
+        receive payouts externally via the{" "}
+        <code className="rounded-md bg-neutral-100 px-1 py-0.5 font-mono">
+          payout.confirmed
+        </code>{" "}
+        <a
+          href="/settings/webhooks"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="cursor-alias underline decoration-dotted underline-offset-2"
+        >
+          webhook event.
+        </a>
+      </div>
+    ),
     icon: CircleArrowRight,
     iconClassName: "border-purple-300 bg-purple-200 text-purple-800",
     indicatorColor: "bg-purple-500",
@@ -28,7 +43,7 @@ const PAYOUT_STATUS_CONFIG = {
   enabled: {
     title: "Payouts enabled",
     description:
-      "This partner has payouts enabled, which means they will be able to receive payouts from this program",
+      "This partner has payouts enabled, which means they will be able to receive payouts from this program.",
     icon: GreekTemple,
     iconClassName: "border-green-300 bg-green-200 text-green-800",
     indicatorColor: "bg-green-500",
@@ -36,7 +51,7 @@ const PAYOUT_STATUS_CONFIG = {
   disabled: {
     title: "Payouts disabled",
     description:
-      "This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program",
+      "This partner does not have payouts enabled, which means they will not be able to receive any payouts from this program.",
     icon: CircleMinus,
     iconClassName: "border-red-300 bg-red-200 text-red-800",
     indicatorColor: "bg-red-500",

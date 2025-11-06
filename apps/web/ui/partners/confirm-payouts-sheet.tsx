@@ -51,6 +51,7 @@ import { toast } from "sonner";
 import Stripe from "stripe";
 import useSWR from "swr";
 import { UpgradeRequiredToast } from "../shared/upgrade-required-toast";
+import { ExternalPayoutsIndicator } from "./external-payouts-indicator";
 import { PartnerRowItem } from "./partner-row-item";
 
 type SelectPaymentMethod =
@@ -434,8 +435,15 @@ function ConfirmPayoutsSheetContent() {
                     <CircleArrowRight className="size-3.5 text-neutral-500" />
                   </div>
                 ),
-              tooltipContent:
-                "Payouts being made through external methods, but still processed through Dub.",
+              tooltipContent: (
+                <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
+                  Payouts that are processed externally via the{" "}
+                  <code className="rounded-md bg-neutral-100 px-1 py-0.5 font-mono">
+                    payout.confirmed
+                  </code>{" "}
+                  webhook event.
+                </div>
+              ),
             },
           ]
         : []),
@@ -548,9 +556,7 @@ function ConfirmPayoutsSheetContent() {
                 </div>
               )}
 
-              {isExternalPayout(row.original) && (
-                <CircleArrowRight className="size-3.5 text-neutral-500" />
-              )}
+              {isExternalPayout(row.original) && <ExternalPayoutsIndicator />}
             </div>
           </>
         ),
@@ -587,7 +593,7 @@ function ConfirmPayoutsSheetContent() {
     <div className="flex h-full flex-col">
       <div className="flex h-16 items-center justify-between border-b border-neutral-200 px-6 py-4">
         <Sheet.Title className="text-lg font-semibold">
-          Payout invoice
+          Confirm payouts
         </Sheet.Title>
         <Sheet.Close asChild>
           <Button

@@ -15,6 +15,7 @@ export function ProgramPayoutSettingsButton() {
         text="Payout settings"
         variant="secondary"
         onClick={() => setIsOpen(true)}
+        className="h-9 px-3"
       />
     </>
   );

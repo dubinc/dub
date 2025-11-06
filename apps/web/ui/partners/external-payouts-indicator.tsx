@@ -1,0 +1,28 @@
+import { CircleArrowRight, Tooltip } from "@dub/ui";
+import { useParams } from "next/navigation";
+
+export function ExternalPayoutsIndicator() {
+  const { slug } = useParams();
+  return (
+    <Tooltip
+      content={
+        <div className="max-w-xs px-4 py-2 text-center text-sm text-neutral-700">
+          This payout will be processed externally via the{" "}
+          <code className="rounded-md bg-neutral-100 px-1 py-0.5 font-mono">
+            payout.confirmed
+          </code>{" "}
+          <a
+            href={`/${slug}/settings/webhooks`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="cursor-alias underline decoration-dotted underline-offset-2"
+          >
+            webhook event.
+          </a>
+        </div>
+      }
+    >
+      <CircleArrowRight className="size-3.5 text-neutral-500" />
+    </Tooltip>
+  );
+}

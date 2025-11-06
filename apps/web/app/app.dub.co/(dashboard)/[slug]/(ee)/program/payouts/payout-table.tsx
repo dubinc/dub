@@ -4,6 +4,7 @@ import usePayoutsCount from "@/lib/swr/use-payouts-count";
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { PayoutResponse } from "@/lib/types";
+import { ExternalPayoutsIndicator } from "@/ui/partners/external-payouts-indicator";
 import { PartnerRowItem } from "@/ui/partners/partner-row-item";
 import { PayoutStatusBadges } from "@/ui/partners/payout-status-badges";
 import { AnimatedEmptyState } from "@/ui/shared/animated-empty-state";
@@ -20,8 +21,9 @@ import {
   useRouterStuff,
   useTable,
 } from "@dub/ui";
-import { CircleArrowRight, MoneyBill2 } from "@dub/ui/icons";
+import { MoneyBill2 } from "@dub/ui/icons";
 import {
+  cn,
   currencyFormatter,
   formatDate,
   formatDateTime,
@@ -326,25 +328,34 @@ function AmountRowItem({
       );
     }
 
-    if (payout.mode === "external" && !payout.partner?.tenantId) {
+    if (payout.mode === "external") {
       return (
-        <Tooltip
-          content={
-            <TooltipContent
-              title="Partner has external payouts enabled but no tenant ID. A tenant ID is required to process external payouts."
-              cta="Learn more"
-              href="https://dub.co/help/article/managing-program-partners#tenant-id"
-              target="_blank"
-            />
-          }
-        >
-          <div className="flex items-center gap-1.5">
-            <span className="cursor-help truncate text-neutral-400 underline decoration-dotted underline-offset-2">
+        <div className="flex items-center gap-1.5">
+          <DynamicTooltipWrapper
+            tooltipProps={{
+              content: payout.partner?.tenantId ? undefined : (
+                <TooltipContent
+                  title="This partner does not have a tenant ID, which is required to process external payouts."
+                  cta="Learn more"
+                  href="https://dub.co/help/article/managing-program-partners#tenant-id"
+                  target="_blank"
+                />
+              ),
+            }}
+          >
+            <span
+              className={cn(
+                "truncate",
+                payout.partner?.tenantId
+                  ? "text-neutral-700"
+                  : "text-neutral-400 underline decoration-dotted underline-offset-2",
+              )}
+            >
               {display}
             </span>
-            <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
-          </div>
-        </Tooltip>
+          </DynamicTooltipWrapper>
+          {payout.partner?.tenantId && <ExternalPayoutsIndicator />}
+        </div>
       );
     }
 
@@ -359,12 +370,5 @@ function AmountRowItem({
     }
   }
 
-  return (
-    <div className="flex items-center gap-1.5">
-      {display}
-      {payout.mode === "external" && (
-        <CircleArrowRight className="size-3.5 shrink-0 text-neutral-500" />
-      )}
-    </div>
-  );
+  return <div className="flex items-center gap-1.5">{display}</div>;
 }

@@ -3,7 +3,7 @@
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramProps } from "@/lib/types";
 import { ProgramPayoutMode } from "@dub/prisma/client";
-import { RadioGroup, RadioGroupItem } from "@dub/ui";
+import { Badge, RadioGroup, RadioGroupItem } from "@dub/ui";
 import Link from "next/link";
 import { UseFormSetValue, UseFormWatch } from "react-hook-form";
 
@@ -33,7 +33,7 @@ export function ProgramPayoutRouting({
     },
     {
       value: ProgramPayoutMode.hybrid,
-      label: "Dub and external",
+      label: "Dub and external (Hybird)",
       recommended: false,
       displayWebhookWarning: payoutMode === ProgramPayoutMode.hybrid,
       description: (
@@ -97,8 +97,11 @@ export function ProgramPayoutRouting({
                     <RadioGroupItem value={value} id={value} />
                   </div>
                   <div className="flex-1">
-                    <div className="text-content-emphasis cursor-pointer text-sm font-medium">
-                      {label} {recommended && "(Recommended)"}
+                    <div className="text-content-emphasis flex cursor-pointer items-center gap-1 text-sm font-medium">
+                      {label}{" "}
+                      {recommended && (
+                        <Badge variant="blueGradient">Recommended</Badge>
+                      )}
                     </div>
                     <p className="text-content-subtle mt-0.5 text-xs font-normal leading-4">
                       {description}
@@ -123,8 +126,10 @@ function WebhookWarning() {
     <div className="mt-2 rounded-md border border-amber-100 bg-amber-50 px-2 py-1.5">
       <p className="text-xs leading-4 text-amber-700">
         Ensure your webhooks are configured to listen to{" "}
-        <strong className="text-amber-800">payout.confirmed</strong> event on
-        platform side.{" "}
+        <strong className="rounded-md bg-amber-200 px-1 py-0.5 font-mono text-amber-800">
+          payout.confirmed
+        </strong>{" "}
+        event on platform side.{" "}
         <Link
           href={`/${slug}/settings/webhooks`}
           className="font-normal underline"
