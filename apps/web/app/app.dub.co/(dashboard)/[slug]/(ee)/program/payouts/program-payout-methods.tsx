@@ -187,6 +187,7 @@ function PayoutMethodCard({
 function ExternalPayoutMethods() {
   const { slug } = useWorkspace();
   const { webhooks } = useWebhooks();
+
   // Filter webhooks with payout.confirmed trigger
   const externalPayoutWebhooks = useMemo(() => {
     if (!webhooks) return [];
@@ -200,6 +201,7 @@ function ExternalPayoutMethods() {
         webhook.installationId === null,
     );
   }, [webhooks]);
+
   return externalPayoutWebhooks.map((webhook) => (
     <PayoutMethodCard
       key={webhook.id}

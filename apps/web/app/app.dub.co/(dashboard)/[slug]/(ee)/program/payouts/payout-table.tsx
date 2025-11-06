@@ -370,5 +370,5 @@ function AmountRowItem({
     }
   }
 
-  return <div className="flex items-center gap-1.5">{display}</div>;
+  return display;
 }

@@ -1,8 +1,13 @@
 import { CircleArrowRight, Tooltip } from "@dub/ui";
 import { useParams } from "next/navigation";
 
-export function ExternalPayoutsIndicator() {
+export function ExternalPayoutsIndicator({
+  side = "top",
+}: {
+  side?: "top" | "left";
+}) {
   const { slug } = useParams();
+
   return (
     <Tooltip
       content={
@@ -21,6 +26,7 @@ export function ExternalPayoutsIndicator() {
           </a>
         </div>
       }
+      side={side}
     >
       <CircleArrowRight className="size-3.5 text-purple-800" />
     </Tooltip>

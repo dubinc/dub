@@ -556,7 +556,9 @@ function ConfirmPayoutsSheetContent() {
                 </div>
               )}
 
-              {isExternalPayout(row.original) && <ExternalPayoutsIndicator />}
+              {isExternalPayout(row.original) && (
+                <ExternalPayoutsIndicator side="left" />
+              )}
             </div>
           </>
         ),

@@ -3,7 +3,7 @@
 import useProgram from "@/lib/swr/use-program";
 import useWorkspace from "@/lib/swr/use-workspace";
 import { ProgramPayoutMode } from "@dub/prisma/client";
-import { Webhook } from "@dub/ui";
+import { CircleDollarOut, Webhook } from "@dub/ui";
 import Link from "next/link";
 
 export function ProgramPayoutModeSection() {
@@ -13,29 +13,14 @@ export function ProgramPayoutModeSection() {
     {
       value: ProgramPayoutMode.hybrid,
       label: "Dub and external (Hybrid)",
-      description: (
-        <>
-          Partners with connected bank accounts are paid directly by Dub. All
-          other partners with tenant IDs configured receive payouts via the{" "}
-          <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-xs">
-            payout.confirmed
-          </code>{" "}
-          webhook event.
-        </>
-      ),
+      description:
+        "Partners with connected bank accounts are paid directly by Dub. Those linked by tenant ID receive payouts externally through the webhook.",
     },
     {
       value: ProgramPayoutMode.external,
       label: "External only",
-      description: (
-        <>
-          All payouts are processed through the{" "}
-          <code className="rounded-md bg-neutral-100 px-1.5 py-0.5 font-mono text-xs">
-            payout.confirmed
-          </code>{" "}
-          webhook event to your platform.
-        </>
-      ),
+      description:
+        "Every payout is processed externally through your platform's webhook integration. Dub does not handle any direct transfers.",
     },
   ];
 
@@ -49,19 +34,26 @@ export function ProgramPayoutModeSection() {
   }
 
   return (
-    <div className="rounded-lg border border-neutral-200 bg-white p-4">
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <span className="text-content-emphasis text-sm font-medium">
-            Payout mode: {selectedOption.label}
-          </span>
+    <div className="space-y-3">
+      <h4 className="text-base font-semibold leading-6 text-neutral-900">
+        Payout method
+      </h4>
+      <div className="rounded-lg border border-neutral-200 bg-white">
+        <div className="flex items-center gap-4 border-b border-neutral-200 p-3">
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-neutral-100">
+            <CircleDollarOut className="text-content-emphasis size-4" />
+          </div>
+          <h3 className="text-content-emphasis text-sm font-semibold leading-4">
+            {selectedOption.label}
+          </h3>
         </div>
 
-        <p className="text-content-subtle text-sm leading-5">
-          {selectedOption.description}
-        </p>
-
-        <WebhookInfo />
+        <div className="space-y-4 p-3">
+          <p className="text-content-subtle text-xs font-medium leading-4">
+            {selectedOption.description}
+          </p>
+          <WebhookInfo />
+        </div>
       </div>
     </div>
   );
@@ -73,15 +65,16 @@ function WebhookInfo() {
   return (
     <div className="flex items-start gap-2 rounded-md border border-amber-100 bg-amber-50 p-2.5">
       <Webhook className="mt-0.5 size-3.5 shrink-0 text-amber-600" />
-      <p className="text-content-subtle text-xs leading-4">
+      <p className="text-xs font-medium leading-4 text-amber-800">
         Ensure webhooks are configured to listen for the{" "}
-        <code className="rounded bg-amber-100 px-1 py-0.5 font-mono text-xs text-amber-900">
+        <code className="rounded bg-amber-200 px-1 py-0.5 font-mono text-xs text-amber-900">
           payout.confirmed
         </code>{" "}
         event.{" "}
         <Link
           href={`/${slug}/settings/webhooks`}
-          className="font-medium text-amber-700 underline underline-offset-2 hover:text-amber-800"
+          target="_blank"
+          className="font-medium underline underline-offset-2 hover:text-amber-800"
         >
           Manage webhooks
         </Link>
