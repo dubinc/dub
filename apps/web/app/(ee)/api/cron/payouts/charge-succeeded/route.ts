@@ -4,7 +4,7 @@ import { prisma } from "@dub/prisma";
 import { log } from "@dub/utils";
 import { z } from "zod";
 import { logAndRespond } from "../../utils";
-import { processExternalPayouts } from "./process-external-payouts";
+import { queueExternalPayouts } from "./queue-external-payouts";
 import { queueStripePayouts } from "./queue-stripe-payouts";
 import { sendPaypalPayouts } from "./send-paypal-payouts";
 
@@ -58,7 +58,7 @@ export async function POST(req: Request) {
         invoiceId,
       }),
       ...(invoice.payoutMode !== "internal"
-        ? [processExternalPayouts(invoice)]
+        ? [queueExternalPayouts(invoice)]
         : []),
     ]);
 
